@@ -87,7 +87,9 @@
       ],
       'sources': [
         '../include/dart_api.h',
+        '../include/dart_debugger_api.h',
         '../vm/dart_api_impl.cc',
+        '../vm/debugger_api_impl.cc',
       ],
     },
     {

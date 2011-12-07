@@ -131,6 +131,7 @@ Isolate* Isolate::Init() {
   result->set_main_port(PortMap::CreatePort());
 
   result->debugger_ = new Debugger();
+  result->debugger_->Initialize(result);
 
   return result;
 }

@@ -106,12 +106,16 @@ class Debugger {
   Debugger();
 
   void Initialize(Isolate* isolate);
+  bool IsActive();
 
   void SetBreakpointHandler(BreakpointHandler* handler);
 
+  RawFunction* ResolveFunction(const Library& library,
+                               const String& class_name,
+                               const String& function_name);
+
   // Set breakpoint at closest location to function entry.
-  void SetBreakpointAtEntry(const String& class_name,
-                            const String& function_name);
+  Breakpoint* SetBreakpointAtEntry(const Function& target_function);
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 

@@ -19,9 +19,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, debugger, false, "Debug breakpoint at main");
-DEFINE_FLAG(charp, bpt, NULL, "Debug breakpoint at <func>");
 
+DEFINE_FLAG(charp, bpt, NULL, "Debug breakpoint at <func>");
 
 
 Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
@@ -185,13 +184,22 @@ Debugger::Debugger()
 }
 
 
-static RawFunction* ResolveLibraryFunction(const String& fname) {
-  Isolate* isolate = Isolate::Current();
-  const Library& root_lib =
-      Library::Handle(isolate->object_store()->root_library());
-  ASSERT(!root_lib.IsNull());
+bool Debugger::IsActive() {
+  // TODO(hausner): The code generator uses this function to prevent
+  // generation of optimized code when Dart code is being debugged.
+  // This is probably not conservative enough (we could set the first
+  // breakpoint after optimized code has already been produced).
+  // Long-term, we need to be able to de-optimize code.
+  return breakpoints_ != NULL;
+}
+
+
+static RawFunction* ResolveLibraryFunction(
+                        const Library& library,
+                        const String& fname) {
+  ASSERT(!library.IsNull());
   Function& function = Function::Handle();
-  const Object& object = Object::Handle(root_lib.LookupObject(fname));
+  const Object& object = Object::Handle(library.LookupObject(fname));
   if (!object.IsNull() && object.IsFunction()) {
     function ^= object.raw();
   }
@@ -199,13 +207,16 @@ static RawFunction* ResolveLibraryFunction(const String& fname) {
 }
 
 
-static RawFunction* ResolveFunction(const String& class_name,
-                                    const String& function_name) {
-  Isolate* isolate = Isolate::Current();
-  const Library& root_lib =
-      Library::Handle(isolate->object_store()->root_library());
-  const Class& cls = Class::Handle(root_lib.LookupClass(class_name));
-
+RawFunction* Debugger::ResolveFunction(const Library& library,
+                                       const String& class_name,
+                                       const String& function_name) {
+  ASSERT(!library.IsNull());
+  ASSERT(!class_name.IsNull());
+  ASSERT(!function_name.IsNull());
+  if (class_name.Length() == 0) {
+    return ResolveLibraryFunction(library, function_name);
+  }
+  const Class& cls = Class::Handle(library.LookupClass(class_name));
   Function& function = Function::Handle();
   if (!cls.IsNull()) {
     function = cls.LookupStaticFunction(function_name);
@@ -217,22 +228,12 @@ static RawFunction* ResolveFunction(const String& class_name,
 }
 
 
-void Debugger::SetBreakpointAtEntry(const String& class_name,
-                                    const String& function_name) {
-  Function& func = Function::Handle();
-  if (class_name.IsNull() || (class_name.Length() == 0)) {
-    func = ResolveLibraryFunction(function_name);
-  } else {
-    func = ResolveFunction(class_name, function_name);
+Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function) {
+  ASSERT(!target_function.IsNull());
+  if (!target_function.HasCode()) {
+    Compiler::CompileFunction(target_function);
   }
-  if (func.IsNull()) {
-    OS::Print("could not find function '%s'\n", function_name.ToCString());
-    return;
-  }
-  if (!func.HasCode()) {
-    Compiler::CompileFunction(func);
-  }
-  Code& code = Code::Handle(func.code());
+  Code& code = Code::Handle(target_function.code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   for (int i = 0; i < desc.Length(); i++) {
@@ -241,12 +242,12 @@ void Debugger::SetBreakpointAtEntry(const String& class_name,
     if (kind == PcDescriptors::kIcCall) {
       CodePatcher::PatchInstanceCallAt(
           desc.PC(i), StubCode::BreakpointDynamicEntryPoint());
-      bpt = new Breakpoint(func, i);
+      bpt = new Breakpoint(target_function, i);
     } else if (kind == PcDescriptors::kOther) {
       if (CodePatcher::IsDartCall(desc.PC(i))) {
         CodePatcher::PatchStaticCallAt(
             desc.PC(i), StubCode::BreakpointStaticEntryPoint());
-        bpt = new Breakpoint(func, i);
+        bpt = new Breakpoint(target_function, i);
       }
     }
     if (bpt != NULL) {
@@ -255,11 +256,10 @@ void Debugger::SetBreakpointAtEntry(const String& class_name,
           bpt->LineNumber(),
           bpt->pc());
       AddBreakpoint(bpt);
-      return;
+      return bpt;
     }
   }
-  OS::Print("no breakpoint location found in function '%s'\n",
-         function_name.ToCString());
+  return NULL;
 }
 
 
@@ -320,24 +320,7 @@ void Debugger::Initialize(Isolate* isolate) {
     return;
   }
   initialized_ = true;
-  if (!FLAG_debugger) {
-    return;
-  }
-  if (FLAG_bpt == NULL) {
-    FLAG_bpt = "main";
-  }
-  String& cname = String::Handle();
-  String& fname = String::Handle();
-  const char* dot = strchr(FLAG_bpt, '.');
-  if (dot == NULL) {
-    fname = String::New(FLAG_bpt);
-  } else {
-    fname = String::New(dot + 1);
-    cname = String::New(reinterpret_cast<const uint8_t*>(FLAG_bpt),
-                        dot - FLAG_bpt);
-  }
   SetBreakpointHandler(DefaultBreakpointHandler);
-  SetBreakpointAtEntry(cname, fname);
 }
 
 

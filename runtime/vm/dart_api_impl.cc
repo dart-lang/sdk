@@ -11,7 +11,6 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
-#include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
@@ -53,9 +52,7 @@ const char* CanonicalFunction(const char* func) {
 
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
-static const char* CheckIsolateState(
-    Isolate* isolate,
-    bool generating_snapshot = ClassFinalizer::kNotGeneratingSnapshot) {
+const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
   bool success = (generating_snapshot) ?
       ClassFinalizer::FinalizePendingClassesForSnapshotCreation() :
       ClassFinalizer::FinalizePendingClasses();
@@ -78,7 +75,7 @@ static const char* CheckIsolateState(
 }
 
 
-static void SetupErrorResult(Dart_Handle* handle) {
+void SetupErrorResult(Dart_Handle* handle) {
   // Make a copy of the error message as the original message string
   // may get deallocated when we return back from the Dart API call.
   const String& error = String::Handle(
@@ -100,7 +97,6 @@ static void InvokeStatic(Isolate* isolate,
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    isolate->debugger()->Initialize(isolate);
     const Array& kNoArgumentNames = Array::Handle();
     const Instance& retval = Instance::Handle(
         DartEntry::InvokeStatic(function, args, kNoArgumentNames));

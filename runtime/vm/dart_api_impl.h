@@ -62,6 +62,13 @@ const char* CanonicalFunction(const char* func);
   Zone zone(__temp_isolate__);                                                \
   HANDLESCOPE(__temp_isolate__);
 
+
+const char* CheckIsolateState(Isolate *isolate,
+                              bool generating_snapshot = false);
+
+void SetupErrorResult(Dart_Handle* handle);
+
+
 class Api : AllStatic {
  public:
   // Creates a new local handle.
