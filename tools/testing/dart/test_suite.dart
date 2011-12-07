@@ -88,7 +88,7 @@ class CCTestSuite implements TestSuite {
       var args = [testName];
       args.addAll(TestUtils.standardOptions(configuration));
 
-      doTest(new TestCase(testName,
+      doTest(new TestCase('$suiteName/$testName',
                           runnerPath,
                           args,
                           configuration,
@@ -217,7 +217,7 @@ class StandardTestSuite implements TestSuite {
                                                 optionsFromFile,
                                                 enableFatalTypeErrors);
       for (var args in argumentLists) {
-        doTest(new TestCase(testName,
+        doTest(new TestCase('$suiteName/$testName',
                             shellPath(),
                             args,
                             configuration,
