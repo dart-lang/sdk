@@ -49,13 +49,44 @@ void main() {
   }
 }
 
-// TODO(nweiz): document this
+/**
+ * A class for computing a many-to-many mapping between the types and members in
+ * `dart:dom` and `dart:html`. This mapping is based on two indicators:
+ *
+ *   1. Auto-detected wrappers. Most `dart:html` types correspond
+ *      straightforwardly to a single `dart:dom` type, and have the same name.
+ *      In addition, most `dart:htmlimpl` methods just call a single `dart:dom`
+ *      method. This class detects these simple correspondences automatically.
+ *
+ *   2. Manual annotations. When it's not clear which `dart:dom` items a given
+ *      `dart:html` item corresponds to, the `dart:htmlimpl` item can be
+ *      annotated in the documentation comments using the `@domName` annotation.
+ *
+ * The `@domName` annotations for types and members are of the form `@domName
+ * NAME(, NAME)*`, where the `NAME`s refer to the `dart:dom` types/members that
+ * correspond to the annotated `dart:htmlimpl` type/member. `NAME`s on member
+ * annotations can refer to either fully-qualified member names (e.g.
+ * `Document.createElement`) or unqualified member names (e.g. `createElement`).
+ * Unqualified member names are assumed to refer to members of one of the
+ * corresponding `dart:dom` types.
+ */
 class HtmlDiff {
+  /** A map from `dart:dom` members to corresponding `dart:html` members. */
   final Map<Member, Set<Member>> domToHtml;
+
+  /** A map from `dart:html` members to corresponding `dart:dom` members. */
   final Map<Member, Set<Member>> htmlToDom;
+
+  /** A map from `dart:dom` types to corresponding `dart:html` types. */
   final Map<Type, Set<Type>> domTypesToHtml;
+
+  /** A map from `dart:html` types to corresponding `dart:dom` types. */
   final Map<Type, Set<Type>> htmlTypesToDom;
 
+  /**
+   * Perform static initialization of [world]. This should be run before
+   * calling [HtmlDiff.run].
+   */
   static void initialize() {
     world.processDartScript('dart:htmlimpl');
     world.resolveAll();
@@ -67,6 +98,12 @@ class HtmlDiff {
     domTypesToHtml = new Map<Type, Set<Type>>(),
     htmlTypesToDom = new Map<Type, Set<Type>>();
 
+  /**
+   * Computes the `dart:dom` to `dart:html` mapping, and places it in
+   * [domToHtml], [htmlToDom], [domTypesToHtml], and [htmlTypesToDom]. Before
+   * this is run, Frog should be initialized (via [parseOptions] and
+   * [initializeWorld]) and [HtmlDiff.initialize] should be called.
+   */
   void run() {
     final htmlLib = world.libraries['dart:htmlimpl'];
     for (var implType in htmlLib.types.getValues()) {
@@ -85,6 +122,13 @@ class HtmlDiff {
     }
   }
 
+  /**
+   * Returns whether or not [domMember] (from `dart:dom`) and [htmlMember] (from
+   * `dart:html`) have the same name from the user's perspective. The names are
+   * the same if the type names and the member names are the same, but allowance
+   * is made for `dart:dom` names that start with "HTML" or "WebKit", and for
+   * `dart:html` properties that have the same name as fields in `dart:dom`.
+   */
   bool sameName(Member domMember, Member htmlMember) {
     var domTypeName = domMember.declaringType.name;
     if (domTypeName == 'DOMWindow') domTypeName = 'Window';
@@ -100,6 +144,11 @@ class HtmlDiff {
     return domTypeName == htmlTypeName && domName == htmlName;
   }
 
+  /**
+   * Records the `dart:dom` to `dart:html` mapping for [implMember] (from
+   * `dart:htmlimpl`). [domTypes] are the `dart:dom` [Type]s that correspond to
+   * [implMember]'s defining [Type].
+   */
   void _addMemberDiff(Member implMember, List<Type> domTypes) {
     if (implMember.isProperty) {
       if (implMember.canGet) _addMemberDiff(implMember.getter, domTypes);
@@ -119,6 +168,10 @@ class HtmlDiff {
         domToHtml.putIfAbsent(m, () => new Set()).add(htmlMember));
   }
 
+  /**
+   * Returns the `dart:html` [Type] that corresponds to [implType] from
+   * `dart:htmlimpl`, or `null` if there is no such correspondence.
+   */
   Type htmlImplToHtmlType(Type implType) {
     if (implType == null || implType.isTop || implType.interfaces.isEmpty() ||
         implType.interfaces[0].library.name != 'html') {
@@ -128,6 +181,10 @@ class HtmlDiff {
     return implType.interfaces[0];
   }
 
+  /**
+   * Returns the `dart:html` [Member] that corresponds to [implMember] from
+   * `dart:htmlimpl`, or `null` if there is no such correspondence.
+   */
   Member htmlImplToHtmlMember(Member implMember) {
     var htmlType = htmlImplToHtmlType(implMember.declaringType);
     if (htmlType == null) return null;
@@ -153,6 +210,10 @@ class HtmlDiff {
     }
   }
 
+  /**
+   * Returns the `dart:dom` [Type]s that correspond to [htmlType] from
+   * `dart:htmlimpl`. This can be the empty list if no correspondence is found.
+   */
   List<Type> htmlToDomTypes(Type htmlType) {
     if (htmlType.name == null) return [];
     final tags = _getTags(findComment(htmlType.span));
@@ -184,6 +245,12 @@ class HtmlDiff {
     }
   }
 
+  /**
+   * Returns the `dart:dom` [Member]s that correspond to [htmlMember] from
+   * `dart:htmlimpl`. This can be the empty set if no correspondence is found.
+   * [domTypes] are the `dart:dom` [Type]s that correspond to [implMember]'s
+   * defining [Type].
+   */
   Set<Member> htmlToDomMembers(Member htmlMember, List<Type> domTypes) {
     if (htmlMember.isPrivate || htmlMember is! MethodMember) return new Set();
     final tags = _getTags(findComment(htmlMember.span));
@@ -223,6 +290,13 @@ class HtmlDiff {
     return _getDomMembers(htmlMember.definition.body, domTypes);
   }
 
+  /**
+   * Returns the `dart:dom` [Member]s that are indicated by [name]. [name] can
+   * be either an unqualified member name (e.g. `createElement`), in which case
+   * it's treated as the name of a member of one of [defaultTypes], or a
+   * fully-qualified member name (e.g. `Document.createElement`), in which case
+   * it's looked up in `dart:dom` and [defaultTypes] is ignored.
+   */
   Set<Member> _membersFromName(String name, List<Type> defaultTypes) {
     if (!name.contains('.', 0)) {
       if (defaultTypes.isEmpty()) {
@@ -250,6 +324,14 @@ class HtmlDiff {
     return new Set.from([member]);
   }
 
+  /**
+   * Returns the `dart:dom` [Member]s that are referred to in [stmt]. This only
+   * extracts references from relatively simple statements; methods containing
+   * more complex wrappers should be manually annotated with `@domName`.
+   *
+   * [domTypes] are the `dart:dom` [Type]s that correspond to the current
+   * [Member]'s defining [Type].
+   */
   Set<Member> _getDomMembers(Statement stmt, List<Type> domTypes) {
     if (stmt is BlockStatement) {
       final body = stmt.body.filter((s) => !_ignorableStatement(s));
@@ -271,9 +353,9 @@ class HtmlDiff {
   }
 
   /**
-   * Whether a statement can be ignored for the purpose of determining the DOM
-   * name of the enclosing method. The Webkit-to-Dart conversion process leaves
-   * behind various throws and returns that we want to ignore.
+   * Whether [stmt] can be ignored for the purpose of determining the DOM name
+   * of the enclosing method. The Webkit-to-Dart conversion process leaves
+   * behind various `throw`s and `return`s that we want to ignore.
    */
   bool _ignorableStatement(Statement stmt) {
     if (stmt is BlockStatement) {
@@ -290,6 +372,14 @@ class HtmlDiff {
     }
   }
 
+  /**
+   * Returns the `dart:dom` [Member]s that are referred to in [expr]. This only
+   * extracts references from relatively simple expressions; methods containing
+   * more complex wrappers should be manually annotated with `@domName`.
+   *
+   * [domTypes] are the `dart:dom` [Type]s that correspond to the current
+   * [Member]'s defining [Type].
+   */
   Set<Member> _domMembersFromExpression(Expression expr, List<Type> domTypes) {
     if (expr is BinaryExpression && expr.op.kind == TokenKind.ASSIGN) {
       return _domMembersFromExpression(expr.x, domTypes);
@@ -321,6 +411,14 @@ class HtmlDiff {
     }
   }
 
+  /**
+   * Extracts a [Map] from tag names to values from [comment], which is parsed
+   * from a Dart source file via dartdoc. Tags are of the form `@NAME VALUE`,
+   * where `NAME` is alphabetic and `VALUE` can contain any character other than
+   * `;`. Multiple tags can be separated by semicolons.
+   *
+   * At time of writing, the only tag that's used is `@domName`.
+   */
   Map<String, String> _getTags(String comment) {
     if (comment == null) return const <String>{};
     final re = new RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)");

@@ -38,8 +38,10 @@ void main() {
   doc.document('html');
 }
 
-// TODO(nweiz): document this file
-
+/**
+ * Returns a Markdown-formatted link to [member], relative to a type page that
+ * may be in a different library than [member].
+ */
 String _linkMember(Member member) {
   final typeName = member.declaringType.name;
   var memberName = "$typeName.${member.name}";
@@ -53,11 +55,17 @@ String _linkMember(Member member) {
   return "[$memberName](../${doc.memberUrl(member)})";
 }
 
+/**
+ * Returns a Markdown-formatted link to [type], relative to a type page that
+ * may be in a different library than [type].
+ */
 String _linkType(Type type) => "[${type.name}](../${doc.typeUrl(type)})";
 
 /**
  * Unify getters and setters of the same property. We only want to print
  * explicit setters if no getter exists.
+ *
+ * If [members] contains no setters, returns it unmodified.
  */
 Set<Member> _unifyProperties(Set<Member> members) {
   // Only print setters if the getter doesn't exist.
@@ -68,6 +76,11 @@ Set<Member> _unifyProperties(Set<Member> members) {
   });
 }
 
+/**
+ * Returns additional Markdown-formatted documentation for [member], linking it
+ * to the corresponding `dart:html` or `dart:dom` [Member](s). If [member] is
+ * not in `dart:html` or `dart:dom`, returns no additional documentation.
+ */
 String addMemberDoc(Member member) {
   if (_diff.domToHtml.containsKey(member)) {
     final htmlMemberSet = _unifyProperties(_diff.domToHtml[member]);
@@ -88,6 +101,11 @@ String addMemberDoc(Member member) {
   }
 }
 
+/**
+ * Returns additional Markdown-formatted documentation for [type], linking it to
+ * the corresponding `dart:html` or `dart:dom` [Type](s). If [type] is not in
+ * `dart:html` or `dart:dom`, returns no additional documentation.
+ */
 String addTypeDoc(Type type) {
   if (_diff.domTypesToHtml.containsKey(type)) {
     var htmlTypes = doc.joinWithCommas(
