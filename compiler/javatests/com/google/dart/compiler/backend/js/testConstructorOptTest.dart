@@ -26,6 +26,9 @@ class DDD {
   int x;
   int z;
   DDD(this.x, [this.z = 123]);
+  void foo() {
+    new DDD(1);
+  }
 }
 
 main() {

@@ -45,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Base class for static type analysis tests.
  */
-public class TypeAnalyzerTestCase extends TypeTestCase {
+public abstract class TypeAnalyzerTestCase extends TypeTestCase {
   private class MockCoreTypeProvider implements CoreTypeProvider {
     private final Type voidType = Types.newVoidType();
     private final DynamicType dynamicType = Types.newDynamicType();
@@ -363,12 +363,5 @@ public class TypeAnalyzerTestCase extends TypeTestCase {
 
   private Type typeOf(String expression) {
     return analyzeNode(parseExpression(expression));
-  }
-
-  /**
-   * This is dummy test method, I have to add it because in other case JUnit (at least in Eclipse)
-   * complains that this test suite has to test methods.
-   */
-  public void testDummy() throws Exception {
   }
 }

@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
  * passing. This will show up as a test failure because the status file has wrong information.
  * Please update the status file.
  */
-public class SharedTestCase extends TestCase {
+public abstract class SharedTestCase extends TestCase {
   private static final Pattern SEPARATOR = Pattern.compile("\\t");
 
   private final Set<String> outcomes;
@@ -290,6 +290,6 @@ public class SharedTestCase extends TestCase {
     boolean isNegative = fields[2].equals("True");
     String[] arguments = new String[fields.length - 3];
     System.arraycopy(fields, 3, arguments, 0, arguments.length);
-    return new SharedTestCase(name, outcomes, isNegative, regularCompile, arguments);
+    return new SharedTestCase(name, outcomes, isNegative, regularCompile, arguments) {};
   }
 }

@@ -43,8 +43,7 @@ public class JsConstructorOptTest extends ExprOptTest {
 
       String[] bodyLines = getFunctionBody("AAA$$Factory", classAAA);
 
-      assertTrue(bodyLines.length > 0);
-      assertEquals(bodyLines.length, 7);
+      assertEquals(8, bodyLines.length);
 
       String tmp_init_a = bodyLines[0].trim();
       assertEquals("var init$a$field = a;", tmp_init_a);
@@ -58,11 +57,13 @@ public class JsConstructorOptTest extends ExprOptTest {
       String tmp_init_d = bodyLines[3].trim();
       assertEquals("var init$d$field = $Dart$Null;", tmp_init_d);
 
-      String newCall = replaceTemps(bodyLines[4].trim());
+      String newCall = getLine(bodyLines, 4);
       assertEquals("var tmp = new Test_app4a54ba$AAA$Dart(init$a$field, init$b$field, "
           + "init$c$field, init$d$field);", newCall);
 
-      String ctorCall = replaceTemps(bodyLines[5].trim());
+      assertTrue(bodyLines[5].indexOf("$lookupRTT()") != -1);
+
+      String ctorCall = getLine(bodyLines, 6);
       assertTrue(ctorCall.indexOf("$Constructor.call") != -1);
     }
 
@@ -82,19 +83,20 @@ public class JsConstructorOptTest extends ExprOptTest {
     {
       String[] bodyLines = getFunctionBody("BBB$$Factory", classBBB);
 
-      assertTrue(bodyLines.length > 0);
-      assertEquals(bodyLines.length, 4);
+      assertEquals(5, bodyLines.length);
 
-      String line1 = replaceTemps(bodyLines[0].trim());
+      String line1 = getLine(bodyLines, 0);
       assertEquals("var tmp = new Test_app4a54ba$BBB$Dart;", line1);
 
-      String initCall = replaceTemps(bodyLines[1].trim());
+      assertTrue(bodyLines[1].indexOf("$lookupRTT()") != -1);
+
+      String initCall = getLine(bodyLines, 2);
       assertTrue(initCall.indexOf("$Initializer.call") != -1);
 
-      String ctorCall = replaceTemps(bodyLines[2].trim());
+      String ctorCall = getLine(bodyLines, 3);
       assertTrue(ctorCall.indexOf("$Constructor.call") != -1);
 
-      String returnStmt = replaceTemps(bodyLines[3].trim());
+      String returnStmt = getLine(bodyLines, 4);
       assertEquals("return tmp;", returnStmt);
     }
 
@@ -102,43 +104,49 @@ public class JsConstructorOptTest extends ExprOptTest {
     {
       String[] bodyLines = getFunctionBody("CCC$$Factory", classCCC);
 
-      assertTrue(bodyLines.length > 0);
-      assertEquals(bodyLines.length, 4);
+      assertEquals(5, bodyLines.length);
 
-      String line1 = replaceTemps(bodyLines[0].trim());
+      String line1 = getLine(bodyLines, 0);
       assertEquals("var tmp = new Test_app4a54ba$CCC$Dart;", line1);
 
-      String initCall = replaceTemps(bodyLines[1].trim());
+      assertTrue(bodyLines[1].indexOf("$lookupRTT()") != -1);
+
+      String initCall = getLine(bodyLines, 2);
       assertTrue(initCall.indexOf("$Initializer.call") != -1);
 
-      String ctorCall = replaceTemps(bodyLines[2].trim());
+      String ctorCall = getLine(bodyLines, 3);
       assertTrue(ctorCall.indexOf("$Constructor.call") != -1);
 
-      String returnStmt = replaceTemps(bodyLines[3].trim());
+      String returnStmt = getLine(bodyLines, 4);
       assertEquals("return tmp;", returnStmt);
     }
 
     // class DDD {
     // int x;
     // int z;
-    // DDD(this.x, this.z = 123);
+    // DDD(this.x, [this.z = 123]);
     // }
     {
       String classDDD = compileSingleUnit(getName(), "DDD");
-      String[] bodyLines = getFunctionBody("DDD$$Factory", classDDD);
-
-      assertTrue(bodyLines.length > 0);
-      assertEquals(bodyLines.length, 8);
-      assertEquals("switch (arguments.length) {", replaceTemps(bodyLines[0].trim()));
-      assertEquals("case 1:", replaceTemps(bodyLines[1].trim()));
-      assertEquals("z = 123;", replaceTemps(bodyLines[2].trim()));
-      assertEquals("}", replaceTemps(bodyLines[3].trim()));
-      assertEquals("var tmp = new Test_app4a54ba$DDD$Dart;", replaceTemps(bodyLines[4].trim()));
-      assertEquals("Test_app4a54ba$DDD$Dart.$Initializer.call(tmp, x, z);",
-                   replaceTemps(bodyLines[5].trim()));
-      assertEquals("Test_app4a54ba$DDD$Dart.$Constructor.call(tmp, x, z);",
-                   replaceTemps(bodyLines[6].trim()));
-      assertEquals("return tmp;", replaceTemps(bodyLines[7].trim()));
+      {
+        String[] bodyLines = getFunctionBody("DDD$$Factory", classDDD);
+        assertEquals(5, bodyLines.length);
+        assertEquals("var tmp = new Test_app4a54ba$DDD$Dart;", getLine(bodyLines, 0));
+        assertEquals("tmp.$typeInfo = Test_app4a54ba$DDD$Dart.$lookupRTT();", getLine(bodyLines, 1));
+        assertEquals("Test_app4a54ba$DDD$Dart.$Initializer.call(tmp, x, z);", getLine(bodyLines, 2));
+        assertEquals("Test_app4a54ba$DDD$Dart.$Constructor.call(tmp, x, z);", getLine(bodyLines, 3));
+        assertEquals("return tmp;", getLine(bodyLines, 4));
+      }
+      {
+        String[] bodyLines =
+            getFunctionBody("Test_app4a54ba$DDD$Dart.prototype.foo$member", classDDD);
+        assertEquals(1, bodyLines.length);
+        assertEquals("Test_app4a54ba$DDD$Dart.DDD$$Factory(1, 123);", getLine(bodyLines, 0));
+      }
     }
+  }
+
+  private static String getLine(String[]lines, int index) {
+    return replaceTemps(lines[index].trim());
   }
 }

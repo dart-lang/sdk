@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Tests for binary expression optimizations.
  */
-public class SnippetTestCase extends CompilerTestCase {
+public abstract class SnippetTestCase extends CompilerTestCase {
 
   private static final String MARKER = "_marker_";
 
@@ -123,7 +123,7 @@ public class SnippetTestCase extends CompilerTestCase {
     return null;
   }
 
-  protected String replaceTemps(String js) {
+  protected static String replaceTemps(String js) {
     return Strings.isNullOrEmpty(js) ? "" : js.replaceAll("tmp\\$[0-9]+", "tmp");
   }
 
