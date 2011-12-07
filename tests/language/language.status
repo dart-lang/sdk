@@ -255,17 +255,13 @@ Library1NegativeTest: Fail # issue with test see #354
 Library4NegativeTest: Fail # issue with test see #354
 Library5NegativeTest: Fail # issue with test see #354
 Library6NegativeTest: Fail # issue with test see #354
-ListLiteral1NegativeTest: Fail # Issue 220
-ListLiteral2NegativeTest: Fail # Issue 220
-ListLiteral3Test: Fail # Issue 220
-ListLiteral4Test: Fail # Issue 220
+ListLiteral3Test: Fail # vm and frog throw different exceptions
+ListLiteral4Test: Fail # missing type checks on index operations
 ListTest: Fail         # array bound checks not implemented
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
-MapLiteral1NegativeTest: Fail # Issue 221
-MapLiteral2NegativeTest: Fail # Issue 221
-MapLiteral4Test: Fail # Issue 221
+MapLiteral4Test: Fail # missing checks on map index operations
 MathTest: Fail
 MethodBindingTest: Fail
 MethodOverrideTest: Fail

@@ -9,7 +9,7 @@ class EventsImplementation implements Events {
   Map<String, EventListenerList> _listenerMap;
 
   EventsImplementation._wrap(this._ptr) {
-    _listenerMap = <String, EventListenerList>{};
+    _listenerMap = <EventListenerList>{};
   }
 
   EventListenerList operator [](String type) {
