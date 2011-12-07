@@ -197,15 +197,15 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
 }
 
 String CreateMultitestDirectory(String buildDir, String testDir) {
-  final String generatedTestDirectory = 'generated_tests/';
+  final String generatedTestDirectory = 'generated_tests';
   Directory parentDir = new Directory(buildDir + generatedTestDirectory);
   if (!parentDir.existsSync()) {
     parentDir.createSync();
   }
-  var split = testDir.split(new Platform().pathSeparator());
+  var split = testDir.split('/');
   var lastComponent = split.removeLast();
   Expect.isTrue(lastComponent == 'src');
-  String path = parentDir.path + split.last();
+  String path = '${parentDir.path}/${split.last()}';
   Directory dir = new Directory(path);
   if (!dir.existsSync()) {
     dir.createSync();
