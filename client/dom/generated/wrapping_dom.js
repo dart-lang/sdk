@@ -7382,6 +7382,22 @@ function native__Float32ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Float32ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float32ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Float32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -7401,6 +7417,22 @@ function native__Float32ArrayWrappingImplementation__subarray_2(_this, start, en
 function native__Float64ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float64ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float64ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16542,6 +16574,22 @@ function native__Int16ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Int16ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int16ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Int16ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -16566,6 +16614,22 @@ function native__Int32ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Int32ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int32ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Int32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -16585,6 +16649,22 @@ function native__Int32ArrayWrappingImplementation__subarray_2(_this, start, end)
 function native__Int8ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int8ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int8ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30070,6 +30150,22 @@ function native__Uint16ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Uint16ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint16ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Uint16ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -30094,6 +30190,22 @@ function native__Uint32ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Uint32ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint32ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Uint32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -30113,6 +30225,22 @@ function native__Uint32ArrayWrappingImplementation__subarray_2(_this, start, end
 function native__Uint8ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -33496,6 +33624,71 @@ function native__FileReaderFactoryProvider_create() {
     throw __dom_wrap_exception(e);
   }
 }
+
+function native__TypedArrayFactoryProvider__F32(arg) {
+  try {
+    return __dom_wrap(new Float32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__F64(arg) {
+  try {
+    return __dom_wrap(new Float64Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I8(arg) {
+  try {
+    return __dom_wrap(new Int8Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I16(arg) {
+  try {
+    return __dom_wrap(new Int16Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I32(arg) {
+  try {
+    return __dom_wrap(new Int32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U8(arg) {
+  try {
+    return __dom_wrap(new Uint8Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U16(arg) {
+  try {
+    return __dom_wrap(new Uint16Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U32(arg) {
+  try {
+    return __dom_wrap(new Uint32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 
 function native__WebKitCSSMatrixFactoryProvider_create(spec) {
   try {
