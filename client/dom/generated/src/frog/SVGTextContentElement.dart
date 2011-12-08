@@ -1,5 +1,5 @@
 
-class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
+class SVGTextContentElement extends SVGElement native "SVGTextContentElement" {
 
   static final int LENGTHADJUST_SPACING = 1;
 

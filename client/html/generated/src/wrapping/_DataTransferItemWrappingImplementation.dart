@@ -16,7 +16,7 @@ class DataTransferItemWrappingImplementation extends DOMWrapperBase implements D
   }
 
   void getAsString(StringCallback callback) {
-    _ptr.getAsString(LevelDom.unwrap(callback));
+    _ptr.getAsString(callback);
     return;
   }
 }

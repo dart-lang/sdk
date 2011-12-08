@@ -6,11 +6,15 @@ class _FileInputStream implements FileInputStream {
   _FileInputStream(File file) {
     _file = new File(file.name);
     _file.openSync();
+    _length = _file.lengthSync();
+    _checkScheduleCallbacks();
   }
 
   List<int> read([int len]) {
+    if (_closed) return null;
     int bytesToRead = available();
     if (bytesToRead == 0) {
+      _checkScheduleCallbacks();
       return null;
     }
     if (len !== null) {
@@ -36,34 +40,79 @@ class _FileInputStream implements FileInputStream {
     if (len === null) len = buffer.length;
     if (offset < 0) throw new StreamException("Illegal offset $offset");
     if (len < 0) throw new StreamException("Illegal length $len");
-    return _file.readListSync(buffer, offset, len);
+    int result = _file.readListSync(buffer, offset, len);
+    _checkScheduleCallbacks();
+    return result;
   }
 
   int available() {
-    return _file.lengthSync() - _file.positionSync();
+    return _length - _file.positionSync();
   }
 
-  bool closed() {
-    _file.positionSync() == _file.lengthSync();
-  }
+  bool closed() => _eof;
 
   void close() {
     _file.closeSync();
+    _closed = true;
   }
 
   void set dataHandler(void callback()) {
-    // TODO(sgjesse): How to handle this?
+    _clientDataHandler = callback;
+    _checkScheduleCallbacks();
   }
 
   void set closeHandler(void callback()) {
-    // TODO(sgjesse): How to handle this?
+    _clientCloseHandler = callback;
   }
 
   void set errorHandler(void callback()) {
     // TODO(sgjesse): How to handle this?
   }
 
+  void _checkScheduleCallbacks() {
+    // TODO(sgjesse): Find a better way of scheduling callbacks from
+    // the event loop.
+    void issueDataCallback(Timer timer) {
+      _scheduledDataCallback = null;
+      if (_clientDataHandler !== null) {
+        _clientDataHandler();
+        _checkScheduleCallbacks();
+      }
+    }
+
+    void issueCloseCallback(Timer timer) {
+      _scheduledCloseCallback = null;
+      if (!_closed) {
+        if (_clientCloseHandler !== null) _clientCloseHandler();
+        _closed = true;
+      }
+    }
+
+    // Schedule data callback if there is more data to read. Schedule
+    // close callback once when all data has been read. Only schedule
+    // a new callback if the previous one has actually been called.
+    if (!_closed) {
+      if (available() > 0) {
+        if (_scheduledDataCallback == null) {
+          _scheduledDataCallback = new Timer(issueDataCallback, 0, false);
+        }
+      } else if (!_eof) {
+        if (_scheduledCloseCallback == null) {
+          _scheduledCloseCallback = new Timer(issueCloseCallback, 0, false);
+          _eof = true;
+        }
+      }
+    }
+  }
+
   File _file;
+  int _length;
+  bool _eof = false;
+  bool _closed = false;
+  Timer _scheduledDataCallback;
+  Timer _scheduledCloseCallback;
+  var _clientDataHandler;
+  var _clientCloseHandler;
 }
 
 

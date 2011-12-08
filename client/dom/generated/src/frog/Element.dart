@@ -1,5 +1,7 @@
 
-class Element extends Node native "*Element" {
+class Element extends Node native "Element" {
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
 
   int childElementCount;
 
@@ -94,4 +96,6 @@ class Element extends Node native "*Element" {
   Attr setAttributeNodeNS(Attr newAttr) native;
 
   bool webkitMatchesSelector(String selectors) native;
+
+  void webkitRequestFullScreen(int flags) native;
 }

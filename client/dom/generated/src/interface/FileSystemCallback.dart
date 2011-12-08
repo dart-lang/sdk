@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileSystemCallback {
-
-  bool handleEvent(DOMFileSystem fileSystem);
-}
+typedef bool FileSystemCallback(DOMFileSystem fileSystem);

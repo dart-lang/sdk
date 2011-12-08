@@ -1,5 +1,5 @@
 
-class CharacterData extends Node native "*CharacterData" {
+class CharacterData extends Node native "CharacterData" {
 
   String data;
 

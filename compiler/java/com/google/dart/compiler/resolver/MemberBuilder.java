@@ -36,13 +36,14 @@ public class MemberBuilder {
   private LibraryElement libraryElement;
 
   public void exec(DartUnit unit, DartCompilerContext context, CoreTypeProvider typeProvider) {
-    libraryElement = unit.getLibrary().getElement();
-    exec(unit, context, libraryElement.getScope(), typeProvider);
+    Scope scope = unit.getLibrary().getElement().getScope();
+    exec(unit, context, scope, typeProvider);
   }
 
   @VisibleForTesting
   public void exec(DartUnit unit, DartCompilerContext compilerContext, Scope scope,
                    CoreTypeProvider typeProvider) {
+    libraryElement = unit.getLibrary().getElement();
     topLevelContext = new ResolutionContext(scope, compilerContext, typeProvider);
     unit.accept(new MemberElementBuilder(typeProvider));
   }

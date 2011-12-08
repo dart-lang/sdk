@@ -9,30 +9,6 @@ class FileReaderWrappingImplementation extends DOMWrapperBase implements FileRea
 
   FileError get error() { return LevelDom.wrapFileError(_ptr.error); }
 
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onload() { return LevelDom.wrapEventListener(_ptr.onload); }
-
-  void set onload(EventListener value) { _ptr.onload = LevelDom.unwrap(value); }
-
-  EventListener get onloadend() { return LevelDom.wrapEventListener(_ptr.onloadend); }
-
-  void set onloadend(EventListener value) { _ptr.onloadend = LevelDom.unwrap(value); }
-
-  EventListener get onloadstart() { return LevelDom.wrapEventListener(_ptr.onloadstart); }
-
-  void set onloadstart(EventListener value) { _ptr.onloadstart = LevelDom.unwrap(value); }
-
-  EventListener get onprogress() { return LevelDom.wrapEventListener(_ptr.onprogress); }
-
-  void set onprogress(EventListener value) { _ptr.onprogress = LevelDom.unwrap(value); }
-
   int get readyState() { return _ptr.readyState; }
 
   String get result() { return _ptr.result; }
@@ -57,7 +33,7 @@ class FileReaderWrappingImplementation extends DOMWrapperBase implements FileRea
     return;
   }
 
-  void readAsText(Blob blob, [String encoding = null]) {
+  void readAsText(Blob blob, [String encoding]) {
     if (encoding === null) {
       _ptr.readAsText(LevelDom.unwrap(blob));
       return;

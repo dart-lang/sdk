@@ -8,12 +8,13 @@
 #import("status_expression.dart");
 
 // Possible outcomes of running a test.
-final CRASH = "Crash";
-final TIMEOUT = "Timeout";
-final FAIL = "Fail";
-final PASS = "Pass";
+final CRASH = "crash";
+final TIMEOUT = "timeout";
+final FAIL = "fail";
+final PASS = "pass";
 // An indication to skip the test.  The caller is responsible for skipping it.
-final SKIP = "Skip";
+final SKIP = "skip";
+final OK = "ok";
 
 final RegExp StripComment = const RegExp("^[^#]*");
 final RegExp HeaderPattern = const RegExp(@"^\[([^\]]+)\]");
@@ -41,7 +42,7 @@ String getFilename(String path) =>
 
 String getDirname(String path) =>
     new Directory(path).existsSync() ? path : '../$path';
- 
+
 void ReadTestExpectationsInto(TestExpectations expectations,
                               String statusFilePath,
                               environment) {
@@ -67,7 +68,7 @@ void ReadConfigurationInto(path, sections) {
   sections.add(current);
   String prefix = "";
 
-  String line;  
+  String line;
   while ((line = lines.readLine()) != null) {
     Match match = StripComment.firstMatch(line);
     line = (match == null) ? "" : match[0];

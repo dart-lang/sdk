@@ -17,7 +17,7 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
 
   String get name() { return _ptr.name; }
 
-  void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (name === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -33,10 +33,10 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
         }
       } else {
         if (errorCallback === null) {
-          _ptr.copyTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback));
+          _ptr.copyTo(LevelDom.unwrap(parent), name, successCallback);
           return;
         } else {
-          _ptr.copyTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.copyTo(LevelDom.unwrap(parent), name, successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -44,7 +44,7 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
     throw "Incorrect number or type of arguments";
   }
 
-  void getMetadata([MetadataCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getMetadata([MetadataCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.getMetadata();
@@ -52,17 +52,17 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
       }
     } else {
       if (errorCallback === null) {
-        _ptr.getMetadata(LevelDom.unwrap(successCallback));
+        _ptr.getMetadata(successCallback);
         return;
       } else {
-        _ptr.getMetadata(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        _ptr.getMetadata(successCallback, LevelDom.unwrap(errorCallback));
         return;
       }
     }
     throw "Incorrect number or type of arguments";
   }
 
-  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.getParent();
@@ -70,17 +70,17 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
       }
     } else {
       if (errorCallback === null) {
-        _ptr.getParent(LevelDom.unwrap(successCallback));
+        _ptr.getParent(successCallback);
         return;
       } else {
-        _ptr.getParent(LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+        _ptr.getParent(successCallback, LevelDom.unwrap(errorCallback));
         return;
       }
     }
     throw "Incorrect number or type of arguments";
   }
 
-  void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void moveTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (name === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -96,10 +96,10 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
         }
       } else {
         if (errorCallback === null) {
-          _ptr.moveTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback));
+          _ptr.moveTo(LevelDom.unwrap(parent), name, successCallback);
           return;
         } else {
-          _ptr.moveTo(LevelDom.unwrap(parent), name, LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.moveTo(LevelDom.unwrap(parent), name, successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -107,7 +107,7 @@ class EntryWrappingImplementation extends DOMWrapperBase implements Entry {
     throw "Incorrect number or type of arguments";
   }
 
-  void remove([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void remove([VoidCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.remove();

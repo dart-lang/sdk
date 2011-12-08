@@ -61,3 +61,6 @@ third_party/gsutil/*/gsutilc
 
 # Generated test files.
 /generated_tests/
+
+# Local GDB files.
+.gdb_history

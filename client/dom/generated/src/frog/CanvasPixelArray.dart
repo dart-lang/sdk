@@ -5,7 +5,7 @@ class CanvasPixelArray native "*CanvasPixelArray" {
 
   int operator[](int index) native;
 
-  int item(int index) native;
+  void operator[]=(int index, int value) native;
 
   var dartObjectLocalStorage;
 

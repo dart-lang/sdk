@@ -93,7 +93,7 @@ typedef unsigned __int64 uint64_t;
  * the lifetime of the current isolate unless they are explicitly
  * deallocated (see Dart_DeletePersistentHandle).
  */
-typedef void* Dart_Handle;
+typedef struct _Dart_Handle* Dart_Handle;
 
 /**
  * Is this an error handle?
@@ -226,38 +226,44 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
 // --- Initialization and Globals ---
 
 /**
- * An isolate initialization callback function.
+ * An isolate creation and initialization callback function.
  *
- * This callback, provided by the embedder, is called during isolate
- * creation. It is called for all isolates, regardless of whether they
- * are created via Dart_CreateIsolate or directly from Dart code.
+ * This callback, provided by the embedder, is called when an isolate needs
+ * to be created. The callback should create an isolate and load the
+ * required scripts for execution.
  *
- * \param data Embedder-specific data used during isolate initialization.
+ * \param error A structure into which the embedder can place a
+ *   C string containing an error message in the case of failures.
  *
- * \return If the embedder returns NULL, then the isolate being
- *   initialized will be shut down without executing any Dart code.
- *   Otherwise, the embedder should return a pointer to
- *   embedder-specific data created during the initialization of this
- *   isolate. This data will, in turn, be passed by the VM to all
- *   isolates spawned from the isolate currently being initialized.
+ * \return the embedder returns false if the creation and initialization was not
+ *   successful and true if successful. The embedder is responsible for
+ *   maintaining consistency in the case of errors (e.g: isolate is created,
+ *   but loading of scripts fails then the embedder should ensure that
+ *   Dart_ShutdownIsolate is called on the isolate).
+ *   In the case of errors the caller is responsible for freeing the buffer
+ *   returned in error containing an error string.
  */
-typedef void* (*Dart_IsolateInitCallback)(void* embedder_data);
-// TODO(iposva): Pass a specification of the app file being spawned.
-// TODO(turnidge): We don't actually shut down the isolate on NULL yet.
-// TODO(turnidge): Should we separate the two return values?
+typedef bool (*Dart_IsolateCreateCallback)(void* callback_data, char** error);
 
 /**
- * Initializes the VM with the given commmand line flags.
+ * Initializes the VM.
  *
- * \param argc The length of the arguments array.
- * \param argv An array of arguments.
  * \param callback A function to be called during isolate creation.
- *   See Dart_IsolateInitCallback.
+ *   See Dart_IsolateCreateCallback.
  *
  * \return True if initialization is successful.
  */
-DART_EXPORT bool Dart_Initialize(int argc, const char** argv,
-                                 Dart_IsolateInitCallback callback);
+DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback callback);
+
+/**
+ * Sets command line flags. Should be called before Dart_Initialize.
+ *
+ * \param argc The length of the arguments array.
+ * \param argv An array of arguments.
+ *
+ * \return True if VM flags set successfully.
+ */
+DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv);
 
 /**
  * Returns true if the named VM flag is set.
@@ -278,31 +284,26 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * isolate in order to function without error. The current isolate is
  * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
  */
-typedef void* Dart_Isolate;
+typedef struct _Dart_Isolate* Dart_Isolate;
 
 /**
- * A buffer containing a snapshot of the Dart VM. A snapshot can be
- * used to restore the VM quickly to a saved state and is useful for
- * fast startup.
- */
-typedef void Dart_Snapshot;
-
-/**
- * Creates a new isolate. If snapshot data is provided, the isolate
- * will be started using that snapshot data. The new isolate becomes
- * the current isolate.
+ * Creates a new isolate. The new isolate becomes the current isolate.
+ *
+ * A snapshot can be used to restore the VM quickly to a saved state
+ * and is useful for fast startup. If snapshot data is provided, the
+ * isolate will be started using that snapshot data.
  *
  * Requires there to be no current isolate.
  *
  * \param snapshot A buffer containing a VM snapshot or NULL if no
  *   snapshot is provided.
- * \param data Embedder-specific data. See Dart_IsolateInitCallback.
  *
  * \return The new isolate is returned. May be NULL if an error
  *   occurs duing isolate initialization.
  */
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
-                                            void* data);
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
+                                            void* callback_data,
+                                            char** error);
 // TODO(turnidge): Document behavior when there is already a current
 // isolate.
 
@@ -343,19 +344,53 @@ DART_EXPORT void Dart_ExitIsolate();
 // "pure" dart isolate. Implement and document.
 
 /**
- * Creates a snapshot of the state of the current isolate.
+ * Creates a full snapshot of the current isolate heap.
+ *
+ * A full snapshot is a compact representation of the dart heap state and
+ * can be used for fast initialization of an isolate. A Snapshot of the heap
+ * can only be created before any dart code has executed.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param buffer Returns a pointer to a buffer containing the
+ *   snapshot. This buffer is scope allocated and is only valid
+ *   until the next call to Dart_ExitScope.
+ * \param size Returns the size of the buffer.
+ *
+ * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snaphot_buffer,
-                                            intptr_t* snapshot_size);
-// TODO(turnidge): Does this include the current script or only libs?
-// is it possible to take a snapshot and load more scripts into it?
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
+                                            intptr_t* size);
+
+/**
+ * Creates a snapshot of the specified application script.
+ *
+ * A script snapshot can be used for implementing fast startup of applications
+ * (skips the script tokenizing and parsing process). A Snapshot of the script
+ * can only be created before any dart code has executed.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \param library An application script for which a snapshot is to be
+ *  created.
+ * \param buffer Returns a pointer to a buffer containing
+ *   the snapshot. This buffer is scope allocated and is only valid
+ *   until the next call to Dart_ExitScope.
+ * \param size Returns the size of the buffer.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
+                                                  uint8_t** buffer,
+                                                  intptr_t* size);
+
 
 // --- Messages and Ports ---
 
 /**
  * Messages are used to communicate between isolates.
  */
-typedef void* Dart_Message;
+typedef struct _Dart_Message* Dart_Message;
 
 /**
  * A port is used to send or receive inter-isolate messages
@@ -789,16 +824,64 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
 
 typedef void (*Dart_PeerFinalizer)(void* peer);
 
+/**
+ * Is this object an external String?
+ *
+ * An external String is a String which references a fixed array of
+ * codepoints which is external to the Dart heap.
+ */
+DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
+
+/**
+ * Retrieves the peer pointer associated with an external String.
+ */
+DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
+                                                   void** peer);
+
+
+/**
+ * Returns a String which references an external array of 8-bit codepoints.
+ *
+ * \param value An array of 8-bit codepoints.  This array must not move.
+ * \param length The length of the codepoints array.
+ * \param peer An external pointer to associate with this string.
+ * \param callback A callback to be called when this string is finalized.
+ *
+ * \return The String object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
                                                 intptr_t length,
                                                 void* peer,
                                                 Dart_PeerFinalizer callback);
 
+/**
+ * Returns a String which references an external array of 16-bit codepoints.
+ *
+ * \param value An array of 16-bit codepoints.  This array must not move.
+ * \param length The length of the codepoints array.
+ * \param peer An external pointer to associate with this string.
+ * \param callback A callback to be called when this string is finalized.
+ *
+ * \return The String object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
                                                  intptr_t length,
                                                  void* peer,
                                                  Dart_PeerFinalizer callback);
 
+/**
+ * Returns a String which references an external array of 32-bit codepoints.
+ *
+ * \param value An array of 32-bit codepoints.  This array must not move.
+ * \param length The length of the codepoints array.
+ * \param peer An external pointer to associate with this string.
+ * \param callback A callback to be called when this string is finalized.
+ *
+ * \return The String object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
 DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
                                                  intptr_t length,
                                                  void* peer,
@@ -1112,7 +1195,7 @@ DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
  * native function by index. It also allows the return value of a
  * native function to be set.
  */
-typedef void* Dart_NativeArguments;
+typedef struct _Dart_NativeArguments* Dart_NativeArguments;
 
 /**
  * Gets the native argument at some index.
@@ -1175,6 +1258,16 @@ typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         Dart_LibraryTagHandler handler);
+
+/**
+ * Loads the root script for current isolate from a snapshot.
+ *
+ * \param buffer A buffer which contains a snapshot of the script.
+ *
+ * \return If no error occurs, the Library object corresponding to the root
+ *   script is returned. Otherwise an error handle is returned.
+ **/
+DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer);
 
 /**
  * Forces all loaded classes and functions to be compiled eagerly in

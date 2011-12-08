@@ -18,7 +18,7 @@ class Dom {
 
   /** Adds the given <style> text to the page. */
   static void addStyle(String cssText) {
-    StyleElement style = document.createElement('style');
+    StyleElement style = new Element.tag('style');
     style.type = 'text/css';
     style.text = cssText;
     document.head.nodes.add(style);

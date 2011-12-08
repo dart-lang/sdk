@@ -13,7 +13,7 @@ interface DocumentEvents extends ElementEvents {
 interface Document extends Element /*, common.NodeSelector */ {
 
   // TODO(jacobr): remove.
-  Event createEvent([String eventType]);
+  Event createEvent(String eventType);
 
   Element get activeElement();
 
@@ -60,9 +60,6 @@ interface Document extends Element /*, common.NodeSelector */ {
   String get webkitVisibilityState();
 
   Future<Range> caretRangeFromPoint([int x, int y]);
-
-  // TODO(jacobr): remove.
-  Element createElement([String tagName]);
 
   Future<Element> elementFromPoint([int x, int y]);
 

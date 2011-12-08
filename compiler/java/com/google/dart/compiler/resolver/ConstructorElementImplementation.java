@@ -10,6 +10,7 @@ import com.google.dart.compiler.ast.Modifiers;
 class ConstructorElementImplementation extends MethodElementImplementation
     implements ConstructorElement {
   private final ClassElement constructorType;
+  private ConstructorElement defaultConstructor;
 
   private ConstructorElementImplementation(DartMethodDefinition node,
                              String name,
@@ -38,6 +39,16 @@ class ConstructorElementImplementation extends MethodElementImplementation
   @Override
   public boolean isConstructor() {
     return true;
+  }
+
+  @Override
+  public ConstructorElement getDefaultConstructor() {
+    return defaultConstructor;
+  }
+
+  @Override
+  public void setDefaultConstructor(ConstructorElement defaultConstructor) {
+    this.defaultConstructor = defaultConstructor;
   }
 
   public static ConstructorElementImplementation fromMethodNode(DartMethodDefinition node,

@@ -20,26 +20,11 @@
           'msvs_cygwin_dirs': ['<(cygwin_dir)'],
         }],
       ],
-      'sources': [
-        'builtin.dart',
-        'buffer_list.dart',
-        'directory.dart',
-        'directory_impl.dart',
-        'eventhandler.dart',
-        'file.dart',
-        'file_impl.dart',
-        'input_stream.dart',
-        'output_stream.dart',
-        'string_stream.dart',
-        'platform.dart',
-        'platform_impl.dart',
-        'process.dart',
-        'process_impl.dart',
-        'socket.dart',
-        'socket_impl.dart',
-        'socket_stream.dart',
-        'timer.dart',
-        'timer_impl.dart',
+      'includes': [
+        'builtin_sources.gypi',
+      ],
+      'sources/': [
+        ['exclude', '\\.(cc|h)$'],
       ],
       'actions': [
         {
@@ -73,49 +58,14 @@
         '..',
       ],
       'sources': [
-        'builtin.cc',
+        'builtin_natives.cc',
         'builtin.h',
-        'dartutils.h',
-        'dartutils.cc',
-        'directory.h',
-        'directory.cc',
-        'directory_posix.cc',
-        'directory_win.cc',
-        'eventhandler.cc',
-        'eventhandler.h',
-        'eventhandler_linux.cc',
-        'eventhandler_linux.h',
-        'eventhandler_macos.cc',
-        'eventhandler_macos.h',
-        'eventhandler_win.cc',
-        'eventhandler_win.h',
-        'file.cc',
-        'file.h',
-        'file_linux.cc',
-        'file_macos.cc',
-        'file_win.cc',
-        'fdutils.h',
-        'fdutils_linux.cc',
-        'fdutils_macos.cc',
-        'globals.h',
-        'platform.cc',
-        'platform.h',
-        'platform_linux.cc',
-        'platform_macos.cc',
-        'platform_win.cc',
-        'process.cc',
-        'process.h',
-        'process_linux.cc',
-        'process_macos.cc',
-        'process_win.cc',
-        'socket.cc',
-        'socket.h',
-        'socket_linux.cc',
-        'socket_macos.cc',
-        'socket_win.cc',
-        'set.h',
-        # Include generated source files.
-        '<(builtin_cc_file)',
+      ],
+      'includes': [
+        'builtin_sources.gypi',
+      ],
+      'sources/': [
+        ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
         ['OS=="win"', {'sources/' : [
@@ -124,33 +74,30 @@
       ],
     },
     {
-      # Completely statically linked dart binary.
-      'target_name': 'dart_no_snapshot',
-      'type': 'executable',
+      'target_name': 'libdart_withcore',
+      'type': 'static_library',
       'dependencies': [
-        'libdart',
-        'libdart_builtin',
+        'libdart_lib_withcore',
+        'libdart_vm',
+        'libjscre',
+        'libdouble_conversion',
       ],
       'include_dirs': [
         '..',
       ],
       'sources': [
-        'main.cc',
-        'snapshot_empty.cc',
+        '../include/dart_api.h',
+        '../include/dart_debugger_api.h',
+        '../vm/dart_api_impl.cc',
+        '../vm/debugger_api_impl.cc',
       ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
-          },
-       }]],
     },
     {
       # Completely statically linked binary for generating snapshots.
       'target_name': 'gen_snapshot',
       'type': 'executable',
       'dependencies': [
-        'libdart',
+        'libdart_withcore',
         'libdart_builtin',
       ],
       'include_dirs': [
@@ -158,6 +105,9 @@
       ],
       'sources': [
         'gen_snapshot.cc',
+        'builtin.cc',
+        # Include generated source files.
+        '<(builtin_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -202,6 +152,7 @@
       ]
     },
     {
+      # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
@@ -214,7 +165,33 @@
       ],
       'sources': [
         'main.cc',
+        'builtin_nolib.cc',
         '<(snapshot_cc_file)',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'link_settings': {
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],
+          },
+       }]],
+    },
+    {
+      # dart binary without any snapshot built in.
+      'target_name': 'dart_no_snapshot',
+      'type': 'executable',
+      'dependencies': [
+        'libdart_withcore',
+        'libdart_builtin',
+      ],
+      'include_dirs': [
+        '..',
+      ],
+      'sources': [
+        'main.cc',
+        'builtin.cc',
+        # Include generated source files.
+        '<(builtin_cc_file)',
+        'snapshot_empty.cc',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -234,7 +211,8 @@
       'target_name': 'run_vm_tests',
       'type': 'executable',
       'dependencies': [
-        'libdart',
+        'libdart_withcore',
+        'libdart_builtin',
         'generate_snapshot_test_dat_file',
       ],
       'include_dirs': [
@@ -243,48 +221,9 @@
       ],
       'sources': [
         'run_vm_tests.cc',
-        'dartutils.h',
-        'dartutils.cc',
-        'directory.h',
-        'directory.cc',
-        'directory_posix.cc',
-        'directory_win.cc',
-        'eventhandler.cc',
-        'eventhandler.h',
-        'eventhandler_linux.cc',
-        'eventhandler_linux.h',
-        'eventhandler_macos.cc',
-        'eventhandler_macos.h',
-        'eventhandler_win.cc',
-        'eventhandler_win.h',
-        'file.cc',
-        'file.h',
-        'file_test.cc',
-        'file_linux.cc',
-        'file_macos.cc',
-        'file_win.cc',
-        'fdutils.h',
-        'fdutils_linux.cc',
-        'fdutils_macos.cc',
-        'platform.cc',
-        'platform.h',
-        'platform_linux.cc',
-        'platform_macos.cc',
-        'platform_win.cc',
-        'process.cc',
-        'process.h',
-        'process_linux.cc',
-        'process_macos.cc',
-        'process_win.cc',
-        'socket.cc',
-        'socket.h',
-        'socket_linux.cc',
-        'socket_macos.cc',
-        'socket_win.cc',
-        'set.h',
-        'set_test.cc',
       ],
       'includes': [
+        'builtin_sources.gypi',
         '../vm/vm_sources.gypi',
       ],
       'defines': [
@@ -295,56 +234,8 @@
         ['exclude', '\\.(cc|h)$'],
         ['include', '_test\\.(cc|h)$'],
         ['include', 'run_vm_tests.cc'],
-        ['include', 'dart_api_impl.cc'],
-        ['include', 'dartutils.h'],
-        ['include', 'dartutils.cc'],
-        ['include', 'directory.h'],
-        ['include', 'directory.cc'],
-        ['include', 'eventhandler.cc'],
-        ['include', 'eventhandler.h'],
-        ['include', 'file.cc'],
-        ['include', 'file.h'],
-        ['include', 'file_test.cc'],
-        ['include', 'platform.cc'],
-        ['include', 'platform.h'],
-        ['include', 'process.cc'],
-        ['include', 'process.h'],
-        ['include', 'socket.cc'],
-        ['include', 'socket.h'],
-        ['include', 'set_test.cc'],
       ],
       'conditions': [
-        ['OS=="linux"', {'sources/' : [
-          ['include', 'directory_posix.cc'],
-          ['include', 'eventhandler_linux.cc'],
-          ['include', 'eventhandler_linux.h'],
-          ['include', 'fdutils.h'],
-          ['include', 'fdutils_linux.cc'],
-          ['include', 'file_linux.cc'],
-          ['include', 'platform_linux.cc'],
-          ['include', 'process_linux.cc'],
-          ['include', 'socket_linux.cc'],
-        ]}],
-        ['OS=="mac"', {'sources/' : [
-          ['include', 'directory_posix.cc'],
-          ['include', 'eventhandler_macos.cc'],
-          ['include', 'eventhandler_macos.h'],
-          ['include', 'fdutils.h'],
-          ['include', 'fdutils_macos.cc'],
-          ['include', 'file_macos.cc'],
-          ['include', 'platform_macos.cc'],
-          ['include', 'process_macos.cc'],
-          ['include', 'socket_macos.cc'],
-        ]}],
-        ['OS=="win"', {'sources/' : [
-          ['include', 'directory_win.cc'],
-          ['include', 'eventhandler_win.cc'],
-          ['include', 'eventhandler_win.h'],
-          ['include', 'file_win.cc'],
-          ['include', 'platform_win.cc'],
-          ['include', 'process_win.cc'],
-          ['include', 'socket_win.cc'],
-        ]}],
         ['OS=="win"', {
           'link_settings': {
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib' ],

@@ -5,6 +5,7 @@
 #include "vm/dart.h"
 
 #include "vm/code_index_table.h"
+#include "vm/freelist.h"
 #include "vm/flags.h"
 #include "vm/handles.h"
 #include "vm/heap.h"
@@ -23,20 +24,20 @@ namespace dart {
 Isolate* Dart::vm_isolate_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
-bool Dart::InitOnce(int argc, const char** argv,
-                    Dart_IsolateInitCallback callback) {
+bool Dart::InitOnce(Dart_IsolateCreateCallback callback) {
   // TODO(iposva): Fix race condition here.
-  if (vm_isolate_ != NULL) {
+  if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return false;
   }
   OS::InitOnce();
-  Flags::ProcessCommandLineFlags(argc, argv);
   VirtualMemory::InitOnce();
   Isolate::InitOnce();
   PortMap::InitOnce();
+  FreeListElement::InitOnce();
   // Create the VM isolate and finish the VM initialization.
   {
     ASSERT(vm_isolate_ == NULL);
+    ASSERT(Flags::Initialized());
     vm_isolate_ = Isolate::Init();
     Zone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
@@ -47,20 +48,20 @@ bool Dart::InitOnce(int argc, const char** argv,
     Scanner::InitOnce();
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
-  Isolate::SetInitCallback(callback);
+  Isolate::SetCreateCallback(callback);
   return true;
 }
 
 
 Isolate* Dart::CreateIsolate() {
-  // Create and initialize a new isolate.
+  // Create a new isolate.
   Isolate* isolate = Isolate::Init();
   ASSERT(isolate != NULL);
   return isolate;
 }
 
 
-void Dart::InitializeIsolate(const Dart_Snapshot* snapshot_buffer, void* data) {
+void Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -84,11 +85,6 @@ void Dart::InitializeIsolate(const Dart_Snapshot* snapshot_buffer, void* data) {
 
   StubCode::Init(isolate);
   CodeIndexTable::Init(isolate);
-
-  // Give the embedder a shot at setting up this isolate.
-  // Isolates spawned from within this isolate will be given the
-  // callback data returned by the callback.
-  data = Isolate::InitCallback()(data);
   isolate->set_init_callback_data(data);
 }
 

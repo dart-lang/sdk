@@ -25,6 +25,9 @@ class CodePatcher : public AllStatic {
   // Patch static call to the new target.
   static void PatchStaticCallAt(uword addr, uword new_target_address);
 
+  // Patch instance call to the new target.
+  static void PatchInstanceCallAt(uword addr, uword new_target_address);
+
   // Patch entry point with a jump as specified in the code's patch region.
   static void PatchEntry(const Code& code);
 

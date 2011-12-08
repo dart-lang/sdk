@@ -13,7 +13,6 @@
 
 namespace dart {
 
-
 #if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
 
 UNIT_TEST_CASE(ErrorHandles) {
@@ -24,8 +23,8 @@ UNIT_TEST_CASE(ErrorHandles) {
       "  }\n"
       "}\n";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   Dart_Handle instance = Dart_True();
@@ -59,30 +58,22 @@ UNIT_TEST_CASE(ErrorHandles) {
   EXPECT(Dart_IsError(Dart_ErrorGetStacktrace(instance)));
   EXPECT(Dart_IsError(Dart_ErrorGetStacktrace(error)));
   EXPECT_VALID(Dart_ErrorGetStacktrace(exception));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 #endif
 
 
 UNIT_TEST_CASE(Dart_Error) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle error = Dart_Error("An %s", "error");
   EXPECT(Dart_IsError(error));
   EXPECT_STREQ("An error", Dart_GetError(error));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
 UNIT_TEST_CASE(Null) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle null = Dart_Null();
   EXPECT_VALID(null);
@@ -91,15 +82,11 @@ UNIT_TEST_CASE(Null) {
   Dart_Handle str = Dart_NewString("test");
   EXPECT_VALID(str);
   EXPECT(!Dart_IsNull(str));
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
 UNIT_TEST_CASE(IsSame) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   bool same = false;
   Dart_Handle five = Dart_NewString("5");
@@ -120,7 +107,7 @@ UNIT_TEST_CASE(IsSame) {
 
   // Non-instance objects.
   {
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
     const Object& cls1 = Object::Handle(Object::null_class());
     const Object& cls2 = Object::Handle(Object::class_class());
     Dart_Handle class1 = Api::NewLocalHandle(cls1);
@@ -132,17 +119,13 @@ UNIT_TEST_CASE(IsSame) {
     EXPECT_VALID(Dart_IsSame(class1, class2, &same));
     EXPECT(!same);
   }
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
 #if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
 
 UNIT_TEST_CASE(ObjectEquals) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   bool equal = false;
   Dart_Handle five = Dart_NewString("5");
@@ -160,16 +143,12 @@ UNIT_TEST_CASE(ObjectEquals) {
   // Different objects.
   EXPECT_VALID(Dart_ObjectEquals(five, seven, &equal));
   EXPECT(!equal);
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 #endif
 
 UNIT_TEST_CASE(BooleanValues) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle str = Dart_NewString("test");
   EXPECT(!Dart_IsBoolean(str));
@@ -191,15 +170,11 @@ UNIT_TEST_CASE(BooleanValues) {
   result = Dart_BooleanValue(val2, &value);
   EXPECT_VALID(result);
   EXPECT(!value);
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
 UNIT_TEST_CASE(BooleanConstants) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle true_handle = Dart_True();
   EXPECT_VALID(true_handle);
@@ -217,15 +192,11 @@ UNIT_TEST_CASE(BooleanConstants) {
   result = Dart_BooleanValue(false_handle, &value);
   EXPECT_VALID(result);
   EXPECT(!value);
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
 UNIT_TEST_CASE(DoubleValues) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   const double kDoubleVal1 = 201.29;
   const double kDoubleVal2 = 101.19;
@@ -240,9 +211,6 @@ UNIT_TEST_CASE(DoubleValues) {
   result = Dart_DoubleValue(val2, &out2);
   EXPECT_VALID(result);
   EXPECT_EQ(kDoubleVal2, out2);
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
@@ -259,10 +227,8 @@ UNIT_TEST_CASE(NumberValues) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -302,18 +268,14 @@ UNIT_TEST_CASE(NumberValues) {
                                NULL);
     EXPECT_VALID(result);
     EXPECT(!Dart_IsNumber(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 #endif
 
 
 UNIT_TEST_CASE(IntegerValues) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   const int64_t kIntegerVal1 = 100;
   const int64_t kIntegerVal2 = 0xffffffff;
@@ -351,15 +313,11 @@ UNIT_TEST_CASE(IntegerValues) {
   result = Dart_IntegerValueHexCString(val3, &chars);
   EXPECT_VALID(result);
   EXPECT(!strcmp(kIntegerVal3, chars));
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
 UNIT_TEST_CASE(ArrayValues) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   const int kArrayLength = 10;
   Dart_Handle str = Dart_NewString("test");
@@ -393,15 +351,11 @@ UNIT_TEST_CASE(ArrayValues) {
     EXPECT_VALID(result);
     EXPECT_EQ(i, value);
   }
-
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
 UNIT_TEST_CASE(IsString) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
 
   uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
 
@@ -410,6 +364,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(str8));
   EXPECT(Dart_IsString8(str8));
   EXPECT(Dart_IsString16(str8));
+  EXPECT(!Dart_IsExternalString(str8));
 
   Dart_Handle ext8 = Dart_NewExternalString8(data8, ARRAY_SIZE(data8),
                                              NULL, NULL);
@@ -417,6 +372,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(ext8));
   EXPECT(Dart_IsString8(ext8));
   EXPECT(Dart_IsString16(ext8));
+  EXPECT(Dart_IsExternalString(ext8));
 
   uint16_t data16[] = { 't', 'w', 'o', 0xFFFF };
 
@@ -425,6 +381,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(str16));
   EXPECT(!Dart_IsString8(str16));
   EXPECT(Dart_IsString16(str16));
+  EXPECT(!Dart_IsExternalString(str16));
 
   Dart_Handle ext16 = Dart_NewExternalString16(data16, ARRAY_SIZE(data16),
                                                NULL, NULL);
@@ -432,6 +389,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(ext16));
   EXPECT(!Dart_IsString8(ext16));
   EXPECT(Dart_IsString16(ext16));
+  EXPECT(Dart_IsExternalString(ext16));
 
   uint32_t data32[] = { 'f', 'o', 'u', 'r', 0x10FFFF };
 
@@ -440,6 +398,7 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(str32));
   EXPECT(!Dart_IsString8(str32));
   EXPECT(!Dart_IsString16(str32));
+  EXPECT(!Dart_IsExternalString(str32));
 
   Dart_Handle ext32 = Dart_NewExternalString32(data32, ARRAY_SIZE(data32),
                                                NULL, NULL);
@@ -447,9 +406,50 @@ UNIT_TEST_CASE(IsString) {
   EXPECT(Dart_IsString(ext32));
   EXPECT(!Dart_IsString8(ext32));
   EXPECT(!Dart_IsString16(ext32));
+  EXPECT(Dart_IsExternalString(ext32));
+}
 
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
+
+UNIT_TEST_CASE(ExternalStringGetPeer) {
+  TestIsolateScope __test_isolate__;
+  Dart_Handle result;
+
+  uint8_t data8[] = { 'o', 'n', 'e', 0xFF };
+  int peer_data = 123;
+  void* peer = NULL;
+
+  // Success.
+  Dart_Handle ext8 = Dart_NewExternalString8(data8, ARRAY_SIZE(data8),
+                                             &peer_data, NULL);
+  EXPECT_VALID(ext8);
+
+  result = Dart_ExternalStringGetPeer(ext8, &peer);
+  EXPECT_VALID(result);
+  EXPECT_EQ(&peer_data, peer);
+
+  // NULL peer.
+  result = Dart_ExternalStringGetPeer(ext8, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'peer' to be "
+               "non-NULL.", Dart_GetError(result));
+
+  // String is not external.
+  peer = NULL;
+  Dart_Handle str8 = Dart_NewString8(data8, ARRAY_SIZE(data8));
+  EXPECT_VALID(str8);
+  result = Dart_ExternalStringGetPeer(str8, &peer);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'object' to be "
+               "an external String.", Dart_GetError(result));
+  EXPECT(peer == NULL);
+
+  // Not a String.
+  peer = NULL;
+  result = Dart_ExternalStringGetPeer(Dart_True(), &peer);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'object' to be "
+               "of type String.", Dart_GetError(result));
+  EXPECT(peer == NULL);
 }
 
 
@@ -469,10 +469,8 @@ UNIT_TEST_CASE(ListAccess) {
       "}";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -574,10 +572,7 @@ UNIT_TEST_CASE(ListAccess) {
     // Check if we get an exception when accessing beyond limit.
     result = Dart_ListGetAt(ListAccessTestObj, 4);
     EXPECT(Dart_IsError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 #endif  // TARGET_ARCH_IA32.
@@ -586,7 +581,8 @@ UNIT_TEST_CASE(ListAccess) {
 // Unit test for entering a scope, creating a local handle and exiting
 // the scope.
 UNIT_TEST_CASE(EnterExitScope) {
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
+
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -595,7 +591,7 @@ UNIT_TEST_CASE(EnterExitScope) {
   Dart_EnterScope();
   {
     EXPECT(state->top_scope() != NULL);
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewLocalHandle(str1);
     String& str2 = String::Handle();
@@ -604,7 +600,6 @@ UNIT_TEST_CASE(EnterExitScope) {
   }
   Dart_ExitScope();
   EXPECT(scope == state->top_scope());
-  Dart_ShutdownIsolate();
 }
 
 
@@ -612,7 +607,7 @@ UNIT_TEST_CASE(EnterExitScope) {
 UNIT_TEST_CASE(PersistentHandles) {
   const char* kTestString1 = "Test String1";
   const char* kTestString2 = "Test String2";
-  Dart_CreateIsolate(NULL, NULL);
+  TestCase::CreateTestIsolate();
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -621,7 +616,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_Handle handles[2000];
   Dart_EnterScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     const String& str1 = String::Handle(String::New(kTestString1));
     Dart_Handle ref1 = Api::NewLocalHandle(str1);
     for (int i = 0; i < 1000; i++) {
@@ -647,7 +642,7 @@ UNIT_TEST_CASE(PersistentHandles) {
   }
   Dart_ExitScope();
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     for (int i = 0; i < 500; i++) {
       String& str = String::Handle();
       str ^= Api::UnwrapHandle(handles[i]);
@@ -678,7 +673,7 @@ UNIT_TEST_CASE(PersistentHandles) {
 // Test that we are able to create a persistent handle from a
 // persistent handle.
 UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
 
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
@@ -699,8 +694,6 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
   Dart_Handle result = Dart_BooleanValue(obj2, &value);
   EXPECT_VALID(result);
   EXPECT(value);
-
-  Dart_ShutdownIsolate();
 }
 
 
@@ -708,7 +701,7 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 // Ensure that the local handles get all cleaned out when exiting the
 // scope.
 UNIT_TEST_CASE(LocalHandles) {
-  Dart_CreateIsolate(NULL, NULL);
+  TestCase::CreateTestIsolate();
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -716,7 +709,7 @@ UNIT_TEST_CASE(LocalHandles) {
   ApiLocalScope* scope = state->top_scope();
   Dart_Handle handles[300];
   {
-    DARTSCOPE(isolate);
+    DARTSCOPE_NOCHECKS(isolate);
     Smi& val = Smi::Handle();
 
     // Start a new scope and allocate some local handles.
@@ -775,7 +768,7 @@ UNIT_TEST_CASE(LocalHandles) {
 // zone for the scope. Ensure that the memory is freed when the scope
 // exits.
 UNIT_TEST_CASE(LocalZoneMemory) {
-  Dart_CreateIsolate(NULL, NULL);
+  TestCase::CreateTestIsolate();
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -821,25 +814,24 @@ UNIT_TEST_CASE(LocalZoneMemory) {
 UNIT_TEST_CASE(Isolates) {
   // This test currently assumes that the Dart_Isolate type is an opaque
   // representation of Isolate*.
-  Dart_Isolate iso_1 = Dart_CreateIsolate(NULL, NULL);
-  EXPECT_EQ(iso_1, Isolate::Current());
+  Dart_Isolate iso_1 = TestCase::CreateTestIsolate();
+  EXPECT_EQ(iso_1, Api::CastIsolate(Isolate::Current()));
   Dart_Isolate isolate = Dart_CurrentIsolate();
   EXPECT_EQ(iso_1, isolate);
   Dart_ExitIsolate();
-  EXPECT(NULL == Isolate::Current());
   EXPECT(NULL == Dart_CurrentIsolate());
-  Dart_Isolate iso_2 = Dart_CreateIsolate(NULL, NULL);
-  EXPECT_EQ(iso_2, Isolate::Current());
+  Dart_Isolate iso_2 = TestCase::CreateTestIsolate();
+  EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ExitIsolate();
-  EXPECT(NULL == Isolate::Current());
+  EXPECT(NULL == Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_2);
-  EXPECT_EQ(iso_2, Isolate::Current());
+  EXPECT_EQ(iso_2, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(NULL == Isolate::Current());
+  EXPECT(NULL == Dart_CurrentIsolate());
   Dart_EnterIsolate(iso_1);
-  EXPECT_EQ(iso_1, Isolate::Current());
+  EXPECT_EQ(iso_1, Dart_CurrentIsolate());
   Dart_ShutdownIsolate();
-  EXPECT(NULL == Isolate::Current());
+  EXPECT(NULL == Dart_CurrentIsolate());
 }
 
 
@@ -857,7 +849,7 @@ static void MyClosePortCallback(Dart_Isolate dest_isolate,
 
 
 UNIT_TEST_CASE(SetMessageCallbacks) {
-  Dart_Isolate dart_isolate = Dart_CreateIsolate(NULL, NULL);
+  Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
   Dart_SetMessageCallbacks(&MyPostMessageCallback, &MyClosePortCallback);
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
   EXPECT_EQ(&MyPostMessageCallback, isolate->post_message_callback());
@@ -885,10 +877,8 @@ UNIT_TEST_CASE(FieldAccess) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -948,10 +938,7 @@ UNIT_TEST_CASE(FieldAccess) {
     EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(40, value);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -972,10 +959,8 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Load up a test script which extends the native wrapper class.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -1035,10 +1020,7 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
     EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(40, value);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1070,9 +1052,8 @@ UNIT_TEST_CASE(InjectNativeFields1) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     const int kNumNativeFields = 4;
 
     // Create a test library.
@@ -1094,23 +1075,21 @@ UNIT_TEST_CASE(InjectNativeFields1) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
     Instance& obj = Instance::Handle();
     obj ^= Api::UnwrapHandle(result);
     const Class& cls = Class::Handle(obj.clazz());
     // We expect the newly created "NativeFields" object to have
     // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
     // Hence the size of an instance of "NativeFields" should be
-    // (kNumNativeFields + 2) * kWordSize + sizeof the header word.
+    // (kNumNativeFields + 2) * kWordSize + size of object header.
     // We check to make sure the instance size computed by the VM matches
     // our expectations.
-    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + kWordSize,
+    intptr_t header_size = sizeof(RawObject);
+    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
                              kObjectAlignment),
               cls.instance_size());
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1131,10 +1110,8 @@ UNIT_TEST_CASE(InjectNativeFields2) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -1148,10 +1125,7 @@ UNIT_TEST_CASE(InjectNativeFields2) {
     // "NativeFieldsWrapper" and there is no definition of it either
     // in the dart code or through the native field injection mechanism.
     EXPECT(Dart_IsError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1173,9 +1147,8 @@ UNIT_TEST_CASE(InjectNativeFields3) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     const int kNumNativeFields = 2;
 
     // Load up a test script in the test library.
@@ -1189,23 +1162,21 @@ UNIT_TEST_CASE(InjectNativeFields3) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
     Instance& obj = Instance::Handle();
     obj ^= Api::UnwrapHandle(result);
     const Class& cls = Class::Handle(obj.clazz());
     // We expect the newly created "NativeFields" object to have
     // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
     // Hence the size of an instance of "NativeFields" should be
-    // (kNumNativeFields + 2) * kWordSize + sizeof the header word.
+    // (kNumNativeFields + 2) * kWordSize + size of object header.
     // We check to make sure the instance size computed by the VM matches
     // our expectations.
-    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + kWordSize,
+    intptr_t header_size = sizeof(RawObject);
+    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
                              kObjectAlignment),
               cls.instance_size());
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1227,10 +1198,8 @@ UNIT_TEST_CASE(InjectNativeFields4) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Load up a test script in the test library.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -1247,9 +1216,7 @@ UNIT_TEST_CASE(InjectNativeFields4) {
         "native fields class, but library '%s' has no native resolvers",
         TestCase::url());
     EXPECT_STREQ(Dart_GetError(expected_error), Dart_GetError(result));
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1257,6 +1224,9 @@ static void TestNativeFields(Dart_Handle retobj) {
   // Access and set various instance fields of the object.
   Dart_Handle result = Dart_GetInstanceField(retobj, Dart_NewString("fld3"));
   EXPECT(Dart_IsError(result));
+  result = Dart_GetInstanceField(retobj, Dart_NewString("fld0"));
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsNull(result));
   result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
   EXPECT_VALID(result);
   int64_t value = 0;
@@ -1297,6 +1267,9 @@ static void TestNativeFields(Dart_Handle retobj) {
   result = Dart_GetNativeInstanceField(retobj, kNativeFld2, &field_value);
   EXPECT_VALID(result);
   EXPECT_EQ(0, field_value);
+  result = Dart_GetNativeInstanceField(retobj, kNativeFld3, &field_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, field_value);
   result = Dart_SetNativeInstanceField(retobj, kNativeFld4, 40);
   EXPECT(Dart_IsError(result));
   result = Dart_SetNativeInstanceField(retobj, kNativeFld0, 4);
@@ -1328,6 +1301,7 @@ UNIT_TEST_CASE(NativeFieldAccess) {
   const char* kScriptChars =
       "class NativeFields extends NativeFieldsWrapper {\n"
       "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld0;\n"
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
@@ -1341,9 +1315,8 @@ UNIT_TEST_CASE(NativeFieldAccess) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     const int kNumNativeFields = 4;
 
     // Create a test library.
@@ -1368,10 +1341,7 @@ UNIT_TEST_CASE(NativeFieldAccess) {
 
     // Now access and set various instance fields of the returned object.
     TestNativeFields(retobj);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1380,6 +1350,7 @@ UNIT_TEST_CASE(ImplicitNativeFieldAccess) {
       "#import('dart:nativewrappers');"
       "class NativeFields extends NativeFieldWrapperClass4 {\n"
       "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld0;\n"
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
@@ -1391,10 +1362,8 @@ UNIT_TEST_CASE(ImplicitNativeFieldAccess) {
       "    return obj;\n"
       "  }\n"
       "}\n";
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Load up a test script in the test library.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
                                                native_field_lookup);
@@ -1409,10 +1378,7 @@ UNIT_TEST_CASE(ImplicitNativeFieldAccess) {
 
     // Now access and set various instance fields of the returned object.
     TestNativeFields(retobj);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1436,10 +1402,9 @@ UNIT_TEST_CASE(NegativeNativeFieldAccess) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -1497,10 +1462,7 @@ UNIT_TEST_CASE(NegativeNativeFieldAccess) {
     EXPECT(Dart_IsError(result));
     result = Dart_SetNativeInstanceField(retobj, kNativeFld0, 400);
     EXPECT(Dart_IsError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1514,10 +1476,8 @@ UNIT_TEST_CASE(GetStaticField_RunsInitializer) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -1554,10 +1514,7 @@ UNIT_TEST_CASE(GetStaticField_RunsInitializer) {
     EXPECT_VALID(result);
     result = Dart_IntegerValue(result, &value);
     EXPECT_EQ(13, value);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1569,10 +1526,8 @@ UNIT_TEST_CASE(StaticFieldNotFound) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -1597,10 +1552,7 @@ UNIT_TEST_CASE(StaticFieldNotFound) {
     EXPECT(Dart_IsError(result));
     EXPECT_STREQ("Specified field is not found in the class",
                  Dart_GetError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1622,10 +1574,9 @@ UNIT_TEST_CASE(InvokeDynamic) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -1657,10 +1608,7 @@ UNIT_TEST_CASE(InvokeDynamic) {
 
     result = Dart_InvokeDynamic(retobj, Dart_NewString("method1"), 0, NULL);
     EXPECT(Dart_IsError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1691,10 +1639,9 @@ UNIT_TEST_CASE(InvokeClosure) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -1741,10 +1688,7 @@ UNIT_TEST_CASE(InvokeClosure) {
     result = Dart_InvokeClosure(retobj, 1, dart_arguments);
     EXPECT(Dart_IsError(result));
     EXPECT(Dart_ErrorHasException(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1781,7 +1725,8 @@ UNIT_TEST_CASE(ThrowException) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
+
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -1820,7 +1765,6 @@ UNIT_TEST_CASE(ThrowException) {
     Dart_ExitScope();  // Exit the Dart API scope.
     EXPECT_EQ(size, state->ZoneSizeInBytes());
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1849,9 +1793,8 @@ UNIT_TEST_CASE(GetNativeArgumentCount) {
       "  }"
       "}";
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();
     Dart_Handle lib = TestCase::LoadTestScript(
         kScriptChars,
         reinterpret_cast<Dart_NativeEntryResolver>(gnac_lookup));
@@ -1868,10 +1811,7 @@ UNIT_TEST_CASE(GetNativeArgumentCount) {
     result = Dart_IntegerValue(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(3, value);
-
-    Dart_ExitScope();
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1880,8 +1820,8 @@ UNIT_TEST_CASE(GetClass) {
       "class DoesExist {"
       "}";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   // Lookup a class that does exist.
@@ -1893,9 +1833,6 @@ UNIT_TEST_CASE(GetClass) {
   EXPECT(Dart_IsError(cls));
   EXPECT_STREQ("Class 'DoesNotExist' not found in library 'dart:test-lib'.",
                Dart_GetError(cls));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -1912,10 +1849,8 @@ UNIT_TEST_CASE(InstanceOf) {
       "}\n";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
@@ -1976,18 +1911,14 @@ UNIT_TEST_CASE(InstanceOf) {
     // Check that error is returned if null is passed as a class argument.
     result = Dart_ObjectIsType(null, null, &is_instance);
     EXPECT(Dart_IsError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
 UNIT_TEST_CASE(NullReceiver) {
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();  // Enter a Dart API scope for the unit test.
+  TestIsolateScope __test_isolate__;
   {
-    DARTSCOPE(Isolate::Current());
+    DARTSCOPE_NOCHECKS(Isolate::Current());
 
     Dart_Handle function_name = Dart_NewString("toString");
     const int number_of_arguments = 0;
@@ -2009,8 +1940,6 @@ UNIT_TEST_CASE(NullReceiver) {
     EXPECT(Dart_IsError(result));
     EXPECT(Dart_ErrorHasException(result)); */
   }
-  Dart_ExitScope();  // Exit the Dart API scope.
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2030,8 +1959,7 @@ UNIT_TEST_CASE(LoadScript) {
       "  return 12345;"
       "}";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
@@ -2088,9 +2016,6 @@ UNIT_TEST_CASE(LoadScript) {
   EXPECT_STREQ("Dart_LoadScript: "
                "A script has already been loaded from 'dart:test-lib'.",
                Dart_GetError(result));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2098,17 +2023,13 @@ UNIT_TEST_CASE(LoadScript_CompileError) {
   const char* kScriptChars =
       ")";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
   Dart_Handle result = Dart_LoadScript(url, source, library_handler);
   EXPECT(Dart_IsError(result));
   EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2120,8 +2041,7 @@ UNIT_TEST_CASE(LookupLibrary) {
       "#library('library1.dart');"
       "#import('library2.dart');";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
@@ -2157,9 +2077,6 @@ UNIT_TEST_CASE(LookupLibrary) {
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LookupLibrary: library 'noodles.dart' not found.",
                Dart_GetError(result));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2167,8 +2084,7 @@ UNIT_TEST_CASE(LibraryUrl) {
   const char* kLibrary1Chars =
       "#library('library1_name');";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
@@ -2197,9 +2113,6 @@ UNIT_TEST_CASE(LibraryUrl) {
   const char* cstr = NULL;
   EXPECT_VALID(Dart_StringToCString(result, &cstr));
   EXPECT_STREQ("library1_url", cstr);
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2209,8 +2122,7 @@ UNIT_TEST_CASE(LibraryImportLibrary) {
   const char* kLibrary2Chars =
       "#library('library2_name');";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle error = Dart_Error("incoming error");
   Dart_Handle result;
@@ -2259,9 +2171,6 @@ UNIT_TEST_CASE(LibraryImportLibrary) {
 
   result = Dart_LibraryImportLibrary(lib1, lib2);
   EXPECT_VALID(result);
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2270,8 +2179,7 @@ UNIT_TEST_CASE(LoadLibrary) {
   const char* kLibrary1Chars =
       "#library('library1_name');";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle error = Dart_Error("incoming error");
   Dart_Handle result;
@@ -2319,9 +2227,6 @@ UNIT_TEST_CASE(LoadLibrary) {
   EXPECT_STREQ(
       "Dart_LoadLibrary: library 'library1_url' has already been loaded.",
       Dart_GetError(result));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2330,17 +2235,13 @@ UNIT_TEST_CASE(LoadLibrary_CompileError) {
       "#library('library1_name');"
       ")";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
   Dart_Handle result = Dart_LoadLibrary(url, source);
   EXPECT(Dart_IsError(result));
   EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2352,8 +2253,7 @@ UNIT_TEST_CASE(LoadSource) {
   const char* kBadSourceChars =
       ")";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle error = Dart_Error("incoming error");
   Dart_Handle result;
@@ -2432,9 +2332,6 @@ UNIT_TEST_CASE(LoadSource) {
   source = Dart_NewString(kBadSourceChars);
   result = Dart_LoadSource(lib, url, source);
   EXPECT(Dart_IsError(result));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2472,8 +2369,7 @@ UNIT_TEST_CASE(SetNativeResolver) {
       "  static baz() native \"SomeNativeFunction3\";"
       "}";
 
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  TestIsolateScope __test_isolate__;
 
   Dart_Handle error = Dart_Error("incoming error");
   Dart_Handle result;
@@ -2556,9 +2452,6 @@ UNIT_TEST_CASE(SetNativeResolver) {
   EXPECT(Dart_IsError(result));
   EXPECT(strstr(Dart_GetError(result),
                 "native function 'SomeNativeFunction3' cannot be found"));
-
-  Dart_ExitScope();
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2577,10 +2470,8 @@ UNIT_TEST_CASE(ImportLibrary1) {
       "var foo;";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle url = Dart_NewString(TestCase::url());
     Dart_Handle source = Dart_NewString(kScriptChars);
@@ -2603,10 +2494,7 @@ UNIT_TEST_CASE(ImportLibrary1) {
     EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
                  " 'library2.dart' and 'dart:test-lib'\n",
                  Dart_GetError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2625,10 +2513,8 @@ UNIT_TEST_CASE(ImportLibrary2) {
       "var foo;";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle url = Dart_NewString(TestCase::url());
     Dart_Handle source = Dart_NewString(kScriptChars);
@@ -2648,10 +2534,7 @@ UNIT_TEST_CASE(ImportLibrary2) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2669,10 +2552,8 @@ UNIT_TEST_CASE(ImportLibrary3) {
       "var foo;";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle url = Dart_NewString(TestCase::url());
     Dart_Handle source = Dart_NewString(kScriptChars);
@@ -2695,10 +2576,7 @@ UNIT_TEST_CASE(ImportLibrary3) {
     EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
                  " 'library1.dart' and 'library2.dart'\n",
                  Dart_GetError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2735,10 +2613,8 @@ UNIT_TEST_CASE(ImportLibrary4) {
       "var fooC;";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle url = Dart_NewString(TestCase::url());
     Dart_Handle source = Dart_NewString(kScriptChars);
@@ -2777,10 +2653,7 @@ UNIT_TEST_CASE(ImportLibrary4) {
     EXPECT_STREQ("Duplicate definition : 'fooC' is defined in"
                  " 'libraryF.dart' and 'libraryC.dart'\n",
                  Dart_GetError(result));
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
@@ -2798,10 +2671,8 @@ UNIT_TEST_CASE(ImportLibrary5) {
       "}";
   Dart_Handle result;
 
-  Dart_CreateIsolate(NULL, NULL);
+  TestIsolateScope __test_isolate__;
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-
     // Create a test library and Load up a test script in it.
     Dart_Handle url = Dart_NewString(TestCase::url());
     Dart_Handle source = Dart_NewString(kScriptChars);
@@ -2817,14 +2688,11 @@ UNIT_TEST_CASE(ImportLibrary5) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 }
 
 
-static void* RunLoopTest_InitCallback(void* data) {
+static bool RunLoopTestCallback(void* data, char** error) {
   const char* kScriptChars =
       "#import('builtin');\n"
       "class MyIsolate extends Isolate {\n"
@@ -2849,25 +2717,31 @@ static void* RunLoopTest_InitCallback(void* data) {
       "  });\n"
       "}\n";
 
+  if (Dart_CurrentIsolate() != NULL) {
+    Dart_ExitIsolate();
+  }
+  Dart_Isolate isolate = TestCase::CreateTestIsolate();
+  ASSERT(isolate != NULL);
   Dart_EnterScope();
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  Dart_Handle lib = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle lib = Dart_LoadScript(url, source, TestCase::library_handler);
   EXPECT_VALID(lib);
   Dart_ExitScope();
-  return NULL;
+  return true;
 }
 
 
 // Common code for RunLoop_Success/RunLoop_Failure.
 static void RunLoopTest(bool throw_exception) {
-  Dart_IsolateInitCallback saved = Isolate::InitCallback();
-  Isolate::SetInitCallback(RunLoopTest_InitCallback);
-  Dart_CreateIsolate(NULL, NULL);
-  Dart_EnterScope();
+  Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
+  Isolate::SetCreateCallback(RunLoopTestCallback);
+  RunLoopTestCallback(NULL, NULL);
 
+  Dart_EnterScope();
   Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
   EXPECT_VALID(lib);
+
   Dart_Handle result;
   Dart_Handle args[1];
   args[0] = (throw_exception ? Dart_True() : Dart_False());
@@ -2883,7 +2757,7 @@ static void RunLoopTest(bool throw_exception) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
-  Isolate::SetInitCallback(saved);
+  Isolate::SetCreateCallback(saved);
 }
 
 

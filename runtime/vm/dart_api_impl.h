@@ -14,10 +14,60 @@ class ApiState;
 class LocalHandle;
 class PersistentHandle;
 
+const char* CanonicalFunction(const char* func);
+
+#define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
+
+// Checks that the current isolate is not NULL.
+#define CHECK_ISOLATE(isolate)                                                \
+  do {                                                                        \
+    if ((isolate) == NULL) {                                                  \
+      FATAL1("%s expects there to be a current isolate. Did you "             \
+             "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",       \
+            CURRENT_FUNC);                                                    \
+    }                                                                         \
+  } while (0)
+
+// Checks that the current isolate is NULL.
+#define CHECK_NO_ISOLATE(isolate)                                             \
+  do {                                                                        \
+    if ((isolate) != NULL) {                                                  \
+      FATAL1("%s expects there to be no current isolate. Did you "            \
+             "forget to call Dart_ExitIsolate?", CURRENT_FUNC);               \
+    }                                                                         \
+  } while (0)
+
+// Checks that the current isolate is not NULL and that it has an API scope.
+#define CHECK_ISOLATE_SCOPE(isolate)                                          \
+  do {                                                                        \
+    Isolate* tmp = (isolate);                                                 \
+    CHECK_ISOLATE(tmp);                                                       \
+    ApiState* state = tmp->api_state();                                       \
+    ASSERT(state);                                                            \
+    if (state->top_scope() == NULL) {                                         \
+      FATAL1("%s expects to find a current scope. Did you forget to call "    \
+           "Dart_EnterScope?", CURRENT_FUNC);                                 \
+    }                                                                         \
+  } while (0)
+
+#define DARTSCOPE_NOCHECKS(isolate)                                           \
+  Isolate* __temp_isolate__ = (isolate);                                      \
+  ASSERT(__temp_isolate__ != NULL);                                           \
+  Zone zone(__temp_isolate__);                                                \
+  HANDLESCOPE(__temp_isolate__);
+
 #define DARTSCOPE(isolate)                                                    \
-  ASSERT(isolate != NULL);                                                    \
-  Zone zone(isolate);                                                         \
-  HANDLESCOPE(isolate);                                                       \
+  Isolate* __temp_isolate__ = (isolate);                                      \
+  CHECK_ISOLATE_SCOPE(__temp_isolate__);                                      \
+  Zone zone(__temp_isolate__);                                                \
+  HANDLESCOPE(__temp_isolate__);
+
+
+const char* CheckIsolateState(Isolate *isolate,
+                              bool generating_snapshot = false);
+
+void SetupErrorResult(Dart_Handle* handle);
+
 
 class Api : AllStatic {
  public:
@@ -41,6 +91,12 @@ class Api : AllStatic {
   // Validates and converts the passed in handle as a persistent handle.
   static PersistentHandle* UnwrapAsPersistentHandle(const ApiState& state,
                                                     Dart_Handle object);
+
+  // Cast the internal Isolate* type to the external Dart_Isolate type.
+  static Dart_Isolate CastIsolate(Isolate* isolate);
+
+  // Cast a message byte array to the external Dart_Message type.
+  static Dart_Message CastMessage(uint8_t* message);
 
   // Gets the handle used to designate successful return.
   static Dart_Handle Success();

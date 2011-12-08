@@ -18,11 +18,11 @@ class Main {
       new Suite('dom-modify')
         .test('createElement', () {
           for (int i = 0; i < num; i++) {
-            ret = document.createElement('div');
-            ret = document.createElement('span');
-            ret = document.createElement('table');
-            ret = document.createElement('tr');
-            ret = document.createElement('select');
+            ret = new Element.tag('div');
+            ret = new Element.tag('span');
+            ret = new Element.tag('table');
+            ret = new Element.tag('tr');
+            ret = new Element.tag('select');
           }
         })
         .test('createTextNode', () {

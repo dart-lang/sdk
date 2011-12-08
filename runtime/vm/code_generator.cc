@@ -9,6 +9,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/debugger.h"
 #include "vm/exceptions.h"
 #include "vm/ic_data.h"
 #include "vm/object_store.h"
@@ -110,16 +111,17 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 3) {
   const Smi& length = Smi::CheckedHandle(arguments.At(0));
   const Array& array = Array::Handle(Array::New(length.Value()));
   arguments.SetReturn(array);
-  TypeArguments& element_type = TypeArguments::CheckedHandle(arguments.At(1));
+  AbstractTypeArguments& element_type =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   if (element_type.IsNull()) {
     // No instantiator required for a raw type.
-    ASSERT(TypeArguments::CheckedHandle(arguments.At(2)).IsNull());
+    ASSERT(AbstractTypeArguments::CheckedHandle(arguments.At(2)).IsNull());
     return;
   }
   // An Array takes only one type argument.
   ASSERT(element_type.Length() == 1);
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   if (instantiator.IsNull()) {
     // Either the type element is instantiated (use it), or the instantiator is
     // of a raw type and we cannot instantiate the element type (leave as null).
@@ -131,12 +133,11 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 3) {
   ASSERT(!element_type.IsInstantiated());
   // If possible, use the instantiator as the type argument vector.
   if (element_type.IsUninstantiatedIdentity() && (instantiator.Length() == 1)) {
-    // No need to check that the instantiator is a TypeArray, since the virtual
-    // call to Length() handles other cases that are harder to inline.
+    // No need to check that the instantiator is a TypeArguments, since the
+    // virtual call to Length() handles other cases that are harder to inline.
     element_type = instantiator.raw();
   } else {
-    element_type = TypeArguments::NewInstantiatedTypeArguments(element_type,
-                                                               instantiator);
+    element_type = InstantiatedTypeArguments::New(element_type, instantiator);
   }
   array.SetTypeArguments(element_type);
 }
@@ -157,15 +158,16 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
     ASSERT(Instance::CheckedHandle(arguments.At(1)).IsNull());
     return;
   }
-  TypeArguments& type_arguments = TypeArguments::CheckedHandle(arguments.At(1));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   if (type_arguments.IsNull()) {
     // No instantiator is required for a raw type.
     ASSERT(Instance::CheckedHandle(arguments.At(2)).IsNull());
     return;
   }
   ASSERT(type_arguments.Length() == cls.NumTypeArguments());
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   if (instantiator.IsNull()) {
     // Either the type argument vector is instantiated (use it), or the
     // instantiator is of a raw type and we cannot instantiate the type argument
@@ -177,21 +179,20 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   }
   ASSERT(!type_arguments.IsInstantiated());
   // If possible, use the instantiator as the type argument vector.
-  if (instantiator.IsTypeArray()) {
+  if (instantiator.IsTypeArguments()) {
     // Code inlined in the caller should have optimized the case where the
-    // instantiator is a TypeArray and can be used as type argument vector.
+    // instantiator is a TypeArguments and can be used as type argument vector.
     ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
            (instantiator.Length() != type_arguments.Length()));
-    type_arguments = TypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                                 instantiator);
+    type_arguments =
+        InstantiatedTypeArguments::New(type_arguments, instantiator);
   } else {
     if (type_arguments.IsUninstantiatedIdentity() &&
         (instantiator.Length() == type_arguments.Length())) {
       type_arguments = instantiator.raw();
     } else {
       type_arguments =
-          TypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                      instantiator);
+          InstantiatedTypeArguments::New(type_arguments, instantiator);
     }
   }
   instance.SetTypeArguments(type_arguments);
@@ -205,19 +206,19 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
 DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   ASSERT(arguments.Count() ==
          kInstantiateTypeArgumentsRuntimeEntry.argument_count());
-  TypeArguments& type_arguments = TypeArguments::CheckedHandle(arguments.At(0));
-  const TypeArguments& instantiator =
-      TypeArguments::CheckedHandle(arguments.At(1));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(0));
+  const AbstractTypeArguments& instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   ASSERT(!type_arguments.IsNull() &&
          !type_arguments.IsInstantiated() &&
          !instantiator.IsNull());
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be used as type argument vector.
   ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
-         !instantiator.IsTypeArray() ||
+         !instantiator.IsTypeArguments() ||
          (instantiator.Length() != type_arguments.Length()));
-  type_arguments = TypeArguments::NewInstantiatedTypeArguments(type_arguments,
-                                                               instantiator);
+  type_arguments = InstantiatedTypeArguments::New(type_arguments, instantiator);
   arguments.SetReturn(type_arguments);
 }
 
@@ -230,8 +231,8 @@ DEFINE_RUNTIME_ENTRY(AllocateClosure, 2) {
   ASSERT(arguments.Count() == kAllocateClosureRuntimeEntry.argument_count());
   const Function& function = Function::CheckedHandle(arguments.At(0));
   ASSERT(function.IsClosureFunction() && !function.IsImplicitClosureFunction());
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.At(1));
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   // The current context was saved in the Isolate structure when entering the
   // runtime.
@@ -252,6 +253,7 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitStaticClosure, 1) {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
   const Function& function = Function::CheckedHandle(arguments.At(0));
+  ASSERT(!function.IsNull());
   ASSERT(function.IsImplicitStaticClosureFunction());
   const Context& context = Context::Handle(object_store->empty_context());
   arguments.SetReturn(Closure::Handle(Closure::New(function, context)));
@@ -269,8 +271,8 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
   const Function& function = Function::CheckedHandle(arguments.At(0));
   ASSERT(function.IsImplicitInstanceClosureFunction());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(1));
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   ASSERT(type_arguments.IsNull() || type_arguments.IsInstantiated());
   Context& context = Context::Handle();
   context = Context::New(1);
@@ -285,7 +287,6 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
 // Arg0: number of variables.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
-  CHECK_STACK_ALIGNMENT;
   ASSERT(arguments.Count() == kAllocateContextRuntimeEntry.argument_count());
   const Smi& num_variables = Smi::CheckedHandle(arguments.At(0));
   arguments.SetReturn(Context::Handle(Context::New(num_variables.Value())));
@@ -297,7 +298,6 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
 // Arg0: the context to be cloned.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
-  CHECK_STACK_ALIGNMENT;
   ASSERT(arguments.Count() == kCloneContextRuntimeEntry.argument_count());
   const Context& ctx = Context::CheckedHandle(arguments.At(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
@@ -318,15 +318,16 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
   ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
   const Instance& instance = Instance::CheckedHandle(arguments.At(0));
-  const Type& type = Type::CheckedHandle(arguments.At(1));
-  const TypeArguments& type_instantiator =
-      TypeArguments::CheckedHandle(arguments.At(2));
+  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(1));
+  const AbstractTypeArguments& type_instantiator =
+      AbstractTypeArguments::CheckedHandle(arguments.At(2));
   ASSERT(type.IsFinalized());
   const Bool& result = Bool::Handle(
       instance.IsInstanceOf(type, type_instantiator) ?
       Bool::True() : Bool::False());
   if (FLAG_trace_type_checks) {
     const Type& instance_type = Type::Handle(instance.GetType());
+    ASSERT(instance_type.IsInstantiated());
     if (type.IsInstantiated()) {
       OS::Print("InstanceOf: '%s' %s '%s'\n",
                 String::Handle(instance_type.Name()).ToCString(),
@@ -334,8 +335,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
                 String::Handle(type.Name()).ToCString());
     } else {
       // Instantiate type before printing.
-      const Type& instantiated_type =
-          Type::Handle(type.InstantiateFrom(type_instantiator, 0));
+      const AbstractType& instantiated_type =
+          AbstractType::Handle(type.InstantiateFrom(type_instantiator, 0));
       OS::Print("InstanceOf: '%s' %s '%s' instantiated from '%s'\n",
                 String::Handle(instance_type.Name()).ToCString(),
                 (result.raw() == Bool::True()) ? "is" : "is !",
@@ -469,6 +470,32 @@ DEFINE_RUNTIME_ENTRY(ResolveCompileInstanceFunction, 1) {
 }
 
 
+// Gets called from debug stub when code reaches a breakpoint.
+//   Arg0: function object of the static function that was about to be called.
+DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
+  ASSERT(arguments.Count() ==
+      kBreakpointStaticHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->BreakpointCallback();
+  // Make sure the static function that is about to be called is
+  // compiled. The stub will jump to the entry point without any
+  // further tests.
+  const Function& function = Function::CheckedHandle(arguments.At(0));
+  if (!function.HasCode()) {
+    Compiler::CompileFunction(function);
+  }
+}
+
+
+// Gets called from debug stub when code reaches a breakpoint.
+DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
+  ASSERT(arguments.Count() ==
+     kBreakpointDynamicHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->BreakpointCallback();
+}
+
+
 // Handles inline cache misses by updating the IC data array of the call
 // site.
 //   Arg0: Receiver object.
@@ -591,8 +618,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   context.SetAt(0, receiver);
   closure = Closure::New(implicit_closure_function, context);
   if (receiver_class.HasTypeArguments()) {
-    const TypeArguments& type_arguments =
-        TypeArguments::Handle(receiver.GetTypeArguments());
+    const AbstractTypeArguments& type_arguments =
+        AbstractTypeArguments::Handle(receiver.GetTypeArguments());
     closure.SetTypeArguments(type_arguments);
   }
   arguments.SetReturn(closure);
@@ -794,13 +821,12 @@ DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.Count() ==
          kStackOverflowRuntimeEntry.argument_count());
-  uword old_stack_limit = isolate->stack_limit();
-  isolate->AdjustStackLimitForException();
-  // Recursive stack overflow check.
-  ASSERT(old_stack_limit != isolate->stack_limit());
-  GrowableArray<const Object*> args;
-  Exceptions::ThrowByType(Exceptions::kStackOverflow, args);
-  isolate->ResetStackLimitAfterException();
+  // Use a preallocated stack overflow exception to avoid calling into
+  // dart code.
+  const Instance& exception =
+      Instance::Handle(isolate->object_store()->stack_overflow());
+  Exceptions::Throw(exception);
+  UNREACHABLE();
 }
 
 

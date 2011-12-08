@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface StorageInfoErrorCallback {
-
-  bool handleEvent(DOMException error);
-}
+typedef bool StorageInfoErrorCallback(DOMException error);

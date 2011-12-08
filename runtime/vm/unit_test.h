@@ -162,10 +162,30 @@ class TestCase : TestCaseBase {
                                     Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
   static const char* url() { return "dart:test-lib"; }
+  static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer) {
+    return CreateIsolate(buffer);
+  }
+  static Dart_Isolate CreateTestIsolate() {
+    return CreateIsolate(NULL);
+  }
+  static Dart_Handle library_handler(Dart_LibraryTag tag,
+                                     Dart_Handle library,
+                                     Dart_Handle url);
 
   virtual void Run();
 
  private:
+  static Dart_Isolate CreateIsolate(uint8_t* buffer) {
+    char* err;
+    Dart_Isolate isolate = Dart_CreateIsolate(buffer, NULL, &err);
+    if (isolate == NULL) {
+      OS::Print("Creation of isolate failed '%s'\n", err);
+      free(err);
+    }
+    EXPECT(isolate != NULL);
+    return isolate;
+  }
+
   RunEntry* const run_;
 };
 
@@ -173,8 +193,7 @@ class TestCase : TestCaseBase {
 class TestIsolateScope {
  public:
   TestIsolateScope() {
-    isolate_ = reinterpret_cast<Isolate*>(Dart_CreateIsolate(NULL, NULL));
-    EXPECT(isolate_ != NULL);
+    isolate_ = reinterpret_cast<Isolate*>(TestCase::CreateTestIsolate());
     Dart_EnterScope();  // Create a Dart API scope for unit tests.
   }
   ~TestIsolateScope() {

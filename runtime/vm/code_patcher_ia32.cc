@@ -161,6 +161,12 @@ void CodePatcher::PatchStaticCallAt(uword return_address, uword new_target) {
 }
 
 
+void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
+  InstanceCall call(return_address);
+  call.set_target(new_target);
+}
+
+
 static void SwapCode(intptr_t num_bytes, char* a, char* b) {
   for (intptr_t i = 0; i < num_bytes; i++) {
     char tmp = *a;

@@ -5,7 +5,7 @@
 interface MessageEvent extends Event factory MessageEventWrappingImplementation {
 
   MessageEvent(String type, String data, String origin, String lastEventId,
-      Window source, [bool canBubble, bool cancelable, MessagePort port]);
+      Window source, MessagePort port, [bool canBubble, bool cancelable]);
 
   String get data();
 

@@ -5,7 +5,6 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_IA32)
 
-#include "vm/code_index_table.h"
 #include "vm/isolate.h"
 #include "vm/dart_entry.h"
 #include "vm/native_entry.h"
@@ -20,29 +19,6 @@
 namespace dart {
 
 DECLARE_RUNTIME_ENTRY(TestSmiSub);
-
-
-// Add function to a class and that class to the class dictionary so that
-// frame walking can be used.
-static const Function& RegisterFakeFunction(const char* name,
-                                            const Code& code) {
-  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
-  const Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kFunction, true, false, 0));
-  Class& cls = Class::ZoneHandle();
-  const Script& script = Script::Handle();
-  cls = Class::New(function_name, script);
-  const Array& functions = Array::Handle(Array::New(1));
-  functions.SetAt(0, function);
-  cls.SetFunctions(functions);
-  Library& lib = Library::Handle(Library::CoreLibrary());
-  lib.AddClass(cls);
-  function.SetCode(code);
-  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
-  ASSERT(code_index_table != NULL);
-  code_index_table->AddFunction(function);
-  return function;
-}
 
 
 // Test calls to stub code which calls into the runtime.
@@ -69,6 +45,8 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
 
 
 TEST_CASE(CallRuntimeStubCode) {
+  extern const Function& RegisterFakeFunction(const char* name,
+                                              const Code& code);
   const int value1 = 10;
   const int value2 = 20;
   const char* kName = "Test_CallRuntimeStubCode";
@@ -115,6 +93,8 @@ static void GenerateCallToCallNativeCFunctionStub(Assembler* assembler,
 
 
 TEST_CASE(CallNativeCFunctionStubCode) {
+  extern const Function& RegisterFakeFunction(const char* name,
+                                              const Code& code);
   const int value1 = 15;
   const int value2 = 20;
   const char* kName = "Test_CallNativeCFunctionStubCode";

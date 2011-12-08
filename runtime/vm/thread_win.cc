@@ -55,7 +55,7 @@ Thread::Thread(ThreadStartFunction function, uword parameter) {
   ThreadStartData* start_data = new ThreadStartData(function, parameter, this);
   uint32_t tid;
   data_.thread_handle_ =
-    _beginthreadex(NULL, 32 * KB, ThreadEntry, start_data, 0, &tid);
+    _beginthreadex(NULL, 64 * KB, ThreadEntry, start_data, 0, &tid);
   if (data_.thread_handle_ == -1) {
     FATAL("Thread creation failed");
   }

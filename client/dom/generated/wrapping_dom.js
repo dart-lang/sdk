@@ -142,6 +142,750 @@ function native__AttrWrappingImplementation__set_value(_this, value) {
   }
 }
 
+function native__AudioBufferWrappingImplementation__get_duration(_this) {
+  try {
+    return __dom_wrap(_this.$dom.duration);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__set_gain(_this, value) {
+  try {
+    _this.$dom.gain = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_length(_this) {
+  try {
+    return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_numberOfChannels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfChannels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__get_sampleRate(_this) {
+  try {
+    return __dom_wrap(_this.$dom.sampleRate);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferWrappingImplementation__getChannelData(_this, channelIndex) {
+  try {
+    return __dom_wrap(_this.$dom.getChannelData(__dom_unwrap(channelIndex)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_buffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.buffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__set_buffer(_this, value) {
+  try {
+    _this.$dom.buffer = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_loop(_this) {
+  try {
+    return __dom_wrap(_this.$dom.loop);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__set_loop(_this, value) {
+  try {
+    _this.$dom.loop = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_looping(_this) {
+  try {
+    return __dom_wrap(_this.$dom.looping);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__set_looping(_this, value) {
+  try {
+    _this.$dom.looping = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__get_playbackRate(_this) {
+  try {
+    return __dom_wrap(_this.$dom.playbackRate);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__noteGrainOn(_this, when, grainOffset, grainDuration) {
+  try {
+    return __dom_wrap(_this.$dom.noteGrainOn(__dom_unwrap(when), __dom_unwrap(grainOffset), __dom_unwrap(grainDuration)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__noteOff(_this, when) {
+  try {
+    return __dom_wrap(_this.$dom.noteOff(__dom_unwrap(when)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioBufferSourceNodeWrappingImplementation__noteOn(_this, when) {
+  try {
+    return __dom_wrap(_this.$dom.noteOn(__dom_unwrap(when)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_currentTime(_this) {
+  try {
+    return __dom_wrap(_this.$dom.currentTime);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_destination(_this) {
+  try {
+    return __dom_wrap(_this.$dom.destination);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_listener(_this) {
+  try {
+    return __dom_wrap(_this.$dom.listener);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__get_sampleRate(_this) {
+  try {
+    return __dom_wrap(_this.$dom.sampleRate);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createAnalyser(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createAnalyser());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createBiquadFilter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createBiquadFilter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createBuffer());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createBufferSource(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createBufferSource());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createChannelMerger(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createChannelMerger());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createChannelSplitter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createChannelSplitter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createConvolver(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createConvolver());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createDelayNode(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createDelayNode());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createDynamicsCompressor(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createDynamicsCompressor());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createGainNode(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createGainNode());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createHighPass2Filter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createHighPass2Filter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createJavaScriptNode(_this, bufferSize) {
+  try {
+    return __dom_wrap(_this.$dom.createJavaScriptNode(__dom_unwrap(bufferSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createLowPass2Filter(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createLowPass2Filter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createPanner(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createPanner());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createWaveShaper(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createWaveShaper());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__decodeAudioData(_this, audioData, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.decodeAudioData(__dom_unwrap(audioData), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__decodeAudioData_2(_this, audioData, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.decodeAudioData(__dom_unwrap(audioData), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__startRendering(_this) {
+  try {
+    return __dom_wrap(_this.$dom.startRendering());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioDestinationNodeWrappingImplementation__get_numberOfChannels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfChannels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioGainNodeWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__get_dopplerFactor(_this) {
+  try {
+    return __dom_wrap(_this.$dom.dopplerFactor);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__set_dopplerFactor(_this, value) {
+  try {
+    _this.$dom.dopplerFactor = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__get_speedOfSound(_this) {
+  try {
+    return __dom_wrap(_this.$dom.speedOfSound);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__set_speedOfSound(_this, value) {
+  try {
+    _this.$dom.speedOfSound = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__setOrientation(_this, x, y, z, xUp, yUp, zUp) {
+  try {
+    return __dom_wrap(_this.$dom.setOrientation(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z), __dom_unwrap(xUp), __dom_unwrap(yUp), __dom_unwrap(zUp)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__setPosition(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setPosition(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioListenerWrappingImplementation__setVelocity(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setVelocity(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__get_context(_this) {
+  try {
+    return __dom_wrap(_this.$dom.context);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__get_numberOfInputs(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfInputs);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__get_numberOfOutputs(_this) {
+  try {
+    return __dom_wrap(_this.$dom.numberOfOutputs);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__connect(_this, destination) {
+  try {
+    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__connect_2(_this, destination, output) {
+  try {
+    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination), __dom_unwrap(output)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__connect_3(_this, destination, output, input) {
+  try {
+    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination), __dom_unwrap(output), __dom_unwrap(input)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__disconnect(_this) {
+  try {
+    return __dom_wrap(_this.$dom.disconnect());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioNodeWrappingImplementation__disconnect_2(_this, output) {
+  try {
+    return __dom_wrap(_this.$dom.disconnect(__dom_unwrap(output)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneGain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneGain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneInnerAngle(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneInnerAngle);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_coneInnerAngle(_this, value) {
+  try {
+    _this.$dom.coneInnerAngle = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneOuterAngle(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneOuterAngle);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_coneOuterAngle(_this, value) {
+  try {
+    _this.$dom.coneOuterAngle = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_coneOuterGain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.coneOuterGain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_coneOuterGain(_this, value) {
+  try {
+    _this.$dom.coneOuterGain = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_distanceGain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.distanceGain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_distanceModel(_this) {
+  try {
+    return __dom_wrap(_this.$dom.distanceModel);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_distanceModel(_this, value) {
+  try {
+    _this.$dom.distanceModel = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_maxDistance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.maxDistance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_maxDistance(_this, value) {
+  try {
+    _this.$dom.maxDistance = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_panningModel(_this) {
+  try {
+    return __dom_wrap(_this.$dom.panningModel);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_panningModel(_this, value) {
+  try {
+    _this.$dom.panningModel = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_refDistance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.refDistance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_refDistance(_this, value) {
+  try {
+    _this.$dom.refDistance = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__get_rolloffFactor(_this) {
+  try {
+    return __dom_wrap(_this.$dom.rolloffFactor);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__set_rolloffFactor(_this, value) {
+  try {
+    _this.$dom.rolloffFactor = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__setOrientation(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setOrientation(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__setPosition(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setPosition(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioPannerNodeWrappingImplementation__setVelocity(_this, x, y, z) {
+  try {
+    return __dom_wrap(_this.$dom.setVelocity(__dom_unwrap(x), __dom_unwrap(y), __dom_unwrap(z)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_defaultValue(_this) {
+  try {
+    return __dom_wrap(_this.$dom.defaultValue);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_maxValue(_this) {
+  try {
+    return __dom_wrap(_this.$dom.maxValue);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_minValue(_this) {
+  try {
+    return __dom_wrap(_this.$dom.minValue);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_name(_this) {
+  try {
+    return __dom_wrap(_this.$dom.name);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_units(_this) {
+  try {
+    return __dom_wrap(_this.$dom.units);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__get_value(_this) {
+  try {
+    return __dom_wrap(_this.$dom.value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__set_value(_this, value) {
+  try {
+    _this.$dom.value = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__cancelScheduledValues(_this, startTime) {
+  try {
+    return __dom_wrap(_this.$dom.cancelScheduledValues(__dom_unwrap(startTime)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__exponentialRampToValueAtTime(_this, value, time) {
+  try {
+    return __dom_wrap(_this.$dom.exponentialRampToValueAtTime(__dom_unwrap(value), __dom_unwrap(time)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__linearRampToValueAtTime(_this, value, time) {
+  try {
+    return __dom_wrap(_this.$dom.linearRampToValueAtTime(__dom_unwrap(value), __dom_unwrap(time)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__setTargetValueAtTime(_this, targetValue, time, timeConstant) {
+  try {
+    return __dom_wrap(_this.$dom.setTargetValueAtTime(__dom_unwrap(targetValue), __dom_unwrap(time), __dom_unwrap(timeConstant)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__setValueAtTime(_this, value, time) {
+  try {
+    return __dom_wrap(_this.$dom.setValueAtTime(__dom_unwrap(value), __dom_unwrap(time)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioParamWrappingImplementation__setValueCurveAtTime(_this, values, time, duration) {
+  try {
+    return __dom_wrap(_this.$dom.setValueCurveAtTime(__dom_unwrap(values), __dom_unwrap(time), __dom_unwrap(duration)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioProcessingEventWrappingImplementation__get_inputBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.inputBuffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioProcessingEventWrappingImplementation__get_outputBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.outputBuffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__BarInfoWrappingImplementation__get_visible(_this) {
   try {
     return __dom_wrap(_this.$dom.visible);
@@ -161,6 +905,46 @@ function native__BeforeLoadEventWrappingImplementation__get_url(_this) {
 function native__BeforeLoadEventWrappingImplementation__initBeforeLoadEvent(_this, type, canBubble, cancelable, url) {
   try {
     return __dom_wrap(_this.$dom.initBeforeLoadEvent(__dom_unwrap(type), __dom_unwrap(canBubble), __dom_unwrap(cancelable), __dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_Q(_this) {
+  try {
+    return __dom_wrap(_this.$dom.Q);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_frequency(_this) {
+  try {
+    return __dom_wrap(_this.$dom.frequency);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_gain(_this) {
+  try {
+    return __dom_wrap(_this.$dom.gain);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__get_type(_this) {
+  try {
+    return __dom_wrap(_this.$dom.type);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BiquadFilterNodeWrappingImplementation__set_type(_this, value) {
+  try {
+    _this.$dom.type = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -654,9 +1438,17 @@ function native__CanvasPixelArrayWrappingImplementation__get_length(_this) {
   }
 }
 
-function native__CanvasPixelArrayWrappingImplementation__item(_this, index) {
+function native__CanvasPixelArrayWrappingImplementation__index(_this, index) {
   try {
-    return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasPixelArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -1993,6 +2785,22 @@ function native__ConsoleWrappingImplementation__trace(_this, arg) {
 function native__ConsoleWrappingImplementation__warn(_this, arg) {
   try {
     return __dom_wrap(_this.$dom.warn(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConvolverNodeWrappingImplementation__get_buffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.buffer);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConvolverNodeWrappingImplementation__set_buffer(_this, value) {
+  try {
+    _this.$dom.buffer = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -3742,6 +4550,54 @@ function native__DOMWindowWrappingImplementation__webkitRequestAnimationFrame(_t
   }
 }
 
+function native__DOMWindowWrappingImplementation__webkitRequestFileSystem(_this, type, size) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitRequestFileSystem_2(_this, type, size, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitRequestFileSystem_3(_this, type, size, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitResolveLocalFileSystemURL(_this, url) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitResolveLocalFileSystemURL_2(_this, url, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitResolveLocalFileSystemURL_3(_this, url, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DataTransferItemWrappingImplementation__get_kind(_this) {
   try {
     return __dom_wrap(_this.$dom.kind);
@@ -4118,22 +4974,6 @@ function native__DatabaseWrappingImplementation__transaction_3(_this, callback, 
   }
 }
 
-function native__DatabaseCallbackWrappingImplementation__handleEvent(_this, database) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(database)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__DatabaseCallbackWrappingImplementation__handleEvent_2(_this, database) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(database)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__DatabaseSyncWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
@@ -4201,6 +5041,14 @@ function native__DedicatedWorkerContextWrappingImplementation__webkitPostMessage
 function native__DedicatedWorkerContextWrappingImplementation__webkitPostMessage_2(_this, message, transferList) {
   try {
     return __dom_wrap(_this.$dom.webkitPostMessage(__dom_unwrap(message), __dom_unwrap(transferList)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DelayNodeWrappingImplementation__get_delayTime(_this) {
+  try {
+    return __dom_wrap(_this.$dom.delayTime);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4686,9 +5534,33 @@ function native__DocumentWrappingImplementation__set_title(_this, value) {
   }
 }
 
+function native__DocumentWrappingImplementation__get_webkitCurrentFullScreenElement(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitCurrentFullScreenElement);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__get_webkitFullScreenKeyboardInputAllowed(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitFullScreenKeyboardInputAllowed);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DocumentWrappingImplementation__get_webkitHidden(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitHidden);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__get_webkitIsFullScreen(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitIsFullScreen);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5033,6 +5905,14 @@ function native__DocumentWrappingImplementation__querySelector(_this, selectors)
 function native__DocumentWrappingImplementation__querySelectorAll(_this, selectors) {
   try {
     return __dom_wrap(_this.$dom.querySelectorAll(__dom_unwrap(selectors)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__webkitCancelFullScreen(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitCancelFullScreen());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5510,6 +6390,14 @@ function native__ElementWrappingImplementation__webkitMatchesSelector(_this, sel
   }
 }
 
+function native__ElementWrappingImplementation__webkitRequestFullScreen(_this, flags) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFullScreen(__dom_unwrap(flags)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__ElementTimeControlWrappingImplementation__beginElement(_this) {
   try {
     return __dom_wrap(_this.$dom.beginElement());
@@ -5601,14 +6489,6 @@ function native__EntityWrappingImplementation__get_publicId(_this) {
 function native__EntityWrappingImplementation__get_systemId(_this) {
   try {
     return __dom_wrap(_this.$dom.systemId);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__EntriesCallbackWrappingImplementation__handleEvent(_this, entries) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(entries)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5830,14 +6710,6 @@ function native__EntryArraySyncWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__EntryCallbackWrappingImplementation__handleEvent(_this, entry) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(entry)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__EntrySyncWrappingImplementation__get_filesystem(_this) {
   try {
     return __dom_wrap(_this.$dom.filesystem);
@@ -5921,14 +6793,6 @@ function native__EntrySyncWrappingImplementation__remove(_this) {
 function native__EntrySyncWrappingImplementation__toURL(_this) {
   try {
     return __dom_wrap(_this.$dom.toURL());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__ErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -6278,14 +7142,6 @@ function native__FileWrappingImplementation__get_name(_this) {
   }
 }
 
-function native__FileCallbackWrappingImplementation__handleEvent(_this, file) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(file)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__FileEntryWrappingImplementation__createWriter(_this, successCallback) {
   try {
     return __dom_wrap(_this.$dom.createWriter(__dom_unwrap(successCallback)));
@@ -6502,14 +7358,6 @@ function native__FileReaderSyncWrappingImplementation__readAsText_2(_this, blob,
   }
 }
 
-function native__FileSystemCallbackWrappingImplementation__handleEvent(_this, fileSystem) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(fileSystem)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__FileWriterWrappingImplementation__get_error(_this) {
   try {
     return __dom_wrap(_this.$dom.error);
@@ -6574,14 +7422,6 @@ function native__FileWriterWrappingImplementation__write(_this, data) {
   }
 }
 
-function native__FileWriterCallbackWrappingImplementation__handleEvent(_this, fileWriter) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(fileWriter)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__FileWriterSyncWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
@@ -6630,6 +7470,22 @@ function native__Float32ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Float32ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float32ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Float32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -6649,6 +7505,22 @@ function native__Float32ArrayWrappingImplementation__subarray_2(_this, start, en
 function native__Float64ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float64ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float64ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -7945,6 +8817,14 @@ function native__HTMLCanvasElementWrappingImplementation__toDataURL(_this, type)
 function native__HTMLCollectionWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLCollectionWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -14670,6 +15550,22 @@ function native__HashChangeEventWrappingImplementation__initHashChangeEvent(_thi
   }
 }
 
+function native__HighPass2FilterNodeWrappingImplementation__get_cutoff(_this) {
+  try {
+    return __dom_wrap(_this.$dom.cutoff);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HighPass2FilterNodeWrappingImplementation__get_resonance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.resonance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HistoryWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
@@ -15766,6 +16662,22 @@ function native__Int16ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Int16ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int16ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Int16ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -15785,6 +16697,22 @@ function native__Int16ArrayWrappingImplementation__subarray_2(_this, start, end)
 function native__Int32ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int32ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int32ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -15814,6 +16742,22 @@ function native__Int8ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Int8ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int8ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Int8ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -15825,6 +16769,14 @@ function native__Int8ArrayWrappingImplementation__subarray(_this, start) {
 function native__Int8ArrayWrappingImplementation__subarray_2(_this, start, end) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start), __dom_unwrap(end)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__JavaScriptAudioNodeWrappingImplementation__get_bufferSize(_this) {
+  try {
+    return __dom_wrap(_this.$dom.bufferSize);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16142,6 +17094,30 @@ function native__LocationWrappingImplementation__toString(_this) {
   }
 }
 
+function native__LowPass2FilterNodeWrappingImplementation__get_cutoff(_this) {
+  try {
+    return __dom_wrap(_this.$dom.cutoff);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__LowPass2FilterNodeWrappingImplementation__get_resonance(_this) {
+  try {
+    return __dom_wrap(_this.$dom.resonance);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MediaElementAudioSourceNodeWrappingImplementation__get_mediaElement(_this) {
+  try {
+    return __dom_wrap(_this.$dom.mediaElement);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__MediaErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
@@ -16169,6 +17145,14 @@ function native__MediaListWrappingImplementation__get_mediaText(_this) {
 function native__MediaListWrappingImplementation__set_mediaText(_this, value) {
   try {
     _this.$dom.mediaText = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__MediaListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16425,14 +17409,6 @@ function native__MessagePortWrappingImplementation__webkitPostMessage_2(_this, m
 function native__MetadataWrappingImplementation__get_modificationTime(_this) {
   try {
     return __dom_wrap(_this.$dom.modificationTime);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MetadataCallbackWrappingImplementation__handleEvent(_this, metadata) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(metadata)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16710,6 +17686,14 @@ function native__NamedNodeMapWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__NamedNodeMapWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__NamedNodeMapWrappingImplementation__getNamedItem(_this, name) {
   try {
     return __dom_wrap(_this.$dom.getNamedItem(__dom_unwrap(name)));
@@ -16897,14 +17881,6 @@ function native__NavigatorWrappingImplementation__javaEnabled(_this) {
 function native__NavigatorUserMediaErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__NavigatorUserMediaErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17326,6 +18302,14 @@ function native__NodeListWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__NodeListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__NodeListWrappingImplementation__item(_this, index) {
   try {
     return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
@@ -17513,6 +18497,14 @@ function native__OESVertexArrayObjectWrappingImplementation__deleteVertexArrayOE
 function native__OESVertexArrayObjectWrappingImplementation__isVertexArrayOES(_this, arrayObject) {
   try {
     return __dom_wrap(_this.$dom.isVertexArrayOES(__dom_unwrap(arrayObject)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__OfflineAudioCompletionEventWrappingImplementation__get_renderedBuffer(_this) {
+  try {
+    return __dom_wrap(_this.$dom.renderedBuffer);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17822,14 +18814,6 @@ function native__PopStateEventWrappingImplementation__initPopStateEvent(_this, t
   }
 }
 
-function native__PositionCallbackWrappingImplementation__handleEvent(_this, position) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(position)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__PositionErrorWrappingImplementation__get_code(_this) {
   try {
     return __dom_wrap(_this.$dom.code);
@@ -17841,14 +18825,6 @@ function native__PositionErrorWrappingImplementation__get_code(_this) {
 function native__PositionErrorWrappingImplementation__get_message(_this) {
   try {
     return __dom_wrap(_this.$dom.message);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__PositionErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -18222,6 +19198,102 @@ function native__RangeExceptionWrappingImplementation__toString(_this) {
   }
 }
 
+function native__RealtimeAnalyserNodeWrappingImplementation__get_fftSize(_this) {
+  try {
+    return __dom_wrap(_this.$dom.fftSize);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_fftSize(_this, value) {
+  try {
+    _this.$dom.fftSize = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_frequencyBinCount(_this) {
+  try {
+    return __dom_wrap(_this.$dom.frequencyBinCount);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_maxDecibels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.maxDecibels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_maxDecibels(_this, value) {
+  try {
+    _this.$dom.maxDecibels = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_minDecibels(_this) {
+  try {
+    return __dom_wrap(_this.$dom.minDecibels);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_minDecibels(_this, value) {
+  try {
+    _this.$dom.minDecibels = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__get_smoothingTimeConstant(_this) {
+  try {
+    return __dom_wrap(_this.$dom.smoothingTimeConstant);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__set_smoothingTimeConstant(_this, value) {
+  try {
+    _this.$dom.smoothingTimeConstant = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__getByteFrequencyData(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.getByteFrequencyData(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__getByteTimeDomainData(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.getByteTimeDomainData(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__RealtimeAnalyserNodeWrappingImplementation__getFloatFrequencyData(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.getFloatFrequencyData(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__RectWrappingImplementation__get_bottom(_this) {
   try {
     return __dom_wrap(_this.$dom.bottom);
@@ -18321,46 +19393,6 @@ function native__SQLResultSetRowListWrappingImplementation__get_length(_this) {
 function native__SQLResultSetRowListWrappingImplementation__item(_this, index) {
   try {
     return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLStatementCallbackWrappingImplementation__handleEvent(_this, transaction, resultSet) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction), __dom_unwrap(resultSet)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLStatementErrorCallbackWrappingImplementation__handleEvent(_this, transaction, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction), __dom_unwrap(error)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLTransactionCallbackWrappingImplementation__handleEvent(_this, transaction) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLTransactionErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__SQLTransactionSyncCallbackWrappingImplementation__handleEvent(_this, transaction) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(transaction)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -28446,38 +29478,6 @@ function native__StorageInfoWrappingImplementation__requestQuota_3(_this, storag
   }
 }
 
-function native__StorageInfoErrorCallbackWrappingImplementation__handleEvent(_this, error) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(error)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__StorageInfoQuotaCallbackWrappingImplementation__handleEvent(_this, grantedQuotaInBytes) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(grantedQuotaInBytes)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__StorageInfoUsageCallbackWrappingImplementation__handleEvent(_this, currentUsageInBytes, currentQuotaInBytes) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(currentUsageInBytes), __dom_unwrap(currentQuotaInBytes)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__StringCallbackWrappingImplementation__handleEvent(_this, data) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent(__dom_unwrap(data)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__StyleMediaWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
@@ -28561,6 +29561,14 @@ function native__StyleSheetWrappingImplementation__get_type(_this) {
 function native__StyleSheetListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__StyleSheetListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29022,6 +30030,14 @@ function native__TouchListWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__TouchListWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__TouchListWrappingImplementation__item(_this, index) {
   try {
     return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
@@ -29222,6 +30238,22 @@ function native__Uint16ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Uint16ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint16ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Uint16ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -29246,6 +30278,22 @@ function native__Uint32ArrayWrappingImplementation__get_length(_this) {
   }
 }
 
+function native__Uint32ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint32ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Uint32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -29265,6 +30313,22 @@ function native__Uint32ArrayWrappingImplementation__subarray_2(_this, start, end
 function native__Uint8ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ArrayWrappingImplementation__index(_this, index) {
+  try {
+    return __dom_wrap(_this.$dom[index]);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ArrayWrappingImplementation__set_index(_this, index, value) {
+  try {
+    return _this.$dom[index] = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29361,6 +30425,22 @@ function native__ValidityStateWrappingImplementation__get_valueMissing(_this) {
 function native__VoidCallbackWrappingImplementation__handleEvent(_this) {
   try {
     return __dom_wrap(_this.$dom.handleEvent());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WaveShaperNodeWrappingImplementation__get_curve(_this) {
+  try {
+    return __dom_wrap(_this.$dom.curve);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WaveShaperNodeWrappingImplementation__set_curve(_this, value) {
+  try {
+    _this.$dom.curve = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29990,9 +31070,9 @@ function native__WebGLRenderingContextWrappingImplementation__getAttribLocation(
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getBufferParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getBufferParameter(_this, target, pname) {
   try {
-    return __dom_wrap(_this.$dom.getBufferParameter());
+    return __dom_wrap(_this.$dom.getBufferParameter(__dom_unwrap(target), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30022,17 +31102,17 @@ function native__WebGLRenderingContextWrappingImplementation__getExtension(_this
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getFramebufferAttachmentParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getFramebufferAttachmentParameter(_this, target, attachment, pname) {
   try {
-    return __dom_wrap(_this.$dom.getFramebufferAttachmentParameter());
+    return __dom_wrap(_this.$dom.getFramebufferAttachmentParameter(__dom_unwrap(target), __dom_unwrap(attachment), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getParameter(_this, pname) {
   try {
-    return __dom_wrap(_this.$dom.getParameter());
+    return __dom_wrap(_this.$dom.getParameter(__dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30046,17 +31126,17 @@ function native__WebGLRenderingContextWrappingImplementation__getProgramInfoLog(
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getProgramParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getProgramParameter(_this, program, pname) {
   try {
-    return __dom_wrap(_this.$dom.getProgramParameter());
+    return __dom_wrap(_this.$dom.getProgramParameter(__dom_unwrap(program), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getRenderbufferParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getRenderbufferParameter(_this, target, pname) {
   try {
-    return __dom_wrap(_this.$dom.getRenderbufferParameter());
+    return __dom_wrap(_this.$dom.getRenderbufferParameter(__dom_unwrap(target), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30070,9 +31150,9 @@ function native__WebGLRenderingContextWrappingImplementation__getShaderInfoLog(_
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getShaderParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getShaderParameter(_this, shader, pname) {
   try {
-    return __dom_wrap(_this.$dom.getShaderParameter());
+    return __dom_wrap(_this.$dom.getShaderParameter(__dom_unwrap(shader), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30086,25 +31166,17 @@ function native__WebGLRenderingContextWrappingImplementation__getShaderSource(_t
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getSupportedExtensions(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getTexParameter(_this, target, pname) {
   try {
-    return __dom_wrap(_this.$dom.getSupportedExtensions());
+    return __dom_wrap(_this.$dom.getTexParameter(__dom_unwrap(target), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getTexParameter(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getUniform(_this, program, location) {
   try {
-    return __dom_wrap(_this.$dom.getTexParameter());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__WebGLRenderingContextWrappingImplementation__getUniform(_this) {
-  try {
-    return __dom_wrap(_this.$dom.getUniform());
+    return __dom_wrap(_this.$dom.getUniform(__dom_unwrap(program), __dom_unwrap(location)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30118,9 +31190,9 @@ function native__WebGLRenderingContextWrappingImplementation__getUniformLocation
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__getVertexAttrib(_this) {
+function native__WebGLRenderingContextWrappingImplementation__getVertexAttrib(_this, index, pname) {
   try {
-    return __dom_wrap(_this.$dom.getVertexAttrib());
+    return __dom_wrap(_this.$dom.getVertexAttrib(__dom_unwrap(index), __dom_unwrap(pname)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -31910,6 +32982,70 @@ function native__WorkerContextWrappingImplementation__removeEventListener_2(_thi
   }
 }
 
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystem(_this, type, size) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystem_2(_this, type, size, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystem_3(_this, type, size, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystemSync(_this, type, size) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystemSync(__dom_unwrap(type), __dom_unwrap(size)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemSyncURL(_this, url) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemSyncURL(__dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemURL(_this, url) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemURL_2(_this, url, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemURL_3(_this, url, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__WorkerLocationWrappingImplementation__get_hash(_this) {
   try {
     return __dom_wrap(_this.$dom.hash);
@@ -32633,6 +33769,15 @@ function native__DOMWindowWrappingImplementation__get_localStorage(_this) {
 
 // Native methods for factory providers.
 
+function native__AudioContextFactoryProvider_create() {
+  try {
+    var constructor = window.AudioContext || window.webkitAudioContext;
+    return __dom_wrap(new constructor());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__FileReaderFactoryProvider_create() {
   try {
     return __dom_wrap(new FileReader());
@@ -32640,6 +33785,71 @@ function native__FileReaderFactoryProvider_create() {
     throw __dom_wrap_exception(e);
   }
 }
+
+function native__TypedArrayFactoryProvider__F32(arg) {
+  try {
+    return __dom_wrap(new Float32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__F64(arg) {
+  try {
+    return __dom_wrap(new Float64Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I8(arg) {
+  try {
+    return __dom_wrap(new Int8Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I16(arg) {
+  try {
+    return __dom_wrap(new Int16Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I32(arg) {
+  try {
+    return __dom_wrap(new Int32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U8(arg) {
+  try {
+    return __dom_wrap(new Uint8Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U16(arg) {
+  try {
+    return __dom_wrap(new Uint16Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U32(arg) {
+  try {
+    return __dom_wrap(new Uint32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 
 function native__WebKitCSSMatrixFactoryProvider_create(spec) {
   try {
@@ -32671,8 +33881,23 @@ var __dom_type_map = {
   "ArrayBuffer": native__ArrayBufferWrappingImplementation_create__ArrayBufferWrappingImplementation,
   "ArrayBufferView": native__ArrayBufferViewWrappingImplementation_create__ArrayBufferViewWrappingImplementation,
   "Attr": native__AttrWrappingImplementation_create__AttrWrappingImplementation,
+  "AudioBuffer": native__AudioBufferWrappingImplementation_create__AudioBufferWrappingImplementation,
+  "AudioBufferSourceNode": native__AudioBufferSourceNodeWrappingImplementation_create__AudioBufferSourceNodeWrappingImplementation,
+  "AudioChannelMerger": native__AudioChannelMergerWrappingImplementation_create__AudioChannelMergerWrappingImplementation,
+  "AudioChannelSplitter": native__AudioChannelSplitterWrappingImplementation_create__AudioChannelSplitterWrappingImplementation,
+  "AudioContext": native__AudioContextWrappingImplementation_create__AudioContextWrappingImplementation,
+  "AudioDestinationNode": native__AudioDestinationNodeWrappingImplementation_create__AudioDestinationNodeWrappingImplementation,
+  "AudioGain": native__AudioGainWrappingImplementation_create__AudioGainWrappingImplementation,
+  "AudioGainNode": native__AudioGainNodeWrappingImplementation_create__AudioGainNodeWrappingImplementation,
+  "AudioListener": native__AudioListenerWrappingImplementation_create__AudioListenerWrappingImplementation,
+  "AudioNode": native__AudioNodeWrappingImplementation_create__AudioNodeWrappingImplementation,
+  "AudioPannerNode": native__AudioPannerNodeWrappingImplementation_create__AudioPannerNodeWrappingImplementation,
+  "AudioParam": native__AudioParamWrappingImplementation_create__AudioParamWrappingImplementation,
+  "AudioProcessingEvent": native__AudioProcessingEventWrappingImplementation_create__AudioProcessingEventWrappingImplementation,
+  "AudioSourceNode": native__AudioSourceNodeWrappingImplementation_create__AudioSourceNodeWrappingImplementation,
   "BarInfo": native__BarInfoWrappingImplementation_create__BarInfoWrappingImplementation,
   "BeforeLoadEvent": native__BeforeLoadEventWrappingImplementation_create__BeforeLoadEventWrappingImplementation,
+  "BiquadFilterNode": native__BiquadFilterNodeWrappingImplementation_create__BiquadFilterNodeWrappingImplementation,
   "Blob": native__BlobWrappingImplementation_create__BlobWrappingImplementation,
   "CDATASection": native__CDATASectionWrappingImplementation_create__CDATASectionWrappingImplementation,
   "CSSCharsetRule": native__CSSCharsetRuleWrappingImplementation_create__CSSCharsetRuleWrappingImplementation,
@@ -32702,6 +33927,7 @@ var __dom_type_map = {
   "Comment": native__CommentWrappingImplementation_create__CommentWrappingImplementation,
   "CompositionEvent": native__CompositionEventWrappingImplementation_create__CompositionEventWrappingImplementation,
   "Console": native__ConsoleWrappingImplementation_create__ConsoleWrappingImplementation,
+  "ConvolverNode": native__ConvolverNodeWrappingImplementation_create__ConvolverNodeWrappingImplementation,
   "Coordinates": native__CoordinatesWrappingImplementation_create__CoordinatesWrappingImplementation,
   "Counter": native__CounterWrappingImplementation_create__CounterWrappingImplementation,
   "Crypto": native__CryptoWrappingImplementation_create__CryptoWrappingImplementation,
@@ -32726,9 +33952,9 @@ var __dom_type_map = {
   "DataTransferItemList": native__DataTransferItemListWrappingImplementation_create__DataTransferItemListWrappingImplementation,
   "DataView": native__DataViewWrappingImplementation_create__DataViewWrappingImplementation,
   "Database": native__DatabaseWrappingImplementation_create__DatabaseWrappingImplementation,
-  "DatabaseCallback": native__DatabaseCallbackWrappingImplementation_create__DatabaseCallbackWrappingImplementation,
   "DatabaseSync": native__DatabaseSyncWrappingImplementation_create__DatabaseSyncWrappingImplementation,
   "DedicatedWorkerContext": native__DedicatedWorkerContextWrappingImplementation_create__DedicatedWorkerContextWrappingImplementation,
+  "DelayNode": native__DelayNodeWrappingImplementation_create__DelayNodeWrappingImplementation,
   "DeviceMotionEvent": native__DeviceMotionEventWrappingImplementation_create__DeviceMotionEventWrappingImplementation,
   "DeviceOrientationEvent": native__DeviceOrientationEventWrappingImplementation_create__DeviceOrientationEventWrappingImplementation,
   "DirectoryEntry": native__DirectoryEntryWrappingImplementation_create__DirectoryEntryWrappingImplementation,
@@ -32738,25 +33964,22 @@ var __dom_type_map = {
   "Document": native__DocumentWrappingImplementation_create__DocumentWrappingImplementation,
   "DocumentFragment": native__DocumentFragmentWrappingImplementation_create__DocumentFragmentWrappingImplementation,
   "DocumentType": native__DocumentTypeWrappingImplementation_create__DocumentTypeWrappingImplementation,
+  "DynamicsCompressorNode": native__DynamicsCompressorNodeWrappingImplementation_create__DynamicsCompressorNodeWrappingImplementation,
   "Element": native__ElementWrappingImplementation_create__ElementWrappingImplementation,
   "ElementTimeControl": native__ElementTimeControlWrappingImplementation_create__ElementTimeControlWrappingImplementation,
   "ElementTraversal": native__ElementTraversalWrappingImplementation_create__ElementTraversalWrappingImplementation,
   "Entity": native__EntityWrappingImplementation_create__EntityWrappingImplementation,
   "EntityReference": native__EntityReferenceWrappingImplementation_create__EntityReferenceWrappingImplementation,
-  "EntriesCallback": native__EntriesCallbackWrappingImplementation_create__EntriesCallbackWrappingImplementation,
   "Entry": native__EntryWrappingImplementation_create__EntryWrappingImplementation,
   "EntryArray": native__EntryArrayWrappingImplementation_create__EntryArrayWrappingImplementation,
   "EntryArraySync": native__EntryArraySyncWrappingImplementation_create__EntryArraySyncWrappingImplementation,
-  "EntryCallback": native__EntryCallbackWrappingImplementation_create__EntryCallbackWrappingImplementation,
   "EntrySync": native__EntrySyncWrappingImplementation_create__EntrySyncWrappingImplementation,
-  "ErrorCallback": native__ErrorCallbackWrappingImplementation_create__ErrorCallbackWrappingImplementation,
   "ErrorEvent": native__ErrorEventWrappingImplementation_create__ErrorEventWrappingImplementation,
   "Event": native__EventWrappingImplementation_create__EventWrappingImplementation,
   "EventException": native__EventExceptionWrappingImplementation_create__EventExceptionWrappingImplementation,
   "EventSource": native__EventSourceWrappingImplementation_create__EventSourceWrappingImplementation,
   "EventTarget": native__EventTargetWrappingImplementation_create__EventTargetWrappingImplementation,
   "File": native__FileWrappingImplementation_create__FileWrappingImplementation,
-  "FileCallback": native__FileCallbackWrappingImplementation_create__FileCallbackWrappingImplementation,
   "FileEntry": native__FileEntryWrappingImplementation_create__FileEntryWrappingImplementation,
   "FileEntrySync": native__FileEntrySyncWrappingImplementation_create__FileEntrySyncWrappingImplementation,
   "FileError": native__FileErrorWrappingImplementation_create__FileErrorWrappingImplementation,
@@ -32764,9 +33987,7 @@ var __dom_type_map = {
   "FileList": native__FileListWrappingImplementation_create__FileListWrappingImplementation,
   "FileReader": native__FileReaderWrappingImplementation_create__FileReaderWrappingImplementation,
   "FileReaderSync": native__FileReaderSyncWrappingImplementation_create__FileReaderSyncWrappingImplementation,
-  "FileSystemCallback": native__FileSystemCallbackWrappingImplementation_create__FileSystemCallbackWrappingImplementation,
   "FileWriter": native__FileWriterWrappingImplementation_create__FileWriterWrappingImplementation,
-  "FileWriterCallback": native__FileWriterCallbackWrappingImplementation_create__FileWriterCallbackWrappingImplementation,
   "FileWriterSync": native__FileWriterSyncWrappingImplementation_create__FileWriterSyncWrappingImplementation,
   "Float32Array": native__Float32ArrayWrappingImplementation_create__Float32ArrayWrappingImplementation,
   "Float64Array": native__Float64ArrayWrappingImplementation_create__Float64ArrayWrappingImplementation,
@@ -32846,6 +34067,7 @@ var __dom_type_map = {
   "HTMLUnknownElement": native__HTMLUnknownElementWrappingImplementation_create__HTMLUnknownElementWrappingImplementation,
   "HTMLVideoElement": native__HTMLVideoElementWrappingImplementation_create__HTMLVideoElementWrappingImplementation,
   "HashChangeEvent": native__HashChangeEventWrappingImplementation_create__HashChangeEventWrappingImplementation,
+  "HighPass2FilterNode": native__HighPass2FilterNodeWrappingImplementation_create__HighPass2FilterNodeWrappingImplementation,
   "History": native__HistoryWrappingImplementation_create__HistoryWrappingImplementation,
   "IDBAny": native__IDBAnyWrappingImplementation_create__IDBAnyWrappingImplementation,
   "IDBCursor": native__IDBCursorWrappingImplementation_create__IDBCursorWrappingImplementation,
@@ -32868,9 +34090,12 @@ var __dom_type_map = {
   "Int16Array": native__Int16ArrayWrappingImplementation_create__Int16ArrayWrappingImplementation,
   "Int32Array": native__Int32ArrayWrappingImplementation_create__Int32ArrayWrappingImplementation,
   "Int8Array": native__Int8ArrayWrappingImplementation_create__Int8ArrayWrappingImplementation,
+  "JavaScriptAudioNode": native__JavaScriptAudioNodeWrappingImplementation_create__JavaScriptAudioNodeWrappingImplementation,
   "JavaScriptCallFrame": native__JavaScriptCallFrameWrappingImplementation_create__JavaScriptCallFrameWrappingImplementation,
   "KeyboardEvent": native__KeyboardEventWrappingImplementation_create__KeyboardEventWrappingImplementation,
   "Location": native__LocationWrappingImplementation_create__LocationWrappingImplementation,
+  "LowPass2FilterNode": native__LowPass2FilterNodeWrappingImplementation_create__LowPass2FilterNodeWrappingImplementation,
+  "MediaElementAudioSourceNode": native__MediaElementAudioSourceNodeWrappingImplementation_create__MediaElementAudioSourceNodeWrappingImplementation,
   "MediaError": native__MediaErrorWrappingImplementation_create__MediaErrorWrappingImplementation,
   "MediaList": native__MediaListWrappingImplementation_create__MediaListWrappingImplementation,
   "MediaQueryList": native__MediaQueryListWrappingImplementation_create__MediaQueryListWrappingImplementation,
@@ -32880,7 +34105,6 @@ var __dom_type_map = {
   "MessageEvent": native__MessageEventWrappingImplementation_create__MessageEventWrappingImplementation,
   "MessagePort": native__MessagePortWrappingImplementation_create__MessagePortWrappingImplementation,
   "Metadata": native__MetadataWrappingImplementation_create__MetadataWrappingImplementation,
-  "MetadataCallback": native__MetadataCallbackWrappingImplementation_create__MetadataCallbackWrappingImplementation,
   "MouseEvent": native__MouseEventWrappingImplementation_create__MouseEventWrappingImplementation,
   "MutationCallback": native__MutationCallbackWrappingImplementation_create__MutationCallbackWrappingImplementation,
   "MutationEvent": native__MutationEventWrappingImplementation_create__MutationEventWrappingImplementation,
@@ -32888,7 +34112,6 @@ var __dom_type_map = {
   "NamedNodeMap": native__NamedNodeMapWrappingImplementation_create__NamedNodeMapWrappingImplementation,
   "Navigator": native__NavigatorWrappingImplementation_create__NavigatorWrappingImplementation,
   "NavigatorUserMediaError": native__NavigatorUserMediaErrorWrappingImplementation_create__NavigatorUserMediaErrorWrappingImplementation,
-  "NavigatorUserMediaErrorCallback": native__NavigatorUserMediaErrorCallbackWrappingImplementation_create__NavigatorUserMediaErrorCallbackWrappingImplementation,
   "NavigatorUserMediaSuccessCallback": native__NavigatorUserMediaSuccessCallbackWrappingImplementation_create__NavigatorUserMediaSuccessCallbackWrappingImplementation,
   "Node": native__NodeWrappingImplementation_create__NodeWrappingImplementation,
   "NodeFilter": native__NodeFilterWrappingImplementation_create__NodeFilterWrappingImplementation,
@@ -32901,6 +34124,7 @@ var __dom_type_map = {
   "OESStandardDerivatives": native__OESStandardDerivativesWrappingImplementation_create__OESStandardDerivativesWrappingImplementation,
   "OESTextureFloat": native__OESTextureFloatWrappingImplementation_create__OESTextureFloatWrappingImplementation,
   "OESVertexArrayObject": native__OESVertexArrayObjectWrappingImplementation_create__OESVertexArrayObjectWrappingImplementation,
+  "OfflineAudioCompletionEvent": native__OfflineAudioCompletionEventWrappingImplementation_create__OfflineAudioCompletionEventWrappingImplementation,
   "OperationNotAllowedException": native__OperationNotAllowedExceptionWrappingImplementation_create__OperationNotAllowedExceptionWrappingImplementation,
   "OverflowEvent": native__OverflowEventWrappingImplementation_create__OverflowEventWrappingImplementation,
   "PageTransitionEvent": native__PageTransitionEventWrappingImplementation_create__PageTransitionEventWrappingImplementation,
@@ -32908,26 +34132,20 @@ var __dom_type_map = {
   "PerformanceNavigation": native__PerformanceNavigationWrappingImplementation_create__PerformanceNavigationWrappingImplementation,
   "PerformanceTiming": native__PerformanceTimingWrappingImplementation_create__PerformanceTimingWrappingImplementation,
   "PopStateEvent": native__PopStateEventWrappingImplementation_create__PopStateEventWrappingImplementation,
-  "PositionCallback": native__PositionCallbackWrappingImplementation_create__PositionCallbackWrappingImplementation,
   "PositionError": native__PositionErrorWrappingImplementation_create__PositionErrorWrappingImplementation,
-  "PositionErrorCallback": native__PositionErrorCallbackWrappingImplementation_create__PositionErrorCallbackWrappingImplementation,
   "ProcessingInstruction": native__ProcessingInstructionWrappingImplementation_create__ProcessingInstructionWrappingImplementation,
   "ProgressEvent": native__ProgressEventWrappingImplementation_create__ProgressEventWrappingImplementation,
   "RGBColor": native__RGBColorWrappingImplementation_create__RGBColorWrappingImplementation,
   "Range": native__RangeWrappingImplementation_create__RangeWrappingImplementation,
   "RangeException": native__RangeExceptionWrappingImplementation_create__RangeExceptionWrappingImplementation,
+  "RealtimeAnalyserNode": native__RealtimeAnalyserNodeWrappingImplementation_create__RealtimeAnalyserNodeWrappingImplementation,
   "Rect": native__RectWrappingImplementation_create__RectWrappingImplementation,
   "SQLError": native__SQLErrorWrappingImplementation_create__SQLErrorWrappingImplementation,
   "SQLException": native__SQLExceptionWrappingImplementation_create__SQLExceptionWrappingImplementation,
   "SQLResultSet": native__SQLResultSetWrappingImplementation_create__SQLResultSetWrappingImplementation,
   "SQLResultSetRowList": native__SQLResultSetRowListWrappingImplementation_create__SQLResultSetRowListWrappingImplementation,
-  "SQLStatementCallback": native__SQLStatementCallbackWrappingImplementation_create__SQLStatementCallbackWrappingImplementation,
-  "SQLStatementErrorCallback": native__SQLStatementErrorCallbackWrappingImplementation_create__SQLStatementErrorCallbackWrappingImplementation,
   "SQLTransaction": native__SQLTransactionWrappingImplementation_create__SQLTransactionWrappingImplementation,
-  "SQLTransactionCallback": native__SQLTransactionCallbackWrappingImplementation_create__SQLTransactionCallbackWrappingImplementation,
-  "SQLTransactionErrorCallback": native__SQLTransactionErrorCallbackWrappingImplementation_create__SQLTransactionErrorCallbackWrappingImplementation,
   "SQLTransactionSync": native__SQLTransactionSyncWrappingImplementation_create__SQLTransactionSyncWrappingImplementation,
-  "SQLTransactionSyncCallback": native__SQLTransactionSyncCallbackWrappingImplementation_create__SQLTransactionSyncCallbackWrappingImplementation,
   "SVGAElement": native__SVGAElementWrappingImplementation_create__SVGAElementWrappingImplementation,
   "SVGAltGlyphDefElement": native__SVGAltGlyphDefElementWrappingImplementation_create__SVGAltGlyphDefElementWrappingImplementation,
   "SVGAltGlyphElement": native__SVGAltGlyphElementWrappingImplementation_create__SVGAltGlyphElementWrappingImplementation,
@@ -33091,10 +34309,6 @@ var __dom_type_map = {
   "Storage": native__StorageWrappingImplementation_create__StorageWrappingImplementation,
   "StorageEvent": native__StorageEventWrappingImplementation_create__StorageEventWrappingImplementation,
   "StorageInfo": native__StorageInfoWrappingImplementation_create__StorageInfoWrappingImplementation,
-  "StorageInfoErrorCallback": native__StorageInfoErrorCallbackWrappingImplementation_create__StorageInfoErrorCallbackWrappingImplementation,
-  "StorageInfoQuotaCallback": native__StorageInfoQuotaCallbackWrappingImplementation_create__StorageInfoQuotaCallbackWrappingImplementation,
-  "StorageInfoUsageCallback": native__StorageInfoUsageCallbackWrappingImplementation_create__StorageInfoUsageCallbackWrappingImplementation,
-  "StringCallback": native__StringCallbackWrappingImplementation_create__StringCallbackWrappingImplementation,
   "StyleMedia": native__StyleMediaWrappingImplementation_create__StyleMediaWrappingImplementation,
   "StyleSheet": native__StyleSheetWrappingImplementation_create__StyleSheetWrappingImplementation,
   "StyleSheetList": native__StyleSheetListWrappingImplementation_create__StyleSheetListWrappingImplementation,
@@ -33115,6 +34329,7 @@ var __dom_type_map = {
   "Uint8Array": native__Uint8ArrayWrappingImplementation_create__Uint8ArrayWrappingImplementation,
   "ValidityState": native__ValidityStateWrappingImplementation_create__ValidityStateWrappingImplementation,
   "VoidCallback": native__VoidCallbackWrappingImplementation_create__VoidCallbackWrappingImplementation,
+  "WaveShaperNode": native__WaveShaperNodeWrappingImplementation_create__WaveShaperNodeWrappingImplementation,
   "WebGLActiveInfo": native__WebGLActiveInfoWrappingImplementation_create__WebGLActiveInfoWrappingImplementation,
   "WebGLBuffer": native__WebGLBufferWrappingImplementation_create__WebGLBufferWrappingImplementation,
   "WebGLContextAttributes": native__WebGLContextAttributesWrappingImplementation_create__WebGLContextAttributesWrappingImplementation,

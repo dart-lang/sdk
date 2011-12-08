@@ -11,30 +11,6 @@ class FileWriterWrappingImplementation extends DOMWrapperBase implements FileWri
 
   int get length() { return _ptr.length; }
 
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onprogress() { return LevelDom.wrapEventListener(_ptr.onprogress); }
-
-  void set onprogress(EventListener value) { _ptr.onprogress = LevelDom.unwrap(value); }
-
-  EventListener get onwrite() { return LevelDom.wrapEventListener(_ptr.onwrite); }
-
-  void set onwrite(EventListener value) { _ptr.onwrite = LevelDom.unwrap(value); }
-
-  EventListener get onwriteend() { return LevelDom.wrapEventListener(_ptr.onwriteend); }
-
-  void set onwriteend(EventListener value) { _ptr.onwriteend = LevelDom.unwrap(value); }
-
-  EventListener get onwritestart() { return LevelDom.wrapEventListener(_ptr.onwritestart); }
-
-  void set onwritestart(EventListener value) { _ptr.onwritestart = LevelDom.unwrap(value); }
-
   int get position() { return _ptr.position; }
 
   int get readyState() { return _ptr.readyState; }

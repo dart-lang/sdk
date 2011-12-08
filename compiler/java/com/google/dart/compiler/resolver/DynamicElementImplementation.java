@@ -97,6 +97,16 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   }
 
   @Override
+  public ConstructorElement getDefaultConstructor() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void setDefaultConstructor(ConstructorElement defaultConstructor) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public boolean isStatic() {
     return false;
   }
@@ -133,6 +143,11 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
 
   @Override
   public boolean isObjectChild() {
+    return false;
+  }
+
+  @Override
+  public boolean isAbstract() {
     return false;
   }
 

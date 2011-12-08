@@ -4,10 +4,15 @@ To use it, from this directory, run:
 
     $ dartdoc <path to .dart file>
 
-This will create a "docs" directory with the docs for your libraries. To do so,
-dartdoc parses that library and every library it imports. From each library, it
-parses all classes and members, finds the associated doc comments and builds
-crosslinked docs from them.
+This will create a "docs" directory with the docs for your libraries.
+
+
+How docs are generated
+----------------------
+
+To make beautiful docs from your library, dartdoc parses it and every library it
+imports (recursively). From each library, it parses all classes and members,
+finds the associated doc comments and builds crosslinked docs from them.
 
 "Doc comments" can be in one of a few forms:
 
@@ -70,3 +75,10 @@ or parentheses following it) like:
 is understood to be the name of some member or type that's in the scope of the
 member where that comment appears. Dartdoc will automatically figure out what
 the name refers to and generate an approriate link to that member or type.
+
+
+Attribution
+-----------
+
+dartdoc uses the delightful Silk icon set by Mark James.
+http://www.famfamfam.com/lab/icons/silk/

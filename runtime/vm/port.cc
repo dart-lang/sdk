@@ -4,6 +4,7 @@
 
 #include "vm/port.h"
 
+#include "vm/dart_api_impl.h"
 #include "vm/isolate.h"
 #include "vm/thread.h"
 #include "vm/utils.h"
@@ -168,7 +169,7 @@ void PortMap::ClosePort(Dart_Port port) {
   Dart_ClosePortCallback callback = isolate->close_port_callback();
   ASSERT(callback);
   ASSERT(port != kCloseAllPorts);
-  (*callback)(isolate, port);
+  (*callback)(Api::CastIsolate(isolate), port);
 }
 
 
@@ -193,7 +194,7 @@ void PortMap::ClosePorts() {
   // Notify the embedder that all ports are closed.
   Dart_ClosePortCallback callback = isolate->close_port_callback();
   ASSERT(callback);
-  (*callback)(isolate, kCloseAllPorts);
+  (*callback)(Api::CastIsolate(isolate), kCloseAllPorts);
 }
 
 
@@ -216,7 +217,8 @@ bool PortMap::PostMessage(Dart_Port dest_port,
   // Delegate message delivery to the embedder.
   Dart_PostMessageCallback callback = isolate->post_message_callback();
   ASSERT(callback);
-  bool result = (*callback)(isolate, dest_port, reply_port, message);
+  bool result =
+      (*callback)(Api::CastIsolate(isolate), dest_port, reply_port, message);
 
   mutex_->Unlock();
   return result;

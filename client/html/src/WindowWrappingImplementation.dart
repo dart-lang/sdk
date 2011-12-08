@@ -833,12 +833,7 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
   }
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element = null]) {
-    if (element === null) {
-      return _ptr.webkitRequestAnimationFrame(callback);
-    } else {
-      return _ptr.webkitRequestAnimationFrame(
-          callback, LevelDom.unwrap(element));
-    }
+    return _ptr.webkitRequestAnimationFrame(callback, LevelDom.unwrap(element));
   }
 
   void requestLayoutFrame(TimeoutHandler callback) {

@@ -1,11 +1,11 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
@@ -20,7 +20,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   /**
    * Parses given Dart source, runs {@link Resolver} and checks that expected errors were generated.
    */
-  public void checkSourceErrors(String source, ErrorExpectation ...expectedErrors) {
+  public void checkSourceErrors(String source, ErrorExpectation... expectedErrors) {
     DartUnit unit = parseUnit("Test.dart", source);
     resolve(unit);
     assertErrors(errors, expectedErrors);
@@ -29,7 +29,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   /**
    * Parses given Dart file, runs {@link Resolver} and checks that expected errors were generated.
    */
-  public void checkFileErrors(String source, ErrorExpectation ...expectedErrors) {
+  public void checkFileErrors(String source, ErrorExpectation... expectedErrors) {
     DartUnit unit = parseUnit(source);
     resolve(unit);
     assertErrors(errors, expectedErrors);
@@ -40,8 +40,11 @@ public class NegativeResolverTest extends CompilerTestCase {
     resolve(unit);
     assertEquals(new ArrayList<DartCompilationError>(), typeErrors);
     if (errors.size() != expectedErrorCount) {
-      fail(String.format("Expected %s errors, but got %s: %s", expectedErrorCount, errors.size(),
-                         errors));
+      fail(String.format(
+          "Expected %s errors, but got %s: %s",
+          expectedErrorCount,
+          errors.size(),
+          errors));
     }
   }
 
@@ -82,23 +85,133 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void testArrayLiteralNegativeTest() {
     checkSourceErrors(
         makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  main() {",
             "    List<int, int> ints = [1];",
             "  }",
             "}"),
-        errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5, 14));
+        errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 4, 5, 14));
   }
 
   public void testMapLiteralNegativeTest() {
     checkSourceErrors(
         makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  main() {",
             "    Map<String, int, int> map = {'foo':1};",
             "  }",
             "}"),
-            errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 3, 5, 21));
+        errEx(TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 4, 5, 21));
+  }
+
+  /**
+   * We should not fail in case of using {@link DartThisExpression} outside of method.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=662
+   */
+  public void test_thisExpression_inTopLevelVariable() {
+    checkSourceErrors("var foo = this;", errEx(ResolverErrorCode.THIS_ON_TOP_LEVEL, 1, 11, 4));
+  }
+
+  public void test_thisExpression_inTopLevelMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {",
+            "  return this;",
+            "}"),
+        errEx(ResolverErrorCode.THIS_ON_TOP_LEVEL, 3, 10, 4));
+  }
+
+  public void test_thisExpression_outsideOfMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var foo = this;",
+            "}"),
+        errEx(ResolverErrorCode.THIS_OUTSIDE_OF_METHOD, 3, 13, 4));
+  }
+
+  public void test_thisExpression_inStaticMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static foo() {",
+            "    return this;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.THIS_IN_STATIC_METHOD, 4, 12, 4));
+  }
+
+  public void test_thisExpression_inFactoryMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  factory A() {",
+            "    return this;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.THIS_IN_FACTORY_CONSTRUCTOR, 4, 12, 4));
+  }
+
+  /**
+   * We should not fail in case of using {@link DartThisExpression} outside of method.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=662
+   */
+  public void test_superExpression_inTopLevelVariable() {
+    checkSourceErrors(
+        "var foo = super.foo();",
+        errEx(ResolverErrorCode.SUPER_ON_TOP_LEVEL, 1, 11, 5));
+  }
+
+  public void test_superExpression_inTopLevelMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {",
+            "  return super.foo();",
+            "}"),
+        errEx(ResolverErrorCode.SUPER_ON_TOP_LEVEL, 3, 10, 5));
+  }
+
+  public void test_superExpression_outsideOfMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var foo = super.foo();",
+            "}"),
+        errEx(ResolverErrorCode.SUPER_OUTSIDE_OF_METHOD, 3, 13, 5));
+  }
+
+  public void test_superExpression_inStaticMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static foo() {",
+            "    return super.foo();",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.SUPER_IN_STATIC_METHOD, 4, 12, 5));
+  }
+
+  public void test_superExpression_inFactoryMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  factory A() {",
+            "    return super.foo();",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.SUPER_IN_FACTORY_CONSTRUCTOR, 4, 12, 5));
   }
 
   public void testCall1() {
@@ -139,10 +252,6 @@ public class NegativeResolverTest extends CompilerTestCase {
 
   public void testStaticToInstanceInvocationNegativeTest1() {
     checkNumErrors("StaticToInstanceInvocationNegativeTest1.dart", 1);
-  }
-
-  public void testStaticToInstanceInvocationNegativeTest2() {
-    checkNumErrors("StaticToInstanceInvocationNegativeTest2.dart", 1);
   }
 
   public void testConstVariableInitializationNegativeTest1() {

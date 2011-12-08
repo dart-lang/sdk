@@ -78,8 +78,8 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
-  Dart_Handle number = Dart_GetNativeArgument(args, 2);
+  Dart_Handle path = Dart_GetNativeArgument(args, 0);
+  Dart_Handle number = Dart_GetNativeArgument(args, 1);
   if (Dart_IsString(path) && Dart_IsInteger(number)) {
     char* result = Directory::CreateTemp(DartUtils::GetStringValue(path),
                                          DartUtils::GetIntegerValue(number));

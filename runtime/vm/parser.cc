@@ -84,11 +84,15 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 }
 
 
-static RawTypeArray* NewTypeArray(const GrowableArray<Type*>& objs) {
-  TypeArray& a = TypeArray::Handle(TypeArray::New(objs.length()));
+static RawTypeArguments* NewTypeArguments(
+    const GrowableArray<AbstractType*>& objs) {
+  const TypeArguments& a =
+      TypeArguments::Handle(TypeArguments::New(objs.length()));
   for (int i = 0; i < objs.length(); i++) {
     a.SetTypeAt(i, *objs[i]);
   }
+  // Cannot canonicalize TypeArgument yet as its types may not have been
+  // finalized yet.
   return a.raw();
 }
 
@@ -292,7 +296,7 @@ struct ParamDesc {
         default_value(NULL),
         is_final(false),
         is_field_initializer(false) { }
-  const Type* type;
+  const AbstractType* type;
   intptr_t name_pos;
   const String* name;
   const Object* default_value;  // NULL if not an optional parameter.
@@ -317,7 +321,7 @@ struct ParamList {
 
   void AddFinalParameter(intptr_t name_pos,
                          const char* name,
-                         const Type* type) {
+                         const AbstractType* type) {
     this->num_fixed_parameters++;
     ParamDesc param;
     param.name_pos = name_pos;
@@ -387,7 +391,7 @@ struct MemberDesc {
   bool has_static;
   bool has_var;
   bool has_factory;
-  const Type* type;
+  const AbstractType* type;
   intptr_t name_pos;
   String* name;
   String* redirect_name;  // For constructors: NULL or redirected constructor.
@@ -615,7 +619,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   ParamList params;
   ASSERT(func.num_fixed_parameters() == 0);  // static.
   ASSERT(func.num_optional_parameters() == 0);
-  ASSERT(Type::Handle(func.result_type()).IsResolved());
+  ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
 
   // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
@@ -651,7 +655,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   params.AddReceiver(token_index_);
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
   ASSERT(func.num_optional_parameters() == 0);
-  ASSERT(Type::Handle(func.result_type()).IsResolved());
+  ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
 
   // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
@@ -690,14 +694,14 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   const Class& field_class = Class::ZoneHandle(func.owner());
   const Field& field =
       Field::ZoneHandle(field_class.LookupInstanceField(field_name));
-  const Type& field_type = Type::ZoneHandle(field.type());
+  const AbstractType& field_type = AbstractType::ZoneHandle(field.type());
 
   ParamList params;
   params.AddReceiver(token_index_);
   params.AddFinalParameter(token_index_, "value", &field_type);
   ASSERT(func.num_fixed_parameters() == 2);  // receiver, value.
   ASSERT(func.num_optional_parameters() == 0);
-  ASSERT(Type::Handle(func.result_type()).IsVoidType());
+  ASSERT(AbstractType::Handle(func.result_type()).IsVoidType());
 
   // Build local scope for function and populate with the formal parameters.
   OpenFunctionBlock(func);
@@ -810,7 +814,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         (follower == Token::kPERIOD) ||  // Qualified class name of type.
         (follower == Token::kIDENT) ||  // Parameter name following a type.
         (follower == Token::kTHIS)) {  // Field parameter following a type.
-      parameter.type = &Type::ZoneHandle(
+      parameter.type = &AbstractType::ZoneHandle(
           ParseType(is_top_level_ ? kCanResolve : kMustResolve));
     } else {
       parameter.type = &Type::ZoneHandle(Type::DynamicType());
@@ -839,7 +843,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     // opening parens.
     if (!var_seen && !parameter.is_final) {
       // The parsed parameter type is actually the function result type.
-      const Type& result_type = Type::Handle(parameter.type->raw());
+      const AbstractType& result_type =
+          AbstractType::Handle(parameter.type->raw());
 
       // Finish parsing the function type parameter.
       ParamList func_params;
@@ -1548,8 +1553,10 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   params.AddReceiver(token_index_);
 
   // Add implicit parameter for construction phase.
-  params.AddFinalParameter(token_index_, kPhaseParameterName,
-                           &Type::ZoneHandle(Type::DynamicType()));
+  params.AddFinalParameter(
+      token_index_,
+      kPhaseParameterName,
+      &Type::ZoneHandle(Type::DynamicType()));
 
   if (func.is_const()) {
     params.SetImplicitlyFinal();
@@ -1557,7 +1564,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   ParseFormalParameterList(allow_explicit_default_values, &params);
 
   SetupDefaultsForOptionalParams(&params, default_parameter_values);
-  ASSERT(Type::Handle(func.result_type()).IsResolved());
+  ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
   ASSERT(func.NumberOfParameters() == params.parameters->length());
 
   // Initialize instance fields that have an explicit initializer expression.
@@ -1779,8 +1786,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   // Static functions do not have a receiver.
   // An instance closure may capture and access the receiver, but via the
   // context and not via the first formal parameter.
-  // The first parameter of a factory is the TypeArguments vector of the type
-  // of the instance to be allocated. We name this hidden parameter 'this'.
+  // The first parameter of a factory is the AbstractTypeArguments vector of the
+  // type of the instance to be allocated. We name this hidden parameter 'this'.
   const bool has_receiver = !func.IsClosureFunction() &&
                             (!func.is_static() || func.IsFactory());
   const bool allow_explicit_default_values = true;
@@ -1796,7 +1803,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     AddFormalParamsToFunction(&params, func);
   }
   SetupDefaultsForOptionalParams(&params, default_parameter_values);
-  ASSERT(Type::Handle(func.result_type()).IsResolved());
+  ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
   ASSERT(func.NumberOfParameters() == params.parameters->length());
 
   // Check whether the function has any field initializer formal parameters,
@@ -1977,7 +1984,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
 
   // Parse the formal parameters.
   // The first parameter of factory methods is an implicit parameter called
-  // 'this' of type TypeArguments.
+  // 'this' of type AbstractTypeArguments.
   const bool has_this_param =
       !method->has_static || method->IsConstructor() || method->has_factory;
   const bool are_implicitly_final = method->has_const;
@@ -1990,8 +1997,10 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
   // Constructors have an implicit parameter for the construction phase.
   if (method->IsConstructor()) {
-    method->params.AddFinalParameter(token_index_, kPhaseParameterName,
-                                     &Type::ZoneHandle(Type::DynamicType()));
+    method->params.AddFinalParameter(
+        token_index_,
+        kPhaseParameterName,
+        &Type::ZoneHandle(Type::DynamicType()));
   }
   if (are_implicitly_final) {
     method->params.SetImplicitlyFinal();
@@ -2306,7 +2315,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
           ((follower == Token::kPERIOD) &&    // Qualified class name of type,
            (LookaheadToken(3) != Token::kLPAREN))) {  // but not a named constr.
         ASSERT(is_top_level_);
-        member.type = &Type::ZoneHandle(ParseType(kCanResolve));
+        member.type = &AbstractType::ZoneHandle(ParseType(kCanResolve));
       }
     }
   }
@@ -2320,14 +2329,26 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     // finalization, so that the list of type parameters in the factory
     // signature can be checked at the same time.
     if (member.has_factory) {
+      String& qualifier = String::Handle();
+      if (CurrentToken() == Token::kPERIOD) {
+        LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
+        lib_prefix = current_class().LookupLibraryPrefix(*member.name);
+        if (!lib_prefix.IsNull()) {
+          // We have a library prefix qualified identifier.
+          ConsumeToken();  // Consume the kPERIOD token.
+          qualifier ^= member.name->raw();
+          member.name = ExpectIdentifier("identifier expected");
+        }
+      }
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
-                                                       String::Handle(),
+                                                       qualifier,
                                                        *(member.name)));
       const Class& signature_class = Class::Handle(
           Class::New(String::Handle(String::NewSymbol(":factory_signature")),
-                     Script::Handle()));
+                     script_));
       signature_class.set_is_finalized();
+      signature_class.set_library(library_);
       unresolved_factory_class.set_factory_signature_class(signature_class);
       // The type arguments of the result type are set during finalization.
       const TypeArguments& args = TypeArguments::Handle();
@@ -2471,7 +2492,7 @@ void Parser::ParseClassDefinition(GrowableArray<const Class*>* classes) {
   Type& super_type = Type::Handle();
   if (CurrentToken() == Token::kEXTENDS) {
     ConsumeToken();
-    super_type = ParseType(kCanResolve);
+    super_type ^= ParseType(kCanResolve);
     if (super_type.IsInterfaceType()) {
       ErrorMsg("class '%s' may implement, but cannot extend interface '%s'",
                class_name.ToCString(),
@@ -2529,14 +2550,16 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
     // Add implicit 'this' parameter.
     params.AddReceiver(token_index_);
     // Add implicit parameter for construction phase.
-    params.AddFinalParameter(token_index_, kPhaseParameterName,
-                             &Type::ZoneHandle(Type::DynamicType()));
+    params.AddFinalParameter(
+        token_index_,
+        kPhaseParameterName,
+        &Type::ZoneHandle(Type::DynamicType()));
 
     AddFormalParamsToFunction(&params, ctor);
     // The body of the constructor cannot modify the type arguments of the
     // constructed instance, which is passed in as a hidden parameter.
     // Therefore, there is no need to set the result type to be checked.
-    const Type& result_type = Type::ZoneHandle(Type::DynamicType());
+    const AbstractType& result_type = Type::ZoneHandle(Type::DynamicType());
     ctor.set_result_type(result_type);
     class_desc->AddFunction(&ctor);
   }
@@ -2594,7 +2617,7 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
-  Type& result_type = Type::Handle(Type::DynamicType());
+  AbstractType& result_type = Type::Handle(Type::DynamicType());
   const intptr_t result_type_pos = token_index_;
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
@@ -2740,7 +2763,8 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
         UnresolvedClass::New(factory_pos, qualifier, *(factory_name.ident)));
     const Class& signature_class = Class::Handle(
         Class::New(String::Handle(String::NewSymbol(":factory_signature")),
-                   Script::Handle()));
+                   script_));
+    signature_class.set_library(library_);
     signature_class.set_is_finalized();
     ParseTypeParameters(signature_class);
     unresolved_factory_class.set_factory_signature_class(signature_class);
@@ -2819,7 +2843,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
   if (CurrentToken() == Token::kLT) {
     const intptr_t type_pos = token_index_;
     GrowableArray<String*> type_parameters;
-    GrowableArray<Type*> type_parameter_extends;
+    GrowableArray<AbstractType*> type_parameter_extends;
     do {
       ConsumeToken();
       if (CurrentToken() != Token::kIDENT) {
@@ -2827,7 +2851,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
       }
       String& type_parameter_name = *CurrentLiteral();
       ConsumeToken();
-      Type& type_extends = Type::ZoneHandle(Type::DynamicType());
+      AbstractType& type_extends = Type::ZoneHandle(Type::DynamicType());
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         type_extends = ParseType(kCanResolve);
@@ -2844,12 +2868,12 @@ void Parser::ParseTypeParameters(const Class& cls) {
       ErrorMsg("right angle bracket expected");
     }
     cls.set_type_parameters(Array::Handle(NewArray<String>(type_parameters)));
-    const TypeArray& extends_array =
-        TypeArray::Handle(NewTypeArray(type_parameter_extends));
+    const TypeArguments& extends_array =
+        TypeArguments::Handle(NewTypeArguments(type_parameter_extends));
     cls.set_type_parameter_extends(extends_array);
     // Try to resolve the upper bounds, which will at least resolve the
     // referenced type parameters.
-    Type& type_extends = Type::Handle();
+    AbstractType& type_extends = AbstractType::Handle();
     const intptr_t num_types = extends_array.Length();
     for (intptr_t i = 0; i < num_types; i++) {
       type_extends = extends_array.TypeAt(i);
@@ -2860,12 +2884,13 @@ void Parser::ParseTypeParameters(const Class& cls) {
 }
 
 
-RawTypeArguments* Parser::ParseTypeArguments(TypeResolution type_resolution) {
+RawAbstractTypeArguments* Parser::ParseTypeArguments(
+    TypeResolution type_resolution) {
   if (CurrentToken() == Token::kLT) {
-    GrowableArray<Type*> types;
+    GrowableArray<AbstractType*> types;
     do {
       ConsumeToken();
-      Type& type = Type::ZoneHandle(ParseType(type_resolution));
+      AbstractType& type = AbstractType::ZoneHandle(ParseType(type_resolution));
       types.Add(&type);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
@@ -2876,7 +2901,7 @@ RawTypeArguments* Parser::ParseTypeArguments(TypeResolution type_resolution) {
     } else {
       ErrorMsg("right angle bracket expected");
     }
-    return NewTypeArray(types);
+    return NewTypeArguments(types);
   }
   return TypeArguments::null();
 }
@@ -2886,31 +2911,31 @@ RawTypeArguments* Parser::ParseTypeArguments(TypeResolution type_resolution) {
 RawArray* Parser::ParseInterfaceList() {
   ASSERT((CurrentToken() == Token::kIMPLEMENTS) ||
          (CurrentToken() == Token::kEXTENDS));
-  GrowableArray<Type*> interfaces;
+  GrowableArray<AbstractType*> interfaces;
   do {
     ConsumeToken();
-    Type& interface = Type::ZoneHandle(ParseType(kCanResolve));
+    AbstractType& interface = AbstractType::ZoneHandle(ParseType(kCanResolve));
     interfaces.Add(&interface);
   } while (CurrentToken() == Token::kCOMMA);
-  return NewArray<Type>(interfaces);
+  return NewArray<AbstractType>(interfaces);
 }
 
 
 void Parser::AddInterfaces(intptr_t interfaces_pos,
                            const Class& cls,
                            const Array& interfaces) {
-  GrowableArray<Type*> all_interfaces;
+  GrowableArray<AbstractType*> all_interfaces;
   // First get all the interfaces already implemented by class.
   Array& cls_interfaces = Array::Handle(cls.interfaces());
   for (intptr_t i = 0; i < cls_interfaces.Length(); i++) {
-    Type& interface = Type::ZoneHandle();
+    AbstractType& interface = AbstractType::ZoneHandle();
     interface ^= cls_interfaces.At(i);
     all_interfaces.Add(&interface);
   }
   // Now add the new interfaces.
-  Type& conflicting = Type::Handle();
+  AbstractType& conflicting = AbstractType::Handle();
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
-    Type& interface = Type::ZoneHandle();
+    AbstractType& interface = AbstractType::ZoneHandle();
     interface ^= interfaces.At(i);
     if (!ClassFinalizer::AddInterfaceIfUnique(&all_interfaces,
                                               &interface,
@@ -2922,7 +2947,7 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
                String::Handle(conflicting.Name()).ToCString());
     }
   }
-  cls_interfaces = NewArray<Type>(all_interfaces);
+  cls_interfaces = NewArray<AbstractType>(all_interfaces);
   cls.set_interfaces(cls_interfaces);
 }
 
@@ -2930,7 +2955,7 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
 void Parser::ParseTopLevelVariable(TopLevel* top_level) {
   const bool is_final = (CurrentToken() == Token::kFINAL);
   const bool is_static = true;
-  const Type& type = Type::ZoneHandle(
+  const AbstractType& type = AbstractType::ZoneHandle(
       ParseFinalVarOrType(kIsMandatory, kCanResolve));
 
   while (true) {
@@ -2940,6 +2965,17 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
     if (library_.LookupObject(var_name) != Object::null()) {
       ErrorMsg(name_pos, "'%s' is already defined", var_name.ToCString());
     }
+    String& accessor_name = String::Handle(Field::GetterName(var_name));
+    if (library_.LookupObject(accessor_name) != Object::null()) {
+      ErrorMsg(name_pos, "getter for '%s' is already defined",
+               var_name.ToCString());
+    }
+    accessor_name = Field::SetterName(var_name);
+    if (library_.LookupObject(accessor_name) != Object::null()) {
+      ErrorMsg(name_pos, "setter for '%s' is already defined",
+               var_name.ToCString());
+    }
+
     Field& field = Field::ZoneHandle(
         Field::New(var_name, is_static, is_final, name_pos));
     field.set_type(type);
@@ -2974,7 +3010,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
 
 
 void Parser::ParseTopLevelFunction(TopLevel* top_level) {
-  Type& result_type = Type::Handle(Type::DynamicType());
+  AbstractType& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
@@ -2991,6 +3027,16 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
 
   if (library_.LookupObject(func_name) != Object::null()) {
     ErrorMsg(name_pos, "'%s' is already defined", func_name.ToCString());
+  }
+  String& accessor_name = String::Handle(Field::GetterName(func_name));
+  if (library_.LookupObject(accessor_name) != Object::null()) {
+    ErrorMsg(name_pos, "'%s' is already defined as getter",
+             func_name.ToCString());
+  }
+  accessor_name = Field::SetterName(func_name);
+  if (library_.LookupObject(accessor_name) != Object::null()) {
+    ErrorMsg(name_pos, "'%s' is already defined as setter",
+             func_name.ToCString());
   }
 
   if (CurrentToken() != Token::kLPAREN) {
@@ -3024,7 +3070,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
 
 void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   const bool is_static = true;
-  Type& result_type = Type::Handle();
+  AbstractType& result_type = AbstractType::Handle();
   bool is_getter = (CurrentToken() == Token::kGET);
   if (CurrentToken() == Token::kGET ||
       CurrentToken() == Token::kSET) {
@@ -3067,6 +3113,16 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
       (params.num_optional_parameters != 0)) {
     ErrorMsg(name_pos, "illegal %s parameters",
              is_getter ? "getter" : "setter");
+  }
+
+  if (library_.LookupObject(*field_name) != Object::null()) {
+    ErrorMsg(name_pos, "'%s' is already defined in this library",
+             field_name->ToCString());
+  }
+  if (library_.LookupObject(accessor_name) != Object::null()) {
+    ErrorMsg(name_pos, "%s for '%s' is already defined",
+             is_getter ? "getter" : "setter",
+             field_name->ToCString());
   }
 
   if (CurrentToken() == Token::kLBRACE) {
@@ -3474,7 +3530,8 @@ AstNode* Parser::CallGetter(intptr_t token_index,
 
 
 // Returns ast nodes of the variable initialization.
-AstNode* Parser::ParseVariableDeclaration(const Type& type, bool is_final) {
+AstNode* Parser::ParseVariableDeclaration(
+    const AbstractType& type, bool is_final) {
   TRACE_PARSER("ParseVariableDeclaration");
   ASSERT(CurrentToken() == Token::kIDENT);
   const intptr_t ident_pos = token_index_;
@@ -3515,8 +3572,8 @@ AstNode* Parser::ParseVariableDeclaration(const Type& type, bool is_final) {
 // If type_specification is kIsOptional, and no type can be parsed, then return
 // the DynamicType.
 // If a type is parsed, it is resolved (or not) according to type_resolution.
-RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
-                                     TypeResolution type_resolution) {
+RawAbstractType* Parser::ParseFinalVarOrType(
+    TypeSpecification type_specification, TypeResolution type_resolution) {
   if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
     return Type::DynamicType();
@@ -3553,7 +3610,7 @@ RawType* Parser::ParseFinalVarOrType(TypeSpecification type_specification,
 AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
   bool is_final = (CurrentToken() == Token::kFINAL);
-  const Type& type = Type::ZoneHandle(
+  const AbstractType& type = AbstractType::ZoneHandle(
       ParseFinalVarOrType(kIsMandatory, kMustResolve));
   if (CurrentToken() != Token::kIDENT) {
     ErrorMsg("identifier expected");
@@ -3585,7 +3642,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
 
 AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   TRACE_PARSER("ParseFunctionStatement");
-  Type& result_type = Type::Handle();
+  AbstractType& result_type = AbstractType::Handle();
   const String* variable_name = NULL;
   const String* function_name = NULL;
 
@@ -3627,7 +3684,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // closure function and from the type arguments of the instantiator.
 
   LocalVariable* function_variable = NULL;
-  ParameterizedType& function_type = ParameterizedType::ZoneHandle();
+  Type& function_type = Type::ZoneHandle();
   if (variable_name != NULL) {
     // Since the function type depends on the signature of the closure function,
     // it cannot be determined before the formal parameter list of the closure
@@ -3636,8 +3693,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // We temporarily use the class of the Function interface.
     const Class& unknown_signature_class = Class::Handle(
         Type::Handle(Type::FunctionInterface()).type_class());
-    function_type = ParameterizedType::New(unknown_signature_class,
-                                           TypeArguments::Handle());
+    function_type = Type::New(unknown_signature_class,
+                              TypeArguments::Handle());
     function_type.set_is_finalized();  // No real finalization needed.
 
     // Add the function variable to the scope before parsing the function in
@@ -3690,8 +3747,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // We need to create a new type for proper finalization, since the existing
     // type is already marked as finalized.
     Type& signature_type = Type::Handle(signature_class.SignatureType());
-    const TypeArguments& signature_type_arguments = TypeArguments::Handle(
-        signature_type.arguments());
+    const AbstractTypeArguments& signature_type_arguments =
+        AbstractTypeArguments::Handle(signature_type.arguments());
 
     // Since the signature type is cached by the signature class, it may have
     // been finalized already.
@@ -4248,7 +4305,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     loop_var_name = ExpectIdentifier("variable name expected");
   } else {
     // The case without a type is handled above, so require a type here.
-    const Type& type = Type::ZoneHandle(
+    const AbstractType& type = AbstractType::ZoneHandle(
         ParseFinalVarOrType(kIsMandatory, kMustResolve));
     loop_var_pos = token_index_;
     loop_var_name = ExpectIdentifier("variable name expected");
@@ -4272,7 +4329,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // would refer to the compiler generated iterator and could confuse the user.
   // It is better to leave the iterator untyped and postpone the type error
   // until the loop variable is assigned to.
-  const Type& iterator_type = Type::ZoneHandle(Type::DynamicType());
+  const AbstractType& iterator_type = Type::ZoneHandle(Type::DynamicType());
   LocalVariable* iterator_var =
       new LocalVariable(collection_pos, iterator_name, iterator_type);
   current_block_->scope->AddVariable(iterator_var);
@@ -4500,7 +4557,7 @@ struct CatchParamDesc {
   CatchParamDesc()
       : token_index(0), type(NULL), var(NULL), is_final(false) { }
   intptr_t token_index;
-  const Type* type;
+  const AbstractType* type;
   const String* var;
   bool is_final;
 };
@@ -4511,7 +4568,7 @@ void Parser::ParseCatchParameter(CatchParamDesc* catch_param) {
   TRACE_PARSER("ParseCatchParameter");
   ASSERT(catch_param != NULL);
   catch_param->is_final = (CurrentToken() == Token::kFINAL);
-  catch_param->type = &Type::ZoneHandle(
+  catch_param->type = &AbstractType::ZoneHandle(
       ParseFinalVarOrType(kIsMandatory, kMustResolve));
   if (CurrentToken() != Token::kIDENT) {
     ErrorMsg("identifier expected");
@@ -5242,7 +5299,8 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           op_kind = Token::kISNOT;
         }
         const intptr_t type_pos = token_index_;
-        const Type& type = Type::ZoneHandle(ParseType(kMustResolve));
+        const AbstractType& type =
+            AbstractType::ZoneHandle(ParseType(kMustResolve));
         if (!type.IsInstantiated() &&
             (current_block_->scope->function_level() > 0)) {
           // Make sure that the instantiator is captured.
@@ -5994,7 +6052,7 @@ AstNode* Parser::ParsePostfixExpr() {
 // finalizer from resolving type parameters out of context.
 void Parser::TryResolveTypeFromClass(intptr_t type_pos,
                                      const Class& cls,
-                                     Type* type) {
+                                     AbstractType* type) {
   ASSERT(type != NULL);
   // Resolve class.
   if (!type->HasResolvedTypeClass()) {
@@ -6008,7 +6066,7 @@ void Parser::TryResolveTypeFromClass(intptr_t type_pos,
     if (!type_parameter.IsNull()) {
       // A type parameter cannot be parameterized, so report an error if type
       // arguments have previously been parsed.
-      if (type->arguments() != TypeArguments::null()) {
+      if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
         ErrorMsg(type_pos, "type parameter '%s' cannot be parameterized",
                  type_parameter.ToCString());
       }
@@ -6019,19 +6077,20 @@ void Parser::TryResolveTypeFromClass(intptr_t type_pos,
         Class::Handle(LookupClass(unresolved_class_name));
     if (!resolved_type_class.IsNull()) {
       Object& type_class = Object::Handle(resolved_type_class.raw());
-      ASSERT(type->IsParameterizedType());
+      ASSERT(type->IsType());
       // Replace unresolved class with resolved type class.
-      ParameterizedType& parameterized_type = ParameterizedType::Handle();
+      Type& parameterized_type = Type::Handle();
       parameterized_type ^= type->raw();
       parameterized_type.set_type_class(type_class);
     }
   }
   // Resolve type arguments, if any.
-  const TypeArguments& arguments = TypeArguments::Handle(type->arguments());
+  const AbstractTypeArguments& arguments =
+      AbstractTypeArguments::Handle(type->arguments());
   if (!arguments.IsNull()) {
     const intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
-      Type& type_argument = Type::Handle(arguments.TypeAt(i));
+      AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
       TryResolveTypeFromClass(type_pos, cls, &type_argument);
       arguments.SetTypeAt(i, type_argument);
     }
@@ -6102,7 +6161,7 @@ RawClass* Parser::TypeParametersScopeClass() {
   // A constructor is considered as non-static by the compiler.
   if (is_top_level_) {
     if ((current_member_ != NULL) && current_member_->has_factory) {
-      const Type& factory_result_type = *current_member_->type;
+      const AbstractType& factory_result_type = *current_member_->type;
       ASSERT(!factory_result_type.IsNull());
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(factory_result_type.unresolved_class());
@@ -6203,7 +6262,7 @@ void Parser::RunStaticFieldInitializer(const Field& field) {
 
 RawInstance* Parser::EvaluateConstConstructorCall(
     const Class& type_class,
-    const TypeArguments& type_arguments,
+    const AbstractTypeArguments& type_arguments,
     const Function& constructor,
     ArgumentListNode* arguments) {
   // +2 for implicit receiver and construction phase arguments.
@@ -6294,7 +6353,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     if (!func.IsNull()) {
       if (node != NULL) {
         CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(Type::Handle(func.result_type()).IsResolved());
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
         *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
       }
       return true;
@@ -6302,7 +6361,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     func = cls.LookupStaticFunction(getter_name);
     if (!func.IsNull()) {
       if (node != NULL) {
-        ASSERT(Type::Handle(func.result_type()).IsResolved());
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
         *node = new StaticGetterNode(ident_pos,
                                      Class::ZoneHandle(cls.raw()),
                                      ident);
@@ -6318,7 +6377,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // a setter node. If there is no assignment we will get an error
         // when we try to invoke the getter.
         CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(Type::Handle(func.result_type()).IsResolved());
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
         *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
       }
       return true;
@@ -6414,7 +6473,7 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
     ASSERT(obj.IsFunction());
     func ^= obj.raw();
     ASSERT(func.is_static());
-    ASSERT(Type::Handle(func.result_type()).IsResolved());
+    ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
     return new StaticGetterNode(qual_ident.ident_pos,
                                 Class::ZoneHandle(func.owner()),
                                 *qual_ident.ident);
@@ -6485,7 +6544,7 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
 // Returns the class object if the type can be resolved. Otherwise, either give
 // an error if type resolution was required, or return the unresolved name as a
 // string object.
-RawType* Parser::ParseType(TypeResolution type_resolution) {
+RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   if (CurrentToken() != Token::kIDENT) {
     ErrorMsg("type name expected");
   }
@@ -6530,8 +6589,8 @@ RawType* Parser::ParseType(TypeResolution type_resolution) {
     // Try to resolve the type class.
     type_class = LookupTypeClass(type_name, type_resolution);
   }
-  TypeArguments& type_arguments =
-      TypeArguments::Handle(ParseTypeArguments(type_resolution));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(ParseTypeArguments(type_resolution));
   Type& type = Type::Handle(
       Type::NewParameterizedType(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
@@ -6547,7 +6606,8 @@ RawType* Parser::ParseType(TypeResolution type_resolution) {
 
 
 void Parser::CheckConstructorCallTypeArguments(
-    intptr_t pos, Function& constructor, const TypeArguments& type_arguments) {
+    intptr_t pos, Function& constructor,
+    const AbstractTypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
     Class& signature_class = Class::Handle();
     if (constructor.IsFactory()) {
@@ -6572,7 +6632,7 @@ void Parser::CheckConstructorCallTypeArguments(
 // as one token of type Token::kINDEX.
 AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                                   bool is_const,
-                                  const TypeArguments& type_arguments) {
+                                  const AbstractTypeArguments& type_arguments) {
   TRACE_PARSER("ParseListLiteral");
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACK || CurrentToken() == Token::kINDEX);
@@ -6580,7 +6640,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   bool is_empty_literal = CurrentToken() == Token::kINDEX;
   ConsumeToken();
 
-  Type& element_type = Type::ZoneHandle(Type::DynamicType());
+  AbstractType& element_type = Type::ZoneHandle(Type::DynamicType());
   // If no type argument vector is provided, leave it as null, which is
   // equivalent to using Dynamic as the type argument for the element type.
   if (!type_arguments.IsNull()) {
@@ -6602,7 +6662,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
 
   // Parse the list elements. Note: there may be an optional extra
   // comma after the last element.
-  ArrayNode* list = new ArrayNode(token_index_, TypeArguments::ZoneHandle());
+  ArrayNode* list =
+      new ArrayNode(token_index_, TypeArguments::ZoneHandle());
   if (!is_empty_literal) {
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const String& dst_name = String::ZoneHandle(
@@ -6682,8 +6743,12 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(list);
-    return new ConstructorCallNode(
-        literal_pos, type_arguments, literal_list_factory, factory_param);
+    AbstractTypeArguments& canonical_type_arguments =
+        AbstractTypeArguments::ZoneHandle(type_arguments.Canonicalize());
+    return new ConstructorCallNode(literal_pos,
+                                   canonical_type_arguments,
+                                   literal_list_factory,
+                                   factory_param);
   }
 }
 
@@ -6715,16 +6780,16 @@ static void AddKeyValuePair(ArrayNode* pairs,
 
 AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                                  bool is_const,
-                                 const TypeArguments& type_arguments) {
+                                 const AbstractTypeArguments& type_arguments) {
   TRACE_PARSER("ParseMapLiteral");
   ASSERT(type_pos >= 0);
   ASSERT(CurrentToken() == Token::kLBRACE);
   const intptr_t literal_pos = token_index_;
   ConsumeToken();
 
-  Type& value_type = Type::ZoneHandle(Type::DynamicType());
-  TypeArguments& map_type_arguments =
-      TypeArguments::ZoneHandle(type_arguments.raw());
+  AbstractType& value_type = Type::ZoneHandle(Type::DynamicType());
+  AbstractTypeArguments& map_type_arguments =
+      AbstractTypeArguments::ZoneHandle(type_arguments.raw());
   // If no type argument vector is provided, leave it as null, which is
   // equivalent to using Dynamic as the type argument for the value type.
   if (!map_type_arguments.IsNull()) {
@@ -6748,7 +6813,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
               "the value type");
       value_type = map_type_arguments.TypeAt(1);
     } else {
-      TypeArray& type_array = TypeArray::Handle(TypeArray::New(2));
+      TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(2));
       type_array.SetTypeAt(0, Type::Handle(Type::StringInterface()));
       type_array.SetTypeAt(1, value_type);
       map_type_arguments = type_array.raw();
@@ -6760,6 +6825,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   }
   ASSERT(map_type_arguments.IsNull() || (map_type_arguments.Length() == 2));
+  map_type_arguments ^= map_type_arguments.Canonicalize();
 
   // Parse the map entries. Note: there may be an optional extra
   // comma after the last entry.
@@ -6880,8 +6946,10 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(kv_pairs);
-    return new ConstructorCallNode(
-        literal_pos, map_type_arguments, literal_map_factory, factory_param);
+    return new ConstructorCallNode(literal_pos,
+                                   map_type_arguments,
+                                   literal_map_factory,
+                                   factory_param);
   }
 }
 
@@ -6893,8 +6961,8 @@ AstNode* Parser::ParseCompoundLiteral() {
     ConsumeToken();
   }
   const intptr_t type_pos = token_index_;
-  TypeArguments& type_arguments =
-      TypeArguments::ZoneHandle(ParseTypeArguments(kMustResolve));
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::ZoneHandle(ParseTypeArguments(kMustResolve));
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
       (CurrentToken() == Token::kINDEX)) {
@@ -6974,7 +7042,7 @@ AstNode* Parser::ParseNewOperator() {
   type_class ^= LookupTypeClass(type_name, kMustResolve);
   String& type_class_name = String::Handle();
   type_class_name = type_class.Name();
-  TypeArguments& type_arguments = TypeArguments::ZoneHandle();
+  AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
   // Type arguments are not allowed after the optional constructor name.
   if (named_constructor == NULL) {
     type_arguments = ParseTypeArguments(kMustResolve);
@@ -7088,6 +7156,7 @@ AstNode* Parser::ParseNewOperator() {
     type_arguments = type.arguments();
   }
 
+  type_arguments ^= type_arguments.Canonicalize();
   // Make the constructor call.
   AstNode* new_object = NULL;
   if (is_const) {

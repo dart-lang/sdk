@@ -105,7 +105,7 @@ class Sup implements Inter {
     return new Sub();
   }
 
-  factory Inter.factory() {
+  factory Sup.factory() {
     return new Sub();
   }
 

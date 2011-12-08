@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler.backend.js.ast;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.dart.compiler.util.Lists;
 import com.google.dart.compiler.util.Maps;
 
@@ -47,21 +49,22 @@ public class JsScope implements Serializable {
   private JsScope parent;
   protected int tempIndex = 0;
   private final String scopeId;
+  private static Interner<String> interner = Interners.newWeakInterner();
 
- /* 
+ /*
   * Create a scope with parent.
   */
  public JsScope(JsScope parent, String description) {
    this(parent, description, null);
  }
- 
+
   /**
    * Create a scope with parent.
    */
   public JsScope(JsScope parent, String description, String scopeId) {
     assert (parent != null);
     this.scopeId = scopeId;
-    this.description = description;
+    this.description = interner.intern(description);
     this.parent = parent;
     parent.children = Lists.add(parent.children, this);
   }

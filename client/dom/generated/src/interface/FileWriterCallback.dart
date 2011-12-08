@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileWriterCallback {
-
-  bool handleEvent(FileWriter fileWriter);
-}
+typedef bool FileWriterCallback(FileWriter fileWriter);

@@ -31,6 +31,7 @@
 #source("src/num.dart");
 #source("src/pattern.dart");
 #source("src/promise.dart");
+#source("src/proxy.dart");
 #source("src/queue.dart");
 #source("src/regexp.dart");
 #source("src/set.dart");

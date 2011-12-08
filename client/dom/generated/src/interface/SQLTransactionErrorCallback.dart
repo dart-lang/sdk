@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface SQLTransactionErrorCallback {
-
-  bool handleEvent(SQLError error);
-}
+typedef bool SQLTransactionErrorCallback(SQLError error);

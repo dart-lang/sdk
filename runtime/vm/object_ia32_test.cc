@@ -40,9 +40,8 @@ void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.
-void GenerateEmbedSmiInCode(Assembler* assembler, int value) {
-  const Smi& smi = Smi::Handle(Smi::New(value));
-  Object& smi_object = Object::ZoneHandle(smi.raw());
+void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
+  const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
   __ LoadObject(EAX, smi_object);
   __ ret();
 }

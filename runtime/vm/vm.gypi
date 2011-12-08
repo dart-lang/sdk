@@ -56,7 +56,7 @@
        }]],
     },
     {
-      'target_name': 'libdart_lib',
+      'target_name': 'libdart_lib_withcore',
       'type': 'static_library',
       'dependencies': [
         'generate_corelib_cc_file',
@@ -67,6 +67,7 @@
         '../lib/lib_impl_sources.gypi',
       ],
       'sources': [
+        'bootstrap.cc',
         # Include generated source files.
         '<(corelib_cc_file)',
         '<(corelib_impl_cc_file)',
@@ -76,13 +77,17 @@
       ],
     },
     {
-      'target_name': 'libdart_api',
+      'target_name': 'libdart_lib',
       'type': 'static_library',
-      'include_dirs': [
-        '..',
+      'includes': [
+        '../lib/lib_sources.gypi',
+        '../lib/lib_impl_sources.gypi',
       ],
       'sources': [
-        '../vm/dart_api_impl.cc',
+        'bootstrap_nocorelib.cc',
+      ],
+      'include_dirs': [
+        '..',
       ],
     },
     {

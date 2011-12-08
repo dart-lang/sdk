@@ -23,7 +23,7 @@ class IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex 
     return LevelDom.wrapIDBRequest(_ptr.getKey(LevelDom.unwrap(key)));
   }
 
-  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) {
+  IDBRequest openCursor([IDBKeyRange range, int direction]) {
     if (range === null) {
       if (direction === null) {
         return LevelDom.wrapIDBRequest(_ptr.openCursor());
@@ -38,7 +38,7 @@ class IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex 
     throw "Incorrect number or type of arguments";
   }
 
-  IDBRequest openKeyCursor([IDBKeyRange range = null, int direction = null]) {
+  IDBRequest openKeyCursor([IDBKeyRange range, int direction]) {
     if (range === null) {
       if (direction === null) {
         return LevelDom.wrapIDBRequest(_ptr.openKeyCursor());

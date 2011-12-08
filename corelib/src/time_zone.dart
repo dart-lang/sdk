@@ -10,4 +10,5 @@
 interface TimeZone factory TimeZoneImplementation {
   const TimeZone.utc();
   TimeZone.local();
+  bool get isUtc();
 }

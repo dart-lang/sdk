@@ -150,7 +150,7 @@ class InlineSyntax {
       parser.writeText();
 
       if (onMatch(parser, startMatch)) {
-        parser.consume(startMatch.group(0).length);
+        parser.consume(startMatch[0].length);
       }
       return true;
     }
@@ -170,7 +170,7 @@ class TextSyntax extends InlineSyntax {
   bool onMatch(InlineParser parser, Match match) {
     if (substitute == null) {
       // Just use the original matched text.
-      parser.advanceBy(match.group(0).length);
+      parser.advanceBy(match[0].length);
       return false;
     }
 
@@ -187,7 +187,7 @@ class AutolinkSyntax extends InlineSyntax {
   // TODO(rnystrom): Make case insensitive.
 
   bool onMatch(InlineParser parser, Match match) {
-    final url = match.group(1);
+    final url = match[1];
 
     final anchor = new Element.text('a', escapeHtml(url));
     anchor.attributes['href'] = url;
@@ -212,7 +212,7 @@ class TagSyntax extends InlineSyntax {
 
   bool onMatch(InlineParser parser, Match match) {
     parser._stack.add(new TagState(parser.pos,
-      parser.pos + match.group(0).length, this));
+      parser.pos + match[0].length, this));
     return true;
   }
 
@@ -253,7 +253,7 @@ class LinkSyntax extends TagSyntax {
     // link at all. Instead, we allow users of the library to specify a special
     // resolver function ([setImplicitLinkResolver]) that may choose to handle
     // this. Otherwise, it's just treated as plain text.
-    if ((match.group(1) == null) || (match.group(1) == '')) {
+    if ((match[1] == null) || (match[1] == '')) {
       if (_implicitLinkResolver == null) return false;
 
       // Only allow implicit links if the content is just text.
@@ -271,10 +271,10 @@ class LinkSyntax extends TagSyntax {
       return true;
     }
 
-    if ((match.group(3) != null) && (match.group(3) != '')) {
+    if ((match[3] != null) && (match[3] != '')) {
       // Inline link like [foo](url).
-      url = match.group(3);
-      title = match.group(4);
+      url = match[3];
+      title = match[4];
 
       // For whatever reason, markdown allows angle-bracketed URLs here.
       if (url.startsWith('<') && url.endsWith('>')) {
@@ -282,7 +282,7 @@ class LinkSyntax extends TagSyntax {
       }
     } else {
       // Reference link like [foo] [bar].
-      var id = match.group(2);
+      var id = match[2];
       if (id == '') {
         // The id is empty ("[]") so infer it from the contents.
         id = parser.source.substring(state.startPos + 1, parser.pos);
@@ -314,7 +314,7 @@ class CodeSyntax extends InlineSyntax {
     : super(pattern);
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(new Element.text('code', escapeHtml(match.group(1))));
+    parser.addNode(new Element.text('code', escapeHtml(match[1])));
     return true;
   }
 }
@@ -383,11 +383,11 @@ class TagState {
 
     // We are still parsing, so add this to its parent's children.
     if (syntax.onMatchEnd(parser, endMatch, this)) {
-      parser.consume(endMatch.group(0).length);
+      parser.consume(endMatch[0].length);
     } else {
       // Didn't close correctly so revert to text.
       parser.start = startPos;
-      parser.advanceBy(endMatch.group(0).length);
+      parser.advanceBy(endMatch[0].length);
     }
 
     return null;

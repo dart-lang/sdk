@@ -398,7 +398,7 @@ void X86Decoder::PrintAddress(uword addr) {
     if (obj.IsArray()) {
       const Array& arr = Array::CheckedHandle(obj.raw());
       intptr_t len = arr.Length();
-      if (len > 5) len = 5;  // At max print first 5 elements.
+      if (len > 5) len = 5;  // Print a max of 5 elements.
       Print("  Array[");
       int i = 0;
       while (i < len) {
@@ -1519,10 +1519,26 @@ int Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
 }
 
 
-const char* Disassembler::RegisterName(Register reg) {
-  ASSERT(0 <= reg);
-  ASSERT(reg < kMaxCPURegisters);
-  return (cpu_regs[reg]);
+void Disassembler::Disassemble(uword start,
+                               uword end,
+                               DisassemblyFormatter* formatter) {
+  ASSERT(formatter != NULL);
+  char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
+  char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
+  uword pc = start;
+  while (pc < end) {
+    int instruction_length = DecodeInstruction(hex_buffer,
+                                               sizeof(hex_buffer),
+                                               human_buffer,
+                                               sizeof(human_buffer),
+                                               pc);
+    formatter->ConsumeInstruction(hex_buffer,
+                                  sizeof(hex_buffer),
+                                  human_buffer,
+                                  sizeof(human_buffer),
+                                  pc);
+    pc += instruction_length;
+  }
 }
 
 }  // namespace dart

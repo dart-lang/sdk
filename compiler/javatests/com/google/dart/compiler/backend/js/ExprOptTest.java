@@ -7,7 +7,7 @@ package com.google.dart.compiler.backend.js;
 /**
  * Tests for binary expression optimizations.
  */
-public class ExprOptTest extends SnippetTestCase {
+public abstract class ExprOptTest extends SnippetTestCase {
 
   private JavascriptBackend jsBackend = new JavascriptBackend() {
     @Override

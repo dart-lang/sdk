@@ -14,11 +14,11 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   void set mediaText(String value) { _ptr.mediaText = value; }
 
   String operator[](int index) {
-    return item(index);
+    return _ptr[index];
   }
 
   void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = value;
   }
 
   void add(String value) {

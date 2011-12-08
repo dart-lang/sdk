@@ -5,6 +5,10 @@ class StyleSheetList native "*StyleSheetList" {
 
   StyleSheet operator[](int index) native;
 
+  void operator[]=(int index, StyleSheet value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
   StyleSheet item(int index) native;
 
   var dartObjectLocalStorage;

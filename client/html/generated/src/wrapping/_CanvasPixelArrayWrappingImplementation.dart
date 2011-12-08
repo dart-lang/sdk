@@ -10,11 +10,11 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   int get length() { return _ptr.length; }
 
   int operator[](int index) {
-    return item(index);
+    return _ptr[index];
   }
 
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = value;
   }
 
   void add(int value) {
@@ -42,7 +42,7 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   }
 
   int lastIndexOf(int element, [int start = null]) {
-    if (start == null) start = length - 1;
+    if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 
@@ -96,9 +96,5 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
 
   Iterator<int> iterator() {
     return new _FixedSizeListIterator<int>(this);
-  }
-
-  int item(int index) {
-    return _ptr.item(index);
   }
 }

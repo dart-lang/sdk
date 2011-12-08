@@ -18,28 +18,32 @@ namespace dart {
 // Generate a simple dart code sequence.
 // This is used to test Code and Instruction object creation.
 void GenerateIncrement(Assembler* assembler) {
-  __ Unimplemented("GenerateIncrement");
+  __ movq(RAX, Immediate(0));
+  __ pushq(RAX);
+  __ incq(Address(RSP, 0));
+  __ movq(RCX, Address(RSP, 0));
+  __ incq(RCX);
+  __ popq(RAX);
+  __ movq(RAX, RCX);
+  __ ret();
 }
 
 
 // Generate a dart code sequence that embeds a string object in it.
 // This is used to test Embedded String objects in the instructions.
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
-  __ Unimplemented("GenerateEmbedStringInCode");
+  const String& string_object = String::ZoneHandle(String::New(str));
+  __ LoadObject(RAX, string_object);
+  __ ret();
 }
 
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.
-void GenerateEmbedSmiInCode(Assembler* assembler, int value) {
-  __ Unimplemented("GenerateEmbedSmiInCode");
-}
-
-
-// Generate code for a simple static dart function that returns 42.
-// This is used to test invocation of dart functions from C++.
-void GenerateReturn42(Assembler* assembler) {
-  __ Unimplemented("GenerateReturn42");
+void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
+  const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
+  __ LoadObject(RAX, smi_object);
+  __ ret();
 }
 
 }  // namespace dart

@@ -223,18 +223,6 @@ class _ServerSocket extends _SocketBase implements ServerSocket {
 
   _ServerSocket._internal();
 
-  Socket accept() {
-    if (_id >= 0) {
-      _Socket socket = new _Socket._internal();
-      if (_accept(socket)) {
-        return socket;
-      }
-      return null;
-    }
-    throw new
-        SocketIOException("Error: accept failed - invalid socket handle");
-  }
-
   bool _accept(Socket socket) native "ServerSocket_Accept";
 
   bool _createBindListen(String bindAddress, int port, int backlog)
@@ -368,6 +356,8 @@ class _Socket extends _SocketBase implements Socket {
   }
 
   void set connectHandler(void callback()) {
+    // TODO(ager): Make sure that write handler and connect handler do
+    // not compete for the out events.
     _setHandler(_OUT_EVENT, callback);
   }
 

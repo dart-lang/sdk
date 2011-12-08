@@ -167,7 +167,9 @@ class Parser : ValueObject {
   void SkipStringLiteral();
 
   void CheckConstructorCallTypeArguments(
-    intptr_t pos, Function& constructor, const TypeArguments& type_arguments);
+    intptr_t pos,
+    Function& constructor,
+    const AbstractTypeArguments& type_arguments);
 
   // Reports error message at location of current token.
   void ErrorMsg(const char* msg, ...);
@@ -178,10 +180,11 @@ class Parser : ValueObject {
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   void RunStaticFieldInitializer(const Field& field);
-  RawInstance* EvaluateConstConstructorCall(const Class& type_class,
-                                            const TypeArguments& type_arguments,
-                                            const Function& constructor,
-                                            ArgumentListNode* arguments);
+  RawInstance* EvaluateConstConstructorCall(
+      const Class& type_class,
+      const AbstractTypeArguments& type_arguments,
+      const Function& constructor,
+      ArgumentListNode* arguments);
   AstNode* FoldConstExpr(intptr_t expr_pos, AstNode* expr);
 
   // Support for parsing of scripts.
@@ -202,16 +205,17 @@ class Parser : ValueObject {
   void ParseLibraryImport();
   void ParseLibraryInclude();
 
-  void TryResolveTypeFromClass(intptr_t type_pos, const Class& cls, Type* type);
+  void TryResolveTypeFromClass(intptr_t type_pos,
+                               const Class& cls,
+                               AbstractType* type);
   enum TypeResolution {
     kDoNotResolve,  // Type resolution is postponed.
     kCanResolve,  // Type resolution is optional.
     kMustResolve  // Type resolution is required.
   };
-  RawType* ParseType(TypeResolution type_resolution);
+  RawAbstractType* ParseType(TypeResolution type_resolution);
   void ParseTypeParameters(const Class& cls);
-  RawTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
-  RawType* ParseInterface();
+  RawAbstractTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
@@ -234,6 +238,7 @@ class Parser : ValueObject {
   void ParseConstructorRedirection(const Class& cls, LocalVariable* receiver);
   void ParseInitializers(const Class& cls, LocalVariable* receiver);
   String& ParseNativeDeclaration();
+  // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* ParseInterfaceList();
   void AddInterfaces(intptr_t interfaces_pos,
                      const Class& cls,
@@ -309,10 +314,10 @@ class Parser : ValueObject {
     kIsOptional,  // Type specification is optional.
     kIsMandatory  // Type specification is mandatory.
   };
-  RawType* ParseFinalVarOrType(TypeSpecification type_specification,
+  RawAbstractType* ParseFinalVarOrType(TypeSpecification type_specification,
                                TypeResolution type_resolution);
-  const Type& ParseConstVarOrType(TypeSpecification type_specification);
-  AstNode* ParseVariableDeclaration(const Type& type, bool is_const);
+  const AbstractType& ParseConstVarOrType(TypeSpecification type_specification);
+  AstNode* ParseVariableDeclaration(const AbstractType& type, bool is_const);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
   AstNode* ParseStatement();
@@ -344,10 +349,10 @@ class Parser : ValueObject {
   AstNode* ParseCompoundLiteral();
   AstNode* ParseListLiteral(intptr_t type_pos,
                             bool is_const,
-                            const TypeArguments& type_arguments);
+                            const AbstractTypeArguments& type_arguments);
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
-                           const TypeArguments& type_arguments);
+                           const AbstractTypeArguments& type_arguments);
   AstNode* ParseNewOperator();
 
   // An implicit argument, if non-null, is prepended to the returned list.

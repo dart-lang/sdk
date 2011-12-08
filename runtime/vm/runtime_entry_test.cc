@@ -4,10 +4,33 @@
 
 #include "vm/runtime_entry.h"
 
+#include "vm/code_index_table.h"
 #include "vm/object.h"
 #include "vm/verifier.h"
 
 namespace dart {
+
+// Add function to a class and that class to the class dictionary so that
+// frame walking can be used.
+const Function& RegisterFakeFunction(const char* name, const Code& code) {
+  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
+  const Function& function = Function::ZoneHandle(
+      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+  Class& cls = Class::ZoneHandle();
+  const Script& script = Script::Handle();
+  cls = Class::New(function_name, script);
+  const Array& functions = Array::Handle(Array::New(1));
+  functions.SetAt(0, function);
+  cls.SetFunctions(functions);
+  Library& lib = Library::Handle(Library::CoreLibrary());
+  lib.AddClass(cls);
+  function.SetCode(code);
+  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
+  ASSERT(code_index_table != NULL);
+  code_index_table->AddFunction(function);
+  return function;
+}
+
 
 // A runtime call for test purposes.
 // Arg0: a smi.

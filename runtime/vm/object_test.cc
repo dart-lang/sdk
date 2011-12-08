@@ -111,6 +111,28 @@ TEST_CASE(Class) {
 }
 
 
+TEST_CASE(TypeArguments) {
+  const Type& type1 = Type::Handle(Type::DoubleInterface());
+  const Type& type2 = Type::Handle(Type::StringInterface());
+  const TypeArguments& type_arguments1 = TypeArguments::Handle(
+    TypeArguments::New(2));
+  type_arguments1.SetTypeAt(0, type1);
+  type_arguments1.SetTypeAt(1, type2);
+  const TypeArguments& type_arguments2 = TypeArguments::Handle(
+    TypeArguments::New(2));
+  type_arguments2.SetTypeAt(0, type1);
+  type_arguments2.SetTypeAt(1, type2);
+  EXPECT_NE(type_arguments1.raw(), type_arguments2.raw());
+  OS::Print("1: %s\n", type_arguments1.ToCString());
+  OS::Print("2: %s\n", type_arguments2.ToCString());
+  ASSERT(type_arguments1.Equals(type_arguments2));
+  TypeArguments& type_arguments3 = TypeArguments::Handle();
+  type_arguments1.Canonicalize();
+  type_arguments3 ^= type_arguments2.Canonicalize();
+  EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
+}
+
+
 TEST_CASE(TokenStream) {
   String& source = String::Handle(String::New("= ( 9 , ."));
   String& private_key = String::Handle(String::New(""));
@@ -150,8 +172,10 @@ TEST_CASE(InstanceClass) {
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
-  EXPECT_EQ(2*kWordSize, one_field_class.instance_size());
-  EXPECT_EQ(kWordSize, field.Offset());
+  intptr_t header_size = sizeof(RawObject);
+  EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
+            one_field_class.instance_size());
+  EXPECT_EQ(header_size, field.Offset());
 }
 
 
@@ -2065,7 +2089,8 @@ TEST_CASE(CheckedHandle) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 // Test for Code and Instruction object creation.
 TEST_CASE(Code) {
   extern void GenerateIncrement(Assembler* assembler);
@@ -2104,8 +2129,8 @@ TEST_CASE(EmbedStringInCode) {
 
 // Test for Embedded Smi object in the instructions.
 TEST_CASE(EmbedSmiInCode) {
-  extern void GenerateEmbedSmiInCode(Assembler* assembler, int value);
-  const int kSmiTestValue = 5;
+  extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
+  const intptr_t kSmiTestValue = 5;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   Code& code = Code::Handle(
@@ -2116,6 +2141,24 @@ TEST_CASE(EmbedSmiInCode) {
       reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
   EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
 }
+
+
+#if defined(ARCH_IS_64_BIT)
+// Test for Embedded Smi object in the instructions.
+TEST_CASE(EmbedSmiIn64BitCode) {
+  extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
+  const intptr_t kSmiTestValue = 5L << 32;
+  Assembler _assembler_;
+  GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
+  Code& code = Code::Handle(
+      Code::FinalizeCode("Test_EmbedSmiIn64BitCode", &_assembler_));
+  Instructions& instructions = Instructions::Handle(code.instructions());
+  typedef intptr_t (*EmbedSmiCode)();
+  intptr_t retval =
+      reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
+  EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
+}
+#endif
 
 
 TEST_CASE(ExceptionHandlers) {
@@ -2169,11 +2212,11 @@ TEST_CASE(PcDescriptors) {
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
   EXPECT_EQ(kNumEntries, pc_descs.Length());
   EXPECT_EQ(1, pc_descs.TryIndex(0));
-  EXPECT_EQ(10, pc_descs.PC(0));
+  EXPECT_EQ(static_cast<uword>(10), pc_descs.PC(0));
   EXPECT_EQ(1, pc_descs.NodeId(0));
   EXPECT_EQ(20, pc_descs.TokenIndex(0));
   EXPECT_EQ(3, pc_descs.TryIndex(5));
-  EXPECT_EQ(80, pc_descs.PC(5));
+  EXPECT_EQ(static_cast<uword>(80), pc_descs.PC(5));
   EXPECT_EQ(150, pc_descs.TokenIndex(5));
   EXPECT_EQ(PcDescriptors::kOther, pc_descs.DescriptorKind(0));
   EXPECT_EQ(PcDescriptors::kDeopt, pc_descs.DescriptorKind(1));
@@ -2218,6 +2261,6 @@ TEST_CASE(ClassDictionaryIterator) {
   ASSERT(count == 2);
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

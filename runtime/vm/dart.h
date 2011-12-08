@@ -16,11 +16,10 @@ class Isolate;
 
 class Dart : public AllStatic {
  public:
-  static bool InitOnce(int argc, const char** argv,
-                       Dart_IsolateInitCallback callback);
+  static bool InitOnce(Dart_IsolateCreateCallback callback);
 
   static Isolate* CreateIsolate();
-  static void InitializeIsolate(const Dart_Snapshot* snapshot, void* data);
+  static void InitializeIsolate(const uint8_t* snapshot, void* data);
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }

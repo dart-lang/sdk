@@ -1,5 +1,5 @@
 
-class SVGGradientElement extends SVGElement native "*SVGGradientElement" {
+class SVGGradientElement extends SVGElement native "SVGGradientElement" {
 
   static final int SVG_SPREADMETHOD_PAD = 1;
 

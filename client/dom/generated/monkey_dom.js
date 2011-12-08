@@ -102,6 +102,181 @@ function DOM$fixClass$Attr(c) {
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
 }
+function DOM$fixClass$AudioBuffer(c) {
+  if (c.prototype) {
+    c.prototype.duration$getter = function() { return DOM$EnsureDartNull(this.duration); };
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+    c.prototype.gain$setter = function(value) { this.gain = value; };
+    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.numberOfChannels$getter = function() { return DOM$EnsureDartNull(this.numberOfChannels); };
+    c.prototype.sampleRate$getter = function() { return DOM$EnsureDartNull(this.sampleRate); };
+  }
+  DOM$fixMembers(c, ['getChannelData']);
+  c.$implements$AudioBuffer$Dart = 1;
+}
+function DOM$fixClass$AudioBufferSourceNode(c) {
+  if (c.prototype) {
+    c.prototype.buffer$getter = function() { return DOM$EnsureDartNull(this.buffer); };
+    c.prototype.buffer$setter = function(value) { this.buffer = value; };
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+    c.prototype.loop$getter = function() { return DOM$EnsureDartNull(this.loop); };
+    c.prototype.loop$setter = function(value) { this.loop = value; };
+    c.prototype.looping$getter = function() { return DOM$EnsureDartNull(this.looping); };
+    c.prototype.looping$setter = function(value) { this.looping = value; };
+    c.prototype.playbackRate$getter = function() { return DOM$EnsureDartNull(this.playbackRate); };
+  }
+  DOM$fixMembers(c, [
+    'noteGrainOn',
+    'noteOff',
+    'noteOn']);
+  c.$implements$AudioBufferSourceNode$Dart = 1;
+  c.$implements$AudioSourceNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioChannelMerger(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioChannelMerger$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioChannelSplitter(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioChannelSplitter$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioContext(c) {
+  if (c.prototype) {
+    c.prototype.currentTime$getter = function() { return DOM$EnsureDartNull(this.currentTime); };
+    c.prototype.destination$getter = function() { return DOM$EnsureDartNull(this.destination); };
+    c.prototype.listener$getter = function() { return DOM$EnsureDartNull(this.listener); };
+    c.prototype.sampleRate$getter = function() { return DOM$EnsureDartNull(this.sampleRate); };
+  }
+  DOM$fixMembers(c, [
+    'createAnalyser',
+    'createBiquadFilter',
+    'createBuffer',
+    'createBufferSource',
+    'createChannelMerger',
+    'createChannelSplitter',
+    'createConvolver',
+    'createDelayNode',
+    'createDynamicsCompressor',
+    'createGainNode',
+    'createHighPass2Filter',
+    'createJavaScriptNode',
+    'createLowPass2Filter',
+    'createPanner',
+    'createWaveShaper',
+    'decodeAudioData',
+    'startRendering']);
+  c.$implements$AudioContext$Dart = 1;
+}
+function DOM$fixClass$AudioDestinationNode(c) {
+  if (c.prototype) {
+    c.prototype.numberOfChannels$getter = function() { return DOM$EnsureDartNull(this.numberOfChannels); };
+  }
+  c.$implements$AudioDestinationNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioGain(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioGain$Dart = 1;
+  c.$implements$AudioParam$Dart = 1;
+}
+function DOM$fixClass$AudioGainNode(c) {
+  if (c.prototype) {
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+  }
+  c.$implements$AudioGainNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioListener(c) {
+  if (c.prototype) {
+    c.prototype.dopplerFactor$getter = function() { return DOM$EnsureDartNull(this.dopplerFactor); };
+    c.prototype.dopplerFactor$setter = function(value) { this.dopplerFactor = value; };
+    c.prototype.speedOfSound$getter = function() { return DOM$EnsureDartNull(this.speedOfSound); };
+    c.prototype.speedOfSound$setter = function(value) { this.speedOfSound = value; };
+  }
+  DOM$fixMembers(c, [
+    'setOrientation',
+    'setPosition',
+    'setVelocity']);
+  c.$implements$AudioListener$Dart = 1;
+}
+function DOM$fixClass$AudioNode(c) {
+  if (c.prototype) {
+    c.prototype.context$getter = function() { return DOM$EnsureDartNull(this.context); };
+    c.prototype.numberOfInputs$getter = function() { return DOM$EnsureDartNull(this.numberOfInputs); };
+    c.prototype.numberOfOutputs$getter = function() { return DOM$EnsureDartNull(this.numberOfOutputs); };
+  }
+  DOM$fixMembers(c, [
+    'connect',
+    'disconnect']);
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioPannerNode(c) {
+  if (c.prototype) {
+    c.prototype.coneGain$getter = function() { return DOM$EnsureDartNull(this.coneGain); };
+    c.prototype.coneInnerAngle$getter = function() { return DOM$EnsureDartNull(this.coneInnerAngle); };
+    c.prototype.coneInnerAngle$setter = function(value) { this.coneInnerAngle = value; };
+    c.prototype.coneOuterAngle$getter = function() { return DOM$EnsureDartNull(this.coneOuterAngle); };
+    c.prototype.coneOuterAngle$setter = function(value) { this.coneOuterAngle = value; };
+    c.prototype.coneOuterGain$getter = function() { return DOM$EnsureDartNull(this.coneOuterGain); };
+    c.prototype.coneOuterGain$setter = function(value) { this.coneOuterGain = value; };
+    c.prototype.distanceGain$getter = function() { return DOM$EnsureDartNull(this.distanceGain); };
+    c.prototype.distanceModel$getter = function() { return DOM$EnsureDartNull(this.distanceModel); };
+    c.prototype.distanceModel$setter = function(value) { this.distanceModel = value; };
+    c.prototype.maxDistance$getter = function() { return DOM$EnsureDartNull(this.maxDistance); };
+    c.prototype.maxDistance$setter = function(value) { this.maxDistance = value; };
+    c.prototype.panningModel$getter = function() { return DOM$EnsureDartNull(this.panningModel); };
+    c.prototype.panningModel$setter = function(value) { this.panningModel = value; };
+    c.prototype.refDistance$getter = function() { return DOM$EnsureDartNull(this.refDistance); };
+    c.prototype.refDistance$setter = function(value) { this.refDistance = value; };
+    c.prototype.rolloffFactor$getter = function() { return DOM$EnsureDartNull(this.rolloffFactor); };
+    c.prototype.rolloffFactor$setter = function(value) { this.rolloffFactor = value; };
+  }
+  DOM$fixMembers(c, [
+    'setOrientation',
+    'setPosition',
+    'setVelocity']);
+  c.$implements$AudioPannerNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$AudioParam(c) {
+  if (c.prototype) {
+    c.prototype.defaultValue$getter = function() { return DOM$EnsureDartNull(this.defaultValue); };
+    c.prototype.maxValue$getter = function() { return DOM$EnsureDartNull(this.maxValue); };
+    c.prototype.minValue$getter = function() { return DOM$EnsureDartNull(this.minValue); };
+    c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.units$getter = function() { return DOM$EnsureDartNull(this.units); };
+    c.prototype.value$getter = function() { return DOM$EnsureDartNull(this.value); };
+    c.prototype.value$setter = function(value) { this.value = value; };
+  }
+  DOM$fixMembers(c, [
+    'cancelScheduledValues',
+    'exponentialRampToValueAtTime',
+    'linearRampToValueAtTime',
+    'setTargetValueAtTime',
+    'setValueAtTime',
+    'setValueCurveAtTime']);
+  c.$implements$AudioParam$Dart = 1;
+}
+function DOM$fixClass$AudioProcessingEvent(c) {
+  if (c.prototype) {
+    c.prototype.inputBuffer$getter = function() { return DOM$EnsureDartNull(this.inputBuffer); };
+    c.prototype.outputBuffer$getter = function() { return DOM$EnsureDartNull(this.outputBuffer); };
+  }
+  c.$implements$AudioProcessingEvent$Dart = 1;
+  c.$implements$Event$Dart = 1;
+}
+function DOM$fixClass$AudioSourceNode(c) {
+  if (c.prototype) {
+  }
+  c.$implements$AudioSourceNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$BarInfo(c) {
   if (c.prototype) {
     c.prototype.visible$getter = function() { return DOM$EnsureDartNull(this.visible); };
@@ -115,6 +290,17 @@ function DOM$fixClass$BeforeLoadEvent(c) {
   DOM$fixMembers(c, ['initBeforeLoadEvent']);
   c.$implements$BeforeLoadEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
+}
+function DOM$fixClass$BiquadFilterNode(c) {
+  if (c.prototype) {
+    c.prototype.Q$getter = function() { return DOM$EnsureDartNull(this.Q); };
+    c.prototype.frequency$getter = function() { return DOM$EnsureDartNull(this.frequency); };
+    c.prototype.gain$getter = function() { return DOM$EnsureDartNull(this.gain); };
+    c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
+    c.prototype.type$setter = function(value) { this.type = value; };
+  }
+  c.$implements$BiquadFilterNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$Blob(c) {
   if (c.prototype) {
@@ -288,7 +474,6 @@ function DOM$fixClass$CanvasPixelArray(c) {
     c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
     c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
-  DOM$fixMembers(c, ['item']);
   c.$implements$CanvasPixelArray$Dart = 1;
 }
 function DOM$fixClassOnDemand$CanvasPixelArray(c) {
@@ -506,6 +691,14 @@ function DOM$fixClass$Console(c) {
     return DOM$EnsureDartNull(this.assertCondition.apply(this, arguments));
   };
   c.$implements$Console$Dart = 1;
+}
+function DOM$fixClass$ConvolverNode(c) {
+  if (c.prototype) {
+    c.prototype.buffer$getter = function() { return DOM$EnsureDartNull(this.buffer); };
+    c.prototype.buffer$setter = function(value) { this.buffer = value; };
+  }
+  c.$implements$ConvolverNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$Coordinates(c) {
   if (c.prototype) {
@@ -828,7 +1021,9 @@ function DOM$fixClass$DOMWindow(c) {
     'webkitConvertPointFromNodeToPage',
     'webkitConvertPointFromPageToNode',
     'webkitPostMessage',
-    'webkitRequestAnimationFrame']);
+    'webkitRequestAnimationFrame',
+    'webkitRequestFileSystem',
+    'webkitResolveLocalFileSystemURL']);
   c.$implements$DOMWindow$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
 }
@@ -885,12 +1080,6 @@ function DOM$fixClass$Database(c) {
     'transaction']);
   c.$implements$Database$Dart = 1;
 }
-function DOM$fixClass$DatabaseCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$DatabaseCallback$Dart = 1;
-}
 function DOM$fixClass$DatabaseSync(c) {
   if (c.prototype) {
     c.prototype.version$getter = function() { return DOM$EnsureDartNull(this.version); };
@@ -909,6 +1098,13 @@ function DOM$fixClass$DedicatedWorkerContext(c) {
     'webkitPostMessage']);
   c.$implements$DedicatedWorkerContext$Dart = 1;
   c.$implements$WorkerContext$Dart = 1;
+}
+function DOM$fixClass$DelayNode(c) {
+  if (c.prototype) {
+    c.prototype.delayTime$getter = function() { return DOM$EnsureDartNull(this.delayTime); };
+  }
+  c.$implements$DelayNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$DeviceMotionEvent(c) {
   if (c.prototype) {
@@ -999,7 +1195,10 @@ function DOM$fixClass$Document(c) {
     c.prototype.styleSheets$getter = function() { return DOM$EnsureDartNull(this.styleSheets); };
     c.prototype.title$getter = function() { return DOM$EnsureDartNull(this.title); };
     c.prototype.title$setter = function(value) { this.title = value; };
+    c.prototype.webkitCurrentFullScreenElement$getter = function() { return DOM$EnsureDartNull(this.webkitCurrentFullScreenElement); };
+    c.prototype.webkitFullScreenKeyboardInputAllowed$getter = function() { return DOM$EnsureDartNull(this.webkitFullScreenKeyboardInputAllowed); };
     c.prototype.webkitHidden$getter = function() { return DOM$EnsureDartNull(this.webkitHidden); };
+    c.prototype.webkitIsFullScreen$getter = function() { return DOM$EnsureDartNull(this.webkitIsFullScreen); };
     c.prototype.webkitVisibilityState$getter = function() { return DOM$EnsureDartNull(this.webkitVisibilityState); };
     c.prototype.xmlEncoding$getter = function() { return DOM$EnsureDartNull(this.xmlEncoding); };
     c.prototype.xmlStandalone$getter = function() { return DOM$EnsureDartNull(this.xmlStandalone); };
@@ -1044,7 +1243,8 @@ function DOM$fixClass$Document(c) {
     'queryCommandSupported',
     'queryCommandValue',
     'querySelector',
-    'querySelectorAll']);
+    'querySelectorAll',
+    'webkitCancelFullScreen']);
   c.$implements$Document$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -1073,6 +1273,12 @@ function DOM$fixClass$DocumentType(c) {
   c.$implements$DocumentType$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
+}
+function DOM$fixClass$DynamicsCompressorNode(c) {
+  if (c.prototype) {
+  }
+  c.$implements$DynamicsCompressorNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$Element(c) {
   if (c.prototype) {
@@ -1126,7 +1332,8 @@ function DOM$fixClass$Element(c) {
     'setAttributeNS',
     'setAttributeNode',
     'setAttributeNodeNS',
-    'webkitMatchesSelector']);
+    'webkitMatchesSelector',
+    'webkitRequestFullScreen']);
   c.$implements$Element$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -1170,12 +1377,6 @@ function DOM$fixClass$EntityReference(c) {
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
 }
-function DOM$fixClass$EntriesCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$EntriesCallback$Dart = 1;
-}
 function DOM$fixClass$Entry(c) {
   if (c.prototype) {
     c.prototype.filesystem$getter = function() { return DOM$EnsureDartNull(this.filesystem); };
@@ -1207,12 +1408,6 @@ function DOM$fixClass$EntryArraySync(c) {
   DOM$fixMembers(c, ['item']);
   c.$implements$EntryArraySync$Dart = 1;
 }
-function DOM$fixClass$EntryCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$EntryCallback$Dart = 1;
-}
 function DOM$fixClass$EntrySync(c) {
   if (c.prototype) {
     c.prototype.filesystem$getter = function() { return DOM$EnsureDartNull(this.filesystem); };
@@ -1229,12 +1424,6 @@ function DOM$fixClass$EntrySync(c) {
     'remove',
     'toURL']);
   c.$implements$EntrySync$Dart = 1;
-}
-function DOM$fixClass$ErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$ErrorCallback$Dart = 1;
 }
 function DOM$fixClass$ErrorEvent(c) {
   if (c.prototype) {
@@ -1311,12 +1500,6 @@ function DOM$fixClass$File(c) {
   c.$implements$File$Dart = 1;
   c.$implements$Blob$Dart = 1;
 }
-function DOM$fixClass$FileCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$FileCallback$Dart = 1;
-}
 function DOM$fixClass$FileEntry(c) {
   if (c.prototype) {
   }
@@ -1381,12 +1564,6 @@ function DOM$fixClass$FileReaderSync(c) {
     'readAsText']);
   c.$implements$FileReaderSync$Dart = 1;
 }
-function DOM$fixClass$FileSystemCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$FileSystemCallback$Dart = 1;
-}
 function DOM$fixClass$FileWriter(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
@@ -1400,12 +1577,6 @@ function DOM$fixClass$FileWriter(c) {
     'truncate',
     'write']);
   c.$implements$FileWriter$Dart = 1;
-}
-function DOM$fixClass$FileWriterCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$FileWriterCallback$Dart = 1;
 }
 function DOM$fixClass$FileWriterSync(c) {
   if (c.prototype) {
@@ -1421,6 +1592,8 @@ function DOM$fixClass$FileWriterSync(c) {
 function DOM$fixClass$Float32Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Float32Array$Dart = 1;
@@ -1429,6 +1602,8 @@ function DOM$fixClass$Float32Array(c) {
 function DOM$fixClass$Float64Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Float64Array$Dart = 1;
@@ -3255,6 +3430,14 @@ function DOM$fixClass$HashChangeEvent(c) {
   c.$implements$HashChangeEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
+function DOM$fixClass$HighPass2FilterNode(c) {
+  if (c.prototype) {
+    c.prototype.cutoff$getter = function() { return DOM$EnsureDartNull(this.cutoff); };
+    c.prototype.resonance$getter = function() { return DOM$EnsureDartNull(this.resonance); };
+  }
+  c.$implements$HighPass2FilterNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$History(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
@@ -3507,6 +3690,8 @@ function DOM$fixClass$InspectorFrontendHost(c) {
 function DOM$fixClass$Int16Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Int16Array$Dart = 1;
@@ -3515,6 +3700,8 @@ function DOM$fixClass$Int16Array(c) {
 function DOM$fixClass$Int32Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Int32Array$Dart = 1;
@@ -3523,10 +3710,19 @@ function DOM$fixClass$Int32Array(c) {
 function DOM$fixClass$Int8Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Int8Array$Dart = 1;
   c.$implements$ArrayBufferView$Dart = 1;
+}
+function DOM$fixClass$JavaScriptAudioNode(c) {
+  if (c.prototype) {
+    c.prototype.bufferSize$getter = function() { return DOM$EnsureDartNull(this.bufferSize); };
+  }
+  c.$implements$JavaScriptAudioNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$JavaScriptCallFrame(c) {
   if (c.prototype) {
@@ -3587,6 +3783,22 @@ function DOM$fixClass$Location(c) {
     return DOM$EnsureDartNull(this.toStringFunction.apply(this, arguments));
   };
   c.$implements$Location$Dart = 1;
+}
+function DOM$fixClass$LowPass2FilterNode(c) {
+  if (c.prototype) {
+    c.prototype.cutoff$getter = function() { return DOM$EnsureDartNull(this.cutoff); };
+    c.prototype.resonance$getter = function() { return DOM$EnsureDartNull(this.resonance); };
+  }
+  c.$implements$LowPass2FilterNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
+function DOM$fixClass$MediaElementAudioSourceNode(c) {
+  if (c.prototype) {
+    c.prototype.mediaElement$getter = function() { return DOM$EnsureDartNull(this.mediaElement); };
+  }
+  c.$implements$MediaElementAudioSourceNode$Dart = 1;
+  c.$implements$AudioSourceNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$MediaError(c) {
   if (c.prototype) {
@@ -3672,12 +3884,6 @@ function DOM$fixClass$Metadata(c) {
     c.prototype.modificationTime$getter = function() { return DOM$EnsureDartNull(this.modificationTime); };
   }
   c.$implements$Metadata$Dart = 1;
-}
-function DOM$fixClass$MetadataCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$MetadataCallback$Dart = 1;
 }
 function DOM$fixClass$MouseEvent(c) {
   if (c.prototype) {
@@ -3778,12 +3984,6 @@ function DOM$fixClass$NavigatorUserMediaError(c) {
     c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
   }
   c.$implements$NavigatorUserMediaError$Dart = 1;
-}
-function DOM$fixClass$NavigatorUserMediaErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$NavigatorUserMediaErrorCallback$Dart = 1;
 }
 function DOM$fixClass$NavigatorUserMediaSuccessCallback(c) {
   if (c.prototype) {
@@ -3967,6 +4167,13 @@ function DOM$fixClass$OESVertexArrayObject(c) {
     'isVertexArrayOES']);
   c.$implements$OESVertexArrayObject$Dart = 1;
 }
+function DOM$fixClass$OfflineAudioCompletionEvent(c) {
+  if (c.prototype) {
+    c.prototype.renderedBuffer$getter = function() { return DOM$EnsureDartNull(this.renderedBuffer); };
+  }
+  c.$implements$OfflineAudioCompletionEvent$Dart = 1;
+  c.$implements$Event$Dart = 1;
+}
 function DOM$fixClass$OperationNotAllowedException(c) {
   if (c.prototype) {
     c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
@@ -4043,24 +4250,12 @@ function DOM$fixClass$PopStateEvent(c) {
   c.$implements$PopStateEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
-function DOM$fixClass$PositionCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$PositionCallback$Dart = 1;
-}
 function DOM$fixClass$PositionError(c) {
   if (c.prototype) {
     c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
   }
   c.$implements$PositionError$Dart = 1;
-}
-function DOM$fixClass$PositionErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$PositionErrorCallback$Dart = 1;
 }
 function DOM$fixClass$ProcessingInstruction(c) {
   if (c.prototype) {
@@ -4137,6 +4332,25 @@ function DOM$fixClass$RangeException(c) {
   DOM$fixMembers(c, ['toString']);
   c.$implements$RangeException$Dart = 1;
 }
+function DOM$fixClass$RealtimeAnalyserNode(c) {
+  if (c.prototype) {
+    c.prototype.fftSize$getter = function() { return DOM$EnsureDartNull(this.fftSize); };
+    c.prototype.fftSize$setter = function(value) { this.fftSize = value; };
+    c.prototype.frequencyBinCount$getter = function() { return DOM$EnsureDartNull(this.frequencyBinCount); };
+    c.prototype.maxDecibels$getter = function() { return DOM$EnsureDartNull(this.maxDecibels); };
+    c.prototype.maxDecibels$setter = function(value) { this.maxDecibels = value; };
+    c.prototype.minDecibels$getter = function() { return DOM$EnsureDartNull(this.minDecibels); };
+    c.prototype.minDecibels$setter = function(value) { this.minDecibels = value; };
+    c.prototype.smoothingTimeConstant$getter = function() { return DOM$EnsureDartNull(this.smoothingTimeConstant); };
+    c.prototype.smoothingTimeConstant$setter = function(value) { this.smoothingTimeConstant = value; };
+  }
+  DOM$fixMembers(c, [
+    'getByteFrequencyData',
+    'getByteTimeDomainData',
+    'getFloatFrequencyData']);
+  c.$implements$RealtimeAnalyserNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
+}
 function DOM$fixClass$Rect(c) {
   if (c.prototype) {
     c.prototype.bottom$getter = function() { return DOM$EnsureDartNull(this.bottom); };
@@ -4175,45 +4389,15 @@ function DOM$fixClass$SQLResultSetRowList(c) {
   DOM$fixMembers(c, ['item']);
   c.$implements$SQLResultSetRowList$Dart = 1;
 }
-function DOM$fixClass$SQLStatementCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLStatementCallback$Dart = 1;
-}
-function DOM$fixClass$SQLStatementErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLStatementErrorCallback$Dart = 1;
-}
 function DOM$fixClass$SQLTransaction(c) {
   if (c.prototype) {
   }
   c.$implements$SQLTransaction$Dart = 1;
 }
-function DOM$fixClass$SQLTransactionCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLTransactionCallback$Dart = 1;
-}
-function DOM$fixClass$SQLTransactionErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLTransactionErrorCallback$Dart = 1;
-}
 function DOM$fixClass$SQLTransactionSync(c) {
   if (c.prototype) {
   }
   c.$implements$SQLTransactionSync$Dart = 1;
-}
-function DOM$fixClass$SQLTransactionSyncCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$SQLTransactionSyncCallback$Dart = 1;
 }
 function DOM$fixClass$SVGAElement(c) {
   if (c.prototype) {
@@ -7137,30 +7321,6 @@ function DOM$fixClass$StorageInfo(c) {
     'requestQuota']);
   c.$implements$StorageInfo$Dart = 1;
 }
-function DOM$fixClass$StorageInfoErrorCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StorageInfoErrorCallback$Dart = 1;
-}
-function DOM$fixClass$StorageInfoQuotaCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StorageInfoQuotaCallback$Dart = 1;
-}
-function DOM$fixClass$StorageInfoUsageCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StorageInfoUsageCallback$Dart = 1;
-}
-function DOM$fixClass$StringCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$StringCallback$Dart = 1;
-}
 function DOM$fixClass$StyleMedia(c) {
   if (c.prototype) {
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
@@ -7385,6 +7545,8 @@ function DOM$fixClass$UIEvent(c) {
 function DOM$fixClass$Uint16Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Uint16Array$Dart = 1;
@@ -7393,6 +7555,8 @@ function DOM$fixClass$Uint16Array(c) {
 function DOM$fixClass$Uint32Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Uint32Array$Dart = 1;
@@ -7401,6 +7565,8 @@ function DOM$fixClass$Uint32Array(c) {
 function DOM$fixClass$Uint8Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
+    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Uint8Array$Dart = 1;
@@ -7425,6 +7591,14 @@ function DOM$fixClass$VoidCallback(c) {
   }
   DOM$fixMembers(c, ['handleEvent']);
   c.$implements$VoidCallback$Dart = 1;
+}
+function DOM$fixClass$WaveShaperNode(c) {
+  if (c.prototype) {
+    c.prototype.curve$getter = function() { return DOM$EnsureDartNull(this.curve); };
+    c.prototype.curve$setter = function(value) { this.curve = value; };
+  }
+  c.$implements$WaveShaperNode$Dart = 1;
+  c.$implements$AudioNode$Dart = 1;
 }
 function DOM$fixClass$WebGLActiveInfo(c) {
   if (c.prototype) {
@@ -7563,7 +7737,6 @@ function DOM$fixClass$WebGLRenderingContext(c) {
     'getShaderInfoLog',
     'getShaderParameter',
     'getShaderSource',
-    'getSupportedExtensions',
     'getTexParameter',
     'getUniform',
     'getUniformLocation',
@@ -7907,7 +8080,11 @@ function DOM$fixClass$WorkerContext(c) {
     'importScripts',
     'removeEventListener',
     'setInterval',
-    'setTimeout']);
+    'setTimeout',
+    'webkitRequestFileSystem',
+    'webkitRequestFileSystemSync',
+    'webkitResolveLocalFileSystemSyncURL',
+    'webkitResolveLocalFileSystemURL']);
   c.$implements$WorkerContext$Dart = 1;
 }
 function DOM$fixClass$WorkerLocation(c) {
@@ -8103,6 +8280,62 @@ var _;
     w.Attr$Dart = _;
     DOM$fixClass$Attr(_);
   }
+  if ((_ = w.AudioBuffer)) {
+    w.AudioBuffer$Dart = _;
+    DOM$fixClass$AudioBuffer(_);
+  }
+  if ((_ = w.AudioBufferSourceNode)) {
+    w.AudioBufferSourceNode$Dart = _;
+    DOM$fixClass$AudioBufferSourceNode(_);
+  }
+  if ((_ = w.AudioChannelMerger)) {
+    w.AudioChannelMerger$Dart = _;
+    DOM$fixClass$AudioChannelMerger(_);
+  }
+  if ((_ = w.AudioChannelSplitter)) {
+    w.AudioChannelSplitter$Dart = _;
+    DOM$fixClass$AudioChannelSplitter(_);
+  }
+  if ((_ = w.AudioContext)) {
+    w.AudioContext$Dart = _;
+    DOM$fixClass$AudioContext(_);
+  }
+  if ((_ = w.AudioDestinationNode)) {
+    w.AudioDestinationNode$Dart = _;
+    DOM$fixClass$AudioDestinationNode(_);
+  }
+  if ((_ = w.AudioGain)) {
+    w.AudioGain$Dart = _;
+    DOM$fixClass$AudioGain(_);
+  }
+  if ((_ = w.AudioGainNode)) {
+    w.AudioGainNode$Dart = _;
+    DOM$fixClass$AudioGainNode(_);
+  }
+  if ((_ = w.AudioListener)) {
+    w.AudioListener$Dart = _;
+    DOM$fixClass$AudioListener(_);
+  }
+  if ((_ = w.AudioNode)) {
+    w.AudioNode$Dart = _;
+    DOM$fixClass$AudioNode(_);
+  }
+  if ((_ = w.AudioPannerNode)) {
+    w.AudioPannerNode$Dart = _;
+    DOM$fixClass$AudioPannerNode(_);
+  }
+  if ((_ = w.AudioParam)) {
+    w.AudioParam$Dart = _;
+    DOM$fixClass$AudioParam(_);
+  }
+  if ((_ = w.AudioProcessingEvent)) {
+    w.AudioProcessingEvent$Dart = _;
+    DOM$fixClass$AudioProcessingEvent(_);
+  }
+  if ((_ = w.AudioSourceNode)) {
+    w.AudioSourceNode$Dart = _;
+    DOM$fixClass$AudioSourceNode(_);
+  }
   if (!w.BarInfo && (_ = w.toolbar) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.BarInfo = _;
   }
@@ -8113,6 +8346,10 @@ var _;
   if ((_ = w.BeforeLoadEvent)) {
     w.BeforeLoadEvent$Dart = _;
     DOM$fixClass$BeforeLoadEvent(_);
+  }
+  if ((_ = w.BiquadFilterNode)) {
+    w.BiquadFilterNode$Dart = _;
+    DOM$fixClass$BiquadFilterNode(_);
   }
   if ((_ = w.Blob)) {
     w.Blob$Dart = _;
@@ -8233,6 +8470,10 @@ var _;
     w.Console$Dart = _;
     DOM$fixClass$Console(_);
   }
+  if ((_ = w.ConvolverNode)) {
+    w.ConvolverNode$Dart = _;
+    DOM$fixClass$ConvolverNode(_);
+  }
   if ((_ = w.Coordinates)) {
     w.Coordinates$Dart = _;
     DOM$fixClass$Coordinates(_);
@@ -8341,10 +8582,6 @@ var _;
     w.Database$Dart = _;
     DOM$fixClass$Database(_);
   }
-  if ((_ = w.DatabaseCallback)) {
-    w.DatabaseCallback$Dart = _;
-    DOM$fixClass$DatabaseCallback(_);
-  }
   if ((_ = w.DatabaseSync)) {
     w.DatabaseSync$Dart = _;
     DOM$fixClass$DatabaseSync(_);
@@ -8352,6 +8589,10 @@ var _;
   if ((_ = w.DedicatedWorkerContext)) {
     w.DedicatedWorkerContext$Dart = _;
     DOM$fixClass$DedicatedWorkerContext(_);
+  }
+  if ((_ = w.DelayNode)) {
+    w.DelayNode$Dart = _;
+    DOM$fixClass$DelayNode(_);
   }
   if ((_ = w.DeviceMotionEvent)) {
     w.DeviceMotionEvent$Dart = _;
@@ -8392,6 +8633,10 @@ var _;
     w.DocumentType$Dart = _;
     DOM$fixClass$DocumentType(_);
   }
+  if ((_ = w.DynamicsCompressorNode)) {
+    w.DynamicsCompressorNode$Dart = _;
+    DOM$fixClass$DynamicsCompressorNode(_);
+  }
   if (!w.Element && (_ = w.frameElement) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.Element = _;
   }
@@ -8415,10 +8660,6 @@ var _;
     w.EntityReference$Dart = _;
     DOM$fixClass$EntityReference(_);
   }
-  if ((_ = w.EntriesCallback)) {
-    w.EntriesCallback$Dart = _;
-    DOM$fixClass$EntriesCallback(_);
-  }
   if ((_ = w.Entry)) {
     w.Entry$Dart = _;
     DOM$fixClass$Entry(_);
@@ -8431,17 +8672,9 @@ var _;
     w.EntryArraySync$Dart = _;
     DOM$fixClass$EntryArraySync(_);
   }
-  if ((_ = w.EntryCallback)) {
-    w.EntryCallback$Dart = _;
-    DOM$fixClass$EntryCallback(_);
-  }
   if ((_ = w.EntrySync)) {
     w.EntrySync$Dart = _;
     DOM$fixClass$EntrySync(_);
-  }
-  if ((_ = w.ErrorCallback)) {
-    w.ErrorCallback$Dart = _;
-    DOM$fixClass$ErrorCallback(_);
   }
   if ((_ = w.ErrorEvent)) {
     w.ErrorEvent$Dart = _;
@@ -8469,10 +8702,6 @@ var _;
   if ((_ = w.File)) {
     w.File$Dart = _;
     DOM$fixClass$File(_);
-  }
-  if ((_ = w.FileCallback)) {
-    w.FileCallback$Dart = _;
-    DOM$fixClass$FileCallback(_);
   }
   if ((_ = w.FileEntry)) {
     w.FileEntry$Dart = _;
@@ -8502,17 +8731,9 @@ var _;
     w.FileReaderSync$Dart = _;
     DOM$fixClass$FileReaderSync(_);
   }
-  if ((_ = w.FileSystemCallback)) {
-    w.FileSystemCallback$Dart = _;
-    DOM$fixClass$FileSystemCallback(_);
-  }
   if ((_ = w.FileWriter)) {
     w.FileWriter$Dart = _;
     DOM$fixClass$FileWriter(_);
-  }
-  if ((_ = w.FileWriterCallback)) {
-    w.FileWriterCallback$Dart = _;
-    DOM$fixClass$FileWriterCallback(_);
   }
   if ((_ = w.FileWriterSync)) {
     w.FileWriterSync$Dart = _;
@@ -8830,6 +9051,10 @@ var _;
     w.HashChangeEvent$Dart = _;
     DOM$fixClass$HashChangeEvent(_);
   }
+  if ((_ = w.HighPass2FilterNode)) {
+    w.HighPass2FilterNode$Dart = _;
+    DOM$fixClass$HighPass2FilterNode(_);
+  }
   if (!w.History && (_ = w.history) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.History = _;
   }
@@ -8921,6 +9146,10 @@ var _;
     w.Int8Array$Dart = _;
     DOM$fixClass$Int8Array(_);
   }
+  if ((_ = w.JavaScriptAudioNode)) {
+    w.JavaScriptAudioNode$Dart = _;
+    DOM$fixClass$JavaScriptAudioNode(_);
+  }
   if ((_ = w.JavaScriptCallFrame)) {
     w.JavaScriptCallFrame$Dart = _;
     DOM$fixClass$JavaScriptCallFrame(_);
@@ -8935,6 +9164,14 @@ var _;
   if ((_ = w.Location)) {
     w.Location$Dart = _;
     DOM$fixClass$Location(_);
+  }
+  if ((_ = w.LowPass2FilterNode)) {
+    w.LowPass2FilterNode$Dart = _;
+    DOM$fixClass$LowPass2FilterNode(_);
+  }
+  if ((_ = w.MediaElementAudioSourceNode)) {
+    w.MediaElementAudioSourceNode$Dart = _;
+    DOM$fixClass$MediaElementAudioSourceNode(_);
   }
   if ((_ = w.MediaError)) {
     w.MediaError$Dart = _;
@@ -8972,10 +9209,6 @@ var _;
     w.Metadata$Dart = _;
     DOM$fixClass$Metadata(_);
   }
-  if ((_ = w.MetadataCallback)) {
-    w.MetadataCallback$Dart = _;
-    DOM$fixClass$MetadataCallback(_);
-  }
   if ((_ = w.MouseEvent)) {
     w.MouseEvent$Dart = _;
     DOM$fixClass$MouseEvent(_);
@@ -9006,10 +9239,6 @@ var _;
   if ((_ = w.NavigatorUserMediaError)) {
     w.NavigatorUserMediaError$Dart = _;
     DOM$fixClass$NavigatorUserMediaError(_);
-  }
-  if ((_ = w.NavigatorUserMediaErrorCallback)) {
-    w.NavigatorUserMediaErrorCallback$Dart = _;
-    DOM$fixClass$NavigatorUserMediaErrorCallback(_);
   }
   if ((_ = w.NavigatorUserMediaSuccessCallback)) {
     w.NavigatorUserMediaSuccessCallback$Dart = _;
@@ -9062,6 +9291,10 @@ var _;
     w.OESVertexArrayObject$Dart = _;
     DOM$fixClass$OESVertexArrayObject(_);
   }
+  if ((_ = w.OfflineAudioCompletionEvent)) {
+    w.OfflineAudioCompletionEvent$Dart = _;
+    DOM$fixClass$OfflineAudioCompletionEvent(_);
+  }
   if ((_ = w.OperationNotAllowedException)) {
     w.OperationNotAllowedException$Dart = _;
     DOM$fixClass$OperationNotAllowedException(_);
@@ -9099,17 +9332,9 @@ var _;
     w.PopStateEvent$Dart = _;
     DOM$fixClass$PopStateEvent(_);
   }
-  if ((_ = w.PositionCallback)) {
-    w.PositionCallback$Dart = _;
-    DOM$fixClass$PositionCallback(_);
-  }
   if ((_ = w.PositionError)) {
     w.PositionError$Dart = _;
     DOM$fixClass$PositionError(_);
-  }
-  if ((_ = w.PositionErrorCallback)) {
-    w.PositionErrorCallback$Dart = _;
-    DOM$fixClass$PositionErrorCallback(_);
   }
   if ((_ = w.ProcessingInstruction)) {
     w.ProcessingInstruction$Dart = _;
@@ -9131,6 +9356,10 @@ var _;
     w.RangeException$Dart = _;
     DOM$fixClass$RangeException(_);
   }
+  if ((_ = w.RealtimeAnalyserNode)) {
+    w.RealtimeAnalyserNode$Dart = _;
+    DOM$fixClass$RealtimeAnalyserNode(_);
+  }
   if ((_ = w.Rect)) {
     w.Rect$Dart = _;
     DOM$fixClass$Rect(_);
@@ -9151,33 +9380,13 @@ var _;
     w.SQLResultSetRowList$Dart = _;
     DOM$fixClass$SQLResultSetRowList(_);
   }
-  if ((_ = w.SQLStatementCallback)) {
-    w.SQLStatementCallback$Dart = _;
-    DOM$fixClass$SQLStatementCallback(_);
-  }
-  if ((_ = w.SQLStatementErrorCallback)) {
-    w.SQLStatementErrorCallback$Dart = _;
-    DOM$fixClass$SQLStatementErrorCallback(_);
-  }
   if ((_ = w.SQLTransaction)) {
     w.SQLTransaction$Dart = _;
     DOM$fixClass$SQLTransaction(_);
   }
-  if ((_ = w.SQLTransactionCallback)) {
-    w.SQLTransactionCallback$Dart = _;
-    DOM$fixClass$SQLTransactionCallback(_);
-  }
-  if ((_ = w.SQLTransactionErrorCallback)) {
-    w.SQLTransactionErrorCallback$Dart = _;
-    DOM$fixClass$SQLTransactionErrorCallback(_);
-  }
   if ((_ = w.SQLTransactionSync)) {
     w.SQLTransactionSync$Dart = _;
     DOM$fixClass$SQLTransactionSync(_);
-  }
-  if ((_ = w.SQLTransactionSyncCallback)) {
-    w.SQLTransactionSyncCallback$Dart = _;
-    DOM$fixClass$SQLTransactionSyncCallback(_);
   }
   if ((_ = w.SVGAElement)) {
     w.SVGAElement$Dart = _;
@@ -9837,22 +10046,6 @@ var _;
     w.StorageInfo$Dart = _;
     DOM$fixClass$StorageInfo(_);
   }
-  if ((_ = w.StorageInfoErrorCallback)) {
-    w.StorageInfoErrorCallback$Dart = _;
-    DOM$fixClass$StorageInfoErrorCallback(_);
-  }
-  if ((_ = w.StorageInfoQuotaCallback)) {
-    w.StorageInfoQuotaCallback$Dart = _;
-    DOM$fixClass$StorageInfoQuotaCallback(_);
-  }
-  if ((_ = w.StorageInfoUsageCallback)) {
-    w.StorageInfoUsageCallback$Dart = _;
-    DOM$fixClass$StorageInfoUsageCallback(_);
-  }
-  if ((_ = w.StringCallback)) {
-    w.StringCallback$Dart = _;
-    DOM$fixClass$StringCallback(_);
-  }
   if (!w.StyleMedia && (_ = w.styleMedia) && (_ = _.__proto__) && (_ = {prototype: _})) {
     w.StyleMedia = _;
   }
@@ -9935,6 +10128,10 @@ var _;
   if ((_ = w.VoidCallback)) {
     w.VoidCallback$Dart = _;
     DOM$fixClass$VoidCallback(_);
+  }
+  if ((_ = w.WaveShaperNode)) {
+    w.WaveShaperNode$Dart = _;
+    DOM$fixClass$WaveShaperNode(_);
   }
   if ((_ = w.WebGLActiveInfo)) {
     w.WebGLActiveInfo$Dart = _;

@@ -34,10 +34,24 @@
 #define DECLARE_FUNCTION(name, count)                                          \
   extern void FUNCTION_NAME(name)(Dart_NativeArguments args);
 
-extern Dart_Handle Builtin_Source();
-extern void Builtin_SetupLibrary(Dart_Handle builtin_lib);
-extern void Builtin_ImportLibrary(Dart_Handle library);
-extern void Builtin_SetNativeResolver();
-extern void PrintString(FILE* out, Dart_Handle object);
+
+class Builtin {
+ public:
+  static Dart_Handle Source();
+  static void SetupLibrary(Dart_Handle builtin_lib);
+  static void ImportLibrary(Dart_Handle library);
+  static void SetNativeResolver();
+  static void PrintString(FILE* out, Dart_Handle object);
+
+ private:
+  static Dart_NativeFunction NativeLookup(Dart_Handle name,
+                                          int argument_count);
+
+  static const char Builtin_source_[];
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Builtin);
+};
+
 
 #endif  // BIN_BUILTIN_H_

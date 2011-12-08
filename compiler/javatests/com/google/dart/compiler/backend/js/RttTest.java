@@ -20,8 +20,8 @@ public class RttTest extends SnippetTestCase {
       String init = findMarkerAtOccurrence(js, "_marker_B1", DELIMETERS, 1);
       assertEquals("var _marker_B1 = $intern(Test_app4a54ba$B$Dart.B$$Factory())", init);
 
-      String expr = findMarkerAtOccurrence(js, "_marker_B1", DELIMETERS, 2);
-      assertEquals("a = _marker_B1 instanceof Test_app4a54ba$B$Dart", expr);
+      String expr = findMarkerAtOccurrence(js, "_marker_B1", "[\\n;]", 2);
+      assertEquals("a = !!(tmp$0 = _marker_B1 , tmp$0 != null && tmp$0.$implements$Test_app4a54ba$B$Dart)", expr);
     }
 
     {
@@ -35,8 +35,8 @@ public class RttTest extends SnippetTestCase {
           + "Test_app4a54ba$C$Dart.C$$Factory("
               + "Test_app4a54ba$C$Dart.$lookupRTT())", init);
 
-      String expr = findMarkerAtOccurrence(js, "_marker_C1", DELIMETERS, 2);
-      assertEquals("a = _marker_C1 instanceof Test_app4a54ba$C$Dart", expr);
+      String expr = findMarkerAtOccurrence(js, "_marker_C1", "[\\n;]", 2);
+      assertEquals("a = !!(tmp$1 = _marker_C1 , tmp$1 != null && tmp$1.$implements$Test_app4a54ba$C$Dart)", expr);
     }
 
     {
@@ -71,8 +71,8 @@ public class RttTest extends SnippetTestCase {
       String init = findMarkerAtOccurrence(js, "_marker_D1", DELIMETERS, 1);
       assertEquals("var _marker_D1 = Test_app4a54ba$D$Dart.D$$Factory([])", init);
 
-      String expr = findMarkerAtOccurrence(js, "_marker_D1", DELIMETERS, 2);
-      assertEquals("a = _marker_D1 instanceof Test_app4a54ba$D$Dart", expr);
+      String expr = findMarkerAtOccurrence(js, "_marker_D1", "[\\n;]", 2);
+      assertEquals("a = !!(tmp$2 = _marker_D1 , tmp$2 != null && tmp$2.$implements$Test_app4a54ba$D$Dart)", expr);
     }
   }
 }

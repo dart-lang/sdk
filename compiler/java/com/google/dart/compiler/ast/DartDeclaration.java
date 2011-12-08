@@ -15,7 +15,8 @@ import com.google.dart.compiler.resolver.Element;
 public abstract class DartDeclaration<N extends DartExpression> extends DartNode {
 
   private N name; // Not visited.
-
+  private DartComment dartDoc;
+  
   protected DartDeclaration(N name) {
     this.name = becomeParentOf(name);
   }
@@ -30,4 +31,13 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
 
   @Override
   public abstract Element getSymbol();
+  
+  public DartComment getDartDoc() {
+    return dartDoc;
+  }
+  
+  public void setDartDoc(DartComment dartDoc) {
+    // dartDoc is still parented by the containing DartUnit.
+    this.dartDoc = dartDoc;
+  }
 }

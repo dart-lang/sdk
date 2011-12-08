@@ -49,6 +49,15 @@ function native__DOMWindowWrappingImplementation__get_localStorage(_this) {
 
 // Native methods for factory providers.
 
+function native__AudioContextFactoryProvider_create() {
+  try {
+    var constructor = window.AudioContext || window.webkitAudioContext;
+    return __dom_wrap(new constructor());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__FileReaderFactoryProvider_create() {
   try {
     return __dom_wrap(new FileReader());
@@ -56,6 +65,71 @@ function native__FileReaderFactoryProvider_create() {
     throw __dom_wrap_exception(e);
   }
 }
+
+function native__TypedArrayFactoryProvider__F32(arg) {
+  try {
+    return __dom_wrap(new Float32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__F64(arg) {
+  try {
+    return __dom_wrap(new Float64Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I8(arg) {
+  try {
+    return __dom_wrap(new Int8Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I16(arg) {
+  try {
+    return __dom_wrap(new Int16Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__I32(arg) {
+  try {
+    return __dom_wrap(new Int32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U8(arg) {
+  try {
+    return __dom_wrap(new Uint8Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U16(arg) {
+  try {
+    return __dom_wrap(new Uint16Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TypedArrayFactoryProvider__U32(arg) {
+  try {
+    return __dom_wrap(new Uint32Array(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 
 function native__WebKitCSSMatrixFactoryProvider_create(spec) {
   try {

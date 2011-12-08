@@ -1,24 +1,51 @@
 #!/bin/bash
 
 # To generate docs for a library, run this script with the path to an entrypoint
-# .dart file as the only argument, like:
+# .dart file, like:
 #
 # $ dartdoc foo.dart
+#
+# You can also pass in a couple of "special" entrypoints for generating
+# docs for dart's built in libraries. The special entrypoints are:
+#
+# - "corelib": dart:core, dart:coreimpl
+# - "dom": dart:core, dart:coreimpl, dart:dom
+# - "html": dart:core, dart:coreimpl, dart:dom, dart:html
+
+# Get the .dart lib file the user wants to generate docs for.
+# Add the path to it so that we can find it, but only if it's a .dart file and
+# not one of the special fake entrypoints like "corelib".
+entrypoint=$1
+if [[ $1 == *.dart ]]
+then
+  entrypoint=$PWD/$1
+fi
 
 # Run from dartdoc directory to get correct relative paths.
-startdir=$PWD
 pushd `dirname "$0"` >>/dev/null
 
 # Generate the client-side .js file from interact.dart if we haven't already or
 # if it's out of date.
 if [ "interact.dart" -nt "static/interact.js" ]
   then
-  ../../frog/frogsh --libdir=../../frog/lib \
+  ../../frog/minfrog --libdir=../../frog/lib \
     --out=static/interact.js --compile-only interact.dart
   echo "Compiled interact.dart."
 fi
 
+# Clean the output directory.
+if [ -d "docs" ]; then
+    rm -r docs
+fi
+mkdir docs
+
+# Copy the static files over.
+cp static/* docs
+
+# Ditch the first arg so we can pass any extra arguments to dartdoc.
+shift
+
 # Generate the user's docs.
-../../frog/frogsh --libdir=../../frog/lib dartdoc.dart "$startdir/$1"
+../../frog/minfrog --libdir=../../frog/lib dartdoc.dart "$entrypoint" $@
 
 popd >>/dev/null

@@ -119,8 +119,17 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   void set title(String value) { _set_title(this, value); }
   static void _set_title(var _this, String value) native;
 
+  Element get webkitCurrentFullScreenElement() { return _get_webkitCurrentFullScreenElement(this); }
+  static Element _get_webkitCurrentFullScreenElement(var _this) native;
+
+  bool get webkitFullScreenKeyboardInputAllowed() { return _get_webkitFullScreenKeyboardInputAllowed(this); }
+  static bool _get_webkitFullScreenKeyboardInputAllowed(var _this) native;
+
   bool get webkitHidden() { return _get_webkitHidden(this); }
   static bool _get_webkitHidden(var _this) native;
+
+  bool get webkitIsFullScreen() { return _get_webkitIsFullScreen(this); }
+  static bool _get_webkitIsFullScreen(var _this) native;
 
   String get webkitVisibilityState() { return _get_webkitVisibilityState(this); }
   static String _get_webkitVisibilityState(var _this) native;
@@ -324,6 +333,12 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
     return _querySelectorAll(this, selectors);
   }
   static NodeList _querySelectorAll(receiver, selectors) native;
+
+  void webkitCancelFullScreen() {
+    _webkitCancelFullScreen(this);
+    return;
+  }
+  static void _webkitCancelFullScreen(receiver) native;
 
   String get typeName() { return "Document"; }
 }

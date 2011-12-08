@@ -76,7 +76,7 @@ def GetBuildInfo():
 def RunDartcCompiler(mode, outdir):
   """Compiles the client code to javascript for dartc tests."""
   return subprocess.call(
-      [sys.executable, './tools/build.py', '--mode=' + mode])
+      [sys.executable, './tools/build.py', '--mode=' + mode, 'compiler'])
 
 def RunBrowserTests(component, mode, platform):
   """Runs the Dart client tests."""
@@ -187,7 +187,7 @@ def main():
   os.chdir(os.path.abspath(os.path.join(scriptdir, os.pardir, os.pardir)))
 
   (name, version, component, mode, platform) = GetBuildInfo()
-  if name == 'dart-editor':
+  if name.startswith('dart-editor'):
     status = ProcessTools(mode, name, version)
   #TODO(sigmund): remove this indirection once we update our bots
   elif name.startswith('frog'):

@@ -71,6 +71,7 @@ _evasive_types = set(['CanvasPixelArray',
 # Each entry is of the form:
 #   type name: constructor parameters
 _constructable_types = {
+    'AudioContext': '',
     'FileReader': '',
     'XMLHttpRequest': '',
     'WebKitCSSMatrix': '[String spec]',
@@ -78,6 +79,21 @@ _constructable_types = {
     # dart:html types
     'CSSMatrix': '[String spec]',
     'Point': 'num x, num y',
+}
+
+#
+# Interface version of the DOM needs to delegate typed array constructors to a
+# factory provider.
+#
+_interface_factories = {
+    'Float32Array': '_TypedArrayFactoryProvider',
+    'Float64Array': '_TypedArrayFactoryProvider',
+    'Int8Array': '_TypedArrayFactoryProvider',
+    'Int16Array': '_TypedArrayFactoryProvider',
+    'Int32Array': '_TypedArrayFactoryProvider',
+    'Uint8Array': '_TypedArrayFactoryProvider',
+    'Uint16Array': '_TypedArrayFactoryProvider',
+    'Uint32Array': '_TypedArrayFactoryProvider',
 }
 
 #
@@ -99,6 +115,216 @@ _custom_methods = set([
 _custom_getters = set([
     ('DOMWindow', 'localStorage'),
     ])
+
+#
+# Custom native specs for the Frog dom.
+#
+_frog_dom_custom_native_specs = {
+    'Console': '=console',      # Decorate the singleton Console object.
+    'DOMWindow': '@*DOMWindow', # DOMWindow aliased with global scope.
+
+    # Temporary hack: make these not be 'hidden'.  Will not work on IE9.
+    'Float32Array': 'Float32Array',
+    'Float64Array': 'Float64Array',
+    'Int8Array': 'Int8Array',
+    'Int16Array': 'Int16Array',
+    'Int32Array': 'Int32Array',
+    'Uint8Array': 'Uint8Array',
+    'Uint16Array': 'Uint16Array',
+    'Uint32Array': 'Uint32Array',
+}
+
+#
+# Publically visible types common across all supported browsers.
+#
+_BROWSER_SHARED_TYPES = [
+        'Attr',
+        'CDATASection',
+        'CSSFontFaceRule',
+        'CSSImportRule',
+        'CSSMediaRule',
+        'CSSPageRule',
+        'CSSRule',
+        'CSSRuleList',
+        'CSSStyleDeclaration',
+        'CSSStyleRule',
+        'CSSStyleSheet',
+        'CanvasRenderingContext2D',
+        'CharacterData',
+        'ClientRect',
+        'ClientRectList',
+        'Comment',
+        'DOMException',
+        'DOMImplementation',
+        'DOMParser',
+        'Document',
+        'DocumentFragment',
+        'DocumentType',
+        'Element',
+        'Event',
+        'EventException',
+        'HTMLAnchorElement',
+        'HTMLAppletElement',
+        'HTMLAreaElement',
+        'HTMLAudioElement',
+        'HTMLBRElement',
+        'HTMLBaseElement',
+        'HTMLBodyElement',
+        'HTMLButtonElement',
+        'HTMLCanvasElement',
+        'HTMLCollection',
+        'HTMLDListElement',
+        'HTMLDirectoryElement',
+        'HTMLDivElement',
+        'HTMLElement',
+        'HTMLEmbedElement',
+        'HTMLFieldSetElement',
+        'HTMLFontElement',
+        'HTMLFormElement',
+        'HTMLFrameElement',
+        'HTMLFrameSetElement',
+        'HTMLHRElement',
+        'HTMLHeadElement',
+        'HTMLHeadingElement',
+        'HTMLHtmlElement',
+        'HTMLIFrameElement',
+        'HTMLImageElement',
+        'HTMLInputElement',
+        'HTMLLIElement',
+        'HTMLLabelElement',
+        'HTMLLegendElement',
+        'HTMLLinkElement',
+        'HTMLMapElement',
+        'HTMLMediaElement',
+        'HTMLMenuElement',
+        'HTMLMetaElement',
+        'HTMLModElement',
+        'HTMLOListElement',
+        'HTMLObjectElement',
+        'HTMLOptGroupElement',
+        'HTMLOptionElement',
+        'HTMLParagraphElement',
+        'HTMLParamElement',
+        'HTMLPreElement',
+        'HTMLQuoteElement',
+        'HTMLScriptElement',
+        'HTMLSelectElement',
+        'HTMLStyleElement',
+        'HTMLTableCaptionElement',
+        'HTMLTableCellElement',
+        'HTMLTableColElement',
+        'HTMLTableElement',
+        'HTMLTableRowElement',
+        'HTMLTableSectionElement',
+        'HTMLTextAreaElement',
+        'HTMLTitleElement',
+        'HTMLUListElement',
+        'HTMLVideoElement',
+        'KeyboardEvent',
+        'MediaError',
+        'MediaList',
+        'MessageEvent',
+        'MouseEvent',
+        'MutationEvent',
+        'NamedNodeMap',
+        'Node',
+        'NodeFilter',
+        'NodeList',
+        'ProcessingInstruction',
+        'Range',
+        'RangeException',
+        'SVGAElement',
+        'SVGAngle',
+        'SVGAnimatedAngle',
+        'SVGAnimatedBoolean',
+        'SVGAnimatedEnumeration',
+        'SVGAnimatedInteger',
+        'SVGAnimatedLength',
+        'SVGAnimatedLengthList',
+        'SVGAnimatedNumber',
+        'SVGAnimatedNumberList',
+        'SVGAnimatedPreserveAspectRatio',
+        'SVGAnimatedRect',
+        'SVGAnimatedString',
+        'SVGAnimatedTransformList',
+        'SVGCircleElement',
+        'SVGClipPathElement',
+        'SVGDefsElement',
+        'SVGDescElement',
+        'SVGElement',
+        'SVGEllipseElement',
+        'SVGException',
+        'SVGGElement',
+        'SVGGradientElement',
+        'SVGImageElement',
+        'SVGLength',
+        'SVGLengthList',
+        'SVGLineElement',
+        'SVGLinearGradientElement',
+        'SVGMarkerElement',
+        'SVGMaskElement',
+        'SVGMatrix',
+        'SVGMetadataElement',
+        'SVGNumber',
+        'SVGNumberList',
+        'SVGPathElement',
+        'SVGPathSeg',
+        'SVGPathSegArcAbs',
+        'SVGPathSegArcRel',
+        'SVGPathSegClosePath',
+        'SVGPathSegCurvetoCubicAbs',
+        'SVGPathSegCurvetoCubicRel',
+        'SVGPathSegCurvetoCubicSmoothAbs',
+        'SVGPathSegCurvetoCubicSmoothRel',
+        'SVGPathSegCurvetoQuadraticAbs',
+        'SVGPathSegCurvetoQuadraticRel',
+        'SVGPathSegCurvetoQuadraticSmoothAbs',
+        'SVGPathSegCurvetoQuadraticSmoothRel',
+        'SVGPathSegLinetoAbs',
+        'SVGPathSegLinetoHorizontalAbs',
+        'SVGPathSegLinetoHorizontalRel',
+        'SVGPathSegLinetoRel',
+        'SVGPathSegLinetoVerticalAbs',
+        'SVGPathSegLinetoVerticalRel',
+        'SVGPathSegList',
+        'SVGPathSegMovetoAbs',
+        'SVGPathSegMovetoRel',
+        'SVGPatternElement',
+        'SVGPoint',
+        'SVGPointList',
+        'SVGPolygonElement',
+        'SVGPolylineElement',
+        'SVGPreserveAspectRatio',
+        'SVGRadialGradientElement',
+        'SVGRect',
+        'SVGRectElement',
+        'SVGSVGElement',
+        'SVGScriptElement',
+        'SVGStopElement',
+        'SVGStyleElement',
+        'SVGSwitchElement',
+        'SVGSymbolElement',
+        'SVGTSpanElement',
+        'SVGTextContentElement',
+        'SVGTextElement',
+        'SVGTextPathElement',
+        'SVGTextPositioningElement',
+        'SVGTitleElement',
+        'SVGTransform',
+        'SVGTransformList',
+        'SVGUnitTypes',
+        'SVGUseElement',
+        'SVGZoomEvent',
+        'Storage',
+        'StorageEvent',
+        'StyleSheet',
+        'StyleSheetList',
+        'Text',
+        'TextMetrics',
+        'UIEvent',
+        'XMLHttpRequest',
+        'XMLSerializer',
+]
 
 #
 # Simple method substitution when one method had different names on different
@@ -358,14 +584,16 @@ class DartGenerator(object):
     self._emitters = multiemitter.MultiEmitter()
     self._database = database
     self._output_dir = output_dir
+    self._dart_callback_file_paths = []
 
     self._StartGenerateInterfaceLibrary()
-    self._StartGenerateJavaScriptMonkeyImpl(database, output_dir)
+    self._StartGenerateJavaScriptMonkeyImpl(output_dir)
     self._StartGenerateWrappingImpl(output_dir)
     self._StartGenerateFrogImpl(output_dir)
 
     # Render all interfaces into Dart and save them in files.
     dart_file_paths = []
+    processed_interfaces = []
     for interface in database.GetInterfaces():
 
       super_interface = None
@@ -390,21 +618,34 @@ class DartGenerator(object):
             interface_name, auxiliary_file))
         continue
 
-      self._ProcessInterface(interface, super_interface,
-                             source_filter, common_prefix)
+
+      info = self._RecognizeCallback(interface)
+      if info:
+        self._ProcessCallback(interface, info)
+      else:
+        if 'Callback' in interface.ext_attrs:
+          _logger.info('Malformed callback: %s' % interface.id)
+        self._ProcessInterface(interface, super_interface,
+                               source_filter, common_prefix)
+      processed_interfaces.append(interface)
+
+    self._GenerateBrowserAnalysis(processed_interfaces, output_dir)
+
 
     # Libraries
     if lib_dir:
       # New version: Monkey-patching interface library.
       self.GenerateLibFile('template_monkey_dom.darttemplate',
                            os.path.join(lib_dir, 'monkey_dom.dart'),
-                           self._dart_interface_file_paths)
+                           self._dart_interface_file_paths +
+                           self._dart_callback_file_paths)
 
       # New version: Wrapping implementation combined interface and
       # implementation library.
       self.GenerateLibFile('template_wrapping_dom.darttemplate',
                            os.path.join(lib_dir, 'wrapping_dom.dart'),
                            (self._dart_interface_file_paths +
+                            self._dart_callback_file_paths +
                             # FIXME: Move the implementation to a separate
                             # library.
                             self._dart_wrapping_file_paths))
@@ -412,12 +653,38 @@ class DartGenerator(object):
       # New version: Frog
       self.GenerateLibFile('template_frog_dom.darttemplate',
                            os.path.join(lib_dir, 'frog_dom.dart'),
-                           self._dart_frog_file_paths)
+                           self._dart_frog_file_paths +
+                           self._dart_callback_file_paths)
 
 
     # JavaScript externs files
     self._GenerateJavaScriptExternsMonkey(database, output_dir)
     self._GenerateJavaScriptExternsWrapping(database, output_dir)
+
+
+  def _RecognizeCallback(self, interface):
+    """Returns the info for the callback method if the interface smells like a
+    callback.
+    """
+    if 'Callback' not in interface.ext_attrs: return None
+    handlers = [op for op in interface.operations if op.id == 'handleEvent']
+    if not handlers: return None
+    if not (handlers == interface.operations): return None
+    return self._AnalyzeOperation(interface, handlers)
+
+  def _ProcessCallback(self, interface, info):
+    """Generates a typedef for the callback interface."""
+    interface_name = interface.id
+    file_path = self.FilePathForDartInterface(interface_name)
+    self._dart_callback_file_paths.append(file_path)
+    code = self._emitters.FileEmitter(file_path)
+
+    template_file = 'template_callback.darttemplate'
+    code.Emit(''.join(open(template_file).readlines()))
+    code.Emit('typedef $TYPE $NAME($ARGS);\n',
+              NAME=interface.id,
+              TYPE=info.type_name,
+              ARGS=info.arg_implementation_declaration)
 
 
   def _ProcessInterface(self, interface, super_interface_name,
@@ -469,13 +736,10 @@ class DartGenerator(object):
 
     # The implementation should define an indexer if the interface directly
     # extends List.
-    for parent in interface.parents:
-      match = re.match(r'List<(\w*)>$', parent.type.id)
-      if match:
-        element_type = match.group(1)
-        for generator in generators:
-          generator.AddIndexer(element_type)
-        break
+    element_type = MaybeListElementType(interface)
+    if element_type:
+      for generator in generators:
+        generator.AddIndexer(element_type)
 
     # Group overloaded operations by id
     operationsById = {}
@@ -497,7 +761,7 @@ class DartGenerator(object):
     # avoid making a duplicate definition and pray that the signatures match.
 
     for parent_interface in self._TransitiveSecondaryParents(interface):
-      if isinstance(interface, str):  # _IsDartCollectionType(parent_interface)
+      if isinstance(parent_interface, str):  # _IsDartCollectionType(parent_interface)
         continue
       attributes = sorted(parent_interface.attributes,
                           AttributeOutputOrder)
@@ -780,17 +1044,17 @@ class DartGenerator(object):
 
   def _StartGenerateFrogImpl(self, output_dir):
     """Prepared for generating frog implementation.
-
-    - Creates emitter for Dart code.
     """
-    pass
-
+    self._interface_names_with_subtypes = set()
+    for interface in self._database.GetInterfaces():
+      for parent in interface.parents:
+        self._interface_names_with_subtypes.add(parent.type.id)
 
   def _MakeFrogImplInterfaceGenerator(self,
-                                          interface,
-                                          common_prefix,
-                                          super_interface_name,
-                                          source_filter):
+                                      interface,
+                                      common_prefix,
+                                      super_interface_name,
+                                      source_filter):
     """."""
     interface_name = interface.id
     dart_frog_file_path = self.FilePathForFrogImpl(interface_name)
@@ -801,14 +1065,15 @@ class DartGenerator(object):
     dart_code.Emit(
         ''.join(open('template_frog_impl.darttemplate').readlines()))
     return FrogInterfaceGenerator(interface, super_interface_name,
-                                    dart_code)
+                                  self._interface_names_with_subtypes,
+                                  dart_code)
 
 
-  def _StartGenerateJavaScriptMonkeyImpl(self, database, output_dir):
+  def _StartGenerateJavaScriptMonkeyImpl(self, output_dir):
     """Generate a JavaScript implementation that is coherent with
     generated Dart APIs.
     """
-    self._ComputeInheritanceClosure(database)
+    self._ComputeInheritanceClosure()
     js_file_name = os.path.join(output_dir, 'monkey_dom.js')
     code = self._emitters.FileEmitter(js_file_name)
 
@@ -818,7 +1083,7 @@ class DartGenerator(object):
      self._monkey_init_sequence) = code.Emit(template)
 
     self._monkey_init_sequence.Emit('var $TEMP;\n', TEMP='_')
-    self._protomap = self._GenerateProtoMap(database)
+    self._protomap = self._GenerateProtoMap()
 
     _logger.info('Started Generating %s' % js_file_name)
 
@@ -830,7 +1095,7 @@ class DartGenerator(object):
                                     self._monkey_global_code,
                                     self._monkey_init_sequence)
 
-  def _ComputeInheritanceClosure(self, database):
+  def _ComputeInheritanceClosure(self):
     def Collect(interface, seen, collected):
       name = interface.id
       if '<' in name:
@@ -842,11 +1107,12 @@ class DartGenerator(object):
         for parent in interface.parents:
           # TODO(sra): Handle parameterized types.
           if not '<' in parent.type.id:
-            if database.HasInterface(parent.type.id):
-              Collect(database.GetInterface(parent.type.id), seen, collected)
+            if self._database.HasInterface(parent.type.id):
+              Collect(self._database.GetInterface(parent.type.id),
+                      seen, collected)
 
     self._inheritance_closure = {}
-    for interface in database.GetInterfaces():
+    for interface in self._database.GetInterfaces():
       seen = set()
       collected = []
       Collect(interface, seen, collected)
@@ -858,12 +1124,12 @@ class DartGenerator(object):
     """
     return self._inheritance_closure[interface.id]
 
-  def _GenerateProtoMap(self, database):
+  def _GenerateProtoMap(self):
     """Determine which DOM type prototypes can be obtained
     from window properties.
     """
     window = None
-    for interface in database.GetInterfaces():
+    for interface in self._database.GetInterfaces():
       if interface.id == 'DOMWindow':
         window = interface
     prototype_table = {}
@@ -983,6 +1249,63 @@ class DartGenerator(object):
        props.add(name + '$member')
 
 
+  def _GenerateBrowserAnalysis(self, interfaces, output_dir):
+    """Generate a JavaScript file that provides info from the browser.
+    """
+    js_file_name = os.path.join(output_dir, 'browser_analysis.html')
+    code = self._emitters.FileEmitter(js_file_name)
+
+    template = """<head>
+<script>
+function addText(e, text) {
+  var node = document.createElement('text');
+  node.innerHTML = String(text);
+  e.appendChild(node);
+}
+function check() {
+  var supported = [];
+  var missing = [];
+$!CHECKS
+  addText(document.getElementById('agent'), navigator.userAgent);
+
+  function fill(tag, elems) {
+    addText(document.getElementById(tag + '_count'), elems.length);
+    for (var i = 0; i < elems.length; ++i) {
+      var e = document.createElement('div');
+      e.innerHTML = '&nbsp;&nbsp;"' + elems[i] + '",'
+      document.getElementById(tag).appendChild(e);
+    }
+  }
+  fill('supported', supported);
+  fill('missing', missing);
+}
+window.onload = check;
+</script>
+</head>
+<div>
+{ 'userAgent': '<span id='agent'></span>',
+</div>
+<div>
+'supported': [ // (<span id='supported_count'></span>)
+<div id='supported' style='font-size: -2;'></div>
+],</div>
+<div>
+'missing':  [ // (<span id='missing_count'></span>)
+<div id='missing' style='font-size: -2;'></div>
+]}</div>
+
+"""
+    checks = code.Emit(template)
+    names = sorted(interface.id for interface in interfaces)
+    for id in names:
+      checks.Emit(
+          '  if (typeof $ID == "undefined")\n'
+          '    missing.push("$ID");\n'
+          '  else\n'
+          '    supported.push("$ID");\n',
+          ID=id);
+
+
 class OperationInfo(object):
   """Holder for various derived information from a set of overloaded operations.
 
@@ -997,6 +1320,27 @@ class OperationInfo(object):
         default_value is None for mandatory arguments.
   """
   pass
+
+
+def MaybeListElementType(interface):
+  """Returns the List element type T, or None in interface does not implement
+  List<T>.
+  """
+  for parent in interface.parents:
+    match = re.match(r'List<(\w*)>$', parent.type.id)
+    if match:
+      return match.group(1)
+  return None
+
+def MaybeTypedArrayElementType(interface):
+  """Returns the typed array element type, or None in interface is not a
+  TypedArray.
+  """
+  # Typed arrays implement ArrayBufferView and List<T>.
+  for parent in interface.parents:
+    if  parent.type.id == 'ArrayBufferView':
+      return MaybeListElementType(interface)
+  return None
 
 
 def AttributeOutputOrder(a, b):
@@ -1102,6 +1446,22 @@ class DartInterfaceGenerator(object):
       extends_emitter.Emit(' /*$COMMENT $SUPERS */',
                            COMMENT=comment,
                            SUPERS=', '.join(suppressed_extends))
+
+    if typename in _interface_factories:
+      extends_emitter.Emit(' factory $F', F=_interface_factories[typename])
+
+    element_type = MaybeTypedArrayElementType(self._interface)
+    if element_type:
+      self._members_emitter.Emit(
+          '\n'
+          '  $CTOR(int length);\n'
+          '\n'
+          '  $CTOR.fromList(List<$TYPE> list);\n'
+          '\n'
+          '  $CTOR.fromBuffer(ArrayBuffer buffer);\n',
+        CTOR=self._interface.id,
+        TYPE=element_type)
+
 
   def FinishInterface(self):
     # Write snippet text that was inlined in the IDL.
@@ -1363,15 +1723,61 @@ class WrappingInterfaceGenerator(object):
     #
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
+    if ('HasIndexGetter' in self._interface.ext_attrs or
+        'HasNumericIndexGetter' in self._interface.ext_attrs):
+      method_name = '_index'
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) { return $METHOD(this, index); }\n'
+          '  static $TYPE $METHOD(var _this, int index) native;\n',
+          TYPE=element_type, METHOD=method_name)
+      self._js_code.Emit(
+          '\n'
+          'function native_$(CLASS)_$(METHOD)(_this, index) {\n'
+          '  try {\n'
+          '    return __dom_wrap(_this.$dom[index]);\n'
+          '  } catch (e) {\n'
+          '    throw __dom_wrap_exception(e);\n'
+          '  }\n'
+          '}\n',
+          CLASS=self._class_name, METHOD=method_name)
+    else:
+      self._members_emitter.Emit(
+          '\n'
+          '  $TYPE operator[](int index) {\n'
+          '    return item(index);\n'
+          '  }\n',
+          TYPE=element_type)
+
+
+    if 'HasCustomIndexSetter' in self._interface.ext_attrs:
+      method_name = '_set_index'
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    return $METHOD(this, index, value);\n'
+          '  }\n'
+          '  static $METHOD(_this, index, value) native;\n',
+          TYPE=element_type, METHOD=method_name)
+      self._js_code.Emit(
+          '\n'
+          'function native_$(CLASS)_$(METHOD)(_this, index, value) {\n'
+          '  try {\n'
+          '    return _this.$dom[index] = __dom_unwrap(value);\n'
+          '  } catch (e) {\n'
+          '    throw __dom_wrap_exception(e);\n'
+          '  }\n'
+          '}\n',
+          CLASS=self._class_name, METHOD=method_name)
+    else:
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=element_type)
+
     self._members_emitter.Emit(
-        '\n'
-        '  $TYPE operator[](int index) {\n'
-        '    return item(index);\n'
-        '  }\n'
-        '\n'
-        '  void operator[]=(int index, $TYPE value) {\n'
-        '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-        '  }\n'
         '\n'
         '  void add($TYPE value) {\n'
         '    throw new UnsupportedOperationException("Cannot add to immutable List.");\n'
@@ -1868,7 +2274,8 @@ class MonkeyInterfaceGenerator(object):
 class FrogInterfaceGenerator(object):
   """Generates a Frog class for a DOM IDL interface."""
 
-  def __init__(self, interface, super_interface, dart_code):
+  def __init__(self, interface, super_interface, interfaces_with_subtypes,
+               dart_code):
     """Generates Dart code for the given interface.
 
     Args:
@@ -1877,12 +2284,15 @@ class FrogInterfaceGenerator(object):
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
       super_interface: A string or None, the name of the common interface that
-         this interface implements, if any.
+          this interface implements, if any.
+      interfaces_with_subtypes: A set of strings names of interfaces that have
+          at least one subtype.
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
     self._interface = interface
     self._super_interface = super_interface
+    self._interfaces_with_subtypes = interfaces_with_subtypes
     self._dart_code = dart_code
     self._current_secondary_parent = None
 
@@ -1922,20 +2332,47 @@ class FrogInterfaceGenerator(object):
     else:
       extends = ""
 
-    if interface_name in _constructable_types.keys():
-      parameters = _constructable_types[interface_name]
-      constructor = '  %s(%s) native;\n\n' % (interface_name, parameters)
+    if interface_name in _frog_dom_custom_native_specs:
+      native_spec = _frog_dom_custom_native_specs[interface_name]
     else:
-      constructor = ''
+      # Is the type's JavaScript constructor accessible from the global scope?
+      # If so, we can directly patch the prototype.  We don't really want to do
+      # this yet because the dynamic patching mechanism is tricky and we want to
+      # test it a lot.  But patching is currently broken on FireFox for non-leaf
+      # types, so 'hide' only the leaf types.
+      is_hidden = interface_name not in _BROWSER_SHARED_TYPES
+      if interface_name not in self._interfaces_with_subtypes:
+        is_hidden = True
+
+      native_spec = '*' if is_hidden else ''
+      native_spec += interface_name
+
+    # TODO: Include all implemented interfaces, including other Lists.
+    implements = ''
+    element_type = MaybeTypedArrayElementType(self._interface)
+    if element_type:
+      implements = ' implements List<' + element_type + '>'
 
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
-        'class $CLASS$BASE native "*$CLASS" {\n'
-        '$CONSTRUCTOR$!MEMBERS'
+        'class $CLASS$BASE$IMPLEMENTS native "$NATIVE" {\n'
+        '$!MEMBERS'
         '$!ADDITIONS'
         '}\n',
         CLASS=self._class_name, BASE=extends,
-        INTERFACE=interface_name, CONSTRUCTOR=constructor)
+        INTERFACE=interface_name,
+        IMPLEMENTS=implements,
+        NATIVE=native_spec)
+
+    if interface_name in _constructable_types.keys():
+      self._members_emitter.Emit(
+          '  $NAME($PARAMS) native;\n\n',
+          NAME=interface_name,
+          PARAMS=_constructable_types[interface_name])
+
+    element_type = MaybeTypedArrayElementType(interface)
+    if element_type:
+      self.AddTypedArrayConstructors(element_type)
 
     if not base:
       # Emit shared base functionality here as we have no common base type.
@@ -2015,6 +2452,34 @@ class FrogInterfaceGenerator(object):
         '\n'
         '  $TYPE operator[](int index) native;\n',
         TYPE=element_type)
+
+    if 'HasCustomIndexSetter' in self._interface.ext_attrs:
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) native;\n',
+          TYPE=element_type)
+    else:
+      self._members_emitter.Emit(
+          '\n'
+          '  void operator[]=(int index, $TYPE value) {\n'
+          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
+          '  }\n',
+          TYPE=element_type)
+
+
+  def AddTypedArrayConstructors(self, element_type):
+    self._members_emitter.Emit(
+        '\n'
+        '  factory $CTOR(int length) =>  _construct(length);\n'
+        '\n'
+        '  factory $CTOR.fromList(List<$TYPE> list) => _construct(list);\n'
+        '\n'
+        '  factory $CTOR.fromBuffer(ArrayBuffer buffer) => _construct(buffer);\n'
+        '\n'
+        '  static _construct(arg) native \'return new $CTOR(arg);\';\n',
+        CTOR=self._interface.id,
+        TYPE=element_type)
+
 
   def AddOperation(self, info):
     """

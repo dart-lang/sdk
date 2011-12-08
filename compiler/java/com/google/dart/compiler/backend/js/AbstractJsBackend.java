@@ -12,8 +12,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
-import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.common.io.Closeables;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.ast.DartClass;
@@ -358,7 +358,6 @@ public abstract class AbstractJsBackend extends AbstractBackend {
       GenerateJavascriptAST nonClassGenerator = null;
       TranslationContext nonClassTranslationContext = null;
 
-
       JsProgram staticInitStatements = new JsProgram(baseUnitId + partIndex++);
       JsBlock staticInitBlock = staticInitStatements.getGlobalBlock();
 
@@ -372,8 +371,9 @@ public abstract class AbstractJsBackend extends AbstractBackend {
           try {
             // Translate the AST to JS.
             JsProgram program = new JsProgram(baseUnitId + partIndex++);
+
             TranslationContext translationContext = TranslationContext.createContext(unit, program,
-                mangler);
+                mangler, node);
 
             // Generate the Javascript AST.
             GenerateJavascriptAST generator =
@@ -395,13 +395,16 @@ public abstract class AbstractJsBackend extends AbstractBackend {
             Tracer.end(nodeEvent);
           }
         } else {
+
           if (nonClassGenerator == null) {
+            // This block generates the AST used to generate for all non-class nodes at once
+            // and is saved for subsequent iterations.
             TraceEvent genInitEvent =
                 Tracer.canTrace() ? Tracer.start(DartEventType.GEN_AST_INIT, "unit",
                     unit.getSourceName()) : null;
             try {
               nonClassTranslationContext = TranslationContext.createContext(unit,
-                  nonClassStatements, mangler);
+                  nonClassStatements, mangler, null);
               nonClassGenerator = new GenerateJavascriptAST(unit, typeProvider, context,
                   optimizationStrategy, generateClosureCompatibleCode());
             } finally {
@@ -457,7 +460,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
     return sb.toString();
   }
 
-  protected void writeEntryPointCall(String entry, Writer out) throws IOException {
+  protected int writeEntryPointCall(String entry, Writer out) throws IOException {
     // Emit entry point call.
     // TODO: Actually validate that this method exists.
     // Small hack: the V8 arguments object is not an instance of Array. [].concat(arguments)
@@ -467,9 +470,11 @@ public abstract class AbstractJsBackend extends AbstractBackend {
     // concatenation works again.
     // TODO: Use a more robust check to test that the argument is
     // array.
-    out.write("RunEntry(" + entry + ", this.arguments ?" +
+    String entryPointCall = "RunEntry(" + entry + ", this.arguments ?" +
               " (this.arguments.slice ? [].concat(this.arguments.slice())" +
-              " : this.arguments) : []);");
+              " : this.arguments) : []);";
+    out.write(entryPointCall);
+    return entryPointCall.length();
   }
 
   protected String getMangledEntryPoint(DartCompilerContext context) {

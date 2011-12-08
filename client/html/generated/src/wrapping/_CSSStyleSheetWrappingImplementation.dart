@@ -13,7 +13,7 @@ class CSSStyleSheetWrappingImplementation extends StyleSheetWrappingImplementati
 
   CSSRuleList get rules() { return LevelDom.wrapCSSRuleList(_ptr.rules); }
 
-  int addRule(String selector, String style, [int index = null]) {
+  int addRule(String selector, String style, [int index]) {
     if (index === null) {
       return _ptr.addRule(selector, style);
     } else {

@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface ErrorCallback {
-
-  bool handleEvent(FileError error);
-}
+typedef bool ErrorCallback(FileError error);

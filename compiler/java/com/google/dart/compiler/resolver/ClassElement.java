@@ -46,5 +46,11 @@ public interface ClassElement extends EnclosingElement {
 
   boolean isObjectChild();
 
+  /**
+   * @return <code>true</code> if this class is abstract - has explicit "abstract" modifier or has
+   *         abstract method. Note, that "abstract" is different from "has unimplemented members".
+   */
+  boolean isAbstract();
+
   ConstructorElement lookupConstructor(String name);
 }

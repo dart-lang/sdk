@@ -15,19 +15,19 @@ class Element implements Node {
   final Map<String, String> attributes;
 
   Element(this.tag, this.children)
-    : attributes = <String, String>{};
+    : attributes = <String>{};
 
   Element.empty(this.tag)
     : children = null,
-      attributes = <String, String>{};
+      attributes = <String>{};
 
   Element.tag(this.tag)
     : children = [],
-      attributes = <String, String>{};
+      attributes = <String>{};
 
   Element.text(this.tag, String text)
     : children = [new Text(text)],
-      attributes = <String, String>{};
+      attributes = <String>{};
 
   bool get isEmpty() => children == null;
 

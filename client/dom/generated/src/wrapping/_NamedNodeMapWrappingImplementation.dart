@@ -14,9 +14,8 @@ class _NamedNodeMapWrappingImplementation extends DOMWrapperBase implements Name
   int get length() { return _get_length(this); }
   static int _get_length(var _this) native;
 
-  Node operator[](int index) {
-    return item(index);
-  }
+  Node operator[](int index) { return _index(this, index); }
+  static Node _index(var _this, int index) native;
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");

@@ -5,6 +5,7 @@
 package com.google.dart.compiler.backend.js;
 
 import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.backend.js.ast.JsFunction;
 import com.google.dart.compiler.backend.js.ast.JsProgram;
@@ -52,11 +53,26 @@ public class TranslationContext {
     return program;
   }
 
+  /**
+   *
+   * @param unit  Unit to create translation context for
+   * @param program
+   * @param mangler
+   * @param filterNode If not null, create names for this node only.
+   * @return
+   */
   public static TranslationContext createContext(DartUnit unit, JsProgram program,
-      DartMangler mangler) {
+                                                 DartMangler mangler, DartNode filterNode) {
     TranslationContext translationContext = new TranslationContext(program, mangler);
     LibraryElement unitLibrary = unit.getLibrary().getElement();
-    new GenerateNamesAndScopes(translationContext, unitLibrary).accept(unit);
+    GenerateNamesAndScopes visitor = new GenerateNamesAndScopes(translationContext, unitLibrary);
+    if (filterNode != null) {
+      visitor.accept(filterNode);
+    } else {
+      visitor.accept(unit);
+    }
     return translationContext;
   }
+
+
 }

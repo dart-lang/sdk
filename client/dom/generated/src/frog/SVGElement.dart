@@ -1,5 +1,5 @@
 
-class SVGElement extends Element native "*SVGElement" {
+class SVGElement extends Element native "SVGElement" {
 
   String id;
 

@@ -325,13 +325,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testFactory() {
     analyzeClasses(loadSource(
         "interface Foo factory Bar {",
-        "  Foo(argument);",
+        "  Foo(String argument);",
         "}",
         "interface Baz {}",
         "class Bar implements Foo, Baz {",
         "  Bar(String argument) {}",
         "}"));
-
     analyzeFail("Baz x = new Foo('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 
@@ -367,7 +366,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(element, "fieldInInterface.noSuchField", 1);
     analyzeIn(element, "staticFieldInInterface.noSuchField", 1);
 
-    analyzeIn(element, "new ClassWithSupertypes()", 2); // Abstract class.
+    analyzeIn(element, "new ClassWithSupertypes()", 1); // Abstract class.
     analyzeIn(element, "field = new ClassWithSupertypes().field", 1);
     analyzeIn(element, "field = new ClassWithSupertypes().staticField", 2);
     analyzeIn(element, "field = new ClassWithSupertypes().fieldInSuperclass", 1);
@@ -585,12 +584,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  void bar();",
         "}",
         // Abstract class not reported until first instantiation.
-        "class Class implements Interface {",
+        "class Class implements Interface {", // ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER
         "  Class() {}",
         "  String bar() { return null; }",
         "}",
         // Abstract class not reported until first instantiation.
-        "class SubClass extends Class {",
+        "class SubClass extends Class {", // ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER
         "  SubClass() : super() {}",
         "  Object bar() { return null; }",
         "}",
@@ -600,20 +599,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "}",
         "class Usage {",
         "  m() {",
-        "    new Class();", // CANNOT_INSTATIATE_ABSTRACT_CLASS
-                            // ABSTRACT_CLASS.
-        "    new Class();", // CANNOT_INSTATIATE_ABSTRACT_CLASS.
-        "    new SubClass();", // CANNOT_INSTATIATE_ABSTRACT_CLASS
-                               //ABSTRACT_CLASS.
         "  }",
         "}"),
+        TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
+        TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
         TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
-        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
-        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        TypeErrorCode.ABSTRACT_CLASS,
-        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        TypeErrorCode.CANNOT_INSTATIATE_ABSTRACT_CLASS,
-        TypeErrorCode.ABSTRACT_CLASS);
+        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
   }
 
   public void testImplementsAndOverrides2() {

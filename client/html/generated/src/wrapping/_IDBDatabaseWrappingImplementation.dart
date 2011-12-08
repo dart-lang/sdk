@@ -9,21 +9,9 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
 
   String get name() { return _ptr.name; }
 
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onversionchange() { return LevelDom.wrapEventListener(_ptr.onversionchange); }
-
-  void set onversionchange(EventListener value) { _ptr.onversionchange = LevelDom.unwrap(value); }
-
   String get version() { return _ptr.version; }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void addEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.addEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -51,7 +39,7 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.removeEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -63,5 +51,9 @@ class IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDat
 
   IDBVersionChangeRequest setVersion(String version) {
     return LevelDom.wrapIDBVersionChangeRequest(_ptr.setVersion(version));
+  }
+
+  IDBTransaction transaction(String storeName, int mode) {
+    return LevelDom.wrapIDBTransaction(_ptr.transaction(storeName, mode));
   }
 }

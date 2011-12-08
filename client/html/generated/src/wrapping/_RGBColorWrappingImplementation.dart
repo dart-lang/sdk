@@ -7,8 +7,6 @@
 class RGBColorWrappingImplementation extends DOMWrapperBase implements RGBColor {
   RGBColorWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  CSSPrimitiveValue get alpha() { return LevelDom.wrapCSSPrimitiveValue(_ptr.alpha); }
-
   CSSPrimitiveValue get blue() { return LevelDom.wrapCSSPrimitiveValue(_ptr.blue); }
 
   CSSPrimitiveValue get green() { return LevelDom.wrapCSSPrimitiveValue(_ptr.green); }

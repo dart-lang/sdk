@@ -9,14 +9,6 @@ class IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBRequ
 
   int get errorCode() { return _ptr.errorCode; }
 
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
-  EventListener get onsuccess() { return LevelDom.wrapEventListener(_ptr.onsuccess); }
-
-  void set onsuccess(EventListener value) { _ptr.onsuccess = LevelDom.unwrap(value); }
-
   int get readyState() { return _ptr.readyState; }
 
   IDBAny get result() { return LevelDom.wrapIDBAny(_ptr.result); }
@@ -27,7 +19,7 @@ class IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBRequ
 
   String get webkitErrorMessage() { return _ptr.webkitErrorMessage; }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void addEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.addEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -41,7 +33,7 @@ class IDBRequestWrappingImplementation extends DOMWrapperBase implements IDBRequ
     return _ptr.dispatchEvent(LevelDom.unwrap(evt));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.removeEventListener(type, LevelDom.unwrap(listener));
       return;

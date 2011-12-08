@@ -292,17 +292,14 @@ class ElementAttributeMap implements Map<String, String> {
     return false;
   }
 
-  /** @domName Element.hasAttribute */
   bool containsKey(String key) {
     return _element.hasAttribute(key);
   }
 
-  /** @domName Element.getAttribute */
   String operator [](String key) {
     return _element.getAttribute(key);
   }
 
-  /** @domName Element.setAttribute */
   void operator []=(String key, String value) {
     _element.setAttribute(key, value);
   }
@@ -313,7 +310,6 @@ class ElementAttributeMap implements Map<String, String> {
     }
   }
 
-  /** @domName Element.removeAttribute */
   String remove(String key) {
     _element.removeAttribute(key);
   }
@@ -454,7 +450,7 @@ class ElementRectWrappingImplementation implements ElementRect {
   // This should be type dom.ClientRect but that fails on dartium. b/5522629
   final _boundingClientRect; 
   // an exception due to a dartium bug.
-  final dom.ClientRectList _clientRects;
+  final _clientRects; // TODO(jacobr): should be dom.ClientRectList
 
   ElementRectWrappingImplementation(dom.HTMLElement element) :
     client = new SimpleClientRect(element.clientLeft,
@@ -484,6 +480,7 @@ class ElementRectWrappingImplementation implements ElementRect {
   }
 }
 
+/** @domName Element, HTMLElement */
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
   
     static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
@@ -502,7 +499,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
       'track' : 'audio',
     };
 
-   factory ElementWrappingImplementation.html(String html) {
+  /** @domName Document.createElement */
+  factory ElementWrappingImplementation.html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
     // 1) Cache the dummy parent elements required to use innerHTML rather than
     //    creating them every call.
@@ -518,7 +516,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
         parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
       }
     }
-    final temp = dom.document.createElement(parentTag);
+    // TODO(jacobr): make type dom.HTMLElement when dartium allows it.
+    var temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
     if (temp.childElementCount == 1) {
@@ -533,6 +532,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
   }
 
+  /** @domName Document.createElement */
   factory ElementWrappingImplementation.tag(String tag) {
     return LevelDom.wrapElement(dom.document.createElement(tag));
   }
@@ -544,6 +544,10 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   _CssClassSet _cssClassSet;
   _DataAttributeMap _dataAttributes;
 
+  /**
+   * @domName Element.hasAttribute, Element.getAttribute, Element.setAttribute,
+   *   Element.removeAttribute
+   */
   Map<String, String> get attributes() {
     if (_elementAttributeMap === null) {
       _elementAttributeMap = new ElementAttributeMap._wrap(_ptr);
@@ -567,6 +571,10 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     elements.addAll(copy);
   }
 
+  /**
+   * @domName childElementCount, firstElementChild, lastElementChild,
+   *   children, appendChild
+   */
   ElementList get elements() {
     if (_elements == null) {
       _elements = new _ChildrenElementList._wrap(_ptr);
@@ -574,6 +582,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     return _elements;
   }
 
+  /** @domName className, classList */
   Set<String> get classes() {
     if (_cssClassSet === null) {
       _cssClassSet = new _CssClassSet(_ptr);
@@ -676,26 +685,28 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _ptr.focus();
   }
 
-  /** @domName HTMLElement.insertAdjacentElement */
   Element insertAdjacentElement([String where = null, Element element = null]) {
     return LevelDom.wrapElement(_ptr.insertAdjacentElement(where, LevelDom.unwrap(element)));
   }
 
-  /** @domName HTMLElement.insertAdjacentHTML */
   void insertAdjacentHTML([String position_OR_where = null, String text = null]) {
     _ptr.insertAdjacentHTML(position_OR_where, text);
   }
 
-  /** @domName HTMLElement.insertAdjacentText */
   void insertAdjacentText([String where = null, String text = null]) {
     _ptr.insertAdjacentText(where, text);
   }
 
+  /** @domName querySelector, Document.getElementById */
   Element query(String selectors) {
     // TODO(jacobr): scope fix.
     return LevelDom.wrapElement(_ptr.querySelector(selectors));
   }
 
+  /**
+   * @domName querySelectorAll, getElementsByClassName, getElementsByTagName,
+   *   getElementsByTagNameNS
+   */
   ElementList queryAll(String selectors) {
     // TODO(jacobr): scope fix.
     return new FrozenElementList._wrap(_ptr.querySelectorAll(selectors));
@@ -709,6 +720,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     _ptr.scrollByPages(pages);
   }
 
+  /** @domName scrollIntoView, scrollIntoViewIfNeeded */
   void scrollIntoView([bool centerIfNeeded = null]) {
     _ptr.scrollIntoViewIfNeeded(centerIfNeeded);
   }
@@ -721,13 +733,18 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
  
   void set scrollTop(int value) { _ptr.scrollTop = value; }
 
-  /** @domName getClientRects */
+  /**
+   * @domName getClientRects, getBoundingClientRect, clientHeight, clientWidth,
+   * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
+   * scrollHeight, scrollWidth, scrollTop, scrollLeft
+   */
   Future<ElementRect> get rect() {
     return _createMeasurementFuture(
         () => new ElementRectWrappingImplementation(_ptr),
         new Completer<ElementRect>());
   }
 
+  /** @domName Window.getComputedStyle */
   Future<CSSStyleDeclaration> get computedStyle() {
      // TODO(jacobr): last param should be null, see b/5045788
      return getComputedStyle('');

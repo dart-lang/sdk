@@ -24,6 +24,7 @@ void setup() native """
 function A(){}
 A.prototype.read = function() { return this._x; };
 A.prototype.write = function(x) { this._x = x; };
+makeA = function(){return new A};
 """;
 
 // Dart implementation must coexist with native implementation.

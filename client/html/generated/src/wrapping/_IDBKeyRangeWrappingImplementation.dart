@@ -15,7 +15,7 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
 
   bool get upperOpen() { return _ptr.upperOpen; }
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen = null, bool upperOpen = null]) {
+  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]) {
     if (lowerOpen === null) {
       if (upperOpen === null) {
         return LevelDom.wrapIDBKeyRange(_ptr.bound(LevelDom.unwrap(lower), LevelDom.unwrap(upper)));
@@ -30,7 +30,7 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
     throw "Incorrect number or type of arguments";
   }
 
-  IDBKeyRange lowerBound(IDBKey bound, [bool open = null]) {
+  IDBKeyRange lowerBound(IDBKey bound, [bool open]) {
     if (open === null) {
       return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound)));
     } else {
@@ -42,7 +42,7 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
     return LevelDom.wrapIDBKeyRange(_ptr.only(LevelDom.unwrap(value)));
   }
 
-  IDBKeyRange upperBound(IDBKey bound, [bool open = null]) {
+  IDBKeyRange upperBound(IDBKey bound, [bool open]) {
     if (open === null) {
       return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound)));
     } else {

@@ -11,7 +11,7 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
     return LevelDom.wrapDirectoryReader(_ptr.createReader());
   }
 
-  void getDirectory(String path, [Flags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getDirectory(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (flags === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -27,10 +27,10 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
         }
       } else {
         if (errorCallback === null) {
-          _ptr.getDirectory(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback));
+          _ptr.getDirectory(path, LevelDom.unwrap(flags), successCallback);
           return;
         } else {
-          _ptr.getDirectory(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.getDirectory(path, LevelDom.unwrap(flags), successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -38,7 +38,7 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
     throw "Incorrect number or type of arguments";
   }
 
-  void getFile(String path, [Flags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void getFile(String path, [Flags flags, EntryCallback successCallback, ErrorCallback errorCallback]) {
     if (flags === null) {
       if (successCallback === null) {
         if (errorCallback === null) {
@@ -54,10 +54,10 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
         }
       } else {
         if (errorCallback === null) {
-          _ptr.getFile(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback));
+          _ptr.getFile(path, LevelDom.unwrap(flags), successCallback);
           return;
         } else {
-          _ptr.getFile(path, LevelDom.unwrap(flags), LevelDom.unwrap(successCallback), LevelDom.unwrap(errorCallback));
+          _ptr.getFile(path, LevelDom.unwrap(flags), successCallback, LevelDom.unwrap(errorCallback));
           return;
         }
       }
@@ -65,7 +65,7 @@ class DirectoryEntryWrappingImplementation extends EntryWrappingImplementation i
     throw "Incorrect number or type of arguments";
   }
 
-  void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
+  void removeRecursively([VoidCallback successCallback, ErrorCallback errorCallback]) {
     if (successCallback === null) {
       if (errorCallback === null) {
         _ptr.removeRecursively();

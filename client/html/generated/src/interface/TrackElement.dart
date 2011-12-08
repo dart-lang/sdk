@@ -25,4 +25,6 @@ interface TrackElement extends Element {
   String get srclang();
 
   void set srclang(String value);
+
+  TextTrack get track();
 }

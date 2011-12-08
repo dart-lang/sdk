@@ -17,12 +17,12 @@ namespace dart {
 #define CLASS_LIST_NO_OBJECT(V)                                                \
   V(Class)                                                                     \
   V(UnresolvedClass)                                                           \
-  V(Type)                                                                      \
-    V(ParameterizedType)                                                       \
+  V(AbstractType)                                                              \
+    V(Type)                                                                    \
     V(TypeParameter)                                                           \
     V(InstantiatedType)                                                        \
-  V(TypeArguments)                                                             \
-    V(TypeArray)                                                               \
+  V(AbstractTypeArguments)                                                     \
+    V(TypeArguments)                                                           \
     V(InstantiatedTypeArguments)                                               \
   V(Function)                                                                  \
   V(Field)                                                                     \
@@ -37,7 +37,7 @@ namespace dart {
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(UnhandledException)                                                        \
-  V(ApiError)                                                                \
+  V(ApiError)                                                                  \
   V(Instance)                                                                  \
     V(Number)                                                                  \
       V(Integer)                                                               \
@@ -103,7 +103,7 @@ enum {
 
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(                                                                \
-      SnapshotWriter* writer, intptr_t object_id, bool serialize_classes);     \
+      SnapshotWriter* writer, intptr_t object_id, Snapshot::Kind kind);        \
   friend class SnapshotWriter;                                                 \
 
 #define VISITOR_SUPPORT(object)                                                \
@@ -196,6 +196,8 @@ class RawObject {
         reinterpret_cast<uword>(this) - kHeapObjectTag);
   }
 
+  intptr_t tags_;  // Various object tags (bits).
+
   friend class Object;
   friend class Array;
   friend class SnapshotWriter;
@@ -222,16 +224,18 @@ class RawClass : public RawObject {
   RawString* name_;
   RawArray* functions_;
   RawArray* fields_;
-  RawArray* interfaces_;  // Array of Type.
+  // TODO(srdjan): RawTypeArguments* interfaces_;  // Array of Type.
+  RawArray* interfaces_;  // Array of AbstractType.
   RawScript* script_;
   RawLibrary* library_;
   RawArray* type_parameters_;  // Array of String.
-  RawTypeArray* type_parameter_extends_;  // DynamicType if no extends clause.
+  RawTypeArguments* type_parameter_extends_;  // DynamicType if no extends.
   RawType* super_type_;
   RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
+  // TODO(srdjan): RawTypeArguments* canonical_types_;
   RawArray* canonical_types_;  // Canonicalized types of this class.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
@@ -250,6 +254,7 @@ class RawClass : public RawObject {
 
   friend class Object;
   friend class RawInstance;
+  friend RawClass* AllocateFakeClass();
 };
 
 
@@ -269,14 +274,14 @@ class RawUnresolvedClass : public RawObject {
 };
 
 
-class RawType : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
+class RawAbstractType : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
   friend class ObjectStore;
 };
 
 
-class RawParameterizedType : public RawType {
+class RawType : public RawAbstractType {
  private:
   enum TypeState {
     kAllocated,  // Initial state.
@@ -284,19 +289,19 @@ class RawParameterizedType : public RawType {
     kFinalized,  // Type ready for use.
   };
 
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ParameterizedType);
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_class_);
   }
   RawObject* type_class_;  // Either resolved class or unresolved class.
-  RawTypeArguments* arguments_;
+  RawAbstractTypeArguments* arguments_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->arguments_); }
   int8_t type_state_;
 };
 
 
-class RawTypeParameter : public RawType {
+class RawTypeParameter : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(TypeParameter);
 
@@ -307,44 +312,45 @@ class RawTypeParameter : public RawType {
 };
 
 
-class RawInstantiatedType : public RawType {
+class RawInstantiatedType : public RawAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(InstantiatedType);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->uninstantiated_type_);
   }
-  RawType* uninstantiated_type_;
-  RawTypeArguments* instantiator_type_arguments_;
+  RawAbstractType* uninstantiated_type_;
+  RawAbstractTypeArguments* instantiator_type_arguments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
   }
 };
 
 
-class RawTypeArguments : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
+class RawAbstractTypeArguments : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments);
 };
 
 
-class RawTypeArray : public RawTypeArguments {
+class RawTypeArguments : public RawAbstractTypeArguments {
  private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArray);
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TypeArguments);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->length_);
   }
+  bool is_canonical_;
   RawSmi* length_;
 
   // Variable length data follows here.
-  RawType* types_[0];
+  RawAbstractType* types_[0];
   RawObject** to(intptr_t length) {
     return reinterpret_cast<RawObject**>(&ptr()->types_[length - 1]);
   }
 };
 
 
-class RawInstantiatedTypeArguments : public RawTypeArguments {
+class RawInstantiatedTypeArguments : public RawAbstractTypeArguments {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(InstantiatedTypeArguments);
 
@@ -352,8 +358,8 @@ class RawInstantiatedTypeArguments : public RawTypeArguments {
     return reinterpret_cast<RawObject**>(
         &ptr()->uninstantiated_type_arguments_);
   }
-  RawTypeArguments* uninstantiated_type_arguments_;
-  RawTypeArguments* instantiator_type_arguments_;
+  RawAbstractTypeArguments* uninstantiated_type_arguments_;
+  RawAbstractTypeArguments* instantiator_type_arguments_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->instantiator_type_arguments_);
   }
@@ -381,7 +387,7 @@ class RawFunction : public RawObject {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawClass* owner_;
-  RawType* result_type_;
+  RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;
   RawCode* code_;  // Compiled code for the function.
@@ -413,7 +419,7 @@ class RawField : public RawObject {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawClass* owner_;
-  RawType* type_;
+  RawAbstractType* type_;
   RawInstance* value_;  // Offset for instance and value for static fields.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
 
@@ -599,7 +605,7 @@ class RawContextScope : public RawObject {
     RawSmi* token_index;
     RawString* name;
     RawBool* is_final;
-    RawType* type;
+    RawAbstractType* type;
     RawSmi* context_index;
     RawSmi* context_level;
   };
@@ -771,7 +777,7 @@ class RawArray : public RawInstance {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
   }
-  RawTypeArguments* type_arguments_;
+  RawAbstractTypeArguments* type_arguments_;
   RawSmi* length_;
   // Variable length data follows here.
   RawObject** data() {
@@ -807,7 +813,7 @@ class RawClosure : public RawInstance {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
   }
-  RawTypeArguments* type_arguments_;
+  RawAbstractTypeArguments* type_arguments_;
   RawFunction* function_;
   RawContext* context_;
   // TODO(iposva): Remove this temporary hack.

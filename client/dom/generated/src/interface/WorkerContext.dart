@@ -39,7 +39,19 @@ interface WorkerGlobalScope {
   int setInterval(TimeoutHandler handler, int timeout);
 
   int setTimeout(TimeoutHandler handler, int timeout);
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]);
+
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size);
+
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url);
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 }
 
 interface WorkerContext extends WorkerGlobalScope {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
 }

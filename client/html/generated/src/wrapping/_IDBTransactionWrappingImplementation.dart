@@ -11,24 +11,12 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
 
   int get mode() { return _ptr.mode; }
 
-  EventListener get onabort() { return LevelDom.wrapEventListener(_ptr.onabort); }
-
-  void set onabort(EventListener value) { _ptr.onabort = LevelDom.unwrap(value); }
-
-  EventListener get oncomplete() { return LevelDom.wrapEventListener(_ptr.oncomplete); }
-
-  void set oncomplete(EventListener value) { _ptr.oncomplete = LevelDom.unwrap(value); }
-
-  EventListener get onerror() { return LevelDom.wrapEventListener(_ptr.onerror); }
-
-  void set onerror(EventListener value) { _ptr.onerror = LevelDom.unwrap(value); }
-
   void abort() {
     _ptr.abort();
     return;
   }
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void addEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.addEventListener(type, LevelDom.unwrap(listener));
       return;
@@ -46,7 +34,7 @@ class IDBTransactionWrappingImplementation extends DOMWrapperBase implements IDB
     return LevelDom.wrapIDBObjectStore(_ptr.objectStore(name));
   }
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) {
     if (useCapture === null) {
       _ptr.removeEventListener(type, LevelDom.unwrap(listener));
       return;

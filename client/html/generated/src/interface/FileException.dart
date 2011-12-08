@@ -35,4 +35,6 @@ interface FileException {
   String get message();
 
   String get name();
+
+  String toString();
 }

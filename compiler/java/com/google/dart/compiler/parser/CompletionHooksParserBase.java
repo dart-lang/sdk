@@ -434,7 +434,8 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
 
   /**
    * This should only be called when the parser is looking ahead to decide how
-   * to parse something, and this will always be rolled back.
+   * to parse something, and this will always be rolled back without any other {@link #begin()}
+   * statements being called.
    */
   protected void startLookahead() {
     begin();

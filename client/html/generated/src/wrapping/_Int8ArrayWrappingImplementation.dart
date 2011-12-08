@@ -9,7 +9,7 @@ class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementat
 
   int get length() { return _ptr.length; }
 
-  Int8Array subarray(int start, [int end = null]) {
+  Int8Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapInt8Array(_ptr.subarray(start));
     } else {

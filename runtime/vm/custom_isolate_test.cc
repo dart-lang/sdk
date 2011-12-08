@@ -356,7 +356,8 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   Dart_ExitIsolate();
 
   // Create a new Dart_Isolate.
-  Dart_Isolate new_isolate = Dart_CreateIsolate(NULL, NULL);
+  Dart_Isolate new_isolate = TestCase::CreateTestIsolate();
+  EXPECT(new_isolate != NULL);
   Dart_SetMessageCallbacks(&PostMessage, &ClosePort);
   Dart_Port new_port = Dart_GetMainPortId();
 
@@ -381,7 +382,8 @@ UNIT_TEST_CASE(CustomIsolates) {
   event_queue = new EventQueue();
   current_event = NULL;
 
-  Dart_CreateIsolate(NULL, NULL);
+  Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
+  EXPECT(dart_isolate != NULL);
   Dart_SetMessageCallbacks(&PostMessage, &ClosePort);
   Dart_EnterScope();
   Dart_Handle result;

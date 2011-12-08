@@ -183,7 +183,7 @@ void testReadLine2() {
     Expect.equals(4, stage);
   }
 
-  stream.dataHandler = stringData;
+  stream.lineHandler = stringData;
   stream.closeHandler = streamClosed;
   s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
   Expect.equals(4, stage);

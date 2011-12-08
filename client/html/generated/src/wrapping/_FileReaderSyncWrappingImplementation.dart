@@ -19,7 +19,7 @@ class FileReaderSyncWrappingImplementation extends DOMWrapperBase implements Fil
     return _ptr.readAsDataURL(LevelDom.unwrap(blob));
   }
 
-  String readAsText(Blob blob, [String encoding = null]) {
+  String readAsText(Blob blob, [String encoding]) {
     if (encoding === null) {
       return _ptr.readAsText(LevelDom.unwrap(blob));
     } else {

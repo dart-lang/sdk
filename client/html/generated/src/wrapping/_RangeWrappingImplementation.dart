@@ -19,8 +19,6 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
 
   int get startOffset() { return _ptr.startOffset; }
 
-  String get text() { return _ptr.text; }
-
   DocumentFragment cloneContents() {
     return LevelDom.wrapDocumentFragment(_ptr.cloneContents());
   }
@@ -63,6 +61,14 @@ class RangeWrappingImplementation extends DOMWrapperBase implements Range {
 
   DocumentFragment extractContents() {
     return LevelDom.wrapDocumentFragment(_ptr.extractContents());
+  }
+
+  ClientRect getBoundingClientRect() {
+    return LevelDom.wrapClientRect(_ptr.getBoundingClientRect());
+  }
+
+  ClientRectList getClientRects() {
+    return LevelDom.wrapClientRectList(_ptr.getClientRects());
   }
 
   void insertNode(Node newNode) {

@@ -9,7 +9,7 @@ class Int16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementa
 
   int get length() { return _ptr.length; }
 
-  Int16Array subarray(int start, [int end = null]) {
+  Int16Array subarray(int start, [int end]) {
     if (end === null) {
       return LevelDom.wrapInt16Array(_ptr.subarray(start));
     } else {

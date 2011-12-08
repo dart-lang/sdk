@@ -123,7 +123,7 @@ class BlockSyntax {
     while (!parser.isDone) {
       final match = pattern.firstMatch(parser.current);
       if (match == null) break;
-      childLines.add(match.group(1));
+      childLines.add(match[1]);
       parser.advance();
     }
 
@@ -159,7 +159,7 @@ class SetextHeaderSyntax extends BlockSyntax {
   Node parse(BlockParser parser) {
     final match = _RE_SETEXT.firstMatch(parser.next);
 
-    final tag = (match.group(1)[0] == '=') ? 'h1' : 'h2';
+    final tag = (match[1][0] == '=') ? 'h1' : 'h2';
     final contents = parser.document.parseInline(parser.current);
     parser.advance();
     parser.advance();
@@ -175,8 +175,8 @@ class HeaderSyntax extends BlockSyntax {
   Node parse(BlockParser parser) {
     final match = pattern.firstMatch(parser.current);
     parser.advance();
-    final level = match.group(1).length;
-    final contents = parser.document.parseInline(match.group(2).trim());
+    final level = match[1].length;
+    final contents = parser.document.parseInline(match[2].trim());
     return new Element('h$level', contents);
   }
 }
@@ -289,10 +289,10 @@ class ListSyntax extends BlockSyntax {
       } else if (tryMatch(_RE_UL) || tryMatch(_RE_OL)) {
         // End the current list item and start a new one.
         endItem();
-        childLines.add(match.group(1));
+        childLines.add(match[1]);
       } else if (tryMatch(_RE_INDENT)) {
         // Strip off indent and add to current item.
-        childLines.add(match.group(1));
+        childLines.add(match[1]);
       } else if (isAtBlockEnd(parser)) {
         // Done with the list.
         break;

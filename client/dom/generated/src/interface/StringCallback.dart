@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface StringCallback {
-
-  bool handleEvent(String data);
-}
+typedef bool StringCallback(String data);

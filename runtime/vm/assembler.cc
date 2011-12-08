@@ -6,6 +6,7 @@
 #include "vm/cpu.h"
 #include "vm/heap.h"
 #include "vm/memory_region.h"
+#include "vm/os.h"
 #include "vm/utils.h"
 #include "vm/zone.h"
 
@@ -153,17 +154,29 @@ void AssemblerBuffer::EmitObject(const Object& object) {
 
 // Shared macros are implemented here.
 void Assembler::Unimplemented(const char* message) {
-  Stop("unimplemented");
+  const char* format = "Unimplemented: %s";
+  const intptr_t len = OS::SNPrint(NULL, 0, format, message);
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  OS::SNPrint(buffer, len + 1, format, message);
+  Stop(buffer);
 }
 
 
 void Assembler::Untested(const char* message) {
-  Stop("untested");
+  const char* format = "Untested: %s";
+  const intptr_t len = OS::SNPrint(NULL, 0, format, message);
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  OS::SNPrint(buffer, len + 1, format, message);
+  Stop(buffer);
 }
 
 
 void Assembler::Unreachable(const char* message) {
-  Stop("unreachable");
+  const char* format = "Unreachable: %s";
+  const intptr_t len = OS::SNPrint(NULL, 0, format, message);
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  OS::SNPrint(buffer, len + 1, format, message);
+  Stop(buffer);
 }
 
 }  // namespace dart

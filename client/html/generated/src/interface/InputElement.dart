@@ -102,10 +102,6 @@ interface InputElement extends Element {
 
   void set name(String value);
 
-  EventListener get onwebkitspeechchange();
-
-  void set onwebkitspeechchange(EventListener value);
-
   String get pattern();
 
   void set pattern(String value);
@@ -195,8 +191,6 @@ interface InputElement extends Element {
   void setCustomValidity(String error);
 
   void setSelectionRange(int start, int end, [String direction]);
-
-  void setValueForUser(String value);
 
   void stepDown([int n]);
 

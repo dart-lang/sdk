@@ -4,7 +4,13 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Int16Array extends ArrayBufferView {
+interface Int16Array extends ArrayBufferView, List<int> factory _TypedArrayFactoryProvider {
+
+  Int16Array(int length);
+
+  Int16Array.fromList(List<int> list);
+
+  Int16Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 2;
 

@@ -66,18 +66,28 @@ class ObjectStore {
   }
 
   RawType* object_type() const { return object_type_; }
-  void set_object_type(const Type& value) { object_type_ = value.raw(); }
+  void set_object_type(const Type& value) {
+    object_type_ = value.raw();
+  }
 
   RawType* null_type() const { return null_type_; }
-  void set_null_type(const Type& value) { null_type_ = value.raw(); }
+  void set_null_type(const Type& value) {
+    null_type_ = value.raw();
+  }
 
   RawType* dynamic_type() const { return dynamic_type_; }
-  void set_dynamic_type(const Type& value) { dynamic_type_ = value.raw(); }
+  void set_dynamic_type(const Type& value) {
+    dynamic_type_ = value.raw();
+  }
 
   RawType* void_type() const { return void_type_; }
-  void set_void_type(const Type& value) { void_type_ = value.raw(); }
+  void set_void_type(const Type& value) {
+    void_type_ = value.raw();
+  }
 
-  RawType* function_interface() const { return function_interface_; }
+  RawType* function_interface() const {
+    return function_interface_;
+  }
   void set_function_interface(const Type& value) {
     function_interface_ = value.raw();
   }
@@ -88,7 +98,9 @@ class ObjectStore {
   }
 
   RawType* int_interface() const { return int_interface_; }
-  void set_int_interface(const Type& value) { int_interface_ = value.raw(); }
+  void set_int_interface(const Type& value) {
+    int_interface_ = value.raw();
+  }
 
   RawClass* smi_class() const { return smi_class_; }
   void set_smi_class(const Class& value) { smi_class_ = value.raw(); }
@@ -152,7 +164,9 @@ class ObjectStore {
   }
 
   RawType* bool_interface() const { return bool_interface_; }
-  void set_bool_interface(const Type& value) { bool_interface_ = value.raw(); }
+  void set_bool_interface(const Type& value) {
+    bool_interface_ = value.raw();
+  }
 
   RawClass* bool_class() const { return bool_class_; }
   void set_bool_class(const Class& value) { bool_class_ = value.raw(); }
@@ -211,6 +225,13 @@ class ObjectStore {
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
+  RawArray* canonical_type_arguments() const {
+    return canonical_type_arguments_;
+  }
+  void set_canonical_type_arguments(const Array& value) {
+    canonical_type_arguments_ = value.raw();
+  }
+
   RawLibrary* core_library() const { return core_library_; }
   void set_core_library(const Library& value) {
     core_library_ = value.raw();
@@ -265,6 +286,11 @@ class ObjectStore {
     empty_context_ = value.raw();
   }
 
+  RawInstance* stack_overflow() const { return stack_overflow_; }
+  void set_stack_overflow(const Instance& value) {
+    stack_overflow_ = value.raw();
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -272,6 +298,11 @@ class ObjectStore {
   int GetClassIndex(const RawClass* raw_class);
   RawType* GetType(int index);
   int GetTypeIndex(const RawType* raw_type);
+
+  // Called to initialize objects required by the vm but which invoke
+  // dart code.  If an error occurs then false is returned and error
+  // information is stored in sticky_error().
+  bool PreallocateObjects();
 
   static void Init(Isolate* isolate);
 
@@ -312,6 +343,7 @@ class ObjectStore {
   RawBool* false_value_;
   RawArray* empty_array_;
   RawArray* symbol_table_;
+  RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;
   RawLibrary* core_impl_library_;
   RawLibrary* native_wrappers_library_;
@@ -320,7 +352,10 @@ class ObjectStore {
   RawArray* pending_classes_;
   RawString* sticky_error_;
   RawContext* empty_context_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&empty_context_); }
+  RawInstance* stack_overflow_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&stack_overflow_); }
+
+  bool preallocate_objects_called_;
 
   friend class SnapshotReader;
 

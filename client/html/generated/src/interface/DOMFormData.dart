@@ -6,5 +6,5 @@
 
 interface DOMFormData {
 
-  void append(String name, String value);
+  void append(String name, String value, String filename);
 }

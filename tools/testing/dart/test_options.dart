@@ -5,7 +5,7 @@
 #library("test_options_parser");
 
 List<String> defaultTestSelectors =
-    const ['samples', 'standalone', 'corelib', 'co19', 'language',
+    const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'stub-generator', 'vm'];
 
 /**
@@ -34,6 +34,18 @@ class _TestOptionSpecification {
  * Parser of test options.
  */
 class TestOptionsParser {
+  String specialCommandHelp =
+"""
+Special command support. Wraps the command line in
+a special command. The special command should contain
+an '@' character which will be replaced by the normal
+command.
+
+For example if the normal command that will be executed
+is 'dart file.dart' and you specify special command
+'python -u valgrind.py @ suffix' the final command will be
+'python -u valgrind.py dart file.dart suffix'""";
+
   /**
    * Creates a test options parser initialized with the known options.
    */
@@ -49,11 +61,10 @@ class TestOptionsParser {
               'component',
               'The component to test against',
               ['-c', '--component'],
-              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
-               'chromium', 'dartium', 'frogium', 'webdriver'],
+              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg'],
               'vm'),
           new _TestOptionSpecification(
-              'architecture',
+              'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
               ['all', 'ia32', 'x64', 'simarm'],
@@ -82,8 +93,15 @@ class TestOptionsParser {
               'progress',
               'Progress indication mode',
               ['-p', '--progress'],
-              ['compact', 'line', 'verbose', 'status', 'buildbot'],
+              ['compact', 'color', 'line', 'verbose', 'status', 'buildbot'],
               'compact'),
+          new _TestOptionSpecification(
+              'report',
+              'Print a summary report of the number of tests, by expectation',
+              ['--report'],
+              [],
+              false,
+              'bool'),
           new _TestOptionSpecification(
               'tasks',
               'The number of parallel tasks to run',
@@ -95,6 +113,33 @@ class TestOptionsParser {
               'help',
               'Print list of options',
               ['-h', '--help'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
+              'verbose',
+              'Verbose output',
+              ['-v', '--verbose'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
+              'valgrind',
+              'Run tests through valgrind',
+              ['--valgrind'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
+              'special-command',
+              specialCommandHelp,
+              ['--special-command'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'time',
+              'Print timing information after running tests',
+              ['--time'],
               [],
               false,
               'bool')];
@@ -129,9 +174,10 @@ class TestOptionsParser {
           return null;
         }
         var split = arg.lastIndexOf('=');
-        name = arg;
-        value = '';
-        if (split != -1) {
+        if (split == -1) {
+          name = arg;
+          value = '';
+        } else {
           name = arg.substring(0, split);
           value = arg.substring(split + 1, arg.length);
         }
@@ -140,20 +186,26 @@ class TestOptionsParser {
           _printHelp();
           return null;
         }
-        name = arg;
-        if ((i + 1) >= arguments.length) {
-          print('No value supplied for option $name');
-          return null;
+        if (arg.length > 2) {
+          name = arg.substring(0, 2);
+          value = arg.substring(2, arg.length);
+        } else {
+          name = arg;
+          // Boolean options do not have a value.
+          if (_getSpecification(name).type != 'bool') {
+            if ((i + 1) >= arguments.length) {
+              print('No value supplied for option $name');
+              return null;
+            }
+            value = arguments[++i];
+          }
         }
-        value = arguments[++i];
       } else {
         // The argument does not start with '-' or '--' and is
         // therefore not an option. We use it as a test selection
         // pattern.
-        var patterns = configuration['patterns'];
-        if (patterns == null) {
-          configuration['patterns'] = patterns = new List();
-        }
+        configuration.putIfAbsent('selectors', () => []);
+        var patterns = configuration['selectors'];
         patterns.add(arg);
         continue;
       }
@@ -161,13 +213,13 @@ class TestOptionsParser {
       var spec = _getSpecification(name);
       if (spec == null) {
         print('Unknown test option $name');
-        return null;
+        exit(1);
       }
       // Parse the value for the option.
       if (spec.type == 'bool') {
         if (!value.isEmpty()) {
           print('No value expected for bool option $name');
-          return null;
+          exit(1);
         }
         configuration[spec.name] = true;
       } else if (spec.type == 'int') {
@@ -175,14 +227,14 @@ class TestOptionsParser {
           configuration[spec.name] = Math.parseInt(value);
         } catch (var e) {
           print('Integer value expected for int option $name');
-          return null;
+          exit(1);
         }
       } else {
         assert(spec.type == 'string');
         for (var v in value.split(',')) {
           if (spec.values.lastIndexOf(v) == -1) {
             print('Unknown value ($v) for option $name');
-            return null;
+            exit(1);
           }
         }
         configuration[spec.name] = value;
@@ -207,8 +259,8 @@ class TestOptionsParser {
     }
 
     // Expand the pseudo-values such as 'all'.
-    if (configuration['architecture'] == 'all') {
-      configuration['architecture'] = 'ia32,x64,simarm';
+    if (configuration['arch'] == 'all') {
+      configuration['arch'] = 'ia32,x64,simarm';
     }
     if (configuration['mode'] == 'all') {
       configuration['mode'] = 'debug,release';
@@ -216,33 +268,64 @@ class TestOptionsParser {
     if (configuration['component'] == 'most') {
       configuration['component'] = 'vm,dartc';
     }
+    if (configuration['valgrind']) {
+      // TODO(ager): Get rid of this when there is only one checkout and
+      // we don't have to special case for the runtime checkout.
+      File valgrindFile = new File('runtime/tools/valgrind.py');
+      if (!valgrindFile.existsSync()) {
+        valgrindFile = new File('../runtime/tools/valgrind.py');
+      }
+      String valgrind = valgrindFile.fullPathSync();
+      configuration['special-command'] = 'python -u $valgrind @';
+    }
+
+    // Use verbose progress indication for verbose output.
+    if (configuration['verbose']) {
+      configuration['progress'] = 'verbose';
+    }
 
     // Create the artificial 'unchecked' option that test status files
     // expect.
     configuration['unchecked'] = !configuration['checked'];
 
-    // Expand the test selectors into simple regular expressions to be
-    // used on the full path of a test file. If no selectors are
-    // explicitly given use the default suite patterns.
-    List patterns = configuration['patterns'];
-    if (patterns == null) {
-      patterns = new List.from(defaultTestSelectors);
+    // Expand the test selectors into a suite name and a simple
+    // regular expressions to be used on the full path of a test file
+    // in that test suite. If no selectors are explicitly given use
+    // the default suite patterns.
+    var selectors = configuration['selectors'];
+    if (selectors is !Map) {
+      if (selectors == null) {
+        selectors = new List.from(defaultTestSelectors);
+      }
+      Map<String, RegExp> selectorMap = new Map<String, RegExp>();
+      for (var i = 0; i < selectors.length; i++) {
+        var pattern = selectors[i];
+        var suite = pattern;
+        var slashLocation = pattern.indexOf('/');
+        if (slashLocation != -1) {
+          suite = pattern.substring(0, slashLocation);
+          pattern = pattern.substring(slashLocation + 1);
+          pattern = pattern.replaceAll('*', '.*');
+          pattern = pattern.replaceAll('/', '.*');
+        } else {
+          pattern = ".*";
+        }
+        if (selectorMap.containsKey(suite)) {
+          print("Warning: selector '$suite/$pattern' overrides " +
+                "previous selector for suite '$suite'");
+        }
+        selectorMap[suite] = new RegExp(pattern);
+      }
+      configuration['selectors'] = selectorMap;
     }
-    for (var i = 0; i < patterns.length; i++) {
-      if (patterns[i] is RegExp) continue;
-      patterns[i] = patterns[i].replaceAll('*', '.*');
-      patterns[i] = patterns[i].replaceAll('/', '.*');
-      patterns[i] = new RegExp(patterns[i]);
-    }
-    configuration['patterns'] = patterns;
 
     // Expand the architectures.
-    var archs = configuration['architecture'];
+    var archs = configuration['arch'];
     if (archs.contains(',')) {
       var result = new List<Map>();
       for (var arch in archs.split(',')) {
         var newConfiguration = new Map.from(configuration);
-        newConfiguration['architecture'] = arch;
+        newConfiguration['arch'] = arch;
         result.addAll(_expandConfigurations(newConfiguration));
       }
       return result;

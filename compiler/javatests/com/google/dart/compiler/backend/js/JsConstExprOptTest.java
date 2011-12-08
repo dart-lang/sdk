@@ -29,23 +29,10 @@ public class JsConstExprOptTest extends ExprOptTest {
       assertEquals("_marker_2 = 5 + 5", marker);
     }
 
-    // Cant inline array.
+    // Can't bind constants that instantiate objects.
     {
       String marker = findMarkerAtOccurrence(js, "_marker_3", "[\\n;]", 2);
-      assertEquals("_marker_3 = 5 + Test_app4a54ba$A$Dart.ARRAY$getter()"
-          + "[$inlineArrayIndexCheck(Test_app4a54ba$A$Dart.ARRAY$getter(), 0)]", marker);
-    }
-
-    // Cant bind constants that refer to methods
-    {
-      String marker = findMarkerAtOccurrence(js, "_marker_4", "[\\n;]", 2);
-      assertEquals("_marker_4 = Test_app4a54ba$A$Dart.C3$getter()", marker);
-    }
-
-    // Cant bind constants that instantiate objects.
-    {
-      String marker = findMarkerAtOccurrence(js, "_marker_5", "[\\n;]", 2);
-      assertEquals("_marker_5 = Test_app4a54ba$A$Dart.C4$getter()", marker);
+      assertEquals("_marker_3 = Test_app4a54ba$A$Dart.C3$getter()", marker);
     }
   }
 }

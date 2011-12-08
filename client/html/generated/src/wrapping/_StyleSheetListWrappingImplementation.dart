@@ -10,11 +10,11 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   int get length() { return _ptr.length; }
 
   StyleSheet operator[](int index) {
-    return item(index);
+    return LevelDom.wrapStyleSheet(_ptr[index]);
   }
 
   void operator[]=(int index, StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    _ptr[index] = LevelDom.unwrap(value);
   }
 
   void add(StyleSheet value) {
@@ -42,7 +42,7 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   }
 
   int lastIndexOf(StyleSheet element, [int start = null]) {
-    if (start == null) start = length - 1;
+    if (start === null) start = length - 1;
     return _Lists.lastIndexOf(this, element, start);
   }
 

@@ -12,6 +12,7 @@
 
 
 
+
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -105,6 +106,8 @@ interface AnchorElement extends Element {
   void set type(String value);
 
   String getParameter(String name);
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -113,18 +116,6 @@ interface AnchorElement extends Element {
 // WARNING: Do not edit - generated code.
 
 interface Animation {
-
-  static final int DIRECTION_ALTERNATE = 1;
-
-  static final int DIRECTION_NORMAL = 0;
-
-  static final int FILL_BACKWARDS = 1;
-
-  static final int FILL_BOTH = 3;
-
-  static final int FILL_FORWARDS = 2;
-
-  static final int FILL_NONE = 0;
 
   num get delay();
 
@@ -225,6 +216,8 @@ interface AreaElement extends Element {
 interface ArrayBuffer {
 
   int get byteLength();
+
+  ArrayBuffer slice(int begin, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -246,7 +239,310 @@ interface ArrayBufferView {
 
 // WARNING: Do not edit - generated code.
 
+interface AudioBuffer {
+
+  num get duration();
+
+  num get gain();
+
+  void set gain(num value);
+
+  int get length();
+
+  int get numberOfChannels();
+
+  num get sampleRate();
+
+  Float32Array getChannelData(int channelIndex);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioBufferSourceNode extends AudioSourceNode {
+
+  AudioBuffer get buffer();
+
+  void set buffer(AudioBuffer value);
+
+  AudioGain get gain();
+
+  bool get loop();
+
+  void set loop(bool value);
+
+  bool get looping();
+
+  void set looping(bool value);
+
+  AudioParam get playbackRate();
+
+  void noteGrainOn(num when, num grainOffset, num grainDuration);
+
+  void noteOff(num when);
+
+  void noteOn(num when);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioChannelMerger extends AudioNode {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioChannelSplitter extends AudioNode {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioContext {
+
+  num get currentTime();
+
+  AudioDestinationNode get destination();
+
+  AudioListener get listener();
+
+  num get sampleRate();
+
+  RealtimeAnalyserNode createAnalyser();
+
+  BiquadFilterNode createBiquadFilter();
+
+  AudioBuffer createBuffer();
+
+  AudioBufferSourceNode createBufferSource();
+
+  AudioChannelMerger createChannelMerger();
+
+  AudioChannelSplitter createChannelSplitter();
+
+  ConvolverNode createConvolver();
+
+  DelayNode createDelayNode();
+
+  DynamicsCompressorNode createDynamicsCompressor();
+
+  AudioGainNode createGainNode();
+
+  HighPass2FilterNode createHighPass2Filter();
+
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize);
+
+  LowPass2FilterNode createLowPass2Filter();
+
+  AudioPannerNode createPanner();
+
+  WaveShaperNode createWaveShaper();
+
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]);
+
+  void startRendering();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioDestinationNode extends AudioNode {
+
+  int get numberOfChannels();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface AudioElement extends MediaElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioGain extends AudioParam {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioGainNode extends AudioNode {
+
+  AudioGain get gain();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioListener {
+
+  num get dopplerFactor();
+
+  void set dopplerFactor(num value);
+
+  num get speedOfSound();
+
+  void set speedOfSound(num value);
+
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp);
+
+  void setPosition(num x, num y, num z);
+
+  void setVelocity(num x, num y, num z);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioNode {
+
+  AudioContext get context();
+
+  int get numberOfInputs();
+
+  int get numberOfOutputs();
+
+  void connect(AudioNode destination, [int output, int input]);
+
+  void disconnect([int output]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioPannerNode extends AudioNode {
+
+  static final int EQUALPOWER = 0;
+
+  static final int HRTF = 1;
+
+  static final int SOUNDFIELD = 2;
+
+  AudioGain get coneGain();
+
+  num get coneInnerAngle();
+
+  void set coneInnerAngle(num value);
+
+  num get coneOuterAngle();
+
+  void set coneOuterAngle(num value);
+
+  num get coneOuterGain();
+
+  void set coneOuterGain(num value);
+
+  AudioGain get distanceGain();
+
+  int get distanceModel();
+
+  void set distanceModel(int value);
+
+  num get maxDistance();
+
+  void set maxDistance(num value);
+
+  int get panningModel();
+
+  void set panningModel(int value);
+
+  num get refDistance();
+
+  void set refDistance(num value);
+
+  num get rolloffFactor();
+
+  void set rolloffFactor(num value);
+
+  void setOrientation(num x, num y, num z);
+
+  void setPosition(num x, num y, num z);
+
+  void setVelocity(num x, num y, num z);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioParam {
+
+  num get defaultValue();
+
+  num get maxValue();
+
+  num get minValue();
+
+  String get name();
+
+  int get units();
+
+  num get value();
+
+  void set value(num value);
+
+  void cancelScheduledValues(num startTime);
+
+  void exponentialRampToValueAtTime(num value, num time);
+
+  void linearRampToValueAtTime(num value, num time);
+
+  void setTargetValueAtTime(num targetValue, num time, num timeConstant);
+
+  void setValueAtTime(num value, num time);
+
+  void setValueCurveAtTime(Float32Array values, num time, num duration);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioProcessingEvent extends Event {
+
+  AudioBuffer get inputBuffer();
+
+  AudioBuffer get outputBuffer();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface AudioSourceNode extends AudioNode {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -285,6 +581,40 @@ interface BaseElement extends Element {
   String get target();
 
   void set target(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface BiquadFilterNode extends AudioNode {
+
+  static final int ALLPASS = 7;
+
+  static final int BANDPASS = 2;
+
+  static final int HIGHPASS = 1;
+
+  static final int HIGHSHELF = 4;
+
+  static final int LOWPASS = 0;
+
+  static final int LOWSHELF = 3;
+
+  static final int NOTCH = 6;
+
+  static final int PEAKING = 5;
+
+  AudioParam get Q();
+
+  AudioParam get frequency();
+
+  AudioParam get gain();
+
+  int get type();
+
+  void set type(int value);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -704,6 +1034,8 @@ interface CSSRule {
 
   static final int WEBKIT_KEYFRAME_RULE = 9;
 
+  static final int WEBKIT_REGION_STYLE_RULE = 10;
+
   String get cssText();
 
   void set cssText(String value);
@@ -769,48 +1101,6 @@ interface CSSStyleSheet extends StyleSheet {
 // WARNING: Do not edit - generated code.
 
 interface CSSTransformValue extends CSSValueList {
-
-  static final int CSS_MATRIX = 11;
-
-  static final int CSS_MATRIX3D = 21;
-
-  static final int CSS_PERSPECTIVE = 20;
-
-  static final int CSS_ROTATE = 4;
-
-  static final int CSS_ROTATE3D = 17;
-
-  static final int CSS_ROTATEX = 14;
-
-  static final int CSS_ROTATEY = 15;
-
-  static final int CSS_ROTATEZ = 16;
-
-  static final int CSS_SCALE = 5;
-
-  static final int CSS_SCALE3D = 19;
-
-  static final int CSS_SCALEX = 6;
-
-  static final int CSS_SCALEY = 7;
-
-  static final int CSS_SCALEZ = 18;
-
-  static final int CSS_SKEW = 8;
-
-  static final int CSS_SKEWX = 9;
-
-  static final int CSS_SKEWY = 10;
-
-  static final int CSS_TRANSLATE = 1;
-
-  static final int CSS_TRANSLATE3D = 13;
-
-  static final int CSS_TRANSLATEX = 2;
-
-  static final int CSS_TRANSLATEY = 3;
-
-  static final int CSS_TRANSLATEZ = 12;
 
   int get operationType();
 }
@@ -903,8 +1193,6 @@ interface CanvasPattern {
 interface CanvasPixelArray extends List<int> {
 
   int get length();
-
-  int item(int index);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -923,6 +1211,10 @@ interface CanvasRenderingContext {
 // WARNING: Do not edit - generated code.
 
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
+
+  Object get fillStyle();
+
+  void set fillStyle(Object value);
 
   String get font();
 
@@ -968,6 +1260,10 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void set shadowOffsetY(num value);
 
+  Object get strokeStyle();
+
+  void set strokeStyle(Object value);
+
   String get textAlign();
 
   void set textAlign(String value);
@@ -975,6 +1271,14 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   String get textBaseline();
 
   void set textBaseline(String value);
+
+  List get webkitLineDash();
+
+  void set webkitLineDash(List value);
+
+  num get webkitLineDashOffset();
+
+  void set webkitLineDashOffset(num value);
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise);
 
@@ -1040,8 +1344,6 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void setFillColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
-  void setFillStyle(var color_OR_gradient_OR_pattern);
-
   void setLineCap(String cap);
 
   void setLineJoin(String join);
@@ -1053,8 +1355,6 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
   void setShadow(num width, num height, num blur, [var c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
 
   void setStrokeColor(var c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]);
-
-  void setStrokeStyle(var color_OR_gradient_OR_pattern);
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy);
 
@@ -1118,6 +1418,18 @@ interface ClientRect {
 
 // WARNING: Do not edit - generated code.
 
+interface ClientRectList {
+
+  int get length();
+
+  ClientRect item(int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface Clipboard {
 
   String get dropEffect();
@@ -1130,7 +1442,9 @@ interface Clipboard {
 
   FileList get files();
 
-  DataTransferItems get items();
+  DataTransferItemList get items();
+
+  List get types();
 
   void clearData([String type]);
 
@@ -1187,6 +1501,18 @@ interface Console {
   void trace(Object arg);
 
   void warn(Object arg);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface ConvolverNode extends AudioNode {
+
+  AudioBuffer get buffer();
+
+  void set buffer(AudioBuffer value);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1309,6 +1635,8 @@ interface DOMException {
   String get message();
 
   String get name();
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1342,7 +1670,7 @@ interface DOMFileSystemSync {
 
 interface DOMFormData {
 
-  void append(String name, String value);
+  void append(String name, String value, String filename);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1477,6 +1805,8 @@ interface DOMSelection {
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset);
 
   void setPosition(Node node, int offset);
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1507,6 +1837,8 @@ interface DOMTokenList {
   String item(int index);
 
   void remove(String token);
+
+  String toString();
 
   bool toggle(String token);
 }
@@ -1554,7 +1886,7 @@ interface DataTransferItem {
 
 // WARNING: Do not edit - generated code.
 
-interface DataTransferItems {
+interface DataTransferItemList {
 
   int get length();
 
@@ -1603,6 +1935,16 @@ interface DataView extends ArrayBufferView {
   void setUint32(int byteOffset, int value, [bool littleEndian]);
 
   void setUint8();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface DelayNode extends AudioNode {
+
+  AudioParam get delayTime();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1686,15 +2028,39 @@ interface DivElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface DynamicsCompressorNode extends AudioNode {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface ElementTimeControl {
+
+  void beginElement();
+
+  void beginElementAt(num offset);
+
+  void endElement();
+
+  void endElementAt(num offset);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface EmbedElement extends Element {
 
   String get align();
 
   void set align(String value);
 
-  int get height();
+  String get height();
 
-  void set height(int value);
+  void set height(String value);
 
   String get name();
 
@@ -1708,9 +2074,9 @@ interface EmbedElement extends Element {
 
   void set type(String value);
 
-  int get width();
+  String get width();
 
-  void set width(int value);
+  void set width(String value);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1740,10 +2106,7 @@ interface EntityReference extends Node {
 
 // WARNING: Do not edit - generated code.
 
-interface EntriesCallback {
-
-  bool handleEvent(EntryArray entries);
-}
+typedef bool EntriesCallback(EntryArray entries);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1804,10 +2167,7 @@ interface EntryArraySync {
 
 // WARNING: Do not edit - generated code.
 
-interface EntryCallback {
-
-  bool handleEvent(Entry entry);
-}
+typedef bool EntryCallback(Entry entry);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1844,10 +2204,7 @@ interface EntrySync {
 
 // WARNING: Do not edit - generated code.
 
-interface ErrorCallback {
-
-  bool handleEvent(FileError error);
-}
+typedef bool ErrorCallback(FileError error);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1865,6 +2222,8 @@ interface EventException {
   String get message();
 
   String get name();
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1908,10 +2267,7 @@ interface File extends Blob {
 
 // WARNING: Do not edit - generated code.
 
-interface FileCallback {
-
-  bool handleEvent(File file);
-}
+typedef bool FileCallback(File file);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2007,6 +2363,8 @@ interface FileException {
   String get message();
 
   String get name();
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2037,30 +2395,6 @@ interface FileReader factory FileReaderFactoryProvider {
   static final int LOADING = 1;
 
   FileError get error();
-
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onload();
-
-  void set onload(EventListener value);
-
-  EventListener get onloadend();
-
-  void set onloadend(EventListener value);
-
-  EventListener get onloadstart();
-
-  void set onloadstart(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
 
   int get readyState();
 
@@ -2098,10 +2432,7 @@ interface FileReaderSync {
 
 // WARNING: Do not edit - generated code.
 
-interface FileSystemCallback {
-
-  bool handleEvent(DOMFileSystem fileSystem);
-}
+typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2119,30 +2450,6 @@ interface FileWriter {
   FileError get error();
 
   int get length();
-
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
-
-  EventListener get onwrite();
-
-  void set onwrite(EventListener value);
-
-  EventListener get onwriteend();
-
-  void set onwriteend(EventListener value);
-
-  EventListener get onwritestart();
-
-  void set onwritestart(EventListener value);
 
   int get position();
 
@@ -2162,10 +2469,7 @@ interface FileWriter {
 
 // WARNING: Do not edit - generated code.
 
-interface FileWriterCallback {
-
-  bool handleEvent(FileWriter fileWriter);
-}
+typedef bool FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2396,6 +2700,18 @@ interface HeadingElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface HighPass2FilterNode extends AudioNode {
+
+  AudioParam get cutoff();
+
+  AudioParam get resonance();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface History {
 
   int get length();
@@ -2409,22 +2725,6 @@ interface History {
   void pushState(Object data, String title, [String url]);
 
   void replaceState(Object data, String title, [String url]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface HtmlElement extends Element {
-
-  String get manifest();
-
-  void set manifest(String value);
-
-  String get version();
-
-  void set version(String value);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2472,7 +2772,7 @@ interface IDBCursor {
 
 interface IDBCursorWithValue extends IDBCursor {
 
-  String get value();
+  IDBAny get value();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2483,18 +2783,6 @@ interface IDBCursorWithValue extends IDBCursor {
 interface IDBDatabase {
 
   String get name();
-
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onversionchange();
-
-  void set onversionchange(EventListener value);
 
   String get version();
 
@@ -2511,6 +2799,8 @@ interface IDBDatabase {
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   IDBVersionChangeRequest setVersion(String version);
+
+  IDBTransaction transaction(String storeName, int mode);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2569,6 +2859,8 @@ interface IDBDatabaseException {
   String get message();
 
   String get name();
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2577,6 +2869,10 @@ interface IDBDatabaseException {
 // WARNING: Do not edit - generated code.
 
 interface IDBFactory {
+
+  int cmp(IDBKey first, IDBKey second);
+
+  IDBVersionChangeRequest deleteDatabase(String name);
 
   IDBRequest getDatabaseNames();
 
@@ -2650,6 +2946,8 @@ interface IDBObjectStore {
 
   String get name();
 
+  IDBTransaction get transaction();
+
   IDBRequest add(String value, [IDBKey key]);
 
   IDBRequest clear();
@@ -2681,14 +2979,6 @@ interface IDBRequest {
   static final int LOADING = 1;
 
   int get errorCode();
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
-  EventListener get onsuccess();
-
-  void set onsuccess(EventListener value);
 
   int get readyState();
 
@@ -2724,18 +3014,6 @@ interface IDBTransaction {
 
   int get mode();
 
-  EventListener get onabort();
-
-  void set onabort(EventListener value);
-
-  EventListener get oncomplete();
-
-  void set oncomplete(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
-
   void abort();
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -2763,10 +3041,6 @@ interface IDBVersionChangeEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 interface IDBVersionChangeRequest extends IDBRequest {
-
-  EventListener get onblocked();
-
-  void set onblocked(EventListener value);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3016,10 +3290,6 @@ interface InputElement extends Element {
 
   void set name(String value);
 
-  EventListener get onwebkitspeechchange();
-
-  void set onwebkitspeechchange(EventListener value);
-
   String get pattern();
 
   void set pattern(String value);
@@ -3110,8 +3380,6 @@ interface InputElement extends Element {
 
   void setSelectionRange(int start, int end, [String direction]);
 
-  void setValueForUser(String value);
-
   void stepDown([int n]);
 
   void stepUp([int n]);
@@ -3157,6 +3425,16 @@ interface Int8Array extends ArrayBufferView {
   int get length();
 
   Int8Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface JavaScriptAudioNode extends AudioNode {
+
+  int get bufferSize();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3294,6 +3572,10 @@ interface LinkElement extends Element {
 
   StyleSheet get sheet();
 
+  DOMSettableTokenList get sizes();
+
+  void set sizes(DOMSettableTokenList value);
+
   String get target();
 
   void set target(String value);
@@ -3301,16 +3583,6 @@ interface LinkElement extends Element {
   String get type();
 
   void set type(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface LocalMediaStream extends MediaStream {
-
-  void stop();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3361,6 +3633,8 @@ interface Location {
   void reload();
 
   void replace(String url);
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3373,6 +3647,18 @@ interface LoseContext {
   void loseContext();
 
   void restoreContext();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface LowPass2FilterNode extends AudioNode {
+
+  AudioParam get cutoff();
+
+  AudioParam get resonance();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3451,24 +3737,6 @@ interface MarqueeElement extends Element {
 // WARNING: Do not edit - generated code.
 
 interface MediaElement extends Element {
-
-  static final int HAVE_CURRENT_DATA = 2;
-
-  static final int HAVE_ENOUGH_DATA = 4;
-
-  static final int HAVE_FUTURE_DATA = 3;
-
-  static final int HAVE_METADATA = 1;
-
-  static final int HAVE_NOTHING = 0;
-
-  static final int NETWORK_EMPTY = 0;
-
-  static final int NETWORK_IDLE = 1;
-
-  static final int NETWORK_LOADING = 2;
-
-  static final int NETWORK_NO_SOURCE = 3;
 
   bool get autoplay();
 
@@ -3568,6 +3836,16 @@ interface MediaElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface MediaElementAudioSourceNode extends AudioSourceNode {
+
+  MediaElement get mediaElement();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface MediaError {
 
   static final int MEDIA_ERR_ABORTED = 1;
@@ -3625,74 +3903,6 @@ interface MediaQueryList {
 interface MediaQueryListListener {
 
   void queryChanged(MediaQueryList list);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MediaStream {
-
-  static final int ENDED = 2;
-
-  static final int LIVE = 1;
-
-  String get label();
-
-  EventListener get onended();
-
-  void set onended(EventListener value);
-
-  int get readyState();
-
-  MediaStreamTrackList get tracks();
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool dispatchEvent(Event event);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MediaStreamList {
-
-  int get length();
-
-  MediaStream item(int index);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MediaStreamTrack {
-
-  bool get enabled();
-
-  void set enabled(bool value);
-
-  String get kind();
-
-  String get label();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MediaStreamTrackList {
-
-  int get length();
-
-  MediaStreamTrack item(int index);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3758,10 +3968,7 @@ interface Metadata {
 
 // WARNING: Do not edit - generated code.
 
-interface MetadataCallback {
-
-  bool handleEvent(Metadata metadata);
-}
+typedef bool MetadataCallback(Metadata metadata);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -3813,6 +4020,14 @@ interface ModElement extends Element {
   String get dateTime();
 
   void set dateTime(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationCallback {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3898,10 +4113,7 @@ interface NavigatorUserMediaError {
 
 // WARNING: Do not edit - generated code.
 
-interface NavigatorUserMediaErrorCallback {
-
-  bool handleEvent(NavigatorUserMediaError error);
-}
+typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -3909,8 +4121,6 @@ interface NavigatorUserMediaErrorCallback {
 // WARNING: Do not edit - generated code.
 
 interface NavigatorUserMediaSuccessCallback {
-
-  bool handleEvent(LocalMediaStream stream);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4088,6 +4298,16 @@ interface ObjectElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
+interface OfflineAudioCompletionEvent extends Event {
+
+  AudioBuffer get renderedBuffer();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface OperationNotAllowedException {
 
   static final int NOT_ALLOWED_ERR = 1;
@@ -4097,6 +4317,8 @@ interface OperationNotAllowedException {
   String get message();
 
   String get name();
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4143,6 +4365,8 @@ interface OptionElement extends Element {
   void set selected(bool value);
 
   String get text();
+
+  void set text(String value);
 
   String get value();
 
@@ -4248,10 +4472,7 @@ interface Point factory PointFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-interface PositionCallback {
-
-  bool handleEvent(Geoposition position);
-}
+typedef bool PositionCallback(Geoposition position);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -4276,10 +4497,7 @@ interface PositionError {
 
 // WARNING: Do not edit - generated code.
 
-interface PositionErrorCallback {
-
-  bool handleEvent(PositionError error);
-}
+typedef bool PositionErrorCallback(PositionError error);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -4354,8 +4572,6 @@ interface QuoteElement extends Element {
 
 interface RGBColor {
 
-  CSSPrimitiveValue get alpha();
-
   CSSPrimitiveValue get blue();
 
   CSSPrimitiveValue get green();
@@ -4398,8 +4614,6 @@ interface Range {
 
   int get startOffset();
 
-  String get text();
-
   DocumentFragment cloneContents();
 
   Range cloneRange();
@@ -4419,6 +4633,10 @@ interface Range {
   void expand(String unit);
 
   DocumentFragment extractContents();
+
+  ClientRect getBoundingClientRect();
+
+  ClientRectList getClientRects();
 
   void insertNode(Node newNode);
 
@@ -4463,6 +4681,40 @@ interface RangeException {
   String get message();
 
   String get name();
+
+  String toString();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface RealtimeAnalyserNode extends AudioNode {
+
+  int get fftSize();
+
+  void set fftSize(int value);
+
+  int get frequencyBinCount();
+
+  num get maxDecibels();
+
+  void set maxDecibels(num value);
+
+  num get minDecibels();
+
+  void set minDecibels(num value);
+
+  num get smoothingTimeConstant();
+
+  void set smoothingTimeConstant(num value);
+
+  void getByteFrequencyData(Uint8Array array);
+
+  void getByteTimeDomainData(Uint8Array array);
+
+  void getFloatFrequencyData(Float32Array array);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4479,6 +4731,2668 @@ interface Rect {
   CSSPrimitiveValue get right();
 
   CSSPrimitiveValue get top();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedString get target();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAltGlyphDefElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference {
+
+  String get format();
+
+  void set format(String value);
+
+  String get glyphRef();
+
+  void set glyphRef(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAltGlyphItemElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAngle {
+
+  static final int SVG_ANGLETYPE_DEG = 2;
+
+  static final int SVG_ANGLETYPE_GRAD = 4;
+
+  static final int SVG_ANGLETYPE_RAD = 3;
+
+  static final int SVG_ANGLETYPE_UNKNOWN = 0;
+
+  static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
+
+  int get unitType();
+
+  num get value();
+
+  void set value(num value);
+
+  String get valueAsString();
+
+  void set valueAsString(String value);
+
+  num get valueInSpecifiedUnits();
+
+  void set valueInSpecifiedUnits(num value);
+
+  void convertToSpecifiedUnits(int unitType);
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimateColorElement extends SVGAnimationElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimateElement extends SVGAnimationElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimateMotionElement extends SVGAnimationElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimateTransformElement extends SVGAnimationElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedAngle {
+
+  SVGAngle get animVal();
+
+  SVGAngle get baseVal();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedBoolean {
+
+  bool get animVal();
+
+  bool get baseVal();
+
+  void set baseVal(bool value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedEnumeration {
+
+  int get animVal();
+
+  int get baseVal();
+
+  void set baseVal(int value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedInteger {
+
+  int get animVal();
+
+  int get baseVal();
+
+  void set baseVal(int value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedLength {
+
+  SVGLength get animVal();
+
+  SVGLength get baseVal();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedLengthList {
+
+  SVGLengthList get animVal();
+
+  SVGLengthList get baseVal();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedNumber {
+
+  num get animVal();
+
+  num get baseVal();
+
+  void set baseVal(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedNumberList {
+
+  SVGNumberList get animVal();
+
+  SVGNumberList get baseVal();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedPreserveAspectRatio {
+
+  SVGPreserveAspectRatio get animVal();
+
+  SVGPreserveAspectRatio get baseVal();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedRect {
+
+  SVGRect get animVal();
+
+  SVGRect get baseVal();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedString {
+
+  String get animVal();
+
+  String get baseVal();
+
+  void set baseVal(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimatedTransformList {
+
+  SVGTransformList get animVal();
+
+  SVGTransformList get baseVal();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
+
+  SVGElement get targetElement();
+
+  num getCurrentTime();
+
+  num getSimpleDuration();
+
+  num getStartTime();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedLength get cx();
+
+  SVGAnimatedLength get cy();
+
+  SVGAnimatedLength get r();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedEnumeration get clipPathUnits();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGColor extends CSSValue {
+
+  static final int SVG_COLORTYPE_CURRENTCOLOR = 3;
+
+  static final int SVG_COLORTYPE_RGBCOLOR = 1;
+
+  static final int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
+
+  static final int SVG_COLORTYPE_UNKNOWN = 0;
+
+  int get colorType();
+
+  RGBColor get rgbColor();
+
+  void setColor(int colorType, String rgbColor, String iccColor);
+
+  void setRGBColor(String rgbColor);
+
+  void setRGBColorICCColor(String rgbColor, String iccColor);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGComponentTransferFunctionElement extends SVGElement {
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
+
+  static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
+
+  SVGAnimatedNumber get amplitude();
+
+  SVGAnimatedNumber get exponent();
+
+  SVGAnimatedNumber get intercept();
+
+  SVGAnimatedNumber get offset();
+
+  SVGAnimatedNumber get slope();
+
+  SVGAnimatedNumberList get tableValues();
+
+  SVGAnimatedEnumeration get type();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGCursorElement extends SVGElement, SVGURIReference, SVGTests, SVGExternalResourcesRequired {
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGDefsElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGElement extends Element {
+
+  String get id();
+
+  void set id(String value);
+
+  SVGSVGElement get ownerSVGElement();
+
+  SVGElement get viewportElement();
+
+  String get xmlbase();
+
+  void set xmlbase(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGElementInstanceList {
+
+  int get length();
+
+  SVGElementInstance item(int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedLength get cx();
+
+  SVGAnimatedLength get cy();
+
+  SVGAnimatedLength get rx();
+
+  SVGAnimatedLength get ry();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGException {
+
+  static final int SVG_INVALID_VALUE_ERR = 1;
+
+  static final int SVG_MATRIX_NOT_INVERTABLE = 2;
+
+  static final int SVG_WRONG_TYPE_ERR = 0;
+
+  int get code();
+
+  String get message();
+
+  String get name();
+
+  String toString();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGExternalResourcesRequired {
+
+  SVGAnimatedBoolean get externalResourcesRequired();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_FEBLEND_MODE_DARKEN = 4;
+
+  static final int SVG_FEBLEND_MODE_LIGHTEN = 5;
+
+  static final int SVG_FEBLEND_MODE_MULTIPLY = 2;
+
+  static final int SVG_FEBLEND_MODE_NORMAL = 1;
+
+  static final int SVG_FEBLEND_MODE_SCREEN = 3;
+
+  static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedString get in2();
+
+  SVGAnimatedEnumeration get mode();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
+
+  static final int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
+
+  static final int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
+
+  static final int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
+
+  static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedEnumeration get type();
+
+  SVGAnimatedNumberList get values();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEComponentTransferElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedString get in1();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_EDGEMODE_DUPLICATE = 1;
+
+  static final int SVG_EDGEMODE_NONE = 3;
+
+  static final int SVG_EDGEMODE_UNKNOWN = 0;
+
+  static final int SVG_EDGEMODE_WRAP = 2;
+
+  SVGAnimatedNumber get bias();
+
+  SVGAnimatedNumber get divisor();
+
+  SVGAnimatedEnumeration get edgeMode();
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedNumberList get kernelMatrix();
+
+  SVGAnimatedNumber get kernelUnitLengthX();
+
+  SVGAnimatedNumber get kernelUnitLengthY();
+
+  SVGAnimatedInteger get orderX();
+
+  SVGAnimatedInteger get orderY();
+
+  SVGAnimatedBoolean get preserveAlpha();
+
+  SVGAnimatedInteger get targetX();
+
+  SVGAnimatedInteger get targetY();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedNumber get diffuseConstant();
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedNumber get kernelUnitLengthX();
+
+  SVGAnimatedNumber get kernelUnitLengthY();
+
+  SVGAnimatedNumber get surfaceScale();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_CHANNEL_A = 4;
+
+  static final int SVG_CHANNEL_B = 3;
+
+  static final int SVG_CHANNEL_G = 2;
+
+  static final int SVG_CHANNEL_R = 1;
+
+  static final int SVG_CHANNEL_UNKNOWN = 0;
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedString get in2();
+
+  SVGAnimatedNumber get scale();
+
+  SVGAnimatedEnumeration get xChannelSelector();
+
+  SVGAnimatedEnumeration get yChannelSelector();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEDistantLightElement extends SVGElement {
+
+  SVGAnimatedNumber get azimuth();
+
+  SVGAnimatedNumber get elevation();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEDropShadowElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedNumber get dx();
+
+  SVGAnimatedNumber get dy();
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedNumber get stdDeviationX();
+
+  SVGAnimatedNumber get stdDeviationY();
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEFloodElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedNumber get stdDeviationX();
+
+  SVGAnimatedNumber get stdDeviationY();
+
+  void setStdDeviation(num stdDeviationX, num stdDeviationY);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEMergeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEMergeNodeElement extends SVGElement {
+
+  SVGAnimatedString get in1();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedNumber get dx();
+
+  SVGAnimatedNumber get dy();
+
+  SVGAnimatedString get in1();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFEPointLightElement extends SVGElement {
+
+  SVGAnimatedNumber get x();
+
+  SVGAnimatedNumber get y();
+
+  SVGAnimatedNumber get z();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedString get in1();
+
+  SVGAnimatedNumber get specularConstant();
+
+  SVGAnimatedNumber get specularExponent();
+
+  SVGAnimatedNumber get surfaceScale();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFESpotLightElement extends SVGElement {
+
+  SVGAnimatedNumber get limitingConeAngle();
+
+  SVGAnimatedNumber get pointsAtX();
+
+  SVGAnimatedNumber get pointsAtY();
+
+  SVGAnimatedNumber get pointsAtZ();
+
+  SVGAnimatedNumber get specularExponent();
+
+  SVGAnimatedNumber get x();
+
+  SVGAnimatedNumber get y();
+
+  SVGAnimatedNumber get z();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  SVGAnimatedString get in1();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
+
+  static final int SVG_STITCHTYPE_NOSTITCH = 2;
+
+  static final int SVG_STITCHTYPE_STITCH = 1;
+
+  static final int SVG_STITCHTYPE_UNKNOWN = 0;
+
+  static final int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
+
+  static final int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
+
+  static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
+
+  SVGAnimatedNumber get baseFrequencyX();
+
+  SVGAnimatedNumber get baseFrequencyY();
+
+  SVGAnimatedInteger get numOctaves();
+
+  SVGAnimatedNumber get seed();
+
+  SVGAnimatedEnumeration get stitchTiles();
+
+  SVGAnimatedEnumeration get type();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+
+  SVGAnimatedInteger get filterResX();
+
+  SVGAnimatedInteger get filterResY();
+
+  SVGAnimatedEnumeration get filterUnits();
+
+  SVGAnimatedLength get height();
+
+  SVGAnimatedEnumeration get primitiveUnits();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+
+  void setFilterRes(int filterResX, int filterResY);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
+
+  SVGAnimatedLength get height();
+
+  SVGAnimatedString get result();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFitToViewBox {
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+
+  SVGAnimatedRect get viewBox();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFontElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFontFaceElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFontFaceFormatElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFontFaceNameElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFontFaceSrcElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGFontFaceUriElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGForeignObjectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedLength get height();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGGlyphElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
+
+  num get dx();
+
+  void set dx(num value);
+
+  num get dy();
+
+  void set dy(num value);
+
+  String get format();
+
+  void set format(String value);
+
+  String get glyphRef();
+
+  void set glyphRef(String value);
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired, SVGStylable {
+
+  static final int SVG_SPREADMETHOD_PAD = 1;
+
+  static final int SVG_SPREADMETHOD_REFLECT = 2;
+
+  static final int SVG_SPREADMETHOD_REPEAT = 3;
+
+  static final int SVG_SPREADMETHOD_UNKNOWN = 0;
+
+  SVGAnimatedTransformList get gradientTransform();
+
+  SVGAnimatedEnumeration get gradientUnits();
+
+  SVGAnimatedEnumeration get spreadMethod();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGHKernElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedLength get height();
+
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGLangSpace {
+
+  String get xmllang();
+
+  void set xmllang(String value);
+
+  String get xmlspace();
+
+  void set xmlspace(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGLength {
+
+  static final int SVG_LENGTHTYPE_CM = 6;
+
+  static final int SVG_LENGTHTYPE_EMS = 3;
+
+  static final int SVG_LENGTHTYPE_EXS = 4;
+
+  static final int SVG_LENGTHTYPE_IN = 8;
+
+  static final int SVG_LENGTHTYPE_MM = 7;
+
+  static final int SVG_LENGTHTYPE_NUMBER = 1;
+
+  static final int SVG_LENGTHTYPE_PC = 10;
+
+  static final int SVG_LENGTHTYPE_PERCENTAGE = 2;
+
+  static final int SVG_LENGTHTYPE_PT = 9;
+
+  static final int SVG_LENGTHTYPE_PX = 5;
+
+  static final int SVG_LENGTHTYPE_UNKNOWN = 0;
+
+  int get unitType();
+
+  num get value();
+
+  void set value(num value);
+
+  String get valueAsString();
+
+  void set valueAsString(String value);
+
+  num get valueInSpecifiedUnits();
+
+  void set valueInSpecifiedUnits(num value);
+
+  void convertToSpecifiedUnits(int unitType);
+
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGLengthList {
+
+  int get numberOfItems();
+
+  SVGLength appendItem(SVGLength item);
+
+  void clear();
+
+  SVGLength getItem(int index);
+
+  SVGLength initialize(SVGLength item);
+
+  SVGLength insertItemBefore(SVGLength item, int index);
+
+  SVGLength removeItem(int index);
+
+  SVGLength replaceItem(SVGLength item, int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedLength get x1();
+
+  SVGAnimatedLength get x2();
+
+  SVGAnimatedLength get y1();
+
+  SVGAnimatedLength get y2();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGLinearGradientElement extends SVGGradientElement {
+
+  SVGAnimatedLength get x1();
+
+  SVGAnimatedLength get x2();
+
+  SVGAnimatedLength get y1();
+
+  SVGAnimatedLength get y2();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGLocatable {
+
+  SVGElement get farthestViewportElement();
+
+  SVGElement get nearestViewportElement();
+
+  SVGRect getBBox();
+
+  SVGMatrix getCTM();
+
+  SVGMatrix getScreenCTM();
+
+  SVGMatrix getTransformToElement(SVGElement element);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGMPathElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
+
+  static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
+
+  static final int SVG_MARKERUNITS_UNKNOWN = 0;
+
+  static final int SVG_MARKERUNITS_USERSPACEONUSE = 1;
+
+  static final int SVG_MARKER_ORIENT_ANGLE = 2;
+
+  static final int SVG_MARKER_ORIENT_AUTO = 1;
+
+  static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
+
+  SVGAnimatedLength get markerHeight();
+
+  SVGAnimatedEnumeration get markerUnits();
+
+  SVGAnimatedLength get markerWidth();
+
+  SVGAnimatedAngle get orientAngle();
+
+  SVGAnimatedEnumeration get orientType();
+
+  SVGAnimatedLength get refX();
+
+  SVGAnimatedLength get refY();
+
+  void setOrientToAngle(SVGAngle angle);
+
+  void setOrientToAuto();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+
+  SVGAnimatedLength get height();
+
+  SVGAnimatedEnumeration get maskContentUnits();
+
+  SVGAnimatedEnumeration get maskUnits();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGMatrix {
+
+  num get a();
+
+  void set a(num value);
+
+  num get b();
+
+  void set b(num value);
+
+  num get c();
+
+  void set c(num value);
+
+  num get d();
+
+  void set d(num value);
+
+  num get e();
+
+  void set e(num value);
+
+  num get f();
+
+  void set f(num value);
+
+  SVGMatrix flipX();
+
+  SVGMatrix flipY();
+
+  SVGMatrix inverse();
+
+  SVGMatrix multiply(SVGMatrix secondMatrix);
+
+  SVGMatrix rotate(num angle);
+
+  SVGMatrix rotateFromVector(num x, num y);
+
+  SVGMatrix scale(num scaleFactor);
+
+  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY);
+
+  SVGMatrix skewX(num angle);
+
+  SVGMatrix skewY(num angle);
+
+  SVGMatrix translate(num x, num y);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGMetadataElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGMissingGlyphElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGNumber {
+
+  num get value();
+
+  void set value(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGNumberList {
+
+  int get numberOfItems();
+
+  SVGNumber appendItem(SVGNumber item);
+
+  void clear();
+
+  SVGNumber getItem(int index);
+
+  SVGNumber initialize(SVGNumber item);
+
+  SVGNumber insertItemBefore(SVGNumber item, int index);
+
+  SVGNumber removeItem(int index);
+
+  SVGNumber replaceItem(SVGNumber item, int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPaint extends SVGColor {
+
+  static final int SVG_PAINTTYPE_CURRENTCOLOR = 102;
+
+  static final int SVG_PAINTTYPE_NONE = 101;
+
+  static final int SVG_PAINTTYPE_RGBCOLOR = 1;
+
+  static final int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
+
+  static final int SVG_PAINTTYPE_UNKNOWN = 0;
+
+  static final int SVG_PAINTTYPE_URI = 107;
+
+  static final int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
+
+  static final int SVG_PAINTTYPE_URI_NONE = 103;
+
+  static final int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
+
+  static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
+
+  int get paintType();
+
+  String get uri();
+
+  void setPaint(int paintType, String uri, String rgbColor, String iccColor);
+
+  void setUri(String uri);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGPathSegList get animatedNormalizedPathSegList();
+
+  SVGPathSegList get animatedPathSegList();
+
+  SVGPathSegList get normalizedPathSegList();
+
+  SVGAnimatedNumber get pathLength();
+
+  SVGPathSegList get pathSegList();
+
+  SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
+
+  SVGPathSegArcRel createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
+
+  SVGPathSegClosePath createSVGPathSegClosePath();
+
+  SVGPathSegCurvetoCubicAbs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2);
+
+  SVGPathSegCurvetoCubicRel createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2);
+
+  SVGPathSegCurvetoCubicSmoothAbs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2);
+
+  SVGPathSegCurvetoCubicSmoothRel createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2);
+
+  SVGPathSegCurvetoQuadraticAbs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1);
+
+  SVGPathSegCurvetoQuadraticRel createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1);
+
+  SVGPathSegCurvetoQuadraticSmoothAbs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y);
+
+  SVGPathSegCurvetoQuadraticSmoothRel createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y);
+
+  SVGPathSegLinetoAbs createSVGPathSegLinetoAbs(num x, num y);
+
+  SVGPathSegLinetoHorizontalAbs createSVGPathSegLinetoHorizontalAbs(num x);
+
+  SVGPathSegLinetoHorizontalRel createSVGPathSegLinetoHorizontalRel(num x);
+
+  SVGPathSegLinetoRel createSVGPathSegLinetoRel(num x, num y);
+
+  SVGPathSegLinetoVerticalAbs createSVGPathSegLinetoVerticalAbs(num y);
+
+  SVGPathSegLinetoVerticalRel createSVGPathSegLinetoVerticalRel(num y);
+
+  SVGPathSegMovetoAbs createSVGPathSegMovetoAbs(num x, num y);
+
+  SVGPathSegMovetoRel createSVGPathSegMovetoRel(num x, num y);
+
+  int getPathSegAtLength(num distance);
+
+  SVGPoint getPointAtLength(num distance);
+
+  num getTotalLength();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSeg {
+
+  static final int PATHSEG_ARC_ABS = 10;
+
+  static final int PATHSEG_ARC_REL = 11;
+
+  static final int PATHSEG_CLOSEPATH = 1;
+
+  static final int PATHSEG_CURVETO_CUBIC_ABS = 6;
+
+  static final int PATHSEG_CURVETO_CUBIC_REL = 7;
+
+  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
+
+  static final int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_REL = 9;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
+
+  static final int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
+
+  static final int PATHSEG_LINETO_ABS = 4;
+
+  static final int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
+
+  static final int PATHSEG_LINETO_HORIZONTAL_REL = 13;
+
+  static final int PATHSEG_LINETO_REL = 5;
+
+  static final int PATHSEG_LINETO_VERTICAL_ABS = 14;
+
+  static final int PATHSEG_LINETO_VERTICAL_REL = 15;
+
+  static final int PATHSEG_MOVETO_ABS = 2;
+
+  static final int PATHSEG_MOVETO_REL = 3;
+
+  static final int PATHSEG_UNKNOWN = 0;
+
+  int get pathSegType();
+
+  String get pathSegTypeAsLetter();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegArcAbs extends SVGPathSeg {
+
+  num get angle();
+
+  void set angle(num value);
+
+  bool get largeArcFlag();
+
+  void set largeArcFlag(bool value);
+
+  num get r1();
+
+  void set r1(num value);
+
+  num get r2();
+
+  void set r2(num value);
+
+  bool get sweepFlag();
+
+  void set sweepFlag(bool value);
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegArcRel extends SVGPathSeg {
+
+  num get angle();
+
+  void set angle(num value);
+
+  bool get largeArcFlag();
+
+  void set largeArcFlag(bool value);
+
+  num get r1();
+
+  void set r1(num value);
+
+  num get r2();
+
+  void set r2(num value);
+
+  bool get sweepFlag();
+
+  void set sweepFlag(bool value);
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegClosePath extends SVGPathSeg {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get x1();
+
+  void set x1(num value);
+
+  num get x2();
+
+  void set x2(num value);
+
+  num get y();
+
+  void set y(num value);
+
+  num get y1();
+
+  void set y1(num value);
+
+  num get y2();
+
+  void set y2(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get x1();
+
+  void set x1(num value);
+
+  num get x2();
+
+  void set x2(num value);
+
+  num get y();
+
+  void set y(num value);
+
+  num get y1();
+
+  void set y1(num value);
+
+  num get y2();
+
+  void set y2(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get x2();
+
+  void set x2(num value);
+
+  num get y();
+
+  void set y(num value);
+
+  num get y2();
+
+  void set y2(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get x2();
+
+  void set x2(num value);
+
+  num get y();
+
+  void set y(num value);
+
+  num get y2();
+
+  void set y2(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get x1();
+
+  void set x1(num value);
+
+  num get y();
+
+  void set y(num value);
+
+  num get y1();
+
+  void set y1(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get x1();
+
+  void set x1(num value);
+
+  num get y();
+
+  void set y(num value);
+
+  num get y1();
+
+  void set y1(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegLinetoAbs extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegLinetoRel extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegLinetoVerticalRel extends SVGPathSeg {
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegList {
+
+  int get numberOfItems();
+
+  SVGPathSeg appendItem(SVGPathSeg newItem);
+
+  void clear();
+
+  SVGPathSeg getItem(int index);
+
+  SVGPathSeg initialize(SVGPathSeg newItem);
+
+  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index);
+
+  SVGPathSeg removeItem(int index);
+
+  SVGPathSeg replaceItem(SVGPathSeg newItem, int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegMovetoAbs extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPathSegMovetoRel extends SVGPathSeg {
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
+
+  SVGAnimatedLength get height();
+
+  SVGAnimatedEnumeration get patternContentUnits();
+
+  SVGAnimatedTransformList get patternTransform();
+
+  SVGAnimatedEnumeration get patternUnits();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPoint {
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+
+  SVGPoint matrixTransform(SVGMatrix matrix);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPointList {
+
+  int get numberOfItems();
+
+  SVGPoint appendItem(SVGPoint item);
+
+  void clear();
+
+  SVGPoint getItem(int index);
+
+  SVGPoint initialize(SVGPoint item);
+
+  SVGPoint insertItemBefore(SVGPoint item, int index);
+
+  SVGPoint removeItem(int index);
+
+  SVGPoint replaceItem(SVGPoint item, int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPolygonElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGPointList get animatedPoints();
+
+  SVGPointList get points();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGPointList get animatedPoints();
+
+  SVGPointList get points();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGPreserveAspectRatio {
+
+  static final int SVG_MEETORSLICE_MEET = 1;
+
+  static final int SVG_MEETORSLICE_SLICE = 2;
+
+  static final int SVG_MEETORSLICE_UNKNOWN = 0;
+
+  static final int SVG_PRESERVEASPECTRATIO_NONE = 1;
+
+  static final int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
+
+  static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
+
+  int get align();
+
+  void set align(int value);
+
+  int get meetOrSlice();
+
+  void set meetOrSlice(int value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGRadialGradientElement extends SVGGradientElement {
+
+  SVGAnimatedLength get cx();
+
+  SVGAnimatedLength get cy();
+
+  SVGAnimatedLength get fx();
+
+  SVGAnimatedLength get fy();
+
+  SVGAnimatedLength get r();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGRect {
+
+  num get height();
+
+  void set height(num value);
+
+  num get width();
+
+  void set width(num value);
+
+  num get x();
+
+  void set x(num value);
+
+  num get y();
+
+  void set y(num value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGRectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGAnimatedLength get height();
+
+  SVGAnimatedLength get rx();
+
+  SVGAnimatedLength get ry();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGRenderingIntent {
+
+  static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
+
+  static final int RENDERING_INTENT_AUTO = 1;
+
+  static final int RENDERING_INTENT_PERCEPTUAL = 2;
+
+  static final int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
+
+  static final int RENDERING_INTENT_SATURATION = 4;
+
+  static final int RENDERING_INTENT_UNKNOWN = 0;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
+
+  String get contentScriptType();
+
+  void set contentScriptType(String value);
+
+  String get contentStyleType();
+
+  void set contentStyleType(String value);
+
+  num get currentScale();
+
+  void set currentScale(num value);
+
+  SVGPoint get currentTranslate();
+
+  SVGAnimatedLength get height();
+
+  num get pixelUnitToMillimeterX();
+
+  num get pixelUnitToMillimeterY();
+
+  num get screenPixelToMillimeterX();
+
+  num get screenPixelToMillimeterY();
+
+  bool get useCurrentView();
+
+  void set useCurrentView(bool value);
+
+  SVGRect get viewport();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+
+  bool animationsPaused();
+
+  bool checkEnclosure(SVGElement element, SVGRect rect);
+
+  bool checkIntersection(SVGElement element, SVGRect rect);
+
+  SVGAngle createSVGAngle();
+
+  SVGLength createSVGLength();
+
+  SVGMatrix createSVGMatrix();
+
+  SVGNumber createSVGNumber();
+
+  SVGPoint createSVGPoint();
+
+  SVGRect createSVGRect();
+
+  SVGTransform createSVGTransform();
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix);
+
+  void deselectAll();
+
+  void forceRedraw();
+
+  num getCurrentTime();
+
+  Element getElementById(String elementId);
+
+  ElementList getEnclosureList(SVGRect rect, SVGElement referenceElement);
+
+  ElementList getIntersectionList(SVGRect rect, SVGElement referenceElement);
+
+  void pauseAnimations();
+
+  void setCurrentTime(num seconds);
+
+  int suspendRedraw(int maxWaitMilliseconds);
+
+  void unpauseAnimations();
+
+  void unsuspendRedraw(int suspendHandleId);
+
+  void unsuspendRedrawAll();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
+
+  String get type();
+
+  void set type(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGSetElement extends SVGAnimationElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGStopElement extends SVGElement, SVGStylable {
+
+  SVGAnimatedNumber get offset();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGStringList {
+
+  int get numberOfItems();
+
+  String appendItem(String item);
+
+  void clear();
+
+  String getItem(int index);
+
+  String initialize(String item);
+
+  String insertItemBefore(String item, int index);
+
+  String removeItem(int index);
+
+  String replaceItem(String item, int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGStylable {
+
+  SVGAnimatedString get className();
+
+  CSSStyleDeclaration get style();
+
+  CSSValue getPresentationAttribute(String name);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGStyleElement extends SVGElement, SVGLangSpace {
+
+  String get media();
+
+  void set media(String value);
+
+  String get title();
+
+  void set title(String value);
+
+  String get type();
+
+  void set type(String value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGSwitchElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGSymbolElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTRefElement extends SVGTextPositioningElement, SVGURIReference {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTSpanElement extends SVGTextPositioningElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTests {
+
+  SVGStringList get requiredExtensions();
+
+  SVGStringList get requiredFeatures();
+
+  SVGStringList get systemLanguage();
+
+  bool hasExtension(String extension);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
+
+  static final int LENGTHADJUST_SPACING = 1;
+
+  static final int LENGTHADJUST_SPACINGANDGLYPHS = 2;
+
+  static final int LENGTHADJUST_UNKNOWN = 0;
+
+  SVGAnimatedEnumeration get lengthAdjust();
+
+  SVGAnimatedLength get textLength();
+
+  int getCharNumAtPosition(SVGPoint point);
+
+  num getComputedTextLength();
+
+  SVGPoint getEndPositionOfChar(int offset);
+
+  SVGRect getExtentOfChar(int offset);
+
+  int getNumberOfChars();
+
+  num getRotationOfChar(int offset);
+
+  SVGPoint getStartPositionOfChar(int offset);
+
+  num getSubStringLength(int offset, int length);
+
+  void selectSubString(int offset, int length);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTextElement extends SVGTextPositioningElement, SVGTransformable {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
+
+  static final int TEXTPATH_METHODTYPE_ALIGN = 1;
+
+  static final int TEXTPATH_METHODTYPE_STRETCH = 2;
+
+  static final int TEXTPATH_METHODTYPE_UNKNOWN = 0;
+
+  static final int TEXTPATH_SPACINGTYPE_AUTO = 1;
+
+  static final int TEXTPATH_SPACINGTYPE_EXACT = 2;
+
+  static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
+
+  SVGAnimatedEnumeration get method();
+
+  SVGAnimatedEnumeration get spacing();
+
+  SVGAnimatedLength get startOffset();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTextPositioningElement extends SVGTextContentElement {
+
+  SVGAnimatedLengthList get dx();
+
+  SVGAnimatedLengthList get dy();
+
+  SVGAnimatedNumberList get rotate();
+
+  SVGAnimatedLengthList get x();
+
+  SVGAnimatedLengthList get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTitleElement extends SVGElement, SVGLangSpace, SVGStylable {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTransform {
+
+  static final int SVG_TRANSFORM_MATRIX = 1;
+
+  static final int SVG_TRANSFORM_ROTATE = 4;
+
+  static final int SVG_TRANSFORM_SCALE = 3;
+
+  static final int SVG_TRANSFORM_SKEWX = 5;
+
+  static final int SVG_TRANSFORM_SKEWY = 6;
+
+  static final int SVG_TRANSFORM_TRANSLATE = 2;
+
+  static final int SVG_TRANSFORM_UNKNOWN = 0;
+
+  num get angle();
+
+  SVGMatrix get matrix();
+
+  int get type();
+
+  void setMatrix(SVGMatrix matrix);
+
+  void setRotate(num angle, num cx, num cy);
+
+  void setScale(num sx, num sy);
+
+  void setSkewX(num angle);
+
+  void setSkewY(num angle);
+
+  void setTranslate(num tx, num ty);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTransformList {
+
+  int get numberOfItems();
+
+  SVGTransform appendItem(SVGTransform item);
+
+  void clear();
+
+  SVGTransform consolidate();
+
+  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix);
+
+  SVGTransform getItem(int index);
+
+  SVGTransform initialize(SVGTransform item);
+
+  SVGTransform insertItemBefore(SVGTransform item, int index);
+
+  SVGTransform removeItem(int index);
+
+  SVGTransform replaceItem(SVGTransform item, int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGTransformable extends SVGLocatable {
+
+  SVGAnimatedTransformList get transform();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGURIReference {
+
+  SVGAnimatedString get href();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGUnitTypes {
+
+  static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
+
+  static final int SVG_UNIT_TYPE_UNKNOWN = 0;
+
+  static final int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
+
+  SVGElementInstance get animatedInstanceRoot();
+
+  SVGAnimatedLength get height();
+
+  SVGElementInstance get instanceRoot();
+
+  SVGAnimatedLength get width();
+
+  SVGAnimatedLength get x();
+
+  SVGAnimatedLength get y();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGVKernElement extends SVGElement {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
+
+  SVGStringList get viewTarget();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
+
+  String get preserveAspectRatioString();
+
+  SVGTransformList get transform();
+
+  String get transformString();
+
+  String get viewBoxString();
+
+  SVGElement get viewTarget();
+
+  String get viewTargetString();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGZoomAndPan {
+
+  static final int SVG_ZOOMANDPAN_DISABLE = 1;
+
+  static final int SVG_ZOOMANDPAN_MAGNIFY = 2;
+
+  static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
+
+  int get zoomAndPan();
+
+  void set zoomAndPan(int value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGZoomEvent extends UIEvent {
+
+  num get newScale();
+
+  SVGPoint get newTranslate();
+
+  num get previousScale();
+
+  SVGPoint get previousTranslate();
+
+  SVGRect get zoomRectScreen();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4716,40 +7630,28 @@ interface StorageInfo {
 
 // WARNING: Do not edit - generated code.
 
-interface StorageInfoErrorCallback {
-
-  bool handleEvent(DOMException error);
-}
+typedef bool StorageInfoErrorCallback(DOMException error);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-interface StorageInfoQuotaCallback {
-
-  bool handleEvent(int grantedQuotaInBytes);
-}
+typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-interface StorageInfoUsageCallback {
-
-  bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes);
-}
+typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-interface StringCallback {
-
-  bool handleEvent(String data);
-}
+typedef bool StringCallback(String data);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -5184,6 +8086,96 @@ interface TextMetrics {
 
 // WARNING: Do not edit - generated code.
 
+interface TextTrack {
+
+  static final int Disabled = 0;
+
+  static final int Error = 3;
+
+  static final int Hidden = 1;
+
+  static final int Loaded = 2;
+
+  static final int Loading = 1;
+
+  static final int None = 0;
+
+  static final int Showing = 2;
+
+  TextTrackCueList get activeCues();
+
+  TextTrackCueList get cues();
+
+  String get kind();
+
+  String get label();
+
+  String get language();
+
+  int get mode();
+
+  void set mode(int value);
+
+  int get readyState();
+
+  void addCue(TextTrackCue cue);
+
+  void removeCue(TextTrackCue cue);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface TextTrackCue {
+
+  String get alignment();
+
+  String get direction();
+
+  num get endTime();
+
+  String get id();
+
+  int get linePosition();
+
+  bool get pauseOnExit();
+
+  int get size();
+
+  bool get snapToLines();
+
+  num get startTime();
+
+  int get textPosition();
+
+  TextTrack get track();
+
+  DocumentFragment getCueAsHTML();
+
+  String getCueAsSource();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface TextTrackCueList {
+
+  int get length();
+
+  TextTrackCue getCueById(String id);
+
+  TextTrackCue item(int index);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface TimeRanges {
 
   int get length();
@@ -5275,6 +8267,8 @@ interface TrackElement extends Element {
   String get srclang();
 
   void set srclang(String value);
+
+  TextTrack get track();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5424,6 +8418,18 @@ interface VoidCallback {
 
 // WARNING: Do not edit - generated code.
 
+interface WaveShaperNode extends AudioNode {
+
+  Float32Array get curve();
+
+  void set curve(Float32Array value);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebGLActiveInfo {
 
   String get name();
@@ -5481,6 +8487,28 @@ interface WebGLContextAttributes {
 interface WebGLContextEvent extends Event {
 
   String get statusMessage();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebGLDebugRendererInfo {
+
+  static final int UNMASKED_RENDERER_WEBGL = 0x9246;
+
+  static final int UNMASKED_VENDOR_WEBGL = 0x9245;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebGLDebugShaders {
+
+  String getTranslatedShaderSource(WebGLShader shader);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6224,39 +9252,37 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   int getAttribLocation(WebGLProgram program, String name);
 
-  void getBufferParameter();
+  Object getBufferParameter(int target, int pname);
 
   WebGLContextAttributes getContextAttributes();
 
   int getError();
 
-  void getExtension(String name);
+  Object getExtension(String name);
 
-  void getFramebufferAttachmentParameter();
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname);
 
-  void getParameter();
+  Object getParameter(int pname);
 
   String getProgramInfoLog(WebGLProgram program);
 
-  void getProgramParameter();
+  Object getProgramParameter(WebGLProgram program, int pname);
 
-  void getRenderbufferParameter();
+  Object getRenderbufferParameter(int target, int pname);
 
   String getShaderInfoLog(WebGLShader shader);
 
-  void getShaderParameter();
+  Object getShaderParameter(WebGLShader shader, int pname);
 
   String getShaderSource(WebGLShader shader);
 
-  void getSupportedExtensions();
+  Object getTexParameter(int target, int pname);
 
-  void getTexParameter();
-
-  void getUniform();
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location);
 
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name);
 
-  void getVertexAttrib();
+  Object getVertexAttrib(int index, int pname);
 
   int getVertexAttribOffset(int index, int pname);
 
@@ -6418,6 +9444,48 @@ interface WebGLVertexArrayObjectOES {
 
 // WARNING: Do not edit - generated code.
 
+interface WebKitCSSFilterValue extends CSSValueList {
+
+  static final int CSS_FILTER_BLUR = 9;
+
+  static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GAMMA = 8;
+
+  static final int CSS_FILTER_GRAYSCALE = 2;
+
+  static final int CSS_FILTER_HUE_ROTATE = 5;
+
+  static final int CSS_FILTER_INVERT = 6;
+
+  static final int CSS_FILTER_OPACITY = 7;
+
+  static final int CSS_FILTER_REFERENCE = 1;
+
+  static final int CSS_FILTER_SATURATE = 4;
+
+  static final int CSS_FILTER_SEPIA = 3;
+
+  static final int CSS_FILTER_SHARPEN = 10;
+
+  int get operationType();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface WebKitMutationObserver {
+
+  void disconnect();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface XMLHttpRequestException {
 
   static final int ABORT_ERR = 102;
@@ -6429,6 +9497,8 @@ interface XMLHttpRequestException {
   String get message();
 
   String get name();
+
+  String toString();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8447,7 +11517,7 @@ interface DocumentEvents extends ElementEvents {
 interface Document extends Element /*, common.NodeSelector */ {
 
   // TODO(jacobr): remove.
-  Event createEvent([String eventType]);
+  Event createEvent(String eventType);
 
   Element get activeElement();
 
@@ -8494,9 +11564,6 @@ interface Document extends Element /*, common.NodeSelector */ {
   String get webkitVisibilityState();
 
   Future<Range> caretRangeFromPoint([int x, int y]);
-
-  // TODO(jacobr): remove.
-  Element createElement([String tagName]);
 
   Future<Element> elementFromPoint([int x, int y]);
 
@@ -8920,19 +11987,19 @@ interface EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-var secretWindow;
-var secretDocument;
+Window secretWindow;
+Document secretDocument;
 
 Window get window() {
   if (secretWindow === null) {
-    LevelDom.initialize(dom.window);
+    LevelDom.initialize();
   }
   return secretWindow;
 }
 
 Document get document() {
   if (secretWindow === null) {
-    LevelDom.initialize(dom.window);
+    LevelDom.initialize();
   }
   return secretDocument;
 }
@@ -9526,7 +12593,7 @@ interface KeyName {
 interface MessageEvent extends Event factory MessageEventWrappingImplementation {
 
   MessageEvent(String type, String data, String origin, String lastEventId,
-      Window source, [bool canBubble, bool cancelable, MessagePort port]);
+      Window source, MessagePort port, [bool canBubble, bool cancelable]);
 
   String get data();
 
@@ -9778,6 +12845,38 @@ interface StorageEvent extends Event factory StorageEventWrappingImplementation 
   Storage get storageArea();
 
   String get url();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGDocument extends Document {
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SVGElementInstance extends EventTarget {
+
+  SVGElementInstanceList get childNodes();
+
+  SVGElement get correspondingElement();
+
+  SVGUseElement get correspondingUseElement();
+
+  SVGElementInstance get firstChild();
+
+  SVGElementInstance get lastChild();
+
+  SVGElementInstance get nextSibling();
+
+  SVGElementInstance get parentNode();
+
+  SVGElementInstance get previousSibling();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

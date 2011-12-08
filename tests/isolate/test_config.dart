@@ -9,6 +9,7 @@
 class IsolateTestSuite extends StandardTestSuite {
   IsolateTestSuite(Map configuration)
       : super(configuration,
+              "isolate",
               "tests/isolate/src",
               ["tests/isolate/isolate.status"]);
 }

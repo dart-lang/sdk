@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DatabaseCallback {
-
-  bool handleEvent(var database);
-}
+typedef bool DatabaseCallback(var database);

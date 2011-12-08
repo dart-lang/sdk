@@ -14,9 +14,8 @@ class _StyleSheetListWrappingImplementation extends DOMWrapperBase implements St
   int get length() { return _get_length(this); }
   static int _get_length(var _this) native;
 
-  StyleSheet operator[](int index) {
-    return item(index);
-  }
+  StyleSheet operator[](int index) { return _index(this, index); }
+  static StyleSheet _index(var _this, int index) native;
 
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");

@@ -22,12 +22,8 @@ class RuntimeEntry;
 #if defined(TESTING) || defined(DEBUG)
 
 #if defined(TARGET_OS_WINDOWS)
-#define CHECK_STACK_ALIGNMENT {                                                \
-  uword current_sp;                                                            \
-  __asm { mov current_sp, esp }                                                \
-  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
-         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
-}
+// The compiler may dynamically align the stack on Windows, so do not check.
+#define CHECK_STACK_ALIGNMENT { }
 #else
 #define CHECK_STACK_ALIGNMENT {                                                \
   uword current_sp;                                                            \

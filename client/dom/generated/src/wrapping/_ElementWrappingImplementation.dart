@@ -234,5 +234,11 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   }
   static bool _webkitMatchesSelector(receiver, selectors) native;
 
+  void webkitRequestFullScreen(int flags) {
+    _webkitRequestFullScreen(this, flags);
+    return;
+  }
+  static void _webkitRequestFullScreen(receiver, flags) native;
+
   String get typeName() { return "Element"; }
 }

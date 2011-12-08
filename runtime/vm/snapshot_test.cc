@@ -44,7 +44,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 TEST_CASE(SerializeNull) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   const Object& null_object = Object::Handle();
   writer.WriteObject(null_object.raw());
   writer.FinalizeBuffer();
@@ -63,7 +63,7 @@ TEST_CASE(SerializeNull) {
 TEST_CASE(SerializeSmi1) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   const Smi& smi = Smi::Handle(Smi::New(124));
   writer.WriteObject(smi.raw());
   writer.FinalizeBuffer();
@@ -82,7 +82,7 @@ TEST_CASE(SerializeSmi1) {
 TEST_CASE(SerializeSmi2) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   const Smi& smi = Smi::Handle(Smi::New(-1));
   writer.WriteObject(smi.raw());
   writer.FinalizeBuffer();
@@ -101,7 +101,7 @@ TEST_CASE(SerializeSmi2) {
 TEST_CASE(SerializeDouble) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   const Double& dbl = Double::Handle(Double::New(101.29));
   writer.WriteObject(dbl.raw());
   writer.FinalizeBuffer();
@@ -120,7 +120,7 @@ TEST_CASE(SerializeDouble) {
 TEST_CASE(SerializeBool) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   const Bool& bool1 = Bool::Handle(Bool::True());
   const Bool& bool2 = Bool::Handle(Bool::False());
   writer.WriteObject(bool1.raw());
@@ -141,7 +141,7 @@ TEST_CASE(SerializeBool) {
 TEST_CASE(SerializeBigint) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   const Bigint& bigint = Bigint::Handle(Bigint::New(0xfffffffffLL));
   writer.WriteObject(bigint.raw());
   writer.FinalizeBuffer();
@@ -162,14 +162,14 @@ TEST_CASE(SerializeBigint) {
 TEST_CASE(SerializeSingletons) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   writer.WriteObject(Object::class_class());
   writer.WriteObject(Object::null_class());
-  writer.WriteObject(Object::parameterized_type_class());
+  writer.WriteObject(Object::type_class());
   writer.WriteObject(Object::type_parameter_class());
   writer.WriteObject(Object::instantiated_type_class());
+  writer.WriteObject(Object::abstract_type_arguments_class());
   writer.WriteObject(Object::type_arguments_class());
-  writer.WriteObject(Object::type_array_class());
   writer.WriteObject(Object::instantiated_type_arguments_class());
   writer.WriteObject(Object::function_class());
   writer.WriteObject(Object::field_class());
@@ -192,11 +192,11 @@ TEST_CASE(SerializeSingletons) {
   SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
   EXPECT(Object::class_class() == reader.ReadObject());
   EXPECT(Object::null_class() == reader.ReadObject());
-  EXPECT(Object::parameterized_type_class() == reader.ReadObject());
+  EXPECT(Object::type_class() == reader.ReadObject());
   EXPECT(Object::type_parameter_class() == reader.ReadObject());
   EXPECT(Object::instantiated_type_class() == reader.ReadObject());
+  EXPECT(Object::abstract_type_arguments_class() == reader.ReadObject());
   EXPECT(Object::type_arguments_class() == reader.ReadObject());
-  EXPECT(Object::type_array_class() == reader.ReadObject());
   EXPECT(Object::instantiated_type_arguments_class() == reader.ReadObject());
   EXPECT(Object::function_class() == reader.ReadObject());
   EXPECT(Object::field_class() == reader.ReadObject());
@@ -215,7 +215,7 @@ TEST_CASE(SerializeSingletons) {
 TEST_CASE(SerializeString) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   String& str = String::Handle(String::New("This string shall be serialized"));
   writer.WriteObject(str.raw());
   writer.FinalizeBuffer();
@@ -235,7 +235,7 @@ TEST_CASE(SerializeString) {
 TEST_CASE(SerializeArray) {
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   const int kArrayLength = 10;
   Array& array = Array::Handle(Array::New(kArrayLength));
   Smi& smi = Smi::Handle();
@@ -275,7 +275,7 @@ TEST_CASE(SerializeScript) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(false, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
   writer.WriteObject(script.raw());
   writer.FinalizeBuffer();
 
@@ -332,9 +332,8 @@ UNIT_TEST_CASE(FullSnapshot) {
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
   timer1.Start();
-  Dart_CreateIsolate(NULL, NULL);
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    TestIsolateScope __test_isolate__;
 
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
@@ -345,18 +344,15 @@ UNIT_TEST_CASE(FullSnapshot) {
     Isolate* isolate = Isolate::Current();
     Zone zone(isolate);
     HandleScope scope(isolate);
-    SnapshotWriter writer(true, &buffer, &allocator);
+    SnapshotWriter writer(Snapshot::kFull, &buffer, &allocator);
     writer.WriteFullSnapshot();
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 
   // Now Create another isolate using the snapshot and execute a method
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  Dart_CreateIsolate(buffer, NULL);
+  TestCase::CreateTestIsolateFromSnapshot(buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -369,11 +365,9 @@ UNIT_TEST_CASE(FullSnapshot) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
+    Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-
   free(buffer);
 }
 
@@ -392,9 +386,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
   // Start an Isolate, load a script and create a full snapshot.
   Timer timer1(true, "Snapshot_test");
   timer1.Start();
-  Dart_CreateIsolate(NULL, NULL);
   {
-    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+    TestIsolateScope __test_isolate__;
+
     Isolate* isolate = Isolate::Current();
     Zone zone(isolate);
     HandleScope scope(isolate);
@@ -406,7 +400,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
     OS::PrintErr("Without Snapshot: %dus\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    SnapshotWriter writer(true, &buffer, &allocator);
+    SnapshotWriter writer(Snapshot::kFull, &buffer, &allocator);
     writer.WriteFullSnapshot();
 
     // Invoke a function which returns an object.
@@ -416,16 +410,13 @@ UNIT_TEST_CASE(FullSnapshot1) {
                                0,
                                NULL);
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
   }
-  Dart_ShutdownIsolate();
 
   // Now Create another isolate using the snapshot and execute a method
   // from the script.
   Timer timer2(true, "Snapshot_test");
   timer2.Start();
-  Dart_CreateIsolate(buffer, NULL);
+  TestCase::CreateTestIsolateFromSnapshot(buffer);
   {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
     timer2.Stop();
@@ -442,13 +433,70 @@ UNIT_TEST_CASE(FullSnapshot1) {
       fprintf(stderr, "%s\n", Dart_GetError(result));
     }
     EXPECT_VALID(result);
-
-    Dart_ExitScope();  // Exit the Dart API scope.
+    Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-
   free(buffer);
 }
+
+
+UNIT_TEST_CASE(ScriptSnapshot) {
+  const char* kScriptChars =
+      "class Fields  {\n"
+      "  Fields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld1;\n"
+      "  final int fld2;\n"
+      "  static int fld3;\n"
+      "  static final int fld4 = 10;\n"
+      "}\n"
+      "class FieldsTest {\n"
+      "  static Fields testMain() {\n"
+      "    Fields obj = new Fields(10, 20);\n"
+      "    return obj;\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle result;
+
+  uint8_t* buffer;
+  intptr_t size;
+
+  // Start an Isolate, load a script and create a script snapshot.
+  {
+    TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    TestCase::LoadTestScript(kScriptChars, NULL);
+
+    // Write out the script snapshot.
+    result = Dart_CreateScriptSnapshot(TestCase::lib(), &buffer, &size);
+    EXPECT_VALID(result);
+    Dart_ExitScope();
+  }
+
+  // Now Create another isolate and load the application snapshot and
+  // execute it.
+  {
+    TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Load the test library from the snapshot.
+    result = Dart_LoadScriptFromSnapshot(buffer);
+    EXPECT_VALID(result);
+
+    // Invoke a function which returns an object.
+    result = Dart_InvokeStatic(result,
+                               Dart_NewString("FieldsTest"),
+                               Dart_NewString("testMain"),
+                               0,
+                               NULL);
+    EXPECT_VALID(result);
+    Dart_ExitScope();
+  }
+  Dart_ShutdownIsolate();
+  free(buffer);
+}
+
 #endif  // TARGET_ARCH_IA32.
 
 }  // namespace dart

@@ -9,6 +9,7 @@
 class StandaloneTestSuite extends StandardTestSuite {
   StandaloneTestSuite(Map configuration)
       : super(configuration,
+              "standalone",
               "tests/standalone/src",
               ["tests/standalone/standalone.status"]);
 }

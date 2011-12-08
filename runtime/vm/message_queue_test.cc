@@ -21,6 +21,11 @@ class MessageQueueTestPeer {
 };
 
 
+static Dart_Message AllocMsg(const char* str) {
+  return reinterpret_cast<Dart_Message>(strdup(str));
+}
+
+
 TEST_CASE(MessageQueue_BasicOperations) {
   MessageQueue queue;
   MessageQueueTestPeer queue_peer(&queue);
@@ -29,11 +34,11 @@ TEST_CASE(MessageQueue_BasicOperations) {
   Dart_Port port = 1;
 
   // Add two messages.
-  PortMessage* msg1 = new PortMessage(port, 0, strdup("msg1"));
+  PortMessage* msg1 = new PortMessage(port, 0, AllocMsg("msg1"));
   queue.Enqueue(msg1);
   EXPECT(queue_peer.HasMessage());
 
-  PortMessage* msg2 = new PortMessage(port, 0, strdup("msg2"));
+  PortMessage* msg2 = new PortMessage(port, 0, AllocMsg("msg2"));
   queue.Enqueue(msg2);
   EXPECT(queue_peer.HasMessage());
 
@@ -118,7 +123,8 @@ TEST_CASE(MessageQueue_WaitNotify) {
   for (int i = 0; i < 3; i++) {
     int* data = reinterpret_cast<int*>(malloc(sizeof(*data)));
     *data = i+1000;
-    PortMessage* msg = new PortMessage(i+10, i+100, data);
+    PortMessage* msg =
+        new PortMessage(i+10, i+100, reinterpret_cast<Dart_Message>(data));
     shared_queue->Enqueue(msg);
   }
 
@@ -134,7 +140,8 @@ TEST_CASE(MessageQueue_WaitNotify) {
   for (int i = 0; i < 3; i++) {
     int* data = reinterpret_cast<int*>(malloc(sizeof(*data)));
     *data = i+2000;
-    PortMessage* msg = new PortMessage(i+20, i+200, data);
+    PortMessage* msg =
+        new PortMessage(i+20, i+200, reinterpret_cast<Dart_Message>(data));
     shared_queue->Enqueue(msg);
   }
 
@@ -153,9 +160,9 @@ TEST_CASE(MessageQueue_FlushAll) {
   Dart_Port port2 = 2;
 
   // Add two messages.
-  PortMessage* msg1 = new PortMessage(port1, 0, strdup("msg1"));
+  PortMessage* msg1 = new PortMessage(port1, 0, AllocMsg("msg1"));
   queue.Enqueue(msg1);
-  PortMessage* msg2 = new PortMessage(port2, 0, strdup("msg2"));
+  PortMessage* msg2 = new PortMessage(port2, 0, AllocMsg("msg2"));
   queue.Enqueue(msg2);
 
   EXPECT(queue_peer.HasMessage());
@@ -173,9 +180,9 @@ TEST_CASE(MessageQueue_Flush) {
   Dart_Port port2 = 2;
 
   // Add two messages on different ports.
-  PortMessage* msg1 = new PortMessage(port1, 0, strdup("msg1"));
+  PortMessage* msg1 = new PortMessage(port1, 0, AllocMsg("msg1"));
   queue.Enqueue(msg1);
-  PortMessage* msg2 = new PortMessage(port2, 0, strdup("msg2"));
+  PortMessage* msg2 = new PortMessage(port2, 0, AllocMsg("msg2"));
   queue.Enqueue(msg2);
   EXPECT(queue_peer.HasMessage());
 
@@ -199,9 +206,9 @@ TEST_CASE(MessageQueue_Flush_MultipleMessages) {
   MessageQueueTestPeer queue_peer(&queue);
   Dart_Port port1 = 1;
 
-  PortMessage* msg1 = new PortMessage(port1, 0, strdup("msg1"));
+  PortMessage* msg1 = new PortMessage(port1, 0, AllocMsg("msg1"));
   queue.Enqueue(msg1);
-  PortMessage* msg2 = new PortMessage(port1, 0, strdup("msg2"));
+  PortMessage* msg2 = new PortMessage(port1, 0, AllocMsg("msg2"));
   queue.Enqueue(msg2);
   EXPECT(queue_peer.HasMessage());
 

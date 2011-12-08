@@ -29,57 +29,11 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
 }
 
 
-void Disassembler::Disassemble(uword start,
-                               uword end,
-                               DisassemblyFormatter* formatter) {
-  ASSERT(formatter != NULL);
-  char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
-  char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
-  uword pc = start;
-  while (pc < end) {
-    int instruction_length = DecodeInstruction(hex_buffer,
-                                               sizeof(hex_buffer),
-                                               human_buffer,
-                                               sizeof(human_buffer),
-                                               pc);
-    formatter->ConsumeInstruction(hex_buffer,
-                                  sizeof(hex_buffer),
-                                  human_buffer,
-                                  sizeof(human_buffer),
-                                  pc);
-    pc += instruction_length;
-  }
-}
-
-
-void Disassembler::DisassembleMemoryRegionRange(
-    const MemoryRegion& instructions,
-    uword from,
-    uword to,
-    DisassemblyFormatter *formatter) {
-  ASSERT(formatter != NULL);
-  char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
-  char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
-  uword start = instructions.start();
-  uword end = instructions.end();
-  ASSERT((from >= start) && (to <= end) && (from <= to));
-  uword pc = start;
-  uword stop = Utils::Minimum(end, to);
-  while (pc < stop) {
-    int instruction_length = DecodeInstruction(hex_buffer,
-                                               sizeof(hex_buffer),
-                                               human_buffer,
-                                               sizeof(human_buffer),
-                                               pc);
-    if (pc >= from) {
-      formatter->ConsumeInstruction(hex_buffer,
-                                    sizeof(hex_buffer),
-                                    human_buffer,
-                                    sizeof(human_buffer),
-                                    pc);
-    }
-    pc += instruction_length;
-  }
+void DisassembleToStdout::Print(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  OS::VFPrint(stdout, format, args);
+  va_end(args);
 }
 
 }  // namespace dart

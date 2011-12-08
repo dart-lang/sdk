@@ -43,20 +43,22 @@ TestCase MakeTestCase(String testName, List<String> expectations) {
     test_path = "../tests/standalone/src/${testName}.dart";
   }
 
-  var timeout = 2;
+  var configuration = { 'timeout': 2,
+                        'special-command': '' };
   return new TestCase(testName,
                       getDartFileName(),
                       <String>["--ignore-unrecognized-flags",
                                "--enable_type_checks",
                                test_path],
-                      timeout,
+                      configuration,
                       TestController.processCompletedTest,
                       new Set<String>.from(expectations));
 }
 
 
 void main() {
-  int timeout = 2;
+  var configuration = { 'timeout': 2,
+                        'special-command': '' };
   new RunningProcess(MakeTestCase("PassTest", [PASS])).start();
   new RunningProcess(MakeTestCase("FailTest", [FAIL])).start();
   new RunningProcess(MakeTestCase("TimeoutTest", [TIMEOUT])).start();
@@ -64,7 +66,7 @@ void main() {
   new RunningProcess(new TestCase("CrashTest",
                                   getProcessTestFileName(),
                                   const ["0", "0", "1", "1"],
-                                  timeout,
+                                  configuration,
                                   TestController.processCompletedTest,
                                   new Set<String>.from([CRASH]))).start();
   Expect.equals(4, TestController.numTests);

@@ -39,8 +39,7 @@ def main():
     'plugins',
     'storage',
     'svg',
-    # TODO(vsm): Fix parser/idl file to re-enable this.
-    #    'webaudio',
+    'webaudio',
     'websockets',
     'workers',
     'xml',
@@ -55,6 +54,8 @@ def main():
       'LANGUAGE_DART',
       'LANGUAGE_JAVASCRIPT',
       'ENABLE_DOM_STORAGE',
+      'ENABLE_FILE_SYSTEM',
+      'ENABLE_FULLSCREEN_API',
       'ENABLE_NOTIFICATIONS',
       'ENABLE_OFFLINE_WEB_APPLICATIONS',
       'ENABLE_REQUEST_ANIMATION_FRAME',

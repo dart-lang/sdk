@@ -7,7 +7,7 @@
 class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementation implements DataView {
   DataViewWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  num getFloat32(int byteOffset, [bool littleEndian = null]) {
+  num getFloat32(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getFloat32(byteOffset);
     } else {
@@ -15,7 +15,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  num getFloat64(int byteOffset, [bool littleEndian = null]) {
+  num getFloat64(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getFloat64(byteOffset);
     } else {
@@ -23,7 +23,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  int getInt16(int byteOffset, [bool littleEndian = null]) {
+  int getInt16(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getInt16(byteOffset);
     } else {
@@ -31,7 +31,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  int getInt32(int byteOffset, [bool littleEndian = null]) {
+  int getInt32(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getInt32(byteOffset);
     } else {
@@ -43,7 +43,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     return _ptr.getInt8();
   }
 
-  int getUint16(int byteOffset, [bool littleEndian = null]) {
+  int getUint16(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getUint16(byteOffset);
     } else {
@@ -51,7 +51,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  int getUint32(int byteOffset, [bool littleEndian = null]) {
+  int getUint32(int byteOffset, [bool littleEndian]) {
     if (littleEndian === null) {
       return _ptr.getUint32(byteOffset);
     } else {
@@ -63,7 +63,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     return _ptr.getUint8();
   }
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) {
+  void setFloat32(int byteOffset, num value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setFloat32(byteOffset, value);
       return;
@@ -73,7 +73,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) {
+  void setFloat64(int byteOffset, num value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setFloat64(byteOffset, value);
       return;
@@ -83,7 +83,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setInt16(int byteOffset, int value, [bool littleEndian = null]) {
+  void setInt16(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setInt16(byteOffset, value);
       return;
@@ -93,7 +93,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setInt32(int byteOffset, int value, [bool littleEndian = null]) {
+  void setInt32(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setInt32(byteOffset, value);
       return;
@@ -108,7 +108,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     return;
   }
 
-  void setUint16(int byteOffset, int value, [bool littleEndian = null]) {
+  void setUint16(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setUint16(byteOffset, value);
       return;
@@ -118,7 +118,7 @@ class DataViewWrappingImplementation extends ArrayBufferViewWrappingImplementati
     }
   }
 
-  void setUint32(int byteOffset, int value, [bool littleEndian = null]) {
+  void setUint32(int byteOffset, int value, [bool littleEndian]) {
     if (littleEndian === null) {
       _ptr.setUint32(byteOffset, value);
       return;

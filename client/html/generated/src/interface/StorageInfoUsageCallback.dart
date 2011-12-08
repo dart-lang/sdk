@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface StorageInfoUsageCallback {
-
-  bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes);
-}
+typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);

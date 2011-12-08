@@ -59,4 +59,8 @@ class LocationWrappingImplementation extends DOMWrapperBase implements Location 
     _ptr.replace(url);
     return;
   }
+
+  String toString() {
+    return _ptr.toString();
+  }
 }

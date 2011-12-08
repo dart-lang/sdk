@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileCallback {
-
-  bool handleEvent(File file);
-}
+typedef bool FileCallback(File file);

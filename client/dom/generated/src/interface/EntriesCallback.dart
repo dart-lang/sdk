@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface EntriesCallback {
-
-  bool handleEvent(EntryArray entries);
-}
+typedef bool EntriesCallback(EntryArray entries);

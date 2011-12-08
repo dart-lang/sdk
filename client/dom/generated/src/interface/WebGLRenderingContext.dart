@@ -716,39 +716,37 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   int getAttribLocation(WebGLProgram program, String name);
 
-  void getBufferParameter();
+  Object getBufferParameter(int target, int pname);
 
   WebGLContextAttributes getContextAttributes();
 
   int getError();
 
-  void getExtension(String name);
+  Object getExtension(String name);
 
-  void getFramebufferAttachmentParameter();
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname);
 
-  void getParameter();
+  Object getParameter(int pname);
 
   String getProgramInfoLog(WebGLProgram program);
 
-  void getProgramParameter();
+  Object getProgramParameter(WebGLProgram program, int pname);
 
-  void getRenderbufferParameter();
+  Object getRenderbufferParameter(int target, int pname);
 
   String getShaderInfoLog(WebGLShader shader);
 
-  void getShaderParameter();
+  Object getShaderParameter(WebGLShader shader, int pname);
 
   String getShaderSource(WebGLShader shader);
 
-  void getSupportedExtensions();
+  Object getTexParameter(int target, int pname);
 
-  void getTexParameter();
-
-  void getUniform();
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location);
 
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name);
 
-  void getVertexAttrib();
+  Object getVertexAttrib(int index, int pname);
 
   int getVertexAttribOffset(int index, int pname);
 

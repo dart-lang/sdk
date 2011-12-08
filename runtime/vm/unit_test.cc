@@ -11,6 +11,7 @@
 #include "vm/code_generator.h"
 #include "vm/code_index_table.h"
 #include "vm/compiler.h"
+#include "vm/dart_api_impl.h"
 #include "vm/disassembler.h"
 #include "vm/longjump.h"
 #include "vm/parser.h"
@@ -94,6 +95,16 @@ Dart_Handle TestCase::lib() {
   DART_CHECK_VALID(lib);
   ASSERT(Dart_IsLibrary(lib));
   return lib;
+}
+
+
+Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
+                                      Dart_Handle library,
+                                      Dart_Handle url) {
+  if (tag == kCanonicalizeUrl) {
+    return url;
+  }
+  return Api::Success();
 }
 
 

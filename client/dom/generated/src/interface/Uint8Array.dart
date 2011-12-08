@@ -4,7 +4,13 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Uint8Array extends ArrayBufferView {
+interface Uint8Array extends ArrayBufferView, List<int> factory _TypedArrayFactoryProvider {
+
+  Uint8Array(int length);
+
+  Uint8Array.fromList(List<int> list);
+
+  Uint8Array.fromBuffer(ArrayBuffer buffer);
 
   static final int BYTES_PER_ELEMENT = 1;
 

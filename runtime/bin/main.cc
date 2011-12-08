@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "include/dart_api.h"
+#include "include/dart_debugger_api.h"
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -19,9 +20,19 @@
 extern const uint8_t* snapshot_buffer;
 
 
+// Global state that stores a pointer to the application script file.
+static char* canonical_script_name = NULL;
+
+
 // Global state that indicates whether pprof symbol information is
 // to be generated or not.
 static const char* generate_pprof_symbols_filename = NULL;
+
+
+// Global state that indicates whether there is a debug breakpoint.
+// This pointer points into an argv buffer and does not need to be
+// free'd.
+static const char* breakpoint_at = NULL;
 
 
 static bool IsValidFlag(const char* name,
@@ -52,6 +63,16 @@ static bool ProcessPprofOption(const char* option) {
 }
 
 
+static bool ProcessDebugOption(const char* option) {
+  const char* kDebugOption = "--break_at=";
+  const char* func_name = ProcessOption(option, kDebugOption);
+  if (func_name != NULL) {
+    breakpoint_at = func_name;
+  }
+  return func_name != NULL;
+}
+
+
 // Parse out the command line arguments. Returns -1 if the arguments
 // are incorrect, 0 otherwise.
 static int ParseArguments(int argc,
@@ -69,10 +90,12 @@ static int ParseArguments(int argc,
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
     if (ProcessPprofOption(argv[i])) {
       i += 1;
-      continue;
+    } else if (ProcessDebugOption(argv[i])) {
+      i += 1;
+    } else {
+      vm_options->AddArgument(argv[i]);
+      i += 1;
     }
-    vm_options->AddArgument(argv[i]);
-    i += 1;
   }
   if (generate_pprof_symbols_filename != NULL) {
     Dart_InitPprofSupport();
@@ -187,7 +210,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   }
   result = DartUtils::LoadSource(NULL, library, url, tag, url_string);
   if (!Dart_IsError(result) && (tag == kImportTag)) {
-    Builtin_ImportLibrary(result);
+    Builtin::ImportLibrary(result);
   }
   return result;
 }
@@ -204,30 +227,40 @@ static Dart_Handle LoadScript(const char* script_name) {
 }
 
 
-static void* MainIsolateInitCallback(void* data) {
-  const char* script_name = reinterpret_cast<const char*>(data);
+static bool CreateIsolateAndSetup(void* data, char** error) {
+  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer, data, error);
+  if (isolate == NULL) {
+    return false;
+  }
+
   Dart_Handle library;
   Dart_EnterScope();
 
-  // Load the specified script.
-  library = LoadScript(script_name);
+  // Load the specified application script into the newly created isolate.
+  library = LoadScript(canonical_script_name);
   if (Dart_IsError(library)) {
-    const char* err_msg = Dart_GetError(library);
-    fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
+    *error = strdup(Dart_GetError(library));
     Dart_ExitScope();
-    exit(255);
+    Dart_ShutdownIsolate();
+    return false;
   }
   if (!Dart_IsLibrary(library)) {
-    fprintf(stderr,
-            "Expected a library when loading script: %s",
-            script_name);
+    char errbuf[256];
+    snprintf(errbuf, sizeof(errbuf),
+             "Expected a library when loading script: %s",
+             canonical_script_name);
+    *error = strdup(errbuf);
     Dart_ExitScope();
-    exit(255);
+    Dart_ShutdownIsolate();
+    return false;
   }
-  Builtin_ImportLibrary(library);  // Import builtin library.
-
+  Builtin::ImportLibrary(library);  // Implicitly import builtin into app.
+  if (snapshot_buffer != NULL) {
+    // Setup the native resolver as the snapshot does not carry it.
+    Builtin::SetNativeResolver();
+  }
   Dart_ExitScope();
-  return data;
+  return true;
 }
 
 
@@ -267,35 +300,35 @@ int main(int argc, char** argv) {
     return 255;
   }
 
-  // Initialize the Dart VM (TODO(asiva) - remove const_cast once
-  // dart API is fixed to take a const char** in Dart_Initialize).
-  Dart_Initialize(vm_options.count(),
-                  vm_options.arguments(),
-                  MainIsolateInitCallback);
+  Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
-  // Create an isolate. As a side effect, MainIsolateInitCallback
-  // gets called, which loads the scripts and libraries.
-  char* canonical_script_name = File::GetCanonicalPath(script_name);
+  // Initialize the Dart VM.
+  Dart_Initialize(CreateIsolateAndSetup);
+
+  canonical_script_name = File::GetCanonicalPath(script_name);
   if (canonical_script_name == NULL) {
     fprintf(stderr, "Unable to find '%s'\n", script_name);
     return 255;  // Indicates we encountered an error.
   }
-  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer,
-                                            canonical_script_name);
-  if (isolate == NULL) {
+
+  // Call CreateIsolateAndSetup which creates an isolate and loads up
+  // the specified application script.
+  char* error = NULL;
+  if (!CreateIsolateAndSetup(NULL, &error)) {
+    fprintf(stderr, "%s\n", error);
     free(canonical_script_name);
-    return 255;
+    free(error);
+    return 255;  // Indicates we encountered an error.
   }
+
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  ASSERT(isolate != NULL);
+  Dart_Handle result;
 
   Dart_EnterScope();
 
-  if (snapshot_buffer != NULL) {
-    // Setup the native resolver as the snapshot does not carry it.
-    Builtin_SetNativeResolver();
-  }
-
   if (HasCompileAll(vm_options)) {
-    Dart_Handle result = Dart_CompileAll();
+    result = Dart_CompileAll();
     if (Dart_IsError(result)) {
       fprintf(stderr, "%s\n", Dart_GetError(result));
       Dart_ExitScope();
@@ -315,7 +348,7 @@ int main(int argc, char** argv) {
     return 255;  // Indicates we encountered an error.
   }
 
-  // Lookup and invoke the top level main function.
+  // Lookup the library of the main script.
   Dart_Handle script_url = Dart_NewString(canonical_script_name);
   Dart_Handle library = Dart_LookupLibrary(script_url);
   if (Dart_IsError(library)) {
@@ -325,11 +358,40 @@ int main(int argc, char** argv) {
     free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
-  Dart_Handle result = Dart_InvokeStatic(library,
-                                         Dart_NewString(""),
-                                         Dart_NewString("main"),
-                                         0,
-                                         NULL);
+  // Set debug breakpoint if specified on the command line.
+  if (breakpoint_at != NULL) {
+    char* bpt_function = strdup(breakpoint_at);
+    Dart_Handle class_name;
+    Dart_Handle function_name;
+    char* dot = strchr(bpt_function, '.');
+    if (dot == NULL) {
+      class_name = Dart_NewString("");
+      function_name = Dart_NewString(breakpoint_at);
+    } else {
+      *dot = '\0';
+      class_name = Dart_NewString(bpt_function);
+      function_name = Dart_NewString(dot + 1);
+    }
+    free(bpt_function);
+    Dart_Breakpoint bpt;
+    result = Dart_SetBreakpointAtEntry(
+                 library, class_name, function_name, &bpt);
+    if (Dart_IsError(result)) {
+      fprintf(stderr, "Error setting breakpoint at '%s': %s\n",
+          breakpoint_at,
+          Dart_GetError(result));
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      free(canonical_script_name);
+      return 255;  // Indicates we encountered an error.
+    }
+  }
+  // Lookup and invoke the top level main function.
+  result = Dart_InvokeStatic(library,
+                             Dart_NewString(""),
+                             Dart_NewString("main"),
+                             0,
+                             NULL);
   if (Dart_IsError(result)) {
     fprintf(stderr, "%s\n", Dart_GetError(result));
     Dart_ExitScope();

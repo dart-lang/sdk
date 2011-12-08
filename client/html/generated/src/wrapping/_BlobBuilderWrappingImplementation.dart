@@ -7,19 +7,19 @@
 class BlobBuilderWrappingImplementation extends DOMWrapperBase implements BlobBuilder {
   BlobBuilderWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
-  void append(var blob_OR_value, [String endings = null]) {
+  void append(var blob_OR_value, [String endings]) {
     if (blob_OR_value is Blob) {
       if (endings === null) {
-        _ptr.append(LevelDom.unwrap(blob_OR_value));
+        _ptr.append(LevelDom.unwrapMaybePrimitive(blob_OR_value));
         return;
       }
     } else {
       if (blob_OR_value is String) {
         if (endings === null) {
-          _ptr.append(LevelDom.unwrap(blob_OR_value));
+          _ptr.append(LevelDom.unwrapMaybePrimitive(blob_OR_value));
           return;
         } else {
-          _ptr.append(LevelDom.unwrap(blob_OR_value), endings);
+          _ptr.append(LevelDom.unwrapMaybePrimitive(blob_OR_value), endings);
           return;
         }
       }
@@ -27,7 +27,7 @@ class BlobBuilderWrappingImplementation extends DOMWrapperBase implements BlobBu
     throw "Incorrect number or type of arguments";
   }
 
-  Blob getBlob([String contentType = null]) {
+  Blob getBlob([String contentType]) {
     if (contentType === null) {
       return LevelDom.wrapBlob(_ptr.getBlob());
     } else {

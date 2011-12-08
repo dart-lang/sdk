@@ -17,9 +17,11 @@ class ClipboardWrappingImplementation extends DOMWrapperBase implements Clipboar
 
   FileList get files() { return LevelDom.wrapFileList(_ptr.files); }
 
-  DataTransferItems get items() { return LevelDom.wrapDataTransferItems(_ptr.items); }
+  DataTransferItemList get items() { return LevelDom.wrapDataTransferItemList(_ptr.items); }
 
-  void clearData([String type = null]) {
+  List get types() { return _ptr.types; }
+
+  void clearData([String type]) {
     if (type === null) {
       _ptr.clearData();
       return;

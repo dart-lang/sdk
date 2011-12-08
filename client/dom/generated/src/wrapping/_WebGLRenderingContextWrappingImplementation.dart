@@ -367,11 +367,10 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static int _getAttribLocation(receiver, program, name) native;
 
-  void getBufferParameter() {
-    _getBufferParameter(this);
-    return;
+  Object getBufferParameter(int target, int pname) {
+    return _getBufferParameter(this, target, pname);
   }
-  static void _getBufferParameter(receiver) native;
+  static Object _getBufferParameter(receiver, target, pname) native;
 
   WebGLContextAttributes getContextAttributes() {
     return _getContextAttributes(this);
@@ -383,85 +382,70 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static int _getError(receiver) native;
 
-  void getExtension(String name) {
-    _getExtension(this, name);
-    return;
+  Object getExtension(String name) {
+    return _getExtension(this, name);
   }
-  static void _getExtension(receiver, name) native;
+  static Object _getExtension(receiver, name) native;
 
-  void getFramebufferAttachmentParameter() {
-    _getFramebufferAttachmentParameter(this);
-    return;
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) {
+    return _getFramebufferAttachmentParameter(this, target, attachment, pname);
   }
-  static void _getFramebufferAttachmentParameter(receiver) native;
+  static Object _getFramebufferAttachmentParameter(receiver, target, attachment, pname) native;
 
-  void getParameter() {
-    _getParameter(this);
-    return;
+  Object getParameter(int pname) {
+    return _getParameter(this, pname);
   }
-  static void _getParameter(receiver) native;
+  static Object _getParameter(receiver, pname) native;
 
   String getProgramInfoLog(WebGLProgram program) {
     return _getProgramInfoLog(this, program);
   }
   static String _getProgramInfoLog(receiver, program) native;
 
-  void getProgramParameter() {
-    _getProgramParameter(this);
-    return;
+  Object getProgramParameter(WebGLProgram program, int pname) {
+    return _getProgramParameter(this, program, pname);
   }
-  static void _getProgramParameter(receiver) native;
+  static Object _getProgramParameter(receiver, program, pname) native;
 
-  void getRenderbufferParameter() {
-    _getRenderbufferParameter(this);
-    return;
+  Object getRenderbufferParameter(int target, int pname) {
+    return _getRenderbufferParameter(this, target, pname);
   }
-  static void _getRenderbufferParameter(receiver) native;
+  static Object _getRenderbufferParameter(receiver, target, pname) native;
 
   String getShaderInfoLog(WebGLShader shader) {
     return _getShaderInfoLog(this, shader);
   }
   static String _getShaderInfoLog(receiver, shader) native;
 
-  void getShaderParameter() {
-    _getShaderParameter(this);
-    return;
+  Object getShaderParameter(WebGLShader shader, int pname) {
+    return _getShaderParameter(this, shader, pname);
   }
-  static void _getShaderParameter(receiver) native;
+  static Object _getShaderParameter(receiver, shader, pname) native;
 
   String getShaderSource(WebGLShader shader) {
     return _getShaderSource(this, shader);
   }
   static String _getShaderSource(receiver, shader) native;
 
-  void getSupportedExtensions() {
-    _getSupportedExtensions(this);
-    return;
+  Object getTexParameter(int target, int pname) {
+    return _getTexParameter(this, target, pname);
   }
-  static void _getSupportedExtensions(receiver) native;
+  static Object _getTexParameter(receiver, target, pname) native;
 
-  void getTexParameter() {
-    _getTexParameter(this);
-    return;
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location) {
+    return _getUniform(this, program, location);
   }
-  static void _getTexParameter(receiver) native;
-
-  void getUniform() {
-    _getUniform(this);
-    return;
-  }
-  static void _getUniform(receiver) native;
+  static Object _getUniform(receiver, program, location) native;
 
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) {
     return _getUniformLocation(this, program, name);
   }
   static WebGLUniformLocation _getUniformLocation(receiver, program, name) native;
 
-  void getVertexAttrib() {
-    _getVertexAttrib(this);
-    return;
+  Object getVertexAttrib(int index, int pname) {
+    return _getVertexAttrib(this, index, pname);
   }
-  static void _getVertexAttrib(receiver) native;
+  static Object _getVertexAttrib(receiver, index, pname) native;
 
   int getVertexAttribOffset(int index, int pname) {
     return _getVertexAttribOffset(this, index, pname);

@@ -9,6 +9,11 @@
 
 namespace dart {
 
+// The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
+// code in the InvokeDartCode stub.
+static const int kExitLinkOffsetInEntryFrame = -8 * kWordSize;
+
+
 intptr_t StackFrame::PcAddressOffsetFromSp() {
   UNIMPLEMENTED();
   return 0;

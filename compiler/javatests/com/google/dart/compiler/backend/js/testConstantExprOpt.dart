@@ -9,16 +9,14 @@ class Foo {
 class A {
   static final int C1 = 10 + C2 * 2; // 20
   static final int C2 = 5;
-  static final List<int> ARRAY = [1];
-  static final int C3 = C2 + foo();
-  static final Foo C4 = const Foo();
+  static final Foo C3 = const Foo();
   static int foo() { return 1; }
 }
 
 class Main {
   static void main() {
-    int _marker_0, _marker_1, _marker_2, _marker_3, _marker_4;
-    Foo _marker_5;
+    int _marker_0, _marker_1, _marker_2;
+    Foo _marker_3;
 
     final int x = 50;
 
@@ -28,11 +26,7 @@ class Main {
 
     _marker_2 = 5 + A.C2;
 
-    _marker_3 = 5 + A.ARRAY[0];
-
-    _marker_4 = A.C3;
-
-    _marker_5 = A.C4;
+    _marker_3 = A.C3;
   }
 }
 

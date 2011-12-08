@@ -103,6 +103,53 @@ bool Heap::CodeContains(uword addr) const {
 }
 
 
+void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) {
+  new_space_->VisitObjectPointers(visitor);
+}
+
+
+void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) {
+  old_space_->VisitObjectPointers(visitor);
+  code_space_->VisitObjectPointers(visitor);
+}
+
+
+void Heap::CollectGarbage(Space space) {
+  switch (space) {
+    case kNew:
+      new_space_->Scavenge();
+      break;
+    case kOld:
+      old_space_->MarkSweep();
+      break;
+    case kExecutable:
+      UNIMPLEMENTED();
+      code_space_->MarkSweep();
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+
+void Heap::CollectAllGarbage() {
+  new_space_->Scavenge();
+  old_space_->MarkSweep();
+  // TODO(iposva): Merge old and code space.
+  // code_space_->MarkSweep();
+}
+
+
+uword Heap::TopAddress() {
+  return reinterpret_cast<uword>(new_space_->TopAddress());
+}
+
+
+uword Heap::EndAddress() {
+  return reinterpret_cast<uword>(new_space_->EndAddress());
+}
+
+
 void Heap::Init(Isolate* isolate) {
   ASSERT(isolate->heap() == NULL);
   Heap* heap = new Heap();
@@ -117,22 +164,6 @@ bool Heap::Verify() const {
   code_space_->VisitObjectPointers(&visitor);
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
-}
-
-
-void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) {
-  old_space_->VisitObjectPointers(visitor);
-  code_space_->VisitObjectPointers(visitor);
-}
-
-
-uword Heap::TopAddress() {
-  return reinterpret_cast<uword>(new_space_->TopAddress());
-}
-
-
-uword Heap::EndAddress() {
-  return reinterpret_cast<uword>(new_space_->EndAddress());
 }
 
 

@@ -10,6 +10,7 @@
 
 
 
+// #source('src/_FactoryProviders.dart');
 
 class Window extends DOMWindow {}
 DOMWindow get window() native "return window;";
@@ -66,6 +67,224 @@ class Attr extends Node native "*Attr" {
   String value;
 }
 
+class AudioBuffer native "*AudioBuffer" {
+
+  num duration;
+
+  num gain;
+
+  int length;
+
+  int numberOfChannels;
+
+  num sampleRate;
+
+  Float32Array getChannelData(int channelIndex) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
+
+  AudioBuffer buffer;
+
+  AudioGain gain;
+
+  bool loop;
+
+  bool looping;
+
+  AudioParam playbackRate;
+
+  void noteGrainOn(num when, num grainOffset, num grainDuration) native;
+
+  void noteOff(num when) native;
+
+  void noteOn(num when) native;
+}
+
+class AudioChannelMerger extends AudioNode native "*AudioChannelMerger" {
+}
+
+class AudioChannelSplitter extends AudioNode native "*AudioChannelSplitter" {
+}
+
+class AudioContext native "*AudioContext" {
+  AudioContext() native;
+
+
+  num currentTime;
+
+  AudioDestinationNode destination;
+
+  AudioListener listener;
+
+  num sampleRate;
+
+  RealtimeAnalyserNode createAnalyser() native;
+
+  BiquadFilterNode createBiquadFilter() native;
+
+  AudioBuffer createBuffer() native;
+
+  AudioBufferSourceNode createBufferSource() native;
+
+  AudioChannelMerger createChannelMerger() native;
+
+  AudioChannelSplitter createChannelSplitter() native;
+
+  ConvolverNode createConvolver() native;
+
+  DelayNode createDelayNode() native;
+
+  DynamicsCompressorNode createDynamicsCompressor() native;
+
+  AudioGainNode createGainNode() native;
+
+  HighPass2FilterNode createHighPass2Filter() native;
+
+  JavaScriptAudioNode createJavaScriptNode(int bufferSize) native;
+
+  LowPass2FilterNode createLowPass2Filter() native;
+
+  AudioPannerNode createPanner() native;
+
+  WaveShaperNode createWaveShaper() native;
+
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
+
+  void startRendering() native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
+
+  int numberOfChannels;
+}
+
+class AudioGain extends AudioParam native "*AudioGain" {
+}
+
+class AudioGainNode extends AudioNode native "*AudioGainNode" {
+
+  AudioGain gain;
+}
+
+class AudioListener native "*AudioListener" {
+
+  num dopplerFactor;
+
+  num speedOfSound;
+
+  void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
+
+  void setPosition(num x, num y, num z) native;
+
+  void setVelocity(num x, num y, num z) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioNode native "*AudioNode" {
+
+  AudioContext context;
+
+  int numberOfInputs;
+
+  int numberOfOutputs;
+
+  void connect(AudioNode destination, [int output = null, int input = null]) native;
+
+  void disconnect([int output = null]) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioPannerNode extends AudioNode native "*AudioPannerNode" {
+
+  static final int EQUALPOWER = 0;
+
+  static final int HRTF = 1;
+
+  static final int SOUNDFIELD = 2;
+
+  AudioGain coneGain;
+
+  num coneInnerAngle;
+
+  num coneOuterAngle;
+
+  num coneOuterGain;
+
+  AudioGain distanceGain;
+
+  int distanceModel;
+
+  num maxDistance;
+
+  int panningModel;
+
+  num refDistance;
+
+  num rolloffFactor;
+
+  void setOrientation(num x, num y, num z) native;
+
+  void setPosition(num x, num y, num z) native;
+
+  void setVelocity(num x, num y, num z) native;
+}
+
+class AudioParam native "*AudioParam" {
+
+  num defaultValue;
+
+  num maxValue;
+
+  num minValue;
+
+  String name;
+
+  int units;
+
+  num value;
+
+  void cancelScheduledValues(num startTime) native;
+
+  void exponentialRampToValueAtTime(num value, num time) native;
+
+  void linearRampToValueAtTime(num value, num time) native;
+
+  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
+
+  void setValueAtTime(num value, num time) native;
+
+  void setValueCurveAtTime(Float32Array values, num time, num duration) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
+
+  AudioBuffer inputBuffer;
+
+  AudioBuffer outputBuffer;
+}
+
+class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
+}
+
 class BarInfo native "*BarInfo" {
 
   bool visible;
@@ -80,6 +299,33 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
   String url;
 
   void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url) native;
+}
+
+class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
+
+  static final int ALLPASS = 7;
+
+  static final int BANDPASS = 2;
+
+  static final int HIGHPASS = 1;
+
+  static final int HIGHSHELF = 4;
+
+  static final int LOWPASS = 0;
+
+  static final int LOWSHELF = 3;
+
+  static final int NOTCH = 6;
+
+  static final int PEAKING = 5;
+
+  AudioParam Q;
+
+  AudioParam frequency;
+
+  AudioParam gain;
+
+  int type;
 }
 
 class Blob native "*Blob" {
@@ -204,7 +450,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
   void setStringValue(int stringType, String stringValue) native;
 }
 
-class CSSRule native "*CSSRule" {
+class CSSRule native "CSSRule" {
 
   static final int CHARSET_RULE = 2;
 
@@ -354,7 +600,7 @@ class CanvasPixelArray native "*CanvasPixelArray" {
 
   int operator[](int index) native;
 
-  int item(int index) native;
+  void operator[]=(int index, int value) native;
 
   var dartObjectLocalStorage;
 
@@ -495,7 +741,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   void translate(num tx, num ty) native;
 }
 
-class CharacterData extends Node native "*CharacterData" {
+class CharacterData extends Node native "CharacterData" {
 
   String data;
 
@@ -588,7 +834,7 @@ class CompositionEvent extends UIEvent native "*CompositionEvent" {
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg) native;
 }
 
-class Console native "*Console" {
+class Console native "=console" {
 
   MemoryInfo memory;
 
@@ -629,6 +875,11 @@ class Console native "*Console" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class ConvolverNode extends AudioNode native "*ConvolverNode" {
+
+  AudioBuffer buffer;
 }
 
 class Coordinates native "*Coordinates" {
@@ -992,7 +1243,11 @@ class DOMURL native "*DOMURL" {
   String get typeName() native;
 }
 
-class DOMWindow native "*DOMWindow" {
+class DOMWindow native "@*DOMWindow" {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
 
   DOMApplicationCache applicationCache;
 
@@ -1170,6 +1425,10 @@ class DOMWindow native "*DOMWindow" {
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
 
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -1255,15 +1514,6 @@ class Database native "*Database" {
   String get typeName() native;
 }
 
-class DatabaseCallback native "*DatabaseCallback" {
-
-  bool handleEvent(var database) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class DatabaseSync native "*DatabaseSync" {
 
   String version;
@@ -1284,6 +1534,11 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
   void postMessage(Object message, [List messagePorts = null]) native;
 
   void webkitPostMessage(Object message, [List transferList = null]) native;
+}
+
+class DelayNode extends AudioNode native "*DelayNode" {
+
+  AudioParam delayTime;
 }
 
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
@@ -1342,7 +1597,7 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
   String get typeName() native;
 }
 
-class Document extends Node native "*Document" {
+class Document extends Node native "Document" {
 
   String URL;
 
@@ -1400,7 +1655,13 @@ class Document extends Node native "*Document" {
 
   String title;
 
+  Element webkitCurrentFullScreenElement;
+
+  bool webkitFullScreenKeyboardInputAllowed;
+
   bool webkitHidden;
+
+  bool webkitIsFullScreen;
 
   String webkitVisibilityState;
 
@@ -1483,6 +1744,8 @@ class Document extends Node native "*Document" {
   Element querySelector(String selectors) native;
 
   NodeList querySelectorAll(String selectors) native;
+
+  void webkitCancelFullScreen() native;
 }
 
 class DocumentFragment extends Node native "*DocumentFragment" {
@@ -1507,7 +1770,12 @@ class DocumentType extends Node native "*DocumentType" {
   String systemId;
 }
 
-class Element extends Node native "*Element" {
+class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
+}
+
+class Element extends Node native "Element" {
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
 
   int childElementCount;
 
@@ -1602,6 +1870,8 @@ class Element extends Node native "*Element" {
   Attr setAttributeNodeNS(Attr newAttr) native;
 
   bool webkitMatchesSelector(String selectors) native;
+
+  void webkitRequestFullScreen(int flags) native;
 }
 
 class ElementTimeControl native "*ElementTimeControl" {
@@ -1646,15 +1916,6 @@ class Entity extends Node native "*Entity" {
 }
 
 class EntityReference extends Node native "*EntityReference" {
-}
-
-class EntriesCallback native "*EntriesCallback" {
-
-  bool handleEvent(EntryArray entries) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }
 
 class Entry native "*Entry" {
@@ -1708,15 +1969,6 @@ class EntryArraySync native "*EntryArraySync" {
   String get typeName() native;
 }
 
-class EntryCallback native "*EntryCallback" {
-
-  bool handleEvent(Entry entry) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class EntrySync native "*EntrySync" {
 
   DOMFileSystemSync filesystem;
@@ -1746,15 +1998,6 @@ class EntrySync native "*EntrySync" {
   String get typeName() native;
 }
 
-class ErrorCallback native "*ErrorCallback" {
-
-  bool handleEvent(FileError error) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class ErrorEvent extends Event native "*ErrorEvent" {
 
   String filename;
@@ -1766,7 +2009,7 @@ class ErrorEvent extends Event native "*ErrorEvent" {
   void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg) native;
 }
 
-class Event native "*Event" {
+class Event native "Event" {
 
   static final int AT_TARGET = 2;
 
@@ -1909,15 +2152,6 @@ class File extends Blob native "*File" {
   Date lastModifiedDate;
 
   String name;
-}
-
-class FileCallback native "*FileCallback" {
-
-  bool handleEvent(File file) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }
 
 class FileEntry extends Entry native "*FileEntry" {
@@ -2063,15 +2297,6 @@ class FileReaderSync native "*FileReaderSync" {
   String get typeName() native;
 }
 
-class FileSystemCallback native "*FileSystemCallback" {
-
-  bool handleEvent(DOMFileSystem fileSystem) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class FileWriter native "*FileWriter" {
 
   static final int DONE = 2;
@@ -2101,15 +2326,6 @@ class FileWriter native "*FileWriter" {
   String get typeName() native;
 }
 
-class FileWriterCallback native "*FileWriterCallback" {
-
-  bool handleEvent(FileWriter fileWriter) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class FileWriterSync native "*FileWriterSync" {
 
   int length;
@@ -2127,20 +2343,44 @@ class FileWriterSync native "*FileWriterSync" {
   String get typeName() native;
 }
 
-class Float32Array extends ArrayBufferView native "*Float32Array" {
+class Float32Array extends ArrayBufferView implements List<num> native "Float32Array" {
+
+  factory Float32Array(int length) =>  _construct(length);
+
+  factory Float32Array.fromList(List<num> list) => _construct(list);
+
+  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Float32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 
+  num operator[](int index) native;
+
+  void operator[]=(int index, num value) native;
+
   Float32Array subarray(int start, [int end = null]) native;
 }
 
-class Float64Array extends ArrayBufferView native "*Float64Array" {
+class Float64Array extends ArrayBufferView implements List<num> native "Float64Array" {
+
+  factory Float64Array(int length) =>  _construct(length);
+
+  factory Float64Array.fromList(List<num> list) => _construct(list);
+
+  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Float64Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 8;
 
   int length;
+
+  num operator[](int index) native;
+
+  void operator[]=(int index, num value) native;
 
   Float64Array subarray(int start, [int end = null]) native;
 }
@@ -2384,11 +2624,15 @@ class HTMLCanvasElement extends HTMLElement native "*HTMLCanvasElement" {
   String toDataURL(String type) native;
 }
 
-class HTMLCollection native "*HTMLCollection" {
+class HTMLCollection native "HTMLCollection" {
 
   int length;
 
   Node operator[](int index) native;
+
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
 
   Node item(int index) native;
 
@@ -2473,7 +2717,7 @@ class HTMLDocument extends Document native "*HTMLDocument" {
   void writeln(String text) native;
 }
 
-class HTMLElement extends Element native "*HTMLElement" {
+class HTMLElement extends Element native "HTMLElement" {
 
   HTMLCollection children;
 
@@ -2734,7 +2978,7 @@ class HTMLImageElement extends HTMLElement native "*HTMLImageElement" {
   int y;
 }
 
-class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
+class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
 
   String accept;
 
@@ -2971,7 +3215,7 @@ class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
   void stop() native;
 }
 
-class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
+class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
   static final int HAVE_CURRENT_DATA = 2;
 
@@ -3615,6 +3859,13 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 
+class HighPass2FilterNode extends AudioNode native "*HighPass2FilterNode" {
+
+  AudioParam cutoff;
+
+  AudioParam resonance;
+}
+
 class History native "*History" {
 
   int length;
@@ -4008,31 +4259,72 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
   String get typeName() native;
 }
 
-class Int16Array extends ArrayBufferView native "*Int16Array" {
+class Int16Array extends ArrayBufferView implements List<int> native "Int16Array" {
+
+  factory Int16Array(int length) =>  _construct(length);
+
+  factory Int16Array.fromList(List<int> list) => _construct(list);
+
+  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Int16Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 2;
 
   int length;
 
+  int operator[](int index) native;
+
+  void operator[]=(int index, int value) native;
+
   Int16Array subarray(int start, [int end = null]) native;
 }
 
-class Int32Array extends ArrayBufferView native "*Int32Array" {
+class Int32Array extends ArrayBufferView implements List<int> native "Int32Array" {
+
+  factory Int32Array(int length) =>  _construct(length);
+
+  factory Int32Array.fromList(List<int> list) => _construct(list);
+
+  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Int32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 
+  int operator[](int index) native;
+
+  void operator[]=(int index, int value) native;
+
   Int32Array subarray(int start, [int end = null]) native;
 }
 
-class Int8Array extends ArrayBufferView native "*Int8Array" {
+class Int8Array extends ArrayBufferView implements List<int> native "Int8Array" {
+
+  factory Int8Array(int length) =>  _construct(length);
+
+  factory Int8Array.fromList(List<int> list) => _construct(list);
+
+  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Int8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
   int length;
 
+  int operator[](int index) native;
+
+  void operator[]=(int index, int value) native;
+
   Int8Array subarray(int start, [int end = null]) native;
+}
+
+class JavaScriptAudioNode extends AudioNode native "*JavaScriptAudioNode" {
+
+  int bufferSize;
 }
 
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -4124,6 +4416,18 @@ class Location native "*Location" {
   String get typeName() native;
 }
 
+class LowPass2FilterNode extends AudioNode native "*LowPass2FilterNode" {
+
+  AudioParam cutoff;
+
+  AudioParam resonance;
+}
+
+class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
+
+  HTMLMediaElement mediaElement;
+}
+
 class MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_ABORTED = 1;
@@ -4148,6 +4452,10 @@ class MediaList native "*MediaList" {
   String mediaText;
 
   String operator[](int index) native;
+
+  void operator[]=(int index, String value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
 
   void appendMedium(String newMedium) native;
 
@@ -4255,15 +4563,6 @@ class Metadata native "*Metadata" {
   String get typeName() native;
 }
 
-class MetadataCallback native "*MetadataCallback" {
-
-  bool handleEvent(Metadata metadata) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class MouseEvent extends UIEvent native "*MouseEvent" {
 
   bool altKey;
@@ -4362,6 +4661,10 @@ class NamedNodeMap native "*NamedNodeMap" {
 
   Node operator[](int index) native;
 
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
   Node getNamedItem(String name) native;
 
   Node getNamedItemNS(String namespaceURI, String localName) native;
@@ -4431,15 +4734,6 @@ class NavigatorUserMediaError native "*NavigatorUserMediaError" {
   String get typeName() native;
 }
 
-class NavigatorUserMediaErrorCallback native "*NavigatorUserMediaErrorCallback" {
-
-  bool handleEvent(NavigatorUserMediaError error) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallback" {
 
   var dartObjectLocalStorage;
@@ -4447,7 +4741,7 @@ class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallba
   String get typeName() native;
 }
 
-class Node native "*Node" {
+class Node native "Node" {
 
   static final int ATTRIBUTE_NODE = 2;
 
@@ -4634,6 +4928,10 @@ class NodeList native "*NodeList" {
 
   Node operator[](int index) native;
 
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
   Node item(int index) native;
 
   var dartObjectLocalStorage;
@@ -4726,6 +5024,11 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
+
+  AudioBuffer renderedBuffer;
 }
 
 class OperationNotAllowedException native "*OperationNotAllowedException" {
@@ -4857,15 +5160,6 @@ class PopStateEvent extends Event native "*PopStateEvent" {
   void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) native;
 }
 
-class PositionCallback native "*PositionCallback" {
-
-  bool handleEvent(Geoposition position) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class PositionError native "*PositionError" {
 
   static final int PERMISSION_DENIED = 1;
@@ -4877,15 +5171,6 @@ class PositionError native "*PositionError" {
   int code;
 
   String message;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class PositionErrorCallback native "*PositionErrorCallback" {
-
-  bool handleEvent(PositionError error) native;
 
   var dartObjectLocalStorage;
 
@@ -5029,6 +5314,25 @@ class RangeException native "*RangeException" {
   String get typeName() native;
 }
 
+class RealtimeAnalyserNode extends AudioNode native "*RealtimeAnalyserNode" {
+
+  int fftSize;
+
+  int frequencyBinCount;
+
+  num maxDecibels;
+
+  num minDecibels;
+
+  num smoothingTimeConstant;
+
+  void getByteFrequencyData(Uint8Array array) native;
+
+  void getByteTimeDomainData(Uint8Array array) native;
+
+  void getFloatFrequencyData(Float32Array array) native;
+}
+
 class Rect native "*Rect" {
 
   CSSPrimitiveValue bottom;
@@ -5122,24 +5426,6 @@ class SQLResultSetRowList native "*SQLResultSetRowList" {
   String get typeName() native;
 }
 
-class SQLStatementCallback native "*SQLStatementCallback" {
-
-  bool handleEvent(SQLTransaction transaction, SQLResultSet resultSet) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class SQLStatementErrorCallback native "*SQLStatementErrorCallback" {
-
-  bool handleEvent(SQLTransaction transaction, SQLError error) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class SQLTransaction native "*SQLTransaction" {
 
   var dartObjectLocalStorage;
@@ -5147,34 +5433,7 @@ class SQLTransaction native "*SQLTransaction" {
   String get typeName() native;
 }
 
-class SQLTransactionCallback native "*SQLTransactionCallback" {
-
-  bool handleEvent(SQLTransaction transaction) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class SQLTransactionErrorCallback native "*SQLTransactionErrorCallback" {
-
-  bool handleEvent(SQLError error) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class SQLTransactionSync native "*SQLTransactionSync" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class SQLTransactionSyncCallback native "*SQLTransactionSyncCallback" {
-
-  bool handleEvent(SQLTransactionSync transaction) native;
 
   var dartObjectLocalStorage;
 
@@ -5715,7 +5974,7 @@ class SVGDocument extends Document native "*SVGDocument" {
   Event createEvent(String eventType) native;
 }
 
-class SVGElement extends Element native "*SVGElement" {
+class SVGElement extends Element native "SVGElement" {
 
   String id;
 
@@ -6735,7 +6994,7 @@ class SVGGlyphRefElement extends SVGElement native "*SVGGlyphRefElement" {
   CSSValue getPresentationAttribute(String name) native;
 }
 
-class SVGGradientElement extends SVGElement native "*SVGGradientElement" {
+class SVGGradientElement extends SVGElement native "SVGGradientElement" {
 
   static final int SVG_SPREADMETHOD_PAD = 1;
 
@@ -7320,7 +7579,7 @@ class SVGPathElement extends SVGElement native "*SVGPathElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGPathSeg native "*SVGPathSeg" {
+class SVGPathSeg native "SVGPathSeg" {
 
   static final int PATHSEG_ARC_ABS = 10;
 
@@ -8221,7 +8480,7 @@ class SVGTests native "*SVGTests" {
   String get typeName() native;
 }
 
-class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
+class SVGTextContentElement extends SVGElement native "SVGTextContentElement" {
 
   static final int LENGTHADJUST_SPACING = 1;
 
@@ -8326,7 +8585,7 @@ class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathEleme
   SVGAnimatedString href;
 }
 
-class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
+class SVGTextPositioningElement extends SVGTextContentElement native "SVGTextPositioningElement" {
 
   SVGAnimatedLengthList dx;
 
@@ -8732,42 +8991,6 @@ class StorageInfo native "*StorageInfo" {
   String get typeName() native;
 }
 
-class StorageInfoErrorCallback native "*StorageInfoErrorCallback" {
-
-  bool handleEvent(DOMException error) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class StorageInfoQuotaCallback native "*StorageInfoQuotaCallback" {
-
-  bool handleEvent(int grantedQuotaInBytes) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class StorageInfoUsageCallback native "*StorageInfoUsageCallback" {
-
-  bool handleEvent(int currentUsageInBytes, int currentQuotaInBytes) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class StringCallback native "*StringCallback" {
-
-  bool handleEvent(String data) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class StyleMedia native "*StyleMedia" {
 
   String type;
@@ -8779,7 +9002,7 @@ class StyleMedia native "*StyleMedia" {
   String get typeName() native;
 }
 
-class StyleSheet native "*StyleSheet" {
+class StyleSheet native "StyleSheet" {
 
   bool disabled;
 
@@ -8806,6 +9029,10 @@ class StyleSheetList native "*StyleSheetList" {
 
   StyleSheet operator[](int index) native;
 
+  void operator[]=(int index, StyleSheet value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
   StyleSheet item(int index) native;
 
   var dartObjectLocalStorage;
@@ -8813,7 +9040,7 @@ class StyleSheetList native "*StyleSheetList" {
   String get typeName() native;
 }
 
-class Text extends CharacterData native "*Text" {
+class Text extends CharacterData native "Text" {
 
   String wholeText;
 
@@ -8992,6 +9219,10 @@ class TouchList native "*TouchList" {
 
   Touch operator[](int index) native;
 
+  void operator[]=(int index, Touch value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
   Touch item(int index) native;
 
   var dartObjectLocalStorage;
@@ -9030,7 +9261,7 @@ class TreeWalker native "*TreeWalker" {
   String get typeName() native;
 }
 
-class UIEvent extends Event native "*UIEvent" {
+class UIEvent extends Event native "UIEvent" {
 
   int charCode;
 
@@ -9053,29 +9284,65 @@ class UIEvent extends Event native "*UIEvent" {
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) native;
 }
 
-class Uint16Array extends ArrayBufferView native "*Uint16Array" {
+class Uint16Array extends ArrayBufferView implements List<int> native "Uint16Array" {
+
+  factory Uint16Array(int length) =>  _construct(length);
+
+  factory Uint16Array.fromList(List<int> list) => _construct(list);
+
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Uint16Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 2;
 
   int length;
 
+  int operator[](int index) native;
+
+  void operator[]=(int index, int value) native;
+
   Uint16Array subarray(int start, [int end = null]) native;
 }
 
-class Uint32Array extends ArrayBufferView native "*Uint32Array" {
+class Uint32Array extends ArrayBufferView implements List<int> native "Uint32Array" {
+
+  factory Uint32Array(int length) =>  _construct(length);
+
+  factory Uint32Array.fromList(List<int> list) => _construct(list);
+
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Uint32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 
+  int operator[](int index) native;
+
+  void operator[]=(int index, int value) native;
+
   Uint32Array subarray(int start, [int end = null]) native;
 }
 
-class Uint8Array extends ArrayBufferView native "*Uint8Array" {
+class Uint8Array extends ArrayBufferView implements List<int> native "Uint8Array" {
+
+  factory Uint8Array(int length) =>  _construct(length);
+
+  factory Uint8Array.fromList(List<int> list) => _construct(list);
+
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+
+  static _construct(arg) native 'return new Uint8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
   int length;
+
+  int operator[](int index) native;
+
+  void operator[]=(int index, int value) native;
 
   Uint8Array subarray(int start, [int end = null]) native;
 }
@@ -9112,6 +9379,11 @@ class VoidCallback native "*VoidCallback" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
+
+  Float32Array curve;
 }
 
 class WebGLActiveInfo native "*WebGLActiveInfo" {
@@ -9911,39 +10183,37 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   int getAttribLocation(WebGLProgram program, String name) native;
 
-  void getBufferParameter() native;
+  Object getBufferParameter(int target, int pname) native;
 
   WebGLContextAttributes getContextAttributes() native;
 
   int getError() native;
 
-  void getExtension(String name) native;
+  Object getExtension(String name) native;
 
-  void getFramebufferAttachmentParameter() native;
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
-  void getParameter() native;
+  Object getParameter(int pname) native;
 
   String getProgramInfoLog(WebGLProgram program) native;
 
-  void getProgramParameter() native;
+  Object getProgramParameter(WebGLProgram program, int pname) native;
 
-  void getRenderbufferParameter() native;
+  Object getRenderbufferParameter(int target, int pname) native;
 
   String getShaderInfoLog(WebGLShader shader) native;
 
-  void getShaderParameter() native;
+  Object getShaderParameter(WebGLShader shader, int pname) native;
 
   String getShaderSource(WebGLShader shader) native;
 
-  void getSupportedExtensions() native;
+  Object getTexParameter(int target, int pname) native;
 
-  void getTexParameter() native;
-
-  void getUniform() native;
+  Object getUniform(WebGLProgram program, WebGLUniformLocation location) native;
 
   WebGLUniformLocation getUniformLocation(WebGLProgram program, String name) native;
 
-  void getVertexAttrib() native;
+  Object getVertexAttrib(int index, int pname) native;
 
   int getVertexAttribOffset(int index, int pname) native;
 
@@ -10473,6 +10743,10 @@ class Worker extends AbstractWorker native "*Worker" {
 
 class WorkerContext native "*WorkerContext" {
 
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
   WorkerLocation location;
 
   WorkerNavigator navigator;
@@ -10500,6 +10774,14 @@ class WorkerContext native "*WorkerContext" {
   int setInterval(TimeoutHandler handler, int timeout) native;
 
   int setTimeout(TimeoutHandler handler, int timeout) native;
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
+
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url) native;
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -10776,6 +11058,153 @@ class XSLTProcessor native "*XSLTProcessor" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool DatabaseCallback(var database);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool EntriesCallback(EntryArray entries);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool EntryCallback(Entry entry);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool ErrorCallback(FileError error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool FileCallback(File file);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool FileSystemCallback(DOMFileSystem fileSystem);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool FileWriterCallback(FileWriter fileWriter);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool MetadataCallback(Metadata metadata);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool PositionCallback(Geoposition position);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool PositionErrorCallback(PositionError error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLTransactionCallback(SQLTransaction transaction);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLTransactionErrorCallback(SQLError error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoErrorCallback(DOMException error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StringCallback(String data);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef void EventListener(Event event);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10787,3 +11216,128 @@ typedef bool RequestAnimationFrameCallback(int time);
 // BSD-style license that can be found in the LICENSE file.
 
 typedef void TimeoutHandler();
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * The [Collections] class implements static methods useful when
+ * writing a class that implements [Collection] and the [iterator]
+ * method.
+ */
+class _Collections {
+  static void forEach(Iterable<Object> iterable, void f(Object o)) {
+    for (final e in iterable) {
+      f(e);
+    }
+  }
+
+  static bool some(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (f(e)) return true;
+    }
+    return false;
+  }
+
+  static bool every(Iterable<Object> iterable, bool f(Object o)) {
+    for (final e in iterable) {
+      if (!f(e)) return false;
+    }
+    return true;
+  }
+
+  static List filter(Iterable<Object> source,
+                     List<Object> destination,
+                     bool f(o)) {
+    for (final e in source) {
+      if (f(e)) destination.add(e);
+    }
+    return destination;
+  }
+
+  static bool isEmpty(Iterable<Object> iterable) {
+    return !iterable.iterator().hasNext();
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Iterator for arrays with fixed size.
+class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
+  _FixedSizeListIterator(List<T> array)
+      : super(array),
+        _length = array.length;
+
+  bool hasNext() => _length > _pos;
+
+  final int _length;  // Cache array length for faster access.
+}
+
+// Iterator for arrays with variable size.
+class _VariableSizeListIterator<T> implements Iterator<T> {
+  _VariableSizeListIterator(List<T> array)
+      : _array = array,
+        _pos = 0;
+
+  bool hasNext() => _array.length > _pos;
+
+  T next() {
+    if (!hasNext()) {
+      throw const NoMoreElementsException();
+    }
+    return _array[_pos++];
+  }
+
+  final List<T> _array;
+  int _pos;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _Lists {
+
+  /**
+   * Returns the index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to [endIndex] (exclusive).
+   * Returns -1 if [element] is not found.
+   */
+  static int indexOf(List a,
+                     Object element,
+                     int startIndex,
+                     int endIndex) {
+    if (startIndex >= a.length) {
+      return -1;
+    }
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+    for (int i = startIndex; i < endIndex; i++) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns the last index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to 0.
+   * Returns -1 if [element] is not found.
+   */
+  static int lastIndexOf(List a, Object element, int startIndex) {
+    if (startIndex < 0) {
+      return -1;
+    }
+    if (startIndex >= a.length) {
+      startIndex = a.length - 1;
+    }
+    for (int i = startIndex; i >= 0; i--) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+}

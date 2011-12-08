@@ -18,6 +18,7 @@ namespace dart {
 class ApiState;
 class BigintStore;
 class CodeIndexTable;
+class Debugger;
 class HandleScope;
 class Heap;
 class LongJump;
@@ -217,8 +218,8 @@ class Isolate {
     library_tag_handler_ = value;
   }
 
-  static void SetInitCallback(Dart_IsolateInitCallback callback);
-  static Dart_IsolateInitCallback InitCallback();
+  static void SetCreateCallback(Dart_IsolateCreateCallback cback);
+  static Dart_IsolateCreateCallback CreateCallback();
 
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
@@ -229,18 +230,12 @@ class Isolate {
 
   void SetStackLimitFromCurrentTOS(uword isolate_stack_top);
 
-  void ResetStackLimitAfterException() {
-    stack_limit_ = stack_limit_on_overflow_exception_ + kStackSizeBuffer;
-  }
-
-  void AdjustStackLimitForException() {
-    stack_limit_ = stack_limit_on_overflow_exception_;
-  }
-
   void StandardRunLoop();
 
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
+
+  Debugger* debugger() const { return debugger_; }
 
  private:
   Isolate();
@@ -278,13 +273,13 @@ class Isolate {
   ApiState* api_state_;
   StubCode* stub_code_;
   CodeIndexTable* code_index_table_;
+  Debugger* debugger_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
   uword stack_limit_;
-  uword stack_limit_on_overflow_exception_;
   intptr_t ast_node_id_;
 
-  static Dart_IsolateInitCallback init_callback_;
+  static Dart_IsolateCreateCallback create_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

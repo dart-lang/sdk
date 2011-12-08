@@ -24,6 +24,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   private final List<DartTypeNode> interfaces;
 
   private boolean isInterface;
+  private final Modifiers modifiers;
   private DartTypeNode defaultClass;
 
   private int hash = -1;
@@ -35,14 +36,23 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   public DartClass(DartIdentifier name, DartStringLiteral nativeName,
                    DartTypeNode superclass, List<DartTypeNode> interfaces,
                    List<DartNode> members,
-                   List<DartTypeParameter> typeParameters) {
-    this(name, nativeName, superclass, interfaces, members, typeParameters, null, false);
+                   List<DartTypeParameter> typeParameters,
+                   Modifiers modifiers) {
+    this(name, nativeName, superclass, interfaces, members, typeParameters, null, false, modifiers);
   }
 
   public DartClass(DartIdentifier name, DartTypeNode superclass, List<DartTypeNode> interfaces,
                    List<DartNode> members,
                    List<DartTypeParameter> typeParameters, DartTypeNode defaultClass) {
-    this(name, null, superclass, interfaces, members, typeParameters, defaultClass, true);
+    this(name,
+        null,
+        superclass,
+        interfaces,
+        members,
+        typeParameters,
+        defaultClass,
+        true,
+        Modifiers.NONE);
   }
 
   /**
@@ -57,7 +67,8 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
                    DartTypeNode superclass, List<DartTypeNode> interfaces,
                    List<DartNode> members,
                    List<DartTypeParameter> typeParameters, DartTypeNode defaultClass,
-                   boolean isInterface) {
+                   boolean isInterface,
+                   Modifiers modifiers) {
     super(name);
     this.nativeName = nativeName;
     this.superclass = becomeParentOf(superclass);
@@ -66,10 +77,38 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     this.interfaces = becomeParentOf(interfaces);
     this.defaultClass = becomeParentOf(defaultClass);
     this.isInterface = isInterface;
+    this.modifiers = modifiers;
   }
 
   public boolean isInterface() {
     return isInterface;
+  }
+
+  public Modifiers getModifiers() {
+    return modifiers;
+  }
+
+  public boolean isAbstract() {
+    if (modifiers.isAbstract()) {
+      return true;
+    }
+    for (DartNode node : members) {
+      if (node instanceof DartMethodDefinition) {
+        DartMethodDefinition methodDefinition = (DartMethodDefinition) node;
+        if (methodDefinition.getModifiers().isAbstract()) {
+          return true;
+        }
+      }
+      if (node instanceof DartFieldDefinition) {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) node;
+        for (DartField field : fieldDefinition.getFields()) {
+          if (field.getModifiers().isAbstract()) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   public List<DartNode> getMembers() {

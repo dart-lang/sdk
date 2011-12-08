@@ -27,15 +27,13 @@
 
 namespace dart {
 
-static const char* CanonicalFunction(const char* func) {
+const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
     return func + 6;
   } else {
     return func;
   }
 }
-
-#define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
 #define RETURN_TYPE_ERROR(dart_handle, Type)                                  \
   do {                                                                        \
@@ -54,13 +52,16 @@ static const char* CanonicalFunction(const char* func) {
 
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
-static const char* CheckIsolateState(
-    Isolate* isolate,
-    bool generating_snapshot = ClassFinalizer::kNotGeneratingSnapshot) {
-  bool result = (generating_snapshot) ?
+const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
+  bool success = (generating_snapshot) ?
       ClassFinalizer::FinalizePendingClassesForSnapshotCreation() :
       ClassFinalizer::FinalizePendingClasses();
-  if (!result) {
+  if (success && !generating_snapshot) {
+    success = isolate->object_store()->PreallocateObjects();
+  }
+  if (success) {
+    return NULL;
+  } else {
     // Make a copy of the error message as the original message string
     // may get deallocated when we return back from the Dart API call.
     const String& err =
@@ -71,11 +72,10 @@ static const char* CheckIsolateState(
     OS::SNPrint(msg, errlen, "%s", errmsg);
     return msg;
   }
-  return NULL;
 }
 
 
-static void SetupErrorResult(Dart_Handle* handle) {
+void SetupErrorResult(Dart_Handle* handle) {
   // Make a copy of the error message as the original message string
   // may get deallocated when we return back from the Dart API call.
   const String& error = String::Handle(
@@ -195,6 +195,16 @@ PersistentHandle* Api::UnwrapAsPersistentHandle(const ApiState& state,
 }
 
 
+Dart_Isolate Api::CastIsolate(Isolate* isolate) {
+  return reinterpret_cast<Dart_Isolate>(isolate);
+}
+
+
+Dart_Message Api::CastMessage(uint8_t* message) {
+  return reinterpret_cast<Dart_Message>(message);
+}
+
+
 Dart_Handle Api::Success() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
@@ -206,7 +216,7 @@ Dart_Handle Api::Success() {
 
 
 Dart_Handle Api::Error(const char* format, ...) {
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE_NOCHECKS(Isolate::Current());
 
   va_list args;
   va_start(args, format);
@@ -226,7 +236,7 @@ Dart_Handle Api::Error(const char* format, ...) {
 
 
 Dart_Handle Api::ErrorFromException(const Object& obj) {
-  DARTSCOPE(Isolate::Current());
+  DARTSCOPE_NOCHECKS(Isolate::Current());
 
   ASSERT(obj.IsUnhandledException());
   if (obj.IsUnhandledException()) {
@@ -479,7 +489,8 @@ DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
 
 DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE(isolate);
+  DARTSCOPE_NOCHECKS(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
@@ -491,7 +502,7 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
 
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
@@ -518,12 +529,13 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object) {
 
 
 // TODO(iposva): This is a placeholder for the eventual external Dart API.
-DART_EXPORT bool Dart_Initialize(int argc,
-                                 const char** argv,
-                                 Dart_IsolateInitCallback callback) {
-  return Dart::InitOnce(argc, argv, callback);
+DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback callback) {
+  return Dart::InitOnce(callback);
 }
 
+DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
+  return Flags::ProcessCommandLineFlags(argc, argv);
+}
 
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
   if (Flags::Lookup(flag_name) != NULL) {
@@ -536,25 +548,25 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 // --- Isolates ---
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
-                                            void* data) {
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
+                                            void* callback_data,
+                                            char** error) {
   Isolate* isolate = Dart::CreateIsolate();
-  ASSERT(isolate != NULL);
+  assert(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    Dart::InitializeIsolate(snapshot, data);
+    Dart::InitializeIsolate(snapshot, callback_data);
     START_TIMER(time_total_runtime);
     isolate->set_long_jump_base(base);
     return reinterpret_cast<Dart_Isolate>(isolate);
   } else {
     {
-      DARTSCOPE(isolate);
-      const String& error =
+      DARTSCOPE_NOCHECKS(isolate);
+      const String& errmsg =
           String::Handle(isolate->object_store()->sticky_error());
-      // TODO(asiva): Need to return this as a error.
-      OS::PrintErr(error.ToCString());
+      *error = strdup(errmsg.ToCString());
     }
     Dart::ShutdownIsolate();
   }
@@ -563,26 +575,26 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const Dart_Snapshot* snapshot,
 
 
 DART_EXPORT void Dart_ShutdownIsolate() {
-  ASSERT(Isolate::Current() != NULL);
+  CHECK_ISOLATE(Isolate::Current());
   STOP_TIMER(time_total_runtime);
   Dart::ShutdownIsolate();
 }
 
 
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
-  return reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  return Api::CastIsolate(Isolate::Current());
 }
 
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate dart_isolate) {
+  CHECK_NO_ISOLATE(Isolate::Current());
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
-  ASSERT(Isolate::Current() == NULL);
   Isolate::SetCurrent(isolate);
 }
 
 
 DART_EXPORT void Dart_ExitIsolate() {
-  ASSERT(Isolate::Current() != NULL);
+  CHECK_ISOLATE(Isolate::Current());
   Isolate::SetCurrent(NULL);
 }
 
@@ -597,12 +609,17 @@ static uint8_t* ApiAllocator(uint8_t* ptr,
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
-                                            intptr_t* snapshot_size) {
+DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
+                                            intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (snapshot_buffer == NULL || snapshot_size == NULL) {
-    return Api::Error("Invalid input parameters to Dart_CreateSnapshot");
+  if (buffer == NULL) {
+    return Api::Error("%s expects argument 'buffer' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  if (size == NULL) {
+    return Api::Error("%s expects argument 'size' to be non-null.",
+                      CURRENT_FUNC);
   }
   const char* msg = CheckIsolateState(isolate,
                                       ClassFinalizer::kGeneratingSnapshot);
@@ -611,9 +628,37 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** snapshot_buffer,
   }
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle());
-  SnapshotWriter writer(true, snapshot_buffer, ApiAllocator);
+  SnapshotWriter writer(Snapshot::kFull, buffer, ApiAllocator);
   writer.WriteFullSnapshot();
-  *snapshot_size = writer.Size();
+  *size = writer.Size();
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
+                                                  uint8_t** buffer,
+                                                  intptr_t* size) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (buffer == NULL) {
+    return Api::Error("%s expects argument 'buffer' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  if (size == NULL) {
+    return Api::Error("%s expects argument 'size' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  const Library& root_lib = Api::UnwrapLibraryHandle(library);
+  if (root_lib.IsNull()) {
+    RETURN_TYPE_ERROR(library, Library);
+  }
+  const char* msg = CheckIsolateState(isolate);
+  if (msg != NULL) {
+    return Api::Error(msg);
+  }
+  ScriptSnapshotWriter writer(root_lib, buffer, ApiAllocator);
+  writer.WriteScriptSnapshot();
+  *size = writer.Size();
   return Api::Success();
 }
 
@@ -625,7 +670,7 @@ DART_EXPORT void Dart_SetMessageCallbacks(
     Dart_PostMessageCallback post_message_callback,
     Dart_ClosePortCallback close_port_callback) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   ASSERT(post_message_callback != NULL);
   ASSERT(close_port_callback != NULL);
   isolate->set_post_message_callback(post_message_callback);
@@ -636,7 +681,7 @@ DART_EXPORT void Dart_SetMessageCallbacks(
 static RawInstance* DeserializeMessage(void* data) {
   // Create a snapshot object using the buffer.
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
-  ASSERT(snapshot->IsPartialSnapshot());
+  ASSERT(snapshot->IsMessageSnapshot());
 
   // Read object back from the snapshot.
   Isolate* isolate = Isolate::Current();
@@ -722,18 +767,20 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
   writer.WriteMessage(len, data);
 
   // Post the message at the given port.
-  return PortMap::PostMessage(port_id, kNoReplyPort, buffer);
+  return PortMap::PostMessage(port_id, kNoReplyPort, Api::CastMessage(buffer));
 }
 
 
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
-  DARTSCOPE(Isolate::Current());
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  DARTSCOPE_NOCHECKS(isolate);
   const Object& object = Object::Handle(Api::UnwrapHandle(handle));
   uint8_t* data = NULL;
-  SnapshotWriter writer(false, &data, &allocator);
+  SnapshotWriter writer(Snapshot::kMessage, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
-  return PortMap::PostMessage(port_id, kNoReplyPort, data);
+  return PortMap::PostMessage(port_id, kNoReplyPort, Api::CastMessage(data));
 }
 
 
@@ -787,7 +834,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
 
 DART_EXPORT Dart_Port Dart_GetMainPortId() {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate);
+  CHECK_ISOLATE(isolate);
   return isolate->main_port();
 }
 
@@ -796,7 +843,7 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
 
 DART_EXPORT void Dart_EnterScope() {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* new_scope = new ApiLocalScope(state->top_scope(),
@@ -808,11 +855,10 @@ DART_EXPORT void Dart_EnterScope() {
 
 DART_EXPORT void Dart_ExitScope() {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE_SCOPE(isolate);
   ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
   ApiLocalScope* scope = state->top_scope();
-  ASSERT(scope != NULL);
+
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
   delete scope;  // Free up the old scope which we have just exited.
 }
@@ -822,6 +868,7 @@ DART_EXPORT void Dart_ExitScope() {
 
 
 DART_EXPORT Dart_Handle Dart_Null() {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return Api::Null();
 }
 
@@ -983,11 +1030,13 @@ DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
 
 
 DART_EXPORT Dart_Handle Dart_True() {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return Api::True();
 }
 
 
 DART_EXPORT Dart_Handle Dart_False() {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return Api::False();
 }
 
@@ -1000,6 +1049,7 @@ DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
 
 
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
+  CHECK_ISOLATE_SCOPE(Isolate::Current());
   return value ? Api::True() : Api::False();
 }
 
@@ -1114,6 +1164,36 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
   DARTSCOPE(Isolate::Current());
   const String& obj = String::Handle(String::New(codepoints, length));
   return Api::NewLocalHandle(obj);
+}
+
+
+DART_EXPORT bool Dart_IsExternalString(Dart_Handle object) {
+  DARTSCOPE(Isolate::Current());
+  const String& str = Api::UnwrapStringHandle(object);
+  if (str.IsNull()) {
+    return false;
+  }
+  return str.IsExternal();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
+                                                   void** peer) {
+  DARTSCOPE(Isolate::Current());
+  const String& str = Api::UnwrapStringHandle(object);
+  if (str.IsNull()) {
+    RETURN_TYPE_ERROR(object, String);
+  }
+  if (!str.IsExternal()) {
+    return Api::Error("%s expects argument 'object' to be an external String.",
+                      CURRENT_FUNC);
+  }
+  if (peer == NULL) {
+    return Api::Error("%s expects argument 'peer' to be non-NULL.",
+                      CURRENT_FUNC);
+  }
+  *peer = str.GetPeer();
+  return Api::Success();
 }
 
 
@@ -1391,7 +1471,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
       Dart_Handle result;
       indexobj = Integer::New(index);
       element = GetListAt(isolate, instance, indexobj, function, &result);
-      if (Dart_IsError(result)) {
+      if (::Dart_IsError(result)) {
         return result;  // Error condition.
       }
       return Api::NewLocalHandle(element);
@@ -1515,7 +1595,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       for (int i = 0; i < length; i++) {
         intobj = Integer::New(offset + i);
         element = GetListAt(isolate, instance, intobj, function, &result);
-        if (Dart_IsError(result)) {
+        if (::Dart_IsError(result)) {
           return result;  // Error condition.
         }
         if (!element.IsInteger()) {
@@ -1573,7 +1653,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
         indexobj = Integer::New(offset + i);
         valueobj = Integer::New(native_array[i]);
         SetListAt(isolate, instance, indexobj, valueobj, function, &result);
-        if (Dart_IsError(result)) {
+        if (::Dart_IsError(result)) {
           return result;  // Error condition.
         }
       }
@@ -2043,7 +2123,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
 DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace) {
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  CHECK_ISOLATE(isolate);
   if (isolate->top_exit_frame_info() == 0) {
     // There are no dart frames on the stack so it would be illegal to
     // throw an exception here.
@@ -2075,6 +2155,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
+  CHECK_ISOLATE(Isolate::Current());
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   return arguments->Count();
 }
@@ -2158,6 +2239,36 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                 RawScript::kScript,
                 &result);
   return result;
+}
+
+
+DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (buffer == NULL) {
+    return Api::Error("%s expects argument 'buffer' to be non-null.",
+                      CURRENT_FUNC);
+  }
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+  if (!snapshot->IsScriptSnapshot()) {
+    return Api::Error("%s expects parameter 'buffer' to be a script type"
+                      " snapshot", CURRENT_FUNC);
+  }
+  Library& library = Library::Handle(isolate->object_store()->root_library());
+  if (!library.IsNull()) {
+    const String& library_url = String::Handle(library.url());
+    return Api::Error("%s: A script has already been loaded from '%s'.",
+                      CURRENT_FUNC, library_url.ToCString());
+  }
+  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  const Object& tmp = Object::Handle(reader.ReadObject());
+  if (!tmp.IsLibrary()) {
+    return Api::Error("%s: Unable to deserialize snapshot correctly.",
+                      CURRENT_FUNC);
+  }
+  library ^= tmp.raw();
+  isolate->object_store()->set_root_library(library);
+  return Api::NewLocalHandle(library);
 }
 
 

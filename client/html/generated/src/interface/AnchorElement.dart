@@ -91,4 +91,6 @@ interface AnchorElement extends Element {
   void set type(String value);
 
   String getParameter(String name);
+
+  String toString();
 }

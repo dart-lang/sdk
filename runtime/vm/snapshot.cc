@@ -43,7 +43,7 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(raw_memory != NULL);
   ASSERT(kHeaderSize == sizeof(Snapshot));
   ASSERT(kLengthIndex == length_offset());
-  ASSERT((kSnapshotFlagIndex * sizeof(int32_t)) == full_snapshot_offset());
+  ASSERT((kSnapshotFlagIndex * sizeof(int32_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
   ASSERT((kHeapObjectTag & kObjectId));
   ASSERT((kObjectAlignmentMask & kObjectId) == kObjectId);
@@ -62,7 +62,7 @@ RawObject* SnapshotReader::ReadObject() {
 
 
 RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
-  ASSERT(!classes_serialized_);
+  ASSERT(kind_ != Snapshot::kFull);
   // Read the class header information and lookup the class.
   intptr_t class_header = Read<intptr_t>();
   ASSERT((class_header & kSmiTagMask) != 0);
@@ -92,7 +92,7 @@ void SnapshotReader::AddBackwardReference(intptr_t id, Object* obj) {
 
 
 void SnapshotReader::ReadFullSnapshot() {
-  ASSERT(classes_serialized_);
+  ASSERT(kind_ == Snapshot::kFull);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
@@ -154,7 +154,7 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
     return object_store()->true_value();
   } else if (object_id == ObjectStore::kFalseValue) {
     return object_store()->false_value();
-  } else if (!classes_serialized_) {
+  } else if (kind_ != Snapshot::kFull) {
     if (IsObjectStoreTypeId(object_id)) {
       return object_store()->GetType(object_id);  // return type object.
     }
@@ -199,7 +199,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   switch (cls.instance_kind()) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kInstanceKind: {                                               \
-      return clazz::ReadFrom(this, object_id, classes_serialized_);            \
+      return clazz::ReadFrom(this, object_id, kind_);                          \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
@@ -285,7 +285,7 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
   }
 
   // Check if classes are not being serialized and it is preinitialized type.
-  if (!serialize_classes_) {
+  if (kind_ != Snapshot::kFull) {
     RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
     index = object_store()->GetTypeIndex(raw_type);
     if (index != ObjectStore::kInvalidIndex) {
@@ -317,7 +317,7 @@ void SnapshotWriter::UnmarkAll() {
 
 
 void SnapshotWriter::WriteFullSnapshot() {
-  ASSERT(serialize_classes_);
+  ASSERT(kind_ == Snapshot::kFull);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
@@ -395,7 +395,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
 #define SNAPSHOT_WRITE(clazz)                                                  \
     case clazz::kInstanceKind: {                                               \
       Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(raw);                \
-      raw_obj->WriteTo(this, object_id, serialize_classes_);                   \
+      raw_obj->WriteTo(this, object_id, kind_);                                \
       return;                                                                  \
     }                                                                          \
 
@@ -408,7 +408,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
 
 
 void SnapshotWriter::WriteClassId(RawClass* cls) {
-  ASSERT(!serialize_classes_);
+  ASSERT(kind_ != Snapshot::kFull);
   int id = object_store()->GetClassIndex(cls);
   if (IsSingletonClassId(id) || IsObjectStoreClassId(id)) {
     WriteObjectHeader(kObjectId, id);
@@ -423,6 +423,12 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
     WriteObject(library->ptr()->url_);
     WriteObject(cls->ptr()->name_);
   }
+}
+
+
+void ScriptSnapshotWriter::WriteScriptSnapshot() {
+  // TODO(asiva): Need to implement this.
+  UNIMPLEMENTED();
 }
 
 

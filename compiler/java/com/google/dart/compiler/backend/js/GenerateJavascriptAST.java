@@ -1134,11 +1134,15 @@ public class GenerateJavascriptAST {
       JsScope scope = tramp.getScope();
 
       // Create fresh parameters for the explicit and synthetic parameters.
+      boolean hasNamedParams = false;
       List<JsParameter> explicitJsParams = new ArrayList<JsParameter>();
       for (DartParameter dartParam : func.getParams()) {
         String paramName = ((DartIdentifier) dartParam.getName()).getTargetName();
         JsParameter param = new JsParameter(scope.declareName(paramName));
         explicitJsParams.add(param);
+        if (dartParam.getModifiers().isNamed()) {
+          hasNamedParams = true;
+        }
       }
 
       List<JsParameter> closureScopeParams = new ArrayList<JsParameter>();
@@ -1159,76 +1163,89 @@ public class GenerateJavascriptAST {
         tramp.getParameters().add(explicitJsParams.get(i));
       }
 
-      // var seen = 0, def = 0;
       JsBlock body = new JsBlock();
       tramp.setBody(body);
       List<JsStatement> stmts = body.getStatements();
 
-      JsName seen = scope.declareFreshName("seen");
-      JsName def = scope.declareFreshName("def");
-      stmts.add(AstUtil.newVar(null, seen, number(0)));
-      stmts.add(AstUtil.newVar(null, def, number(0)));
-
-      // switch ($n) {
-      //   case 1: P0 = $o.P0 ? (++seen, $o.P0) : null;             // no default value
-      //   case 2: P1 = $o.P1 ? (++seen, $o.P1) : (++def, DEFAULT); // explicit default value
-      //   ...
-      // }
-      JsSwitch jsSwitch = new JsSwitch();
-      jsSwitch.setExpr(countParam.getName().makeRef());
-      for (int i = 0; i < func.getParams().size(); ++i) {
-        DartParameter param = func.getParams().get(i);
-        JsParameter jsParam = tramp.getParameters().get(i + 2 + numClosureScopes);
-        if (!param.getModifiers().isNamed()) {
-          continue;
+      if (hasNamedParams) {
+        // var seen = 0, def = 0;
+        JsName seen = scope.declareFreshName("seen");
+        JsName def = scope.declareFreshName("def");
+        stmts.add(AstUtil.newVar(null, seen, number(0)));
+        stmts.add(AstUtil.newVar(null, def, number(0)));
+  
+        // switch ($n) {
+        //   case 1: P0 = $o.P0 ? (++seen, $o.P0) : null;             // no default value
+        //   case 2: P1 = $o.P1 ? (++seen, $o.P1) : (++def, DEFAULT); // explicit default value
+        //   ...
+        // }
+        JsSwitch jsSwitch = new JsSwitch();
+        jsSwitch.setExpr(countParam.getName().makeRef());
+        for (int i = 0; i < func.getParams().size(); ++i) {
+          DartParameter param = func.getParams().get(i);
+          JsParameter jsParam = tramp.getParameters().get(i + 2 + numClosureScopes);
+          if (!param.getModifiers().isNamed()) {
+            continue;
+          }
+  
+          String paramNameStr = getPropNameForNamedParameter(jsParam);
+          JsExpression paramName = string(getPropNameForNamedParameter(jsParam));
+          if (generateClosureCompatibleCode) {
+            paramName = AstUtil.call(null,
+                AstUtil.nameref(null, "JSCompiler_renameProperty"), paramName);
+          }
+          JsExpression ifExpr = AstUtil.in(null, paramName, namedParam.getName().makeRef());
+  
+          JsExpression ppSeen = AstUtil.preinc(null, seen.makeRef());
+          JsBinaryOperation thenExpr = AstUtil.comma(null, ppSeen,
+              AstUtil.newNameRef(namedParam.getName().makeRef(), paramNameStr));
+  
+          DartExpression defaultValue = param.getDefaultExpr();
+          JsExpression elseExpr = (defaultValue != null)
+              ? generateDefaultValue(defaultValue)
+              : undefined();
+          JsExpression ppDef = AstUtil.preinc(null, def.makeRef());
+          elseExpr = AstUtil.comma(null, ppDef, elseExpr);
+  
+          JsBinaryOperation asg = assign(
+              jsParam.getName().makeRef(),
+              new JsConditional(ifExpr, thenExpr, elseExpr));
+  
+          jsSwitch.getCases().add(AstUtil.newCase(number(i), asg.makeStmt()));
         }
-
-        String paramNameStr = getPropNameForNamedParameter(jsParam);
-        JsExpression paramName = string(getPropNameForNamedParameter(jsParam));
-        if (generateClosureCompatibleCode) {
-          paramName = AstUtil.call(null,
-              AstUtil.nameref(null, "JSCompiler_renameProperty"), paramName);
+        if (jsSwitch.getCases().size() > 0) {
+          stmts.add(jsSwitch);
         }
-        JsExpression ifExpr = AstUtil.in(null, paramName, namedParam.getName().makeRef());
-
-        JsExpression ppSeen = AstUtil.preinc(null, seen.makeRef());
-        JsBinaryOperation thenExpr = AstUtil.comma(null, ppSeen,
-            AstUtil.newNameRef(namedParam.getName().makeRef(), paramNameStr));
-
-        DartExpression defaultValue = param.getDefaultExpr();
-        JsExpression elseExpr = (defaultValue != null)
-            ? generateDefaultValue(defaultValue)
-            : undefined();
-        JsExpression ppDef = AstUtil.preinc(null, def.makeRef());
-        elseExpr = AstUtil.comma(null, ppDef, elseExpr);
-
-        JsBinaryOperation asg = assign(
-            jsParam.getName().makeRef(),
-            new JsConditional(ifExpr, thenExpr, elseExpr));
-
-        jsSwitch.getCases().add(AstUtil.newCase(number(i), asg.makeStmt()));
+  
+        // if ((seen != $o.count) || (seen + def + $n != TOTAL)) {
+        //   $nsme();
+        // }
+        {
+          JsBinaryOperation ifLeft = neq(seen.makeRef(),
+              AstUtil.newNameRef(namedParam.getName().makeRef(), "count"));
+  
+          JsExpression add1 = add(seen.makeRef(), def.makeRef());
+          JsExpression add2 = add(add1, countParam.getName().makeRef());
+          JsExpression ifRight = neq(add2, number(func.getParams().size()));
+  
+          JsExpression ifExpr = or(ifLeft, ifRight);
+          JsStatement thenStmt = AstUtil.newInvocation(new JsNameRef("$nsme")).makeStmt();
+  
+          stmts.add(new JsIf(ifExpr, thenStmt, null));
+        }
+      } else {
+        // if ($o.count || ($n != TOTAL)) {
+        //   $nsme();
+        // }
+        {
+          JsExpression ifExpr =
+              or(AstUtil.newNameRef(namedParam.getName().makeRef(), "count"),
+                  neq(countParam.getName().makeRef(), number(func.getParams().size())));
+          JsStatement thenStmt = AstUtil.newInvocation(new JsNameRef("$nsme")).makeStmt();
+  
+          stmts.add(new JsIf(ifExpr, thenStmt, null));
+        }
       }
-      if (jsSwitch.getCases().size() > 0) {
-        stmts.add(jsSwitch);
-      }
-
-      // if ((seen != $o.$count) || (seen + def + $n != TOTAL)) {
-      //   $nsme();
-      // }
-      {
-        JsBinaryOperation ifLeft = neq(seen.makeRef(),
-            AstUtil.newNameRef(namedParam.getName().makeRef(), "count"));
-
-        JsExpression add1 = add(seen.makeRef(), def.makeRef());
-        JsExpression add2 = add(add1, countParam.getName().makeRef());
-        JsExpression ifRight = neq(add2, number(func.getParams().size()));
-
-        JsExpression ifExpr = or(ifLeft, ifRight);
-        JsStatement thenStmt = AstUtil.newInvocation(new JsNameRef("$nsme")).makeStmt();
-
-        stmts.add(new JsIf(ifExpr, thenStmt, null));
-      }
-
       JsInvocation jsInvoke = AstUtil.newInvocation(
           AstUtil.newNameRef(origJsName.getQualifier(), origJsName.getName()));
       if (preserveThis) {

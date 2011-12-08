@@ -11,9 +11,9 @@ class EmbedElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set align(String value) { _ptr.align = value; }
 
-  int get height() { return _ptr.height; }
+  String get height() { return _ptr.height; }
 
-  void set height(int value) { _ptr.height = value; }
+  void set height(String value) { _ptr.height = value; }
 
   String get name() { return _ptr.name; }
 
@@ -27,7 +27,7 @@ class EmbedElementWrappingImplementation extends ElementWrappingImplementation i
 
   void set type(String value) { _ptr.type = value; }
 
-  int get width() { return _ptr.width; }
+  String get width() { return _ptr.width; }
 
-  void set width(int value) { _ptr.width = value; }
+  void set width(String value) { _ptr.width = value; }
 }

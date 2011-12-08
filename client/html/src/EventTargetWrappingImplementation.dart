@@ -9,6 +9,8 @@ class EventsImplementation implements Events {
   Map<String, EventListenerList> _listenerMap;
 
   EventsImplementation._wrap(this._ptr) {
+    // TODO(sigmund): the key type (String) yields a warning in frog and the vm,
+    // but it is currently necessary to compile with dartc.
     _listenerMap = <String, EventListenerList>{};
   }
 

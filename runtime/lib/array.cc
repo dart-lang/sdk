@@ -14,8 +14,8 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
-  const TypeArguments& type_arguments =
-      TypeArguments::CheckedHandle(arguments->At(0));
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments->At(0));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.IsInstantiated() && (type_arguments.Length() == 1)));
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(1));

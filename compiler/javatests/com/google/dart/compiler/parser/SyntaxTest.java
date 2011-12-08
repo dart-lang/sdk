@@ -55,7 +55,7 @@ public class SyntaxTest extends AbstractParserTest {
     DartTypeNode fooReturnType = fooMethod.getFunction().getReturnTypeNode();
     assertEquals(true, fooReturnType.getIdentifier() instanceof DartPropertyAccess);
   }
-  
+
   @Override
   public void testStrings() {
     DartUnit unit = parseUnit("Strings.dart");
@@ -194,5 +194,38 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals(3, map.getEntries().size());
     assertEquals(1, ((DartIntegerLiteral) (map.getEntries().get(0)).getValue()).getValue()
         .intValue());
+  }
+  public void testNestedParameterizedTypes1() {
+    // token >>> is handled specially
+    DartUnit unit = parseUnit ("phony_param_type1.dart",
+                               Joiner.on("\n").join(
+                                   "class A<K> {",
+                                   "  A<A<A<K>>> member;",
+                                   "}"));
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
+  }
+
+  public void testNestedParameterizedTypes2() {
+    // token >> is handled specially
+    DartUnit unit = parseUnit ("phony_param_type1.dart",
+                               Joiner.on("\n").join(
+                                   "class A<K> {",
+                                   "  A<A<K>> member;",
+                                   "}"));
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
+  }
+
+  public void testMethodDefinition1() {
+    DartUnit unit = parseUnit ("phony_method_definition1.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  pref.A foo() {",
+            "    return new pref.A();",
+            "  }",
+            "}"));
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    assertEquals(1, nodes.size());
   }
 }

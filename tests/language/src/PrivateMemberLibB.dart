@@ -7,14 +7,8 @@
 #import('PrivateMemberTest.dart');
 
 class B extends A {
-  bool _private1;
-  String _private3;
-
-  static bool _static1;
-  static String _static3;
-
-  bool _fun1() { return true; }
-  String _fun3() { return ""; }
-
-  void _fun4(bool b) { }
+  bool _instanceField;
+  static bool _staticField;
+  bool _fun1(bool b) { return true; }
+  void _fun2() { }
 }

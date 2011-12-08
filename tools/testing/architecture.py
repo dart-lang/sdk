@@ -119,6 +119,12 @@ DOM_IMPORT_PATTERN = re.compile(r'#import.*(dart:(dom|html)|html\.dart).*\);',
 BROWSER_OUTPUT_PASS_PATTERN = re.compile(r'^Content-Type: text/plain\nPASS$',
                                          re.MULTILINE)
 
+# Pattern for matching flaky errors of browser tests. xvfb-run by default uses
+# DISPLAY=:99, we keep that in the error pattern to avoid matching real
+# errors when DISPLAY is set incorrectly.
+BROWSER_FLAKY_DISPLAY_ERR_PATTERN = re.compile(
+    r'Gtk-WARNING \*\*: cannot open display: :99', re.MULTILINE)
+
 # Pattern for checking if the test is a library in itself.
 LIBRARY_DEFINITION_PATTERN = re.compile(r'^#library\(.*\);',
                                         re.MULTILINE)
@@ -163,6 +169,12 @@ class Architecture(object):
                                                root_path)
     self.is_web_test = _IsWebTest(source)
     self.temp_dir = None
+
+  def GetVMOption(self, option):
+    for flag in self.vm_options:
+      if flag.startswith('--%s=' % option):
+        return flag.split('=')[1]
+    return None
 
   def HasFatalTypeErrors(self):
     """Returns True if this type of component supports --fatal-type-errors."""
@@ -264,13 +276,18 @@ class BrowserArchitecture(Architecture):
   def GetRunCommand(self, fatal_static_type_errors=False):
     """Returns a command line to execute for the test."""
     fatal_static_type_errors = fatal_static_type_errors  # shutup lint!
+    # Find DRT
     # For some reason, DRT needs to be called via an absolute path
-    drt_location = os.path.join(self.root_path, 'client', 'tests', 'drt',
-                                'DumpRenderTree')
+    drt_location = self.GetVMOption('browser')
+    if drt_location is not None:
+      drt_location = os.path.abspath(drt_location)
+    else:
+      drt_location = os.path.join(self.root_path, 'client', 'tests', 'drt',
+                                  'DumpRenderTree')
 
-    # On Mac DumpRenderTree is a .app folder
-    if platform.system() == 'Darwin':
-      drt_location += '.app/Contents/MacOS/DumpRenderTree'
+      # On Mac DumpRenderTree is a .app folder
+      if platform.system() == 'Darwin':
+        drt_location += '.app/Contents/MacOS/DumpRenderTree'
 
     drt_flags = ['--no-timeout']
     dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
@@ -290,6 +307,12 @@ class BrowserArchitecture(Architecture):
   def HasFailed(self, output):
     """Return True if the 'PASS' result string isn't in the output."""
     return not BROWSER_OUTPUT_PASS_PATTERN.search(output)
+
+  def WasFlakyDrt(self, error):
+    """Return whether the error indicates a flaky error from running.
+       DumpRenderTree within xvfb-run.
+    """
+    return BROWSER_FLAKY_DISPLAY_ERR_PATTERN.search(error)
 
   def RunTest(self, verbose):
     """Calls GetRunCommand() and executes the returned commandline.
@@ -387,11 +410,19 @@ class FrogChromiumArchitecture(ChromiumArchitecture):
   def GetCompileCommand(self, fatal_static_type_errors=False):
     """Returns cmdline as an array to invoke the compiler on this test."""
 
+    # Get a frog executable from the command line.  Default to frogsh.
     # We need an absolute path because the compilation will run
     # in a temporary directory.
-
-    frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
-    frog_libdir = os.path.abspath(os.path.join(self.root_path, 'frog', 'lib'))
+    frog = self.GetVMOption('frog')
+    if frog is not None:
+      frog = os.path.abspath(frog)
+    else:
+      frog = os.path.abspath(utils.GetDartRunner(self.mode, self.arch, 'frogsh'))
+    frog_libdir = self.GetVMOption('froglib')
+    if frog_libdir is not None:
+      frog_libdir = os.path.abspath(frog_libdir)
+    else:
+      frog_libdir = os.path.abspath(os.path.join(self.root_path, 'frog', 'lib'))
     cmd = [frog,
         '--libdir=%s' % frog_libdir,
         '--compile-only',
@@ -449,7 +480,8 @@ class WebDriverArchitecture(FrogChromiumArchitecture):
     f = open(html_output_file, 'w')
     f.write(self.GetHtmlContents())
     f.close()
-    return [selenium_location, html_output_file, browser_flag]
+    return [selenium_location, '--out', html_output_file, '--browser', 
+        browser_flag]
 
 
 class StandaloneArchitecture(Architecture):

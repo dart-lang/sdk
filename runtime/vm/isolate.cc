@@ -11,6 +11,7 @@
 #include "vm/code_index_table.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
+#include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/heap.h"
 #include "vm/message_queue.h"
@@ -57,10 +58,10 @@ Isolate::Isolate()
       api_state_(NULL),
       stub_code_(NULL),
       code_index_table_(NULL),
+      debugger_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
       stack_limit_(0),
-      stack_limit_on_overflow_exception_(0),
       ast_node_id_(AstNode::kNoId) {
 }
 
@@ -129,6 +130,9 @@ Isolate* Isolate::Init() {
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort());
 
+  result->debugger_ = new Debugger();
+  result->debugger_->Initialize(result);
+
   return result;
 }
 
@@ -148,7 +152,6 @@ void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
 
 void Isolate::SetStackLimit(uword limit) {
   stack_limit_ = limit;
-  stack_limit_on_overflow_exception_ = limit - kStackSizeBuffer;
 }
 
 
@@ -226,16 +229,16 @@ void Isolate::Shutdown() {
 }
 
 
-Dart_IsolateInitCallback Isolate::init_callback_ = NULL;
+Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 
 
-void Isolate::SetInitCallback(Dart_IsolateInitCallback callback) {
-  init_callback_ = callback;
+void Isolate::SetCreateCallback(Dart_IsolateCreateCallback cb) {
+  create_callback_ = cb;
 }
 
 
-Dart_IsolateInitCallback Isolate::InitCallback() {
-  return init_callback_;
+Dart_IsolateCreateCallback Isolate::CreateCallback() {
+  return create_callback_;
 }
 
 
@@ -302,6 +305,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the top context which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_context_));
+
+  // Visit objects in the debugger.
+  debugger()->VisitObjectPointers(visitor);
 }
 
 }  // namespace dart

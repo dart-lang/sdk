@@ -51,12 +51,16 @@ class Flags {
                                     const char* default_value,
                                     const char* comment);
 
-  static void ProcessCommandLineFlags(int argc, const char** argv);
+  static bool ProcessCommandLineFlags(int argc, const char** argv);
 
   static Flag* Lookup(const char* name);
 
+  static bool Initialized() { return initialized_; }
+
  private:
   static Flag* flags_;
+
+  static bool initialized_;
 
   static void Parse(const char* option);
 

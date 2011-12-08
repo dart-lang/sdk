@@ -14,13 +14,13 @@ class _CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements 
   int get length() { return _get_length(this); }
   static int _get_length(var _this) native;
 
-  int operator[](int index) {
-    return item(index);
-  }
+  int operator[](int index) { return _index(this, index); }
+  static int _index(var _this, int index) native;
 
   void operator[]=(int index, int value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+    return _set_index(this, index, value);
   }
+  static _set_index(_this, index, value) native;
 
   void add(int value) {
     throw new UnsupportedOperationException("Cannot add to immutable List.");
@@ -102,11 +102,6 @@ class _CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements 
   Iterator<int> iterator() {
     return new _FixedSizeListIterator<int>(this);
   }
-
-  int item(int index) {
-    return _item(this, index);
-  }
-  static int _item(receiver, index) native;
 
   String get typeName() { return "CanvasPixelArray"; }
 }

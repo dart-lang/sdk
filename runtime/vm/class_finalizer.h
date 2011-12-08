@@ -10,14 +10,16 @@
 
 namespace dart {
 
+class AbstractType;
+class AbstractTypeArguments;
 class Class;
 class Function;
+class RawAbstractType;
 class RawClass;
 class RawType;
 class Script;
 class String;
 class Type;
-class TypeArguments;
 class UnresolvedClass;
 
 // Traverses all pending, unfinalized classes, validates and marks them as
@@ -35,9 +37,9 @@ class ClassFinalizer : public AllStatic {
   // Return false if 'interface' conflicts with an interface already in the list
   // with the same class, but different type arguments.
   // In the case of a conflict, set 'conflicting' to the existing interface.
-  static bool AddInterfaceIfUnique(GrowableArray<Type*>* interface_list,
-                                   Type* interface,
-                                   Type* conflicting);
+  static bool AddInterfaceIfUnique(GrowableArray<AbstractType*>* interface_list,
+                                   AbstractType* interface,
+                                   AbstractType* conflicting);
 
   // Finalize and canonicalize type while parsing.
   // Set the error message on failure (to String::null() if no error).
@@ -76,12 +78,12 @@ class ClassFinalizer : public AllStatic {
   static void ResolveInterfaces(const Class& cls,
                                 GrowableArray<const Class*>* visited);
   static void FinalizeTypeArguments(const Class& cls,
-                                    const TypeArguments& arguments);
-  static RawType* ResolveType(const Class& cls, const Type& type);
-  static RawType* FinalizeType(const Type& type);
+                                    const AbstractTypeArguments& arguments);
+  static void ResolveType(const Class& cls, const AbstractType& type);
+  static RawAbstractType* FinalizeType(const AbstractType& type);
   static void ResolveAndFinalizeUpperBounds(const Class& cls);
   static void VerifyUpperBounds(const Class& cls,
-                                const TypeArguments& arguments);
+                                const AbstractTypeArguments& arguments);
   static void ResolveAndFinalizeSignature(const Class& cls,
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);

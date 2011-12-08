@@ -40,7 +40,6 @@ ConstList*: Fail # 'const' is not currently checked.
 CoreRuntimeTypesTest: Fail
 DateTimeTest: Fail
 DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
-ExpressionTest: Fail
 ForInTest: Fail
 IndexedListAccessTest: Fail
 IndexOutOfRangeExceptionTest: Fail
@@ -50,7 +49,6 @@ ListInsertRangeTest: Fail
 ListRemoveRangeTest: Fail
 ListSetRangeTest: Fail
 ListTest: Fail
-MapFromTest: Fail
 MapsTest: Fail
 MathTest: Fail
 NanInfinityTest: Fail

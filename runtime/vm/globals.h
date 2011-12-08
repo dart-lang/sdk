@@ -125,6 +125,16 @@ namespace dart {
 #endif  // !defined(PRIxPTR) && defined(TARGET_OS_WINDOWS)
 
 
+// Suffixes for 64-bit integer literals.
+#ifdef _MSC_VER
+#define DART_INT64_C(x) x##I64
+#define DART_UINT64_C(x) x##UI64
+#else
+#define DART_INT64_C(x) x##LL
+#define DART_UINT64_C(x) x##ULL
+#endif
+
+
 // The following macro works on both 32 and 64-bit platforms.
 // Usage: instead of writing 0x1234567890123456
 //      write DART_2PART_UINT64_C(0x12345678,90123456);

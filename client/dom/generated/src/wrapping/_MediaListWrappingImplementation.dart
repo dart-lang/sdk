@@ -20,9 +20,8 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
   void set mediaText(String value) { _set_mediaText(this, value); }
   static void _set_mediaText(var _this, String value) native;
 
-  String operator[](int index) {
-    return item(index);
-  }
+  String operator[](int index) { return _index(this, index); }
+  static String _index(var _this, int index) native;
 
   void operator[]=(int index, String value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");

@@ -10,9 +10,9 @@ interface EmbedElement extends Element {
 
   void set align(String value);
 
-  int get height();
+  String get height();
 
-  void set height(int value);
+  void set height(String value);
 
   String get name();
 
@@ -26,7 +26,7 @@ interface EmbedElement extends Element {
 
   void set type(String value);
 
-  int get width();
+  String get width();
 
-  void set width(int value);
+  void set width(String value);
 }
