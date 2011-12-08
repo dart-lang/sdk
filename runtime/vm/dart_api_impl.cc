@@ -1054,17 +1054,15 @@ DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle bool_object,
+DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
                                           bool* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(bool_object));
-  if (obj.IsBool()) {
-    Bool& bool_obj = Bool::Handle();
-    bool_obj ^= obj.raw();
-    *value = bool_obj.value();
-    return Api::Success();
+  const Bool& obj = Api::UnwrapBoolHandle(boolean_obj);
+  if (obj.IsNull()) {
+    RETURN_TYPE_ERROR(boolean_obj, Bool);
   }
-  return Api::Error("Object is not a Boolean");
+  *value = obj.value();
+  return Api::Success();
 }
 
 
@@ -1085,16 +1083,15 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle integer, double* result) {
+DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
+                                         double* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
-  if (obj.IsDouble()) {
-    Double& double_obj = Double::Handle();
-    double_obj ^= obj.raw();
-    *result = double_obj.value();
-    return Api::Success();
+  const Double& obj = Api::UnwrapDoubleHandle(double_obj);
+  if (obj.IsNull()) {
+    RETURN_TYPE_ERROR(double_obj, Double);
   }
-  return Api::Error("Object is not a Double");
+  *value = obj.value();
+  return Api::Success();
 }
 
 

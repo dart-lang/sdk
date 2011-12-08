@@ -714,12 +714,12 @@ DART_EXPORT Dart_Handle Dart_NewBoolean(bool value);
 /**
  * Gets the value of a Boolean
  *
- * \param bool_object A Boolean
+ * \param boolean_obj A Boolean
  * \param value Returns the value of the Boolean.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle bool_object, bool* value);
+DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj, bool* value);
 
 // --- Doubles ---
 
@@ -741,12 +741,12 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value);
 /**
  * Gets the value of a Double
  *
- * \param bool_object A Double
+ * \param double_obj A Double
  * \param value Returns the value of the Double.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle integer, double* result);
+DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
 
 // --- Strings ---
 
