@@ -696,6 +696,7 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   }
   const Class& double_class = Class::ZoneHandle(
       Isolate::Current()->object_store()->double_class());
+  __ LoadObject(EBX, double_class);
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                EBX,  // Class register.
@@ -789,6 +790,7 @@ static bool Math_sqrt(Assembler* assembler) {
   __ sqrtsd(XMM0, XMM1);
   const Class& double_class = Class::ZoneHandle(
       Isolate::Current()->object_store()->double_class());
+  __ LoadObject(EBX, double_class);
   AssemblerMacros::TryAllocate(assembler,
                                double_class,
                                EBX,  // Class register.
