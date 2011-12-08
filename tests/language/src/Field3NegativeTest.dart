@@ -4,15 +4,10 @@
 // Dart test to catch error reporting bugs in class fields declarations.
 
 class C {
-  final var a;  // illegal field declaration.
-}
-
-
-class Field3NegativeTest {
-  static testMain() {
-  }
+  final var a = 0;  // illegal: var cannot follow final.
 }
 
 main() {
-  Field3NegativeTest.testMain();
+  var val = new C();
+  Expect.equals(val.a, 0);
 }
