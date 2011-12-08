@@ -15,6 +15,7 @@ import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
@@ -23,6 +24,7 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
 import com.google.dart.compiler.resolver.MemberBuilder;
+import com.google.dart.compiler.resolver.MockLibraryUnit;
 import com.google.dart.compiler.resolver.ResolutionContext;
 import com.google.dart.compiler.resolver.Resolver;
 import com.google.dart.compiler.resolver.Resolver.ResolveElementsVisitor;
@@ -259,7 +261,8 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
   }
 
   private Scope getMockScope(String name) {
-    return new Scope(name, null, new MockScope());
+    LibraryUnit libraryUnit = MockLibraryUnit.create();
+    return new Scope(name, libraryUnit.getElement(), new MockScope());
   }
 
   private DartParser getParser(String string) {
@@ -316,6 +319,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
       }
     }
     Scope scope = getMockScope("<test toplevel>");
+    unit.setLibrary(scope.getLibrary().getLibraryUnit());
     SupertypeResolver supertypeResolver = new SupertypeResolver();
     supertypeResolver.exec(unit, context, scope, typeProvider);
     MemberBuilder memberBuilder = new MemberBuilder();

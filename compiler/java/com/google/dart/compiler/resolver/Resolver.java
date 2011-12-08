@@ -636,10 +636,14 @@ public class Resolver {
 
     @Override
     public Element visitThisExpression(DartThisExpression x) {
-      if (currentMethod.getModifiers().isStatic()) {
-        onError(x, ResolverErrorCode.STATIC_METHOD_ACCESS_THIS);
-      } else if (ElementKind.of(currentHolder).equals(ElementKind.LIBRARY)) {
-        onError(x, ResolverErrorCode.TOP_LEVEL_METHOD_ACCESS_THIS);
+      if (ElementKind.of(currentHolder).equals(ElementKind.LIBRARY)) {
+        onError(x, ResolverErrorCode.THIS_ON_TOP_LEVEL);
+      } else if (currentMethod == null) {
+        onError(x, ResolverErrorCode.THIS_OUTSIDE_OF_METHOD);
+      } else if (currentMethod.getModifiers().isStatic()) {
+        onError(x, ResolverErrorCode.THIS_IN_STATIC_METHOD);
+      } else if (currentMethod.getModifiers().isFactory()) {
+        onError(x, ResolverErrorCode.THIS_IN_FACTORY_CONSTRUCTOR);
       }
       return null;
     }
@@ -647,13 +651,13 @@ public class Resolver {
     @Override
     public Element visitSuperExpression(DartSuperExpression x) {
       if (ElementKind.of(currentHolder).equals(ElementKind.LIBRARY)) {
-        onError(x, ResolverErrorCode.TOP_LEVEL_METHOD_ACCESS_SUPER);
+        onError(x, ResolverErrorCode.SUPER_ON_TOP_LEVEL);
       } else if (currentMethod == null) {
         onError(x, ResolverErrorCode.SUPER_OUTSIDE_OF_METHOD);
       } else if (currentMethod.getModifiers().isStatic()) {
-        onError(x, ResolverErrorCode.STATIC_METHOD_ACCESS_SUPER);
+        onError(x, ResolverErrorCode.SUPER_IN_STATIC_METHOD);
       } else if  (currentMethod.getModifiers().isFactory()) {
-        onError(x, ResolverErrorCode.FACTORY_ACCESS_SUPER);
+        onError(x, ResolverErrorCode.SUPER_IN_FACTORY_CONSTRUCTOR);
       } else {
         return recordElement(x, Elements.superElement(
             x, ((ClassElement) currentHolder).getSupertype().getElement()));

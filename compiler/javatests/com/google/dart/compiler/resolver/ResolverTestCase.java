@@ -16,6 +16,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
@@ -59,17 +60,23 @@ abstract class ResolverTestCase extends TestCase {
   }
 
   static Scope resolve(DartUnit unit, TestCompilerContext context) {
-    Scope scope = new Scope("library", null);
+    LibraryUnit libraryUnit = MockLibraryUnit.create(unit);
+    // Prepare for running phases.
+    Scope scope = new Scope("library", libraryUnit.getElement());
     CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
+    // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
     new MemberBuilder().exec(unit, context, scope, typeProvider);
     new Resolver(context, scope, typeProvider).exec(unit);
     return scope;
   }
 
-  static Scope resolveCompileTimeConst (DartUnit unit, TestCompilerContext context) {
-    Scope scope = new Scope("library", null);
+  static Scope resolveCompileTimeConst(DartUnit unit, TestCompilerContext context) {
+    LibraryUnit libraryUnit = MockLibraryUnit.create(unit);
+    // Prepare for running phases.
+    Scope scope = new Scope("library", libraryUnit.getElement());
     CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
+    // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
     new MemberBuilder().exec(unit, context, scope, typeProvider);
     // Substitute the lightweight CTConst resolver
