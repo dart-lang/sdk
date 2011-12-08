@@ -1585,8 +1585,6 @@ function DOM$fixClass$FileWriterSync(c) {
 function DOM$fixClass$Float32Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Float32Array$Dart = 1;
@@ -1595,8 +1593,6 @@ function DOM$fixClass$Float32Array(c) {
 function DOM$fixClass$Float64Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Float64Array$Dart = 1;
@@ -3683,8 +3679,6 @@ function DOM$fixClass$InspectorFrontendHost(c) {
 function DOM$fixClass$Int16Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Int16Array$Dart = 1;
@@ -3693,8 +3687,6 @@ function DOM$fixClass$Int16Array(c) {
 function DOM$fixClass$Int32Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Int32Array$Dart = 1;
@@ -3703,8 +3695,6 @@ function DOM$fixClass$Int32Array(c) {
 function DOM$fixClass$Int8Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Int8Array$Dart = 1;
@@ -7538,8 +7528,6 @@ function DOM$fixClass$UIEvent(c) {
 function DOM$fixClass$Uint16Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Uint16Array$Dart = 1;
@@ -7548,8 +7536,6 @@ function DOM$fixClass$Uint16Array(c) {
 function DOM$fixClass$Uint32Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Uint32Array$Dart = 1;
@@ -7558,8 +7544,6 @@ function DOM$fixClass$Uint32Array(c) {
 function DOM$fixClass$Uint8Array(c) {
   if (c.prototype) {
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.INDEX$operator = function(k) { return DOM$EnsureDartNull(this[k]); };
-    c.prototype.ASSIGN_INDEX$operator = function(k, v) { this[k] = v; };
   }
   DOM$fixMembers(c, ['subarray']);
   c.$implements$Uint8Array$Dart = 1;

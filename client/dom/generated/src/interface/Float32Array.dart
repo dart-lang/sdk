@@ -4,13 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Float32Array extends ArrayBufferView, List<num> factory _TypedArrayFactoryProvider {
-
-  Float32Array(int length);
-
-  Float32Array.fromList(List<num> list);
-
-  Float32Array.fromBuffer(ArrayBuffer buffer);
+interface Float32Array extends ArrayBufferView {
 
   static final int BYTES_PER_ELEMENT = 4;
 

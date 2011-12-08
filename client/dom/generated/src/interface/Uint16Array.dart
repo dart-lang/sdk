@@ -4,13 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Uint16Array extends ArrayBufferView, List<int> factory _TypedArrayFactoryProvider {
-
-  Uint16Array(int length);
-
-  Uint16Array.fromList(List<int> list);
-
-  Uint16Array.fromBuffer(ArrayBuffer buffer);
+interface Uint16Array extends ArrayBufferView {
 
   static final int BYTES_PER_ELEMENT = 2;
 

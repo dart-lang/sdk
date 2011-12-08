@@ -10,7 +10,6 @@
 
 
 
-// #source('src/_FactoryProviders.dart');
 
 class Window extends DOMWindow {}
 DOMWindow get window() native "return window;";
@@ -597,8 +596,6 @@ class CanvasPixelArray native "*CanvasPixelArray" {
   int length;
 
   int operator[](int index) native;
-
-  void operator[]=(int index, int value) native;
 
   var dartObjectLocalStorage;
 
@@ -2321,44 +2318,20 @@ class FileWriterSync native "*FileWriterSync" {
   String get typeName() native;
 }
 
-class Float32Array extends ArrayBufferView implements List<num> native "Float32Array" {
-
-  factory Float32Array(int length) =>  _construct(length);
-
-  factory Float32Array.fromList(List<num> list) => _construct(list);
-
-  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Float32Array(arg);';
+class Float32Array extends ArrayBufferView native "*Float32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 
-  num operator[](int index) native;
-
-  void operator[]=(int index, num value) native;
-
   Float32Array subarray(int start, [int end = null]) native;
 }
 
-class Float64Array extends ArrayBufferView implements List<num> native "Float64Array" {
-
-  factory Float64Array(int length) =>  _construct(length);
-
-  factory Float64Array.fromList(List<num> list) => _construct(list);
-
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Float64Array(arg);';
+class Float64Array extends ArrayBufferView native "*Float64Array" {
 
   static final int BYTES_PER_ELEMENT = 8;
 
   int length;
-
-  num operator[](int index) native;
-
-  void operator[]=(int index, num value) native;
 
   Float64Array subarray(int start, [int end = null]) native;
 }
@@ -2607,10 +2580,6 @@ class HTMLCollection native "HTMLCollection" {
   int length;
 
   Node operator[](int index) native;
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
 
   Node item(int index) native;
 
@@ -4237,65 +4206,29 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
   String get typeName() native;
 }
 
-class Int16Array extends ArrayBufferView implements List<int> native "Int16Array" {
-
-  factory Int16Array(int length) =>  _construct(length);
-
-  factory Int16Array.fromList(List<int> list) => _construct(list);
-
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Int16Array(arg);';
+class Int16Array extends ArrayBufferView native "*Int16Array" {
 
   static final int BYTES_PER_ELEMENT = 2;
 
   int length;
 
-  int operator[](int index) native;
-
-  void operator[]=(int index, int value) native;
-
   Int16Array subarray(int start, [int end = null]) native;
 }
 
-class Int32Array extends ArrayBufferView implements List<int> native "Int32Array" {
-
-  factory Int32Array(int length) =>  _construct(length);
-
-  factory Int32Array.fromList(List<int> list) => _construct(list);
-
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Int32Array(arg);';
+class Int32Array extends ArrayBufferView native "*Int32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 
-  int operator[](int index) native;
-
-  void operator[]=(int index, int value) native;
-
   Int32Array subarray(int start, [int end = null]) native;
 }
 
-class Int8Array extends ArrayBufferView implements List<int> native "Int8Array" {
-
-  factory Int8Array(int length) =>  _construct(length);
-
-  factory Int8Array.fromList(List<int> list) => _construct(list);
-
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Int8Array(arg);';
+class Int8Array extends ArrayBufferView native "*Int8Array" {
 
   static final int BYTES_PER_ELEMENT = 1;
 
   int length;
-
-  int operator[](int index) native;
-
-  void operator[]=(int index, int value) native;
 
   Int8Array subarray(int start, [int end = null]) native;
 }
@@ -4430,10 +4363,6 @@ class MediaList native "*MediaList" {
   String mediaText;
 
   String operator[](int index) native;
-
-  void operator[]=(int index, String value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
 
   void appendMedium(String newMedium) native;
 
@@ -4638,10 +4567,6 @@ class NamedNodeMap native "*NamedNodeMap" {
   int length;
 
   Node operator[](int index) native;
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
 
   Node getNamedItem(String name) native;
 
@@ -4905,10 +4830,6 @@ class NodeList native "*NodeList" {
   int length;
 
   Node operator[](int index) native;
-
-  void operator[]=(int index, Node value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
 
   Node item(int index) native;
 
@@ -9007,10 +8928,6 @@ class StyleSheetList native "*StyleSheetList" {
 
   StyleSheet operator[](int index) native;
 
-  void operator[]=(int index, StyleSheet value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
-
   StyleSheet item(int index) native;
 
   var dartObjectLocalStorage;
@@ -9197,10 +9114,6 @@ class TouchList native "*TouchList" {
 
   Touch operator[](int index) native;
 
-  void operator[]=(int index, Touch value) {
-    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
-  }
-
   Touch item(int index) native;
 
   var dartObjectLocalStorage;
@@ -9262,65 +9175,29 @@ class UIEvent extends Event native "UIEvent" {
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) native;
 }
 
-class Uint16Array extends ArrayBufferView implements List<int> native "Uint16Array" {
-
-  factory Uint16Array(int length) =>  _construct(length);
-
-  factory Uint16Array.fromList(List<int> list) => _construct(list);
-
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Uint16Array(arg);';
+class Uint16Array extends ArrayBufferView native "*Uint16Array" {
 
   static final int BYTES_PER_ELEMENT = 2;
 
   int length;
 
-  int operator[](int index) native;
-
-  void operator[]=(int index, int value) native;
-
   Uint16Array subarray(int start, [int end = null]) native;
 }
 
-class Uint32Array extends ArrayBufferView implements List<int> native "Uint32Array" {
-
-  factory Uint32Array(int length) =>  _construct(length);
-
-  factory Uint32Array.fromList(List<int> list) => _construct(list);
-
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Uint32Array(arg);';
+class Uint32Array extends ArrayBufferView native "*Uint32Array" {
 
   static final int BYTES_PER_ELEMENT = 4;
 
   int length;
 
-  int operator[](int index) native;
-
-  void operator[]=(int index, int value) native;
-
   Uint32Array subarray(int start, [int end = null]) native;
 }
 
-class Uint8Array extends ArrayBufferView implements List<int> native "Uint8Array" {
-
-  factory Uint8Array(int length) =>  _construct(length);
-
-  factory Uint8Array.fromList(List<int> list) => _construct(list);
-
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
-
-  static _construct(arg) native 'return new Uint8Array(arg);';
+class Uint8Array extends ArrayBufferView native "*Uint8Array" {
 
   static final int BYTES_PER_ELEMENT = 1;
 
   int length;
-
-  int operator[](int index) native;
-
-  void operator[]=(int index, int value) native;
 
   Uint8Array subarray(int start, [int end = null]) native;
 }
@@ -11182,128 +11059,3 @@ typedef bool RequestAnimationFrameCallback(int time);
 // BSD-style license that can be found in the LICENSE file.
 
 typedef void TimeoutHandler();
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-/**
- * The [Collections] class implements static methods useful when
- * writing a class that implements [Collection] and the [iterator]
- * method.
- */
-class _Collections {
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
-    for (final e in iterable) {
-      f(e);
-    }
-  }
-
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (f(e)) return true;
-    }
-    return false;
-  }
-
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
-    for (final e in iterable) {
-      if (!f(e)) return false;
-    }
-    return true;
-  }
-
-  static List filter(Iterable<Object> source,
-                     List<Object> destination,
-                     bool f(o)) {
-    for (final e in source) {
-      if (f(e)) destination.add(e);
-    }
-    return destination;
-  }
-
-  static bool isEmpty(Iterable<Object> iterable) {
-    return !iterable.iterator().hasNext();
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// Iterator for arrays with fixed size.
-class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
-  _FixedSizeListIterator(List<T> array)
-      : super(array),
-        _length = array.length;
-
-  bool hasNext() => _length > _pos;
-
-  final int _length;  // Cache array length for faster access.
-}
-
-// Iterator for arrays with variable size.
-class _VariableSizeListIterator<T> implements Iterator<T> {
-  _VariableSizeListIterator(List<T> array)
-      : _array = array,
-        _pos = 0;
-
-  bool hasNext() => _array.length > _pos;
-
-  T next() {
-    if (!hasNext()) {
-      throw const NoMoreElementsException();
-    }
-    return _array[_pos++];
-  }
-
-  final List<T> _array;
-  int _pos;
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _Lists {
-
-  /**
-   * Returns the index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to [endIndex] (exclusive).
-   * Returns -1 if [element] is not found.
-   */
-  static int indexOf(List a,
-                     Object element,
-                     int startIndex,
-                     int endIndex) {
-    if (startIndex >= a.length) {
-      return -1;
-    }
-    if (startIndex < 0) {
-      startIndex = 0;
-    }
-    for (int i = startIndex; i < endIndex; i++) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Returns the last index in the array [a] of the given [element], starting
-   * the search at index [startIndex] to 0.
-   * Returns -1 if [element] is not found.
-   */
-  static int lastIndexOf(List a, Object element, int startIndex) {
-    if (startIndex < 0) {
-      return -1;
-    }
-    if (startIndex >= a.length) {
-      startIndex = a.length - 1;
-    }
-    for (int i = startIndex; i >= 0; i--) {
-      if (a[i] == element) {
-        return i;
-      }
-    }
-    return -1;
-  }
-}

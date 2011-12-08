@@ -4,13 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Int32Array extends ArrayBufferView, List<int> factory _TypedArrayFactoryProvider {
-
-  Int32Array(int length);
-
-  Int32Array.fromList(List<int> list);
-
-  Int32Array.fromBuffer(ArrayBuffer buffer);
+interface Int32Array extends ArrayBufferView {
 
   static final int BYTES_PER_ELEMENT = 4;
 

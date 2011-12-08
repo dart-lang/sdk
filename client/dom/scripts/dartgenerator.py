@@ -81,21 +81,6 @@ _constructable_types = {
 }
 
 #
-# Interface version of the DOM needs to delegate typed array constructors to a
-# factory provider.
-#
-_interface_factories = {
-    'Float32Array': '_TypedArrayFactoryProvider',
-    'Float64Array': '_TypedArrayFactoryProvider',
-    'Int8Array': '_TypedArrayFactoryProvider',
-    'Int16Array': '_TypedArrayFactoryProvider',
-    'Int32Array': '_TypedArrayFactoryProvider',
-    'Uint8Array': '_TypedArrayFactoryProvider',
-    'Uint16Array': '_TypedArrayFactoryProvider',
-    'Uint32Array': '_TypedArrayFactoryProvider',
-}
-
-#
 # Custom methods that must be implemented by hand.
 #
 _custom_methods = set([
@@ -121,16 +106,6 @@ _custom_getters = set([
 _frog_dom_custom_native_specs = {
     'Console': '=console',      # Decorate the singleton Console object.
     'DOMWindow': '@*DOMWindow', # DOMWindow aliased with global scope.
-
-    # Temporary hack: make these not be 'hidden'.  Will not work on IE9.
-    'Float32Array': 'Float32Array',
-    'Float64Array': 'Float64Array',
-    'Int8Array': 'Int8Array',
-    'Int16Array': 'Int16Array',
-    'Int32Array': 'Int32Array',
-    'Uint8Array': 'Uint8Array',
-    'Uint16Array': 'Uint16Array',
-    'Uint32Array': 'Uint32Array',
 }
 
 #
@@ -735,10 +710,13 @@ class DartGenerator(object):
 
     # The implementation should define an indexer if the interface directly
     # extends List.
-    element_type = MaybeListElementType(interface)
-    if element_type:
-      for generator in generators:
-        generator.AddIndexer(element_type)
+    for parent in interface.parents:
+      match = re.match(r'List<(\w*)>$', parent.type.id)
+      if match:
+        element_type = match.group(1)
+        for generator in generators:
+          generator.AddIndexer(element_type)
+        break
 
     # Group overloaded operations by id
     operationsById = {}
@@ -760,7 +738,7 @@ class DartGenerator(object):
     # avoid making a duplicate definition and pray that the signatures match.
 
     for parent_interface in self._TransitiveSecondaryParents(interface):
-      if isinstance(parent_interface, str):  # _IsDartCollectionType(parent_interface)
+      if isinstance(interface, str):  # _IsDartCollectionType(parent_interface)
         continue
       attributes = sorted(parent_interface.attributes,
                           AttributeOutputOrder)
@@ -1321,27 +1299,6 @@ class OperationInfo(object):
   pass
 
 
-def MaybeListElementType(interface):
-  """Returns the List element type T, or None in interface does not implement
-  List<T>.
-  """
-  for parent in interface.parents:
-    match = re.match(r'List<(\w*)>$', parent.type.id)
-    if match:
-      return match.group(1)
-  return None
-
-def MaybeTypedArrayElementType(interface):
-  """Returns the typed array element type, or None in interface is not a
-  TypedArray.
-  """
-  # Typed arrays implement ArrayBufferView and List<T>.
-  for parent in interface.parents:
-    if  parent.type.id == 'ArrayBufferView':
-      return MaybeListElementType(interface)
-  return None
-
-
 def AttributeOutputOrder(a, b):
   """Canonical output ordering for attributes."""
     # Getters before setters:
@@ -1445,22 +1402,6 @@ class DartInterfaceGenerator(object):
       extends_emitter.Emit(' /*$COMMENT $SUPERS */',
                            COMMENT=comment,
                            SUPERS=', '.join(suppressed_extends))
-
-    if typename in _interface_factories:
-      extends_emitter.Emit(' factory $F', F=_interface_factories[typename])
-
-    element_type = MaybeTypedArrayElementType(self._interface)
-    if element_type:
-      self._members_emitter.Emit(
-          '\n'
-          '  $CTOR(int length);\n'
-          '\n'
-          '  $CTOR.fromList(List<$TYPE> list);\n'
-          '\n'
-          '  $CTOR.fromBuffer(ArrayBuffer buffer);\n',
-        CTOR=self._interface.id,
-        TYPE=element_type)
-
 
   def FinishInterface(self):
     # Write snippet text that was inlined in the IDL.
@@ -2331,14 +2272,20 @@ class FrogInterfaceGenerator(object):
     else:
       extends = ""
 
+    if interface_name in _constructable_types.keys():
+      parameters = _constructable_types[interface_name]
+      constructor = '  %s(%s) native;\n\n' % (interface_name, parameters)
+    else:
+      constructor = ''
+
     if interface_name in _frog_dom_custom_native_specs:
       native_spec = _frog_dom_custom_native_specs[interface_name]
     else:
-      # Is the type's JavaScript constructor accessible from the global scope?
-      # If so, we can directly patch the prototype.  We don't really want to do
-      # this yet because the dynamic patching mechanism is tricky and we want to
-      # test it a lot.  But patching is currently broken on FireFox for non-leaf
-      # types, so 'hide' only the leaf types.
+      # Is the type's constructor accessible from the global scope? If so, we
+      # can directly patch the prototype.  We don't really want to do this yet
+      # because the dynamic patching mechanism is tricky and we want to test it
+      # a lot.  But patching is currently broken on FireFox for non-leaf types,
+      # so 'hide' only the leaf types.
       is_hidden = interface_name not in _BROWSER_SHARED_TYPES
       if interface_name not in self._interfaces_with_subtypes:
         is_hidden = True
@@ -2346,32 +2293,15 @@ class FrogInterfaceGenerator(object):
       native_spec = '*' if is_hidden else ''
       native_spec += interface_name
 
-    # TODO: Include all implemented interfaces, including other Lists.
-    implements = ''
-    element_type = MaybeTypedArrayElementType(self._interface)
-    if element_type:
-      implements = ' implements List<' + element_type + '>'
-
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
-        'class $CLASS$BASE$IMPLEMENTS native "$NATIVE" {\n'
-        '$!MEMBERS'
+        'class $CLASS$BASE native "$NATIVE" {\n'
+        '$CONSTRUCTOR$!MEMBERS'
         '$!ADDITIONS'
         '}\n',
         CLASS=self._class_name, BASE=extends,
-        INTERFACE=interface_name,
-        IMPLEMENTS=implements,
+        INTERFACE=interface_name, CONSTRUCTOR=constructor,
         NATIVE=native_spec)
-
-    if interface_name in _constructable_types.keys():
-      self._members_emitter.Emit(
-          '  $NAME($PARAMS) native;\n\n',
-          NAME=interface_name,
-          PARAMS=_constructable_types[interface_name])
-
-    element_type = MaybeTypedArrayElementType(interface)
-    if element_type:
-      self.AddTypedArrayConstructors(element_type)
 
     if not base:
       # Emit shared base functionality here as we have no common base type.
@@ -2451,34 +2381,6 @@ class FrogInterfaceGenerator(object):
         '\n'
         '  $TYPE operator[](int index) native;\n',
         TYPE=element_type)
-
-    if 'HasCustomIndexSetter' in self._interface.ext_attrs:
-      self._members_emitter.Emit(
-          '\n'
-          '  void operator[]=(int index, $TYPE value) native;\n',
-          TYPE=element_type)
-    else:
-      self._members_emitter.Emit(
-          '\n'
-          '  void operator[]=(int index, $TYPE value) {\n'
-          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-          '  }\n',
-          TYPE=element_type)
-
-
-  def AddTypedArrayConstructors(self, element_type):
-    self._members_emitter.Emit(
-        '\n'
-        '  factory $CTOR(int length) =>  _construct(length);\n'
-        '\n'
-        '  factory $CTOR.fromList(List<$TYPE> list) => _construct(list);\n'
-        '\n'
-        '  factory $CTOR.fromBuffer(ArrayBuffer buffer) => _construct(buffer);\n'
-        '\n'
-        '  static _construct(arg) native \'return new $CTOR(arg);\';\n',
-        CTOR=self._interface.id,
-        TYPE=element_type)
-
 
   def AddOperation(self, info):
     """
