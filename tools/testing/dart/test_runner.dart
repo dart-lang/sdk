@@ -404,7 +404,7 @@ class ProcessQueue {
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      if (test.executablePath.contains('compiler')) {
+      if (test.configuration['component'] == 'dartc') {
         _ensureDartcBatchRunnersStarted(test.executablePath);
         _getDartcBatchRunnerProcess().startTest(test);
       } else {
