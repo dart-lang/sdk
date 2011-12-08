@@ -1366,9 +1366,9 @@ bool Class::IsMoreSpecificThan(
           // The type arguments of this type that are referred to by the type
           // parameters of the interface are at the end of the type vector,
           // after the type arguments of the super type of this type.
-          const intptr_t offset = NumTypeArguments() - NumTypeParameters();
-          interface_args = interface_args.InstantiateFrom(type_arguments,
-                                                          offset);
+          // The index of the type parameters is adjusted upon finalization.
+          ASSERT(interface.IsFinalized());
+          interface_args = interface_args.InstantiateFrom(type_arguments);
           // TODO(regis): Check the subtyping constraints if any, i.e. if
           // interface.type_parameter_extends() is not an array of DynamicType.
           // Should we pass the constraints to InstantiateFrom and it would
@@ -1746,8 +1746,7 @@ bool AbstractType::Equals(const AbstractType& other) const {
 
 
 RawAbstractType* AbstractType::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -1794,8 +1793,9 @@ RawString* AbstractType::Name() const {
       }
       const Function& signature_function = Function::Handle(
           cls.signature_function());
-      return signature_function.InstantiatedSignatureFrom(
-          args, first_type_param_index);
+      // Signature classes have no super type.
+      ASSERT(first_type_param_index == 0);
+      return signature_function.InstantiatedSignatureFrom(args);
     }
   } else {
     const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
@@ -2095,14 +2095,12 @@ bool Type::IsInstantiated() const {
 
 
 RawAbstractType* Type::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   ASSERT(IsFinalized());
   ASSERT(!IsInstantiated());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(arguments());
-  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
-                                                  offset);
+  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments);
   const Class& cls = Class::Handle(type_class());
   ASSERT(cls.is_finalized());
   Type& instantiated_type = Type::Handle(Type::New(cls, type_arguments));
@@ -2247,6 +2245,12 @@ const char* Type::ToCString() const {
 }
 
 
+void TypeParameter::set_is_finalized() const {
+  ASSERT(!IsFinalized());
+  set_type_state(RawTypeParameter::kFinalized);
+}
+
+
 bool TypeParameter::Equals(const AbstractType& other) const {
   if (raw() == other.raw()) {
     return true;
@@ -2273,12 +2277,12 @@ void TypeParameter::set_name(const String& value) const {
 
 
 RawAbstractType* TypeParameter::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
+  ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  return instantiator_type_arguments.TypeAt(Index() + offset);
+  return instantiator_type_arguments.TypeAt(Index());
 }
 
 
@@ -2296,7 +2300,16 @@ RawTypeParameter* TypeParameter::New(intptr_t index, const String& name) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_index(index);
   result.set_name(name);
+  result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
   return result.raw();
+}
+
+
+void TypeParameter::set_type_state(int8_t state) const {
+  ASSERT(state == RawTypeParameter::kAllocated ||
+         state == RawTypeParameter::kBeingFinalized ||
+         state == RawTypeParameter::kFinalized);
+  raw_ptr()->type_state_ = state;
 }
 
 
@@ -2442,8 +2455,7 @@ bool AbstractTypeArguments::AreEqual(
 
 
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -2558,11 +2570,9 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
 
 
 RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   ASSERT(!IsInstantiated());
-  if ((offset == 0) &&
-      !instantiator_type_arguments.IsNull() &&
+  if (!instantiator_type_arguments.IsNull() &&
       IsUninstantiatedIdentity() &&
       (instantiator_type_arguments.Length() == Length())) {
     return instantiator_type_arguments.raw();
@@ -2574,7 +2584,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments, offset);
+      type = type.InstantiateFrom(instantiator_type_arguments);
     }
     instantiated_array.SetTypeAt(i, type);
   }
@@ -3053,7 +3063,7 @@ bool Function::TestParameterType(
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments, 0);
+    param_type = param_type.InstantiateFrom(type_arguments);
   }
   if (param_type.IsDynamicType()) {
     return true;
@@ -3061,8 +3071,7 @@ bool Function::TestParameterType(
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(parameter_position));
   if (!other_param_type.IsInstantiated()) {
-    other_param_type =
-        other_param_type.InstantiateFrom(other_type_arguments, 0);
+    other_param_type = other_param_type.InstantiateFrom(other_type_arguments);
   }
   if (other_param_type.IsDynamicType()) {
     return true;
@@ -3092,12 +3101,12 @@ bool Function::TestType(
   // Check the result type.
   AbstractType& other_res_type = AbstractType::Handle(other.result_type());
   if (!other_res_type.IsInstantiated()) {
-    other_res_type = other_res_type.InstantiateFrom(other_type_arguments, 0);
+    other_res_type = other_res_type.InstantiateFrom(other_type_arguments);
   }
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     AbstractType& res_type = AbstractType::Handle(result_type());
     if (!res_type.IsInstantiated()) {
-      res_type = res_type.InstantiateFrom(type_arguments, 0);
+      res_type = res_type.InstantiateFrom(type_arguments);
     }
     if (!res_type.IsDynamicType() &&
         (res_type.IsVoidType() ||
@@ -3277,7 +3286,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
     String& errmsg = String::Handle();
-    ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
+    ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                signature_type,
+                                                &errmsg);
     ASSERT(errmsg.IsNull());
   }
   ASSERT(closure_function.signature_class() == signature_class.raw());
@@ -3297,9 +3308,9 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 }
 
 
-RawString* Function::BuildSignature(bool instantiate,
-                                    const AbstractTypeArguments& instantiator,
-                                    intptr_t offset) const {
+RawString* Function::BuildSignature(
+    bool instantiate,
+    const AbstractTypeArguments& instantiator) const {
   GrowableArray<const String*> pieces;
   const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
   const String& kColonSpace = String::Handle(String::NewSymbol(": "));
@@ -3348,7 +3359,7 @@ RawString* Function::BuildSignature(bool instantiate,
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
     if (instantiate && !param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(instantiator, offset);
+      param_type = param_type.InstantiateFrom(instantiator);
     }
     pieces.Add(&String::ZoneHandle(param_type.Name()));
     if (i != (num_params - 1)) {
@@ -3362,7 +3373,7 @@ RawString* Function::BuildSignature(bool instantiate,
       pieces.Add(&kColonSpace);
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
-        param_type = param_type.InstantiateFrom(instantiator, offset);
+        param_type = param_type.InstantiateFrom(instantiator);
       }
       ASSERT(!param_type.IsNull());
       pieces.Add(&String::ZoneHandle(param_type.Name()));
@@ -3375,7 +3386,7 @@ RawString* Function::BuildSignature(bool instantiate,
   pieces.Add(&kRParen);
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
-    res_type = res_type.InstantiateFrom(instantiator, offset);
+    res_type = res_type.InstantiateFrom(instantiator);
   }
   pieces.Add(&String::Handle(res_type.Name()));
   const Array& strings = Array::Handle(NewArray<const String>(pieces));
@@ -5124,7 +5135,7 @@ bool Instance::TestType(TypeTestKind test,
   Class& other_class = Class::Handle();
   AbstractTypeArguments& other_type_arguments = AbstractTypeArguments::Handle();
   // In case 'other' is not instantiated, we could simply call
-  // other.InstantiateFrom(other_instantiator, 0), however, we can save the
+  // other.InstantiateFrom(other_instantiator), however, we can save the
   // allocation of a new AbstractType by inlining the code.
   if (other.IsTypeParameter()) {
     AbstractType& instantiated_other = AbstractType::Handle();
@@ -5142,7 +5153,7 @@ bool Instance::TestType(TypeTestKind test,
     if (!other_type_arguments.IsNull() &&
         !other_type_arguments.IsInstantiated()) {
       other_type_arguments =
-          other_type_arguments.InstantiateFrom(other_instantiator, 0);
+          other_type_arguments.InstantiateFrom(other_instantiator);
     }
   }
   return cls.TestType(test, type_arguments, other_class, other_type_arguments);

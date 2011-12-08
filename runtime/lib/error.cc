@@ -226,16 +226,24 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
 
   if (FLAG_trace_type_checks) {
     const Type& src_type = Type::Handle(src_instance.GetType());
-    AbstractType& instantiated_dst_type = AbstractType::Handle(dst_type.raw());
-    if (!dst_type.IsInstantiated()) {
+    if (dst_type.IsInstantiated()) {
+      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s'.\n",
+                String::Handle(src_type.Name()).ToCString(),
+                is_assignable ? "is" : "is not",
+                String::Handle(dst_type.Name()).ToCString(),
+                dst_name.ToCString());
+    } else {
       // Instantiate dst_type before printing.
-      instantiated_dst_type =
-          dst_type.InstantiateFrom(dst_type_instantiator, 0);
+      const AbstractType& instantiated_dst_type = AbstractType::Handle(
+          dst_type.InstantiateFrom(dst_type_instantiator));
+      OS::Print("TypeCheck: '%s' %s assignable to '%s' of '%s' "
+                "instantiated from '%s'.\n",
+                String::Handle(src_type.Name()).ToCString(),
+                is_assignable ? "is" : "is not",
+                String::Handle(instantiated_dst_type.Name()).ToCString(),
+                dst_name.ToCString(),
+                String::Handle(dst_type.Name()).ToCString());
     }
-    OS::Print("TypeCheck: '%s' %s assignable to '%s'.\n",
-              String::Handle(src_type.Name()).ToCString(),
-              is_assignable ? "is" : "is not",
-              String::Handle(dst_type.Name()).ToCString());
   }
   if (!is_assignable) {
     const Type& src_type = Type::Handle(src_instance.GetType());
@@ -244,7 +252,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
-          dst_type.InstantiateFrom(dst_type_instantiator, 0));
+          dst_type.InstantiateFrom(dst_type_instantiator));
       dst_type_name = instantiated_dst_type.Name();
     } else {
       dst_type_name = dst_type.Name();
@@ -313,7 +321,7 @@ DEFINE_RUNTIME_ENTRY(RestArgumentTypeCheck, 5) {
       if (!element_type.IsInstantiated()) {
         // Instantiate element_type before reporting the error.
         const AbstractType& instantiated_element_type = AbstractType::Handle(
-            element_type.InstantiateFrom(element_type_instantiator, 0));
+            element_type.InstantiateFrom(element_type_instantiator));
         dst_type_name = instantiated_element_type.Name();
       } else {
         dst_type_name = element_type.Name();

@@ -880,8 +880,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       Type& signature_type = Type::ZoneHandle(signature_class.SignatureType());
       if (!is_top_level_ && !signature_type.IsFinalized()) {
         String& errmsg = String::Handle();
-        signature_type =
-            ClassFinalizer::FinalizeAndCanonicalizeType(signature_type,
+        signature_type ^=
+            ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                        signature_type,
                                                         &errmsg);
         if (!errmsg.IsNull()) {
           ErrorMsg(errmsg.ToCString());
@@ -3754,8 +3755,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // been finalized already.
     if (!signature_type.IsFinalized()) {
       String& errmsg = String::Handle();
-      signature_type =
-          ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
+      signature_type ^=
+          ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                      signature_type,
+                                                      &errmsg);
       if (!errmsg.IsNull()) {
         ErrorMsg(errmsg.ToCString());
       }
@@ -6555,6 +6558,7 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     ErrorMsg(type_pos, "using '%s' in this context is invalid",
              type_name.ident->ToCString());
   }
+  Class& scope_class = Class::Handle();
   Object& type_class = Object::Handle();
   if (type_resolution == kDoNotResolve) {
     String& qualifier = String::Handle();
@@ -6563,7 +6567,7 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     }
     type_class = UnresolvedClass::New(type_pos, qualifier, *(type_name.ident));
   } else {
-    const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+    scope_class = TypeParametersScopeClass();
     if (!scope_class.IsNull()) {
       TypeParameter& type_parameter = TypeParameter::Handle();
       // Check if qualifier is a type parameter in scope.
@@ -6582,6 +6586,16 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
             ErrorMsg(type_pos, "type parameter '%s' cannot be parameterized",
                      String::Handle(type_parameter.Name()).ToCString());
           }
+          if (type_resolution == kMustResolve) {
+            String& errmsg = String::Handle();
+            type_parameter ^=
+                ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
+                                                            type_parameter,
+                                                            &errmsg);
+            if (!errmsg.IsNull()) {
+              ErrorMsg(errmsg.ToCString());
+            }
+          }
           return type_parameter.raw();
         }
       }
@@ -6596,7 +6610,9 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   if (type_resolution == kMustResolve) {
     ASSERT(type_class.IsClass());  // Must be resolved.
     String& errmsg = String::Handle();
-    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
+    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
+                                                        type,
+                                                        &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(errmsg.ToCString());
     }
@@ -7147,7 +7163,9 @@ AstNode* Parser::ParseNewOperator() {
     Type& type = Type::Handle(
         Type::NewParameterizedType(signature_class, type_arguments));
     String& errmsg = String::Handle();
-    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
+    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                        type,
+                                                        &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(errmsg.ToCString());
     }

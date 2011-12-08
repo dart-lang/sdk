@@ -2258,7 +2258,9 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     Type& type = Type::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
     String& errmsg = String::Handle();
-    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
+    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(instantiator_class,
+                                                        type,
+                                                        &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(token_index, errmsg.ToCString());
     }

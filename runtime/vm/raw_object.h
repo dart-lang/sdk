@@ -275,6 +275,14 @@ class RawUnresolvedClass : public RawObject {
 
 
 class RawAbstractType : public RawObject {
+ protected:
+  enum TypeState {
+    kAllocated,  // Initial state.
+    kBeingFinalized,  // In the process of being finalized.
+    kFinalized,  // Type ready for use.
+  };
+
+ private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
   friend class ObjectStore;
@@ -283,12 +291,6 @@ class RawAbstractType : public RawObject {
 
 class RawType : public RawAbstractType {
  private:
-  enum TypeState {
-    kAllocated,  // Initial state.
-    kBeingFinalized,  // In the process of being finalized.
-    kFinalized,  // Type ready for use.
-  };
-
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   RawObject** from() {
@@ -309,6 +311,7 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   intptr_t index_;
+  int8_t type_state_;
 };
 
 
@@ -328,6 +331,7 @@ class RawInstantiatedType : public RawAbstractType {
 
 
 class RawAbstractTypeArguments : public RawObject {
+ private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments);
 };
 

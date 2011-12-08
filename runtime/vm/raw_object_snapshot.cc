@@ -211,6 +211,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   type_parameter.set_index(reader->Read<intptr_t>());
+  type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -237,7 +238,9 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out the class information.
   writer->WriteObjectHeader(kObjectId, Object::kTypeParameterClass);
 
+  // Write out all the non object pointer fields.
   writer->Write<intptr_t>(ptr()->index_);
+  writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
   visitor.VisitPointers(from(), to());

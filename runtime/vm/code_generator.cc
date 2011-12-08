@@ -329,15 +329,15 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
     const Type& instance_type = Type::Handle(instance.GetType());
     ASSERT(instance_type.IsInstantiated());
     if (type.IsInstantiated()) {
-      OS::Print("InstanceOf: '%s' %s '%s'\n",
+      OS::Print("InstanceOf: '%s' %s '%s'.\n",
                 String::Handle(instance_type.Name()).ToCString(),
                 (result.raw() == Bool::True()) ? "is" : "is !",
                 String::Handle(type.Name()).ToCString());
     } else {
       // Instantiate type before printing.
       const AbstractType& instantiated_type =
-          AbstractType::Handle(type.InstantiateFrom(type_instantiator, 0));
-      OS::Print("InstanceOf: '%s' %s '%s' instantiated from '%s'\n",
+          AbstractType::Handle(type.InstantiateFrom(type_instantiator));
+      OS::Print("InstanceOf: '%s' %s '%s' instantiated from '%s'.\n",
                 String::Handle(instance_type.Name()).ToCString(),
                 (result.raw() == Bool::True()) ? "is" : "is !",
                 String::Handle(instantiated_type.Name()).ToCString(),

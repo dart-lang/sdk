@@ -705,12 +705,10 @@ class AbstractType : public Object {
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
 
-  // Instantiate this type using the given type argument vector starting at the
-  // given offset.
+  // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
 
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize() const;
@@ -821,8 +819,7 @@ class Type : public AbstractType {
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
 
   static intptr_t InstanceSize() {
@@ -891,19 +888,24 @@ class Type : public AbstractType {
 // For example, the type parameter 'V' is specified as index 1 in the context of
 // the class HashMap<K, V>. At compile time, the TypeParameter is not
 // instantiated yet, i.e. it is only a place holder.
+// Upon finalization, the TypeParameter index is changed to reflect its position
+// as type argument (rather than type parameter) of the enclosing class.
 class TypeParameter : public AbstractType {
  public:
-  virtual bool IsFinalized() const { return true; }
+  virtual bool IsFinalized() const {
+    return raw_ptr()->type_state_ == RawTypeParameter::kFinalized;
+  }
+  void set_is_finalized() const;
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const { return raw_ptr()->name_; }
   virtual intptr_t Index() const { return raw_ptr()->index_; }
+  void set_index(intptr_t value) const;
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
 
   static intptr_t InstanceSize() {
@@ -913,8 +915,8 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New(intptr_t index, const String& name);
 
  private:
-  void set_index(intptr_t value) const;
   void set_name(const String& value) const;
+  void set_type_state(int8_t state) const;
   static RawTypeParameter* New();
 
   HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
@@ -977,10 +979,9 @@ class AbstractTypeArguments : public Object {
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
-  // type of the instantiator type argument vector starting at the given offset.
+  // type of the instantiator type argument vector.
   virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
 
   // Do not canonicalize InstantiatedTypeArguments or NULL objects
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
@@ -1023,8 +1024,7 @@ class TypeArguments : public AbstractTypeArguments {
   virtual RawAbstractTypeArguments* Canonicalize() const;
 
   virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
 
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypeArguments, length_);
@@ -1119,7 +1119,7 @@ class Function : public Object {
   // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
   // signature of the given function.
   RawString* Signature() const {
-    return BuildSignature(false, TypeArguments::Handle(), 0);
+    return BuildSignature(false, TypeArguments::Handle());
   }
 
   // Build a string of the form '(A, [b: B, c: C]) => D' representing the
@@ -1127,9 +1127,8 @@ class Function : public Object {
   // '<T, R>(T, [b: B, c: C]) => R') are instantiated using the given
   // instantiator type argument vector (e.g. '<A, D>').
   RawString* InstantiatedSignatureFrom(
-      const AbstractTypeArguments& instantiator,
-      intptr_t offset) const {
-    return BuildSignature(true, instantiator, offset);
+      const AbstractTypeArguments& instantiator) const {
+    return BuildSignature(true, instantiator);
   }
 
   // Returns true if the signature of this function is instantiated, i.e. if it
@@ -1340,8 +1339,7 @@ class Function : public Object {
   static RawFunction* New();
 
   RawString* BuildSignature(bool instantiate,
-                            const AbstractTypeArguments& instantiator,
-                            intptr_t offset) const;
+                            const AbstractTypeArguments& instantiator) const;
 
   // Checks the subtype or assignability relationship between the type of this
   // function and the type of the other function.
