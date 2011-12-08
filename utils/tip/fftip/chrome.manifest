@@ -1,0 +1,3 @@
+content fftip                                chrome/content/
+overlay chrome://browser/content/browser.xul chrome://fftip/content/browser.xul
+

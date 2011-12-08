@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<overlay id="fftip" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <menupopup id="menu_ToolsPopup">
+    <menuitem label="Dart Tip" oncommand="loadURI('chrome://fftip/content/tip.html');"/>
+  </menupopup>
+</overlay>
