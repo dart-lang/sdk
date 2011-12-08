@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface JavaScriptAudioNode extends AudioNode {
+interface JavaScriptAudioNode extends AudioNode, EventTarget {
 
   int get bufferSize();
 }

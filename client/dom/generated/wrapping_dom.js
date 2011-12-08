@@ -16782,6 +16782,46 @@ function native__JavaScriptAudioNodeWrappingImplementation__get_bufferSize(_this
   }
 }
 
+function native__JavaScriptAudioNodeWrappingImplementation__addEventListener(_this, type, listener) {
+  try {
+    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__JavaScriptAudioNodeWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+  try {
+    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__JavaScriptAudioNodeWrappingImplementation__dispatchEvent(_this, event) {
+  try {
+    return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(event)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__JavaScriptAudioNodeWrappingImplementation__removeEventListener(_this, type, listener) {
+  try {
+    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__JavaScriptAudioNodeWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+  try {
+    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__JavaScriptCallFrameWrappingImplementation__get_caller(_this) {
   try {
     return __dom_wrap(_this.$dom.caller);

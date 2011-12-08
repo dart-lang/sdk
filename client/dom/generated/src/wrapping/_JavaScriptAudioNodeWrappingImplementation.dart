@@ -14,5 +14,36 @@ class _JavaScriptAudioNodeWrappingImplementation extends _AudioNodeWrappingImple
   int get bufferSize() { return _get_bufferSize(this); }
   static int _get_bufferSize(var _this) native;
 
+  // From EventTarget
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _addEventListener(this, type, listener);
+      return;
+    } else {
+      _addEventListener_2(this, type, listener, useCapture);
+      return;
+    }
+  }
+  static void _addEventListener(receiver, type, listener) native;
+  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+
+  bool dispatchEvent(Event event) {
+    return _dispatchEvent(this, event);
+  }
+  static bool _dispatchEvent(receiver, event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _removeEventListener(this, type, listener);
+      return;
+    } else {
+      _removeEventListener_2(this, type, listener, useCapture);
+      return;
+    }
+  }
+  static void _removeEventListener(receiver, type, listener) native;
+  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
+
   String get typeName() { return "JavaScriptAudioNode"; }
 }

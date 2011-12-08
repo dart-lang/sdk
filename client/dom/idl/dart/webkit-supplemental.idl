@@ -17,4 +17,5 @@ module default {
   WorkerContext implements events::EventTarget;
   SVGElementInstance implements events::EventTarget;
   WebSocket implements events::EventTarget;
+  JavaScriptAudioNode implements events::EventTarget;
 }

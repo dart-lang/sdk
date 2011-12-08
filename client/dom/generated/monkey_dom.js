@@ -3721,8 +3721,13 @@ function DOM$fixClass$JavaScriptAudioNode(c) {
   if (c.prototype) {
     c.prototype.bufferSize$getter = function() { return DOM$EnsureDartNull(this.bufferSize); };
   }
+  DOM$fixMembers(c, [
+    'addEventListener',
+    'dispatchEvent',
+    'removeEventListener']);
   c.$implements$JavaScriptAudioNode$Dart = 1;
   c.$implements$AudioNode$Dart = 1;
+  c.$implements$EventTarget$Dart = 1;
 }
 function DOM$fixClass$JavaScriptCallFrame(c) {
   if (c.prototype) {
