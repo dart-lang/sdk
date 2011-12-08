@@ -481,7 +481,8 @@ class Assembler : public ValueObject {
   void ret();
   void ret(const Immediate& imm);
 
-  void nop();
+  // 'size' indicates size in bytes and must be in the range 1..8.
+  void nop(int size = 1);
   void int3();
   void hlt();
 
