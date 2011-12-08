@@ -1222,6 +1222,9 @@ static void TestNativeFields(Dart_Handle retobj) {
   // Access and set various instance fields of the object.
   Dart_Handle result = Dart_GetInstanceField(retobj, Dart_NewString("fld3"));
   EXPECT(Dart_IsError(result));
+  result = Dart_GetInstanceField(retobj, Dart_NewString("fld0"));
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsNull(result));
   result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
   EXPECT_VALID(result);
   int64_t value = 0;
@@ -1262,6 +1265,9 @@ static void TestNativeFields(Dart_Handle retobj) {
   result = Dart_GetNativeInstanceField(retobj, kNativeFld2, &field_value);
   EXPECT_VALID(result);
   EXPECT_EQ(0, field_value);
+  result = Dart_GetNativeInstanceField(retobj, kNativeFld3, &field_value);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, field_value);
   result = Dart_SetNativeInstanceField(retobj, kNativeFld4, 40);
   EXPECT(Dart_IsError(result));
   result = Dart_SetNativeInstanceField(retobj, kNativeFld0, 4);
@@ -1293,6 +1299,7 @@ UNIT_TEST_CASE(NativeFieldAccess) {
   const char* kScriptChars =
       "class NativeFields extends NativeFieldsWrapper {\n"
       "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld0;\n"
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"
@@ -1341,6 +1348,7 @@ UNIT_TEST_CASE(ImplicitNativeFieldAccess) {
       "#import('dart:nativewrappers');"
       "class NativeFields extends NativeFieldWrapperClass4 {\n"
       "  NativeFields(int i, int j) : fld1 = i, fld2 = j {}\n"
+      "  int fld0;\n"
       "  int fld1;\n"
       "  final int fld2;\n"
       "  static int fld3;\n"

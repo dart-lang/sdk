@@ -12,3 +12,7 @@ OldGC: CRASH
 
 # Application snapshots are not implemented yet.
 ScriptSnapshot: Skip
+
+# Exposes bug in inline allocation stub.
+NativeFieldAccess: Fail
+ImplicitNativeFieldAccess: Fail
