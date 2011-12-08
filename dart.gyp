@@ -51,7 +51,7 @@
             # dependences once issues 754 and 755 are fixed
             'client/html/html.dart',
             'client/html/htmlimpl.dart',
-            'client/dom.dart',
+            'client/dom/dom.dart',
             'client/dom/generated',
             'client/dom/src',
             'frog/frogc',
