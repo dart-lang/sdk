@@ -9,6 +9,15 @@ module default {
   StyleSheetList implements sequence<StyleSheet>;
   TouchList implements sequence<Touch>;
   CanvasPixelArray implements sequence<int>;
+
+  Float32Array implements sequence<double>;
+  Float64Array implements sequence<double>;
+  Int8Array implements sequence<int>;
+  Int16Array implements sequence<int>;
+  Int32Array implements sequence<int>;
+  Uint8Array implements sequence<int>;
+  Uint16Array implements sequence<int>;
+  Uint32Array implements sequence<int>;
 }
 
 module dom {

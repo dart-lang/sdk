@@ -5,6 +5,10 @@ class NamedNodeMap native "*NamedNodeMap" {
 
   Node operator[](int index) native;
 
+  void operator[]=(int index, Node value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+
   Node getNamedItem(String name) native;
 
   Node getNamedItemNS(String namespaceURI, String localName) native;
