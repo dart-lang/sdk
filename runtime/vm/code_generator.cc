@@ -287,7 +287,6 @@ DEFINE_RUNTIME_ENTRY(AllocateImplicitInstanceClosure, 3) {
 // Arg0: number of variables.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
-  CHECK_STACK_ALIGNMENT;
   ASSERT(arguments.Count() == kAllocateContextRuntimeEntry.argument_count());
   const Smi& num_variables = Smi::CheckedHandle(arguments.At(0));
   arguments.SetReturn(Context::Handle(Context::New(num_variables.Value())));
@@ -299,7 +298,6 @@ DEFINE_RUNTIME_ENTRY(AllocateContext, 1) {
 // Arg0: the context to be cloned.
 // Return value: newly allocated context.
 DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
-  CHECK_STACK_ALIGNMENT;
   ASSERT(arguments.Count() == kCloneContextRuntimeEntry.argument_count());
   const Context& ctx = Context::CheckedHandle(arguments.At(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));

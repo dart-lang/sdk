@@ -63,6 +63,18 @@ void Assembler::pushq(const Address& address) {
 }
 
 
+void Assembler::pushq(const Immediate& imm) {
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0x68);
+    EmitImmediate(imm);
+  } else {
+    movq(TMP, imm);
+    pushq(TMP);
+  }
+}
+
+
 void Assembler::popq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);
@@ -275,13 +287,17 @@ void Assembler::movq(const Address& dst, Register src) {
 
 
 void Assembler::movq(const Address& dst, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  ASSERT(imm.is_int32());
-  Operand operand(dst);
-  EmitOperandREX(0, operand, REX_W);
-  EmitUint8(0xC7);
-  EmitOperand(0, operand);
-  EmitImmediate(imm);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    Operand operand(dst);
+    EmitOperandREX(0, operand, REX_W);
+    EmitUint8(0xC7);
+    EmitOperand(0, operand);
+    EmitImmediate(imm);
+  } else {
+    movq(TMP, imm);
+    movq(dst, TMP);
+  }
 }
 
 
@@ -340,7 +356,7 @@ void Assembler::movd(XmmRegister dst, Register src) {
   EmitUint8(0x66);
   EmitUint8(0x0F);
   EmitUint8(0x6E);
-  EmitOperand(dst, Operand(src));
+  EmitOperand(dst & 7, Operand(src));
 }
 
 
@@ -350,7 +366,7 @@ void Assembler::movd(Register dst, XmmRegister src) {
   EmitUint8(0x66);
   EmitUint8(0x0F);
   EmitUint8(0x7E);
-  EmitOperand(src, Operand(dst));
+  EmitOperand(src & 7, Operand(dst));
 }
 
 
@@ -536,18 +552,36 @@ void Assembler::cmpl(const Address& address, const Immediate& imm) {
 }
 
 
-void Assembler::cmpq(const Address& address, const Immediate& imm) {
+void Assembler::cmpq(const Address& address, Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  Operand operand(address);
-  EmitOperandREX(7, operand, REX_W);
-  EmitComplex(7, operand, imm);
+  EmitOperandREX(reg, address, REX_W);
+  EmitUint8(0x39);
+  EmitOperand(reg & 7, address);
+}
+
+
+void Assembler::cmpq(const Address& address, const Immediate& imm) {
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    Operand operand(address);
+    EmitOperandREX(7, operand, REX_W);
+    EmitComplex(7, operand, imm);
+  } else {
+    movq(TMP, imm);
+    cmpq(address, TMP);
+  }
 }
 
 
 void Assembler::cmpq(Register reg, const Immediate& imm) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(reg, REX_W);
-  EmitComplex(7, Operand(reg), imm);
+  if (imm.is_int32()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(reg, REX_W);
+    EmitComplex(7, Operand(reg), imm);
+  } else {
+    movq(TMP, imm);
+    cmpq(reg, TMP);
+  }
 }
 
 
@@ -805,16 +839,19 @@ void Assembler::idivq(Register reg) {
 
 void Assembler::imull(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_NONE);
   EmitUint8(0x0F);
   EmitUint8(0xAF);
-  EmitOperand(dst, Operand(src));
+  EmitOperand(dst & 7, Operand(src));
 }
 
 
 void Assembler::imull(Register reg, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_NONE);
   EmitUint8(0x69);
-  EmitOperand(reg, Operand(reg));
+  EmitOperand(reg & 7, Operand(reg));
   EmitImmediate(imm);
 }
 
@@ -1124,24 +1161,36 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
-  ASSERT(object.IsZoneHandle());
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitRegisterREX(dst, REX_W);
-  EmitUint8(0xB8 | (dst & 7));
-  buffer_.EmitObject(object);
+  if (object.IsSmi()) {
+    movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
+  } else {
+    ASSERT(object.IsZoneHandle());
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitRegisterREX(dst, REX_W);
+    EmitUint8(0xB8 | (dst & 7));
+    buffer_.EmitObject(object);
+  }
 }
 
 
 void Assembler::PushObject(const Object& object) {
-  LoadObject(TMP, object);
-  pushq(TMP);
+  if (object.IsSmi()) {
+    pushq(Immediate(reinterpret_cast<int64_t>(object.raw())));
+  } else {
+    LoadObject(TMP, object);
+    pushq(TMP);
+  }
 }
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  ASSERT(reg != TMP);
-  LoadObject(TMP, object);
-  cmpq(reg, TMP);
+  if (object.IsSmi()) {
+    cmpq(reg, Immediate(reinterpret_cast<int64_t>(object.raw())));
+  } else {
+    ASSERT(reg != TMP);
+    LoadObject(TMP, object);
+    cmpq(reg, TMP);
+  }
 }
 
 
@@ -1172,6 +1221,35 @@ void Assembler::Bind(Label* label) {
     buffer_.Store<int8_t>(position, offset);
   }
   label->BindTo(bound);
+}
+
+
+void Assembler::EnterFrame(intptr_t frame_size) {
+  if (prolog_offset_ == -1) {
+    prolog_offset_ = CodeSize();
+  }
+  pushq(RBP);
+  movq(RBP, RSP);
+  if (frame_size != 0) {
+    Immediate frame_space(frame_size);
+    subq(RSP, frame_space);
+  }
+}
+
+
+void Assembler::LeaveFrame() {
+  movq(RSP, RBP);
+  popq(RBP);
+}
+
+
+void Assembler::CallRuntimeFromDart(const RuntimeEntry& entry) {
+  entry.CallFromDart(this);
+}
+
+
+void Assembler::CallRuntimeFromStub(const RuntimeEntry& entry) {
+  entry.CallFromStub(this);
 }
 
 
@@ -1211,8 +1289,8 @@ void Assembler::EmitImmediate(const Immediate& imm) {
 
 
 void Assembler::EmitComplex(int rm,
-                                  const Operand& operand,
-                                  const Immediate& immediate) {
+                            const Operand& operand,
+                            const Immediate& immediate) {
   ASSERT(rm >= 0 && rm < 8);
   ASSERT(immediate.is_int32());
   if (immediate.is_int8()) {

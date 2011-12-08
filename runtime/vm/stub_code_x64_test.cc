@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_X64)
 
 #include "vm/isolate.h"
 #include "vm/dart_entry.h"
@@ -37,8 +37,8 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   __ PushObject(smi2);  // Push argument 2 smi2.
   ASSERT(kTestSmiSubRuntimeEntry.argument_count() == argc);
   __ CallRuntimeFromStub(kTestSmiSubRuntimeEntry);  // Call SmiSub runtime func.
-  __ AddImmediate(ESP, Immediate(argc * kWordSize));
-  __ popl(EAX);  // Pop return value from return slot.
+  __ AddImmediate(RSP, Immediate(argc * kWordSize));
+  __ popq(RAX);  // Pop return value from return slot.
   __ leave();
   __ ret();
 }
@@ -80,13 +80,13 @@ static void GenerateCallToCallNativeCFunctionStub(Assembler* assembler,
   __ PushObject(smi1);  // Push argument 1 smi1.
   __ PushObject(smi2);  // Push argument 2 smi2.
   __ PushObject(result);  // Push Null object for return value.
-  // Pass a pointer to the first argument in EAX.
-  __ leal(EAX, Address(ESP, 2 * kWordSize));
-  __ movl(ECX, Immediate(reinterpret_cast<uword>(native_function)));
-  __ movl(EDX, Immediate(argc));
+  // Pass a pointer to the first argument in RAX.
+  __ leaq(RAX, Address(RSP, 2 * kWordSize));
+  __ movq(RBX, Immediate(reinterpret_cast<uword>(native_function)));
+  __ movq(R10, Immediate(argc));
   __ call(&StubCode::CallNativeCFunctionLabel());
-  __ popl(EAX);  // Pop return value from return slot.
-  __ AddImmediate(ESP, Immediate(argc * kWordSize));
+  __ popq(RAX);  // Pop return value from return slot.
+  __ AddImmediate(RSP, Immediate(argc * kWordSize));
   __ leave();
   __ ret();
 }
@@ -112,4 +112,4 @@ TEST_CASE(CallNativeCFunctionStubCode) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_IA32
+#endif  // defined TARGET_ARCH_X64

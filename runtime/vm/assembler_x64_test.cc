@@ -38,92 +38,168 @@ ASSEMBLER_TEST_GENERATE(AddressingModes, assembler) {
   __ movq(RAX, Address(RBP, 0));
   __ movq(RAX, Address(RAX, 0));
   __ movq(RAX, Address(R10, 0));
+  __ movq(RAX, Address(R12, 0));
+  __ movq(RAX, Address(R13, 0));
   __ movq(R10, Address(RAX, 0));
 
   __ movq(RAX, Address(RSP, kWordSize));
   __ movq(RAX, Address(RBP, kWordSize));
   __ movq(RAX, Address(RAX, kWordSize));
   __ movq(RAX, Address(R10, kWordSize));
+  __ movq(RAX, Address(R12, kWordSize));
+  __ movq(RAX, Address(R13, kWordSize));
 
   __ movq(RAX, Address(RSP, -kWordSize));
   __ movq(RAX, Address(RBP, -kWordSize));
   __ movq(RAX, Address(RAX, -kWordSize));
   __ movq(RAX, Address(R10, -kWordSize));
+  __ movq(RAX, Address(R12, -kWordSize));
+  __ movq(RAX, Address(R13, -kWordSize));
 
   __ movq(RAX, Address(RSP, 256 * kWordSize));
   __ movq(RAX, Address(RBP, 256 * kWordSize));
   __ movq(RAX, Address(RAX, 256 * kWordSize));
   __ movq(RAX, Address(R10, 256 * kWordSize));
+  __ movq(RAX, Address(R12, 256 * kWordSize));
+  __ movq(RAX, Address(R13, 256 * kWordSize));
 
   __ movq(RAX, Address(RSP, -256 * kWordSize));
   __ movq(RAX, Address(RBP, -256 * kWordSize));
   __ movq(RAX, Address(RAX, -256 * kWordSize));
   __ movq(RAX, Address(R10, -256 * kWordSize));
+  __ movq(RAX, Address(R12, -256 * kWordSize));
+  __ movq(RAX, Address(R13, -256 * kWordSize));
 
-  __ movq(RAX, Address(RAX, TIMES_1));
-  __ movq(RAX, Address(RAX, TIMES_2));
-  __ movq(RAX, Address(RAX, TIMES_4));
-  __ movq(RAX, Address(RAX, TIMES_8));
+  __ movq(RAX, Address(RAX, TIMES_1, 0));
+  __ movq(RAX, Address(RAX, TIMES_2, 0));
+  __ movq(RAX, Address(RAX, TIMES_4, 0));
+  __ movq(RAX, Address(RAX, TIMES_8, 0));
 
-  __ movq(RAX, Address(RBP, TIMES_2));
-  __ movq(RAX, Address(RAX, TIMES_2));
-  __ movq(RAX, Address(R10, TIMES_2));
+  __ movq(RAX, Address(RBP, TIMES_2, 0));
+  __ movq(RAX, Address(RAX, TIMES_2, 0));
+  __ movq(RAX, Address(R10, TIMES_2, 0));
+  __ movq(RAX, Address(R12, TIMES_2, 0));
+  __ movq(RAX, Address(R13, TIMES_2, 0));
 
   __ movq(RAX, Address(RBP, TIMES_2, kWordSize));
   __ movq(RAX, Address(RAX, TIMES_2, kWordSize));
   __ movq(RAX, Address(R10, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R12, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R13, TIMES_2, kWordSize));
 
   __ movq(RAX, Address(RBP, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(RAX, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(R10, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R12, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R13, TIMES_2, 256 * kWordSize));
 
   __ movq(RAX, Address(RAX, RBP, TIMES_2, 0));
   __ movq(RAX, Address(RAX, RAX, TIMES_2, 0));
   __ movq(RAX, Address(RAX, R10, TIMES_2, 0));
+  __ movq(RAX, Address(RAX, R12, TIMES_2, 0));
+  __ movq(RAX, Address(RAX, R13, TIMES_2, 0));
 
   __ movq(RAX, Address(RBP, RBP, TIMES_2, 0));
   __ movq(RAX, Address(RBP, RAX, TIMES_2, 0));
   __ movq(RAX, Address(RBP, R10, TIMES_2, 0));
+  __ movq(RAX, Address(RBP, R12, TIMES_2, 0));
+  __ movq(RAX, Address(RBP, R13, TIMES_2, 0));
 
   __ movq(RAX, Address(RSP, RBP, TIMES_2, 0));
   __ movq(RAX, Address(RSP, RAX, TIMES_2, 0));
   __ movq(RAX, Address(RSP, R10, TIMES_2, 0));
+  __ movq(RAX, Address(RSP, R12, TIMES_2, 0));
+  __ movq(RAX, Address(RSP, R13, TIMES_2, 0));
 
   __ movq(RAX, Address(R10, RBP, TIMES_2, 0));
   __ movq(RAX, Address(R10, RAX, TIMES_2, 0));
   __ movq(RAX, Address(R10, R10, TIMES_2, 0));
+  __ movq(RAX, Address(R10, R12, TIMES_2, 0));
+  __ movq(RAX, Address(R10, R13, TIMES_2, 0));
+
+  __ movq(RAX, Address(R12, RBP, TIMES_2, 0));
+  __ movq(RAX, Address(R12, RAX, TIMES_2, 0));
+  __ movq(RAX, Address(R12, R10, TIMES_2, 0));
+  __ movq(RAX, Address(R12, R12, TIMES_2, 0));
+  __ movq(RAX, Address(R12, R13, TIMES_2, 0));
+
+  __ movq(RAX, Address(R13, RBP, TIMES_2, 0));
+  __ movq(RAX, Address(R13, RAX, TIMES_2, 0));
+  __ movq(RAX, Address(R13, R10, TIMES_2, 0));
+  __ movq(RAX, Address(R13, R12, TIMES_2, 0));
+  __ movq(RAX, Address(R13, R13, TIMES_2, 0));
 
   __ movq(RAX, Address(RAX, RBP, TIMES_2, kWordSize));
   __ movq(RAX, Address(RAX, RAX, TIMES_2, kWordSize));
   __ movq(RAX, Address(RAX, R10, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RAX, R12, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RAX, R13, TIMES_2, kWordSize));
 
   __ movq(RAX, Address(RBP, RBP, TIMES_2, kWordSize));
   __ movq(RAX, Address(RBP, RAX, TIMES_2, kWordSize));
   __ movq(RAX, Address(RBP, R10, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RBP, R12, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RBP, R13, TIMES_2, kWordSize));
 
   __ movq(RAX, Address(RSP, RBP, TIMES_2, kWordSize));
   __ movq(RAX, Address(RSP, RAX, TIMES_2, kWordSize));
   __ movq(RAX, Address(RSP, R10, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RSP, R12, TIMES_2, kWordSize));
+  __ movq(RAX, Address(RSP, R13, TIMES_2, kWordSize));
 
   __ movq(RAX, Address(R10, RBP, TIMES_2, kWordSize));
   __ movq(RAX, Address(R10, RAX, TIMES_2, kWordSize));
   __ movq(RAX, Address(R10, R10, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R10, R12, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R10, R13, TIMES_2, kWordSize));
+
+  __ movq(RAX, Address(R12, RBP, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R12, RAX, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R12, R10, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R12, R12, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R12, R13, TIMES_2, kWordSize));
+
+  __ movq(RAX, Address(R13, RBP, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R13, RAX, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R13, R10, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R13, R12, TIMES_2, kWordSize));
+  __ movq(RAX, Address(R13, R13, TIMES_2, kWordSize));
 
   __ movq(RAX, Address(RAX, RBP, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(RAX, RAX, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(RAX, R10, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RAX, R12, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RAX, R13, TIMES_2, 256 * kWordSize));
 
   __ movq(RAX, Address(RBP, RBP, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(RBP, RAX, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(RBP, R10, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RBP, R12, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RBP, R13, TIMES_2, 256 * kWordSize));
 
   __ movq(RAX, Address(RSP, RBP, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(RSP, RAX, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(RSP, R10, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RSP, R12, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(RSP, R13, TIMES_2, 256 * kWordSize));
 
   __ movq(RAX, Address(R10, RBP, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(R10, RAX, TIMES_2, 256 * kWordSize));
   __ movq(RAX, Address(R10, R10, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R10, R12, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R10, R13, TIMES_2, 256 * kWordSize));
+
+  __ movq(RAX, Address(R12, RBP, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R12, RAX, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R12, R10, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R12, R12, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R12, R13, TIMES_2, 256 * kWordSize));
+
+  __ movq(RAX, Address(R13, RBP, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R13, RAX, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R13, R10, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R13, R12, TIMES_2, 256 * kWordSize));
+  __ movq(RAX, Address(R13, R13, TIMES_2, 256 * kWordSize));
 }
 
 
@@ -266,6 +342,24 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply, assembler) {
 ASSEMBLER_TEST_RUN(SignedMultiply, entry) {
   typedef int (*SignedMultiply)();
   EXPECT_EQ(8000, reinterpret_cast<SignedMultiply>(entry)());
+}
+
+
+ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
+  __ movq(RAX, Immediate(2));
+  __ movq(RCX, Immediate(4));
+  __ imulq(RAX, RCX);
+  __ movq(R8, Immediate(2));
+  __ movq(R9, Immediate(4));
+  __ imulq(R8, R9);
+  __ addq(RAX, R8);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SignedMultiply64, entry) {
+  typedef int64_t (*SignedMultiply64)();
+  EXPECT_EQ(16, reinterpret_cast<SignedMultiply64>(entry)());
 }
 
 

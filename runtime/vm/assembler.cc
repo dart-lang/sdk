@@ -153,17 +153,29 @@ void AssemblerBuffer::EmitObject(const Object& object) {
 
 // Shared macros are implemented here.
 void Assembler::Unimplemented(const char* message) {
-  Stop("unimplemented");
+  const char* format = "Unimplemented: %s";
+  const intptr_t len = snprintf(NULL, 0, format, message);
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  snprintf(buffer, len + 1, format, message);
+  Stop(buffer);
 }
 
 
 void Assembler::Untested(const char* message) {
-  Stop("untested");
+  const char* format = "Untested: %s";
+  const intptr_t len = snprintf(NULL, 0, format, message);
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  snprintf(buffer, len + 1, format, message);
+  Stop(buffer);
 }
 
 
 void Assembler::Unreachable(const char* message) {
-  Stop("unreachable");
+  const char* format = "Unreachable: %s";
+  const intptr_t len = snprintf(NULL, 0, format, message);
+  char* buffer = reinterpret_cast<char*>(malloc(len + 1));
+  snprintf(buffer, len + 1, format, message);
+  Stop(buffer);
 }
 
 }  // namespace dart

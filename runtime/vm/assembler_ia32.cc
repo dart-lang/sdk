@@ -1223,31 +1223,43 @@ void Assembler::AddImmediate(Register reg, const Immediate& imm) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
-  ASSERT(object.IsZoneHandle());
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xB8 + dst);
-  buffer_.EmitObject(object);
+  if (object.IsSmi()) {
+    movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
+  } else {
+    ASSERT(object.IsZoneHandle());
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0xB8 + dst);
+    buffer_.EmitObject(object);
+  }
 }
 
 
 void Assembler::PushObject(const Object& object) {
-  ASSERT(object.IsZoneHandle());
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x68);
-  buffer_.EmitObject(object);
+  if (object.IsSmi()) {
+    pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
+  } else {
+    ASSERT(object.IsZoneHandle());
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0x68);
+    buffer_.EmitObject(object);
+  }
 }
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
-  ASSERT(object.IsZoneHandle());
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  if (reg == EAX) {
-    EmitUint8(0x05 + (7 << 3));
-    buffer_.EmitObject(object);
+  if (object.IsSmi()) {
+    cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
-    EmitUint8(0x81);
-    EmitOperand(7, Operand(reg));
-    buffer_.EmitObject(object);
+    ASSERT(object.IsZoneHandle());
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    if (reg == EAX) {
+      EmitUint8(0x05 + (7 << 3));
+      buffer_.EmitObject(object);
+    } else {
+      EmitUint8(0x81);
+      EmitOperand(7, Operand(reg));
+      buffer_.EmitObject(object);
+    }
   }
 }
 

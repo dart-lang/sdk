@@ -56,9 +56,19 @@ enum XmmRegister {
 };
 
 
+enum RexBits {
+  REX_NONE   = 0,
+  REX_B      = 1 << 0,
+  REX_X      = 1 << 1,
+  REX_R      = 1 << 2,
+  REX_W      = 1 << 3,
+  REX_PREFIX = 1 << 6
+};
+
+
 // Register aliases.
 const Register TMP = R11;  // Used as scratch register by the assembler.
-const Register CTX = R12;  // Caches current context in generated code.
+const Register CTX = R15;  // Caches current context in generated code.
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

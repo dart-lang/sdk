@@ -803,12 +803,7 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
 
 void CodeGenerator::VisitLiteralNode(LiteralNode* node) {
   if (!IsResultNeeded(node)) return;
-  const Object& literal = node->literal();
-  if (literal.IsSmi()) {
-    __ pushl(Immediate(reinterpret_cast<int32_t>(literal.raw())));
-  } else {
-    __ PushObject(literal);
-  }
+  __ PushObject(node->literal());
 }
 
 

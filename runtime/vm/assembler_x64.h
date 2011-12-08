@@ -21,9 +21,17 @@ class RuntimeEntry;
 
 #if defined(TESTING) || defined(DEBUG)
 
+#if defined(TARGET_OS_WINDOWS)
+// The compiler may dynamically align the stack on Windows, so do not check.
+#define CHECK_STACK_ALIGNMENT { }
+#else
 #define CHECK_STACK_ALIGNMENT {                                                \
-  UNIMPLEMENTED();                                                             \
+  uword current_sp;                                                            \
+  asm volatile("mov %%rsp, %[current_sp]" : [current_sp] "=r" (current_sp));   \
+  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
+         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
 }
+#endif
 
 #else
 
@@ -62,7 +70,7 @@ class Operand : public ValueObject {
   }
 
   Register rm() const {
-    int rm_rex = (rex_ & 1) << 3;
+    int rm_rex = (rex_ & REX_B) << 3;
     return static_cast<Register>(rm_rex + (encoding_at(0) & 7));
   }
 
@@ -71,12 +79,12 @@ class Operand : public ValueObject {
   }
 
   Register index() const {
-    int index_rex = (rex_ & 2) << 2;
+    int index_rex = (rex_ & REX_X) << 2;
     return static_cast<Register>(index_rex + ((encoding_at(1) >> 3) & 7));
   }
 
   Register base() const {
-    int base_rex = (rex_ & 1) << 3;
+    int base_rex = (rex_ & REX_B) << 3;
     return static_cast<Register>(base_rex + (encoding_at(1) & 7));
   }
 
@@ -91,11 +99,13 @@ class Operand : public ValueObject {
   }
 
  protected:
-  Operand() : length_(0), rex_(0) { }
+  Operand() : length_(0), rex_(REX_NONE) { }
 
   void SetModRM(int mod, Register rm) {
     ASSERT((mod & ~3) == 0);
-    if (rm > 7) rex_ |= 1;
+    if ((rm > 7) && !((rm == R12) && (mod != 3))) {
+      rex_ |= REX_B;
+    }
     encoding_[0] = (mod << 6) | (rm & 7);
     length_ = 1;
   }
@@ -104,10 +114,10 @@ class Operand : public ValueObject {
     ASSERT(length_ == 1);
     ASSERT((scale & ~3) == 0);
     if (base > 7) {
-      ASSERT((rex_ & 1) == 0);  // Must not have REX.B already set.
-      rex_ |= 1;
+      ASSERT((rex_ & REX_B) == 0);  // Must not have REX.B already set.
+      rex_ |= REX_B;
     }
-    if (index > 7) rex_ |= 2;
+    if (index > 7) rex_ |= REX_X;
     encoding_[1] = (scale << 6) | ((index & 7) << 3) | (base & 7);
     length_ = 2;
   }
@@ -128,7 +138,7 @@ class Operand : public ValueObject {
   uint8_t rex_;
   uint8_t encoding_[6];
 
-  explicit Operand(Register reg) : rex_(0) { SetModRM(3, reg); }
+  explicit Operand(Register reg) : rex_(REX_NONE) { SetModRM(3, reg); }
 
   // Get the operand encoding byte at the given index.
   uint8_t encoding_at(int index) const {
@@ -139,7 +149,7 @@ class Operand : public ValueObject {
   // Returns whether or not this operand is really the given register in
   // disguise. Used from the assembler to generate better encodings.
   bool IsRegister(Register reg) const {
-    return ((reg > 7 ? 1 : 0) == (rex_ & 1))  // REX.B match.
+    return ((reg > 7 ? 1 : 0) == (rex_ & REX_B))  // REX.B match.
         && ((encoding_at(0) & 0xF8) == 0xC0)  // Addressing mode is register.
         && ((encoding_at(0) & 0x07) == reg);  // Register codes match.
   }
@@ -155,16 +165,22 @@ class Operand : public ValueObject {
 class Address : public Operand {
  public:
   Address(Register base, int32_t disp) {
-    if (disp == 0 && base != RBP) {
+    if ((disp == 0) && ((base & 7) != RBP)) {
       SetModRM(0, base);
-      if (base == RSP) SetSIB(TIMES_1, RSP, base);
+      if ((base & 7) == RSP) {
+        SetSIB(TIMES_1, RSP, base);
+      }
     } else if (Utils::IsInt(8, disp)) {
       SetModRM(1, base);
-      if (base == RSP) SetSIB(TIMES_1, RSP, base);
+      if ((base & 7) == RSP) {
+        SetSIB(TIMES_1, RSP, base);
+      }
       SetDisp8(disp);
     } else {
       SetModRM(2, base);
-      if (base == RSP) SetSIB(TIMES_1, RSP, base);
+      if ((base & 7) == RSP) {
+        SetSIB(TIMES_1, RSP, base);
+      }
       SetDisp32(disp);
     }
   }
@@ -178,7 +194,7 @@ class Address : public Operand {
 
   Address(Register base, Register index, ScaleFactor scale, int32_t disp) {
     ASSERT(index != RSP);  // Illegal addressing mode.
-    if (disp == 0 && base != RBP) {
+    if ((disp == 0) && ((base & 7) != RBP)) {
       SetModRM(0, RSP);
       SetSIB(scale, index, base);
     } else if (Utils::IsInt(8, disp)) {
@@ -306,6 +322,7 @@ class Assembler : public ValueObject {
 
   void pushq(Register reg);
   void pushq(const Address& address);
+  void pushq(const Immediate& imm);
 
   void popq(Register reg);
   void popq(const Address& address);
@@ -370,6 +387,7 @@ class Assembler : public ValueObject {
   void cmpl(const Address& address, const Immediate& imm);
 
   void cmpq(Register reg, const Immediate& imm);
+  void cmpq(const Address& address, Register reg);
   void cmpq(const Address& address, const Immediate& imm);
   void cmpq(Register reg0, Register reg1);
   void cmpq(Register reg, const Address& address);
@@ -505,11 +523,11 @@ class Assembler : public ValueObject {
    * Misc. functionality.
    */
   void SmiTag(Register reg) {
-    addl(reg, reg);
+    addq(reg, reg);
   }
 
   void SmiUntag(Register reg) {
-    sarl(reg, Immediate(kSmiTagSize));
+    sarq(reg, Immediate(kSmiTagSize));
   }
 
   int PreferredLoopAlignment() { return 16; }
@@ -564,15 +582,6 @@ class Assembler : public ValueObject {
 };
 
 
-enum {
-  REX_NONE = 0,
-  REX_B    = 1 << 0,
-  REX_X    = 1 << 1,
-  REX_R    = 1 << 2,
-  REX_W    = 1 << 3
-};
-
-
 inline void Assembler::EmitUint8(uint8_t value) {
   buffer_.Emit<uint8_t>(value);
 }
@@ -591,7 +600,7 @@ inline void Assembler::EmitInt64(int64_t value) {
 inline void Assembler::EmitRegisterREX(Register reg, uint8_t rex) {
   ASSERT(reg != kNoRegister);
   rex |= (reg > 7 ? REX_B : REX_NONE);
-  if (rex != 0) EmitUint8(0x40 | rex);
+  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
 
@@ -599,7 +608,7 @@ inline void Assembler::EmitOperandREX(int rm,
                                       const Operand& operand,
                                       uint8_t rex) {
   rex |= (rm > 7 ? REX_R : REX_NONE) | operand.rex();
-  if (rex != 0) EmitUint8(0x40 | rex);
+  if (rex != REX_NONE) EmitUint8(REX_PREFIX | rex);
 }
 
 
