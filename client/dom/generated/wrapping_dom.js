@@ -4550,6 +4550,54 @@ function native__DOMWindowWrappingImplementation__webkitRequestAnimationFrame(_t
   }
 }
 
+function native__DOMWindowWrappingImplementation__webkitRequestFileSystem(_this, type, size) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitRequestFileSystem_2(_this, type, size, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitRequestFileSystem_3(_this, type, size, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitResolveLocalFileSystemURL(_this, url) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitResolveLocalFileSystemURL_2(_this, url, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__webkitResolveLocalFileSystemURL_3(_this, url, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DataTransferItemWrappingImplementation__get_kind(_this) {
   try {
     return __dom_wrap(_this.$dom.kind);
@@ -5486,9 +5534,33 @@ function native__DocumentWrappingImplementation__set_title(_this, value) {
   }
 }
 
+function native__DocumentWrappingImplementation__get_webkitCurrentFullScreenElement(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitCurrentFullScreenElement);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__get_webkitFullScreenKeyboardInputAllowed(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitFullScreenKeyboardInputAllowed);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DocumentWrappingImplementation__get_webkitHidden(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitHidden);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__get_webkitIsFullScreen(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitIsFullScreen);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5833,6 +5905,14 @@ function native__DocumentWrappingImplementation__querySelector(_this, selectors)
 function native__DocumentWrappingImplementation__querySelectorAll(_this, selectors) {
   try {
     return __dom_wrap(_this.$dom.querySelectorAll(__dom_unwrap(selectors)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__webkitCancelFullScreen(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitCancelFullScreen());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -6305,6 +6385,14 @@ function native__ElementWrappingImplementation__setAttributeNodeNS(_this, newAtt
 function native__ElementWrappingImplementation__webkitMatchesSelector(_this, selectors) {
   try {
     return __dom_wrap(_this.$dom.webkitMatchesSelector(__dom_unwrap(selectors)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ElementWrappingImplementation__webkitRequestFullScreen(_this, flags) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFullScreen(__dom_unwrap(flags)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -32889,6 +32977,70 @@ function native__WorkerContextWrappingImplementation__removeEventListener(_this,
 function native__WorkerContextWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
   try {
     return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystem(_this, type, size) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystem_2(_this, type, size, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystem_3(_this, type, size, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystem(__dom_unwrap(type), __dom_unwrap(size), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitRequestFileSystemSync(_this, type, size) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRequestFileSystemSync(__dom_unwrap(type), __dom_unwrap(size)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemSyncURL(_this, url) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemSyncURL(__dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemURL(_this, url) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemURL_2(_this, url, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__webkitResolveLocalFileSystemURL_3(_this, url, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitResolveLocalFileSystemURL(__dom_unwrap(url), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

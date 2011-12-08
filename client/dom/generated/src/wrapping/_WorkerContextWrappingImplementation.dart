@@ -98,5 +98,57 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   }
   static int _setTimeout(receiver, handler, timeout) native;
 
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (successCallback === null) {
+      if (errorCallback === null) {
+        _webkitRequestFileSystem(this, type, size);
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _webkitRequestFileSystem_2(this, type, size, successCallback);
+        return;
+      } else {
+        _webkitRequestFileSystem_3(this, type, size, successCallback, errorCallback);
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
+  }
+  static void _webkitRequestFileSystem(receiver, type, size) native;
+  static void _webkitRequestFileSystem_2(receiver, type, size, successCallback) native;
+  static void _webkitRequestFileSystem_3(receiver, type, size, successCallback, errorCallback) native;
+
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) {
+    return _webkitRequestFileSystemSync(this, type, size);
+  }
+  static DOMFileSystemSync _webkitRequestFileSystemSync(receiver, type, size) native;
+
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url) {
+    return _webkitResolveLocalFileSystemSyncURL(this, url);
+  }
+  static EntrySync _webkitResolveLocalFileSystemSyncURL(receiver, url) native;
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
+    if (successCallback === null) {
+      if (errorCallback === null) {
+        _webkitResolveLocalFileSystemURL(this, url);
+        return;
+      }
+    } else {
+      if (errorCallback === null) {
+        _webkitResolveLocalFileSystemURL_2(this, url, successCallback);
+        return;
+      } else {
+        _webkitResolveLocalFileSystemURL_3(this, url, successCallback, errorCallback);
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
+  }
+  static void _webkitResolveLocalFileSystemURL(receiver, url) native;
+  static void _webkitResolveLocalFileSystemURL_2(receiver, url, successCallback) native;
+  static void _webkitResolveLocalFileSystemURL_3(receiver, url, successCallback, errorCallback) native;
+
   String get typeName() { return "WorkerContext"; }
 }

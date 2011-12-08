@@ -1,6 +1,10 @@
 
 class DOMWindow native "@*DOMWindow" {
 
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
   DOMApplicationCache applicationCache;
 
   Navigator clientInformation;
@@ -176,6 +180,10 @@ class DOMWindow native "@*DOMWindow" {
   void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   var dartObjectLocalStorage;
 

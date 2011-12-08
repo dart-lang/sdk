@@ -78,7 +78,13 @@ interface Document extends Node, NodeSelector {
 
   void set title(String value);
 
+  Element get webkitCurrentFullScreenElement();
+
+  bool get webkitFullScreenKeyboardInputAllowed();
+
   bool get webkitHidden();
+
+  bool get webkitIsFullScreen();
 
   String get webkitVisibilityState();
 
@@ -165,4 +171,6 @@ interface Document extends Node, NodeSelector {
   Element querySelector(String selectors);
 
   NodeList querySelectorAll(String selectors);
+
+  void webkitCancelFullScreen();
 }

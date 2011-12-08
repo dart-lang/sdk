@@ -1245,6 +1245,10 @@ class DOMURL native "*DOMURL" {
 
 class DOMWindow native "@*DOMWindow" {
 
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
   DOMApplicationCache applicationCache;
 
   Navigator clientInformation;
@@ -1420,6 +1424,10 @@ class DOMWindow native "@*DOMWindow" {
   void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -1647,7 +1655,13 @@ class Document extends Node native "Document" {
 
   String title;
 
+  Element webkitCurrentFullScreenElement;
+
+  bool webkitFullScreenKeyboardInputAllowed;
+
   bool webkitHidden;
+
+  bool webkitIsFullScreen;
 
   String webkitVisibilityState;
 
@@ -1730,6 +1744,8 @@ class Document extends Node native "Document" {
   Element querySelector(String selectors) native;
 
   NodeList querySelectorAll(String selectors) native;
+
+  void webkitCancelFullScreen() native;
 }
 
 class DocumentFragment extends Node native "*DocumentFragment" {
@@ -1758,6 +1774,8 @@ class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" 
 }
 
 class Element extends Node native "Element" {
+
+  static final int ALLOW_KEYBOARD_INPUT = 1;
 
   int childElementCount;
 
@@ -1852,6 +1870,8 @@ class Element extends Node native "Element" {
   Attr setAttributeNodeNS(Attr newAttr) native;
 
   bool webkitMatchesSelector(String selectors) native;
+
+  void webkitRequestFullScreen(int flags) native;
 }
 
 class ElementTimeControl native "*ElementTimeControl" {
@@ -10723,6 +10743,10 @@ class Worker extends AbstractWorker native "*Worker" {
 
 class WorkerContext native "*WorkerContext" {
 
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
   WorkerLocation location;
 
   WorkerNavigator navigator;
@@ -10750,6 +10774,14 @@ class WorkerContext native "*WorkerContext" {
   int setInterval(TimeoutHandler handler, int timeout) native;
 
   int setTimeout(TimeoutHandler handler, int timeout) native;
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
+
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url) native;
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   var dartObjectLocalStorage;
 

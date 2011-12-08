@@ -6,6 +6,8 @@
 
 interface Element extends Node, NodeSelector, ElementTraversal {
 
+  static final int ALLOW_KEYBOARD_INPUT = 1;
+
   int get childElementCount();
 
   int get clientHeight();
@@ -103,4 +105,6 @@ interface Element extends Node, NodeSelector, ElementTraversal {
   Attr setAttributeNodeNS(Attr newAttr);
 
   bool webkitMatchesSelector(String selectors);
+
+  void webkitRequestFullScreen(int flags);
 }

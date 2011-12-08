@@ -1590,10 +1590,12 @@ dom_externs.warn;                       // operation Console.warn
 dom_externs.wasClean;                   // attribute CloseEvent.wasClean
 dom_externs.watchPosition;              // operation Geolocation.watchPosition
 dom_externs.webkitAudioDecodedByteCount;  // attribute HTMLMediaElement.webkitAudioDecodedByteCount
+dom_externs.webkitCancelFullScreen;     // operation Document.webkitCancelFullScreen
 dom_externs.webkitCancelRequestAnimationFrame;  // operation DOMWindow.webkitCancelRequestAnimationFrame
 dom_externs.webkitClosedCaptionsVisible;  // attribute HTMLMediaElement.webkitClosedCaptionsVisible
 dom_externs.webkitConvertPointFromNodeToPage;  // operation DOMWindow.webkitConvertPointFromNodeToPage
 dom_externs.webkitConvertPointFromPageToNode;  // operation DOMWindow.webkitConvertPointFromPageToNode
+dom_externs.webkitCurrentFullScreenElement;  // attribute Document.webkitCurrentFullScreenElement
 dom_externs.webkitDecodedFrameCount;    // attribute HTMLVideoElement.webkitDecodedFrameCount
 dom_externs.webkitDirectionInvertedFromDevice;  // attribute WheelEvent.webkitDirectionInvertedFromDevice
 dom_externs.webkitDisplayingFullscreen;  // attribute HTMLVideoElement.webkitDisplayingFullscreen
@@ -1604,10 +1606,12 @@ dom_externs.webkitErrorMessage;         // attribute IDBRequest.webkitErrorMessa
 dom_externs.webkitExitFullScreen;       // operation HTMLVideoElement.webkitExitFullScreen
 dom_externs.webkitExitFullscreen;       // operation HTMLVideoElement.webkitExitFullscreen
 dom_externs.webkitForce;                // attribute Touch.webkitForce
+dom_externs.webkitFullScreenKeyboardInputAllowed;  // attribute Document.webkitFullScreenKeyboardInputAllowed
 dom_externs.webkitGrammar;              // attribute HTMLInputElement.webkitGrammar
 dom_externs.webkitHasClosedCaptions;    // attribute HTMLMediaElement.webkitHasClosedCaptions
 dom_externs.webkitHidden;               // attribute Document.webkitHidden
 dom_externs.webkitInitMessageEvent;     // operation MessageEvent.webkitInitMessageEvent
+dom_externs.webkitIsFullScreen;         // attribute Document.webkitIsFullScreen
 dom_externs.webkitLineDash;             // attribute CanvasRenderingContext2D.webkitLineDash
 dom_externs.webkitLineDashOffset;       // attribute CanvasRenderingContext2D.webkitLineDashOffset
 dom_externs.webkitMatchesSelector;      // operation Element.webkitMatchesSelector
@@ -1617,6 +1621,11 @@ dom_externs.webkitPreservesPitch;       // attribute HTMLMediaElement.webkitPres
 dom_externs.webkitRadiusX;              // attribute Touch.webkitRadiusX
 dom_externs.webkitRadiusY;              // attribute Touch.webkitRadiusY
 dom_externs.webkitRequestAnimationFrame;  // operation DOMWindow.webkitRequestAnimationFrame
+dom_externs.webkitRequestFileSystem;    // operation DOMWindow.webkitRequestFileSystem, operation WorkerContext.webkitRequestFileSystem
+dom_externs.webkitRequestFileSystemSync;  // operation WorkerContext.webkitRequestFileSystemSync
+dom_externs.webkitRequestFullScreen;    // operation Element.webkitRequestFullScreen
+dom_externs.webkitResolveLocalFileSystemSyncURL;  // operation WorkerContext.webkitResolveLocalFileSystemSyncURL
+dom_externs.webkitResolveLocalFileSystemURL;  // operation DOMWindow.webkitResolveLocalFileSystemURL, operation WorkerContext.webkitResolveLocalFileSystemURL
 dom_externs.webkitRotationAngle;        // attribute Touch.webkitRotationAngle
 dom_externs.webkitSpeech;               // attribute HTMLInputElement.webkitSpeech
 dom_externs.webkitSupportsFullscreen;   // attribute HTMLVideoElement.webkitSupportsFullscreen

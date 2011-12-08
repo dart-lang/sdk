@@ -1,6 +1,10 @@
 
 class WorkerContext native "*WorkerContext" {
 
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
   WorkerLocation location;
 
   WorkerNavigator navigator;
@@ -28,6 +32,14 @@ class WorkerContext native "*WorkerContext" {
   int setInterval(TimeoutHandler handler, int timeout) native;
 
   int setTimeout(TimeoutHandler handler, int timeout) native;
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+
+  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
+
+  EntrySync webkitResolveLocalFileSystemSyncURL(String url) native;
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   var dartObjectLocalStorage;
 

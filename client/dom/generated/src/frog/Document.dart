@@ -57,7 +57,13 @@ class Document extends Node native "Document" {
 
   String title;
 
+  Element webkitCurrentFullScreenElement;
+
+  bool webkitFullScreenKeyboardInputAllowed;
+
   bool webkitHidden;
+
+  bool webkitIsFullScreen;
 
   String webkitVisibilityState;
 
@@ -140,4 +146,6 @@ class Document extends Node native "Document" {
   Element querySelector(String selectors) native;
 
   NodeList querySelectorAll(String selectors) native;
+
+  void webkitCancelFullScreen() native;
 }

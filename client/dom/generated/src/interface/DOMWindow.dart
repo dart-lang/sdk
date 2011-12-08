@@ -253,7 +253,15 @@ interface Window extends EventTarget {
   void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
+
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]);
+
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 }
 
 interface DOMWindow extends Window {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
 }

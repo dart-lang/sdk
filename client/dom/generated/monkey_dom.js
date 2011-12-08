@@ -1021,7 +1021,9 @@ function DOM$fixClass$DOMWindow(c) {
     'webkitConvertPointFromNodeToPage',
     'webkitConvertPointFromPageToNode',
     'webkitPostMessage',
-    'webkitRequestAnimationFrame']);
+    'webkitRequestAnimationFrame',
+    'webkitRequestFileSystem',
+    'webkitResolveLocalFileSystemURL']);
   c.$implements$DOMWindow$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
 }
@@ -1193,7 +1195,10 @@ function DOM$fixClass$Document(c) {
     c.prototype.styleSheets$getter = function() { return DOM$EnsureDartNull(this.styleSheets); };
     c.prototype.title$getter = function() { return DOM$EnsureDartNull(this.title); };
     c.prototype.title$setter = function(value) { this.title = value; };
+    c.prototype.webkitCurrentFullScreenElement$getter = function() { return DOM$EnsureDartNull(this.webkitCurrentFullScreenElement); };
+    c.prototype.webkitFullScreenKeyboardInputAllowed$getter = function() { return DOM$EnsureDartNull(this.webkitFullScreenKeyboardInputAllowed); };
     c.prototype.webkitHidden$getter = function() { return DOM$EnsureDartNull(this.webkitHidden); };
+    c.prototype.webkitIsFullScreen$getter = function() { return DOM$EnsureDartNull(this.webkitIsFullScreen); };
     c.prototype.webkitVisibilityState$getter = function() { return DOM$EnsureDartNull(this.webkitVisibilityState); };
     c.prototype.xmlEncoding$getter = function() { return DOM$EnsureDartNull(this.xmlEncoding); };
     c.prototype.xmlStandalone$getter = function() { return DOM$EnsureDartNull(this.xmlStandalone); };
@@ -1238,7 +1243,8 @@ function DOM$fixClass$Document(c) {
     'queryCommandSupported',
     'queryCommandValue',
     'querySelector',
-    'querySelectorAll']);
+    'querySelectorAll',
+    'webkitCancelFullScreen']);
   c.$implements$Document$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -1326,7 +1332,8 @@ function DOM$fixClass$Element(c) {
     'setAttributeNS',
     'setAttributeNode',
     'setAttributeNodeNS',
-    'webkitMatchesSelector']);
+    'webkitMatchesSelector',
+    'webkitRequestFullScreen']);
   c.$implements$Element$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -8073,7 +8080,11 @@ function DOM$fixClass$WorkerContext(c) {
     'importScripts',
     'removeEventListener',
     'setInterval',
-    'setTimeout']);
+    'setTimeout',
+    'webkitRequestFileSystem',
+    'webkitRequestFileSystemSync',
+    'webkitResolveLocalFileSystemSyncURL',
+    'webkitResolveLocalFileSystemURL']);
   c.$implements$WorkerContext$Dart = 1;
 }
 function DOM$fixClass$WorkerLocation(c) {
