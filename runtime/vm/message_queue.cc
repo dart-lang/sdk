@@ -51,7 +51,7 @@ PortMessage* MessageQueue::Dequeue(int64_t millis) {
     if (head_ == NULL) {
       tail_ = NULL;
     }
-#if DEBUG
+#if defined(DEBUG)
     result->next_ = result;  // Make sure to trigger ASSERT in Enqueue.
 #endif  // DEBUG
   }
