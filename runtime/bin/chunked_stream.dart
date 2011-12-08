@@ -89,6 +89,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     // TODO(sgjesse): Find a better way of scheduling callbacks from
     // the event loop.
     void issueDataCallback(Timer timer) {
+      _scheduledDataCallback = null;
       if (_clientDataHandler !== null) {
         _clientDataHandler();
         _checkScheduleCallback();
@@ -96,6 +97,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     }
 
     void issueCloseCallback(Timer timer) {
+      _scheduledCloseCallback = null;
       if (!_closed) {
         if (_clientCloseHandler !== null) _clientCloseHandler();
         _closed = true;
@@ -105,13 +107,17 @@ class _ChunkedInputStream implements ChunkedInputStream {
     // Schedule data callback if enough data in buffer.
     if ((_bufferList.length >=_chunkSize ||
          (_bufferList.length > 0 && _inputClosed)) &&
-        _clientDataHandler !== null) {
-      new Timer(issueDataCallback, 0, false);
+        _clientDataHandler !== null &&
+        _scheduledDataCallback == null) {
+      _scheduledDataCallback = new Timer(issueDataCallback, 0, false);
     }
 
     // Schedule close callback if no more data and input is closed.
-    if (_bufferList.length == 0 && _inputClosed && !_closed) {
-      new Timer(issueCloseCallback, 0, false);
+    if (_bufferList.length == 0 &&
+        _inputClosed &&
+        !_closed &&
+        _scheduledCloseCallback == null) {
+      _scheduledCloseCallback = new Timer(issueCloseCallback, 0, false);
     }
   }
 
@@ -120,6 +126,8 @@ class _ChunkedInputStream implements ChunkedInputStream {
   int _chunkSize;
   bool _inputClosed = false;  // Is the underlying input stream closed?
   bool _closed = false;  // Has the close handler been called?.
-  var _clientDataHandler;
-  var _clientCloseHandler;
+  Timer _scheduledDataCallback;
+  Timer _scheduledCloseCallback;
+  Function _clientDataHandler;
+  Function _clientCloseHandler;
 }
