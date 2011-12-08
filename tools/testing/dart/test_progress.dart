@@ -239,7 +239,7 @@ class LineProgressIndicator extends ProgressIndicator {
 
 class VerboseProgressIndicator extends ProgressIndicator {
   VerboseProgressIndicator(Date startTime, bool printTiming)
-      : super(startTime, bool printTiming);
+      : super(startTime, printTiming);
 
   void _printStartProgress(TestCase test) {
     print('Starting ${test.displayName}...');
