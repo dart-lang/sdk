@@ -76,6 +76,7 @@ _constructable_types = {
     'XMLHttpRequest': '',
     'WebKitCSSMatrix': '[String spec]',
     'WebKitPoint': 'num x, num y',
+    'WebSocket': 'String url',
     # dart:html types
     'CSSMatrix': '[String spec]',
     'Point': 'num x, num y',

@@ -10671,6 +10671,8 @@ class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
 }
 
 class WebSocket native "*WebSocket" {
+  WebSocket(String url) native;
+
 
   static final int CLOSED = 3;
 
