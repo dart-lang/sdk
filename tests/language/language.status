@@ -170,12 +170,7 @@ ToplevelCollision2Test/none: Fail        # Issue 647
 
 [ $component == dartium ]
 # TODO: These need to be retriaged.
-ExpectTest: Fail
-StackTraceTest: Fail
 RichardsTest: Fail
-UnboundGetterTest: Fail
-Private2Test: Fail
-Private3Test: Fail
 TypedMessageTest: Fail # Bug 5246195
 
 
