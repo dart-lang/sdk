@@ -48,8 +48,7 @@ void ExtractTestsFromMultitest(String filename,
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
-  File file = new File(filename);
-  file.openSync();
+  RandomAccessFile file = (new File(filename)).openSync();
   List chars = new List(file.lengthSync());
   int offset = 0;
   while (offset != chars.length) {
@@ -166,32 +165,32 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
   file.createHandler = () {
     file.open(writable: true);
   };
-  file.openHandler =  () {
+  file.openHandler = (RandomAccessFile openedFile) {
+    openedFile.noPendingWriteHandler =() {
+      openedFile.close();
+    };
+    openedFile.closeHandler = () {
+      var outcome = outcomes[key];
+      bool enableFatalTypeErrors = (supportsFatalTypeErrors &&
+                                    outcome.contains('static type error'));
+      bool isNegative = (outcome.contains('compile-time error') ||
+                         outcome.contains('runtime error') ||
+                         enableFatalTypeErrors);
+      bool isNegativeIfChecked = outcome.contains('dynamic type error');
+      doTest(filename,
+             isNegative,
+             isNegativeIfChecked,
+             enableFatalTypeErrors);
+      WriteMultitestToFileAndQueueIt(tests,
+                                     outcomes,
+                                     supportsFatalTypeErrors,
+                                     currentKey,
+                                     basePath,
+                                     doTest,
+                                     done);
+    };
     var bytes = tests[key].charCodes();
-    file.writeList(bytes, 0, bytes.length);
-  };
-  file.noPendingWriteHandler =() {
-    file.close();
-  };
-  file.closeHandler = () {
-    var outcome = outcomes[key];
-    bool enableFatalTypeErrors = (supportsFatalTypeErrors &&
-                                  outcome.contains('static type error'));
-    bool isNegative = (outcome.contains('compile-time error') ||
-                       outcome.contains('runtime error') ||
-                       enableFatalTypeErrors);
-    bool isNegativeIfChecked = outcome.contains('dynamic type error');
-    doTest(filename,
-           isNegative,
-           isNegativeIfChecked,
-           enableFatalTypeErrors);
-    WriteMultitestToFileAndQueueIt(tests,
-                                   outcomes,
-                                   supportsFatalTypeErrors,
-                                   currentKey,
-                                   basePath,
-                                   doTest,
-                                   done);
+    openedFile.writeList(bytes, 0, bytes.length);
   };
   file.create();
 }

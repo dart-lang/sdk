@@ -12,11 +12,9 @@ void testStringInputStreamSync() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
-  file.openSync();
   StringInputStream x = new StringInputStream(file.openInputStream());
   String line = x.readLine();
   Expect.equals("Hello Dart", line);
-  file.closeSync();
   line = x.readLine();
   Expect.equals("wassup!", line);
 }
@@ -25,9 +23,7 @@ void testInputStreamAsync() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   var expected = "Hello Dart\nwassup!\n".charCodes();
-  File file = new File(fileName);
-  file.openSync();
-  InputStream x = file.openInputStream();
+  InputStream x = (new File(fileName)).openInputStream();
   var byteCount = 0;
   x.dataHandler = () {
     Expect.equals(expected[byteCount],  x.read(1)[0]);
@@ -43,7 +39,6 @@ void testStringInputStreamAsync1() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
-  file.openSync();
   StringInputStream x = new StringInputStream(file.openInputStream());
   var result = "";
   x.dataHandler = () {
@@ -59,7 +54,6 @@ void testStringInputStreamAsync2() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
-  file.openSync();
   StringInputStream x = new StringInputStream(file.openInputStream());
   int lineCount = 0;
   x.lineHandler = () {
@@ -79,12 +73,10 @@ void testChunkedInputStream() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains 19 bytes ("Hello Dart\nwassup!")
   File file = new File(fileName);
-  file.openSync();
   ChunkedInputStream x = new ChunkedInputStream(file.openInputStream());
   x.chunkSize = 9;
   List<int> chunk = x.read();
   Expect.equals(9, chunk.length);
-  file.closeSync();
   x.chunkSize = 5;
   chunk = x.read();
   Expect.equals(5, chunk.length);

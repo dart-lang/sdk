@@ -19,13 +19,11 @@ class DirectoryTest {
     f.createSync();
 
     directory.dirHandler = (dir) {
-      print(dir);
       listedDir = true;
       Expect.isTrue(dir.contains('subdir'));
     };
 
     directory.fileHandler = (f) {
-      print(f);
       listedFile = true;
       Expect.isTrue(f.contains('subdir'));
       Expect.isTrue(f.contains('file.txt'));
@@ -150,42 +148,41 @@ class DirectoryTest {
         Expect.fail("testCreateTemp file.errorHandler called: $error");
       };
       file.createHandler = () {
+        file.openHandler = (RandomAccessFile openedFile) {
+          openedFile.writeList([65, 66, 67, 13], 0, 4);
+          openedFile.noPendingWriteHandler = () {
+            openedFile.length();
+          };
+          openedFile.lengthHandler = (int length) {
+            Expect.equals(4, length);
+            openedFile.close();
+          };
+          openedFile.closeHandler = () {
+            file.exists();
+          };
+          file.existsHandler = (bool exists) {
+            Expect.isTrue(exists);
+            // Try to delete the directory containing the file - should throw.
+            bool threw_exception = false;
+            try {
+              tempDirectory.deleteSync();
+            } catch (var e) {
+              Expect.isTrue(tempDirectory.existsSync());
+              threw_exception = true;
+            }
+            Expect.isTrue(threw_exception);
+            Expect.isTrue(tempDirectory.existsSync());
+            
+            // Delete the file, and then delete the directory.
+            file.delete();
+          };
+          file.deleteHandler = () {
+            tempDirectory.deleteSync();
+            Expect.isFalse(tempDirectory.existsSync());
+          };
+        };
         file.open(writable: true);
       };
-      file.openHandler = () {
-        file.writeList([65, 66, 67, 13], 0, 4);
-      };
-      file.noPendingWriteHandler = () {
-        file.length();
-      };
-      file.lengthHandler = (int length) {
-        Expect.equals(4, length);
-        file.close();
-      };
-      file.closeHandler = () {
-        file.exists();
-      };
-      file.existsHandler = (bool exists) {
-        Expect.isTrue(exists);
-        // Try to delete the directory containing the file - should throw.
-        bool threw_exception = false;
-        try {
-          tempDirectory.deleteSync();
-        } catch (var e) {
-          Expect.isTrue(tempDirectory.existsSync());
-          threw_exception = true;
-        }
-        Expect.isTrue(threw_exception);
-        Expect.isTrue(tempDirectory.existsSync());
-
-        // Delete the file, and then delete the directory.
-        file.delete();
-      };
-      file.deleteHandler = () {
-        tempDirectory.deleteSync();
-        Expect.isFalse(tempDirectory.existsSync());
-      };
-
       file.create();
     };
     tempDirectory.createTemp();

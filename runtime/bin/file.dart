@@ -49,18 +49,62 @@ interface File factory _File {
 
   /**
    * Open the file for random access operations. When the file is
-   * opened the openHandler is called. Opened files must be closed
-   * using the [close] method. By default writable is false.
+   * opened the openHandler is called with the resulting
+   * RandomAccessFile. RandomAccessFiles must be closed using the
+   * close method. By default writable is false.
    */
   void open([bool writable]);
 
   /**
-   * Synchronously open the file for random access operations. Opened
-   * files must be closed using the [close] method. By default
-   * writable is false.
+   * Synchronously open the file for random access operations. The
+   * result is a RandomAccessFile on which random access operations
+   * can be performed. Opened RandomAccessFiles must be closed using
+   * the close method. By default writable is false.
    */
-  void openSync([bool writable]);
+  RandomAccessFile openSync([bool writable]);
 
+  /**
+   * Get the canonical full path corresponding to the file name. The
+   * [fullPathHandler] is called when the fullPath operation
+   * completes.
+   */
+  String fullPath();
+
+  /**
+   * Synchronously get the canonical full path corresponding to the file name.
+   */
+  String fullPathSync();
+
+  /**
+   * Create a new independent input stream for the file. The file
+   * input stream must be closed when no longer used to free up
+   * system resources.
+   */
+  FileInputStream openInputStream();
+
+  /**
+   * Creates a new independent output stream for the file. The file
+   * output stream must be closed when no longer used to free up
+   * system resources.
+   */
+  FileOutputStream openOutputStream();
+
+  /**
+   * Get the name of the file.
+   */
+  String get name();
+
+  // Event handlers.
+  void set existsHandler(void handler(bool exists));
+  void set createHandler(void handler());
+  void set deleteHandler(void handler());
+  void set openHandler(void handler(RandomAccessFile openedFile));
+  void set fullPathHandler(void handler(String path));
+  void set errorHandler(void handler(String error));
+}
+
+
+interface RandomAccessFile {
   /**
    * Close the file. When the file is closed the closeHandler is
    * called.
@@ -194,39 +238,10 @@ interface File factory _File {
   void flushSync();
 
   /**
-   * Get the canonical full path corresponding to the file name. The
-   * [fullPathHandler] is called when the fullPath operation
-   * completes.
-   */
-  String fullPath();
-
-  /**
-   * Synchronously get the canonical full path corresponding to the file name.
-   */
-  String fullPathSync();
-
-  /**
-   * Create a new independent input stream for the file. The file
-   * input stream must be closed when no longer used.
-   */
-  FileInputStream openInputStream();
-
-  /**
-   * Creates a new independent output stream for the file. The file
-   * output stream must be closed when no longer used.
-   */
-  FileOutputStream openOutputStream();
-
-  /**
    * Get the name of the file.
    */
   String get name();
 
-  // Event handlers.
-  void set existsHandler(void handler(bool exists));
-  void set createHandler(void handler());
-  void set deleteHandler(void handler());
-  void set openHandler(void handler());
   void set closeHandler(void handler());
   void set readByteHandler(void handler(int byte));
   void set readListHandler(void handler(int read));
@@ -236,7 +251,6 @@ interface File factory _File {
   void set truncateHandler(void handler());
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
-  void set fullPathHandler(void handler(String path));
   void set errorHandler(void handler(String error));
 }
 

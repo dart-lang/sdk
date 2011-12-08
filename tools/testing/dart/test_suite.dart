@@ -323,8 +323,7 @@ class StandardTestSuite implements TestSuite {
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
     // we are interested in will be ascii in any case.
-    File file = new File(filename);
-    file.openSync();
+    RandomAccessFile file = (new File(filename)).openSync();
     List chars = new List(file.lengthSync());
     var offset = 0;
     while (offset != chars.length) {

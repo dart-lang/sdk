@@ -60,29 +60,9 @@ class FileTest {
     file.create();
   }
 
-  static void testCloseNonOpened() {
-    var file = new File(0);
-    try {
-      file.closeSync();
-      Expect.fail('exception expected');
-    } catch (var e) {
-      Expect.isTrue(e is FileIOException);
-      Expect.isTrue(e.toString().contains('Cannot close file'));
-    }
-
-    file.errorHandler = (s) {
-      Expect.isTrue(s.contains('Cannot close file'));
-    };
-    file.closeHandler = () {
-      Expect.fail('close non-opened file');
-    };
-    file.close();
-  }
-
   static void testReadListInvalidArgs(buffer, offset, length) {
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    var file = new File(filename);
-    file.openSync();
+    var file = (new File(filename)).openSync();
     try {
       file.readListSync(buffer, offset, length);
       Expect.fail('exception expected');
@@ -108,8 +88,7 @@ class FileTest {
 
   static void testWriteByteInvalidArgs(value) {
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    var file = new File(filename + "_out");
-    file.openSync(true);
+    var file = (new File(filename + "_out")).openSync(true);
     try {
       file.writeByteSync(value);
       Expect.fail('exception expected');
@@ -135,8 +114,7 @@ class FileTest {
 
   static void testWriteListInvalidArgs(buffer, offset, bytes) {
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    var file = new File(filename + "_out");
-    file.openSync(true);
+    var file = (new File(filename + "_out")).openSync(true);
     try {
       file.writeListSync(buffer, offset, bytes);
       Expect.fail('exception expected');
@@ -215,7 +193,6 @@ main() {
   FileTest.testOpenInvalidArgs('name', 0);
   FileTest.testExistsInvalidArgs(0);
   FileTest.testCreateInvalidArgs(0);
-  FileTest.testCloseNonOpened();
   FileTest.testReadListInvalidArgs(12, 0, 1);
   FileTest.testReadListInvalidArgs(new List(10), '0', 1);
   FileTest.testReadListInvalidArgs(new List(10), 0, '1');

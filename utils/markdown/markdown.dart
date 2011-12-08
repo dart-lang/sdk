@@ -30,8 +30,7 @@ main() {
 }
 
 String readFile(String path) {
-  final file = new File(path);
-  file.openSync();
+  final file = (new File(path)).openSync();
   final length = file.lengthSync();
   final buffer = new List<int>(length);
   final bytes = file.readListSync(buffer, 0, length);
