@@ -248,29 +248,39 @@ docNavigation() {
 
 /** Writes the navigation for the types contained by the given library. */
 docLibraryNavigation(Library library) {
-  final types = orderByName(library.types).filter(
-      (type) => !type.isTop && !type.name.startsWith('_'));
+  // Show the exception types separately.
+  final types = <Type>[];
+  final exceptions = <Type>[];
 
-  if (types.length == 0) return;
+  for (final type in orderByName(library.types)) {
+    if (type.isTop) continue;
+    if (type.name.startsWith('_')) continue;
 
-  writeln('<ul>');
-  for (final type in types) {
-    var icon = 'icon-interface';
     if (type.name.endsWith('Exception')) {
-      icon = 'icon-exception';
-    } else if (type.isClass) {
-      icon = 'icon-class';
-    }
-    write('<li>');
-
-    if (_currentType == type) {
-      write('<div class="$icon"></div><strong>${typeName(type)}</strong>');
+      exceptions.add(type);
     } else {
-      write(a(typeUrl(type), '<div class="$icon"></div>${typeName(type)}'));
+      types.add(type);
     }
+  }
 
+  if ((types.length == 0) && (exceptions.length == 0)) return;
+
+  writeType(String icon, Type type) {
+    write('<li>');
+    if (_currentType == type) {
+      write(
+          '<div class="icon-$icon"></div><strong>${typeName(type)}</strong>');
+    } else {
+      write(a(typeUrl(type),
+          '<div class="icon-$icon"></div>${typeName(type)}'));
+    }
     writeln('</li>');
   }
+
+  writeln('<ul>');
+  types.forEach((type) => writeType(type.isClass ? 'class' : 'interface',
+      type));
+  exceptions.forEach((type) => writeType('exception', type));
   writeln('</ul>');
 }
 
