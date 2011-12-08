@@ -4,6 +4,10 @@
 
 prefix css
 
+[ $component == frog || $component == frogsh || $component == leg ]
+ExpressionTest: Fail
+SelectorLiteralTest: Fail
+
 [ $arch == x64 ]
 *: Skip
 
