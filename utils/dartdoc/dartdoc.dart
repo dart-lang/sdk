@@ -33,6 +33,8 @@ final outdir = 'docs';
 /** Set to `false` to not include the source code in the generated docs. */
 bool includeSource = true;
 
+FileSystem files;
+
 /** Special comment position used to store the library-level doc comment. */
 final _libraryDoc = -1;
 
@@ -105,7 +107,7 @@ void main() {
     document(entrypoint);
   });
 
-  printStats();
+  printStats(elapsed);
 }
 
 void initializeDartDoc() {
@@ -167,7 +169,7 @@ document(String entrypoint) {
   }
 }
 
-printStats() {
+printStats(num elapsed) {
   print('Documented $_totalLibraries libraries, $_totalTypes types, and ' +
       '$_totalMembers members in ${elapsed}msec.');
 }

@@ -40,7 +40,7 @@ class Document {
   final Map<String, Link> refLinks;
 
   Document()
-    : refLinks = <String, Link>{};
+    : refLinks = <Link>{};
 
   parseRefLinks(List<String> lines) {
     // This is a hideous regex. It matches:
