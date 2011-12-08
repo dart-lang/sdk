@@ -112,6 +112,8 @@ class AudioChannelSplitter extends AudioNode native "*AudioChannelSplitter" {
 }
 
 class AudioContext native "*AudioContext" {
+  AudioContext() native;
+
 
   num currentTime;
 

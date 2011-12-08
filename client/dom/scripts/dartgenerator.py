@@ -71,6 +71,7 @@ _evasive_types = set(['CanvasPixelArray',
 # Each entry is of the form:
 #   type name: constructor parameters
 _constructable_types = {
+    'AudioContext': '',
     'FileReader': '',
     'XMLHttpRequest': '',
     'WebKitCSSMatrix': '[String spec]',

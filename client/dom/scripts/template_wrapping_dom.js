@@ -49,6 +49,14 @@ function native__DOMWindowWrappingImplementation__get_localStorage(_this) {
 
 // Native methods for factory providers.
 
+function native__AudioContextFactoryProvider_create() {
+  try {
+    return __dom_wrap(new AudioContext());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__FileReaderFactoryProvider_create() {
   try {
     return __dom_wrap(new FileReader());

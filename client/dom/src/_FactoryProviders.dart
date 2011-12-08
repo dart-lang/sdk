@@ -6,6 +6,13 @@
 // These factory methods could all live in one factory provider class but dartc
 // has a bug (5399939) preventing that.
 
+class _AudioContextFactoryProvider {
+
+  factory AudioContext() { return create(); }
+
+  static AudioContext create() native;
+}
+
 class _FileReaderFactoryProvider {
 
   factory FileReader() { return create(); }

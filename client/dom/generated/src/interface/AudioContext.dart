@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface AudioContext {
+interface AudioContext factory _AudioContextFactoryProvider {
+
+  AudioContext();
 
   num get currentTime();
 

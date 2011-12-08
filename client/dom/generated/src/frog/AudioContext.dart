@@ -1,5 +1,7 @@
 
 class AudioContext native "*AudioContext" {
+  AudioContext() native;
+
 
   num currentTime;
 
