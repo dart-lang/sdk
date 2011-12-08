@@ -8,130 +8,186 @@
 var static$uninitialized = {};
 var static$initializing = {};
 
+function $maybeBindRtt(fun, fRtt, thisObj) {
+  if (fRtt) {
+    fun.$lookupRTT = function() {
+      return fRtt.call(thisObj);
+    }
+  }
+}
+
 // Optimized versions of closure bindings.
 // Name convention: $bind<number-of-scopes>_<number-of-arguments>(fn, this, scopes, args)
-function $bind0_0(fn, thisObj) {
-  return function() {
+function $bind0_0(fn, fRtt, thisObj) {
+  var fun = function() {
     return fn.call(thisObj);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind0_1(fn, thisObj) {
-  return function(arg) {
+function $bind0_1(fn, fRtt, thisObj) {
+  var fun = function(arg) {
     return fn.call(thisObj, arg);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind0_2(fn, thisObj) {
-  return function(arg1, arg2) {
+function $bind0_2(fn, fRtt, thisObj) {
+  var fun = function(arg1, arg2) {
     return fn.call(thisObj, arg1, arg2);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind0_3(fn, thisObj) {
-  return function(arg1, arg2, arg3) {
+function $bind0_3(fn, fRtt, thisObj) {
+  var fun = function(arg1, arg2, arg3) {
     return fn.call(thisObj, arg1, arg2, arg3);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind0_4(fn, thisObj) {
-  return function(arg1, arg2, arg3, arg4) {
+function $bind0_4(fn, fRtt, thisObj) {
+  var fun = function(arg1, arg2, arg3, arg4) {
     return fn.call(thisObj, arg1, arg2, arg3, arg4);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind0_5(fn, thisObj) {
-  return function(arg1, arg2, arg3, arg4, arg5) {
+function $bind0_5(fn, fRtt, thisObj) {
+  var fun = function(arg1, arg2, arg3, arg4, arg5) {
     return fn.call(thisObj, arg1, arg2, arg3, arg4, arg5);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
 
-function $bind1_0(fn, thisObj, scope) {
-  return function() {
+function $bind1_0(fn, fRtt, thisObj, scope) {
+  var fun = function() {
     return fn.call(thisObj, scope);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind1_1(fn, thisObj, scope) {
-  return function(arg) {
+function $bind1_1(fn, fRtt, thisObj, scope) {
+  var fun = function(arg) {
     return fn.call(thisObj, scope, arg);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind1_2(fn, thisObj, scope) {
-  return function(arg1, arg2) {
+function $bind1_2(fn, fRtt, thisObj, scope) {
+  var fun = function(arg1, arg2) {
     return fn.call(thisObj, scope, arg1, arg2);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind1_3(fn, thisObj, scope) {
-  return function(arg1, arg2, arg3) {
+function $bind1_3(fn, fRtt, thisObj, scope) {
+  var fun = function(arg1, arg2, arg3) {
     return fn.call(thisObj, scope, arg1, arg2, arg3);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind1_4(fn, thisObj, scope) {
-  return function(arg1, arg2, arg3, arg4) {
+function $bind1_4(fn, fRtt, thisObj, scope) {
+  var fun = function(arg1, arg2, arg3, arg4) {
     return fn.call(thisObj, scope, arg1, arg2, arg3, arg4);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind1_5(fn, thisObj, scope) {
-  return function(arg1, arg2, arg3, arg4, arg5) {
+function $bind1_5(fn, fRtt, thisObj, scope) {
+  var fun = function(arg1, arg2, arg3, arg4, arg5) {
     return fn.call(thisObj, scope, arg1, arg2, arg3, arg4, arg5);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
 
-function $bind2_0(fn, thisObj, scope1, scope2) {
-  return function() {
+function $bind2_0(fn, fRtt, thisObj, scope1, scope2) {
+  var fun = function() {
     return fn.call(thisObj, scope1, scope2);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind2_1(fn, thisObj, scope1, scope2) {
-  return function(arg) {
+function $bind2_1(fn, fRtt, thisObj, scope1, scope2) {
+  var fun = function(arg) {
     return fn.call(thisObj, scope1, scope2, arg);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind2_2(fn, thisObj, scope1, scope2) {
-  return function(arg1, arg2) {
+function $bind2_2(fn, fRtt, thisObj, scope1, scope2) {
+  var fun = function(arg1, arg2) {
     return fn.call(thisObj, scope1, scope2, arg1, arg2);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind2_3(fn, thisObj, scope1, scope2) {
-  return function(arg1, arg2, arg3) {
+function $bind2_3(fn, fRtt, thisObj, scope1, scope2) {
+  var fun = function(arg1, arg2, arg3) {
     return fn.call(thisObj, scope1, scope2, arg1, arg2, arg3);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind2_4(fn, thisObj, scope1, scope2) {
-  return function(arg1, arg2, arg3, arg4) {
+function $bind2_4(fn, fRtt, thisObj, scope1, scope2) {
+  var fun = function(arg1, arg2, arg3, arg4) {
     return fn.call(thisObj, scope1, scope2, arg1, arg2, arg3, arg4);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind2_5(fn, thisObj, scope1, scope2) {
-  return function(arg1, arg2, arg3, arg4, arg5) {
+function $bind2_5(fn, fRtt, thisObj, scope1, scope2) {
+  var fun = function(arg1, arg2, arg3, arg4, arg5) {
     return fn.call(thisObj, scope1, scope2, arg1, arg2, arg3, arg4, arg5);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
 
-function $bind3_0(fn, thisObj, scope1, scope2, scope3) {
-  return function() {
+function $bind3_0(fn, fRtt, thisObj, scope1, scope2, scope3) {
+  var fun = function() {
     return fn.call(thisObj, scope1, scope2, scope3);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind3_1(fn, thisObj, scope1, scope2, scope3) {
-  return function(arg) {
+function $bind3_1(fn, fRtt, thisObj, scope1, scope2, scope3) {
+  var fun = function(arg) {
     return fn.call(thisObj, scope1, scope2, scope3, arg);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind3_2(fn, thisObj, scope1, scope2, scope3) {
-  return function(arg1, arg2) {
+function $bind3_2(fn, fRtt, thisObj, scope1, scope2, scope3) {
+  var fun = function(arg1, arg2) {
     return fn.call(thisObj, scope1, scope2, scope3, arg1, arg2);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind3_3(fn, thisObj, scope1, scope2, scope3) {
-  return function(arg1, arg2, arg3) {
+function $bind3_3(fn, fRtt, thisObj, scope1, scope2, scope3) {
+  var fun = function(arg1, arg2, arg3) {
     return fn.call(thisObj, scope1, scope2, scope3, arg1, arg2, arg3);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind3_4(fn, thisObj, scope1, scope2, scope3) {
-  return function(arg1, arg2, arg3, arg4) {
+function $bind3_4(fn, fRtt, thisObj, scope1, scope2, scope3) {
+  var fun = function(arg1, arg2, arg3, arg4) {
     return fn.call(thisObj, scope1, scope2, scope3, arg1, arg2, arg3, arg4);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
-function $bind3_5(fn, thisObj, scope1, scope2, scope3) {
-  return function(arg1, arg2, arg3, arg4, arg5) {
+function $bind3_5(fn, fRtt, thisObj, scope1, scope2, scope3) {
+  var fun = function(arg1, arg2, arg3, arg4, arg5) {
     return fn.call(thisObj, scope1, scope2, scope3, arg1, arg2, arg3, arg4, arg5);
   }
+  $maybeBindRtt(fun, fRtt, thisObj);
+  return fun;
 }
 
 /**
@@ -152,23 +208,31 @@ function $inherits(child, parent) {
 
 /**
  * @param {Function} fn
+ * @param {Function=} fRtt
  * @param {Object|undefined} thisObj
  * @param {...*} var_args
  */
-function $bind(fn, thisObj, var_args) {
-  if (arguments.length > 2) {
-    var boundArgs = Array.prototype.slice.call(arguments, 2);
-    return function() {
+function $bind(fn, fRtt, thisObj, var_args) {
+  var func;
+  if (arguments.length > 3) {
+    var boundArgs = Array.prototype.slice.call(arguments, 3);
+    func = function() {
       // Prepend the bound arguments to the current arguments.
       var newArgs = Array.prototype.slice.call(arguments);
       Array.prototype.unshift.apply(newArgs, boundArgs);
       return fn.apply(thisObj, newArgs);
     };
   } else {
-    return function() {
+    func = function() {
       return fn.apply(thisObj, arguments);
     };
   }
+  if(fRtt) {
+    func.$lookupRTT = function() {
+      return fRtt.apply(thisObj, arguments);
+    };
+  }
+  return func;
 }
 
 /**

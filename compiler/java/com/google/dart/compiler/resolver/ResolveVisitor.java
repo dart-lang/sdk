@@ -7,6 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
@@ -35,22 +36,7 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
 
   final MethodElement resolveFunction(DartFunction node, MethodElement element,
                                       List<TypeVariable> typeVariables) {
-    if (typeVariables != null) {
-      for (TypeVariable typeParameter : typeVariables) {
-        TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
-        getContext().getScope().declareElement(variable.getName(), variable);
-        DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
-        DartTypeNode boundNode = typeParameterNode.getBound();
-        Type bound;
-        if (boundNode != null) {
-          bound = getContext().resolveType(boundNode, true, ResolverErrorCode.NO_SUCH_TYPE);
-          boundNode.setType(bound);
-        } else {
-          bound = typeProvider.getObjectType();
-        }
-        variable.setBound(bound);
-      }
-    }
+    bindTypeVariables(typeVariables);
     for (DartParameter parameter : node.getParams()) {
       Elements.addParameter(element, (VariableElement) parameter.accept(this));
     }
@@ -65,6 +51,57 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
                                                typeVariables);
     Elements.setType(element, type);
     return element;
+  }
+
+  private void bindReturnGenerics(DartTypeNode node) {
+    for (DartTypeNode typeNode : node.getTypeArguments()) {
+      if (ElementKind.of(typeNode.getType().getElement()) != ElementKind.TYPE_VARIABLE) {
+        bindReturnGenerics(typeNode);
+        continue;
+      }
+      bindTypeVariable((TypeVariableElement) typeNode.getType().getElement());
+    }    
+  }
+
+  final FunctionAliasElement resolveFunctionAlias(DartFunctionTypeAlias node) {
+    // The purpose of this to find generic types and make sure they are bound to object.
+    DartTypeNode returnNode = node.getReturnTypeNode();
+    if (returnNode != null) {
+      bindReturnGenerics(returnNode);
+    }
+    FunctionAliasElement funcAlias = node.getSymbol();
+    for (Type type : funcAlias.getTypeParameters()) {
+      TypeVariableElement typeVar = (TypeVariableElement) type.getElement();
+      getContext().getScope().declareElement(typeVar.getName(), typeVar);
+    }
+    for (DartTypeParameter param : node.getTypeParameters()) {
+      param.accept(this);
+    }
+    return null;
+  }
+
+  void bindTypeVariable(TypeVariableElement variable) {
+    DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
+    DartTypeNode boundNode = typeParameterNode.getBound();
+    Type bound;
+    if (boundNode != null) {
+      bound = getContext().resolveType(boundNode, true, ResolverErrorCode.NO_SUCH_TYPE);
+      boundNode.setType(bound);
+    } else {
+      bound = typeProvider.getObjectType();
+    }
+    variable.setBound(bound);
+  }
+
+  void bindTypeVariables(List<TypeVariable> typeVariables) {
+    if (typeVariables == null) {
+      return;
+    }
+    for (TypeVariable typeParameter : typeVariables) {
+      TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
+      bindTypeVariable(variable);
+      getContext().getScope().declareElement(variable.getName(), variable);
+    }
   }
 
   abstract boolean isStaticContext();
@@ -87,6 +124,10 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
       }
       ClassElement functionElement = typeProvider.getFunctionType().getElement();
       type = Types.makeFunctionType(getContext(), functionElement, parameterElements, type, null);
+      DartTypeNode typeNode = node.getTypeNode();
+      if (typeNode != null) {
+        typeNode.setType(type);
+      }
     }
     Elements.setType(element, type);
     return recordElement(node, element);

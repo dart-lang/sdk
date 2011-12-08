@@ -204,6 +204,9 @@ public class Resolver {
 
     @Override
     public Element visitFunctionTypeAlias(DartFunctionTypeAlias alias) {
+      getContext().pushFunctionAliasScope(alias);
+      resolveFunctionAlias(alias);
+      getContext().popScope();
       return null;
     }
 

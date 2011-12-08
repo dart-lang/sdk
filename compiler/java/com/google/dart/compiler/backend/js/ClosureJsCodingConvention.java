@@ -62,43 +62,4 @@ class ClosureJsCodingConvention extends ClosureCodingConvention {
     }
     return null;
   }
-
-  /**
-   * Determines whether the given node is a function binding call, like
-   * "$bind".
-   * @return The type of Bind definition, or null.
-   */
-  @Override
-  public Bind describeFunctionBind(Node n) {
-    // Check for standard stuff first.
-    Bind result = super.describeFunctionBind(n);
-    if (result != null) {
-      return result;
-    }
-
-    if (n.getType() != Token.CALL) {
-      return null;
-    }
-
-    // Check for Dartc generated bind function
-    Node callTarget = n.getFirstChild();
-    if (callTarget.getType() == Token.NAME) {
-      if (callTarget.getString().equals("$bind")) {
-        // goog.bind(fn, self, args...);
-        Node fn = callTarget.getNext();
-        Node thisValue = safeNext(fn);
-        Node parameters = safeNext(thisValue);
-        return new Bind(fn, thisValue, parameters);
-      }
-    }
-
-    return null;
-  }
-
-  private Node safeNext(Node n) {
-    if (n != null) {
-      return n.getNext();
-    }
-    return null;
-  }
 }

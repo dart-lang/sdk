@@ -87,8 +87,8 @@ BlackListedTest/09: Fail # Bug 5469684
 BlackListedTest/10: Fail # Bug 5469684
 BlackListedTest/11: Fail # Bug 5469684
 BlackListedTest/12: Fail # Bug 5469684
-BlackListedTest/13: Crash # Bug 5469684
-BlackListedTest/14: Crash # Bug 5469684
+BlackListedTest/13: Fail # Bug 5469684
+BlackListedTest/14: Fail # Bug 5469684
 CTConstTest: Fail            # Bug 4510015.
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CharEscapeTest: Fail
@@ -102,13 +102,13 @@ Constructor4Test: Fail       # Issue 286
 Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 DivByZeroTest: Fail          # Bug 5184183
-DynamicTest: Crash            # Bug 5527899.
+DynamicTest: Fail            # Bug 5527899.
 ExampleConstructorTest: Fail # Bug 4205742.
 ExpectTest: Fail             # Missing extensions to class Expect.
 FactoryNegativeTest: Fail                # Issue 417
 For2Test: Fail               # Bug 4995208.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
-FunctionTypeAliasTest: Crash # Bug 4519208.
+FunctionTypeAliasTest: Fail # Bug 4519208.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
 GetterClosureExecutionOrderTest: Fail # Bug 5481595
@@ -123,7 +123,6 @@ LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 MapLiteral3Test: Fail # Issue 221
 MapLiteral4Test: Fail # Issue 221
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-MethodOverrideTest: Crash    # Bug 5516001.
 NamedParameters10NegativeTest: Fail  # Implementation in progress.
 NamedParameters2NegativeTest: Fail   # Implementation in progress.
 NamedParameters3NegativeTest: Fail   # Implementation in progress.

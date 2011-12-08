@@ -9,6 +9,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartFunctionExpression;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
@@ -251,6 +252,10 @@ public class ResolutionContext implements ResolutionErrorListener {
 
   void pushFunctionScope(DartFunctionExpression x) {
     pushScope(x.getFunctionName() == null ? "<function>" : x.getFunctionName());
+  }
+
+  void pushFunctionAliasScope(DartFunctionTypeAlias x) {
+    pushScope(x.getName().getTargetName() == null ? "<function>" : x.getName().getTargetName());
   }
 
   AssertionError internalError(DartNode node, String message, Object... arguments) {

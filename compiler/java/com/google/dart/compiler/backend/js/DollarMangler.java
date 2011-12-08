@@ -54,7 +54,7 @@ public class DollarMangler implements DartMangler {
   private static final String HOISTED_CONSTRUCTOR_SUFFIX = "$HoistedConstructor";
   private static final String HOISTED_STATIC_SUFFIX = "$HoistedStatic";
   private static final String DYNAMIC_CLASS_NAME = "$_Dynamic_";
-
+  private static final String RTT_LOOKUP_NAME = "_$lookupRTT";
 
   private static final String NATIVE_PREFIX = "native_";
 
@@ -410,5 +410,15 @@ public class DollarMangler implements DartMangler {
     }
     String holderName = element.getEnclosingElement().getName();
     return NATIVE_PREFIX + holderName + "_" + encodedName;
+  }
+
+  @Override
+  public String mangleRttLookupMethod(MethodElement method, LibraryElement currentLibrary) {
+    return mangleNamedMethod(method, currentLibrary) + RTT_LOOKUP_NAME;
+  }
+
+  @Override
+  public String mangleRttLookupMethod(String methodName, LibraryElement currentLibrary) {
+    return mangleNamedMethod(methodName, currentLibrary) + RTT_LOOKUP_NAME;
   }
 }

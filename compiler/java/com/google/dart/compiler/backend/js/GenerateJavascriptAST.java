@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -278,7 +278,7 @@ public class GenerateJavascriptAST {
       jsNewDeclarationsStack.push(new HashSet<JsName>());
       currentHolder = unit.getLibrary().getElement();
       rtt = new RuntimeTypeInjector(this, typeProvider, translationContext,
-          context.getCompilerConfiguration().developerModeChecks());
+          context.getCompilerConfiguration().developerModeChecks(), mangler, unitLibrary);
     }
 
     /**
@@ -595,32 +595,56 @@ public class GenerateJavascriptAST {
      */
     private void generateMethodGetter(MethodElement methodElement) {
       // Generate a getter for method binding to a variable
-      JsNameRef classJsNameRef = getJsName(methodElement.getEnclosingElement()).makeRef();
+      boolean isTopLevel = Elements.isTopLevel(methodElement);
+      if (methodElement.getModifiers().isGetter() || methodElement.getModifiers().isSetter()) {
+        return;
+      }
+      JsNameRef classJsNameRef = isTopLevel ? null : 
+          getJsName(methodElement.getEnclosingElement()).makeRef();
       String getterName = mangler.createGetterSyntax(methodElement, unitLibrary);
       String methodName = methodElement.getName();
       JsName getterJsName = globalScope.declareName(getterName, getterName, methodName);
       getterJsName.setObfuscatable(false);
       String mangledMethodName = mangler.mangleNamedMethod(methodElement, unitLibrary);
+      String mangledRttMethodName = mangler.mangleRttLookupMethod(methodElement, unitLibrary);
       JsFunction func = new JsFunction(globalScope);
       JsNameRef getterJsNameRef;
-      JsExpression methodToCall;
-      if (methodElement.getModifiers().isStatic()) {
-        // function() { return <class><member>$member; }
+      if (isTopLevel || methodElement.getModifiers().isStatic()) {
+        // function() {
+        //   var ret = <class><member>$named;
+        //   ret.$lookupRTT = <class><member>$named_$lookupRTT;
+        //   return ret;
+        //  }
+        func.setBody(new JsBlock());
+        List<JsStatement> stmts = func.getBody().getStatements();
+        JsName returnVar = func.getScope().declareFreshName("ret");
         getterJsNameRef = AstUtil.newNameRef(classJsNameRef, getterJsName);
-        methodToCall = AstUtil.newNameRef(classJsNameRef, mangledMethodName);
-        func.setBody(AstUtil.newBlock(new JsReturn(methodToCall)));
+        stmts.add(AstUtil.newVar(null, returnVar,
+            AstUtil.newNameRef(classJsNameRef, mangledMethodName)));
+        JsBinaryOperation varLookup = AstUtil.newAssignment(
+            AstUtil.newNameRef(returnVar.makeRef(), "$lookupRTT"),
+            AstUtil.newNameRef(classJsNameRef, mangledRttMethodName));
+        stmts.add(varLookup.makeStmt());
+        stmts.add(new JsReturn(returnVar.makeRef()));
       } else {
-        // function() { return $bind(<class>.prototype.<member>$member, this); }
+        // function() { return $bind(<class>.prototype.<member>$named,
+        //                  $bind(<class>.prototype.<member>$named_$lookupRTT, this); }
         JsNameRef prototypeRef = AstUtil.newPrototypeNameRef(classJsNameRef);
         getterJsNameRef = AstUtil.newNameRef(prototypeRef, getterJsName);
-        methodToCall = AstUtil.newNameRef(prototypeRef, mangledMethodName);
-        JsExpression bindMethodCall = AstUtil.newInvocation(
-            new JsNameRef("$bind"), methodToCall, new JsThisRef());
+        JsExpression bindMethodCall = AstUtil.newInvocation(new JsNameRef("$bind"),
+            AstUtil.newNameRef(prototypeRef, mangledMethodName),
+            AstUtil.newNameRef(prototypeRef, mangledRttMethodName), new JsThisRef());
         func.setBody(AstUtil.newBlock(new JsReturn(bindMethodCall)));
       }
-      func.setName(getterJsNameRef.getName());
-      func.setSourceRef(methodElement.getNode());
-      JsBinaryOperation asg = AstUtil.newAssignment(getterJsNameRef, func);
+
+      JsExpression asg;
+      if (isTopLevel) {
+        func.setName(getterJsNameRef.getName());
+        asg = func;
+      } else {
+        func.setSourceRef(methodElement.getNode());
+        asg = AstUtil.newAssignment(getterJsNameRef, func);
+      }
       asg.setSourceRef(methodElement.getNode());
       globalBlock.getStatements().add(asg.makeStmt());
     }
@@ -1095,12 +1119,10 @@ public class GenerateJavascriptAST {
       }
 
       assert currentScopeInfo == null : "Nested methods should be impossible";
-      inFactoryOrStaticContext = x.getModifiers().isFactory()
-          || x.getModifiers().isStatic();
+      inFactoryOrStaticContext = isFactoryOrStaticContext(x.getModifiers());
       currentScopeInfo = ScopeRootInfo.makeScopeInfo(x, !shouldGenerateDeveloperModeChecks());
 
       JsFunction func = (JsFunction) generate(x.getFunction());
-
       assert currentScopeInfo != null;
       inFactoryOrStaticContext = false;
       currentScopeInfo = null;
@@ -1113,6 +1135,10 @@ public class GenerateJavascriptAST {
 
         globalBlock.getStatements().add(func.makeStmt());
         globalBlock.getStatements().add(tramp.makeStmt());
+
+        // special case for top level methods
+        rtt.generateRuntimeTypeInfo(x);
+        generateMethodGetter(x.getSymbol());
       }
 
       return func;
@@ -1335,9 +1361,13 @@ public class GenerateJavascriptAST {
       return prop;
     }
 
+    private boolean isFactoryOrStaticContext(Modifiers modifiers) {
+      return modifiers.isFactory() || modifiers.isStatic();
+    }
+
     /**
-     * Turns a method into a prototype assignment on the JS class. Clears the
-     * name from the given function.
+     * Turns a method into a prototype assignment on the JS class. Clears the name from the given
+     * function.
      */
     private void makeMethod(Element element, JsFunction func) {
       if (element.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
@@ -1350,10 +1380,8 @@ public class GenerateJavascriptAST {
         globalBlock.getStatements().add(asg.makeStmt());
 
         // If it's a (non-operator, non-property) method, generate its named trampoline.
-        if (element.getKind().equals(ElementKind.METHOD) &&
-            !element.getModifiers().isOperator() &&
-            !element.getModifiers().isGetter() &&
-            !element.getModifiers().isSetter()) {
+        if (element.getKind().equals(ElementKind.METHOD) && !element.getModifiers().isOperator()
+            && !element.getModifiers().isGetter() && !element.getModifiers().isSetter()) {
           // Declare the mangled trampoline's name in the same scope as its target.
           String mangled = mangler.mangleNamedMethod((MethodElement) element, unitLibrary);
           JsName namedName = prop.getName().getEnclosing().declareName(mangled);
@@ -1364,6 +1392,17 @@ public class GenerateJavascriptAST {
 
           asg = assign(namedProp, tramp);
           globalBlock.getStatements().add(asg.makeStmt());
+
+          // Generate a lookup method after finally writing function / named tramp
+          assert currentScopeInfo == null : "Nested methods should be impossible";
+          inFactoryOrStaticContext = isFactoryOrStaticContext(element.getModifiers());
+          DartMethodDefinition x = (DartMethodDefinition) element.getNode();
+          currentScopeInfo = ScopeRootInfo.makeScopeInfo(x, !shouldGenerateDeveloperModeChecks());
+          rtt.generateRuntimeTypeInfo(x);
+
+          assert currentScopeInfo != null;
+          inFactoryOrStaticContext = false;
+          currentScopeInfo = null;
         }
       } else {
         globalBlock.getStatements().add(func.makeStmt());
@@ -2942,6 +2981,7 @@ public class GenerateJavascriptAST {
 
       JsName fnDeclaredName;
       JsName hoistedName;
+      String hoistedRttName = null;
 
       // TODO(johnlenz): values used in super class init methods are currently
       // evaluated twice (once for the init and once for the constructor), but
@@ -2951,6 +2991,7 @@ public class GenerateJavascriptAST {
       if (fnWasPreviouslyHoisted) {
         fnDeclaredName = fn.getName();
         hoistedName = fn.getName();
+        hoistedRttName = mangler.mangleRttLookupMethod(hoistedName.toString(), unitLibrary);
       } else {
 
         // 0) Save off the original name
@@ -2988,16 +3029,28 @@ public class GenerateJavascriptAST {
         hoistedName = globalScope.declareName(mangled);
         tramp.setName(hoistedName);
         globalBlock.getStatements().add(tramp.makeStmt());
+
+        if (x.getParent() != null && !(x.getParent() instanceof DartFunctionObjectInvocation)) {
+          hoistedRttName = mangler.mangleRttLookupMethod(hoistedName.toString(), unitLibrary);
+          rtt.generateRuntimeTypeInfo(x, hoistedRttName);
+        }
+      } else {
+        String mangled = mangler.mangleNamedMethod(hoistedName.getIdent(), unitLibrary);
+        hoistedName = globalScope.declareName(mangled);
+        hoistedRttName = mangler.mangleRttLookupMethod(hoistedName.toString(), unitLibrary);
+      }
+
+      if (x.getParent() == null || (x.getParent() instanceof DartFunctionObjectInvocation)) {
+        hoistedRttName = null;
       }
 
       // 5) Bind the necessary scope references and possibly "this".
       JsExpression replacement;
 
       if (list.isEmpty() && inFactoryOrStaticContext) {
-
         // Simply replace the function
-        replacement = new JsNameRef(hoistedName);
-
+        replacement = AstUtil.newInvocation(new JsNameRef("$bind"), new JsNameRef(hoistedName),
+            hoistedRttName != null ? new JsNameRef(hoistedRttName) : nulle(), undefined());
       } else {
         // Replace "function (){}" with "bind(hoistedName, this, scope1, scope2, ...)"
         // so that references to class fields can be resolved.
@@ -3021,8 +3074,9 @@ public class GenerateJavascriptAST {
           }
         }
 
-        JsInvocation invoke =
-          AstUtil.newInvocation(new JsNameRef(jsBindName), new JsNameRef(hoistedName), thisRef);
+        JsInvocation invoke = AstUtil.newInvocation(new JsNameRef(jsBindName), 
+            new JsNameRef(hoistedName),
+            hoistedRttName != null ? new JsNameRef(hoistedRttName) : nulle(), thisRef);
 
         // Add the scope alias to the bind call and function parameter list
         int parameterIndex = 0;
@@ -3549,6 +3603,15 @@ public class GenerateJavascriptAST {
 
     @Override
     public JsNode visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      // TODO(codefu): Optimize away if we're never the rhs of a "is" check.
+      ClassElement classElement = node.getSymbol();
+      JsName classJsName = getJsName(classElement);
+      JsFunction jsClass = new JsFunction(globalScope, classJsName).setSourceRef(node);
+      jsClass.setIsConstructor(false);
+      jsClass.setBody(new JsBlock());
+      globalBlock.getStatements().add(jsClass.makeStmt());
+
+      rtt.generateRuntimeTypeInfo(node);
       return null;
     }
 
@@ -3634,21 +3697,23 @@ public class GenerateJavascriptAST {
         MethodElement methodElement, DartNode qualifier) {
       JsExpression boundMethod;
       String mangledName = mangler.mangleNamedMethod(methodElement, unitLibrary);
+      String mangledGetter = mangler.createGetterSyntax(methodElement, unitLibrary);
       boolean isSuperCall = (qualifier != null) && isSuperCall(qualifier.getSymbol());
       if (isSuperCall) {
         boundMethod = generateSuperFieldAccess(qualifier,
-          mangler.createGetterSyntax(methodElement.getName(), unitLibrary));
+            mangler.createGetterSyntax(methodElement.getName(), unitLibrary));
       } else if (Elements.isTopLevel(methodElement)) {
-        boundMethod = AstUtil.newNameRef(null, mangledName);
+        boundMethod = AstUtil.newInvocation(AstUtil.newNameRef(null, mangledGetter));
       } else if (methodElement.isStatic()) {
         if (qualifier == null) {
           qualifier = methodElement.getEnclosingElement().getNode();
           assert (qualifier instanceof DartClass);
-          boundMethod = AstUtil.newNameRef(getJsName(qualifier.getSymbol()).makeRef(), mangledName);
+          boundMethod = AstUtil.newNameRef(getJsName(qualifier.getSymbol()).makeRef(),
+              mangledGetter);
         } else {
-          assert (qualifier instanceof DartIdentifier);
-          boundMethod = AstUtil.newNameRef((JsExpression) generate(qualifier), mangledName);
+          boundMethod = AstUtil.newNameRef((JsExpression) generate(qualifier), mangledGetter);
         }
+        boundMethod = AstUtil.newInvocation(boundMethod);
       } else {
         // Should be an invocation on an instance
         if (qualifier == null) {
@@ -3659,7 +3724,9 @@ public class GenerateJavascriptAST {
         String className = mangler.mangleClassName(classElement);
         JsNameRef prototypeRef = AstUtil.newPrototypeNameRef(new JsNameRef(className));
         JsExpression methodToCall = AstUtil.newNameRef(prototypeRef, mangledName);
-        boundMethod = AstUtil.newInvocation(new JsNameRef("$bind"), methodToCall, methodQualifier);
+        JsExpression methodRtt = AstUtil.newNameRef(prototypeRef,
+            mangler.mangleRttLookupMethod(methodElement, unitLibrary));
+        boundMethod = AstUtil.newInvocation(new JsNameRef("$bind"), methodToCall, methodRtt, methodQualifier);
       }
       boundMethod.setSourceRef(methodNode);
       return boundMethod;
