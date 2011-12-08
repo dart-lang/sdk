@@ -12,7 +12,9 @@
 
 // #source('src/_FactoryProviders.dart');
 
-class Window extends DOMWindow {}
+// TODO(jmesserly): We need to be smarter about inheriting from a hidden native
+// type (in this case DOMWindow)
+class Window extends DOMWindow native "*Window" {}
 DOMWindow get window() native "return window;";
 // TODO(vsm): Revert to Dart method when 508 is fixed.
 HTMLDocument get document() native "return window.document;";
@@ -3215,7 +3217,9 @@ class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
   void stop() native;
 }
 
-class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
+// TODO(jmesserly): this is marked as hidden until we figure out how to fix
+// DumpRenderTree on Mac.
+class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
 
   static final int HAVE_CURRENT_DATA = 2;
 
