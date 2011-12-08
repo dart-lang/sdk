@@ -78,7 +78,9 @@ def SyncAndBuild(failed_once=False):
   begin and end standing in DART_INSTALL_LOCATION.
   Args:
     failed_once True if we have attempted to build this once before, and we've
-      failed, indicating the build is broken."""
+      failed, indicating the build is broken.
+  Returns:
+    err_code = 1 if there was a problem building two times in a row."""
   os.chdir(DART_INSTALL_LOCATION)
   #Revert our newly built minfrog to prevent conflicts when we update
   RunCmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'minfrog')])
@@ -96,7 +98,7 @@ def SyncAndBuild(failed_once=False):
         # Someone checked in a broken build! Just stop trying to make it work
         # and wait for the next hour to try again.
         print 'Broken Build'
-        sys.exit(0)
+        return 1
       #Remove the xcode directory and attempt to build again. If it still
       #fails, abort, and try again next hour.
       out_dir = 'out'
@@ -108,6 +110,7 @@ def SyncAndBuild(failed_once=False):
       shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
           'Release_ia32'))
       SyncAndBuild(True)
+  return 0
 
 def EnsureOutputDirectory(dir_name):
   """Test that the listed directory name exists, and if not, create one for
@@ -692,7 +695,8 @@ def RunTestSequence(cl, size, language, perf):
   if PERFBOT_MODE:
     # The buildbot already builds and syncs to a specific revision. Don't fight
     # with it or replicate work.
-    SyncAndBuild()
+    if SyncAndBuild() == 1:
+      return # The build is broken.
   if cl:
     CommandLinePerformanceTestRunner('cl-results').Run()
   if size:
