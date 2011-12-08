@@ -60,7 +60,6 @@ EventHandlerImplementation::EventHandlerImplementation() {
     FATAL("Pipe creation failed");
   }
   FDUtils::SetNonBlocking(interrupt_fds_[0]);
-  FDUtils::SetNonBlocking(interrupt_fds_[1]);
   timeout_ = kInfinityTimeout;
   timeout_port_ = 0;
 }
@@ -106,9 +105,9 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   msg.dart_port = dart_port;
   msg.data = data;
   intptr_t result =
-    write(interrupt_fds_[1], &msg, kInterruptMessageSize);
+      FDUtils::WriteToBlocking(interrupt_fds_[1], &msg, kInterruptMessageSize);
   if (result != kInterruptMessageSize) {
-    perror("Interrupt message failure");
+    FATAL("Interrupt message failure");
   }
 }
 
