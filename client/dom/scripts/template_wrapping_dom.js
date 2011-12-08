@@ -51,7 +51,8 @@ function native__DOMWindowWrappingImplementation__get_localStorage(_this) {
 
 function native__AudioContextFactoryProvider_create() {
   try {
-    return __dom_wrap(new AudioContext());
+    var constructor = window.AudioContext || window.webkitAudioContext;
+    return __dom_wrap(new constructor());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

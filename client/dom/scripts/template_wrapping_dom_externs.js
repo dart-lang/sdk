@@ -22,6 +22,8 @@ dart_dom_externs.prototype._dart_localStorage;
 dart_dom_externs.prototype.$dom;
 
 // Externs missing from JavaScript back-end.
+Window.prototype.AudioContext;
+Window.prototype.webkitAudioContext;
 Window.prototype.webkitRequestAnimationFrame;
 Window.prototype.webkitCancelRequestAnimationFrame;
 Window.prototype.webkitConvertPointFromPageToNode;
