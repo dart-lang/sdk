@@ -2346,8 +2346,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
                                                        *(member.name)));
       const Class& signature_class = Class::Handle(
           Class::New(String::Handle(String::NewSymbol(":factory_signature")),
-                     Script::Handle()));
+                     script_));
       signature_class.set_is_finalized();
+      signature_class.set_library(library_);
       unresolved_factory_class.set_factory_signature_class(signature_class);
       // The type arguments of the result type are set during finalization.
       const TypeArguments& args = TypeArguments::Handle();
@@ -2762,7 +2763,8 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
         UnresolvedClass::New(factory_pos, qualifier, *(factory_name.ident)));
     const Class& signature_class = Class::Handle(
         Class::New(String::Handle(String::NewSymbol(":factory_signature")),
-                   Script::Handle()));
+                   script_));
+    signature_class.set_library(library_);
     signature_class.set_is_finalized();
     ParseTypeParameters(signature_class);
     unresolved_factory_class.set_factory_signature_class(signature_class);
