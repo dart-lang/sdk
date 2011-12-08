@@ -165,14 +165,6 @@ class CompactIndicator extends ProgressIndicator {
 
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
-
-  String _nextSpinner() {
-    _spinnerIndex = (_spinnerIndex + 1) % 4;
-    return _spinners[_spinnerIndex];
-  }
-
-  static int _spinnerIndex = 0;
-  static List<String> _spinners = const ['- ', '\\ ', '| ', '/ '];
 }
 
 
@@ -181,8 +173,8 @@ class CompactProgressIndicator extends CompactIndicator {
       : super(startTime, printTiming);
 
   void _printProgress() {
-    var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
-    var progressPadded = _pad(_allTestsKnown ? percent : _nextSpinner(), 5);
+    var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
+    var progressPadded = _pad(_allTestsKnown ? percent : '--', 3);
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
     Duration d = (new Date.now()).difference(_startTime);
@@ -211,8 +203,8 @@ class ColorProgressIndicator extends CompactIndicator {
   }
 
   void _printProgress() {
-    var percent = ((_completedTests() / _foundTests) * 100).floor().toString();
-    var progressPadded = _pad(_allTestsKnown ? percent : _nextSpinner(), 5);
+    var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
+    var progressPadded = _pad(_allTestsKnown ? percent : '--', 3);
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
     Duration d = (new Date.now()).difference(_startTime);
