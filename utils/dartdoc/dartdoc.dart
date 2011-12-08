@@ -626,7 +626,8 @@ linkToType(Type enclosingType, Type type) {
   }
 
   // Link to the type.
-  write(a(typeUrl(type), type.name));
+  // Use .genericType to avoid writing the <...> here.
+  write(a(typeUrl(type), type.genericType.name));
 
   // See if it's a generic type.
   if (type.isGeneric) {
