@@ -151,6 +151,7 @@ class Object {
 
   inline RawClass* clazz() const;
   static intptr_t class_offset() { return OFFSET_OF(RawObject, class_); }
+  static intptr_t tags_offset() { return OFFSET_OF(RawObject, tags_); }
 
   // Class testers.
 #define DEFINE_CLASS_TESTER(clazz)                                             \
@@ -1036,7 +1037,7 @@ class TypeArguments : public AbstractTypeArguments {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types_ is not adding to the object length.
-    ASSERT(sizeof(RawTypeArguments) == 3 * kWordSize);
+    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
     return RoundedAllocationSize(sizeof(RawTypeArguments) + (len * kWordSize));
   }
 
@@ -2942,7 +2943,8 @@ class Array : public Instance {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(sizeof(RawArray) == 3 * kWordSize);
+    // Ensure that variable length data is not adding to the object length.
+    ASSERT(sizeof(RawArray) == (sizeof(RawObject) + (2 * kWordSize)));
     return RoundedAllocationSize(sizeof(RawArray) + (len * kWordSize));
   }
 

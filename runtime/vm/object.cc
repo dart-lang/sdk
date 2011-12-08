@@ -715,6 +715,7 @@ RawObject* Object::Allocate(const Class& cls,
   InitializeObject(address, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   raw_obj->ptr()->class_ = cls.raw();
+  raw_obj->ptr()->tags_ = 0;
   return raw_obj;
 }
 
@@ -5154,7 +5155,7 @@ bool Instance::IsValidNativeIndex(int index) const {
 }
 
 
-  RawInstance* Instance::New(const Class& cls, Heap::Space space) {
+RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   Instance& result = Instance::Handle();
   {
     intptr_t instance_size = cls.instance_size();

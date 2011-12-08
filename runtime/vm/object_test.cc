@@ -172,8 +172,10 @@ TEST_CASE(InstanceClass) {
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
-  EXPECT_EQ(2*kWordSize, one_field_class.instance_size());
-  EXPECT_EQ(kWordSize, field.Offset());
+  intptr_t header_size = sizeof(RawObject);
+  EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
+            one_field_class.instance_size());
+  EXPECT_EQ(header_size, field.Offset());
 }
 
 

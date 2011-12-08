@@ -196,6 +196,8 @@ class RawObject {
         reinterpret_cast<uword>(this) - kHeapObjectTag);
   }
 
+  intptr_t tags_;  // Various object tags (bits).
+
   friend class Object;
   friend class Array;
   friend class SnapshotWriter;

@@ -1082,10 +1082,11 @@ UNIT_TEST_CASE(InjectNativeFields1) {
     // We expect the newly created "NativeFields" object to have
     // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
     // Hence the size of an instance of "NativeFields" should be
-    // (kNumNativeFields + 2) * kWordSize + sizeof the header word.
+    // (kNumNativeFields + 2) * kWordSize + size of object header.
     // We check to make sure the instance size computed by the VM matches
     // our expectations.
-    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + kWordSize,
+    intptr_t header_size = sizeof(RawObject);
+    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
                              kObjectAlignment),
               cls.instance_size());
   }
@@ -1168,10 +1169,11 @@ UNIT_TEST_CASE(InjectNativeFields3) {
     // We expect the newly created "NativeFields" object to have
     // 2 dart instance fields (fld1, fld2) and kNumNativeFields native fields.
     // Hence the size of an instance of "NativeFields" should be
-    // (kNumNativeFields + 2) * kWordSize + sizeof the header word.
+    // (kNumNativeFields + 2) * kWordSize + size of object header.
     // We check to make sure the instance size computed by the VM matches
     // our expectations.
-    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + kWordSize,
+    intptr_t header_size = sizeof(RawObject);
+    EXPECT_EQ(Utils::RoundUp(((kNumNativeFields + 2) * kWordSize) + header_size,
                              kObjectAlignment),
               cls.instance_size());
   }

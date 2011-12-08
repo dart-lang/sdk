@@ -694,6 +694,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ movl(ECX, Address(ECX, Isolate::object_store_offset()));
     __ movl(ECX, Address(ECX, ObjectStore::array_class_offset()));
     __ movl(FieldAddress(EAX, Array::class_offset()), ECX);
+    __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(0));  // Tags.
 
     // Initialize all array elements to raw_null.
     // EAX: new object start as a tagged pointer.
@@ -994,6 +995,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EDX: number of context variables.
     __ LoadObject(EBX, context_class);  // Load up class field of context.
     __ movl(FieldAddress(EAX, Context::class_offset()), EBX);
+    __ movl(FieldAddress(EAX, Context::tags_offset()), Immediate(0));  // Tags.
 
     // Setup up number of context variables field.
     // EAX: new object.
@@ -1127,6 +1129,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ LoadObject(EDX,
           Class::ZoneHandle(Object::instantiated_type_arguments_class()));
       __ movl(Address(ECX, Instance::class_offset()), EDX);  // Set its class.
+      __ movl(Address(ECX, Instance::tags_offset()), Immediate(0));  // Tags.
       // Set the new InstantiatedTypeArguments object (ECX) as the type
       // arguments (EDI) of the new object (EAX).
       __ movl(EDI, ECX);
@@ -1144,6 +1147,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EDI: new object type arguments (if is_cls_parameterized).
     __ LoadObject(EDX, cls);  // Load class of object to be allocated.
     __ movl(Address(EAX, Instance::class_offset()), EDX);
+    __ movl(Address(EAX, Instance::tags_offset()), Immediate(0));  // Tags.
 
     // Initialize the remaining words of the object.
     const Immediate raw_null =
@@ -1157,13 +1161,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
         cls.num_native_fields() == 0) {
       // Check if the object contains any non-header fields.
       // Small objects are initialized using a consecutive set of writes.
-      for (intptr_t current_offset = 1 * kWordSize;
+      for (intptr_t current_offset = sizeof(RawObject);
            current_offset < instance_size;
            current_offset += kWordSize) {
         __ movl(Address(EAX, current_offset), raw_null);
       }
     } else {
-      __ leal(ECX, Address(EAX, 1 * kWordSize));
+      __ leal(ECX, Address(EAX, sizeof(RawObject)));
       // Loop until the whole object is initialized.
       Label init_loop;
       if (cls.num_native_fields() > 0) {
@@ -1174,7 +1178,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
         // ECX: next word to be initialized.
         intptr_t offset = Class::num_native_fields_offset() - kHeapObjectTag;
         __ movl(EDX, Address(EDX, offset));
-        __ leal(EDX, Address(EAX, EDX, TIMES_4, 0));
+        __ leal(EDX, Address(EAX, EDX, TIMES_4, sizeof(RawObject)));
 
         // EDX: start of dart fields.
         // ECX: next word to be initialized.
@@ -1292,6 +1296,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // ECX: new context object (only if is_implicit_closure).
     __ LoadObject(EDX, cls);  // Load signature class of closure.
     __ movl(Address(EAX, Closure::class_offset()), EDX);
+    __ movl(Address(EAX, Closure::tags_offset()), Immediate(0));  // Tags.
 
     // Initialize the function field in the object.
     // EAX: new closure object.
@@ -1314,6 +1319,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       // Set the class field to the Context class.
       __ LoadObject(EBX, Class::ZoneHandle(Object::context_class()));
       __ movl(Address(ECX, Context::class_offset()), EBX);
+      __ movl(Address(ECX, Context::tags_offset()), Immediate(0));  // Tags.
 
       // Set number of variables field to 1 (for captured receiver).
       __ movl(Address(ECX, Context::num_variables_offset()), Immediate(1));
