@@ -599,7 +599,7 @@ public class GenerateJavascriptAST {
       if (methodElement.getModifiers().isGetter() || methodElement.getModifiers().isSetter()) {
         return;
       }
-      JsNameRef classJsNameRef = isTopLevel ? null : 
+      JsNameRef classJsNameRef = isTopLevel ? null :
           getJsName(methodElement.getEnclosingElement()).makeRef();
       String getterName = mangler.createGetterSyntax(methodElement, unitLibrary);
       String methodName = methodElement.getName();
@@ -1199,7 +1199,7 @@ public class GenerateJavascriptAST {
         JsName def = scope.declareFreshName("def");
         stmts.add(AstUtil.newVar(null, seen, number(0)));
         stmts.add(AstUtil.newVar(null, def, number(0)));
-  
+
         // switch ($n) {
         //   case 1: P0 = $o.P0 ? (++seen, $o.P0) : null;             // no default value
         //   case 2: P1 = $o.P1 ? (++seen, $o.P1) : (++def, DEFAULT); // explicit default value
@@ -1213,7 +1213,7 @@ public class GenerateJavascriptAST {
           if (!param.getModifiers().isNamed()) {
             continue;
           }
-  
+
           String paramNameStr = getPropNameForNamedParameter(jsParam);
           JsExpression paramName = string(getPropNameForNamedParameter(jsParam));
           if (generateClosureCompatibleCode) {
@@ -1221,42 +1221,42 @@ public class GenerateJavascriptAST {
                 AstUtil.nameref(null, "JSCompiler_renameProperty"), paramName);
           }
           JsExpression ifExpr = AstUtil.in(null, paramName, namedParam.getName().makeRef());
-  
+
           JsExpression ppSeen = AstUtil.preinc(null, seen.makeRef());
           JsBinaryOperation thenExpr = AstUtil.comma(null, ppSeen,
               AstUtil.newNameRef(namedParam.getName().makeRef(), paramNameStr));
-  
+
           DartExpression defaultValue = param.getDefaultExpr();
           JsExpression elseExpr = (defaultValue != null)
               ? generateDefaultValue(defaultValue)
               : undefined();
           JsExpression ppDef = AstUtil.preinc(null, def.makeRef());
           elseExpr = AstUtil.comma(null, ppDef, elseExpr);
-  
+
           JsBinaryOperation asg = assign(
               jsParam.getName().makeRef(),
               new JsConditional(ifExpr, thenExpr, elseExpr));
-  
+
           jsSwitch.getCases().add(AstUtil.newCase(number(i), asg.makeStmt()));
         }
         if (jsSwitch.getCases().size() > 0) {
           stmts.add(jsSwitch);
         }
-  
+
         // if ((seen != $o.count) || (seen + def + $n != TOTAL)) {
         //   $nsme();
         // }
         {
           JsBinaryOperation ifLeft = neq(seen.makeRef(),
               AstUtil.newNameRef(namedParam.getName().makeRef(), "count"));
-  
+
           JsExpression add1 = add(seen.makeRef(), def.makeRef());
           JsExpression add2 = add(add1, countParam.getName().makeRef());
           JsExpression ifRight = neq(add2, number(func.getParams().size()));
-  
+
           JsExpression ifExpr = or(ifLeft, ifRight);
           JsStatement thenStmt = AstUtil.newInvocation(new JsNameRef("$nsme")).makeStmt();
-  
+
           stmts.add(new JsIf(ifExpr, thenStmt, null));
         }
       } else {
@@ -1268,7 +1268,7 @@ public class GenerateJavascriptAST {
               or(AstUtil.newNameRef(namedParam.getName().makeRef(), "count"),
                   neq(countParam.getName().makeRef(), number(func.getParams().size())));
           JsStatement thenStmt = AstUtil.newInvocation(new JsNameRef("$nsme")).makeStmt();
-  
+
           stmts.add(new JsIf(ifExpr, thenStmt, null));
         }
       }
@@ -1713,7 +1713,9 @@ public class GenerateJavascriptAST {
       // Create JS parameters
       List<DartParameter> params = x.getParams();
       List<JsParameter> jsParams = jsFunc.getParameters();
-      generateAll(params, jsParams, JsParameter.class);
+      if (!jsFunc.isHoisted()) {
+        generateAll(params, jsParams, JsParameter.class);
+      }
 
       // Create the runtime type checks that will be inserted later
       List<JsStatement> checks = Lists.newArrayList();
@@ -2023,7 +2025,7 @@ public class GenerateJavascriptAST {
 
     /**
      * Get the return type of a factory method.
-     * 
+     *
      * @param function
      * @return {@link Type} instance or null if not a factory method or otherwise unavailable
      */
@@ -2295,7 +2297,7 @@ public class GenerateJavascriptAST {
 
       lhs = rtt.addTypeCheck(getCurrentClass(), lhs, getRequiredType(op), arg1.getType(), arg1);
       rhs = rtt.addTypeCheck(getCurrentClass(), rhs, getRequiredType(op), arg2.getType(), arg2);
-      
+
       if (skipShim) {
         if (op.isEqualityOperator()) {
           op = mapToStrictEquals(op);
@@ -2325,7 +2327,7 @@ public class GenerateJavascriptAST {
 
     /**
      * Return a type which an operator requires for its operands.
-     * 
+     *
      * @param op operator
      * @return a {@link Type} instance, which will be {@code null} if there are
      *     no restrictions
@@ -2978,7 +2980,6 @@ public class GenerateJavascriptAST {
     @Override
     public JsNode visitFunctionExpression(DartFunctionExpression x) {
       JsFunction fn = (JsFunction) generate(x.getFunction());
-
       JsName fnDeclaredName;
       JsName hoistedName;
       String hoistedRttName = null;
@@ -3074,7 +3075,7 @@ public class GenerateJavascriptAST {
           }
         }
 
-        JsInvocation invoke = AstUtil.newInvocation(new JsNameRef(jsBindName), 
+        JsInvocation invoke = AstUtil.newInvocation(new JsNameRef(jsBindName),
             new JsNameRef(hoistedName),
             hoistedRttName != null ? new JsNameRef(hoistedRttName) : nulle(), thisRef);
 
