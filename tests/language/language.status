@@ -327,14 +327,9 @@ TypeVariableBoundsTest/03: Pass
 TypeVariableBoundsTest/04: Pass
 TypeVariableBoundsTest/02: Fail
 TypeVariableBoundsTest/06: Fail
-
-# Parser errors.
-BlockScopeTest: Fail
-DuplicateConstructorTest/none: Fail
-ExceptionIdentityTest: Fail
-NewExpressionTypeArgsFrogTest/none: Fail
-
 ConstructorReturnNegativeTest: Fail
+ConstructorReturnWithArrowNegativeTest: Fail
+DuplicateConstructorTest/01: Fail
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
