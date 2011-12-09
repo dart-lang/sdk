@@ -1027,6 +1027,8 @@
 #source('src/DOMType.dart');
 #source('src/DOMWrapperBase.dart');
 #source('src/EventListener.dart');
+#source('src/KeyLocation.dart');
+#source('src/KeyName.dart');
 #source('src/GlobalProperties.dart');
 #source('src/RequestAnimationFrameCallback.dart');
 #source('src/TimeoutHandler.dart');

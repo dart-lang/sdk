@@ -529,6 +529,8 @@
 #source('generated/src/interface/StringCallback.dart');
 
 #source('src/EventListener.dart');
+#source('src/KeyLocation.dart');
+#source('src/KeyName.dart');
 #source('src/RequestAnimationFrameCallback.dart');
 #source('src/TimeoutHandler.dart');
 #source('src/_Collections.dart');
