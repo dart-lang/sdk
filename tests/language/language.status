@@ -329,15 +329,6 @@ TypeVariableBoundsTest/02: Fail
 TypeVariableBoundsTest/06: Fail
 
 # Parser errors.
-OverrideFieldTest/01: Skip
-OverrideFieldTest/02: Fail
-OverrideFieldTest/03: Fail
-OverrideFieldTest/04: Skip
-OverrideMethodWithFieldTest/none: Fail
-FauxverrideTest/none: Fail
-FauxverrideTest/01: Fail
-FauxverrideTest/03: Skip
-FauxverrideTest/04: Fail
 BlockScopeTest: Fail
 DuplicateConstructorTest/none: Fail
 ExceptionIdentityTest: Fail
