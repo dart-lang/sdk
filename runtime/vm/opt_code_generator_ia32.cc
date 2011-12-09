@@ -1943,12 +1943,11 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
       (node->kind() == Token::kNE_STRICT)) {
     const Bool& bool_true = Bool::ZoneHandle(Bool::True());
     const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+    // Note that evaluation of right may cause deoptimization, therefore left
+    // must be on stack when evaluating right.
     if (node->right()->IsLiteralNode()) {
       VisitLoadOne(node->left(), EAX);
       __ CompareObject(EAX, node->right()->AsLiteralNode()->literal());
-    } else if (node->left()->IsLiteralNode()) {
-      VisitLoadOne(node->right(), EAX);
-      __ CompareObject(EAX, node->left()->AsLiteralNode()->literal());
     } else {
       VisitLoadTwo(node->left(), node->right(), EAX, EDX);
       __ cmpl(EAX, EDX);
