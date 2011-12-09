@@ -241,9 +241,10 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
         event_mask = (1 << kErrorEvent);
       } else {
         if (sd->IsPipe()) {
-          // For stdin when reading from a terminal treat POLLIN with 0
-          // available bytes as end-of-file.
-          if (sd->fd() == STDIN_FILENO && isatty(sd->fd())) {
+          // When reading from stdin (either from a terminal or piped
+          // input) treat POLLIN with 0 available bytes as
+          // end-of-file.
+          if (sd->fd() == STDIN_FILENO) {
             event_mask = (1 << kCloseEvent);
             sd->MarkClosedRead();
           }
