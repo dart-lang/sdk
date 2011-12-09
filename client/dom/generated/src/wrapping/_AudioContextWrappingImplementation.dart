@@ -88,6 +88,11 @@ class _AudioContextWrappingImplementation extends DOMWrapperBase implements Audi
   }
   static LowPass2FilterNode _createLowPass2Filter(receiver) native;
 
+  MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement) {
+    return _createMediaElementSource(this, mediaElement);
+  }
+  static MediaElementAudioSourceNode _createMediaElementSource(receiver, mediaElement) native;
+
   AudioPannerNode createPanner() {
     return _createPanner(this);
   }

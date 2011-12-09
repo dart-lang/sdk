@@ -887,6 +887,7 @@ dart_externs.prototype.createIndex$member;
 dart_externs.prototype.createJavaScriptNode$member;
 dart_externs.prototype.createLinearGradient$member;
 dart_externs.prototype.createLowPass2Filter$member;
+dart_externs.prototype.createMediaElementSource$member;
 dart_externs.prototype.createNSResolver$member;
 dart_externs.prototype.createNodeIterator$member;
 dart_externs.prototype.createNotification$member;

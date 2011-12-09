@@ -166,6 +166,7 @@ function DOM$fixClass$AudioContext(c) {
     'createHighPass2Filter',
     'createJavaScriptNode',
     'createLowPass2Filter',
+    'createMediaElementSource',
     'createPanner',
     'createWaveShaper',
     'decodeAudioData',

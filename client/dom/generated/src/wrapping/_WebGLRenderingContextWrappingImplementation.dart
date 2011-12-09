@@ -594,50 +594,62 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static void _stencilOpSeparate(receiver, face, fail, zfail, zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels, [int format = null, int type = null, ArrayBufferView pixels = null]) {
-    if (border_OR_canvas_OR_image_OR_pixels is ImageData) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, ArrayBufferView pixels = null]) {
+    if (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData) {
       if (format === null) {
         if (type === null) {
           if (pixels === null) {
-            _texImage2D(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels);
+            _texImage2D(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
             return;
           }
         }
       }
     } else {
-      if (border_OR_canvas_OR_image_OR_pixels is HTMLImageElement) {
+      if (border_OR_canvas_OR_image_OR_pixels_OR_video is HTMLImageElement) {
         if (format === null) {
           if (type === null) {
             if (pixels === null) {
-              _texImage2D_2(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels);
+              _texImage2D_2(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
               return;
             }
           }
         }
       } else {
-        if (border_OR_canvas_OR_image_OR_pixels is HTMLCanvasElement) {
+        if (border_OR_canvas_OR_image_OR_pixels_OR_video is HTMLCanvasElement) {
           if (format === null) {
             if (type === null) {
               if (pixels === null) {
-                _texImage2D_3(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels);
+                _texImage2D_3(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
                 return;
               }
             }
           }
         } else {
-          if (border_OR_canvas_OR_image_OR_pixels is int) {
-            _texImage2D_4(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels, format, type, pixels);
-            return;
+          if (border_OR_canvas_OR_image_OR_pixels_OR_video is HTMLVideoElement) {
+            if (format === null) {
+              if (type === null) {
+                if (pixels === null) {
+                  _texImage2D_4(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+                  return;
+                }
+              }
+            }
+          } else {
+            if (border_OR_canvas_OR_image_OR_pixels_OR_video is int) {
+              _texImage2D_5(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+              return;
+            }
           }
         }
       }
     }
     throw "Incorrect number or type of arguments";
   }
-  static void _texImage2D(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) native;
-  static void _texImage2D_2(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) native;
-  static void _texImage2D_3(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) native;
-  static void _texImage2D_4(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels, format, type, pixels) native;
+  static void _texImage2D(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native;
+  static void _texImage2D_2(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native;
+  static void _texImage2D_3(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native;
+  static void _texImage2D_4(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native;
+  static void _texImage2D_5(receiver, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native;
 
   void texParameterf(int target, int pname, num param) {
     _texParameterf(this, target, pname, param);
@@ -651,44 +663,54 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static void _texParameteri(receiver, target, pname, param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels, [int type = null, ArrayBufferView pixels = null]) {
-    if (canvas_OR_format_OR_image_OR_pixels is ImageData) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, ArrayBufferView pixels = null]) {
+    if (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData) {
       if (type === null) {
         if (pixels === null) {
-          _texSubImage2D(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels);
+          _texSubImage2D(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
           return;
         }
       }
     } else {
-      if (canvas_OR_format_OR_image_OR_pixels is HTMLImageElement) {
+      if (canvas_OR_format_OR_image_OR_pixels_OR_video is HTMLImageElement) {
         if (type === null) {
           if (pixels === null) {
-            _texSubImage2D_2(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels);
+            _texSubImage2D_2(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
             return;
           }
         }
       } else {
-        if (canvas_OR_format_OR_image_OR_pixels is HTMLCanvasElement) {
+        if (canvas_OR_format_OR_image_OR_pixels_OR_video is HTMLCanvasElement) {
           if (type === null) {
             if (pixels === null) {
-              _texSubImage2D_3(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels);
+              _texSubImage2D_3(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
               return;
             }
           }
         } else {
-          if (canvas_OR_format_OR_image_OR_pixels is int) {
-            _texSubImage2D_4(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels, type, pixels);
-            return;
+          if (canvas_OR_format_OR_image_OR_pixels_OR_video is HTMLVideoElement) {
+            if (type === null) {
+              if (pixels === null) {
+                _texSubImage2D_4(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+                return;
+              }
+            }
+          } else {
+            if (canvas_OR_format_OR_image_OR_pixels_OR_video is int) {
+              _texSubImage2D_5(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+              return;
+            }
           }
         }
       }
     }
     throw "Incorrect number or type of arguments";
   }
-  static void _texSubImage2D(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) native;
-  static void _texSubImage2D_2(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) native;
-  static void _texSubImage2D_3(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) native;
-  static void _texSubImage2D_4(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels, type, pixels) native;
+  static void _texSubImage2D(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native;
+  static void _texSubImage2D_2(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native;
+  static void _texSubImage2D_3(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native;
+  static void _texSubImage2D_4(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native;
+  static void _texSubImage2D_5(receiver, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native;
 
   void uniform1f(WebGLUniformLocation location, num x) {
     _uniform1f(this, location, x);

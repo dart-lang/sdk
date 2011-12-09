@@ -98,7 +98,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1);
 
-  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
+  void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]);
 
   void drawImageFromRect(HTMLImageElement image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]);
 

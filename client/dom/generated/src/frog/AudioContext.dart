@@ -37,6 +37,8 @@ class AudioContext native "*AudioContext" {
 
   LowPass2FilterNode createLowPass2Filter() native;
 
+  MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement) native;
+
   AudioPannerNode createPanner() native;
 
   WaveShaperNode createWaveShaper() native;

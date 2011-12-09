@@ -42,6 +42,8 @@ interface AudioContext factory _AudioContextFactoryProvider {
 
   LowPass2FilterNode createLowPass2Filter();
 
+  MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
+
   AudioPannerNode createPanner();
 
   WaveShaperNode createWaveShaper();

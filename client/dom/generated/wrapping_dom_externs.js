@@ -320,6 +320,7 @@ dom_externs.createIndex;                // operation IDBObjectStore.createIndex
 dom_externs.createJavaScriptNode;       // operation AudioContext.createJavaScriptNode
 dom_externs.createLinearGradient;       // operation CanvasRenderingContext2D.createLinearGradient
 dom_externs.createLowPass2Filter;       // operation AudioContext.createLowPass2Filter
+dom_externs.createMediaElementSource;   // operation AudioContext.createMediaElementSource
 dom_externs.createNSResolver;           // operation Document.createNSResolver, operation XPathEvaluator.createNSResolver
 dom_externs.createNodeIterator;         // operation Document.createNodeIterator
 dom_externs.createNotification;         // operation NotificationCenter.createNotification

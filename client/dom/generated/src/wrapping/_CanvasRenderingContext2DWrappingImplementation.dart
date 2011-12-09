@@ -199,15 +199,15 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   }
   static CanvasGradient _createRadialGradient(receiver, x0, y0, r0, x1, y1, r1) native;
 
-  void drawImage(var canvas_OR_image, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
-    if (canvas_OR_image is HTMLImageElement) {
+  void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) {
+    if (canvas_OR_image_OR_video is HTMLImageElement) {
       if (sw_OR_width === null) {
         if (height_OR_sh === null) {
           if (dx === null) {
             if (dy === null) {
               if (dw === null) {
                 if (dh === null) {
-                  _drawImage(this, canvas_OR_image, sx_OR_x, sy_OR_y);
+                  _drawImage(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
                   return;
                 }
               }
@@ -219,25 +219,25 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
           if (dy === null) {
             if (dw === null) {
               if (dh === null) {
-                _drawImage_2(this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                _drawImage_2(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
                 return;
               }
             }
           }
         } else {
-          _drawImage_3(this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+          _drawImage_3(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
           return;
         }
       }
     } else {
-      if (canvas_OR_image is HTMLCanvasElement) {
+      if (canvas_OR_image_OR_video is HTMLCanvasElement) {
         if (sw_OR_width === null) {
           if (height_OR_sh === null) {
             if (dx === null) {
               if (dy === null) {
                 if (dw === null) {
                   if (dh === null) {
-                    _drawImage_4(this, canvas_OR_image, sx_OR_x, sy_OR_y);
+                    _drawImage_4(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
                     return;
                   }
                 }
@@ -249,26 +249,60 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
             if (dy === null) {
               if (dw === null) {
                 if (dh === null) {
-                  _drawImage_5(this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                  _drawImage_5(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
                   return;
                 }
               }
             }
           } else {
-            _drawImage_6(this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+            _drawImage_6(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
             return;
+          }
+        }
+      } else {
+        if (canvas_OR_image_OR_video is HTMLVideoElement) {
+          if (sw_OR_width === null) {
+            if (height_OR_sh === null) {
+              if (dx === null) {
+                if (dy === null) {
+                  if (dw === null) {
+                    if (dh === null) {
+                      _drawImage_7(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
+                      return;
+                    }
+                  }
+                }
+              }
+            }
+          } else {
+            if (dx === null) {
+              if (dy === null) {
+                if (dw === null) {
+                  if (dh === null) {
+                    _drawImage_8(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+                    return;
+                  }
+                }
+              }
+            } else {
+              _drawImage_9(this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+              return;
+            }
           }
         }
       }
     }
     throw "Incorrect number or type of arguments";
   }
-  static void _drawImage(receiver, canvas_OR_image, sx_OR_x, sy_OR_y) native;
-  static void _drawImage_2(receiver, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native;
-  static void _drawImage_3(receiver, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native;
-  static void _drawImage_4(receiver, canvas_OR_image, sx_OR_x, sy_OR_y) native;
-  static void _drawImage_5(receiver, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native;
-  static void _drawImage_6(receiver, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native;
+  static void _drawImage(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native;
+  static void _drawImage_2(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native;
+  static void _drawImage_3(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native;
+  static void _drawImage_4(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native;
+  static void _drawImage_5(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native;
+  static void _drawImage_6(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native;
+  static void _drawImage_7(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native;
+  static void _drawImage_8(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native;
+  static void _drawImage_9(receiver, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native;
 
   void drawImageFromRect(HTMLImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) {
     if (sx === null) {

@@ -422,6 +422,14 @@ function native__AudioContextWrappingImplementation__createLowPass2Filter(_this)
   }
 }
 
+function native__AudioContextWrappingImplementation__createMediaElementSource(_this, mediaElement) {
+  try {
+    return __dom_wrap(_this.$dom.createMediaElementSource(__dom_unwrap(mediaElement)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__AudioContextWrappingImplementation__createPanner(_this) {
   try {
     return __dom_wrap(_this.$dom.createPanner());
@@ -1846,49 +1854,73 @@ function native__CanvasRenderingContext2DWrappingImplementation__createRadialGra
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage(_this, canvas_OR_image, sx_OR_x, sy_OR_y) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_2(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_2(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_3(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_3(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_4(_this, canvas_OR_image, sx_OR_x, sy_OR_y) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_4(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_5(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_5(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_6(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_6(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_7(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) {
+  try {
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_8(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
+  try {
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_9(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
+  try {
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -31446,33 +31478,41 @@ function native__WebGLRenderingContextWrappingImplementation__stencilOpSeparate(
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D_2(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_2(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D_3(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_3(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D_4(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels, format, type, pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_4(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels), __dom_unwrap(format), __dom_unwrap(type), __dom_unwrap(pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_5(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) {
+  try {
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video), __dom_unwrap(format), __dom_unwrap(type), __dom_unwrap(pixels)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -31494,33 +31534,41 @@ function native__WebGLRenderingContextWrappingImplementation__texParameteri(_thi
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_2(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_2(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_3(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_3(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_4(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels, type, pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_4(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels), __dom_unwrap(type), __dom_unwrap(pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_5(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) {
+  try {
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video), __dom_unwrap(type), __dom_unwrap(pixels)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

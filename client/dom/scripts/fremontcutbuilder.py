@@ -59,6 +59,7 @@ def main():
       'ENABLE_NOTIFICATIONS',
       'ENABLE_OFFLINE_WEB_APPLICATIONS',
       'ENABLE_REQUEST_ANIMATION_FRAME',
+      'ENABLE_VIDEO',
       'ENABLE_WEB_TIMING',
       ]
   webkit_options = databasebuilder.DatabaseBuilderOptions(
