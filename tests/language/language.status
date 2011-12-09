@@ -334,6 +334,8 @@ DuplicateConstructorTest/none: Fail
 ExceptionIdentityTest: Fail
 NewExpressionTypeArgsFrogTest/none: Fail
 
+ConstructorReturnNegativeTest: Fail
+
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 ParameterInitializerTest: Pass
