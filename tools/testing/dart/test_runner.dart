@@ -327,6 +327,10 @@ class ProcessQueue {
   ProgressIndicator _progress;
   // For dartc batch processing we keep a list of batch processes.
   List<DartcBatchRunnerProcess> _batchProcesses;
+  // Cache information about test cases per test suite. For multiple
+  // configurations there is no need to repeatedly search the file
+  // system, generate tests, and search test files for options.
+  Map<String, List<TestInformation>> _testCache;
 
   ProcessQueue(int this._maxProcesses,
                String progress,
@@ -338,13 +342,14 @@ class ProcessQueue {
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
-        _batchProcesses = new List<DartcBatchRunnerProcess>() {
+        _batchProcesses = new List<DartcBatchRunnerProcess>(),
+        _testCache = new Map<String, List<TestInformation>>() {
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
   void addTestSuite(TestSuite testSuite) {
     _activeTestListers++;
-    testSuite.forEachTest(_runTest, _testListerDone);
+    testSuite.forEachTest(_runTest, _testCache, _testListerDone);
   }
 
   void _testListerDone() {

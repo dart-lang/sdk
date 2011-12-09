@@ -10,7 +10,7 @@
 
 
 interface TestSuite {
-  void forEachTest(Function onTest, [Function onDone]);
+  void forEachTest(Function onTest, Map testCache, [Function onDone]);
 }
 
 
@@ -99,7 +99,7 @@ class CCTestSuite implements TestSuite {
     }
   }
 
-  void forEachTest(Function onTest, [Function onDone]) {
+  void forEachTest(Function onTest, Map testCache, [Function onDone]) {
     doTest = onTest;
     doDone = (ignore) => (onDone != null) ? onDone() : null;
 
@@ -123,6 +123,18 @@ class CCTestSuite implements TestSuite {
 }
 
 
+class TestInformation {
+  String filename;
+  Map optionsFromFile;
+  bool isNegative;
+  bool isNegativeIfChecked;
+  bool hasFatalTypeErrors;
+
+  TestInformation(this.filename, this.optionsFromFile, this.isNegative,
+                  this.isNegativeIfChecked, this.hasFatalTypeErrors);
+}
+
+
 class StandardTestSuite implements TestSuite {
   Map configuration;
   String suiteName;
@@ -133,6 +145,7 @@ class StandardTestSuite implements TestSuite {
   int activeTestGenerators = 0;
   bool listingDone = false;
   TestExpectations testExpectations;
+  List<TestInformation> cachedTests;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
@@ -149,7 +162,7 @@ class StandardTestSuite implements TestSuite {
 
   List<String> additionalOptions() => [];
 
-  void forEachTest(Function onTest, [Function onDone = null]) {
+  void forEachTest(Function onTest, Map testCache, [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
 
@@ -162,7 +175,22 @@ class StandardTestSuite implements TestSuite {
                                configuration);
     }
 
-    processDirectory();
+    // Checked if we have already found and generated the tests for
+    // this suite.
+    if (!testCache.containsKey(suiteName)) {
+      cachedTests = testCache[suiteName] = [];
+      processDirectory();
+    } else {
+      // We rely on enqueueing completing asynchronously so use a
+      // timer to make it so.
+      void enqueueCachedTests(Timer ignore) {
+        for (var info in testCache[suiteName]) {
+          enqueueTestCaseFromTestInformation(info);
+        }
+        doDone();
+      }
+      new Timer(enqueueCachedTests, 0, false);
+    }
   }
 
   void processDirectory() {
@@ -176,55 +204,77 @@ class StandardTestSuite implements TestSuite {
     dir.list(recursive: listRecursively());
   }
 
-  Function makeTestCaseCreator(Map optionsFromFile, Map configuration) {
+  void enqueueTestCaseFromTestInformation(TestInformation info) {
+    var filename = info.filename;
+    var optionsFromFile = info.optionsFromFile;
+    var isNegative = info.isNegative;
+
+    // Look up expectations in status files using a modified file path.
+    String pathSeparator = new Platform().pathSeparator();
+    String testName;
+    int start = filename.lastIndexOf('src' + pathSeparator);
+    if (start != -1) {
+      testName = filename.substring(start + 4, filename.length - 5);
+    } else if (optionsFromFile['isMultitest']) {
+      start = filename.lastIndexOf(pathSeparator);
+      int middle = filename.lastIndexOf('_');
+      testName = filename.substring(start + 1, middle) + pathSeparator +
+          filename.substring(middle + 1, filename.length - 5);
+    } else {
+      // This case is hit by the dartc client compilation
+      // tests. These tests are pretty broken compared to the
+      // rest. They use the .dart suffix in the status files. They
+      // find tests in weird ways (testing that they contain "#").
+      // They need to be redone.
+      start = filename.indexOf(directoryPath);
+      testName = filename.substring(start + directoryPath.length + 1,
+                                    filename.length);
+    }
+    Set<String> expectations = testExpectations.expectations(testName);
+    if (configuration["report"]) {
+      // Tests with multiple VMOptions are counted more than once.
+      for (var dummy in optionsFromFile["vmOptions"]) {
+        SummaryReport.add(expectations);
+      }
+    }
+    if (expectations.contains(SKIP)) return;
+
+    // Only dartc supports fatal type errors. Enable fatal type
+    // errors with a flag and treat tests that have fatal type
+    // errors as negative.
+    var enableFatalTypeErrors =
+        (info.hasFatalTypeErrors && configuration['component'] == 'dartc');
+    var argumentLists = argumentListsFromFile(filename,
+                                              optionsFromFile,
+                                              enableFatalTypeErrors);
+    isNegative = isNegative ||
+        (configuration['checked'] && info.isNegativeIfChecked) ||
+        enableFatalTypeErrors;
+
+    for (var args in argumentLists) {
+      doTest(new TestCase('$suiteName/$testName',
+                          shellPath(),
+                          args,
+                          configuration,
+                          completeHandler,
+                          expectations,
+                          isNegative));
+    }
+  }
+
+  Function makeTestCaseCreator(Map optionsFromFile) {
     return (String filename,
             bool isNegative,
             [bool isNegativeIfChecked = false,
-             bool enableFatalTypeErrors = false]) {
-      // Look up expectations in status files using a modified file path.
-      String pathSeparator = new Platform().pathSeparator();
-      String testName;
-      int start = filename.lastIndexOf('src' + pathSeparator);
-      if (start != -1) {
-        testName = filename.substring(start + 4, filename.length - 5);
-      } else if (optionsFromFile['isMultitest']) {
-        start = filename.lastIndexOf(pathSeparator);
-        int middle = filename.lastIndexOf('_');
-        testName = filename.substring(start + 1, middle) + pathSeparator +
-            filename.substring(middle + 1, filename.length - 5);
-      } else {
-        // This case is hit by the dartc client compilation
-        // tests. These tests are pretty broken compared to the
-        // rest. They use the .dart suffix in the status files. They
-        // find tests in weird ways (testing that they contain "#"). 
-        // They need to be redone.
-        start = filename.indexOf(directoryPath);
-        testName = filename.substring(start + directoryPath.length + 1,
-                                      filename.length);
-      }
-      Set<String> expectations = testExpectations.expectations(testName);
-      if (configuration["report"]) {
-        // Tests with multiple VMOptions are counted more than once.
-        for (var dummy in optionsFromFile["vmOptions"]) {
-          SummaryReport.add(expectations);
-        }
-      }
-      if (expectations.contains(SKIP)) return;
-
-      isNegative = isNegative ||
-          (configuration['checked'] && isNegativeIfChecked);
-      var argumentLists = argumentListsFromFile(filename,
-                                                optionsFromFile,
-                                                enableFatalTypeErrors);
-      for (var args in argumentLists) {
-        doTest(new TestCase('$suiteName/$testName',
-                            shellPath(),
-                            args,
-                            configuration,
-                            completeHandler,
-                            expectations,
-                            isNegative));
-      }
+             bool hasFatalTypeErrors = false]) {
+      // Cache the test information for each test case.
+      var info = new TestInformation(filename,
+                                     optionsFromFile,
+                                     isNegative,
+                                     isNegativeIfChecked,
+                                     hasFatalTypeErrors);
+      cachedTests.add(info);
+      enqueueTestCaseFromTestInformation(info);
     };
   }
 
@@ -236,16 +286,13 @@ class StandardTestSuite implements TestSuite {
     if (!pattern.hasMatch(filename)) return;
 
     var optionsFromFile = optionsFromFile(filename);
-    Function createTestCase =
-        makeTestCaseCreator(optionsFromFile, configuration);
+    Function createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
-      bool supportsFatalTypeErrors = (configuration['component'] == 'dartc');
       testGeneratorStarted();
       DoMultitest(filename,
-                  TestUtils.buildDir(configuration),
+                  TestUtils.outputDir(configuration),
                   directoryPath,
-                  supportsFatalTypeErrors,
                   createTestCase,
                   testGeneratorDone);
     } else {
@@ -279,7 +326,9 @@ class StandardTestSuite implements TestSuite {
                                            bool enableFatalTypeErrors) {
     List args = TestUtils.standardOptions(configuration);
     args.addAll(additionalOptions());
-    if (enableFatalTypeErrors) args.add('--fatal-type-errors');
+    if (enableFatalTypeErrors && configuration['component'] == 'dartc') {
+      args.add('--fatal-type-errors');
+    }
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
@@ -302,12 +351,9 @@ class StandardTestSuite implements TestSuite {
     var result = new List<List<String>>();
     Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
     for (var vmOptions in vmOptionsList) {
-      if (isMultitest) {
-        // Make copy of vmOptions, since we will modify it at each iteration.
-        vmOptions = new List<String>.from(vmOptions);
-      }
-      vmOptions.addAll(args);
-      result.add(vmOptions);
+      var options = new List<String>.from(vmOptions);
+      options.addAll(args);
+      result.add(options);
     }
 
     return result;
@@ -465,14 +511,19 @@ class TestUtils {
     return name;
   }
 
-  static String buildDir(Map configuration) {
-    var buildDir = '';
+  static String outputDir(Map configuration) {
+    var outputDir = '';
     var system = configuration['system'];
     if (system == 'linux') {
-      buildDir = 'out/';
+      outputDir = 'out/';
     } else if (system == 'macos') {
-      buildDir = 'xcodebuild/';
+      outputDir = 'xcodebuild/';
     }
+    return outputDir;
+  }
+
+  static String buildDir(Map configuration) {
+    var buildDir = outputDir(configuration);
     buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
     buildDir += configuration['arch'] + '/';
     return buildDir;

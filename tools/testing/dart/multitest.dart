@@ -115,9 +115,8 @@ void ExtractTestsFromMultitest(String filename,
 
 
 void DoMultitest(String filename,
-                 String buildDir,
+                 String outputDir,
                  String testDir,
-                 bool supportsFatalTypeErrors,
                  Function doTest(String filename,
                                  bool isNegative,
                                  [bool isNegativeIfChecked]),
@@ -127,7 +126,7 @@ void DoMultitest(String filename,
   Map<String, String> outcomes = new Map<String, String>();
   ExtractTestsFromMultitest(filename, tests, outcomes);
 
-  String directory = CreateMultitestDirectory(buildDir, testDir);
+  String directory = CreateMultitestDirectory(outputDir, testDir);
   String pathSeparator = new Platform().pathSeparator();
   int start = filename.lastIndexOf(pathSeparator) + 1;
   int end = filename.indexOf('.dart', start);
@@ -135,7 +134,6 @@ void DoMultitest(String filename,
   Iterator currentKey = tests.getKeys().iterator();
   WriteMultitestToFileAndQueueIt(tests,
                                  outcomes,
-                                 supportsFatalTypeErrors,
                                  currentKey,
                                  '$directory$pathSeparator$baseFilename',
                                  doTest,
@@ -147,7 +145,6 @@ void DoMultitest(String filename,
 // to serialize the file operations, rather than opening all files at once.
 WriteMultitestToFileAndQueueIt(Map<String, String> tests,
                                Map<String, String> outcomes,
-                               bool supportsFatalTypeErrors,
                                Iterator currentKey,
                                String basePath,
                                Function doTest,
@@ -171,11 +168,9 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
     };
     openedFile.closeHandler = () {
       var outcome = outcomes[key];
-      bool enableFatalTypeErrors = (supportsFatalTypeErrors &&
-                                    outcome.contains('static type error'));
+      bool enableFatalTypeErrors = outcome.contains('static type error');
       bool isNegative = (outcome.contains('compile-time error') ||
-                         outcome.contains('runtime error') ||
-                         enableFatalTypeErrors);
+                         outcome.contains('runtime error'));
       bool isNegativeIfChecked = outcome.contains('dynamic type error');
       doTest(filename,
              isNegative,
@@ -183,7 +178,6 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
              enableFatalTypeErrors);
       WriteMultitestToFileAndQueueIt(tests,
                                      outcomes,
-                                     supportsFatalTypeErrors,
                                      currentKey,
                                      basePath,
                                      doTest,
@@ -195,9 +189,9 @@ WriteMultitestToFileAndQueueIt(Map<String, String> tests,
   file.create();
 }
 
-String CreateMultitestDirectory(String buildDir, String testDir) {
+String CreateMultitestDirectory(String outputDir, String testDir) {
   final String generatedTestDirectory = 'generated_tests';
-  Directory parentDir = new Directory(buildDir + generatedTestDirectory);
+  Directory parentDir = new Directory(outputDir + generatedTestDirectory);
   if (!parentDir.existsSync()) {
     parentDir.createSync();
   }
