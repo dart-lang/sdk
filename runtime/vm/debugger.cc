@@ -19,9 +19,7 @@
 
 namespace dart {
 
-
-DEFINE_FLAG(charp, bpt, NULL, "Debug breakpoint at <func>");
-
+static const bool verbose = false;
 
 Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
     : function_(func.raw()),
@@ -89,6 +87,33 @@ RawFunction* ActivationFrame::DartFunction() {
 }
 
 
+const char* Debugger::QualifiedFunctionName(const Function& func) {
+  String& func_name = String::Handle(func.name());
+  Class& func_class = Class::Handle(func.owner());
+  String& class_name = String::Handle(func_class.Name());
+
+  const char* kFormat = "%s%s%s";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
+      func_class.IsTopLevel() ? "" : class_name.ToCString(),
+      func_class.IsTopLevel() ? "" : ".",
+      func_name.ToCString());
+  len++;  // String terminator.
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, kFormat,
+              func_class.IsTopLevel() ? "" : class_name.ToCString(),
+              func_class.IsTopLevel() ? "" : ".",
+              func_name.ToCString());
+  return chars;
+}
+
+
+RawString* ActivationFrame::QualifiedFunctionName() {
+  Function& func = Function::Handle(DartFunction());
+  return String::New(Debugger::QualifiedFunctionName(func));
+}
+
+
 RawString* ActivationFrame::SourceUrl() {
   const Script& script = Script::Handle(SourceScript());
   return script.url();
@@ -144,30 +169,19 @@ RawInstance* ActivationFrame::Value(const String& variable_name) {
 
 
 const char* ActivationFrame::ToCString() {
-  const char* kFormat = "Function: '%s%s%s' url: '%s' line: %d";
+  const char* kFormat = "Function: '%s' url: '%s' line: %d";
 
   Function& func = Function::Handle(DartFunction());
-  String& func_name = String::Handle(func.name());
-  Class& func_class = Class::Handle(func.owner());
-  String& class_name = String::Handle(func_class.Name());
   String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
+  const char* func_name = Debugger::QualifiedFunctionName(func);
 
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-                             class_name.ToCString(),
-                             func_class.IsTopLevel() ? "" : ".",
-                             func_name.ToCString(),
-                             url.ToCString(),
-                             line);
+  intptr_t len =
+      OS::SNPrint(NULL, 0, kFormat, func_name, url.ToCString(), line);
   len++;  // String terminator.
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat,
-              class_name.ToCString(),
-              func_class.IsTopLevel() ? "" : ".",
-              func_name.ToCString(),
-              url.ToCString(),
-              line);
+  OS::SNPrint(chars, len, kFormat, func_name, url.ToCString(), line);
   return chars;
 }
 
@@ -251,10 +265,12 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function) {
       }
     }
     if (bpt != NULL) {
-      OS::Print("Setting breakpoint at '%s' line %d  (PC %p)\n",
-          String::Handle(bpt->SourceUrl()).ToCString(),
-          bpt->LineNumber(),
-          bpt->pc());
+      if (verbose) {
+        OS::Print("Setting breakpoint at '%s' line %d  (PC %p)\n",
+            String::Handle(bpt->SourceUrl()).ToCString(),
+            bpt->LineNumber(),
+            bpt->pc());
+      }
       AddBreakpoint(bpt);
       return bpt;
     }
@@ -296,10 +312,12 @@ void Debugger::BreakpointCallback() {
   ASSERT(frame != NULL);
   Breakpoint* bpt = GetBreakpoint(frame->pc());
   ASSERT(bpt != NULL);
-  OS::Print(">>> Breakpoint at %s:%d (Address %p)\n",
-      bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
-      bpt ? bpt->LineNumber() : 0,
-      frame->pc());
+  if (verbose) {
+    OS::Print(">>> Breakpoint at %s:%d (Address %p)\n",
+        bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
+        bpt ? bpt->LineNumber() : 0,
+        frame->pc());
+  }
   StackTrace* stack_trace = new StackTrace(8);
   while (frame != NULL) {
     ASSERT(frame->IsValid());

@@ -1405,7 +1405,7 @@ bool Class::IsMoreSpecificThan(
 
 
 bool Class::IsTopLevel() const {
-  return String::Handle(Name()).Length() == 0;
+  return String::Handle(Name()).Equals("::");
 }
 
 

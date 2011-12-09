@@ -87,6 +87,7 @@
     'dart_entry_test.cc',
     'debugger.cc',
     'debugger.h',
+    'debugger_api_impl_test.cc',
     'disassembler.cc',
     'disassembler.h',
     'disassembler_ia32.cc',
