@@ -103,19 +103,26 @@ class CCTestSuite implements TestSuite {
     doTest = onTest;
     doDone = (ignore) => (onDone != null) ? onDone() : null;
 
+    var filesRead = 0;
+    void statusFileRead() {
+      filesRead++;
+      if (filesRead == statusFilePaths.length) {
+        receiveTestName = new ReceivePort();
+        new CCTestListerIsolate().spawn().then((port) {
+            port.send(runnerPath, receiveTestName.toSendPort());
+            receiveTestName.receive(testNameHandler);
+        });
+      }
+    }
+
     testExpectations =
         new TestExpectations(complexMatching: complexStatusMatching());
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                statusFilePath,
-                               configuration);
+                               configuration,
+                               statusFileRead);
     }
-
-    receiveTestName = new ReceivePort();
-    new CCTestListerIsolate().spawn().then((port) {
-        port.send(runnerPath, receiveTestName.toSendPort());
-        receiveTestName.receive(testNameHandler);
-    });
   }
 
   void completeHandler(TestCase testCase) {
@@ -166,30 +173,37 @@ class StandardTestSuite implements TestSuite {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
 
+    var filesRead = 0;
+    void statusFileRead() {
+      filesRead++;
+      if (filesRead == statusFilePaths.length) {
+        // Checked if we have already found and generated the tests for
+        // this suite.
+        if (!testCache.containsKey(suiteName)) {
+          cachedTests = testCache[suiteName] = [];
+          processDirectory();
+        } else {
+          // We rely on enqueueing completing asynchronously so use a
+          // timer to make it so.
+          void enqueueCachedTests(Timer ignore) {
+            for (var info in testCache[suiteName]) {
+              enqueueTestCaseFromTestInformation(info);
+            }
+            doDone();
+          }
+          new Timer(enqueueCachedTests, 0, false);
+        }
+      }
+    }
+
     // Read test expectations from status files.
     testExpectations =
         new TestExpectations(complexMatching: complexStatusMatching());
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                statusFilePath,
-                               configuration);
-    }
-
-    // Checked if we have already found and generated the tests for
-    // this suite.
-    if (!testCache.containsKey(suiteName)) {
-      cachedTests = testCache[suiteName] = [];
-      processDirectory();
-    } else {
-      // We rely on enqueueing completing asynchronously so use a
-      // timer to make it so.
-      void enqueueCachedTests(Timer ignore) {
-        for (var info in testCache[suiteName]) {
-          enqueueTestCaseFromTestInformation(info);
-        }
-        doDone();
-      }
-      new Timer(enqueueCachedTests, 0, false);
+                               configuration,
+                               statusFileRead);
     }
   }
 

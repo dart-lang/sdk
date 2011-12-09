@@ -32,43 +32,66 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     File result = new File(resultPath);
     StringInputStream origStream =
         new StringInputStream(orig.openInputStream());
+    StringInputStream stubsStream =
+        new StringInputStream(stubs.openInputStream());
     FileOutputStream resultStream = result.openOutputStream();
+    var origLine;
 
-    // First copy first comments and imports from original file.
-    var origLine = origStream.readLine();
-    while (origLine != null) {
-      origLine = origLine.trim();
-      if (origLine.isEmpty() ||
-          origLine.startsWith('//') ||
-          origLine.startsWith('#')) {
-        resultStream.write(origLine.charCodes());
-        resultStream.write('\n'.charCodes());
+    void writeResultLine(String line) {
+      resultStream.write(line.charCodes());
+      resultStream.write('\n'.charCodes());
+    }
+
+    // Step 3: Copy in the rest of the original file.
+    void copyThirdPart() {
+      origLine = origStream.readLine();
+      while (origLine != null) {
+        writeResultLine(origLine);
         origLine = origStream.readLine();
-      } else {
-        break;
       }
     }
 
-    // Then copy in the generated stubs code.
-    StringInputStream stubsStream =
-        new StringInputStream(stubs.openInputStream());
-    var stubsLine = stubsStream.readLine();
-    while (stubsLine != null) {
-      resultStream.write(stubsLine.charCodes());
-      resultStream.write('\n'.charCodes());
-      stubsLine = stubsStream.readLine();
+    // Step 2: Copy in the generated stubs code.
+    void copySecondPart() {
+      var stubsLine = stubsStream.readLine();
+      while (stubsLine != null) {
+        writeResultLine(stubsLine);
+        stubsLine = stubsStream.readLine();
+      }
     }
 
-    // Then copy in the rest of the original file.
-    while (origLine != null) {
-      resultStream.write(origLine.charCodes());
-      resultStream.write('\n'.charCodes());
+    // Step 1: Copy first comments and imports from original file.
+    void copyFirstPart() {
       origLine = origStream.readLine();
+      while (origLine != null) {
+        origLine = origLine.trim();
+        if (origLine.isEmpty() ||
+            origLine.startsWith('//') ||
+            origLine.startsWith('#')) {
+          writeResultLine(origLine);
+          origLine = origStream.readLine();
+        } else {
+          origStream.lineHandler = null;
+          // Start copying from the stubs file.
+          stubsStream.lineHandler = copySecondPart;
+          stubsStream.closeHandler = () {
+            // When the stubs file is all read continue with the rest
+            // of the original file including the pending line.
+            writeResultLine(origLine);
+            origStream.lineHandler = copyThirdPart;
+          };
+          return;
+        }
+      }
     }
 
-    // Done.
-    resultStream.close();
-    onGenerated(resultPath);
+    origStream.lineHandler = copyFirstPart;
+    origStream.closeHandler = () {
+      // Done generating file when all data has been read from the
+      // original file.
+      resultStream.close();
+      onGenerated(resultPath);
+    };
   }
 
   void generateTestCase(String filename,

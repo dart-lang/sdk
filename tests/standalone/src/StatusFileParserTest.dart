@@ -28,7 +28,8 @@ void TestReadStatusFile(String filePath) {
   File file = new File(getFilename(filePath));
   if (file.existsSync()) {
     List<Section> sections = new List<Section>();
-    ReadConfigurationInto(filePath, sections);
-    Expect.isTrue(sections.length > 0);
+    ReadConfigurationInto(filePath, sections, () {
+        Expect.isTrue(sections.length > 0);
+      });
   }
 }

@@ -232,58 +232,43 @@ class _StringInputStream implements StringInputStream {
   }
 
   String read() {
-    // If there is buffered data return that first.
-    var decodedString = _decoder.decoded;
-    if (decodedString !== null) {
-      if (_inputClosed && _decoder.isEmpty()) {
-        _streamClosed();
-      }
-      return decodedString;
-    } else if (_inputClosed) {
-      _streamClosed();
-      return null;
-    } else {
-      _readData();
-      return _decoder.decoded;
-    }
+    String result = _decoder.decoded;
+    _checkInstallDataHandler();
+    return result;
   }
 
   String readLine() {
-    if (_closed) return null;
-
-    if (_decoder.lineBreaks == 0) {
-      _readData();
-    }
-    var decodedLine = _decoder.decodedLine;
-    if (decodedLine !== null) {
-      if (_inputClosed && _decoder.isEmpty()) {
-        _streamClosed();
+    String decodedLine = _decoder.decodedLine;
+    if (decodedLine == null) {
+      if (_inputClosed) {
+        // Last line might not have a line separator.
+        decodedLine = _decoder.decoded;
+        if (decodedLine != null &&
+            decodedLine[decodedLine.length - 1] == '\r') {
+          decodedLine = decodedLine.substring(0, decodedLine.length - 1);
+        }
       }
-      return decodedLine;
     }
-    if (_inputClosed) {
-      decodedLine = _decoder.decoded;
-      if (decodedLine[decodedLine.length - 1] == '\r') {
-        decodedLine = decodedLine.substring(0, decodedLine.length - 1);
-      }
-      _streamClosed();
-      return decodedLine;
-    }
-    return null;
+    _checkInstallDataHandler();
+    return decodedLine;
   }
 
   String get encoding() => _encoding;
 
-  bool get closed() => _closed;
+  bool get closed() => _inputClosed && _decoder.isEmpty();
 
   void set dataHandler(void callback()) {
     _clientDataHandler = callback;
     _clientLineHandler = null;
+    _checkInstallDataHandler();
+    _checkScheduleCallback();
   }
 
   void set lineHandler(void callback()) {
     _clientLineHandler = callback;
     _clientDataHandler = null;
+    _checkInstallDataHandler();
+    _checkScheduleCallback();
   }
 
   void set closeHandler(void callback()) {
@@ -298,17 +283,17 @@ class _StringInputStream implements StringInputStream {
     if (_decoder.lineBreaks > 0 && _clientLineHandler !== null) {
       _clientLineHandler();
     }
+    _checkScheduleCallback();
+    _checkInstallDataHandler();
   }
 
   void _closeHandler() {
     _inputClosed = true;
-    if (!_decoder.isEmpty()) {
-      // If there is still data buffered call the data handler.
-      if (_clientDataHandler !== null) _clientDataHandler();
-      if (_clientLineHandler !== null) _clientLineHandler();
-    } else {
+    if (_decoder.isEmpty() && _clientCloseHandler != null) {
+      _clientCloseHandler();
       _closed = true;
-      if (_clientCloseHandler !== null) _clientCloseHandler();
+    } else {
+      _checkScheduleCallback();
     }
   }
 
@@ -319,15 +304,77 @@ class _StringInputStream implements StringInputStream {
     }
   }
 
-  void _streamClosed() {
-    _closed = true;
-
-    // TODO(sgjesse): Find a better way of scheduling callbacks from
-    // the event loop.
-    void issueCloseCallback(Timer timer) {
-      if (_clientCloseHandler !== null) _clientCloseHandler();
+  void _checkInstallDataHandler() {
+    if (_inputClosed ||
+        (_clientDataHandler === null && _clientLineHandler === null)) {
+      _input.dataHandler = null;
+    } else if (_clientDataHandler !== null) {
+      if (_decoder.isEmpty()) {
+        _input.dataHandler = _dataHandler;
+      } else {
+        _input.dataHandler = null;
+      }
+    } else {
+      assert(_clientLineHandler !== null);
+      if (_decoder.lineBreaks == 0) {
+        _input.dataHandler = _dataHandler;
+      } else {
+        _input.dataHandler = null;
+      }
     }
-    new Timer(issueCloseCallback, 0, false);
+  }
+
+  // TODO(sgjesse): Find a better way of scheduling callbacks from
+  // the event loop.
+  void _checkScheduleCallback() {
+    void issueDataCallback(Timer timer) {
+      _scheduledDataCallback = null;
+      if (_clientDataHandler !== null) {
+        _clientDataHandler();
+        _checkScheduleCallback();
+      }
+    }
+
+    void issueLineCallback(Timer timer) {
+      _scheduledLineCallback = null;
+      if (_clientLineHandler !== null) {
+        _clientLineHandler();
+        _checkScheduleCallback();
+      }
+    }
+
+    void issueCloseCallback(Timer timer) {
+      _scheduledCloseCallback = null;
+      if (!_closed) {
+        if (_clientCloseHandler !== null) _clientCloseHandler();
+        _closed = true;
+      }
+    }
+
+    if (!_closed) {
+      // Schedule data callback if string data available.
+      if (_clientDataHandler != null &&
+          !_decoder.isEmpty() &&
+          _scheduledDataCallback == null) {
+        if (_scheduledLineCallback != null) _scheduledLineCallback.cancel();
+        _scheduledDataCallback = new Timer(issueDataCallback, 0, false);
+      }
+
+      // Schedule line callback if a line is available.
+      if (_clientLineHandler != null &&
+          (_decoder.lineBreaks > 0 || (!_decoder.isEmpty() && _inputClosed)) &&
+          _scheduledLineCallback == null) {
+        if (_scheduledDataCallback != null) _scheduledDataCallback.cancel();
+        _scheduledLineCallback = new Timer(issueLineCallback, 0, false);
+      }
+
+      // Schedule close callback if no more data and input is closed.
+      if (_decoder.isEmpty() &&
+          _inputClosed &&
+          _scheduledCloseCallback == null) {
+        _scheduledCloseCallback = new Timer(issueCloseCallback, 0, false);
+      }
+    }
   }
 
   InputStream _input;
@@ -336,7 +383,10 @@ class _StringInputStream implements StringInputStream {
   bool _inputClosed = false;  // Is the underlying input stream closed?
   bool _closed = false;  // Is this stream closed.
   bool _eof = false;  // Has all data been read from the decoder?
-  var _clientDataHandler;
-  var _clientLineHandler;
-  var _clientCloseHandler;
+  Timer _scheduledDataCallback;
+  Timer _scheduledLineCallback;
+  Timer _scheduledCloseCallback;
+  Function _clientDataHandler;
+  Function _clientLineHandler;
+  Function _clientCloseHandler;
 }

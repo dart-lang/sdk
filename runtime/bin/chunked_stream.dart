@@ -54,6 +54,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
       _clientDataHandler();
     }
     _checkScheduleCallback();
+    _checkInstallDataHandler();
   }
 
   void _readData() {

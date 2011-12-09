@@ -13,10 +13,14 @@ void testStringInputStreamSync() {
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   StringInputStream x = new StringInputStream(file.openInputStream());
-  String line = x.readLine();
-  Expect.equals("Hello Dart", line);
-  line = x.readLine();
-  Expect.equals("wassup!", line);
+  x.lineHandler = () {
+    // The file input stream is known (for now) to have read the whole
+    // file when the data handler is called.
+    String line = x.readLine();
+    Expect.equals("Hello Dart", line);
+    line = x.readLine();
+    Expect.equals("wassup!", line);
+  };
 }
 
 void testInputStreamAsync() {
@@ -35,36 +39,23 @@ void testInputStreamAsync() {
 }
 
 
-void testStringInputStreamAsync1() {
-  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
-  // File contains "Hello Dart\nwassup!\n"
+void testStringInputStreamAsync(String name, int length) {
+  String fileName = getFilename("tests/standalone/src/$name");
+  // File contains 10 lines.
   File file = new File(fileName);
-  StringInputStream x = new StringInputStream(file.openInputStream());
-  var result = "";
-  x.dataHandler = () {
-    result += x.read();
-  };
-  x.closeHandler = () {
-    Expect.equals("Hello Dart\nwassup!\n", result);
-  };
-}
-
-
-void testStringInputStreamAsync2() {
-  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
-  // File contains "Hello Dart\nwassup!\n"
-  File file = new File(fileName);
+  Expect.equals(length, file.openSync().lengthSync());
   StringInputStream x = new StringInputStream(file.openInputStream());
   int lineCount = 0;
   x.lineHandler = () {
     var line = x.readLine();
-    Expect.isTrue(lineCount == 0 || lineCount == 1);
-    if (lineCount == 0) Expect.equals("Hello Dart", line);
-    if (lineCount == 1) Expect.equals("wassup!", line);
     lineCount++;
+    Expect.isTrue(lineCount <= 10);
+    if (line[0] != "#") {
+      Expect.equals("Line $lineCount", line);
+    }
   };
   x.closeHandler = () {
-    Expect.equals(2, lineCount);
+    Expect.equals(10, lineCount);
   };
 }
 
@@ -90,7 +81,10 @@ void testChunkedInputStream() {
 main() {
   testStringInputStreamSync();
   testInputStreamAsync();
-  testStringInputStreamAsync1();
-  testStringInputStreamAsync2();
+  // Check the length of these files as both are text files where one
+  // is without a terminating line separator which can easily be added
+  // back if accidentally opened in a text editor.
+  testStringInputStreamAsync("readline_test1.dat", 111);
+  testStringInputStreamAsync("readline_test2.dat", 114);
   testChunkedInputStream();
 }
