@@ -78,7 +78,7 @@ main() {
     if (selectors.containsKey('leg_only')) {
       queue.addTestSuite(new LegOnlyTestSuite(conf));
     }
-    if (selectors.containsKey('dartc')) {
+    if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new ClientDartcTestSuite(conf));
     }
     if (selectors.containsKey('css')) {

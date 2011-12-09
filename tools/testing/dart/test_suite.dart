@@ -8,6 +8,7 @@
 #import("test_runner.dart");
 #import("multitest.dart");
 
+#source("browser_test.dart");
 
 interface TestSuite {
   void forEachTest(Function onTest, Map testCache, [Function onDone]);
@@ -153,11 +154,13 @@ class StandardTestSuite implements TestSuite {
   bool listingDone = false;
   TestExpectations testExpectations;
   List<TestInformation> cachedTests;
+  final String pathSeparator;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
-                    List<String> this.statusFilePaths);
+                    List<String> this.statusFilePaths)
+    : pathSeparator = new Platform().pathSeparator();
 
   void isTestFile(String filename) => filename.endsWith("Test.dart");
 
@@ -224,7 +227,6 @@ class StandardTestSuite implements TestSuite {
     var isNegative = info.isNegative;
 
     // Look up expectations in status files using a modified file path.
-    String pathSeparator = new Platform().pathSeparator();
     String testName;
     int start = filename.lastIndexOf('src' + pathSeparator);
     if (start != -1) {
@@ -253,6 +255,11 @@ class StandardTestSuite implements TestSuite {
     }
     if (expectations.contains(SKIP)) return;
 
+    if (configuration['component'] == 'dartium') {
+      enqueueDartiumTest(filename, testName, optionsFromFile,
+                         expectations, isNegative);
+      return;
+    }
     // Only dartc supports fatal type errors. Enable fatal type
     // errors with a flag and treat tests that have fatal type
     // errors as negative.
@@ -313,6 +320,101 @@ class StandardTestSuite implements TestSuite {
       createTestCase(filename, optionsFromFile['isNegative']);
     }
   }
+
+  void enqueueDartiumTest(String filename,
+                          String testName,
+                          Map optionsFromFile,
+                          Set<String> expectations,
+                          bool isNegative) {
+    if (optionsFromFile['isMultitest']) return;
+    bool isWebTest = optionsFromFile['containsDomImport'];
+    bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
+    if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
+      print('Warning for $filename: Browser tests require #library ' +
+            'in any file that uses #import or #source');
+    }      
+
+    Directory tempDir = new Directory((isWebTest ? 'client/' : '') +
+                                      TestUtils.buildDir(configuration) +
+                                      'tmp');
+    // TODO(whesse): When implementing client web tests,
+    // create directory in the client case, if it doesn't exist.
+    tempDir.createTempSync();
+
+    String dartTestFilename = new File(filename).fullPathSync();
+    String dartWrapperFilename = '${tempDir.path}/test.dart';
+    if (!isWebTest) {
+      // test.dart will import the dart test directly, if it is a library,
+      // or indirectly through test_as_library.dart, if it is not.
+      String dartLibraryFilename;
+      if (isLibraryDefinition) {
+        dartLibraryFilename = dartTestFilename;
+      } else {
+        dartLibraryFilename = 'test_as_library.dart';
+        File file = new File('${tempDir.path}/$dartLibraryFilename');
+        RandomAccessFile dartLibrary = file.openSync(writable: true);
+        dartLibrary.writeStringSync(WrapDartTestInLibrary(dartTestFilename));
+        dartLibrary.closeSync();
+      }  
+      
+      File file = new File(dartWrapperFilename);
+      RandomAccessFile dartWrapper = file.openSync(writable: true);
+      dartWrapper.writeStringSync(dartTestWrapper(dartLibraryFilename));
+      dartWrapper.closeSync();
+    } else {
+      return;  // TODO(whesse): Implement client web tests on dartium.
+    }
+    // Create the HTML file for the test.
+    File htmlTestBase = new File('${tempDir.path}/${getHtmlName(filename)}');
+    RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
+    htmlTest.writeStringSync(GetHtmlContents(
+        filename,
+        'client/testing/unittest/test_controller.js',
+        scriptType,
+        dartWrapperFilename));
+    htmlTest.closeSync();
+
+    for (var vmOptions in optionsFromFile["vmOptions"]) {
+      var drtFlags = ['-no-timeout'];
+      var dartFlags = ['--enable_asserts', '--enable_type_checks'];
+      dartFlags.addAll(vmOptions);
+      drtFlags.add('--dart-flags=${Strings.join(dartFlags, " ")}');
+      var args = drtFlags;
+      args.add(htmlTestBase.fullPathSync());
+
+      // Create BrowserTestCase and queue it.
+      var testCase = new BrowserTestCase(
+          testName,
+          '/bin/echo',
+          ['No compilation step for component dartium.'],
+          dumpRenderTreeFilename,
+          args,
+          configuration,
+          completeHandler,
+          expectations, optionsFromFile['isNegative']);
+      doTest(testCase);
+    }        
+  }
+
+  static String dartTestWrapper(String library) {
+    return DartTestWrapper('', '', 'dart:dom',
+                           '../../../tests/isolate/src/TestFramework.dart',
+                           library);
+  }
+
+  static String get scriptType() => 'application/dart';
+
+  String getHtmlName(String filename) {
+    return filename.replaceAll(pathSeparator, '_') + 'dartium.html';
+  }
+
+  static String get dumpRenderTreeFilename() {
+    if (new Platform().operatingSystem() == 'macos') {
+      return 'client/tests/drt/.app/Contents/MacOS/DumpRenderTree';
+    } 
+    return 'client/tests/drt/DumpRenderTree';
+  }
+
 
   void testGeneratorStarted() {
     ++activeTestGenerators;
@@ -379,11 +481,18 @@ class StandardTestSuite implements TestSuite {
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
     RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
-
+    RegExp domImportRegExp =
+        const RegExp(@"^#import.*(dart:(dom|html)|html\.dart).*\)",
+                     multiLine: true);
+    RegExp libraryDefinitionRegExp =
+        const RegExp(@"^#library\(", multiLine: true);
+    RegExp sourceOrImportRegExp =
+        const RegExp(@"^#(source|import)\(", multiLine: true);
+    
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
     // we are interested in will be ascii in any case.
-    RandomAccessFile file = (new File(filename)).openSync();
+    RandomAccessFile file = new File(filename).openSync();
     List chars = new List(file.lengthSync());
     var offset = 0;
     while (offset != chars.length) {
@@ -425,13 +534,20 @@ class StandardTestSuite implements TestSuite {
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
+    bool containsDomImport = domImportRegExp.hasMatch(contents);
+    bool isLibraryDefinition = libraryDefinitionRegExp.hasMatch(contents);
+    bool containsSourceOrImport = sourceOrImportRegExp.hasMatch(contents);
+
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "isNegative": isNegative,
              "isMultitest": isMultitest,
              "containsLeadingHash" : containsLeadingHash,
-             "isolateStubs" : isolateStubs };
+             "isolateStubs" : isolateStubs,
+             "containsDomImport": containsDomImport,
+             "isLibraryDefinition": isLibraryDefinition,
+             "containsSourceOrImport": containsSourceOrImport };
   }
 }
 
