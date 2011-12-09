@@ -888,8 +888,8 @@ void CodeGenerator::VisitCloneContextNode(CloneContextNode *node) {
 void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   CodeGeneratorState codegen_state(this);
   LocalScope* scope = node_sequence->scope();
-  ASSERT(scope != NULL);
-  intptr_t num_context_variables = scope->num_context_variables();
+  const intptr_t num_context_variables =
+      (scope != NULL) ? scope->num_context_variables() : 0;
   if (num_context_variables > 0) {
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.

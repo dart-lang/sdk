@@ -3605,9 +3605,9 @@ RawAbstractType* Parser::ParseFinalVarOrType(
 }
 
 
-// Returns ast nodes of the variable initialization, or NULL if variables
-// are not initialized. If several variables are declared and initialized,
-// the individual initializers are collected in a sequence node.
+// Returns ast nodes of the variable initialization. Variables without an
+// explicit initializer are initialized to null. If several variables are
+// declared, the individual initializers are collected in a sequence node.
 AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
   bool is_final = (CurrentToken() == Token::kFINAL);
@@ -3618,24 +3618,19 @@ AstNode* Parser::ParseVariableDeclarationList() {
   }
 
   AstNode* initializers = ParseVariableDeclaration(type, is_final);
+  ASSERT(initializers != NULL);
   while (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
     if (CurrentToken() != Token::kIDENT) {
       ErrorMsg("identifier expected after comma");
     }
-    AstNode* right = ParseVariableDeclaration(type, is_final);
-    if (right != NULL) {
-      if (initializers == NULL) {
-        initializers = right;
-      } else {
-        // We have a second initializer. Allocate a sequence node now.
-        SequenceNode* sequence = NodeAsSequenceNode(initializers->token_index(),
-                                                    initializers,
-                                                    current_block_->scope);
-        sequence->Add(right);
-        initializers = sequence;
-      }
-    }
+    // We have a second initializer. Allocate a sequence node now.
+    // The sequence does not own the current scope. Set its own scope to NULL.
+    SequenceNode* sequence = NodeAsSequenceNode(initializers->token_index(),
+                                                initializers,
+                                                NULL);
+    sequence->Add(ParseVariableDeclaration(type, is_final));
+    initializers = sequence;
   }
   return initializers;
 }
@@ -4102,8 +4097,8 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
   TRACE_PARSER("ParseCaseStatement");
   bool default_seen = false;
   const intptr_t case_pos = token_index_;
-  SequenceNode* case_expressions =
-      new SequenceNode(case_pos, current_block_->scope);
+  // The case expressions node sequence does not own the enclosing scope.
+  SequenceNode* case_expressions = new SequenceNode(case_pos, NULL);
   while (CurrentToken() == Token::kCASE || CurrentToken() == Token::kDEFAULT) {
     if (CurrentToken() == Token::kCASE) {
       if (default_seen) {
@@ -4549,9 +4544,7 @@ AstNode* Parser::ParseAssertStatement() {
   AstNode* assert_throw = MakeAssertCall(condition_pos, condition_end);
   return new IfNode(condition_pos,
                     condition,
-                    NodeAsSequenceNode(condition_pos,
-                                       assert_throw,
-                                       current_block_->scope),
+                    NodeAsSequenceNode(condition_pos, assert_throw, NULL),
                     NULL);
 }
 
@@ -5359,8 +5352,8 @@ AstNode* Parser::ParseExprList() {
   TRACE_PARSER("ParseExprList");
   AstNode* expressions = ParseExpr(kAllowConst);
   if (CurrentToken() == Token::kCOMMA) {
-    // Collect comma-separated expressions in a sequence node.
-    SequenceNode* list = new SequenceNode(token_index_, current_block_->scope);
+    // Collect comma-separated expressions in a non scope owning sequence node.
+    SequenceNode* list = new SequenceNode(token_index_, NULL);
     list->Add(expressions);
     while (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();

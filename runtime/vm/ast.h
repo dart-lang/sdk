@@ -207,7 +207,6 @@ class SequenceNode : public AstNode {
       scope_(scope),
       nodes_(4),
       label_(NULL)  {
-    ASSERT(scope_ != NULL);
   }
 
   LocalScope* scope() const { return scope_; }

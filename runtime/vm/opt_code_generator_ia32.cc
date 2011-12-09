@@ -2567,8 +2567,9 @@ void OptimizingCodeGenerator::VisitReturnNode(ReturnNode* node) {
 
 
 void OptimizingCodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
-  if (FLAG_enable_type_checks ||
-      (node_sequence->scope()->num_context_variables() > 0)) {
+  const intptr_t num_context_variables = (node_sequence->scope() != NULL) ?
+      node_sequence->scope()->num_context_variables() : 0;
+  if (FLAG_enable_type_checks || (num_context_variables > 0)) {
     CodeGenerator::VisitSequenceNode(node_sequence);
     return;
   }
