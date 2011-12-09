@@ -73,14 +73,14 @@ RawBigint* BigintOperations::NewFromInt64(int64_t value, Heap::Space space) {
     value = -value;
   }
 
-  const Bigint& result = Bigint::Handle(NewFromUInt64(value, space));
+  const Bigint& result = Bigint::Handle(NewFromUint64(value, space));
   result.SetSign(is_negative);
 
   return result.raw();
 }
 
 
-RawBigint* BigintOperations::NewFromUInt64(uint64_t value, Heap::Space space) {
+RawBigint* BigintOperations::NewFromUint64(uint64_t value, Heap::Space space) {
   const int kNumBytes = sizeof(value);
   unsigned char pch[kNumBytes];
   for (int i = kNumBytes - 1; i >= 0; i--) {
@@ -314,7 +314,7 @@ bool BigintOperations::FitsIntoInt64(const Bigint& bigint) {
 }
 
 
-uint64_t BigintOperations::AbsToUInt64(const Bigint& bigint) {
+uint64_t BigintOperations::AbsToUint64(const Bigint& bigint) {
   unsigned char bytes[8];
   ASSERT(BN_num_bytes(bigint.BNAddr()) <= static_cast<int>(sizeof bytes));
   int n = BN_bn2bin(bigint.BNAddr(), bytes);
@@ -331,7 +331,7 @@ uint64_t BigintOperations::AbsToUInt64(const Bigint& bigint) {
 
 int64_t BigintOperations::ToInt64(const Bigint& bigint) {
   ASSERT(FitsIntoInt64(bigint));
-  int64_t value = AbsToUInt64(bigint);
+  int64_t value = AbsToUint64(bigint);
   if (bigint.IsNegative()) {
     value = -value;
   }
@@ -339,7 +339,7 @@ int64_t BigintOperations::ToInt64(const Bigint& bigint) {
 }
 
 
-bool BigintOperations::FitsIntoUInt64(const Bigint& bigint) {
+bool BigintOperations::FitsIntoUint64(const Bigint& bigint) {
   const BIGNUM *bn = bigint.BNAddr();
   if (bigint.IsNegative()) return false;
   int bits = BN_num_bits(bn);
@@ -348,9 +348,9 @@ bool BigintOperations::FitsIntoUInt64(const Bigint& bigint) {
 }
 
 
-uint64_t BigintOperations::ToUInt64(const Bigint& bigint) {
-  ASSERT(FitsIntoUInt64(bigint));
-  return AbsToUInt64(bigint);
+uint64_t BigintOperations::ToUint64(const Bigint& bigint) {
+  ASSERT(FitsIntoUint64(bigint));
+  return AbsToUint64(bigint);
 }
 
 

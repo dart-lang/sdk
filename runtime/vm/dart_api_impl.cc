@@ -950,20 +950,41 @@ DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
                                                   bool* fits) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
-  if (obj.IsSmi() || obj.IsMint()) {
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
     *fits = true;
-    return Api::Success();
-  } else if (obj.IsBigint()) {
+  } else {
+    ASSERT(int_obj.IsBigint());
 #if defined(DEBUG)
     Bigint& bigint = Bigint::Handle();
-    bigint ^= obj.raw();
+    bigint ^= int_obj.raw();
     ASSERT(!BigintOperations::FitsIntoInt64(bigint));
 #endif
     *fits = false;
-    return Api::Success();
   }
-  return Api::Error("Object is not a Integer");
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
+                                                   bool* fits) {
+  DARTSCOPE(Isolate::Current());
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    *fits = !int_obj.IsNegative();
+  } else {
+    ASSERT(int_obj.IsBigint());
+    Bigint& bigint = Bigint::Handle();
+    bigint ^= int_obj.raw();
+    *fits = BigintOperations::FitsIntoUint64(bigint);
+  }
+  return Api::Success();
 }
 
 
@@ -982,47 +1003,73 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value) {
+DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
+                                            int64_t* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
-  if (obj.IsSmi() || obj.IsMint()) {
-    Integer& integer = Integer::Handle();
-    integer ^= obj.raw();
-    *value = integer.AsInt64Value();
-    return Api::Success();
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
   }
-  if (obj.IsBigint()) {
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    *value = int_obj.AsInt64Value();
+    return Api::Success();
+  } else {
+    ASSERT(int_obj.IsBigint());
     Bigint& bigint = Bigint::Handle();
-    bigint ^= obj.raw();
+    bigint ^= int_obj.raw();
     if (BigintOperations::FitsIntoInt64(bigint)) {
       *value = BigintOperations::ToInt64(bigint);
       return Api::Success();
-    } else {
-      return Api::Error("Integer too big to fit in int64_t");
     }
   }
-  return Api::Error("Object is not a Integer");
+  return Api::Error("%s: Integer %s cannot be represented as an int64_t.",
+                    CURRENT_FUNC, int_obj.ToCString());
 }
 
 
-DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
-                                                    const char** value) {
+DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
+                                             uint64_t* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    if (!int_obj.IsNegative()) {
+      *value = int_obj.AsInt64Value();
+      return Api::Success();
+    }
+  } else {
+    ASSERT(int_obj.IsBigint());
+    Bigint& bigint = Bigint::Handle();
+    bigint ^= int_obj.raw();
+    if (BigintOperations::FitsIntoUint64(bigint)) {
+      *value = BigintOperations::ToUint64(bigint);
+      return Api::Success();
+    }
+  }
+  return Api::Error("%s: Integer %s cannot be represented as a uint64_t.",
+                    CURRENT_FUNC, int_obj.ToCString());
+}
+
+
+DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
+                                                 const char** value) {
+  DARTSCOPE(Isolate::Current());
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
   Bigint& bigint = Bigint::Handle();
-  if (obj.IsSmi() || obj.IsMint()) {
-    Integer& integer = Integer::Handle();
-    integer ^= obj.raw();
-    bigint ^= BigintOperations::NewFromInt64(integer.AsInt64Value());
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    bigint ^= BigintOperations::NewFromInt64(int_obj.AsInt64Value());
     *value = BigintOperations::ToHexCString(bigint, &Api::Allocate);
-    return Api::Success();
-  }
-  if (obj.IsBigint()) {
-    bigint ^= obj.raw();
+  } else {
+    ASSERT(int_obj.IsBigint());
+    bigint ^= int_obj.raw();
     *value = BigintOperations::ToHexCString(bigint, &Api::Allocate);
-    return Api::Success();
   }
-  return Api::Error("Object is not a Integer");
+  return Api::Success();
 }
 
 

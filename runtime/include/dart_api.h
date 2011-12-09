@@ -631,6 +631,17 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
                                                   bool* fits);
 
 /**
+ * Does this Integer fit into a 64-bit unsigned integer?
+ *
+ * \param integer An integer.
+ * \param fits Returns true if the integer fits into a 64-bit unsigned integer.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
+                                                   bool* fits);
+
+/**
  * Returns an Integer with the provided value.
  *
  * \param value The value of the integer.
@@ -661,7 +672,22 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* value);
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value);
+DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
+                                            int64_t* value);
+
+/**
+ * Gets the value of an Integer.
+ *
+ * The integer must fit into a 64-bit unsigned integer, otherwise an
+ * error occurs.
+ *
+ * \param integer An Integer.
+ * \param value Returns the value of the Integer.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
+                                             uint64_t* value);
 
 /**
  * Gets the value of an integer as a hexadecimal C string.
@@ -673,8 +699,8 @@ DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value);
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
-                                                    const char** value);
+DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
+                                                 const char** value);
 
 // --- Booleans ----
 
