@@ -60,8 +60,7 @@ def RunCmd(cmd_list, outfile=None, append=False):
     if append:
       mode = 'a'
     out = open(outfile, mode)
-  p = subprocess.Popen(cmd_list, stdout = out, 
-      stderr = subprocess.PIPE, close_fds=True)
+  p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE)
   output, not_used = p.communicate();
   if output:
     print output
@@ -146,6 +145,22 @@ def GetVersions():
     return [FROG]
   else:
     return V8_AND_FROG
+
+def UploadToAppEngine():
+  """Upload our results to our appengine server."""
+  # TODO(efortuna): This is the most basic way to get the data up 
+  # for others to view. Revisit this once we're serving nicer graphs (Google
+  # Chart Tools) and from multiple perfbots and once we're in a position to
+  # organize the data in a useful manner(!!).
+  os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
+      'perf_testing'))
+  shutil.rmtree(os.path.join('appengine', 'static', 'graphs'), 
+      ignore_errors=True)
+  shutil.copytree('graphs', os.path.join('appengine', 'static', 'graphs'))
+  shutil.copyfile('index.html', os.path.join('appengine', 'static', 
+      'index.html'))
+  RunCmd(['../../../third_party/appengine-python/1.5.4/appcfg.py', 'update', 
+      'appengine/'])
 
 class TestRunner(object):
   """The base clas to provide shared code for different tests we will run and
@@ -233,7 +248,7 @@ class TestRunner(object):
   def AddSvnRevisionToTrace(self, outfile):
     """Add the svn version number to the provided tracefile."""
     p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE, 
-      stderr = subprocess.STDOUT, close_fds=True)
+      stderr = subprocess.STDOUT)
     output, not_used = p.communicate()
     for line in output.split('\n'):
       if 'Revision' in line:
@@ -294,7 +309,8 @@ class TestRunner(object):
   def Run(self):
     """Run the benchmarks/tests from the command line and plot the 
     results."""
-    plt.cla() # cla = clear current axes
+    if PERFBOT_MODE:
+      plt.cla() # cla = clear current axes
     os.chdir(DART_INSTALL_LOCATION)
     EnsureOutputDirectory(self.result_folder_name)
     EnsureOutputDirectory(GRAPH_OUT_DIR)
@@ -705,6 +721,9 @@ def RunTestSequence(cl, size, language, perf):
     BrowserCorrectnessTestRunner('language', 'browser-correctness').Run()
   if perf:
     BrowserPerformanceTestRunner('browser-perf').Run()
+
+  if PERFBOT_MODE:
+    UploadToAppEngine()
 
 def main():
   global PERFBOT_MODE, VERBOSE
