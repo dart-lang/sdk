@@ -377,7 +377,7 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
 
   // Calculate the first and last raw object pointer fields.
   uword obj_addr = RawObject::ToAddr(raw_obj);
-  uword from = obj_addr +  ((num_native_fields + 1) * kWordSize);
+  uword from = obj_addr + sizeof(RawObject) + num_native_fields * kWordSize;
   uword to = obj_addr + instance_size - kWordSize;
   visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
                          reinterpret_cast<RawObject**>(to));
