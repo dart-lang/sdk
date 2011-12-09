@@ -536,7 +536,10 @@
 #source('src/_ListIterators.dart');
 #source('src/_Lists.dart');
 
-class Window extends DOMWindow {}
+// TODO(jmesserly): 'native' here is aWork-around for Frog bug.  Frog needs to
+// be smarter about inheriting from a hidden native type (in this case
+// DOMWindow)
+class Window extends DOMWindow native "*Window" {}
 DOMWindow get window() native "return window;";
 // TODO(vsm): Revert to Dart method when 508 is fixed.
 HTMLDocument get document() native "return window.document;";

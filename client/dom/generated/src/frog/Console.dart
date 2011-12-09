@@ -1,5 +1,5 @@
 
-class Console native "=console" {
+class Console native "=(typeof console == 'undefined' ? {} : console)" {
 
   MemoryInfo memory;
 

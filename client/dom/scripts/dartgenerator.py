@@ -121,10 +121,16 @@ _custom_getters = set([
 # Custom native specs for the Frog dom.
 #
 _frog_dom_custom_native_specs = {
-    'Console': '=console',      # Decorate the singleton Console object.
-    'DOMWindow': '@*DOMWindow', # DOMWindow aliased with global scope.
+    # Decorate the singleton Console object, if present (workers do not have a
+    # console).
+    'Console': "=(typeof console == 'undefined' ? {} : console)",
 
-    # Temporary hack: make these not be 'hidden'.  Will not work on IE9.
+    # DOMWindow aliased with global scope.
+    'DOMWindow': '@*DOMWindow',
+
+    # Temporary hack: make these not be 'hidden', so that static methods can be
+    # put on them.  Frog should be fixed to generate working code for static
+    # methods on hidden classes.  Meantime, programs will not work on IE9.
     'Float32Array': 'Float32Array',
     'Float64Array': 'Float64Array',
     'Int8Array': 'Int8Array',
