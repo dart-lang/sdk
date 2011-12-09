@@ -3,6 +3,8 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
 
   MemoryInfo memory;
 
+  List profiles;
+
   void assert(bool condition) native;
 
   void count() native;
@@ -26,6 +28,10 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
   void log(Object arg) native;
 
   void markTimeline() native;
+
+  void profile(String title) native;
+
+  void profileEnd(String title) native;
 
   void time(String title) native;
 

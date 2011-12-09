@@ -82,5 +82,7 @@ interface HTMLObjectElement extends HTMLElement {
 
   bool checkValidity();
 
+  SVGDocument getSVGDocument();
+
   void setCustomValidity(String error);
 }

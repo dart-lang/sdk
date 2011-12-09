@@ -97,7 +97,11 @@ class DOMWindow native "@*DOMWindow" {
 
   DOMWindow top;
 
+  IDBFactory webkitIndexedDB;
+
   NotificationCenter webkitNotifications;
+
+  StorageInfo webkitStorageInfo;
 
   DOMURL webkitURL;
 
@@ -142,6 +146,8 @@ class DOMWindow native "@*DOMWindow" {
   void moveTo(num x, num y) native;
 
   DOMWindow open(String url, String name, [String options = null]) native;
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) native;
 

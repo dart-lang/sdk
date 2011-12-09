@@ -47,5 +47,10 @@ class _HTMLEmbedElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set width(String value) { _set_width(this, value); }
   static void _set_width(var _this, String value) native;
 
+  SVGDocument getSVGDocument() {
+    return _getSVGDocument(this);
+  }
+  static SVGDocument _getSVGDocument(receiver) native;
+
   String get typeName() { return "HTMLEmbedElement"; }
 }

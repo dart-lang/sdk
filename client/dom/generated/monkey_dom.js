@@ -308,6 +308,7 @@ function DOM$fixClass$Blob(c) {
     c.prototype.size$getter = function() { return DOM$EnsureDartNull(this.size); };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
   }
+  DOM$fixMembers(c, ['webkitSlice']);
   c.$implements$Blob$Dart = 1;
 }
 function DOM$fixClass$CDATASection(c) {
@@ -670,6 +671,7 @@ function DOM$fixClass$CompositionEvent(c) {
 function DOM$fixClass$Console(c) {
   if (c.prototype) {
     c.prototype.memory$getter = function() { return DOM$EnsureDartNull(this.memory); };
+    c.prototype.profiles$getter = function() { return DOM$EnsureDartNull(this.profiles); };
   }
   DOM$fixMembers(c, [
     'count',
@@ -683,6 +685,8 @@ function DOM$fixClass$Console(c) {
     'info',
     'log',
     'markTimeline',
+    'profile',
+    'profileEnd',
     'time',
     'timeEnd',
     'timeStamp',
@@ -979,7 +983,9 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.toolbar$setter = function(value) { this.toolbar = value; };
     c.prototype.top$getter = function() { return DOM$EnsureDartNull(this.top); };
     c.prototype.top$setter = function(value) { this.top = value; };
+    c.prototype.webkitIndexedDB$getter = function() { return DOM$EnsureDartNull(this.webkitIndexedDB); };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
+    c.prototype.webkitStorageInfo$getter = function() { return DOM$EnsureDartNull(this.webkitStorageInfo); };
     c.prototype.webkitURL$getter = function() { return DOM$EnsureDartNull(this.webkitURL); };
     c.prototype.window$getter = function() { return DOM$EnsureDartNull(this.window); };
   }
@@ -1004,6 +1010,7 @@ function DOM$fixClass$DOMWindow(c) {
     'moveBy',
     'moveTo',
     'open',
+    'openDatabase',
     'postMessage',
     'print',
     'prompt',
@@ -1246,6 +1253,12 @@ function DOM$fixClass$Document(c) {
     'querySelector',
     'querySelectorAll',
     'webkitCancelFullScreen']);
+  c.prototype.createTouch$member = function() {
+    return DOM$fixValue$Touch(this.createTouch.apply(this, arguments));
+  };
+  c.prototype.createTouchList$member = function() {
+    return DOM$fixValue$TouchList(this.createTouchList.apply(this, arguments));
+  };
   c.$implements$Document$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -1497,6 +1510,7 @@ function DOM$fixClass$File(c) {
     c.prototype.fileSize$getter = function() { return DOM$EnsureDartNull(this.fileSize); };
     c.prototype.lastModifiedDate$getter = function() { return DOM$EnsureDartNull(this.lastModifiedDate); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.webkitRelativePath$getter = function() { return DOM$EnsureDartNull(this.webkitRelativePath); };
   }
   c.$implements$File$Dart = 1;
   c.$implements$Blob$Dart = 1;
@@ -2085,6 +2099,7 @@ function DOM$fixClass$HTMLEmbedElement(c) {
     c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
     c.prototype.width$setter = function(value) { this.width = value; };
   }
+  DOM$fixMembers(c, ['getSVGDocument']);
   c.$implements$HTMLEmbedElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2190,6 +2205,7 @@ function DOM$fixClass$HTMLFrameElement(c) {
     c.prototype.src$setter = function(value) { this.src = value; };
     c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
   }
+  DOM$fixMembers(c, ['getSVGDocument']);
   c.$implements$HTMLFrameElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2300,6 +2316,7 @@ function DOM$fixClass$HTMLIFrameElement(c) {
     c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
     c.prototype.width$setter = function(value) { this.width = value; };
   }
+  DOM$fixMembers(c, ['getSVGDocument']);
   c.$implements$HTMLIFrameElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2675,15 +2692,20 @@ function DOM$fixClass$HTMLMediaElement(c) {
     c.prototype.webkitClosedCaptionsVisible$getter = function() { return DOM$EnsureDartNull(this.webkitClosedCaptionsVisible); };
     c.prototype.webkitClosedCaptionsVisible$setter = function(value) { this.webkitClosedCaptionsVisible = value; };
     c.prototype.webkitHasClosedCaptions$getter = function() { return DOM$EnsureDartNull(this.webkitHasClosedCaptions); };
+    c.prototype.webkitMediaSourceURL$getter = function() { return DOM$EnsureDartNull(this.webkitMediaSourceURL); };
     c.prototype.webkitPreservesPitch$getter = function() { return DOM$EnsureDartNull(this.webkitPreservesPitch); };
     c.prototype.webkitPreservesPitch$setter = function(value) { this.webkitPreservesPitch = value; };
+    c.prototype.webkitSourceState$getter = function() { return DOM$EnsureDartNull(this.webkitSourceState); };
     c.prototype.webkitVideoDecodedByteCount$getter = function() { return DOM$EnsureDartNull(this.webkitVideoDecodedByteCount); };
   }
   DOM$fixMembers(c, [
+    'addTrack',
     'canPlayType',
     'load',
     'pause',
-    'play']);
+    'play',
+    'webkitSourceAppend',
+    'webkitSourceEndOfStream']);
   c.$implements$HTMLMediaElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2823,6 +2845,7 @@ function DOM$fixClass$HTMLObjectElement(c) {
   }
   DOM$fixMembers(c, [
     'checkValidity',
+    'getSVGDocument',
     'setCustomValidity']);
   c.$implements$HTMLObjectElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
@@ -3652,11 +3675,14 @@ function DOM$fixClass$InjectedScriptHost(c) {
     'clearConsoleMessages',
     'copyText',
     'databaseId',
+    'didCreateWorker',
+    'didDestroyWorker',
     'evaluate',
     'inspect',
     'inspectedNode',
     'internalConstructorName',
     'isHTMLAllCollection',
+    'nextWorkerId',
     'storageId',
     'type']);
   c.$implements$InjectedScriptHost$Dart = 1;
@@ -3969,6 +3995,7 @@ function DOM$fixClass$Navigator(c) {
     c.prototype.appName$getter = function() { return DOM$EnsureDartNull(this.appName); };
     c.prototype.appVersion$getter = function() { return DOM$EnsureDartNull(this.appVersion); };
     c.prototype.cookieEnabled$getter = function() { return DOM$EnsureDartNull(this.cookieEnabled); };
+    c.prototype.geolocation$getter = function() { return DOM$EnsureDartNull(this.geolocation); };
     c.prototype.language$getter = function() { return DOM$EnsureDartNull(this.language); };
     c.prototype.mimeTypes$getter = function() { return DOM$EnsureDartNull(this.mimeTypes); };
     c.prototype.onLine$getter = function() { return DOM$EnsureDartNull(this.onLine); };
@@ -3982,7 +4009,9 @@ function DOM$fixClass$Navigator(c) {
   }
   DOM$fixMembers(c, [
     'getStorageUpdates',
-    'javaEnabled']);
+    'javaEnabled',
+    'registerProtocolHandler',
+    'webkitGetUserMedia']);
   c.$implements$Navigator$Dart = 1;
 }
 function DOM$fixClass$NavigatorUserMediaError(c) {
@@ -8084,6 +8113,8 @@ function DOM$fixClass$WorkerContext(c) {
     'close',
     'dispatchEvent',
     'importScripts',
+    'openDatabase',
+    'openDatabaseSync',
     'removeEventListener',
     'setInterval',
     'setTimeout',
@@ -9092,6 +9123,9 @@ var _;
     w.IDBDatabaseException$Dart = _;
     DOM$fixClass$IDBDatabaseException(_);
   }
+  if (!w.IDBFactory && (_ = w.webkitIndexedDB) && (_ = _.__proto__) && (_ = {prototype: _})) {
+    w.IDBFactory = _;
+  }
   if ((_ = w.IDBFactory)) {
     w.IDBFactory$Dart = _;
     DOM$fixClass$IDBFactory(_);
@@ -10047,6 +10081,9 @@ var _;
   if ((_ = w.StorageEvent)) {
     w.StorageEvent$Dart = _;
     DOM$fixClass$StorageEvent(_);
+  }
+  if (!w.StorageInfo && (_ = w.webkitStorageInfo) && (_ = _.__proto__) && (_ = {prototype: _})) {
+    w.StorageInfo = _;
   }
   if ((_ = w.StorageInfo)) {
     w.StorageInfo$Dart = _;

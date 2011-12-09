@@ -28,6 +28,18 @@ class _InjectedScriptHostWrappingImplementation extends DOMWrapperBase implement
   }
   static int _databaseId(receiver, database) native;
 
+  void didCreateWorker(int id, String url, bool isFakeWorker) {
+    _didCreateWorker(this, id, url, isFakeWorker);
+    return;
+  }
+  static void _didCreateWorker(receiver, id, url, isFakeWorker) native;
+
+  void didDestroyWorker(int id) {
+    _didDestroyWorker(this, id);
+    return;
+  }
+  static void _didDestroyWorker(receiver, id) native;
+
   Object evaluate(String text) {
     return _evaluate(this, text);
   }
@@ -53,6 +65,11 @@ class _InjectedScriptHostWrappingImplementation extends DOMWrapperBase implement
     return _isHTMLAllCollection(this, object);
   }
   static bool _isHTMLAllCollection(receiver, object) native;
+
+  int nextWorkerId() {
+    return _nextWorkerId(this);
+  }
+  static int _nextWorkerId(receiver) native;
 
   int storageId(Object storage) {
     return _storageId(this, storage);

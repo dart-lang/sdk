@@ -27,6 +27,10 @@ class WorkerContext native "*WorkerContext" {
 
   void importScripts() native;
 
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   int setInterval(TimeoutHandler handler, int timeout) native;

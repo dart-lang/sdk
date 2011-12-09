@@ -34,6 +34,10 @@ interface WorkerGlobalScope {
 
   void importScripts();
 
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   int setInterval(TimeoutHandler handler, int timeout);

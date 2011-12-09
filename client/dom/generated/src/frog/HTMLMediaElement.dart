@@ -1,6 +1,12 @@
 
 class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
+  static final int EOS_DECODE_ERR = 2;
+
+  static final int EOS_NETWORK_ERR = 1;
+
+  static final int EOS_NO_ERROR = 0;
+
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -18,6 +24,12 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
+
+  static final int SOURCE_CLOSED = 0;
+
+  static final int SOURCE_ENDED = 2;
+
+  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -73,9 +85,15 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
   bool webkitHasClosedCaptions;
 
+  String webkitMediaSourceURL;
+
   bool webkitPreservesPitch;
 
+  int webkitSourceState;
+
   int webkitVideoDecodedByteCount;
+
+  TextTrack addTrack(String kind, [String label = null, String language = null]) native;
 
   String canPlayType(String type) native;
 
@@ -84,4 +102,8 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   void pause() native;
 
   void play() native;
+
+  void webkitSourceAppend(Uint8Array data) native;
+
+  void webkitSourceEndOfStream(int status) native;
 }

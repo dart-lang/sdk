@@ -77,5 +77,10 @@ class _HTMLFrameElementWrappingImplementation extends _HTMLElementWrappingImplem
   int get width() { return _get_width(this); }
   static int _get_width(var _this) native;
 
+  SVGDocument getSVGDocument() {
+    return _getSVGDocument(this);
+  }
+  static SVGDocument _getSVGDocument(receiver) native;
+
   String get typeName() { return "HTMLFrameElement"; }
 }

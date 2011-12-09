@@ -6,7 +6,7 @@
 
 interface WebKitBlobBuilder {
 
-  void append(var blob_OR_value, [String endings]);
+  void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
 
   Blob getBlob([String contentType]);
 }

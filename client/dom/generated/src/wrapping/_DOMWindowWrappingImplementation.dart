@@ -257,8 +257,14 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   void set top(DOMWindow value) { _set_top(this, value); }
   static void _set_top(var _this, DOMWindow value) native;
 
+  IDBFactory get webkitIndexedDB() { return _get_webkitIndexedDB(this); }
+  static IDBFactory _get_webkitIndexedDB(var _this) native;
+
   NotificationCenter get webkitNotifications() { return _get_webkitNotifications(this); }
   static NotificationCenter _get_webkitNotifications(var _this) native;
+
+  StorageInfo get webkitStorageInfo() { return _get_webkitStorageInfo(this); }
+  static StorageInfo _get_webkitStorageInfo(var _this) native;
 
   DOMURL get webkitURL() { return _get_webkitURL(this); }
   static DOMURL _get_webkitURL(var _this) native;
@@ -386,6 +392,16 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static DOMWindow _open(receiver, url, name) native;
   static DOMWindow _open_2(receiver, url, name, options) native;
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _openDatabase(this, name, version, displayName, estimatedSize);
+    } else {
+      return _openDatabase_2(this, name, version, displayName, estimatedSize, creationCallback);
+    }
+  }
+  static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
+  static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
 
   void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) {
     if (messagePorts_OR_targetOrigin is String) {

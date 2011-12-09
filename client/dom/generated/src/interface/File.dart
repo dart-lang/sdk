@@ -13,4 +13,6 @@ interface File extends Blob {
   Date get lastModifiedDate();
 
   String get name();
+
+  String get webkitRelativePath();
 }

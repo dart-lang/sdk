@@ -76,6 +76,26 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   }
   static void _importScripts(receiver) native;
 
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _openDatabase(this, name, version, displayName, estimatedSize);
+    } else {
+      return _openDatabase_2(this, name, version, displayName, estimatedSize, creationCallback);
+    }
+  }
+  static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
+  static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _openDatabaseSync(this, name, version, displayName, estimatedSize);
+    } else {
+      return _openDatabaseSync_2(this, name, version, displayName, estimatedSize, creationCallback);
+    }
+  }
+  static DatabaseSync _openDatabaseSync(receiver, name, version, displayName, estimatedSize) native;
+  static DatabaseSync _openDatabaseSync_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
+
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _removeEventListener(this, type, listener);

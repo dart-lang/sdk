@@ -8,6 +8,8 @@ interface Console {
 
   MemoryInfo get memory();
 
+  List get profiles();
+
   void assert(bool condition);
 
   void count();
@@ -31,6 +33,10 @@ interface Console {
   void log(Object arg);
 
   void markTimeline();
+
+  void profile(String title);
+
+  void profileEnd(String title);
 
   void time(String title);
 

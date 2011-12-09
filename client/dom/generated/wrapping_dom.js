@@ -974,6 +974,38 @@ function native__BlobWrappingImplementation__get_type(_this) {
   }
 }
 
+function native__BlobWrappingImplementation__webkitSlice(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BlobWrappingImplementation__webkitSlice_2(_this, start) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice(__dom_unwrap(start)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BlobWrappingImplementation__webkitSlice_3(_this, start, end) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice(__dom_unwrap(start), __dom_unwrap(end)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BlobWrappingImplementation__webkitSlice_4(_this, start, end, contentType) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice(__dom_unwrap(start), __dom_unwrap(end), __dom_unwrap(contentType)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__CSSCharsetRuleWrappingImplementation__get_encoding(_this) {
   try {
     return __dom_wrap(_this.$dom.encoding);
@@ -2686,6 +2718,14 @@ function native__ConsoleWrappingImplementation__get_memory(_this) {
   }
 }
 
+function native__ConsoleWrappingImplementation__get_profiles(_this) {
+  try {
+    return __dom_wrap(_this.$dom.profiles);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__ConsoleWrappingImplementation__assert(_this, condition) {
   try {
     return __dom_wrap(_this.$dom.assertCondition(__dom_unwrap(condition)));
@@ -2777,6 +2817,22 @@ function native__ConsoleWrappingImplementation__log(_this, arg) {
 function native__ConsoleWrappingImplementation__markTimeline(_this) {
   try {
     return __dom_wrap(_this.$dom.markTimeline());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConsoleWrappingImplementation__profile(_this, title) {
+  try {
+    return __dom_wrap(_this.$dom.profile(__dom_unwrap(title)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConsoleWrappingImplementation__profileEnd(_this, title) {
+  try {
+    return __dom_wrap(_this.$dom.profileEnd(__dom_unwrap(title)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4206,9 +4262,25 @@ function native__DOMWindowWrappingImplementation__set_top(_this, value) {
   }
 }
 
+function native__DOMWindowWrappingImplementation__get_webkitIndexedDB(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitIndexedDB);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMWindowWrappingImplementation__get_webkitNotifications(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitNotifications);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__get_webkitStorageInfo(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitStorageInfo);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4401,6 +4473,22 @@ function native__DOMWindowWrappingImplementation__open(_this, url, name) {
 function native__DOMWindowWrappingImplementation__open_2(_this, url, name, options) {
   try {
     return __dom_wrap(_this.$dom.open(__dom_unwrap(url), __dom_unwrap(name), __dom_unwrap(options)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__openDatabase(_this, name, version, displayName, estimatedSize) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__openDatabase_2(_this, name, version, displayName, estimatedSize, creationCallback) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize), __dom_unwrap(creationCallback)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5777,6 +5865,22 @@ function native__DocumentWrappingImplementation__createRange(_this) {
 function native__DocumentWrappingImplementation__createTextNode(_this, data) {
   try {
     return __dom_wrap(_this.$dom.createTextNode(__dom_unwrap(data)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__createTouch(_this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) {
+  try {
+    return __dom_wrap(_this.$dom.createTouch(__dom_unwrap(window), __dom_unwrap(target), __dom_unwrap(identifier), __dom_unwrap(pageX), __dom_unwrap(pageY), __dom_unwrap(screenX), __dom_unwrap(screenY), __dom_unwrap(webkitRadiusX), __dom_unwrap(webkitRadiusY), __dom_unwrap(webkitRotationAngle), __dom_unwrap(webkitForce)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__createTouchList(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createTouchList());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -7169,6 +7273,14 @@ function native__FileWrappingImplementation__get_lastModifiedDate(_this) {
 function native__FileWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWrappingImplementation__get_webkitRelativePath(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRelativePath);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -9654,6 +9766,14 @@ function native__HTMLEmbedElementWrappingImplementation__set_width(_this, value)
   }
 }
 
+function native__HTMLEmbedElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLFieldSetElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
@@ -10110,6 +10230,14 @@ function native__HTMLFrameElementWrappingImplementation__get_width(_this) {
   }
 }
 
+function native__HTMLFrameElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLFrameSetElementWrappingImplementation__get_cols(_this) {
   try {
     return __dom_wrap(_this.$dom.cols);
@@ -10457,6 +10585,14 @@ function native__HTMLIFrameElementWrappingImplementation__get_width(_this) {
 function native__HTMLIFrameElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLIFrameElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -12494,6 +12630,14 @@ function native__HTMLMediaElementWrappingImplementation__get_webkitHasClosedCapt
   }
 }
 
+function native__HTMLMediaElementWrappingImplementation__get_webkitMediaSourceURL(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitMediaSourceURL);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLMediaElementWrappingImplementation__get_webkitPreservesPitch(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitPreservesPitch);
@@ -12510,9 +12654,41 @@ function native__HTMLMediaElementWrappingImplementation__set_webkitPreservesPitc
   }
 }
 
+function native__HTMLMediaElementWrappingImplementation__get_webkitSourceState(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSourceState);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLMediaElementWrappingImplementation__get_webkitVideoDecodedByteCount(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitVideoDecodedByteCount);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__addTrack(_this, kind) {
+  try {
+    return __dom_wrap(_this.$dom.addTrack(__dom_unwrap(kind)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__addTrack_2(_this, kind, label) {
+  try {
+    return __dom_wrap(_this.$dom.addTrack(__dom_unwrap(kind), __dom_unwrap(label)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__addTrack_3(_this, kind, label, language) {
+  try {
+    return __dom_wrap(_this.$dom.addTrack(__dom_unwrap(kind), __dom_unwrap(label), __dom_unwrap(language)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -12545,6 +12721,22 @@ function native__HTMLMediaElementWrappingImplementation__pause(_this) {
 function native__HTMLMediaElementWrappingImplementation__play(_this) {
   try {
     return __dom_wrap(_this.$dom.play());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__webkitSourceAppend(_this, data) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSourceAppend(__dom_unwrap(data)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__webkitSourceEndOfStream(_this, status) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSourceEndOfStream(__dom_unwrap(status)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -13121,6 +13313,14 @@ function native__HTMLObjectElementWrappingImplementation__get_willValidate(_this
 function native__HTMLObjectElementWrappingImplementation__checkValidity(_this) {
   try {
     return __dom_wrap(_this.$dom.checkValidity());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLObjectElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16462,6 +16662,22 @@ function native__InjectedScriptHostWrappingImplementation__databaseId(_this, dat
   }
 }
 
+function native__InjectedScriptHostWrappingImplementation__didCreateWorker(_this, id, url, isFakeWorker) {
+  try {
+    return __dom_wrap(_this.$dom.didCreateWorker(__dom_unwrap(id), __dom_unwrap(url), __dom_unwrap(isFakeWorker)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__InjectedScriptHostWrappingImplementation__didDestroyWorker(_this, id) {
+  try {
+    return __dom_wrap(_this.$dom.didDestroyWorker(__dom_unwrap(id)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__InjectedScriptHostWrappingImplementation__evaluate(_this, text) {
   try {
     return __dom_wrap(_this.$dom.evaluate(__dom_unwrap(text)));
@@ -16497,6 +16713,14 @@ function native__InjectedScriptHostWrappingImplementation__internalConstructorNa
 function native__InjectedScriptHostWrappingImplementation__isHTMLAllCollection(_this, object) {
   try {
     return __dom_wrap(_this.$dom.isHTMLAllCollection(__dom_unwrap(object)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__InjectedScriptHostWrappingImplementation__nextWorkerId(_this) {
+  try {
+    return __dom_wrap(_this.$dom.nextWorkerId());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17854,6 +18078,14 @@ function native__NavigatorWrappingImplementation__get_cookieEnabled(_this) {
   }
 }
 
+function native__NavigatorWrappingImplementation__get_geolocation(_this) {
+  try {
+    return __dom_wrap(_this.$dom.geolocation);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__NavigatorWrappingImplementation__get_language(_this) {
   try {
     return __dom_wrap(_this.$dom.language);
@@ -17945,6 +18177,30 @@ function native__NavigatorWrappingImplementation__getStorageUpdates(_this) {
 function native__NavigatorWrappingImplementation__javaEnabled(_this) {
   try {
     return __dom_wrap(_this.$dom.javaEnabled());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NavigatorWrappingImplementation__registerProtocolHandler(_this, scheme, url, title) {
+  try {
+    return __dom_wrap(_this.$dom.registerProtocolHandler(__dom_unwrap(scheme), __dom_unwrap(url), __dom_unwrap(title)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NavigatorWrappingImplementation__webkitGetUserMedia(_this, options, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitGetUserMedia(__dom_unwrap(options), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NavigatorWrappingImplementation__webkitGetUserMedia_2(_this, options, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitGetUserMedia(__dom_unwrap(options), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -31958,25 +32214,33 @@ function native__WebKitAnimationListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__WebKitBlobBuilderWrappingImplementation__append(_this, blob_OR_value) {
+function native__WebKitBlobBuilderWrappingImplementation__append(_this, arrayBuffer_OR_blob_OR_value) {
   try {
-    return __dom_wrap(_this.$dom.append(__dom_unwrap(blob_OR_value)));
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebKitBlobBuilderWrappingImplementation__append_2(_this, blob_OR_value) {
+function native__WebKitBlobBuilderWrappingImplementation__append_2(_this, arrayBuffer_OR_blob_OR_value) {
   try {
-    return __dom_wrap(_this.$dom.append(__dom_unwrap(blob_OR_value)));
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebKitBlobBuilderWrappingImplementation__append_3(_this, blob_OR_value, endings) {
+function native__WebKitBlobBuilderWrappingImplementation__append_3(_this, arrayBuffer_OR_blob_OR_value) {
   try {
-    return __dom_wrap(_this.$dom.append(__dom_unwrap(blob_OR_value), __dom_unwrap(endings)));
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebKitBlobBuilderWrappingImplementation__append_4(_this, arrayBuffer_OR_blob_OR_value, endings) {
+  try {
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value), __dom_unwrap(endings)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -33049,6 +33313,38 @@ function native__WorkerContextWrappingImplementation__dispatchEvent(_this, evt) 
 function native__WorkerContextWrappingImplementation__importScripts(_this) {
   try {
     return __dom_wrap(_this.$dom.importScripts());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabase(_this, name, version, displayName, estimatedSize) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabase_2(_this, name, version, displayName, estimatedSize, creationCallback) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize), __dom_unwrap(creationCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabaseSync(_this, name, version, displayName, estimatedSize) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabaseSync(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabaseSync_2(_this, name, version, displayName, estimatedSize, creationCallback) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabaseSync(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize), __dom_unwrap(creationCallback)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

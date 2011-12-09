@@ -339,6 +339,8 @@ class Blob native "*Blob" {
 
   String type;
 
+  Blob webkitSlice([int start = null, int end = null, String contentType = null]) native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;
@@ -843,6 +845,8 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
 
   MemoryInfo memory;
 
+  List profiles;
+
   void assert(bool condition) native;
 
   void count() native;
@@ -866,6 +870,10 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
   void log(Object arg) native;
 
   void markTimeline() native;
+
+  void profile(String title) native;
+
+  void profileEnd(String title) native;
 
   void time(String title) native;
 
@@ -1346,7 +1354,11 @@ class DOMWindow native "@*DOMWindow" {
 
   DOMWindow top;
 
+  IDBFactory webkitIndexedDB;
+
   NotificationCenter webkitNotifications;
+
+  StorageInfo webkitStorageInfo;
 
   DOMURL webkitURL;
 
@@ -1391,6 +1403,8 @@ class DOMWindow native "@*DOMWindow" {
   void moveTo(num x, num y) native;
 
   DOMWindow open(String url, String name, [String options = null]) native;
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) native;
 
@@ -1709,6 +1723,10 @@ class Document extends Node native "Document" {
   Range createRange() native;
 
   Text createTextNode(String data) native;
+
+  Touch createTouch(DOMWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
+
+  TouchList createTouchList() native;
 
   TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
@@ -2157,6 +2175,8 @@ class File extends Blob native "*File" {
   Date lastModifiedDate;
 
   String name;
+
+  String webkitRelativePath;
 }
 
 class FileEntry extends Entry native "*FileEntry" {
@@ -2792,6 +2812,8 @@ class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
   String type;
 
   String width;
+
+  SVGDocument getSVGDocument() native;
 }
 
 class HTMLFieldSetElement extends HTMLElement native "*HTMLFieldSetElement" {
@@ -2876,6 +2898,8 @@ class HTMLFrameElement extends HTMLElement native "*HTMLFrameElement" {
   String src;
 
   int width;
+
+  SVGDocument getSVGDocument() native;
 }
 
 class HTMLFrameSetElement extends HTMLElement native "*HTMLFrameSetElement" {
@@ -2940,6 +2964,8 @@ class HTMLIFrameElement extends HTMLElement native "*HTMLIFrameElement" {
   String src;
 
   String width;
+
+  SVGDocument getSVGDocument() native;
 }
 
 class HTMLImageElement extends HTMLElement native "*HTMLImageElement" {
@@ -3222,6 +3248,12 @@ class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
 
 class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
+  static final int EOS_DECODE_ERR = 2;
+
+  static final int EOS_NETWORK_ERR = 1;
+
+  static final int EOS_NO_ERROR = 0;
+
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -3239,6 +3271,12 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
+
+  static final int SOURCE_CLOSED = 0;
+
+  static final int SOURCE_ENDED = 2;
+
+  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -3294,9 +3332,15 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
   bool webkitHasClosedCaptions;
 
+  String webkitMediaSourceURL;
+
   bool webkitPreservesPitch;
 
+  int webkitSourceState;
+
   int webkitVideoDecodedByteCount;
+
+  TextTrack addTrack(String kind, [String label = null, String language = null]) native;
 
   String canPlayType(String type) native;
 
@@ -3305,6 +3349,10 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   void pause() native;
 
   void play() native;
+
+  void webkitSourceAppend(Uint8Array data) native;
+
+  void webkitSourceEndOfStream(int status) native;
 }
 
 class HTMLMenuElement extends HTMLElement native "*HTMLMenuElement" {
@@ -3403,6 +3451,8 @@ class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
   bool willValidate;
 
   bool checkValidity() native;
+
+  SVGDocument getSVGDocument() native;
 
   void setCustomValidity(String error) native;
 }
@@ -4196,6 +4246,10 @@ class InjectedScriptHost native "*InjectedScriptHost" {
 
   int databaseId(Object database) native;
 
+  void didCreateWorker(int id, String url, bool isFakeWorker) native;
+
+  void didDestroyWorker(int id) native;
+
   Object evaluate(String text) native;
 
   void inspect(Object objectId, Object hints) native;
@@ -4205,6 +4259,8 @@ class InjectedScriptHost native "*InjectedScriptHost" {
   Object internalConstructorName(Object object) native;
 
   bool isHTMLAllCollection(Object object) native;
+
+  int nextWorkerId() native;
 
   int storageId(Object storage) native;
 
@@ -4707,6 +4763,8 @@ class Navigator native "*Navigator" {
 
   bool cookieEnabled;
 
+  Geolocation geolocation;
+
   String language;
 
   DOMMimeTypeArray mimeTypes;
@@ -4730,6 +4788,10 @@ class Navigator native "*Navigator" {
   void getStorageUpdates() native;
 
   bool javaEnabled() native;
+
+  void registerProtocolHandler(String scheme, String url, String title) native;
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -10442,7 +10504,7 @@ class WebKitAnimationList native "*WebKitAnimationList" {
 
 class WebKitBlobBuilder native "*WebKitBlobBuilder" {
 
-  void append(var blob_OR_value, [String endings = null]) native;
+  void append(var arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
 
   Blob getBlob([String contentType = null]) native;
 
@@ -10783,6 +10845,10 @@ class WorkerContext native "*WorkerContext" {
   bool dispatchEvent(Event evt) native;
 
   void importScripts() native;
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

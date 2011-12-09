@@ -23,6 +23,9 @@ class _NavigatorWrappingImplementation extends DOMWrapperBase implements Navigat
   bool get cookieEnabled() { return _get_cookieEnabled(this); }
   static bool _get_cookieEnabled(var _this) native;
 
+  Geolocation get geolocation() { return _get_geolocation(this); }
+  static Geolocation _get_geolocation(var _this) native;
+
   String get language() { return _get_language(this); }
   static String _get_language(var _this) native;
 
@@ -63,6 +66,24 @@ class _NavigatorWrappingImplementation extends DOMWrapperBase implements Navigat
     return _javaEnabled(this);
   }
   static bool _javaEnabled(receiver) native;
+
+  void registerProtocolHandler(String scheme, String url, String title) {
+    _registerProtocolHandler(this, scheme, url, title);
+    return;
+  }
+  static void _registerProtocolHandler(receiver, scheme, url, title) native;
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _webkitGetUserMedia(this, options, successCallback);
+      return;
+    } else {
+      _webkitGetUserMedia_2(this, options, successCallback, errorCallback);
+      return;
+    }
+  }
+  static void _webkitGetUserMedia(receiver, options, successCallback) native;
+  static void _webkitGetUserMedia_2(receiver, options, successCallback, errorCallback) native;
 
   String get typeName() { return "Navigator"; }
 }

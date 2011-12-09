@@ -132,6 +132,10 @@ interface Document extends Node, NodeSelector {
 
   Text createTextNode(String data);
 
+  Touch createTouch(DOMWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce);
+
+  TouchList createTouchList();
+
   TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences);
 
   Element elementFromPoint(int x, int y);
