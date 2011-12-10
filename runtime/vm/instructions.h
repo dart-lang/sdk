@@ -10,7 +10,7 @@
 #if defined(TARGET_ARCH_IA32)
 #include "vm/instructions_ia32.h"
 #elif defined(TARGET_ARCH_X64)
-// No instruction patterns implemented.
+#include "vm/instructions_x64.h"
 #elif defined(TARGET_ARCH_ARM)
 // No instruction patterns implemented.
 #else

@@ -39,7 +39,7 @@ const int* Call::pattern() const {
   // movq $target, TMP
   // callq *TMP
   static const int kCallPattern[kLengthInBytes] =
-      {0x49, 0xBB, -1, -1, -1, -1, -1, -1, -1, -1, 0x41, 0xFF, 0xE3};
+      {0x49, 0xBB, -1, -1, -1, -1, -1, -1, -1, -1, 0x41, 0xFF, 0xD3};
   return kCallPattern;
 }
 
@@ -48,7 +48,7 @@ const int* Jump::pattern() const {
   // movq $target, TMP
   // jmpq TMP
   static const int kJumpPattern[kLengthInBytes] =
-      {0x49, 0xBB, -1, -1, -1, -1, -1, -1, -1, -1, 0x41, 0xFF, 0xD3};
+      {0x49, 0xBB, -1, -1, -1, -1, -1, -1, -1, -1, 0x41, 0xFF, 0xE3};
   return kJumpPattern;
 }
 
