@@ -165,7 +165,11 @@ def ProcessTools(mode, name, version):
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
-  return subprocess.call(cmds)
+  local_env = os.environ
+  if 'linux' in name:
+    local_env['JAVA_HOME'] = os.path.join(os.path.expanduser('~'), 
+                                          'jdk1.6.0_25')
+  return subprocess.call(cmds, env=local_env)
 
 def ProcessFrog():
   '''
