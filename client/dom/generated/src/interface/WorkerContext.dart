@@ -14,6 +14,10 @@ interface WorkerGlobalScope {
 
   void set navigator(WorkerNavigator value);
 
+  EventListener get onerror();
+
+  void set onerror(EventListener value);
+
   WorkerContext get self();
 
   void set self(WorkerContext value);

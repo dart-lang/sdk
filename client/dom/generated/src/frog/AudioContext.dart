@@ -9,6 +9,8 @@ class AudioContext native "*AudioContext" {
 
   AudioListener listener;
 
+  EventListener oncomplete;
+
   num sampleRate;
 
   RealtimeAnalyserNode createAnalyser() native;

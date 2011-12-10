@@ -7,6 +7,10 @@ class IDBRequest native "*IDBRequest" {
 
   int errorCode;
 
+  EventListener onerror;
+
+  EventListener onsuccess;
+
   int readyState;
 
   IDBAny result;

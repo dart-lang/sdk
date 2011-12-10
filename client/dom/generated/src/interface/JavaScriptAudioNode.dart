@@ -4,7 +4,11 @@
 
 // WARNING: Do not edit - generated code.
 
-interface JavaScriptAudioNode extends AudioNode, EventTarget {
+interface JavaScriptAudioNode extends AudioNode {
 
   int get bufferSize();
+
+  EventListener get onaudioprocess();
+
+  void set onaudioprocess(EventListener value);
 }

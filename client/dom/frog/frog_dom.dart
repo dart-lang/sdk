@@ -124,6 +124,8 @@ class AudioContext native "*AudioContext" {
 
   AudioListener listener;
 
+  EventListener oncomplete;
+
   num sampleRate;
 
   RealtimeAnalyserNode createAnalyser() native;
@@ -1550,6 +1552,8 @@ class DatabaseSync native "*DatabaseSync" {
 
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
+  EventListener onmessage;
+
   void postMessage(Object message, [List messagePorts = null]) native;
 
   void webkitPostMessage(Object message, [List transferList = null]) native;
@@ -2288,6 +2292,18 @@ class FileReader native "*FileReader" {
 
   FileError error;
 
+  EventListener onabort;
+
+  EventListener onerror;
+
+  EventListener onload;
+
+  EventListener onloadend;
+
+  EventListener onloadstart;
+
+  EventListener onprogress;
+
   int readyState;
 
   Object result;
@@ -2333,6 +2349,18 @@ class FileWriter native "*FileWriter" {
   FileError error;
 
   int length;
+
+  EventListener onabort;
+
+  EventListener onerror;
+
+  EventListener onprogress;
+
+  EventListener onwrite;
+
+  EventListener onwriteend;
+
+  EventListener onwritestart;
 
   int position;
 
@@ -3985,6 +4013,12 @@ class IDBDatabase native "*IDBDatabase" {
 
   String name;
 
+  EventListener onabort;
+
+  EventListener onerror;
+
+  EventListener onversionchange;
+
   String version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -4169,6 +4203,10 @@ class IDBRequest native "*IDBRequest" {
 
   int errorCode;
 
+  EventListener onerror;
+
+  EventListener onsuccess;
+
   int readyState;
 
   IDBAny result;
@@ -4202,6 +4240,12 @@ class IDBTransaction native "*IDBTransaction" {
 
   int mode;
 
+  EventListener onabort;
+
+  EventListener oncomplete;
+
+  EventListener onerror;
+
   void abort() native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
@@ -4223,6 +4267,8 @@ class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 }
 
 class IDBVersionChangeRequest extends IDBRequest native "*IDBVersionChangeRequest" {
+
+  EventListener onblocked;
 }
 
 class ImageData native "*ImageData" {
@@ -4387,13 +4433,7 @@ class JavaScriptAudioNode extends AudioNode native "*JavaScriptAudioNode" {
 
   int bufferSize;
 
-  // From EventTarget
-
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  bool dispatchEvent(Event event) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  EventListener onaudioprocess;
 }
 
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -8988,6 +9028,8 @@ class SharedWorker extends AbstractWorker native "*SharedWorker" {
 class SharedWorkercontext extends WorkerContext native "*SharedWorkercontext" {
 
   String name;
+
+  EventListener onconnect;
 }
 
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
@@ -10827,6 +10869,8 @@ class WorkerContext native "*WorkerContext" {
   WorkerLocation location;
 
   WorkerNavigator navigator;
+
+  EventListener onerror;
 
   WorkerContext self;
 

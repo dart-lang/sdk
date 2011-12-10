@@ -3,6 +3,12 @@ class IDBDatabase native "*IDBDatabase" {
 
   String name;
 
+  EventListener onabort;
+
+  EventListener onerror;
+
+  EventListener onversionchange;
+
   String version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;

@@ -733,7 +733,10 @@ class DartGenerator(object):
         generator.AddConstant(const)
 
     for attr in sorted(interface.attributes, AttributeOutputOrder):
-      if attr.type.id == 'EventListener': continue
+      if attr.type.id == 'EventListener':
+        # Remove EventListener attributes when addEventListener is available.
+        if 'EventTarget' in self._AllImplementedInterfaces(interface):
+          continue
       if attr.is_fc_getter:
         for generator in generators:
           generator.AddGetter(attr)
@@ -1129,6 +1132,8 @@ class DartGenerator(object):
     """Returns a list of the names of all interfaces implemented by 'interface'.
     List includes the name of 'interface'.
     """
+    if not self._inheritance_closure:
+      self._ComputeInheritanceClosure()
     return self._inheritance_closure[interface.id]
 
   def _GenerateProtoMap(self):

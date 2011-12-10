@@ -9,6 +9,8 @@ class WorkerContext native "*WorkerContext" {
 
   WorkerNavigator navigator;
 
+  EventListener onerror;
+
   WorkerContext self;
 
   NotificationCenter webkitNotifications;

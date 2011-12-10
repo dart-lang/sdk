@@ -50,7 +50,7 @@ dom_externs.activeTexture;              // operation WebGLRenderingContext.activ
 dom_externs.add;                        // operation DOMTokenList.add, operation DataTransferItemList.add, operation HTMLSelectElement.add, operation IDBObjectStore.add
 dom_externs.addColorStop;               // operation CanvasGradient.addColorStop
 dom_externs.addCue;                     // operation TextTrack.addCue
-dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation JavaScriptAudioNode.addEventListener, operation MessagePort.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation SVGElementInstance.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
+dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation MessagePort.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation SVGElementInstance.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
 dom_externs.addListener;                // operation MediaQueryList.addListener
 dom_externs.addRange;                   // operation DOMSelection.addRange
 dom_externs.addRule;                    // operation CSSStyleSheet.addRule
@@ -458,7 +458,7 @@ dom_externs.disableVertexAttribArray;   // operation WebGLRenderingContext.disab
 dom_externs.disabled;                   // attribute HTMLButtonElement.disabled, attribute HTMLInputElement.disabled, attribute HTMLKeygenElement.disabled, attribute HTMLLinkElement.disabled, attribute HTMLOptGroupElement.disabled, attribute HTMLOptionElement.disabled, attribute HTMLSelectElement.disabled, attribute HTMLStyleElement.disabled, attribute HTMLTextAreaElement.disabled, attribute StyleSheet.disabled
 dom_externs.disconnect;                 // operation AudioNode.disconnect, operation WebKitMutationObserver.disconnect
 dom_externs.disconnectFromBackend;      // operation InspectorFrontendHost.disconnectFromBackend
-dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation JavaScriptAudioNode.dispatchEvent, operation MessagePort.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation SVGElementInstance.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
+dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation MessagePort.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation SVGElementInstance.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
 dom_externs.distanceGain;               // attribute AudioPannerNode.distanceGain
 dom_externs.distanceModel;              // attribute AudioPannerNode.distanceModel
 dom_externs.divisor;                    // attribute SVGFEConvolveMatrixElement.divisor
@@ -1015,7 +1015,23 @@ dom_externs.offsetY;                    // attribute MouseEvent.offsetY, attribu
 dom_externs.oldURL;                     // attribute HashChangeEvent.oldURL
 dom_externs.oldValue;                   // attribute MutationRecord.oldValue, attribute StorageEvent.oldValue
 dom_externs.onLine;                     // attribute Navigator.onLine, attribute WorkerNavigator.onLine
+dom_externs.onabort;                    // attribute FileReader.onabort, attribute FileWriter.onabort, attribute IDBDatabase.onabort, attribute IDBTransaction.onabort
+dom_externs.onaudioprocess;             // attribute JavaScriptAudioNode.onaudioprocess
+dom_externs.onblocked;                  // attribute IDBVersionChangeRequest.onblocked
+dom_externs.oncomplete;                 // attribute AudioContext.oncomplete, attribute IDBTransaction.oncomplete
+dom_externs.onconnect;                  // attribute SharedWorkercontext.onconnect
+dom_externs.onerror;                    // attribute FileReader.onerror, attribute FileWriter.onerror, attribute IDBDatabase.onerror, attribute IDBRequest.onerror, attribute IDBTransaction.onerror, attribute WorkerContext.onerror
+dom_externs.onload;                     // attribute FileReader.onload
+dom_externs.onloadend;                  // attribute FileReader.onloadend
+dom_externs.onloadstart;                // attribute FileReader.onloadstart
 dom_externs.only;                       // operation IDBKeyRange.only
+dom_externs.onmessage;                  // attribute DedicatedWorkerContext.onmessage
+dom_externs.onprogress;                 // attribute FileReader.onprogress, attribute FileWriter.onprogress
+dom_externs.onsuccess;                  // attribute IDBRequest.onsuccess
+dom_externs.onversionchange;            // attribute IDBDatabase.onversionchange
+dom_externs.onwrite;                    // attribute FileWriter.onwrite
+dom_externs.onwriteend;                 // attribute FileWriter.onwriteend
+dom_externs.onwritestart;               // attribute FileWriter.onwritestart
 dom_externs.open;                       // operation DOMWindow.open, attribute HTMLDetailsElement.open, operation HTMLDocument.open, operation IDBFactory.open, operation XMLHttpRequest.open
 dom_externs.openCursor;                 // operation IDBIndex.openCursor, operation IDBObjectStore.openCursor
 dom_externs.openDatabase;               // operation DOMWindow.openDatabase, operation WorkerContext.openDatabase
@@ -1183,7 +1199,7 @@ dom_externs.removeAttributeNS;          // operation Element.removeAttributeNS
 dom_externs.removeAttributeNode;        // operation Element.removeAttributeNode
 dom_externs.removeChild;                // operation Node.removeChild
 dom_externs.removeCue;                  // operation TextTrack.removeCue
-dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation JavaScriptAudioNode.removeEventListener, operation MessagePort.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation SVGElementInstance.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
+dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation MessagePort.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation SVGElementInstance.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
 dom_externs.removeItem;                 // operation SVGLengthList.removeItem, operation SVGNumberList.removeItem, operation SVGPathSegList.removeItem, operation SVGPointList.removeItem, operation SVGStringList.removeItem, operation SVGTransformList.removeItem, operation Storage.removeItem
 dom_externs.removeListener;             // operation MediaQueryList.removeListener
 dom_externs.removeNamedItem;            // operation NamedNodeMap.removeNamedItem

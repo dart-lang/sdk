@@ -310,6 +310,22 @@ function native__AudioContextWrappingImplementation__get_listener(_this) {
   }
 }
 
+function native__AudioContextWrappingImplementation__get_oncomplete(_this) {
+  try {
+    return __dom_wrap(_this.$dom.oncomplete);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__set_oncomplete(_this, value) {
+  try {
+    _this.$dom.oncomplete = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__AudioContextWrappingImplementation__get_sampleRate(_this) {
   try {
     return __dom_wrap(_this.$dom.sampleRate);
@@ -5134,6 +5150,22 @@ function native__DatabaseSyncWrappingImplementation__transaction(_this, callback
   }
 }
 
+function native__DedicatedWorkerContextWrappingImplementation__get_onmessage(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onmessage);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DedicatedWorkerContextWrappingImplementation__set_onmessage(_this, value) {
+  try {
+    _this.$dom.onmessage = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DedicatedWorkerContextWrappingImplementation__postMessage(_this, message) {
   try {
     return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message)));
@@ -7398,6 +7430,102 @@ function native__FileReaderWrappingImplementation__get_error(_this) {
   }
 }
 
+function native__FileReaderWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onload(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onload);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onload(_this, value) {
+  try {
+    _this.$dom.onload = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onloadend(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onloadend);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onloadend(_this, value) {
+  try {
+    _this.$dom.onloadend = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onloadstart(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onloadstart);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onloadstart(_this, value) {
+  try {
+    _this.$dom.onloadstart = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onprogress(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onprogress);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onprogress(_this, value) {
+  try {
+    _this.$dom.onprogress = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__FileReaderWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
@@ -7513,6 +7641,102 @@ function native__FileWriterWrappingImplementation__get_error(_this) {
 function native__FileWriterWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onprogress(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onprogress);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onprogress(_this, value) {
+  try {
+    _this.$dom.onprogress = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onwrite(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onwrite);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onwrite(_this, value) {
+  try {
+    _this.$dom.onwrite = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onwriteend(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onwriteend);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onwriteend(_this, value) {
+  try {
+    _this.$dom.onwriteend = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onwritestart(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onwritestart);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onwritestart(_this, value) {
+  try {
+    _this.$dom.onwritestart = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -15942,6 +16166,54 @@ function native__IDBDatabaseWrappingImplementation__get_name(_this) {
   }
 }
 
+function native__IDBDatabaseWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__get_onversionchange(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onversionchange);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__set_onversionchange(_this, value) {
+  try {
+    _this.$dom.onversionchange = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__IDBDatabaseWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
@@ -16454,6 +16726,38 @@ function native__IDBRequestWrappingImplementation__get_errorCode(_this) {
   }
 }
 
+function native__IDBRequestWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBRequestWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBRequestWrappingImplementation__get_onsuccess(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onsuccess);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBRequestWrappingImplementation__set_onsuccess(_this, value) {
+  try {
+    _this.$dom.onsuccess = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__IDBRequestWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
@@ -16550,6 +16854,54 @@ function native__IDBTransactionWrappingImplementation__get_mode(_this) {
   }
 }
 
+function native__IDBTransactionWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__get_oncomplete(_this) {
+  try {
+    return __dom_wrap(_this.$dom.oncomplete);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__set_oncomplete(_this, value) {
+  try {
+    _this.$dom.oncomplete = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__IDBTransactionWrappingImplementation__abort(_this) {
   try {
     return __dom_wrap(_this.$dom.abort());
@@ -16609,6 +16961,22 @@ function native__IDBTransactionWrappingImplementation__removeEventListener_2(_th
 function native__IDBVersionChangeEventWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBVersionChangeRequestWrappingImplementation__get_onblocked(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onblocked);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBVersionChangeRequestWrappingImplementation__set_onblocked(_this, value) {
+  try {
+    _this.$dom.onblocked = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17038,41 +17406,17 @@ function native__JavaScriptAudioNodeWrappingImplementation__get_bufferSize(_this
   }
 }
 
-function native__JavaScriptAudioNodeWrappingImplementation__addEventListener(_this, type, listener) {
+function native__JavaScriptAudioNodeWrappingImplementation__get_onaudioprocess(_this) {
   try {
-    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
+    return __dom_wrap(_this.$dom.onaudioprocess);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__JavaScriptAudioNodeWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+function native__JavaScriptAudioNodeWrappingImplementation__set_onaudioprocess(_this, value) {
   try {
-    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__JavaScriptAudioNodeWrappingImplementation__dispatchEvent(_this, event) {
-  try {
-    return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(event)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__JavaScriptAudioNodeWrappingImplementation__removeEventListener(_this, type, listener) {
-  try {
-    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__JavaScriptAudioNodeWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
-  try {
-    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
+    _this.$dom.onaudioprocess = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29622,6 +29966,22 @@ function native__SharedWorkercontextWrappingImplementation__get_name(_this) {
   }
 }
 
+function native__SharedWorkercontextWrappingImplementation__get_onconnect(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onconnect);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__SharedWorkercontextWrappingImplementation__set_onconnect(_this, value) {
+  try {
+    _this.$dom.onconnect = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__SpeechInputEventWrappingImplementation__get_results(_this) {
   try {
     return __dom_wrap(_this.$dom.results);
@@ -33225,6 +33585,22 @@ function native__WorkerContextWrappingImplementation__get_navigator(_this) {
 function native__WorkerContextWrappingImplementation__set_navigator(_this, value) {
   try {
     _this.$dom.navigator = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

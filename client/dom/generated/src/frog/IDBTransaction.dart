@@ -11,6 +11,12 @@ class IDBTransaction native "*IDBTransaction" {
 
   int mode;
 
+  EventListener onabort;
+
+  EventListener oncomplete;
+
+  EventListener onerror;
+
   void abort() native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
