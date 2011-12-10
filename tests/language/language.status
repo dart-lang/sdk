@@ -262,6 +262,7 @@ NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NativeLibrarySameNameUsedFrogTest: Fail  # ReferenceError: I is not defined.
+NativeNamedConstructors2FrogTest: Fail  # ReferenceError: A is not defined.
 NonConstSuperNegativeTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
