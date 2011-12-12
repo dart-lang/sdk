@@ -24,6 +24,12 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_STATIC_MEMBER("cannot override static member %s of %s"),
+  CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS(
+      "cannot override method %s, wrong number of parameters"),
+  CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS(
+      "cannot override method %s, number of named parameters doesn't match"),
+  CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS(
+      "cannot override method %s, order of named parameters doesn't match"),
   CANNOT_RESOLVE_CONSTRUCTOR("cannot resolve constructor %s"),
   CANNOT_RESOLVE_FIELD("cannot resolve field %s"),
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),

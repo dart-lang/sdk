@@ -71,9 +71,6 @@ LangGuideTest/03_Values/03_3_Strings/A03/t01: Fail
 LangGuideTest/04_Operators/04_2_Operations_on_basic_types/A02/t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t02: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t03: Fail
-LangGuideTest/07_Overriding/A02/t01: Fail # Bug 5371670.
-LangGuideTest/07_Overriding/A02/t02: Fail # Bug 5371670.
-LangGuideTest/07_Overriding/A04/t01: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A02/t01: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A02/t02: Fail # Bug 5371670.
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A04/t01: Fail

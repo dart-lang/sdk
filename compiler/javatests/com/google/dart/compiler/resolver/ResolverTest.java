@@ -886,4 +886,64 @@ public class ResolverTest extends ResolverTestCase {
         "  }",
         "}"));
   }
+
+  public void testImplementsAndOverrides1() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface Interface {",
+        "  foo(x);",
+        "}",
+        "class Class implements Interface {",
+        "  foo() {}", // error
+        "}"),
+        ResolverErrorCode.CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS);
+  }
+
+  public void testImplementsAndOverrides2() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface Interface {",
+        "  foo([x]);",
+        "}",
+        "class Class implements Interface {",
+        "  foo([x,y]) {}", // error
+        "}"),
+        ResolverErrorCode.CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS);
+  }
+
+  public void testImplementsAndOverrides3() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface Interface {",
+        "  foo(x, [y]);",
+        "}",
+        "class Class implements Interface {",
+        "  foo([x,y]) {}", // error
+        "}"),
+        ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS);
+  }
+
+  public void testImplementsAndOverrides4() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface Interface {",
+        "  foo([x,y]);",
+        "}",
+        "class Class implements Interface {",
+        "  foo([x]) {}", // error
+        "}"),
+        ResolverErrorCode.CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS);
+  }
+
+  public void testImplementsAndOverrides5() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface Interface {",
+        "  foo([y,x]);",
+        "}",
+        "class Class implements Interface {",
+        "  foo([x,y]) {}", // error
+        "}"),
+        ResolverErrorCode.CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS);
+  }
 }

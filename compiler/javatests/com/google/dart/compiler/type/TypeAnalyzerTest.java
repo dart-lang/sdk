@@ -580,7 +580,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testImplementsAndOverrides() {
     analyzeClasses(loadSource(
         "interface Interface {",
-        "  void foo(x);",
+        "  void foo(int x);",
         "  void bar();",
         "}",
         // Abstract class not reported until first instantiation.
@@ -595,7 +595,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "}",
         "class SubSubClass extends Class {",
         "  num bar() { return null; }", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
-        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+        "  void foo(String x) {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
         "}",
         "class Usage {",
         "  m() {",
@@ -610,12 +610,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testImplementsAndOverrides2() {
     analyzeClasses(loadSource(
         "interface Interface {",
-        "  void foo(x);",
+        "  void foo(int x);",
         "}",
         // Abstract class not reported until first instantiation.
         "class Class implements Interface {",
         "  Class() {}",
-        "  void foo() {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
+        "  void foo(String x) {}", // CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE
         "}"),
         TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
   }

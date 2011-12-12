@@ -56,6 +56,16 @@ public class Elements {
     return new LibraryElementImplementation(libraryUnit);
   }
 
+  public static LibraryElement getLibraryElement(Element element) {
+    do {
+      if (ElementKind.of(element).equals(ElementKind.LIBRARY)) {
+        break;
+      }
+      element = element.getEnclosingElement();
+    } while (element != null && element.getEnclosingElement() != element);
+    return (LibraryElement) element;
+  }
+
   @VisibleForTesting
   public static MethodElement methodElement(DartFunctionExpression node, String name) {
     return new MethodElementImplementation(node, name, Modifiers.NONE);

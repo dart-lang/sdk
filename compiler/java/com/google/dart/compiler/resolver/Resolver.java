@@ -67,6 +67,7 @@ import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
@@ -390,6 +391,70 @@ public class Resolver {
         resolveInitializers(node);
       }
 
+      // If this method is an override, make sure its signature roughly matches any superclass
+      // declaration.
+      if (ElementKind.of(currentHolder).equals(ElementKind.CLASS)) {
+        // Look for this method in super implementations.
+        ClassElement classElement = (ClassElement) currentHolder;
+        try {
+          for (InterfaceType supertype : classElement.getAllSupertypes()) {
+            Member superMember = supertype.lookupMember(member.getName());
+            if (superMember == null) {
+              continue;
+            }
+            Element superElement = superMember.getElement();
+            if (ElementKind.of(superElement).equals(ElementKind.METHOD)) {
+              MethodElement superMethod = (MethodElement) superElement;
+              // Ignore private members
+              if (DartIdentifier.isPrivateName(member.getName())
+                  && Elements.getLibraryElement(superMethod) != Elements
+                      .getLibraryElement(member)) {
+                continue;
+              }
+              // Compare the # of parameters
+              List<VariableElement> superParameters = superMethod
+                  .getParameters();
+              if (superParameters.size() != parameters.size()) {
+                onError(node.getName(),
+                        ResolverErrorCode.CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS,
+                        member.getName());
+              } else {
+                // Make sure that named parameters match
+                List<VariableElement> named = new ArrayList<VariableElement>();
+                for (VariableElement v : member.getParameters()) {
+                  if (v.isNamed()) {
+                    named.add(v);
+                  }
+                }
+                List<VariableElement> superNamed = new ArrayList<VariableElement>();
+                for (VariableElement v : superParameters) {
+                  if (v.isNamed()) {
+                    superNamed.add(v);
+                  }
+                }
+                if (named.size() != superNamed.size()) {
+                  onError(node.getName(),
+                          ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS,
+                          member.getName());
+                } else {
+                  while (!named.isEmpty()) {
+                    VariableElement v1 = named.remove(0);
+                    VariableElement v2 = superNamed.remove(0);
+                    if (!v1.getName().equals(v2.getName())) {
+                      onError(v1.getNode(),
+                              ResolverErrorCode.CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS,
+                              member.getName());
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } catch (CyclicDeclarationException ignored) {
+        } catch (DuplicatedInterfaceException ignored) {
+        }
+      }
       context = previousContext;
       innermostFunction = currentMethod = null;
       return member;

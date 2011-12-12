@@ -741,7 +741,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
               sb);
         }
       }
-      // Finish current class. 
+      // Finish current class.
       setCurrentClass(null);
       return type;
     }
@@ -1693,23 +1693,69 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
 
       /**
-       * Report a static type error if member cannot override superElement, that is, they are not
-       * assignable.
+       * Report a static type error if member cannot override superElement, that
+       * is, they are not assignable.
        */
       private void checkOverride(DartExpression node, Element member, Element superElement) {
         String name = member.getName();
         Type superMember = typeAsMemberOf(superElement, currentClass);
-        if (member.getKind() == ElementKind.METHOD
-            && superElement.getKind() == ElementKind.METHOD) {
-          if (!types.isSubtype(member.getType(), superMember)) {
-            typeError(node, TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
-                      name, superElement.getEnclosingElement().getName(),
-                      member.getType(), superMember);
+        if (member.getKind() == ElementKind.METHOD && superElement.getKind() == ElementKind.METHOD) {
+          MethodElement method = (MethodElement)member;
+          MethodElement superMethod = (MethodElement) superElement;
+
+          // Compare the # of parameters
+          List<VariableElement> parameters = method.getParameters();
+          List<VariableElement> superParameters = superMethod
+              .getParameters();
+          if (superParameters.size() != parameters.size()) {
+            onError(node,
+                    ResolverErrorCode.CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS,
+                    member.getName());
+          } else {
+            // Make sure that named parameters match
+            List<VariableElement> named = new ArrayList<VariableElement>();
+            for (VariableElement v : parameters) {
+              if (v.isNamed()) {
+                named.add(v);
+              }
+            }
+            List<VariableElement> superNamed = new ArrayList<VariableElement>();
+            for (VariableElement v : superParameters) {
+              if (v.isNamed()) {
+                superNamed.add(v);
+              }
+            }
+            if (named.size() != superNamed.size()) {
+              onError(node,
+                      ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS,
+                      member.getName());
+            } else {
+              boolean errorFound = false;
+              while (!named.isEmpty()) {
+                VariableElement v1 = named.remove(0);
+                VariableElement v2 = superNamed.remove(0);
+                if (!v1.getName().equals(v2.getName())) {
+                  onError(v1.getNode(),
+                          ResolverErrorCode.CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS,
+                          member.getName());
+                  errorFound = true;
+                  break;
+                }
+              }
+              if (!errorFound && !types.isSubtype(member.getType(), superMember)) {
+                // Wrong # of parameters is a compile-time error and has already
+                // been checked.
+                if (method.getParameters().size() == superMethod.getParameters().size()) {
+                  typeError(node, TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE, name, superElement
+                      .getEnclosingElement().getName(), member.getType(), superMember);
+                }
+              }
+
+            }
           }
         } else if (!types.isAssignable(superMember, member.getType())) {
-          typeError(node, TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
-                    name, superElement.getEnclosingElement().getName(),
-                    member.getType(), superMember);
+          typeError(node, TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, name, superElement
+              .getEnclosingElement().getName(), member.getType(), superMember);
         }
       }
     }

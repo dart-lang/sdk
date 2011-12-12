@@ -94,9 +94,7 @@ BlackListedTest/14: Fail # Bug 5469684
 CTConstTest: Fail            # Bug 4510015.
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CharEscapeTest: Fail
-ClassOverrideNegativeTest: Fail  # Bug 4205768.
 ConstInit6NegativeTest: Fail       # Issue 811
-DefaultFactoryLibraryTest: Fail          # Issue 514
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
 Constructor2NegativeTest: Fail  # Bug 4208594.
 Constructor2Test: Fail       # Issue 255
@@ -104,6 +102,7 @@ Constructor3Test: Fail       # Issue 257
 Constructor4Test: Fail       # Issue 286
 Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+DefaultFactoryLibraryTest: Fail          # Issue 514
 DivByZeroTest: Fail          # Bug 5184183
 DynamicTest: Fail            # Bug 5527899.
 ExampleConstructorTest: Fail # Bug 4205742.
