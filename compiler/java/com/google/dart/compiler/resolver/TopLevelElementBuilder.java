@@ -10,6 +10,8 @@ import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartDeclaration;
+import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
@@ -94,16 +96,39 @@ public class TopLevelElementBuilder {
     listener.onError(error);
   }
 
-  private void declare(Element element, DartCompilerListener listener, Scope scope) {
-    Element originalElement = scope.declareElement(element.getName(), element);
-    if (originalElement != null) {
-      DartNode originalNode = originalElement.getNode();
-      if (originalNode != null) {
-        compilationError(listener, originalNode, ResolverErrorCode.DUPLICATE_DEFINITION,
-                         originalElement.getName());
+  private void declare(Element newElement, DartCompilerListener listener, Scope scope) {
+    Element oldElement = scope.declareElement(newElement.getName(), newElement);
+    // We had already node with such name, report duplicate.
+    if (oldElement != null) {
+      // Getter/setter can shared same name, but not setter/setter and getter/getter.
+      if (newElement.getModifiers().isAbstractField()
+          && oldElement.getModifiers().isAbstractField()) {
+        if (newElement.getModifiers().isGetter() && !oldElement.getModifiers().isGetter()) {
+          return;
+        }
+        if (newElement.getModifiers().isSetter() && !oldElement.getModifiers().isSetter()) {
+          return;
+        }
       }
-      compilationError(listener, element.getNode(), ResolverErrorCode.DUPLICATE_DEFINITION,
-                       originalElement.getName());
+      // Report two duplicate for both old/new nodes.
+      reportDuplicateDeclaration(listener, oldElement);
+      reportDuplicateDeclaration(listener, newElement);
+    }
+  }
+
+  /**
+   * Reports {@link ResolverErrorCode#DUPLICATE_TOP_LEVEL_DEFINITION} for given named element.
+   */
+  @SuppressWarnings("unchecked")
+  private void reportDuplicateDeclaration(DartCompilerListener listener, Element element) {
+    DartNode node = element.getNode();
+    if (node instanceof DartDeclaration) {
+      DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
+      compilationError(
+          listener,
+          nameNode,
+          ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
+          nameNode);
     }
   }
 

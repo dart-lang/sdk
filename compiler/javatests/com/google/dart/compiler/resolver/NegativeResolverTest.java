@@ -214,6 +214,17 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.SUPER_IN_FACTORY_CONSTRUCTOR, 4, 12, 5));
   }
 
+  public void testNameConflict_field_field() {
+    checkSourceErrors(
+        makeCode(
+            "class ClassDeclarationWithLongEnoughNameToForceLineSplitting {",
+            "  var foo;",
+            "  var foo;",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 2, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3));
+  }
+
   public void testCall1() {
     checkNumErrors("StaticInstanceCallNegativeTest.dart", 1);
   }
@@ -262,44 +273,315 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkNumErrors("ConstVariableInitializationNegativeTest2.dart", 1);
   }
 
-  public void testNameShadowNegativeTest1() {
-    checkNumErrors("NameShadowNegativeTest1.dart", 1);
+  public void test_nameShadow_topLevel_getterSetter_class() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "get foo() {}",
+            "set bar(x) {}",
+            "class foo {}",
+            "class bar{}"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 4, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 5, 7, 3));
   }
 
-  public void testNameShadowNegativeTest2() {
-    checkNumErrors("NameShadowNegativeTest2.dart", 1);
+  public void test_nameShadow_topLevel_class_getterSetter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class foo {}",
+            "class bar {}",
+            "get foo() {}",
+            "set bar(x) {}"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 4, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 5, 5, 3));
   }
 
-  public void testNameShadowNegativeTest4() {
-    checkNumErrors("NameShadowNegativeTest4.dart", 1);
+  public void test_nameShadow_topLevel_getter_setter() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "get bar() {}",
+        "set bar(x) {}"));
   }
 
-  public void testNameShadowNegativeTest5() {
-    checkNumErrors("NameShadowNegativeTest5.dart", 1);
+  public void test_nameShadow_topLevel_setter_getter() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "set bar(x) {}",
+        "get bar() {}"));
   }
 
-  public void testNameShadowNegativeTest6() {
-    checkNumErrors("NameShadowNegativeTest6.dart", 1);
+  public void test_nameShadow_topLevel_getters() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "get bar() {}",
+            "get bar() {}"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3));
   }
 
-  public void testNameShadowNegativeTest7() {
-    checkNumErrors("NameShadowNegativeTest7.dart", 1);
+  public void test_nameShadow_topLevel_setters() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "set bar(x) {}",
+            "set bar(x) {}"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3));
   }
 
-  public void testNameShadowNegativeTest8() {
-    checkNumErrors("NameShadowNegativeTest8.dart", 1);
+  /**
+   * Multiple unnamed constructor definitions.
+   */
+  public void test_nameShadow_unnamedConstructors() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A(x) {}",
+            "  A(x,y) {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 1),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 3, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertTrue(message, message.contains("'A'"));
+    }
+    {
+      String message = errors.get(1).getMessage();
+      assertTrue(message, message.contains("'A'"));
+    }
   }
 
-  public void testNameShadowNegativeTest9() {
-    checkNumErrors("NameShadowNegativeTest9.dart", 1);
+  /**
+   * Multiple unnamed constructor definitions. Make sure modifiers works as expected.
+   */
+  public void test_nameShadow_unnamedConstructors_constModifier() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A(x) {}",
+            "  const A(x,y) {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 1),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 9, 1),
+        errEx(ResolverErrorCode.CONST_CONSTRUCTOR_CANNOT_HAVE_BODY, 4, 9, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertTrue(message, message.contains("'A'"));
+    }
   }
 
-  public void testNameShadowNegativeTest10() {
-    checkNumErrors("NameShadowNegativeTest10.dart", 1);
+  /**
+   * Named constructor shadows another named constructor.
+   */
+  public void test_nameShadow_namedConstructors() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A.foo() {}",
+            "  A.foo() {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 5),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 3, 5));
+    {
+      String message = errors.get(0).getMessage();
+      assertTrue(message, message.contains("'A.foo'"));
+    }
+    {
+      String message = errors.get(1).getMessage();
+      assertTrue(message, message.contains("'A.foo'"));
+    }
   }
 
-  public void testNameShadowNegativeTest11() {
-    checkNumErrors("NameShadowNegativeTest11.dart", 1);
+  /**
+   * Method shadows another method.
+   */
+  public void test_nameShadow_methods() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {}",
+            "  foo() {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 3, 3));
+  }
+
+  /**
+   * Field shadows method.
+   */
+  public void test_nameShadow_method_field() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {}",
+            "  var foo;",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
+  }
+
+  /**
+   * Static method shadows instance method.
+   */
+  public void test_nameShadow_method_staticMethod() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo(x) {}",
+            "  static foo(a,b) {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 10, 3));
+  }
+
+  /**
+   * Field shadows another field.
+   */
+  public void test_nameShadow_fields() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var _a;",
+            "  var _a;",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 2),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 2));
+  }
+
+  /**
+   * Field shadows setter/getter.
+   */
+  public void test_nameShadow_setter_field() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  set foo(x) {}",
+            "  get foo() {}",
+            "  var foo;",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3));
+  }
+
+  /**
+   * Setter shadows field.
+   */
+  public void test_nameShadow_field_setter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var foo;",
+            "  set foo(x) {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
+  }
+
+  /**
+   * Method shadows setter.
+   */
+  public void test_nameShadow_setter_method() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  set foo(x) {}",
+            "  foo() {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 3, 3));
+  }
+
+  /**
+   * Getter shadows field.
+   */
+  public void test_nameShadow_field_getter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var foo;",
+            "  get foo() {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
+  }
+
+  /**
+   * Getter shadows another getter.
+   */
+  public void test_nameShadow_getters() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  get foo() {}",
+            "  set foo(x) {}",
+            "  get foo() {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3));
+  }
+
+  /**
+   * Setter shadows another setter.
+   */
+  public void test_nameShadow_setters() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  set foo(x) {}",
+            "  get foo() {}",
+            "  set foo(x) {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3));
+  }
+
+  /**
+   * Field shadows getter.
+   */
+  public void test_nameShadow_getter_field() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  get foo() {}",
+            "  var foo;",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
+  }
+
+  /**
+   * Setter shadows method.
+   */
+  public void test_nameShadow_method_setter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {}",
+            "  set foo(x) {}",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 3, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
   }
 
   public void testUnresolvedSuperFieldNegativeTest() {

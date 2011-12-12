@@ -69,7 +69,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   void declare(Element element) {
     Element existingElement = scope.declareElement(element.getName(), element);
     if (existingElement != null) {
-      onError(element.getNode(), ResolverErrorCode.DUPLICATE_DEFINITION,
+      onError(element.getNode(), ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
           element.getName());
     }
   }

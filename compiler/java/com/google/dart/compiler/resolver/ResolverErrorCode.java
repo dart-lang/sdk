@@ -42,8 +42,9 @@ public enum ResolverErrorCode implements ErrorCode {
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
-  DUPLICATE_DEFINITION("duplicate definition of %s"),
   DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
+  DUPLICATE_MEMBER("Duplicate member '%s'"),
+  DUPLICATE_TOP_LEVEL_DEFINITION("duplicate top-level definition '%s'"),
   DYNAMIC_EXTENDS("Dynamic can not be used as superclass"),
   DYNAMIC_IMPLEMENTS("Dynamic can not be used as superinterface"),
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
@@ -82,8 +83,6 @@ public enum ResolverErrorCode implements ErrorCode {
   IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),
   IS_AN_INSTANCE_METHOD("%s.%s is an instance method, not a static method"),
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
-  NAME_CLASHES_EXISTING_MEMBER(
-      "name clashes with a previously defined member at %sline %d column %d"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),

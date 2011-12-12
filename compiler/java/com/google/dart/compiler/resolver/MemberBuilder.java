@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -297,6 +298,7 @@ public class MemberBuilder {
      */
     private FieldElement buildAbstractField(DartField fieldNode) {
       assert fieldNode.getModifiers().isAbstractField();
+      boolean topLevelDefinition = fieldNode.getParent().getParent() instanceof DartUnit;
       DartMethodDefinition accessorNode = fieldNode.getAccessor();
       MethodElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
       recordElement(accessorNode, accessorElement);
@@ -324,20 +326,20 @@ public class MemberBuilder {
 
       if (accessorNode.getModifiers().isGetter()) {
         if (fieldElement.getGetter() != null) {
-          int conflictLine = fieldElement.getNode().getSourceLine();
-          int conflictColumn = fieldElement.getNode().getSourceColumn();
-          resolutionError(fieldNode,  ResolverErrorCode.FIELD_CONFLICTS, name, "getter",
-                          conflictLine, conflictColumn);
+          if (!topLevelDefinition) {
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, fieldElement.getGetter());
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, accessorElement);
+          }
         } else {
           fieldElement.setGetter(accessorElement);
           fieldElement.setType(accessorElement.getReturnType());
         }
       } else if (accessorNode.getModifiers().isSetter()) {
         if (fieldElement.getSetter() != null) {
-          int conflictLine = fieldElement.getNode().getSourceLine();
-          int conflictColumn = fieldElement.getNode().getSourceColumn();
-          resolutionError(fieldNode, ResolverErrorCode.FIELD_CONFLICTS, name, "setter",
-                          conflictLine, conflictColumn);
+          if (!topLevelDefinition) {
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, fieldElement.getSetter());
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, accessorElement);
+          }
         } else {
           fieldElement.setSetter(accessorElement);
           List<VariableElement> parameters = accessorElement.getParameters();
@@ -484,18 +486,9 @@ public class MemberBuilder {
           return;
         }
 
-
-        // Message has no space between source and line number so that if we can't
-        // find the name, it won't show funny formatting.
-        String source = "";
-        DartNode otherNode = other.getNode();
-        if (e.getNode() != otherNode  && otherNode.getSource() != null
-            && otherNode.getSource().getUri() != null) {
-          source = otherNode.getSource().getUri().toString() + " ";
-        }
-
-        resolutionError(e.getNode(), ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER,
-            source, other.getNode().getSourceLine(), other.getNode().getSourceColumn());
+        // Report initial declaration and current declaration.
+        reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, other);
+        reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, e);
       }
     }
 
@@ -515,6 +508,18 @@ public class MemberBuilder {
 
     void resolutionError(DartNode node, ErrorCode errorCode, Object... arguments) {
       topLevelContext.onError(node, errorCode, arguments);
+    }
+
+    /**
+     * Reports duplicate declaration for given named element.
+     */
+    @SuppressWarnings("unchecked")
+    private void reportDuplicateDeclaration(ErrorCode errorCode, Element element) {
+      DartNode node = element.getNode();
+      if (node instanceof DartDeclaration) {
+        DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
+        resolutionError(nameNode, errorCode, nameNode);
+      }
     }
   }
 }
