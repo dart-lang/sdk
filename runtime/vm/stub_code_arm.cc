@@ -93,8 +93,13 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateInlineCacheStub(Assembler* assembler) {
-  __ Unimplemented("InlineCache stub");
+void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
+  __ Unimplemented("GenerateOneArgCheckInlineCacheStub stub");
+}
+
+
+void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
+  __ Unimplemented("GenerateTwoArgsCheckInlineCacheStub stub");
 }
 
 

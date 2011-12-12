@@ -426,16 +426,28 @@ void CodeGenerator::GenerateInstanceCall(
     intptr_t token_index,
     const String& function_name,
     int num_arguments,
-    const Array& optional_arguments_names) {
+    const Array& optional_arguments_names,
+    intptr_t num_args_checked) {
+  ASSERT(num_args_checked > 0);  // At least receiver check is necessary.
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
-  ICData ic_data(function_name, 1);
+  ICData ic_data(function_name, num_args_checked);
   __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
-  ExternalLabel target_label(
-      "InlineCache", StubCode::InlineCacheEntryPoint());
+  uword label_address = 0;
+  switch (num_args_checked) {
+    case 1:
+      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      break;
+    case 2:
+      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  ExternalLabel target_label("InlineCache", label_address);
 
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,
@@ -1050,11 +1062,13 @@ void CodeGenerator::GenerateLoadIndexed(intptr_t node_id,
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
   const int kNumArguments = 2;  // Receiver and index.
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -1095,11 +1109,13 @@ void CodeGenerator::GenerateStoreIndexed(intptr_t node_id,
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
   const int kNumArguments = 3;  // Receiver, index and value.
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -1187,11 +1203,13 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node->id(),
                        node->token_index(),
                        operator_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }
@@ -1814,11 +1832,13 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
     const int kNumberOfArguments = 2;
     const Array& kNoArgumentNames = Array::Handle();
+    const int kNumArgumentsChecked = 1;
     GenerateInstanceCall(node->id(),
                          node->token_index(),
                          operator_name,
                          kNumberOfArguments,
-                         kNoArgumentNames);
+                         kNoArgumentNames,
+                         kNumArgumentsChecked);
 
     // Result is in EAX. No need to negate if result is not needed.
     if ((node->kind() == Token::kNE) && IsResultNeeded(node)) {
@@ -2081,11 +2101,13 @@ void CodeGenerator::GenerateBinaryOperatorCall(intptr_t node_id,
   const String& operator_name = String::ZoneHandle(String::NewSymbol(name));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 2;
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -2184,12 +2206,13 @@ void CodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
   // Some method may be inlined using type feedback, therefore this may be a
   // deoptimization point.
   MarkDeoptPoint(node->id(), node->token_index());
-
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node->id(),
                        node->token_index(),
                        node->function_name(),
                        number_of_arguments,
-                       node->arguments()->names());
+                       node->arguments()->names(),
+                       kNumArgumentsChecked);
   // Result is in EAX.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -2439,11 +2462,13 @@ void CodeGenerator::GenerateInstanceGetterCall(intptr_t node_id,
   const String& getter_name = String::ZoneHandle(Field::GetterName(field_name));
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        getter_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -2467,11 +2492,13 @@ void CodeGenerator::GenerateInstanceSetterCall(intptr_t node_id,
   const String& setter_name = String::ZoneHandle(Field::SetterName(field_name));
   const int kNumberOfArguments = 2;  // receiver + value.
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        setter_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 

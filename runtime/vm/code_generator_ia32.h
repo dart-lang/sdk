@@ -166,11 +166,14 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
                             intptr_t token_index,
                             bool preserve_value);
 
+  // Invokes funtion via an inline cache stub. 'num_args_checked' specifies
+  // the number of call arguments that are being checked in the inline cache.
   void GenerateInstanceCall(intptr_t node_id,
                             intptr_t token_index,
                             const String& function_name,
                             int num_arguments,
-                            const Array& optional_arguments_names);
+                            const Array& optional_arguments_names,
+                            intptr_t num_args_checked);
 
   void GenerateInstanceOf(intptr_t node_id,
                           intptr_t token_index,

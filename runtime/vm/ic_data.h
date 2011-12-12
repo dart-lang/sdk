@@ -16,7 +16,7 @@
 // Whenever first N arguments of an instance call have the same class as the
 // check, jump to the target function.
 // Array is null terminated (all classes and target are null objects).
-// The array does not contain Null-Classes. Null objects cannot be added.
+// The array may contain Null-Classes. Null objects cannot be added.
 
 #ifndef VM_IC_DATA_H_
 #define VM_IC_DATA_H_

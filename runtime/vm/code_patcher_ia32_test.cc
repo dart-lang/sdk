@@ -54,7 +54,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, CodeGenerator::ArgumentsDescriptor(1, Array::Handle()));
   ExternalLabel target_label(
-      "InlineCache", StubCode::InlineCacheEntryPoint());
+      "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
   __ call(&target_label);
   __ ret();
 }

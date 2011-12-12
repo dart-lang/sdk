@@ -496,15 +496,9 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
 }
 
 
-// Handles inline cache misses by updating the IC data array of the call
-// site.
-//   Arg0: Receiver object.
-//   Returns: target function with compiled code or 0.
-// Modifies the instance call to hold the updated IC data array.
-DEFINE_RUNTIME_ENTRY(InlineCacheMissHandler, 1) {
-  ASSERT(arguments.Count() ==
-      kInlineCacheMissHandlerRuntimeEntry.argument_count());
-  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
+static RawFunction* InlineCacheMissHandler(
+    Isolate* isolate, const GrowableArray<const Instance*>& args) {
+  const Instance& receiver = *args[0];
   const Code& target_code =
       Code::Handle(ResolveCompileInstanceCallTarget(isolate, receiver));
   if (target_code.IsNull()) {
@@ -514,8 +508,7 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandler, 1) {
       OS::Print("InlineCacheMissHandler NULL code for receiver: %s\n",
           receiver.ToCString());
     }
-    arguments.SetReturn(target_code);
-    return;
+    return Function::null();
   }
   const Function& target_function =
       Function::Handle(target_code.function());
@@ -525,29 +518,87 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandler, 1) {
     // fast execution with null receiver is the "==" operator.
     // Special handling so that we do not pollute the inline cache with null
     // classes.
-    arguments.SetReturn(target_function);
     if (FLAG_trace_ic) {
       OS::Print("InlineCacheMissHandler Null receiver target %s\n",
           target_function.ToCString());
     }
-    return;
+    return target_function.raw();
   }
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
   ICData ic_data(Array::Handle(
       CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc())));
+
+#if defined(DEBUG)
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    GrowableArray<const Class*> classes;
+    Function& target = Function::Handle();
+    ic_data.GetCheckAt(i, &classes, &target);
+    bool matches = true;
+    for (intptr_t k = 0; k < classes.length(); k++) {
+      if (classes[k]->raw() != args[k]->clazz()) {
+        matches = false;
+        break;
+      }
+    }
+    // Do not add an entry twice!
+    ASSERT(!matches);
+  }
+#endif  // DEBUG
+
   GrowableArray<const Class*> classes;
-  classes.Add(&Class::ZoneHandle(receiver.clazz()));
+  ASSERT(ic_data.NumberOfArgumentsChecked() == args.length());
+  for (intptr_t i = 0; i < args.length(); i++) {
+    classes.Add(&Class::ZoneHandle(args[i]->clazz()));
+  }
   ic_data.AddCheck(classes, target_function);
   CodePatcher::SetInstanceCallIcDataAt(caller_frame->pc(),
                                        Array::ZoneHandle(ic_data.data()));
-  arguments.SetReturn(target_function);
   if (FLAG_trace_ic) {
-    OS::Print("InlineCacheMissHandler call at 0x%x' adding <%s> -> <%s>\n",
+    OS::Print("InlineCacheMissHandler %d call at 0x%x' adding <%s> -> <%s>\n",
+        args.length(),
         caller_frame->pc(),
         Class::Handle(receiver.clazz()).ToCString(),
         target_function.ToCString());
   }
+  return target_function.raw();
+}
+
+
+// Handles inline cache misses by updating the IC data array of the call
+// site.
+//   Arg0: Receiver object.
+//   Returns: target function with compiled code or null.
+// Modifies the instance call to hold the updated IC data array.
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 1) {
+  ASSERT(arguments.Count() ==
+      kInlineCacheMissHandlerOneArgRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
+  GrowableArray<const Instance*> args;
+  args.Add(&receiver);
+  const Function& result =
+      Function::Handle(InlineCacheMissHandler(isolate, args));
+  arguments.SetReturn(result);
+}
+
+
+// Handles inline cache misses by updating the IC data array of the call
+// site.
+//   Arg0: Receiver object.
+//   Arg1: Argument after receiver.
+//   Returns: target function with compiled code or null.
+// Modifies the instance call to hold the updated IC data array.
+DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs, 2) {
+  ASSERT(arguments.Count() ==
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry.argument_count());
+  const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
+  const Instance& other = Instance::CheckedHandle(arguments.At(1));
+  GrowableArray<const Instance*> args;
+  args.Add(&receiver);
+  args.Add(&other);
+  const Function& result =
+      Function::Handle(InlineCacheMissHandler(isolate, args));
+  arguments.SetReturn(result);
 }
 
 

@@ -305,13 +305,15 @@ static const ZoneGrowableArray<const Class*>*
 void OptimizingCodeGenerator::PrintCollectedClassesAtId(AstNode* node,
                                                         intptr_t id) {
   const ICData& ic_data = node->ICDataAtId(id);
-  ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
-  Function& target = Function::Handle();
-  Class& cls = Class::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
-    OS::Print("- %s -> %s\n", cls.ToCString(),
-        target.ToFullyQualifiedCString());
+    Function& target = Function::Handle();
+    GrowableArray<const Class*> classes;
+    ic_data.GetCheckAt(i, &classes, &target);
+    OS::Print("[");
+    for (intptr_t c = 0; c < classes.length(); c++) {
+      OS::Print("%s%s", (c > 0) ? ", " : "", classes[c]->ToCString());
+    }
+    OS::Print("] -> %s\n", target.ToFullyQualifiedCString());
   }
 }
 
@@ -553,23 +555,54 @@ void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
 }
 
 
-static bool NodeHasBothClasses(AstNode* node,
-                               const Class& cls1,
-                               const Class& cls2) {
+static bool NodeHasBothReceiverClasses(AstNode* node,
+                                       const Class& cls1,
+                                       const Class& cls2) {
   ASSERT(node != NULL);
   ASSERT(!cls1.IsNull() && !cls2.IsNull());
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  bool cls1_found = false;
+  bool cls2_found = false;
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    GrowableArray<const Class*> classes;
+    Function& target = Function::Handle();
+    ic_data.GetCheckAt(i, &classes, &target);
+    if (!classes.is_empty()) {
+      if (classes[0]->raw() == cls1.raw()) {
+        cls1_found = true;
+      }
+      if (classes[0]->raw() == cls2.raw()) {
+        cls2_found = true;
+      }
+      if (cls1_found && cls2_found) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
-  const ZoneGrowableArray<const Class*>* classes = CollectedClassesAtNode(node);
-  if ((classes == NULL) || (classes->length() != 2)) {
+
+// Look only at the first class in all check groups.
+static bool AtIdNodeHasReceiverClass(AstNode* node,
+                                     intptr_t id,
+                                     const Class& cls) {
+  ASSERT(node != NULL);
+  ASSERT(!cls.IsNull());
+  const ICData& ic_data = node->ICDataAtId(id);
+  if (ic_data.NumberOfChecks() == 0) {
     return false;
   }
-  if ((cls1.raw() != (*classes)[0]->raw()) &&
-      (cls1.raw() != (*classes)[1]->raw())) {
-    return false;
-  }
-  if ((cls2.raw() != (*classes)[0]->raw()) &&
-      (cls2.raw() != (*classes)[1]->raw())) {
-    return false;
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    GrowableArray<const Class*> classes;
+    Function& target = Function::Handle();
+    ic_data.GetCheckAt(i, &classes, &target);
+    if (classes.is_empty()) {
+      return false;
+    }
+    if (classes[0]->raw() != cls.raw()) {
+      return false;
+    }
   }
   return true;
 }
@@ -677,20 +710,43 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
       (kind == Token::kBIT_OR) ||
       (kind == Token::kBIT_XOR)) {
     TraceOpt(node, kOptMessage);
+    // Check if both arguments are expected to be Smi.
+    const ICData& ic_data = node->ICDataAtId(node->id());
+    ASSERT(ic_data.NumberOfArgumentsChecked() == 2);
+    ASSERT(ic_data.NumberOfChecks() > 0);
+    Function& target = Function::Handle();
+    GrowableArray<const Class*> classes;
+    ic_data.GetCheckAt(0, &classes, &target);
+    const bool both_args_expected_smi =
+        (ic_data.NumberOfChecks() == 1) &&
+        (classes[0]->raw() == smi_class_.raw()) &&
+        (classes[1]->raw() == smi_class_.raw());
+
     CodeGenInfo left_info(node->left());
     CodeGenInfo right_info(node->right());
     VisitLoadTwo(node->left(), node->right(), EAX, EDX);
     Label* overflow_label = NULL;
     Label two_smis, call_operator;
-    if (left_info.IsClass(smi_class_) || right_info.IsClass(smi_class_)) {
+    if (both_args_expected_smi) {
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, ECX, EDX, kDeoptSmiBinaryOp);
       overflow_label = deopt_blob->label();
       __ movl(ECX, EAX);  // Save if overflow (needs original value).
-      if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
-        Register test_reg = left_info.IsClass(smi_class_) ? EDX : EAX;
-        __ testl(test_reg, Immediate(kSmiTagMask));
+
+      if (left_info.IsClass(smi_class_) || right_info.IsClass(smi_class_)) {
+        if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
+          // One of the type is not known (statically) to be Smi. Check it.
+          Register test_reg = left_info.IsClass(smi_class_) ? EDX : EAX;
+          __ testl(test_reg, Immediate(kSmiTagMask));
+          __ j(NOT_ZERO, deopt_blob->label());
+        }
+      } else {
+        // Type feedback says both types are Smi, but static type analysis
+        // does not know if any of them is Smi, therefore check.
+        __ orl(EAX, EDX);
+        __ testl(EAX, Immediate(kSmiTagMask));
         __ j(NOT_ZERO, deopt_blob->label());
+        __ movl(EAX, ECX);
       }
       if (node->info() != NULL) {
         node->info()->set_is_class(&smi_class_);
@@ -1060,24 +1116,24 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   }
 
   ObjectStore* object_store = Isolate::Current()->object_store();
-  if (AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
+  if (AtIdNodeHasReceiverClass(node, node->id(), smi_class_)) {
     GenerateSmiBinaryOp(node);
     return;
   }
 
-  if (AtIdNodeHasOnlyClass(node, node->id(), double_class_)) {
+  if (AtIdNodeHasReceiverClass(node, node->id(), double_class_)) {
     GenerateDoubleBinaryOp(node);
     return;
   }
 
-  if (AtIdNodeHasOnlyClass(node,
-                           node->id(),
-                           Class::Handle(object_store->mint_class()))) {
+  if (AtIdNodeHasReceiverClass(node,
+                               node->id(),
+                               Class::Handle(object_store->mint_class()))) {
     GenerateMintBinaryOp(node, false);
     return;
   }
 
-  if (NodeHasBothClasses(node,
+  if (NodeHasBothReceiverClasses(node,
       smi_class_, Class::Handle(object_store->mint_class()))) {
     GenerateMintBinaryOp(node, true);
     return;
@@ -1098,7 +1154,7 @@ void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   }
   const char* kOptMessage = "Inlines IncrOpLocal";
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
-  if (!AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
+  if (!AtIdNodeHasReceiverClass(node, node->id(), smi_class_)) {
     TraceNotOpt(node, kOptMessage);
     CodeGenerator::VisitIncrOpLocalNode(node);
     return;
@@ -1192,7 +1248,7 @@ void OptimizingCodeGenerator::VisitIncrOpInstanceFieldNode(
   const Immediate one_value = Immediate(Smi::RawValue(1));
   // EAX: Value.
   // EDX: Receiver.
-  if (AtIdNodeHasOnlyClass(node, node->operator_id(), smi_class_)) {
+  if (AtIdNodeHasReceiverClass(node, node->operator_id(), smi_class_)) {
     // Deoptimization point for this node is after receiver has been
     // pushed twice on stack and before the getter (above) was executed.
     DeoptimizationBlob* deopt_blob =
@@ -1971,12 +2027,12 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
-  if (AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
+  if (AtIdNodeHasReceiverClass(node, node->id(), smi_class_)) {
     if (GenerateSmiComparison(node)) {
       return;
     }
     // Fall through if condition is not supported.
-  } else if (AtIdNodeHasOnlyClass(node, node->id(), double_class_)) {
+  } else if (AtIdNodeHasReceiverClass(node, node->id(), double_class_)) {
     // Double comparison
     if (GenerateDoubleComparison(node)) {
       return;
@@ -2273,7 +2329,7 @@ void OptimizingCodeGenerator::GenerateInlineCacheCall(
   __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, ArgumentsDescriptor(num_args, optional_arguments_names));
   ExternalLabel target_label(
-      "InlineCache", StubCode::InlineCacheEntryPoint());
+      "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
 
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,
