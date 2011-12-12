@@ -265,6 +265,7 @@ NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NativeLibrarySameNameUsedFrogTest: Fail  # ReferenceError: I is not defined.
 NativeNamedConstructors2FrogTest: Fail  # ReferenceError: A is not defined.
+NativePropertyFrogTest: Fail  # Object #<A> has no method 'set$X'
 NonConstSuperNegativeTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
