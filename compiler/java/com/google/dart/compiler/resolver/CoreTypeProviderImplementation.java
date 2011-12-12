@@ -49,10 +49,10 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.fallThroughError = getType("FallThroughError", scope, listener);
     this.mapType = getType("Map", scope, listener);
     this.mapLiteralType = getType("LinkedHashMapImplementation", scope, listener);
-    this.objectArrayType = getType("ListImplementation", scope, listener);
+    this.objectArrayType = getType(new String[] {"ListImplementation", "GrowableObjectArray"}, scope, listener);
     this.objectType = getType("Object", scope, listener);
     this.isolateType = getType("Isolate", scope, listener);
-    this.stringImplementation = getType("StringImplementation", scope, listener);
+    this.stringImplementation = getType(new String[] {"StringImplementation", "OneByteString"}, scope, listener);
     iteratorType = getType("Iterator", scope, listener);
   }
 
@@ -62,6 +62,23 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
       DartCompilationError error =
           new DartCompilationError(null, Location.NONE,
               ResolverErrorCode.CANNOT_BE_RESOLVED, name);
+      listener.onError(error);
+      return Types.newDynamicType();
+    }
+    return element.getType();
+  }
+
+  private static InterfaceType getType(String[] names, Scope scope, DartCompilerListener listener) {
+    ClassElement element = null;
+    for (String name : names) {
+      element = (ClassElement) scope.findElement(scope.getLibrary(), name);
+      if (element != null)
+        break;
+    }
+    if (element == null) {
+      DartCompilationError error =
+          new DartCompilationError(null, Location.NONE,
+              ResolverErrorCode.CANNOT_BE_RESOLVED, names[0]);
       listener.onError(error);
       return Types.newDynamicType();
     }
