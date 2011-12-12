@@ -68,6 +68,7 @@ MethodInvocationTest: Fail               # Bug  5392266
 NullPointerExceptionTest: Fail           # Bug 5391976
 Private3Test: Fail                       # Bug 5391976
 Switch3NegativeTest: Crash               # Bug 5318228
+ToplevelCollision2Test/none: Fail        # Issue 647
 
 # Problems specific to dartc debug mode
 [ ($component == dartc || $component == chromium) && $mode == debug ]
