@@ -960,7 +960,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node) {
       result_register = kAllocatedRegister;
       // Use inlined temporary double object.
       const Double& double_object =
-          Double::ZoneHandle(Double::New(0.0));
+          Double::ZoneHandle(Double::New(0.0, Heap::kOld));
       __ LoadObject(result_register, double_object);
     }
     Label is_smi, extract_left;

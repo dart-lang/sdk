@@ -5041,6 +5041,7 @@ RawInstance* Instance::Canonicalize() const {
   }
   // The value needs to be added to the list. Grow the list if
   // it is full.
+  // TODO(srdjan): Copy instance into old space if canonicalized?
   if (index == constants_len) {
     const intptr_t kInitialConstLength = 4;
     const intptr_t old_length = constants.Length();
