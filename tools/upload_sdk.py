@@ -69,7 +69,9 @@ def main(argv):
     Usage(argv[0])
     return 1
   if not os.path.exists(GSUTIL):
-    sys.stderr.write('cound not find {0}'.format(GSUTIL))
+    #TODO: Determine where we are running, if we're running on a buildbot we
+    #should fail with a message.  
+    #If we are not on a buildbot then fail silently. 
     exit(0)
   revision = GetSVNRevision()
   if revision is None:
