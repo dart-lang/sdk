@@ -59,7 +59,7 @@ def Usage(progname):
 
 def main(argv):
   #allow local editor builds to deploy to a different bucket
-  if os.environ['DART_LOCAL_BUILD']:
+  if os.environ.has_key('DART_LOCAL_BUILD'):
     gsdir = os.environ
   else:
     gsdir = GS_DIR
