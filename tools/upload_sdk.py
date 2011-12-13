@@ -19,6 +19,7 @@ GSUTIL = '/b/build/scripts/slave/gsutil'
 GS_SITE = 'gs://'
 GS_DIR = 'dart-dump-render-tree'
 GS_SDK_DIR = 'sdk'
+SDK_LOCAL_ZIP = "dart-sdk.zip"
 
 def ExecuteCommand(cmd):
   """Execute a command in a subprocess.
@@ -83,13 +84,20 @@ def main(argv):
   with open(os.path.join(os.path.basename(argv[1]), 'revision'), 'w') as f:
     f.write(revision + '\n')
 
+  if (os.path.basename(os.path.dirname(argv[1])) ==
+      utils.GetBuildConf('release', 'ia32')):
+    sdk_suffix = ''
+  else:
+    sdk_suffix = '-debug'
   # TODO(dgrove) - deal with architectures that are not ia32.
-  sdk_file = 'dart-%s-%s.zip' % (utils.GuessOS(), revision)
-  ExecuteCommand(['zip', '-yr', sdk_file, os.path.basename(argv[1])])
-  UploadArchive(sdk_file, 
+  sdk_file = 'dart-%s-%s%s.zip' % (utils.GuessOS(), revision, sdk_suffix)
+  if (os.path.exists(SDK_LOCAL_ZIP)):
+    os.remove(SDK_LOCAL_ZIP)
+  ExecuteCommand(['zip', '-yr', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
+  UploadArchive(SDK_LOCAL_ZIP,
                 GS_SITE + os.path.join(gsdir, GS_SDK_DIR, sdk_file))
-  latest_name = 'dart-' + utils.GuessOS() + '-latest' + '.zip'
-  UploadArchive(sdk_file, 
+  latest_name = 'dart-%s-latest%s.zip' % (utils.GuessOS(), sdk_suffix)
+  UploadArchive(SDK_LOCAL_ZIP,
                 GS_SITE + os.path.join(gsdir, GS_SDK_DIR, latest_name))
 
 
