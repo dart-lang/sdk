@@ -421,11 +421,10 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
   if (mismatch) {
     const String& interface_name = String::Handle(interface.Name());
     const String& factory_name = String::Handle(factory_class.Name());
-    // TODO(regis): Report the filename and position as well.
     const Script& script = Script::Handle(interface.script());
     ReportError(script, unresolved_factory_class.token_index(),
-                "mismatch in number or names of type parameters between "
-                "factory clause of interface '%s' and actual factory "
+                "mismatch in number, names, or bounds of type parameters "
+                "between default clause of interface '%s' and actual factory "
                 "class '%s'.\n",
                 interface_name.ToCString(),
                 factory_name.ToCString());

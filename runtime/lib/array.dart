@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ListFactory<T> {
+class ListFactory<E> {
 
-  factory List.from(Iterable<T> other) {
-    GrowableObjectArray<T> list = new GrowableObjectArray<T>();
+  factory List.from(Iterable<E> other) {
+    GrowableObjectArray<E> list = new GrowableObjectArray<E>();
     for (final e in other) {
       list.add(e);
     }
@@ -14,21 +14,21 @@ class ListFactory<T> {
 
   factory List([int length = null]) {
     if (length === null) {
-      return new GrowableObjectArray<T>();
+      return new GrowableObjectArray<E>();
     } else {
-      return new ObjectArray<T>(length);
+      return new ObjectArray<E>(length);
     }
   }
 }
 
 // TODO(srdjan): Use shared array implementation.
-class ObjectArray<T> implements List<T> {
+class ObjectArray<E> implements List<E> {
 
   factory ObjectArray(int length) native "ObjectArray_allocate";
 
-  T operator [](int index) native "ObjectArray_getIndexed";
+  E operator [](int index) native "ObjectArray_getIndexed";
 
-  void operator []=(int index, T value) native "ObjectArray_setIndexed";
+  void operator []=(int index, E value) native "ObjectArray_setIndexed";
 
   String toString() {
     return Arrays.asString(this);
@@ -50,7 +50,7 @@ class ObjectArray<T> implements List<T> {
                             int count)
       native "ObjectArray_copyFromObjectArray";
 
-  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
+  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }
@@ -62,15 +62,15 @@ class ObjectArray<T> implements List<T> {
         "Cannot remove range of a non-extendable array");
   }
 
-  void insertRange(int start, int length, [T initialValue = null]) {
+  void insertRange(int start, int length, [E initialValue = null]) {
     throw const UnsupportedOperationException(
         "Cannot insert range in a non-extendable array");
   }
 
-  List<T> getRange(int start, int length) {
+  List<E> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    List list = new List<T>();
+    List list = new List<E>();
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
@@ -80,19 +80,19 @@ class ObjectArray<T> implements List<T> {
    * Collection interface.
    */
 
-  void forEach(f(T element)) {
+  void forEach(f(E element)) {
     Collections.forEach(this, f);
   }
 
-  Collection<T> filter(bool f(T element)) {
-    return Collections.filter(this, new GrowableObjectArray<T>(), f);
+  Collection<E> filter(bool f(E element)) {
+    return Collections.filter(this, new GrowableObjectArray<E>(), f);
   }
 
-  bool every(bool f(T element)) {
+  bool every(bool f(E element)) {
     return Collections.every(this, f);
   }
 
-  bool some(bool f(T element)) {
+  bool some(bool f(E element)) {
     return Collections.some(this, f);
   }
 
@@ -100,33 +100,33 @@ class ObjectArray<T> implements List<T> {
     return this.length === 0;
   }
 
-  void sort(int compare(T a, T b)) {
+  void sort(int compare(E a, E b)) {
     DualPivotQuicksort.sort(this, compare);
   }
 
-  int indexOf(T element, [int start = 0]) {
+  int indexOf(E element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(T element, [int start = null]) {
+  int lastIndexOf(E element, [int start = null]) {
     if (start === null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
 
-  Iterator<T> iterator() {
-    return new FixedSizeArrayIterator<T>(this);
+  Iterator<E> iterator() {
+    return new FixedSizeArrayIterator<E>(this);
   }
 
-  void add(T element) {
+  void add(E element) {
     throw const UnsupportedOperationException(
         "Cannot add to a non-extendable array");
   }
 
-  void addLast(T element) {
+  void addLast(E element) {
     add(element);
   }
 
-  void addAll(Collection<T> elements) {
+  void addAll(Collection<E> elements) {
     throw const UnsupportedOperationException(
         "Cannot add to a non-extendable array");
   }
@@ -141,12 +141,12 @@ class ObjectArray<T> implements List<T> {
         "Cannot change the length of a non-extendable array");
   }
 
-  T removeLast() {
+  E removeLast() {
     throw const UnsupportedOperationException(
         "Cannot remove in a non-extendable array");
   }
 
-  T last() {
+  E last() {
     return this[length - 1];
   }
 }
@@ -159,16 +159,16 @@ class ObjectArray<T> implements List<T> {
 // classes (and inline cache misses) versus a field in the native
 // implementation (checks when modifying). We should keep watching
 // the inline cache misses.
-class ImmutableArray<T> implements List<T> {
+class ImmutableArray<E> implements List<E> {
 
   factory ImmutableArray._uninstantiable() {
     throw const UnsupportedOperationException(
         "ImmutableArray can only be allocated by the VM");
   }
 
-  T operator [](int index) native "ObjectArray_getIndexed";
+  E operator [](int index) native "ObjectArray_getIndexed";
 
-  void operator []=(int index, T value) {
+  void operator []=(int index, E value) {
     throw const UnsupportedOperationException(
         "Cannot modify an immutable array");
   }
@@ -180,7 +180,7 @@ class ImmutableArray<T> implements List<T> {
         "Cannot modify an immutable array");
   }
 
-  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
+  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     throw const UnsupportedOperationException(
         "Cannot modify an immutable array");
   }
@@ -190,15 +190,15 @@ class ImmutableArray<T> implements List<T> {
         "Cannot remove range of an immutable array");
   }
 
-  void insertRange(int start, int length, [T initialValue = null]) {
+  void insertRange(int start, int length, [E initialValue = null]) {
     throw const UnsupportedOperationException(
         "Cannot insert range in an immutable array");
   }
 
-  List<T> getRange(int start, int length) {
+  List<E> getRange(int start, int length) {
     if (length == 0) return [];
     Arrays.rangeCheck(this, start, length);
-    List list = new List<T>();
+    List list = new List<E>();
     list.length = length;
     Arrays.copy(this, start, list, 0, length);
     return list;
@@ -208,19 +208,19 @@ class ImmutableArray<T> implements List<T> {
    * Collection interface.
    */
 
-  void forEach(f(T element)) {
+  void forEach(f(E element)) {
     Collections.forEach(this, f);
   }
 
-  Collection<T> filter(bool f(T element)) {
-    return Collections.filter(this, new GrowableObjectArray<T>(), f);
+  Collection<E> filter(bool f(E element)) {
+    return Collections.filter(this, new GrowableObjectArray<E>(), f);
   }
 
-  bool every(bool f(T element)) {
+  bool every(bool f(E element)) {
     return Collections.every(this, f);
   }
 
-  bool some(bool f(T element)) {
+  bool some(bool f(E element)) {
     return Collections.some(this, f);
   }
 
@@ -228,7 +228,7 @@ class ImmutableArray<T> implements List<T> {
     return this.length === 0;
   }
 
-  void sort(int compare(T a, T b)) {
+  void sort(int compare(E a, E b)) {
     throw const UnsupportedOperationException(
         "Cannot modify an immutable array");
   }
@@ -237,29 +237,29 @@ class ImmutableArray<T> implements List<T> {
     return "ImmutableArray";
   }
 
-  int indexOf(T element, [int start = 0]) {
+  int indexOf(E element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(T element, [int start = null]) {
+  int lastIndexOf(E element, [int start = null]) {
     if (start === null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
 
-  Iterator<T> iterator() {
-    return new FixedSizeArrayIterator<T>(this);
+  Iterator<E> iterator() {
+    return new FixedSizeArrayIterator<E>(this);
   }
 
-  void add(T element) {
+  void add(E element) {
     throw const UnsupportedOperationException(
         "Cannot add to an immutable array");
   }
 
-  void addLast(T element) {
+  void addLast(E element) {
     add(element);
   }
 
-  void addAll(Collection<T> elements) {
+  void addAll(Collection<E> elements) {
     throw const UnsupportedOperationException(
         "Cannot add to an immutable array");
   }
@@ -274,19 +274,19 @@ class ImmutableArray<T> implements List<T> {
         "Cannot change the length of an immutable array");
   }
 
-  T removeLast() {
+  E removeLast() {
     throw const UnsupportedOperationException(
         "Cannot remove in a non-extendable array");
   }
 
-  T last() {
+  E last() {
     return this[length - 1];
   }
 }
 
 
 // Iterator for arrays with fixed size.
-class FixedSizeArrayIterator<T> implements Iterator<T> {
+class FixedSizeArrayIterator<E> implements Iterator<E> {
   FixedSizeArrayIterator(List array)
       : _array = array, _length = array.length, _pos = 0 {
     assert(array is ObjectArray || array is ImmutableArray);
@@ -296,14 +296,14 @@ class FixedSizeArrayIterator<T> implements Iterator<T> {
    return _length > _pos;
   }
 
-  T next() {
+  E next() {
     if (!hasNext()) {
       throw const NoMoreElementsException();
     }
     return _array[_pos++];
   }
 
-  final List<T> _array;
+  final List<E> _array;
   final int _length;  // Cache array length for faster access.
   int _pos;
 }
