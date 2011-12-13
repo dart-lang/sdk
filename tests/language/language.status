@@ -342,6 +342,7 @@ TypeVariableBoundsTest/06: Fail
 ConstructorReturnNegativeTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
 DuplicateConstructorTest/01: Fail
+InstFieldInitializer1NegativeTest: Fail # Unused fields are not analyzed.
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
