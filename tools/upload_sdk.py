@@ -58,11 +58,18 @@ def Usage(progname):
 
 
 def main(argv):
+  #allow local editor builds to deploy to a different bucket
+  if os.environ['DART_LOCAL_BUILD']:
+    gsdir = os.environ
+  else:
+    gsdir = GS_DIR
+    
   if not os.path.exists(argv[1]):
     sys.stderr.write('Path not found: %s\n' % argv[1])
     Usage(argv[0])
     return 1
   if not os.path.exists(GSUTIL):
+    sys.stderr.write('cound not find {0}'.format(GSUTIL))
     exit(0)
   revision = GetSVNRevision()
   if revision is None:
@@ -73,9 +80,9 @@ def main(argv):
   sdk_name = 'dart-' + utils.GuessOS() + '-' + revision + '.zip'
   sdk_file = '../' + sdk_name
   ExecuteCommand(['zip', '-yr', sdk_file, '.'])
-  UploadArchive(sdk_file, GS_SITE + os.path.join(GS_DIR, SDK, sdk_name))
+  UploadArchive(sdk_file, GS_SITE + os.path.join(gsdir, SDK, sdk_name))
   latest_name = 'dart-' + utils.GuessOS() + '-latest' + '.zip'
-  UploadArchive(sdk_file, GS_SITE + os.path.join(GS_DIR, SDK, latest_name))
+  UploadArchive(sdk_file, GS_SITE + os.path.join(gsdir, SDK, latest_name))
 
 
 if __name__ == '__main__':
