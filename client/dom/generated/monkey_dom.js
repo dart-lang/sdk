@@ -7666,12 +7666,6 @@ function DOM$fixClass$ValidityState(c) {
   }
   c.$implements$ValidityState$Dart = 1;
 }
-function DOM$fixClass$VoidCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$VoidCallback$Dart = 1;
-}
 function DOM$fixClass$WaveShaperNode(c) {
   if (c.prototype) {
     c.prototype.curve$getter = function() { return DOM$EnsureDartNull(this.curve); };
@@ -10214,10 +10208,6 @@ var _;
   if ((_ = w.ValidityState)) {
     w.ValidityState$Dart = _;
     DOM$fixClass$ValidityState(_);
-  }
-  if ((_ = w.VoidCallback)) {
-    w.VoidCallback$Dart = _;
-    DOM$fixClass$VoidCallback(_);
   }
   if ((_ = w.WaveShaperNode)) {
     w.WaveShaperNode$Dart = _;

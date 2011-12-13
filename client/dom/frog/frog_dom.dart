@@ -9489,15 +9489,6 @@ class ValidityState native "*ValidityState" {
   String get typeName() native;
 }
 
-class VoidCallback native "*VoidCallback" {
-
-  void handleEvent() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
   Float32Array curve;
@@ -11326,6 +11317,13 @@ typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaI
 // WARNING: Do not edit - generated code.
 
 typedef bool StringCallback(String data);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef void VoidCallback();
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

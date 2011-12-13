@@ -459,7 +459,6 @@
 #source('generated/src/frog/Uint32Array.dart');
 #source('generated/src/frog/Uint8Array.dart');
 #source('generated/src/frog/ValidityState.dart');
-#source('generated/src/frog/VoidCallback.dart');
 #source('generated/src/frog/WaveShaperNode.dart');
 #source('generated/src/frog/WebGLActiveInfo.dart');
 #source('generated/src/frog/WebGLBuffer.dart');
@@ -527,6 +526,7 @@
 #source('generated/src/interface/StorageInfoQuotaCallback.dart');
 #source('generated/src/interface/StorageInfoUsageCallback.dart');
 #source('generated/src/interface/StringCallback.dart');
+#source('generated/src/interface/VoidCallback.dart');
 
 #source('src/EventListener.dart');
 #source('src/KeyLocation.dart');

@@ -703,7 +703,6 @@ dom_externs.green;                      // attribute RGBColor.green
 dom_externs.group;                      // operation Console.group
 dom_externs.groupCollapsed;             // operation Console.groupCollapsed
 dom_externs.groupEnd;                   // operation Console.groupEnd
-dom_externs.handleEvent;                // operation VoidCallback.handleEvent
 dom_externs.hasAttribute;               // operation Element.hasAttribute
 dom_externs.hasAttributeNS;             // operation Element.hasAttributeNS
 dom_externs.hasAttributes;              // operation Node.hasAttributes

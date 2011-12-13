@@ -31110,14 +31110,6 @@ function native__ValidityStateWrappingImplementation__get_valueMissing(_this) {
   }
 }
 
-function native__VoidCallbackWrappingImplementation__handleEvent(_this) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__WaveShaperNodeWrappingImplementation__get_curve(_this) {
   try {
     return __dom_wrap(_this.$dom.curve);
@@ -35095,7 +35087,6 @@ var __dom_type_map = {
   "Uint32Array": native__Uint32ArrayWrappingImplementation_create__Uint32ArrayWrappingImplementation,
   "Uint8Array": native__Uint8ArrayWrappingImplementation_create__Uint8ArrayWrappingImplementation,
   "ValidityState": native__ValidityStateWrappingImplementation_create__ValidityStateWrappingImplementation,
-  "VoidCallback": native__VoidCallbackWrappingImplementation_create__VoidCallbackWrappingImplementation,
   "WaveShaperNode": native__WaveShaperNodeWrappingImplementation_create__WaveShaperNodeWrappingImplementation,
   "WebGLActiveInfo": native__WebGLActiveInfoWrappingImplementation_create__WebGLActiveInfoWrappingImplementation,
   "WebGLBuffer": native__WebGLBufferWrappingImplementation_create__WebGLBufferWrappingImplementation,

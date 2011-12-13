@@ -976,7 +976,6 @@
 #source('generated/src/wrapping/_Uint32ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_Uint8ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_ValidityStateWrappingImplementation.dart');
-#source('generated/src/wrapping/_VoidCallbackWrappingImplementation.dart');
 #source('generated/src/wrapping/_WaveShaperNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLActiveInfoWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLBufferWrappingImplementation.dart');
