@@ -58,12 +58,12 @@
             'tools/create_sdk.py',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/sdk',
+            '<(PRODUCT_DIR)/dart-sdk',
           ],
           'action': [
             'python',
             'tools/create_sdk.py',
-            '<(PRODUCT_DIR)/sdk',
+            '<(PRODUCT_DIR)/dart-sdk',
           ],
           'message': 'Creating SDK.',
         },
@@ -79,7 +79,7 @@
         {
           'action_name': 'upload_sdk_py',
           'inputs': [
-            '<(PRODUCT_DIR)/sdk',
+            '<(PRODUCT_DIR)/dart-sdk',
             'tools/upload_sdk.py',
           ],
           'outputs': [
@@ -88,7 +88,7 @@
           'action': [
             'python',
             'tools/upload_sdk.py',
-            '<(PRODUCT_DIR)/sdk'
+            '<(PRODUCT_DIR)/dart-sdk'
           ],
         },
       ],

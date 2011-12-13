@@ -5,8 +5,11 @@
 # found in the LICENSE file.
 
 # This zips the SDK and uploads it to Google Storage when run on a buildbot.
+#
+# Usage: upload_sdk.py path_to_sdk
 
 import os
+import os.path
 import subprocess
 import sys
 import utils
@@ -15,8 +18,7 @@ import utils
 GSUTIL = '/b/build/scripts/slave/gsutil'
 GS_SITE = 'gs://'
 GS_DIR = 'dart-dump-render-tree'
-LATEST = 'latest'
-SDK = 'sdk'
+GS_SDK_DIR = 'sdk'
 
 def ExecuteCommand(cmd):
   """Execute a command in a subprocess.
@@ -77,17 +79,19 @@ def main(argv):
   if revision is None:
     sys.stderr.write('Unable to find SVN revision.\n')
     return 1
-  os.chdir(argv[1])
+  os.chdir(os.path.dirname(argv[1]))
+  with open(os.path.join(os.path.basename(argv[1]), 'revision'), 'w') as f:
+    f.write(revision + '\n')
+
   # TODO(dgrove) - deal with architectures that are not ia32.
-  sdk_name = 'dart-' + utils.GuessOS() + '-' + revision + '.zip'
-  sdk_file = '../' + sdk_name
-  ExecuteCommand(['zip', '-yr', sdk_file, '.'])
-  UploadArchive(sdk_file, GS_SITE + os.path.join(gsdir, SDK, sdk_name))
+  sdk_file = 'dart-%s-%s.zip' % (utils.GuessOS(), revision)
+  ExecuteCommand(['zip', '-yr', sdk_file, os.path.basename(argv[1])])
+  UploadArchive(sdk_file, 
+                GS_SITE + os.path.join(gsdir, GS_SDK_DIR, sdk_file))
   latest_name = 'dart-' + utils.GuessOS() + '-latest' + '.zip'
-  UploadArchive(sdk_file, GS_SITE + os.path.join(gsdir, SDK, latest_name))
+  UploadArchive(sdk_file, 
+                GS_SITE + os.path.join(gsdir, GS_SDK_DIR, latest_name))
 
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
-
-
