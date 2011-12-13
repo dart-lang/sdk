@@ -2269,7 +2269,9 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
-  if (outer_function.IsFactory()) {
+  // TODO(regis): Remove support for type parameters on factories.
+  if (outer_function.IsFactory() &&
+      (outer_function.signature_class() != Class::null())) {
     instantiator_class = outer_function.signature_class();
   } else {
     instantiator_class = outer_function.owner();

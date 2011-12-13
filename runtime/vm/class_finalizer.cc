@@ -727,46 +727,38 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   AbstractType& type = AbstractType::Handle(function.result_type());
   if (!type.IsResolved()) {
     if (function.IsFactory()) {
-      // The signature class of the factory for a generic class holds the type
-      // parameters and their upper bounds. Copy the signature class from the
-      // result before it gets resolved.
+      // TODO(regis): Factory functions should not declare type parameters
+      // anymore. Remove this code once all libraries are fixed.
+
+      // The signature class of the factory for a generic class used to hold the
+      // type parameters and their upper bounds. Copy the signature class from
+      // the result before it gets resolved.
       const UnresolvedClass& unresolved_type_class =
           UnresolvedClass::Handle(type.unresolved_class());
       const Class& factory_signature_class =
           Class::Handle(unresolved_type_class.factory_signature_class());
-      ASSERT(!factory_signature_class.IsNull());
-      function.set_signature_class(factory_signature_class);
-      ResolveType(cls, type);
-      const Class& type_class = Class::Handle(type.type_class());
-      // Verify that the factory signature declares the same number of type
-      // parameters as the return type class or interface.
-      ResolveAndFinalizeUpperBounds(factory_signature_class);
-      if (factory_signature_class.NumTypeParameters() !=
-          type_class.NumTypeParameters()) {
-        const String& function_name = String::Handle(function.name());
-        if (factory_signature_class.NumTypeParameters() == 0) {
-          // TODO(regis): For now, and until the core lib is fixed, we accept a
-          // factory method with missing list of type parameters and use the
-          // list of the enclosing class.
-          // See bug 5408808.
-          const Class& enclosing_class = Class::Handle(function.owner());
-          function.set_signature_class(enclosing_class);
-          const Script& script = Script::Handle(enclosing_class.script());
-          ReportWarning(script, unresolved_type_class.token_index(),
-                        "factory method '%s' should declare a list of "
-                        "%d type parameter%s.\n",
-                        function_name.ToCString(),
-                        type_class.NumTypeParameters(),
-                        type_class.NumTypeParameters() > 1 ? "s" : "");
-        } else {
+
+      if (!factory_signature_class.IsNull()) {
+        // TODO(regis): Remove support for obsolete syntax in the parser.
+        ASSERT(factory_signature_class.NumTypeParameters() > 0);
+        function.set_signature_class(factory_signature_class);
+        ResolveType(cls, type);
+        const Class& type_class = Class::Handle(type.type_class());
+        // Verify that the factory signature declares the same number of type
+        // parameters as the return type class or interface.
+        ResolveAndFinalizeUpperBounds(factory_signature_class);
+        if (factory_signature_class.NumTypeParameters() !=
+            type_class.NumTypeParameters()) {
+          const String& function_name = String::Handle(function.name());
           const Class& enclosing_class = Class::Handle(function.owner());
           const Script& script = Script::Handle(enclosing_class.script());
           ReportError(script, unresolved_type_class.token_index(),
-                      "factory method '%s' must declare %d type parameter%s.\n",
-                      function_name.ToCString(),
-                      type_class.NumTypeParameters(),
-                      type_class.NumTypeParameters() > 1 ? "s" : "");
+                      "factory method '%s' declares wrong number of type "
+                      "parameters (obsolete syntax).\n",
+                      function_name.ToCString());
         }
+      } else {
+        ResolveType(cls, type);
       }
     } else {
       ResolveType(cls, type);

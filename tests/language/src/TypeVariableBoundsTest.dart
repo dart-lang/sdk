@@ -8,16 +8,14 @@
 class Foo<T extends num> {
   Foo();
 
-  // F is not assignable to num.
-  factory IFoo<F extends String>.bad() { return null; } /// 00: static type error
+  factory XFoo.bad() { return null; } /// 00: compile-time error
 
-  factory IFoo<F extends num>.good() { return null; }
+  factory IFoo.good() { return null; }
 
-  // The bound of F is Object which is assignable to num.
-  factory IFoo<F>.ish() { return null; }
+  factory IFoo() { return null; }
 }
 
-interface IFoo<X extends num> factory Foo<T extends num> {
+interface IFoo<T extends num> factory Foo<T extends num> {
 }
 
 // String is not assignable to num.

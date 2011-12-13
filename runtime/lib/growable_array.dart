@@ -5,7 +5,7 @@
 class GrowableObjectArray<T> implements List<T> {
   ObjectArray<T> backingArray;
 
-  factory GrowableObjectArray<T>._uninstantiable() {
+  factory GrowableObjectArray._uninstantiable() {
     throw const UnsupportedOperationException(
         "GrowableObjectArray can only be allocated by the VM");
   }
@@ -94,7 +94,7 @@ class GrowableObjectArray<T> implements List<T> {
     backingArray = new ObjectArray<T>(capacity);
   }
 
-  factory GrowableObjectArray<T>.from(Collection<T> other) {
+  factory GrowableObjectArray.from(Collection<T> other) {
     List<T> result = new GrowableObjectArray<T>();
     result.addAll(other);
     return result;

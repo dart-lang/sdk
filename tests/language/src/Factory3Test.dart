@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks --enable_asserts
 
-interface Link<T> extends Iterable<T> factory LinkFactory {
+interface Link<T> extends Iterable<T> factory LinkFactory<T> {
   Link(T head, [Link<T> tail]);
   Link<T> prepend(T element);
 }
@@ -12,8 +12,8 @@ interface EmptyLink<T> extends Link<T> factory LinkTail<T> {
   const EmptyLink();
 }
 
-class LinkFactory {
-  factory Link<T>(head, [Link tail]) {
+class LinkFactory<T> {
+  factory Link(head, [Link tail]) {
     return new LinkEntry<T>(head, tail);
   }
 }
