@@ -4,6 +4,7 @@
 
 #library('css');
 
+#import('dart:dom');
 #import('../../frog/lang.dart', prefix:'lang');
 #import('../../frog/file_system_memory.dart');
 
