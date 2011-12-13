@@ -410,4 +410,19 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   return context_scope.raw();
 }
 
+
+bool LocalVariable::Equals(const LocalVariable& other) const {
+  if (HasIndex() && other.HasIndex() && (index() == other.index())) {
+    if (is_captured() == other.is_captured()) {
+      if (!is_captured()) {
+        return true;
+      }
+      if (owner()->context_level() == other.owner()->context_level()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 }  // namespace dart

@@ -36,7 +36,7 @@ DECLARE_FLAG(bool, trace_functions);
   V(request_result_in_eax, bool, false)                                        \
   V(result_returned_in_eax, bool, false)                                       \
   V(fallthrough_label, Label*, NULL)                                           \
-  V(is_class, const Class*, NULL)                                              \
+  V(is_class, const Class*, &Class::ZoneHandle())                              \
 
 
 // Class holding information being passed from source to destination.
@@ -56,9 +56,6 @@ class CodeGenInfo : public ValueObject {
   }
 
   bool IsClass(const Class& cls) const {
-    if (is_class() == NULL) {
-      return cls.IsNullClass();
-    }
     return is_class()->raw() == cls.raw();
   }
 
@@ -207,6 +204,41 @@ RECOGNIZED_LIST(KIND_TO_STRING)
 };
 
 
+// Maintain classes of locals as defined by a store to that local.
+// A simple initial implementation, memorizes last typed stores. Does not
+// scale well for large code pieces. This will be replaced by SSA based
+// type propagation.
+class ClassesForLocals : public ZoneAllocated {
+ public:
+  ClassesForLocals() : classes_(), locals_() {}
+  void SetLocalType(const LocalVariable& local, const Class& cls) {
+    classes_.Add(&cls);
+    locals_.Add(&local);
+  }
+  // If no type is stored/known, we return a null class in 'cls'.
+  void GetLocalClass(const LocalVariable& local, const Class** cls) const {
+    for (intptr_t i = locals_.length() - 1; i >=0; i--) {
+      if (locals_[i]->Equals(local)) {
+        *cls = classes_[i];
+        return;
+      }
+    }
+    *cls = &Class::ZoneHandle();
+  }
+
+  void Clear() {
+    classes_.Clear();
+    locals_.Clear();
+  }
+
+ private:
+  GrowableArray<const Class*> classes_;
+  GrowableArray<const LocalVariable*> locals_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClassesForLocals);
+};
+
+
 static const char* kGrowableArrayClassName = "GrowableObjectArray";
 static const char* kGrowableArrayLengthFieldName = "_length";
 static const char* kGrowableArrayArrayFieldName = "backingArray";
@@ -216,6 +248,7 @@ OptimizingCodeGenerator::OptimizingCodeGenerator(
     Assembler* assembler, const ParsedFunction& parsed_function)
         : CodeGenerator(assembler, parsed_function),
           deoptimization_blobs_(4),
+          classes_for_locals_(new ClassesForLocals()),
           smi_class_(Class::ZoneHandle(Isolate::Current()->object_store()
               ->smi_class())),
           double_class_(Class::ZoneHandle(Isolate::Current()->object_store()
@@ -430,6 +463,13 @@ void OptimizingCodeGenerator::VisitLoadOne(AstNode* node, Register reg) {
     LoadLocalNode* local_node = node->AsLoadLocalNode();
     ASSERT(local_node != NULL);
     GenerateLoadVariable(reg, local_node->local());
+    if (node->info() != NULL) {
+      const Class* cls = NULL;
+      classes_for_locals_->GetLocalClass(local_node->local(), &cls);
+      if (cls != NULL) {
+        node->info()->set_is_class(cls);
+      }
+    }
     return;
   }
   if (node->AsLiteralNode()) {
@@ -515,12 +555,20 @@ void OptimizingCodeGenerator::VisitLoadLocalNode(LoadLocalNode* node) {
   } else {
     GeneratePushVariable(node->local(), EAX);
   }
+  if (node->info() != NULL) {
+    const Class* cls = NULL;
+    classes_for_locals_->GetLocalClass(node->local(), &cls);
+    if (cls != NULL) {
+      node->info()->set_is_class(cls);
+    }
+  }
 }
 
 
 void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
   if (FLAG_enable_type_checks) {
     CodeGenerator::VisitStoreLocalNode(node);
+    classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
     return;
   }
   CodeGenInfo value_info(node->value());
@@ -552,6 +600,7 @@ void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }
+  classes_for_locals_->SetLocalType(node->local(), *value_info.is_class());
 }
 
 
@@ -893,8 +942,7 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
 static bool AreNodesOfSameType(AstNode* a, AstNode* b) {
   ASSERT((a != NULL) && (b != NULL));
   if (a->IsLoadLocalNode() && b->IsLoadLocalNode()) {
-    return a->AsLoadLocalNode()->local().index() ==
-           b->AsLoadLocalNode()->local().index();
+    return a->AsLoadLocalNode()->local().Equals(b->AsLoadLocalNode()->local());
   }
   return false;
 }
@@ -1149,12 +1197,14 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
 
 void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   if (FLAG_enable_type_checks) {
+    classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
     CodeGenerator::VisitIncrOpLocalNode(node);
     return;
   }
   const char* kOptMessage = "Inlines IncrOpLocal";
   ASSERT((node->kind() == Token::kINCR) || (node->kind() == Token::kDECR));
   if (!AtIdNodeHasReceiverClass(node, node->id(), smi_class_)) {
+    classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
     TraceNotOpt(node, kOptMessage);
     CodeGenerator::VisitIncrOpLocalNode(node);
     return;
@@ -1185,6 +1235,7 @@ void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
       __ pushl(ECX);
     }
   }
+  classes_for_locals_->SetLocalType(node->local(), smi_class_);
 }
 
 
@@ -2623,6 +2674,8 @@ void OptimizingCodeGenerator::VisitReturnNode(ReturnNode* node) {
 
 
 void OptimizingCodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
+  // TODO(srdjan): Allow limited forwarding of types across sequence nodes.
+  classes_for_locals_->Clear();
   const intptr_t num_context_variables = (node_sequence->scope() != NULL) ?
       node_sequence->scope()->num_context_variables() : 0;
   if (FLAG_enable_type_checks || (num_context_variables > 0)) {
@@ -2637,6 +2690,7 @@ void OptimizingCodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   if (node_sequence->label() != NULL) {
     __ Bind(node_sequence->label()->break_label());
   }
+  classes_for_locals_->Clear();
 }
 
 
@@ -2652,6 +2706,20 @@ void OptimizingCodeGenerator::VisitStoreInstanceFieldNode(
     // The result is the input value.
     __ pushl(EAX);
   }
+}
+
+
+void OptimizingCodeGenerator::VisitCatchClauseNode(CatchClauseNode* node) {
+  // TODO(srdjan): Set classes for locals.
+  classes_for_locals_->Clear();
+  CodeGenerator::VisitCatchClauseNode(node);
+}
+
+
+void OptimizingCodeGenerator::VisitTryCatchNode(TryCatchNode* node) {
+  // TODO(srdjan): Set classes for locals.
+  classes_for_locals_->Clear();
+  CodeGenerator::VisitTryCatchNode(node);
 }
 
 
