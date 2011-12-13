@@ -80,13 +80,40 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
   Dart_Handle number = Dart_GetNativeArgument(args, 1);
-  if (Dart_IsString(path) && Dart_IsInteger(number)) {
-    char* result = Directory::CreateTemp(DartUtils::GetStringValue(path),
-                                         DartUtils::GetIntegerValue(number));
+  Dart_Handle status_handle = Dart_GetNativeArgument(args, 2);
+  static const int kMaxChildOsErrorMessageLength = 256;
+  char os_error_message[kMaxChildOsErrorMessageLength];
+  if (!Dart_IsString(path) || !Dart_IsInteger(number)) {
+    DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
+    DartUtils::SetStringInstanceField(
+        status_handle, "_errorMessage", "Invalid arguments");
+    Dart_SetReturnValue(args, Dart_Null());
+    Dart_ExitScope();
+    return;
+  }
+
+  char* result = NULL;
+  int error_code = Directory::CreateTemp(DartUtils::GetStringValue(path),
+                                         DartUtils::GetIntegerValue(number),
+                                         &result,
+                                         os_error_message,
+                                         kMaxChildOsErrorMessageLength);
+  if (error_code == 0) {
     Dart_SetReturnValue(args, Dart_NewString(result));
     free(result);
   } else {
-    Dart_SetReturnValue(args, Dart_NewString(""));
+    ASSERT(result == NULL);
+    if (error_code == -1) {
+      DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
+      DartUtils::SetStringInstanceField(
+          status_handle, "_errorMessage", "Invalid arguments");
+    } else {
+      DartUtils::SetIntegerInstanceField(
+          status_handle, "_errorCode", error_code);
+      DartUtils::SetStringInstanceField(
+          status_handle, "_errorMessage", os_error_message);
+    }
+    Dart_SetReturnValue(args, Dart_Null());
   }
   Dart_ExitScope();
 }

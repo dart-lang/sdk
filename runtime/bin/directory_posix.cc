@@ -13,6 +13,20 @@
 #include "bin/file.h"
 #include "bin/platform.h"
 
+
+static char* SafeStrNCpy(char* dest, const char* src, size_t n) {
+  strncpy(dest, src, n);
+  dest[n - 1] = '\0';
+  return dest;
+}
+
+
+static void SetOsErrorMessage(char* os_error_message,
+                              int os_error_message_len) {
+  SafeStrNCpy(os_error_message, strerror(errno), os_error_message_len);
+}
+
+
 // Forward declaration.
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
@@ -253,30 +267,35 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
-char* Directory::CreateTemp(const char* const_template, int64_t number) {
+int Directory::CreateTemp(const char* const_template,
+                          int64_t number,
+                          char** path,
+                          char* os_error_message,
+                          int os_error_message_len) {
   // Returns a new, unused directory name, modifying the contents of
   // dir_template.  Creates the directory with the permissions specified
   // by the process umask.
   // The return value must be freed by the caller.
-  char* path = static_cast<char*>(malloc(PATH_MAX + 1));
-  strncpy(path, const_template, PATH_MAX + 1);
-  path[PATH_MAX] = '\0';
-  int path_length = strlen(path);
+  *path = static_cast<char*>(malloc(PATH_MAX + 1));
+  SafeStrNCpy(*path, const_template, PATH_MAX + 1);
+  int path_length = strlen(*path);
   if (path_length > 0) {
-    if (path[path_length - 1] == '/') {
-      snprintf(path + path_length, PATH_MAX - path_length, "temp_dir_XXXXXX");
+    if ((*path)[path_length - 1] == '/') {
+      snprintf(*path + path_length, PATH_MAX - path_length, "temp_dir_XXXXXX");
     } else {
-      snprintf(path + path_length, PATH_MAX - path_length, "XXXXXX");
+      snprintf(*path + path_length, PATH_MAX - path_length, "XXXXXX");
     }
   } else {
-    snprintf(path, PATH_MAX, "/tmp/temp_dir1_XXXXXX");
+    snprintf(*path, PATH_MAX, "/tmp/temp_dir1_XXXXXX");
   }
-  char* result = mkdtemp(path);
+  char* result = mkdtemp(*path);
   if (result == NULL) {
-    // Return the empty string, but as a freeable array.
-    path[0] = '\0';
+    SetOsErrorMessage(os_error_message, os_error_message_len);
+    free(*path);
+    *path = NULL;
+    return errno;
   }
-  return path;
+  return 0;
 }
 
 

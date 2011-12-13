@@ -172,7 +172,7 @@ class DirectoryTest {
             }
             Expect.isTrue(threw_exception);
             Expect.isTrue(tempDirectory.existsSync());
-            
+
             // Delete the file, and then delete the directory.
             file.delete();
           };
@@ -244,11 +244,50 @@ class NestedTempDirectoryTest {
   static void testMain() {
     new NestedTempDirectoryTest().startTest();
     new NestedTempDirectoryTest().startTest();
- }
+  }
+}
+
+
+String illegalTempDirectoryLocation() {
+  // Determine a platform specific illegal location for a temporary directory.
+  var os = new Platform().operatingSystem();
+  if (os == "linux" || os == "macos") {
+    return "/dev/zero/";
+  }
+  if (os == "windows") {
+    return "*";
+  }
+  return null;
+}
+
+
+testCreateTempErrorSync() {
+  var location = illegalTempDirectoryLocation();
+  if (location != null) {
+    Expect.throws(new Directory(location).createTempSync());
+  }
+}
+
+
+testCreateTempError() {
+  var location = illegalTempDirectoryLocation();
+  if (location == null) return;
+
+  var resultPort = new ReceivePort.singleShot();
+  resultPort.receive((String message, ignored) {
+      Expect.equals("error", message);
+    });
+
+  Directory dir = new Directory(location);
+  dir.errorHandler = (error) { resultPort.toSendPort().send("error"); };
+  dir.createTempHandler = () { resultPort.toSendPort().send("success"); };
+  dir.createTemp();
 }
 
 
 main() {
   DirectoryTest.testMain();
   NestedTempDirectoryTest.testMain();
+  testCreateTempErrorSync();
+  testCreateTempError();
 }

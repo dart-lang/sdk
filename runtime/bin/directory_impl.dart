@@ -3,6 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
+// Used for holding error code and error message for failed OS system calls.
+class _OSStatus {
+  int _errorCode;
+  String _errorMessage;
+}
+
+
 class _DirectoryListingIsolate extends Isolate {
 
   _DirectoryListingIsolate() : super.heavy();
@@ -36,7 +43,15 @@ class _DirectoryCreateTempIsolate extends Isolate {
   void main() {
     port.receive((path, replyTo) {
       // Call function to get file name
-      replyTo.send(_Directory._createTemp(path, (Math.random() * 0x8000000).toInt()));
+      var status = new _OSStatus();
+      var result = _Directory._createTemp(path,
+                                          (Math.random() * 0x8000000).toInt(),
+                                          status);
+      if (result == null) {
+        replyTo.send(status);
+      } else {
+        replyTo.send(result);
+      }
       port.close();
     });
   }
@@ -47,7 +62,9 @@ class _Directory implements Directory {
 
   _Directory(String this._path);
 
-  static String _createTemp(String template, int num) native "Directory_CreateTemp";
+  static String _createTemp(String template,
+                            int num,
+                            _OSStatus status) native "Directory_CreateTemp";
 
   bool existsSync() {
     int exists = _exists(_path);
@@ -66,14 +83,15 @@ class _Directory implements Directory {
   void createTemp() {
     new _DirectoryCreateTempIsolate().spawn().then((port) {
       port.call(_path).receive((result, ignored) {
-        if (result != '') {
+        if (result is !_OSStatus) {
           _path = result;
           if (_createTempHandler !== null) {
             _createTempHandler();
           }
         } else {
           if (_errorHandler !== null) {
-            _errorHandler("Could not create temporary directory: $_path");
+            _errorHandler("Could not create temporary directory [$_path]: " +
+                          "${result._errorMessage}");
           }
         }
       });
@@ -81,11 +99,15 @@ class _Directory implements Directory {
   }
 
   void createTempSync() {
-    var result = _createTemp(path, (Math.random() * 0x8000000).toInt());
-    if (result != '') {
+    var status = new _OSStatus();
+    var result = _createTemp(path, (Math.random() * 0x8000000).toInt(), status);
+    if (result != null) {
       _path = result;
     } else {
-      throw "createTempSync failed";
+      throw new DirectoryException(
+          "Could not create temporary directory [$_path]: " +
+          "${status._errorMessage}",
+          status._errorCode);
     }
   }
 

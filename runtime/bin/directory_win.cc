@@ -9,6 +9,29 @@
 
 #include "bin/platform.h"
 
+
+static int SetOsErrorMessage(char* os_error_message,
+                             int os_error_message_len) {
+  int error_code = GetLastError();
+  DWORD message_size =
+      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    NULL,
+                    error_code,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    os_error_message,
+                    os_error_message_len,
+                    NULL);
+  if (message_size == 0) {
+    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+      fprintf(stderr, "FormatMessage failed %d\n", GetLastError());
+    }
+    snprintf(os_error_message, os_error_message_len, "OS Error %d", error_code);
+  }
+  os_error_message[os_error_message_len - 1] = '\0';
+  return error_code;
+}
+
+
 // Forward declaration.
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
@@ -238,42 +261,57 @@ bool Directory::Create(const char* dir_name) {
 }
 
 
-char* Directory::CreateTemp(const char* const_template, int64_t number) {
+int Directory::CreateTemp(const char* const_template,
+                          int64_t number,
+                          char** path,
+                          char* os_error_message,
+                          int os_error_message_len) {
   // Returns a new, unused directory name, modifying the contents of
   // dir_template.  Creates this directory, with a default security
   // descriptor inherited from its parent directory.
   // The return value must be freed by the caller.
-  char* path = static_cast<char*>(malloc(MAX_PATH));
+  *path = static_cast<char*>(malloc(MAX_PATH));
   int path_length;
   if (0 == strncmp(const_template, "", 1)) {
-    path_length = GetTempPath(MAX_PATH, path);
+    path_length = GetTempPath(MAX_PATH, *path);
+    if (path_length == 0) {
+      free(*path);
+      *path = NULL;
+      int error_code =
+          SetOsErrorMessage(os_error_message, os_error_message_len);
+      return error_code;
+    }
   } else {
-    snprintf(path, MAX_PATH, "%s", const_template);
-    path_length = strlen(path);
+    snprintf(*path, MAX_PATH, "%s", const_template);
+    path_length = strlen(*path);
   }
   if (path_length > MAX_PATH - 14) {
-    path[0] = '\0';
-    return path;
+    free(*path);
+    *path = NULL;
+    return -1;
   }
-  if (path[path_length - 1] == '\\') {
+  if ((*path)[path_length - 1] == '\\') {
     // No base name for the directory - use "tempdir"
-    snprintf(path + path_length, MAX_PATH - path_length, "tempdir");
-    path_length = strlen(path);
+    snprintf(*path + path_length, MAX_PATH - path_length, "tempdir");
+    path_length = strlen(*path);
   }
 
   int tries = 0;
   int numeric_part = number % 1000000;
   while (true) {
-    snprintf(path + path_length, MAX_PATH - path_length, "%.6d", numeric_part);
-    if (CreateDirectory(path, NULL)) break;
+    snprintf(*path + path_length, MAX_PATH - path_length, "%.6d", numeric_part);
+    if (CreateDirectory(*path, NULL)) break;
     numeric_part++;
     tries++;
     if (tries > 100) {
-      path[0] = '\0';
-      break;
+      free(*path);
+      *path = NULL;
+      int error_code =
+          SetOsErrorMessage(os_error_message, os_error_message_len);
+      return error_code;
     }
   }
-  return path;
+  return 0;
 }
 
 
