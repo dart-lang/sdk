@@ -264,7 +264,13 @@ String illegalTempDirectoryLocation() {
 testCreateTempErrorSync() {
   var location = illegalTempDirectoryLocation();
   if (location != null) {
-    Expect.throws(new Directory(location).createTempSync());
+    bool exception = false;
+    try {
+      new Directory(location).createTempSync();
+    } catch(DirectoryException e) {
+      exception = true;
+    }
+    Expect.isTrue(exception);
   }
 }
 
