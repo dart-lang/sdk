@@ -755,6 +755,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
   if ((kind == Token::kADD) ||
       (kind == Token::kSUB) ||
       (kind == Token::kMUL) ||
+      (kind == Token::kTRUNCDIV) ||
       (kind == Token::kBIT_AND) ||
       (kind == Token::kBIT_OR) ||
       (kind == Token::kBIT_XOR)) {
@@ -856,6 +857,20 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
       case Token::kBIT_XOR: {
         // No overflow check.
         __ xorl(EAX, EDX);
+        break;
+      }
+      case Token::kTRUNCDIV: {
+        // Handle Divide by zero in runtime.
+        __ cmpl(EDX, Immediate(0));
+        __ j(EQUAL, overflow_label);
+        // Move right to ECX, left is in EAX.
+        __ movl(ECX, EDX);
+        __ SmiUntag(ECX);
+        __ SmiUntag(EAX);
+        // Sign extend EAX -> EDX:EAX.
+        __ cdq();
+        __ idivl(ECX);
+        __ SmiTag(EAX);
         break;
       }
       default:
