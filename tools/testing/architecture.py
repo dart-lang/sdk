@@ -472,6 +472,8 @@ class WebDriverArchitecture(FrogChromiumArchitecture):
       browser_flag = 'ff'
     elif 'ie' in flags or 'explorer' in flags or 'internet-explorer' in flags:
       browser_flag = 'ie'
+    elif 'safari' in flags:
+      browser_flag = 'safari'
 
     selenium_location = os.path.join(self.root_path, 'tools', 'testing',
                                 'run_selenium.py')

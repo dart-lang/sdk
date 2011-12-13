@@ -85,30 +85,33 @@ def SyncAndBuild(failed_once=False):
   RunCmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'minfrog')])
 
   RunCmd(['gclient', 'sync'])
-  lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release'])
-  os.chdir('frog')
-  lines += RunCmd([os.path.join('..', 'tools', 'build.py'), '-m', 
-      'debug,release'])
-  os.chdir('..')
+  #TODO(efortuna): Temporary fix to get IE data without requiring Dart to build
+  # on Windows. Take this out once we have SDKs or can build on Windows.
+  if platform.system() != 'Windows':
+    lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release'])
+    os.chdir('frog')
+    lines += RunCmd([os.path.join('..', 'tools', 'build.py'), '-m', 
+        'debug,release'])
+    os.chdir('..')
   
-  for line in lines:
-    if 'BUILD FAILED' in lines:
-      if failed_once:
-        # Someone checked in a broken build! Just stop trying to make it work
-        # and wait for the next hour to try again.
-        print 'Broken Build'
-        return 1
-      #Remove the xcode directory and attempt to build again. If it still
-      #fails, abort, and try again next hour.
-      out_dir = 'out'
-      if platform.system() == 'Darwin':
-        out_dir = 'xcodebuild'
-      shutil.rmtree(os.path.join(os.getcwd(), out_dir, 'Release_ia32'))
-      shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
-          'Debug_ia32'))
-      shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
-          'Release_ia32'))
-      SyncAndBuild(True)
+    for line in lines:
+      if 'BUILD FAILED' in lines:
+        if failed_once:
+          # Someone checked in a broken build! Just stop trying to make it work
+          # and wait for the next hour to try again.
+          print 'Broken Build'
+          return 1
+        #Remove the xcode directory and attempt to build again. If it still
+        #fails, abort, and try again next hour.
+        out_dir = 'out'
+        if platform.system() == 'Darwin':
+          out_dir = 'xcodebuild'
+        shutil.rmtree(os.path.join(os.getcwd(), out_dir, 'Release_ia32'))
+        shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
+            'Debug_ia32'))
+        shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
+            'Release_ia32'))
+        SyncAndBuild(True)
   return 0
 
 def EnsureOutputDirectory(dir_name):
@@ -135,7 +138,7 @@ def GetBrowsers():
   if not PERFBOT_MODE:
     # Only Firefox (and Chrome, but we have Dump Render Tree) works in Linux
     return ['ff']
-  browsers = ['ff', 'chrome']
+  browsers = ['ff', 'chrome', 'safari']
   if platform.system() == 'Windows':
     browsers += ['ie']
   return browsers
@@ -180,7 +183,8 @@ class TestRunner(object):
     self.result_folder_name = result_folder_name
     # cur_time is used as a timestamp of when this performance test was run.
     self.cur_time = str(time.mktime(datetime.datetime.now().timetuple()))
-    self.browser_color = {'chrome': 'green', 'ie': 'blue', 'ff': 'red'}
+    self.browser_color = {'chrome': 'green', 'ie': 'blue', 'ff': 'red',
+        'safari':'black'}
     self.values_list = values_list
     self.platform_list = platform_list
     self.revision_dict = dict()
@@ -303,9 +307,6 @@ class TestRunner(object):
         [math.pow(math.e, geo_mean / len(BENCHMARKS))]
     self.revision_dict[platform][frog_or_v8][mean] += [svn_revision]
 
-  def Cleanup(self):
-      pass
-
   def Run(self):
     """Run the benchmarks/tests from the command line and plot the 
     results."""
@@ -327,7 +328,6 @@ class TestRunner(object):
 
     if PERFBOT_MODE:
       self.PlotResults('%s.png' % self.result_folder_name)
-    self.Cleanup();
 
 class PerformanceTestRunner(TestRunner):
   """Super class for all performance testing."""
@@ -429,6 +429,9 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
 
   def RunTests(self):
     """Run a performance test in the browser."""
+      # For the smoke test, just run a simple test, not the actual benchmarks to
+      # ensure we haven't broken the Firefox DOM.
+
     os.chdir('frog')
     RunCmd(['python', os.path.join('benchmarks', 'make_web_benchmarks.py')])
     os.chdir('..')
@@ -439,9 +442,13 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
             self.result_folder_name,
             'perf-%s-%s-%s' % (self.cur_time, browser, version))
         self.AddSvnRevisionToTrace(self.trace_file)
+        bench_page = 'benchmark_page'
+        if not PERFBOT_MODE:
+          bench_page = 'smoketest'
+          pass
         RunCmd(['python', os.path.join('tools', 'testing', 'run_selenium.py'), 
-            '--out', os.path.join(os.getcwd(), 'internal', 'browserBenchmarks',
-            'benchmark_page_%s.html' % version), '--browser', browser, 
+            '--out', os.path.join(os.getcwd(), 'internal', 'browserBenchmarks', 
+            '%s_%s.html' % (bench_page, version)), '--browser', browser, 
             '--timeout', '600', '--perf'], self.trace_file, append=True)
 
   def ProcessFile(self, afile):
@@ -501,11 +508,6 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       pass
 
       
-  def Cleanup(self):
-    # Kill the zombie chromedriver processes.
-    RunCmd(['killall', 'chromedriver'])
-
-
 class BrowserCorrectnessTestRunner(TestRunner):
   def __init__(self, test_type, result_folder_name):
     super(BrowserCorrectnessTestRunner, self).__init__(result_folder_name,
@@ -564,9 +566,6 @@ class BrowserCorrectnessTestRunner(TestRunner):
           png_filename, [browser], [FROG], [CORRECTNESS], first_time) 
       first_time = False
 
-  def Cleanup(self):
-    # Kill the zombie chromedriver processes.
-    RunCmd(['killall', 'chromedriver'])
 
 class CompileTimeAndSizeTestRunner(TestRunner):
   """Run tests to determine how long minfrog takes to compile, and the compiled 
@@ -696,7 +695,7 @@ def ParseArgs():
       help = 'Run this script forever, always checking for the next svn '
       'checkin', action = 'store_true', default = False)
   parser.add_option('--perfbot', '-p', dest = 'perfbot',
-      help = "Run in perfbot mode. (Generate plots, and remove trace files)", 
+      help = "Run in perfbot mode. (Generate plots, and keep trace files)", 
       action = 'store_true', default = False)
   parser.add_option('--verbose', '-v', dest = 'verbose',
       help = 'Print extra debug output', action = 'store_true', default = False)
