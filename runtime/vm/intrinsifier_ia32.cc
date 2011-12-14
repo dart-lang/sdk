@@ -368,8 +368,14 @@ static bool Integer_truncDivide(Assembler* assembler) {
   __ SmiUntag(EBX);
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument (dividend).
   __ SmiUntag(EAX);
+  __ pushl(EDX);  // Preserve EDX in case of 'fall_through'.
   __ cdq();
   __ idivl(EBX);
+  __ popl(EDX);
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
+  // cannot tag the result.
+  __ cmpl(EAX, Immediate(0x40000000));
+  __ j(EQUAL, &fall_through);
   __ SmiTag(EAX);
   __ ret();
   __ Bind(&fall_through);

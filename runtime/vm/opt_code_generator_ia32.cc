@@ -860,16 +860,25 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
         break;
       }
       case Token::kTRUNCDIV: {
-        // Handle Divide by zero in runtime.
+        // Handle divide by zero in runtime.
         __ cmpl(EDX, Immediate(0));
         __ j(EQUAL, overflow_label);
+        // Preserve left & right in case of 'overflow'.
+        __ pushl(EDX);
+        __ pushl(ECX);
         // Move right to ECX, left is in EAX.
         __ movl(ECX, EDX);
         __ SmiUntag(ECX);
         __ SmiUntag(EAX);
         // Sign extend EAX -> EDX:EAX.
         __ cdq();
-        __ idivl(ECX);
+        __ idivl(ECX);  // Result in EAX.
+        __ popl(ECX);
+        __ popl(EDX);
+        // Check the corner case of dividing the 'MIN_SMI' with -1, in which
+        // case we cannot tag the result.
+        __ cmpl(EAX, Immediate(0x40000000));
+        __ j(EQUAL, overflow_label);
         __ SmiTag(EAX);
         break;
       }
