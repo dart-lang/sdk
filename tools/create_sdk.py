@@ -181,6 +181,9 @@ def Main(argv):
   copytree(join(frog_src_dir, 'leg'), join(frog_dest_dir, 'leg'), 
            ignore=ignore_patterns('.svn'))
 
+  copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'), 
+           ignore=ignore_patterns('.svn'))
+
   #
   # Create and populate lib/html and lib/htmlimpl.
   #
