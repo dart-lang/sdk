@@ -5,7 +5,7 @@
 // Test to stress Frog's named parameter scheme.
 
 main() {
-  //testDollar();
+  testDollar();
   testPsycho();
 }
 
