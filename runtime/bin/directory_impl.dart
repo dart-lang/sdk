@@ -44,9 +44,7 @@ class _DirectoryCreateTempIsolate extends Isolate {
     port.receive((path, replyTo) {
       // Call function to get file name
       var status = new _OSStatus();
-      var result = _Directory._createTemp(path,
-                                          (Math.random() * 0x8000000).toInt(),
-                                          status);
+      var result = _Directory._createTemp(path, status);
       if (result == null) {
         replyTo.send(status);
       } else {
@@ -63,7 +61,6 @@ class _Directory implements Directory {
   _Directory(String this._path);
 
   static String _createTemp(String template,
-                            int num,
                             _OSStatus status) native "Directory_CreateTemp";
 
   bool existsSync() {
@@ -100,7 +97,7 @@ class _Directory implements Directory {
 
   void createTempSync() {
     var status = new _OSStatus();
-    var result = _createTemp(path, (Math.random() * 0x8000000).toInt(), status);
+    var result = _createTemp(path, status);
     if (result != null) {
       _path = result;
     } else {

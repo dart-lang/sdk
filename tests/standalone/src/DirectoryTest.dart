@@ -204,7 +204,6 @@ class DirectoryTest {
 
 class NestedTempDirectoryTest {
   List<Directory> createdDirectories;
-  static final int nestingDepth = 6;
   Directory current;
 
   NestedTempDirectoryTest(): createdDirectories = new List<Directory>();
@@ -215,6 +214,9 @@ class NestedTempDirectoryTest {
 
   void createPhaseCallback() {
     createdDirectories.add(current);
+    int nestingDepth = 6;
+    var os = new Platform().operatingSystem();
+    if (os == "windows") nestingDepth = 2;
     if (createdDirectories.length < nestingDepth) {
       current = new Directory(
           current.path + "/nested_temp_dir_${createdDirectories.length}_");

@@ -268,7 +268,6 @@ bool Directory::Create(const char* dir_name) {
 
 
 int Directory::CreateTemp(const char* const_template,
-                          int64_t number,
                           char** path,
                           char* os_error_message,
                           int os_error_message_len) {

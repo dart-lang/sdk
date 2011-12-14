@@ -262,7 +262,6 @@ bool Directory::Create(const char* dir_name) {
 
 
 int Directory::CreateTemp(const char* const_template,
-                          int64_t number,
                           char** path,
                           char* os_error_message,
                           int os_error_message_len) {
@@ -285,31 +284,44 @@ int Directory::CreateTemp(const char* const_template,
     snprintf(*path, MAX_PATH, "%s", const_template);
     path_length = strlen(*path);
   }
-  if (path_length > MAX_PATH - 14) {
+  // Length of tempdir-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 44.
+  if (path_length > MAX_PATH - 44) {
     free(*path);
     *path = NULL;
     return -1;
   }
   if ((*path)[path_length - 1] == '\\') {
-    // No base name for the directory - use "tempdir"
+    // No base name for the directory - use "tempdir".
     snprintf(*path + path_length, MAX_PATH - path_length, "tempdir");
     path_length = strlen(*path);
   }
 
-  int tries = 0;
-  int numeric_part = number % 1000000;
-  while (true) {
-    snprintf(*path + path_length, MAX_PATH - path_length, "%.6d", numeric_part);
-    if (CreateDirectory(*path, NULL)) break;
-    numeric_part++;
-    tries++;
-    if (tries > 100) {
-      free(*path);
-      *path = NULL;
-      int error_code =
-          SetOsErrorMessage(os_error_message, os_error_message_len);
-      return error_code;
-    }
+  UUID uuid;
+  RPC_STATUS status = UuidCreateSequential(&uuid);
+  if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
+    free(*path);
+    *path = NULL;
+    int error_code =
+        SetOsErrorMessage(os_error_message, os_error_message_len);
+    return error_code;
+  }
+  RPC_CSTR uuid_string;
+  status = UuidToString(&uuid, &uuid_string);
+  if (status != RPC_S_OK) {
+    free(*path);
+    *path = NULL;
+    int error_code =
+        SetOsErrorMessage(os_error_message, os_error_message_len);
+    return error_code;
+  }
+
+  snprintf(*path + path_length, MAX_PATH - path_length, "-%s", uuid_string);
+  if (!CreateDirectory(*path, NULL)) {
+    free(*path);
+    *path = NULL;
+    int error_code =
+        SetOsErrorMessage(os_error_message, os_error_message_len);
+    return error_code;
   }
   return 0;
 }

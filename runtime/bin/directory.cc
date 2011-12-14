@@ -79,11 +79,10 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
-  Dart_Handle number = Dart_GetNativeArgument(args, 1);
-  Dart_Handle status_handle = Dart_GetNativeArgument(args, 2);
+  Dart_Handle status_handle = Dart_GetNativeArgument(args, 1);
   static const int kMaxChildOsErrorMessageLength = 256;
   char os_error_message[kMaxChildOsErrorMessageLength];
-  if (!Dart_IsString(path) || !Dart_IsInteger(number)) {
+  if (!Dart_IsString(path)) {
     DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
     DartUtils::SetStringInstanceField(
         status_handle, "_errorMessage", "Invalid arguments");
@@ -94,7 +93,6 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
 
   char* result = NULL;
   int error_code = Directory::CreateTemp(DartUtils::GetStringValue(path),
-                                         DartUtils::GetIntegerValue(number),
                                          &result,
                                          os_error_message,
                                          kMaxChildOsErrorMessageLength);
