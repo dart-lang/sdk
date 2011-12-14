@@ -170,7 +170,9 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
 RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = Read<intptr_t>();
+  intptr_t tags = Read<intptr_t>();
   Class& cls = Class::Handle();
+  Object& obj = Object::Handle();
   if (SerializedHeaderData::decode(class_header) == kInstanceId) {
     // Object is regular dart instance.
     Instance& result = Instance::ZoneHandle();
@@ -184,11 +186,13 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     RawObject* raw = Object::Allocate(cls, instance_size, Heap::kNew);
     result ^= raw;
     intptr_t offset = Object::InstanceSize();
-    Object& obj = Object::Handle();
     while (offset < instance_size) {
       obj = ReadObject();
       result.SetFieldAtOffset(offset, obj);
       offset += kWordSize;
+    }
+    if (kind_ == Snapshot::kFull) {
+      result.SetCreatedFromSnapshot();
     }
     return result.raw();
   } else {
@@ -199,29 +203,32 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   switch (cls.instance_kind()) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kInstanceKind: {                                               \
-      return clazz::ReadFrom(this, object_id, kind_);                          \
+      obj = clazz::ReadFrom(this, object_id, tags, kind_);                     \
+      break;                                                                   \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
-    default: break;
+    default: UNREACHABLE(); break;
   }
-  UNREACHABLE();
-  return Object::null();
+  if (kind_ == Snapshot::kFull) {
+    obj.SetCreatedFromSnapshot();
+  }
+  return obj.raw();
 }
 
 
 void MessageWriter::WriteMessage(intptr_t field_count, intptr_t *data) {
   // Write out the serialization header value for this object.
-  WriteObjectHeader(kInlined, kMaxPredefinedObjectIds);
+  WriteSerializationMarker(kInlined, kMaxPredefinedObjectIds);
 
-  // Write out the class information.
-  WriteObjectHeader(kObjectId, ObjectStore::kArrayClass);
+  // Write out the class and tags information.
+  WriteObjectHeader(ObjectStore::kArrayClass, 0);
 
   // Write out the length field.
   Write<RawObject*>(Smi::New(field_count));
 
   // Write out the type arguments.
-  WriteObjectHeader(kObjectId, Object::kNullObject);
+  WriteIndexedObject(Object::kNullObject);
 
   // Write out the individual Smis.
   for (int i = 0; i < field_count; i++) {
@@ -253,13 +260,13 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 
   // Check if it is a singleton null object which is shared by all isolates.
   if (rawobj == Object::null()) {
-    WriteObjectHeader(kObjectId, Object::kNullObject);
+    WriteIndexedObject(Object::kNullObject);
     return;
   }
 
   // Check if it is a singleton sentinel object which is shared by all isolates.
   if (rawobj == Object::sentinel()) {
-    WriteObjectHeader(kObjectId, Object::kSentinelObject);
+    WriteIndexedObject(Object::kSentinelObject);
     return;
   }
 
@@ -268,19 +275,19 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
   RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
   intptr_t index = Object::GetSingletonClassIndex(raw_class);
   if (index != Object::kInvalidIndex) {
-    WriteObjectHeader(kObjectId, index);
+    WriteIndexedObject(index);
     return;
   }
 
   // Check if it is a singleton boolean true value.
   if (rawobj == object_store()->true_value()) {
-    WriteObjectHeader(kObjectId, ObjectStore::kTrueValue);
+    WriteIndexedObject(ObjectStore::kTrueValue);
     return;
   }
 
   // Check if it is a singleton boolean false value.
   if (rawobj == object_store()->false_value()) {
-    WriteObjectHeader(kObjectId, ObjectStore::kFalseValue);
+    WriteIndexedObject(ObjectStore::kFalseValue);
     return;
   }
 
@@ -289,21 +296,13 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
     RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
     index = object_store()->GetTypeIndex(raw_type);
     if (index != ObjectStore::kInvalidIndex) {
-      WriteObjectHeader(kObjectId, index);
+      WriteIndexedObject(index);
       return;
     }
   }
 
   // Now write the object out inline in the stream.
   WriteInlinedObject(rawobj);
-}
-
-
-void SnapshotWriter::WriteObjectHeader(SerializedHeaderType type, intptr_t id) {
-  uword value = 0;
-  value = SerializedHeaderTag::update(type, value);
-  value = SerializedHeaderData::update(id, value);
-  Write<uword>(value);
 }
 
 
@@ -355,7 +354,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   // case just write the object id out.
   if (SerializedHeaderTag::decode(reinterpret_cast<uword>(cls)) == kObjectId) {
     intptr_t id = SerializedHeaderData::decode(reinterpret_cast<intptr_t>(cls));
-    WriteObjectHeader(kObjectId, id);
+    WriteIndexedObject(id);
     return;
   }
 
@@ -374,10 +373,13 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     ASSERT(instance_size != 0);
 
     // Write out the serialization header value for this object.
-    WriteObjectHeader(kInlined, object_id);
+    WriteSerializationMarker(kInlined, object_id);
 
     // Indicate this is an instance object.
     Write<intptr_t>(SerializedHeaderData::encode(kInstanceId));
+
+    // Write out the tags.
+    Write<intptr_t>(raw->ptr()->tags_);
 
     // Write out the class information for this object.
     WriteObject(cls);
@@ -411,12 +413,12 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(kind_ != Snapshot::kFull);
   int id = object_store()->GetClassIndex(cls);
   if (IsSingletonClassId(id) || IsObjectStoreClassId(id)) {
-    WriteObjectHeader(kObjectId, id);
+    WriteIndexedObject(id);
   } else {
     // TODO(5411462): Should restrict this to only core-lib classes in this
     // case.
-    // Write out the class information.
-    WriteObjectHeader(kObjectId, Object::kClassClass);
+    // Write out the class and tags information.
+    WriteObjectHeader(Object::kClassClass, cls->ptr()->tags_);
     // Write out the library url and class name.
     RawLibrary* library = cls->ptr()->library_;
     ASSERT(library != Library::null());

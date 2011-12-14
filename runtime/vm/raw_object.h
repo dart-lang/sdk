@@ -132,6 +132,15 @@ enum {
 // RawObject is the base class of all raw objects, even though it carries the
 // class_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
+//
+// The tags field which is a part of the object header uses the following
+// bit fields for storing tags.
+//
+// bit 0 - SmiTag
+// bit 1 - Mark bit.
+// bit 2 - Canonical object.
+// bit 3 - Created from a full snapshot.
+//
 class RawObject {
  public:
   bool IsHeapObject() const {
@@ -166,6 +175,22 @@ class RawObject {
     ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarked);
   }
 
+  // Support for object tags.
+  bool IsCanonical() const {
+    return CanonicalObjectTag::decode(ptr()->tags_);
+  }
+  void SetCanonical() {
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = CanonicalObjectTag::update(true, tags);
+  }
+  bool IsCreatedFromSnapshot() {
+    return CreatedFromSnapshotTag::decode(ptr()->tags_);
+  }
+  void SetCreatedFromSnapshot() {
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = CreatedFromSnapshotTag::update(true, tags);
+  }
+
   void Validate() const;
   intptr_t Size() const;
   intptr_t VisitPointers(ObjectPointerVisitor* visitor);
@@ -180,8 +205,17 @@ class RawObject {
     return reinterpret_cast<uword>(raw_obj->ptr());
   }
 
+  static bool IsCreatedFromSnapshot(intptr_t value) {
+    return CreatedFromSnapshotTag::decode(value);
+  }
+
+  static bool IsCanonical(intptr_t value) {
+    return CanonicalObjectTag::decode(value);
+  }
+
  protected:
   RawClass* class_;
+  intptr_t tags_;  // Various object tags (bits).
 
  private:
   enum {
@@ -190,13 +224,17 @@ class RawObject {
     kMarked = 3,  // Tagged pointer and forwarding bit set.
   };
 
+  class CanonicalObjectTag : public BitField<bool, 2, 1> {
+  };
+
+  class CreatedFromSnapshotTag : public BitField<bool, 3, 1> {
+  };
+
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
     return reinterpret_cast<RawObject*>(
         reinterpret_cast<uword>(this) - kHeapObjectTag);
   }
-
-  intptr_t tags_;  // Various object tags (bits).
 
   friend class Object;
   friend class Array;
@@ -343,7 +381,6 @@ class RawTypeArguments : public RawAbstractTypeArguments {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->length_);
   }
-  bool is_canonical_;
   RawSmi* length_;
 
   // Variable length data follows here.

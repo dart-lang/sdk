@@ -2136,41 +2136,41 @@ RawAbstractType* Type::Canonicalize() const {
   Array& canonical_types = Array::Handle(cls.canonical_types());
   if (canonical_types.IsNull()) {
     // Types defined in the VM isolate are canonicalized via the object store.
-    // TODO(regis): Should we add null_class_, void_class_, dynamic_class_ to
-    // the object store, remove all types from the object store, and replace
-    // the test above by an assert?
     return this->raw();
   }
-  const intptr_t canonical_types_len = canonical_types.Length();
-  // Linear search to see whether this type is already present in the
-  // list of canonicalized types.
-  Type& type = Type::Handle();
-  intptr_t index = 0;
-  while (index < canonical_types_len) {
-    type ^= canonical_types.At(index);
-    if (type.IsNull()) {
-      break;
-    }
-    if (!type.IsFinalized()) {
-      ASSERT((index == 0) && cls.IsSignatureClass());
+  if (!IsCanonical()) {
+    const intptr_t canonical_types_len = canonical_types.Length();
+    // Linear search to see whether this type is already present in the
+    // list of canonicalized types.
+    Type& type = Type::Handle();
+    intptr_t index = 0;
+    while (index < canonical_types_len) {
+      type ^= canonical_types.At(index);
+      if (type.IsNull()) {
+        break;
+      }
+      if (!type.IsFinalized()) {
+        ASSERT((index == 0) && cls.IsSignatureClass());
+        index++;
+        continue;
+      }
+      if (this->Equals(type)) {
+        return type.raw();
+      }
       index++;
-      continue;
     }
-    if (this->Equals(type)) {
-      return type.raw();
+    // The type needs to be added to the list. Grow the list if it is full.
+    if (index == canonical_types_len) {
+      const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
+      const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
+      const Array& new_canonical_types =
+          Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
+      cls.set_canonical_types(new_canonical_types);
+      new_canonical_types.SetAt(index, *this);
+    } else {
+      canonical_types.SetAt(index, *this);
     }
-    index++;
-  }
-  // The type needs to be added to the list. Grow the list if it is full.
-  if (index == canonical_types_len) {
-    const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
-    const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
-    const Array& new_canonical_types =
-        Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
-    cls.set_canonical_types(new_canonical_types);
-    new_canonical_types.SetAt(index, *this);
-  } else {
-    canonical_types.SetAt(index, *this);
+    SetCanonical();
   }
   return this->raw();
 }
@@ -2522,7 +2522,7 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
-  ASSERT(!is_canonical());
+  ASSERT(!IsCanonical());
   // TODO(iposva): Add storing NoGCScope.
   *TypeAddr(index) = value.raw();
 }
@@ -2608,7 +2608,6 @@ RawTypeArguments* TypeArguments::New(intptr_t len) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.set_is_canonical(false);
     // Length must be set before we start storing into the array.
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
@@ -2628,7 +2627,7 @@ RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
 
 
 void TypeArguments::SetLength(intptr_t value) {
-  ASSERT(!is_canonical());
+  ASSERT(!IsCanonical());
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   raw_ptr()->length_ = Smi::New(value);
@@ -2636,7 +2635,7 @@ void TypeArguments::SetLength(intptr_t value) {
 
 
 RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
-  if (IsNull() || is_canonical() || !IsInstantiated()) {
+  if (IsNull() || IsCanonical() || !IsInstantiated()) {
     return this->raw();
   }
   ObjectStore* object_store = Isolate::Current()->object_store();
@@ -2658,18 +2657,8 @@ RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
     object_store->set_canonical_type_arguments(table);
   }
   table.SetAt(index, *this);
-  this->set_is_canonical(true);
+  SetCanonical();
   return this->raw();
-}
-
-
-bool TypeArguments::is_canonical() const {
-  return raw_ptr()->is_canonical_;
-}
-
-
-void TypeArguments::set_is_canonical(bool value) const {
-  raw_ptr()->is_canonical_ = value;
 }
 
 
@@ -5009,7 +4998,9 @@ bool Instance::Equals(const Instance& other) const {
     ASSERT(instance_size != 0);
     uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
     uword other_addr = reinterpret_cast<uword>(other.raw_ptr());
-    for (intptr_t offset = 0; offset < instance_size; offset += kWordSize) {
+    for (intptr_t offset = sizeof(RawObject);
+         offset < instance_size;
+         offset += kWordSize) {
       if ((*reinterpret_cast<RawObject**>(this_addr + offset)) !=
           (*reinterpret_cast<RawObject**>(other_addr + offset))) {
         return false;
@@ -5022,37 +5013,40 @@ bool Instance::Equals(const Instance& other) const {
 
 RawInstance* Instance::Canonicalize() const {
   ASSERT(!IsNull());
-  const Class& cls = Class::Handle(this->clazz());
-  Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Instance& norm_value = Instance::Handle();
-  intptr_t index = 0;
-  while (index < constants_len) {
-    norm_value ^= constants.At(index);
-    if (norm_value.IsNull()) {
-      break;
+  if (!IsCanonical()) {
+    const Class& cls = Class::Handle(this->clazz());
+    Array& constants = Array::Handle(cls.constants());
+    const intptr_t constants_len = constants.Length();
+    // Linear search to see whether this value is already present in the
+    // list of canonicalized constants.
+    Instance& norm_value = Instance::Handle();
+    intptr_t index = 0;
+    while (index < constants_len) {
+      norm_value ^= constants.At(index);
+      if (norm_value.IsNull()) {
+        break;
+      }
+      if (this->Equals(norm_value)) {
+        return norm_value.raw();
+      }
+      index++;
     }
-    if (this->Equals(norm_value)) {
-      return norm_value.raw();
+    // The value needs to be added to the list. Grow the list if
+    // it is full.
+    // TODO(srdjan): Copy instance into old space if canonicalized?
+    if (index == constants_len) {
+      const intptr_t kInitialConstLength = 4;
+      const intptr_t old_length = constants.Length();
+      const intptr_t new_length =
+          (old_length == 0) ? kInitialConstLength : old_length * 2;
+      const Array& new_constants =
+          Array::Handle(Array::Grow(constants, new_length, Heap::kOld));
+      cls.set_constants(new_constants);
+      new_constants.SetAt(index, *this);
+    } else {
+      constants.SetAt(index, *this);
     }
-    index++;
-  }
-  // The value needs to be added to the list. Grow the list if
-  // it is full.
-  // TODO(srdjan): Copy instance into old space if canonicalized?
-  if (index == constants_len) {
-    const intptr_t kInitialConstLength = 4;
-    const intptr_t old_length = constants.Length();
-    const intptr_t new_length =
-        (old_length == 0) ? kInitialConstLength : old_length * 2;
-    const Array& new_constants =
-        Array::Handle(Array::Grow(constants, new_length, Heap::kOld));
-    cls.set_constants(new_constants);
-    new_constants.SetAt(index, *this);
-  } else {
-    constants.SetAt(index, *this);
+    SetCanonical();
   }
   return this->raw();
 }
@@ -5848,36 +5842,10 @@ bool String::StartsWith(const String& other) const {
 
 
 RawInstance* String::Canonicalize() const {
+  if (IsCanonical()) {
+    return this->raw();
+  }
   return NewSymbol(*this);
-}
-
-
-bool String::IsSymbol() const {
-  if (!HasHash()) {
-    // All symbols have had their hash calculated.
-    return false;
-  }
-
-  // Get the hash for this string.
-  intptr_t hash = Hash();
-
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  const Array& symbol_table = Array::Handle(object_store->symbol_table());
-  // Last element of the array is the number of used elements.
-  intptr_t table_size = symbol_table.Length() - 1;
-  intptr_t index = hash % table_size;
-
-  // Try to find this string object in the symbol table. The symbol table is
-  // never entirely full so this loop will terminate.
-  String& symbol = String::Handle();
-  symbol ^= symbol_table.At(index);
-  while (!symbol.IsNull() && (raw_ptr() != symbol.raw_ptr())) {
-    index = (index + 1) % table_size;  // Move to next element.
-    symbol ^= symbol_table.At(index);
-  }
-
-  // This string is a symbol if we found a matching entry.
-  return !symbol.IsNull();
 }
 
 
@@ -6190,6 +6158,7 @@ static void InsertIntoSymbolTable(const Array& symbol_table,
                                   const String& symbol,
                                   intptr_t index,
                                   intptr_t table_size) {
+  symbol.SetCanonical();  // Mark object as being canonical.
   symbol_table.SetAt(index, symbol);  // Remember the new symbol.
   Smi& used = Smi::Handle();
   used ^= symbol_table.At(table_size);
@@ -6264,6 +6233,9 @@ template RawString* String::NewSymbol(const uint32_t* characters, intptr_t len);
 
 
 RawString* String::NewSymbol(const String& str) {
+  if (str.IsSymbol()) {
+    return str.raw();
+  }
   return NewSymbol(str, 0, str.Length());
 }
 

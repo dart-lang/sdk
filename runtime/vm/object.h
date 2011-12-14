@@ -97,8 +97,10 @@ class LocalScope;
   void operator=(const super& value);                                          \
 
 #define SNAPSHOT_READER_SUPPORT(object)                                        \
-  static Raw##object* ReadFrom(                                                \
-      SnapshotReader* reader, intptr_t object_id, Snapshot::Kind);             \
+  static Raw##object* ReadFrom(SnapshotReader* reader,                         \
+                               intptr_t object_id,                             \
+                               intptr_t tags,                                  \
+                               Snapshot::Kind);                                \
   friend class SnapshotReader;                                                 \
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
@@ -148,6 +150,23 @@ class Object {
 
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { SetRaw(value); }
+
+  void set_tags(intptr_t tags) {
+    ASSERT(!IsNull());
+    raw()->ptr()->tags_ = tags;
+  }
+  void SetCreatedFromSnapshot() const {
+    ASSERT(!IsNull());
+    raw()->SetCreatedFromSnapshot();
+  }
+  bool IsCanonical() const {
+    ASSERT(!IsNull());
+    return raw()->IsCanonical();
+  }
+  void SetCanonical() const {
+    ASSERT(!IsNull());
+    raw()->SetCanonical();
+  }
 
   inline RawClass* clazz() const;
   static intptr_t class_offset() { return OFFSET_OF(RawObject, class_); }
@@ -1037,16 +1056,13 @@ class TypeArguments : public AbstractTypeArguments {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types_ is not adding to the object length.
-    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
+    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (1 * kWordSize)));
     return RoundedAllocationSize(sizeof(RawTypeArguments) + (len * kWordSize));
   }
 
   static RawTypeArguments* New(intptr_t len);
 
  private:
-  bool is_canonical() const;
-  void set_is_canonical(bool value) const;
-
   // Make sure that the array size cannot wrap around.
   static const intptr_t kMaxTypes = 512 * 1024 * 1024;
   RawAbstractType** TypeAddr(intptr_t index) const;
@@ -2476,7 +2492,7 @@ class String : public Instance {
 
   virtual RawInstance* Canonicalize() const;
 
-  bool IsSymbol() const;
+  bool IsSymbol() const { return raw()->IsCanonical(); }
 
   virtual bool IsExternal() const { return false; }
   virtual void* GetPeer() const {
@@ -2582,6 +2598,7 @@ class String : public Instance {
   template<typename HandleType, typename ElementType>
   static RawString* ReadFromImpl(SnapshotReader* reader,
                                  intptr_t object_id,
+                                 intptr_t tags,
                                  Snapshot::Kind kind);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
