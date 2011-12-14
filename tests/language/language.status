@@ -318,27 +318,12 @@ StringConcatTest: Fail
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == leg ]
-NamedParametersWithDollarsTest: Fail
-StaticTopLevelTest/00: Fail
-StaticTopLevelTest/01: Fail
-StaticTopLevelTest/02: Fail
-StaticTopLevelTest/03: Fail
-StaticTopLevelTest/04: Fail
-StaticTopLevelTest/05: Fail
-ToplevelCollision1Test/00: Fail
-ToplevelCollision1Test/01: Fail
-ToplevelCollision1Test/02: Fail
-ToplevelCollision2Test/00: Fail
-ToplevelCollision2Test/01: Fail # added in r1934
 TypeVariableBoundsTest/none: Pass # I think the "cancel leg" message is confusing the test harness? Leg is bailing on all these tests after seeing the "extends" factory syntax.
 TypeVariableBoundsTest/03: Pass
 TypeVariableBoundsTest/04: Pass
 TypeVariableBoundsTest/02: Fail
 TypeVariableBoundsTest/06: Fail
-ConstructorReturnNegativeTest: Fail
-ConstructorReturnWithArrowNegativeTest: Fail
-DuplicateConstructorTest/01: Fail
-InstFieldInitializer1NegativeTest: Fail # Unused fields are not analyzed.
+
 
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
