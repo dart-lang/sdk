@@ -32,7 +32,6 @@ IndexedListAccessTest: Fail     # Issue 274
 # Note: Correctly skips 4 VMTests that rely on VM internals
 
 ConstList*: Fail # 'const' is not currently checked.
-CoreRuntimeTypesTest: Fail
 DateTimeTest: Fail
 DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
 ForInTest: Fail
@@ -53,6 +52,11 @@ StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
 
+[ $component == frog || $component == frogsh || $component == leg ]
+CoreRuntimeTypesTest: Fail
+
+[ $component == frogium ]
+CoreRuntimeTypesTest: Timeout
 
 [ $arch == x64 ]
 *: Skip
