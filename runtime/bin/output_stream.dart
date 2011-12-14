@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Output is written to a given output stream. Such an output stream can
- * be an endpoint, e.g., a socket or a file, or another output stream.
- * Multiple output streams can be chained together to operate collaboratively
- * on a given output.
+ * Output streams are used to write data sequentially to a data
+ * destination e.g. a connected socket or an open file.
  *
  * An output stream provides internal buffering of the data written
  * through all calls to [write] and [writeFrom] if data cannot be
