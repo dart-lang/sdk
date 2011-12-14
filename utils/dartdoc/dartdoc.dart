@@ -134,12 +134,14 @@ document(String entrypoint) {
       case 'corelib':
         world.getOrAddLibrary('dart:core');
         world.getOrAddLibrary('dart:coreimpl');
+        world.getOrAddLibrary('dart:json');
         world.process();
         break;
 
       case 'dom':
         world.getOrAddLibrary('dart:core');
         world.getOrAddLibrary('dart:coreimpl');
+        world.getOrAddLibrary('dart:json');
         world.getOrAddLibrary('dart:dom');
         world.process();
         break;
@@ -147,6 +149,7 @@ document(String entrypoint) {
       case 'html':
         world.getOrAddLibrary('dart:core');
         world.getOrAddLibrary('dart:coreimpl');
+        world.getOrAddLibrary('dart:json');
         world.getOrAddLibrary('dart:dom');
         world.getOrAddLibrary('dart:html');
         world.process();
