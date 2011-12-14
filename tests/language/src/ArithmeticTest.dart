@@ -34,7 +34,7 @@ class ArithmeticTest {
     }
   }
 
-  static testMain() {
+  static runOne() {
     var a = 22;
     var b = 4;
     // Smi & smi.
@@ -46,6 +46,12 @@ class ArithmeticTest {
     Expect.equals(2.0, 10 / 5);
     Expect.equals(2, a % b);
     Expect.equals(2, a.remainder(b));
+    // Smi corner cases.
+    for (int i = 0; i < 80; i++) {
+      a = -(1 << i);
+      b = -1;
+      Expect.equals(1 << i, a ~/ b);
+    }
     a = 22;
     b = 4.0;
     // Smi & double.
@@ -387,6 +393,12 @@ class ArithmeticTest {
     Expect.equals(true, (1.2).hashCode() == (1.2).hashCode());
     Expect.equals(false, (3).hashCode() == (1).hashCode());
     Expect.equals(true, (10).hashCode() == (10).hashCode());
+  }
+
+  static testMain() {
+    for (int i = 0; i < 1500; i++) {
+      runOne();
+    }
   }
 }
 
