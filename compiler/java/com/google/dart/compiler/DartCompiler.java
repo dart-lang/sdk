@@ -187,7 +187,7 @@ public class DartCompiler {
      * Update the current application and any referenced libraries and resolve
      * them.
      *
-     * @return a {@link LibraryUnit}, never null
+     * @return a {@link LibraryUnit}, maybe <code>null</code>
      * @throws IOException on IO errors - the caller must log this if it cares
      */
     private LibraryUnit updateAndResolve() throws IOException {
@@ -1195,22 +1195,24 @@ public class DartCompiler {
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener, config);
     Compiler compiler = new SelectiveCompiler(lib, parsedUnits, config, context);
     LibraryUnit libraryUnit = compiler.updateAndResolve();
-    // Ignore errors. Resolver should be able to cope with
-    // errors. Otherwise, we should fix it.
-    DartCompilationPhase[] phases = {
-      new Resolver.Phase(),
-      new TypeAnalyzer()
-    };
-    for (DartUnit unit : libraryUnit.getUnits()) {
-      // Don't analyze api-only units.
-      if (unit.isDiet()) {
-        continue;
-      }
-
-      for (DartCompilationPhase phase : phases) {
-        unit = phase.exec(unit, context, compiler.getTypeProvider());
-        // Ignore errors. TypeAnalyzer should be able to cope with
-        // resolution errors.
+    if (libraryUnit != null) {
+      // Ignore errors. Resolver should be able to cope with
+      // errors. Otherwise, we should fix it.
+      DartCompilationPhase[] phases = {
+        new Resolver.Phase(),
+        new TypeAnalyzer()
+      };
+      for (DartUnit unit : libraryUnit.getUnits()) {
+        // Don't analyze api-only units.
+        if (unit.isDiet()) {
+          continue;
+        }
+  
+        for (DartCompilationPhase phase : phases) {
+          unit = phase.exec(unit, context, compiler.getTypeProvider());
+          // Ignore errors. TypeAnalyzer should be able to cope with
+          // resolution errors.
+        }
       }
     }
     return libraryUnit;
