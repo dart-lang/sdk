@@ -24,8 +24,8 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void forEach(void f(Node element)) {
-    for (var node in _childNodes) {
-      f(LevelDom.wrapNode(node));
+    for (int i = 0, len = _childNodes.length; i < len; i++) {
+      f(LevelDom.wrapNode(_childNodes[i]));
     }
   }
 
