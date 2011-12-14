@@ -186,4 +186,31 @@ RawInstance* DartLibraryCalls::Equals(const Instance& left,
   return result.raw();
 }
 
+
+RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
+                                           Dart_Port reply_port_id,
+                                           const Instance& message) {
+  const String& class_name =
+      String::Handle(String::NewSymbol("ReceivePortImpl"));
+  const String& function_name =
+      String::Handle(String::NewSymbol("_handleMessage"));
+  const int kNumArguments = 3;
+  const Array& kNoArgumentNames = Array::Handle();
+  const Function& function = Function::Handle(
+      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+                              class_name,
+                              function_name,
+                              kNumArguments,
+                              kNoArgumentNames,
+                              Resolver::kIsQualified));
+  GrowableArray<const Object*> arguments(kNumArguments);
+  arguments.Add(&Integer::Handle(Integer::New(dest_port_id)));
+  arguments.Add(&Integer::Handle(Integer::New(reply_port_id)));
+  arguments.Add(&message);
+  const Object& result = Object::Handle(
+      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  ASSERT(result.IsNull() || result.IsUnhandledException());
+  return result.raw();
+}
+
 }  // namespace dart

@@ -163,7 +163,7 @@ static void RunIsolate(uword parameter) {
     // TODO(iposva): Deserialize or call the constructor after allocating.
     // For now, we only support a non-parameterized or raw target class.
     const Instance& target = Instance::Handle(Instance::New(target_class));
-    Instance& result = Instance::Handle();
+    Object& result = Object::Handle();
 
     // Invoke the default constructor.
     const String& period = String::Handle(String::New("."));
@@ -207,7 +207,13 @@ static void RunIsolate(uword parameter) {
     }
     ASSERT(result.IsNull());
     free(class_name);
-    isolate->StandardRunLoop();
+    result = isolate->StandardRunLoop();
+    if (result.IsUnhandledException()) {
+      UnhandledException& uhe = UnhandledException::Handle();
+      uhe ^= result.raw();
+      ProcessUnhandledException(uhe);
+    }
+    ASSERT(result.IsNull());
 
   } else {
     Zone zone(isolate);

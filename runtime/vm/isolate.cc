@@ -11,6 +11,7 @@
 #include "vm/code_index_table.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
+#include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/heap.h"
@@ -242,7 +243,22 @@ Dart_IsolateCreateCallback Isolate::CreateCallback() {
 }
 
 
-void Isolate::StandardRunLoop() {
+static RawInstance* DeserializeMessage(void* data) {
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  ASSERT(snapshot->IsMessageSnapshot());
+
+  // Read object back from the snapshot.
+  Isolate* isolate = Isolate::Current();
+  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  Instance& instance = Instance::Handle();
+  instance ^= reader.ReadObject();
+  return instance.raw();
+}
+
+
+
+RawObject* Isolate::StandardRunLoop() {
   ASSERT(long_jump_base() != NULL);
   ASSERT(post_message_callback() == &StandardPostMessageCallback);
   ASSERT(close_port_callback() == &StandardClosePortCallback);
@@ -254,21 +270,20 @@ void Isolate::StandardRunLoop() {
 
     PortMessage* message = message_queue()->Dequeue(0);
     if (message != NULL) {
-      Dart_EnterScope();
-      Dart_Handle result = Dart_HandleMessage(
-          message->dest_port(), message->reply_port(), message->data());
-      if (Dart_IsError(result)) {
-        // TODO(turnidge): Consider passing this error out to
-        // Dart_RunLoop so that the embedder can choose how to handle
-        // it.
-        fprintf(stderr, "%s\n", Dart_GetError(result));
-        Dart_ExitScope();
-        exit(255);
-      }
-      Dart_ExitScope();
+      const Instance& msg =
+          Instance::Handle(DeserializeMessage(message->data()));
+      const Object& result = Object::Handle(
+          DartLibraryCalls::HandleMessage(
+              message->dest_port(), message->reply_port(), msg));
       delete message;
+      if (result.IsUnhandledException()) {
+        return result.raw();
+      }
     }
   }
+
+  // Indicates success.
+  return Object::null();
 }
 
 

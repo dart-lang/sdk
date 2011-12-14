@@ -475,6 +475,10 @@ DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port_id,
  * isolate. As new messages arrive, they are handled using
  * Dart_HandleMessage. The routine exits when all ports to the
  * current isolate are closed.
+ *
+ * \return A valid handle if the run loop exited successfully.  If an
+ *   exception or other error occurs while processing messages, an
+ *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_RunLoop();
 // TODO(turnidge): Should this be removed from the public api?

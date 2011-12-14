@@ -2766,7 +2766,7 @@ static bool RunLoopTestCallback(void* data, char** error) {
       "  void main() {\n"
       "    port.receive((message, replyTo) {\n"
       "      if (message) {\n"
-      "        throw new Exception('MakeVMExit');\n"
+      "        throw new Exception('MakeChildExit');\n"
       "      } else {\n"
       "        replyTo.call('hello');\n"
       "        port.close();\n"
@@ -2775,10 +2775,11 @@ static bool RunLoopTestCallback(void* data, char** error) {
       "  }\n"
       "}\n"
       "\n"
-      "void main(message) {\n"
+      "void main(exc_child, exc_parent) {\n"
       "  new MyIsolate().spawn().then((port) {\n"
-      "    port.call(message).receive((message, replyTo) {\n"
+      "    port.call(exc_child).receive((message, replyTo) {\n"
       "      if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
+      "      if (exc_parent) throw new Exception('MakeParentExit');\n"
       "    });\n"
       "  });\n"
       "}\n";
@@ -2799,7 +2800,8 @@ static bool RunLoopTestCallback(void* data, char** error) {
 
 
 // Common code for RunLoop_Success/RunLoop_Failure.
-static void RunLoopTest(bool throw_exception) {
+static void RunLoopTest(bool throw_exception_child,
+                        bool throw_exception_parent) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
   RunLoopTestCallback(NULL, NULL);
@@ -2809,16 +2811,22 @@ static void RunLoopTest(bool throw_exception) {
   EXPECT_VALID(lib);
 
   Dart_Handle result;
-  Dart_Handle args[1];
-  args[0] = (throw_exception ? Dart_True() : Dart_False());
+  Dart_Handle args[2];
+  args[0] = (throw_exception_child ? Dart_True() : Dart_False());
+  args[1] = (throw_exception_parent ? Dart_True() : Dart_False());
   result = Dart_InvokeStatic(lib,
                              Dart_NewString(""),
                              Dart_NewString("main"),
-                             1,
+                             2,
                              args);
   EXPECT_VALID(result);
   result = Dart_RunLoop();
-  EXPECT_VALID(result);
+  if (throw_exception_parent) {
+    EXPECT(Dart_IsError(result));
+    // TODO(turnidge): Once EXPECT_SUBSTRING is submitted use it here.
+  } else {
+    EXPECT_VALID(result);
+  }
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
@@ -2828,12 +2836,18 @@ static void RunLoopTest(bool throw_exception) {
 
 
 UNIT_TEST_CASE(RunLoop_Success) {
-  RunLoopTest(false);
+  RunLoopTest(false, false);
 }
 
 
-UNIT_TEST_CASE(RunLoop_Exception) {
-  RunLoopTest(true);
+// This test exits the vm.  Listed as FAIL in vm.status.
+UNIT_TEST_CASE(RunLoop_ExceptionChild) {
+  RunLoopTest(true, false);
+}
+
+
+UNIT_TEST_CASE(RunLoop_ExceptionParent) {
+  RunLoopTest(false, true);
 }
 
 #endif  // TARGET_ARCH_IA32.

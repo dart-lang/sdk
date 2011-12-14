@@ -678,6 +678,30 @@ DART_EXPORT void Dart_SetMessageCallbacks(
 }
 
 
+DART_EXPORT Dart_Handle Dart_RunLoop() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  Dart_Handle result;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    const Object& obj = Object::Handle(isolate->StandardRunLoop());
+    if (obj.IsUnhandledException()) {
+      result = Api::ErrorFromException(obj);
+    } else {
+      ASSERT(obj.IsNull());
+      result = Api::Success();
+    }
+  } else {
+    SetupErrorResult(&result);
+  }
+  isolate->set_long_jump_base(base);
+  return result;
+}
+
+
 static RawInstance* DeserializeMessage(void* data) {
   // Create a snapshot object using the buffer.
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
@@ -696,52 +720,17 @@ DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port_id,
                                            Dart_Port reply_port_id,
                                            Dart_Message dart_message) {
   DARTSCOPE(Isolate::Current());
-
   const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
-  const String& class_name =
-      String::Handle(String::NewSymbol("ReceivePortImpl"));
-  const String& function_name =
-      String::Handle(String::NewSymbol("_handleMessage"));
-  const int kNumArguments = 3;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(dest_port_id)));
-  arguments.Add(&Integer::Handle(Integer::New(reply_port_id)));
-  arguments.Add(&msg);
-  // TODO(turnidge): This call should be wrapped in a longjmp
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  // TODO(turnidge): Should this call be wrapped in a longjmp?
+  const Object& result =
+      Object::Handle(DartLibraryCalls::HandleMessage(dest_port_id,
+                                                     reply_port_id,
+                                                     msg));
   if (result.IsUnhandledException()) {
     return Api::ErrorFromException(result);
   }
   ASSERT(result.IsNull());
   return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_RunLoop() {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  Dart_Handle result;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    isolate->StandardRunLoop();
-    result = Api::Success();
-  } else {
-    SetupErrorResult(&result);
-  }
-  isolate->set_long_jump_base(base);
-  return result;
 }
 
 

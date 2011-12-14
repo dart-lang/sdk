@@ -5,7 +5,7 @@
 prefix vm
 
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
-RunLoop_Exception: Fail
+RunLoop_ExceptionChild: Fail
 
 # Partially implemented old generation GC.
 OldGC: CRASH

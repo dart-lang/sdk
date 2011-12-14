@@ -27,6 +27,7 @@ class Monitor;
 class ObjectPointerVisitor;
 class ObjectStore;
 class RawContext;
+class RawObject;
 class StackResource;
 class StubCode;
 class Zone;
@@ -230,7 +231,8 @@ class Isolate {
 
   void SetStackLimitFromCurrentTOS(uword isolate_stack_top);
 
-  void StandardRunLoop();
+  // Returns null on success, unhandled exception on failure.
+  RawObject* StandardRunLoop();
 
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
