@@ -23,7 +23,7 @@ class CCTestListerIsolate extends Isolate {
       var p = new Process(runnerPath, ["--list"]);
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
       List<String> tests = new List<String>();
-      stdoutStream.dataHandler = () {
+      stdoutStream.lineHandler = () {
         String line = stdoutStream.readLine();
         while (line != null) {
           tests.add(line);
