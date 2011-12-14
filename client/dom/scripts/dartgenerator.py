@@ -659,7 +659,7 @@ class DartGenerator(object):
 
       # New version: Frog
       self.GenerateLibFile('template_frog_dom.darttemplate',
-                           os.path.join(lib_dir, 'frog_dom.dart'),
+                           os.path.join(lib_dir, 'dom_frog.dart'),
                            self._dart_frog_file_paths +
                            self._dart_callback_file_paths)
 

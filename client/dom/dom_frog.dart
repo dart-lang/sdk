@@ -6,7 +6,7 @@
 // Auto-generated Dart DOM library.
 
 #library("dom");
-#native("frog_dom.js");
+#native("dom_frog.js");
 
 #source('generated/src/frog/AbstractWorker.dart');
 #source('generated/src/frog/ArrayBuffer.dart');
