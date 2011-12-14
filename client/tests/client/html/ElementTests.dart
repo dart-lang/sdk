@@ -53,6 +53,8 @@ void testElement() {
   asyncTest('rect', 1, () {
     final container = new Element.tag("div");
     container.style.position = 'absolute';
+    container.style.top = '8px';
+    container.style.left = '8px';
     final element = new Element.tag("div");
     element.style.width = '200px';
     element.style.height = '200px';
