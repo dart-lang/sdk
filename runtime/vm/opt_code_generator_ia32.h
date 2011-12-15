@@ -16,6 +16,7 @@ namespace dart {
 // Forward declarations.
 class ClassesForLocals;
 class DeoptimizationBlob;
+struct InstanceSetterArgs;
 
 // Temporary hierarchy, until optimized code generator implemented.
 // The optimizing compiler does not run if type checks are enabled.
@@ -83,12 +84,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
                                            AstNode* receiver,
                                            const String& field_name,
                                            Register recv_reg);
-  void InlineInstanceSettersWithSameTarget(AstNode* node,
-                                           intptr_t id,
-                                           AstNode* receiver,
-                                           const String& field_name,
-                                           Register recv_reg,
-                                           Register value_reg);
 
   // Helper method to load a value quickly into register instead of pushing
   // and popping it.
@@ -103,6 +98,8 @@ class OptimizingCodeGenerator : public CodeGenerator {
                             AstNode* receiver,
                             const String& field_name,
                             Register recv_reg);
+
+  void GenerateInstanceSetter(const InstanceSetterArgs& args);
   void InlineInstanceSetter(AstNode* node,
                             intptr_t id,
                             AstNode* receiver,

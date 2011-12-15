@@ -1537,14 +1537,6 @@ static bool ICDataToSameInlineableInstanceGetter(const ICData& ic_data) {
 }
 
 
-// Return true if all targets in 'ic_data' point to same
-// inlineable getter target.
-static bool ICDataToSameInlineableInstanceSetter(const ICData& ic_data) {
-  const Function& target = Function::Handle(GetUniqueTarget(ic_data));
-  return !target.IsNull() && (target.kind() == RawFunction::kImplicitSetter);
-}
-
-
 void OptimizingCodeGenerator::InlineInstanceGetter(AstNode* node,
                                                    intptr_t id,
                                                    AstNode* receiver,
@@ -1598,63 +1590,119 @@ void OptimizingCodeGenerator::VisitInstanceGetterNode(
 }
 
 
-// Clobber EBX leave 'value_reg' untouched.
-void OptimizingCodeGenerator::InlineInstanceSettersWithSameTarget(
-    AstNode* node,
-    intptr_t id,
-    AstNode* receiver,
-    const String& field_name,
-    Register recv_reg,
-    Register value_reg) {
-  ASSERT((recv_reg != EBX) && (value_reg != EBX));
-  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(
-      node, recv_reg, value_reg, kDeoptInstanceSetterSameTarget);
-  if (NodeMayBeSmi(receiver)) {
-    __ testl(recv_reg, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt_blob->label());
-  }
-  __ movl(EBX, FieldAddress(recv_reg, Object::class_offset()));
-  const ICData& ic_data = node->ICDataAtId(id);
-  Function& target = Function::Handle();
-  Label store_field;
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    Class& cls = Class::ZoneHandle();
-    ic_data.GetOneClassCheckAt(i, &cls, &target);
-    __ CompareObject(EBX, cls);
-    if (i == (ic_data.NumberOfChecks() - 1)) {
-      __ j(NOT_EQUAL, deopt_blob->label());
-    } else {
-      __ j(EQUAL, &store_field);
-    }
-  }
-  Class& cls = Class::Handle();
-  ic_data.GetOneClassCheckAt(0, &cls, &target);
+// Helper struct to pass arguments to 'GenerateInstanceSetter'.
+struct InstanceSetterArgs {
+  const Class* cls;
+  const Function* target;
+  const String* field_name;
+  Register recv_reg;
+  Register value_reg;
+  intptr_t id;
+  intptr_t token_index;
+};
 
-  __ Bind(&store_field);
-  ASSERT(target.kind() == RawFunction::kImplicitSetter);
-  intptr_t field_offset = GetFieldOffset(cls, field_name);
-  ASSERT(field_offset >= 0);
-  __ StoreIntoObject(recv_reg, FieldAddress(recv_reg, field_offset), value_reg);
+
+// Preserves 'args.value_reg'. Either stores instance field directly or
+// calls the setter method.
+void OptimizingCodeGenerator::GenerateInstanceSetter(
+    const InstanceSetterArgs& args) {
+  if (args.target->kind() == RawFunction::kImplicitSetter) {
+    intptr_t field_offset = GetFieldOffset(*(args.cls), *(args.field_name));
+    ASSERT(field_offset >= 0);
+    __ StoreIntoObject(args.recv_reg,
+        FieldAddress(args.recv_reg, field_offset), args.value_reg);
+  } else {
+    __ pushl(args.value_reg);
+    __ pushl(args.recv_reg);
+    __ pushl(args.value_reg);
+    const Array& no_optional_argument_names = Array::Handle();
+    GenerateDirectCall(args.id,
+                       args.token_index,
+                       *(args.target),
+                       2,
+                       no_optional_argument_names);
+    __ popl(args.value_reg);
+  }
 }
 
 
-// Returns value in 'value_reg'.
+// Returns value in 'value_reg', clobbers EBX.
 void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
                                                    intptr_t id,
                                                    AstNode* receiver,
                                                    const String& field_name,
                                                    Register recv_reg,
                                                    Register value_reg) {
-  if (ICDataToSameInlineableInstanceSetter(node->ICDataAtId(id))) {
-    InlineInstanceSettersWithSameTarget(node,
-                                        id,
-                                        receiver,
-                                        field_name,
-                                        recv_reg,
-                                        value_reg);
-  } else {
-    UNIMPLEMENTED();
+  // EBX is used as temporary register for class.
+  ASSERT((recv_reg != EBX) && (value_reg != EBX));
+  GrowableArray<Class*> classes;
+  GrowableArray<Function*> targets;
+  bool unique_target = true;
+  {
+    const ICData& ic_data = node->ICDataAtId(id);
+    ASSERT(ic_data.NumberOfChecks() > 0);
+    ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+    for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+      Class& cls = Class::ZoneHandle();
+      Function& target = Function::ZoneHandle();
+      ic_data.GetOneClassCheckAt(i, &cls, &target);
+      classes.Add(&cls);
+      targets.Add(&target);
+    }
+    for (intptr_t i = 1; i < targets.length(); i++) {
+      if (targets[i - 1]->raw() != targets[i]->raw()) {
+        unique_target = false;
+        break;
+      }
+    }
   }
+  // TODO(srdjan): sort classes/target by their invocation count.
+  DeoptimizationBlob* deopt_blob = AddDeoptimizationBlob(
+      node, recv_reg, value_reg, kDeoptInstanceSetterSameTarget);
+  // Deoptimize if Smi, since they do not have setters.
+  if (NodeMayBeSmi(receiver)) {
+    __ testl(recv_reg, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt_blob->label());
+  }
+  __ movl(EBX, FieldAddress(recv_reg, Object::class_offset()));
+  // Initialize setter arguments, but leave the class and target fields NULL.
+  InstanceSetterArgs setter_args =
+      {NULL, NULL, &field_name, recv_reg, value_reg, id, node->token_index()};
+
+  if (unique_target) {
+    Label store_field;
+    for (intptr_t i = 0; i < classes.length(); i++) {
+      __ CompareObject(EBX, *classes[i]);
+      if (i == (classes.length() - 1)) {
+        __ j(NOT_EQUAL, deopt_blob->label());
+      } else {
+        __ j(EQUAL, &store_field);
+      }
+    }
+    __ Bind(&store_field);
+    setter_args.cls = classes[0];
+    setter_args.target = targets[0];
+    GenerateInstanceSetter(setter_args);
+    return;
+  }
+  // Targets are different.
+  Label done;
+  for (intptr_t i = 0; i < classes.length(); i++) {
+    setter_args.cls = classes[i];
+    setter_args.target = targets[i];
+    __ CompareObject(EBX, *classes[i]);
+    if (i == (classes.length() - 1)) {
+      __ j(NOT_EQUAL, deopt_blob->label());
+      GenerateInstanceSetter(setter_args);
+    } else {
+      Label next_check;
+      __ j(NOT_EQUAL, &next_check);
+      GenerateInstanceSetter(setter_args);
+      __ jmp(&done);
+      __ Bind(&next_check);
+    }
+  }
+  __ Bind(&done);
 }
 
 
@@ -1663,8 +1711,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
 void OptimizingCodeGenerator::VisitInstanceSetterNode(
     InstanceSetterNode* node) {
   // TODO(srdjan): inline setters to different targets as well.
-  if (FLAG_enable_type_checks ||
-      !ICDataToSameInlineableInstanceSetter(node->ICDataAtId(node->id()))) {
+  if (FLAG_enable_type_checks) {
     CodeGenerator::VisitInstanceSetterNode(node);
     return;
   }
