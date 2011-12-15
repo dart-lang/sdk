@@ -6,7 +6,7 @@
 // Auto-generated Dart DOM library.
 
 #library("dom");
-#native("frog_dom.js");
+#native("dom_frog.js");
 
 $!GENERATED_DART_FILES
 #source('src/EventListener.dart');
