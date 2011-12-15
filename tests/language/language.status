@@ -181,6 +181,7 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 FactoryNegativeTest: Fail # Issue 417
 Factory3Test: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+OptimizedSetterTest: Fail # Issue 863
 
 FactoryImplementationTest: Fail # Issue 523
 
