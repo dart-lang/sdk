@@ -227,6 +227,7 @@ FunctionSyntaxTest: Fail
 FunctionTest: Fail
 FunctionTypeAliasNegativeTest: Fail
 FunctionTypeAliasTest: Fail
+FunctionTypeAlias2Test: Fail
 FunctionTypeParameter2Test: Fail
 FunctionTypeParameterTest: Fail
 GenericDeepTest: Fail
