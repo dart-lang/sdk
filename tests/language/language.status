@@ -327,7 +327,6 @@ TypeVariableBoundsTest/06: Fail
 [ $component == frog || $component == frogsh || $component == leg ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 InstanceofTest: Fail
-ParameterInitializerTest: Pass
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
 NumberSyntaxTest: Fail
@@ -335,9 +334,8 @@ NativeNamedConstructors2FrogTest: Fail  # ReferenceError: A is not defined.
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
-ParameterInitializerTest: Fail
-StaticField1RunNegativeTest: Fail
-StaticField2RunNegativeTest: Fail
+StaticField1RunNegativeTest: Pass # but error is not correct
+StaticField2RunNegativeTest: Pass # but error is not correct
 InstanceofTest: Timeout
 NumberSyntaxTest: Timeout
 NativeNamedConstructors2FrogTest: Timeout  # ReferenceError: A is not defined.
