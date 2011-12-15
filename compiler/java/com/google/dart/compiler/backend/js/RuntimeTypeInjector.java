@@ -111,6 +111,8 @@ public class RuntimeTypeInjector {
   private final Types types;
   private final DartMangler mangler;
   private final LibraryElement unitLibrary;
+  private static final String RTT_DYNAMIC_LOOKUP = "RTT.dynamicType.$lookupRTT";
+  private static final String RTT_NAMED_PARAMETER = "named";
 
   RuntimeTypeInjector(
       TraversalContextProvider context,
@@ -251,22 +253,28 @@ public class RuntimeTypeInjector {
     List<JsExpression> callArgs = invokeCreate.getArguments();
     if (hasRTTImplements(classElement)) {
       callArgs.add(getRTTImplementsMethodName(classElement));
-    } else if (hasTypeParams) {
+    } else {
       // need a placeholder param if the typeArgs are needed.
       callArgs.add(program.getNullLiteral());
     }
 
+    JsName typeArgs = scope.declareName("typeArgs");
+    lookupFn.getParameters().add(new JsParameter(typeArgs));
     if (hasTypeParams) {
-      JsName typeArgs = scope.declareName("typeArgs");
-      lookupFn.getParameters().add(new JsParameter(typeArgs));
       callArgs.add(typeArgs.makeRef());
+    } else {
+      callArgs.add(program.getNullLiteral());
     }
+
+    JsName named = scope.declareName(RTT_NAMED_PARAMETER);
+    lookupFn.getParameters().add(new JsParameter(named));
+    callArgs.add(named.makeRef());
 
     body.add(new JsReturn(invokeCreate));
 
     // Finally, Add the function
     JsExpression fnDecl = assign(null,
-        getRTTLookupMethodName(classElement), lookupFn);
+        getRTTLookupMethodNameRef(classElement), lookupFn);
     globalBlock.getStatements().add(fnDecl.makeStmt());
   }
 
@@ -350,7 +358,7 @@ public class RuntimeTypeInjector {
     JsName rtt = scope.declareName("rtt");
     List<JsStatement> body = addToFn.getBody().getStatements();
     JsInvocation callLookup = newInvocation(
-        getRTTLookupMethodName(classElement));
+        getRTTLookupMethodNameRef(classElement));
 
     if (hasTypeParameters(classElement)) {
       JsName typeArgs = scope.declareName("typeArgs");
@@ -486,29 +494,12 @@ public class RuntimeTypeInjector {
     // Finally, Add the lookup function to the global block.
     JsExpression fnDecl;
     if (overrideName == null) {
+      JsNameRef methodToCall = getRTTLookupMethodNameRef(methodElement);
       if (methodElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
-        JsNameRef classJsNameRef = getJsName(methodElement.getEnclosingElement()).makeRef();
-        String getterName = mangler.createGetterSyntax(methodElement, unitLibrary);
-        String methodName = methodElement.getName();
-        JsName getterJsName = globalScope.declareName(getterName, getterName, methodName);
-        String mangledMethodName = mangler.mangleNamedMethod(methodElement, unitLibrary)
-            + "_$lookupRTT";
-        JsNameRef methodToCall;
-        JsNameRef getterJsNameRef;
-        if (methodElement.getModifiers().isStatic()) {
-          getterJsNameRef = AstUtil.newNameRef(classJsNameRef, getterJsName);
-          methodToCall = AstUtil.newNameRef(classJsNameRef, mangledMethodName);
-        } else {
-          JsNameRef prototypeRef = AstUtil.newPrototypeNameRef(classJsNameRef);
-          getterJsNameRef = AstUtil.newNameRef(prototypeRef, getterJsName);
-          methodToCall = AstUtil.newNameRef(prototypeRef, mangledMethodName);
-        }
         fnDecl = assign(null, methodToCall, lookupFn);
       } else {
         // Top level method
-        String mangledMethodName = mangler.mangleNamedMethod(methodElement, unitLibrary)
-            + "_$lookupRTT";
-        lookupFn.setName(scope.declareName(mangledMethodName));
+        lookupFn.setName(scope.declareFreshName(methodToCall.getIdent()));
         fnDecl = lookupFn;
       }
     } else {
@@ -526,14 +517,14 @@ public class RuntimeTypeInjector {
    * No lookup method exists for the type "int bar(double x)", hence the in-line creation of:
    *   RTT.createFunction([RTT Parameter Types],RTT ReturnType))
    */
-  private JsExpression generateRTTCreate(VariableElement element, ClassElement classElement) {
+  private JsInvocation generateRTTCreate(VariableElement element, ClassElement classElement) {
     boolean hasTypes = false;
     FunctionType type = (FunctionType) element.getType();
 
     if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)
         || element.getModifiers().isNative()) {
       // No type lookups for constructors or natives
-      return AstUtil.newQualifiedNameRef("RTT.dynamicType");
+      return newInvocation(newQualifiedNameRef(RTT_DYNAMIC_LOOKUP));
     }
     hasTypes = classElement != null ? hasTypeParameters(classElement) : false;
 
@@ -545,7 +536,7 @@ public class RuntimeTypeInjector {
     JsArrayLiteral arr = generateTypeArrayFromTypes(type.getParameterTypes(), classElement,
         typeArgContextExpr);
     if (arr == null) {
-      return AstUtil.newQualifiedNameRef("RTT.dynamicType");
+      return newInvocation(newQualifiedNameRef(RTT_DYNAMIC_LOOKUP));
     }
 
     JsExpression returnExpr = generateRTTLookupForType(element, type.getReturnType(), classElement,
@@ -563,9 +554,6 @@ public class RuntimeTypeInjector {
       JsExpression elementExpr;
       elementExpr = generateRTTLookupForType(param.getElement(), param, classElement,
           typeArgContextExpr);
-      if (elementExpr == null) {
-        return null;
-      }
       jsTypeArray.getExpressions().add(elementExpr);
     }
     return jsTypeArray;
@@ -575,14 +563,10 @@ public class RuntimeTypeInjector {
       ClassElement classElement, JsExpression typeArgContextExpr) {
     JsArrayLiteral jsTypeArray = new JsArrayLiteral();
     for (DartParameter param : params) {
-      JsExpression elementExpr;
-      if (param.getTypeNode() == null) {
-        elementExpr = AstUtil.newQualifiedNameRef("RTT.dynamicType");
-      } else {
-        elementExpr = generateRTTLookupForType(param.getSymbol(), param.getTypeNode().getType(),
-            classElement, typeArgContextExpr);
-      }
-      jsTypeArray.getExpressions().add(elementExpr);
+      Type paramType = param.getTypeNode() == null ? null : param.getTypeNode().getType();
+      JsInvocation elementInvoke = generateRTTLookupForType(param.getSymbol(), paramType, classElement,
+          typeArgContextExpr);
+      jsTypeArray.getExpressions().add(elementInvoke);
     }
     return jsTypeArray;
   }
@@ -598,38 +582,50 @@ public class RuntimeTypeInjector {
     return jsTypeArray;
   }
 
-  private JsExpression generateRTTLookupForType(Element element, Type elementType,
+  private JsInvocation generateRTTLookupForType(Element element, Type elementType,
       ClassElement classElement, JsExpression typeArgContextExpr) {
-    JsExpression elementExpr = null;
+    return generateRTTLookupForType(element, elementType, classElement, typeArgContextExpr,
+        element.getModifiers().isNamed() ? element.getName() : null);
+  }
+
+  private JsInvocation generateRTTLookupForType(Element element, Type elementType,
+      ClassElement classElement, JsExpression typeArgContextExpr, String named) {
+    JsInvocation elementInvoke = null;
     switch (TypeKind.of(elementType)) {
       case VARIABLE:
-        elementExpr = buildTypeLookupExpression(elementType, classElement.getTypeParameters(),
+        elementInvoke = buildTypeLookupExpression(elementType, classElement.getTypeParameters(),
             typeArgContextExpr);
         break;
       case INTERFACE:
-        elementExpr = generateRTTLookup((ClassElement) elementType.getElement(),
+        elementInvoke = generateRTTLookup((ClassElement) elementType.getElement(),
             (InterfaceType) elementType, classElement);
         break;
       case FUNCTION:
-        elementExpr = generateRTTCreate((VariableElement) element, classElement);
+        elementInvoke = generateRTTCreate((VariableElement) element, classElement);
         break;
       case FUNCTION_ALIAS:
-        elementExpr = buildTypeLookupExpression(elementType,
+        elementInvoke = buildTypeLookupExpression(elementType,
             classElement != null ? classElement.getTypeParameters() : null, typeArgContextExpr);
         break;
       case DYNAMIC:
-        elementExpr = AstUtil.newQualifiedNameRef("RTT.dynamicType");
-        break;
       case VOID:
       case NONE:
-        elementExpr = translationContext.getProgram().getNullLiteral();
+        elementInvoke = newInvocation(newQualifiedNameRef(RTT_DYNAMIC_LOOKUP));
         break;
       default:
-        elementExpr = buildTypeLookupExpression(elementType, classElement.getTypeParameters(),
+        elementInvoke = buildTypeLookupExpression(elementType, classElement.getTypeParameters(),
             typeArgContextExpr);
         break;
     }
-    return elementExpr;
+    if (named != null) {
+      if (elementInvoke.getArguments().size() == 0) {
+        elementInvoke.getArguments().add(translationContext.getProgram().getNullLiteral());
+      }
+      elementInvoke.getArguments().add(
+          translationContext.getProgram().getStringLiteral(named));
+    }
+    assert elementInvoke != null;
+    return elementInvoke;
   }
 
   private JsName getJsName(Symbol symbol) {
@@ -649,7 +645,7 @@ public class RuntimeTypeInjector {
    *     }
    */
   private void generateRTTLookupMethod(DartFunctionTypeAlias x) {
-    FunctionAliasElementImplementation classElement = 
+    FunctionAliasElementImplementation classElement =
         (FunctionAliasElementImplementation) x.getSymbol();
     FunctionType funcType = classElement.getFunctionType();
     boolean hasTypeParams = hasTypeParameters(classElement);
@@ -675,10 +671,14 @@ public class RuntimeTypeInjector {
         funcType.getReturnType(), classElement, typeArgsExpr);
     callArgs.add(returnExpr);
 
+    JsName named = scope.declareName(RTT_NAMED_PARAMETER);
+    lookupFn.getParameters().add(new JsParameter(named));
+    callArgs.add(named.makeRef());
+
     body.add(new JsReturn(invokeCreate));
 
     // Finally, Add the function to the global block of statements.
-    JsExpression fnDecl = assign(null, getRTTLookupMethodName(classElement), lookupFn);
+    JsExpression fnDecl = assign(null, getRTTLookupMethodNameRef(classElement), lookupFn);
     globalBlock.getStatements().add(fnDecl.makeStmt());
   }
 
@@ -694,8 +694,28 @@ public class RuntimeTypeInjector {
     return getRTTClassId(translationContext, classElement);
   }
 
-  private JsNameRef getRTTLookupMethodName(ClassElement classElement) {
+  private JsNameRef getRTTLookupMethodNameRef(ClassElement classElement) {
     return nameref(null, translationContext.getNames().getName(classElement), "$lookupRTT");
+  }
+
+  public JsNameRef getRTTLookupMethodNameRef(MethodElement methodElement) {
+    JsNameRef methodToCall;
+
+    if (ElementKind.of(methodElement.getEnclosingElement()) == ElementKind.CLASS) {
+      JsNameRef classJsNameRef = getJsName(methodElement.getEnclosingElement()).makeRef();
+      String mangledMethodName = mangler.mangleRttLookupMethod(methodElement, unitLibrary);
+      if (methodElement.getModifiers().isStatic()) {
+        methodToCall = AstUtil.newNameRef(classJsNameRef, mangledMethodName);
+      } else {
+        JsNameRef prototypeRef = AstUtil.newPrototypeNameRef(classJsNameRef);
+        methodToCall = AstUtil.newNameRef(prototypeRef, mangledMethodName);
+      }
+    } else {
+      // Top level method
+      methodToCall = AstUtil.newQualifiedNameRef(mangler.mangleRttLookupMethod(methodElement,
+          unitLibrary));
+    }
+    return methodToCall;
   }
 
   private JsNameRef getRTTImplementsMethodName(ClassElement classElement) {
@@ -784,7 +804,7 @@ public class RuntimeTypeInjector {
    * @return an expression for looking up the RTT information for the given RAW type.
    */
   private JsExpression generateRawRTTLookup(ClassElement classElement) {
-    JsInvocation invokeLookup = call(null, getRTTLookupMethodName(classElement));
+    JsInvocation invokeLookup = call(null, getRTTLookupMethodNameRef(classElement));
     return invokeLookup;
   }
 
@@ -793,9 +813,9 @@ public class RuntimeTypeInjector {
     return generateRTTLookup(instanceType.getElement(), instanceType, contextClassElement);
   }
 
-  private JsExpression generateRTTLookup(
+  private JsInvocation generateRTTLookup(
       ClassElement classElement, InterfaceType instanceType, ClassElement contextClassElement) {
-    JsInvocation invokeLookup = call(null, getRTTLookupMethodName(classElement));
+    JsInvocation invokeLookup = call(null, getRTTLookupMethodNameRef(classElement));
     if (hasTypeParameters(instanceType.getElement()) && !instanceType.hasDynamicTypeArgs()) {
       JsExpression typeArgs = generateTypeArgsArray(instanceType, contextClassElement);
       assert typeArgs != null;
@@ -889,14 +909,14 @@ public class RuntimeTypeInjector {
   /**
    * @return js The expression used to lookup the RTT for the given type.
    */
-  private JsExpression buildTypeLookupExpression(
+  private JsInvocation buildTypeLookupExpression(
       Type type, List<? extends Type> list, JsExpression contextTypeArgs) {
     switch (TypeKind.of(type)) {
       case INTERFACE:
       case FUNCTION_ALIAS:
         InterfaceType interfaceType = (InterfaceType) type;
         JsInvocation callLookup = call(null,
-            getRTTLookupMethodName(interfaceType.getElement()));
+            getRTTLookupMethodNameRef(interfaceType.getElement()));
         if (hasTypeParameters(interfaceType.getElement()) && !interfaceType.hasDynamicTypeArgs()) {
           JsArrayLiteral typeArgs = new JsArrayLiteral();
           for (Type arg : interfaceType.getArguments()) {
@@ -909,7 +929,7 @@ public class RuntimeTypeInjector {
       case FUNCTION:
         FunctionType functionType = (FunctionType) type;
         JsInvocation functionTypeCallLookup = call(null,
-            getRTTLookupMethodName(functionType.getElement()));
+            getRTTLookupMethodNameRef(functionType.getElement()));
         if (hasTypeParameters(functionType.getElement())) {
           JsArrayLiteral typeArgs = new JsArrayLiteral();
           for (Type arg : functionType.getTypeVariables()) {
@@ -1269,7 +1289,7 @@ public class RuntimeTypeInjector {
         TypeVariable typeVar = (TypeVariable) type;
         return getReifiedTypeVariableRTT(typeVar, enclosingClass);
       case FUNCTION:
-        // TODO: do we need a more detailed RTT than just a generic function?
+        // TODO: We need a more detailed RTT than just a generic function.
         return generateRTTLookup(typeProvider.getFunctionType(), enclosingClass);
       case VOID:
       case FUNCTION_ALIAS:

@@ -12,12 +12,14 @@
  * @param {Array.<RTT>=} typeargs
  * @param {RTT} returnType
  * @param {bool} functionType
+ * @param {string=} named optional
  */ 
-function RTT(classkey, typekey, typeargs, returnType, functionType) {
+function RTT(classkey, typekey, typeargs, returnType, functionType, named) {
   this.classKey = classkey;
   this.typeKey = typekey ? typekey : classkey;
   this.typeArgs = typeargs;
   this.returnType = returnType; // key for the return type
+  this.named = named;
   this.implementedTypes = {};
   this.functionType = functionType;
   // Add self
@@ -68,7 +70,7 @@ RTT.prototype.implementedByTypeSwitch = function(value){
  * @return {boolean} Whether this type is implement by other
  */
 RTT.prototype.implementedByType = function(otherType) { 
-  if (otherType === this || otherType === RTT.dynamicType) {
+  if (otherType === this || otherType === RTT.dynamicType.$lookupRTT(null,otherType.named)) {
     return true;
   }
   var targetTypeInfo = $mapLookup(otherType.implementedTypes, this.classKey);
@@ -90,7 +92,8 @@ RTT.prototype.implementedByType = function(otherType) {
  * @return {boolean} Whether this type is assignable by other
  */
 RTT.prototype.assignableByType = function(otherType) {
-  if (otherType === this || otherType === RTT.dynamicType || this === RTT.dynamicType) {
+  if (otherType === this || otherType === RTT.dynamicType.$lookupRTT(null,otherType.named)
+      || this === RTT.dynamicType.$lookupRTT(null,this.named)) {
     return true;
   }
   var targetTypeInfo = $mapLookup(otherType.implementedTypes, this.classKey);
@@ -121,7 +124,7 @@ RTT.prototype.implementedByTypeFunc = function(otherType) {
   } else if (!(otherType instanceof RTT)) {
     return false;
   }
-  if (otherType === this || otherType === RTT.dynamicType) {
+  if (otherType === this || otherType === RTT.dynamicType.$lookupRTT(null,otherType.named)) {
     return true;
   }
   var props = Object.getOwnPropertyNames(otherType.implementedTypes);
@@ -132,16 +135,31 @@ RTT.prototype.implementedByTypeFunc = function(otherType) {
       continue;
     }
     if (mapped.typeArgs && this.typeArgs) {
-      if (this.typeArgs.length != mapped.typeArgs.length) {
+      if (mapped.typeArgs.length < this.typeArgs.length) {
         continue;
       }
-      for (var x = this.typeArgs.length - 1; x >= 0; x--) {
+      var named = false;
+      var x;
+      for (x = 0; x < this.typeArgs.length; x++) {
+        if (this.typeArgs[x].named || mapped.typeArgs[x].named) {
+          named = true;
+          break;
+        }
         if (!this.typeArgs[x].assignableByType(mapped.typeArgs[x])) {
           continue NEXT_PROPERTY;
         }
       }
+      if (!named && x < this.typeArgs.length) {
+        continue NEXT_PROPERTY;
+      }
+      for (; x < this.typeArgs.length; x++) {
+        if (!this.typeArgs[x].assignableByType(mapped.typeArgs[x])
+            || !(this.typeArgs[x].named === mapped.typeArgs[x].named)) {
+          continue NEXT_PROPERTY;
+        }
+      }
     } else if (mapped.typeArgs || this.typeArgs) {
-      return false;
+      continue NEXT_PROPERTY;
     }
     return true;
   }
@@ -167,7 +185,7 @@ RTT.prototype.getClassName = function() {
  * @return {boolean} 
  */
 RTT.nullInstanceOf = function(type) {
-  return type === RTT.objectType || type === RTT.dynamicType;
+  return type === RTT.objectType || type === RTT.dynamicType.$lookupRTT(null,type.named);
 };
 
 /**
@@ -188,17 +206,18 @@ RTT.getNativeTypeInfo = function(value) {
  * @param {string} name
  * @param {function(RTT,Array.<RTT>)=} implementsSupplier 
  * @param {Array.<RTT>=} typeArgs
+ * @param {string} named optional value
  * @return {RTT} The RTT information object
  */
-RTT.create = function(name, implementsSupplier, typeArgs) {
-  if (name == $cls("Object")) return RTT.objectType;
-  var typekey = RTT.getTypeKey(name, typeArgs);
+RTT.create = function(name, implementsSupplier, typeArgs, named) {
+  if (name == $cls("Object") && !named) return RTT.objectType;
+  var typekey = RTT.getTypeKey(name, typeArgs, null, named);
   var rtt = $mapLookup(RTT.types, typekey);
   if (rtt) {
     return rtt;
   }
   var classkey = RTT.getTypeKey(name);
-  rtt = new RTT(classkey, typekey, typeArgs);
+  rtt = new RTT(classkey, typekey, typeArgs, null, false, named);
   RTT.types[typekey] = rtt;
   if (implementsSupplier) {
     implementsSupplier(rtt, typeArgs);
@@ -209,18 +228,38 @@ RTT.create = function(name, implementsSupplier, typeArgs) {
 /**
  * @param {Array.<RTT>=} typeArgs
  * @param {<RTT>=} returnType (if defined)
+ * @param {string} named optional value
  * @return {RTT} The RTT information object
  */
-RTT.createFunction = function(typeArgs, returnType) {
-  var name = $cls("Function");
-  var typekey = RTT.getTypeKey(name, typeArgs, returnType);
+RTT.createFunction = function(typeArgs, returnType, named) {
+  var name = $cls("Function$Dart");
+  var typekey = RTT.getTypeKey(name, typeArgs, returnType, named);
   var rtt = $mapLookup(RTT.types, typekey);
   if (rtt) {
     return rtt;
   }
   var classkey = RTT.getTypeKey(name);
-  rtt = new RTT(classkey, typekey, typeArgs, returnType, true);
+  rtt = new RTT(classkey, typekey, typeArgs, returnType, true, named);
   RTT.types[typekey] = rtt;
+  return rtt;
+};
+
+/**
+ * @param {RTT} old
+ * @param {string} named optional
+ * @return {RTT} The RTT information object with named
+ */
+RTT.clone = function(old, named) {
+  var name = old.getClassName();
+  var typekey = RTT.getTypeKey(name, old.typeArgs, old.returnType, named);
+  var rtt = $mapLookup(RTT.types, typekey);
+  if (rtt) {
+    return rtt;
+  }
+  var classkey = RTT.getTypeKey(name);
+  rtt = new RTT(classkey, typekey, old.typeArgs, old.returnType, old.functionType, named);
+  RTT.types[typekey] = rtt;
+  rtt.implementedTypes = old.implementedTypes
   return rtt;
 };
 
@@ -228,10 +267,14 @@ RTT.createFunction = function(typeArgs, returnType) {
  * @param {string} classkey
  * @param {Array.<(RTT|string)>=} typeargs
  * @param {string} returntype
+ * @param {string=} named optional
  * @return {string}
  */
-RTT.getTypeKey = function(classkey, typeargs, returntype) {
+RTT.getTypeKey = function(classkey, typeargs, returntype, named) {
   var key = classkey;
+  if (named) {
+    key += ":" + named;
+  }
   if (typeargs) {
     key += "<" + typeargs.join(",") + ">";
   }
@@ -272,17 +315,21 @@ RTT.removeTypeInfo = function(o) {
  * The typeArg array is optional
  * @param {Array.<RTT>=} typeArgs
  * @param {number} i
+ * @param {string=} named optional
  * @return {RTT}
  */
-RTT.getTypeArg = function(typeArgs, i) {
+RTT.getTypeArg = function(typeArgs, i, named) {
   if (typeArgs) {
     if (typeArgs.length > i) {
+      if (named && named != typeArgs[i].named) {
+        return RTT.clone(typeArgs[i], named);
+      }
       return typeArgs[i];
     } else {
       throw new Error("Missing type arg");
     }
   } 
-  return RTT.dynamicType; 
+  return RTT.dynamicType.$lookupRTT(null,named);
 };
 
 /**
@@ -303,16 +350,32 @@ RTT.getTypeArgsFor = function(o, classkey) {
 // Base types for runtime type information
 
 /** @type {!RTT} */
-function ImplementsAll(name) {
-  RTT.call(this,name);
+function ImplementsAll(name,named) {
+  var typeKey = RTT.getTypeKey(name, null, null, named);
+  RTT.call(this,name,typeKey,null,null,null,named);
 }
 $inherits(ImplementsAll,RTT);
 ImplementsAll.prototype.implementedBy = function(o) {return true};
 ImplementsAll.prototype.implementedByType = function(o) {return true};
 
 RTT.objectType = new ImplementsAll($cls('Object'));
-RTT.dynamicType = new ImplementsAll($cls('Dynamic')); 
 RTT.placeholderType = new ImplementsAll($cls('::'));
+
+function ImplementsDynamic(named) {
+  ImplementsAll.call(this,$cls('Dynamic'),named);
+}
+$inherits(ImplementsDynamic,ImplementsAll);
+ImplementsDynamic.prototype.$lookupRTT = function(typeArgs, named) {
+  var typekey = RTT.getTypeKey($cls('Dynamic'), null, null, named);
+  var rtt = $mapLookup(RTT.types, typekey);
+  if (rtt) {
+    return rtt;
+  }
+  rtt = new ImplementsDynamic(named);
+  RTT.types[typekey] = rtt;
+  return rtt;
+}
+RTT.dynamicType = ImplementsDynamic.prototype.$lookupRTT();
 
 /**
  * Checks that a value is assignable to an expected type, and either returns that

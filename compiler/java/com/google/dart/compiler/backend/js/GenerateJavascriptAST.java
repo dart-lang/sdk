@@ -606,7 +606,7 @@ public class GenerateJavascriptAST {
       JsName getterJsName = globalScope.declareName(getterName, getterName, methodName);
       getterJsName.setObfuscatable(false);
       String mangledMethodName = mangler.mangleNamedMethod(methodElement, unitLibrary);
-      String mangledRttMethodName = mangler.mangleRttLookupMethod(methodElement, unitLibrary);
+      JsNameRef mangledRttMethod = rtt.getRTTLookupMethodNameRef(methodElement);
       JsFunction func = new JsFunction(globalScope);
       JsNameRef getterJsNameRef;
       if (isTopLevel || methodElement.getModifiers().isStatic()) {
@@ -623,7 +623,7 @@ public class GenerateJavascriptAST {
             AstUtil.newNameRef(classJsNameRef, mangledMethodName)));
         JsBinaryOperation varLookup = AstUtil.newAssignment(
             AstUtil.newNameRef(returnVar.makeRef(), "$lookupRTT"),
-            AstUtil.newNameRef(classJsNameRef, mangledRttMethodName));
+            mangledRttMethod);
         stmts.add(varLookup.makeStmt());
         stmts.add(new JsReturn(returnVar.makeRef()));
       } else {
@@ -633,7 +633,7 @@ public class GenerateJavascriptAST {
         getterJsNameRef = AstUtil.newNameRef(prototypeRef, getterJsName);
         JsExpression bindMethodCall = AstUtil.newInvocation(new JsNameRef("$bind"),
             AstUtil.newNameRef(prototypeRef, mangledMethodName),
-            AstUtil.newNameRef(prototypeRef, mangledRttMethodName), new JsThisRef());
+            mangledRttMethod, new JsThisRef());
         func.setBody(AstUtil.newBlock(new JsReturn(bindMethodCall)));
       }
 

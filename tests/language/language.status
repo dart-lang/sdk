@@ -107,7 +107,6 @@ Factory3Test: Fail           # Issue 417
 FactoryNegativeTest: Fail    # Issue 417
 For2Test: Fail               # Bug 4995208.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
-FunctionTypeAliasTest: Fail # Bug 4519208.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
 GetterClosureExecutionOrderTest: Fail # Bug 5481595

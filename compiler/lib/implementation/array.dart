@@ -4,6 +4,9 @@
 
 class ListFactory {
   factory List<E>.from(Iterable<E> other) {
+    if (other == null) {
+      throw const NullPointerException();
+    }
     List<E> list = new List<E>();
     for (final e in other) {
       list.add(e);
@@ -174,6 +177,9 @@ class ListImplementation<T> implements List<T> native "Array" {
       throw const UnsupportedOperationException(
           "Cannot add to a non-extendable list");
     } else {
+      if (elements == null) {
+        throw const NullPointerException();
+      }
       for (final e in elements) {
         _add(e);
       }
