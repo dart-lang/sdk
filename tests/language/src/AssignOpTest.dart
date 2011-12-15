@@ -66,6 +66,16 @@ class AssignOpTest {
     Expect.equals(0xF0, x);
     x ^=0x11;
     Expect.equals(0xE1, x);
+
+    var y = 100;
+    y += 1 << 3;
+    Expect.equals(108, y);
+    y *= 2 + 1;
+    Expect.equals(324, y);
+    y -= 3 - 2;
+    Expect.equals(323, y);
+    y += 3 * 4;
+    Expect.equals(335, y);
   }
 
   static var f;
