@@ -24,6 +24,8 @@ TEST_CASE(OldGC) {
                                          0, NULL);
 
   EXPECT_VALID(result);
+  EXPECT(!Dart_IsNull(result));
+  EXPECT(Dart_IsList(result));
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   heap->CollectGarbage(Heap::kOld);

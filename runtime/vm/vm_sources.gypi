@@ -109,6 +109,8 @@
     'freelist_test.cc',
     'gc_marker.cc',
     'gc_marker.h',
+    'gc_sweeper.cc',
+    'gc_sweeper.h',
     'gdbjit_linux.cc',
     'gdbjit_linux.h',
     'globals.h',

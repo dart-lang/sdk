@@ -6,6 +6,7 @@
 
 #include "vm/assert.h"
 #include "vm/dart.h"
+#include "vm/freelist.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
@@ -21,6 +22,12 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** current = first; current <= last; current++) {
     RawObject* raw_obj = *current;
     if (raw_obj->IsHeapObject()) {
+      // Skip visits of FreeListElements.
+      if (FreeListElement::IsSpecialClass(raw_obj)) {
+        // Only the class of the free list element should ever be visited.
+        ASSERT(first == last);
+        return;
+      }
       uword obj_addr = RawObject::ToAddr(raw_obj);
       if (!Isolate::Current()->heap()->Contains(obj_addr) &&
           !Dart::vm_isolate()->heap()->Contains(obj_addr)) {

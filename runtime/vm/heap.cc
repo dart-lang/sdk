@@ -18,6 +18,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
+DEFINE_FLAG(bool, verify_before_gc, false,
+            "Enables heap verification before GC.");
+DEFINE_FLAG(bool, verify_after_gc, false,
+            "Enables heap verification after GC.");
 DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
 DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
             "e.g: --new_gen_heap_size=64 allocates a 64MB new gen heap");
@@ -110,6 +114,11 @@ void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) {
 
 void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) {
   old_space_->VisitObjectPointers(visitor);
+  code_space_->VisitObjectPointers(visitor);
+}
+
+
+void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
   code_space_->VisitObjectPointers(visitor);
 }
 

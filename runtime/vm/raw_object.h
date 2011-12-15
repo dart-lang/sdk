@@ -172,7 +172,7 @@ class RawObject {
   void ClearMarkBit() {
     ASSERT(IsMarked());
     uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarked);
+    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarkBit);
   }
 
   // Support for object tags.
@@ -222,6 +222,7 @@ class RawObject {
     kMarkingMask = 3,
     kNotMarked = 1,  // Tagged pointer.
     kMarked = 3,  // Tagged pointer and forwarding bit set.
+    kMarkBit = 2,
   };
 
   class CanonicalObjectTag : public BitField<bool, 2, 1> {

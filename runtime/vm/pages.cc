@@ -6,6 +6,7 @@
 
 #include "vm/assert.h"
 #include "vm/gc_marker.h"
+#include "vm/gc_sweeper.h"
 #include "vm/object.h"
 #include "vm/virtual_memory.h"
 
@@ -49,7 +50,8 @@ void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 
 
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
-    : heap_(heap),
+    : freelist_(),
+      heap_(heap),
       pages_(NULL),
       pages_tail_(NULL),
       large_pages_(NULL),
@@ -87,6 +89,18 @@ HeapPage* PageSpace::AllocateLargePage(intptr_t size) {
   large_pages_ = page;
   capacity_ += page_size;
   return page;
+}
+
+
+void PageSpace::FreeLargePage(HeapPage* page, HeapPage* previous_page) {
+  capacity_ -= page->memory_->size();
+  // Remove the page from the list.
+  if (previous_page != NULL) {
+    previous_page->set_next(page->next());
+  } else {
+    large_pages_ = page->next();
+  }
+  page->Deallocate();
 }
 
 
@@ -185,6 +199,12 @@ void PageSpace::MarkSweep() {
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 
+  if (FLAG_verify_before_gc) {
+    OS::PrintErr("Verifying before MarkSweep... ");
+    heap_->Verify();
+    OS::PrintErr(" done.\n");
+  }
+
   Timer timer(FLAG_verbose_gc, "MarkSweep");
   timer.Start();
 
@@ -192,10 +212,51 @@ void PageSpace::MarkSweep() {
   GCMarker marker(heap_);
   marker.MarkObjects(isolate, this);
 
-  UNIMPLEMENTED();
+  // Reset the freelists and setup sweeping.
+  freelist_.Reset();
+  GCSweeper sweeper(heap_);
+  intptr_t in_use = 0;
+
+  HeapPage* page = pages_;
+  while (page != NULL) {
+    in_use += sweeper.SweepPage(page, &freelist_);
+    page = page->next();
+  }
+
+  HeapPage* prev_page = NULL;
+  page = large_pages_;
+  while (page != NULL) {
+    intptr_t page_in_use = sweeper.SweepLargePage(page);
+    HeapPage* next_page = page->next();
+    if (page_in_use == 0) {
+      FreeLargePage(page, prev_page);
+    } else {
+      in_use += page_in_use;
+      prev_page = page;
+    }
+    // Advance to the next page.
+    page = next_page;
+  }
+
+  // Record data and print if requested.
+  intptr_t in_use_before = in_use_;
+  in_use_ = in_use;
+
   timer.Stop();
   if (FLAG_verbose_gc) {
-    OS::PrintErr("Mark-Sweep[%d]: %dus\n", count_, timer.TotalElapsedTime());
+    const intptr_t KB2 = KB / 2;
+    OS::PrintErr("Mark-Sweep[%d]: %lldus (%dK -> %dK, %dK)\n",
+                 count_,
+                 timer.TotalElapsedTime(),
+                 (in_use_before + (KB2)) / KB,
+                 (in_use + (KB2)) / KB,
+                 (capacity_ + KB2) / KB);
+  }
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after MarkSweep... ");
+    heap_->Verify();
+    OS::PrintErr(" done.\n");
   }
 
   count_++;

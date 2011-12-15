@@ -7,8 +7,5 @@ prefix vm
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 RunLoop_ExceptionChild: Fail
 
-# Partially implemented old generation GC.
-OldGC: CRASH
-
 # Application snapshots are not implemented yet.
 ScriptSnapshot: Skip

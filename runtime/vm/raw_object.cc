@@ -4,6 +4,7 @@
 
 #include "vm/raw_object.h"
 
+#include "vm/freelist.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/visitor.h"
@@ -32,9 +33,18 @@ intptr_t RawObject::Size() const {
   ASSERT(IsHeapObject());
 
   RawClass* raw_class = ptr()->class_;
+  if (IsMarked()) {
+    // If the object is marked we need to remove the marking bits from the
+    // raw_class which we loaded above.
+    uword header_bits = reinterpret_cast<uword>(raw_class);
+    header_bits = (header_bits & ~kMarkingMask) | kNotMarked;
+    raw_class = reinterpret_cast<RawClass*>(header_bits);
+  }
   intptr_t instance_size = raw_class->ptr()->instance_size_;
+  ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
+
   if (instance_size == 0) {
-    switch (raw_class->ptr()->instance_kind_) {
+    switch (instance_kind) {
       case kTokenStream: {
         const RawTokenStream* raw_tokens =
             reinterpret_cast<const RawTokenStream*>(this);
@@ -174,6 +184,13 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
     }
     CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
 #undef RAW_VISITPOINTERS
+    case kFreeListElement: {
+      // Nothing to visit for free list elements.
+      uword addr = RawObject::ToAddr(this);
+      FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
+      size = element->Size();
+      break;
+    }
     default:
       OS::Print("Kind: %d\n", kind);
       UNREACHABLE();

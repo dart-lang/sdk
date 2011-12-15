@@ -5,6 +5,7 @@
 #ifndef VM_PAGES_H_
 #define VM_PAGES_H_
 
+#include "vm/freelist.h"
 #include "vm/globals.h"
 #include "vm/virtual_memory.h"
 
@@ -88,14 +89,22 @@ class PageSpace {
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep();
 
+  static HeapPage* PageFor(RawObject* raw_obj) {
+    return reinterpret_cast<HeapPage*>(
+        RawObject::ToAddr(raw_obj) & ~(kPageSize -1));
+  }
+
  private:
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
 
   void AllocatePage();
   HeapPage* AllocateLargePage(intptr_t size);
+  void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
   uword TryBumpAllocate(intptr_t size);
+
+  FreeList freelist_;
 
   Heap* heap_;
 
