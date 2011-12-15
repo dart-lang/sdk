@@ -338,6 +338,7 @@ static const ZoneGrowableArray<const Class*>*
 void OptimizingCodeGenerator::PrintCollectedClassesAtId(AstNode* node,
                                                         intptr_t id) {
   const ICData& ic_data = node->ICDataAtId(id);
+  OS::Print("Collected classes id %d num: %d\n", id, ic_data.NumberOfChecks());
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     Function& target = Function::Handle();
     GrowableArray<const Class*> classes;
@@ -673,8 +674,33 @@ static bool AtIdNodeHasOnlyClass(AstNode* node, intptr_t id, const Class& cls) {
 
 
 
-// Implement with slow case so that it can work both with Smi and Mint types.
+// SHL: Implement with slow case so that it works both with Smi and Mint types.
+// Result is in EAX. Mangles ECX, EBX, EDX.
 void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
+  if (node->kind() == Token::kSAR) {
+    // TODO(srdjan): Implement for Mint?
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, ECX, kDeoptSAR);
+    // EAX: value to shift, ECX: amount to shift.
+    VisitLoadTwo(node->left(), node->right(), EAX, ECX);
+    // Check if both Smi.
+    __ movl(EBX, EAX);
+    __ orl(EBX, ECX);
+    __ testl(EBX, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt_blob->label());
+    Immediate count_limit = Immediate(0x1F);
+    __ SmiUntag(ECX);
+    __ cmpl(ECX, count_limit);
+    Label shift_count_ok;
+    __ j(LESS_EQUAL, &shift_count_ok, Assembler::kNearJump);
+    __ movl(ECX, count_limit);
+    __ Bind(&shift_count_ok);
+    // Shift amount must be in ECX.
+    __ SmiUntag(EAX);  // Value.
+    __ sarl(EAX, ECX);
+    __ SmiTag(EAX);
+    return;
+  }
   ASSERT(node->kind() == Token::kSHL);
   Label done;
   bool shift_generated = false;
@@ -885,9 +911,10 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
       default:
         UNREACHABLE();
     }
-  } else if (kind == Token::kSHL) {
+  } else if ((kind == Token::kSHL) || (kind == Token::kSAR)) {
     GenerateSmiShiftBinaryOp(node);
   } else {
+    // Unhandled node kind.
     TraceNotOpt(node, kOptMessage);
     node->left()->Visit(this);
     node->right()->Visit(this);
@@ -1211,6 +1238,7 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
     return;
   }
 
+  // TODO(srdjan): Handle "+" for strings.
   // Type feedback tells this is not a Smi or Double operation.
   TraceNotOpt(node,
       "BinaryOp: type feedback tells this is not a Smi or Double op");
@@ -1223,6 +1251,13 @@ void OptimizingCodeGenerator::VisitIncrOpLocalNode(IncrOpLocalNode* node) {
   if (FLAG_enable_type_checks) {
     classes_for_locals_->SetLocalType(node->local(), Class::ZoneHandle());
     CodeGenerator::VisitIncrOpLocalNode(node);
+    return;
+  }
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  if (ic_data.NumberOfChecks() == 0) {
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, kDeoptNoTypeFeedback);
+    __ jmp(deopt_blob->label());
     return;
   }
   const char* kOptMessage = "Inlines IncrOpLocal";
@@ -2264,6 +2299,14 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Class& object_array_class =
       Class::ZoneHandle(object_store->array_class());
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  if (ic_data.NumberOfChecks() == 0) {
+    VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EBX, ECX, kDeoptNoTypeFeedback);
+    __ jmp(deopt_blob->label());
+    return;
+  }
   if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class)) {
     VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
     DeoptimizationBlob* deopt_blob =

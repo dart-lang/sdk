@@ -168,7 +168,19 @@ class DeoptimizationTest {
     Expect.equals(true, compareDouble(1.0, 2));
   }
 
-
+  static smiRightShift() {
+    int ShiftRight(int a, int b) { return a >> b; }
+    
+    for (int i = 0; i < 2000; i++) {
+      var r = ShiftRight(10, 2);
+      Expect.equals(2, r);
+    }
+    // ShiftRight is optimized.
+    Expect.equals(0, ShiftRight(10, 64));
+    // Deoptimize ShiftRight because 'a' is a Mint.
+    var mint = 1 << 63;
+    Expect.equals(1 << 3, ShiftRight(mint, 60));
+  }
 
   static void testMain() {
     test1();
@@ -179,6 +191,7 @@ class DeoptimizationTest {
     SmiBinop.smiBinopTest();
     SmiBinop.smiBinopOverflowTest();
     ObjectsEquality.objectsEqualityTest();
+    smiRightShift();
   }
 }
 
