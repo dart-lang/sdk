@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 class SVGSVGElementWrappingImplementation extends SVGElementWrappingImplementation implements SVGSVGElement {
   SVGSVGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory SVGSVGElementWrappingImplementation() {
+    var el = new SVGElement.tag("svg");
+    // The SVG spec requires the version attribute to match the spec version
+    el.attributes['version'] = 1.1;
+    return el;
+  }
 
   String get contentScriptType() { return _ptr.contentScriptType; }
 

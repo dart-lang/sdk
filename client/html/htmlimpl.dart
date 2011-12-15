@@ -236,7 +236,6 @@
 #source('generated/src/wrapping/_SVGDefsElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGDescElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGElementInstanceListWrappingImplementation.dart');
-#source('generated/src/wrapping/_SVGElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGEllipseElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGExceptionWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGExternalResourcesRequiredWrappingImplementation.dart');
@@ -326,7 +325,6 @@
 #source('generated/src/wrapping/_SVGRectElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGRectWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGRenderingIntentWrappingImplementation.dart');
-#source('generated/src/wrapping/_SVGSVGElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGScriptElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGSetElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_SVGStopElementWrappingImplementation.dart');
@@ -456,7 +454,9 @@
 #source('src/SharedWorkerWrappingImplementation.dart');
 #source('src/StorageEventWrappingImplementation.dart');
 #source('src/SVGDocumentWrappingImplementation.dart');
+#source('src/SVGElementWrappingImplementation.dart');
 #source('src/SVGElementInstanceWrappingImplementation.dart');
+#source('src/SVGSVGElementWrappingImplementation.dart');
 #source('src/TextEventWrappingImplementation.dart');
 #source('src/TextWrappingImplementation.dart');
 #source('src/TouchEventWrappingImplementation.dart');

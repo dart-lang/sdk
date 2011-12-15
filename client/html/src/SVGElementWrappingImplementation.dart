@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 class SVGElementWrappingImplementation extends ElementWrappingImplementation implements SVGElement {
   SVGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory SVGElementWrappingImplementation.tag(String tag) =>
+    LevelDom.wrapSVGElement(dom.document.createElementNS(
+        "http://www.w3.org/2000/svg", tag));
 
   String get id() { return _ptr.id; }
 

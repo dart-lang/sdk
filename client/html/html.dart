@@ -246,7 +246,6 @@
 #source('generated/src/interface/SVGCursorElement.dart');
 #source('generated/src/interface/SVGDefsElement.dart');
 #source('generated/src/interface/SVGDescElement.dart');
-#source('generated/src/interface/SVGElement.dart');
 #source('generated/src/interface/SVGElementInstanceList.dart');
 #source('generated/src/interface/SVGEllipseElement.dart');
 #source('generated/src/interface/SVGException.dart');
@@ -337,7 +336,6 @@
 #source('generated/src/interface/SVGRect.dart');
 #source('generated/src/interface/SVGRectElement.dart');
 #source('generated/src/interface/SVGRenderingIntent.dart');
-#source('generated/src/interface/SVGSVGElement.dart');
 #source('generated/src/interface/SVGScriptElement.dart');
 #source('generated/src/interface/SVGSetElement.dart');
 #source('generated/src/interface/SVGStopElement.dart');
@@ -464,7 +462,9 @@
 #source('src/SharedWorker.dart');
 #source('src/StorageEvent.dart');
 #source('src/SVGDocument.dart');
+#source('src/SVGElement.dart');
 #source('src/SVGElementInstance.dart');
+#source('src/SVGSVGElement.dart');
 #source('src/Text.dart');
 #source('src/TextEvent.dart');
 #source('src/TimeoutHandler.dart');
