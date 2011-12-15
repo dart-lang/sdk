@@ -187,7 +187,6 @@
 #source('generated/src/wrapping/_OESTextureFloatWrappingImplementation.dart');
 #source('generated/src/wrapping/_OESVertexArrayObjectWrappingImplementation.dart');
 #source('generated/src/wrapping/_OListElementWrappingImplementation.dart');
-#source('generated/src/wrapping/_ObjectElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_OfflineAudioCompletionEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_OperationNotAllowedExceptionWrappingImplementation.dart');
 #source('generated/src/wrapping/_OptGroupElementWrappingImplementation.dart');
@@ -447,6 +446,7 @@
 #source('src/MutationEventWrappingImplementation.dart');
 #source('src/NodeWrappingImplementation.dart');
 #source('src/NotificationWrappingImplementation.dart');
+#source('src/ObjectElementWrappingImplementation.dart');
 #source('src/OverflowEventWrappingImplementation.dart');
 #source('src/PageTransitionEventWrappingImplementation.dart');
 #source('src/PopStateEventWrappingImplementation.dart');

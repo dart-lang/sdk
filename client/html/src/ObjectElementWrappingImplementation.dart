@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 class ObjectElementWrappingImplementation extends ElementWrappingImplementation implements ObjectElement {
   ObjectElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -89,4 +87,6 @@ class ObjectElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
+
+  SVGDocument get svgDocument() => _ptr.getSVGDocument();
 }

@@ -196,7 +196,6 @@
 #source('generated/src/interface/OESTextureFloat.dart');
 #source('generated/src/interface/OESVertexArrayObject.dart');
 #source('generated/src/interface/OListElement.dart');
-#source('generated/src/interface/ObjectElement.dart');
 #source('generated/src/interface/OfflineAudioCompletionEvent.dart');
 #source('generated/src/interface/OperationNotAllowedException.dart');
 #source('generated/src/interface/OptGroupElement.dart');
@@ -454,6 +453,7 @@
 #source('src/Node.dart');
 #source('src/NodeList.dart');
 #source('src/Notification.dart');
+#source('src/ObjectElement.dart');
 #source('src/OverflowEvent.dart');
 #source('src/PageTransitionEvent.dart');
 #source('src/PopStateEvent.dart');
