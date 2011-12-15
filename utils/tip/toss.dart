@@ -77,7 +77,9 @@ void main() {
     if (req.url.endsWith('.html')) {
       res.setHeader('Content-Type', 'text/html');
     } else if (req.url.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
+      res.setHeader('Content-Type', 'text/css');
+    } else if (req.url.endsWith('.svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml');
     } else {
       res.setHeader('Content-Type', 'text/plain');
     }
