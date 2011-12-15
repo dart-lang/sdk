@@ -49,8 +49,13 @@ def run_test_in_browser(browser, html_out, timeout, is_perf):
     source = browser.page_source
   finally: 
     # A timeout exception is thrown if nothing happens within the time limit.
-    browser.close()
-    browser.quit()
+    if browser != 'chrome':
+      browser.close()
+    try:
+      browser.quit()
+    except selenium.common.exceptions.WebDriverException:
+      #TODO(efortuna): figure out why this crashes.... and avoid?
+      pass
   return source
 
 def run_test_in_browser_selenium1(sel, html_out, timeout, is_perf):
@@ -60,7 +65,7 @@ def run_test_in_browser_selenium1(sel, html_out, timeout, is_perf):
   sel.open('file://' + html_out)
   source = sel.get_html_source()
   def end_condition(source): 
-    return 'PASS' in source and 'FAIL' in source
+    return 'PASS' in source or 'FAIL' in source
   if is_perf:
     end_condition = perf_test_done_helper
 
