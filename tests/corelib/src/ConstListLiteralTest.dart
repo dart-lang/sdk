@@ -61,6 +61,14 @@ class ConstListLiteralTest {
     Expect.equals(4, list[0]);
     Expect.equals(2, list[1]);
     Expect.equals(3, list[2]);
+
+    // Note: the next check is a regression test for frog. The immutable list
+    // overrides the 'length' property of List, but relies on using the native
+    // 'forEach' construct in Array. This test ensures that our strategy works
+    // correctly.
+    int x = 0;
+    list.forEach((e) { x += e; });
+    Expect.equals(9, x);
   }
 }
 

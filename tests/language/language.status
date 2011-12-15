@@ -255,7 +255,6 @@ LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MapLiteral4Test: Fail # missing checks on map index operations
 MathTest: Fail
-MethodBindingTest: Fail
 MethodOverrideTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
@@ -280,7 +279,6 @@ Prefix11NegativeTest: Fail
 Prefix14NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
-Prefix15Test: Fail
 PrivateMemberTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
