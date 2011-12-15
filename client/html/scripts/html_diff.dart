@@ -83,6 +83,8 @@ class HtmlDiff {
   /** A map from `dart:html` types to corresponding `dart:dom` types. */
   final Map<Type, Set<Type>> htmlTypesToDom;
 
+  final CommentMap comments;
+
   /**
    * Perform static initialization of [world]. This should be run before
    * calling [HtmlDiff.run].
@@ -96,7 +98,8 @@ class HtmlDiff {
     domToHtml = new Map<Member, Set<Member>>(),
     htmlToDom = new Map<Member, Set<Member>>(),
     domTypesToHtml = new Map<Type, Set<Type>>(),
-    htmlTypesToDom = new Map<Type, Set<Type>>();
+    htmlTypesToDom = new Map<Type, Set<Type>>(),
+    comments = new CommentMap();
 
   /**
    * Computes the `dart:dom` to `dart:html` mapping, and places it in
@@ -216,7 +219,7 @@ class HtmlDiff {
    */
   List<Type> htmlToDomTypes(Type htmlType) {
     if (htmlType.name == null) return [];
-    final tags = _getTags(findComment(htmlType.span));
+    final tags = _getTags(comments.find(htmlType.span));
 
     if (tags.containsKey('domName')) {
       var domNames = map(tags['domName'].split(','), (s) => s.trim());
@@ -253,7 +256,7 @@ class HtmlDiff {
    */
   Set<Member> htmlToDomMembers(Member htmlMember, List<Type> domTypes) {
     if (htmlMember.isPrivate || htmlMember is! MethodMember) return new Set();
-    final tags = _getTags(findComment(htmlMember.span));
+    final tags = _getTags(comments.find(htmlMember.span));
     if (tags.containsKey('domName')) {
       final domNames = map(tags['domName'].split(','), (s) => s.trim());
       if (domNames.length == 1 && domNames[0] == 'none') return new Set();

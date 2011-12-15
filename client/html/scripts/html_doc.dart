@@ -25,17 +25,33 @@ void main() {
   var files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
   initializeWorld(files);
-  doc.initializeDartDoc();
+  final htmldoc = new Htmldoc();
   HtmlDiff.initialize();
 
   _diff = new HtmlDiff();
   _diff.run();
   world.reset();
 
-  doc.addMethodDocumenter(addMemberDoc);
-  doc.addFieldDocumenter(addMemberDoc);
-  doc.addTypeDocumenter(addTypeDoc);
-  doc.document('html');
+  htmldoc.document('html');
+}
+
+class Htmldoc extends doc.Dartdoc {
+  getTypeComment(Type type) {
+    return _mergeComments(super.getTypeComment(type), getTypeDoc(type));
+  }
+
+  getMethodComment(MethodMember method) {
+    return _mergeComments(super.getMethodComment(method), getMemberDoc(method));
+  }
+
+  getFieldComment(FieldMember field) {
+    return _mergeComments(super.getFieldComment(field), getMemberDoc(field));
+  }
+
+  String _mergeComments(String comment, String extra) {
+    if (comment == null) return extra;
+    return '$comment\n\n$extra';
+  }
 }
 
 /**
@@ -81,7 +97,7 @@ Set<Member> _unifyProperties(Set<Member> members) {
  * to the corresponding `dart:html` or `dart:dom` [Member](s). If [member] is
  * not in `dart:html` or `dart:dom`, returns no additional documentation.
  */
-String addMemberDoc(Member member) {
+String getMemberDoc(Member member) {
   if (_diff.domToHtml.containsKey(member)) {
     final htmlMemberSet = _unifyProperties(_diff.domToHtml[member]);
     final allSameName = htmlMemberSet.every((m) => _diff.sameName(member, m));
@@ -106,7 +122,7 @@ String addMemberDoc(Member member) {
  * the corresponding `dart:html` or `dart:dom` [Type](s). If [type] is not in
  * `dart:html` or `dart:dom`, returns no additional documentation.
  */
-String addTypeDoc(Type type) {
+String getTypeDoc(Type type) {
   if (_diff.domTypesToHtml.containsKey(type)) {
     var htmlTypes = doc.joinWithCommas(
         map(_diff.domTypesToHtml[type], _linkType));
