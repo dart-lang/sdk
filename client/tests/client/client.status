@@ -16,6 +16,7 @@ touch/touch_tests: Skip  # Issue 157.
 [ $component == frogium ]
 touch/touch_tests: Fail  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
+html/html_tests: Skip
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 json/json_tests: Pass
 samples/swarm/swarm_tests: Pass
