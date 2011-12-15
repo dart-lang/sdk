@@ -217,6 +217,19 @@ public class ResolverTest extends ResolverTestCase {
      */
   }
 
+  public void testImplicitDefaultConstructor_OnInterfaceWithoutFactory() {
+    // Check that the implicit constructor is resolved correctly
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface B {}",
+        "class C { main() { new B(); } }"),
+        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+
+    /*
+     * We should check for signature mismatch but that is a TypeAnalyzer issue.
+     */
+  }
+  
   public void testImplicitDefaultConstructor_ThroughFactories() {
     // Check that we generate implicit constructors through factories also.
     resolveAndTest(Joiner.on("\n").join(
