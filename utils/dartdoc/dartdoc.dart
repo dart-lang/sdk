@@ -25,14 +25,6 @@
 #source('files.dart');
 #source('utils.dart');
 
-/** Path to corePath library. */
-final corePath = 'lib';
-
-/** Path to generate html files into. */
-final outdir = 'docs';
-
-FileSystem files;
-
 /**
  * Run this from the `utils/dartdoc` directory.
  */
@@ -55,7 +47,7 @@ void main() {
     }
   }
 
-  files = new NodeFileSystem();
+  FileSystem files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
   initializeWorld(files);
 
@@ -400,11 +392,16 @@ class Dartdoc {
 
   void docMembers(Type type) {
     // Collect the different kinds of members.
-    final methods = [];
-    final fields = [];
+    final staticMethods = [];
+    final staticFields = [];
+    final instanceMethods = [];
+    final instanceFields = [];
 
     for (final member in orderByName(type.members)) {
       if (member.name.startsWith('_')) continue;
+
+      final methods = member.isStatic ? staticMethods : instanceMethods;
+      final fields = member.isStatic ? staticFields : instanceFields;
 
       if (member.isProperty) {
         if (member.canGet) methods.add(member.getter);
@@ -416,14 +413,26 @@ class Dartdoc {
       }
     }
 
-    if (methods.length > 0) {
-      writeln('<h3>Methods</h3>');
-      for (final method in methods) docMethod(type, method);
+    if (staticMethods.length > 0) {
+      final title = type.isTop ? 'Functions' : 'Static Methods';
+      writeln('<h3>$title</h3>');
+      for (final method in staticMethods) docMethod(type, method);
     }
 
-    if (fields.length > 0) {
+    if (staticFields.length > 0) {
+      final title = type.isTop ? 'Variables' : 'Static Fields';
+      writeln('<h3>$title</h3>');
+      for (final field in staticFields) docField(type, field);
+    }
+
+    if (instanceMethods.length > 0) {
+      writeln('<h3>Methods</h3>');
+      for (final method in instanceMethods) docMethod(type, method);
+    }
+
+    if (instanceFields.length > 0) {
       writeln('<h3>Fields</h3>');
-      for (final field in fields) docField(type, field);
+      for (final field in instanceFields) docField(type, field);
     }
   }
 
@@ -439,10 +448,6 @@ class Dartdoc {
 
     if (includeSource) {
       writeln('<span class="show-code">Code</span>');
-    }
-
-    if (method.isStatic && !type.isTop) {
-      write('static ');
     }
 
     if (method.isConstructor) {
@@ -499,10 +504,6 @@ class Dartdoc {
 
     if (includeSource) {
       writeln('<span class="show-code">Code</span>');
-    }
-
-    if (field.isStatic && !type.isTop) {
-      write('static ');
     }
 
     if (field.isFinal) {
