@@ -95,15 +95,15 @@ def Main(argv):
   # Copy the Dart VM binary into sdk/bin.
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = os.path.dirname(argv[1])
+  frogc_src_binary = join(HOME, 'frog', 'frogc')
+  frogc_dest_binary = join(BIN, 'frogc')
   if utils.GuessOS() == 'win32':
     # TODO(dgrove) - deal with frogc.bat
     dart_src_binary = join(HOME, build_dir, 'dart.exe')
     dart_dest_binary = join(BIN, 'dart.exe')
   else:
-    frogc_src_binary = join(HOME, 'frog', 'frogc')
     dart_src_binary = join(HOME, build_dir, 'dart')
     dart_dest_binary = join(BIN, 'dart')
-    frogc_dest_binary = join(BIN, 'frogc')
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
   copyfile(frogc_src_binary, frogc_dest_binary)
