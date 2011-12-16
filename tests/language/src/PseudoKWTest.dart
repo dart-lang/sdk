@@ -12,8 +12,6 @@ class PseudoKWTest {
     // that are legal identifiers at the function level.
 
     var abstract = 0;
-    var class = 0;
-    var extends = 0;
     var factory = 0;
     var get = 0;
     var implements = 0;
@@ -32,11 +30,11 @@ class PseudoKWTest {
       }
     }
 
-    get: while (extends > 0) {
+    get: while (import > 0) {
       break get;
     }
 
-    return static + library * class;
+    return static + library * operator;
   }
 }
 

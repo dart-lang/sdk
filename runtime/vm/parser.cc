@@ -1532,7 +1532,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   const Class& cls = Class::Handle(func.owner());
   ASSERT(!cls.IsNull());
 
-  if (IsLiteral("class")) {
+  if (CurrentToken() == Token::kCLASS) {
     // Special case: implicit constructor.
     // The parser adds an implicit default constructor when a class
     // does not have any explicit constructor or factory (see
