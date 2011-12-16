@@ -5,7 +5,7 @@
 /**
  * To use it, from this directory, run:
  *
- *     $ dartdoc <path to .dart file>
+ *     $ ./dartdoc <path to .dart file>
  *
  * This will create a "docs" directory with the docs for your libraries. To
  * create these beautiful docs, dartdoc parses your library and every library

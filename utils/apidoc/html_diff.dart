@@ -8,10 +8,10 @@
  */
 #library('html_diff');
 
-#import('../../../frog/lang.dart');
-#import('../../../frog/file_system_node.dart');
-#import('../../../frog/file_system.dart');
-#import('../../../utils/dartdoc/dartdoc.dart');
+#import('../../frog/lang.dart');
+#import('../../frog/file_system_node.dart');
+#import('../../frog/file_system.dart');
+#import('../dartdoc/dartdoc.dart');
 
 void main() {
   var files = new NodeFileSystem();

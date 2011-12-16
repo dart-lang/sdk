@@ -3,21 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * A script to document the HTML library, including annotations on the mapping
- * to and from the DOM library. To use it, from utils/dartdoc, run:
- *
- *     $ htmldoc
- *
- * This works just like `dartdoc html`, with the additions of the DOM/HTML
- * mapping documentation.
+ * Generates the complete set of corelib reference documentation.
  */
-#library('html_doc');
+#library('apidoc');
 
 #import('html_diff.dart');
-#import('../../../frog/lang.dart');
-#import('../../../frog/file_system_node.dart');
-#import('../../../frog/file_system.dart');
-#import('../../../utils/dartdoc/dartdoc.dart', prefix: 'doc');
+#import('../../frog/lang.dart');
+#import('../../frog/file_system_node.dart');
+#import('../../frog/file_system.dart');
+#import('../dartdoc/dartdoc.dart', prefix: 'doc');
 
 HtmlDiff _diff;
 
@@ -25,17 +19,17 @@ void main() {
   var files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
   initializeWorld(files);
-  final htmldoc = new Htmldoc();
+  final apidoc = new Apidoc();
   HtmlDiff.initialize();
 
   _diff = new HtmlDiff();
   _diff.run();
   world.reset();
 
-  htmldoc.document('html');
+  apidoc.document('html');
 }
 
-class Htmldoc extends doc.Dartdoc {
+class Apidoc extends doc.Dartdoc {
   getTypeComment(Type type) {
     return _mergeComments(super.getTypeComment(type), getTypeDoc(type));
   }
