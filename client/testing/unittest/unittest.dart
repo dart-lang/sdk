@@ -31,7 +31,7 @@ void _onError(e) {
     _state = _UNCAUGHT_ERROR;
     if (testCase.callbacks > 0) {
       _currentTest++;
-      _nextBatch();
+      _testRunner();
     }
   }
 }

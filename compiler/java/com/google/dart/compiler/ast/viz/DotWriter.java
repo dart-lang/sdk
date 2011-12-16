@@ -73,25 +73,31 @@ public class DotWriter extends BaseASTWriter {
 
   @Override
   protected void write(String nodeType, DartNode node, String data) {
-    String nodeData = node.getSourceLine() + ":" + node.getSourceStart() + ":"
-        + node.getSourceLength() + "_" + nodeType;
-    nodeMap.put(node, nodeData);
+  String nodeId = node.getObjectIdentifier();
+  nodeMap.put(node, nodeId);  
     DartNode parent = node.getParent();
     if (parent == null) {
       parent = currentUnit;
     }
     String styleAttr = getStyleAttr(nodeType, node);
     String label = getLabel(nodeType, node, data);
-    nodes.append(String.format("\t\"%s\" [label=\"%s\"%s];\n", nodeData, label, styleAttr));
-    edges.append(String.format("\t\"%s\" -> \"%s\";\n", nodeMap.get(parent), nodeData));
+    nodes.append(String.format("\t\"%s\" [label=\"%s\"%s];\n", nodeId, label, styleAttr));
+    edges.append(String.format("\t\"%s\" -> \"%s\";\n", nodeMap.get(parent), nodeId));
   }
 
   private String getLabel(String nodeType, DartNode node, String data) {
     StringBuffer label = new StringBuffer(nodeType);
     if (printDataNodes.contains(nodeType) || node instanceof DartExpression) {
-      label.append(String.format("\\n%s", data.replaceAll("\"", "'")));
+      label.append(String.format("\\n%s", escape(data)));
     }
     return label.toString();
+  }
+  
+  private String escape(String data){
+    data = data.replaceAll("\"", "'");
+    data = data.replaceAll("\n", "\\n");
+    data = data.replaceAll("\r", "\\r");
+    return data;
   }
 
   private String getStyleAttr(String nodeType, DartNode node) {
@@ -103,6 +109,11 @@ public class DotWriter extends BaseASTWriter {
     } else if ("DartMethodDefinition".equals(nodeType)) {
       style.append(", color=blue");
     }
+    
+    if(node.isInstrumentedNode()){
+      style.append(", style=filled, fillcolor=yellow");
+    }
+    
     return style.toString();
   }
 

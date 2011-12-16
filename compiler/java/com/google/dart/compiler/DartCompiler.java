@@ -11,6 +11,7 @@ import com.google.common.io.Files;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.LibraryDeps.Dependency;
 import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
+import com.google.dart.compiler.ast.CoverageInstrumenter;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartNode;
@@ -682,6 +683,10 @@ public class DartCompiler {
 
         // Dump the compiler parse tree if dump format is set in arguments
         BaseASTWriter astWriter = ASTWriterFactory.create(config);
+        
+        // Coverage instrumenter
+        CoverageInstrumenter coverageInstrumenter = CoverageInstrumenter.createInstance(config);
+        coverageInstrumenter.process(libraries);
 
         // The two following for loops can be parallelized.
         for (LibraryUnit lib : libraries.values()) {

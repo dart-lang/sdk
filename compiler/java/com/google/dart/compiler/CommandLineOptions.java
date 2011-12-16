@@ -73,13 +73,14 @@ public class CommandLineOptions {
         usage = "Generate source maps")
     private boolean generateSourceMaps = false;
     
-    @Option(name = "--dump-ast-format", aliases={"-dump-ast-format"},
-    		usage = "Dump parse tree. Supported formats include console, text or dot")
+    @Option(name = "--dump_ast_format",
+        usage = "Dump parse tree. Supported formats include console, text or dot")
     private String dumpAST = "";
     
-    @Option(name = "--coverage-instrumenter", aliases={"-coverage-instrumentor"},
-    		usage = "Add coverage instrumentation probes")
-    private boolean coverage = false;
+    @Option(name = "--coverage_type",
+        usage = "Add instrumentation probes for collecting coverage. " + 
+            "Supported types include function, statement, branch and all")
+    private String coverage = "";
 
     @Option(name = "--human-readable-output",
         usage = "Write human readable javascript")
@@ -256,11 +257,11 @@ public class CommandLineOptions {
     }
     
     public String dumpAST(){
-    	return dumpAST;
+      return dumpAST;
     }
     
-    public boolean instrument4Coverage(){
-    	return coverage;
+    public String getCoverageType(){
+      return coverage;
     }
 
     /**

@@ -11,6 +11,12 @@ String _currentGroup = '';
 /** Tests executed in this suite. */
 List<TestCase> _tests;
 
+/** 
+ * Callback used to run tests. Entrypoints can replace this with their own
+ * if they want. 
+ */
+Function _testRunner;
+
 /** Whether this is run within dartium layout tests. */
 bool _isLayoutTest = false;
 
@@ -138,7 +144,7 @@ void callbackDone() {
       (_state != _RUNNING_TEST)) {
     testCase.pass();
     _currentTest++;
-    _nextBatch();
+    _testRunner();
   }
 }
 
@@ -152,7 +158,7 @@ _runTests() {
 
   _platformDefer(() {
     assert (_currentTest == 0);
-    _nextBatch();
+    _testRunner();
   });
 }
 
@@ -237,7 +243,8 @@ _ensureInitialized() {
   _tests = <TestCase>[];
   _currentGroup = '';
   _state = _READY;
-
+  _testRunner = _nextBatch;
+  
   _platformInitialize();
 
   // Immediately queue the suite up. It will run after a timeout (i.e. after
@@ -327,9 +334,13 @@ class TestCase {
 
   /** Stack trace associated with this test, or null if it succeeded. */
   String stackTrace;
+  
+  Date startTime;
+  
+  Duration runningTime;
 
   TestCase(this.id, this.description, this.test, this.callbacks);
-
+  
   bool get isComplete() => result != null;
 
   void pass() {

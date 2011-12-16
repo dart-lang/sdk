@@ -34,7 +34,7 @@ public class ConsoleWriter extends BaseASTWriter {
   @Override
   protected void endHook(DartUnit unit) {
     try {
-      Closeables.close(out, true);
+      out.flush();
     } catch (IOException e) {
       e.printStackTrace();
     }
