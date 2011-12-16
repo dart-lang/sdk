@@ -606,8 +606,7 @@ class CompileTimeAndSizeTestRunner(TestRunner):
     RunCmd(['echo', '%f Compiling on Dart VM in production mode in seconds' 
         % elapsed], self.trace_file, append=True)
     elapsed = TimeCmd([os.path.join('.', 'minfrog'), '--out=minfrog',
-        '--warnings_as_errors', 'minfrog.dart', os.path.join('tests', 
-        'hello.dart')])
+        'minfrog.dart', os.path.join('tests', 'hello.dart')])
     if elapsed < self.failure_threshold['Bootstrapping']:
       #minfrog didn't compile correctly. Stop testing now, because subsequent
       #numbers will be meaningless.
