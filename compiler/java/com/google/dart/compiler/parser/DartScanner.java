@@ -541,6 +541,7 @@ public class DartScanner {
    * #restoreState(State)}.
    */
   public State getState() {
+//    System.out.println("get state: " + internalState.currentOffset + " hash: 0x" + Integer.toHexString(this.hashCode()));
     return new State(internalState.currentOffset);
   }
 
@@ -622,6 +623,7 @@ public class DartScanner {
    * Sets the scanner's state, using a state object returned from {@link #getState()}.
    */
   public void restoreState(State oldState) {
+//    System.out.println("restore state " + oldState.baseOffset + " hash: 0x" + Integer.toHexString(this.hashCode()));
     // reset offset
     internalState.currentOffset = oldState.baseOffset;
   }
@@ -757,6 +759,17 @@ public class DartScanner {
       internalState.lastToken.location = new Location(begin, end);
       internalState.tokens.add(internalState.lastToken);
       if (token == Token.EOS) {
+//        System.out.print("tokens: ");
+//        for(TokenData t : internalState.tokens) {
+//          if (t != null) {
+//            if (t.token != null) {
+//              System.out.print(t + ", ");
+//            } else {
+//              System.out.print("Null, ");
+//            }
+//          }
+//        }
+//        System.out.println();
         return;
       }
     }
