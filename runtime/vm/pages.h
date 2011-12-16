@@ -102,6 +102,12 @@ class PageSpace {
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
+  static intptr_t LargePageSizeFor(intptr_t size);
+  bool CanIncreaseCapacity(intptr_t increase) {
+    ASSERT(capacity_ < max_capacity_);
+    return increase <= (max_capacity_ - capacity_);
+  }
+
   uword TryBumpAllocate(intptr_t size);
 
   FreeList freelist_;

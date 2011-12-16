@@ -69,6 +69,13 @@ PageSpace::~PageSpace() {
 }
 
 
+intptr_t PageSpace::LargePageSizeFor(intptr_t size) {
+  intptr_t page_size = Utils::RoundUp(size + sizeof(HeapPage),
+                                      VirtualMemory::PageSize());
+  return page_size;
+}
+
+
 void PageSpace::AllocatePage() {
   HeapPage* page = HeapPage::Allocate(kPageSize, is_executable_);
   if (pages_ == NULL) {
@@ -82,8 +89,7 @@ void PageSpace::AllocatePage() {
 
 
 HeapPage* PageSpace::AllocateLargePage(intptr_t size) {
-  intptr_t page_size = Utils::RoundUp(size + sizeof(HeapPage),
-                                      VirtualMemory::PageSize());
+  intptr_t page_size = LargePageSizeFor(size);
   HeapPage* page = HeapPage::Allocate(page_size, is_executable_);
   page->set_next(large_pages_);
   large_pages_ = page;
@@ -136,7 +142,7 @@ uword PageSpace::TryAllocate(intptr_t size) {
   if (size < kAllocatablePageSize) {
     result = TryBumpAllocate(size);
     if (result == 0) {
-      if (capacity_ < max_capacity_) {
+      if (CanIncreaseCapacity(kPageSize)) {
         AllocatePage();
         result = TryBumpAllocate(size);
         ASSERT(result != 0);
@@ -144,10 +150,17 @@ uword PageSpace::TryAllocate(intptr_t size) {
     }
   } else {
     // Large page allocation.
-    HeapPage* page = AllocateLargePage(size);
-    if (page != NULL) {
-      result = page->top();
-      page->set_top(result + size);
+    intptr_t page_size = LargePageSizeFor(size);
+    if (page_size < size) {
+      // On overflow we fail to allocate.
+      return 0;
+    }
+    if (CanIncreaseCapacity(page_size)) {
+      HeapPage* page = AllocateLargePage(size);
+      if (page != NULL) {
+        result = page->top();
+        page->set_top(result + size);
+      }
     }
   }
   if (result != 0) {
