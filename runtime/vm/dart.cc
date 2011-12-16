@@ -5,8 +5,8 @@
 #include "vm/dart.h"
 
 #include "vm/code_index_table.h"
-#include "vm/freelist.h"
 #include "vm/flags.h"
+#include "vm/freelist.h"
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
