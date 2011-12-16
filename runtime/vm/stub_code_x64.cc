@@ -172,11 +172,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateStackOverflowStub(Assembler* assembler) {
-  __ Unimplemented("StackOverflow stub");
-}
-
-
 void StubCode::GenerateOptimizeInvokedFunctionStub(Assembler* assembler) {
   __ Unimplemented("OptimizeInvokedFunction stub");
 }

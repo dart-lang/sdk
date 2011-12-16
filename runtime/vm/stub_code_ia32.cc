@@ -229,30 +229,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 }
 
 
-// Stub is entered after a call but before the callee's frame has been
-// constructed.
-// Handle stack overflow by calling the runtime routine and preserving
-// the argument descriptor (EDX) and the ic-data array/function object of
-// the call (ECX).
-// The stub must be able to return to callee in case the stack overflow
-// exception is not thrown.
-void StubCode::GenerateStackOverflowStub(Assembler* assembler) {
-  __ EnterFrame(0);
-  // Stack at this point:
-  // TOS + 0: Saved EBP of previous frame. <== EBP
-  // TOS + 1: Dart code return address
-  // TOS + 2: Last argument of caller.
-  // ....
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(ECX);  // Preserve object (ic-data array or function object).
-  __ CallRuntimeFromStub(kStackOverflowRuntimeEntry);
-  __ popl(ECX);  // Restore object (ic-data array or function object).
-  __ popl(EDX);  // Restore arguments descriptor array.
-  __ LeaveFrame();
-  __ int3();
-}
-
-
 // Called when number of invocations exceeds
 // --optimization_invocation_threshold.
 // EAX: target function.

@@ -49,6 +49,9 @@ class DynamicAssertionHelper {
   void StringEquals(const E& expected, const A& actual);
 
   template<typename E, typename A>
+  void IsSubstring(const E& needle, const A& haystack);
+
+  template<typename E, typename A>
   void LessThan(const E& left, const A& right);
 
   template<typename E, typename A>
@@ -136,6 +139,18 @@ void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
   std::string es = ess.str(), as = ass.str();
   if (as == es) return;
   Fail("expected: <\"%s\"> but was: <\"%s\">", es.c_str(), as.c_str());
+}
+
+
+template<typename E, typename A>
+void DynamicAssertionHelper::IsSubstring(const E& needle, const A& haystack) {
+  std::stringstream ess, ass;
+  ess << needle;
+  ass << haystack;
+  std::string es = ess.str(), as = ass.str();
+  if (as.find(es) != std::string::npos) return;
+  Fail("expected <\"%s\"> to be a substring of <\"%s\">",
+       es.c_str(), as.c_str());
 }
 
 
@@ -247,6 +262,9 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
 
 #define EXPECT_STREQ(expected, actual)                                         \
   dart::Expect(__FILE__, __LINE__).StringEquals((expected), (actual))
+
+#define EXPECT_SUBSTRING(needle, haystack)                                     \
+  dart::Expect(__FILE__, __LINE__).IsSubstring((needle), (haystack))
 
 #define EXPECT_LT(left, right)                                                 \
   dart::Expect(__FILE__, __LINE__).LessThan((left), (right))

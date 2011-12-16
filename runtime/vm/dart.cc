@@ -24,7 +24,8 @@ namespace dart {
 Isolate* Dart::vm_isolate_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 
-bool Dart::InitOnce(Dart_IsolateCreateCallback callback) {
+bool Dart::InitOnce(Dart_IsolateCreateCallback create,
+                    Dart_IsolateInterruptCallback interrupt) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return false;
@@ -48,7 +49,8 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback callback) {
     Scanner::InitOnce();
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
-  Isolate::SetCreateCallback(callback);
+  Isolate::SetCreateCallback(create);
+  Isolate::SetInterruptCallback(interrupt);
   return true;
 }
 

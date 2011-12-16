@@ -210,6 +210,7 @@ void CodeGenerator::GenerateCode() {
   }
   if (FLAG_trace_functions) {
     // Preserve ECX (ic-data array or object) and EDX (arguments descriptor).
+    __ nop(2);  // Make sure the code is patchable.
     __ pushl(ECX);
     __ pushl(EDX);
     const Function& function =
@@ -271,10 +272,6 @@ void CodeGenerator::GenerateDeferredCode() {
 // TODO(srdjan): Add check that no object is inlined in the first
 // 5 bytes (length of a jump instruction).
 void CodeGenerator::GeneratePreEntryCode() {
-  // Stack overflow check.
-  __ cmpl(ESP,
-      Address::Absolute(Isolate::Current()->stack_limit_address()));
-  __ j(BELOW_EQUAL, &StubCode::StackOverflowLabel());
   // Do not optimize if:
   // - we count invocations.
   // - optimization disabled via negative 'optimization_invocation_threshold;
@@ -287,6 +284,9 @@ void CodeGenerator::GeneratePreEntryCode() {
       parsed_function_.function().is_optimizable();
   // Count invocation and check.
   if (FLAG_report_invocation_count || may_optimize) {
+    // TODO(turnidge): It would be nice to remove this nop.  Right now
+    // we need it to make sure the function is still patchable.
+    __ nop(5);
     const Function& function =
         Function::ZoneHandle(parsed_function_.function().raw());
     __ LoadObject(EAX, function);
@@ -726,6 +726,16 @@ void CodeGenerator::GenerateEntryCode() {
     }
     __ movl(Address(EBP, index * kWordSize), EAX);
   }
+
+  // Generate stack overflow check.
+  __ cmpl(ESP,
+          Address::Absolute(Isolate::Current()->stack_limit_address()));
+  Label no_stack_overflow;
+  __ j(ABOVE, &no_stack_overflow);
+  GenerateCallRuntime(AstNode::kNoId,
+                      function.token_index(),
+                      kStackOverflowRuntimeEntry);
+  __ Bind(&no_stack_overflow);
 }
 
 

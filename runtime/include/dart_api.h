@@ -235,7 +235,7 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
  * \param error A structure into which the embedder can place a
  *   C string containing an error message in the case of failures.
  *
- * \return the embedder returns false if the creation and initialization was not
+ * \return The embedder returns false if the creation and initialization was not
  *   successful and true if successful. The embedder is responsible for
  *   maintaining consistency in the case of errors (e.g: isolate is created,
  *   but loading of scripts fails then the embedder should ensure that
@@ -246,14 +246,34 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
 typedef bool (*Dart_IsolateCreateCallback)(void* callback_data, char** error);
 
 /**
+ * An isolate interrupt callback function.
+ *
+ * This callback, provided by the embedder, is called when an isolate
+ * is interrupted as a result of a call to Dart_InterruptIsolate().
+ * When the callback is called, Dart_CurrentIsolate can be used to
+ * figure out which isolate is being interrupted.
+ *
+ * \param current_isolate The isolate being interrupted.
+ *
+ * \return The embedder returns true if the isolate should continue
+ *   execution. If the embedder returns false, the isolate will be
+ *   unwound (currently unimplemented).
+ */
+typedef bool (*Dart_IsolateInterruptCallback)();
+// TODO(turnidge): Define and implement unwinding.
+
+/**
  * Initializes the VM.
  *
- * \param callback A function to be called during isolate creation.
+ * \param create A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
+ * \param interrupt A function to be called when an isolate is interrupted.
+ *   See Dart_IsolateInterruptCallback.
  *
  * \return True if initialization is successful.
  */
-DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback callback);
+DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
+                                 Dart_IsolateInterruptCallback interrupt);
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.
@@ -384,6 +404,20 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
                                                   uint8_t** buffer,
                                                   intptr_t* size);
 
+
+/**
+ * Schedules an interrupt for the specified isolate.
+ *
+ * Note that the interrupt does not occur immediately. In fact, if
+ * 'isolate' does not execute any further Dart code, then the
+ * interrupt will not occur at all.  If and when the isolate is
+ * interrupted, the isolate interrupt callback will be invoked with
+ * 'isolate' as the current isolate (see
+ * Dart_IsolateInterruptCallback).
+ *
+ * \param isolate The isolate to be interrupted.
+ */
+DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
 
 // --- Messages and Ports ---
 
@@ -872,7 +906,7 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
 /**
  * Returns a String which references an external array of 8-bit codepoints.
  *
- * \param value An array of 8-bit codepoints.  This array must not move.
+ * \param value An array of 8-bit codepoints. This array must not move.
  * \param length The length of the codepoints array.
  * \param peer An external pointer to associate with this string.
  * \param callback A callback to be called when this string is finalized.
@@ -888,7 +922,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
 /**
  * Returns a String which references an external array of 16-bit codepoints.
  *
- * \param value An array of 16-bit codepoints.  This array must not move.
+ * \param value An array of 16-bit codepoints. This array must not move.
  * \param length The length of the codepoints array.
  * \param peer An external pointer to associate with this string.
  * \param callback A callback to be called when this string is finalized.
@@ -904,7 +938,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
 /**
  * Returns a String which references an external array of 32-bit codepoints.
  *
- * \param value An array of 32-bit codepoints.  This array must not move.
+ * \param value An array of 32-bit codepoints. This array must not move.
  * \param length The length of the codepoints array.
  * \param peer An external pointer to associate with this string.
  * \param callback A callback to be called when this string is finalized.

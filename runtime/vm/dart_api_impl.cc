@@ -528,9 +528,9 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object) {
 // --- Initialization and Globals ---
 
 
-// TODO(iposva): This is a placeholder for the eventual external Dart API.
-DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback callback) {
-  return Dart::InitOnce(callback);
+DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
+                                 Dart_IsolateInterruptCallback interrupt) {
+  return Dart::InitOnce(create, interrupt);
 }
 
 DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
@@ -660,6 +660,15 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
   writer.WriteScriptSnapshot();
   *size = writer.Size();
   return Api::Success();
+}
+
+
+DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
+  }
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  iso->ScheduleInterrupts(Isolate::kApiInterrupt);
 }
 
 
@@ -1222,7 +1231,7 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                       CURRENT_FUNC);
   }
   if (peer == NULL) {
-    return Api::Error("%s expects argument 'peer' to be non-NULL.",
+    return Api::Error("%s expects argument 'peer' to be non-null.",
                       CURRENT_FUNC);
   }
   *peer = str.GetPeer();

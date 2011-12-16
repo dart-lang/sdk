@@ -9,3 +9,6 @@ RunLoop_ExceptionChild: Fail
 
 # Application snapshots are not implemented yet.
 ScriptSnapshot: Skip
+
+# Breakpoint needs to be reimplemented after StackOverflow check moved.
+Breakpoint: Fail

@@ -62,7 +62,9 @@ Isolate::Isolate()
       debugger_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
+      mutex_(new Mutex()),
       stack_limit_(0),
+      saved_stack_limit_(0),
       ast_node_id_(AstNode::kNoId) {
 }
 
@@ -76,6 +78,8 @@ Isolate::~Isolate() {
   delete api_state_;
   delete stub_code_;
   delete code_index_table_;
+  delete mutex_;
+  mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
 }
 
 
@@ -152,7 +156,37 @@ void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
 
 
 void Isolate::SetStackLimit(uword limit) {
-  stack_limit_ = limit;
+  MutexLocker ml(mutex_);
+  if (stack_limit_ == saved_stack_limit_) {
+    // No interrupt pending, set stack_limit_ too.
+    stack_limit_ = limit;
+  }
+  saved_stack_limit_ = limit;
+}
+
+
+void Isolate::ScheduleInterrupts(uword interrupt_bits) {
+  // TODO(turnidge): Can't use MutexLocker here because MutexLocker is
+  // a StackResource, which requires a current isolate.  Should
+  // MutexLocker really be a StackResource?
+  mutex_->Lock();
+  ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
+  if (stack_limit_ == saved_stack_limit_) {
+    stack_limit_ = ~static_cast<uword>(0) & ~kInterruptsMask;
+  }
+  stack_limit_ |= interrupt_bits;
+  mutex_->Unlock();
+}
+
+
+uword Isolate::GetAndClearInterrupts() {
+  MutexLocker ml(mutex_);
+  if (stack_limit_ == saved_stack_limit_) {
+    return 0;  // No interrupt was requested.
+  }
+  uword interrupt_bits = stack_limit_ & kInterruptsMask;
+  stack_limit_ = saved_stack_limit_;
+  return interrupt_bits;
 }
 
 
@@ -231,6 +265,7 @@ void Isolate::Shutdown() {
 
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
+Dart_IsolateInterruptCallback Isolate::interrupt_callback_ = NULL;
 
 
 void Isolate::SetCreateCallback(Dart_IsolateCreateCallback cb) {
@@ -240,6 +275,16 @@ void Isolate::SetCreateCallback(Dart_IsolateCreateCallback cb) {
 
 Dart_IsolateCreateCallback Isolate::CreateCallback() {
   return create_callback_;
+}
+
+
+void Isolate::SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
+  interrupt_callback_ = cb;
+}
+
+
+Dart_IsolateInterruptCallback Isolate::InterruptCallback() {
+  return interrupt_callback_;
 }
 
 

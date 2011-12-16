@@ -872,12 +872,31 @@ DEFINE_RUNTIME_ENTRY(ClosureArgumentMismatch, 0) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.Count() ==
          kStackOverflowRuntimeEntry.argument_count());
-  // Use a preallocated stack overflow exception to avoid calling into
-  // dart code.
-  const Instance& exception =
-      Instance::Handle(isolate->object_store()->stack_overflow());
-  Exceptions::Throw(exception);
-  UNREACHABLE();
+  uword stack_pos = reinterpret_cast<uword>(&arguments);
+
+  // If an interrupt happens at the same time as a stack overflow, we
+  // process the stack overflow first.
+  if (stack_pos < isolate->saved_stack_limit()) {
+    // Use the preallocated stack overflow exception to avoid calling
+    // into dart code.
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->stack_overflow());
+    Exceptions::Throw(exception);
+    UNREACHABLE();
+  }
+
+  uword interrupt_bits = isolate->GetAndClearInterrupts();
+  if (interrupt_bits & Isolate::kApiInterrupt) {
+    Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
+    if (callback) {
+      if ((*callback)()) {
+        return;
+      } else {
+        // TODO(turnidge): Unwind the stack.
+        UNIMPLEMENTED();
+      }
+    }
+  }
 }
 
 

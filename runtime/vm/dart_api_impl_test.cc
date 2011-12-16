@@ -7,6 +7,7 @@
 #include "vm/assert.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/thread.h"
 #include "vm/unit_test.h"
 #include "vm/utils.h"
 #include "vm/verifier.h"
@@ -497,7 +498,7 @@ UNIT_TEST_CASE(ExternalStringGetPeer) {
   result = Dart_ExternalStringGetPeer(ext8, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'peer' to be "
-               "non-NULL.", Dart_GetError(result));
+               "non-null.", Dart_GetError(result));
 
   // String is not external.
   peer = NULL;
@@ -2848,6 +2849,125 @@ UNIT_TEST_CASE(RunLoop_ExceptionChild) {
 
 UNIT_TEST_CASE(RunLoop_ExceptionParent) {
   RunLoopTest(false, true);
+}
+
+
+static Monitor* sync = NULL;
+static Dart_Isolate shared_isolate = NULL;
+void BusyLoop_start(uword unused) {
+  // TODO(turnidge): Get rid of call to 'function' after interrupts
+  // are checked on backward branches.
+  const char* kScriptChars =
+      "void function([foo='hi']) {\n"
+      "}\n"
+      "\n"
+      "void main() {\n"
+      "  while (true) {\n"  // Infinite loop.
+      "    function();\n"
+      "  }\n"
+      "}\n";
+
+
+  // Tell the other thread that shared_isolate is created.
+  Dart_Handle lib;
+  {
+    sync->Enter();
+    char* error = NULL;
+    shared_isolate = Dart_CreateIsolate(NULL, NULL, &error);
+    EXPECT(shared_isolate != NULL);
+    Dart_EnterScope();
+    Dart_Handle url = Dart_NewString(TestCase::url());
+    Dart_Handle source = Dart_NewString(kScriptChars);
+    lib = Dart_LoadScript(url, source, TestCase::library_handler);
+    EXPECT_VALID(lib);
+
+    sync->Notify();
+    sync->Exit();
+  }
+
+  Dart_Handle result = Dart_InvokeStatic(lib,
+                                         Dart_NewString(""),
+                                         Dart_NewString("main"),
+                                         0,
+                                         NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Unhandled exception:\nfoo\n",
+                   Dart_GetError(result));
+
+  // Tell the other thread that we are done.
+  {
+    MonitorLocker ml(sync);
+    shared_isolate = NULL;
+    ml.Notify();
+  }
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+// This callback handles isolate interrupts for the IsolateInterrupt
+// test.  It ignores the first two interrupts and throws an exception
+// on the third interrupt.
+static int interrupt_count = 0;
+static bool IsolateInterruptTestCallback() {
+  interrupt_count++;
+  OS::Print(" =========== Interrupt callback called #%d\n", interrupt_count);
+  if (interrupt_count >= 3) {
+    Dart_EnterScope();
+    Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
+    EXPECT_VALID(lib);
+    Dart_Handle exc = Dart_NewString("foo");
+    EXPECT_VALID(exc);
+    Dart_Handle result = Dart_ThrowException(exc);
+    EXPECT_VALID(result);
+    UNREACHABLE();  // Dart_ThrowException only returns if it gets an error.
+    return false;
+  }
+  return true;
+}
+
+
+TEST_CASE(IsolateInterrupt) {
+  Dart_IsolateInterruptCallback saved = Isolate::InterruptCallback();
+  Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
+
+  sync = new Monitor();
+  Thread* thread = new Thread(BusyLoop_start, 0);
+  EXPECT(thread != NULL);
+
+  {
+    MonitorLocker ml(sync);
+    // Wait for the other isolate to start.
+    while (shared_isolate == NULL) {
+      ml.Wait();
+    }
+  }
+
+  // Send three interrupts to the other isolate.  The first two allow
+  // execution to continue.  The third causes an exception in the
+  // isolate.
+  Dart_InterruptIsolate(shared_isolate);
+  OS::Sleep(5);
+  Dart_InterruptIsolate(shared_isolate);
+  OS::Sleep(5);
+  Dart_InterruptIsolate(shared_isolate);
+
+  {
+    MonitorLocker ml(sync);
+    // Wait for our isolate to finish.
+    while (shared_isolate != NULL) {
+      ml.Wait();
+    }
+  }
+
+  // We should have received 3 interrupts.
+  EXPECT_EQ(3, interrupt_count);
+
+  // Give the spawned thread enough time to properly exit.
+  OS::Sleep(20);
+  Isolate::SetInterruptCallback(saved);
 }
 
 #endif  // TARGET_ARCH_IA32.

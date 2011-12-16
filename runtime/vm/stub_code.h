@@ -28,7 +28,6 @@ class RawCode;
   V(MegamorphicLookup)                                                         \
   V(CallStaticFunction)                                                        \
   V(CallClosureFunction)                                                       \
-  V(StackOverflow)                                                             \
   V(OptimizeInvokedFunction)                                                   \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \

@@ -431,9 +431,6 @@ bool OptimizingCodeGenerator::TryIntrinsify() {
 // TODO(srdjan): Add check that no object is inlined in the first
 // 5 bytes (length of a jump instruction).
 void OptimizingCodeGenerator::GeneratePreEntryCode() {
-  __ cmpl(ESP,
-      Address::Absolute(Isolate::Current()->stack_limit_address()));
-  __ j(BELOW_EQUAL, &StubCode::StackOverflowLabel());
 }
 
 
