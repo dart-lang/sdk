@@ -570,6 +570,8 @@ class Class : public Object {
 
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
+  void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
   }
@@ -607,6 +609,8 @@ class Class : public Object {
     return raw_ptr()->allocation_stub_;
   }
   void set_allocation_stub(const Code& value) const;
+
+  RawArray* constants() const;
 
   void Finalize() const;
 
@@ -647,7 +651,6 @@ class Class : public Object {
   void set_class_state(int8_t state) const;
 
   void set_constants(const Array& value) const;
-  RawArray* constants() const;
 
   void set_canonical_types(const Array& value) const;
   RawArray* canonical_types() const;
@@ -2355,6 +2358,7 @@ class Mint : public Integer {
   virtual int CompareWith(const Integer& other) const;
 
   static RawMint* New(int64_t value, Heap::Space space = Heap::kNew);
+  static RawMint* NewCanonical(int64_t value);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawMint));
@@ -2433,9 +2437,20 @@ class Double : public Number {
     return raw_ptr()->value_;
   }
 
+  bool EqualsToDouble(double value) const;
+  virtual bool Equals(const Instance& other) const;
+
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
   static RawDouble* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Returns a canonical double object allocated in the old gen space.
+  static RawDouble* NewCanonical(double d);
+
+  // Returns a canonical double object (allocated in the old gen space) or
+  // Double::null() if str points to a string that does not convert to a
+  // double value.
+  static RawDouble* NewCanonical(const String& str);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawDouble));

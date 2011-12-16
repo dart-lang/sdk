@@ -5507,8 +5507,7 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
       dbl_obj ^= rhs_literal->literal().raw();
       double right_double = dbl_obj.value();
       if (binary_op == Token::kDIV) {
-        dbl_obj = Double::New(left_double / right_double, Heap::kOld);
-        dbl_obj ^= dbl_obj.Canonicalize();
+        dbl_obj = Double::NewCanonical((left_double / right_double));
         return new LiteralNode(op_pos, dbl_obj);
       }
     }
@@ -7382,11 +7381,10 @@ AstNode* Parser::ParsePrimary() {
     ASSERT(double_literal != NULL);
     ASSERT(double_literal->Length() > 0);
     Double& double_value =
-        Double::ZoneHandle(Double::New(*double_literal, Heap::kOld));
+        Double::ZoneHandle(Double::NewCanonical(*double_literal));
     if (double_value.IsNull()) {
       ErrorMsg("invalid double literal");
     }
-    double_value ^= double_value.Canonicalize();
     primary = new LiteralNode(token_index_, double_value);
     ConsumeToken();
   } else if (CurrentToken() == Token::kSTRING) {

@@ -1620,6 +1620,23 @@ const char* Class::ToCString() const {
 }
 
 
+void Class::InsertCanonicalConstant(intptr_t index,
+                                    const Instance& constant) const {
+  // The constant needs to be added to the list. Grow the list if it is full.
+  Array& canonical_list = Array::Handle(constants());
+  const intptr_t list_len = canonical_list.Length();
+  if (index >= list_len) {
+    const intptr_t new_length = (list_len == 0) ? 4 : list_len + 4;
+    const Array& new_canonical_list =
+        Array::Handle(Array::Grow(canonical_list, new_length, Heap::kOld));
+    set_constants(new_canonical_list);
+    new_canonical_list.SetAt(index, constant);
+  } else {
+    canonical_list.SetAt(index, constant);
+  }
+}
+
+
 RawUnresolvedClass* UnresolvedClass::New(intptr_t token_index,
                                          const String& qualifier,
                                          const String& ident) {
@@ -2142,6 +2159,8 @@ RawAbstractType* Type::Canonicalize() const {
     const intptr_t canonical_types_len = canonical_types.Length();
     // Linear search to see whether this type is already present in the
     // list of canonicalized types.
+    // TODO(asiva): Try to re-factor this lookup code to make sharing
+    // easy between the 4 versions of this loop.
     Type& type = Type::Handle();
     intptr_t index = 0;
     while (index < canonical_types_len) {
@@ -5034,18 +5053,7 @@ RawInstance* Instance::Canonicalize() const {
     // The value needs to be added to the list. Grow the list if
     // it is full.
     // TODO(srdjan): Copy instance into old space if canonicalized?
-    if (index == constants_len) {
-      const intptr_t kInitialConstLength = 4;
-      const intptr_t old_length = constants.Length();
-      const intptr_t new_length =
-          (old_length == 0) ? kInitialConstLength : old_length * 2;
-      const Array& new_constants =
-          Array::Handle(Array::Grow(constants, new_length, Heap::kOld));
-      cls.set_constants(new_constants);
-      new_constants.SetAt(index, *this);
-    } else {
-      constants.SetAt(index, *this);
-    }
+    cls.InsertCanonicalConstant(index, *this);
     SetCanonical();
   }
   return this->raw();
@@ -5383,6 +5391,36 @@ RawMint* Mint::New(int64_t val, Heap::Space space) {
 }
 
 
+RawMint* Mint::NewCanonical(int64_t value) {
+  // Do not allocate a Mint if Smi would do.
+  ASSERT(!Smi::IsValid64(value));
+  const Class& cls =
+      Class::Handle(Isolate::Current()->object_store()->mint_class());
+  const Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Mint& canonical_value = Mint::Handle();
+  intptr_t index = 0;
+  while (index < constants_len) {
+    canonical_value ^= constants.At(index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.value() == value) {
+      return canonical_value.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  canonical_value = Mint::New(value, Heap::kOld);
+  cls.InsertCanonicalConstant(index, canonical_value);
+  canonical_value.SetCanonical();
+  return canonical_value.raw();
+}
+
+
 bool Mint::Equals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     // Both handles point to the same raw instance.
@@ -5453,6 +5491,28 @@ void Double::set_value(double value) const {
 }
 
 
+bool Double::EqualsToDouble(double value) const {
+  intptr_t value_offset = Double::value_offset();
+  void* this_addr = reinterpret_cast<void*>(
+      reinterpret_cast<uword>(this->raw_ptr()) + value_offset);
+  void* other_addr = reinterpret_cast<void*>(&value);
+  return (memcmp(this_addr, other_addr, sizeof(value)) == 0);
+}
+
+
+bool Double::Equals(const Instance& other) const {
+  if (this->raw() == other.raw()) {
+    return true;  // "===".
+  }
+  if (other.IsNull() || !other.IsDouble()) {
+    return false;
+  }
+  Double& other_dbl = Double::Handle();
+  other_dbl ^= other.raw();
+  return EqualsToDouble(other_dbl.value());
+}
+
+
 RawDouble* Double::New(double d, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
   const Class& cls =
@@ -5473,17 +5533,64 @@ static bool IsWhiteSpace(char ch) {
 }
 
 
-RawDouble* Double::New(const String& str, Heap::Space space) {
+static bool StringToDouble(const String& str, double* double_value) {
+  ASSERT(double_value != NULL);
   // TODO(regis): For now, we use strtod to convert a string to double.
   const char* nptr = str.ToCString();
   char* endptr = NULL;
-  double double_value = strtod(nptr, &endptr);
+  *double_value = strtod(nptr, &endptr);
   // We do not treat overflow or underflow as an error and therefore do not
   // check errno for ERANGE.
   if (!IsWhiteSpace(*endptr)) {
+    return false;
+  }
+  return true;
+}
+
+
+RawDouble* Double::New(const String& str, Heap::Space space) {
+  double double_value;
+  if (!StringToDouble(str, &double_value)) {
     return Double::Handle().raw();
   }
   return New(double_value, space);
+}
+
+
+RawDouble* Double::NewCanonical(double value) {
+  const Class& cls =
+      Class::Handle(Isolate::Current()->object_store()->double_class());
+  const Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Double& canonical_value = Double::Handle();
+  intptr_t index = 0;
+  while (index < constants_len) {
+    canonical_value ^= constants.At(index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.EqualsToDouble(value)) {
+      return canonical_value.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  canonical_value = Double::New(value, Heap::kOld);
+  cls.InsertCanonicalConstant(index, canonical_value);
+  canonical_value.SetCanonical();
+  return canonical_value.raw();
+}
+
+
+RawDouble* Double::NewCanonical(const String& str) {
+  double double_value;
+  if (!StringToDouble(str, &double_value)) {
+    return Double::Handle().raw();
+  }
+  return NewCanonical(double_value);
 }
 
 
