@@ -1514,7 +1514,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ cmpl(EAX, EDI);  // Match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ Bind(&no_match);
-    __ addl(EBX, Immediate(kWordSize * 1 + (num_args)));  // Next element.
+    __ addl(EBX, Immediate(kWordSize * (1 + num_args)));  // Next element.
     __ cmpl(EDI, raw_null);   // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   }

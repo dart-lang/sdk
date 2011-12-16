@@ -433,6 +433,7 @@ void CodeGenerator::GenerateInstanceCall(
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
   ICData ic_data(function_name, num_args_checked);
+  ASSERT(ic_data.NumberOfArgumentsChecked() == num_args_checked);
   __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
@@ -1198,6 +1199,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
   node->operand()->Visit(this);
   if (node->kind() == Token::kADD) {
+    // TODO(srdjan): Remove this as it is not part of Dart language any longer.
     // Unary operator '+' does not exist, it's a NOP, skip it.
     if (!IsResultNeeded(node)) {
       __ popl(EAX);

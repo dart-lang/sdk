@@ -47,6 +47,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
   virtual void VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node);
   virtual void VisitCatchClauseNode(CatchClauseNode* node);
   virtual void VisitTryCatchNode(TryCatchNode* node);
+  virtual void VisitUnaryOpNode(UnaryOpNode* node);
 
   // Return true if intrinsification succeeded and no more code is needed.
   // Returns false if either no intrinsification occured or if intrinsified
@@ -108,6 +109,8 @@ class OptimizingCodeGenerator : public CodeGenerator {
                             Register value_reg);
 
   void CallDeoptimize(intptr_t node_id, intptr_t token_index);
+
+  void GenerateSmiUnaryOp(UnaryOpNode* node);
 
   void GenerateSmiBinaryOp(BinaryOpNode* node);
   void GenerateSmiShiftBinaryOp(BinaryOpNode* node);

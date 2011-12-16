@@ -79,6 +79,7 @@ enum DeoptReasonId {
   kDeoptLoadIndexedGrowableArray,
   kDeoptNoTypeFeedback,
   kDeoptSAR,
+  kDeoptUnaryOp,
 };
 
 // This class wraps around the array RawClass::functions_cache_.
