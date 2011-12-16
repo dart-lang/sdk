@@ -19,6 +19,6 @@ public class ASTWriterFactory {
     } else if ("dot".equals(astFormat)) {
       return new DotWriter(outDir);
     }
-    return null;
+    return new NullWriter(outDir);
   }
 }

@@ -690,9 +690,7 @@ public class DartCompiler {
           // Compile all the units in this library.
           for (DartUnit unit : lib.getUnits()) {
 
-            if(astWriter != null) {
-              astWriter.process(unit);
-            }
+            astWriter.process(unit);
 
             // Don't compile api-only units.
             if (unit.isDiet()) {
@@ -837,6 +835,8 @@ public class DartCompiler {
         }
 
         if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
+          // Dump the compiler parse tree if dump format is set in arguments
+          ASTWriterFactory.create(config).process(unit);
           return null;
         }
         return unit;

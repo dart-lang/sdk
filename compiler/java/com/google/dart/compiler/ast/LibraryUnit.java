@@ -308,8 +308,13 @@ public class LibraryUnit {
       public Void visitMethodDefinition(DartMethodDefinition node) {
         // Method names are always identifiers, except for factories, which cannot appear
         // in this context.
-        DartIdentifier name = (DartIdentifier) node.getName();
-        topLevelNodes.put(name.getTargetName(), node);
+        DartExpression name = node.getName();
+        if(name instanceof DartIdentifier) {
+          topLevelNodes.put(((DartIdentifier) name).getTargetName(), node);
+        } else {
+          // Visit the unknown node to generate a string for our use.
+          topLevelNodes.put(node.getName().toSource(), node);
+        }
         return null;
       }
 

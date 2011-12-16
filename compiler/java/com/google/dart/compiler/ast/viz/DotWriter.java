@@ -71,6 +71,7 @@ public class DotWriter extends BaseASTWriter {
     }
   }
 
+  @Override
   protected void write(String nodeType, DartNode node, String data) {
     String nodeData = node.getSourceLine() + ":" + node.getSourceStart() + ":"
         + node.getSourceLength() + "_" + nodeType;

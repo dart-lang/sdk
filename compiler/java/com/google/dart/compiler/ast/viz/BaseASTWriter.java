@@ -342,7 +342,9 @@ public abstract class BaseASTWriter {
 
     @Override
     public Object visitFunctionExpression(DartFunctionExpression node) {
-      write("DartFunctionExpression", node);
+      DartIdentifier name = node.getName();
+      write("DartFunctionExpression", node, name != null ? name.toString() : "");
+      visitChildren(node);
       return null;
     }
 

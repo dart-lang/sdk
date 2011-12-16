@@ -133,8 +133,13 @@ class MethodElementImplementation extends AbstractElement implements MethodEleme
 
   public static MethodElementImplementation fromMethodNode(DartMethodDefinition node,
                                                            EnclosingElement holder) {
-    assert node.getName() instanceof DartIdentifier;
-    String targetName = ((DartIdentifier) node.getName()).getTargetName();
+    String targetName;
+    if(node.getName() instanceof DartIdentifier) {
+      targetName = ((DartIdentifier) node.getName()).getTargetName();
+    } else {
+      // Visit the unknown node to generate a string for our use.
+      targetName = node.toSource();
+    }
     return new MethodElementImplementation(node, targetName, holder);
   }
 

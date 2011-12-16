@@ -112,6 +112,7 @@ public class DartParser extends CompletionHooksParserBase {
   private boolean isDietParse;
   private boolean isParsingInterface;
   private boolean isParsingAbstract;
+  private boolean isParsingClass;
 
   /**
    * Determines the maximum number of errors before terminating the parser. See
@@ -253,7 +254,7 @@ public class DartParser extends CompletionHooksParserBase {
       try {
         DartNode node = null;
         beginTopLevelElement();
-        isParsingInterface = false;
+        isParsingClass = isParsingInterface = false;
         // Check for ABSTRACT_KEYWORD.
         isParsingAbstract = false;
         if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
@@ -261,6 +262,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         // Parse top level element.
         if (optionalPseudoKeyword(CLASS_KEYWORD)) {
+          isParsingClass = true;
           node = done(parseClass());
         } else if (optionalPseudoKeyword(INTERFACE_KEYWORD)) {
           isParsingInterface = true;
@@ -1113,7 +1115,10 @@ public class DartParser extends CompletionHooksParserBase {
       // Check for named constructor.
       if (optional(Token.PERIOD)) {
         name = doneWithoutConsuming(new DartPropertyAccess(name, parseIdentifier()));
-
+        if(currentlyParsingToplevel()) {
+          // TODO: Error recovery could find a missing brace and treat this as an expression
+          reportError(name,  ParserErrorCode.FUNCTION_NAME_EXPECTED_IDENTIFIER);
+        }
         if (optional(Token.PERIOD)) {
           name = doneWithoutConsuming(new DartPropertyAccess(name, parseIdentifier()));
         }
@@ -1229,7 +1234,6 @@ public class DartParser extends CompletionHooksParserBase {
    *            | THIS ('.' identifier)? arguments
    *            ;
    * </pre>
-   * @return true if initializer is a redirected constructor, false otherwise.
    */
   private void parseInitializers(List<DartInitializer> initializers) {
     expect(Token.COLON);
@@ -3745,5 +3749,9 @@ public class DartParser extends CompletionHooksParserBase {
 
   private void reportError(DartNode node, ErrorCode errorCode, Object... arguments) {
     reportError(new DartCompilationError(node, errorCode, arguments));
+  }
+  
+  private boolean currentlyParsingToplevel() {
+    return   !(isParsingInterface || isParsingAbstract || isParsingClass);
   }
 }

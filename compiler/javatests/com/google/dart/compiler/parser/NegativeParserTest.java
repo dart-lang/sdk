@@ -302,4 +302,15 @@ public class NegativeParserTest extends CompilerTestCase {
             "}"),
         dartUnit.toDietSource().trim());
   }
+
+  /**
+   * Function signatures require the name to be an identifier; especially true at the top level. 
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=839
+   */
+  public void testTopLevelFunctionNotIdentifier() {
+    parseExpectErrors(
+        "foo.baz() {}",
+        errEx(ParserErrorCode.FUNCTION_NAME_EXPECTED_IDENTIFIER, 1, 1, 7));
+  }  
 }
