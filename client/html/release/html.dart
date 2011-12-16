@@ -12646,7 +12646,8 @@ interface ObjectElement extends Element {
 
   void setCustomValidity(String error);
 
-  SVGDocument get svgDocument();
+  // Don't support getSVGDocument because the content document won't have all
+  // the necessary patches to the prototype hierarchy under Frog.
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

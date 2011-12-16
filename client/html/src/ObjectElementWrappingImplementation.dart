@@ -87,7 +87,4 @@ class ObjectElementWrappingImplementation extends ElementWrappingImplementation 
     _ptr.setCustomValidity(error);
     return;
   }
-
-  SVGDocument get svgDocument() =>
-    LevelDom.wrapSVGDocument(_ptr.getSVGDocument());
 }
