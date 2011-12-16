@@ -328,7 +328,6 @@ InstanceofTest: Fail
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
 NumberSyntaxTest: Fail
-NativeNamedConstructors2FrogTest: Fail  # ReferenceError: A is not defined.
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
@@ -336,7 +335,6 @@ StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
 InstanceofTest: Timeout
 NumberSyntaxTest: Timeout
-NativeNamedConstructors2FrogTest: Timeout  # ReferenceError: A is not defined.
 
 [ $arch == x64 ]
 *: Skip
