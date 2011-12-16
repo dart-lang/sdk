@@ -184,6 +184,8 @@ OptimizedSetterTest: Fail # Issue 863
 
 FactoryImplementationTest: Fail # Issue 523
 
+ClassKeywordNegativeTest/01: Fail # Issue 874
+
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
 *VMNegativeTest: Skip

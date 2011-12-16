@@ -90,6 +90,7 @@ public enum Token {
   BREAK("break", 0),
   CASE("case", 0),
   CATCH("catch", 0),
+  CLASS("class",0),
   CONST("const", 0),
   CONTINUE("continue", 0),
   DEFAULT("default", 0),

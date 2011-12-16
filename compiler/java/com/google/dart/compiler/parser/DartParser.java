@@ -124,7 +124,6 @@ public class DartParser extends CompletionHooksParserBase {
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String ASSERT_KEYWORD = "assert";
-  private static final String CLASS_KEYWORD = "class";
   private static final String EXTENDS_KEYWORD = "extends";
   private static final String FACTORY_KEYWORD = "factory";
   private static final String GETTER_KEYWORD = "get";
@@ -141,7 +140,6 @@ public class DartParser extends CompletionHooksParserBase {
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
     ASSERT_KEYWORD,
-    CLASS_KEYWORD,
     EXTENDS_KEYWORD,
     FACTORY_KEYWORD,
     GETTER_KEYWORD,
@@ -261,7 +259,7 @@ public class DartParser extends CompletionHooksParserBase {
           isParsingAbstract = true;
         }
         // Parse top level element.
-        if (optionalPseudoKeyword(CLASS_KEYWORD)) {
+        if (optional(Token.CLASS)) {
           isParsingClass = true;
           node = done(parseClass());
         } else if (optionalPseudoKeyword(INTERFACE_KEYWORD)) {
@@ -297,7 +295,7 @@ public class DartParser extends CompletionHooksParserBase {
    *         level.
    */
   private boolean peekTopLevelKeyword(int n) {
-    return peekPseudoKeyword(n, CLASS_KEYWORD)
+    return peek(n) == Token.CLASS
         || peekPseudoKeyword(n, INTERFACE_KEYWORD)
         || peekPseudoKeyword(n, TYPEDEF_KEYWORD);
   }
