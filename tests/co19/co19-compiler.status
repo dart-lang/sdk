@@ -82,7 +82,6 @@ LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compo
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Unqualified_Compound_Assignment/A02/t06: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t03: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t04: Fail
-LangSpecTest/13_Types/13_4_Interface_Types/A11/t01: Skip # Bug 862
 LangSpecTest/13_Types/13_4_Interface_Types/A11/t04: Fail
 LangSpecTest/13_Types/13_4_Interface_Types/A12/t10: Fail
 LangSpecTest/13_Types/13_5_Function_Types/A01/t01: Fail # Bad test, Issue 59

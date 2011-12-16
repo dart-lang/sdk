@@ -336,6 +336,7 @@ public class ClosureJsBackend extends AbstractJsBackend {
     List<JSSourceFile> externs = getDefaultExterns();
     List<JSModule> modules = Lists.newLinkedList();
     modules.add(module);
+    compiler.disableThreads();
     Result result = compiler.compileModules(externs, modules, options);
 
     if (processResults(src, context, compiler, result, module, out) != 0) {
