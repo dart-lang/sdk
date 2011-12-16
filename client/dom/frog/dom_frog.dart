@@ -2396,7 +2396,7 @@ class FileWriterSync native "*FileWriterSync" {
   String get typeName() native;
 }
 
-class Float32Array extends ArrayBufferView implements List<num> native "Float32Array" {
+class Float32Array extends ArrayBufferView implements List<num> native "*Float32Array" {
 
   factory Float32Array(int length) =>  _construct(length);
 
@@ -2417,7 +2417,7 @@ class Float32Array extends ArrayBufferView implements List<num> native "Float32A
   Float32Array subarray(int start, [int end = null]) native;
 }
 
-class Float64Array extends ArrayBufferView implements List<num> native "Float64Array" {
+class Float64Array extends ArrayBufferView implements List<num> native "*Float64Array" {
 
   factory Float64Array(int length) =>  _construct(length);
 
@@ -4366,7 +4366,7 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
   String get typeName() native;
 }
 
-class Int16Array extends ArrayBufferView implements List<int> native "Int16Array" {
+class Int16Array extends ArrayBufferView implements List<int> native "*Int16Array" {
 
   factory Int16Array(int length) =>  _construct(length);
 
@@ -4387,7 +4387,7 @@ class Int16Array extends ArrayBufferView implements List<int> native "Int16Array
   Int16Array subarray(int start, [int end = null]) native;
 }
 
-class Int32Array extends ArrayBufferView implements List<int> native "Int32Array" {
+class Int32Array extends ArrayBufferView implements List<int> native "*Int32Array" {
 
   factory Int32Array(int length) =>  _construct(length);
 
@@ -4408,7 +4408,7 @@ class Int32Array extends ArrayBufferView implements List<int> native "Int32Array
   Int32Array subarray(int start, [int end = null]) native;
 }
 
-class Int8Array extends ArrayBufferView implements List<int> native "Int8Array" {
+class Int8Array extends ArrayBufferView implements List<int> native "*Int8Array" {
 
   factory Int8Array(int length) =>  _construct(length);
 
@@ -7694,7 +7694,7 @@ class SVGPathElement extends SVGElement native "*SVGPathElement" {
   SVGMatrix getTransformToElement(SVGElement element) native;
 }
 
-class SVGPathSeg native "SVGPathSeg" {
+class SVGPathSeg native "*SVGPathSeg" {
 
   static final int PATHSEG_ARC_ABS = 10;
 
@@ -9401,7 +9401,7 @@ class UIEvent extends Event native "UIEvent" {
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) native;
 }
 
-class Uint16Array extends ArrayBufferView implements List<int> native "Uint16Array" {
+class Uint16Array extends ArrayBufferView implements List<int> native "*Uint16Array" {
 
   factory Uint16Array(int length) =>  _construct(length);
 
@@ -9422,7 +9422,7 @@ class Uint16Array extends ArrayBufferView implements List<int> native "Uint16Arr
   Uint16Array subarray(int start, [int end = null]) native;
 }
 
-class Uint32Array extends ArrayBufferView implements List<int> native "Uint32Array" {
+class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Array" {
 
   factory Uint32Array(int length) =>  _construct(length);
 
@@ -9443,7 +9443,7 @@ class Uint32Array extends ArrayBufferView implements List<int> native "Uint32Arr
   Uint32Array subarray(int start, [int end = null]) native;
 }
 
-class Uint8Array extends ArrayBufferView implements List<int> native "Uint8Array" {
+class Uint8Array extends ArrayBufferView implements List<int> native "*Uint8Array" {
 
   factory Uint8Array(int length) =>  _construct(length);
 
