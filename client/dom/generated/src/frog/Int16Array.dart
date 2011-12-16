@@ -1,5 +1,5 @@
 
-class Int16Array extends ArrayBufferView implements List<int> native "Int16Array" {
+class Int16Array extends ArrayBufferView implements List<int> native "*Int16Array" {
 
   factory Int16Array(int length) =>  _construct(length);
 

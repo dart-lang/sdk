@@ -128,17 +128,8 @@ _frog_dom_custom_native_specs = {
     # DOMWindow aliased with global scope.
     'DOMWindow': '@*DOMWindow',
 
-    # Temporary hack: make these not be 'hidden', so that static methods can be
-    # put on them.  Frog should be fixed to generate working code for static
-    # methods on hidden classes.  Meantime, programs will not work on IE9.
-    'Float32Array': 'Float32Array',
-    'Float64Array': 'Float64Array',
-    'Int8Array': 'Int8Array',
-    'Int16Array': 'Int16Array',
-    'Int32Array': 'Int32Array',
-    'Uint8Array': 'Uint8Array',
-    'Uint16Array': 'Uint16Array',
-    'Uint32Array': 'Uint32Array',
+    # Temporary hack: make these be 'hidden'.
+    'SVGPathSeg': '*SVGPathSeg',
 }
 
 #
