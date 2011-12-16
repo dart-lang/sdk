@@ -62,10 +62,10 @@ Isolate::Isolate()
       debugger_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
+      ast_node_id_(AstNode::kNoId),
       mutex_(new Mutex()),
       stack_limit_(0),
-      saved_stack_limit_(0),
-      ast_node_id_(AstNode::kNoId) {
+      saved_stack_limit_(0) {
 }
 
 
