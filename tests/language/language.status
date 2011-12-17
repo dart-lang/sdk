@@ -261,7 +261,6 @@ MethodOverrideTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
-NativePropertyFrogTest: Fail  # Object #<A> has no method 'set$X'
 NonConstSuperNegativeTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
