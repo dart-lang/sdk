@@ -209,28 +209,23 @@ def Main(argv):
   #
   # Create and populate lib/json.
   #
-
-  json_frog_dest_dir = join(LIB, 'json', 'frog')
+  json_dest_dir = join(LIB, 'json')
   json_compiler_dest_dir = join(LIB, 'json', 'compiler')
-  os.makedirs(json_frog_dest_dir)
+  os.makedirs(json_dest_dir)
   os.makedirs(json_compiler_dest_dir)
 
   for filename in json_frog_sources:
     copyfile(join(HOME, 'frog', 'lib', filename), 
-             join(json_frog_dest_dir, filename))
+             join(json_dest_dir, filename))
 
   for filename in json_compiler_sources:
     copyfile(join(HOME, 'compiler', filename),
              join(json_compiler_dest_dir, os.path.basename(filename)))
 
-  # Create json_compiler.dart and json_frog.dart from whole cloth.
+  # Create json_compiler.dart from whole cloth.
   dest_file = open(join(LIB, 'json', 'json_compiler.dart'), 'w')
   dest_file.write('#library("dart:json");\n')
   dest_file.write('#import("compiler/json.dart");\n')
-  dest_file.close()
-  dest_file = open(join(LIB, 'json', 'json_frog.dart'), 'w')
-  dest_file.write('#library("dart:json");\n')
-  dest_file.write('#import("frog/json.dart");\n')
   dest_file.close()
       
   #
