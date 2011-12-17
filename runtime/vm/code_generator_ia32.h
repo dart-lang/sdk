@@ -16,7 +16,7 @@
 
 namespace dart {
 
-// Forward Declarations.
+// Forward declarations.
 class Assembler;
 class AstNode;
 class CodeGenerator;
@@ -129,7 +129,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   // structured.
   friend class OptimizingCodeGenerator;
 
-  // Forward Declarations.
+  // Forward declarations.
   class DescriptorList;
   class HandlerList;
 
@@ -223,7 +223,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(CodeGenerator);
 };
-
 
 }  // namespace dart
 

@@ -5,6 +5,8 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_X64)
 
+#include "vm/instructions.h"
+#include "vm/isolate.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -12,39 +14,55 @@ namespace dart {
 // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
 // code in the InvokeDartCode stub.
 static const int kExitLinkOffsetInEntryFrame = -8 * kWordSize;
+static const int kPcAddressOffsetFromSp = -1 * kWordSize;
+static const int kSpOffsetFromPreviousFp = 2 * kWordSize;
 
 
-intptr_t StackFrame::PcAddressOffsetFromSp() {
-  UNIMPLEMENTED();
-  return 0;
+static bool ExitedFromStub(uword exit_marker) {
+  if (exit_marker != 0) {
+    uword caller_pc = *reinterpret_cast<uword*>(exit_marker + kWordSize);
+    uword call_instr_pc = caller_pc - Call::InstructionLength();
+    uword call_target = Call(call_instr_pc).TargetAddress();
+    return StubCode::InStubCallToRuntimeStubCode(call_target);
+  }
+  return false;
 }
 
 
-uword StackFrame::GetCallerFp() const {
-  UNIMPLEMENTED();
-  return 0;
+intptr_t StackFrame::PcAddressOffsetFromSp() {
+  return kPcAddressOffsetFromSp;
 }
 
 
 uword StackFrame::GetCallerSp() const {
-  UNIMPLEMENTED();
-  return 0;
+  return fp() + kSpOffsetFromPreviousFp;
+}
+
+
+uword StackFrame::GetCallerFp() const {
+  return *(reinterpret_cast<uword*>(fp()));
 }
 
 
 intptr_t EntryFrame::ExitLinkOffset() {
-  UNIMPLEMENTED();
-  return 0;
+  return kExitLinkOffsetInEntryFrame;
 }
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  UNIMPLEMENTED();
+  Isolate* current = Isolate::Current();
+  uword exit_marker = current->top_exit_frame_info();
+  frames_.fp_ = exit_marker;
+  frames_.from_stub_exitframe_ = ExitedFromStub(exit_marker);
 }
 
 
 void StackFrameIterator::SetupNextExitFrameData() {
-  UNIMPLEMENTED();
+  uword exit_address = entry_.fp() + kExitLinkOffsetInEntryFrame;
+  uword exit_marker = *reinterpret_cast<uword*>(exit_address);
+  frames_.fp_ = exit_marker;
+  frames_.from_stub_exitframe_ = ExitedFromStub(exit_marker);
+  frames_.sp_ = 0;
 }
 
 }  // namespace dart

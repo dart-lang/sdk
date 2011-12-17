@@ -43,8 +43,21 @@ void Assembler::call(Label* label) {
 
 
 void Assembler::call(const ExternalLabel* label) {
-  movq(TMP, Immediate(label->address()));
-  call(TMP);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  intptr_t call_start = buffer_.GetPosition();
+
+  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
+  EmitRegisterREX(TMP, REX_W);
+  EmitUint8(0xB8 | (TMP & 7));
+  EmitInt64(label->address());
+
+  // Encode call(TMP).
+  Operand operand(TMP);
+  EmitOperandREX(2, operand, REX_NONE);
+  EmitUint8(0xFF);
+  EmitOperand(2, operand);
+
+  ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
 
 
@@ -882,6 +895,14 @@ void Assembler::subq(Register reg, const Immediate& imm) {
 }
 
 
+void Assembler::subq(Register reg, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(reg, address, REX_W);
+  EmitUint8(0x2B);
+  EmitOperand(reg & 7, address);
+}
+
+
 void Assembler::shll(Register reg, const Immediate& imm) {
   EmitGenericShift(false, 4, reg, imm);
 }
@@ -1034,9 +1055,66 @@ void Assembler::ret() {
 }
 
 
-void Assembler::nop() {
+void Assembler::nop(int size) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x90);
+  // There are nops up to size 15, but for now just provide up to size 8.
+  ASSERT(0 < size && size <= MAX_NOP_SIZE);
+  switch (size) {
+    case 1:
+      EmitUint8(0x90);
+      break;
+    case 2:
+      EmitUint8(0x66);
+      EmitUint8(0x90);
+      break;
+    case 3:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x00);
+      break;
+    case 4:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x40);
+      EmitUint8(0x00);
+      break;
+    case 5:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x44);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    case 6:
+      EmitUint8(0x66);
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x44);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    case 7:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x80);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    case 8:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x84);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
 }
 
 
@@ -1078,6 +1156,14 @@ void Assembler::j(Condition condition, Label* label, bool near) {
 }
 
 
+void Assembler::j(Condition condition, const ExternalLabel* label) {
+  Label no_jump;
+  j(static_cast<Condition>(condition ^ 1), &no_jump);  // Negate condition.
+  jmp(label);
+  Bind(&no_jump);
+}
+
+
 void Assembler::jmp(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(reg);
@@ -1112,8 +1198,21 @@ void Assembler::jmp(Label* label, bool near) {
 
 
 void Assembler::jmp(const ExternalLabel* label) {
-  movq(TMP, Immediate(label->address()));
-  jmp(TMP);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  intptr_t call_start = buffer_.GetPosition();
+
+  // Encode movq(TMP, Immediate(label->address())), but always as imm64.
+  EmitRegisterREX(TMP, REX_W);
+  EmitUint8(0xB8 | (TMP & 7));
+  EmitInt64(label->address());
+
+  // Encode jmp(TMP).
+  Operand operand(TMP);
+  EmitOperandREX(4, operand, REX_NONE);
+  EmitUint8(0xFF);
+  EmitOperand(4, operand);
+
+  ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
 
 
@@ -1194,6 +1293,14 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 
+void Assembler::StoreIntoObject(Register object,
+                                const FieldAddress& dest,
+                                Register value) {
+  // TODO(iposva): Add write barrier.
+  movq(dest, value);
+}
+
+
 void Assembler::Stop(const char* message) {
   // Emit the lower half and the higher half of the message address as immediate
   // operands in the test rax instructions, followed by the int3 instruction.
@@ -1254,7 +1361,21 @@ void Assembler::CallRuntimeFromStub(const RuntimeEntry& entry) {
 
 
 void Assembler::Align(int alignment, int offset) {
-  UNIMPLEMENTED();
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  int pos = offset + buffer_.GetPosition();
+  int mod = pos & (alignment - 1);
+  if (mod == 0) {
+    return;
+  }
+  int bytes_needed = alignment - mod;
+  while (bytes_needed > MAX_NOP_SIZE) {
+    nop(MAX_NOP_SIZE);
+    bytes_needed -= MAX_NOP_SIZE;
+  }
+  if (bytes_needed) {
+    nop(bytes_needed);
+  }
+  ASSERT(((offset + buffer_.GetPosition()) & (alignment-1)) == 0);
 }
 
 

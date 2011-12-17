@@ -10,7 +10,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // Compiler only implemented on IA32 now.
+// Compiler only implemented on IA32 and X64 now.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(CompileScript) {
   const char* kScriptChars =
@@ -58,6 +59,6 @@ TEST_CASE(CompileFunction) {
   EXPECT(function_moo.HasCode());
 }
 
-#endif  // TARGET_ARCH_IA32
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64
 
 }  // namespace dart

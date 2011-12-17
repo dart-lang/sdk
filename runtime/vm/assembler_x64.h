@@ -208,14 +208,6 @@ class Address : public Operand {
     }
   }
 
-  static Address Absolute(const uword addr) {
-    UNIMPLEMENTED();
-    Address result;
-    result.SetModRM(0, RBP);
-    result.SetDisp32(addr);
-    return result;
-  }
-
  private:
   Address() {}
 
@@ -318,7 +310,7 @@ class Assembler : public ValueObject {
   void call(Label* label);
   void call(const ExternalLabel* label);
 
-  static const intptr_t kCallExternalLabelSize = 5;
+  static const intptr_t kCallExternalLabelSize = 13;
 
   void pushq(Register reg);
   void pushq(const Address& address);
@@ -436,6 +428,7 @@ class Assembler : public ValueObject {
 
   void subq(Register dst, Register src);
   void subq(Register reg, const Immediate& imm);
+  void subq(Register reg, const Address& address);
 
   void shll(Register reg, const Immediate& imm);
   void shll(Register operand, Register shifter);
@@ -464,13 +457,15 @@ class Assembler : public ValueObject {
 
   void enter(const Immediate& imm);
   void leave();
-
   void ret();
-  void nop();
+
+  // 'size' indicates size in bytes and must be in the range 1..8.
+  void nop(int size = 1);
   void int3();
   void hlt();
 
   void j(Condition condition, Label* label, bool near = kFarJump);
+  void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
   void jmp(Label* label, bool near = kFarJump);

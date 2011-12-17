@@ -43,7 +43,7 @@ static void GenerateCallRuntimeStub(Assembler* assembler) {
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
 
   // Save exit frame information to enable stack walking as we are about
-  // to transition to dart VM code.
+  // to transition to Dart VM C++ code.
   __ movl(Address(EAX, Isolate::top_exit_frame_info_offset()), ESP);
 
   // Save current Context pointer into Isolate structure.
@@ -78,7 +78,7 @@ static void GenerateCallRuntimeStub(Assembler* assembler) {
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
 
-  // Cache Context pointer into CTX while executing dart code.
+  // Cache Context pointer into CTX while executing Dart code.
   __ movl(CTX, ECX);
 
   __ LeaveFrame();
@@ -154,7 +154,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
     __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  // Pass NativeArguments structure by value and call runtime.
+  // Pass NativeArguments structure by value and call native function.
   __ movl(Address(ESP, isolate_offset), CTX);  // Set isolate in NativeArgs.
   __ movl(Address(ESP, argc_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
@@ -175,7 +175,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(Address(CTX, Isolate::top_context_offset()), raw_null);
 
-  // Cache Context pointer into CTX while executing dart code.
+  // Cache Context pointer into CTX while executing Dart code.
   __ movl(CTX, EDI);
 
   __ LeaveFrame();
@@ -602,8 +602,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 //   EDX : Array length as Smi.
 //   ECX : array element type (either NULL or an instantiated type).
 // Uses EAX, EBX, ECX, EDI  as temporary registers.
-// NOTE: EDX cannot be cloberred here as the caller relies on it
-// being saved.
+// NOTE: EDX cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in EAX.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
@@ -632,7 +631,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // EDI: Points to new space object.
     __ movl(EAX, Address(EDI, Scavenger::top_offset()));
     intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-    __ leal(EBX, Address(EDX, TIMES_2, fixed_size));
+    __ leal(EBX, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
     ASSERT(kSmiTagShift == 1);
     __ andl(EBX, Immediate(-kObjectAlignment));
     __ leal(EBX, Address(EAX, EBX, TIMES_1, 0));
@@ -1457,7 +1456,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   ASSERT(num_args > 0);
   // Get receiver.
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
+  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
 
   Label get_class, ic_miss;
   __ call(&get_class);
@@ -1501,7 +1500,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ movl(EDI, Address(EBX, 0));  // Get class from IC data to check.
     // Get receiver.
     __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
+    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
     __ call(&get_class);
     __ cmpl(EAX, EDI);  // Match?
     __ j(NOT_EQUAL, &no_match, Assembler::kNearJump);
@@ -1509,7 +1508,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ movl(EDI, Address(EBX, kWordSize));  // Get class from IC data to check.
     // Get next argument.
     __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-    __ movl(EAX, Address(ESP, EAX, TIMES_2, -kWordSize));
+    __ movl(EAX, Address(ESP, EAX, TIMES_2, -kWordSize));  // EAX is Smi.
     __ call(&get_class);
     __ cmpl(EAX, EDI);  // Match?
     __ j(EQUAL, &found, Assembler::kNearJump);
@@ -1522,7 +1521,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ Bind(&ic_miss);
   // Get receiver, again.
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));
-  __ leal(EAX, Address(ESP, EAX, TIMES_2, 0));
+  __ leal(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX is Smi.
   __ EnterFrame(0);
   // Setup space for return value on stack by pushing smi 0.
   __ pushl(EDX);  // Preserve arguments array.

@@ -17,7 +17,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run stack frame iteration tests.
+// Only ia32 and x64 can run stack frame iteration tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 // Unit test for empty stack frame iteration.
 TEST_CASE(EmptyStackFrameIteration) {
   StackFrameIterator iterator(StackFrameIterator::kValidateFrames);
@@ -298,6 +299,6 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
                     0,
                     NULL);
 }
-#endif  // TARGET_ARCH_IA32.
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64.
 
 }  // namespace dart
