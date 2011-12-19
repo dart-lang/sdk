@@ -48,7 +48,7 @@ class SocketClose {
 
   void proceed() {
     if (_iterations < ITERATIONS) {
-      new Timer(sendData, 0, false);
+      new Timer(sendData, 0);
     } else {
       shutdown();
     }
@@ -305,7 +305,7 @@ class SocketCloseServer extends Isolate {
         _server.close();
         this.port.close();
       } else {
-        new Timer(waitForResult, 100, false);
+        new Timer(waitForResult, 100);
       }
     }
 
@@ -322,7 +322,7 @@ class SocketCloseServer extends Isolate {
         _server.errorHandler = errorHandlerServer;
         replyTo.send(_server.port, null);
       } else {
-        new Timer(waitForResult, 0, false);
+        new Timer(waitForResult, 0);
       }
     });
   }

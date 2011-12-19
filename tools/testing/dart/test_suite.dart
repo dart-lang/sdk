@@ -194,7 +194,7 @@ class StandardTestSuite implements TestSuite {
             }
             doDone();
           }
-          new Timer(enqueueCachedTests, 0, false);
+          new Timer(enqueueCachedTests, 0);
         }
       }
     }

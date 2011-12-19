@@ -14,9 +14,9 @@ class _Timer implements Timer {
    */
   static final int _NO_TIMER = -1;
 
-  factory _Timer(void callback(Timer timer),
-                 int milliSeconds,
-                 bool repeating) {
+  static Timer _createTimer(void callback(Timer timer),
+                           int milliSeconds,
+                           bool repeating) {
     EventHandler._start();
     if (_timers === null) {
       _timers = new DoubleLinkedQueue<_Timer>();
@@ -29,6 +29,14 @@ class _Timer implements Timer {
     timer._addTimerToList();
     timer._notifyEventHandler();
     return timer;
+  }
+
+  factory _Timer(void callback(Timer timer), int milliSeconds) {
+    return _createTimer(callback, milliSeconds, false);
+  }
+
+  factory _Timer.repeating(void callback(Timer timer), int milliSeconds) {
+    return _createTimer(callback, milliSeconds, true);
   }
 
   _Timer._internal() {}

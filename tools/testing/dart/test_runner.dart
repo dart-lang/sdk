@@ -236,7 +236,7 @@ class RunningProcess {
         makeReadHandler(stdoutStringStream, stdout);
     stderrStringStream.lineHandler =
         makeReadHandler(stderrStringStream, stderr);
-    timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout, false);
+    timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout);
   }
 
   void timeoutHandler(Timer unusedTimer) {
@@ -294,9 +294,7 @@ class DartcBatchRunnerProcess {
     _testStderr = new List<String>();
     _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
     _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
-    _timer = new Timer(_timeoutHandler(testCase),
-                       testCase.timeout * 1000,
-                       false);
+    _timer = new Timer(_timeoutHandler(testCase), testCase.timeout * 1000);
     _process.stdin.write(_createArgumentsLine(testCase.arguments).charCodes());
   }
 

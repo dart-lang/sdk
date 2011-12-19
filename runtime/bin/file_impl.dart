@@ -97,11 +97,11 @@ class _FileInputStream implements FileInputStream {
     if (!_closed) {
       if (available() > 0) {
         if (_scheduledDataCallback == null) {
-          _scheduledDataCallback = new Timer(issueDataCallback, 0, false);
+          _scheduledDataCallback = new Timer(issueDataCallback, 0);
         }
       } else if (!_eof) {
         if (_scheduledCloseCallback == null) {
-          _scheduledCloseCallback = new Timer(issueCloseCallback, 0, false);
+          _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
           _eof = true;
         }
       }
