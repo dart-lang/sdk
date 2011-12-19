@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/pages.h"
 
 namespace dart {
 
@@ -40,6 +41,10 @@ class Heap {
   uword Allocate(intptr_t size, Space space) {
     switch (space) {
       case kNew:
+        // Do not attempt to allocate very large objects in new space.
+        if (!PageSpace::IsPageAllocatableSize(size)) {
+          return AllocateOld(size);
+        }
         return AllocateNew(size);
       case kOld:
         return AllocateOld(size);

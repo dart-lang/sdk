@@ -60,8 +60,14 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
 
 
 intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
-  UNIMPLEMENTED();
-  return 0;
+  RawObject* raw_obj = RawObject::FromAddr(page->first_object_start());
+  if (!raw_obj->IsMarked()) {
+    // The large object was not marked. Used size is zero, which also tells the
+    // calling code that the large object page can be recycled.
+    return 0;
+  }
+  raw_obj->ClearMarkBit();
+  return raw_obj->Size();
 }
 
 }  // namespace dart

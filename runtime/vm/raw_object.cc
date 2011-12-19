@@ -142,6 +142,12 @@ intptr_t RawObject::Size() const {
         instance_size = JSRegExp::InstanceSize(data_length);
         break;
       }
+      case kFreeListElement: {
+        uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
+        FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
+        instance_size = element->Size();
+        break;
+      }
       default:
         UNREACHABLE();
         break;

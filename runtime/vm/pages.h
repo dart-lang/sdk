@@ -80,7 +80,7 @@ class PageSpace {
   bool IsValidAddress(uword addr) const {
     return Contains(addr);
   }
-  static intptr_t IsPageAllocatableSize(intptr_t size) {
+  static bool IsPageAllocatableSize(intptr_t size) {
     return size <= kAllocatablePageSize;
   }
 
