@@ -61,7 +61,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPlainVisitor;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -562,7 +562,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case INTERFACE: {
           InterfaceType itype = (InterfaceType) type;
           validateBounds(node.getTypeArguments(),
-                         itype.getArguments(), itype.getElement().getTypeParameters(),
+                         itype.getArguments(),
+                         itype.getElement().getTypeParameters(),
                          badBoundIsError);
           return itype;
         }
@@ -723,9 +724,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           validateTypeNode(interfaceNode, true);
         }
       }
-      if (node.getDefaultClass() != null) {
-        validateTypeNode(node.getDefaultClass(), true);
-      }
+
       visit(node.getMembers());
       checkInterfaceConstructors(element);
       // Report unimplemented members.
@@ -771,7 +770,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                 && !interfaceTypes.equals(defaultTypes)) {
               onError(
                   interfaceConstructor.getNode(),
-                  TypeErrorCode.FACTORY_CONSTRUCTOR_TYPES,
+                  TypeErrorCode.DEFAULT_CONSTRUCTOR_TYPES,
                   Elements.getRawMethodName(interfaceConstructor),
                   interfaceClassName,
                   Joiner.on(",").join(interfaceTypes),
@@ -997,13 +996,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitMethodDefinition(DartMethodDefinition node) {
       MethodElement methodElement = node.getSymbol();
-      FunctionType type = methodElement.getFunctionType();
       if (methodElement.getModifiers().isFactory()) {
         analyzeFactory(node.getName(), (ConstructorElement) methodElement);
-      } else {
-        if (!type.getTypeVariables().isEmpty()) {
-          internalError(node, "generic methods are not supported");
-        }
       }
       return typeAsVoid(node);
     }
@@ -1011,7 +1005,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void analyzeFactory(DartExpression name, final ConstructorElement methodElement) {
       DartNodeTraverser<Void> visitor = new DartNodeTraverser<Void>() {
         @Override
-        public Void visitParameterizedNode(DartParameterizedNode node) {
+        public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
           DartExpression expression = node.getExpression();
           Element e = null;
           if (expression instanceof DartIdentifier) {
@@ -1022,16 +1016,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (!ElementKind.of(e).equals(ElementKind.CLASS)) {
             return null;
           }
-          ClassElement cls = (ClassElement) e;
-          InterfaceType type = cls.getType();
           List<DartTypeParameter> parameterNodes = node.getTypeParameters();
-          List<? extends Type> arguments = type.getArguments();
-          if (parameterNodes.size() == 0) {
-            return null;
-          }
-          Analyzer.this.visit(parameterNodes);
-          List<TypeVariable> typeVariables = methodElement.getFunctionType().getTypeVariables();
-          validateBounds(parameterNodes, arguments, typeVariables, true);
+          assert (parameterNodes.size() == 0);
           return null;
         }
       };
@@ -1069,14 +1055,22 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
         // Check type arguments.
         FunctionType ftype = (FunctionType) constructorElement.getType();
+
         if (ftype != null && TypeKind.of(type).equals(TypeKind.INTERFACE)) {
           InterfaceType ifaceType = (InterfaceType) type;
-          List<? extends Type> arguments = ifaceType.getArguments();
-          ftype = (FunctionType) ftype.subst(arguments, ifaceType.getElement().getTypeParameters());
-          List<TypeVariable> typeVariables = ftype.getTypeVariables();
-          if (arguments.size() == typeVariables.size()) {
-            ftype = (FunctionType) ftype.subst(arguments, typeVariables);
+
+          List<? extends Type> substParams;
+          if (ifaceType.getElement().isInterface()) {
+            // The constructor in the interface is resolved to the type parameters declared in
+            // the interface, but the constructor body has type parameters resolved to the type
+            // parameters in the default class.  This substitution patches up the type variable
+            // references used in parameters so they match the concrete class.
+            substParams = ((ClassElement)constructorElement.getEnclosingElement()).getType().getArguments();
+          } else {
+            substParams = ifaceType.getElement().getTypeParameters();
           }
+          List<? extends Type> arguments = ifaceType.getArguments();
+          ftype = (FunctionType) ftype.subst(arguments, substParams);
           checkInvocation(node, node, null, ftype);
         }
       }
@@ -1501,8 +1495,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     @Override
-    public Type visitParameterizedNode(DartParameterizedNode node) {
-      throw internalError(node, "unexpected node");
+    public Type visitParameterizedTypeNode(DartParameterizedTypeNode node) {
+      visit(node.getTypeParameters());
+      return node.getType();
     }
 
     @Override

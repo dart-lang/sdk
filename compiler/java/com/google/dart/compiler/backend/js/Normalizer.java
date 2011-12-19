@@ -4,6 +4,13 @@
 
 package com.google.dart.compiler.backend.js;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.ast.DartArrayAccess;
@@ -65,13 +72,6 @@ import com.google.dart.compiler.resolver.SyntheticDefaultConstructorElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Types;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Normalization phase of Dart compiler. Rewrites the AST to simplify later
@@ -601,10 +601,10 @@ public class Normalizer {
 
     private DartMethodDefinition createImplicitDefaultConstructor(final ClassElement classElement) {
       assert (Elements.needsImplicitDefaultConstructor(classElement));
-      DartFunction function = new DartFunction(Collections.<DartParameter>emptyList(), 
+      DartFunction function = new DartFunction(Collections.<DartParameter>emptyList(),
           new DartBlock(Collections.<DartStatement>emptyList()), null);
       final DartMethodDefinition method =
-          DartMethodDefinition.create(new DartIdentifier(""), function, Modifiers.NONE, null, null);
+          DartMethodDefinition.create(new DartIdentifier(""), function, Modifiers.NONE, null);
       method.setSymbol(new SyntheticDefaultConstructorElement(method, classElement, null));
       return method;
     }
@@ -637,19 +637,19 @@ public class Normalizer {
 
     static class NeedsImplicitSuperInvocationDeterminant extends DartNodeTraverser<Void> {
       private boolean needsSuperInvocation = true;
-      
+
       @Override
       public Void visitSuperConstructorInvocation(DartSuperConstructorInvocation node) {
         needsSuperInvocation = false;
         return super.visitSuperConstructorInvocation(node);
       }
-      
+
       @Override
       public Void visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
         needsSuperInvocation = false;
         return super.visitRedirectConstructorInvocation(node);
       }
-      
+
       @Override
       public Void visitMethodDefinition(DartMethodDefinition node) {
         // Ignore everything except the initializers
@@ -666,7 +666,7 @@ public class Normalizer {
       if (Elements.isNonFactoryConstructor(node.getSymbol())) {
         normalizeParameterInitializer(node);
       }
-      
+
       return node;
     }
 
@@ -690,10 +690,10 @@ public class Normalizer {
           }
         }
       }
-      
+
       return super.visitNewExpression(node);
     }
-    
+
     @Override
     public DartNode visitSwitchStatement(DartSwitchStatement node) {
       node.getExpression().accept(this);
@@ -737,20 +737,20 @@ public class Normalizer {
           if (superLocator.needsSuperInvocation) {
             DartSuperConstructorInvocation superInvocation = new DartSuperConstructorInvocation(
                 new DartIdentifier(""), Collections.<DartExpression>emptyList());
-            superInvocation.setSymbol(new SyntheticDefaultConstructorElement(null, 
+            superInvocation.setSymbol(new SyntheticDefaultConstructorElement(null,
                 classElement.getSupertype().getElement(), null));
             nInit.add(new DartInitializer(null, superInvocation));
-          }    
+          }
         }
       }
-      
+
       if (!nInit.isEmpty()) {
         if (!node.getInitializers().isEmpty()) {
           nInit.addAll(0, node.getInitializers());
         }
-        
+
         DartMethodDefinition nConstructor = DartMethodDefinition.create(
-                node.getName(), node.getFunction(), node.getModifiers(), nInit, null);
+                node.getName(), node.getFunction(), node.getModifiers(), nInit);
         nConstructor.setSymbol(node.getSymbol());
         nConstructor.setSourceInfo(node.getSourceInfo());
         node.setNormalizedNode(nConstructor);

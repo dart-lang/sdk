@@ -41,6 +41,7 @@ import com.google.dart.compiler.ast.DartNamedExpression;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartReturnStatement;
@@ -54,17 +55,16 @@ import com.google.dart.compiler.ast.DartSwitchStatement;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.StringUtils;
 
 import java.util.ArrayList;
@@ -245,9 +245,30 @@ public class Resolver {
         checkImplicitDefaultDefaultSuperInvocation(cls, classElement);
       }
 
-      // Check that interface constructors have corresponding methods in default class.
-      if (cls.getDefaultClass() != null) {
+      if (cls.getDefaultClass() != null && classElement.getDefaultClass() == null) {
+        onError(cls.getDefaultClass(), ResolverErrorCode.NO_SUCH_TYPE, cls.getDefaultClass());
+      } else if (classElement.getDefaultClass() != null) {
+
+        bindDefaultTypeParameters(classElement.getDefaultClass().getElement().getTypeParameters(),
+                                  cls.getDefaultClass().getTypeParameters(),
+                                  context);
+
+        // Make sure the 'default' clause matches the referenced class type parameters
+        checkDefaultClassTypeParamsToDefaultDecl(classElement.getDefaultClass(),
+                                                 cls.getDefaultClass());
+
+        ClassElement defaultClass = classElement.getDefaultClass().getElement();
+        if (defaultClass.isInterface()) {
+          onError(cls.getDefaultClass(), ResolverErrorCode.DEFAULT_MUST_SPECIFY_CLASS);
+        }
+
+        // Make sure the default class matches the interface type parameters
+        checkInterfaceTypeParamsToDefault(classElement, defaultClass);
+
+        // Check that interface constructors have corresponding methods in default class.
         checkInteraceConstructors(classElement);
+
+
       }
 
       context = previousContext;
@@ -256,11 +277,114 @@ public class Resolver {
     }
 
     /**
+     * Sets the type in the AST of the default clause of an inteterface so that the type
+     * parameters to resolve back to the default class.
+     */
+    private void bindDefaultTypeParameters(List<? extends Type> parameterTypes,
+                                           List<DartTypeParameter> parameterNodes,
+                                           ResolutionContext classContext) {
+      Iterator<? extends Type> typeIterator = parameterTypes.iterator();
+      Iterator<DartTypeParameter> nodeIterator = parameterNodes.iterator();
+
+      while(typeIterator.hasNext() && nodeIterator.hasNext()) {
+
+        Type type = typeIterator.next();
+        DartTypeParameter node = nodeIterator.next();
+
+        if (type.getElement().getName().equals(node.getName().getTargetName())) {
+          node.setType(type);
+        } else {
+          node.setType(typeProvider.getDynamicType());
+        }
+
+        TypeVariableElement variable = (TypeVariableElement)type.getElement();
+        DartTypeNode boundNode = node.getBound();
+        Type bound;
+        if (boundNode != null) {
+          bound =
+              classContext.resolveType(
+                  boundNode,
+                  false,
+                  false,
+                  ResolverErrorCode.NO_SUCH_TYPE);
+          boundNode.setType(bound);
+        } else {
+          bound = typeProvider.getObjectType();
+        }
+        variable.setBound(bound);
+      }
+
+      while (nodeIterator.hasNext()) {
+        DartTypeParameter node = nodeIterator.next();
+        node.setType(typeProvider.getDynamicType());
+      }
+    }
+    /**
+     * If type parameters are present, the type parameters of the default statement
+     * must exactly match those of those declared in the class it references.
+     *
+     */
+    private void checkDefaultClassTypeParamsToDefaultDecl(InterfaceType defaultClassType,
+                                                          DartParameterizedTypeNode defaultClassRef) {
+      if (defaultClassRef.getTypeParameters().isEmpty()) {
+        return;
+      }
+      DartClass defaultClass = (DartClass)defaultClassType.getElement().getNode();
+      boolean match = true;
+      if (defaultClass.getTypeParameters().isEmpty()) {
+        match = false;
+      } else {
+        // TODO(zundel): This is effective in catching mistakes, but highlights the entire type
+        // expression - A more specific indication of where the error started might be appreciated.
+        DartParameterizedTypeNode temp = new DartParameterizedTypeNode(defaultClass.getName(),
+                                                                       defaultClass.getTypeParameters());
+        String refSource = defaultClassRef.toSource();
+        String defaultClassSource = temp.toSource();
+        if (!refSource.equals(defaultClassSource)) {
+          match = false;
+        }
+      }
+      if (!match) {
+        // TODO(zundel): work harder to point out where the type param match failure starts.
+        onError(defaultClassRef, ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
+      }
+    }
+
+    private void checkInterfaceTypeParamsToDefault(ClassElement interfaceElement,
+                                                   ClassElement defaultClassElement) {
+
+      List<? extends Type> interfaceTypeParams = interfaceElement.getTypeParameters();
+
+      List<? extends Type> defaultTypeParams = defaultClassElement.getTypeParameters();
+
+
+      if (defaultTypeParams.size() != interfaceTypeParams.size()) {
+
+        onError(((DartClass) interfaceElement.getNode()).getName(),
+                ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
+      } else {
+        Iterator<? extends Type> interfaceIterator = interfaceTypeParams.iterator();
+        Iterator<? extends Type> defaultIterator = defaultTypeParams.iterator();
+        while (interfaceIterator.hasNext()) {
+          Type iVar = interfaceIterator.next();
+          Type dVar = defaultIterator.next();
+          String iVarName = iVar.getElement().getName();
+          String dVarName = dVar.getElement().getName();
+          if (!iVarName.equals(dVarName)) {
+            onError(iVar.getElement().getNode(), ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH,
+                    iVarName, dVarName, defaultClassElement.getName());
+          }
+        }
+      }
+    }
+
+    /**
      * Checks that interface constructors have corresponding methods in default class.
      */
     private void checkInteraceConstructors(ClassElement interfaceElement) {
       String interfaceClassName = interfaceElement.getName();
       String defaultClassName = interfaceElement.getDefaultClass().getElement().getName();
+
       for (ConstructorElement interfaceConstructor : interfaceElement.getConstructors()) {
         ConstructorElement defaultConstructor =
             resolveInterfaceConstructorInDefaultClass(
@@ -276,7 +400,7 @@ public class Resolver {
             if (numReqInterface != numReqDefault) {
               onError(
                   interfaceConstructor.getNode(),
-                  ResolverErrorCode.FACTORY_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS,
+                  ResolverErrorCode.DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS,
                   Elements.getRawMethodName(interfaceConstructor),
                   interfaceClassName,
                   numReqInterface,
@@ -292,7 +416,7 @@ public class Resolver {
             if (!interfaceNames.equals(defaultNames)) {
               onError(
                   interfaceConstructor.getNode(),
-                  ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS,
+                  ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS,
                   Elements.getRawMethodName(interfaceConstructor),
                   interfaceClassName,
                   interfaceNames,
@@ -358,11 +482,6 @@ public class Resolver {
 
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParams();
-
-      FunctionType type = (FunctionType) member.getType();
-      for (TypeVariable typeVariable : type.getTypeVariables()) {
-        context.declare(typeVariable.getElement());
-      }
 
       // First declare all normal parameters in the scope, putting them in the
       // scope of the default expressions so we can report better errors.
@@ -533,6 +652,7 @@ public class Resolver {
           resolveType(
               node.getTypeNode(),
               inStaticContext(currentMethod),
+              inFactoryContext(currentMethod),
               TypeErrorCode.NO_SUCH_TYPE);
        for (DartVariable variable : node.getVariables()) {
          Elements.setType(resolveVariable(variable, node.getModifiers()), type);
@@ -572,7 +692,7 @@ public class Resolver {
       MethodElement previousFunction = innermostFunction;
       innermostFunction = element;
       DartFunction functionNode = x.getFunction();
-      resolveFunction(functionNode, element, null);
+      resolveFunction(functionNode, element);
       resolve(functionNode.getBody());
       innermostFunction = previousFunction;
       getContext().popScope();
@@ -819,7 +939,8 @@ public class Resolver {
 
     @Override
     public Element visitTypeNode(DartTypeNode x) {
-      return resolveType(x, inStaticContext(currentMethod), ResolverErrorCode.NO_SUCH_TYPE).getElement();
+      return resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
+          ResolverErrorCode.NO_SUCH_TYPE).getElement();
     }
 
     @Override
@@ -992,10 +1113,11 @@ public class Resolver {
 
       Element element = x.getConstructor().accept(getContext().new Selector() {
         // Only 'new' expressions can have a type in a property access.
-        @Override public Element visitTypeNode(DartTypeNode type) {
-          return recordType(
-              type,
-              resolveType(type, inStaticContext(currentMethod), ResolverErrorCode.NO_SUCH_TYPE));
+        @Override
+        public Element visitTypeNode(DartTypeNode type) {
+          return recordType(type, resolveType(type, inStaticContext(currentMethod),
+                                              inFactoryContext(currentMethod),
+                                              ResolverErrorCode.NO_SUCH_TYPE));
         }
 
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
@@ -1117,7 +1239,7 @@ public class Resolver {
         }
         onError(
             errorTargetNode,
-            ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED,
+            ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED,
             expectedFactoryConstructorName,
             defaultClassName);
         return null;
@@ -1371,6 +1493,7 @@ public class Resolver {
               node,
               typeArgs,
               inStaticContext(currentMethod),
+              inFactoryContext(currentMethod),
               ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=2)
       recordType(node, type);
@@ -1387,6 +1510,7 @@ public class Resolver {
               node,
               typeArgs,
               inStaticContext(currentMethod),
+              inFactoryContext(currentMethod),
               ResolverErrorCode.NO_SUCH_TYPE);
       // instantiateParametersType() will complain for wrong number of parameters (!=1)
       recordType(node, type);
@@ -1521,13 +1645,25 @@ public class Resolver {
     }
 
     private boolean inStaticContext(Element element) {
-      return element == null || Elements.isTopLevel(element)
-        || element.getModifiers().isStatic() || element.getModifiers().isFactory();
+        return element == null || Elements.isTopLevel(element)
+                || element.getModifiers().isStatic() || element.getModifiers().isFactory();
+    }
+
+    private boolean inFactoryContext(Element element) {
+      if (element != null) {
+        return element.getModifiers().isFactory();
+      }
+      return false;
     }
 
     @Override
     boolean isStaticContext() {
       return inStaticContext(currentMethod);
+    }
+
+    @Override
+    boolean isFactoryContext() {
+    	return inFactoryContext(currentMethod);
     }
 
     boolean isStaticContextOrInitializer() {

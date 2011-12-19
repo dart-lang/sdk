@@ -18,7 +18,7 @@ main() {
   var f = Other3.field;
 
   // Reference SomeClass via new, and SomeClassImpl transitively.
-  var sc = new SomeClass();
+  var sc = new SomeClass(1);
   var msg = sc.message;
 }
 

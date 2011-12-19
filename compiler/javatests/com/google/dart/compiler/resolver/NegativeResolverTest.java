@@ -609,7 +609,7 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   public void testRawTypesNegativeTest() {
-    checkNumErrors("RawTypesNegativeTest.dart", 4);
+    checkNumErrors("RawTypesNegativeTest.dart", 6);
   }
 
   private TestCompilerContext getContext() {

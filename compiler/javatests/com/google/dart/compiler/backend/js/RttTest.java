@@ -69,10 +69,18 @@ public class RttTest extends SnippetTestCase {
 
     {
       String init = findMarkerAtOccurrence(js, "_marker_D1", DELIMETERS, 1);
-      assertEquals("var _marker_D1 = Test_app4a54ba$D$Dart.D$$Factory([])", init);
+      assertEquals("var _marker_D1 = Test_app4a54ba$D$Dart.D$$Factory(null)", init);
 
       String expr = findMarkerAtOccurrence(js, "_marker_D1", "[\\n;]", 2);
       assertEquals("a = !!(tmp$2 = _marker_D1 , tmp$2 != null && tmp$2.$implements$Test_app4a54ba$D$Dart)", expr);
     }
+    
+    {
+      String init = findMarkerAtOccurrence(js, "_marker_D2", DELIMETERS, 1);
+      assertEquals("var _marker_D2 = Test_app4a54ba$D$Dart.D$$Factory([String$Dart.$lookupRTT()])", init);
+
+      String expr = findMarkerAtOccurrence(js, "_marker_D2", "[\\n;]", 2);
+      assertEquals("a = Test_app4a54ba$D$Dart.$lookupRTT([String$Dart.$lookupRTT()]).implementedBy(_marker_D2)", expr);
+    }    
   }
 }

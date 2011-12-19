@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ListFactory {
-  factory List<E>.from(Iterable<E> other) {
+class ListFactory<E> {
+  factory List.from(Iterable<E> other) {
     if (other == null) {
       throw const NullPointerException();
     }
@@ -14,7 +14,7 @@ class ListFactory {
     return list;
   }
 
-  factory List<E>([int length = null]) {
+  factory List([int length = null]) {
     bool isFixed = true;
     if (length === null) {
       length = 0;

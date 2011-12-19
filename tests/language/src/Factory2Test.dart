@@ -8,7 +8,7 @@ interface Link<T> extends Iterable<T> factory LinkFactory<T> {
   Link<T> prepend(T element);
 }
 
-interface EmptyLink<T> extends Link<T> factory LinkTail<T> {
+interface EmptyLink<T> extends Link<T> default LinkTail<T> {
   const EmptyLink();
 }
 

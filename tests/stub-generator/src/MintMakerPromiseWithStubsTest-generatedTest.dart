@@ -133,7 +133,7 @@ class Purse$Dispatcher$Isolate extends Isolate {
     });
   }
 }
-interface Mint factory MintImpl {
+interface Mint default MintImpl {
 
   Mint();
 
@@ -141,7 +141,7 @@ interface Mint factory MintImpl {
 
 }
 
-interface Purse factory PurseImpl {
+interface Purse default PurseImpl {
 
   Purse();
 

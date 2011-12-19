@@ -15,7 +15,7 @@ interface Purse {
   Promise<int> deposit(int amount, Purse$Proxy source);
 }
 
-interface PowerfulPurse extends Purse factory PurseImpl {
+interface PowerfulPurse extends Purse default PurseImpl {
   PowerfulPurse();
 
   void init(Mint$Proxy mint, int balance);
@@ -25,7 +25,7 @@ interface PowerfulPurse extends Purse factory PurseImpl {
   Purse weak();
 }
 
-interface Mint factory MintImpl {
+interface Mint default MintImpl {
   Mint();
 
   Purse$Proxy createPurse(int balance);

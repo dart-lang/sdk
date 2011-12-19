@@ -814,11 +814,11 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  Foo.foo() {}",
         "  Foo.bar([int i = null]) {}",
         "}",
-        "interface Bar<T> factory Baz {",
+        "interface Bar<T> factory Baz<T> {",
         "  Bar.make();",
         "}",
-        "class Baz {",
-        "  factory Bar<S>.make(S x) { return null; }",
+        "class Baz<T> {",
+        "  factory Bar.make(T x) { return null; }",
         "}"));
 
     analyze("Foo x = new Foo(0);");
@@ -834,7 +834,21 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("Foo x = new Foo.bar('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("Foo x = new Foo.bar(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
 
-    analyze("Bar<String> x = new Bar<String>.make('');");
+    analyze("Bar<String> x = new Bar.make('');");
+  }
+
+  public void testAssignableTypeArg() {
+      analyzeClasses(loadSource(
+          "interface Bar<T> factory Baz<T> {",
+          "  Bar.make();",
+          "}",
+          "class Baz<T> {",
+          "  Baz(T x) { return null; }",
+          "  factory Bar.make(T x) { return null; }",
+          "}"));
+      analyze("Baz<String> x = new Baz<String>('');");
+      analyze("Bar<String> x = new Bar.make('');");
+      analyze("Bar<String> x = new Bar<String>.make('');");
   }
 
   public void testOddStuff() {
@@ -1093,6 +1107,16 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(cls, "foo() { T t = 1; }()", 1);
     analyzeIn(cls, "foo() { T t = ''; }()", 1);
     analyzeIn(cls, "foo() { T t = true; }()", 1);
+  }
+
+  public void testDefaultTypeArgs() {
+    Map<String, ClassElement> source = loadSource(
+        "class Object{}",
+        "interface List<T> {}",
+        "interface A<K,V> default B<K, V extends List<K>> {}",
+        "class B<K, V extends List<K>> {",
+        "}");
+        analyzeClasses(source);
   }
 
   public void testUnaryOperators() {

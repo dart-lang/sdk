@@ -285,10 +285,10 @@ public class ResolverCompilerTest extends CompilerTestCase {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
       assertErrors(
           errors,
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 2, 3, 9),
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 3, 3, 13),
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 10, 9, 1),
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 11, 9, 5));
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 2, 3, 9),
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 13),
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 10, 9, 1),
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 11, 9, 5));
       {
         String message = errors.get(0).getMessage();
         assertTrue(message, message.contains("'F'"));
@@ -400,8 +400,8 @@ public class ResolverCompilerTest extends CompilerTestCase {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
       assertErrors(
           errors,
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 2, 3, 13),
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_UNRESOLVED, 8, 9, 5));
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 2, 3, 13),
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 8, 9, 5));
       {
         String message = errors.get(0).getMessage();
         assertTrue(message, message.contains("'I.foo'"));
@@ -446,7 +446,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
       assertErrors(
           errors,
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS, 2, 3, 13));
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS, 2, 3, 13));
       {
         String message = errors.get(0).getMessage();
         assertTrue(message, message.contains("'F.foo'"));
@@ -502,9 +502,9 @@ public class ResolverCompilerTest extends CompilerTestCase {
       List<DartCompilationError> errors = libraryResult.getCompilationErrors();
       assertErrors(
           errors,
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS, 2, 3, 29),
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS, 3, 3, 29),
-          errEx(ResolverErrorCode.FACTORY_CONSTRUCTOR_NAMED_PARAMETERS, 4, 3, 22));
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS, 2, 3, 29),
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS, 3, 3, 29),
+          errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS, 4, 3, 22));
       {
         String message = errors.get(0).getMessage();
         assertTrue(message, message.contains("'I.foo'"));

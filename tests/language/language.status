@@ -111,8 +111,6 @@ DivByZeroTest: Fail          # Bug 5184183
 DynamicTest: Fail            # Bug 5527899.
 ExampleConstructorTest: Fail # Bug 4205742.
 ExpectTest: Fail             # Missing extensions to class Expect.
-Factory3Test: Fail           # Issue 417
-FactoryNegativeTest: Fail    # Issue 417
 For2Test: Fail               # Bug 4995208.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
@@ -163,8 +161,7 @@ Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
-TypeVariableBoundsTest/none: Fail        # Issue 417
-TypeVariableScopeTest/none: Fail         # Issue 417
+
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -268,6 +265,8 @@ NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NonConstSuperNegativeTest: Fail
+NonParameterizedFactoryTest: Fail
+NonParameterizedFactory2Test: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail

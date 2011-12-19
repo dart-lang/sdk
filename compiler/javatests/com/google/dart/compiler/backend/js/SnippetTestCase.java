@@ -9,7 +9,6 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompiler;
-import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartCompilerListenerTest;
 import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
@@ -53,9 +52,9 @@ public abstract class SnippetTestCase extends CompilerTestCase {
     lib.addSource(src);
     CompilerOptions options = new CompilerOptions();
     CompilerConfiguration config = new DefaultCompilerConfiguration(this.getBackend(), options);
-    DartCompilerListener listener = new DartCompilerListenerTest(src.getName());
+    DartCompilerListenerTest listener = new DartCompilerListenerTest(src.getName());
     DartCompiler.compileLib(lib, config, provider, listener);
-
+    listener.checkAllErrorsReported();
     return provider.getArtifactString(src, part, JavascriptBackend.EXTENSION_JS);
   }
 

@@ -58,7 +58,7 @@ import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -125,7 +125,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String EXTENDS_KEYWORD = "extends";
-  private static final String FACTORY_KEYWORD = "factory";
+  private static final String FACTORY_KEYWORD = "factory"; // TODO(zundel): remove
   private static final String GETTER_KEYWORD = "get";
   private static final String IMPLEMENTS_KEYWORD = "implements";
   private static final String INTERFACE_KEYWORD = "interface";
@@ -579,9 +579,13 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     // Deal with factory clause for interfaces.
-    DartTypeNode factory = null;
-    if (isParsingInterface && optionalPseudoKeyword(FACTORY_KEYWORD)) {
-      factory = parseTypeAnnotation();
+    DartParameterizedTypeNode defaultClass = null;
+    if (isParsingInterface &&
+        (optionalDeprecatedFactory() || optional(Token.DEFAULT))) {
+      DartExpression qualified = parseQualified();
+      List<DartTypeParameter> defaultTypeParameters = parseTypeParametersOpt();
+      defaultClass = doneWithoutConsuming(new DartParameterizedTypeNode(qualified,
+                                                                        defaultTypeParameters));
     }
 
     // Deal with native clause for classes.
@@ -610,7 +614,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     if (isParsingInterface) {
-      return done(new DartClass(name, superType, interfaces, members, typeParameters, factory));
+      return done(new DartClass(name, superType, interfaces, members, typeParameters, defaultClass));
     } else {
       return done(new DartClass(name,
           nativeName,
@@ -620,6 +624,15 @@ public class DartParser extends CompletionHooksParserBase {
           typeParameters,
           modifiers));
     }
+  }
+
+  private boolean optionalDeprecatedFactory() {
+    if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
+      // Uncommenting this makes tests fail until corelib is cleaned up
+      // reportError(position(), ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD);
+      return true;
+    }
+    return false;
   }
 
   private List<DartTypeNode> parseTypeAnnotationList() {
@@ -959,11 +972,10 @@ public class DartParser extends CompletionHooksParserBase {
    *
    *      : get
    *      | set
-   *
-   *      | identifier typeArguments? (                 // Case 1
-   *      | identifier DOT identifier typearguments? (  // Case 2
-   *      | identifier typeArguments? DOT identifier (  // Case 3
-   *      | identifier DOT identifier typeArguments? DOT identifier (  // Case 4
+   *      | operator
+   *      | identifier (                 // Case 1
+   *      | identifier DOT identifier  (  // Case 2
+   *      | identifier DOT identifier DOT identifier (  // Case 3
    *
    * @return <code>true</code> if the signature of a method has been found.  No tokens are consumed.
    */
@@ -981,25 +993,13 @@ public class DartParser extends CompletionHooksParserBase {
       consume(Token.IDENTIFIER);
 
       if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)) {
-        // Case 2 class.id<typearguments?>
-        // Case 4, a constructor of the form library.class<typearguments?>.id
         consume(Token.PERIOD);
         consume(Token.IDENTIFIER);
-        parseTypeArgumentsOpt();
-        if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)
-            && peek(2).equals(Token.LPAREN)) {
-          return true;
-        }
-      } else {
-        // Case 1, id<typearguments?>
-        // Case 3, class.<typearguments?>.id
-        parseTypeArgumentsOpt();
-      }
 
-      if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)) {
-        // Case 3, a constructor of the form class<typearguments?>.id
-        consume(Token.PERIOD);
-        consume(Token.IDENTIFIER);
+        if (peek(0).equals(Token.PERIOD) && peek(1).equals(Token.IDENTIFIER)) {
+          consume(Token.PERIOD);
+          consume(Token.IDENTIFIER);
+        }
       }
 
       // next token should be LPAREN
@@ -1019,10 +1019,6 @@ public class DartParser extends CompletionHooksParserBase {
   private DartMethodDefinition parseFactory(Modifiers modifiers) {
     beginMethodName();
     DartExpression name = parseQualified();
-    List<DartTypeParameter> typeParameters = parseTypeParametersOpt();
-    if (!typeParameters.isEmpty()) {
-      name = doneWithoutConsuming(new DartParameterizedNode(name, typeParameters));
-    }
     if (optional(Token.PERIOD)) {
       name = doneWithoutConsuming(new DartPropertyAccess(name, parseIdentifier()));
     }
@@ -1036,7 +1032,7 @@ public class DartParser extends CompletionHooksParserBase {
       function = new DartFunction(formals, parseFunctionStatementBody(true), null);
     }
     doneWithoutConsuming(function);
-    return DartMethodDefinition.create(name, function, modifiers, null, typeParameters);
+    return DartMethodDefinition.create(name, function, modifiers, null);
   }
 
   private DartIdentifier parseVoidIdentifier() {
@@ -1106,8 +1102,6 @@ public class DartParser extends CompletionHooksParserBase {
       } else {
         // Normal method or property.
         name = parseIdentifier();
-        // TODO(zundel): something constructive with the type arguments
-        parseTypeArgumentsOpt();
       }
 
       // Check for named constructor.
@@ -1175,7 +1169,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     DartFunction function = doneWithoutConsuming(new DartFunction(parameters, body, returnType));
-    return DartMethodDefinition.create(name, function, modifiers, initializers, null);
+    return DartMethodDefinition.create(name, function, modifiers, initializers);
   }
 
   private DartBlock parseNativeBlock(Modifiers modifiers) {

@@ -19,20 +19,17 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
   private final Type returnType;
   private final Map<String, Type> namedParameterTypes;
   private final Type rest;
-  private final List<TypeVariable> typeVariables;
 
   private FunctionTypeImplementation(ClassElement element,
                                      List<Type> parameterTypes,
                                      Map<String, Type> namedParameterTypes,
                                      Type rest,
-                                     Type returnType,
-                                     List<TypeVariable> typeVariables) {
+                                     Type returnType) {
     this.classElement = element;
     this.parameterTypes = parameterTypes;
     this.namedParameterTypes = namedParameterTypes == null ? EMPTY_MAP : namedParameterTypes;
     this.rest = rest;
     this.returnType = returnType;
-    this.typeVariables = typeVariables;
   }
 
   @Override
@@ -54,7 +51,7 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
     Type substitutedReturnType = getReturnType().subst(arguments, parameters);
     return new FunctionTypeImplementation(getElement(),
                                           substitutedParameterTypes, substitutedNamedParameterTypes,
-                                          substitutedRest, substitutedReturnType, getTypeVariables());
+                                          substitutedRest, substitutedReturnType);
   }
 
   @Override
@@ -80,10 +77,6 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
   @Override
   public Map<String, Type> getNamedParameterTypes() {
     return namedParameterTypes;
-  }
-
-  public List<TypeVariable> getTypeVariables() {
-    return typeVariables;
   }
 
   @Override
@@ -173,13 +166,9 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
    * interface Function in the core library.
    */
   static FunctionType of(ClassElement element, List<Type> parameterTypes,
-                         Map<String, Type> namedParameterTypes, Type rest, Type returnType,
-                         List<TypeVariable> typeVariables) {
+                         Map<String, Type> namedParameterTypes, Type rest, Type returnType) {
     assert element.isDynamic() || element.getName().equals("Function");
-    if (typeVariables == null) {
-      typeVariables = Collections.emptyList();
-    }
     return new FunctionTypeImplementation(element, parameterTypes, namedParameterTypes, rest,
-                                          returnType, typeVariables);
+                                          returnType);
   }
 }

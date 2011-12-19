@@ -10,7 +10,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.FunctionAliasElement;
@@ -19,7 +18,6 @@ import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.resolver.VariableElement;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -340,8 +338,8 @@ public class Types {
 
   public static FunctionType makeFunctionType(ResolutionErrorListener listener,
                                               ClassElement element,
-                                              List<VariableElement> parameters, Type returnType,
-                                              List<TypeVariable> typeVariables) {
+                                              List<VariableElement> parameters,
+                                              Type returnType) {
     List<Type> parameterTypes = new ArrayList<Type>(parameters.size());
     Map<String, Type> namedParameterTypes = null;
     Type restParameter = null;
@@ -357,7 +355,7 @@ public class Types {
       }
     }
     return FunctionTypeImplementation.of(element, parameterTypes, namedParameterTypes,
-                                         restParameter, returnType, typeVariables);
+                                         restParameter, returnType);
   }
 
   public static Types getInstance(CoreTypeProvider typeProvider) {
@@ -416,18 +414,5 @@ public class Types {
   public static InterfaceType constructorType(DartNewExpression node) {
     DartTypeNode typeNode = constructorTypeNode(node);
     return (InterfaceType) typeNode.getType();
-  }
-
-  /**
-   * Returns the list of type variables on the factory invoked by the given node.
-   * This method never returns null.
-   */
-  public static List<TypeVariable> factoryTypeVariables(DartNewExpression node) {
-    ConstructorElement factory = node.getSymbol();
-    if (factory == null) {
-      return Collections.emptyList();
-    }
-    FunctionType type = (FunctionType) factory.getType();
-    return type.getTypeVariables();
   }
 }

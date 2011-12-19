@@ -24,8 +24,8 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   private final List<DartTypeNode> interfaces;
 
   private boolean isInterface;
+  private DartParameterizedTypeNode defaultClass;
   private final Modifiers modifiers;
-  private DartTypeNode defaultClass;
 
   private int hash = -1;
 
@@ -43,7 +43,8 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
 
   public DartClass(DartIdentifier name, DartTypeNode superclass, List<DartTypeNode> interfaces,
                    List<DartNode> members,
-                   List<DartTypeParameter> typeParameters, DartTypeNode defaultClass) {
+                   List<DartTypeParameter> typeParameters,
+                   DartParameterizedTypeNode defaultClass) {
     this(name,
         null,
         superclass,
@@ -66,7 +67,8 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   public DartClass(DartIdentifier name, DartStringLiteral nativeName,
                    DartTypeNode superclass, List<DartTypeNode> interfaces,
                    List<DartNode> members,
-                   List<DartTypeParameter> typeParameters, DartTypeNode defaultClass,
+                   List<DartTypeParameter> typeParameters,
+                   DartParameterizedTypeNode defaultClass,
                    boolean isInterface,
                    Modifiers modifiers) {
     super(name);
@@ -134,7 +136,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     return superclass;
   }
 
-  public DartTypeNode getDefaultClass() {
+  public DartParameterizedTypeNode getDefaultClass() {
     return defaultClass;
   }
 
@@ -159,7 +161,7 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
     return element;
   }
 
-  public void setDefaultClass(DartTypeNode newName) {
+  public void setDefaultClass(DartParameterizedTypeNode newName) {
     defaultClass = becomeParentOf(newName);
   }
 

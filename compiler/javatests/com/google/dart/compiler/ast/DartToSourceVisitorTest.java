@@ -20,7 +20,7 @@ public class DartToSourceVisitorTest extends CompilerTestCase {
      String rethrow =
        "  m() {\n" +
        "    try {\n" +
-       "    }\n" + 
+       "    }\n" +
        "    catch (var e) {\n" +
        "      throw;\n" +
        "    }\n" +
@@ -53,7 +53,17 @@ public class DartToSourceVisitorTest extends CompilerTestCase {
           "// unit testcode\n" +
           "class c {\n" +
           "\n" +
-          "  factory Array<E>() {\n  }\n" +
+          "  factory Array() {\n  }\n" +
+          "}\n" +
+          "\n");
+   }
+
+   public void testClassWithFactoryParameterized() {
+     same(
+          "// unit testcode\n" +
+          "class c<E> {\n" +
+          "\n" +
+          "  factory Array() {\n  }\n" +
           "}\n" +
           "\n");
    }

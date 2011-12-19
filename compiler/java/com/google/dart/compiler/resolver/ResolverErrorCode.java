@@ -47,6 +47,15 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
+  DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS(
+      "default class must have the same type parameters as declared in the interface"),
+  DEFAULT_CONSTRUCTOR_UNRESOLVED(
+      "Can not resolve constructor with name '%s' in default class '%s'"),
+  DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS(
+      "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
+  DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS(
+      "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
+  DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
   DUPLICATE_MEMBER("Duplicate member '%s'"),
@@ -71,12 +80,6 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
-  FACTORY_CONSTRUCTOR_TYPE_ARGS_DO_NOT_MATCH("Factory constructor type arguments do not match"),
-  FACTORY_CONSTRUCTOR_UNRESOLVED("Can not resolve constructor with name '%s' in factory '%s'"),
-  FACTORY_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS(
-      "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
-  FACTORY_CONSTRUCTOR_NAMED_PARAMETERS(
-      "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
@@ -93,6 +96,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
+  NO_SUCH_TYPE_VARAIBLE("no such type variable \"%s\" defined"),
   NOT_A_CLASS("\"%s\" is not a class"),
   NOT_A_CLASS_OR_INTERFACE("\"%s\" is not a class or interface"),
   NOT_A_LABEL("\"%s\" is not a label"),
@@ -119,6 +123,9 @@ public enum ResolverErrorCode implements ErrorCode {
   TOO_MANY_QUALIFIERS_FOR_METHOD("Too many qualifiers for method or constructor"),
   TYPE_ARGS_ONLY_ON_CONSTRUCTORS("Type arguments are only allowed on constructor methods"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
+  TYPE_VARIABLE_DOES_NOT_MATCH("Type variable %s does not match %s in default class %s."),
+  TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
+     "Type parameters in default declaration must match referenced class exactly"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");
   private final ErrorSeverity severity;

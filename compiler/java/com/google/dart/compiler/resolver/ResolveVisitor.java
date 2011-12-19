@@ -34,9 +34,7 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
 
   abstract ResolutionContext getContext();
 
-  final MethodElement resolveFunction(DartFunction node, MethodElement element,
-                                      List<TypeVariable> typeVariables) {
-    bindTypeVariables(typeVariables);
+  final MethodElement resolveFunction(DartFunction node, MethodElement element) {
     for (DartParameter parameter : node.getParams()) {
       Elements.addParameter(element, (VariableElement) parameter.accept(this));
     }
@@ -44,11 +42,11 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
         resolveType(
             node.getReturnTypeNode(),
             element.getModifiers().isStatic(),
+            element.getModifiers().isFactory(),
             TypeErrorCode.NO_SUCH_TYPE);
     ClassElement functionElement = typeProvider.getFunctionType().getElement();
     FunctionType type = Types.makeFunctionType(getContext(), functionElement,
-                                               element.getParameters(), returnType,
-                                               typeVariables);
+                                               element.getParameters(), returnType);
     Elements.setType(element, type);
     return element;
   }
@@ -60,7 +58,7 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
         continue;
       }
       bindTypeVariable((TypeVariableElement) typeNode.getType().getElement());
-    }    
+    }
   }
 
   final FunctionAliasElement resolveFunctionAlias(DartFunctionTypeAlias node) {
@@ -85,7 +83,7 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
     DartTypeNode boundNode = typeParameterNode.getBound();
     Type bound;
     if (boundNode != null) {
-      bound = getContext().resolveType(boundNode, true, ResolverErrorCode.NO_SUCH_TYPE);
+      bound = getContext().resolveType(boundNode, true, isFactoryContext(), ResolverErrorCode.NO_SUCH_TYPE);
       boundNode.setType(bound);
     } else {
       bound = typeProvider.getObjectType();
@@ -106,13 +104,15 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
 
   abstract boolean isStaticContext();
 
+  abstract boolean isFactoryContext();
+
   @Override
   public Element visitParameter(DartParameter node) {
     ErrorCode typeErrorCode =
         node.getParent() instanceof DartCatchBlock
             ? ResolverErrorCode.NO_SUCH_TYPE
             : TypeErrorCode.NO_SUCH_TYPE;
-    Type type = resolveType(node.getTypeNode(), isStaticContext(), typeErrorCode);
+    Type type = resolveType(node.getTypeNode(), isStaticContext(), isFactoryContext(), typeErrorCode);
     VariableElement element = Elements.parameterElement(node, node.getParameterName(),
                                                         node.getModifiers());
     List<DartParameter> functionParameters = node.getFunctionParameters();
@@ -123,22 +123,19 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
         parameterElements.add((VariableElement) parameter.accept(this));
       }
       ClassElement functionElement = typeProvider.getFunctionType().getElement();
-      type = Types.makeFunctionType(getContext(), functionElement, parameterElements, type, null);
-      DartTypeNode typeNode = node.getTypeNode();
-      if (typeNode != null) {
-        typeNode.setType(type);
-      }
+      type = Types.makeFunctionType(getContext(), functionElement, parameterElements, type);
     }
     Elements.setType(element, type);
     return recordElement(node, element);
   }
 
-  final Type resolveType(DartTypeNode node, boolean isStatic, ErrorCode errorCode) {
+  final Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory,
+                         ErrorCode errorCode) {
     if (node == null) {
       return getTypeProvider().getDynamicType();
     }
     assert node.getType() == null || node.getType() instanceof DynamicType;
-    Type type = getContext().resolveType(node, isStatic, errorCode);
+    Type type = getContext().resolveType(node, isStatic, isFactory, errorCode);
     if (type == null) {
       type = getTypeProvider().getDynamicType();
     }

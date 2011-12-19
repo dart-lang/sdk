@@ -648,7 +648,6 @@ public class RuntimeTypeInjector {
     FunctionAliasElementImplementation classElement =
         (FunctionAliasElementImplementation) x.getSymbol();
     FunctionType funcType = classElement.getFunctionType();
-    boolean hasTypeParams = hasTypeParameters(classElement);
 
     // Build the function
     JsFunction lookupFn = new JsFunction(globalScope);
@@ -731,12 +730,22 @@ public class RuntimeTypeInjector {
    * @param classElement The class whose type arguments to refer to.
    */
   private JsExpression buildTypeArgsReference(ClassElement classElement) {
-    // build: $getTypeArgsFor(this, 'class')
-    // Here build a reference to the type parameter for this class instance, this needs
-    // be looked up on a per-class basis.
-    return call(null,
-        newQualifiedNameRef(
-            "RTT.getTypeArgsFor"), new JsThisRef(), getRTTClassId(classElement));
+    JsExpression typeArgs;
+    if (inFactory()) {
+      if (classElement.getTypeParameters().isEmpty()) {
+        typeArgs = new JsArrayLiteral();
+      } else {
+        typeArgs = new JsNameRef("$typeArgs");
+      }
+    } else {
+      // build: $getTypeArgsFor(this, 'class')
+      // Here build a reference to the type parameter for this class instance, this needs
+      // be looked up on a per-class basis.
+      typeArgs = call(null,
+                      newQualifiedNameRef(
+                          "RTT.getTypeArgsFor"), new JsThisRef(), getRTTClassId(classElement));
+    }
+    return typeArgs;
   }
 
   private JsExpression buildFactoryTypeInfoReference() {
@@ -782,7 +791,7 @@ public class RuntimeTypeInjector {
       InterfaceType instanceType,
       List<? extends Type> listTypeVars,
       JsExpression contextTypeArgs) {
-    if (functionType.getTypeVariables().size() == 0) {
+    if (instanceType.getElement().getTypeParameters().size() == 0) {
       return null;
     }
 
@@ -827,25 +836,13 @@ public class RuntimeTypeInjector {
   private JsExpression generateTypeArgsArray(
       InterfaceType instanceType, ClassElement contextClassElement) {
     JsExpression typeArgs;
-    if (inFactoryOrStatic(contextClassElement)) {
-      if (inFactory()) {
-        // When building a type list in a static context like a factory, type variables are
-        // resolved from the type parameters to the static method.
-        DartClassMember<?> member = context.getCurrentClassMember();
-        DartMethodDefinition containingMethod = (DartMethodDefinition)member;
-        ConstructorElement contextElement = (ConstructorElement)containingMethod.getSymbol();
-        typeArgs = buildTypeArgs(
-            instanceType,
-            ((FunctionType)contextElement.getType()).getTypeVariables(),
-            buildFactoryTypeInfoReference());
+    if (inStaticNotFactory(contextClassElement)) {
+      if( ElementKind.of(contextClassElement) == ElementKind.FUNCTION_TYPE_ALIAS) {
+        // Special case for FunctionAlias as they can have generic types.
+        typeArgs = buildTypeArgs(instanceType, contextClassElement.getTypeParameters(),
+                                 new JsNameRef("typeArgs"));
       } else {
-        if( ElementKind.of(contextClassElement) == ElementKind.FUNCTION_TYPE_ALIAS) {
-          // Special case for FunctionAlias as they can have generic types.
-          typeArgs = buildTypeArgs(instanceType, contextClassElement.getTypeParameters(),
-              new JsNameRef("typeArgs"));
-        } else {
-          typeArgs = buildTypeArgs(instanceType, null, null);
-        }
+        typeArgs = buildTypeArgs(instanceType, null, null);
       }
     } else {
       // Build type args in a class context:
@@ -864,21 +861,8 @@ public class RuntimeTypeInjector {
                                              InterfaceType instanceType,
                                              ClassElement contextClassElement) {
     JsExpression typeArgs;
-    if (inFactoryOrStatic(contextClassElement)) {
-      if (inFactory()) {
-        // When building a type list in a static context like a factory, type
-        // variables are
-        // resolved from the type parameters to the static method.
-        DartClassMember<?> member = context.getCurrentClassMember();
-        DartMethodDefinition containingMethod = (DartMethodDefinition) member;
-        ConstructorElement contextElement = (ConstructorElement) containingMethod
-            .getSymbol();
-        typeArgs = buildTypeArgsForFactory(functionType, instanceType,
-            ((FunctionType) contextElement.getType()).getTypeVariables(),
-            buildFactoryTypeInfoReference());
-      } else {
-        typeArgs = buildTypeArgsForFactory(functionType, instanceType, null, null);
-      }
+    if (inStaticNotFactory(contextClassElement)) {
+      typeArgs = buildTypeArgsForFactory(functionType, instanceType, null, null);
     } else {
       // Build type args in a class context:
       // When building a type list in a class instance, type variables are
@@ -932,9 +916,6 @@ public class RuntimeTypeInjector {
             getRTTLookupMethodNameRef(functionType.getElement()));
         if (hasTypeParameters(functionType.getElement())) {
           JsArrayLiteral typeArgs = new JsArrayLiteral();
-          for (Type arg : functionType.getTypeVariables()) {
-            typeArgs.getExpressions().add(buildTypeLookupExpression(arg, list, contextTypeArgs));
-          }
           functionTypeCallLookup.getArguments().add(typeArgs);
         }
         return functionTypeCallLookup;
@@ -946,8 +927,8 @@ public class RuntimeTypeInjector {
         for (Type t : list) {
           if (t.equals(type)) {
             return call(null, newQualifiedNameRef("RTT.getTypeArg"),
-                Cloner.clone(contextTypeArgs),
-                program.getNumberLiteral(varIndex));
+                        Cloner.clone(contextTypeArgs),
+                        program.getNumberLiteral(varIndex));
           }
           varIndex++;
         }
@@ -993,7 +974,12 @@ public class RuntimeTypeInjector {
 
   private boolean isParameterizedFactoryMethod(DartMethodDefinition method) {
     assert method.getModifiers().isFactory();
-    return !method.getTypeParameters().isEmpty();
+    Element enclosingElement = method.getSymbol().getEnclosingElement();
+    if (ElementKind.of(enclosingElement).equals(ElementKind.CLASS)) {
+      ClassElement enclosingClass = (ClassElement) enclosingElement;
+      return !enclosingClass.getTypeParameters().isEmpty();
+    }
+    return false;
   }
 
   /**
@@ -1163,12 +1149,15 @@ public class RuntimeTypeInjector {
     return member != null && member.getModifiers().isFactory();
   }
 
-  private boolean inFactoryOrStatic(ClassElement containingClass) {
+  private boolean inStaticNotFactory(ClassElement containingClass) {
+    return !inFactory() && inStatic(containingClass);
+  }
+
+  private boolean inStatic(ClassElement containingClass) {
     DartClassMember<?> member = context.getCurrentClassMember();
     return containingClass == null
         || containingClass.getKind() != ElementKind.CLASS
         || member == null
-        || member.getModifiers().isFactory()
         || member.getModifiers().isStatic();
   }
 

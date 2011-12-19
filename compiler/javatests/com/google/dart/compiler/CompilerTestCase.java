@@ -326,13 +326,15 @@ public abstract class CompilerTestCase extends TestCase {
    */
   protected static void assertErrors(List<DartCompilationError> errors,
       ErrorExpectation... expectedErrors) {
+    StringBuffer errorMessage = new StringBuffer();
     // count of errors
     if (errors.size() != expectedErrors.length) {
-      fail(String.format(
+      String out = String.format(
           "Expected %s errors, but got %s: %s",
           expectedErrors.length,
           errors.size(),
-          errors));
+          errors);
+      errorMessage.append(out + "\n");
     }
     // content of errors
     for (int i = 0; i < expectedErrors.length; i++) {
@@ -342,7 +344,7 @@ public abstract class CompilerTestCase extends TestCase {
           || actualError.getLineNumber() != expectedError.line
           || actualError.getColumnNumber() != expectedError.column
           || actualError.getLength() != expectedError.length) {
-        fail(String.format(
+        String out = String.format( 
             "Expected %s:%d:%d/%d, but got %s:%d:%d/%d",
             expectedError.errorCode,
             expectedError.line,
@@ -351,8 +353,13 @@ public abstract class CompilerTestCase extends TestCase {
             actualError.getErrorCode(),
             actualError.getLineNumber(),
             actualError.getColumnNumber(),
-            actualError.getLength()));
+            actualError.getLength());
+        errorMessage.append(out + "\n");
       }
+    }
+    if (errorMessage.length() > 0) {
+      System.err.println(errorMessage);
+      fail(errorMessage.toString());
     }
   }
 

@@ -10,6 +10,7 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
@@ -58,13 +59,14 @@ public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
     //   explanation).
     switch (kind) {
       case FIELD:
-      case METHOD:
+      case METHOD: {
         EnclosingElement enclosing = target.getEnclosingElement();
         addHoleIfSuper(node, enclosing);
         if (enclosing.getKind().equals(ElementKind.LIBRARY)) {
           addElementDependency(target);
         }
         break;
+      }
     }
 
     // Add dependency on the computed type of identifiers.
@@ -109,6 +111,15 @@ public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
     currentClass = node;
     node.visitChildren(this);
     currentClass = null;
+    return null;
+  }
+
+  @Override
+  public Void visitParameterizedTypeNode(DartParameterizedTypeNode node) {
+    if (TypeKind.of(node.getType()).equals(TypeKind.INTERFACE)) {
+      addElementDependency(((InterfaceType) node.getType()).getElement());
+    }
+    node.visitChildren(this);
     return null;
   }
 

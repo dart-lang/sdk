@@ -5,6 +5,6 @@
 class SomeClassImpl implements SomeClass {
   String message_;
 
-  SomeClassImpl() : this.message_ = "what?!" { }
+  SomeClassImpl(arg) : this.message_ = "what?!" { }
   String get message() { return message_; }
 }

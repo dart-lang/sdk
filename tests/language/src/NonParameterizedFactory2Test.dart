@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Interface<T> factory Factory {
+interface Interface<T> default Factory {
   Interface();
   Interface.withArg(T value);
 }
 
-class Factory {
-  factory Interface<T>() {
+class Factory<T> {
+  factory Interface() {
     return null;
   }
 
-  factory Interface<T>.withArg(value) {
+  factory Interface.withArg(value) {
     return null;
   }
 }

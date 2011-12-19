@@ -16,7 +16,7 @@ import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -156,8 +156,7 @@ public class Elements {
   public static void setType(Element element, Type type) {
     ((AbstractElement) element).setType(type);
   }
-
-  static FieldElementImplementation fieldFromNode(DartField node,
+static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,
                                                   Modifiers modifiers) {
     return FieldElementImplementation.fromNode(node, holder, modifiers);
@@ -276,8 +275,8 @@ public class Elements {
   private static String getRawName(DartNode name) {
     if (name instanceof DartIdentifier) {
       return ((DartIdentifier) name).getTargetName();
-    } else if (name instanceof DartParameterizedNode) {
-      return getRawName(((DartParameterizedNode) name).getExpression());
+    } else if (name instanceof DartParameterizedTypeNode) {
+      return getRawName(((DartParameterizedTypeNode) name).getExpression());
     } else {
       DartPropertyAccess propertyAccess = (DartPropertyAccess) name;
       return getRawName(propertyAccess.getQualifier()) + "." + getRawName(propertyAccess.getName());

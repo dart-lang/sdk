@@ -141,27 +141,6 @@ public class NegativeParserTest extends CompilerTestCase {
     assertEquals("foo", ((DartIdentifier) factory.getName()).getTargetName());
   }
 
-  /**
-   * Language specification requires that factory should be declared in class. However declaring
-   * factory on top level should not cause exceptions in compiler. To ensure this we parse top level
-   * factory into normal {@link DartMethodDefinition}.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=345
-   */
-  public void test_badTopLevelFactory_withTypeParameters() {
-    DartUnit unit =
-        parseSourceUnitErrors(
-            "factory foo<T>() {}",
-            ParserErrorCode.DISALLOWED_FACTORY_KEYWORD.getMessage(),
-            1,
-            1);
-    DartMethodDefinition factory = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
-    assertNotNull(factory);
-    // normal method requires name, so we provide some name
-    assertEquals(true, factory.getName() instanceof DartIdentifier);
-    assertEquals("foo<T>", ((DartIdentifier) factory.getName()).getTargetName());
-  }
-
   public void test_defaultParameterValue_inInterfaceMethod() {
     parseExpectErrors(
         "interface A { f(int a, [int b = 12345]); }",
@@ -209,34 +188,41 @@ public class NegativeParserTest extends CompilerTestCase {
         parseSource(Joiner.on("\n").join(
             "class A {",
             "}",
-            "class B {",
-            "  factory B<X ex>(){}",
-            "  factory B<X extneds A>(){}",
-            "  factory B<X extneds A, Y extends A>(){}",
+            "class B<X ex> {",
+            "}",
+            "class C<X extneds A> {",
+            "}",
+            "class D<X extneds A, Y extends A> {",
             "}"));
     // check expected errors
     assertErrors(
         parserRunner.getErrors(),
-        errEx(ParserErrorCode.EXPECTED_EXTENDS, 4, 15, 2),
-        errEx(ParserErrorCode.EXPECTED_EXTENDS, 5, 15, 7),
-        errEx(ParserErrorCode.EXPECTED_EXTENDS, 6, 15, 7));
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 3, 11, 2),
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 5, 11, 7),
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 7, 11, 7));
+
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
-    assertEquals(
+    String expected =     
         Joiner.on("\n").join(
             "// unit " + getName(),
             "class A {",
             "}",
             "",
-            "class B {",
+            "class B<X> {",
+            "}",
             "",
-            "  factory B<X>() { }",
+            "class C<X extends A> {",
+            "}",
             "",
-            "  factory B<X extends A>() { }",
-            "",
-            "  factory B<X extends A, Y extends A>() { }",
-            "}"),
-        dartUnit.toDietSource().trim());
+            "class D<X extends A, Y extends A> {",
+            "}");
+    String actual = dartUnit.toDietSource().trim();
+    if (!expected.equals(actual)) {
+      System.err.println("Expected:\n" + expected);
+      System.err.println("\nActual:\n" + actual);
+    }
+    assertEquals(expected, actual); 
   }
 
   /**
@@ -250,16 +236,15 @@ public class NegativeParserTest extends CompilerTestCase {
         parseSource(Joiner.on("\n").join(
             "class ClassWithLongEnoughName {",
             "}",
-            "class B {",
-            "  factory B<X(){}",
+            "class B<X {",
             "}",
             "class C {",
             "}"));
     // check expected errors
     assertErrors(
         parserRunner.getErrors(),
-        errEx(ParserErrorCode.EXPECTED_EXTENDS, 4, 14, 1),
-        errEx(ParserErrorCode.SKIPPED_SOURCE, 4, 14, 6));
+        errEx(ParserErrorCode.EXPECTED_EXTENDS, 3, 11, 1),
+        errEx(ParserErrorCode.SKIPPED_SOURCE, 3, 11, 3));
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
     assertEquals(
@@ -284,12 +269,11 @@ public class NegativeParserTest extends CompilerTestCase {
         parseSource(Joiner.on("\n").join(
             "class ClassWithLongEnoughName {",
             "}",
-            "class B {",
-            "  factory B<X",
+            "class B<X",
             "class C {",
             "}"));
     // check expected errors
-    assertErrors(parserRunner.getErrors(), errEx(ParserErrorCode.SKIPPED_SOURCE, 4, 13, 1));
+    assertErrors(parserRunner.getErrors(), errEx(ParserErrorCode.SKIPPED_SOURCE, 3, 9, 1));
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
     assertEquals(

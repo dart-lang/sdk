@@ -10,15 +10,19 @@ class C<T> {
   const C();
 }
 
-class D extends C {
-  factory D<T>() {
-    return new C<T>();
+class D<T> extends C<T> {
+  factory D() {
+    return new E<T>();
   }
 }
 
-class Main {
+class E<T> extends D<T> {
+} 
 
-  static void main() {
+
+// SnippetTestCase only returns generated JS for the Main class.
+class Main {
+ static void main() {
     var a = 0;
     var _marker_0 = 1;
     var _marker_B1 = const B();
@@ -27,8 +31,8 @@ class Main {
     var _marker_C2 = const C<String>();
     var _marker_C3 = new C();
     var _marker_C4 = new C<Object>();
-    var _marker_D1 = new D(); 
-    // var _marker_D2 = new D<String>(); // fails in resolver: wrong number of type args
+    var _marker_D1 = new D();
+    var _marker_D2 = new D<String>();
 
     a = _marker_B1 is B;
     a = _marker_C1 is C;
@@ -36,6 +40,10 @@ class Main {
     a = _marker_C4 is C<Object>;
     a = _marker_C4 is Object;
     a = _marker_D1 is D;
-    // a = _marker_D2 is D<String>;
-  }    
+    a = _marker_D2 is D<String>;
+  }
+}
+
+main() {
+  Main.main();
 }

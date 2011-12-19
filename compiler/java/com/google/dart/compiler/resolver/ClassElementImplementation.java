@@ -135,7 +135,7 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   }
 
   void setDefaultClass(InterfaceType element) {
-    this.defaultClass = element;
+    defaultClass = element;
   }
 
   @Override
