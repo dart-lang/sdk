@@ -364,7 +364,7 @@ public class DartCompiler {
               continue;
             }
           }
-          if (dep == null) {
+          if (dep == null || !dep.exists()) {
             reportMissingSource(context, libSrc, libNode);
             continue;
           }
