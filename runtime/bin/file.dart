@@ -221,8 +221,7 @@ interface RandomAccessFile {
   void length();
 
   /**
-   * Get the length of the file. When the operation completes the
-   * [lengthHandler] is called with the length.
+   * Synchronously get the length of the file.
    */
   int lengthSync();
 

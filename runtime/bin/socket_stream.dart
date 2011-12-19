@@ -36,11 +36,16 @@ class SocketInputStream implements InputStream {
 
   int available() => _socket.available();
 
+  void pipe(OutputStream output, [bool close = true]) {
+    _pipe(this, output, close: close);
+  }
+
   void set dataHandler(void callback()) {
     _socket.dataHandler = callback;
   }
 
   void set closeHandler(void callback()) {
+    _clientCloseHandler = callback;
     _socket.closeHandler = callback;
   }
 
@@ -49,6 +54,7 @@ class SocketInputStream implements InputStream {
   }
 
   Socket _socket;
+  Function _clientCloseHandler;
 }
 
 

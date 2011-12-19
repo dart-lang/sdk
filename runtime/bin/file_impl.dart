@@ -48,6 +48,10 @@ class _FileInputStream implements FileInputStream {
     return _length - _file.positionSync();
   }
 
+  void pipe(OutputStream output, [bool close = true]) {
+    _pipe(this, output, close: close);
+  }
+
   bool closed() => _eof;
 
   void close() {
@@ -110,8 +114,8 @@ class _FileInputStream implements FileInputStream {
   bool _closed = false;
   Timer _scheduledDataCallback;
   Timer _scheduledCloseCallback;
-  var _clientDataHandler;
-  var _clientCloseHandler;
+  Function _clientDataHandler;
+  Function _clientCloseHandler;
 }
 
 

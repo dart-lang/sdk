@@ -57,6 +57,16 @@ interface InputStream {
   int available();
 
   /**
+   * Pipe the content of this input stream directly to the output
+   * stream [output]. The default behavior is to close the output when
+   * all the data from the input stream have been written. Specifying
+   * [:false:] for the optional argument [close] keeps the output
+   * stream open after writing all data from the input stream. The
+   * default value for [close] is [:true:].
+   */
+  void pipe(OutputStream output, [bool close]);
+
+  /**
    * Returns whether the stream is closed. There will be no more data
    * to read.
    */
