@@ -22,8 +22,8 @@ public class DartBinaryExpression extends DartExpression implements ElementRefer
     assert op.isBinaryOperator() : op;
 
     this.op = op;
-    this.arg1 = becomeParentOf(arg1);
-    this.arg2 = becomeParentOf(arg2);
+    this.arg1 = becomeParentOf(arg1 != null ? arg1 : new DartSyntheticErrorExpression());
+    this.arg2 = becomeParentOf(arg2 != null ? arg2 : new DartSyntheticErrorExpression());
   }
 
   public DartExpression getArg1() {
