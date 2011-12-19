@@ -1,0 +1,70 @@
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+prefix corelib
+
+[ $component == leg ]
+BigIntegerVMTest: Fail
+CollectionFromTest: Fail
+ConstListLiteralTest: Fail
+ConstListRemoveRangeTest: Fail
+ConstListSetRangeTest: Fail
+CoreRuntimeTypesTest: Fail
+DateTimeTest: Fail
+DoubleCompareTest: Fail
+ExceptionImplementationTest: Fail
+ExpressionTest: Fail
+ForInTest: Fail
+GrowableObjectArray2VMTest: Fail
+GrowableObjectArrayVMTest: Fail
+HashMapTest: Fail
+IndexOutOfRangeExceptionTest: Fail
+IndexedListAccessTest: Fail
+LinkedHashMapTest: Fail
+ListGetRangeTest: Fail
+ListIndexOfTest: Fail
+ListInsertRangeTest: Fail
+ListIteratorsTest: Fail
+ListLiteralIsGrowableTest: Fail
+ListLiteralTest: Fail
+ListRemoveRangeTest: Fail
+ListSetRangeTest: Fail
+ListSortTest: Fail
+ListTest: Fail
+MapFromTest: Fail
+MapTest: Fail
+MapsTest: Fail
+MathTest: Fail
+NanInfinityTest: Fail
+PortTest: Fail
+PromiseTest: Fail
+QueueIteratorTest: Fail
+QueueTest: Fail
+RegExp1Test: Fail
+RegExp4Test: Fail
+RegExp5Test: Fail
+RegExpAllMatchesTest: Fail
+RegExpFirstMatchTest: Fail
+RegExpGroupTest: Fail
+RegExpGroupsTest: Fail
+RegExpHasMatchTest: Fail
+RegExpStartEndTest: Fail
+RegExpStringMatchTest: Fail
+SetIteratorTest: Fail
+SetTest: Fail
+SortTest: Fail
+SplayTreeTest: Fail
+StopwatchTest: Fail
+StringBaseVMTest: Fail
+StringBufferTest: Fail
+StringCaseTest: Fail
+StringFromListTest: Fail
+StringPatternTest: Fail
+StringReplaceTest: Fail
+StringSplitTest: Fail
+StringSubstringTest: Fail
+StringTest: Fail
+StringTrimTest: Fail
+StringsTest: Fail
+UnicodeTest: Fail

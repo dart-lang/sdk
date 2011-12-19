@@ -139,9 +139,11 @@ class StandardTestConfiguration(test.TestConfiguration):
 
   def GetTestStatus(self, sections, defs):
     """Reads the .status file of the TestSuite."""
-    status = os.path.join(self.root, os.path.basename(self.root) + '.status')
-    if os.path.exists(status):
-      test.ReadConfigurationInto(status, sections, defs)
+    basename = os.path.basename(self.root)
+    for component in ['%s.status', '%s-leg.status']:
+      status = os.path.join(self.root, component % basename)
+      if os.path.exists(status):
+        test.ReadConfigurationInto(status, sections, defs)
 
   def FindReferencedFiles(self, lines):
     """Scours the lines containing source code for include directives."""
