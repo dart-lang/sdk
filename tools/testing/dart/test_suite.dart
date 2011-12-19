@@ -667,6 +667,7 @@ class TestUtils {
     }
     if (configuration["component"] == "leg") {
       args.add("--enable_leg");
+      args.add("--leg_only");
     }
     if (configuration["component"] == "dartc") {
       if (configuration["mode"] == "release") {
