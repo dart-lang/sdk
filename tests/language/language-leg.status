@@ -27,7 +27,6 @@ CallThroughGetterTest: Fail
 CallThroughNullGetterTest: Fail
 CanonicalConstTest: Fail
 CharEscapeTest: Fail
-ClassKeywordNegativeTest/01: Fail
 ClassKeywordNegativeTest/02: Fail
 ClassLiteralTest/none: Fail
 ClassOverrideNegativeTest: Fail
