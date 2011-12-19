@@ -19,6 +19,7 @@ layout/layout_tests: Skip # Issue 152, also seems flaky
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 json/json_tests: Pass
 samples/swarm/swarm_tests: Pass
+samples/total/total_tests: Skip # Issue 867.
 
 [ $component == frogium && $checked ]
 html/html_tests: Fail  # HTMLDivElement not assignable to EventTarget
