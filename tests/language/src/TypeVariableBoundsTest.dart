@@ -15,18 +15,22 @@ class Foo<T extends num> {
   factory IFoo() { return null; }
 }
 
-interface IFoo<T extends num> factory Foo<T extends num> {
+interface IFoo<T extends num> default Foo<T extends num> {
 }
 
 // String is not assignable to num.
-class Baz extends Foo<String> {} /// 01: compile-time error
+class Baz
+    extends Foo<String> /// 01: static type error
+{}
 
 class Biz extends Foo<int> {}
 
 Foo<int> fi;
 
 // String is not assignable to num.
-Foo<String> fs; /// 02: compile-time error
+Foo
+    <String> /// 02: static type error
+  fs;
 
 class Box<T> {
 
@@ -39,16 +43,32 @@ class Box<T> {
   }
 }
 
-class TypeVariableBoundsTest {
-  static testMain() {
-    // String is not assignable to num.
-    var v1 = new Foo<String>(); /// 05: compile-time error
-
-    // String is not assignable to num.
-    Foo<String> v2 = null; /// 06: compile-time error
-  }
-}
-
 main() {
-  TypeVariableBoundsTest.testMain();
+  // String is not assignable to num.
+  var v1 = new Foo<String>(); /// 05: static type error
+
+  // String is not assignable to num.
+  Foo<String> v2 = null; /// 06: static type error
+
+  new Baz();
+  new Biz();
+
+  fi = new Foo();
+  fs = new Foo();
+
+  new Box().makeFoo();
+  new Box<int>().makeFoo();
+  new Box<String>().makeFoo();
+
+  // Fisk does not exist.
+  new Box<Fisk>(); /// 07: compile-time error
+
+  // Too many type arguments.
+  new Box<Object, Object>(); /// 08: compile-time error
+
+  // Fisk does not exist.
+  Box<Fisk> box = null; /// 09: static type error
+
+  // Too many type arguments.
+  Box<Object, Object> box = null; /// 10: static type error
 }

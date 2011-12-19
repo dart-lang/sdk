@@ -43,6 +43,14 @@ Constructor6Test: Fail          # (Discussion ongoing)
 ConstInit6NegativeTest: Fail       # Issue 811
 WrongNumberTypeArgumentsTest: Fail # Issue 441
 
+# Issue 905.
+TypeVariableBoundsTest/01: Fail
+TypeVariableBoundsTest/02: Fail
+TypeVariableBoundsTest/05: Fail
+TypeVariableBoundsTest/06: Fail
+TypeVariableBoundsTest/09: Fail
+TypeVariableBoundsTest/10: Fail
+
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
 *DartcNegativeTest: Skip
@@ -295,9 +303,7 @@ SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
 TypeVariableBoundsTest/01: Fail
-TypeVariableBoundsTest/02: Fail
-TypeVariableBoundsTest/05: Fail
-TypeVariableBoundsTest/06: Fail
+TypeVariableBoundsTest/10: Fail
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376

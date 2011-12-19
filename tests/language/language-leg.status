@@ -329,8 +329,14 @@ TryCatch3Test: Fail
 TryCatchTest: Fail
 TypeDartcTest: Fail
 TypeVMTest: Fail
+TypeVariableBoundsTest/01: Fail
+TypeVariableBoundsTest/02: Fail
 TypeVariableBoundsTest/03: Fail
 TypeVariableBoundsTest/04: Fail
+TypeVariableBoundsTest/05: Fail
+TypeVariableBoundsTest/06: Fail
+TypeVariableBoundsTest/09: Fail
+TypeVariableBoundsTest/10: Fail
 TypeVariableBoundsTest/none: Fail
 TypeVariableScopeTest/none: Fail
 TypedMessageTest: Fail
