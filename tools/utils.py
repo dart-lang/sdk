@@ -43,6 +43,8 @@ def GuessArchitecture():
     return 'ia32'
   elif id == 'i86pc':
     return 'ia32'
+  elif '64' in id:
+    return 'x64'
   else:
     return None
 

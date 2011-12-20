@@ -3,6 +3,12 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'variables': {
+    # These variables are used in the creation of the .vcproj file on 
+    # Windows.
+    'cygwin_dir': 'third_party/cygwin',
+    'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+  },
   'targets': [
     {
       'target_name': 'compiler',
@@ -39,7 +45,6 @@
       'target_name': 'create_sdk',
       'type': 'none',
       'dependencies': [
-        'compiler',
         'frog',
         'runtime',
       ],
