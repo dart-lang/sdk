@@ -32,6 +32,7 @@ SocketManyConnectionsTest: Skip # Uses Socket
 ReadIntoConstList: Skip # Uses File
 FileTest: Skip
 ListInputStreamTest: Skip # Uses InputStream
+ListOutputStreamTest: Skip # Uses OutputStream
 ManyEchoServerTest: Skip  # Uses Socket
 TimerTest: Skip # Uses EventHandler
 TimerRepeatTest: Skip # Uses EventHandler
@@ -40,7 +41,6 @@ TimerCancelTest: Skip # Uses EventHandler
 TimerCancel1Test: Skip # Uses EventHandler
 TimerCancel2Test: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
-FileOutputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory
 StreamPipeTest: Skip # Uses Socket
