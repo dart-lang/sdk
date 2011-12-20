@@ -655,6 +655,29 @@ static bool AtIdNodeHasReceiverClass(AstNode* node,
 }
 
 
+// IC data may have only one check, and it has to contain the two classes in
+// specified order.
+static bool AtIdNodeHasTwoClasses(AstNode* node,
+                                  intptr_t id,
+                                  const Class& cls0,
+                                  const Class& cls1) {
+  ASSERT(node != NULL);
+  ASSERT(!cls0.IsNull() && !cls1.IsNull());
+  const ICData& ic_data = node->ICDataAtId(id);
+  ASSERT(ic_data.NumberOfArgumentsChecked() == 2);
+  if (ic_data.NumberOfChecks() != 1) {
+    return false;
+  }
+  Function& target = Function::Handle();
+  GrowableArray<const Class*> classes;
+  ic_data.GetCheckAt(0, &classes, &target);
+  if ((cls0.raw() == classes[0]->raw()) && (cls1.raw() == classes[1]->raw())) {
+    return true;
+  }
+  return false;
+}
+
+
 static bool AtIdNodeHasOnlyClass(AstNode* node, intptr_t id, const Class& cls) {
   ASSERT(node != NULL);
   ASSERT(!cls.IsNull());
@@ -858,9 +881,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
 }
 
 
-// TODO(srdjan): Expand inline caches to detect Smi/double operations, so that
-// we do not have to call the instance method, and therefore could guarantee
-// that the result is a Smi at the end.
+// Handles only Smi & Smi.
 void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
   const char* kOptMessage = "Inlines BinaryOp for Smi";
   Label done;
@@ -880,81 +901,50 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
     Function& target = Function::Handle();
     GrowableArray<const Class*> classes;
     ic_data.GetCheckAt(0, &classes, &target);
-    const bool both_args_expected_smi =
-        (ic_data.NumberOfChecks() == 1) &&
-        (classes[0]->raw() == smi_class_.raw()) &&
-        (classes[1]->raw() == smi_class_.raw());
-
+    ASSERT(ic_data.NumberOfChecks() == 1);
+    ASSERT((classes[0]->raw() == smi_class_.raw()) &&
+        (classes[1]->raw() == smi_class_.raw()));
     CodeGenInfo left_info(node->left());
     CodeGenInfo right_info(node->right());
     VisitLoadTwo(node->left(), node->right(), EAX, EDX);
-    Label* overflow_label = NULL;
     Label two_smis, call_operator;
-    if (both_args_expected_smi) {
-      DeoptimizationBlob* deopt_blob =
-          AddDeoptimizationBlob(node, ECX, EDX, kDeoptSmiBinaryOp);
-      overflow_label = deopt_blob->label();
-      __ movl(ECX, EAX);  // Save if overflow (needs original value).
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, ECX, EDX, kDeoptSmiBinaryOp);
+    __ movl(ECX, EAX);  // Save if overflow (needs original value).
 
-      if (left_info.IsClass(smi_class_) || right_info.IsClass(smi_class_)) {
-        if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
-          // One of the type is not known (statically) to be Smi. Check it.
-          Register test_reg = left_info.IsClass(smi_class_) ? EDX : EAX;
-          __ testl(test_reg, Immediate(kSmiTagMask));
-          __ j(NOT_ZERO, deopt_blob->label());
-        }
-      } else {
-        // Type feedback says both types are Smi, but static type analysis
-        // does not know if any of them is Smi, therefore check.
-        __ orl(EAX, EDX);
-        __ testl(EAX, Immediate(kSmiTagMask));
+    if (left_info.IsClass(smi_class_) || right_info.IsClass(smi_class_)) {
+      if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
+        // One of the type is not known (statically) to be Smi. Check it.
+        Register test_reg = left_info.IsClass(smi_class_) ? EDX : EAX;
+        __ testl(test_reg, Immediate(kSmiTagMask));
         __ j(NOT_ZERO, deopt_blob->label());
-        __ movl(EAX, ECX);
-      }
-      if (node->info() != NULL) {
-        node->info()->set_is_class(&smi_class_);
       }
     } else {
-      overflow_label = &call_operator;
-      __ movl(ECX, EAX);
+      // Type feedback says both types are Smi, but static type analysis
+      // does not know if any of them is Smi, therefore check.
       __ orl(EAX, EDX);
       __ testl(EAX, Immediate(kSmiTagMask));
-      __ j(ZERO, &two_smis, Assembler::kNearJump);
-
-      // Operator is called either if one of the arguments is not Smi or
-      // if we hit an overflow in an arithmetic operation.
-      __ Bind(&call_operator);
-      // Restore arguments on stack, and dispatch to operator, thus preventing
-      // deoptimization in case of smi/non-smi operations. At exit we do not
-      // know the result is Smi or not.
-      // TODO(srdjan): Handle type feedback for both arguments instead of for
-      // receiver only, deoptimize if the type changes.
-      __ pushl(ECX);
-      __ pushl(EDX);
-      GenerateBinaryOperatorCall(node->id(),
-                                 node->token_index(),
-                                 node->Name());
-      __ jmp(&done);
-      __ Bind(&two_smis);
-      // Restore left operand. EAX will be 'destroyed', ECX holds the left
-      // argument, which may be needed for deoptimization.
+      __ j(NOT_ZERO, deopt_blob->label());
       __ movl(EAX, ECX);
+    }
+    if (node->info() != NULL) {
+      node->info()->set_is_class(&smi_class_);
     }
     switch (kind) {
       case Token::kADD: {
         __ addl(EAX, EDX);
-        __ j(OVERFLOW, overflow_label);
+        __ j(OVERFLOW, deopt_blob->label());
         break;
       }
       case Token::kSUB: {
         __ subl(EAX, EDX);
-        __ j(OVERFLOW, overflow_label);
+        __ j(OVERFLOW, deopt_blob->label());
         break;
       }
       case Token::kMUL: {
         __ SmiUntag(EAX);
         __ imull(EAX, EDX);
-        __ j(OVERFLOW, overflow_label);
+        __ j(OVERFLOW, deopt_blob->label());
         break;
       }
       case Token::kBIT_AND: {
@@ -975,7 +965,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
       case Token::kTRUNCDIV: {
         // Handle divide by zero in runtime.
         __ cmpl(EDX, Immediate(0));
-        __ j(EQUAL, overflow_label);
+        __ j(EQUAL, deopt_blob->label());
         // Preserve left & right in case of 'overflow'.
         __ pushl(EDX);
         __ pushl(ECX);
@@ -991,7 +981,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
         // Check the corner case of dividing the 'MIN_SMI' with -1, in which
         // case we cannot tag the result.
         __ cmpl(EAX, Immediate(0x40000000));
-        __ j(EQUAL, overflow_label);
+        __ j(EQUAL, deopt_blob->label());
         __ SmiTag(EAX);
         break;
       }
@@ -1310,7 +1300,7 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
     return;
   }
 
-  if (AtIdNodeHasReceiverClass(node, node->id(), smi_class_)) {
+  if (AtIdNodeHasTwoClasses(node, node->id(), smi_class_, smi_class_)) {
     GenerateSmiBinaryOp(node);
     return;
   }

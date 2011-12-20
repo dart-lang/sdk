@@ -25,6 +25,8 @@ namespace dart {
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
+DEFINE_FLAG(bool, print_ic_in_optimized, false,
+    "Debugging helper to identify potential performance pitfalls.");
 DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
     "number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -435,6 +437,10 @@ void CodeGenerator::GenerateInstanceCall(
     int num_arguments,
     const Array& optional_arguments_names,
     intptr_t num_args_checked) {
+  if (FLAG_print_ic_in_optimized && IsOptimizing()) {
+    OS::Print("Generate IC in optimized code: id %d name: '%s'\n",
+        node_id, function_name.ToCString());
+  }
   ASSERT(num_args_checked > 0);  // At least receiver check is necessary.
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
