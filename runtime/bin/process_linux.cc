@@ -93,10 +93,6 @@ void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
     int negative = 0;
     if (WIFEXITED(status)) {
       exit_code = WEXITSTATUS(status);
-      if (exit_code == 255) {
-        exit_code = 1;
-        negative = 1;
-      }
     }
     if (WIFSIGNALED(status)) {
       exit_code = WTERMSIG(status);
