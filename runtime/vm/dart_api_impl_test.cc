@@ -764,6 +764,8 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 }
 
 
+#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+
 TEST_CASE(WeakPersistentHandle) {
   Dart_Handle weak_new_ref = Dart_Null();
   EXPECT(Dart_IsNull(weak_new_ref));
@@ -864,6 +866,8 @@ TEST_CASE(WeakPersistentHandle) {
   EXPECT_VALID(weak_old_ref);
   EXPECT(Dart_IsNull(weak_old_ref));
 }
+
+#endif
 
 
 // Unit test for creating multiple scopes and local handles within them.
