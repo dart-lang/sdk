@@ -570,7 +570,7 @@ class Dartdoc {
 
     if (includeSource && showCode) {
       writeln('<pre class="source">');
-      write(formatCode(span));
+      writeln(md.escapeHtml(unindentCode(span)));
       writeln('</pre>');
     }
 
@@ -699,10 +699,9 @@ class Dartdoc {
   }
 
   /**
-   * Takes a string of Dart code and turns it into sanitized HTML.
+   * Remove leading indentation to line up with first line.
    */
-  formatCode(SourceSpan span) {
-    // Remove leading indentation to line up with first line.
+  unindentCode(SourceSpan span) {
     final column = getSpanColumn(span);
     final lines = span.text.split('\n');
     // TODO(rnystrom): Dirty hack.
@@ -711,6 +710,14 @@ class Dartdoc {
     }
 
     final code = Strings.join(lines, '\n');
+    return code;
+  }
+
+  /**
+   * Takes a string of Dart code and turns it into sanitized HTML.
+   */
+  formatCode(SourceSpan span) {
+    final code = unindentCode(span);
 
     // Syntax highlight.
     return classifySource(new SourceFile('', code));
