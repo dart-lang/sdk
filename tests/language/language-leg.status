@@ -63,6 +63,7 @@ ContextArgsWithDefaultsTest: Fail
 ContextTest: Fail
 ContinueTest: Fail
 CyclicImportTest: Fail
+DefaultClassImplicitConstructorTest: Fail
 DefaultFactoryLibraryTest: Fail
 DefaultFactoryTest: Fail
 DefaultImplementationTest: Fail
