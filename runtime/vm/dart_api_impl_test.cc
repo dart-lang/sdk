@@ -2958,16 +2958,43 @@ UNIT_TEST_CASE(RunLoop_ExceptionParent) {
 }
 
 
+// Utility functions and variables for test case IsolateInterrupt starts here.
 static Monitor* sync = NULL;
 static Dart_Isolate shared_isolate = NULL;
+static bool main_entered = false;
+
+
+void MarkMainEntered(Dart_NativeArguments args) {
+  Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+  // Indicate that main has been entered.
+  {
+    MonitorLocker ml(sync);
+    main_entered = true;
+    ml.Notify();
+  }
+  Dart_SetReturnValue(args, Dart_Null());
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction IsolateInterruptTestNativeLookup(
+    Dart_Handle name, int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&MarkMainEntered);
+}
+
+
 void BusyLoop_start(uword unused) {
   // TODO(turnidge): Get rid of call to 'function' after interrupts
   // are checked on backward branches.
   const char* kScriptChars =
+      "class Native {\n"
+      "  static void markMainEntered() native 'MarkMainEntered';\n"
+      "}\n"
       "void function([foo='hi']) {\n"
       "}\n"
       "\n"
       "void main() {\n"
+      "  Native.markMainEntered();\n"
       "  while (true) {\n"  // Infinite loop.
       "    function();\n"
       "  }\n"
@@ -2986,6 +3013,9 @@ void BusyLoop_start(uword unused) {
     Dart_Handle source = Dart_NewString(kScriptChars);
     lib = Dart_LoadScript(url, source, TestCase::library_handler);
     EXPECT_VALID(lib);
+    Dart_Handle result = Dart_SetNativeResolver(
+        lib, &IsolateInterruptTestNativeLookup);
+    DART_CHECK_VALID(result);
 
     sync->Notify();
     sync->Exit();
@@ -3001,15 +3031,15 @@ void BusyLoop_start(uword unused) {
   EXPECT_SUBSTRING("Unhandled exception:\nfoo\n",
                    Dart_GetError(result));
 
-  // Tell the other thread that we are done.
-  {
-    MonitorLocker ml(sync);
-    shared_isolate = NULL;
-    ml.Notify();
-  }
-
   Dart_ExitScope();
   Dart_ShutdownIsolate();
+
+  // Tell the other thread that we are done (don't use MonitorLocker
+  // as there is no current isolate any more).
+  sync->Enter();
+  shared_isolate = NULL;
+  sync->Notify();
+  sync->Exit();
 }
 
 
@@ -3018,8 +3048,12 @@ void BusyLoop_start(uword unused) {
 // on the third interrupt.
 static int interrupt_count = 0;
 static bool IsolateInterruptTestCallback() {
-  interrupt_count++;
-  OS::Print(" =========== Interrupt callback called #%d\n", interrupt_count);
+  OS::Print(" ========== Interrupt callback called #%d\n", interrupt_count + 1);
+  {
+    MonitorLocker ml(sync);
+    interrupt_count++;
+    ml.Notify();
+  }
   if (interrupt_count >= 3) {
     Dart_EnterScope();
     Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
@@ -3045,8 +3079,8 @@ TEST_CASE(IsolateInterrupt) {
 
   {
     MonitorLocker ml(sync);
-    // Wait for the other isolate to start.
-    while (shared_isolate == NULL) {
+    // Wait for the other isolate to enter main.
+    while (!main_entered) {
       ml.Wait();
     }
   }
@@ -3054,11 +3088,17 @@ TEST_CASE(IsolateInterrupt) {
   // Send three interrupts to the other isolate.  The first two allow
   // execution to continue.  The third causes an exception in the
   // isolate.
-  Dart_InterruptIsolate(shared_isolate);
-  OS::Sleep(5);
-  Dart_InterruptIsolate(shared_isolate);
-  OS::Sleep(5);
-  Dart_InterruptIsolate(shared_isolate);
+  for (int i = 0; i < 3; i++) {
+    Dart_InterruptIsolate(shared_isolate);
+    {
+      MonitorLocker ml(sync);
+      // Wait for interrupt_count to be increased.
+      while (interrupt_count == i) {
+        ml.Wait();
+      }
+      OS::Print(" ========== Interrupt processed #%d\n", interrupt_count);
+    }
+  }
 
   {
     MonitorLocker ml(sync);
@@ -3072,7 +3112,6 @@ TEST_CASE(IsolateInterrupt) {
   EXPECT_EQ(3, interrupt_count);
 
   // Give the spawned thread enough time to properly exit.
-  OS::Sleep(20);
   Isolate::SetInterruptCallback(saved);
 }
 
