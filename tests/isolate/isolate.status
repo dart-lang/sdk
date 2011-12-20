@@ -24,6 +24,15 @@ StaticStateTest: Fail         # Bug 5401734
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
 
+[ $component == frogium ]
+CrossIsolateMessageTest: Fail
+Message2Test: Fail
+Mixed2Test: Fail
+MixedTest: Fail
+NestedSpawn2Test: Fail
+NestedSpawnTest: Fail
+Isolate2NegativeTest: Timeout
+
 [ $arch == x64 ]
 *: Skip
 

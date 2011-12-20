@@ -104,7 +104,6 @@ LibTest/core/String/contains/String/contains/A01/t01: Fail
 LibTest/core/String/operator\+/String/operator\+/A01/t03: Fail
 LibTest/core/String/String.fromCharCodes/String/String.fromCharCodes/A02/t01: Fail
 LibTest/core/String/String.fromCharCodes/String/String.fromCharCodes/A03/t01: Fail
-LibTest/core/String/replaceFirst/String/replaceFirst/A01/t01: Fail
 LibTest/core/String/indexOf/String/indexOf/A01/t02: Fail
 LibTest/core/String/indexOf/String/indexOf/A03/t01: Fail
 LibTest/core/String/replaceFirst/String/replaceFirst/A02/t01: Fail
@@ -515,7 +514,6 @@ LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail
 LibTest/core/Map/putIfAbsent/Map/putIfAbsent/A01/t04: Fail
 LangSpecTest/13_Types/13_7_Type_Void/A01/t05: Fail
 LibTest/core/AssertError/line/AssertError/line/A01/t02: Fail
-LibTest/core/AssertError/toString/AssertError/toString/A01/t02: Fail
 LibTest/core/AssertError/column/AssertError/column/A01/t02: Fail
 LibTest/core/AssertError/failedAssertion/AssertError/failedAssertion/A01/t01: Fail
 LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail

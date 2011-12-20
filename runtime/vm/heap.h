@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/pages.h"
 
 namespace dart {
 
@@ -19,6 +20,8 @@ class Scavenger;
 class VirtualMemory;
 
 DECLARE_FLAG(bool, verbose_gc);
+DECLARE_FLAG(bool, verify_before_gc);
+DECLARE_FLAG(bool, verify_after_gc);
 DECLARE_FLAG(bool, gc_at_alloc);
 
 class Heap {
@@ -38,6 +41,10 @@ class Heap {
   uword Allocate(intptr_t size, Space space) {
     switch (space) {
       case kNew:
+        // Do not attempt to allocate very large objects in new space.
+        if (!PageSpace::IsPageAllocatableSize(size)) {
+          return AllocateOld(size);
+        }
         return AllocateNew(size);
       case kOld:
         return AllocateOld(size);
@@ -56,6 +63,7 @@ class Heap {
   // Visit all pointers in the space.
   void IterateNewPointers(ObjectPointerVisitor* visitor);
   void IterateOldPointers(ObjectPointerVisitor* visitor);
+  void IterateCodePointers(ObjectPointerVisitor* visitor);
 
   void CollectGarbage(Space space);
   void CollectAllGarbage();

@@ -4,14 +4,19 @@
 
 interface Timer factory _Timer{
 
-  /*
+  /**
    * Creates a new timer. The [callback] callback is invoked after
-   * [milliSeconds] milliseconds. If [repeating] is set, the timer
-   * is repeated every [milliSeconds] milliseconds until cancelled.
+   * [milliSeconds] milliseconds.
    */
-  Timer(void callback(Timer timer), int milliSeconds, bool repeating);
+  Timer(void callback(Timer timer), int milliSeconds);
+ 
+  /**
+   * Creates a new repeating timer. The [callback] is invoked every
+   * [milliSeconds] millisecond until cancelled.
+   */
+  Timer.repeating(void callback(Timer timer), int milliSeconds);
 
-  /*
+  /**
    * Cancels the timer.
    */
   void cancel();

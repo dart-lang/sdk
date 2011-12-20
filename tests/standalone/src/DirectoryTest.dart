@@ -19,13 +19,11 @@ class DirectoryTest {
     f.createSync();
 
     directory.dirHandler = (dir) {
-      print(dir);
       listedDir = true;
       Expect.isTrue(dir.contains('subdir'));
     };
 
     directory.fileHandler = (f) {
-      print(f);
       listedFile = true;
       Expect.isTrue(f.contains('subdir'));
       Expect.isTrue(f.contains('file.txt'));
@@ -150,42 +148,41 @@ class DirectoryTest {
         Expect.fail("testCreateTemp file.errorHandler called: $error");
       };
       file.createHandler = () {
+        file.openHandler = (RandomAccessFile openedFile) {
+          openedFile.writeList([65, 66, 67, 13], 0, 4);
+          openedFile.noPendingWriteHandler = () {
+            openedFile.length();
+          };
+          openedFile.lengthHandler = (int length) {
+            Expect.equals(4, length);
+            openedFile.close();
+          };
+          openedFile.closeHandler = () {
+            file.exists();
+          };
+          file.existsHandler = (bool exists) {
+            Expect.isTrue(exists);
+            // Try to delete the directory containing the file - should throw.
+            bool threw_exception = false;
+            try {
+              tempDirectory.deleteSync();
+            } catch (var e) {
+              Expect.isTrue(tempDirectory.existsSync());
+              threw_exception = true;
+            }
+            Expect.isTrue(threw_exception);
+            Expect.isTrue(tempDirectory.existsSync());
+
+            // Delete the file, and then delete the directory.
+            file.delete();
+          };
+          file.deleteHandler = () {
+            tempDirectory.deleteSync();
+            Expect.isFalse(tempDirectory.existsSync());
+          };
+        };
         file.open(writable: true);
       };
-      file.openHandler = () {
-        file.writeList([65, 66, 67, 13], 0, 4);
-      };
-      file.noPendingWriteHandler = () {
-        file.length();
-      };
-      file.lengthHandler = (int length) {
-        Expect.equals(4, length);
-        file.close();
-      };
-      file.closeHandler = () {
-        file.exists();
-      };
-      file.existsHandler = (bool exists) {
-        Expect.isTrue(exists);
-        // Try to delete the directory containing the file - should throw.
-        bool threw_exception = false;
-        try {
-          tempDirectory.deleteSync();
-        } catch (var e) {
-          Expect.isTrue(tempDirectory.existsSync());
-          threw_exception = true;
-        }
-        Expect.isTrue(threw_exception);
-        Expect.isTrue(tempDirectory.existsSync());
-
-        // Delete the file, and then delete the directory.
-        file.delete();
-      };
-      file.deleteHandler = () {
-        tempDirectory.deleteSync();
-        Expect.isFalse(tempDirectory.existsSync());
-      };
-
       file.create();
     };
     tempDirectory.createTemp();
@@ -207,7 +204,6 @@ class DirectoryTest {
 
 class NestedTempDirectoryTest {
   List<Directory> createdDirectories;
-  static final int nestingDepth = 6;
   Directory current;
 
   NestedTempDirectoryTest(): createdDirectories = new List<Directory>();
@@ -218,6 +214,9 @@ class NestedTempDirectoryTest {
 
   void createPhaseCallback() {
     createdDirectories.add(current);
+    int nestingDepth = 6;
+    var os = new Platform().operatingSystem();
+    if (os == "windows") nestingDepth = 2;
     if (createdDirectories.length < nestingDepth) {
       current = new Directory(
           current.path + "/nested_temp_dir_${createdDirectories.length}_");
@@ -247,11 +246,51 @@ class NestedTempDirectoryTest {
   static void testMain() {
     new NestedTempDirectoryTest().startTest();
     new NestedTempDirectoryTest().startTest();
- }
+  }
+}
+
+
+String illegalTempDirectoryLocation() {
+  // Determine a platform specific illegal location for a temporary directory.
+  var os = new Platform().operatingSystem();
+  if (os == "linux" || os == "macos") {
+    return "/dev/zero/";
+  }
+  if (os == "windows") {
+    return "*";
+  }
+  return null;
+}
+
+
+testCreateTempErrorSync() {
+  var location = illegalTempDirectoryLocation();
+  if (location != null) {
+    Expect.throws(new Directory(location).createTempSync,
+                  (e) => e is DirectoryException);
+  }
+}
+
+
+testCreateTempError() {
+  var location = illegalTempDirectoryLocation();
+  if (location == null) return;
+
+  var resultPort = new ReceivePort.singleShot();
+  resultPort.receive((String message, ignored) {
+      Expect.equals("error", message);
+    });
+
+  Directory dir = new Directory(location);
+  dir.errorHandler = (error) { resultPort.toSendPort().send("error"); };
+  dir.createTempHandler = () { resultPort.toSendPort().send("success"); };
+  dir.createTemp();
 }
 
 
 main() {
   DirectoryTest.testMain();
   NestedTempDirectoryTest.testMain();
+  testCreateTempErrorSync();
+  testCreateTempError();
 }

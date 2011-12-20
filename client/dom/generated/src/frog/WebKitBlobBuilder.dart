@@ -1,7 +1,7 @@
 
 class WebKitBlobBuilder native "*WebKitBlobBuilder" {
 
-  void append(var blob_OR_value, [String endings = null]) native;
+  void append(var arrayBuffer_OR_blob_OR_value, [String endings = null]) native;
 
   Blob getBlob([String contentType = null]) native;
 

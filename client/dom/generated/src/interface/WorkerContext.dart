@@ -14,6 +14,10 @@ interface WorkerGlobalScope {
 
   void set navigator(WorkerNavigator value);
 
+  EventListener get onerror();
+
+  void set onerror(EventListener value);
+
   WorkerContext get self();
 
   void set self(WorkerContext value);
@@ -33,6 +37,10 @@ interface WorkerGlobalScope {
   bool dispatchEvent(Event evt);
 
   void importScripts();
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 

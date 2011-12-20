@@ -234,6 +234,16 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static Text _createTextNode(receiver, data) native;
 
+  Touch createTouch(DOMWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) {
+    return _createTouch(this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+  }
+  static Touch _createTouch(receiver, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
+
+  TouchList createTouchList() {
+    return _createTouchList(this);
+  }
+  static TouchList _createTouchList(receiver) native;
+
   TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) {
     return _createTreeWalker(this, root, whatToShow, filter, expandEntityReferences);
   }

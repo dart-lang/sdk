@@ -7,7 +7,7 @@
 #library("MintMakerPromiseWithStubsTest-generatedTest");
 #import("../../isolate/src/TestFramework.dart");
 
-interface Mint factory MintImpl {
+interface Mint default MintImpl {
 
   Mint();
 
@@ -15,7 +15,7 @@ interface Mint factory MintImpl {
 
 }
 
-interface Purse factory PurseImpl {
+interface Purse default PurseImpl {
 
   Purse();
 

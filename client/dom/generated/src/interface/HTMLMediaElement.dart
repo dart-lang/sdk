@@ -6,6 +6,12 @@
 
 interface HTMLMediaElement extends HTMLElement {
 
+  static final int EOS_DECODE_ERR = 2;
+
+  static final int EOS_NETWORK_ERR = 1;
+
+  static final int EOS_NO_ERROR = 0;
+
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -23,6 +29,12 @@ interface HTMLMediaElement extends HTMLElement {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
+
+  static final int SOURCE_CLOSED = 0;
+
+  static final int SOURCE_ENDED = 2;
+
+  static final int SOURCE_OPEN = 1;
 
   bool get autoplay();
 
@@ -102,11 +114,17 @@ interface HTMLMediaElement extends HTMLElement {
 
   bool get webkitHasClosedCaptions();
 
+  String get webkitMediaSourceURL();
+
   bool get webkitPreservesPitch();
 
   void set webkitPreservesPitch(bool value);
 
+  int get webkitSourceState();
+
   int get webkitVideoDecodedByteCount();
+
+  TextTrack addTrack(String kind, [String label, String language]);
 
   String canPlayType(String type);
 
@@ -115,4 +133,8 @@ interface HTMLMediaElement extends HTMLElement {
   void pause();
 
   void play();
+
+  void webkitSourceAppend(Uint8Array data);
+
+  void webkitSourceEndOfStream(int status);
 }

@@ -23,5 +23,8 @@ class _FileWrappingImplementation extends _BlobWrappingImplementation implements
   String get name() { return _get_name(this); }
   static String _get_name(var _this) native;
 
+  String get webkitRelativePath() { return _get_webkitRelativePath(this); }
+  static String _get_webkitRelativePath(var _this) native;
+
   String get typeName() { return "File"; }
 }

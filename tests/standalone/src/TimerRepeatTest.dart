@@ -22,7 +22,7 @@ class TimerRepeatTest {
 
     _iteration = 0;
     _startTime = (new Date.now()).value;
-    timer = new Timer(timeoutHandler, _TIMEOUT, true);
+    timer = new Timer.repeating(timeoutHandler, _TIMEOUT);
   }
 
   static void testMain() {

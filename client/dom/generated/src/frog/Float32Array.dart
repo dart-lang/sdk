@@ -1,5 +1,5 @@
 
-class Float32Array extends ArrayBufferView implements List<num> native "Float32Array" {
+class Float32Array extends ArrayBufferView implements List<num> native "*Float32Array" {
 
   factory Float32Array(int length) =>  _construct(length);
 

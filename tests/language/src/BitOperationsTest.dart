@@ -5,6 +5,11 @@
 
 class BitOperationsTest {
   static testMain() {
+    for (int i = 0; i < 4; i++) {
+      testOne();
+    }
+  }
+  static testOne() {
     Expect.equals(3, (3 & 7));
     Expect.equals(7, (3 | 7));
     Expect.equals(4, (3 ^ 7));
@@ -14,6 +19,8 @@ class BitOperationsTest {
     Expect.equals(-101, ~100);
     Expect.equals(0x10000000000000000, 1 << 64);
     Expect.equals(-0x10000000000000000, -1 << 64);
+    Expect.equals(0x40000000, 0x04000000 << 4);
+    Expect.equals(0x4000000000000000, 0x0400000000000000 << 4);
     Expect.equals(0, ~-1);
     Expect.equals(-1, ~0);
 

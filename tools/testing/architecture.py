@@ -472,6 +472,8 @@ class WebDriverArchitecture(FrogChromiumArchitecture):
       browser_flag = 'ff'
     elif 'ie' in flags or 'explorer' in flags or 'internet-explorer' in flags:
       browser_flag = 'ie'
+    elif 'safari' in flags:
+      browser_flag = 'safari'
 
     selenium_location = os.path.join(self.root_path, 'tools', 'testing',
                                 'run_selenium.py')
@@ -534,7 +536,7 @@ class LegArchitecture(StandaloneArchitecture):
     super(LegArchitecture, self).__init__(root_path, arch, mode, component,
                                           test)
   def GetOptions(self):
-    return ['--enable_leg']
+    return ['--enable_leg', '--leg_only']
 
   def GetExecutable(self):
     """Returns the path to the Dart test runner (executes the .dart file)."""

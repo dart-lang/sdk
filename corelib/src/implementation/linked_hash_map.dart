@@ -29,8 +29,7 @@ class LinkedHashMapImplementation<K extends Hashable, V>
   }
 
   // See issue 417. Works in the vm, fails in dartc and frog.
-  factory LinkedHashMapImplementation/*<K extends Hashable, V>*/
-      .from(Map/*<K, V>*/ other) {
+  factory LinkedHashMapImplementation.from(Map/*<K, V>*/ other) {
     Map/*<K, V>*/ result = new LinkedHashMapImplementation/*<K, V>*/();
     other.forEach((/*K*/ key, /*V*/ value) { result[key] = value; });
     return result;

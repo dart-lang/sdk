@@ -28,7 +28,6 @@ class RawCode;
   V(MegamorphicLookup)                                                         \
   V(CallStaticFunction)                                                        \
   V(CallClosureFunction)                                                       \
-  V(StackOverflow)                                                             \
   V(OptimizeInvokedFunction)                                                   \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
@@ -46,7 +45,8 @@ class RawCode;
 #define STUB_CODE_LIST(V)                                                      \
   V(InvokeDartCode)                                                            \
   V(AllocateContext)                                                           \
-  V(InlineCache)                                                               \
+  V(OneArgCheckInlineCache)                                                    \
+  V(TwoArgsCheckInlineCache)                                                   \
   V(BreakpointDynamic)                                                         \
 
 
@@ -173,6 +173,8 @@ class StubCode {
                                              const Class& cls);
   static void GenerateAllocationStubForClosure(Assembler* assembler,
                                                const Function& func);
+  static void GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
+                                                intptr_t num_args);
 };
 
 }  // namespace dart

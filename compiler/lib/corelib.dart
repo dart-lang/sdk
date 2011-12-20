@@ -40,3 +40,4 @@
 #source("src/strings.dart");
 #source("src/string_buffer.dart");
 #source("src/time_zone.dart");
+#source("coverage.dart");

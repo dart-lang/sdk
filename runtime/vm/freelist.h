@@ -33,6 +33,10 @@ class FreeListElement {
 
   static FreeListElement* AsElement(uword addr, intptr_t size);
 
+  static bool IsSpecialClass(RawObject* raw_obj) {
+    return (raw_obj == minimal_element_class_) || (raw_obj == element_class_);
+  }
+
   static void InitOnce();
 
  private:

@@ -13,6 +13,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
@@ -102,7 +103,7 @@ abstract class ResolverTestCase extends TestCase {
   }
 
   static DartClass makeInterface(String name, List<DartTypeNode> interfaces,
-      DartTypeNode defaultClass, String... typeParameters) {
+      DartParameterizedTypeNode defaultClass, String... typeParameters) {
     List<DartTypeParameter> parameterNodes = new ArrayList<DartTypeParameter>();
     for (String parameter : typeParameters) {
       parameterNodes.add(makeTypeVariable(parameter));
@@ -110,6 +111,10 @@ abstract class ResolverTestCase extends TestCase {
     List<DartNode> members = Arrays.<DartNode>asList();
     return new DartClass(new DartIdentifier(name), null, null,
                          interfaces, members, parameterNodes, defaultClass, true, Modifiers.NONE);
+  }
+
+  static DartParameterizedTypeNode makeDefault(String name) {
+    return new DartParameterizedTypeNode(new DartIdentifier(name), null);
   }
 
   private static DartTypeParameter makeTypeVariable(String name) {

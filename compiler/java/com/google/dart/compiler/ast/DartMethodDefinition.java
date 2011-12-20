@@ -18,25 +18,22 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
   protected DartFunction function;
   private MethodElement element;
   private DartMethodDefinition normalizedNode = this;
-  private final List<DartTypeParameter> typeParameters;
 
   public static DartMethodDefinition create(DartExpression name,
                                             DartFunction function,
                                             Modifiers modifiers,
-                                            List<DartInitializer> initializers,
-                                            List<DartTypeParameter> typeParameters) {
+                                            List<DartInitializer> initializers) {
     if (initializers == null) {
-      return new DartMethodDefinition(name, function, modifiers, typeParameters);
+      return new DartMethodDefinition(name, function, modifiers);
     } else {
-      return new DartMethodWithInitializersDefinition(name, function, modifiers, initializers);
+      return new DartMethodWithInitializersDefinition(name, function, modifiers,
+                                                      initializers);
     }
   }
 
-  private DartMethodDefinition(DartExpression name, DartFunction function, Modifiers modifiers,
-                               List<DartTypeParameter> typeParameters) {
+  private DartMethodDefinition(DartExpression name, DartFunction function, Modifiers modifiers) {
     super(name, modifiers);
     this.function = becomeParentOf(function);
-    this.typeParameters = typeParameters;
   }
 
   public DartFunction getFunction() {
@@ -67,10 +64,6 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
     return Collections.emptyList();
   }
 
-  public List<DartTypeParameter> getTypeParameters() {
-    return typeParameters;
-  }
-
   @Override
   public void traverse(DartVisitor v, DartContext ctx) {
     if (v.visit(this, ctx)) {
@@ -98,7 +91,7 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
                                          DartFunction function,
                                          Modifiers modifiers,
                                          List<DartInitializer> initializers) {
-      super(name, function, modifiers, null);
+      super(name, function, modifiers);
       this.initializers = becomeParentOf(initializers);
     }
 
@@ -120,9 +113,6 @@ public class DartMethodDefinition extends DartClassMember<DartExpression> {
     public void visitChildren(DartPlainVisitor<?> visitor) {
       super.visitChildren(visitor);
       visitor.visit(initializers);
-      if (getTypeParameters() != null) {
-        visitor.visit(getTypeParameters());
-      }
     }
   }
 }

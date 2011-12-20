@@ -528,9 +528,9 @@ DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object) {
 // --- Initialization and Globals ---
 
 
-// TODO(iposva): This is a placeholder for the eventual external Dart API.
-DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback callback) {
-  return Dart::InitOnce(callback);
+DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
+                                 Dart_IsolateInterruptCallback interrupt) {
+  return Dart::InitOnce(create, interrupt);
 }
 
 DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {
@@ -663,6 +663,15 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
 }
 
 
+DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
+  }
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  iso->ScheduleInterrupts(Isolate::kApiInterrupt);
+}
+
+
 // --- Messages and Ports ---
 
 
@@ -675,6 +684,30 @@ DART_EXPORT void Dart_SetMessageCallbacks(
   ASSERT(close_port_callback != NULL);
   isolate->set_post_message_callback(post_message_callback);
   isolate->set_close_port_callback(close_port_callback);
+}
+
+
+DART_EXPORT Dart_Handle Dart_RunLoop() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  Dart_Handle result;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    const Object& obj = Object::Handle(isolate->StandardRunLoop());
+    if (obj.IsUnhandledException()) {
+      result = Api::ErrorFromException(obj);
+    } else {
+      ASSERT(obj.IsNull());
+      result = Api::Success();
+    }
+  } else {
+    SetupErrorResult(&result);
+  }
+  isolate->set_long_jump_base(base);
+  return result;
 }
 
 
@@ -696,52 +729,17 @@ DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port_id,
                                            Dart_Port reply_port_id,
                                            Dart_Message dart_message) {
   DARTSCOPE(Isolate::Current());
-
   const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
-  const String& class_name =
-      String::Handle(String::NewSymbol("ReceivePortImpl"));
-  const String& function_name =
-      String::Handle(String::NewSymbol("_handleMessage"));
-  const int kNumArguments = 3;
-  const Array& kNoArgumentNames = Array::Handle();
-  const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
-                              class_name,
-                              function_name,
-                              kNumArguments,
-                              kNoArgumentNames,
-                              Resolver::kIsQualified));
-  GrowableArray<const Object*> arguments(kNumArguments);
-  arguments.Add(&Integer::Handle(Integer::New(dest_port_id)));
-  arguments.Add(&Integer::Handle(Integer::New(reply_port_id)));
-  arguments.Add(&msg);
-  // TODO(turnidge): This call should be wrapped in a longjmp
-  const Object& result = Object::Handle(
-      DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
+  // TODO(turnidge): Should this call be wrapped in a longjmp?
+  const Object& result =
+      Object::Handle(DartLibraryCalls::HandleMessage(dest_port_id,
+                                                     reply_port_id,
+                                                     msg));
   if (result.IsUnhandledException()) {
     return Api::ErrorFromException(result);
   }
   ASSERT(result.IsNull());
   return Api::Success();
-}
-
-
-DART_EXPORT Dart_Handle Dart_RunLoop() {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  Dart_Handle result;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    isolate->StandardRunLoop();
-    result = Api::Success();
-  } else {
-    SetupErrorResult(&result);
-  }
-  isolate->set_long_jump_base(base);
-  return result;
 }
 
 
@@ -950,20 +948,41 @@ DART_EXPORT bool Dart_IsInteger(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
                                                   bool* fits) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
-  if (obj.IsSmi() || obj.IsMint()) {
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
     *fits = true;
-    return Api::Success();
-  } else if (obj.IsBigint()) {
+  } else {
+    ASSERT(int_obj.IsBigint());
 #if defined(DEBUG)
     Bigint& bigint = Bigint::Handle();
-    bigint ^= obj.raw();
+    bigint ^= int_obj.raw();
     ASSERT(!BigintOperations::FitsIntoInt64(bigint));
 #endif
     *fits = false;
-    return Api::Success();
   }
-  return Api::Error("Object is not a Integer");
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
+                                                   bool* fits) {
+  DARTSCOPE(Isolate::Current());
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    *fits = !int_obj.IsNegative();
+  } else {
+    ASSERT(int_obj.IsBigint());
+    Bigint& bigint = Bigint::Handle();
+    bigint ^= int_obj.raw();
+    *fits = BigintOperations::FitsIntoUint64(bigint);
+  }
+  return Api::Success();
 }
 
 
@@ -982,47 +1001,73 @@ DART_EXPORT Dart_Handle Dart_NewIntegerFromHexCString(const char* str) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_IntegerValue(Dart_Handle integer, int64_t* value) {
+DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
+                                            int64_t* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
-  if (obj.IsSmi() || obj.IsMint()) {
-    Integer& integer = Integer::Handle();
-    integer ^= obj.raw();
-    *value = integer.AsInt64Value();
-    return Api::Success();
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
   }
-  if (obj.IsBigint()) {
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    *value = int_obj.AsInt64Value();
+    return Api::Success();
+  } else {
+    ASSERT(int_obj.IsBigint());
     Bigint& bigint = Bigint::Handle();
-    bigint ^= obj.raw();
+    bigint ^= int_obj.raw();
     if (BigintOperations::FitsIntoInt64(bigint)) {
       *value = BigintOperations::ToInt64(bigint);
       return Api::Success();
-    } else {
-      return Api::Error("Integer too big to fit in int64_t");
     }
   }
-  return Api::Error("Object is not a Integer");
+  return Api::Error("%s: Integer %s cannot be represented as an int64_t.",
+                    CURRENT_FUNC, int_obj.ToCString());
 }
 
 
-DART_EXPORT Dart_Handle Dart_IntegerValueHexCString(Dart_Handle integer,
-                                                    const char** value) {
+DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
+                                             uint64_t* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    if (!int_obj.IsNegative()) {
+      *value = int_obj.AsInt64Value();
+      return Api::Success();
+    }
+  } else {
+    ASSERT(int_obj.IsBigint());
+    Bigint& bigint = Bigint::Handle();
+    bigint ^= int_obj.raw();
+    if (BigintOperations::FitsIntoUint64(bigint)) {
+      *value = BigintOperations::ToUint64(bigint);
+      return Api::Success();
+    }
+  }
+  return Api::Error("%s: Integer %s cannot be represented as a uint64_t.",
+                    CURRENT_FUNC, int_obj.ToCString());
+}
+
+
+DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
+                                                 const char** value) {
+  DARTSCOPE(Isolate::Current());
+  const Integer& int_obj = Api::UnwrapIntegerHandle(integer);
+  if (int_obj.IsNull()) {
+    RETURN_TYPE_ERROR(integer, Integer);
+  }
   Bigint& bigint = Bigint::Handle();
-  if (obj.IsSmi() || obj.IsMint()) {
-    Integer& integer = Integer::Handle();
-    integer ^= obj.raw();
-    bigint ^= BigintOperations::NewFromInt64(integer.AsInt64Value());
+  if (int_obj.IsSmi() || int_obj.IsMint()) {
+    bigint ^= BigintOperations::NewFromInt64(int_obj.AsInt64Value());
     *value = BigintOperations::ToHexCString(bigint, &Api::Allocate);
-    return Api::Success();
-  }
-  if (obj.IsBigint()) {
-    bigint ^= obj.raw();
+  } else {
+    ASSERT(int_obj.IsBigint());
+    bigint ^= int_obj.raw();
     *value = BigintOperations::ToHexCString(bigint, &Api::Allocate);
-    return Api::Success();
   }
-  return Api::Error("Object is not a Integer");
+  return Api::Success();
 }
 
 
@@ -1054,17 +1099,15 @@ DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle bool_object,
+DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
                                           bool* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(bool_object));
-  if (obj.IsBool()) {
-    Bool& bool_obj = Bool::Handle();
-    bool_obj ^= obj.raw();
-    *value = bool_obj.value();
-    return Api::Success();
+  const Bool& obj = Api::UnwrapBoolHandle(boolean_obj);
+  if (obj.IsNull()) {
+    RETURN_TYPE_ERROR(boolean_obj, Bool);
   }
-  return Api::Error("Object is not a Boolean");
+  *value = obj.value();
+  return Api::Success();
 }
 
 
@@ -1085,16 +1128,15 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle integer, double* result) {
+DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
+                                         double* value) {
   DARTSCOPE(Isolate::Current());
-  const Object& obj = Object::Handle(Api::UnwrapHandle(integer));
-  if (obj.IsDouble()) {
-    Double& double_obj = Double::Handle();
-    double_obj ^= obj.raw();
-    *result = double_obj.value();
-    return Api::Success();
+  const Double& obj = Api::UnwrapDoubleHandle(double_obj);
+  if (obj.IsNull()) {
+    RETURN_TYPE_ERROR(double_obj, Double);
   }
-  return Api::Error("Object is not a Double");
+  *value = obj.value();
+  return Api::Success();
 }
 
 
@@ -1189,7 +1231,7 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                       CURRENT_FUNC);
   }
   if (peer == NULL) {
-    return Api::Error("%s expects argument 'peer' to be non-NULL.",
+    return Api::Error("%s expects argument 'peer' to be non-null.",
                       CURRENT_FUNC);
   }
   *peer = str.GetPeer();

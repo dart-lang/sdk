@@ -2,21 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-testEvents() {
-  eventTest(String name, Event eventFn(), void validate(Event),
-      [String type = 'foo']) {
-    test(name, () {
-      final el = new Element.tag('div');
-      var fired = false;
-      el.on[type].add((ev) {
-        fired = true;
-        validate(ev);
-      });
-      el.on[type].dispatch(eventFn());
-      Expect.isTrue(fired, 'Expected event to be dispatched.');
+// TODO(nweiz): Make this private to testEvents when Frog supports closures with
+// optional arguments.
+eventTest(String name, Event eventFn(), void validate(Event),
+    [String type = 'foo']) {
+  test(name, () {
+    final el = new Element.tag('div');
+    var fired = false;
+    el.on[type].add((ev) {
+      fired = true;
+      validate(ev);
     });
-  }
+    el.on[type].dispatch(eventFn());
+    Expect.isTrue(fired, 'Expected event to be dispatched.');
+  });
+}
 
+testEvents() {
   eventTest('AnimationEvent', () => new AnimationEvent('foo', 'color', 0.5),
       (ev) {
     Expect.equals('color', ev.animationName);

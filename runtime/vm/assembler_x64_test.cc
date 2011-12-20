@@ -1131,6 +1131,86 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, entry) {
   EXPECT_EQ(true, res);
 }
 
+
+ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
+  __ nop(1);
+  __ nop(2);
+  __ nop(3);
+  __ nop(4);
+  __ nop(5);
+  __ nop(6);
+  __ nop(7);
+  __ nop(8);
+  __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestNop, entry) {
+  typedef int (*TestNop)();
+  int res = reinterpret_cast<TestNop>(entry)();
+  EXPECT_EQ(36, res);  // 36 nop bytes emitted.
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestAlign0, assembler) {
+  __ Align(4, 0);
+  __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestAlign0, entry) {
+  typedef int (*TestAlign0)();
+  int res = reinterpret_cast<TestAlign0>(entry)();
+  EXPECT_EQ(0, res);  // 0 bytes emitted.
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestAlign1, assembler) {
+  __ nop(1);
+  __ Align(4, 0);
+  __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestAlign1, entry) {
+  typedef int (*TestAlign1)();
+  int res = reinterpret_cast<TestAlign1>(entry)();
+  EXPECT_EQ(4, res);  // 4 bytes emitted.
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestAlign1Offset1, assembler) {
+  __ nop(1);
+  __ Align(4, 1);
+  __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestAlign1Offset1, entry) {
+  typedef int (*TestAlign1Offset1)();
+  int res = reinterpret_cast<TestAlign1Offset1>(entry)();
+  EXPECT_EQ(3, res);  // 3 bytes emitted.
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestAlignLarge, assembler) {
+  __ nop(1);
+  __ Align(16, 0);
+  __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestAlignLarge, entry) {
+  typedef int (*TestAlignLarge)();
+  int res = reinterpret_cast<TestAlignLarge>(entry)();
+  EXPECT_EQ(16, res);  // 16 bytes emitted.
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

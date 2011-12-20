@@ -15,27 +15,25 @@ class Foo<T> {
     I<T> x; /// 02: compile-time error
   }
 
-  // T is not in scope for a static method.
-  factory I<X>(
-            I<T> /// 03: compile-time error
-            i) {
-    I<T> x; /// 04: compile-time error
+  // T is in scope for a factory method.
+  factory I(I<T> i) {
+    I<T> x;
   }
 
   // T is not in scope for a static field.
-  static Foo<T> f1; /// 05: compile-time error
+  static Foo<T> f1; /// 03: compile-time error
 
   static
-  Foo<T> /// 06: compile-time error
+  Foo<T> /// 04: compile-time error
   get f() { return null; }
 
   static void set f(
-                    Foo<T> /// 07: compile-time error
+                    Foo<T> /// 05: compile-time error
 		    value) {}
 }
 
-interface I<X> factory Foo<T> {
-  I(I<X> i);
+interface I<T> factory Foo<T> {
+  I(I<T> i);
 }
 
 main() {

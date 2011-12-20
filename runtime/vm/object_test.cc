@@ -314,6 +314,13 @@ TEST_CASE(Mint) {
   EXPECT_EQ(1, a.CompareWith(big2));
   EXPECT_EQ(-1, c.CompareWith(big1));
   EXPECT_EQ(1, c.CompareWith(big2));
+
+  int64_t mint_value = DART_2PART_UINT64_C(0x7FFFFFFF, 100);
+  Mint& mint1 = Mint::Handle(Mint::NewCanonical(mint_value));
+  Mint& mint2 = Mint::Handle(Mint::NewCanonical(mint_value));
+  EXPECT_EQ(mint1.value(), mint_value);
+  EXPECT_EQ(mint2.value(), mint_value);
+  EXPECT_EQ(mint1.raw(), mint2.raw());
 #endif
 }
 
@@ -344,6 +351,19 @@ TEST_CASE(Double) {
     EXPECT(dbl.IsDouble());
     EXPECT(dbl_object.IsDouble());
     EXPECT_EQ(dbl_const, dbl.value());
+  }
+
+  {
+    const double dbl_const = 5.0;
+    const String& dbl_str = String::Handle(String::New("5.0"));
+    const Double& dbl1 = Double::Handle(Double::NewCanonical(dbl_const));
+    const Double& dbl2 = Double::Handle(Double::NewCanonical(dbl_const));
+    const Double& dbl3 = Double::Handle(Double::NewCanonical(dbl_str));
+    EXPECT_EQ(dbl_const, dbl1.value());
+    EXPECT_EQ(dbl_const, dbl2.value());
+    EXPECT_EQ(dbl_const, dbl3.value());
+    EXPECT_EQ(dbl1.raw(), dbl2.raw());
+    EXPECT_EQ(dbl1.raw(), dbl3.raw());
   }
 
   {

@@ -34,6 +34,7 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(IntegerImplementation, mulFromInteger, Integer_mulFromInteger)             \
   V(IntegerImplementation, *, Integer_mulFromInteger)                          \
   V(IntegerImplementation, %, Integer_modulo)                                  \
+  V(IntegerImplementation, ~/, Integer_truncDivide)                            \
   V(IntegerImplementation, negate, Integer_negate)                             \
   V(IntegerImplementation, bitAndFromInteger, Integer_bitAndFromInteger)       \
   V(IntegerImplementation, &, Integer_bitAndFromInteger)                       \
@@ -351,6 +352,31 @@ static bool Integer_modulo(Assembler* assembler) {
   __ ret();
   __ Bind(&return_zero);
   __ xorl(EAX, EAX);  // Return zero.
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+static bool Integer_truncDivide(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // EAX: right argument (divisor)
+  __ cmpl(EAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ movl(EBX, EAX);
+  __ SmiUntag(EBX);
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument (dividend).
+  __ SmiUntag(EAX);
+  __ pushl(EDX);  // Preserve EDX in case of 'fall_through'.
+  __ cdq();
+  __ idivl(EBX);
+  __ popl(EDX);
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
+  // cannot tag the result.
+  __ cmpl(EAX, Immediate(0x40000000));
+  __ j(EQUAL, &fall_through);
+  __ SmiTag(EAX);
   __ ret();
   __ Bind(&fall_through);
   return false;

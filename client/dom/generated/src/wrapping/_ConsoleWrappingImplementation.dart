@@ -14,6 +14,9 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
   MemoryInfo get memory() { return _get_memory(this); }
   static MemoryInfo _get_memory(var _this) native;
 
+  List get profiles() { return _get_profiles(this); }
+  static List _get_profiles(var _this) native;
+
   void assert(bool condition) {
     _assert(this, condition);
     return;
@@ -85,6 +88,18 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
     return;
   }
   static void _markTimeline(receiver) native;
+
+  void profile(String title) {
+    _profile(this, title);
+    return;
+  }
+  static void _profile(receiver, title) native;
+
+  void profileEnd(String title) {
+    _profileEnd(this, title);
+    return;
+  }
+  static void _profileEnd(receiver, title) native;
 
   void time(String title) {
     _time(this, title);

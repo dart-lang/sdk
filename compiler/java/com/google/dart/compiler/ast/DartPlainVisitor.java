@@ -90,7 +90,7 @@ public interface DartPlainVisitor<R> {
 
   R visitParameter(DartParameter node);
 
-  R visitParameterizedNode(DartParameterizedNode node);
+  R visitParameterizedTypeNode(DartParameterizedTypeNode node);
 
   R visitParenthesizedExpression(DartParenthesizedExpression node);
 

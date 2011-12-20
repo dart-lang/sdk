@@ -12,7 +12,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(DartEntry) {
   const char* kScriptChars =
@@ -42,6 +43,6 @@ TEST_CASE(DartEntry) {
   EXPECT_EQ(Smi::New(42), retval.raw());
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64.
 
 }  // namespace dart

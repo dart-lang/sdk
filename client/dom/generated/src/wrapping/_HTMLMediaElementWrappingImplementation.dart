@@ -128,14 +128,38 @@ class _HTMLMediaElementWrappingImplementation extends _HTMLElementWrappingImplem
   bool get webkitHasClosedCaptions() { return _get_webkitHasClosedCaptions(this); }
   static bool _get_webkitHasClosedCaptions(var _this) native;
 
+  String get webkitMediaSourceURL() { return _get_webkitMediaSourceURL(this); }
+  static String _get_webkitMediaSourceURL(var _this) native;
+
   bool get webkitPreservesPitch() { return _get_webkitPreservesPitch(this); }
   static bool _get_webkitPreservesPitch(var _this) native;
 
   void set webkitPreservesPitch(bool value) { _set_webkitPreservesPitch(this, value); }
   static void _set_webkitPreservesPitch(var _this, bool value) native;
 
+  int get webkitSourceState() { return _get_webkitSourceState(this); }
+  static int _get_webkitSourceState(var _this) native;
+
   int get webkitVideoDecodedByteCount() { return _get_webkitVideoDecodedByteCount(this); }
   static int _get_webkitVideoDecodedByteCount(var _this) native;
+
+  TextTrack addTrack(String kind, [String label = null, String language = null]) {
+    if (label === null) {
+      if (language === null) {
+        return _addTrack(this, kind);
+      }
+    } else {
+      if (language === null) {
+        return _addTrack_2(this, kind, label);
+      } else {
+        return _addTrack_3(this, kind, label, language);
+      }
+    }
+    throw "Incorrect number or type of arguments";
+  }
+  static TextTrack _addTrack(receiver, kind) native;
+  static TextTrack _addTrack_2(receiver, kind, label) native;
+  static TextTrack _addTrack_3(receiver, kind, label, language) native;
 
   String canPlayType(String type) {
     return _canPlayType(this, type);
@@ -159,6 +183,18 @@ class _HTMLMediaElementWrappingImplementation extends _HTMLElementWrappingImplem
     return;
   }
   static void _play(receiver) native;
+
+  void webkitSourceAppend(Uint8Array data) {
+    _webkitSourceAppend(this, data);
+    return;
+  }
+  static void _webkitSourceAppend(receiver, data) native;
+
+  void webkitSourceEndOfStream(int status) {
+    _webkitSourceEndOfStream(this, status);
+    return;
+  }
+  static void _webkitSourceEndOfStream(receiver, status) native;
 
   String get typeName() { return "HTMLMediaElement"; }
 }

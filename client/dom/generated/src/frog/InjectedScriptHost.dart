@@ -7,6 +7,10 @@ class InjectedScriptHost native "*InjectedScriptHost" {
 
   int databaseId(Object database) native;
 
+  void didCreateWorker(int id, String url, bool isFakeWorker) native;
+
+  void didDestroyWorker(int id) native;
+
   Object evaluate(String text) native;
 
   void inspect(Object objectId, Object hints) native;
@@ -16,6 +20,8 @@ class InjectedScriptHost native "*InjectedScriptHost" {
   Object internalConstructorName(Object object) native;
 
   bool isHTMLAllCollection(Object object) native;
+
+  int nextWorkerId() native;
 
   int storageId(Object storage) native;
 

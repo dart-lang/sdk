@@ -16,10 +16,13 @@ touch/touch_tests: Skip  # Issue 157.
 [ $component == frogium ]
 touch/touch_tests: Fail  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
-html/html_tests: Skip # mostly passing, an issue with DocumentFragment elements
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 json/json_tests: Pass
 samples/swarm/swarm_tests: Pass
+samples/total/total_tests: Skip # Issue 867.
+
+[ $component == frogium && $checked ]
+html/html_tests: Fail  # HTMLDivElement not assignable to EventTarget
 
 [ $component == chromium && $mode == release ]
 

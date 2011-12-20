@@ -1,5 +1,5 @@
 
-class Float64Array extends ArrayBufferView implements List<num> native "Float64Array" {
+class Float64Array extends ArrayBufferView implements List<num> native "*Float64Array" {
 
   factory Float64Array(int length) =>  _construct(length);
 

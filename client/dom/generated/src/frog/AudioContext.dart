@@ -9,6 +9,8 @@ class AudioContext native "*AudioContext" {
 
   AudioListener listener;
 
+  EventListener oncomplete;
+
   num sampleRate;
 
   RealtimeAnalyserNode createAnalyser() native;
@@ -36,6 +38,8 @@ class AudioContext native "*AudioContext" {
   JavaScriptAudioNode createJavaScriptNode(int bufferSize) native;
 
   LowPass2FilterNode createLowPass2Filter() native;
+
+  MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement) native;
 
   AudioPannerNode createPanner() native;
 

@@ -9,6 +9,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartFunctionExpression;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
@@ -68,7 +69,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   void declare(Element element) {
     Element existingElement = scope.declareElement(element.getName(), element);
     if (existingElement != null) {
-      onError(element.getNode(), ResolverErrorCode.DUPLICATE_DEFINITION,
+      onError(element.getNode(), ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
           element.getName());
     }
   }
@@ -109,7 +110,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   private boolean isClassType(Type type) {
     return isInterfaceEquals(type, false);
   }
- 
+
   /**
    * Returns <code>true</code> if the type is a class or interface type.
    */
@@ -118,12 +119,15 @@ public class ResolutionContext implements ResolutionErrorListener {
         && ((InterfaceType) type).getElement() != null;
   }
 
-  InterfaceType resolveClass(DartTypeNode node, boolean isStatic) {
+  /**
+   * To resolve the  class<typeparameters?> specified for extends on a class definition.
+   */
+  InterfaceType resolveClass(DartTypeNode node, boolean isStatic, boolean isFactory) {
     if (node == null) {
       return null;
     }
 
-    Type type = resolveType(node, isStatic, ResolverErrorCode.NO_SUCH_TYPE);
+    Type type = resolveType(node, isStatic, isFactory, ResolverErrorCode.NO_SUCH_TYPE);
     if (!isClassType(type)) {
       onError(node.getIdentifier(), ResolverErrorCode.NOT_A_CLASS, type);
       type = typeProvider.getDynamicType();
@@ -133,8 +137,8 @@ public class ResolutionContext implements ResolutionErrorListener {
     return (InterfaceType) type;
   }
 
-  InterfaceType resolveInterface(DartTypeNode node, boolean isStatic) {
-    Type type = resolveType(node, isStatic, ResolverErrorCode.NO_SUCH_TYPE);
+  InterfaceType resolveInterface(DartTypeNode node, boolean isStatic, boolean isFactory) {
+    Type type = resolveType(node, isStatic, isFactory, ResolverErrorCode.NO_SUCH_TYPE);
     if (type.getKind() != TypeKind.DYNAMIC && !isClassOrInterfaceType(type)) {
       onError(node.getIdentifier(), ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE, type);
       type = typeProvider.getDynamicType();
@@ -144,22 +148,23 @@ public class ResolutionContext implements ResolutionErrorListener {
     return (InterfaceType) type;
   }
 
-  Type resolveType(DartTypeNode node, boolean isStatic, ErrorCode errorCode) {
+  Type resolveType(DartTypeNode node, boolean isStatic, boolean isFactory, ErrorCode errorCode) {
     if (node == null) {
       return null;
     } else {
-      return resolveType(node, node.getIdentifier(), node.getTypeArguments(), isStatic, errorCode);
+      return resolveType(node, node.getIdentifier(), node.getTypeArguments(), isStatic, isFactory,
+                         errorCode);
     }
   }
 
   Type resolveType(DartNode diagnosticNode, DartNode identifier, List<DartTypeNode> typeArguments,
-                   boolean isStatic, ErrorCode errorCode) {
+                   boolean isStatic, boolean isFactory, ErrorCode errorCode) {
     Element element = resolveName(identifier);
     ElementKind elementKind = ElementKind.of(element);
     switch (elementKind) {
       case TYPE_VARIABLE: {
         TypeVariableElement typeVariableElement = (TypeVariableElement) element;
-        if (isStatic &&
+        if (!isFactory && isStatic &&
             typeVariableElement.getDeclaringElement().getKind().equals(ElementKind.CLASS)) {
           onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
                           identifier);
@@ -174,6 +179,7 @@ public class ResolutionContext implements ResolutionErrorListener {
             diagnosticNode,
             typeArguments,
             isStatic,
+            isFactory,
             errorCode);
       case NONE:
         if (identifier.toString().equals("void")) {
@@ -193,6 +199,7 @@ public class ResolutionContext implements ResolutionErrorListener {
   InterfaceType instantiateParameterizedType(ClassElement element, DartNode node,
                                              List<DartTypeNode> typeArgumentNodes,
                                              boolean isStatic,
+                                             boolean isFactory,
                                              ErrorCode errorCode) {
     List<? extends Type> typeParameters = element.getTypeParameters();
     Type[] typeArguments;
@@ -211,7 +218,7 @@ public class ResolutionContext implements ResolutionErrorListener {
       int index = 0;
       if (typeArgumentNodes != null) {
         for (DartTypeNode typeNode : typeArgumentNodes) {
-          Type type = resolveType(typeNode, isStatic, errorCode);
+          Type type = resolveType(typeNode, isStatic, isFactory, errorCode);
           typeNode.setType(type);
           if (index < typeArguments.length) {
             typeArguments[index] = type;
@@ -222,7 +229,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     } else {
       typeArguments = new Type[typeArgumentNodes.size()];
       for (int i = 0; i < typeArguments.length; i++) {
-        typeArguments[i] = resolveType(typeArgumentNodes.get(i), isStatic, errorCode);
+        typeArguments[i] = resolveType(typeArgumentNodes.get(i), isStatic, isFactory, errorCode);
         typeArgumentNodes.get(i).setType(typeArguments[i]);
       }
     }
@@ -237,6 +244,9 @@ public class ResolutionContext implements ResolutionErrorListener {
     return element.getTypeVariable();
   }
 
+  /*
+   * Interpret this node as a name reference,
+   */
   Element resolveName(DartNode node) {
     return node.accept(new Selector());
   }
@@ -251,6 +261,10 @@ public class ResolutionContext implements ResolutionErrorListener {
 
   void pushFunctionScope(DartFunctionExpression x) {
     pushScope(x.getFunctionName() == null ? "<function>" : x.getFunctionName());
+  }
+
+  void pushFunctionAliasScope(DartFunctionTypeAlias x) {
+    pushScope(x.getName().getTargetName() == null ? "<function>" : x.getName().getTargetName());
   }
 
   AssertionError internalError(DartNode node, String message, Object... arguments) {

@@ -54,6 +54,7 @@ class ActivationFrame : public ZoneAllocated {
   uword pc() const { return pc_; }
 
   RawFunction* DartFunction();
+  RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
   intptr_t TokenIndex();
@@ -124,6 +125,9 @@ class Debugger {
 
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
+
+  // Utility functions.
+  static const char* QualifiedFunctionName(const Function& func);
 
  private:
   void AddBreakpoint(Breakpoint* bpt);

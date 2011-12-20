@@ -14,6 +14,8 @@ interface Navigator {
 
   bool get cookieEnabled();
 
+  Geolocation get geolocation();
+
   String get language();
 
   DOMMimeTypeArray get mimeTypes();
@@ -37,4 +39,8 @@ interface Navigator {
   void getStorageUpdates();
 
   bool javaEnabled();
+
+  void registerProtocolHandler(String scheme, String url, String title);
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }

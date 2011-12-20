@@ -81,6 +81,13 @@ class _WebKitPointFactoryProvider {
   static WebKitPoint create(x, y) native;
 }
 
+class _WebSocketFactoryProvider {
+
+  factory WebSocket(String url) { return create(url); }
+
+  static WebKitPoint create(url) native;
+}
+
 class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest() { return create(); }

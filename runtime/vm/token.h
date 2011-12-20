@@ -140,13 +140,13 @@ namespace dart {
   KW(kBREAK, "break", 0, kKeyword)                                             \
   KW(kCASE, "case", 0, kKeyword)                                               \
   KW(kCATCH, "catch", 0, kKeyword)                                             \
-  KW(kCLASS, "class", 0, kPseudoKeyword)                                       \
+  KW(kCLASS, "class", 0, kKeyword)                                             \
   KW(kCONST, "const", 0, kKeyword)                                             \
   KW(kCONTINUE, "continue", 0, kKeyword)                                       \
   KW(kDEFAULT, "default", 0, kKeyword)                                         \
   KW(kDO, "do", 0, kKeyword)                                                   \
   KW(kELSE, "else", 0, kKeyword)                                               \
-  KW(kEXTENDS, "extends", 0, kPseudoKeyword)                                   \
+  KW(kEXTENDS, "extends", 0, kKeyword)                                         \
   KW(kFACTORY, "factory", 0, kPseudoKeyword)                                   \
   KW(kFALSE, "false", 0, kKeyword)                                             \
   KW(kFINAL, "final", 0, kKeyword)                                             \

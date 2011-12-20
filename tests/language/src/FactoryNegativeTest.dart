@@ -4,19 +4,16 @@
 
 // Test compile time error for factories with parametrized types.
 
-
-main() {
-  // Compile time error, wrong factory method.
-  var a = new Link<int>.create();
-}
-
-interface Link<T> factory LinkFactory {
+interface Link<T> factory LinkFactory { 
   Link.create();
 }
 
-class LinkFactory {
-  // Compile time error: should be Link<T>.create().
+class LinkFactory {   // Compile time error: should be LinkFactory<T> to match interface above
   factory Link.create() {
     return null;
   }
+}
+
+main() {
+  var a = new Link<int>.create();
 }

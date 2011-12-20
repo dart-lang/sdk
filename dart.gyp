@@ -39,22 +39,31 @@
       'target_name': 'create_sdk',
       'type': 'none',
       'dependencies': [
+        'compiler',
         'frog',
-        'runtime/dart-runtime.gyp:dart',
+        'runtime',
       ],
       'actions': [
         {
           'action_name': 'create_sdk_py',
           'inputs': [
+            # TODO(dgrove) - change these to dependencies and add dom
+            # dependences once issues 754 and 755 are fixed
+            'client/html/html.dart',
+            'client/html/htmlimpl.dart',
+            'client/dom/dom.dart',
+            'client/dom/generated',
+            'client/dom/src',
+            'frog/frogc',
             'tools/create_sdk.py',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/sdk',
+            '<(PRODUCT_DIR)/dart-sdk',
           ],
           'action': [
             'python',
             'tools/create_sdk.py',
-            '<(PRODUCT_DIR)/sdk',
+            '<(PRODUCT_DIR)/dart-sdk',
           ],
           'message': 'Creating SDK.',
         },
@@ -70,7 +79,7 @@
         {
           'action_name': 'upload_sdk_py',
           'inputs': [
-            '<(PRODUCT_DIR)/sdk',
+            '<(PRODUCT_DIR)/dart-sdk',
             'tools/upload_sdk.py',
           ],
           'outputs': [
@@ -79,7 +88,7 @@
           'action': [
             'python',
             'tools/upload_sdk.py',
-            '<(PRODUCT_DIR)/sdk'
+            '<(PRODUCT_DIR)/dart-sdk'
           ],
         },
       ],

@@ -16,7 +16,7 @@ _platformInitialize() {
 _platformDefer(void callback()) {
   new Timer((timer) {
     callback();
-  }, 0, false);
+  }, 0);
 }
 
 _platformStartTests() {

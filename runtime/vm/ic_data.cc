@@ -91,8 +91,6 @@ void ICData::SetCheckAt(intptr_t index,
   for (intptr_t i = 0; i < classes.length(); i++) {
     // Null is used as terminating object, do not add it.
     ASSERT(!classes[i]->IsNull());
-    // Contract says that the class of null (NullClass) cannot be added.
-    ASSERT(!classes[i]->IsNullClass());
     data_->SetAt(pos++, *(classes[i]));
   }
   ASSERT(!target.IsNull());

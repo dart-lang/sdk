@@ -11,5 +11,6 @@ class LanguageTestSuite extends StandardTestSuite {
       : super(configuration,
               "language",
               "tests/language/src",
-              ["tests/language/language.status"]);
+              ["tests/language/language.status",
+               "tests/language/language-leg.status"]);
 }

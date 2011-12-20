@@ -56,7 +56,7 @@ class StringBase {
     if (this === other) {
       return true;
     }
-    if (!(other is String) ||
+    if ((other is !String) ||
         (this.length != other.length)) {
       // TODO(5413632): Compare hash codes when both are present.
       return false;

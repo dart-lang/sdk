@@ -5,4 +5,8 @@
 // WARNING: Do not edit - generated code.
 
 interface IDBVersionChangeRequest extends IDBRequest {
+
+  EventListener get onblocked();
+
+  void set onblocked(EventListener value);
 }

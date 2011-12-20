@@ -33,7 +33,8 @@ DECLARE_RUNTIME_ENTRY(CloneContext);
 DECLARE_RUNTIME_ENTRY(ClosureArgumentMismatch);
 DECLARE_RUNTIME_ENTRY(Deoptimize);
 DECLARE_RUNTIME_ENTRY(FixCallersTarget);
-DECLARE_RUNTIME_ENTRY(InlineCacheMissHandler);
+DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg);
+DECLARE_RUNTIME_ENTRY(InlineCacheMissHandlerTwoArgs);
 DECLARE_RUNTIME_ENTRY(Instanceof);
 DECLARE_RUNTIME_ENTRY(InstantiateTypeArguments);
 DECLARE_RUNTIME_ENTRY(InvokeImplicitClosureFunction);
@@ -76,6 +77,9 @@ enum DeoptReasonId {
   kDeoptDoubleComparison,
   kDeoptLoadIndexedFixedArray,
   kDeoptLoadIndexedGrowableArray,
+  kDeoptNoTypeFeedback,
+  kDeoptSAR,
+  kDeoptUnaryOp,
 };
 
 // This class wraps around the array RawClass::functions_cache_.

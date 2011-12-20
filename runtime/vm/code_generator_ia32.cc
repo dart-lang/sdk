@@ -210,6 +210,7 @@ void CodeGenerator::GenerateCode() {
   }
   if (FLAG_trace_functions) {
     // Preserve ECX (ic-data array or object) and EDX (arguments descriptor).
+    __ nop(2);  // Make sure the code is patchable.
     __ pushl(ECX);
     __ pushl(EDX);
     const Function& function =
@@ -271,10 +272,6 @@ void CodeGenerator::GenerateDeferredCode() {
 // TODO(srdjan): Add check that no object is inlined in the first
 // 5 bytes (length of a jump instruction).
 void CodeGenerator::GeneratePreEntryCode() {
-  // Stack overflow check.
-  __ cmpl(ESP,
-      Address::Absolute(Isolate::Current()->stack_limit_address()));
-  __ j(BELOW_EQUAL, &StubCode::StackOverflowLabel());
   // Do not optimize if:
   // - we count invocations.
   // - optimization disabled via negative 'optimization_invocation_threshold;
@@ -287,6 +284,9 @@ void CodeGenerator::GeneratePreEntryCode() {
       parsed_function_.function().is_optimizable();
   // Count invocation and check.
   if (FLAG_report_invocation_count || may_optimize) {
+    // TODO(turnidge): It would be nice to remove this nop.  Right now
+    // we need it to make sure the function is still patchable.
+    __ nop(5);
     const Function& function =
         Function::ZoneHandle(parsed_function_.function().raw());
     __ LoadObject(EAX, function);
@@ -426,16 +426,29 @@ void CodeGenerator::GenerateInstanceCall(
     intptr_t token_index,
     const String& function_name,
     int num_arguments,
-    const Array& optional_arguments_names) {
+    const Array& optional_arguments_names,
+    intptr_t num_args_checked) {
+  ASSERT(num_args_checked > 0);  // At least receiver check is necessary.
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
-  ICData ic_data(function_name, 1);
+  ICData ic_data(function_name, num_args_checked);
+  ASSERT(ic_data.NumberOfArgumentsChecked() == num_args_checked);
   __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
   __ LoadObject(EDX, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
-  ExternalLabel target_label(
-      "InlineCache", StubCode::InlineCacheEntryPoint());
+  uword label_address = 0;
+  switch (num_args_checked) {
+    case 1:
+      label_address = StubCode::OneArgCheckInlineCacheEntryPoint();
+      break;
+    case 2:
+      label_address = StubCode::TwoArgsCheckInlineCacheEntryPoint();
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  ExternalLabel target_label("InlineCache", label_address);
 
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,
@@ -714,6 +727,16 @@ void CodeGenerator::GenerateEntryCode() {
     }
     __ movl(Address(EBP, index * kWordSize), EAX);
   }
+
+  // Generate stack overflow check.
+  __ cmpl(ESP,
+          Address::Absolute(Isolate::Current()->stack_limit_address()));
+  Label no_stack_overflow;
+  __ j(ABOVE, &no_stack_overflow);
+  GenerateCallRuntime(AstNode::kNoId,
+                      function.token_index(),
+                      kStackOverflowRuntimeEntry);
+  __ Bind(&no_stack_overflow);
 }
 
 
@@ -888,8 +911,8 @@ void CodeGenerator::VisitCloneContextNode(CloneContextNode *node) {
 void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
   CodeGeneratorState codegen_state(this);
   LocalScope* scope = node_sequence->scope();
-  ASSERT(scope != NULL);
-  intptr_t num_context_variables = scope->num_context_variables();
+  const intptr_t num_context_variables =
+      (scope != NULL) ? scope->num_context_variables() : 0;
   if (num_context_variables > 0) {
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.
@@ -1050,11 +1073,13 @@ void CodeGenerator::GenerateLoadIndexed(intptr_t node_id,
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
   const int kNumArguments = 2;  // Receiver and index.
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -1095,11 +1120,13 @@ void CodeGenerator::GenerateStoreIndexed(intptr_t node_id,
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
   const int kNumArguments = 3;  // Receiver, index and value.
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -1172,6 +1199,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
   node->operand()->Visit(this);
   if (node->kind() == Token::kADD) {
+    // TODO(srdjan): Remove this as it is not part of Dart language any longer.
     // Unary operator '+' does not exist, it's a NOP, skip it.
     if (!IsResultNeeded(node)) {
       __ popl(EAX);
@@ -1187,11 +1215,13 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node->id(),
                        node->token_index(),
                        operator_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }
@@ -1814,11 +1844,13 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
     const int kNumberOfArguments = 2;
     const Array& kNoArgumentNames = Array::Handle();
+    const int kNumArgumentsChecked = 1;
     GenerateInstanceCall(node->id(),
                          node->token_index(),
                          operator_name,
                          kNumberOfArguments,
-                         kNoArgumentNames);
+                         kNoArgumentNames,
+                         kNumArgumentsChecked);
 
     // Result is in EAX. No need to negate if result is not needed.
     if ((node->kind() == Token::kNE) && IsResultNeeded(node)) {
@@ -2081,11 +2113,13 @@ void CodeGenerator::GenerateBinaryOperatorCall(intptr_t node_id,
   const String& operator_name = String::ZoneHandle(String::NewSymbol(name));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 2;
   GenerateInstanceCall(node_id,
                        token_index,
                        operator_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -2184,12 +2218,13 @@ void CodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
   // Some method may be inlined using type feedback, therefore this may be a
   // deoptimization point.
   MarkDeoptPoint(node->id(), node->token_index());
-
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node->id(),
                        node->token_index(),
                        node->function_name(),
                        number_of_arguments,
-                       node->arguments()->names());
+                       node->arguments()->names(),
+                       kNumArgumentsChecked);
   // Result is in EAX.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -2246,7 +2281,9 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
-  if (outer_function.IsFactory()) {
+  // TODO(regis): Remove support for type parameters on factories.
+  if (outer_function.IsFactory() &&
+      (outer_function.signature_class() != Class::null())) {
     instantiator_class = outer_function.signature_class();
   } else {
     instantiator_class = outer_function.owner();
@@ -2258,7 +2295,9 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     Type& type = Type::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
     String& errmsg = String::Handle();
-    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
+    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(instantiator_class,
+                                                        type,
+                                                        &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(token_index, errmsg.ToCString());
     }
@@ -2437,11 +2476,13 @@ void CodeGenerator::GenerateInstanceGetterCall(intptr_t node_id,
   const String& getter_name = String::ZoneHandle(Field::GetterName(field_name));
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        getter_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 
@@ -2465,11 +2506,13 @@ void CodeGenerator::GenerateInstanceSetterCall(intptr_t node_id,
   const String& setter_name = String::ZoneHandle(Field::SetterName(field_name));
   const int kNumberOfArguments = 2;  // receiver + value.
   const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
                        token_index,
                        setter_name,
                        kNumberOfArguments,
-                       kNoArgumentNames);
+                       kNoArgumentNames,
+                       kNumArgumentsChecked);
 }
 
 

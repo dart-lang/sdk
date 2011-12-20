@@ -118,9 +118,4 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
   public Map<String, Type> getNamedParameterTypes() {
     return null;
   }
-
-  @Override
-  public List<TypeVariable> getTypeVariables() {
-    return null;
-  }
 }

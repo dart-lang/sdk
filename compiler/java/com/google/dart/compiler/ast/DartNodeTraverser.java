@@ -297,7 +297,7 @@ public class DartNodeTraverser<R> implements DartPlainVisitor<R> {
   }
 
   @Override
-  public R visitParameterizedNode(DartParameterizedNode node) {
+  public R visitParameterizedTypeNode(DartParameterizedTypeNode node) {
     return visitExpression(node);
   }
 

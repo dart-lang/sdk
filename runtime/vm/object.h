@@ -97,8 +97,10 @@ class LocalScope;
   void operator=(const super& value);                                          \
 
 #define SNAPSHOT_READER_SUPPORT(object)                                        \
-  static Raw##object* ReadFrom(                                                \
-      SnapshotReader* reader, intptr_t object_id, Snapshot::Kind);             \
+  static Raw##object* ReadFrom(SnapshotReader* reader,                         \
+                               intptr_t object_id,                             \
+                               intptr_t tags,                                  \
+                               Snapshot::Kind);                                \
   friend class SnapshotReader;                                                 \
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
@@ -148,6 +150,23 @@ class Object {
 
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { SetRaw(value); }
+
+  void set_tags(intptr_t tags) {
+    ASSERT(!IsNull());
+    raw()->ptr()->tags_ = tags;
+  }
+  void SetCreatedFromSnapshot() const {
+    ASSERT(!IsNull());
+    raw()->SetCreatedFromSnapshot();
+  }
+  bool IsCanonical() const {
+    ASSERT(!IsNull());
+    return raw()->IsCanonical();
+  }
+  void SetCanonical() const {
+    ASSERT(!IsNull());
+    raw()->SetCanonical();
+  }
 
   inline RawClass* clazz() const;
   static intptr_t class_offset() { return OFFSET_OF(RawObject, class_); }
@@ -551,6 +570,8 @@ class Class : public Object {
 
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
+  void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
   }
@@ -588,6 +609,8 @@ class Class : public Object {
     return raw_ptr()->allocation_stub_;
   }
   void set_allocation_stub(const Code& value) const;
+
+  RawArray* constants() const;
 
   void Finalize() const;
 
@@ -628,7 +651,6 @@ class Class : public Object {
   void set_class_state(int8_t state) const;
 
   void set_constants(const Array& value) const;
-  RawArray* constants() const;
 
   void set_canonical_types(const Array& value) const;
   RawArray* canonical_types() const;
@@ -705,12 +727,10 @@ class AbstractType : public Object {
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
 
-  // Instantiate this type using the given type argument vector starting at the
-  // given offset.
+  // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
 
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize() const;
@@ -821,8 +841,7 @@ class Type : public AbstractType {
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
 
   static intptr_t InstanceSize() {
@@ -891,19 +910,24 @@ class Type : public AbstractType {
 // For example, the type parameter 'V' is specified as index 1 in the context of
 // the class HashMap<K, V>. At compile time, the TypeParameter is not
 // instantiated yet, i.e. it is only a place holder.
+// Upon finalization, the TypeParameter index is changed to reflect its position
+// as type argument (rather than type parameter) of the enclosing class.
 class TypeParameter : public AbstractType {
  public:
-  virtual bool IsFinalized() const { return true; }
+  virtual bool IsFinalized() const {
+    return raw_ptr()->type_state_ == RawTypeParameter::kFinalized;
+  }
+  void set_is_finalized() const;
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsResolved() const { return true; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const { return raw_ptr()->name_; }
   virtual intptr_t Index() const { return raw_ptr()->index_; }
+  void set_index(intptr_t value) const;
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
 
   static intptr_t InstanceSize() {
@@ -913,8 +937,8 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New(intptr_t index, const String& name);
 
  private:
-  void set_index(intptr_t value) const;
   void set_name(const String& value) const;
+  void set_type_state(int8_t state) const;
   static RawTypeParameter* New();
 
   HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
@@ -977,10 +1001,9 @@ class AbstractTypeArguments : public Object {
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
-  // type of the instantiator type argument vector starting at the given offset.
+  // type of the instantiator type argument vector.
   virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
 
   // Do not canonicalize InstantiatedTypeArguments or NULL objects
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
@@ -1023,8 +1046,7 @@ class TypeArguments : public AbstractTypeArguments {
   virtual RawAbstractTypeArguments* Canonicalize() const;
 
   virtual RawAbstractTypeArguments* InstantiateFrom(
-      const AbstractTypeArguments& instantiator_type_arguments,
-      intptr_t offset) const;
+      const AbstractTypeArguments& instantiator_type_arguments) const;
 
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypeArguments, length_);
@@ -1037,16 +1059,13 @@ class TypeArguments : public AbstractTypeArguments {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types_ is not adding to the object length.
-    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (2 * kWordSize)));
+    ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (1 * kWordSize)));
     return RoundedAllocationSize(sizeof(RawTypeArguments) + (len * kWordSize));
   }
 
   static RawTypeArguments* New(intptr_t len);
 
  private:
-  bool is_canonical() const;
-  void set_is_canonical(bool value) const;
-
   // Make sure that the array size cannot wrap around.
   static const intptr_t kMaxTypes = 512 * 1024 * 1024;
   RawAbstractType** TypeAddr(intptr_t index) const;
@@ -1119,7 +1138,7 @@ class Function : public Object {
   // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
   // signature of the given function.
   RawString* Signature() const {
-    return BuildSignature(false, TypeArguments::Handle(), 0);
+    return BuildSignature(false, TypeArguments::Handle());
   }
 
   // Build a string of the form '(A, [b: B, c: C]) => D' representing the
@@ -1127,9 +1146,8 @@ class Function : public Object {
   // '<T, R>(T, [b: B, c: C]) => R') are instantiated using the given
   // instantiator type argument vector (e.g. '<A, D>').
   RawString* InstantiatedSignatureFrom(
-      const AbstractTypeArguments& instantiator,
-      intptr_t offset) const {
-    return BuildSignature(true, instantiator, offset);
+      const AbstractTypeArguments& instantiator) const {
+    return BuildSignature(true, instantiator);
   }
 
   // Returns true if the signature of this function is instantiated, i.e. if it
@@ -1340,8 +1358,7 @@ class Function : public Object {
   static RawFunction* New();
 
   RawString* BuildSignature(bool instantiate,
-                            const AbstractTypeArguments& instantiator,
-                            intptr_t offset) const;
+                            const AbstractTypeArguments& instantiator) const;
 
   // Checks the subtype or assignability relationship between the type of this
   // function and the type of the other function.
@@ -2341,6 +2358,7 @@ class Mint : public Integer {
   virtual int CompareWith(const Integer& other) const;
 
   static RawMint* New(int64_t value, Heap::Space space = Heap::kNew);
+  static RawMint* NewCanonical(int64_t value);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawMint));
@@ -2419,9 +2437,20 @@ class Double : public Number {
     return raw_ptr()->value_;
   }
 
+  bool EqualsToDouble(double value) const;
+  virtual bool Equals(const Instance& other) const;
+
   static RawDouble* New(double d, Heap::Space space = Heap::kNew);
 
   static RawDouble* New(const String& str, Heap::Space space = Heap::kNew);
+
+  // Returns a canonical double object allocated in the old gen space.
+  static RawDouble* NewCanonical(double d);
+
+  // Returns a canonical double object (allocated in the old gen space) or
+  // Double::null() if str points to a string that does not convert to a
+  // double value.
+  static RawDouble* NewCanonical(const String& str);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawDouble));
@@ -2478,7 +2507,7 @@ class String : public Instance {
 
   virtual RawInstance* Canonicalize() const;
 
-  bool IsSymbol() const;
+  bool IsSymbol() const { return raw()->IsCanonical(); }
 
   virtual bool IsExternal() const { return false; }
   virtual void* GetPeer() const {
@@ -2584,6 +2613,7 @@ class String : public Instance {
   template<typename HandleType, typename ElementType>
   static RawString* ReadFromImpl(SnapshotReader* reader,
                                  intptr_t object_id,
+                                 intptr_t tags,
                                  Snapshot::Kind kind);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);

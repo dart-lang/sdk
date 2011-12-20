@@ -8,7 +8,6 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.SubSystem;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -17,7 +16,7 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
@@ -76,24 +75,23 @@ abstract class TypeTestCase extends TestCase {
   ClassElement makeListElement() {
     final TypeVariable typeVar = typeVar("E", itype(object));
     final ClassElement element = element("List", itype(object), typeVar);
-    DartTypeNode returnTypeNode = new DartTypeNode(new DartIdentifier("Iterator"), 
+    DartTypeNode returnTypeNode = new DartTypeNode(new DartIdentifier("Iterator"),
         Arrays.asList(new DartTypeNode(new DartIdentifier("E"))));
-    
+
     DartMethodDefinition iteratorMethod = DartMethodDefinition.create(
-        new DartIdentifier("iterator"), new DartFunction(Collections.<DartParameter>emptyList(), 
+        new DartIdentifier("iterator"), new DartFunction(Collections.<DartParameter>emptyList(),
             new DartBlock(Collections.<DartStatement>emptyList()), returnTypeNode),
         Modifiers.NONE,
-        Collections.<DartInitializer>emptyList(),
-        Collections.<DartTypeParameter>emptyList());
+        Collections.<DartInitializer>emptyList());
     MethodElement iteratorMethodElement = Elements.methodFromMethodNode(iteratorMethod, element);
     Type returnType = Types.interfaceType(iterElement, Arrays.asList(typeVar));
-    FunctionType functionType = ftype(function, returnType, Collections.<String,Type>emptyMap(), 
+    FunctionType functionType = ftype(function, returnType, Collections.<String,Type>emptyMap(),
          null);
     Elements.setType(iteratorMethodElement, functionType);
     Elements.addMethod(element, iteratorMethodElement);
     return element;
   }
-  
+
   protected void setExpectedTypeErrorCount(int count) {
     checkExpectedTypeErrorCount();
     expectedTypeErrors = count;
@@ -126,7 +124,7 @@ abstract class TypeTestCase extends TestCase {
   static FunctionType ftype(ClassElement element, Type returnType,
                             Map<String, Type> namedParameterTypes, Type rest, Type... arguments) {
     return FunctionTypeImplementation.of(element, Arrays.asList(arguments), namedParameterTypes,
-                                         rest, returnType, null);
+                                         rest, returnType);
   }
 
   static Map<String, Type> named(Object... pairs) {
@@ -177,6 +175,7 @@ abstract class TypeTestCase extends TestCase {
   };
 
   final TestCompilerContext context = new TestCompilerContext() {
+    @Override
     public void onError(DartCompilationError event) {
       if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
         getErrorCodes().add(event.getErrorCode());

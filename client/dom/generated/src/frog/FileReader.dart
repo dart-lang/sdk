@@ -11,6 +11,18 @@ class FileReader native "*FileReader" {
 
   FileError error;
 
+  EventListener onabort;
+
+  EventListener onerror;
+
+  EventListener onload;
+
+  EventListener onloadend;
+
+  EventListener onloadstart;
+
+  EventListener onprogress;
+
   int readyState;
 
   Object result;

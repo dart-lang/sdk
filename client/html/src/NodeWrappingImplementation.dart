@@ -23,11 +23,7 @@ class _ChildrenNodeList implements NodeList {
     return LevelDom.wrapNode(_node.firstChild);
   }
 
-  void forEach(void f(Node element)) {
-    for (var node in _childNodes) {
-      f(LevelDom.wrapNode(node));
-    }
-  }
+  void forEach(void f(Node element)) => _toList().forEach(f);
 
   Collection<Node> filter(bool f(Node element)) {
     List<Node> output = new List<Node>();

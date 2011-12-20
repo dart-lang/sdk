@@ -1122,6 +1122,36 @@ int X86Decoder::InstructionDecode(uword pc) {
           Print(",");
           PrintXmmRegister(rm);
           data++;
+        } else if (f0byte == 0x1F) {
+          if (*(data+2) == 0x00) {
+            Print("nop");
+            data += 3;
+          } else if (*(data+2) == 0x40 && *(data+3) == 0x00) {
+            Print("nop");
+            data += 4;
+          } else if (*(data+2) == 0x44 &&
+                     *(data+3) == 0x00 &&
+                     *(data+4) == 0x00) {
+            Print("nop");
+            data += 5;
+          } else if (*(data+2) == 0x80 &&
+                     *(data+3) == 0x00 &&
+                     *(data+3) == 0x00 &&
+                     *(data+3) == 0x00 &&
+                     *(data+4) == 0x00) {
+            Print("nop");
+            data += 7;
+          } else if (*(data+2) == 0x84 &&
+                     *(data+3) == 0x00 &&
+                     *(data+3) == 0x00 &&
+                     *(data+3) == 0x00 &&
+                     *(data+3) == 0x00 &&
+                     *(data+4) == 0x00) {
+            Print("nop");
+            data += 8;
+          } else {
+            UNIMPLEMENTED();
+          }
         } else {
           data += 2;
           if (f0byte == 0xAB || f0byte == 0xA5 || f0byte == 0xAD) {
@@ -1266,9 +1296,18 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintXmmRegister(regop);
             Print(",");
             data += PrintRightXmmOperand(data);
+          } else if (*data == 0x1F &&
+                     *(data+1) == 0x44 &&
+                     *(data+2) == 0x00 &&
+                     *(data+3) == 0x00) {
+            data += 4;
+            Print("nop");
           } else {
             UNIMPLEMENTED();
           }
+        } else if (*data == 0x90) {
+          data++;
+          Print("nop");
         } else {
           UNIMPLEMENTED();
         }

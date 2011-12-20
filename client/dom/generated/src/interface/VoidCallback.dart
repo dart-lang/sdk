@@ -4,7 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface VoidCallback {
-
-  void handleEvent();
-}
+typedef void VoidCallback();

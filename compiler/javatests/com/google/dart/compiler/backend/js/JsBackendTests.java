@@ -20,7 +20,6 @@ public class JsBackendTests extends TestSetup {
     //suite.addTestSuite(JsParserTest.class);
     //suite.addTestSuite(JsToStringGenerationVisitorAccuracyTest.class);
     //suite.addTestSuite(JsToStringGenerationVisitorConcisenessTest.class);
-    suite.addTestSuite(ClosureJsCodingConventionTest.class);
     suite.addTestSuite(JsArrayExprOptTest.class);
     suite.addTestSuite(JsBinaryExprOptTest.class);
     suite.addTestSuite(JsClosureExprOptTest.class);

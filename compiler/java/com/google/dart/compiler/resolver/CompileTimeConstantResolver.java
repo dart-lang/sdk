@@ -155,6 +155,10 @@ public class CompileTimeConstantResolver {
     boolean isStaticContext() {
       return true;
     }
+    
+    boolean isFactoryContext() {
+      return false;
+    }
 
     private void resolveConstantExpression(DartExpression expression) {
       if (expression != null) {

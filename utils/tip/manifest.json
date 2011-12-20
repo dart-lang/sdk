@@ -1,0 +1,20 @@
+/* Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+{
+  "name": "Dart Tip",
+  "version": "0.2",
+  "description": "The sharp pointy bit of a dart.",
+
+  "icons": { "16" : "dart16.png",
+             "48" : "dart48.png",
+             "128": "dart128.png" },
+
+  // TODO(jimhug): Use background page effectively...
+  "background_page" : "background.html",
+
+  "app": { "launch": { "local_path": "tip.html" } },
+
+  "permissions": [ "unlimitedStorage", "<all_urls>" ]
+}

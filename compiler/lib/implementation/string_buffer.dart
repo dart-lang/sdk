@@ -42,6 +42,9 @@ class StringBufferImpl implements StringBuffer {
    * Adds all items in [objects] to the buffer. Returns [this].
    */
   StringBuffer addAll(Collection<Object> objects) {
+    if (objects == null) {
+      throw const NullPointerException();
+    }
     for (Object obj in objects) {
       add(obj);
     }

@@ -132,6 +132,15 @@ enum {
 // RawObject is the base class of all raw objects, even though it carries the
 // class_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
+//
+// The tags field which is a part of the object header uses the following
+// bit fields for storing tags.
+//
+// bit 0 - SmiTag
+// bit 1 - Mark bit.
+// bit 2 - Canonical object.
+// bit 3 - Created from a full snapshot.
+//
 class RawObject {
  public:
   bool IsHeapObject() const {
@@ -163,7 +172,23 @@ class RawObject {
   void ClearMarkBit() {
     ASSERT(IsMarked());
     uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarked);
+    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarkBit);
+  }
+
+  // Support for object tags.
+  bool IsCanonical() const {
+    return CanonicalObjectTag::decode(ptr()->tags_);
+  }
+  void SetCanonical() {
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = CanonicalObjectTag::update(true, tags);
+  }
+  bool IsCreatedFromSnapshot() {
+    return CreatedFromSnapshotTag::decode(ptr()->tags_);
+  }
+  void SetCreatedFromSnapshot() {
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = CreatedFromSnapshotTag::update(true, tags);
   }
 
   void Validate() const;
@@ -180,14 +205,30 @@ class RawObject {
     return reinterpret_cast<uword>(raw_obj->ptr());
   }
 
+  static bool IsCreatedFromSnapshot(intptr_t value) {
+    return CreatedFromSnapshotTag::decode(value);
+  }
+
+  static bool IsCanonical(intptr_t value) {
+    return CanonicalObjectTag::decode(value);
+  }
+
  protected:
   RawClass* class_;
+  intptr_t tags_;  // Various object tags (bits).
 
  private:
   enum {
     kMarkingMask = 3,
     kNotMarked = 1,  // Tagged pointer.
     kMarked = 3,  // Tagged pointer and forwarding bit set.
+    kMarkBit = 2,
+  };
+
+  class CanonicalObjectTag : public BitField<bool, 2, 1> {
+  };
+
+  class CreatedFromSnapshotTag : public BitField<bool, 3, 1> {
   };
 
   RawObject* ptr() const {
@@ -195,8 +236,6 @@ class RawObject {
     return reinterpret_cast<RawObject*>(
         reinterpret_cast<uword>(this) - kHeapObjectTag);
   }
-
-  intptr_t tags_;  // Various object tags (bits).
 
   friend class Object;
   friend class Array;
@@ -275,6 +314,14 @@ class RawUnresolvedClass : public RawObject {
 
 
 class RawAbstractType : public RawObject {
+ protected:
+  enum TypeState {
+    kAllocated,  // Initial state.
+    kBeingFinalized,  // In the process of being finalized.
+    kFinalized,  // Type ready for use.
+  };
+
+ private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractType);
 
   friend class ObjectStore;
@@ -283,12 +330,6 @@ class RawAbstractType : public RawObject {
 
 class RawType : public RawAbstractType {
  private:
-  enum TypeState {
-    kAllocated,  // Initial state.
-    kBeingFinalized,  // In the process of being finalized.
-    kFinalized,  // Type ready for use.
-  };
-
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
 
   RawObject** from() {
@@ -309,6 +350,7 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   intptr_t index_;
+  int8_t type_state_;
 };
 
 
@@ -328,6 +370,7 @@ class RawInstantiatedType : public RawAbstractType {
 
 
 class RawAbstractTypeArguments : public RawObject {
+ private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments);
 };
 
@@ -339,7 +382,6 @@ class RawTypeArguments : public RawAbstractTypeArguments {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->length_);
   }
-  bool is_canonical_;
   RawSmi* length_;
 
   // Variable length data follows here.

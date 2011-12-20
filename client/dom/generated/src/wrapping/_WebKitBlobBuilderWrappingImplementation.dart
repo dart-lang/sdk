@@ -11,28 +11,36 @@ class _WebKitBlobBuilderWrappingImplementation extends DOMWrapperBase implements
     return new _WebKitBlobBuilderWrappingImplementation();
   }
 
-  void append(var blob_OR_value, [String endings = null]) {
-    if (blob_OR_value is Blob) {
+  void append(var arrayBuffer_OR_blob_OR_value, [String endings = null]) {
+    if (arrayBuffer_OR_blob_OR_value is Blob) {
       if (endings === null) {
-        _append(this, blob_OR_value);
+        _append(this, arrayBuffer_OR_blob_OR_value);
         return;
       }
     } else {
-      if (blob_OR_value is String) {
+      if (arrayBuffer_OR_blob_OR_value is ArrayBuffer) {
         if (endings === null) {
-          _append_2(this, blob_OR_value);
+          _append_2(this, arrayBuffer_OR_blob_OR_value);
           return;
-        } else {
-          _append_3(this, blob_OR_value, endings);
-          return;
+        }
+      } else {
+        if (arrayBuffer_OR_blob_OR_value is String) {
+          if (endings === null) {
+            _append_3(this, arrayBuffer_OR_blob_OR_value);
+            return;
+          } else {
+            _append_4(this, arrayBuffer_OR_blob_OR_value, endings);
+            return;
+          }
         }
       }
     }
     throw "Incorrect number or type of arguments";
   }
-  static void _append(receiver, blob_OR_value) native;
-  static void _append_2(receiver, blob_OR_value) native;
-  static void _append_3(receiver, blob_OR_value, endings) native;
+  static void _append(receiver, arrayBuffer_OR_blob_OR_value) native;
+  static void _append_2(receiver, arrayBuffer_OR_blob_OR_value) native;
+  static void _append_3(receiver, arrayBuffer_OR_blob_OR_value) native;
+  static void _append_4(receiver, arrayBuffer_OR_blob_OR_value, endings) native;
 
   Blob getBlob([String contentType = null]) {
     if (contentType === null) {

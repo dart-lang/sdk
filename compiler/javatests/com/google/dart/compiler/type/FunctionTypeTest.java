@@ -79,11 +79,10 @@ public class FunctionTypeTest extends TypeTestCase {
     assertEquals(stringAndIntToMap, stringAndIntToMapS.subst(args, vars));
 
     FunctionType oAndNamedToO = FunctionTypeImplementation.of(function, Arrays.<Type>asList(o),
-                                                              named(itype(string), "arg"), null, o,
-                                                              null);
+                                                              named(itype(string), "arg"), null, o);
     assertEquals(objectAndNamedStringToObject, oAndNamedToO.subst(args, vars));
 
-    Type osToO = FunctionTypeImplementation.of(function, Arrays.<Type>asList(), null, o, o, null);
+    Type osToO = FunctionTypeImplementation.of(function, Arrays.<Type>asList(), null, o, o);
     assertEquals(objectsToObject, osToO.subst(args, vars));
   }
 

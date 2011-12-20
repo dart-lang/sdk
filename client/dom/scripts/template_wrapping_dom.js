@@ -130,7 +130,6 @@ function native__TypedArrayFactoryProvider__U32(arg) {
   }
 }
 
-
 function native__WebKitCSSMatrixFactoryProvider_create(spec) {
   try {
     return __dom_wrap(new WebKitCSSMatrix(spec));  // string doesn't need unwrap.
@@ -142,6 +141,14 @@ function native__WebKitCSSMatrixFactoryProvider_create(spec) {
 function native__WebKitPointFactoryProvider_create(x, y) {
   try {
     return __dom_wrap(new WebKitPoint(x, y));  // nums don't need unwrap.
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebSocketFactoryProvider_create(url) {
+  try {
+    return __dom_wrap(new WebSocket(url));  // string doesn't need unwrap.
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

@@ -53,4 +53,6 @@ interface HTMLIFrameElement extends HTMLElement {
   String get width();
 
   void set width(String value);
+
+  SVGDocument getSVGDocument();
 }

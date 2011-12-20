@@ -7,4 +7,8 @@
 interface JavaScriptAudioNode extends AudioNode {
 
   int get bufferSize();
+
+  EventListener get onaudioprocess();
+
+  void set onaudioprocess(EventListener value);
 }

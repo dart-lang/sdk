@@ -11,7 +11,7 @@ class TimerCancel2Test {
       cancelTimer.cancel();
     }
 
-    cancelTimer = new Timer(cancelHandler, 1, true);
+    cancelTimer = new Timer.repeating(cancelHandler, 1);
   }
 
   static void testMain() {

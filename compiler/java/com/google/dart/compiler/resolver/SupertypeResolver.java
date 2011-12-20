@@ -53,7 +53,7 @@ public class SupertypeResolver {
           supertype = null;
         }
       } else {
-        supertype = classContext.resolveClass(superclassNode, false);
+        supertype = classContext.resolveClass(superclassNode, false, false);
         supertype.getClass(); // Quick null check.
       }
       if (supertype != null) {
@@ -66,15 +66,17 @@ public class SupertypeResolver {
         assert classElement.getName().equals("Object") : classElement;
       }
 
-      InterfaceType defaultClass = classContext.resolveClass(node.getDefaultClass(), false);
-      if (defaultClass != null) {
-        Elements.setDefaultClass(classElement, defaultClass);
-        node.getDefaultClass().setType(defaultClass);
+      if (node.getDefaultClass() != null) {
+        Element defaultClassElement = classContext.resolveName(node.getDefaultClass().getExpression());
+        if (ElementKind.of(defaultClassElement).equals(ElementKind.CLASS)) {
+          Elements.setDefaultClass(classElement, (InterfaceType)defaultClassElement.getType());
+          node.getDefaultClass().setType(defaultClassElement.getType());
+        }
       }
 
       if (node.getInterfaces() != null) {
         for (DartTypeNode cls : node.getInterfaces()) {
-          Elements.addInterface(classElement, classContext.resolveInterface(cls, false));
+          Elements.addInterface(classElement, classContext.resolveInterface(cls, false, false));
         }
       }
 
@@ -87,6 +89,7 @@ public class SupertypeResolver {
           bound =
               classContext.resolveType(
                   boundNode,
+                  false,
                   false,
                   ResolverErrorCode.NO_SUCH_TYPE);
           boundNode.setType(bound);

@@ -5,30 +5,215 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
 
+#include "vm/assembler.h"
 #include "vm/code_patcher.h"
+#include "vm/cpu.h"
+#include "vm/ic_data.h"
+#include "vm/instructions.h"
+#include "vm/object.h"
+#include "vm/raw_object.h"
 
 namespace dart {
+
+// The pattern of a Dart call is:
+//  00: 48 bb imm64  mov RBX, immediate 1
+//  10: 49 ba imm64  mov R10, immediate 2
+//  20: 49 bb imm64  mov R11, target_address
+//  30: 41 ff d3     call R11
+//  33: <- return_address
+class DartCallPattern : public ValueObject {
+ public:
+  explicit DartCallPattern(uword return_address)
+      : start_(return_address - kCallPatternSize) {
+    ASSERT(IsValid(return_address));
+    ASSERT((kCallPatternSize - 20) == Assembler::kCallExternalLabelSize);
+  }
+
+  static const int kCallPatternSize = 33;
+
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
+    return (code_bytes[00] == 0x48) && (code_bytes[01] == 0xBB) &&
+           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBA) &&
+           (code_bytes[20] == 0x49) && (code_bytes[21] == 0xBB) &&
+           (code_bytes[30] == 0x41) && (code_bytes[31] == 0xFF) &&
+           (code_bytes[32] == 0xD3);
+  }
+
+  uword target() const {
+    return *reinterpret_cast<uword*>(start_ + 20 + 2);
+  }
+
+  void set_target(uword target) const {
+    uword* target_addr = reinterpret_cast<uword*>(start_ + 20 + 2);
+    *target_addr = target;
+    CPU::FlushICache(start_ + 20, 2 + 8);
+  }
+
+  uint64_t immediate_one() const {
+    return *reinterpret_cast<uint64_t*>(start_ + 0 + 2);
+  }
+
+  void set_immediate_one(uint64_t value) {
+    uint64_t* target_addr = reinterpret_cast<uint64_t*>(start_ + 0 + 2);
+    *target_addr = value;
+    CPU::FlushICache(start_ + 0, 2 + 8);
+  }
+
+  uint64_t immediate_two() const {
+    return *reinterpret_cast<uint64_t*>(start_ + 10 + 2);
+  }
+
+  int argument_count() const {
+    Array& args_desc = Array::Handle();
+    args_desc ^= reinterpret_cast<RawObject*>(immediate_two());
+    Smi& num_args = Smi::Handle();
+    num_args ^= args_desc.At(0);
+    return num_args.Value();
+  }
+
+  int named_argument_count() const {
+    Array& args_desc = Array::Handle();
+    args_desc ^= reinterpret_cast<RawObject*>(immediate_two());
+    Smi& num_args = Smi::Handle();
+    num_args ^= args_desc.At(0);
+    Smi& num_pos_args = Smi::Handle();
+    num_pos_args ^= args_desc.At(1);
+    return num_args.Value() - num_pos_args.Value();
+  }
+
+  uword start_;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(DartCallPattern);
+};
+
+
+// A Dart static call passes the function object in RBX.
+class StaticCall : public DartCallPattern {
+ public:
+  explicit StaticCall(uword return_address)
+      : DartCallPattern(return_address) {}
+
+  RawFunction* function() const {
+    Function& f = Function::Handle();
+    f ^= reinterpret_cast<RawObject*>(immediate_one());
+    return f.raw();
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StaticCall);
+};
+
+
+// A Dart instance call passes the ic-data array in RBX.
+class InstanceCall : public DartCallPattern {
+ public:
+  explicit InstanceCall(uword return_address)
+      : DartCallPattern(return_address) {}
+
+  RawArray* ic_data() const {
+    Array& array = Array::Handle();
+    array ^= reinterpret_cast<RawObject*>(immediate_one());
+    return array.raw();
+  }
+
+  void SetIcData(const Array& value) {
+    set_immediate_one(reinterpret_cast<int64_t>(value.raw()));
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
+};
+
 
 void CodePatcher::GetStaticCallAt(uword return_address,
                                   Function* function,
                                   uword* target) {
-  UNIMPLEMENTED();
+  ASSERT(function != NULL);
+  ASSERT(target != NULL);
+  StaticCall call(return_address);
+  *target = call.target();
+  *function = call.function();
 }
 
 
 void CodePatcher::PatchStaticCallAt(uword return_address, uword new_target) {
-  UNIMPLEMENTED();
+  StaticCall call(return_address);
+  call.set_target(new_target);
 }
 
 
 void CodePatcher::PatchInstanceCallAt(uword return_address, uword new_target) {
-  UNIMPLEMENTED();
+  InstanceCall call(return_address);
+  call.set_target(new_target);
+}
+
+
+static void SwapCode(intptr_t num_bytes, char* a, char* b) {
+  for (intptr_t i = 0; i < num_bytes; i++) {
+    char tmp = *a;
+    *a = *b;
+    *b = tmp;
+    a++;
+    b++;
+  }
+}
+
+
+// The patch code buffer contains the jump code sequence which will be inserted
+// at entry point.
+void CodePatcher::PatchEntry(const Code& code) {
+  Jump jmp_entry(code.EntryPoint());
+  ASSERT(!jmp_entry.IsValid());
+  const uword patch_buffer = code.GetPatchCodePc();
+  ASSERT(patch_buffer != 0);
+  Jump jmp_patch(patch_buffer);
+  ASSERT(jmp_patch.IsValid());
+  const uword jump_target = jmp_patch.TargetAddress();
+  SwapCode(jmp_patch.pattern_length_in_bytes(),
+           reinterpret_cast<char*>(code.EntryPoint()),
+           reinterpret_cast<char*>(patch_buffer));
+  jmp_entry.SetTargetAddress(jump_target);
+}
+
+
+// The entry point is a jump code sequence, the patch code buffer contains
+// original code, the entry point contains the jump code sequence.
+void CodePatcher::RestoreEntry(const Code& code) {
+  Jump jmp_entry(code.EntryPoint());
+  ASSERT(jmp_entry.IsValid());
+  const uword jump_target = jmp_entry.TargetAddress();
+  const uword patch_buffer = code.GetPatchCodePc();
+  ASSERT(patch_buffer != 0);
+  // 'patch_buffer' contains original entry code.
+  Jump jmp_patch(patch_buffer);
+  ASSERT(!jmp_patch.IsValid());
+  SwapCode(jmp_patch.pattern_length_in_bytes(),
+           reinterpret_cast<char*>(code.EntryPoint()),
+           reinterpret_cast<char*>(patch_buffer));
+  ASSERT(jmp_patch.IsValid());
+  jmp_patch.SetTargetAddress(jump_target);
+}
+
+
+bool CodePatcher::CodeIsPatchable(const Code& code) {
+  Jump jmp_entry(code.EntryPoint());
+  if (code.Size() < (jmp_entry.pattern_length_in_bytes() * 2)) {
+    return false;
+  }
+  uword limit = code.EntryPoint() + jmp_entry.pattern_length_in_bytes();
+  for (intptr_t i = 0; i < code.pointer_offsets_length(); i++) {
+    const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
+    if (addr < limit) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
 bool CodePatcher::IsDartCall(uword return_address) {
-  UNIMPLEMENTED();
-  return false;
+  return DartCallPattern::IsValid(return_address);
 }
 
 
@@ -37,35 +222,34 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
                                     int* num_arguments,
                                     int* num_named_arguments,
                                     uword* target) {
-  UNIMPLEMENTED();
-}
-
-
-void CodePatcher::PatchEntry(const Code& code) {
-  UNIMPLEMENTED();
-}
-
-
-void CodePatcher::RestoreEntry(const Code& code) {
-  UNIMPLEMENTED();
-}
-
-
-bool CodePatcher::CodeIsPatchable(const Code& code) {
-  UNIMPLEMENTED();
-  return false;
+  ASSERT(function_name != NULL);
+  ASSERT(num_arguments != NULL);
+  ASSERT(num_named_arguments != NULL);
+  ASSERT(target != NULL);
+  InstanceCall call(return_address);
+  *num_arguments = call.argument_count();
+  *num_named_arguments = call.named_argument_count();
+  *target = call.target();
+  ICData ic_data(Array::ZoneHandle(call.ic_data()));
+  *function_name = ic_data.FunctionName();
 }
 
 
 RawArray* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
-  UNIMPLEMENTED();
-  return NULL;
+  InstanceCall call(return_address);
+  return call.ic_data();
 }
 
 
 void CodePatcher::SetInstanceCallIcDataAt(uword return_address,
-                                         const Array& ic_data) {
-  UNIMPLEMENTED();
+                                          const Array& ic_data) {
+  InstanceCall call(return_address);
+  call.SetIcData(ic_data);
+}
+
+
+intptr_t CodePatcher::InstanceCallSizeInBytes() {
+  return DartCallPattern::kCallPatternSize;
 }
 
 }  // namespace dart

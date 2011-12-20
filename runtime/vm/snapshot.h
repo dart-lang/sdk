@@ -349,8 +349,22 @@ class MessageWriter {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
 
-  // Setup header information for an object.
-  void WriteObjectHeader(SerializedHeaderType type, intptr_t id) {
+  // Write an object that is serialized as an Id (singleton, object store,
+  // or an object that was already serialized before).
+  void WriteIndexedObject(intptr_t object_id) {
+    WriteSerializationMarker(kObjectId, object_id);
+  }
+
+  // Write out object header value.
+  void WriteObjectHeader(intptr_t class_id, intptr_t tags) {
+    // Write out the class information.
+    WriteIndexedObject(class_id);
+    // Write out the tags information.
+    Write<intptr_t>(tags);
+  }
+
+  // Write serialization header information for an object.
+  void WriteSerializationMarker(SerializedHeaderType type, intptr_t id) {
     uword value = 0;
     value = SerializedHeaderTag::update(type, value);
     value = SerializedHeaderData::update(id, value);
@@ -409,8 +423,27 @@ class SnapshotWriter {
 
   void WriteClassId(RawClass* cls);
 
-  // Setup header information for an object.
-  void WriteObjectHeader(SerializedHeaderType type, intptr_t value);
+  // Write an object that is serialized as an Id (singleton, object store,
+  // or an object that was already serialized before).
+  void WriteIndexedObject(intptr_t object_id) {
+    WriteSerializationMarker(kObjectId, object_id);
+  }
+
+  // Write out object header value.
+  void WriteObjectHeader(intptr_t class_id, intptr_t tags) {
+    // Write out the class information.
+    WriteIndexedObject(class_id);
+    // Write out the tags information.
+    Write<intptr_t>(tags);
+  }
+
+  // Write serialization header information for an object.
+  void WriteSerializationMarker(SerializedHeaderType type, intptr_t id) {
+    uword value = 0;
+    value = SerializedHeaderTag::update(type, value);
+    value = SerializedHeaderData::update(id, value);
+    Write<uword>(value);
+  }
 
   // Unmark all objects that were marked as forwarded for serializing.
   void UnmarkAll();

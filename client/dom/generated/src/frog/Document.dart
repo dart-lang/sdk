@@ -107,6 +107,10 @@ class Document extends Node native "Document" {
 
   Text createTextNode(String data) native;
 
+  Touch createTouch(DOMWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
+
+  TouchList createTouchList() native;
+
   TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
   Element elementFromPoint(int x, int y) native;

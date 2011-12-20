@@ -9,6 +9,8 @@ class WorkerContext native "*WorkerContext" {
 
   WorkerNavigator navigator;
 
+  EventListener onerror;
+
   WorkerContext self;
 
   NotificationCenter webkitNotifications;
@@ -26,6 +28,10 @@ class WorkerContext native "*WorkerContext" {
   bool dispatchEvent(Event evt) native;
 
   void importScripts() native;
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

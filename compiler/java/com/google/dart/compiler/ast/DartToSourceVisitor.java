@@ -26,7 +26,7 @@ public class DartToSourceVisitor extends DartVisitor {
   private final boolean isDiet;
 
   private final boolean calculateHash;
-  
+
   public DartToSourceVisitor(TextOutput out) {
     this(out, false);
   }
@@ -36,13 +36,13 @@ public class DartToSourceVisitor extends DartVisitor {
     this.isDiet = isDiet;
     this.calculateHash = false;
   }
-  
+
   public DartToSourceVisitor(TextOutput out, boolean isDiet, boolean calculateHash) {
     this.out = out;
     this.isDiet = isDiet;
     this.calculateHash = calculateHash;
   }
-  
+
   public void generateSourceMap(boolean generate) {
     this.buildMappings = generate;
   }
@@ -136,7 +136,7 @@ public class DartToSourceVisitor extends DartVisitor {
     if (calculateHash == true) {
       start = out.getPosition();
     }
-    
+
     if (x.isInterface()) {
       p("interface ");
     } else {
@@ -902,11 +902,13 @@ public class DartToSourceVisitor extends DartVisitor {
   }
 
   @Override
-  public boolean visit(DartParameterizedNode x, DartContext ctx) {
+  public boolean visit(DartParameterizedTypeNode x, DartContext ctx) {
     accept(x.getExpression());
-    p("<");
-    printSeparatedByComma(x.getTypeParameters());
-    p(">");
+    if (!x.getTypeParameters().isEmpty()) {
+      p("<");
+      printSeparatedByComma(x.getTypeParameters());
+      p(">");
+    }
     return false;
   }
 

@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
-  Dart_Initialize(NULL);
+  Dart_Initialize(NULL, NULL);
 
   char* error;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, &error);

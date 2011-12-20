@@ -170,7 +170,11 @@ interface Window extends EventTarget {
 
   void set top(DOMWindow value);
 
+  IDBFactory get webkitIndexedDB();
+
   NotificationCenter get webkitNotifications();
+
+  StorageInfo get webkitStorageInfo();
 
   DOMURL get webkitURL();
 
@@ -215,6 +219,8 @@ interface Window extends EventTarget {
   void moveTo(num x, num y);
 
   DOMWindow open(String url, String name, [String options]);
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
   void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin]);
 

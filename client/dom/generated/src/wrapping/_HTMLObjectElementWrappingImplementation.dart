@@ -127,6 +127,11 @@ class _HTMLObjectElementWrappingImplementation extends _HTMLElementWrappingImple
   }
   static bool _checkValidity(receiver) native;
 
+  SVGDocument getSVGDocument() {
+    return _getSVGDocument(this);
+  }
+  static SVGDocument _getSVGDocument(receiver) native;
+
   void setCustomValidity(String error) {
     _setCustomValidity(this, error);
     return;

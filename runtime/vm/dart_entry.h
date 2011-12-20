@@ -23,6 +23,13 @@ class String;
 
 // DartEntry abstracts functionality needed to resolve dart functions
 // and invoke them from C++.
+//
+// TODO(turnidge): Make these functions assert that there is an active
+// setjmp.  Or make these functions do the setjmps themselves and
+// represent compile errors with an explict object type.
+//
+// TODO(turnidge): Make these functions return RawObject instead of
+// RawInstance.
 class DartEntry : public AllStatic {
  public:
   typedef RawInstance* (*invokestub)(uword entry_point,
@@ -63,6 +70,11 @@ class DartLibraryCalls : public AllStatic {
       const GrowableArray<const Object*>& arguments);
   static RawInstance* ToString(const Instance& receiver);
   static RawInstance* Equals(const Instance& left, const Instance& right);
+
+  // Returns either an unhandled exception or null.
+  static RawObject* HandleMessage(Dart_Port dest_port_id,
+                                  Dart_Port reply_port_id,
+                                  const Instance& dart_message);
 };
 
 }  // namespace dart

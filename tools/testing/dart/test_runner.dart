@@ -80,6 +80,33 @@ class TestCase {
 }
 
 
+/**
+ * BrowserTestCase has an extra compilation command that is run by
+ * RunningProcess.start(), and it checks conditions on the test output
+ * in TestOutput.didFail().
+ */
+class BrowserTestCase extends TestCase {
+  String compilerPath;
+  List<String> compilerArguments;
+
+  BrowserTestCase(displayName,
+                    this.compilerPath,
+                    this.compilerArguments,
+                    executablePath,
+                    arguments,
+                    configuration,
+                    completedHandler,
+                    expectedOutcomes,
+                    [isNegative = false]) : super(displayName,
+                                                  executablePath,
+                                                  arguments,
+                                                  configuration,
+                                                  completedHandler,
+                                                  expectedOutcomes,
+                                                  isNegative);
+}
+
+
 class TestOutput {
   // The TestCase this is the output from.
   TestCase testCase;
@@ -100,7 +127,7 @@ class TestOutput {
 
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
 
-  // The Java dartc runner exits with code 253 in case of unhandles
+  // The Java dartc runner exits with code 253 in case of unhandled
   // exceptions.
   // The VM uses std::abort to terminate on asserts.
   // std::abort terminates with exit code 3 on Windows.
@@ -121,7 +148,21 @@ class TestOutput {
 
   bool get hasTimedOut() => timedOut;
 
-  bool get didFail() => exitCode != 0 && !hasCrashed;
+  bool get didFail() {
+    if (exitCode != 0 && !hasCrashed) return true;
+
+    // Browser tests fail unless stdout contains
+    // 'Content-Type: text/plain\nPASS'.
+    if (testCase is !BrowserTestCase) return false;
+    String previous_line = '';
+    for (String line in stdout) {
+      if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
+        return false;
+      }
+      previous_line = line;
+    }
+    return true;
+  }
 
   // Reverse result of a negative test.
   bool get hasFailed() => (testCase.isNegative ? !didFail : didFail);
@@ -148,6 +189,14 @@ class RunningProcess {
     testCase.completed();
   }
 
+  void compilerExitHandler(int exitCode) {
+    if (exitCode != 0) {
+      exitHandler(exitCode);
+    } else {
+      runCommand(testCase.executablePath, testCase.arguments, exitHandler);
+    }
+  }
+      
   void makeReadHandler(StringInputStream source, List<String> destination) {
     return () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
@@ -161,22 +210,33 @@ class RunningProcess {
 
   void start() {
     Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
-    process = new Process(testCase.executablePath, testCase.arguments);
+    stdout = new List<String>();
+    stderr = new List<String>();
+    if (testCase is BrowserTestCase) {
+      runCommand(testCase.compilerPath,
+                 testCase.compilerArguments,
+                 compilerExitHandler);
+    } else {
+      runCommand(testCase.executablePath, testCase.arguments, exitHandler);
+    }
+  }
+
+  void runCommand(String executable,
+                  List<String> arguments,
+                  void exitHandler(int exitCode)) {
+    process = new Process(executable, arguments);
     process.exitHandler = exitHandler;
     startTime = new Date.now();
     process.start();
-
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
-    stdout = new List<String>();
-    stderr = new List<String>();
     StringInputStream stdoutStringStream = new StringInputStream(stdoutStream);
     StringInputStream stderrStringStream = new StringInputStream(stderrStream);
-    stdoutStringStream.dataHandler =
+    stdoutStringStream.lineHandler =
         makeReadHandler(stdoutStringStream, stdout);
-    stderrStringStream.dataHandler =
+    stderrStringStream.lineHandler =
         makeReadHandler(stderrStringStream, stderr);
-    timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout, false);
+    timeoutTimer = new Timer(timeoutHandler, 1000 * testCase.timeout);
   }
 
   void timeoutHandler(Timer unusedTimer) {
@@ -232,11 +292,9 @@ class DartcBatchRunnerProcess {
     _startTime = new Date.now();
     _testStdout = new List<String>();
     _testStderr = new List<String>();
-    _stdoutStream.dataHandler = _readOutput(_stdoutStream, _testStdout);
-    _stderrStream.dataHandler = _readOutput(_stderrStream, _testStderr);
-    _timer = new Timer(_timeoutHandler(testCase),
-                       testCase.timeout * 1000,
-                       false);
+    _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
+    _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
+    _timer = new Timer(_timeoutHandler(testCase), testCase.timeout * 1000);
     _process.stdin.write(_createArgumentsLine(testCase.arguments).charCodes());
   }
 
@@ -309,8 +367,8 @@ class DartcBatchRunnerProcess {
     _stderrStream = new StringInputStream(_process.stderr);
     _testStdout = new List<String>();
     _testStderr = new List<String>();
-    _stdoutStream.dataHandler = _readOutput(_stdoutStream, _testStdout);
-    _stderrStream.dataHandler = _readOutput(_stderrStream, _testStderr);
+    _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
+    _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
     _process.exitHandler = _exitHandler;
     _process.start();
   }
@@ -327,6 +385,10 @@ class ProcessQueue {
   ProgressIndicator _progress;
   // For dartc batch processing we keep a list of batch processes.
   List<DartcBatchRunnerProcess> _batchProcesses;
+  // Cache information about test cases per test suite. For multiple
+  // configurations there is no need to repeatedly search the file
+  // system, generate tests, and search test files for options.
+  Map<String, List<TestInformation>> _testCache;
 
   ProcessQueue(int this._maxProcesses,
                String progress,
@@ -338,13 +400,14 @@ class ProcessQueue {
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
-        _batchProcesses = new List<DartcBatchRunnerProcess>() {
+        _batchProcesses = new List<DartcBatchRunnerProcess>(),
+        _testCache = new Map<String, List<TestInformation>>() {
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
   void addTestSuite(TestSuite testSuite) {
     _activeTestListers++;
-    testSuite.forEachTest(_runTest, _testListerDone);
+    testSuite.forEachTest(_runTest, _testCache, _testListerDone);
   }
 
   void _testListerDone() {

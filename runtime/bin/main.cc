@@ -303,7 +303,7 @@ int main(int argc, char** argv) {
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Initialize the Dart VM.
-  Dart_Initialize(CreateIsolateAndSetup);
+  Dart_Initialize(CreateIsolateAndSetup, NULL);
 
   canonical_script_name = File::GetCanonicalPath(script_name);
   if (canonical_script_name == NULL) {

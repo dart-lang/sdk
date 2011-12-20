@@ -310,6 +310,22 @@ function native__AudioContextWrappingImplementation__get_listener(_this) {
   }
 }
 
+function native__AudioContextWrappingImplementation__get_oncomplete(_this) {
+  try {
+    return __dom_wrap(_this.$dom.oncomplete);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__set_oncomplete(_this, value) {
+  try {
+    _this.$dom.oncomplete = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__AudioContextWrappingImplementation__get_sampleRate(_this) {
   try {
     return __dom_wrap(_this.$dom.sampleRate);
@@ -417,6 +433,14 @@ function native__AudioContextWrappingImplementation__createJavaScriptNode(_this,
 function native__AudioContextWrappingImplementation__createLowPass2Filter(_this) {
   try {
     return __dom_wrap(_this.$dom.createLowPass2Filter());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createMediaElementSource(_this, mediaElement) {
+  try {
+    return __dom_wrap(_this.$dom.createMediaElementSource(__dom_unwrap(mediaElement)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -961,6 +985,38 @@ function native__BlobWrappingImplementation__get_size(_this) {
 function native__BlobWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BlobWrappingImplementation__webkitSlice(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BlobWrappingImplementation__webkitSlice_2(_this, start) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice(__dom_unwrap(start)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BlobWrappingImplementation__webkitSlice_3(_this, start, end) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice(__dom_unwrap(start), __dom_unwrap(end)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__BlobWrappingImplementation__webkitSlice_4(_this, start, end, contentType) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSlice(__dom_unwrap(start), __dom_unwrap(end), __dom_unwrap(contentType)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -1846,49 +1902,73 @@ function native__CanvasRenderingContext2DWrappingImplementation__createRadialGra
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage(_this, canvas_OR_image, sx_OR_x, sy_OR_y) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_2(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_2(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_3(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_3(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_4(_this, canvas_OR_image, sx_OR_x, sy_OR_y) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_4(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_5(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_5(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__CanvasRenderingContext2DWrappingImplementation__drawImage_6(_this, canvas_OR_image, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_6(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
   try {
-    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_7(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) {
+  try {
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_8(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) {
+  try {
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__CanvasRenderingContext2DWrappingImplementation__drawImage_9(_this, canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
+  try {
+    return __dom_wrap(_this.$dom.drawImage(__dom_unwrap(canvas_OR_image_OR_video), __dom_unwrap(sx_OR_x), __dom_unwrap(sy_OR_y), __dom_unwrap(sw_OR_width), __dom_unwrap(height_OR_sh), __dom_unwrap(dx), __dom_unwrap(dy), __dom_unwrap(dw), __dom_unwrap(dh)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -2654,6 +2734,14 @@ function native__ConsoleWrappingImplementation__get_memory(_this) {
   }
 }
 
+function native__ConsoleWrappingImplementation__get_profiles(_this) {
+  try {
+    return __dom_wrap(_this.$dom.profiles);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__ConsoleWrappingImplementation__assert(_this, condition) {
   try {
     return __dom_wrap(_this.$dom.assertCondition(__dom_unwrap(condition)));
@@ -2745,6 +2833,22 @@ function native__ConsoleWrappingImplementation__log(_this, arg) {
 function native__ConsoleWrappingImplementation__markTimeline(_this) {
   try {
     return __dom_wrap(_this.$dom.markTimeline());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConsoleWrappingImplementation__profile(_this, title) {
+  try {
+    return __dom_wrap(_this.$dom.profile(__dom_unwrap(title)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConsoleWrappingImplementation__profileEnd(_this, title) {
+  try {
+    return __dom_wrap(_this.$dom.profileEnd(__dom_unwrap(title)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4174,9 +4278,25 @@ function native__DOMWindowWrappingImplementation__set_top(_this, value) {
   }
 }
 
+function native__DOMWindowWrappingImplementation__get_webkitIndexedDB(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitIndexedDB);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMWindowWrappingImplementation__get_webkitNotifications(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitNotifications);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__get_webkitStorageInfo(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitStorageInfo);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -4369,6 +4489,22 @@ function native__DOMWindowWrappingImplementation__open(_this, url, name) {
 function native__DOMWindowWrappingImplementation__open_2(_this, url, name, options) {
   try {
     return __dom_wrap(_this.$dom.open(__dom_unwrap(url), __dom_unwrap(name), __dom_unwrap(options)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__openDatabase(_this, name, version, displayName, estimatedSize) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__openDatabase_2(_this, name, version, displayName, estimatedSize, creationCallback) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize), __dom_unwrap(creationCallback)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5009,6 +5145,22 @@ function native__DatabaseSyncWrappingImplementation__readTransaction(_this, call
 function native__DatabaseSyncWrappingImplementation__transaction(_this, callback) {
   try {
     return __dom_wrap(_this.$dom.transaction(__dom_unwrap(callback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DedicatedWorkerContextWrappingImplementation__get_onmessage(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onmessage);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DedicatedWorkerContextWrappingImplementation__set_onmessage(_this, value) {
+  try {
+    _this.$dom.onmessage = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5745,6 +5897,22 @@ function native__DocumentWrappingImplementation__createRange(_this) {
 function native__DocumentWrappingImplementation__createTextNode(_this, data) {
   try {
     return __dom_wrap(_this.$dom.createTextNode(__dom_unwrap(data)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__createTouch(_this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) {
+  try {
+    return __dom_wrap(_this.$dom.createTouch(__dom_unwrap(window), __dom_unwrap(target), __dom_unwrap(identifier), __dom_unwrap(pageX), __dom_unwrap(pageY), __dom_unwrap(screenX), __dom_unwrap(screenY), __dom_unwrap(webkitRadiusX), __dom_unwrap(webkitRadiusY), __dom_unwrap(webkitRotationAngle), __dom_unwrap(webkitForce)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DocumentWrappingImplementation__createTouchList(_this) {
+  try {
+    return __dom_wrap(_this.$dom.createTouchList());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -7142,6 +7310,14 @@ function native__FileWrappingImplementation__get_name(_this) {
   }
 }
 
+function native__FileWrappingImplementation__get_webkitRelativePath(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitRelativePath);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__FileEntryWrappingImplementation__createWriter(_this, successCallback) {
   try {
     return __dom_wrap(_this.$dom.createWriter(__dom_unwrap(successCallback)));
@@ -7249,6 +7425,102 @@ function native__FileListWrappingImplementation__item(_this, index) {
 function native__FileReaderWrappingImplementation__get_error(_this) {
   try {
     return __dom_wrap(_this.$dom.error);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onload(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onload);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onload(_this, value) {
+  try {
+    _this.$dom.onload = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onloadend(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onloadend);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onloadend(_this, value) {
+  try {
+    _this.$dom.onloadend = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onloadstart(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onloadstart);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onloadstart(_this, value) {
+  try {
+    _this.$dom.onloadstart = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__get_onprogress(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onprogress);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__set_onprogress(_this, value) {
+  try {
+    _this.$dom.onprogress = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -7369,6 +7641,102 @@ function native__FileWriterWrappingImplementation__get_error(_this) {
 function native__FileWriterWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onprogress(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onprogress);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onprogress(_this, value) {
+  try {
+    _this.$dom.onprogress = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onwrite(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onwrite);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onwrite(_this, value) {
+  try {
+    _this.$dom.onwrite = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onwriteend(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onwriteend);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onwriteend(_this, value) {
+  try {
+    _this.$dom.onwriteend = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__get_onwritestart(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onwritestart);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileWriterWrappingImplementation__set_onwritestart(_this, value) {
+  try {
+    _this.$dom.onwritestart = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -9622,6 +9990,14 @@ function native__HTMLEmbedElementWrappingImplementation__set_width(_this, value)
   }
 }
 
+function native__HTMLEmbedElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLFieldSetElementWrappingImplementation__get_form(_this) {
   try {
     return __dom_wrap(_this.$dom.form);
@@ -10078,6 +10454,14 @@ function native__HTMLFrameElementWrappingImplementation__get_width(_this) {
   }
 }
 
+function native__HTMLFrameElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLFrameSetElementWrappingImplementation__get_cols(_this) {
   try {
     return __dom_wrap(_this.$dom.cols);
@@ -10425,6 +10809,14 @@ function native__HTMLIFrameElementWrappingImplementation__get_width(_this) {
 function native__HTMLIFrameElementWrappingImplementation__set_width(_this, value) {
   try {
     _this.$dom.width = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLIFrameElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -12462,6 +12854,14 @@ function native__HTMLMediaElementWrappingImplementation__get_webkitHasClosedCapt
   }
 }
 
+function native__HTMLMediaElementWrappingImplementation__get_webkitMediaSourceURL(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitMediaSourceURL);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLMediaElementWrappingImplementation__get_webkitPreservesPitch(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitPreservesPitch);
@@ -12478,9 +12878,41 @@ function native__HTMLMediaElementWrappingImplementation__set_webkitPreservesPitc
   }
 }
 
+function native__HTMLMediaElementWrappingImplementation__get_webkitSourceState(_this) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSourceState);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__HTMLMediaElementWrappingImplementation__get_webkitVideoDecodedByteCount(_this) {
   try {
     return __dom_wrap(_this.$dom.webkitVideoDecodedByteCount);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__addTrack(_this, kind) {
+  try {
+    return __dom_wrap(_this.$dom.addTrack(__dom_unwrap(kind)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__addTrack_2(_this, kind, label) {
+  try {
+    return __dom_wrap(_this.$dom.addTrack(__dom_unwrap(kind), __dom_unwrap(label)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__addTrack_3(_this, kind, label, language) {
+  try {
+    return __dom_wrap(_this.$dom.addTrack(__dom_unwrap(kind), __dom_unwrap(label), __dom_unwrap(language)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -12513,6 +12945,22 @@ function native__HTMLMediaElementWrappingImplementation__pause(_this) {
 function native__HTMLMediaElementWrappingImplementation__play(_this) {
   try {
     return __dom_wrap(_this.$dom.play());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__webkitSourceAppend(_this, data) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSourceAppend(__dom_unwrap(data)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLMediaElementWrappingImplementation__webkitSourceEndOfStream(_this, status) {
+  try {
+    return __dom_wrap(_this.$dom.webkitSourceEndOfStream(__dom_unwrap(status)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -13089,6 +13537,14 @@ function native__HTMLObjectElementWrappingImplementation__get_willValidate(_this
 function native__HTMLObjectElementWrappingImplementation__checkValidity(_this) {
   try {
     return __dom_wrap(_this.$dom.checkValidity());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLObjectElementWrappingImplementation__getSVGDocument(_this) {
+  try {
+    return __dom_wrap(_this.$dom.getSVGDocument());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -15710,6 +16166,54 @@ function native__IDBDatabaseWrappingImplementation__get_name(_this) {
   }
 }
 
+function native__IDBDatabaseWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__get_onversionchange(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onversionchange);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBDatabaseWrappingImplementation__set_onversionchange(_this, value) {
+  try {
+    _this.$dom.onversionchange = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__IDBDatabaseWrappingImplementation__get_version(_this) {
   try {
     return __dom_wrap(_this.$dom.version);
@@ -16222,6 +16726,38 @@ function native__IDBRequestWrappingImplementation__get_errorCode(_this) {
   }
 }
 
+function native__IDBRequestWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBRequestWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBRequestWrappingImplementation__get_onsuccess(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onsuccess);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBRequestWrappingImplementation__set_onsuccess(_this, value) {
+  try {
+    _this.$dom.onsuccess = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__IDBRequestWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
@@ -16318,6 +16854,54 @@ function native__IDBTransactionWrappingImplementation__get_mode(_this) {
   }
 }
 
+function native__IDBTransactionWrappingImplementation__get_onabort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onabort);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__set_onabort(_this, value) {
+  try {
+    _this.$dom.onabort = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__get_oncomplete(_this) {
+  try {
+    return __dom_wrap(_this.$dom.oncomplete);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__set_oncomplete(_this, value) {
+  try {
+    _this.$dom.oncomplete = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBTransactionWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__IDBTransactionWrappingImplementation__abort(_this) {
   try {
     return __dom_wrap(_this.$dom.abort());
@@ -16382,6 +16966,22 @@ function native__IDBVersionChangeEventWrappingImplementation__get_version(_this)
   }
 }
 
+function native__IDBVersionChangeRequestWrappingImplementation__get_onblocked(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onblocked);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__IDBVersionChangeRequestWrappingImplementation__set_onblocked(_this, value) {
+  try {
+    _this.$dom.onblocked = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__ImageDataWrappingImplementation__get_data(_this) {
   try {
     return __dom_wrap(_this.$dom.data);
@@ -16430,6 +17030,22 @@ function native__InjectedScriptHostWrappingImplementation__databaseId(_this, dat
   }
 }
 
+function native__InjectedScriptHostWrappingImplementation__didCreateWorker(_this, id, url, isFakeWorker) {
+  try {
+    return __dom_wrap(_this.$dom.didCreateWorker(__dom_unwrap(id), __dom_unwrap(url), __dom_unwrap(isFakeWorker)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__InjectedScriptHostWrappingImplementation__didDestroyWorker(_this, id) {
+  try {
+    return __dom_wrap(_this.$dom.didDestroyWorker(__dom_unwrap(id)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__InjectedScriptHostWrappingImplementation__evaluate(_this, text) {
   try {
     return __dom_wrap(_this.$dom.evaluate(__dom_unwrap(text)));
@@ -16465,6 +17081,14 @@ function native__InjectedScriptHostWrappingImplementation__internalConstructorNa
 function native__InjectedScriptHostWrappingImplementation__isHTMLAllCollection(_this, object) {
   try {
     return __dom_wrap(_this.$dom.isHTMLAllCollection(__dom_unwrap(object)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__InjectedScriptHostWrappingImplementation__nextWorkerId(_this) {
+  try {
+    return __dom_wrap(_this.$dom.nextWorkerId());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16777,6 +17401,22 @@ function native__Int8ArrayWrappingImplementation__subarray_2(_this, start, end) 
 function native__JavaScriptAudioNodeWrappingImplementation__get_bufferSize(_this) {
   try {
     return __dom_wrap(_this.$dom.bufferSize);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__JavaScriptAudioNodeWrappingImplementation__get_onaudioprocess(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onaudioprocess);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__JavaScriptAudioNodeWrappingImplementation__set_onaudioprocess(_this, value) {
+  try {
+    _this.$dom.onaudioprocess = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17782,6 +18422,14 @@ function native__NavigatorWrappingImplementation__get_cookieEnabled(_this) {
   }
 }
 
+function native__NavigatorWrappingImplementation__get_geolocation(_this) {
+  try {
+    return __dom_wrap(_this.$dom.geolocation);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__NavigatorWrappingImplementation__get_language(_this) {
   try {
     return __dom_wrap(_this.$dom.language);
@@ -17873,6 +18521,30 @@ function native__NavigatorWrappingImplementation__getStorageUpdates(_this) {
 function native__NavigatorWrappingImplementation__javaEnabled(_this) {
   try {
     return __dom_wrap(_this.$dom.javaEnabled());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NavigatorWrappingImplementation__registerProtocolHandler(_this, scheme, url, title) {
+  try {
+    return __dom_wrap(_this.$dom.registerProtocolHandler(__dom_unwrap(scheme), __dom_unwrap(url), __dom_unwrap(title)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NavigatorWrappingImplementation__webkitGetUserMedia(_this, options, successCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitGetUserMedia(__dom_unwrap(options), __dom_unwrap(successCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__NavigatorWrappingImplementation__webkitGetUserMedia_2(_this, options, successCallback, errorCallback) {
+  try {
+    return __dom_wrap(_this.$dom.webkitGetUserMedia(__dom_unwrap(options), __dom_unwrap(successCallback), __dom_unwrap(errorCallback)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -29294,6 +29966,22 @@ function native__SharedWorkercontextWrappingImplementation__get_name(_this) {
   }
 }
 
+function native__SharedWorkercontextWrappingImplementation__get_onconnect(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onconnect);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__SharedWorkercontextWrappingImplementation__set_onconnect(_this, value) {
+  try {
+    _this.$dom.onconnect = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__SpeechInputEventWrappingImplementation__get_results(_this) {
   try {
     return __dom_wrap(_this.$dom.results);
@@ -30422,14 +31110,6 @@ function native__ValidityStateWrappingImplementation__get_valueMissing(_this) {
   }
 }
 
-function native__VoidCallbackWrappingImplementation__handleEvent(_this) {
-  try {
-    return __dom_wrap(_this.$dom.handleEvent());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__WaveShaperNodeWrappingImplementation__get_curve(_this) {
   try {
     return __dom_wrap(_this.$dom.curve);
@@ -31406,33 +32086,41 @@ function native__WebGLRenderingContextWrappingImplementation__stencilOpSeparate(
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D_2(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_2(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D_3(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_3(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texImage2D_4(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels, format, type, pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_4(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels), __dom_unwrap(format), __dom_unwrap(type), __dom_unwrap(pixels)));
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebGLRenderingContextWrappingImplementation__texImage2D_5(_this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) {
+  try {
+    return __dom_wrap(_this.$dom.texImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(border_OR_canvas_OR_image_OR_pixels_OR_video), __dom_unwrap(format), __dom_unwrap(type), __dom_unwrap(pixels)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -31454,33 +32142,41 @@ function native__WebGLRenderingContextWrappingImplementation__texParameteri(_thi
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_2(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_2(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_3(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_3(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_4(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels, type, pixels) {
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_4(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) {
   try {
-    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels), __dom_unwrap(type), __dom_unwrap(pixels)));
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebGLRenderingContextWrappingImplementation__texSubImage2D_5(_this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) {
+  try {
+    return __dom_wrap(_this.$dom.texSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(format_OR_width), __dom_unwrap(height_OR_type), __dom_unwrap(canvas_OR_format_OR_image_OR_pixels_OR_video), __dom_unwrap(type), __dom_unwrap(pixels)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -31870,25 +32566,33 @@ function native__WebKitAnimationListWrappingImplementation__item(_this, index) {
   }
 }
 
-function native__WebKitBlobBuilderWrappingImplementation__append(_this, blob_OR_value) {
+function native__WebKitBlobBuilderWrappingImplementation__append(_this, arrayBuffer_OR_blob_OR_value) {
   try {
-    return __dom_wrap(_this.$dom.append(__dom_unwrap(blob_OR_value)));
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebKitBlobBuilderWrappingImplementation__append_2(_this, blob_OR_value) {
+function native__WebKitBlobBuilderWrappingImplementation__append_2(_this, arrayBuffer_OR_blob_OR_value) {
   try {
-    return __dom_wrap(_this.$dom.append(__dom_unwrap(blob_OR_value)));
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
 }
 
-function native__WebKitBlobBuilderWrappingImplementation__append_3(_this, blob_OR_value, endings) {
+function native__WebKitBlobBuilderWrappingImplementation__append_3(_this, arrayBuffer_OR_blob_OR_value) {
   try {
-    return __dom_wrap(_this.$dom.append(__dom_unwrap(blob_OR_value), __dom_unwrap(endings)));
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebKitBlobBuilderWrappingImplementation__append_4(_this, arrayBuffer_OR_blob_OR_value, endings) {
+  try {
+    return __dom_wrap(_this.$dom.append(__dom_unwrap(arrayBuffer_OR_blob_OR_value), __dom_unwrap(endings)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -32878,6 +33582,22 @@ function native__WorkerContextWrappingImplementation__set_navigator(_this, value
   }
 }
 
+function native__WorkerContextWrappingImplementation__get_onerror(_this) {
+  try {
+    return __dom_wrap(_this.$dom.onerror);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__set_onerror(_this, value) {
+  try {
+    _this.$dom.onerror = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__WorkerContextWrappingImplementation__get_self(_this) {
   try {
     return __dom_wrap(_this.$dom.self);
@@ -32961,6 +33681,38 @@ function native__WorkerContextWrappingImplementation__dispatchEvent(_this, evt) 
 function native__WorkerContextWrappingImplementation__importScripts(_this) {
   try {
     return __dom_wrap(_this.$dom.importScripts());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabase(_this, name, version, displayName, estimatedSize) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabase_2(_this, name, version, displayName, estimatedSize, creationCallback) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize), __dom_unwrap(creationCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabaseSync(_this, name, version, displayName, estimatedSize) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabaseSync(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WorkerContextWrappingImplementation__openDatabaseSync_2(_this, name, version, displayName, estimatedSize, creationCallback) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabaseSync(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize), __dom_unwrap(creationCallback)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -33850,7 +34602,6 @@ function native__TypedArrayFactoryProvider__U32(arg) {
   }
 }
 
-
 function native__WebKitCSSMatrixFactoryProvider_create(spec) {
   try {
     return __dom_wrap(new WebKitCSSMatrix(spec));  // string doesn't need unwrap.
@@ -33862,6 +34613,14 @@ function native__WebKitCSSMatrixFactoryProvider_create(spec) {
 function native__WebKitPointFactoryProvider_create(x, y) {
   try {
     return __dom_wrap(new WebKitPoint(x, y));  // nums don't need unwrap.
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebSocketFactoryProvider_create(url) {
+  try {
+    return __dom_wrap(new WebSocket(url));  // string doesn't need unwrap.
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -34328,7 +35087,6 @@ var __dom_type_map = {
   "Uint32Array": native__Uint32ArrayWrappingImplementation_create__Uint32ArrayWrappingImplementation,
   "Uint8Array": native__Uint8ArrayWrappingImplementation_create__Uint8ArrayWrappingImplementation,
   "ValidityState": native__ValidityStateWrappingImplementation_create__ValidityStateWrappingImplementation,
-  "VoidCallback": native__VoidCallbackWrappingImplementation_create__VoidCallbackWrappingImplementation,
   "WaveShaperNode": native__WaveShaperNodeWrappingImplementation_create__WaveShaperNodeWrappingImplementation,
   "WebGLActiveInfo": native__WebGLActiveInfoWrappingImplementation_create__WebGLActiveInfoWrappingImplementation,
   "WebGLBuffer": native__WebGLBufferWrappingImplementation_create__WebGLBufferWrappingImplementation,

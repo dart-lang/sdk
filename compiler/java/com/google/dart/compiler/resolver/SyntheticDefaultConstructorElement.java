@@ -9,7 +9,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
-import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
 import java.util.Collections;
@@ -35,8 +34,7 @@ public class SyntheticDefaultConstructorElement implements ConstructorElement {
               null,
               typeProvider.getFunctionType().getElement(),
               getParameters(),
-              typeProvider.getDynamicType(),
-              Collections.<TypeVariable>emptyList());
+              typeProvider.getDynamicType());
     } else {
       functionType = null;
     }

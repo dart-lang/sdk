@@ -22,6 +22,8 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
       "Default values can not be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
+  DEPRECATED_USE_OF_FACTORY_KEYWORD(ErrorSeverity.WARNING, 
+      "Deprecated use of the 'factory' keyword: use 'default' instead"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
   EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
@@ -50,6 +52,7 @@ public enum ParserErrorCode implements ErrorCode {
   FOR_IN_WITH_VARIABLE_INITIALIZER("Cannot initialize for-in variables"),
   FUNCTION_TYPED_PARAMETER_IS_FINAL("Formal parameter with a function type cannot be const"),
   FUNCTION_TYPED_PARAMETER_IS_VAR("Formal parameter with a function type cannot be var"),
+  FUNCTION_NAME_EXPECTED_IDENTIFIER("Function name expected to be an identifier"),
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
   INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
@@ -89,14 +92,17 @@ public enum ParserErrorCode implements ErrorCode {
     this.message = message;
   }
 
+  @Override
   public String getMessage() {
     return message;
   }
 
+  @Override
   public ErrorSeverity getErrorSeverity() {
     return severity;
   }
 
+  @Override
   public SubSystem getSubSystem() {
     return SubSystem.PARSER;
   }

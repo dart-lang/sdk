@@ -203,26 +203,30 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
 
 
 // The result is invalid if it is outside the range
-// Smi::kMaxValue..Smi::kMinValue.
+// Smi::kMinValue..Smi::kMaxValue.
 static int64_t BinaryOpWithTwoSmis(Token::Kind operation,
                                    const Smi& left,
                                    const Smi& right) {
   switch (operation) {
     case Token::kADD:
+      // TODO(regis): We may need an overflow check in 64-bit mode. Revisit.
       return left.Value() + right.Value();
     case Token::kSUB:
       return left.Value() - right.Value();
     case Token::kMUL: {
-#if defined(TARGET_ARCH_X64)
-      // Overflow check for 64-bit platforms unimplemented.
-      UNIMPLEMENTED();
-      return 0;
-#else
-      int64_t result_64 =
-          static_cast<int64_t>(left.Value()) *
-          static_cast<int64_t>(right.Value());
-      return result_64;
-#endif
+      // TODO(regis): Using Bigint here may be a performance issue. Revisit.
+      const Bigint& big_left =
+          Bigint::Handle(BigintOperations::NewFromSmi(left));
+      const Bigint& big_right =
+          Bigint::Handle(BigintOperations::NewFromSmi(right));
+      const Bigint& big_result =
+          Bigint::Handle(BigintOperations::Multiply(big_left, big_right));
+      if (BigintOperations::FitsIntoInt64(big_result)) {
+        return BigintOperations::ToInt64(big_result);
+      } else {
+        // Overflow, return an invalid Smi.
+        return Smi::kMaxValue + 1;
+      }
     }
     case Token::kTRUNCDIV:
       return left.Value() / right.Value();
@@ -285,8 +289,14 @@ static RawInteger* IntegerBinopHelper(Token::Kind operation,
     if (Smi::IsValid64(result)) {
       return Smi::New(result);
     } else {
+      // TODO(regis): This is not going to work on x64. Check other operations.
+#if defined(TARGET_ARCH_X64)
+      UNIMPLEMENTED();
+      return 0;
+#else
       // Overflow to Mint.
       return Mint::New(result);
+#endif
     }
   } else if (AreBoth64bitOperands(left_int, right_int)) {
     // TODO(srdjan): Test for overflow of result instead of operand

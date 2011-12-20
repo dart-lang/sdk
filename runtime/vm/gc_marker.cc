@@ -119,7 +119,9 @@ class MarkingVisitor : public ObjectPointerVisitor {
       : heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(page_space),
-        marking_stack_(marking_stack) {}
+        marking_stack_(marking_stack) {
+    ASSERT(heap_ != vm_heap_);
+  }
 
   MarkingStack* marking_stack() const { return marking_stack_; }
 
@@ -132,12 +134,17 @@ class MarkingVisitor : public ObjectPointerVisitor {
  private:
   void MarkAndPush(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
+    ASSERT(page_space_->Contains(RawObject::ToAddr(raw_obj)));
 
     // Mark the object and push it on the marking stack.
     ASSERT(!raw_obj->IsMarked());
     RawClass* raw_class = raw_obj->ptr()->class_;
     raw_obj->SetMarkBit();
     marking_stack_->Push(raw_obj);
+
+    // Update the number of used bytes on this page for fast accounting.
+    HeapPage* page = PageSpace::PageFor(raw_obj);
+    page->AddUsed(raw_obj->Size());
 
     // TODO(iposva): Should we mark the classes early?
     MarkObject(raw_class);
@@ -162,7 +169,11 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
     // TODO(iposva): merge old and code spaces.
-    // ASSERT(page_space_->Contains(raw_addr));
+    ASSERT(heap_->Contains(raw_addr));
+    if (!page_space_->Contains(raw_addr)) {
+      // TODO(iposva): Skip code space if marking data space and vice-versa.
+      return;
+    }
 
     MarkAndPush(raw_obj);
   }
@@ -185,6 +196,7 @@ void GCMarker::IterateRoots(Isolate* isolate, MarkingVisitor* visitor) {
   isolate->VisitObjectPointers(visitor,
                                StackFrameIterator::kDontValidateFrames);
   heap_->IterateNewPointers(visitor);
+  heap_->IterateCodePointers(visitor);
 }
 
 

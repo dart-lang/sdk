@@ -117,19 +117,18 @@ void testReadLine1() {
       Expect.equals("Line", line);
       line = stream.readLine();
       Expect.equals(null, line);
-      Expect.equals(true, stream.closed);
       stage++;
     }
   }
 
   void streamClosed() {
+    Expect.equals(true, stream.closed);
     Expect.equals(2, stage);
   }
 
   stream.dataHandler = stringData;
   stream.closeHandler = streamClosed;
   s.write("Line".charCodes());
-  Expect.equals(2, stage);
 }
 
 void testReadLine2() {
@@ -174,19 +173,18 @@ void testReadLine2() {
       Expect.equals("", line);
       line = stream.readLine();
       Expect.equals(null, line);
-      Expect.equals(true, stream.closed);
       stage++;
     }
   }
 
   void streamClosed() {
     Expect.equals(4, stage);
+    Expect.equals(true, stream.closed);
   }
 
   stream.lineHandler = stringData;
   stream.closeHandler = streamClosed;
   s.write("Line1\nLine2\r\nLine3\rLi".charCodes());
-  Expect.equals(4, stage);
 }
 
 main() {

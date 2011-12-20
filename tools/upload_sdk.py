@@ -5,8 +5,11 @@
 # found in the LICENSE file.
 
 # This zips the SDK and uploads it to Google Storage when run on a buildbot.
+#
+# Usage: upload_sdk.py path_to_sdk
 
 import os
+import os.path
 import subprocess
 import sys
 import utils
@@ -15,8 +18,8 @@ import utils
 GSUTIL = '/b/build/scripts/slave/gsutil'
 GS_SITE = 'gs://'
 GS_DIR = 'dart-dump-render-tree'
-LATEST = 'latest'
-SDK = 'sdk'
+GS_SDK_DIR = 'sdk'
+SDK_LOCAL_ZIP = "dart-sdk.zip"
 
 def ExecuteCommand(cmd):
   """Execute a command in a subprocess.
@@ -58,27 +61,45 @@ def Usage(progname):
 
 
 def main(argv):
+  #allow local editor builds to deploy to a different bucket
+  if os.environ.has_key('DART_LOCAL_BUILD'):
+    gsdir = os.environ['DART_LOCAL_BUILD']
+  else:
+    gsdir = GS_DIR
+    
   if not os.path.exists(argv[1]):
     sys.stderr.write('Path not found: %s\n' % argv[1])
     Usage(argv[0])
     return 1
   if not os.path.exists(GSUTIL):
+    #TODO: Determine where we are running, if we're running on a buildbot we
+    #should fail with a message.  
+    #If we are not on a buildbot then fail silently. 
     exit(0)
   revision = GetSVNRevision()
   if revision is None:
     sys.stderr.write('Unable to find SVN revision.\n')
     return 1
-  os.chdir(argv[1])
+  os.chdir(os.path.dirname(argv[1]))
+  with open(os.path.join(os.path.basename(argv[1]), 'revision'), 'w') as f:
+    f.write(revision + '\n')
+
+  if (os.path.basename(os.path.dirname(argv[1])) ==
+      utils.GetBuildConf('release', 'ia32')):
+    sdk_suffix = ''
+  else:
+    sdk_suffix = '-debug'
   # TODO(dgrove) - deal with architectures that are not ia32.
-  sdk_name = 'dart-' + utils.GuessOS() + '-' + revision + '.zip'
-  sdk_file = '../' + sdk_name
-  ExecuteCommand(['zip', '-yr', sdk_file, '.'])
-  UploadArchive(sdk_file, GS_SITE + os.path.join(GS_DIR, SDK, sdk_name))
-  latest_name = 'dart-' + utils.GuessOS() + '-latest' + '.zip'
-  UploadArchive(sdk_file, GS_SITE + os.path.join(GS_DIR, SDK, latest_name))
+  sdk_file = 'dart-%s-%s%s.zip' % (utils.GuessOS(), revision, sdk_suffix)
+  if (os.path.exists(SDK_LOCAL_ZIP)):
+    os.remove(SDK_LOCAL_ZIP)
+  ExecuteCommand(['zip', '-yr', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
+  UploadArchive(SDK_LOCAL_ZIP,
+                GS_SITE + os.path.join(gsdir, GS_SDK_DIR, sdk_file))
+  latest_name = 'dart-%s-latest%s.zip' % (utils.GuessOS(), sdk_suffix)
+  UploadArchive(SDK_LOCAL_ZIP,
+                GS_SITE + os.path.join(gsdir, GS_SDK_DIR, latest_name))
 
 
 if __name__ == '__main__':
   sys.exit(main(sys.argv))
-
-

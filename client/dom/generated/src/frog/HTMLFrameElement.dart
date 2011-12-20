@@ -26,4 +26,6 @@ class HTMLFrameElement extends HTMLElement native "*HTMLFrameElement" {
   String src;
 
   int width;
+
+  SVGDocument getSVGDocument() native;
 }

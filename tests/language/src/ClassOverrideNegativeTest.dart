@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test fails in checked mode because incompatible overriding method
-// VMOptions=--enable_type_checks
+// 8.1 Methods: It is a compile-time error if an interface method m1 overrides 
+// an interface method m2 and has a different number of required parameters.
 
 class A {
   foo() {}
@@ -13,11 +13,8 @@ class B extends A {
   foo(a) { }
 }
 
-class ClassOverrideNegativeTest {
-  static testMain() {
-  }
-}
-
 main() {
-  ClassOverrideNegativeTest.testMain();
+  B instance = new B();
+  instance.foo(1);
+  print("Success");
 }

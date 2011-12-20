@@ -41,6 +41,7 @@ TimerCancel2Test: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory
+StreamPipeTest: Skip # Uses Socket
 StringStreamTest: Skip # Uses InputStream
 StatusFileParserTest: Skip # Uses FileInputStream
 OptionsTest: Skip # Expects options being passed from command line.

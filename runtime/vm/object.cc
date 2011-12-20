@@ -1366,9 +1366,9 @@ bool Class::IsMoreSpecificThan(
           // The type arguments of this type that are referred to by the type
           // parameters of the interface are at the end of the type vector,
           // after the type arguments of the super type of this type.
-          const intptr_t offset = NumTypeArguments() - NumTypeParameters();
-          interface_args = interface_args.InstantiateFrom(type_arguments,
-                                                          offset);
+          // The index of the type parameters is adjusted upon finalization.
+          ASSERT(interface.IsFinalized());
+          interface_args = interface_args.InstantiateFrom(type_arguments);
           // TODO(regis): Check the subtyping constraints if any, i.e. if
           // interface.type_parameter_extends() is not an array of DynamicType.
           // Should we pass the constraints to InstantiateFrom and it would
@@ -1405,7 +1405,7 @@ bool Class::IsMoreSpecificThan(
 
 
 bool Class::IsTopLevel() const {
-  return String::Handle(Name()).Length() == 0;
+  return String::Handle(Name()).Equals("::");
 }
 
 
@@ -1620,6 +1620,23 @@ const char* Class::ToCString() const {
 }
 
 
+void Class::InsertCanonicalConstant(intptr_t index,
+                                    const Instance& constant) const {
+  // The constant needs to be added to the list. Grow the list if it is full.
+  Array& canonical_list = Array::Handle(constants());
+  const intptr_t list_len = canonical_list.Length();
+  if (index >= list_len) {
+    const intptr_t new_length = (list_len == 0) ? 4 : list_len + 4;
+    const Array& new_canonical_list =
+        Array::Handle(Array::Grow(canonical_list, new_length, Heap::kOld));
+    set_constants(new_canonical_list);
+    new_canonical_list.SetAt(index, constant);
+  } else {
+    canonical_list.SetAt(index, constant);
+  }
+}
+
+
 RawUnresolvedClass* UnresolvedClass::New(intptr_t token_index,
                                          const String& qualifier,
                                          const String& ident) {
@@ -1746,8 +1763,7 @@ bool AbstractType::Equals(const AbstractType& other) const {
 
 
 RawAbstractType* AbstractType::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -1794,8 +1810,9 @@ RawString* AbstractType::Name() const {
       }
       const Function& signature_function = Function::Handle(
           cls.signature_function());
-      return signature_function.InstantiatedSignatureFrom(
-          args, first_type_param_index);
+      // Signature classes have no super type.
+      ASSERT(first_type_param_index == 0);
+      return signature_function.InstantiatedSignatureFrom(args);
     }
   } else {
     const UnresolvedClass& cls = UnresolvedClass::Handle(unresolved_class());
@@ -2095,14 +2112,12 @@ bool Type::IsInstantiated() const {
 
 
 RawAbstractType* Type::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   ASSERT(IsFinalized());
   ASSERT(!IsInstantiated());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(arguments());
-  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
-                                                  offset);
+  type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments);
   const Class& cls = Class::Handle(type_class());
   ASSERT(cls.is_finalized());
   Type& instantiated_type = Type::Handle(Type::New(cls, type_arguments));
@@ -2138,41 +2153,43 @@ RawAbstractType* Type::Canonicalize() const {
   Array& canonical_types = Array::Handle(cls.canonical_types());
   if (canonical_types.IsNull()) {
     // Types defined in the VM isolate are canonicalized via the object store.
-    // TODO(regis): Should we add null_class_, void_class_, dynamic_class_ to
-    // the object store, remove all types from the object store, and replace
-    // the test above by an assert?
     return this->raw();
   }
-  const intptr_t canonical_types_len = canonical_types.Length();
-  // Linear search to see whether this type is already present in the
-  // list of canonicalized types.
-  Type& type = Type::Handle();
-  intptr_t index = 0;
-  while (index < canonical_types_len) {
-    type ^= canonical_types.At(index);
-    if (type.IsNull()) {
-      break;
-    }
-    if (!type.IsFinalized()) {
-      ASSERT((index == 0) && cls.IsSignatureClass());
+  if (!IsCanonical()) {
+    const intptr_t canonical_types_len = canonical_types.Length();
+    // Linear search to see whether this type is already present in the
+    // list of canonicalized types.
+    // TODO(asiva): Try to re-factor this lookup code to make sharing
+    // easy between the 4 versions of this loop.
+    Type& type = Type::Handle();
+    intptr_t index = 0;
+    while (index < canonical_types_len) {
+      type ^= canonical_types.At(index);
+      if (type.IsNull()) {
+        break;
+      }
+      if (!type.IsFinalized()) {
+        ASSERT((index == 0) && cls.IsSignatureClass());
+        index++;
+        continue;
+      }
+      if (this->Equals(type)) {
+        return type.raw();
+      }
       index++;
-      continue;
     }
-    if (this->Equals(type)) {
-      return type.raw();
+    // The type needs to be added to the list. Grow the list if it is full.
+    if (index == canonical_types_len) {
+      const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
+      const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
+      const Array& new_canonical_types =
+          Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
+      cls.set_canonical_types(new_canonical_types);
+      new_canonical_types.SetAt(index, *this);
+    } else {
+      canonical_types.SetAt(index, *this);
     }
-    index++;
-  }
-  // The type needs to be added to the list. Grow the list if it is full.
-  if (index == canonical_types_len) {
-    const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
-    const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
-    const Array& new_canonical_types =
-        Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
-    cls.set_canonical_types(new_canonical_types);
-    new_canonical_types.SetAt(index, *this);
-  } else {
-    canonical_types.SetAt(index, *this);
+    SetCanonical();
   }
   return this->raw();
 }
@@ -2247,6 +2264,12 @@ const char* Type::ToCString() const {
 }
 
 
+void TypeParameter::set_is_finalized() const {
+  ASSERT(!IsFinalized());
+  set_type_state(RawTypeParameter::kFinalized);
+}
+
+
 bool TypeParameter::Equals(const AbstractType& other) const {
   if (raw() == other.raw()) {
     return true;
@@ -2273,12 +2296,12 @@ void TypeParameter::set_name(const String& value) const {
 
 
 RawAbstractType* TypeParameter::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
+  ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  return instantiator_type_arguments.TypeAt(Index() + offset);
+  return instantiator_type_arguments.TypeAt(Index());
 }
 
 
@@ -2296,7 +2319,16 @@ RawTypeParameter* TypeParameter::New(intptr_t index, const String& name) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_index(index);
   result.set_name(name);
+  result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
   return result.raw();
+}
+
+
+void TypeParameter::set_type_state(int8_t state) const {
+  ASSERT(state == RawTypeParameter::kAllocated ||
+         state == RawTypeParameter::kBeingFinalized ||
+         state == RawTypeParameter::kFinalized);
+  raw_ptr()->type_state_ = state;
 }
 
 
@@ -2442,8 +2474,7 @@ bool AbstractTypeArguments::AreEqual(
 
 
 RawAbstractTypeArguments* AbstractTypeArguments::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
   return NULL;
@@ -2510,7 +2541,7 @@ RawAbstractType* TypeArguments::TypeAt(intptr_t index) const {
 
 
 void TypeArguments::SetTypeAt(intptr_t index, const AbstractType& value) const {
-  ASSERT(!is_canonical());
+  ASSERT(!IsCanonical());
   // TODO(iposva): Add storing NoGCScope.
   *TypeAddr(index) = value.raw();
 }
@@ -2558,11 +2589,9 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
 
 
 RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
-    const AbstractTypeArguments& instantiator_type_arguments,
-    intptr_t offset) const {
+    const AbstractTypeArguments& instantiator_type_arguments) const {
   ASSERT(!IsInstantiated());
-  if ((offset == 0) &&
-      !instantiator_type_arguments.IsNull() &&
+  if (!instantiator_type_arguments.IsNull() &&
       IsUninstantiatedIdentity() &&
       (instantiator_type_arguments.Length() == Length())) {
     return instantiator_type_arguments.raw();
@@ -2574,7 +2603,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsInstantiated()) {
-      type = type.InstantiateFrom(instantiator_type_arguments, offset);
+      type = type.InstantiateFrom(instantiator_type_arguments);
     }
     instantiated_array.SetTypeAt(i, type);
   }
@@ -2598,7 +2627,6 @@ RawTypeArguments* TypeArguments::New(intptr_t len) {
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.set_is_canonical(false);
     // Length must be set before we start storing into the array.
     result.SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
@@ -2618,7 +2646,7 @@ RawAbstractType** TypeArguments::TypeAddr(intptr_t index) const {
 
 
 void TypeArguments::SetLength(intptr_t value) {
-  ASSERT(!is_canonical());
+  ASSERT(!IsCanonical());
   // This is only safe because we create a new Smi, which does not cause
   // heap allocation.
   raw_ptr()->length_ = Smi::New(value);
@@ -2626,7 +2654,7 @@ void TypeArguments::SetLength(intptr_t value) {
 
 
 RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
-  if (IsNull() || is_canonical() || !IsInstantiated()) {
+  if (IsNull() || IsCanonical() || !IsInstantiated()) {
     return this->raw();
   }
   ObjectStore* object_store = Isolate::Current()->object_store();
@@ -2648,18 +2676,8 @@ RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
     object_store->set_canonical_type_arguments(table);
   }
   table.SetAt(index, *this);
-  this->set_is_canonical(true);
+  SetCanonical();
   return this->raw();
-}
-
-
-bool TypeArguments::is_canonical() const {
-  return raw_ptr()->is_canonical_;
-}
-
-
-void TypeArguments::set_is_canonical(bool value) const {
-  raw_ptr()->is_canonical_ = value;
 }
 
 
@@ -3053,7 +3071,7 @@ bool Function::TestParameterType(
   AbstractType& param_type =
       AbstractType::Handle(ParameterTypeAt(parameter_position));
   if (!param_type.IsInstantiated()) {
-    param_type = param_type.InstantiateFrom(type_arguments, 0);
+    param_type = param_type.InstantiateFrom(type_arguments);
   }
   if (param_type.IsDynamicType()) {
     return true;
@@ -3061,8 +3079,7 @@ bool Function::TestParameterType(
   AbstractType& other_param_type =
       AbstractType::Handle(other.ParameterTypeAt(parameter_position));
   if (!other_param_type.IsInstantiated()) {
-    other_param_type =
-        other_param_type.InstantiateFrom(other_type_arguments, 0);
+    other_param_type = other_param_type.InstantiateFrom(other_type_arguments);
   }
   if (other_param_type.IsDynamicType()) {
     return true;
@@ -3092,12 +3109,12 @@ bool Function::TestType(
   // Check the result type.
   AbstractType& other_res_type = AbstractType::Handle(other.result_type());
   if (!other_res_type.IsInstantiated()) {
-    other_res_type = other_res_type.InstantiateFrom(other_type_arguments, 0);
+    other_res_type = other_res_type.InstantiateFrom(other_type_arguments);
   }
   if (!other_res_type.IsDynamicType() && !other_res_type.IsVoidType()) {
     AbstractType& res_type = AbstractType::Handle(result_type());
     if (!res_type.IsInstantiated()) {
-      res_type = res_type.InstantiateFrom(type_arguments, 0);
+      res_type = res_type.InstantiateFrom(type_arguments);
     }
     if (!res_type.IsDynamicType() &&
         (res_type.IsVoidType() ||
@@ -3277,7 +3294,9 @@ RawFunction* Function::ImplicitClosureFunction() const {
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
     String& errmsg = String::Handle();
-    ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
+    ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                signature_type,
+                                                &errmsg);
     ASSERT(errmsg.IsNull());
   }
   ASSERT(closure_function.signature_class() == signature_class.raw());
@@ -3297,9 +3316,9 @@ static RawArray* NewArray(const GrowableArray<T*>& objs) {
 }
 
 
-RawString* Function::BuildSignature(bool instantiate,
-                                    const AbstractTypeArguments& instantiator,
-                                    intptr_t offset) const {
+RawString* Function::BuildSignature(
+    bool instantiate,
+    const AbstractTypeArguments& instantiator) const {
   GrowableArray<const String*> pieces;
   const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
   const String& kColonSpace = String::Handle(String::NewSymbol(": "));
@@ -3348,7 +3367,7 @@ RawString* Function::BuildSignature(bool instantiate,
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
     if (instantiate && !param_type.IsInstantiated()) {
-      param_type = param_type.InstantiateFrom(instantiator, offset);
+      param_type = param_type.InstantiateFrom(instantiator);
     }
     pieces.Add(&String::ZoneHandle(param_type.Name()));
     if (i != (num_params - 1)) {
@@ -3362,7 +3381,7 @@ RawString* Function::BuildSignature(bool instantiate,
       pieces.Add(&kColonSpace);
       param_type = ParameterTypeAt(i);
       if (instantiate && !param_type.IsInstantiated()) {
-        param_type = param_type.InstantiateFrom(instantiator, offset);
+        param_type = param_type.InstantiateFrom(instantiator);
       }
       ASSERT(!param_type.IsNull());
       pieces.Add(&String::ZoneHandle(param_type.Name()));
@@ -3375,7 +3394,7 @@ RawString* Function::BuildSignature(bool instantiate,
   pieces.Add(&kRParen);
   AbstractType& res_type = AbstractType::Handle(result_type());
   if (instantiate && !res_type.IsInstantiated()) {
-    res_type = res_type.InstantiateFrom(instantiator, offset);
+    res_type = res_type.InstantiateFrom(instantiator);
   }
   pieces.Add(&String::Handle(res_type.Name()));
   const Array& strings = Array::Handle(NewArray<const String>(pieces));
@@ -4998,7 +5017,9 @@ bool Instance::Equals(const Instance& other) const {
     ASSERT(instance_size != 0);
     uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
     uword other_addr = reinterpret_cast<uword>(other.raw_ptr());
-    for (intptr_t offset = 0; offset < instance_size; offset += kWordSize) {
+    for (intptr_t offset = sizeof(RawObject);
+         offset < instance_size;
+         offset += kWordSize) {
       if ((*reinterpret_cast<RawObject**>(this_addr + offset)) !=
           (*reinterpret_cast<RawObject**>(other_addr + offset))) {
         return false;
@@ -5011,36 +5032,29 @@ bool Instance::Equals(const Instance& other) const {
 
 RawInstance* Instance::Canonicalize() const {
   ASSERT(!IsNull());
-  const Class& cls = Class::Handle(this->clazz());
-  Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Instance& norm_value = Instance::Handle();
-  intptr_t index = 0;
-  while (index < constants_len) {
-    norm_value ^= constants.At(index);
-    if (norm_value.IsNull()) {
-      break;
+  if (!IsCanonical()) {
+    const Class& cls = Class::Handle(this->clazz());
+    Array& constants = Array::Handle(cls.constants());
+    const intptr_t constants_len = constants.Length();
+    // Linear search to see whether this value is already present in the
+    // list of canonicalized constants.
+    Instance& norm_value = Instance::Handle();
+    intptr_t index = 0;
+    while (index < constants_len) {
+      norm_value ^= constants.At(index);
+      if (norm_value.IsNull()) {
+        break;
+      }
+      if (this->Equals(norm_value)) {
+        return norm_value.raw();
+      }
+      index++;
     }
-    if (this->Equals(norm_value)) {
-      return norm_value.raw();
-    }
-    index++;
-  }
-  // The value needs to be added to the list. Grow the list if
-  // it is full.
-  if (index == constants_len) {
-    const intptr_t kInitialConstLength = 4;
-    const intptr_t old_length = constants.Length();
-    const intptr_t new_length =
-        (old_length == 0) ? kInitialConstLength : old_length * 2;
-    const Array& new_constants =
-        Array::Handle(Array::Grow(constants, new_length, Heap::kOld));
-    cls.set_constants(new_constants);
-    new_constants.SetAt(index, *this);
-  } else {
-    constants.SetAt(index, *this);
+    // The value needs to be added to the list. Grow the list if
+    // it is full.
+    // TODO(srdjan): Copy instance into old space if canonicalized?
+    cls.InsertCanonicalConstant(index, *this);
+    SetCanonical();
   }
   return this->raw();
 }
@@ -5124,7 +5138,7 @@ bool Instance::TestType(TypeTestKind test,
   Class& other_class = Class::Handle();
   AbstractTypeArguments& other_type_arguments = AbstractTypeArguments::Handle();
   // In case 'other' is not instantiated, we could simply call
-  // other.InstantiateFrom(other_instantiator, 0), however, we can save the
+  // other.InstantiateFrom(other_instantiator), however, we can save the
   // allocation of a new AbstractType by inlining the code.
   if (other.IsTypeParameter()) {
     AbstractType& instantiated_other = AbstractType::Handle();
@@ -5142,7 +5156,7 @@ bool Instance::TestType(TypeTestKind test,
     if (!other_type_arguments.IsNull() &&
         !other_type_arguments.IsInstantiated()) {
       other_type_arguments =
-          other_type_arguments.InstantiateFrom(other_instantiator, 0);
+          other_type_arguments.InstantiateFrom(other_instantiator);
     }
   }
   return cls.TestType(test, type_arguments, other_class, other_type_arguments);
@@ -5377,6 +5391,36 @@ RawMint* Mint::New(int64_t val, Heap::Space space) {
 }
 
 
+RawMint* Mint::NewCanonical(int64_t value) {
+  // Do not allocate a Mint if Smi would do.
+  ASSERT(!Smi::IsValid64(value));
+  const Class& cls =
+      Class::Handle(Isolate::Current()->object_store()->mint_class());
+  const Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Mint& canonical_value = Mint::Handle();
+  intptr_t index = 0;
+  while (index < constants_len) {
+    canonical_value ^= constants.At(index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.value() == value) {
+      return canonical_value.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  canonical_value = Mint::New(value, Heap::kOld);
+  cls.InsertCanonicalConstant(index, canonical_value);
+  canonical_value.SetCanonical();
+  return canonical_value.raw();
+}
+
+
 bool Mint::Equals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     // Both handles point to the same raw instance.
@@ -5447,6 +5491,28 @@ void Double::set_value(double value) const {
 }
 
 
+bool Double::EqualsToDouble(double value) const {
+  intptr_t value_offset = Double::value_offset();
+  void* this_addr = reinterpret_cast<void*>(
+      reinterpret_cast<uword>(this->raw_ptr()) + value_offset);
+  void* other_addr = reinterpret_cast<void*>(&value);
+  return (memcmp(this_addr, other_addr, sizeof(value)) == 0);
+}
+
+
+bool Double::Equals(const Instance& other) const {
+  if (this->raw() == other.raw()) {
+    return true;  // "===".
+  }
+  if (other.IsNull() || !other.IsDouble()) {
+    return false;
+  }
+  Double& other_dbl = Double::Handle();
+  other_dbl ^= other.raw();
+  return EqualsToDouble(other_dbl.value());
+}
+
+
 RawDouble* Double::New(double d, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
   const Class& cls =
@@ -5467,17 +5533,64 @@ static bool IsWhiteSpace(char ch) {
 }
 
 
-RawDouble* Double::New(const String& str, Heap::Space space) {
+static bool StringToDouble(const String& str, double* double_value) {
+  ASSERT(double_value != NULL);
   // TODO(regis): For now, we use strtod to convert a string to double.
   const char* nptr = str.ToCString();
   char* endptr = NULL;
-  double double_value = strtod(nptr, &endptr);
+  *double_value = strtod(nptr, &endptr);
   // We do not treat overflow or underflow as an error and therefore do not
   // check errno for ERANGE.
   if (!IsWhiteSpace(*endptr)) {
+    return false;
+  }
+  return true;
+}
+
+
+RawDouble* Double::New(const String& str, Heap::Space space) {
+  double double_value;
+  if (!StringToDouble(str, &double_value)) {
     return Double::Handle().raw();
   }
   return New(double_value, space);
+}
+
+
+RawDouble* Double::NewCanonical(double value) {
+  const Class& cls =
+      Class::Handle(Isolate::Current()->object_store()->double_class());
+  const Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Double& canonical_value = Double::Handle();
+  intptr_t index = 0;
+  while (index < constants_len) {
+    canonical_value ^= constants.At(index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.EqualsToDouble(value)) {
+      return canonical_value.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the constants list. Grow the list if
+  // it is full.
+  canonical_value = Double::New(value, Heap::kOld);
+  cls.InsertCanonicalConstant(index, canonical_value);
+  canonical_value.SetCanonical();
+  return canonical_value.raw();
+}
+
+
+RawDouble* Double::NewCanonical(const String& str) {
+  double double_value;
+  if (!StringToDouble(str, &double_value)) {
+    return Double::Handle().raw();
+  }
+  return NewCanonical(double_value);
 }
 
 
@@ -5836,36 +5949,10 @@ bool String::StartsWith(const String& other) const {
 
 
 RawInstance* String::Canonicalize() const {
+  if (IsCanonical()) {
+    return this->raw();
+  }
   return NewSymbol(*this);
-}
-
-
-bool String::IsSymbol() const {
-  if (!HasHash()) {
-    // All symbols have had their hash calculated.
-    return false;
-  }
-
-  // Get the hash for this string.
-  intptr_t hash = Hash();
-
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  const Array& symbol_table = Array::Handle(object_store->symbol_table());
-  // Last element of the array is the number of used elements.
-  intptr_t table_size = symbol_table.Length() - 1;
-  intptr_t index = hash % table_size;
-
-  // Try to find this string object in the symbol table. The symbol table is
-  // never entirely full so this loop will terminate.
-  String& symbol = String::Handle();
-  symbol ^= symbol_table.At(index);
-  while (!symbol.IsNull() && (raw_ptr() != symbol.raw_ptr())) {
-    index = (index + 1) % table_size;  // Move to next element.
-    symbol ^= symbol_table.At(index);
-  }
-
-  // This string is a symbol if we found a matching entry.
-  return !symbol.IsNull();
 }
 
 
@@ -6178,6 +6265,7 @@ static void InsertIntoSymbolTable(const Array& symbol_table,
                                   const String& symbol,
                                   intptr_t index,
                                   intptr_t table_size) {
+  symbol.SetCanonical();  // Mark object as being canonical.
   symbol_table.SetAt(index, symbol);  // Remember the new symbol.
   Smi& used = Smi::Handle();
   used ^= symbol_table.At(table_size);
@@ -6252,6 +6340,9 @@ template RawString* String::NewSymbol(const uint32_t* characters, intptr_t len);
 
 
 RawString* String::NewSymbol(const String& str) {
+  if (str.IsSymbol()) {
+    return str.raw();
+  }
   return NewSymbol(str, 0, str.Length());
 }
 

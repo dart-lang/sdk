@@ -28,6 +28,85 @@ namespace dart {
   } while (0);
 
 
+#define CHECK_AND_CAST(type, var, param)                                      \
+  if (param == NULL) {                                                        \
+    return Api::Error("%s expects argument '%s' to be non-null.",             \
+                      CURRENT_FUNC, #param);                                  \
+  }                                                                           \
+  type* var = reinterpret_cast<type*>(param);
+
+
+#define CHECK_NOT_NULL(param)                                                 \
+  if (param == NULL) {                                                        \
+    return Api::Error("%s expects argument '%s' to be non-null.",             \
+                      CURRENT_FUNC, #param);                                  \
+  }
+
+
+DART_EXPORT Dart_Handle Dart_StackTraceLength(
+                            Dart_StackTrace trace,
+                            intptr_t* length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_NOT_NULL(length);
+  CHECK_AND_CAST(StackTrace, stack_trace, trace);
+  *length = stack_trace->Length();
+  return Api::True();
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetActivationFrame(
+                            Dart_StackTrace trace,
+                            int frame_index,
+                            Dart_ActivationFrame* frame) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_NOT_NULL(frame);
+  CHECK_AND_CAST(StackTrace, stack_trace, trace);
+  if ((frame_index < 0) || (frame_index >= stack_trace->Length())) {
+    return Api::Error("argument 'frame_index' is out of range for %s",
+                      CURRENT_FUNC);
+  }
+  *frame = reinterpret_cast<Dart_ActivationFrame>(
+       stack_trace->ActivationFrameAt(frame_index));
+  return Api::True();
+}
+
+
+DART_EXPORT void Dart_SetBreakpointHandler(
+                     Dart_BreakpointHandler bp_handler) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  BreakpointHandler* handler =
+      reinterpret_cast<BreakpointHandler*>(bp_handler);
+
+  isolate->debugger()->SetBreakpointHandler(handler);
+}
+
+
+DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
+                            Dart_ActivationFrame activation_frame,
+                            Dart_Handle* function_name,
+                            Dart_Handle* script_url,
+                            intptr_t* line_number) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
+  if (function_name != NULL) {
+    const String& name = String::Handle(frame->QualifiedFunctionName());
+    *function_name = Api::NewLocalHandle(name);
+  }
+  if (script_url != NULL) {
+    const String& url = String::Handle(frame->SourceUrl());
+    *script_url = Api::NewLocalHandle(url);
+  }
+  if (line_number != NULL) {
+    *line_number = frame->LineNumber();
+  }
+  return Api::True();
+}
+
+
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle library_in,
                             Dart_Handle class_name_in,
@@ -42,14 +121,11 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
   UNWRAP_AND_CHECK_PARAM(Library, library, library_in);
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
+  CHECK_NOT_NULL(breakpoint);
 
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::Error(msg);
-  }
-
-  if (breakpoint != NULL) {
-    *breakpoint = NULL;
   }
 
   // Resolve the breakpoint target function.
@@ -57,16 +133,26 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
   const Function& bp_target = Function::Handle(
       debugger->ResolveFunction(library, class_name, function_name));
   if (bp_target.IsNull()) {
-    return Api::Error("Breakpoint target function does not exist");
+    const bool toplevel = class_name.Length() == 0;
+    return Api::Error("%s: could not find function '%s%s%s'",
+                      CURRENT_FUNC,
+                      toplevel ? "" : class_name.ToCString(),
+                      toplevel ? "" : ".",
+                      function_name.ToCString());
   }
 
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   Dart_Handle result = Api::True();
+  *breakpoint = NULL;
   if (setjmp(*jump.Set()) == 0) {
     Breakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
-    if (breakpoint != NULL) {
+    if (bpt == NULL) {
+      const char* target_name = Debugger::QualifiedFunctionName(bp_target);
+      result = Api::Error("%s: no breakpoint location found in '%s'",
+                          CURRENT_FUNC, target_name);
+    } else {
       *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
     }
   } else {

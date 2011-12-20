@@ -104,6 +104,13 @@ public interface DartMangler {
   public String mangleNamedMethod(String methodName, LibraryElement currentLibrary);
 
   /**
+   * Mangles the given method to its _$lookupRTT form.
+   * @return a String that identifies the named form of the member.
+   */
+  public String mangleRttLookupMethod(MethodElement method, LibraryElement currentLibrary);
+  public String mangleRttLookupMethod(String methodName, LibraryElement currentLibrary);
+
+  /**
    * Mangles the given method, so that it does not clash with any built-in JS property or other
    * mangled fields or methods. This method is different than mangleMethod, as it returns
    * the fully qualified mangled name.

@@ -37,7 +37,7 @@ static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
 int64_t DartUtils::GetIntegerValue(Dart_Handle value_obj) {
   ASSERT(Dart_IsInteger(value_obj));
   int64_t value = 0;
-  Dart_Handle result = Dart_IntegerValue(value_obj, &value);
+  Dart_Handle result = Dart_IntegerToInt64(value_obj, &value);
   ASSERT(!Dart_IsError(result));
   return value;
 }

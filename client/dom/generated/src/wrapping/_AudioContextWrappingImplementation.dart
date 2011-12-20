@@ -20,6 +20,12 @@ class _AudioContextWrappingImplementation extends DOMWrapperBase implements Audi
   AudioListener get listener() { return _get_listener(this); }
   static AudioListener _get_listener(var _this) native;
 
+  EventListener get oncomplete() { return _get_oncomplete(this); }
+  static EventListener _get_oncomplete(var _this) native;
+
+  void set oncomplete(EventListener value) { _set_oncomplete(this, value); }
+  static void _set_oncomplete(var _this, EventListener value) native;
+
   num get sampleRate() { return _get_sampleRate(this); }
   static num _get_sampleRate(var _this) native;
 
@@ -87,6 +93,11 @@ class _AudioContextWrappingImplementation extends DOMWrapperBase implements Audi
     return _createLowPass2Filter(this);
   }
   static LowPass2FilterNode _createLowPass2Filter(receiver) native;
+
+  MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement) {
+    return _createMediaElementSource(this, mediaElement);
+  }
+  static MediaElementAudioSourceNode _createMediaElementSource(receiver, mediaElement) native;
 
   AudioPannerNode createPanner() {
     return _createPanner(this);

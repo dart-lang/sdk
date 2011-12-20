@@ -66,6 +66,8 @@ class LocalVariable : public ZoneAllocated {
     is_invisible_ = value;
   }
 
+  bool Equals(const LocalVariable& other) const;
+
  private:
   static const int kUnitializedIndex_ = INT_MIN;
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 interface SomeClass factory SomeClassImpl {
-  SomeClass();
+  SomeClass(arg);
   get message();
 }
 

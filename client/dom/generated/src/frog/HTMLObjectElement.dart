@@ -45,5 +45,7 @@ class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
   bool checkValidity() native;
 
+  SVGDocument getSVGDocument() native;
+
   void setCustomValidity(String error) native;
 }

@@ -135,6 +135,11 @@ class Instr {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
+
+// The largest multibyte nop we will emit.  This could go up to 15 if it
+// becomes important to us.
+const int MAX_NOP_SIZE = 8;
+
 }  // namespace dart
 
 #endif  // VM_CONSTANTS_X64_H_

@@ -12,4 +12,6 @@ class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
   String type;
 
   String width;
+
+  SVGDocument getSVGDocument() native;
 }

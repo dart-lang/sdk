@@ -61,7 +61,7 @@ is 'dart file.dart' and you specify special command
               'component',
               'The component to test against',
               ['-c', '--component'],
-              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg'],
+              ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg', 'dartium'],
               'vm'),
           new _TestOptionSpecification(
               'arch',

@@ -11,5 +11,6 @@ class CorelibTestSuite extends StandardTestSuite {
       : super(configuration,
               "corelib",
               "tests/corelib/src",
-              ["tests/corelib/corelib.status"]);
+              ["tests/corelib/corelib.status",
+               "tests/corelib/corelib-leg.status"]);
 }

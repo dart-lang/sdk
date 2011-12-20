@@ -8,9 +8,10 @@
 #import("test_runner.dart");
 #import("multitest.dart");
 
+#source("browser_test.dart");
 
 interface TestSuite {
-  void forEachTest(Function onTest, [Function onDone]);
+  void forEachTest(Function onTest, Map testCache, [Function onDone]);
 }
 
 
@@ -22,7 +23,7 @@ class CCTestListerIsolate extends Isolate {
       var p = new Process(runnerPath, ["--list"]);
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
       List<String> tests = new List<String>();
-      stdoutStream.dataHandler = () {
+      stdoutStream.lineHandler = () {
         String line = stdoutStream.readLine();
         while (line != null) {
           tests.add(line);
@@ -99,27 +100,46 @@ class CCTestSuite implements TestSuite {
     }
   }
 
-  void forEachTest(Function onTest, [Function onDone]) {
+  void forEachTest(Function onTest, Map testCache, [Function onDone]) {
     doTest = onTest;
     doDone = (ignore) => (onDone != null) ? onDone() : null;
+
+    var filesRead = 0;
+    void statusFileRead() {
+      filesRead++;
+      if (filesRead == statusFilePaths.length) {
+        receiveTestName = new ReceivePort();
+        new CCTestListerIsolate().spawn().then((port) {
+            port.send(runnerPath, receiveTestName.toSendPort());
+            receiveTestName.receive(testNameHandler);
+        });
+      }
+    }
 
     testExpectations =
         new TestExpectations(complexMatching: complexStatusMatching());
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                statusFilePath,
-                               configuration);
+                               configuration,
+                               statusFileRead);
     }
-
-    receiveTestName = new ReceivePort();
-    new CCTestListerIsolate().spawn().then((port) {
-        port.send(runnerPath, receiveTestName.toSendPort());
-        receiveTestName.receive(testNameHandler);
-    });
   }
 
   void completeHandler(TestCase testCase) {
   }
+}
+
+
+class TestInformation {
+  String filename;
+  Map optionsFromFile;
+  bool isNegative;
+  bool isNegativeIfChecked;
+  bool hasFatalTypeErrors;
+
+  TestInformation(this.filename, this.optionsFromFile, this.isNegative,
+                  this.isNegativeIfChecked, this.hasFatalTypeErrors);
 }
 
 
@@ -133,11 +153,14 @@ class StandardTestSuite implements TestSuite {
   int activeTestGenerators = 0;
   bool listingDone = false;
   TestExpectations testExpectations;
+  List<TestInformation> cachedTests;
+  final String pathSeparator;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
-                    List<String> this.statusFilePaths);
+                    List<String> this.statusFilePaths)
+    : pathSeparator = new Platform().pathSeparator();
 
   void isTestFile(String filename) => filename.endsWith("Test.dart");
 
@@ -149,9 +172,32 @@ class StandardTestSuite implements TestSuite {
 
   List<String> additionalOptions() => [];
 
-  void forEachTest(Function onTest, [Function onDone = null]) {
+  void forEachTest(Function onTest, Map testCache, [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
+
+    var filesRead = 0;
+    void statusFileRead() {
+      filesRead++;
+      if (filesRead == statusFilePaths.length) {
+        // Checked if we have already found and generated the tests for
+        // this suite.
+        if (!testCache.containsKey(suiteName)) {
+          cachedTests = testCache[suiteName] = [];
+          processDirectory();
+        } else {
+          // We rely on enqueueing completing asynchronously so use a
+          // timer to make it so.
+          void enqueueCachedTests(Timer ignore) {
+            for (var info in testCache[suiteName]) {
+              enqueueTestCaseFromTestInformation(info);
+            }
+            doDone();
+          }
+          new Timer(enqueueCachedTests, 0);
+        }
+      }
+    }
 
     // Read test expectations from status files.
     testExpectations =
@@ -159,10 +205,9 @@ class StandardTestSuite implements TestSuite {
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                statusFilePath,
-                               configuration);
+                               configuration,
+                               statusFileRead);
     }
-
-    processDirectory();
   }
 
   void processDirectory() {
@@ -176,55 +221,81 @@ class StandardTestSuite implements TestSuite {
     dir.list(recursive: listRecursively());
   }
 
-  Function makeTestCaseCreator(Map optionsFromFile, Map configuration) {
+  void enqueueTestCaseFromTestInformation(TestInformation info) {
+    var filename = info.filename;
+    var optionsFromFile = info.optionsFromFile;
+    var isNegative = info.isNegative;
+
+    // Look up expectations in status files using a modified file path.
+    String testName;
+    int start = filename.lastIndexOf('src' + pathSeparator);
+    if (start != -1) {
+      testName = filename.substring(start + 4, filename.length - 5);
+    } else if (optionsFromFile['isMultitest']) {
+      start = filename.lastIndexOf(pathSeparator);
+      int middle = filename.lastIndexOf('_');
+      testName = filename.substring(start + 1, middle) + pathSeparator +
+          filename.substring(middle + 1, filename.length - 5);
+    } else {
+      // This case is hit by the dartc client compilation
+      // tests. These tests are pretty broken compared to the
+      // rest. They use the .dart suffix in the status files. They
+      // find tests in weird ways (testing that they contain "#").
+      // They need to be redone.
+      start = filename.indexOf(directoryPath);
+      testName = filename.substring(start + directoryPath.length + 1,
+                                    filename.length);
+    }
+    Set<String> expectations = testExpectations.expectations(testName);
+    if (configuration["report"]) {
+      // Tests with multiple VMOptions are counted more than once.
+      for (var dummy in optionsFromFile["vmOptions"]) {
+        SummaryReport.add(expectations);
+      }
+    }
+    if (expectations.contains(SKIP)) return;
+
+    if (configuration['component'] == 'dartium') {
+      enqueueDartiumTest(filename, testName, optionsFromFile,
+                         expectations, isNegative);
+      return;
+    }
+    // Only dartc supports fatal type errors. Enable fatal type
+    // errors with a flag and treat tests that have fatal type
+    // errors as negative.
+    var enableFatalTypeErrors =
+        (info.hasFatalTypeErrors && configuration['component'] == 'dartc');
+    var argumentLists = argumentListsFromFile(filename,
+                                              optionsFromFile,
+                                              enableFatalTypeErrors);
+    isNegative = isNegative ||
+        (configuration['checked'] && info.isNegativeIfChecked) ||
+        enableFatalTypeErrors;
+
+    for (var args in argumentLists) {
+      doTest(new TestCase('$suiteName/$testName',
+                          shellPath(),
+                          args,
+                          configuration,
+                          completeHandler,
+                          expectations,
+                          isNegative));
+    }
+  }
+
+  Function makeTestCaseCreator(Map optionsFromFile) {
     return (String filename,
             bool isNegative,
             [bool isNegativeIfChecked = false,
-             bool enableFatalTypeErrors = false]) {
-      // Look up expectations in status files using a modified file path.
-      String pathSeparator = new Platform().pathSeparator();
-      String testName;
-      int start = filename.lastIndexOf('src' + pathSeparator);
-      if (start != -1) {
-        testName = filename.substring(start + 4, filename.length - 5);
-      } else if (optionsFromFile['isMultitest']) {
-        start = filename.lastIndexOf(pathSeparator);
-        int middle = filename.lastIndexOf('_');
-        testName = filename.substring(start + 1, middle) + pathSeparator +
-            filename.substring(middle + 1, filename.length - 5);
-      } else {
-        // This case is hit by the dartc client compilation
-        // tests. These tests are pretty broken compared to the
-        // rest. They use the .dart suffix in the status files. They
-        // find tests in weird ways (testing that they contain "#"). 
-        // They need to be redone.
-        start = filename.indexOf(directoryPath);
-        testName = filename.substring(start + directoryPath.length + 1,
-                                      filename.length);
-      }
-      Set<String> expectations = testExpectations.expectations(testName);
-      if (configuration["report"]) {
-        // Tests with multiple VMOptions are counted more than once.
-        for (var dummy in optionsFromFile["vmOptions"]) {
-          SummaryReport.add(expectations);
-        }
-      }
-      if (expectations.contains(SKIP)) return;
-
-      isNegative = isNegative ||
-          (configuration['checked'] && isNegativeIfChecked);
-      var argumentLists = argumentListsFromFile(filename,
-                                                optionsFromFile,
-                                                enableFatalTypeErrors);
-      for (var args in argumentLists) {
-        doTest(new TestCase('$suiteName/$testName',
-                            shellPath(),
-                            args,
-                            configuration,
-                            completeHandler,
-                            expectations,
-                            isNegative));
-      }
+             bool hasFatalTypeErrors = false]) {
+      // Cache the test information for each test case.
+      var info = new TestInformation(filename,
+                                     optionsFromFile,
+                                     isNegative,
+                                     isNegativeIfChecked,
+                                     hasFatalTypeErrors);
+      cachedTests.add(info);
+      enqueueTestCaseFromTestInformation(info);
     };
   }
 
@@ -236,22 +307,114 @@ class StandardTestSuite implements TestSuite {
     if (!pattern.hasMatch(filename)) return;
 
     var optionsFromFile = optionsFromFile(filename);
-    Function createTestCase =
-        makeTestCaseCreator(optionsFromFile, configuration);
+    Function createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
-      bool supportsFatalTypeErrors = (configuration['component'] == 'dartc');
       testGeneratorStarted();
       DoMultitest(filename,
-                  TestUtils.buildDir(configuration),
+                  TestUtils.outputDir(configuration),
                   directoryPath,
-                  supportsFatalTypeErrors,
                   createTestCase,
                   testGeneratorDone);
     } else {
       createTestCase(filename, optionsFromFile['isNegative']);
     }
   }
+
+  void enqueueDartiumTest(String filename,
+                          String testName,
+                          Map optionsFromFile,
+                          Set<String> expectations,
+                          bool isNegative) {
+    if (optionsFromFile['isMultitest']) return;
+    bool isWebTest = optionsFromFile['containsDomImport'];
+    bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
+    if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
+      print('Warning for $filename: Browser tests require #library ' +
+            'in any file that uses #import or #source');
+    }      
+
+    Directory tempDir = new Directory((isWebTest ? 'client/' : '') +
+                                      TestUtils.buildDir(configuration) +
+                                      'tmp');
+    // TODO(whesse): When implementing client web tests,
+    // create directory in the client case, if it doesn't exist.
+    tempDir.createTempSync();
+
+    String dartTestFilename = new File(filename).fullPathSync();
+    String dartWrapperFilename = '${tempDir.path}/test.dart';
+    if (!isWebTest) {
+      // test.dart will import the dart test directly, if it is a library,
+      // or indirectly through test_as_library.dart, if it is not.
+      String dartLibraryFilename;
+      if (isLibraryDefinition) {
+        dartLibraryFilename = dartTestFilename;
+      } else {
+        dartLibraryFilename = 'test_as_library.dart';
+        File file = new File('${tempDir.path}/$dartLibraryFilename');
+        RandomAccessFile dartLibrary = file.openSync(writable: true);
+        dartLibrary.writeStringSync(WrapDartTestInLibrary(dartTestFilename));
+        dartLibrary.closeSync();
+      }  
+      
+      File file = new File(dartWrapperFilename);
+      RandomAccessFile dartWrapper = file.openSync(writable: true);
+      dartWrapper.writeStringSync(dartTestWrapper(dartLibraryFilename));
+      dartWrapper.closeSync();
+    } else {
+      return;  // TODO(whesse): Implement client web tests on dartium.
+    }
+    // Create the HTML file for the test.
+    File htmlTestBase = new File('${tempDir.path}/${getHtmlName(filename)}');
+    RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
+    htmlTest.writeStringSync(GetHtmlContents(
+        filename,
+        'client/testing/unittest/test_controller.js',
+        scriptType,
+        dartWrapperFilename));
+    htmlTest.closeSync();
+
+    for (var vmOptions in optionsFromFile["vmOptions"]) {
+      var drtFlags = ['-no-timeout'];
+      var dartFlags = ['--enable_asserts', '--enable_type_checks'];
+      dartFlags.addAll(vmOptions);
+      drtFlags.add('--dart-flags=${Strings.join(dartFlags, " ")}');
+      var args = drtFlags;
+      args.add(htmlTestBase.fullPathSync());
+
+      // Create BrowserTestCase and queue it.
+      var testCase = new BrowserTestCase(
+          testName,
+          '/bin/echo',
+          ['No compilation step for component dartium.'],
+          dumpRenderTreeFilename,
+          args,
+          configuration,
+          completeHandler,
+          expectations, optionsFromFile['isNegative']);
+      doTest(testCase);
+    }        
+  }
+
+  static String dartTestWrapper(String library) {
+    return DartTestWrapper('', '', 'dart:dom',
+                           '../../../tests/isolate/src/TestFramework.dart',
+                           library);
+  }
+
+  static String get scriptType() => 'application/dart';
+
+  String getHtmlName(String filename) {
+    return filename.replaceAll(pathSeparator, '_') + 'dartium.html';
+  }
+
+  static String get dumpRenderTreeFilename() {
+    if (new Platform().operatingSystem() == 'macos') {
+      return 'client/tests/drt/.app/Contents/MacOS/DumpRenderTree';
+    } 
+    return 'client/tests/drt/DumpRenderTree';
+  }
+
 
   void testGeneratorStarted() {
     ++activeTestGenerators;
@@ -279,7 +442,9 @@ class StandardTestSuite implements TestSuite {
                                            bool enableFatalTypeErrors) {
     List args = TestUtils.standardOptions(configuration);
     args.addAll(additionalOptions());
-    if (enableFatalTypeErrors) args.add('--fatal-type-errors');
+    if (enableFatalTypeErrors && configuration['component'] == 'dartc') {
+      args.add('--fatal-type-errors');
+    }
 
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
@@ -302,12 +467,9 @@ class StandardTestSuite implements TestSuite {
     var result = new List<List<String>>();
     Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
     for (var vmOptions in vmOptionsList) {
-      if (isMultitest) {
-        // Make copy of vmOptions, since we will modify it at each iteration.
-        vmOptions = new List<String>.from(vmOptions);
-      }
-      vmOptions.addAll(args);
-      result.add(vmOptions);
+      var options = new List<String>.from(vmOptions);
+      options.addAll(args);
+      result.add(options);
     }
 
     return result;
@@ -319,12 +481,18 @@ class StandardTestSuite implements TestSuite {
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
     RegExp leadingHashRegExp = const RegExp(@"^#", multiLine: true);
     RegExp isolateStubsRegExp = const RegExp(@"// IsolateStubs=(.*)");
-
+    RegExp domImportRegExp =
+        const RegExp(@"^#import.*(dart:(dom|html)|html\.dart).*\)",
+                     multiLine: true);
+    RegExp libraryDefinitionRegExp =
+        const RegExp(@"^#library\(", multiLine: true);
+    RegExp sourceOrImportRegExp =
+        const RegExp(@"^#(source|import)\(", multiLine: true);
+    
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
     // we are interested in will be ascii in any case.
-    File file = new File(filename);
-    file.openSync();
+    RandomAccessFile file = new File(filename).openSync();
     List chars = new List(file.lengthSync());
     var offset = 0;
     while (offset != chars.length) {
@@ -366,13 +534,20 @@ class StandardTestSuite implements TestSuite {
     bool containsLeadingHash = leadingHashRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
+    bool containsDomImport = domImportRegExp.hasMatch(contents);
+    bool isLibraryDefinition = libraryDefinitionRegExp.hasMatch(contents);
+    bool containsSourceOrImport = sourceOrImportRegExp.hasMatch(contents);
+
 
     return { "vmOptions": result,
              "dartOptions": dartOptions,
              "isNegative": isNegative,
              "isMultitest": isMultitest,
              "containsLeadingHash" : containsLeadingHash,
-             "isolateStubs" : isolateStubs };
+             "isolateStubs" : isolateStubs,
+             "containsDomImport": containsDomImport,
+             "isLibraryDefinition": isLibraryDefinition,
+             "containsSourceOrImport": containsSourceOrImport };
   }
 }
 
@@ -466,14 +641,19 @@ class TestUtils {
     return name;
   }
 
-  static String buildDir(Map configuration) {
-    var buildDir = '';
+  static String outputDir(Map configuration) {
+    var outputDir = '';
     var system = configuration['system'];
     if (system == 'linux') {
-      buildDir = 'out/';
+      outputDir = 'out/';
     } else if (system == 'macos') {
-      buildDir = 'xcodebuild/';
+      outputDir = 'xcodebuild/';
     }
+    return outputDir;
+  }
+
+  static String buildDir(Map configuration) {
+    var buildDir = outputDir(configuration);
     buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
     buildDir += configuration['arch'] + '/';
     return buildDir;
@@ -487,6 +667,7 @@ class TestUtils {
     }
     if (configuration["component"] == "leg") {
       args.add("--enable_leg");
+      args.add("--leg_only");
     }
     if (configuration["component"] == "dartc") {
       if (configuration["mode"] == "release") {

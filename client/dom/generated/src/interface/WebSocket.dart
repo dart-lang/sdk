@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebSocket extends EventTarget {
+interface WebSocket extends EventTarget factory _WebSocketFactoryProvider {
+
+  WebSocket(String url);
 
   static final int CLOSED = 3;
 

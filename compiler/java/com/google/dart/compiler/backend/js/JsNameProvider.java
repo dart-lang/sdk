@@ -62,8 +62,9 @@ class JsNameProvider {
       return jsName;
     }
     assert ElementKind.of(symbol).equals(ElementKind.CLASS)
-        : "Only classes can be lazily declared. Undeclared: "
-              + symbol.getOriginalSymbolName();
+        || ElementKind.of(symbol).equals(ElementKind.FUNCTION_TYPE_ALIAS)
+        : "Only classes or typedefs can be lazily declared. Undeclared: "
+        + symbol.getOriginalSymbolName();
     ClassElement classElement = (ClassElement) symbol;
     String name = classElement.getName();
     String nativeName = classElement.getNativeName();

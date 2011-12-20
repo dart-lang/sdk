@@ -12,6 +12,10 @@ interface InjectedScriptHost {
 
   int databaseId(Object database);
 
+  void didCreateWorker(int id, String url, bool isFakeWorker);
+
+  void didDestroyWorker(int id);
+
   Object evaluate(String text);
 
   void inspect(Object objectId, Object hints);
@@ -21,6 +25,8 @@ interface InjectedScriptHost {
   Object internalConstructorName(Object object);
 
   bool isHTMLAllCollection(Object object);
+
+  int nextWorkerId();
 
   int storageId(Object storage);
 

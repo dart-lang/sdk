@@ -76,6 +76,7 @@ _constructable_types = {
     'XMLHttpRequest': '',
     'WebKitCSSMatrix': '[String spec]',
     'WebKitPoint': 'num x, num y',
+    'WebSocket': 'String url',
     # dart:html types
     'CSSMatrix': '[String spec]',
     'Point': 'num x, num y',
@@ -120,18 +121,15 @@ _custom_getters = set([
 # Custom native specs for the Frog dom.
 #
 _frog_dom_custom_native_specs = {
-    'Console': '=console',      # Decorate the singleton Console object.
-    'DOMWindow': '@*DOMWindow', # DOMWindow aliased with global scope.
+    # Decorate the singleton Console object, if present (workers do not have a
+    # console).
+    'Console': "=(typeof console == 'undefined' ? {} : console)",
 
-    # Temporary hack: make these not be 'hidden'.  Will not work on IE9.
-    'Float32Array': 'Float32Array',
-    'Float64Array': 'Float64Array',
-    'Int8Array': 'Int8Array',
-    'Int16Array': 'Int16Array',
-    'Int32Array': 'Int32Array',
-    'Uint8Array': 'Uint8Array',
-    'Uint16Array': 'Uint16Array',
-    'Uint32Array': 'Uint32Array',
+    # DOMWindow aliased with global scope.
+    'DOMWindow': '@*DOMWindow',
+
+    # Temporary hack: make these be 'hidden'.
+    'SVGPathSeg': '*SVGPathSeg',
 }
 
 #
@@ -652,7 +650,7 @@ class DartGenerator(object):
 
       # New version: Frog
       self.GenerateLibFile('template_frog_dom.darttemplate',
-                           os.path.join(lib_dir, 'frog_dom.dart'),
+                           os.path.join(lib_dir, 'dom_frog.dart'),
                            self._dart_frog_file_paths +
                            self._dart_callback_file_paths)
 
@@ -726,7 +724,10 @@ class DartGenerator(object):
         generator.AddConstant(const)
 
     for attr in sorted(interface.attributes, AttributeOutputOrder):
-      if attr.type.id == 'EventListener': continue
+      if attr.type.id == 'EventListener':
+        # Remove EventListener attributes when addEventListener is available.
+        if 'EventTarget' in self._AllImplementedInterfaces(interface):
+          continue
       if attr.is_fc_getter:
         for generator in generators:
           generator.AddGetter(attr)
@@ -1122,6 +1123,8 @@ class DartGenerator(object):
     """Returns a list of the names of all interfaces implemented by 'interface'.
     List includes the name of 'interface'.
     """
+    if not self._inheritance_closure:
+      self._ComputeInheritanceClosure()
     return self._inheritance_closure[interface.id]
 
   def _GenerateProtoMap(self):

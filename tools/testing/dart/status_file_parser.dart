@@ -45,20 +45,25 @@ String getDirname(String path) =>
 
 void ReadTestExpectationsInto(TestExpectations expectations,
                               String statusFilePath,
-                              environment) {
+                              environment,
+                              onDone) {
   List<Section> sections = new List<Section>();
-  ReadConfigurationInto(statusFilePath, sections);
 
-  for (Section section in sections) {
-    if (section.isEnabled(environment)) {
-      for (var rule in section.testRules) {
-        expectations.addRule(rule, environment);
+  void sectionsRead() {
+    for (Section section in sections) {
+      if (section.isEnabled(environment)) {
+        for (var rule in section.testRules) {
+          expectations.addRule(rule, environment);
+        }
       }
     }
+    onDone();
   }
+
+  ReadConfigurationInto(statusFilePath, sections, sectionsRead);
 }
 
-void ReadConfigurationInto(path, sections) {
+void ReadConfigurationInto(path, sections, onDone) {
   File file = new File(getFilename(path));
   if (!file.existsSync()) return;  // TODO(whesse): Handle missing file.
   FileInputStream file_stream = file.openInputStream();
@@ -68,45 +73,50 @@ void ReadConfigurationInto(path, sections) {
   sections.add(current);
   String prefix = "";
 
-  String line;
-  while ((line = lines.readLine()) != null) {
-    Match match = StripComment.firstMatch(line);
-    line = (match == null) ? "" : match[0];
-    line = line.trim();
-    if (line.isEmpty()) continue;
+  lines.lineHandler = () {
+    String line;
+    while ((line = lines.readLine()) != null) {
+      Match match = StripComment.firstMatch(line);
+      line = (match == null) ? "" : match[0];
+      line = line.trim();
+      if (line.isEmpty()) continue;
 
-    match = HeaderPattern.firstMatch(line);
-    if (match != null) {
-      String condition_string = match[1].trim();
-      List<String> tokens = new Tokenizer(condition_string).tokenize();
-      ExpressionParser parser = new ExpressionParser(new Scanner(tokens));
-      current = new Section(parser.parseBooleanExpression());
-      sections.add(current);
-      continue;
+      match = HeaderPattern.firstMatch(line);
+      if (match != null) {
+        String condition_string = match[1].trim();
+        List<String> tokens = new Tokenizer(condition_string).tokenize();
+        ExpressionParser parser = new ExpressionParser(new Scanner(tokens));
+        current = new Section(parser.parseBooleanExpression());
+        sections.add(current);
+        continue;
+      }
+
+      match = RulePattern.firstMatch(line);
+      if (match != null) {
+        String name = match[1].trim();
+        // TODO(whesse): Handle test names ending in a wildcard (*).
+        String expression_string = match[2].trim();
+        List<String> tokens = new Tokenizer(expression_string).tokenize();
+        SetExpression expression =
+            new ExpressionParser(new Scanner(tokens)).parseSetExpression();
+        current.testRules.add(new TestRule(name, expression));
+        continue;
+      }
+
+      match = PrefixPattern.firstMatch(line);
+      if (match != null) {
+        prefix = match[1];
+        continue;
+      }
+
+      print("unmatched line: $line");
     }
+  };
 
-    match = RulePattern.firstMatch(line);
-    if (match != null) {
-      String name = match[1].trim();
-      // TODO(whesse): Handle test names ending in a wildcard (*).
-      String expression_string = match[2].trim();
-      List<String> tokens = new Tokenizer(expression_string).tokenize();
-      SetExpression expression =
-          new ExpressionParser(new Scanner(tokens)).parseSetExpression();
-      current.testRules.add(new TestRule(name, expression));
-      continue;
-    }
-
-    match = PrefixPattern.firstMatch(line);
-    if (match != null) {
-      prefix = match[1];
-      continue;
-    }
-
-    print("unmatched line: $line");
-  }
-
-  file_stream.close();
+  lines.closeHandler = () {
+    file_stream.close();
+    onDone();
+  };
 }
 
 

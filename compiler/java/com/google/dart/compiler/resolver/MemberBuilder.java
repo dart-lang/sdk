@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -17,9 +18,8 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
-import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.type.Type;
@@ -60,6 +60,7 @@ public class MemberBuilder {
     EnclosingElement currentHolder;
     private ResolutionContext context;
     private boolean isStatic;
+    private boolean isFactory;
 
     MemberElementBuilder(CoreTypeProvider typeProvider) {
       super(typeProvider);
@@ -78,6 +79,11 @@ public class MemberBuilder {
     }
 
     @Override
+    boolean isFactoryContext() {
+      return isFactory;
+    }
+
+    @Override
     public Element visitClass(DartClass node) {
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
       beginClassContext(node);
@@ -89,6 +95,7 @@ public class MemberBuilder {
     @Override
     public Element visitFunctionTypeAlias(DartFunctionTypeAlias node) {
       isStatic = false;
+      isFactory = false;
       assert !ElementKind.of(currentHolder).equals(ElementKind.CLASS) : "nested class?";
       FunctionAliasElement element = node.getSymbol();
       currentHolder = element;
@@ -98,10 +105,10 @@ public class MemberBuilder {
       for (DartParameter parameter : node.getParameters()) {
         parameters.add((VariableElement) parameter.accept(this));
       }
-      Type returnType = resolveType(node.getReturnTypeNode(), false, TypeErrorCode.NO_SUCH_TYPE);
+      Type returnType = resolveType(node.getReturnTypeNode(), false, false, TypeErrorCode.NO_SUCH_TYPE);
       ClassElement functionElement = getTypeProvider().getFunctionType().getElement();
       element.setFunctionType(Types.makeFunctionType(getContext(), functionElement,
-                                                     parameters, returnType, null));
+                                                     parameters, returnType));
       currentHolder = libraryElement;
       context = topLevelContext;
       return null;
@@ -109,7 +116,8 @@ public class MemberBuilder {
 
     @Override
     public Element visitMethodDefinition(final DartMethodDefinition method) {
-      isStatic = method.getModifiers().isStatic() || method.getModifiers().isFactory();
+      isFactory = method.getModifiers().isFactory();
+      isStatic = method.getModifiers().isStatic() || isFactory;
       MethodElement element = method.getSymbol();
       if (element == null) {
         switch (getMethodKind(method)) {
@@ -136,9 +144,7 @@ public class MemberBuilder {
         recordElement(method, element);
         ResolutionContext previous = context;
         context = context.extend(element.getName());
-        List<DartTypeParameter> parameterNodes = method.getTypeParameters();
-        resolveFunction(method.getFunction(), element,
-                        Elements.makeTypeVariables(parameterNodes, element));
+        resolveFunction(method.getFunction(), element);
         context = previous;
       }
       return null;
@@ -147,12 +153,13 @@ public class MemberBuilder {
     @Override
     public Element visitFieldDefinition(DartFieldDefinition node) {
       isStatic = false;
+      isFactory = false;
       for (DartField fieldNode : node.getFields()) {
         if (fieldNode.getModifiers().isStatic()) {
           isStatic = true;
         }
       }
-      Type type = resolveType(node.getTypeNode(), isStatic, TypeErrorCode.NO_SUCH_TYPE);
+      Type type = resolveType(node.getTypeNode(), isStatic, false, TypeErrorCode.NO_SUCH_TYPE);
       for (DartField fieldNode : node.getFields()) {
         if (fieldNode.getModifiers().isAbstractField()) {
           buildAbstractField(fieldNode);
@@ -174,9 +181,8 @@ public class MemberBuilder {
       context = topLevelContext;
     }
 
-    private MethodElement buildConstructor(final DartMethodDefinition method) {
-      // Resolve the constructor's name and class name.
-      Element e = method.getName().accept(new DartNodeTraverser<Element>() {
+    private Element resolveConstructorName(final DartMethodDefinition method) {
+      return method.getName().accept(new DartNodeTraverser<Element>() {
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
           Element element = node.getQualifier().accept(this);
           if (ElementKind.of(element).equals(ElementKind.CLASS)) {
@@ -193,9 +199,10 @@ public class MemberBuilder {
               node,
               null,
               true,
+              false,
               ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR).getElement();
         }
-        @Override public Element visitParameterizedNode(DartParameterizedNode node) {
+        @Override public Element visitParameterizedTypeNode(DartParameterizedTypeNode node) {
           Element element = node.getExpression().accept(this);
           if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
             recordElement(node.getExpression(), currentHolder);
@@ -208,6 +215,11 @@ public class MemberBuilder {
           throw new RuntimeException("Unexpected node " + node);
         }
       });
+    }
+
+    private MethodElement buildConstructor(final DartMethodDefinition method) {
+      // Resolve the constructor's name and class name.
+      Element e = resolveConstructorName(method);
 
       switch (ElementKind.of(e)) {
         default:
@@ -297,10 +309,11 @@ public class MemberBuilder {
      */
     private FieldElement buildAbstractField(DartField fieldNode) {
       assert fieldNode.getModifiers().isAbstractField();
+      boolean topLevelDefinition = fieldNode.getParent().getParent() instanceof DartUnit;
       DartMethodDefinition accessorNode = fieldNode.getAccessor();
       MethodElement accessorElement = Elements.methodFromMethodNode(accessorNode, currentHolder);
       recordElement(accessorNode, accessorElement);
-      resolveFunction(accessorNode.getFunction(), accessorElement, null);
+      resolveFunction(accessorNode.getFunction(), accessorElement);
 
       String name = fieldNode.getName().getTargetName();
       Element element = null;
@@ -324,20 +337,20 @@ public class MemberBuilder {
 
       if (accessorNode.getModifiers().isGetter()) {
         if (fieldElement.getGetter() != null) {
-          int conflictLine = fieldElement.getNode().getSourceLine();
-          int conflictColumn = fieldElement.getNode().getSourceColumn();
-          resolutionError(fieldNode,  ResolverErrorCode.FIELD_CONFLICTS, name, "getter",
-                          conflictLine, conflictColumn);
+          if (!topLevelDefinition) {
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, fieldElement.getGetter());
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, accessorElement);
+          }
         } else {
           fieldElement.setGetter(accessorElement);
           fieldElement.setType(accessorElement.getReturnType());
         }
       } else if (accessorNode.getModifiers().isSetter()) {
         if (fieldElement.getSetter() != null) {
-          int conflictLine = fieldElement.getNode().getSourceLine();
-          int conflictColumn = fieldElement.getNode().getSourceColumn();
-          resolutionError(fieldNode, ResolverErrorCode.FIELD_CONFLICTS, name, "setter",
-                          conflictLine, conflictColumn);
+          if (!topLevelDefinition) {
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, fieldElement.getSetter());
+            reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, accessorElement);
+          }
         } else {
           fieldElement.setSetter(accessorElement);
           List<VariableElement> parameters = accessorElement.getParameters();
@@ -396,6 +409,13 @@ public class MemberBuilder {
           }
           resolutionError(method.getName(),
                           ResolverErrorCode.CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR);
+        } else if (property.getQualifier() instanceof DartParameterizedTypeNode) {
+          DartParameterizedTypeNode paramNode = (DartParameterizedTypeNode)property.getQualifier();
+          if (paramNode.getExpression() instanceof DartIdentifier) {
+            return ElementKind.CONSTRUCTOR;
+          }
+          resolutionError(method.getName(),
+                          ResolverErrorCode.TOO_MANY_QUALIFIERS_FOR_METHOD);
         } else {
           // Multiple qualifiers (Foo.bar.baz)
           resolutionError(method.getName(),
@@ -484,18 +504,9 @@ public class MemberBuilder {
           return;
         }
 
-
-        // Message has no space between source and line number so that if we can't
-        // find the name, it won't show funny formatting.
-        String source = "";
-        DartNode otherNode = other.getNode();
-        if (e.getNode() != otherNode  && otherNode.getSource() != null
-            && otherNode.getSource().getUri() != null) {
-          source = otherNode.getSource().getUri().toString() + " ";
-        }
-
-        resolutionError(e.getNode(), ResolverErrorCode.NAME_CLASHES_EXISTING_MEMBER,
-            source, other.getNode().getSourceLine(), other.getNode().getSourceColumn());
+        // Report initial declaration and current declaration.
+        reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, other);
+        reportDuplicateDeclaration(ResolverErrorCode.DUPLICATE_MEMBER, e);
       }
     }
 
@@ -515,6 +526,18 @@ public class MemberBuilder {
 
     void resolutionError(DartNode node, ErrorCode errorCode, Object... arguments) {
       topLevelContext.onError(node, errorCode, arguments);
+    }
+
+    /**
+     * Reports duplicate declaration for given named element.
+     */
+    @SuppressWarnings("unchecked")
+    private void reportDuplicateDeclaration(ErrorCode errorCode, Element element) {
+      DartNode node = element.getNode();
+      if (node instanceof DartDeclaration) {
+        DartNode nameNode = ((DartDeclaration<DartExpression>) node).getName();
+        resolutionError(nameNode, errorCode, nameNode);
+      }
     }
   }
 }

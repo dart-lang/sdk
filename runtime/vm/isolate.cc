@@ -11,6 +11,7 @@
 #include "vm/code_index_table.h"
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
+#include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/debuginfo.h"
 #include "vm/heap.h"
@@ -61,8 +62,10 @@ Isolate::Isolate()
       debugger_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
+      ast_node_id_(AstNode::kNoId),
+      mutex_(new Mutex()),
       stack_limit_(0),
-      ast_node_id_(AstNode::kNoId) {
+      saved_stack_limit_(0) {
 }
 
 
@@ -75,6 +78,8 @@ Isolate::~Isolate() {
   delete api_state_;
   delete stub_code_;
   delete code_index_table_;
+  delete mutex_;
+  mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
 }
 
 
@@ -151,7 +156,37 @@ void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
 
 
 void Isolate::SetStackLimit(uword limit) {
-  stack_limit_ = limit;
+  MutexLocker ml(mutex_);
+  if (stack_limit_ == saved_stack_limit_) {
+    // No interrupt pending, set stack_limit_ too.
+    stack_limit_ = limit;
+  }
+  saved_stack_limit_ = limit;
+}
+
+
+void Isolate::ScheduleInterrupts(uword interrupt_bits) {
+  // TODO(turnidge): Can't use MutexLocker here because MutexLocker is
+  // a StackResource, which requires a current isolate.  Should
+  // MutexLocker really be a StackResource?
+  mutex_->Lock();
+  ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
+  if (stack_limit_ == saved_stack_limit_) {
+    stack_limit_ = ~static_cast<uword>(0) & ~kInterruptsMask;
+  }
+  stack_limit_ |= interrupt_bits;
+  mutex_->Unlock();
+}
+
+
+uword Isolate::GetAndClearInterrupts() {
+  MutexLocker ml(mutex_);
+  if (stack_limit_ == saved_stack_limit_) {
+    return 0;  // No interrupt was requested.
+  }
+  uword interrupt_bits = stack_limit_ & kInterruptsMask;
+  stack_limit_ = saved_stack_limit_;
+  return interrupt_bits;
 }
 
 
@@ -230,6 +265,7 @@ void Isolate::Shutdown() {
 
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
+Dart_IsolateInterruptCallback Isolate::interrupt_callback_ = NULL;
 
 
 void Isolate::SetCreateCallback(Dart_IsolateCreateCallback cb) {
@@ -242,7 +278,32 @@ Dart_IsolateCreateCallback Isolate::CreateCallback() {
 }
 
 
-void Isolate::StandardRunLoop() {
+void Isolate::SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
+  interrupt_callback_ = cb;
+}
+
+
+Dart_IsolateInterruptCallback Isolate::InterruptCallback() {
+  return interrupt_callback_;
+}
+
+
+static RawInstance* DeserializeMessage(void* data) {
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(data);
+  ASSERT(snapshot->IsMessageSnapshot());
+
+  // Read object back from the snapshot.
+  Isolate* isolate = Isolate::Current();
+  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  Instance& instance = Instance::Handle();
+  instance ^= reader.ReadObject();
+  return instance.raw();
+}
+
+
+
+RawObject* Isolate::StandardRunLoop() {
   ASSERT(long_jump_base() != NULL);
   ASSERT(post_message_callback() == &StandardPostMessageCallback);
   ASSERT(close_port_callback() == &StandardClosePortCallback);
@@ -254,21 +315,20 @@ void Isolate::StandardRunLoop() {
 
     PortMessage* message = message_queue()->Dequeue(0);
     if (message != NULL) {
-      Dart_EnterScope();
-      Dart_Handle result = Dart_HandleMessage(
-          message->dest_port(), message->reply_port(), message->data());
-      if (Dart_IsError(result)) {
-        // TODO(turnidge): Consider passing this error out to
-        // Dart_RunLoop so that the embedder can choose how to handle
-        // it.
-        fprintf(stderr, "%s\n", Dart_GetError(result));
-        Dart_ExitScope();
-        exit(255);
-      }
-      Dart_ExitScope();
+      const Instance& msg =
+          Instance::Handle(DeserializeMessage(message->data()));
+      const Object& result = Object::Handle(
+          DartLibraryCalls::HandleMessage(
+              message->dest_port(), message->reply_port(), msg));
       delete message;
+      if (result.IsUnhandledException()) {
+        return result.raw();
+      }
     }
   }
+
+  // Indicates success.
+  return Object::null();
 }
 
 

@@ -16,8 +16,8 @@ class TimerCancel1Test {
       canceleeTimer.cancel();
     }
 
-    cancelerTimer = new Timer(cancelHandler, 1, false);
-    canceleeTimer = new Timer(timeoutHandlerUnreachable, 1000, false);
+    cancelerTimer = new Timer(cancelHandler, 1);
+    canceleeTimer = new Timer(timeoutHandlerUnreachable, 1000);
   }
 
   static void testMain() {

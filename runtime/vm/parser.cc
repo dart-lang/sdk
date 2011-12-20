@@ -31,9 +31,10 @@ DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 static const char* kAssertionErrorName = "AssertionError";
 static const char* kFallThroughErrorName = "FallThroughError";
 static const char* kThrowNewName = "_throwNew";
-static const char* kLiteralFactoryClassName = "_LiteralFactory";
-static const char* kLiteralFactoryListFromLiteralName = "List.fromLiteral";
-static const char* kLiteralFactoryMapFromLiteralName = "Map.fromLiteral";
+static const char* kListLiteralFactoryClassName = "_ListLiteralFactory";
+static const char* kListLiteralFactoryName = "List.fromLiteral";
+static const char* kMapLiteralFactoryClassName = "_MapLiteralFactory";
+static const char* kMapLiteralFactoryName = "Map.fromLiteral";
 static const char* kImmutableMapName = "ImmutableMap";
 static const char* kImmutableMapConstructorName = "ImmutableMap._create";
 static const char* kStringClassName = "StringBase";
@@ -566,7 +567,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
     case RawFunction::kConstructor:
-      ASSERT(!func.IsFactory() || (func.signature_class() != Class::null()));
       node_sequence = parser.ParseFunc(func, default_parameter_values);
       break;
     case RawFunction::kImplicitGetter:
@@ -880,8 +880,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       Type& signature_type = Type::ZoneHandle(signature_class.SignatureType());
       if (!is_top_level_ && !signature_type.IsFinalized()) {
         String& errmsg = String::Handle();
-        signature_type =
-            ClassFinalizer::FinalizeAndCanonicalizeType(signature_type,
+        signature_type ^=
+            ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                        signature_type,
                                                         &errmsg);
         if (!errmsg.IsNull()) {
           ErrorMsg(errmsg.ToCString());
@@ -1531,7 +1532,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   const Class& cls = Class::Handle(func.owner());
   ASSERT(!cls.IsNull());
 
-  if (IsLiteral("class")) {
+  if (CurrentToken() == Token::kCLASS) {
     // Special case: implicit constructor.
     // The parser adds an implicit default constructor when a class
     // does not have any explicit constructor or factory (see
@@ -2325,9 +2326,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.name = CurrentLiteral();
     member.name_pos = this->token_index_;
     ConsumeToken();
-    // Resolution of the factory result type is always postponed until class
-    // finalization, so that the list of type parameters in the factory
-    // signature can be checked at the same time.
     if (member.has_factory) {
       String& qualifier = String::Handle();
       if (CurrentToken() == Token::kPERIOD) {
@@ -2340,6 +2338,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
           member.name = ExpectIdentifier("identifier expected");
         }
       }
+      // TODO(regis): Remove support for type parameters on factories.
+      // Once done, stop postponing resolution of the factory result type until
+      // class finalization.
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
                                                        qualifier,
@@ -2355,6 +2356,13 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       member.type = &Type::ZoneHandle(
           Type::NewParameterizedType(unresolved_factory_class, args));
       ParseTypeParameters(signature_class);
+      if (signature_class.NumTypeParameters() > 0) {
+        Warning("factory method '%s' should not declare type parameters.\n",
+                member.name->ToCString());
+      } else {
+        // Remove factory signature class, since no type parameters declared.
+        unresolved_factory_class.set_factory_signature_class(Class::Handle());
+      }
     }
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
@@ -2745,7 +2753,12 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     AddInterfaces(interfaces_pos, interface, interfaces);
   }
 
-  if (CurrentToken() == Token::kFACTORY) {
+  // TODO(regis): Remove support for "factory" keyword.
+  if ((CurrentToken() == Token::kDEFAULT) ||
+      (CurrentToken() == Token::kFACTORY)) {
+    if (CurrentToken() == Token::kFACTORY) {
+      Warning("'factory' is obsolete, use 'default' instead.");
+    }
     ConsumeToken();
     const intptr_t factory_pos = token_index_;
     QualIdent factory_name;
@@ -2761,14 +2774,53 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     }
     const UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle(
         UnresolvedClass::New(factory_pos, qualifier, *(factory_name.ident)));
-    const Class& signature_class = Class::Handle(
+    const Class& factory_class = Class::Handle(
         Class::New(String::Handle(String::NewSymbol(":factory_signature")),
                    script_));
-    signature_class.set_library(library_);
-    signature_class.set_is_finalized();
-    ParseTypeParameters(signature_class);
-    unresolved_factory_class.set_factory_signature_class(signature_class);
+    factory_class.set_library(library_);
+    factory_class.set_is_finalized();
+    ParseTypeParameters(factory_class);
+    unresolved_factory_class.set_factory_signature_class(factory_class);
     interface.set_factory_class(unresolved_factory_class);
+    // Verify that the type parameters of the factory class and of the interface
+    // have identical names.
+    const intptr_t num_type_params = factory_class.NumTypeParameters();
+    bool mismatch = interface.NumTypeParameters() != num_type_params;
+    if (mismatch && (num_type_params == 0)) {
+      // TODO(regis): For now, and until the core lib is fixed, we accept a
+      // factory clause with a class missing its list of type parameters.
+      // See bug 5408808.
+      const String& interface_name = String::Handle(interface.Name());
+      const String& factory_name = String::Handle(factory_class.Name());
+      Warning(factory_pos,
+              "class '%s' in default clause of interface '%s' is "
+              "missing its type parameter list.\n",
+              factory_name.ToCString(),
+              interface_name.ToCString());
+    } else {
+      String& interface_type_param_name = String::Handle();
+      String& factory_type_param_name = String::Handle();
+      const Array& interface_type_param_names =
+          Array::Handle(interface.type_parameters());
+      const Array& factory_type_param_names =
+          Array::Handle(factory_class.type_parameters());
+      for (intptr_t i = 0; !mismatch && (i < num_type_params); i++) {
+        interface_type_param_name ^= interface_type_param_names.At(i);
+        factory_type_param_name ^= factory_type_param_names.At(i);
+        if (!interface_type_param_name.Equals(factory_type_param_name)) {
+          mismatch = true;
+        }
+      }
+      if (mismatch) {
+        const String& interface_name = String::Handle(interface.Name());
+        const String& factory_name = String::Handle(factory_class.Name());
+        ErrorMsg(factory_pos,
+                 "mismatch in number or names of type parameters between "
+                 "interface '%s' and default factory class '%s'.\n",
+                 interface_name.ToCString(),
+                 factory_name.ToCString());
+      }
+    }
   }
 
   ExpectToken(Token::kLBRACE);
@@ -3604,9 +3656,9 @@ RawAbstractType* Parser::ParseFinalVarOrType(
 }
 
 
-// Returns ast nodes of the variable initialization, or NULL if variables
-// are not initialized. If several variables are declared and initialized,
-// the individual initializers are collected in a sequence node.
+// Returns ast nodes of the variable initialization. Variables without an
+// explicit initializer are initialized to null. If several variables are
+// declared, the individual initializers are collected in a sequence node.
 AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
   bool is_final = (CurrentToken() == Token::kFINAL);
@@ -3617,24 +3669,19 @@ AstNode* Parser::ParseVariableDeclarationList() {
   }
 
   AstNode* initializers = ParseVariableDeclaration(type, is_final);
+  ASSERT(initializers != NULL);
   while (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
     if (CurrentToken() != Token::kIDENT) {
       ErrorMsg("identifier expected after comma");
     }
-    AstNode* right = ParseVariableDeclaration(type, is_final);
-    if (right != NULL) {
-      if (initializers == NULL) {
-        initializers = right;
-      } else {
-        // We have a second initializer. Allocate a sequence node now.
-        SequenceNode* sequence = NodeAsSequenceNode(initializers->token_index(),
-                                                    initializers,
-                                                    current_block_->scope);
-        sequence->Add(right);
-        initializers = sequence;
-      }
-    }
+    // We have a second initializer. Allocate a sequence node now.
+    // The sequence does not own the current scope. Set its own scope to NULL.
+    SequenceNode* sequence = NodeAsSequenceNode(initializers->token_index(),
+                                                initializers,
+                                                NULL);
+    sequence->Add(ParseVariableDeclaration(type, is_final));
+    initializers = sequence;
   }
   return initializers;
 }
@@ -3754,8 +3801,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // been finalized already.
     if (!signature_type.IsFinalized()) {
       String& errmsg = String::Handle();
-      signature_type =
-          ClassFinalizer::FinalizeAndCanonicalizeType(signature_type, &errmsg);
+      signature_type ^=
+          ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                      signature_type,
+                                                      &errmsg);
       if (!errmsg.IsNull()) {
         ErrorMsg(errmsg.ToCString());
       }
@@ -4099,8 +4148,8 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
   TRACE_PARSER("ParseCaseStatement");
   bool default_seen = false;
   const intptr_t case_pos = token_index_;
-  SequenceNode* case_expressions =
-      new SequenceNode(case_pos, current_block_->scope);
+  // The case expressions node sequence does not own the enclosing scope.
+  SequenceNode* case_expressions = new SequenceNode(case_pos, NULL);
   while (CurrentToken() == Token::kCASE || CurrentToken() == Token::kDEFAULT) {
     if (CurrentToken() == Token::kCASE) {
       if (default_seen) {
@@ -4546,9 +4595,7 @@ AstNode* Parser::ParseAssertStatement() {
   AstNode* assert_throw = MakeAssertCall(condition_pos, condition_end);
   return new IfNode(condition_pos,
                     condition,
-                    NodeAsSequenceNode(condition_pos,
-                                       assert_throw,
-                                       current_block_->scope),
+                    NodeAsSequenceNode(condition_pos, assert_throw, NULL),
                     NULL);
 }
 
@@ -5356,8 +5403,8 @@ AstNode* Parser::ParseExprList() {
   TRACE_PARSER("ParseExprList");
   AstNode* expressions = ParseExpr(kAllowConst);
   if (CurrentToken() == Token::kCOMMA) {
-    // Collect comma-separated expressions in a sequence node.
-    SequenceNode* list = new SequenceNode(token_index_, current_block_->scope);
+    // Collect comma-separated expressions in a non scope owning sequence node.
+    SequenceNode* list = new SequenceNode(token_index_, NULL);
     list->Add(expressions);
     while (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
@@ -5460,7 +5507,7 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
       dbl_obj ^= rhs_literal->literal().raw();
       double right_double = dbl_obj.value();
       if (binary_op == Token::kDIV) {
-        dbl_obj = Double::New(left_double / right_double);
+        dbl_obj = Double::NewCanonical((left_double / right_double));
         return new LiteralNode(op_pos, dbl_obj);
       }
     }
@@ -6165,20 +6212,12 @@ RawClass* Parser::TypeParametersScopeClass() {
       ASSERT(!factory_result_type.IsNull());
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(factory_result_type.unresolved_class());
-      // TODO(regis): For now, and until the core lib is fixed, we accept a
-      // factory method with missing list of type parameters and use the
-      // list of the enclosing class.
-      // See bug 5408808.
-      // Therefore, we temporarily return the current class instead of the
-      // factory signature class if the latter one does not declare any type
-      // parameters.
-      const Class& factory_signature_class =
-          Class::Handle(unresolved_factory_class.factory_signature_class());
-      if (factory_signature_class.NumTypeParameters() == 0) {
-        return current_class().raw();
-      } else {
-        return factory_signature_class.raw();
+      // TODO(regis): Remove support for type parameters declared by factory
+      // methods.
+      if (unresolved_factory_class.factory_signature_class() != Class::null()) {
+        return unresolved_factory_class.factory_signature_class();
       }
+      return current_class().raw();
     }
     if ((current_member_ == NULL) || !current_member_->has_static) {
       return current_class().raw();
@@ -6190,7 +6229,12 @@ RawClass* Parser::TypeParametersScopeClass() {
         outer_function = outer_function.parent_function();
       }
       if (outer_function.IsFactory()) {
-        return outer_function.signature_class();
+        // TODO(regis): Remove support for type parameters declared by factory
+        // methods.
+        if (outer_function.signature_class() != Class::null()) {
+          return outer_function.signature_class();
+        }
+        return current_class().raw();
       }
       if (!outer_function.is_static()) {
         return current_class().raw();
@@ -6208,8 +6252,11 @@ bool Parser::IsInstantiatorRequired() const {
     outer_function = outer_function.parent_function();
   }
   if (outer_function.IsFactory()) {
-    const Class& signature_class =
-        Class::Handle(outer_function.signature_class());
+    // TODO(regis): Remove support for type parameters on factories.
+    Class& signature_class = Class::Handle(outer_function.signature_class());
+    if (signature_class.IsNull()) {
+      return current_class().NumTypeParameters() > 0;
+    }
     return signature_class.NumTypeParameters() > 0;
   }
   if (!outer_function.is_static()) {
@@ -6555,6 +6602,7 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     ErrorMsg(type_pos, "using '%s' in this context is invalid",
              type_name.ident->ToCString());
   }
+  Class& scope_class = Class::Handle();
   Object& type_class = Object::Handle();
   if (type_resolution == kDoNotResolve) {
     String& qualifier = String::Handle();
@@ -6563,7 +6611,7 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     }
     type_class = UnresolvedClass::New(type_pos, qualifier, *(type_name.ident));
   } else {
-    const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+    scope_class = TypeParametersScopeClass();
     if (!scope_class.IsNull()) {
       TypeParameter& type_parameter = TypeParameter::Handle();
       // Check if qualifier is a type parameter in scope.
@@ -6582,6 +6630,16 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
             ErrorMsg(type_pos, "type parameter '%s' cannot be parameterized",
                      String::Handle(type_parameter.Name()).ToCString());
           }
+          if (type_resolution == kMustResolve) {
+            String& errmsg = String::Handle();
+            type_parameter ^=
+                ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
+                                                            type_parameter,
+                                                            &errmsg);
+            if (!errmsg.IsNull()) {
+              ErrorMsg(errmsg.ToCString());
+            }
+          }
           return type_parameter.raw();
         }
       }
@@ -6596,7 +6654,9 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   if (type_resolution == kMustResolve) {
     ASSERT(type_class.IsClass());  // Must be resolved.
     String& errmsg = String::Handle();
-    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
+    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
+                                                        type,
+                                                        &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(errmsg.ToCString());
     }
@@ -6609,8 +6669,10 @@ void Parser::CheckConstructorCallTypeArguments(
     intptr_t pos, Function& constructor,
     const AbstractTypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
+    // TODO(regis): Remove support for type parameters on factories.
     Class& signature_class = Class::Handle();
-    if (constructor.IsFactory()) {
+    if (constructor.IsFactory() &&
+        (constructor.signature_class() != Class::null())) {
       signature_class = constructor.signature_class();
     } else {
       signature_class = constructor.owner();
@@ -6725,16 +6787,16 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     return new LiteralNode(literal_pos, const_list);
   } else {
     // Factory call at runtime.
-    String& literal_factory_class_name = String::Handle(
-        String::NewSymbol(kLiteralFactoryClassName));
-    const Class& literal_factory_class =
-        Class::Handle(LookupCoreClass(literal_factory_class_name));
-    ASSERT(!literal_factory_class.IsNull());
-    const String& literal_list_factory_name =
-        String::Handle(String::NewSymbol(kLiteralFactoryListFromLiteralName));
-    const Function& literal_list_factory = Function::ZoneHandle(
-        literal_factory_class.LookupFactory(literal_list_factory_name));
-    ASSERT(!literal_list_factory.IsNull());
+    String& list_literal_factory_class_name = String::Handle(
+        String::NewSymbol(kListLiteralFactoryClassName));
+    const Class& list_literal_factory_class =
+        Class::Handle(LookupCoreClass(list_literal_factory_class_name));
+    ASSERT(!list_literal_factory_class.IsNull());
+    const String& list_literal_factory_name =
+        String::Handle(String::NewSymbol(kListLiteralFactoryName));
+    const Function& list_literal_factory = Function::ZoneHandle(
+        list_literal_factory_class.LookupFactory(list_literal_factory_name));
+    ASSERT(!list_literal_factory.IsNull());
     if (!type_arguments.IsNull() &&
         !type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
@@ -6747,7 +6809,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         AbstractTypeArguments::ZoneHandle(type_arguments.Canonicalize());
     return new ConstructorCallNode(literal_pos,
                                    canonical_type_arguments,
-                                   literal_list_factory,
+                                   list_literal_factory,
                                    factory_param);
   }
 }
@@ -6928,16 +6990,16 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     }
   } else {
     // Factory call at runtime.
-    String& literal_factory_class_name = String::Handle(
-        String::NewSymbol(kLiteralFactoryClassName));
-    const Class& literal_factory_class =
-        Class::Handle(LookupCoreClass(literal_factory_class_name));
-    ASSERT(!literal_factory_class.IsNull());
-    const String& literal_map_factory_name =
-        String::Handle(String::NewSymbol(kLiteralFactoryMapFromLiteralName));
-    const Function& literal_map_factory = Function::ZoneHandle(
-        literal_factory_class.LookupFactory(literal_map_factory_name));
-    ASSERT(!literal_map_factory.IsNull());
+    String& map_literal_factory_class_name = String::Handle(
+        String::NewSymbol(kMapLiteralFactoryClassName));
+    const Class& map_literal_factory_class =
+        Class::Handle(LookupCoreClass(map_literal_factory_class_name));
+    ASSERT(!map_literal_factory_class.IsNull());
+    const String& map_literal_factory_name =
+        String::Handle(String::NewSymbol(kMapLiteralFactoryName));
+    const Function& map_literal_factory = Function::ZoneHandle(
+        map_literal_factory_class.LookupFactory(map_literal_factory_name));
+    ASSERT(!map_literal_factory.IsNull());
     if (!map_type_arguments.IsNull() &&
         !map_type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
@@ -6948,7 +7010,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     factory_param->Add(kv_pairs);
     return new ConstructorCallNode(literal_pos,
                                    map_type_arguments,
-                                   literal_map_factory,
+                                   map_literal_factory,
                                    factory_param);
   }
 }
@@ -7136,8 +7198,10 @@ AstNode* Parser::ParseNewOperator() {
   // Now that the constructor to be called is identified, finalize the type
   // argument vector to be passed.
   {
+    // TODO(regis): Remove support for type parameters on factories.
     Class& signature_class = Class::Handle();
-    if (constructor.IsFactory()) {
+    if (constructor.IsFactory() &&
+        (constructor.signature_class() != Class::null())) {
       signature_class = constructor.signature_class();
     } else {
       signature_class = constructor.owner();
@@ -7147,7 +7211,9 @@ AstNode* Parser::ParseNewOperator() {
     Type& type = Type::Handle(
         Type::NewParameterizedType(signature_class, type_arguments));
     String& errmsg = String::Handle();
-    type = ClassFinalizer::FinalizeAndCanonicalizeType(type, &errmsg);
+    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+                                                        type,
+                                                        &errmsg);
     if (!errmsg.IsNull()) {
       ErrorMsg(errmsg.ToCString());
     }
@@ -7315,11 +7381,10 @@ AstNode* Parser::ParsePrimary() {
     ASSERT(double_literal != NULL);
     ASSERT(double_literal->Length() > 0);
     Double& double_value =
-        Double::ZoneHandle(Double::New(*double_literal));
+        Double::ZoneHandle(Double::NewCanonical(*double_literal));
     if (double_value.IsNull()) {
       ErrorMsg("invalid double literal");
     }
-    double_value ^= double_value.Canonicalize();
     primary = new LiteralNode(token_index_, double_value);
     ConsumeToken();
   } else if (CurrentToken() == Token::kSTRING) {

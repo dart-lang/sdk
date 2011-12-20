@@ -31,11 +31,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateStackOverflowStub(Assembler* assembler) {
-  __ Unimplemented("StackOverflow stub");
-}
-
-
 void StubCode::GenerateOptimizeInvokedFunctionStub(Assembler* assembler) {
   __ Unimplemented("OptimizeInvokedFunction stub");
 }
@@ -93,8 +88,13 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateInlineCacheStub(Assembler* assembler) {
-  __ Unimplemented("InlineCache stub");
+void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
+  __ Unimplemented("GenerateOneArgCheckInlineCacheStub stub");
+}
+
+
+void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
+  __ Unimplemented("GenerateTwoArgsCheckInlineCacheStub stub");
 }
 
 

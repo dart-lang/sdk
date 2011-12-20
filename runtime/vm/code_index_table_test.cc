@@ -12,7 +12,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // Compiler only implemented on IA32 now.
+// Compiler only implemented on IA32 and x64 now.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(CodeIndexTable) {
   const int kScriptSize = 512 * KB;
@@ -152,6 +153,6 @@ TEST_CASE(CodeIndexTable) {
   EXPECT(code_index_table->LookupCode(pc) == code.raw());
 }
 
-#endif  // TARGET_ARCH_IA32
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64
 
 }  // namespace dart

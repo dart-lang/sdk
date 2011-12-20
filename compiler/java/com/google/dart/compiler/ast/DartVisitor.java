@@ -241,7 +241,7 @@ public class DartVisitor {
   public void endVisit(DartParameter x, DartContext ctx) {
   }
 
-  public void endVisit(DartParameterizedNode x, DartContext ctx) {
+  public void endVisit(DartParameterizedTypeNode x, DartContext ctx) {
   }
 
   public void endVisit(DartParenthesizedExpression x, DartContext ctx) {
@@ -492,7 +492,7 @@ public class DartVisitor {
     return true;
   }
 
-  public boolean visit(DartParameterizedNode x, DartContext ctx) {
+  public boolean visit(DartParameterizedTypeNode x, DartContext ctx) {
     return true;
   }
 

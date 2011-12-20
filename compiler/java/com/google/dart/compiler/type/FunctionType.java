@@ -33,6 +33,4 @@ public interface FunctionType extends Type {
   boolean hasRest();
 
   Map<String, Type> getNamedParameterTypes();
-
-  List<TypeVariable> getTypeVariables();
 }

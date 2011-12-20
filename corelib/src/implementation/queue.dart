@@ -103,7 +103,7 @@ class DoubleLinkedQueue<E> implements Queue<E> {
   }
 
   // See issue 417. Works in the vm, fails in dartc and frog.
-  factory DoubleLinkedQueue/*<E>*/.from(Iterable/*<E>*/ other) {
+  factory DoubleLinkedQueue.from(Iterable/*<E>*/ other) {
     Queue/*<E>*/ list = new DoubleLinkedQueue();
     for (final e in other) {
       list.addLast(e);

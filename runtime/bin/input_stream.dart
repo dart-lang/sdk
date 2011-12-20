@@ -3,10 +3,36 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Input is read from a given input stream. Such an input stream can
- * be an endpoint, e.g., a socket or a file, or another input stream.
- * Multiple input streams can be chained together to operate collaboratively
- * on a given input.
+ * Input streams are used to read data sequentially from some data
+ * source. All input streams are non-blocking. They each have a number
+ * of read calls which will always return without any IO related
+ * blocking. If the requested data is not available a read call will
+ * return [:null:]. All input streams have one or more handlers which
+ * will trigger when data is available.
+ *
+ * The following example shows a data handler in an ordinary input
+ * stream which will be called when some data is available and a call
+ * to read will not return [:null:].
+ *
+ * [:
+ *    InputStream input = ...
+ *    input.dataHandler = () {
+ *      var data = input.read();
+ *      ...
+ *    };
+ * :]
+ *
+ * If for some reason the data from an input stream cannot be handled
+ * by the application immediately setting the data handler to [:null:]
+ * will avoid further callbacks until it is set to a function
+ * again. While the data handler is not active system flow control
+ * will be used to avoid buffering more data than needed.
+ *
+ * Always set up appropriate handlers when using input streams.
+ */
+
+/**
+ * Basic input stream which supplies binary data.
  */
 interface InputStream {
   /**
@@ -29,6 +55,16 @@ interface InputStream {
    * Returns the number of bytes available for immediate reading.
    */
   int available();
+
+  /**
+   * Pipe the content of this input stream directly to the output
+   * stream [output]. The default behavior is to close the output when
+   * all the data from the input stream have been written. Specifying
+   * [:false:] for the optional argument [close] keeps the output
+   * stream open after writing all data from the input stream. The
+   * default value for [close] is [:true:].
+   */
+  void pipe(OutputStream output, [bool close]);
 
   /**
    * Returns whether the stream is closed. There will be no more data
@@ -55,6 +91,11 @@ interface InputStream {
 }
 
 
+/**
+ * A string input stream wraps a basic input stream and supplies
+ * string data. This data can be read either as string chunks or as
+ * lines separated by line termination character sequences.
+ */
 interface StringInputStream factory _StringInputStream {
   /**
    * Decodes a binary input stream into characters using the specified
@@ -115,6 +156,10 @@ interface StringInputStream factory _StringInputStream {
 }
 
 
+/**
+ * A chunked input stream wraps a basic input stream and supplies
+ * binary data in configurable chunk sizes.
+ */
 interface ChunkedInputStream factory _ChunkedInputStream {
   /**
    * Adds buffering to an input stream and provide the ability to read

@@ -1,5 +1,5 @@
 
-class Uint32Array extends ArrayBufferView implements List<int> native "Uint32Array" {
+class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Array" {
 
   factory Uint32Array(int length) =>  _construct(length);
 

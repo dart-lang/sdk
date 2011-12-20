@@ -18,6 +18,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
+DEFINE_FLAG(bool, verify_before_gc, false,
+            "Enables heap verification before GC.");
+DEFINE_FLAG(bool, verify_after_gc, false,
+            "Enables heap verification after GC.");
 DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
 DEFINE_FLAG(int, new_gen_heap_size, 32, "new gen heap size in MB,"
             "e.g: --new_gen_heap_size=64 allocates a 64MB new gen heap");
@@ -50,7 +54,7 @@ uword Heap::AllocateNew(intptr_t size) {
   if (addr != 0) {
     return addr;
   }
-  new_space_->Scavenge();
+  CollectGarbage(kNew);
   if (FLAG_verbose_gc) {
     OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
                  (new_space_->in_use() / KB),
@@ -69,8 +73,14 @@ uword Heap::AllocateOld(intptr_t size) {
   ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
   uword addr = old_space_->TryAllocate(size);
   if (addr == 0) {
-    // TODO(iposva): Support GC.
-    FATAL("Exhausted heap space.");
+    CollectGarbage(kOld);
+    if (FLAG_verbose_gc) {
+      OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
+                   (new_space_->in_use() / KB),
+                   (old_space_->in_use() / KB),
+                   (code_space_->in_use() / KB));
+    }
+    addr = old_space_->TryAllocate(size);
   }
   return addr;
 }
@@ -110,6 +120,11 @@ void Heap::IterateNewPointers(ObjectPointerVisitor* visitor) {
 
 void Heap::IterateOldPointers(ObjectPointerVisitor* visitor) {
   old_space_->VisitObjectPointers(visitor);
+  code_space_->VisitObjectPointers(visitor);
+}
+
+
+void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
   code_space_->VisitObjectPointers(visitor);
 }
 

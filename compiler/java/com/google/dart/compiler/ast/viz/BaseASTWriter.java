@@ -51,7 +51,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
-import com.google.dart.compiler.ast.DartParameterizedNode;
+import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
@@ -84,7 +84,9 @@ import com.google.dart.compiler.ast.LibraryUnit;
  */
 public abstract class BaseASTWriter {
 
-  private static final String[] ignoredLibs = {"corelib", "corelib_impl", "dom", "html"};
+  private static final String[] ignoredLibs = {"corelib", "corelib_impl",
+    "dom", "html", "htmlimpl", "base", "touch", "view", "utilslib",
+    "observable", "layout.dart", "unittest", "dartest"};
   protected final String outputDir;
   private final ASTNodeTraverser visitor;
 
@@ -342,7 +344,9 @@ public abstract class BaseASTWriter {
 
     @Override
     public Object visitFunctionExpression(DartFunctionExpression node) {
-      write("DartFunctionExpression", node);
+      DartIdentifier name = node.getName();
+      write("DartFunctionExpression", node, name != null ? name.toString() : "");
+      visitChildren(node);
       return null;
     }
 
@@ -452,7 +456,7 @@ public abstract class BaseASTWriter {
     }
 
     @Override
-    public Object visitParameterizedNode(DartParameterizedNode node) {
+    public Object visitParameterizedTypeNode(DartParameterizedTypeNode node) {
       write("DartParameterizedNode", node);
       visitChildren(node);
       return null;

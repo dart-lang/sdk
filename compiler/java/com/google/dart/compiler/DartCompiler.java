@@ -11,6 +11,7 @@ import com.google.common.io.Files;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.LibraryDeps.Dependency;
 import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
+import com.google.dart.compiler.ast.CoverageInstrumenter;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartNode;
@@ -187,7 +188,7 @@ public class DartCompiler {
      * Update the current application and any referenced libraries and resolve
      * them.
      *
-     * @return a {@link LibraryUnit}, never null
+     * @return a {@link LibraryUnit}, maybe <code>null</code>
      * @throws IOException on IO errors - the caller must log this if it cares
      */
     private LibraryUnit updateAndResolve() throws IOException {
@@ -363,7 +364,7 @@ public class DartCompiler {
               continue;
             }
           }
-          if (dep == null) {
+          if (dep == null || !dep.exists()) {
             reportMissingSource(context, libSrc, libNode);
             continue;
           }
@@ -682,6 +683,10 @@ public class DartCompiler {
 
         // Dump the compiler parse tree if dump format is set in arguments
         BaseASTWriter astWriter = ASTWriterFactory.create(config);
+        
+        // Coverage instrumenter
+        CoverageInstrumenter coverageInstrumenter = CoverageInstrumenter.createInstance(config);
+        coverageInstrumenter.process(libraries);
 
         // The two following for loops can be parallelized.
         for (LibraryUnit lib : libraries.values()) {
@@ -690,9 +695,7 @@ public class DartCompiler {
           // Compile all the units in this library.
           for (DartUnit unit : lib.getUnits()) {
 
-            if(astWriter != null) {
-              astWriter.process(unit);
-            }
+            astWriter.process(unit);
 
             // Don't compile api-only units.
             if (unit.isDiet()) {
@@ -837,6 +840,8 @@ public class DartCompiler {
         }
 
         if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
+          // Dump the compiler parse tree if dump format is set in arguments
+          ASTWriterFactory.create(config).process(unit);
           return null;
         }
         return unit;
@@ -1195,22 +1200,24 @@ public class DartCompiler {
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener, config);
     Compiler compiler = new SelectiveCompiler(lib, parsedUnits, config, context);
     LibraryUnit libraryUnit = compiler.updateAndResolve();
-    // Ignore errors. Resolver should be able to cope with
-    // errors. Otherwise, we should fix it.
-    DartCompilationPhase[] phases = {
-      new Resolver.Phase(),
-      new TypeAnalyzer()
-    };
-    for (DartUnit unit : libraryUnit.getUnits()) {
-      // Don't analyze api-only units.
-      if (unit.isDiet()) {
-        continue;
-      }
-
-      for (DartCompilationPhase phase : phases) {
-        unit = phase.exec(unit, context, compiler.getTypeProvider());
-        // Ignore errors. TypeAnalyzer should be able to cope with
-        // resolution errors.
+    if (libraryUnit != null) {
+      // Ignore errors. Resolver should be able to cope with
+      // errors. Otherwise, we should fix it.
+      DartCompilationPhase[] phases = {
+        new Resolver.Phase(),
+        new TypeAnalyzer()
+      };
+      for (DartUnit unit : libraryUnit.getUnits()) {
+        // Don't analyze api-only units.
+        if (unit.isDiet()) {
+          continue;
+        }
+  
+        for (DartCompilationPhase phase : phases) {
+          unit = phase.exec(unit, context, compiler.getTypeProvider());
+          // Ignore errors. TypeAnalyzer should be able to cope with
+          // resolution errors.
+        }
       }
     }
     return libraryUnit;

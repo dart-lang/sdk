@@ -11,7 +11,7 @@
 # The SDK will be used either from the command-line or from the editor. 
 # Top structure is
 # 
-# ..sdk/
+# ..dart-sdk/
 # ....bin/
 # ......dart or dart.exe (executable)
 # ......frogc.dart
@@ -84,13 +84,6 @@ def Main(argv):
   SDK = argv[1]
 
   # TODO(dgrove) - deal with architectures that are not ia32.
-  if (os.path.basename(os.path.dirname(SDK)) != 
-      utils.GetBuildConf('release', 'ia32')):
-    print "SDK is not built in Debug mode."
-    if not os.path.exists(SDK):
-      # leave empty dir behind
-      os.makedirs(SDK)
-    exit(0)
 
   if exists(SDK):
     rmtree(SDK)
@@ -101,16 +94,16 @@ def Main(argv):
 
   # Copy the Dart VM binary into sdk/bin.
   # TODO(dgrove) - deal with architectures that are not ia32.
-  build_dir = utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')
+  build_dir = os.path.dirname(argv[1])
+  frogc_src_binary = join(HOME, 'frog', 'frogc')
+  frogc_dest_binary = join(BIN, 'frogc')
   if utils.GuessOS() == 'win32':
     # TODO(dgrove) - deal with frogc.bat
     dart_src_binary = join(HOME, build_dir, 'dart.exe')
     dart_dest_binary = join(BIN, 'dart.exe')
   else:
-    frogc_src_binary = join(HOME, 'frog', 'frogc')
     dart_src_binary = join(HOME, build_dir, 'dart')
     dart_dest_binary = join(BIN, 'dart')
-    frogc_dest_binary = join(BIN, 'frogc')
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
   copyfile(frogc_src_binary, frogc_dest_binary)
@@ -188,6 +181,9 @@ def Main(argv):
   copytree(join(frog_src_dir, 'leg'), join(frog_dest_dir, 'leg'), 
            ignore=ignore_patterns('.svn'))
 
+  copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'), 
+           ignore=ignore_patterns('.svn'))
+
   #
   # Create and populate lib/html and lib/htmlimpl.
   #
@@ -213,28 +209,23 @@ def Main(argv):
   #
   # Create and populate lib/json.
   #
-
-  json_frog_dest_dir = join(LIB, 'json', 'frog')
+  json_dest_dir = join(LIB, 'json')
   json_compiler_dest_dir = join(LIB, 'json', 'compiler')
-  os.makedirs(json_frog_dest_dir)
+  os.makedirs(json_dest_dir)
   os.makedirs(json_compiler_dest_dir)
 
   for filename in json_frog_sources:
     copyfile(join(HOME, 'frog', 'lib', filename), 
-             join(json_frog_dest_dir, filename))
+             join(json_dest_dir, filename))
 
   for filename in json_compiler_sources:
     copyfile(join(HOME, 'compiler', filename),
              join(json_compiler_dest_dir, os.path.basename(filename)))
 
-  # Create json_compiler.dart and json_frog.dart from whole cloth.
+  # Create json_compiler.dart from whole cloth.
   dest_file = open(join(LIB, 'json', 'json_compiler.dart'), 'w')
   dest_file.write('#library("dart:json");\n')
   dest_file.write('#import("compiler/json.dart");\n')
-  dest_file.close()
-  dest_file = open(join(LIB, 'json', 'json_frog.dart'), 'w')
-  dest_file.write('#library("dart:json");\n')
-  dest_file.write('#import("frog/json.dart");\n')
   dest_file.close()
       
   #
@@ -380,8 +371,7 @@ def Main(argv):
   copytree(join(HOME, 'utils', 'dartdoc'), join(UTIL, 'dartdoc'), 
            ignore=ignore_patterns('.svn'))
 
-  copytree(SDK_tmp, SDK)
-  rmtree(SDK_tmp)
+  move(SDK_tmp, SDK)
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv))

@@ -191,6 +191,11 @@ public class GenerateSourceMapTest extends CompilerTestCase {
           if (js.charAt(j) == '_') {
             break;
           }
+          if (js.charAt(j) == '\n') {
+            // False match, tokens can't span lines
+            tokenName = "";
+            break;
+          }
 
           tokenName += js.charAt(j);
         }

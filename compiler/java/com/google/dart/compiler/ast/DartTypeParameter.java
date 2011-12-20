@@ -4,7 +4,9 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.type.Type;
 
 /**
  * Represents a type parameter in a class or interface declaration.
@@ -12,6 +14,8 @@ import com.google.dart.compiler.resolver.Element;
 public class DartTypeParameter extends DartDeclaration<DartIdentifier> {
 
   private DartTypeNode bound;
+  private Element element;
+  private Type type;
 
   public DartTypeParameter(DartIdentifier name, DartTypeNode bound) {
     super(name);
@@ -46,6 +50,21 @@ public class DartTypeParameter extends DartDeclaration<DartIdentifier> {
 
   @Override
   public Element getSymbol() {
-    return null;
+    return element;
+  }
+
+  @Override
+  public void setSymbol(Symbol symbol) {
+    this.element = (Element)symbol;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
+  }
+
+  @Override
+  public void setType(Type type) {
+    this.type = type;
   }
 }

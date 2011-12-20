@@ -1,5 +1,5 @@
 URL: http://code.google.com/p/double-conversion/
-Version: d7a1ee5a309c ('Merge in "Reduce static" branch.').
+Version: c8b89fb5c5b4 ('Merge in branch unused.').
 License: BSD
 License File: LICENSE
 
@@ -9,5 +9,3 @@ for v8.
 
 Local Modifications:
 Removed the test directory, the Makefile and the scons-files.
-Wrapped ASSERT, UNIMPLEMENTED and UNREACHABLE macros into #ifndef.
-Changed memcpy to memmove.

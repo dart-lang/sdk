@@ -33,10 +33,6 @@ V8 = 'v8'
 FROG = 'frog'
 V8_AND_FROG = [V8, FROG]
 CORRECTNESS = 'Percent passing'
-BENCHMARKS = ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 
-    'BinaryTrees', 'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 
-    'Loop', 'Permute', 'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 
-    'Tak', 'Takl', 'Towers', 'TreeSort']
 COLORS = ['blue', 'green', 'red', 'cyan', 'magenta', 'black']
 GRAPH_OUT_DIR = 'graphs'
 SLEEP_TIME = 200
@@ -60,8 +56,13 @@ def RunCmd(cmd_list, outfile=None, append=False):
     if append:
       mode = 'a'
     out = open(outfile, mode)
-  p = subprocess.Popen(cmd_list, stdout = out, 
-      stderr = subprocess.PIPE, close_fds=True)
+  p = ''
+  if platform.system() == 'Windows':
+    # On Windows, shell must be true to get the correct environment variables.
+    p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE,
+        shell=True)
+  else:
+    p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE)
   output, not_used = p.communicate();
   if output:
     print output
@@ -78,36 +79,42 @@ def SyncAndBuild(failed_once=False):
   begin and end standing in DART_INSTALL_LOCATION.
   Args:
     failed_once True if we have attempted to build this once before, and we've
-      failed, indicating the build is broken."""
+      failed, indicating the build is broken.
+  Returns:
+    err_code = 1 if there was a problem building two times in a row."""
   os.chdir(DART_INSTALL_LOCATION)
   #Revert our newly built minfrog to prevent conflicts when we update
   RunCmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'minfrog')])
 
   RunCmd(['gclient', 'sync'])
-  lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release'])
-  os.chdir('frog')
-  lines += RunCmd([os.path.join('..', 'tools', 'build.py'), '-m', 
-      'debug,release'])
-  os.chdir('..')
+  #TODO(efortuna): Temporary fix to get IE data without requiring Dart to build
+  # on Windows. Take this out once we have SDKs or can build on Windows.
+  if platform.system() != 'Windows':
+    lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release'])
+    os.chdir('frog')
+    lines += RunCmd([os.path.join('..', 'tools', 'build.py'), '-m', 
+        'debug,release'])
+    os.chdir('..')
   
-  for line in lines:
-    if 'BUILD FAILED' in lines:
-      if failed_once:
-        # Someone checked in a broken build! Just stop trying to make it work
-        # and wait for the next hour to try again.
-        print 'Broken Build'
-        sys.exit(0)
-      #Remove the xcode directory and attempt to build again. If it still
-      #fails, abort, and try again next hour.
-      out_dir = 'out'
-      if platform.system() == 'Darwin':
-        out_dir = 'xcodebuild'
-      shutil.rmtree(os.path.join(os.getcwd(), out_dir, 'Release_ia32'))
-      shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
-          'Debug_ia32'))
-      shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
-          'Release_ia32'))
-      SyncAndBuild(True)
+    for line in lines:
+      if 'BUILD FAILED' in lines:
+        if failed_once:
+          # Someone checked in a broken build! Just stop trying to make it work
+          # and wait for the next hour to try again.
+          print 'Broken Build'
+          return 1
+        #Remove the xcode directory and attempt to build again. If it still
+        #fails, abort, and try again next hour.
+        out_dir = 'out'
+        if platform.system() == 'Darwin':
+          out_dir = 'xcodebuild'
+        shutil.rmtree(os.path.join(os.getcwd(), out_dir, 'Release_ia32'))
+        shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
+            'Debug_ia32'))
+        shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
+            'Release_ia32'))
+        SyncAndBuild(True)
+  return 0
 
 def EnsureOutputDirectory(dir_name):
   """Test that the listed directory name exists, and if not, create one for
@@ -133,7 +140,7 @@ def GetBrowsers():
   if not PERFBOT_MODE:
     # Only Firefox (and Chrome, but we have Dump Render Tree) works in Linux
     return ['ff']
-  browsers = ['ff', 'chrome']
+  browsers = ['ff', 'chrome', 'safari']
   if platform.system() == 'Windows':
     browsers += ['ie']
   return browsers
@@ -143,6 +150,31 @@ def GetVersions():
     return [FROG]
   else:
     return V8_AND_FROG
+
+def GetBenchmarks():
+  if not PERFBOT_MODE:
+    return ['Smoketest']
+  else:
+    return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
+    'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
+    'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
+    'TreeSort']
+
+def UploadToAppEngine():
+  """Upload our results to our appengine server."""
+  # TODO(efortuna): This is the most basic way to get the data up 
+  # for others to view. Revisit this once we're serving nicer graphs (Google
+  # Chart Tools) and from multiple perfbots and once we're in a position to
+  # organize the data in a useful manner(!!).
+  os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools', 'testing',
+      'perf_testing'))
+  shutil.rmtree(os.path.join('appengine', 'static', 'graphs'), 
+      ignore_errors=True)
+  shutil.copytree('graphs', os.path.join('appengine', 'static', 'graphs'))
+  shutil.copyfile('index.html', os.path.join('appengine', 'static', 
+      'index.html'))
+  RunCmd(['../../../third_party/appengine-python/1.5.4/appcfg.py', 'update', 
+      'appengine/'])
 
 class TestRunner(object):
   """The base clas to provide shared code for different tests we will run and
@@ -162,7 +194,8 @@ class TestRunner(object):
     self.result_folder_name = result_folder_name
     # cur_time is used as a timestamp of when this performance test was run.
     self.cur_time = str(time.mktime(datetime.datetime.now().timetuple()))
-    self.browser_color = {'chrome': 'green', 'ie': 'blue', 'ff': 'red'}
+    self.browser_color = {'chrome': 'green', 'ie': 'blue', 'ff': 'red',
+        'safari':'black'}
     self.values_list = values_list
     self.platform_list = platform_list
     self.revision_dict = dict()
@@ -230,7 +263,7 @@ class TestRunner(object):
   def AddSvnRevisionToTrace(self, outfile):
     """Add the svn version number to the provided tracefile."""
     p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE, 
-      stderr = subprocess.STDOUT, close_fds=True)
+      stderr = subprocess.STDOUT)
     output, not_used = p.communicate()
     for line in output.split('\n'):
       if 'Revision' in line:
@@ -274,7 +307,7 @@ class TestRunner(object):
     """Calculate the aggregate geometric mean for V8 and frog benchmark sets,
     given two benchmark dictionaries."""
     geo_mean = 0
-    for benchmark in BENCHMARKS:
+    for benchmark in GetBenchmarks():
       geo_mean += math.log(self.values_dict[platform][frog_or_v8][benchmark][
           len(self.values_dict[platform][frog_or_v8][benchmark]) - 1])
  
@@ -282,16 +315,14 @@ class TestRunner(object):
     if frog_or_v8 == FROG:
        mean = FROG_MEAN
     self.values_dict[platform][frog_or_v8][mean] += \
-        [math.pow(math.e, geo_mean / len(BENCHMARKS))]
+        [math.pow(math.e, geo_mean / len(GetBenchmarks()))]
     self.revision_dict[platform][frog_or_v8][mean] += [svn_revision]
-
-  def Cleanup(self):
-      pass
 
   def Run(self):
     """Run the benchmarks/tests from the command line and plot the 
     results."""
-    plt.cla() # cla = clear current axes
+    if PERFBOT_MODE:
+      plt.cla() # cla = clear current axes
     os.chdir(DART_INSTALL_LOCATION)
     EnsureOutputDirectory(self.result_folder_name)
     EnsureOutputDirectory(GRAPH_OUT_DIR)
@@ -308,20 +339,19 @@ class TestRunner(object):
 
     if PERFBOT_MODE:
       self.PlotResults('%s.png' % self.result_folder_name)
-    self.Cleanup();
 
 class PerformanceTestRunner(TestRunner):
   """Super class for all performance testing."""
   def __init__(self, result_folder_name, platform_list, platform_type):
     super(PerformanceTestRunner, self).__init__(result_folder_name, 
-        platform_list, GetVersions(), BENCHMARKS)
+        platform_list, GetVersions(), GetBenchmarks())
     self.platform_list = platform_list
     self.platform_type = platform_type
 
   def PlotAllPerf(self, png_filename):
     """Create a plot that shows the performance changes of individual benchmarks
     run by V8 and generated by frog, over svn history."""
-    for benchmark in BENCHMARKS:
+    for benchmark in GetBenchmarks():
       self.StyleAndSavePerfPlot(
           'Performance of %s over time on the %s' % (benchmark,
           self.platform_type), 'Speed (bigger = better)', 16, 14, 'lower left', 
@@ -372,7 +402,7 @@ class CommandLinePerformanceTestRunner(PerformanceTestRunner):
         tabulate_data = True
       elif tabulate_data:
         tokens = line.split()
-        if len(tokens) < 4 or tokens[0] not in BENCHMARKS:
+        if len(tokens) < 4 or tokens[0] not in GetBenchmarks():
           #Done tabulating data.
           break
         v8_value = float(tokens[1])
@@ -410,8 +440,17 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
 
   def RunTests(self):
     """Run a performance test in the browser."""
+      # For the smoke test, just run a simple test, not the actual benchmarks to
+      # ensure we haven't broken the Firefox DOM.
+
     os.chdir('frog')
-    RunCmd(['python', os.path.join('benchmarks', 'make_web_benchmarks.py')])
+    if PERFBOT_MODE:
+      RunCmd(['python', os.path.join('benchmarks', 'make_web_benchmarks.py')])
+    else:
+      RunCmd(['./minfrog', '--out=../tools/testing/perf_testing/smoketest/' + \
+      'smoketest_frog.js', '--libdir=%s/lib' % os.getcwd(),
+      '--compile-only', '../tools/testing/perf_testing/smoketest/' + \
+      'dartWebBase.dart'])
     os.chdir('..')
 
     for browser in GetBrowsers():
@@ -420,9 +459,13 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
             self.result_folder_name,
             'perf-%s-%s-%s' % (self.cur_time, browser, version))
         self.AddSvnRevisionToTrace(self.trace_file)
+        file_path = os.path.join(os.getcwd(), 'internal', 'browserBenchmarks', 
+            'benchmark_page_%s.html' % version)
+        if not PERFBOT_MODE:
+          file_path = os.path.join(os.getcwd(), 'tools', 'testing',
+              'perf_testing', 'smoketest', 'smoketest_%s.html' % version)
         RunCmd(['python', os.path.join('tools', 'testing', 'run_selenium.py'), 
-            '--out', os.path.join(os.getcwd(), 'internal', 'browserBenchmarks',
-            'benchmark_page_%s.html' % version), '--browser', browser, 
+            '--out', file_path, '--browser', browser, 
             '--timeout', '600', '--perf'], self.trace_file, append=True)
 
   def ProcessFile(self, afile):
@@ -482,11 +525,6 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       pass
 
       
-  def Cleanup(self):
-    # Kill the zombie chromedriver processes.
-    RunCmd(['killall', 'chromedriver'])
-
-
 class BrowserCorrectnessTestRunner(TestRunner):
   def __init__(self, test_type, result_folder_name):
     super(BrowserCorrectnessTestRunner, self).__init__(result_folder_name,
@@ -545,9 +583,6 @@ class BrowserCorrectnessTestRunner(TestRunner):
           png_filename, [browser], [FROG], [CORRECTNESS], first_time) 
       first_time = False
 
-  def Cleanup(self):
-    # Kill the zombie chromedriver processes.
-    RunCmd(['killall', 'chromedriver'])
 
 class CompileTimeAndSizeTestRunner(TestRunner):
   """Run tests to determine how long minfrog takes to compile, and the compiled 
@@ -571,8 +606,7 @@ class CompileTimeAndSizeTestRunner(TestRunner):
     RunCmd(['echo', '%f Compiling on Dart VM in production mode in seconds' 
         % elapsed], self.trace_file, append=True)
     elapsed = TimeCmd([os.path.join('.', 'minfrog'), '--out=minfrog',
-        '--warnings_as_errors', 'minfrog.dart', os.path.join('tests', 
-        'hello.dart')])
+        'minfrog.dart', os.path.join('tests', 'hello.dart')])
     if elapsed < self.failure_threshold['Bootstrapping']:
       #minfrog didn't compile correctly. Stop testing now, because subsequent
       #numbers will be meaningless.
@@ -677,7 +711,7 @@ def ParseArgs():
       help = 'Run this script forever, always checking for the next svn '
       'checkin', action = 'store_true', default = False)
   parser.add_option('--perfbot', '-p', dest = 'perfbot',
-      help = "Run in perfbot mode. (Generate plots, and remove trace files)", 
+      help = "Run in perfbot mode. (Generate plots, and keep trace files)", 
       action = 'store_true', default = False)
   parser.add_option('--verbose', '-v', dest = 'verbose',
       help = 'Print extra debug output', action = 'store_true', default = False)
@@ -692,7 +726,8 @@ def RunTestSequence(cl, size, language, perf):
   if PERFBOT_MODE:
     # The buildbot already builds and syncs to a specific revision. Don't fight
     # with it or replicate work.
-    SyncAndBuild()
+    if SyncAndBuild() == 1:
+      return # The build is broken.
   if cl:
     CommandLinePerformanceTestRunner('cl-results').Run()
   if size:
@@ -701,6 +736,9 @@ def RunTestSequence(cl, size, language, perf):
     BrowserCorrectnessTestRunner('language', 'browser-correctness').Run()
   if perf:
     BrowserPerformanceTestRunner('browser-perf').Run()
+
+  if PERFBOT_MODE:
+    UploadToAppEngine()
 
 def main():
   global PERFBOT_MODE, VERBOSE

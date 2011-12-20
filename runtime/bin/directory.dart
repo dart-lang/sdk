@@ -101,7 +101,8 @@ interface Directory factory _Directory {
 
 
 class DirectoryException {
-  const DirectoryException(String this.message);
+  const DirectoryException([String this.message, int this.errorCode = 0]);
   String toString() => "DirectoryException: $message";
   final String message;
+  final int errorCode;
 }

@@ -7,6 +7,7 @@
 #include "vm/assert.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/thread.h"
 #include "vm/unit_test.h"
 #include "vm/utils.h"
 #include "vm/verifier.h"
@@ -301,18 +302,84 @@ UNIT_TEST_CASE(IntegerValues) {
   EXPECT(!fits);
 
   int64_t out = 0;
-  result = Dart_IntegerValue(val1, &out);
+  result = Dart_IntegerToInt64(val1, &out);
   EXPECT_VALID(result);
   EXPECT_EQ(kIntegerVal1, out);
 
-  result = Dart_IntegerValue(val2, &out);
+  result = Dart_IntegerToInt64(val2, &out);
   EXPECT_VALID(result);
   EXPECT_EQ(kIntegerVal2, out);
 
   const char* chars = NULL;
-  result = Dart_IntegerValueHexCString(val3, &chars);
+  result = Dart_IntegerToHexCString(val3, &chars);
   EXPECT_VALID(result);
   EXPECT(!strcmp(kIntegerVal3, chars));
+}
+
+
+UNIT_TEST_CASE(IntegerFitsIntoInt64) {
+  TestIsolateScope __test_isolate__;
+
+  Dart_Handle max = Dart_NewInteger(DART_INT64_C(0x7FFFFFFFFFFFFFFF));
+  EXPECT(Dart_IsInteger(max));
+  bool fits = false;
+  Dart_Handle result = Dart_IntegerFitsIntoInt64(max, &fits);
+  EXPECT_VALID(result);
+  EXPECT(fits);
+
+  Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x8000000000000000");
+  EXPECT(Dart_IsInteger(above_max));
+  fits = true;
+  result = Dart_IntegerFitsIntoInt64(above_max, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
+
+  Dart_Handle min = Dart_NewInteger(DART_INT64_C(-0x8000000000000000));
+  EXPECT(Dart_IsInteger(min));
+  fits = false;
+  result = Dart_IntegerFitsIntoInt64(min, &fits);
+  EXPECT_VALID(result);
+  EXPECT(fits);
+
+  Dart_Handle below_min = Dart_NewIntegerFromHexCString("-0x8000000000000001");
+  EXPECT(Dart_IsInteger(below_min));
+  fits = true;
+  result = Dart_IntegerFitsIntoInt64(below_min, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
+}
+
+
+UNIT_TEST_CASE(IntegerFitsIntoUint64) {
+  TestIsolateScope __test_isolate__;
+
+  Dart_Handle max = Dart_NewIntegerFromHexCString("0xFFFFFFFFFFFFFFFF");
+  EXPECT(Dart_IsInteger(max));
+  bool fits = false;
+  Dart_Handle result = Dart_IntegerFitsIntoUint64(max, &fits);
+  EXPECT_VALID(result);
+  EXPECT(fits);
+
+  Dart_Handle above_max = Dart_NewIntegerFromHexCString("0x10000000000000000");
+  EXPECT(Dart_IsInteger(above_max));
+  fits = true;
+  result = Dart_IntegerFitsIntoUint64(above_max, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
+
+  Dart_Handle min = Dart_NewInteger(0);
+  EXPECT(Dart_IsInteger(min));
+  fits = false;
+  result = Dart_IntegerFitsIntoUint64(min, &fits);
+  EXPECT_VALID(result);
+  EXPECT(fits);
+
+  Dart_Handle below_min = Dart_NewIntegerFromHexCString("-1");
+  EXPECT(Dart_IsInteger(below_min));
+  fits = true;
+  result = Dart_IntegerFitsIntoUint64(below_min, &fits);
+  EXPECT_VALID(result);
+  EXPECT(!fits);
 }
 
 
@@ -347,7 +414,7 @@ UNIT_TEST_CASE(ArrayValues) {
     result = Dart_ListGetAt(val, i);
     EXPECT_VALID(result);
     int64_t value;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(i, value);
   }
@@ -431,7 +498,7 @@ UNIT_TEST_CASE(ExternalStringGetPeer) {
   result = Dart_ExternalStringGetPeer(ext8, NULL);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_ExternalStringGetPeer expects argument 'peer' to be "
-               "non-NULL.", Dart_GetError(result));
+               "non-null.", Dart_GetError(result));
 
   // String is not external.
   peer = NULL;
@@ -498,19 +565,19 @@ UNIT_TEST_CASE(ListAccess) {
 
     result = Dart_ListGetAt(ListAccessTestObj, 0);
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(10, value);
 
     result = Dart_ListGetAt(ListAccessTestObj, 1);
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(20, value);
 
     result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(30, value);
 
@@ -530,19 +597,19 @@ UNIT_TEST_CASE(ListAccess) {
     // Now try and access these elements in the array.
     result = Dart_ListGetAt(ListAccessTestObj, 0);
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(0, value);
 
     result = Dart_ListGetAt(ListAccessTestObj, 1);
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(1, value);
 
     result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(2, value);
 
@@ -565,7 +632,7 @@ UNIT_TEST_CASE(ListAccess) {
     EXPECT_EQ(30, native_array[2]);
     result = Dart_ListGetAt(ListAccessTestObj, 2);
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(30, value);
 
@@ -900,7 +967,7 @@ UNIT_TEST_CASE(FieldAccess) {
     result = Dart_GetStaticField(cls, Dart_NewString("fld4"));
     EXPECT_VALID(result);
     int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(10, value);
     result = Dart_SetStaticField(cls,
                                  Dart_NewString("fld4"),
@@ -912,7 +979,7 @@ UNIT_TEST_CASE(FieldAccess) {
                                  Dart_NewString("fld3"),
                                  Dart_NewInteger(200));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(200, value);
 
     // Now access and set various instance fields of the returned object.
@@ -920,11 +987,11 @@ UNIT_TEST_CASE(FieldAccess) {
     EXPECT(Dart_IsError(result));
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(10, value);
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(20, value);
     result = Dart_SetInstanceField(retobj,
                                    Dart_NewString("fld2"),
@@ -936,7 +1003,7 @@ UNIT_TEST_CASE(FieldAccess) {
     EXPECT_VALID(result);
     result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(40, value);
   }
 }
@@ -982,7 +1049,7 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
     result = Dart_GetStaticField(cls, Dart_NewString("_fld4"));
     EXPECT_VALID(result);
     int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(10, value);
     result = Dart_SetStaticField(cls,
                                  Dart_NewString("_fld4"),
@@ -994,7 +1061,7 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
                                  Dart_NewString("_fld3"),
                                  Dart_NewInteger(200));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(200, value);
 
     // Now access and set various instance fields of the returned object.
@@ -1002,11 +1069,11 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
     EXPECT(Dart_IsError(result));
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld1"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(10, value);
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld2"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(20, value);
     result = Dart_SetInstanceField(retobj,
                                    Dart_NewString("_fld2"),
@@ -1018,7 +1085,7 @@ UNIT_TEST_CASE(HiddenFieldAccess) {
     EXPECT_VALID(result);
     result = Dart_GetInstanceField(retobj, Dart_NewString("_fld1"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(40, value);
   }
 }
@@ -1230,11 +1297,11 @@ static void TestNativeFields(Dart_Handle retobj) {
   result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
   EXPECT_VALID(result);
   int64_t value = 0;
-  result = Dart_IntegerValue(result, &value);
+  result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(10, value);
   result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
   EXPECT_VALID(result);
-  result = Dart_IntegerValue(result, &value);
+  result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(20, value);
   result = Dart_SetInstanceField(retobj,
                                  Dart_NewString("fld2"),
@@ -1246,7 +1313,7 @@ static void TestNativeFields(Dart_Handle retobj) {
   EXPECT_VALID(result);
   result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
   EXPECT_VALID(result);
-  result = Dart_IntegerValue(result, &value);
+  result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(40, value);
 
   // Now access and set various native instance fields of the returned object.
@@ -1288,11 +1355,11 @@ static void TestNativeFields(Dart_Handle retobj) {
   // to ensure that there was no corruption while setting native fields.
   result = Dart_GetInstanceField(retobj, Dart_NewString("fld1"));
   EXPECT_VALID(result);
-  result = Dart_IntegerValue(result, &value);
+  result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(40, value);
   result = Dart_GetInstanceField(retobj, Dart_NewString("fld2"));
   EXPECT_VALID(result);
-  result = Dart_IntegerValue(result, &value);
+  result = Dart_IntegerToInt64(result, &value);
   EXPECT_EQ(20, value);
 }
 
@@ -1495,12 +1562,12 @@ UNIT_TEST_CASE(GetStaticField_RunsInitializer) {
     result = Dart_GetStaticField(cls, Dart_NewString("fld1"));
     EXPECT_VALID(result);
     int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(7, value);
 
     result = Dart_GetStaticField(cls, Dart_NewString("fld2"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(11, value);
 
     // Overwrite fld2
@@ -1512,7 +1579,7 @@ UNIT_TEST_CASE(GetStaticField_RunsInitializer) {
     // We now get the new value for fld2, not the initializer
     result = Dart_GetStaticField(cls, Dart_NewString("fld2"));
     EXPECT_VALID(result);
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(13, value);
   }
 }
@@ -1600,7 +1667,7 @@ UNIT_TEST_CASE(InvokeDynamic) {
     EXPECT_VALID(result);
     EXPECT(Dart_IsInteger(result));
     int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(41, value);
 
     result = Dart_InvokeDynamic(retobj, Dart_NewString("method2"), 0, NULL);
@@ -1664,7 +1731,7 @@ UNIT_TEST_CASE(InvokeClosure) {
     EXPECT_VALID(result);
     EXPECT(Dart_IsInteger(result));
     int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(51, value);
 
     // Invoke closure with wrong number of args, should result in exception.
@@ -1759,7 +1826,7 @@ UNIT_TEST_CASE(ThrowException) {
     EXPECT_VALID(result);
     EXPECT(Dart_IsInteger(result));
     int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_EQ(5, value);
 
     Dart_ExitScope();  // Exit the Dart API scope.
@@ -1808,7 +1875,7 @@ UNIT_TEST_CASE(GetNativeArgumentCount) {
     EXPECT(Dart_IsInteger(result));
 
     int64_t value = 0;
-    result = Dart_IntegerValue(result, &value);
+    result = Dart_IntegerToInt64(result, &value);
     EXPECT_VALID(result);
     EXPECT_EQ(3, value);
   }
@@ -2007,7 +2074,7 @@ UNIT_TEST_CASE(LoadScript) {
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
-  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(12345, value);
 
   // Further calls to LoadScript are errors.
@@ -2409,7 +2476,7 @@ UNIT_TEST_CASE(SetNativeResolver) {
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
-  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(654321, value);
 
   // A second call succeeds.
@@ -2425,7 +2492,7 @@ UNIT_TEST_CASE(SetNativeResolver) {
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   value = 0;
-  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(654321, value);
 
   // 'bar' has not yet been resolved so gets the new value.
@@ -2437,7 +2504,7 @@ UNIT_TEST_CASE(SetNativeResolver) {
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   value = 0;
-  EXPECT_VALID(Dart_IntegerValue(result, &value));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(123456, value);
 
   // A NULL resolver is okay, but resolution will fail.
@@ -2700,7 +2767,7 @@ static bool RunLoopTestCallback(void* data, char** error) {
       "  void main() {\n"
       "    port.receive((message, replyTo) {\n"
       "      if (message) {\n"
-      "        throw new Exception('MakeVMExit');\n"
+      "        throw new Exception('MakeChildExit');\n"
       "      } else {\n"
       "        replyTo.call('hello');\n"
       "        port.close();\n"
@@ -2709,10 +2776,11 @@ static bool RunLoopTestCallback(void* data, char** error) {
       "  }\n"
       "}\n"
       "\n"
-      "void main(message) {\n"
+      "void main(exc_child, exc_parent) {\n"
       "  new MyIsolate().spawn().then((port) {\n"
-      "    port.call(message).receive((message, replyTo) {\n"
+      "    port.call(exc_child).receive((message, replyTo) {\n"
       "      if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
+      "      if (exc_parent) throw new Exception('MakeParentExit');\n"
       "    });\n"
       "  });\n"
       "}\n";
@@ -2733,7 +2801,8 @@ static bool RunLoopTestCallback(void* data, char** error) {
 
 
 // Common code for RunLoop_Success/RunLoop_Failure.
-static void RunLoopTest(bool throw_exception) {
+static void RunLoopTest(bool throw_exception_child,
+                        bool throw_exception_parent) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
   RunLoopTestCallback(NULL, NULL);
@@ -2743,16 +2812,22 @@ static void RunLoopTest(bool throw_exception) {
   EXPECT_VALID(lib);
 
   Dart_Handle result;
-  Dart_Handle args[1];
-  args[0] = (throw_exception ? Dart_True() : Dart_False());
+  Dart_Handle args[2];
+  args[0] = (throw_exception_child ? Dart_True() : Dart_False());
+  args[1] = (throw_exception_parent ? Dart_True() : Dart_False());
   result = Dart_InvokeStatic(lib,
                              Dart_NewString(""),
                              Dart_NewString("main"),
-                             1,
+                             2,
                              args);
   EXPECT_VALID(result);
   result = Dart_RunLoop();
-  EXPECT_VALID(result);
+  if (throw_exception_parent) {
+    EXPECT(Dart_IsError(result));
+    // TODO(turnidge): Once EXPECT_SUBSTRING is submitted use it here.
+  } else {
+    EXPECT_VALID(result);
+  }
 
   Dart_ExitScope();
   Dart_ShutdownIsolate();
@@ -2762,12 +2837,137 @@ static void RunLoopTest(bool throw_exception) {
 
 
 UNIT_TEST_CASE(RunLoop_Success) {
-  RunLoopTest(false);
+  RunLoopTest(false, false);
 }
 
 
-UNIT_TEST_CASE(RunLoop_Exception) {
-  RunLoopTest(true);
+// This test exits the vm.  Listed as FAIL in vm.status.
+UNIT_TEST_CASE(RunLoop_ExceptionChild) {
+  RunLoopTest(true, false);
+}
+
+
+UNIT_TEST_CASE(RunLoop_ExceptionParent) {
+  RunLoopTest(false, true);
+}
+
+
+static Monitor* sync = NULL;
+static Dart_Isolate shared_isolate = NULL;
+void BusyLoop_start(uword unused) {
+  // TODO(turnidge): Get rid of call to 'function' after interrupts
+  // are checked on backward branches.
+  const char* kScriptChars =
+      "void function([foo='hi']) {\n"
+      "}\n"
+      "\n"
+      "void main() {\n"
+      "  while (true) {\n"  // Infinite loop.
+      "    function();\n"
+      "  }\n"
+      "}\n";
+
+
+  // Tell the other thread that shared_isolate is created.
+  Dart_Handle lib;
+  {
+    sync->Enter();
+    char* error = NULL;
+    shared_isolate = Dart_CreateIsolate(NULL, NULL, &error);
+    EXPECT(shared_isolate != NULL);
+    Dart_EnterScope();
+    Dart_Handle url = Dart_NewString(TestCase::url());
+    Dart_Handle source = Dart_NewString(kScriptChars);
+    lib = Dart_LoadScript(url, source, TestCase::library_handler);
+    EXPECT_VALID(lib);
+
+    sync->Notify();
+    sync->Exit();
+  }
+
+  Dart_Handle result = Dart_InvokeStatic(lib,
+                                         Dart_NewString(""),
+                                         Dart_NewString("main"),
+                                         0,
+                                         NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Unhandled exception:\nfoo\n",
+                   Dart_GetError(result));
+
+  // Tell the other thread that we are done.
+  {
+    MonitorLocker ml(sync);
+    shared_isolate = NULL;
+    ml.Notify();
+  }
+
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+// This callback handles isolate interrupts for the IsolateInterrupt
+// test.  It ignores the first two interrupts and throws an exception
+// on the third interrupt.
+static int interrupt_count = 0;
+static bool IsolateInterruptTestCallback() {
+  interrupt_count++;
+  OS::Print(" =========== Interrupt callback called #%d\n", interrupt_count);
+  if (interrupt_count >= 3) {
+    Dart_EnterScope();
+    Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
+    EXPECT_VALID(lib);
+    Dart_Handle exc = Dart_NewString("foo");
+    EXPECT_VALID(exc);
+    Dart_Handle result = Dart_ThrowException(exc);
+    EXPECT_VALID(result);
+    UNREACHABLE();  // Dart_ThrowException only returns if it gets an error.
+    return false;
+  }
+  return true;
+}
+
+
+TEST_CASE(IsolateInterrupt) {
+  Dart_IsolateInterruptCallback saved = Isolate::InterruptCallback();
+  Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
+
+  sync = new Monitor();
+  Thread* thread = new Thread(BusyLoop_start, 0);
+  EXPECT(thread != NULL);
+
+  {
+    MonitorLocker ml(sync);
+    // Wait for the other isolate to start.
+    while (shared_isolate == NULL) {
+      ml.Wait();
+    }
+  }
+
+  // Send three interrupts to the other isolate.  The first two allow
+  // execution to continue.  The third causes an exception in the
+  // isolate.
+  Dart_InterruptIsolate(shared_isolate);
+  OS::Sleep(5);
+  Dart_InterruptIsolate(shared_isolate);
+  OS::Sleep(5);
+  Dart_InterruptIsolate(shared_isolate);
+
+  {
+    MonitorLocker ml(sync);
+    // Wait for our isolate to finish.
+    while (shared_isolate != NULL) {
+      ml.Wait();
+    }
+  }
+
+  // We should have received 3 interrupts.
+  EXPECT_EQ(3, interrupt_count);
+
+  // Give the spawned thread enough time to properly exit.
+  OS::Sleep(20);
+  Isolate::SetInterruptCallback(saved);
 }
 
 #endif  // TARGET_ARCH_IA32.

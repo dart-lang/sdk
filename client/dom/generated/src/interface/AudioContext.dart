@@ -14,6 +14,10 @@ interface AudioContext factory _AudioContextFactoryProvider {
 
   AudioListener get listener();
 
+  EventListener get oncomplete();
+
+  void set oncomplete(EventListener value);
+
   num get sampleRate();
 
   RealtimeAnalyserNode createAnalyser();
@@ -41,6 +45,8 @@ interface AudioContext factory _AudioContextFactoryProvider {
   JavaScriptAudioNode createJavaScriptNode(int bufferSize);
 
   LowPass2FilterNode createLowPass2Filter();
+
+  MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
 
   AudioPannerNode createPanner();
 

@@ -150,6 +150,8 @@ function DOM$fixClass$AudioContext(c) {
     c.prototype.currentTime$getter = function() { return DOM$EnsureDartNull(this.currentTime); };
     c.prototype.destination$getter = function() { return DOM$EnsureDartNull(this.destination); };
     c.prototype.listener$getter = function() { return DOM$EnsureDartNull(this.listener); };
+    c.prototype.oncomplete$getter = function() { return DOM$EnsureDartNull(this.oncomplete); };
+    c.prototype.oncomplete$setter = function(value) { this.oncomplete = value; };
     c.prototype.sampleRate$getter = function() { return DOM$EnsureDartNull(this.sampleRate); };
   }
   DOM$fixMembers(c, [
@@ -166,6 +168,7 @@ function DOM$fixClass$AudioContext(c) {
     'createHighPass2Filter',
     'createJavaScriptNode',
     'createLowPass2Filter',
+    'createMediaElementSource',
     'createPanner',
     'createWaveShaper',
     'decodeAudioData',
@@ -307,6 +310,7 @@ function DOM$fixClass$Blob(c) {
     c.prototype.size$getter = function() { return DOM$EnsureDartNull(this.size); };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
   }
+  DOM$fixMembers(c, ['webkitSlice']);
   c.$implements$Blob$Dart = 1;
 }
 function DOM$fixClass$CDATASection(c) {
@@ -669,6 +673,7 @@ function DOM$fixClass$CompositionEvent(c) {
 function DOM$fixClass$Console(c) {
   if (c.prototype) {
     c.prototype.memory$getter = function() { return DOM$EnsureDartNull(this.memory); };
+    c.prototype.profiles$getter = function() { return DOM$EnsureDartNull(this.profiles); };
   }
   DOM$fixMembers(c, [
     'count',
@@ -682,6 +687,8 @@ function DOM$fixClass$Console(c) {
     'info',
     'log',
     'markTimeline',
+    'profile',
+    'profileEnd',
     'time',
     'timeEnd',
     'timeStamp',
@@ -978,7 +985,9 @@ function DOM$fixClass$DOMWindow(c) {
     c.prototype.toolbar$setter = function(value) { this.toolbar = value; };
     c.prototype.top$getter = function() { return DOM$EnsureDartNull(this.top); };
     c.prototype.top$setter = function(value) { this.top = value; };
+    c.prototype.webkitIndexedDB$getter = function() { return DOM$EnsureDartNull(this.webkitIndexedDB); };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
+    c.prototype.webkitStorageInfo$getter = function() { return DOM$EnsureDartNull(this.webkitStorageInfo); };
     c.prototype.webkitURL$getter = function() { return DOM$EnsureDartNull(this.webkitURL); };
     c.prototype.window$getter = function() { return DOM$EnsureDartNull(this.window); };
   }
@@ -1003,6 +1012,7 @@ function DOM$fixClass$DOMWindow(c) {
     'moveBy',
     'moveTo',
     'open',
+    'openDatabase',
     'postMessage',
     'print',
     'prompt',
@@ -1092,6 +1102,8 @@ function DOM$fixClass$DatabaseSync(c) {
 }
 function DOM$fixClass$DedicatedWorkerContext(c) {
   if (c.prototype) {
+    c.prototype.onmessage$getter = function() { return DOM$EnsureDartNull(this.onmessage); };
+    c.prototype.onmessage$setter = function(value) { this.onmessage = value; };
   }
   DOM$fixMembers(c, [
     'postMessage',
@@ -1245,6 +1257,12 @@ function DOM$fixClass$Document(c) {
     'querySelector',
     'querySelectorAll',
     'webkitCancelFullScreen']);
+  c.prototype.createTouch$member = function() {
+    return DOM$fixValue$Touch(this.createTouch.apply(this, arguments));
+  };
+  c.prototype.createTouchList$member = function() {
+    return DOM$fixValue$TouchList(this.createTouchList.apply(this, arguments));
+  };
   c.$implements$Document$Dart = 1;
   c.$implements$Node$Dart = 1;
   c.$implements$EventTarget$Dart = 1;
@@ -1496,6 +1514,7 @@ function DOM$fixClass$File(c) {
     c.prototype.fileSize$getter = function() { return DOM$EnsureDartNull(this.fileSize); };
     c.prototype.lastModifiedDate$getter = function() { return DOM$EnsureDartNull(this.lastModifiedDate); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.webkitRelativePath$getter = function() { return DOM$EnsureDartNull(this.webkitRelativePath); };
   }
   c.$implements$File$Dart = 1;
   c.$implements$Blob$Dart = 1;
@@ -1543,6 +1562,18 @@ function DOM$fixClass$FileList(c) {
 function DOM$fixClass$FileReader(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
+    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
+    c.prototype.onabort$setter = function(value) { this.onabort = value; };
+    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
+    c.prototype.onerror$setter = function(value) { this.onerror = value; };
+    c.prototype.onload$getter = function() { return DOM$EnsureDartNull(this.onload); };
+    c.prototype.onload$setter = function(value) { this.onload = value; };
+    c.prototype.onloadend$getter = function() { return DOM$EnsureDartNull(this.onloadend); };
+    c.prototype.onloadend$setter = function(value) { this.onloadend = value; };
+    c.prototype.onloadstart$getter = function() { return DOM$EnsureDartNull(this.onloadstart); };
+    c.prototype.onloadstart$setter = function(value) { this.onloadstart = value; };
+    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
+    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
   }
@@ -1568,6 +1599,18 @@ function DOM$fixClass$FileWriter(c) {
   if (c.prototype) {
     c.prototype.error$getter = function() { return DOM$EnsureDartNull(this.error); };
     c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
+    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
+    c.prototype.onabort$setter = function(value) { this.onabort = value; };
+    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
+    c.prototype.onerror$setter = function(value) { this.onerror = value; };
+    c.prototype.onprogress$getter = function() { return DOM$EnsureDartNull(this.onprogress); };
+    c.prototype.onprogress$setter = function(value) { this.onprogress = value; };
+    c.prototype.onwrite$getter = function() { return DOM$EnsureDartNull(this.onwrite); };
+    c.prototype.onwrite$setter = function(value) { this.onwrite = value; };
+    c.prototype.onwriteend$getter = function() { return DOM$EnsureDartNull(this.onwriteend); };
+    c.prototype.onwriteend$setter = function(value) { this.onwriteend = value; };
+    c.prototype.onwritestart$getter = function() { return DOM$EnsureDartNull(this.onwritestart); };
+    c.prototype.onwritestart$setter = function(value) { this.onwritestart = value; };
     c.prototype.position$getter = function() { return DOM$EnsureDartNull(this.position); };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
@@ -2084,6 +2127,7 @@ function DOM$fixClass$HTMLEmbedElement(c) {
     c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
     c.prototype.width$setter = function(value) { this.width = value; };
   }
+  DOM$fixMembers(c, ['getSVGDocument']);
   c.$implements$HTMLEmbedElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2189,6 +2233,7 @@ function DOM$fixClass$HTMLFrameElement(c) {
     c.prototype.src$setter = function(value) { this.src = value; };
     c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
   }
+  DOM$fixMembers(c, ['getSVGDocument']);
   c.$implements$HTMLFrameElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2299,6 +2344,7 @@ function DOM$fixClass$HTMLIFrameElement(c) {
     c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
     c.prototype.width$setter = function(value) { this.width = value; };
   }
+  DOM$fixMembers(c, ['getSVGDocument']);
   c.$implements$HTMLIFrameElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2674,15 +2720,20 @@ function DOM$fixClass$HTMLMediaElement(c) {
     c.prototype.webkitClosedCaptionsVisible$getter = function() { return DOM$EnsureDartNull(this.webkitClosedCaptionsVisible); };
     c.prototype.webkitClosedCaptionsVisible$setter = function(value) { this.webkitClosedCaptionsVisible = value; };
     c.prototype.webkitHasClosedCaptions$getter = function() { return DOM$EnsureDartNull(this.webkitHasClosedCaptions); };
+    c.prototype.webkitMediaSourceURL$getter = function() { return DOM$EnsureDartNull(this.webkitMediaSourceURL); };
     c.prototype.webkitPreservesPitch$getter = function() { return DOM$EnsureDartNull(this.webkitPreservesPitch); };
     c.prototype.webkitPreservesPitch$setter = function(value) { this.webkitPreservesPitch = value; };
+    c.prototype.webkitSourceState$getter = function() { return DOM$EnsureDartNull(this.webkitSourceState); };
     c.prototype.webkitVideoDecodedByteCount$getter = function() { return DOM$EnsureDartNull(this.webkitVideoDecodedByteCount); };
   }
   DOM$fixMembers(c, [
+    'addTrack',
     'canPlayType',
     'load',
     'pause',
-    'play']);
+    'play',
+    'webkitSourceAppend',
+    'webkitSourceEndOfStream']);
   c.$implements$HTMLMediaElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -2822,6 +2873,7 @@ function DOM$fixClass$HTMLObjectElement(c) {
   }
   DOM$fixMembers(c, [
     'checkValidity',
+    'getSVGDocument',
     'setCustomValidity']);
   c.$implements$HTMLObjectElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
@@ -3480,6 +3532,12 @@ function DOM$fixClass$IDBCursorWithValue(c) {
 function DOM$fixClass$IDBDatabase(c) {
   if (c.prototype) {
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
+    c.prototype.onabort$setter = function(value) { this.onabort = value; };
+    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
+    c.prototype.onerror$setter = function(value) { this.onerror = value; };
+    c.prototype.onversionchange$getter = function() { return DOM$EnsureDartNull(this.onversionchange); };
+    c.prototype.onversionchange$setter = function(value) { this.onversionchange = value; };
     c.prototype.version$getter = function() { return DOM$EnsureDartNull(this.version); };
   }
   DOM$fixMembers(c, [
@@ -3581,6 +3639,10 @@ function DOM$fixClass$IDBObjectStore(c) {
 function DOM$fixClass$IDBRequest(c) {
   if (c.prototype) {
     c.prototype.errorCode$getter = function() { return DOM$EnsureDartNull(this.errorCode); };
+    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
+    c.prototype.onerror$setter = function(value) { this.onerror = value; };
+    c.prototype.onsuccess$getter = function() { return DOM$EnsureDartNull(this.onsuccess); };
+    c.prototype.onsuccess$setter = function(value) { this.onsuccess = value; };
     c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.result$getter = function() { return DOM$EnsureDartNull(this.result); };
     c.prototype.source$getter = function() { return DOM$EnsureDartNull(this.source); };
@@ -3597,6 +3659,12 @@ function DOM$fixClass$IDBTransaction(c) {
   if (c.prototype) {
     c.prototype.db$getter = function() { return DOM$EnsureDartNull(this.db); };
     c.prototype.mode$getter = function() { return DOM$EnsureDartNull(this.mode); };
+    c.prototype.onabort$getter = function() { return DOM$EnsureDartNull(this.onabort); };
+    c.prototype.onabort$setter = function(value) { this.onabort = value; };
+    c.prototype.oncomplete$getter = function() { return DOM$EnsureDartNull(this.oncomplete); };
+    c.prototype.oncomplete$setter = function(value) { this.oncomplete = value; };
+    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
+    c.prototype.onerror$setter = function(value) { this.onerror = value; };
   }
   DOM$fixMembers(c, [
     'abort',
@@ -3615,6 +3683,8 @@ function DOM$fixClass$IDBVersionChangeEvent(c) {
 }
 function DOM$fixClass$IDBVersionChangeRequest(c) {
   if (c.prototype) {
+    c.prototype.onblocked$getter = function() { return DOM$EnsureDartNull(this.onblocked); };
+    c.prototype.onblocked$setter = function(value) { this.onblocked = value; };
   }
   c.$implements$IDBVersionChangeRequest$Dart = 1;
   c.$implements$IDBRequest$Dart = 1;
@@ -3651,11 +3721,14 @@ function DOM$fixClass$InjectedScriptHost(c) {
     'clearConsoleMessages',
     'copyText',
     'databaseId',
+    'didCreateWorker',
+    'didDestroyWorker',
     'evaluate',
     'inspect',
     'inspectedNode',
     'internalConstructorName',
     'isHTMLAllCollection',
+    'nextWorkerId',
     'storageId',
     'type']);
   c.$implements$InjectedScriptHost$Dart = 1;
@@ -3720,6 +3793,8 @@ function DOM$fixClass$Int8Array(c) {
 function DOM$fixClass$JavaScriptAudioNode(c) {
   if (c.prototype) {
     c.prototype.bufferSize$getter = function() { return DOM$EnsureDartNull(this.bufferSize); };
+    c.prototype.onaudioprocess$getter = function() { return DOM$EnsureDartNull(this.onaudioprocess); };
+    c.prototype.onaudioprocess$setter = function(value) { this.onaudioprocess = value; };
   }
   c.$implements$JavaScriptAudioNode$Dart = 1;
   c.$implements$AudioNode$Dart = 1;
@@ -3963,6 +4038,7 @@ function DOM$fixClass$Navigator(c) {
     c.prototype.appName$getter = function() { return DOM$EnsureDartNull(this.appName); };
     c.prototype.appVersion$getter = function() { return DOM$EnsureDartNull(this.appVersion); };
     c.prototype.cookieEnabled$getter = function() { return DOM$EnsureDartNull(this.cookieEnabled); };
+    c.prototype.geolocation$getter = function() { return DOM$EnsureDartNull(this.geolocation); };
     c.prototype.language$getter = function() { return DOM$EnsureDartNull(this.language); };
     c.prototype.mimeTypes$getter = function() { return DOM$EnsureDartNull(this.mimeTypes); };
     c.prototype.onLine$getter = function() { return DOM$EnsureDartNull(this.onLine); };
@@ -3976,7 +4052,9 @@ function DOM$fixClass$Navigator(c) {
   }
   DOM$fixMembers(c, [
     'getStorageUpdates',
-    'javaEnabled']);
+    'javaEnabled',
+    'registerProtocolHandler',
+    'webkitGetUserMedia']);
   c.$implements$Navigator$Dart = 1;
 }
 function DOM$fixClass$NavigatorUserMediaError(c) {
@@ -7264,6 +7342,8 @@ function DOM$fixClass$SharedWorker(c) {
 function DOM$fixClass$SharedWorkercontext(c) {
   if (c.prototype) {
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
+    c.prototype.onconnect$getter = function() { return DOM$EnsureDartNull(this.onconnect); };
+    c.prototype.onconnect$setter = function(value) { this.onconnect = value; };
   }
   c.$implements$SharedWorkercontext$Dart = 1;
   c.$implements$WorkerContext$Dart = 1;
@@ -7585,12 +7665,6 @@ function DOM$fixClass$ValidityState(c) {
     c.prototype.valueMissing$getter = function() { return DOM$EnsureDartNull(this.valueMissing); };
   }
   c.$implements$ValidityState$Dart = 1;
-}
-function DOM$fixClass$VoidCallback(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, ['handleEvent']);
-  c.$implements$VoidCallback$Dart = 1;
 }
 function DOM$fixClass$WaveShaperNode(c) {
   if (c.prototype) {
@@ -8066,6 +8140,8 @@ function DOM$fixClass$WorkerContext(c) {
     c.prototype.location$setter = function(value) { this.location = value; };
     c.prototype.navigator$getter = function() { return DOM$EnsureDartNull(this.navigator); };
     c.prototype.navigator$setter = function(value) { this.navigator = value; };
+    c.prototype.onerror$getter = function() { return DOM$EnsureDartNull(this.onerror); };
+    c.prototype.onerror$setter = function(value) { this.onerror = value; };
     c.prototype.self$getter = function() { return DOM$EnsureDartNull(this.self); };
     c.prototype.self$setter = function(value) { this.self = value; };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
@@ -8078,6 +8154,8 @@ function DOM$fixClass$WorkerContext(c) {
     'close',
     'dispatchEvent',
     'importScripts',
+    'openDatabase',
+    'openDatabaseSync',
     'removeEventListener',
     'setInterval',
     'setTimeout',
@@ -9086,6 +9164,9 @@ var _;
     w.IDBDatabaseException$Dart = _;
     DOM$fixClass$IDBDatabaseException(_);
   }
+  if (!w.IDBFactory && (_ = w.webkitIndexedDB) && (_ = _.__proto__) && (_ = {prototype: _})) {
+    w.IDBFactory = _;
+  }
   if ((_ = w.IDBFactory)) {
     w.IDBFactory$Dart = _;
     DOM$fixClass$IDBFactory(_);
@@ -10042,6 +10123,9 @@ var _;
     w.StorageEvent$Dart = _;
     DOM$fixClass$StorageEvent(_);
   }
+  if (!w.StorageInfo && (_ = w.webkitStorageInfo) && (_ = _.__proto__) && (_ = {prototype: _})) {
+    w.StorageInfo = _;
+  }
   if ((_ = w.StorageInfo)) {
     w.StorageInfo$Dart = _;
     DOM$fixClass$StorageInfo(_);
@@ -10124,10 +10208,6 @@ var _;
   if ((_ = w.ValidityState)) {
     w.ValidityState$Dart = _;
     DOM$fixClass$ValidityState(_);
-  }
-  if ((_ = w.VoidCallback)) {
-    w.VoidCallback$Dart = _;
-    DOM$fixClass$VoidCallback(_);
   }
   if ((_ = w.WaveShaperNode)) {
     w.WaveShaperNode$Dart = _;

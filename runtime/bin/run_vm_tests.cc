@@ -71,9 +71,10 @@ static int Main(int argc, const char** argv) {
     dart_argc = argc - 2;
     dart_argv = &argv[2];
   }
-  bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
+  bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,
+                                                             dart_argv);
   ASSERT(set_vm_flags_success);
-  bool init_success = Dart::InitOnce(NULL);
+  bool init_success = Dart::InitOnce(NULL, NULL);
   ASSERT(init_success);
   // Apply the test filter to all registered tests.
   TestCaseBase::RunAll();

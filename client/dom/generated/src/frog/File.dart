@@ -8,4 +8,6 @@ class File extends Blob native "*File" {
   Date lastModifiedDate;
 
   String name;
+
+  String webkitRelativePath;
 }

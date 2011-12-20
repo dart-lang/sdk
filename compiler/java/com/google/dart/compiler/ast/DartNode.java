@@ -18,6 +18,7 @@ import java.util.List;
 public abstract class DartNode extends AbstractNode implements DartVisitable {
 
   private DartNode parent;
+  private boolean isInstrumentedNode;
 
   public final String toSource() {
     DefaultTextOutput out = new DefaultTextOutput(false);
@@ -164,5 +165,17 @@ public abstract class DartNode extends AbstractNode implements DartVisitable {
   public DartNode clone() {
     // TODO (fabiomfv) - Implement proper cloning when strictly needed.
     return this;
+  }
+  
+  public String getObjectIdentifier(){
+    return super.toString();
+  }
+
+  public boolean isInstrumentedNode() {
+    return isInstrumentedNode;
+  }
+
+  public void setInstrumentedNode(boolean isInstrumentedNode) {
+    this.isInstrumentedNode = isInstrumentedNode;
   }
 }

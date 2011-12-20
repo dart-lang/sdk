@@ -1,5 +1,5 @@
 
-class Int8Array extends ArrayBufferView implements List<int> native "Int8Array" {
+class Int8Array extends ArrayBufferView implements List<int> native "*Int8Array" {
 
   factory Int8Array(int length) =>  _construct(length);
 

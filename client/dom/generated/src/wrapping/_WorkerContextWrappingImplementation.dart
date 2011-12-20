@@ -23,6 +23,12 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   void set navigator(WorkerNavigator value) { _set_navigator(this, value); }
   static void _set_navigator(var _this, WorkerNavigator value) native;
 
+  EventListener get onerror() { return _get_onerror(this); }
+  static EventListener _get_onerror(var _this) native;
+
+  void set onerror(EventListener value) { _set_onerror(this, value); }
+  static void _set_onerror(var _this, EventListener value) native;
+
   WorkerContext get self() { return _get_self(this); }
   static WorkerContext _get_self(var _this) native;
 
@@ -75,6 +81,26 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
     return;
   }
   static void _importScripts(receiver) native;
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _openDatabase(this, name, version, displayName, estimatedSize);
+    } else {
+      return _openDatabase_2(this, name, version, displayName, estimatedSize, creationCallback);
+    }
+  }
+  static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
+  static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
+
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _openDatabaseSync(this, name, version, displayName, estimatedSize);
+    } else {
+      return _openDatabaseSync_2(this, name, version, displayName, estimatedSize, creationCallback);
+    }
+  }
+  static DatabaseSync _openDatabaseSync(receiver, name, version, displayName, estimatedSize) native;
+  static DatabaseSync _openDatabaseSync_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

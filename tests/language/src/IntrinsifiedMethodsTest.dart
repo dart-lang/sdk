@@ -12,5 +12,4 @@ num foo(int n) {
 
 void main() {
   var m = foo(40000);
-  print(m);
 }

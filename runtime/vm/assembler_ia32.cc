@@ -1096,10 +1096,66 @@ void Assembler::ret(const Immediate& imm) {
 }
 
 
-
-void Assembler::nop() {
+void Assembler::nop(int size) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x90);
+  // There are nops up to size 15, but for now just provide up to size 8.
+  ASSERT(0 < size && size <= MAX_NOP_SIZE);
+  switch (size) {
+    case 1:
+      EmitUint8(0x90);
+      break;
+    case 2:
+      EmitUint8(0x66);
+      EmitUint8(0x90);
+      break;
+    case 3:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x00);
+      break;
+    case 4:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x40);
+      EmitUint8(0x00);
+      break;
+    case 5:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x44);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    case 6:
+      EmitUint8(0x66);
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x44);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    case 7:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x80);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    case 8:
+      EmitUint8(0x0F);
+      EmitUint8(0x1F);
+      EmitUint8(0x84);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      EmitUint8(0x00);
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
 }
 
 
@@ -1345,10 +1401,20 @@ void Assembler::CallRuntimeFromStub(const RuntimeEntry& entry) {
 
 void Assembler::Align(int alignment, int offset) {
   ASSERT(Utils::IsPowerOfTwo(alignment));
-  // Emit nop instruction until the real position is aligned.
-  while (((offset + buffer_.GetPosition()) & (alignment-1)) != 0) {
-    nop();
+  int pos = offset + buffer_.GetPosition();
+  int mod = pos & (alignment - 1);
+  if (mod == 0) {
+    return;
   }
+  int bytes_needed = alignment - mod;
+  while (bytes_needed > MAX_NOP_SIZE) {
+    nop(MAX_NOP_SIZE);
+    bytes_needed -= MAX_NOP_SIZE;
+  }
+  if (bytes_needed) {
+    nop(bytes_needed);
+  }
+  ASSERT(((offset + buffer_.GetPosition()) & (alignment-1)) == 0);
 }
 
 

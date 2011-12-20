@@ -256,12 +256,26 @@ class DatabaseBuilder(object):
     recurse(interface)
     return res[1:]
 
+  def _merge_ext_attrs(self, old_attrs, new_attrs):
+    """Merges two sets of extended attributes.
+
+    Returns: True if old_attrs has changed.
+    """
+    changed = False
+    for (name, value) in new_attrs.items():
+      if name in old_attrs and old_attrs[name] == value:
+        pass # Identical
+      else:
+        old_attrs[name] = value
+        changed = True
+    return changed
+
   def _merge_nodes(self, old_list, new_list, import_options):
     """Merges two lists of nodes. Annotates nodes with the source of each
     node.
 
     Returns:
-      True is the old_list has changed.
+      True if the old_list has changed.
 
     Args:
       old_list -- the list to merge into.
@@ -302,12 +316,8 @@ class DatabaseBuilder(object):
         # Maybe merge annotations:
         if (isinstance(old_node, IDLAttribute) or
             isinstance(old_node, IDLOperation)):
-          for (name, value) in new_node.ext_attrs.items():
-            if name in old_node.ext_attrs and old_node.ext_attrs[name] == value:
-              pass # Identical
-            else:
-              old_node.ext_attrs[name] = value
-              changed = True
+          if self._merge_ext_attrs(old_node.ext_attrs, new_node.ext_attrs):
+            changed = True
 
     # Remove annotations on obsolete items from the same source
     if import_options.obsolete_old_declarations:
@@ -357,6 +367,9 @@ class DatabaseBuilder(object):
     if merge_list('attributes'):
       changed = True
     if merge_list('operations'):
+      changed = True
+
+    if self._merge_ext_attrs(old_interface.ext_attrs, new_interface.ext_attrs):
       changed = True
 
     # Snippets are just concatentated:

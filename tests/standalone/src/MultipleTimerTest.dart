@@ -47,13 +47,13 @@ class MultipleTimerTest {
     _message = 0;
 
     _startTime1 = (new Date.now()).value;
-    new Timer(timeoutHandler1, TIMEOUT1, false);
+    new Timer(timeoutHandler1, TIMEOUT1);
     _startTime2 = (new Date.now()).value;
-    new Timer(timeoutHandler2, TIMEOUT2, false);
+    new Timer(timeoutHandler2, TIMEOUT2);
     _startTime3 = (new Date.now()).value;
-    new Timer(timeoutHandler3, TIMEOUT3, false);
+    new Timer(timeoutHandler3, TIMEOUT3);
     _startTime4 = (new Date.now()).value;
-    new Timer(timeoutHandler4, TIMEOUT4, false);
+    new Timer(timeoutHandler4, TIMEOUT4);
   }
 
   static void testMain() {

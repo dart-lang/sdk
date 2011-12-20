@@ -51,7 +51,16 @@ void testElement() {
   });
 
   asyncTest('rect', 1, () {
-    final element = document.body;
+    final container = new Element.tag("div");
+    container.style.position = 'absolute';
+    container.style.top = '8px';
+    container.style.left = '8px';
+    final element = new Element.tag("div");
+    element.style.width = '200px';
+    element.style.height = '200px';
+    container.elements.add(element);
+    document.body.elements.add(container);
+
     element.rect.then((rect) {
       expectLargeRect(rect.client);
       expectLargeRect(rect.offset);
@@ -59,6 +68,7 @@ void testElement() {
       Expect.equals(rect.bounding.left, 8);
       Expect.equals(rect.bounding.top, 8);
       Expect.isTrue(rect.clientRects.length > 0);
+      container.remove();
       callbackDone();
     });
   });

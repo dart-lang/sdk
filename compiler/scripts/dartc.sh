@@ -17,7 +17,7 @@ if [ "$OS" == "darwin" ] ; then
   # Bump up the heap on Mac VMs, some of which default to 128M or less.
   # Users can specify DART_JVMARGS in the environment to override
   # this setting.
-  EXTRA_JVMARGS=-Xmx256M
+  EXTRA_JVMARGS="-Xmx256M -Xss2M"
 fi
 
 exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -classpath "@CLASSPATH@" \

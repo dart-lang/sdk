@@ -17,14 +17,14 @@ class TimerTest {
         _iteration++;
         _timeout = _timeout - _DECREASE;
         _startTime = (new Date.now()).value;
-        new Timer(timeoutHandler, _timeout, false);
+        new Timer(timeoutHandler, _timeout);
       }
     }
 
     _iteration = 0;
     _timeout = _STARTTIMEOUT;
     _startTime = (new Date.now()).value;
-     new Timer(timeoutHandler, _timeout, false);
+     new Timer(timeoutHandler, _timeout);
   }
 
   static void testMain() {

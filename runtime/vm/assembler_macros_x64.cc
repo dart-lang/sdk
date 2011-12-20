@@ -25,7 +25,7 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
   __ Untested("AssemblerMacros::TryAllocate");
   Label ok;
   __ LoadObject(instance_reg, cls);
-  __ cmpl(instance_reg, class_reg);
+  __ cmpq(instance_reg, class_reg);
   __ j(EQUAL, &ok, Assembler::kNearJump);
   __ Stop("AssemblerMacros::TryAllocate, wrong arguments");
   __ Bind(&ok);
@@ -35,14 +35,17 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
-    __ movq(instance_reg, Address::Absolute(heap->TopAddress()));
+    __ movq(TMP, Immediate(heap->TopAddress()));
+    __ movq(instance_reg, Address(TMP, 0));
     __ addq(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
-    __ cmpq(instance_reg, Address::Absolute(heap->EndAddress()));
+    __ movq(TMP, Immediate(heap->EndAddress()));
+    __ cmpq(instance_reg, Address(TMP, 0));
     __ j(ABOVE_EQUAL, failure, Assembler::kNearJump);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    __ movq(Address::Absolute(heap->TopAddress()), instance_reg);
+    __ movq(TMP, Immediate(heap->TopAddress()));
+    __ movq(Address(TMP, 0), instance_reg);
     ASSERT(instance_size >= kHeapObjectTag);
     __ subq(instance_reg, Immediate(instance_size - kHeapObjectTag));
     __ movq(FieldAddress(instance_reg, Instance::class_offset()), class_reg);

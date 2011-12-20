@@ -23,10 +23,11 @@ class HandleScope;
 class Heap;
 class LongJump;
 class MessageQueue;
-class Monitor;
+class Mutex;
 class ObjectPointerVisitor;
 class ObjectStore;
 class RawContext;
+class RawObject;
 class StackResource;
 class StubCode;
 class Zone;
@@ -218,24 +219,43 @@ class Isolate {
     library_tag_handler_ = value;
   }
 
-  static void SetCreateCallback(Dart_IsolateCreateCallback cback);
-  static Dart_IsolateCreateCallback CreateCallback();
+  void SetStackLimit(uword value);
+  void SetStackLimitFromCurrentTOS(uword isolate_stack_top);
 
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
 
-  void SetStackLimit(uword value);
+  // The current stack limit.  This may be overwritten with a special
+  // value to trigger interrupts.
   uword stack_limit() const { return stack_limit_; }
 
-  void SetStackLimitFromCurrentTOS(uword isolate_stack_top);
+  // The true stack limit for this isolate.  This does not change
+  // after isolate initialization.
+  uword saved_stack_limit() const { return saved_stack_limit_; }
 
-  void StandardRunLoop();
+  enum {
+    kInterruptsMask = 0x1,
+    kApiInterrupt = 0x1,  // An interrupt from Dart_InterruptIsolate.
+    // More interrupt types will go here.
+  };
+
+  void ScheduleInterrupts(uword interrupt_bits);
+  uword GetAndClearInterrupts();
+
+  // Returns null on success, unhandled exception on failure.
+  RawObject* StandardRunLoop();
 
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
 
   Debugger* debugger() const { return debugger_; }
+
+  static void SetCreateCallback(Dart_IsolateCreateCallback cback);
+  static Dart_IsolateCreateCallback CreateCallback();
+
+  static void SetInterruptCallback(Dart_IsolateInterruptCallback cback);
+  static Dart_IsolateInterruptCallback InterruptCallback();
 
  private:
   Isolate();
@@ -248,7 +268,6 @@ class Isolate {
   static const uword kDefaultStackSize = (1 * MB);
 
   StoreBufferBlock store_buffer_;
-  Monitor* monitor_;
   MessageQueue* message_queue_;
   Dart_PostMessageCallback post_message_callback_;
   Dart_ClosePortCallback close_port_callback_;
@@ -276,10 +295,13 @@ class Isolate {
   Debugger* debugger_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
-  uword stack_limit_;
   intptr_t ast_node_id_;
+  Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
+  uword stack_limit_;
+  uword saved_stack_limit_;
 
   static Dart_IsolateCreateCallback create_callback_;
+  static Dart_IsolateInterruptCallback interrupt_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

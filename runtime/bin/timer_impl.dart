@@ -14,9 +14,9 @@ class _Timer implements Timer {
    */
   static final int _NO_TIMER = -1;
 
-  factory _Timer(void callback(Timer timer),
-                 int milliSeconds,
-                 bool repeating) {
+  static Timer _createTimer(void callback(Timer timer),
+                           int milliSeconds,
+                           bool repeating) {
     EventHandler._start();
     if (_timers === null) {
       _timers = new DoubleLinkedQueue<_Timer>();
@@ -29,6 +29,14 @@ class _Timer implements Timer {
     timer._addTimerToList();
     timer._notifyEventHandler();
     return timer;
+  }
+
+  factory _Timer(void callback(Timer timer), int milliSeconds) {
+    return _createTimer(callback, milliSeconds, false);
+  }
+
+  factory _Timer.repeating(void callback(Timer timer), int milliSeconds) {
+    return _createTimer(callback, milliSeconds, true);
   }
 
   _Timer._internal() {}
@@ -75,10 +83,6 @@ class _Timer implements Timer {
     if (_callback !== null) {
 
       DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
-      if (entry === null) {
-        _createTimerHandler();
-      }
-
       while (entry !== null) {
         if (_wakeupTime < entry.element._wakeupTime) {
           entry.prepend(this);
@@ -92,12 +96,26 @@ class _Timer implements Timer {
 
 
   void _notifyEventHandler() {
+    if (_handling_callbacks) {
+      // While we are already handling callbacks we will not notify the event
+      // handler. _handleTimeout will call _notifyEventHandler once all pending
+      // timers are processed.
+      return;
+    }
+
     if (_timers.firstEntry() === null) {
+      // No pending timers: Close the receive port and let the event handler
+      // know.
       if (_receivePort !== null) {
         EventHandler._sendData(-1, _receivePort, _NO_TIMER);
         _shutdownTimerHandler();
       }
     } else {
+      if (_receivePort === null) {
+        // Create a receive port and register a message handler for the timer
+        // events.
+        _createTimerHandler();
+      }
       EventHandler._sendData(-1,
                              _receivePort,
                              _timers.firstEntry().element._wakeupTime);
@@ -114,22 +132,34 @@ class _Timer implements Timer {
     void _handleTimeout() {
       int currentTime = (new Date.now()).value + _TIMER_JITTER;
 
+      // Collect all pending timers.
       DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
+      var pending_timers = new List();
       while (entry !== null) {
         _Timer timer = entry.element;
         if (timer._wakeupTime <= currentTime) {
           entry.remove();
-          timer._callback(timer);
-          // Always process the event with the earliest wakeupTime first.
+          pending_timers.addLast(timer);
           entry = _timers.firstEntry();
-          if (timer._repeating) {
-            timer._advanceWakeupTime();
-            timer._addTimerToList();
-            _notifyEventHandler();
-          }
         } else {
           break;
         }
+      }
+
+      // Trigger all of the pending timers. New timers added as part of the
+      // callbacks will be enqueued now and notified in the next spin at the
+      // earliest.
+      _handling_callbacks = true;
+      try {
+        for (var timer in pending_timers) {
+          timer._callback(timer);
+          if (timer._repeating) {
+            timer._advanceWakeupTime();
+            timer._addTimerToList();
+          }
+        }
+      } finally {
+        _handling_callbacks = false;
       }
       _notifyEventHandler();
     }
@@ -154,6 +184,7 @@ class _Timer implements Timer {
   static DoubleLinkedQueue<_Timer> _timers;
 
   static ReceivePort _receivePort;
+  static bool _handling_callbacks = false;
 
   var _callback;
   int _milliSeconds;

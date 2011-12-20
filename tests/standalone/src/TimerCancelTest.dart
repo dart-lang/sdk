@@ -20,12 +20,12 @@ class TimerCancelTest {
       Expect.equals(true, repeatTimer == 1);
     }
 
-     cancelTimer = new Timer(timeoutHandlerUnreachable, 1000, false);
+     cancelTimer = new Timer(timeoutHandlerUnreachable, 1000);
      cancelTimer.cancel();
-     new Timer(timeoutHandler, 1000, false);
-     cancelTimer = new Timer(timeoutHandlerUnreachable, 2000, false);
+     new Timer(timeoutHandler, 1000);
+     cancelTimer = new Timer(timeoutHandlerUnreachable, 2000);
      repeatTimer = 0;
-     new Timer(timeoutHandlerRepeat, 1500, true);
+     new Timer.repeating(timeoutHandlerRepeat, 1500);
   }
 
   static void testMain() {
