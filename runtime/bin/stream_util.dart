@@ -31,6 +31,10 @@ class _BaseDataInputStream {
     return _readInto(buffer, offset, bytesToRead);
   }
 
+  void pipe(OutputStream output, [bool close = true]) {
+    _pipe(this, output, close: close);
+  }
+
   bool get closed() => _closeCallbackCalled;
 
   void set dataHandler(void callback()) {
@@ -90,8 +94,8 @@ class _BaseDataInputStream {
 
   Timer _scheduledDataCallback;
   Timer _scheduledCloseCallback;
-  var _clientDataHandler;
-  var _clientCloseHandler;
+  Function _clientDataHandler;
+  Function _clientCloseHandler;
 }
 
 

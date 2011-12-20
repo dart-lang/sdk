@@ -7,7 +7,7 @@ void testEmptyListInputStream() {
   ReceivePort donePort = new ReceivePort();
 
   void onData() {
-    throw "On data expected";
+    throw "No data expected";
   }
 
   void onClose() {
@@ -25,7 +25,7 @@ void testEmptyDynamicListInputStream() {
   ReceivePort donePort = new ReceivePort();
 
   void onData() {
-    throw "On data expected";
+    throw "No data expected";
   }
 
   void onClose() {
@@ -87,6 +87,55 @@ void testListInputStream2() {
   donePort.receive((x,y) => donePort.close());
 }
 
+void testListInputStreamPipe1() {
+  List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
+  InputStream input = new ListInputStream(data);
+  OutputStream output = new ListOutputStream();
+  ReceivePort donePort = new ReceivePort();
+
+  void onClose() {
+    var contents = output.contents();
+    Expect.equals(data.length, contents.length);
+    donePort.toSendPort().send(null);
+  }
+
+  input.closeHandler = onClose;
+  input.pipe(output);
+
+  donePort.receive((x,y) => donePort.close());
+}
+
+void testListInputStreamPipe2() {
+  List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
+  OutputStream output = new ListOutputStream();
+  ReceivePort donePort = new ReceivePort();
+  int count = 0;
+
+  void onClose() {
+    if (count < 10) {
+      InputStream input = new ListInputStream(data);
+      input.closeHandler = onClose;
+      if (count < 9) {
+        input.pipe(output, close: false);
+      } else {
+        input.pipe(output);
+      }
+      count++;
+    } else {
+      var contents = output.contents();
+      Expect.equals(data.length * 10, contents.length);
+      donePort.toSendPort().send(null);
+    }
+  }
+
+  InputStream input = new ListInputStream(data);
+  input.closeHandler = onClose;
+  input.pipe(output, close: false);
+  count++;
+
+  donePort.receive((x,y) => donePort.close());
+}
+
 void testDynamicListInputStream1() {
   List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
   InputStream stream = new DynamicListInputStream();
@@ -123,5 +172,7 @@ main() {
   testEmptyDynamicListInputStream();
   testListInputStream1();
   testListInputStream2();
+  testListInputStreamPipe1();
+  testListInputStreamPipe2();
   testDynamicListInputStream1();
 }

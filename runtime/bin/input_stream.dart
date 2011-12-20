@@ -213,6 +213,7 @@ interface ChunkedInputStream factory _ChunkedInputStream {
 
 class StreamException implements Exception {
   const StreamException([String this.message = ""]);
+  const StreamException.streamClosed() : message = "Stream closed";
   String toString() => "StreamException: $message";
   final String message;
 }
