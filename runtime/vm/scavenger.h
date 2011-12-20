@@ -70,6 +70,7 @@ class Scavenger {
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue();
   void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
+  void IterateWeakRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
   void ProcessToSpace(ObjectPointerVisitor* visitor);
   void Epilogue();
 
@@ -93,6 +94,7 @@ class Scavenger {
   bool scavenging_;
 
   friend class ScavengerVisitor;
+  friend class ScavengerWeakVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

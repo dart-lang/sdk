@@ -13,6 +13,7 @@ namespace dart {
 class Heap;
 class Isolate;
 class MarkingVisitor;
+class ObjectPointerVisitor;
 class PageSpace;
 
 // The class GCMarker is used to mark reachable old generation objects as part
@@ -26,7 +27,8 @@ class GCMarker : public ValueObject {
 
  private:
   void Prologue(Isolate* isolate);
-  void IterateRoots(Isolate* isolate, MarkingVisitor* visitor);
+  void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
+  void IterateWeakRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
   void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
 
   Heap* heap_;

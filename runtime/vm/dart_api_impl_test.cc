@@ -764,6 +764,108 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 }
 
 
+TEST_CASE(WeakPersistentHandle) {
+  Dart_Handle weak_new_ref = Dart_Null();
+  EXPECT(Dart_IsNull(weak_new_ref));
+
+  Dart_Handle weak_old_ref = Dart_Null();
+  EXPECT(Dart_IsNull(weak_old_ref));
+
+  bool is_same;
+
+  {
+    Dart_EnterScope();
+
+    // create an object in new space
+    Dart_Handle new_ref = Dart_NewString("new string");
+    EXPECT_VALID(new_ref);
+
+    // create an object in old space
+    Dart_Handle old_ref;
+    {
+      DARTSCOPE(Isolate::Current());
+      const String& str =
+          String::Handle(String::New("old string", Heap::kOld));
+      old_ref = Api::NewLocalHandle(str);
+      EXPECT_VALID(old_ref);
+    }
+
+    // create a weak ref to the new space object
+    weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, NULL);
+    EXPECT_VALID(weak_new_ref);
+    EXPECT(!Dart_IsNull(weak_new_ref));
+
+    // create a weak ref to the old space object
+    weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, NULL);
+    EXPECT_VALID(weak_old_ref);
+    EXPECT(!Dart_IsNull(weak_old_ref));
+
+    // garbage collect new space
+    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+
+    // nothing should be invalidated or cleared
+    EXPECT_VALID(new_ref);
+    EXPECT(!Dart_IsNull(new_ref));
+    EXPECT_VALID(old_ref);
+    EXPECT(!Dart_IsNull(old_ref));
+
+    EXPECT_VALID(weak_new_ref);
+    EXPECT(!Dart_IsNull(weak_new_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(new_ref, weak_new_ref, &is_same));
+    EXPECT(is_same);
+
+    EXPECT_VALID(weak_old_ref);
+    EXPECT(!Dart_IsNull(weak_old_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(old_ref, weak_old_ref, &is_same));
+    EXPECT(is_same);
+
+    // garbage collect old space
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+
+    // nothing should be invalidated or cleared
+    EXPECT_VALID(new_ref);
+    EXPECT(!Dart_IsNull(new_ref));
+    EXPECT_VALID(old_ref);
+    EXPECT(!Dart_IsNull(old_ref));
+
+    EXPECT_VALID(weak_new_ref);
+    EXPECT(!Dart_IsNull(weak_new_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(new_ref, weak_new_ref, &is_same));
+    EXPECT(is_same);
+
+    EXPECT_VALID(weak_old_ref);
+    EXPECT(!Dart_IsNull(weak_old_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(old_ref, weak_old_ref, &is_same));
+    EXPECT(is_same);
+
+    // delete local (strong) references
+    Dart_ExitScope();
+  }
+
+  // garbage collect new space again
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+
+  // weak ref to new space object should now be cleared
+  EXPECT_VALID(weak_new_ref);
+  EXPECT(Dart_IsNull(weak_new_ref));
+  EXPECT_VALID(weak_old_ref);
+  EXPECT(!Dart_IsNull(weak_old_ref));
+
+  // garbage collect old space again
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+
+  // weak ref to old space object should now be cleared
+  EXPECT_VALID(weak_new_ref);
+  EXPECT(Dart_IsNull(weak_new_ref));
+  EXPECT_VALID(weak_old_ref);
+  EXPECT(Dart_IsNull(weak_old_ref));
+}
+
+
 // Unit test for creating multiple scopes and local handles within them.
 // Ensure that the local handles get all cleaned out when exiting the
 // scope.

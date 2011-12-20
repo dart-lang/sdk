@@ -74,16 +74,41 @@ class LocalHandle {
 
 // A distinguished callback which indicates that a persistent handle
 // should not be deleted from the dart api.
-void ProtectedHandleCallback();
+void ProtectedHandleCallback(void* peer);
 
 
 // Implementation of persistent handles which are handed out through the
 // dart API.
 class PersistentHandle {
  public:
-  enum {
+  enum Kind {
     StrongReference = 0,
     WeakReference,
+  };
+
+  // Adaptor for visiting handles with matching reference kind.
+  class Visitor : public HandleVisitor {
+   public:
+    Visitor(ObjectPointerVisitor* visitor, Kind kind) {
+      ASSERT(visitor != NULL);
+      kind_ = kind;
+      object_pointer_visitor_ = visitor;
+    }
+
+    void Visit(uword* addr) {
+      PersistentHandle* handle = reinterpret_cast<PersistentHandle*>(addr);
+      if (handle->kind() == kind_) {
+        object_pointer_visitor_->VisitPointer(&handle->raw_);
+      }
+    }
+
+    ~Visitor() {}
+
+   private:
+    Kind kind_;
+    ObjectPointerVisitor* object_pointer_visitor_;
+
+    DISALLOW_COPY_AND_ASSIGN(Visitor);
   };
 
   // Accessors.
@@ -91,20 +116,22 @@ class PersistentHandle {
   void set_raw(const LocalHandle& ref) { raw_ = ref.raw(); }
   void set_raw(const Object& object) { raw_ = object.raw(); }
   static intptr_t raw_offset() { return OFFSET_OF(PersistentHandle, raw_); }
-  void* callback() const { return callback_; }
-  void set_callback(void* value) { callback_ = value; }
-  intptr_t type() const { return type_; }
-  void set_type(intptr_t value) { type_ = value; }
+  Kind kind() const { return kind_; }
+  void set_kind(Kind kind) { kind_ = kind; }
+  void* peer() const { return peer_; }
+  void set_peer(void* peer) { peer_ = peer; }
+  Dart_PeerFinalizer callback() const { return callback_; }
+  void set_callback(Dart_PeerFinalizer callback) { callback_ = callback; }
 
   // Some handles are protected from being freed via the external dart api.
   bool IsProtected() {
-    return callback() == &ProtectedHandleCallback;
+    return callback() == ProtectedHandleCallback;
   }
 
  private:
   friend class PersistentHandles;
 
-  PersistentHandle() { }
+  PersistentHandle() : kind_(StrongReference), peer_(NULL), callback_(NULL)  { }
   ~PersistentHandle() { }
 
   // Overload the callback_ field as a next pointer when adding freed
@@ -113,7 +140,7 @@ class PersistentHandle {
     return reinterpret_cast<PersistentHandle*>(callback_);
   }
   void SetNext(PersistentHandle* free_list) {
-    callback_ = reinterpret_cast<void*>(free_list);
+    callback_ = reinterpret_cast<Dart_PeerFinalizer>(free_list);
   }
   void FreeHandle(PersistentHandle* free_list) {
     raw_ = NULL;
@@ -121,8 +148,9 @@ class PersistentHandle {
   }
 
   RawObject* raw_;
-  void* callback_;
-  intptr_t type_;
+  Kind kind_;
+  void* peer_;
+  Dart_PeerFinalizer callback_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(PersistentHandle);
 };
@@ -199,6 +227,24 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
             kOffsetOfRawPtrInPersistentHandle>::VisitObjectPointers(visitor);
   }
 
+  // Visits the object pointers in strong persistent handles.
+  void VisitStrongObjectPointers(ObjectPointerVisitor* visitor) {
+    PersistentHandle::Visitor strong_visitor(visitor,
+                                             PersistentHandle::StrongReference);
+    Handles<kPersistentHandleSizeInWords,
+            kPersistentHandlesPerChunk,
+            kOffsetOfRawPtrInPersistentHandle>::Visit(&strong_visitor);
+  }
+
+  // Visits the object pointers in weak persistent handles.
+  void VisitWeakObjectPointers(ObjectPointerVisitor* visitor) {
+    PersistentHandle::Visitor weak_visitor(visitor,
+                                           PersistentHandle::WeakReference);
+    Handles<kPersistentHandleSizeInWords,
+            kPersistentHandlesPerChunk,
+            kOffsetOfRawPtrInPersistentHandle>::Visit(&weak_visitor);
+  }
+
   // Allocates a persistent handle, these have to be destroyed explicitly
   // by calling FreeHandle.
   PersistentHandle* AllocateHandle() {
@@ -210,7 +256,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
       handle = reinterpret_cast<PersistentHandle*>(AllocateScopedHandle());
     }
     handle->set_callback(NULL);
-    handle->set_type(PersistentHandle::StrongReference);
+    handle->set_kind(PersistentHandle::StrongReference);
     return handle;
   }
 
@@ -301,13 +347,23 @@ class ApiState {
     }
   }
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  void VisitStrongObjectPointers(ObjectPointerVisitor* visitor) {
     ApiLocalScope* scope = top_scope_;
     while (scope != NULL) {
       scope->local_handles()->VisitObjectPointers(visitor);
       scope = scope->previous();
     }
-    persistent_handles().VisitObjectPointers(visitor);
+
+    persistent_handles().VisitStrongObjectPointers(visitor);
+  }
+
+  void VisitWeakObjectPointers(ObjectPointerVisitor* visitor) {
+    persistent_handles().VisitWeakObjectPointers(visitor);
+  }
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
+    VisitStrongObjectPointers(visitor);
+    VisitWeakObjectPointers(visitor);
   }
 
   bool IsValidLocalHandle(Dart_Handle object) const {
@@ -352,7 +408,7 @@ class ApiState {
       Object& null_object = Object::Handle();
       null_ = persistent_handles().AllocateHandle();
       null_->set_raw(null_object);
-      null_->set_callback(reinterpret_cast<void*>(&ProtectedHandleCallback));
+      null_->set_callback(ProtectedHandleCallback);
     }
     return null_;
   }
@@ -363,7 +419,7 @@ class ApiState {
       const Object& true_object = Object::Handle(Bool::True());
       true_ = persistent_handles().AllocateHandle();
       true_->set_raw(true_object);
-      true_->set_callback(reinterpret_cast<void*>(&ProtectedHandleCallback));
+      true_->set_callback(ProtectedHandleCallback);
     }
     return true_;
   }
@@ -374,7 +430,7 @@ class ApiState {
       const Object& false_object = Object::Handle(Bool::False());
       false_ = persistent_handles().AllocateHandle();
       false_->set_raw(false_object);
-      false_->set_callback(reinterpret_cast<void*>(&ProtectedHandleCallback));
+      false_->set_callback(ProtectedHandleCallback);
     }
     return false_;
   }

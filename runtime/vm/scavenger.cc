@@ -13,6 +13,33 @@
 
 namespace dart {
 
+enum {
+  kForwardingMask = 3,
+  kNotForwarded = 1,  // Tagged pointer.
+  kForwarded = 3,  // Tagged pointer and forwarding bit set.
+};
+
+
+static inline bool IsForwarding(uword header) {
+  uword bits = header & kForwardingMask;
+  ASSERT((bits == kNotForwarded) || (bits == kForwarded));
+  return bits == kForwarded;
+}
+
+
+static inline uword ForwardedAddr(uword header) {
+  ASSERT(IsForwarding(header));
+  return header & ~kForwardingMask;
+}
+
+
+static inline void ForwardTo(uword orignal, uword target) {
+  // Make sure forwarding can be encoded.
+  ASSERT((target & kForwardingMask) == 0);
+  *reinterpret_cast<uword*>(orignal) = target | kForwarded;
+}
+
+
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
   explicit ScavengerVisitor(Scavenger* scavenger)
@@ -27,29 +54,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   }
 
  private:
-  enum {
-    kForwardingMask = 3,
-    kNotForwarded = 1,  // Tagged pointer.
-    kForwarded = 3,  // Tagged pointer and forwarding bit set.
-  };
-
-  static inline bool IsForwarding(uword header) {
-    uword bits = header & kForwardingMask;
-    ASSERT((bits == kNotForwarded) || (bits == kForwarded));
-    return bits == kForwarded;
-  }
-
-  static inline uword ForwardedAddr(uword header) {
-    ASSERT(IsForwarding(header));
-    return header & ~kForwardingMask;
-  }
-
-  static inline void ForwardTo(uword orignal, uword target) {
-    // Make sure forwarding can be encoded.
-    ASSERT((target & kForwardingMask) == 0);
-    *reinterpret_cast<uword*>(orignal) = target | kForwarded;
-  }
-
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
     // TODO(iposva): Implement store buffers.
   }
@@ -105,6 +109,36 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Scavenger* scavenger_;
   Heap* heap_;
   Heap* vm_heap_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
+};
+
+
+class ScavengerWeakVisitor : public ObjectPointerVisitor {
+ public:
+  explicit ScavengerWeakVisitor(Scavenger* scavenger) : scavenger_(scavenger) {
+  }
+
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current = first; current <= last; current++) {
+      RawObject* raw_obj = *current;
+      ASSERT(raw_obj->IsHeapObject());
+      uword raw_addr = RawObject::ToAddr(raw_obj);
+      if (scavenger_->from_->Contains(raw_addr)) {
+        uword header = *reinterpret_cast<uword*>(raw_addr);
+        if (IsForwarding(header)) {
+          *current = RawObject::FromAddr(ForwardedAddr(header));
+        } else {
+          *current = Object::null();
+        }
+      }
+    }
+  }
+
+ private:
+  Scavenger* scavenger_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
 
@@ -167,9 +201,15 @@ void Scavenger::Epilogue() {
 
 
 void Scavenger::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
-  isolate->VisitObjectPointers(visitor,
-                               StackFrameIterator::kDontValidateFrames);
+  isolate->VisitStrongObjectPointers(visitor,
+                                     StackFrameIterator::kDontValidateFrames);
   heap_->IterateOldPointers(visitor);
+}
+
+
+void Scavenger::IterateWeakRoots(Isolate* isolate,
+                                 ObjectPointerVisitor* visitor) {
+  isolate->VisitWeakObjectPointers(visitor);
 }
 
 
@@ -206,6 +246,8 @@ void Scavenger::Scavenge() {
   Prologue();
   IterateRoots(isolate, &visitor);
   ProcessToSpace(&visitor);
+  ScavengerWeakVisitor weak_visitor(this);
+  IterateWeakRoots(isolate, &weak_visitor);
   Epilogue();
   timer.Stop();
   if (FLAG_verbose_gc) {

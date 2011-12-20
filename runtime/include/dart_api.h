@@ -95,6 +95,8 @@ typedef unsigned __int64 uint64_t;
  */
 typedef struct _Dart_Handle* Dart_Handle;
 
+typedef void (*Dart_PeerFinalizer)(void* peer);
+
 /**
  * Is this an error handle?
  *
@@ -204,24 +206,24 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object);
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
 
 /**
- * Takes a persistent handle and makes it weak.
+ * Allocates a weak persistent handle for an object.
  *
- * UNIMPLEMENTED.
+ * This handle has the lifetime of the current isolate unless it is
+ * explicitly deallocated by calling Dart_DeletePersistentHandle.
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT Dart_Handle Dart_MakeWeakPersistentHandle(Dart_Handle object);
-// TODO(turnidge): Needs a "near death" callback here.
-// TODO(turnidge): Add IsWeak, Clear, etc.
+DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
+    Dart_Handle object,
+    void* peer,
+    Dart_PeerFinalizer callback);
 
 /**
- * Takes a weak persistent handle and makes it non-weak.
- *
- * UNIMPLEMENTED.
+ * Is this object a weak persistent handle?
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
+DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
 
 // --- Initialization and Globals ---
 
@@ -884,9 +886,6 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
  */
 DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length);
-
-
-typedef void (*Dart_PeerFinalizer)(void* peer);
 
 /**
  * Is this object an external String?

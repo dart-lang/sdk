@@ -487,7 +487,7 @@ DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
+static PersistentHandle* AllocatePersistentHandle(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   DARTSCOPE_NOCHECKS(isolate);
@@ -496,6 +496,24 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
   const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
   PersistentHandle* new_ref = state->persistent_handles().AllocateHandle();
   new_ref->set_raw(old_ref);
+  return new_ref;
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
+  PersistentHandle* new_ref = AllocatePersistentHandle(object);
+  return reinterpret_cast<Dart_Handle>(new_ref);
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
+    Dart_Handle object,
+    void* peer,
+    Dart_PeerFinalizer callback) {
+  PersistentHandle* new_ref = AllocatePersistentHandle(object);
+  new_ref->set_kind(PersistentHandle::WeakReference);
+  new_ref->set_peer(peer);
+  new_ref->set_callback(callback);
   return reinterpret_cast<Dart_Handle>(new_ref);
 }
 
@@ -513,15 +531,16 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_MakeWeakPersistentHandle(Dart_Handle object) {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object) {
-  UNIMPLEMENTED();
-  return NULL;
+DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  if (state->IsValidPersistentHandle(object)) {
+    PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
+    return ref->kind() == PersistentHandle::WeakReference;
+  }
+  return false;
 }
 
 
