@@ -2,47 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ListInputStream implements InputStream {
-  List<int> read() {
-    var result = _data;
-    _data = null;
-    return result;
-  }
-
-  void set dataHandler(void callback()) {
-    _dataHandler = callback;
-  }
-
-  void set closeHandler(void callback()) {
-    _closeHandler = callback;
-  }
-
-  void set errorHandler(void callback(int error)) {
-  }
-
-  void write(List<int> data) {
-    Expect.equals(null, _data);
-    _data = data;
-    if (_dataHandler != null) {
-      // Data handler is not called through the event loop here.
-      _dataHandler();
-    }
-  }
-
-  void close() {
-    Expect.equals(null, _data);
-    // Close handler is not called through the event loop here.
-    if (_closeHandler != null) _closeHandler();
-  }
-
-  List<int> _data;
-  var _dataHandler;
-  var _closeHandler;
-}
-
 void test1() {
   void testWithChunkSize(var data, int chunkSize, Function testDone) {
-    InputStream s = new ListInputStream();
+    InputStream s = new ListInputStream(data);
     ChunkedInputStream stream = new ChunkedInputStream(s);
     int chunkCount = 0;
     int byteCount = 0;
@@ -74,8 +36,6 @@ void test1() {
     stream.dataHandler = chunkData;
     stream.closeHandler = closeHandler;
     stream.chunkSize = chunkSize;
-    s.write(data);
-    s.close();
   }
 
   for (int i = 1; i <= 10; i++) {
@@ -103,9 +63,10 @@ void test1() {
 
 
 void test2() {
-  InputStream s = new ListInputStream();
+  InputStream s = new DynamicListInputStream();
   ChunkedInputStream stream = new ChunkedInputStream(s);
   stream.chunkSize = 5;
+  ReceivePort donePort = new ReceivePort();
 
   var stage = 0;
 
@@ -143,13 +104,14 @@ void test2() {
       chunk = stream.read();  // 18 bytes read from stream.
       Expect.equals(null, chunk);
       stage++;
-      s.close();  // 18 bytes written to stream.
+      s.markEndOfStream();  // 18 bytes written to stream.
     } else if (stage == 4) {
       chunk = stream.read();  // 19 bytes read from stream.
       Expect.equals(1, chunk.length);
       chunk = stream.read();  // 19 bytes read from stream.
       Expect.equals(null, chunk);
       stage++;
+      donePort.toSendPort().send(stage);
     }
   }
 
@@ -162,7 +124,8 @@ void test2() {
   s.write([0, 1, 2, 3]);  // 4 bytes written to stream.
   Expect.equals(0, stage);
   s.write([4, 5, 6]);  // 7 bytes written to stream.
-  Expect.equals(4, stage);
+
+  donePort.receive((x,y) => donePort.close());
 }
 
 

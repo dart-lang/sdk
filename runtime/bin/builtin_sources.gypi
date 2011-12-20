@@ -18,6 +18,7 @@
     'file.dart',
     'file_impl.dart',
     'input_stream.dart',
+    'list_input_stream.dart',
     'output_stream.dart',
     'stream_util.dart',
     'string_stream.dart',
