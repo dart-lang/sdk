@@ -66,7 +66,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = Read<intptr_t>();
   ASSERT((class_header & kSmiTagMask) != 0);
-  Class& cls = Class::Handle();
+  Class& cls = Class::ZoneHandle();
   cls ^= LookupInternalClass(class_header);
   AddBackwardReference(object_id, &cls);
   if (cls.IsNull()) {
@@ -193,6 +193,8 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     }
     if (kind_ == Snapshot::kFull) {
       result.SetCreatedFromSnapshot();
+    } else if (result.IsCanonical()) {
+      result = result.Canonicalize();
     }
     return result.raw();
   } else {
@@ -419,6 +421,7 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
     // case.
     // Write out the class and tags information.
     WriteObjectHeader(Object::kClassClass, cls->ptr()->tags_);
+
     // Write out the library url and class name.
     RawLibrary* library = cls->ptr()->library_;
     ASSERT(library != Library::null());
@@ -428,9 +431,14 @@ void SnapshotWriter::WriteClassId(RawClass* cls) {
 }
 
 
-void ScriptSnapshotWriter::WriteScriptSnapshot() {
-  // TODO(asiva): Need to implement this.
-  UNIMPLEMENTED();
+void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
+  ASSERT(kind() == Snapshot::kScript);
+
+  // Write out the library object.
+  WriteObject(lib.raw());
+
+  // Finalize the snapshot buffer.
+  FinalizeBuffer();
 }
 
 

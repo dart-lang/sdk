@@ -385,16 +385,14 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
                                             intptr_t* size);
 
 /**
- * Creates a snapshot of the specified application script.
+ * Creates a snapshot of the application script loaded in the isolate.
  *
  * A script snapshot can be used for implementing fast startup of applications
  * (skips the script tokenizing and parsing process). A Snapshot of the script
  * can only be created before any dart code has executed.
  *
- * Requires there to be a current isolate.
+ * Requires there to be a current isolate which already has loaded script.
  *
- * \param library An application script for which a snapshot is to be
- *  created.
  * \param buffer Returns a pointer to a buffer containing
  *   the snapshot. This buffer is scope allocated and is only valid
  *   until the next call to Dart_ExitScope.
@@ -402,8 +400,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
-                                                  uint8_t** buffer,
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size);
 
 

@@ -632,6 +632,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
                                             intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(time_creating_snapshot);
   if (buffer == NULL) {
     return Api::Error("%s expects argument 'buffer' to be non-null.",
                       CURRENT_FUNC);
@@ -654,11 +655,11 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
-                                                  uint8_t** buffer,
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(time_creating_snapshot);
   if (buffer == NULL) {
     return Api::Error("%s expects argument 'buffer' to be non-null.",
                       CURRENT_FUNC);
@@ -667,16 +668,17 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
     return Api::Error("%s expects argument 'size' to be non-null.",
                       CURRENT_FUNC);
   }
-  const Library& root_lib = Api::UnwrapLibraryHandle(library);
-  if (root_lib.IsNull()) {
-    RETURN_TYPE_ERROR(library, Library);
-  }
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::Error(msg);
   }
-  ScriptSnapshotWriter writer(root_lib, buffer, ApiAllocator);
-  writer.WriteScriptSnapshot();
+  Library& library = Library::Handle(isolate->object_store()->root_library());
+  if (library.IsNull()) {
+    return Api::Error("%s expects the isolate to have a script loaded in it.",
+                      CURRENT_FUNC);
+  }
+  ScriptSnapshotWriter writer(buffer, ApiAllocator);
+  writer.WriteScriptSnapshot(library);
   *size = writer.Size();
   return Api::Success();
 }
@@ -2306,6 +2308,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(time_script_loading);
   if (buffer == NULL) {
     return Api::Error("%s expects argument 'buffer' to be non-null.",
                       CURRENT_FUNC);
@@ -2328,6 +2331,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
                       CURRENT_FUNC);
   }
   library ^= tmp.raw();
+  library.Register();
   isolate->object_store()->set_root_library(library);
   return Api::NewLocalHandle(library);
 }

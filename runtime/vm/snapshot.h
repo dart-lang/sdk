@@ -398,6 +398,9 @@ class SnapshotWriter {
   }
   ~SnapshotWriter() { }
 
+  // Snapshot kind.
+  Snapshot::Kind kind() const { return kind_; }
+
   // Size of the snapshot.
   intptr_t Size() const { return stream_.bytes_written(); }
 
@@ -482,7 +485,7 @@ class SnapshotWriter {
 
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
-  ScriptSnapshotWriter(const Library& lib, uint8_t** buffer, ReAlloc alloc)
+  ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
       : SnapshotWriter(Snapshot::kScript, buffer, alloc) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
@@ -490,7 +493,7 @@ class ScriptSnapshotWriter : public SnapshotWriter {
   ~ScriptSnapshotWriter() { }
 
   // Writes a partial snapshot of the script.
-  void WriteScriptSnapshot();
+  void WriteScriptSnapshot(const Library& lib);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ScriptSnapshotWriter);

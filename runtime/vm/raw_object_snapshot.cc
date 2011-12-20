@@ -29,7 +29,8 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   Class& cls = Class::ZoneHandle();
-  if (kind == Snapshot::kFull) {
+  if ((kind == Snapshot::kFull) ||
+      (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
     ObjectKind kind = reader->Read<ObjectKind>();
 
@@ -71,12 +72,12 @@ void RawClass::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
 
-  if (kind == Snapshot::kFull) {
+  if ((kind == Snapshot::kFull) ||
+      (kind == Snapshot::kScript && !IsCreatedFromSnapshot())) {
     // Write out the class and tags information.
     writer->WriteObjectHeader(Object::kClassClass, ptr()->tags_);
 
@@ -92,6 +93,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->Write<bool>(ptr()->is_interface_);
 
     // Write out all the object pointer fields.
+    SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
   } else {
     writer->WriteClassId(this);
@@ -132,7 +134,6 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -144,6 +145,7 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
   writer->Write<intptr_t>(ptr()->token_index_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -188,6 +190,11 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   for (intptr_t i = 0; i <= num_flds; i++) {
     *(parameterized_type.raw()->from() + i) = reader->ReadObject();
   }
+
+  // If object needs to be a canonical object, Canonicalize it.
+  if ((kind != Snapshot::kFull) && parameterized_type.IsCanonical()) {
+    parameterized_type ^= parameterized_type.Canonicalize();
+  }
   return parameterized_type.raw();
 }
 
@@ -196,7 +203,6 @@ void RawType::WriteTo(SnapshotWriter* writer,
                       intptr_t object_id,
                       Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -208,6 +214,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -247,7 +254,6 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -260,6 +266,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -296,7 +303,6 @@ void RawInstantiatedType::WriteTo(SnapshotWriter* writer,
                                   Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(kind == Snapshot::kMessage);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -305,6 +311,7 @@ void RawInstantiatedType::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kInstantiatedTypeClass, ptr()->tags_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -347,9 +354,15 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
     type_arguments.SetTypeAt(i, type);
   }
 
-  // Set the object tags.
+  // Set the object tags (This is done after setting the object fields
+  // because 'SetTypeAt' has an assertion to check if the object is not
+  // already canonical).
   type_arguments.set_tags(tags);
 
+  // If object needs to be a canonical object, Canonicalize it.
+  if ((kind != Snapshot::kFull) && type_arguments.IsCanonical()) {
+    type_arguments ^= type_arguments.Canonicalize();
+  }
   return type_arguments.raw();
 }
 
@@ -409,7 +422,6 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
                                            Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(kind == Snapshot::kMessage);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -419,6 +431,7 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
                             ptr()->tags_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -428,6 +441,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate function object.
   Function& func = Function::ZoneHandle(Function::New());
@@ -463,7 +477,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
+  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -483,6 +497,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<bool>(ptr()->is_optimizable_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -492,6 +507,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
                           intptr_t tags,
                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate field object.
   Field& field = Field::ZoneHandle(Field::New());
@@ -522,7 +538,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
+  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -530,12 +546,14 @@ void RawField::WriteTo(SnapshotWriter* writer,
   // Write out the class and tags information.
   writer->WriteObjectHeader(Object::kFieldClass, ptr()->tags_);
 
+  // Write out all the non object fields.
   writer->Write<intptr_t>(ptr()->token_index_);
   writer->Write<bool>(ptr()->is_static_);
   writer->Write<bool>(ptr()->is_final_);
   writer->Write<bool>(ptr()->has_initializer_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -545,6 +563,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
                                       intptr_t tags,
                                       Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Read the length so that we can determine number of tokens to read.
   RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
@@ -573,6 +592,7 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind) {
   ASSERT(writer != NULL);
+  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -596,6 +616,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
                             intptr_t tags,
                             Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate script object.
   Script& script = Script::ZoneHandle(Script::New());
@@ -621,7 +642,7 @@ void RawScript::WriteTo(SnapshotWriter* writer,
                         Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(tokens_ != TokenStream::null());
-  SnapshotWriterVisitor visitor(writer);
+  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -630,6 +651,7 @@ void RawScript::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kScriptClass, ptr()->tags_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -639,33 +661,44 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
                               intptr_t tags,
                               Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage);
 
-  // Allocate library object.
-  Library& library = Library::ZoneHandle(Library::New());
+  Library& library = Library::ZoneHandle();
   reader->AddBackwardReference(object_id, &library);
 
-  // Set the object tags.
-  library.set_tags(tags);
+  if (RawObject::IsCreatedFromSnapshot(tags)) {
+    ASSERT(kind != Snapshot::kFull);
+    // Lookup the object as it should already exist in the heap.
+    String& library_url = String::Handle();
+    library_url ^= reader->ReadObject();
+    library = Library::LookupLibrary(library_url);
+  } else {
+    // Allocate library object.
+    library = Library::New();
 
-  // Set all non object fields.
-  library.raw_ptr()->num_imports_ = reader->Read<intptr_t>();
-  library.raw_ptr()->num_imported_into_ = reader->Read<intptr_t>();
-  library.raw_ptr()->num_anonymous_ = reader->Read<intptr_t>();
-  library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
-  library.raw_ptr()->load_state_ = reader->Read<int8_t>();
-  // The native resolver is not serialized.
-  Dart_NativeEntryResolver resolver = reader->Read<Dart_NativeEntryResolver>();
-  ASSERT(resolver == NULL);
-  library.set_native_entry_resolver(resolver);
+    // Set the object tags.
+    library.set_tags(tags);
 
-  // Set all the object fields.
-  // TODO(5411462): Need to assert No GC can happen here, even though
-  // allocations may happen.
-  intptr_t num_flds = (library.raw()->to() - library.raw()->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    *(library.raw()->from() + i) = reader->ReadObject();
+    // Set all non object fields.
+    library.raw_ptr()->num_imports_ = reader->Read<intptr_t>();
+    library.raw_ptr()->num_imported_into_ = reader->Read<intptr_t>();
+    library.raw_ptr()->num_anonymous_ = reader->Read<intptr_t>();
+    library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
+    library.raw_ptr()->load_state_ = reader->Read<int8_t>();
+    // The native resolver is not serialized.
+    Dart_NativeEntryResolver resolver =
+        reader->Read<Dart_NativeEntryResolver>();
+    ASSERT(resolver == NULL);
+    library.set_native_entry_resolver(resolver);
+
+    // Set all the object fields.
+    // TODO(5411462): Need to assert No GC can happen here, even though
+    // allocations may happen.
+    intptr_t num_flds = (library.raw()->to() - library.raw()->from());
+    for (intptr_t i = 0; i <= num_flds; i++) {
+      *(library.raw()->from() + i) = reader->ReadObject();
+    }
   }
-
   return library.raw();
 }
 
@@ -674,7 +707,7 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
                          Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
+  ASSERT(kind != Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -682,17 +715,25 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   // Write out the class and tags information.
   writer->WriteObjectHeader(Object::kLibraryClass, ptr()->tags_);
 
-  writer->Write<intptr_t>(ptr()->num_imports_);
-  writer->Write<intptr_t>(ptr()->num_imported_into_);
-  writer->Write<intptr_t>(ptr()->num_anonymous_);
-  writer->Write<bool>(ptr()->corelib_imported_);
-  writer->Write<int8_t>(ptr()->load_state_);
-  // We do not serialize the native resolver over, this needs to be explicitly
-  // set after deserialization.
-  writer->Write<Dart_NativeEntryResolver>(NULL);
+  if (IsCreatedFromSnapshot()) {
+    ASSERT(kind != Snapshot::kFull);
+    // Write out library URL so that it can be looked up when reading.
+    writer->WriteObject(ptr()->url_);
+  } else {
+    // Write out all non object fields.
+    writer->Write<intptr_t>(ptr()->num_imports_);
+    writer->Write<intptr_t>(ptr()->num_imported_into_);
+    writer->Write<intptr_t>(ptr()->num_anonymous_);
+    writer->Write<bool>(ptr()->corelib_imported_);
+    writer->Write<int8_t>(ptr()->load_state_);
+    // We do not serialize the native resolver over, this needs to be explicitly
+    // set after deserialization.
+    writer->Write<Dart_NativeEntryResolver>(NULL);
 
-  // Write out all the object pointer fields.
-  visitor.VisitPointers(from(), to());
+    // Write out all the object pointer fields.
+    SnapshotWriterVisitor visitor(writer);
+    visitor.VisitPointers(from(), to());
+  }
 }
 
 
@@ -701,6 +742,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate library prefix object.
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(LibraryPrefix::New());
@@ -725,7 +767,7 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
+  ASSERT(kind != Snapshot::kMessage && !IsCreatedFromSnapshot());
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -734,6 +776,7 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kLibraryPrefixClass, ptr()->tags_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to());
 }
 
@@ -743,6 +786,7 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t tags,
                         Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage);
 
   // Create Code object.
   Code& code = Code::ZoneHandle(Code::New(0));
@@ -757,6 +801,7 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   // Currently we do not serialize any code and hence we write
   // out a null object for it.
   ASSERT(writer != NULL);
+  ASSERT(kind != Snapshot::kMessage);
 
   writer->WriteIndexedObject(Object::kNullObject);
 }
@@ -845,7 +890,6 @@ void RawContext::WriteTo(SnapshotWriter* writer,
                          intptr_t object_id,
                          Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -859,6 +903,7 @@ void RawContext::WriteTo(SnapshotWriter* writer,
   // Can't serialize the isolate pointer, we set it implicitly on read.
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to(ptr()->num_variables_));
 }
 
@@ -895,7 +940,6 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
                               Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(kind == Snapshot::kMessage);
-  SnapshotWriterVisitor visitor(writer);
 
   // Write out the serialization header value for this object.
   writer->WriteSerializationMarker(kInlined, object_id);
@@ -907,6 +951,7 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
   writer->Write<intptr_t>(ptr()->num_variables_);
 
   // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
   visitor.VisitPointers(from(), to(ptr()->num_variables_));
 }
 
@@ -968,9 +1013,14 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
   // Read the 64 bit value for the object.
   int64_t value = reader->Read<int64_t>();
 
-  // Create a Mint object.
-  Mint& mint = Mint::ZoneHandle(
-      Mint::New(value, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
+  // Create a Mint object or get canonical one if it is a canonical constant.
+  Mint& mint = Mint::ZoneHandle();
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+    mint = Mint::NewCanonical(value);
+  } else {
+    mint = Mint::New(value,
+                     (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew);
+  }
   reader->AddBackwardReference(object_id, &mint);
 
   // Set the object tags.
@@ -1001,6 +1051,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
                             intptr_t tags,
                             Snapshot::Kind kind) {
   ASSERT(reader != NULL);
+
   // Read in the HexCString representation of the bigint.
   intptr_t len = reader->Read<intptr_t>();
   char* str = reinterpret_cast<char*>(ZoneAllocator(len + 1));
@@ -1008,8 +1059,14 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   for (intptr_t i = 0; i < len; i++) {
     str[i] = reader->Read<uint8_t>();
   }
+
   // Create a Bigint object from HexCString.
   Bigint& obj = Bigint::ZoneHandle(BigintOperations::FromHexCString(str));
+
+  // If it is a canonical constant make it one.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+    obj ^= obj.Canonicalize();
+  }
   reader->AddBackwardReference(object_id, &obj);
 
   // Set the object tags.
@@ -1048,9 +1105,15 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   // Read the double value for the object.
   double value = reader->Read<double>();
-  // Create a double object.
-  Double& dbl = Double::ZoneHandle(
-      Double::New(value, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
+
+  // Create a Double object or get canonical one if it is a canonical constant.
+  Double& dbl = Double::ZoneHandle();
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+    dbl = Double::NewCanonical(value);
+  } else {
+    dbl = Double::New(value,
+                      (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew);
+  }
   reader->AddBackwardReference(object_id, &dbl);
 
   // Set the object tags.
@@ -1103,19 +1166,24 @@ RawString* String::ReadFromImpl(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
 
-  // Set up the string object.
-  HandleType& str_obj = HandleType::ZoneHandle(HandleType::New(
-      len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
-  for (intptr_t i = 0; i < len; i++) {
-    *str_obj.CharAddr(i) = reader->Read<CharacterType>();
+  HandleType& str_obj = HandleType::ZoneHandle();
+  if (kind != Snapshot::kFull && RawObject::IsCanonical(tags)) {
+    CharacterType* ptr = reinterpret_cast<CharacterType*>(ZoneAllocator(len));
+    for (intptr_t i = 0; i < len; i++) {
+      ptr[i] = reader->Read<CharacterType>();
+    }
+    str_obj ^= String::NewSymbol(ptr, len);
+  } else {
+    // Set up the string object.
+    str_obj = HandleType::New(
+        len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew);
+    for (intptr_t i = 0; i < len; i++) {
+      *str_obj.CharAddr(i) = reader->Read<CharacterType>();
+    }
+    str_obj.set_tags(tags);
+    str_obj.SetHash(Smi::Value(smi_hash));
   }
   reader->AddBackwardReference(object_id, &str_obj);
-
-  // Set the object tags.
-  str_obj.set_tags(tags);
-
-  // Set up the hash value.
-  str_obj.SetHash(Smi::Value(smi_hash));
 
   return str_obj.raw();
 }

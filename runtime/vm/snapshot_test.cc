@@ -275,7 +275,7 @@ TEST_CASE(SerializeScript) {
 
   // Write snapshot with object content.
   uint8_t* buffer;
-  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
+  SnapshotWriter writer(Snapshot::kScript, &buffer, &allocator);
   writer.WriteObject(script.raw());
   writer.FinalizeBuffer();
 
@@ -442,46 +442,82 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
 UNIT_TEST_CASE(ScriptSnapshot) {
   const char* kScriptChars =
-      "class Fields  {\n"
-      "  Fields(int i, int j) : fld1 = i, fld2 = j {}\n"
-      "  int fld1;\n"
-      "  final int fld2;\n"
-      "  static int fld3;\n"
-      "  static final int fld4 = 10;\n"
-      "}\n"
-      "class FieldsTest {\n"
-      "  static Fields testMain() {\n"
-      "    Fields obj = new Fields(10, 20);\n"
-      "    return obj;\n"
-      "  }\n"
-      "}\n";
+      "class Fields  {"
+      "  Fields(int i, int j) : fld1 = i, fld2 = j {}"
+      "  int fld1;"
+      "  final int fld2;"
+      "  static int fld3;"
+      "  static final int fld4 = 10;"
+      "}"
+      "class FieldsTest {"
+      "  static Fields testMain() {"
+      "    Fields obj = new Fields(10, 20);"
+      "    Fields.fld3 = 100;"
+      "    if (obj === null) {"
+      "      throw new Exception('Allocation failure');"
+      "    }"
+      "    if (obj.fld1 != 10) {"
+      "      throw new Exception('fld1 needs to be 10');"
+      "    }"
+      "    if (obj.fld2 != 20) {"
+      "      throw new Exception('fld2 needs to be 20');"
+      "    }"
+      "    if (Fields.fld3 != 100) {"
+      "      throw new Exception('Fields.fld3 needs to be 100');"
+      "    }"
+      "    if (Fields.fld4 != 10) {"
+      "      throw new Exception('Fields.fld4 needs to be 10');"
+      "    }"
+      "    return obj;"
+      "  }"
+      "}";
   Dart_Handle result;
 
   uint8_t* buffer;
   intptr_t size;
+  uint8_t* full_snapshot = NULL;
+  uint8_t* script_snapshot = NULL;
 
-  // Start an Isolate, load a script and create a script snapshot.
   {
+    // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Write out the script snapshot.
+    result = Dart_CreateSnapshot(&buffer, &size);
+    EXPECT_VALID(result);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(full_snapshot, buffer, size);
+    Dart_ExitScope();
+  }
+
+  {
+    // Create an Isolate using the full snapshot, load a script and create
+    // a script snapshot of the script.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
 
     // Write out the script snapshot.
-    result = Dart_CreateScriptSnapshot(TestCase::lib(), &buffer, &size);
+    result = Dart_CreateScriptSnapshot(&buffer, &size);
     EXPECT_VALID(result);
+    script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(script_snapshot, buffer, size);
     Dart_ExitScope();
+    Dart_ShutdownIsolate();
   }
 
-  // Now Create another isolate and load the application snapshot and
-  // execute it.
   {
-    TestIsolateScope __test_isolate__;
+    // Now Create an Isolate using the full snapshot and load the
+    // script snapshot created above and execute it.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Load the test library from the snapshot.
-    result = Dart_LoadScriptFromSnapshot(buffer);
+    EXPECT(script_snapshot != NULL);
+    result = Dart_LoadScriptFromSnapshot(script_snapshot);
     EXPECT_VALID(result);
 
     // Invoke a function which returns an object.
@@ -494,7 +530,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
-  free(buffer);
+  free(full_snapshot);
+  free(script_snapshot);
 }
 
 #endif  // TARGET_ARCH_IA32.
