@@ -2214,7 +2214,7 @@ class Instance : public Object {
   }
 
   void SetField(const Field& field, const Object& value) const {
-    *FieldAddr(field) = value.raw();
+    StorePointer(FieldAddr(field), value.raw());
   }
 
   RawType* GetType() const;
@@ -2265,7 +2265,7 @@ class Instance : public Object {
                                        + sizeof(RawObject));
   }
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
-    *FieldAddrAtOffset(offset) = value.raw();
+    StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
   bool IsValidFieldOffset(int offset) const;
 
@@ -2994,7 +2994,7 @@ class Array : public Instance {
   }
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoGCScope.
-    *ObjectAddr(index) = value.raw();
+    StorePointer(ObjectAddr(index), value.raw());
   }
 
   virtual RawAbstractTypeArguments* GetTypeArguments() const {
@@ -3164,7 +3164,7 @@ class Closure : public Instance {
   // TODO(iposva): Remove smrck support once mapping to arbitrary is available.
   RawInteger* smrck() const { return raw_ptr()->smrck_; }
   void set_smrck(const Integer& smrck) const {
-    raw_ptr()->smrck_ = smrck.raw();
+    StorePointer(&raw_ptr()->smrck_, smrck.raw());
   }
   static intptr_t smrck_offset() { return OFFSET_OF(RawClosure, smrck_); }
 
