@@ -20,7 +20,7 @@
  *   });
  *
  */
-interface Future<T> factory FutureImpl<T> {
+interface Future<T> default FutureImpl<T> {
 
   /**
    * The value this future provided.  (If called when hasValue
@@ -94,7 +94,7 @@ interface Future<T> factory FutureImpl<T> {
  *   completer.completeException(exception);
  *
  */
-interface Completer<T> factory CompleterImpl<T> {
+interface Completer<T> default CompleterImpl<T> {
 
   /** Create a completer */
   Completer();

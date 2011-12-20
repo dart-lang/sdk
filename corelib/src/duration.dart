@@ -7,7 +7,7 @@
 /**
  * A [Duration] represents a time span. A duration can be negative.
  */
-interface Duration extends Comparable factory DurationImplementation {
+interface Duration extends Comparable default DurationImplementation {
   /**
    * The duration is the sum of all individual parts. This means that individual
    * parts don't need to be less than the next-bigger unit. For example [hours]

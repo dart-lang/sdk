@@ -7,7 +7,7 @@
 /**
  * Interface implemented by all core library exceptions.
  */
-interface Exception factory ExceptionImplementation {
+interface Exception default ExceptionImplementation {
   const Exception([var msg]);
 }
 

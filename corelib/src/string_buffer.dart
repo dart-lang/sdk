@@ -7,7 +7,7 @@
  * efficiently. Only on a call to [toString] are the strings
  * concatenated to a single String.
  */
-interface StringBuffer factory StringBufferImpl {
+interface StringBuffer default StringBufferImpl {
   /**
    * Creates the string buffer with an initial content.
    */

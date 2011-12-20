@@ -50,10 +50,9 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
     _values = new List<V>(_INITIAL_CAPACITY);
   }
 
-  // See issue 417. Works in the vm, fails in dartc and frog.
-  factory HashMapImplementation.from(Map/*<K, V>*/ other) {
-    Map/*<K, V>*/ result = new HashMapImplementation/*<K, V>*/();
-    other.forEach((/*K*/ key, /*V*/ value) { result[key] = value; });
+  factory HashMapImplementation.from(Map<K, V> other) {
+    Map<K, V> result = new HashMapImplementation<K, V>();
+    other.forEach((K key, V value) { result[key] = value; });
     return result;
   }
 
@@ -275,9 +274,8 @@ class HashSetImplementation<E extends Hashable> implements HashSet<E> {
     _backingMap = new HashMapImplementation<E, E>();
   }
 
-  // See issue 417. Works in the vm, fails in dartc and frog.
-  factory HashSetImplementation.from(Iterable/*<E>*/ other) {
-    Set/*<E>*/ set = new HashSetImplementation/*<E>*/();
+  factory HashSetImplementation.from(Iterable<E> other) {
+    Set<E> set = new HashSetImplementation<E>();
     for (final e in other) {
       set.add(e);
     }

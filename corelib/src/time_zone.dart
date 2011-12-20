@@ -7,7 +7,7 @@
 /**
  * [TimeZone]s represent locations (for example Europe/Paris).
  */
-interface TimeZone factory TimeZoneImplementation {
+interface TimeZone default TimeZoneImplementation {
   const TimeZone.utc();
   TimeZone.local();
   bool get isUtc();

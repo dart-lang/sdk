@@ -7,8 +7,7 @@
  * without duplicates.
  */
 interface Set<E> extends Collection<E>
-    factory HashSetImplementation {
-// See issue 417. Works in the vm, fails in dartc and frog.
+    default HashSetImplementation<E extends Hashable> {
   Set();
 
   /**
@@ -70,8 +69,7 @@ interface Set<E> extends Collection<E>
 }
 
 interface HashSet<E extends Hashable> extends Set<E>
-    factory HashSetImplementation {
-// See issue 417. Works in the vm, fails in dartc and frog.
+    default HashSetImplementation<E extends Hashable> {
   HashSet();
 
   /**

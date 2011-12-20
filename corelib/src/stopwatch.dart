@@ -5,7 +5,7 @@
 /**
  * A simple [Stopwatch] interface to measure elapsed time.
  */
-interface Stopwatch factory StopwatchImplementation {
+interface Stopwatch default StopwatchImplementation {
 
   /**
    * Creates a [Stopwatch] in stopped state with a zero elapsed count.

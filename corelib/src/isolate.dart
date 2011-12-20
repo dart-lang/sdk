@@ -54,7 +54,7 @@ interface SendPort extends Hashable {
  *
  * A [ReceivePort] may have many [SendPort]s.
  */
-interface ReceivePort factory ReceivePortFactory {
+interface ReceivePort default ReceivePortFactory {
 
   /**
    * Opens a long-lived port for receiving messages. The returned port
