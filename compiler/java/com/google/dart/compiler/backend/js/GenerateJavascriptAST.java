@@ -241,6 +241,7 @@ public class GenerateJavascriptAST {
     private final Deque<DartFunction> functionStack = new LinkedList<DartFunction>();
     private final Deque<Set<JsName>> jsNewDeclarationsStack = new LinkedList<Set<JsName>>();
     private Element currentHolder;
+    private boolean inFactory = false;
     private boolean inFactoryOrStaticContext = false;
     private ScopeRootInfo currentScopeInfo;
     private JsName traceCounter;
@@ -1063,6 +1064,7 @@ public class GenerateJavascriptAST {
       generateAll(x.getFunction().getParams(), factoryFunction.getParameters(), JsParameter.class);
 
       assert currentScopeInfo != null;
+      inFactory = false;
       inFactoryOrStaticContext = false;
       currentScopeInfo = null;
 
@@ -1119,11 +1121,13 @@ public class GenerateJavascriptAST {
       }
 
       assert currentScopeInfo == null : "Nested methods should be impossible";
+      inFactory = x.getModifiers().isFactory();
       inFactoryOrStaticContext = isFactoryOrStaticContext(x.getModifiers());
       currentScopeInfo = ScopeRootInfo.makeScopeInfo(x, !shouldGenerateDeveloperModeChecks());
 
       JsFunction func = (JsFunction) generate(x.getFunction());
       assert currentScopeInfo != null;
+      inFactory = false;
       inFactoryOrStaticContext = false;
       currentScopeInfo = null;
 
@@ -1395,12 +1399,14 @@ public class GenerateJavascriptAST {
 
           // Generate a lookup method after finally writing function / named tramp
           assert currentScopeInfo == null : "Nested methods should be impossible";
+          inFactory = element.getModifiers().isFactory();
           inFactoryOrStaticContext = isFactoryOrStaticContext(element.getModifiers());
           DartMethodDefinition x = (DartMethodDefinition) element.getNode();
           currentScopeInfo = ScopeRootInfo.makeScopeInfo(x, !shouldGenerateDeveloperModeChecks());
           rtt.generateRuntimeTypeInfo(x);
 
           assert currentScopeInfo != null;
+          inFactory = false;
           inFactoryOrStaticContext = false;
           currentScopeInfo = null;
         }
@@ -1717,17 +1723,33 @@ public class GenerateJavascriptAST {
         generateAll(params, jsParams, JsParameter.class);
       }
 
+
       // Create the runtime type checks that will be inserted later
       List<JsStatement> checks = Lists.newArrayList();
-      int numParams = params.size();
-      for (int i = 0; i < numParams; ++i) {
-        JsNameRef jsParam = jsParams.get(i).getName().makeRef();
-        DartParameter param = params.get(i);
-        Type paramType = param.getSymbol().getType();
-        JsExpression expr = rtt.addTypeCheck(getCurrentClass(), jsParam, paramType, null, param);
-        if (expr != jsParam) {
-          // if the expression was returned unchanged, omit the check
-          checks.add(new JsExprStmt(expr));
+
+      // TODO(zundel): these runtime checks do not work in hoisted functions
+      // created inside of factory methods.  A bad reference to $typeArgs caused an error
+      // in the closure compiler backend.
+      boolean emitChecks = true;
+      if (inFactory ) {
+        Element element = (Element)x.getParent().getSymbol();
+        if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
+          // The code being emitted is something other than the factory method itself.
+          emitChecks = false;
+        }
+      }
+
+      if (emitChecks) {
+        int numParams = params.size();
+        for (int i = 0; i < numParams; ++i) {
+          JsNameRef jsParam = jsParams.get(i).getName().makeRef();
+          DartParameter param = params.get(i);
+          Type paramType = param.getSymbol().getType();
+          JsExpression expr = rtt.addTypeCheck(getCurrentClass(), jsParam, paramType, null, param);
+          if (expr != jsParam) {
+            // if the expression was returned unchanged, omit the check
+            checks.add(new JsExprStmt(expr));
+          }
         }
       }
 

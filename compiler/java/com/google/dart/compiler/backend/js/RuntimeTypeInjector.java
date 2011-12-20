@@ -468,8 +468,8 @@ public class RuntimeTypeInjector {
     hasTypeArguments = classElement != null ? hasTypeParameters(classElement) : false;
 
     JsProgram program = translationContext.getProgram();
-    JsExpression typeArgContextExpr = hasTypeArguments ? buildTypeArgsReference(classElement)
-        : null;
+    JsExpression typeArgContextExpr = hasTypeArguments ?
+        buildTypeArgsReferenceFromThis(classElement) : null;
 
     // Build the function
     JsFunction lookupFn = new JsFunction(globalScope);
@@ -727,32 +727,33 @@ public class RuntimeTypeInjector {
 
   /**
    * Build a class relative type arguments expression
+   *
    * @param classElement The class whose type arguments to refer to.
    */
   private JsExpression buildTypeArgsReference(ClassElement classElement) {
     JsExpression typeArgs;
     if (inFactory()) {
-      if (classElement.getTypeParameters().isEmpty()) {
-        typeArgs = new JsArrayLiteral();
+      if (hasTypeParameters(classElement)) {
+        // There is no inheritence involved with generic factory methods,
+        // so we simply use a hard reference to the type info parameter to the
+        // factory.
+        typeArgs = nameref(null, "$typeArgs");
       } else {
-        typeArgs = new JsNameRef("$typeArgs");
+        typeArgs = new JsArrayLiteral();
       }
     } else {
-      // build: $getTypeArgsFor(this, 'class')
-      // Here build a reference to the type parameter for this class instance, this needs
-      // be looked up on a per-class basis.
-      typeArgs = call(null,
-                      newQualifiedNameRef(
-                          "RTT.getTypeArgsFor"), new JsThisRef(), getRTTClassId(classElement));
+      typeArgs = buildTypeArgsReferenceFromThis(classElement);
     }
     return typeArgs;
   }
 
-  private JsExpression buildFactoryTypeInfoReference() {
-    // There is no inheritence involved with generic factory methods,
-    // so we simply use a hard reference to the type info parameter to the
-    // factory.
-    return nameref(null, "$typeArgs");
+  private JsExpression buildTypeArgsReferenceFromThis(ClassElement classElement) {
+    // build: $getTypeArgsFor(this, 'class')
+    // Here build a reference to the type parameter for this class instance, this needs
+    // be looked up on a per-class basis.
+    return call(null,
+                newQualifiedNameRef(
+                    "RTT.getTypeArgsFor"), new JsThisRef(), getRTTClassId(classElement));
   }
 
   /**
@@ -1095,13 +1096,11 @@ public class RuntimeTypeInjector {
 
   private JsExpression getReifiedTypeVariableRTT(TypeVariable type, ClassElement contextClassElement) {
     JsExpression rttContext;
-    if (!inFactory()) {
-      // build: this.typeinfo.implementedTypes['class'].typeArgs;
-      rttContext = buildTypeArgsReference(contextClassElement);
-    } else {
-      // build: $typeArgs
-      rttContext = buildFactoryTypeInfoReference();
-    }
+    // this.typeinfo.implementedTypes['class'].typeArgs;
+    //   or for a factory method:
+    // $typeArgs
+    rttContext = buildTypeArgsReference(contextClassElement);
+
     // rtt = rttContext.typeArgs[x]
     JsExpression rtt = buildTypeLookupExpression(type, contextClassElement.getTypeParameters(), rttContext);
     return rtt;
