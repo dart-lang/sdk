@@ -38,14 +38,14 @@ class JSSyntaxMatch implements Match {
   final String str;
   final Pattern pattern;
 
-  String operator[](int group) {
-    return this.group(group);
+  String operator[](int group_) {
+    return this.group(group_);
   }
 
-  List<String> groups(List<int> groups) {
+  List<String> groups(List<int> groups_) {
     List<String> strings = new List<String>();
-    groups.forEach((int group) {
-      strings.add(this.group(group));
+    groups_.forEach((int group_) {
+      strings.add(this.group(group_));
     });
     return strings;
   }

@@ -189,7 +189,7 @@ public class CompileTimeConstantResolver {
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParams();
       for (DartParameter parameter : parameters) {
-        getContext().declare(parameter.getSymbol());
+        getContext().declare(parameter.getSymbol(), null, null);
         // Then resolve the default values.
         resolveConstantExpression(parameter.getDefaultExpr());
       }

@@ -51,7 +51,7 @@ public class Scope {
     // or we are ignoring libraries (i.e., fromLibrary == null).
     if (fromLibrary == null
         || !DartIdentifier.isPrivateName(name)
-        || library.equals(fromLibrary)) {
+        || fromLibrary.equals(library)) {
       element = findLocalElement(name);
     }
     if (element == null) {

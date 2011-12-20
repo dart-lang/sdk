@@ -68,6 +68,7 @@ abstract class ResolverTestCase extends TestCase {
     // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
     new MemberBuilder().exec(unit, context, scope, typeProvider);
+    new CompileTimeConstantResolver().exec(unit, context, typeProvider);
     new Resolver(context, scope, typeProvider).exec(unit);
     return scope;
   }

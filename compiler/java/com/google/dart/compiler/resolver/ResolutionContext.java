@@ -66,12 +66,31 @@ public class ResolutionContext implements ResolutionErrorListener {
     return scope;
   }
 
-  void declare(Element element) {
-    Element existingElement = scope.declareElement(element.getName(), element);
-    if (existingElement != null) {
-      onError(element.getNode(), ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION,
-          element.getName());
+  void declare(Element element, ErrorCode errorCode, ErrorCode warningCode) {
+    String name = element.getName();
+    Element existingLocalElement = scope.findLocalElement(name);
+    // Check for duplicate declaration in the enclosing scope.
+    if (existingLocalElement == null && warningCode != null) {
+      Element existingElement = scope.findElement(scope.getLibrary(), name);
+      if (existingElement != null) {
+        if (!Elements.isConstructorParameter(element)
+            && !Elements.isParameterOfMethodWithoutBody(element)
+            && !(Elements.isStaticContext(element) && !Elements.isStaticContext(existingElement))
+            && !existingElement.getModifiers().isAbstractField()) {
+          DartNode nameNode = Elements.getNameNode(element);
+          String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
+          onError(nameNode, warningCode, name, existingElement, existingLocation);
+        }
+      }
     }
+    // Check for duplicate declaration in the same scope.
+    if (existingLocalElement != null && errorCode != null) {
+      DartNode nameNode = Elements.getNameNode(element);
+      String existingLocation = Elements.getRelativeElementLocation(element, existingLocalElement);
+      onError(nameNode, errorCode, name, existingLocation);
+    }
+    // Declare, may be hide existing element.
+    scope.declareElement(name, element);
   }
 
   void pushScope(String name) {
@@ -254,7 +273,10 @@ public class ResolutionContext implements ResolutionErrorListener {
   MethodElement declareFunction(DartFunctionExpression node) {
     MethodElement element = Elements.methodFromFunctionExpression(node, Modifiers.NONE);
     if (node.getFunctionName() != null) {
-      declare(element);
+      declare(
+          element,
+          ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION,
+          ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION_WARNING);
     }
     return element;
   }

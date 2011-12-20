@@ -44,7 +44,7 @@ class Suite {
    * [:name:] The unique name of the test
    * [:test:] A function holding the test to run
    */
-  Suite test(String name, Test test) {
+  Suite test(String name, Test test_) {
     _nTests++;
     // Don't execute the test immediately.
     return _addOperation(() {
@@ -62,7 +62,7 @@ class Suite {
 
           int cur = new Date.now().value;
           while ((cur - start) < 1000) {
-            test();
+            test_();
             cur = new Date.now().value;
             runs++;
           }

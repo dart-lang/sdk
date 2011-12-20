@@ -240,28 +240,28 @@ class SingleDimensionPhysics {
   }
 
   void configure(num minCoord, num maxCoord,
-            num initialOffset, num customDecelerationFactor,
-            num velocity) {
+            num initialOffset, num customDecelerationFactor_,
+            num velocity_) {
     _bouncingState = BouncingState.NOT_BOUNCING;
     _minCoord = minCoord;
     _maxCoord = maxCoord;
     _currentOffset = initialOffset;
-    this.customDecelerationFactor = customDecelerationFactor;
-    _adjustInitialVelocityAndBouncingState(velocity);
+    this.customDecelerationFactor = customDecelerationFactor_;
+    _adjustInitialVelocityAndBouncingState(velocity_);
   }
 
   num solve(num initialOffset, num targetOffset,
-            num customDecelerationFactor) {
+            num customDecelerationFactor_) {
     initialOffset = initialOffset.round();
     targetOffset = targetOffset.round();
     if (initialOffset == targetOffset) {
       return 0;
     }
-    return Solver.solve((num velocity) {
+    return Solver.solve((num velocity_) {
         // Don't specify min and max coordinates as we don't need to bother
         // with the simulating bouncing off the edges.
         configure(null, null, initialOffset.round(),
-                  customDecelerationFactor, velocity);
+                  customDecelerationFactor_, velocity_);
         stepAll();
         return _currentOffset;
       },
@@ -426,11 +426,11 @@ class TimeoutMomentum implements Momentum {
   void onTransitionEnd() {
   }
 
-  Coordinate calculateVelocity(Coordinate start, Coordinate target,
+  Coordinate calculateVelocity(Coordinate start_, Coordinate target,
                                [num decelerationFactor = null]) {
     return new Coordinate(
-        physicsX.solve(start.x, target.x, decelerationFactor),
-        physicsY.solve(start.y, target.y, decelerationFactor));
+        physicsX.solve(start_.x, target.x, decelerationFactor),
+        physicsY.solve(start_.y, target.y, decelerationFactor));
   }
 
   bool start(Coordinate velocity, Coordinate minCoord, Coordinate maxCoord,

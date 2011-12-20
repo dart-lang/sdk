@@ -95,7 +95,7 @@ testDocumentFragment() {
     };
 
     test('is initially empty', () {
-      var elements = new DocumentFragment().elements;
+      elements = new DocumentFragment().elements;
       Expect.listEquals([], elements);
       Expect.isTrue(elements.isEmpty());
     });

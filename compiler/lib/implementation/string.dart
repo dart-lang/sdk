@@ -214,16 +214,16 @@ class _StringMatch implements Match {
   String operator[](int g) => group(g);
   int groupCount() => 0;
 
-  String group(int group) {
-    if (group != 0) {
-      throw new IndexOutOfRangeException(group);
+  String group(int group_) {
+    if (group_ != 0) {
+      throw new IndexOutOfRangeException(group_);
     }
     return pattern;
   }
 
-  List<String> groups(List<int> groups) {
+  List<String> groups(List<int> groups_) {
     List<String> result = new List<String>();
-    for (int g in groups) {
+    for (int g in groups_) {
       result.add(group(g));
     }
     return result;

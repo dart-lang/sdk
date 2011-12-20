@@ -151,11 +151,11 @@ main() {
 // Note: to debug failures, best bet is to use GridLayoutDemo to run an
 // individual asyncTest and see the resulting layout.
 
-usingGrid(String example, void test(View grid)) {
+usingGrid(String example, void test_(View grid)) {
   final grid = createGrid(GridExamples.styles[example]);
   grid.addToDocument(document.body);
   window.setTimeout(() {
-    test(grid);
+    test_(grid);
     window.setTimeout(() {
       grid.removeFromDocument();
       callbackDone();

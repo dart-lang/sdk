@@ -335,6 +335,17 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3));
   }
 
+  public void test_nameShadow_topLevel_variables() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var foo;",
+            "var bar;",
+            "var foo;"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 4, 5, 3));
+  }
+
   /**
    * Multiple unnamed constructor definitions.
    */
@@ -455,10 +466,225 @@ public class NegativeResolverTest extends CompilerTestCase {
             "// filler filler filler filler filler filler filler filler filler filler",
             "class A {",
             "  var _a;",
-            "  var _a;",
+            "  var _a = 2;",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 2),
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 2));
+  }
+
+  public void test_nameShadow_variables_sameBlock() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {",
+            "    var a;",
+            "    var a = 2;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR, 5, 9, 1));
+  }
+
+  public void test_nameShadow_variables_enclosingBlock() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {",
+            "    var a;",
+            "    {",
+            "      var a;",
+            "    }",
+            "  }",
+            "  bar() {",
+            "    {",
+            "      var bb;",
+            "    }",
+            "    var bb;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 6, 11, 1));
+  }
+
+  public void test_nameShadow_field_variable() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var a;",
+            "  foo() {",
+            "    var a;",
+            "    var bb;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 5, 9, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Local variable 'a' is hiding 'FIELD a' at Test.dart:A:3:7", message);
+    }
+  }
+
+  public void test_nameShadow_classTypeVariable_variable() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C<A> {",
+            "  foo() {",
+            "    var A;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 4, 9, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Local variable 'A' is hiding 'TYPE_VARIABLE A' at Test.dart:C:2:9", message);
+    }
+  }
+
+  public void test_nameShadow_methodParameters() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo(a, bb, a) {",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_PARAMETER, 3, 14, 1));
+  }
+
+  public void test_nameShadow_field_methodParameter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var a;",
+            "  foo(a, bb) {",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 7, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Parameter 'a' is hiding 'FIELD a' at Test.dart:A:3:7", message);
+    }
+  }
+
+  /**
+   * In static method instance fields are out of scope, so it is OK to have parameter with same
+   * name.
+   */
+  public void test_nameShadow_instanceField_staticMethodParameter() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var a;",
+        "  static foo(a) {",
+        "  }",
+        "}"));
+  }
+
+  public void test_nameShadow_staticField_staticMethodParameter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static var a;",
+            "  static foo(a) {",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 14, 1));
+  }
+
+  public void test_nameShadow_topLevelVariable_staticMethodParameter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var a;",
+            "class A {",
+            "  static foo(a) {",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 14, 1));
+  }
+
+  public void test_nameShadow_staticField_instanceMethodParameter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static var a;",
+            "  foo(a) {",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 7, 1));
+  }
+
+  public void test_nameShadow_field_methodParameterThis() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  final a;",
+        "  const A(this.a);",
+        "}"));
+  }
+
+  public void test_nameShadow_field_interfaceMethodParameter() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface A {",
+        "  var a;",
+        "  foo(a);",
+        "}"));
+  }
+
+  public void test_nameShadow_field_nativeMethodParameter() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var a;",
+        "  foo(a) native;",
+        "}"));
+  }
+
+  public void test_nameShadow_variable_catchParameter() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {",
+            "    var a;",
+            "    try {",
+            "    } catch (var a) {",
+            "    }",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 6, 18, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Parameter 'a' is hiding 'VARIABLE a' at Test.dart:A:4:9", message);
+    }
+  }
+
+  public void test_nameShadow_classTypeVariables() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C<A, BB, A> {",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_TYPE_VARIABLE, 2, 16, 1));
+  }
+
+  public void test_nameShadow_class_classTypeVariable() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class BB {",
+            "}",
+            "class C<A, BB> {",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING, 4, 12, 2));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Type variable 'BB' is hiding 'CLASS BB' at Test.dart:BB:2:7", message);
+    }
   }
 
   /**
@@ -584,6 +810,52 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
   }
 
+  public void test_nameShadow_functionExpressionParameters() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {",
+            "    fn(a, b, a) {};",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_PARAMETER, 4, 14, 1));
+  }
+
+  public void test_nameShadow_variable_functionExpressionNamed() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  foo() {",
+            "    var a;",
+            "    a() => 0;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION, 5, 5, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Duplicate function expression 'a'", message);
+    }
+  }
+
+  public void test_nameShadow_field_functionExpressionNamed() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  var a;",
+            "  foo() {",
+            "    a() => 0;",
+            "  }",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION_WARNING, 5, 5, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Function expression 'a' is hiding 'FIELD a' at Test.dart:A:3:7", message);
+    }
+  }
+
   public void testUnresolvedSuperFieldNegativeTest() {
     checkNumErrors("UnresolvedSuperFieldNegativeTest.dart", 1);
   }
@@ -605,7 +877,15 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   public void testConstRedirectedConstructorNegativeTest() {
-    checkNumErrors("ConstRedirectedConstructorNegativeTest.dart", 1);
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  const A(x) : this.foo(x);",
+            "  A.foo(this.x) { }",
+            "  var x;",
+            "}"),
+        errEx(ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER, 3, 3, 25));
   }
 
   public void testRawTypesNegativeTest() {

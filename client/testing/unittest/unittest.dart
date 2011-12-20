@@ -56,8 +56,8 @@ _platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
         ? "<tr><td colspan='3' class='unittest-pass'>PASS</td></tr>"
         : "<tr><td colspan='3' class='unittest-fail'>FAIL</td></tr>");
 
-    for (final test in _tests) {
-      newBody.add(_toHtml(test));
+    for (final test_ in _tests) {
+      newBody.add(_toHtml(test_));
     }
 
     if (testsPassed == _tests.length) {
@@ -78,11 +78,11 @@ _platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
   window.postMessage('unittest-suite-done', '*');
 }
 
-String _toHtml(TestCase test) {
-  if (!test.isComplete) {
+String _toHtml(TestCase test_) {
+  if (!test_.isComplete) {
     return '''
         <tr>
-          <td>${test.id}</td>
+          <td>${test_.id}</td>
           <td class="unittest-error">NO STATUS</td>
           <td>Test did not complete</td>
         </tr>''';
@@ -90,14 +90,14 @@ String _toHtml(TestCase test) {
 
   var html = '''
       <tr>
-        <td>${test.id}</td>
-        <td class="unittest-${test.result}">${test.result.toUpperCase()}</td>
-        <td>Expectation: ${test.description}. ${test.message}</td>
+        <td>${test_.id}</td>
+        <td class="unittest-${test_.result}">${test_.result.toUpperCase()}</td>
+        <td>Expectation: ${test_.description}. ${test_.message}</td>
       </tr>''';
 
-  if (test.stackTrace != null) {
+  if (test_.stackTrace != null) {
     html +=
-        '<tr><td></td><td colspan="2"><pre>${test.stackTrace}</pre></td></tr>';
+        '<tr><td></td><td colspan="2"><pre>${test_.stackTrace}</pre></td></tr>';
   }
 
   return html;

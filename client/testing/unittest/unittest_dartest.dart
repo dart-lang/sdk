@@ -31,17 +31,17 @@ _platformDefer(void callback()) {
 }
 
 // Update test results
-updateTestStats(TestCase test) {
-  assert(test.result != null);
-  if(test.startTime != null) {
-    test.runningTime = (new Date.now()).difference(test.startTime);
+updateTestStats(TestCase test_) {
+  assert(test_.result != null);
+  if(test_.startTime != null) {
+    test_.runningTime = (new Date.now()).difference(test_.startTime);
   }
   testsRun++;
-  switch (test.result) {
+  switch (test_.result) {
     case 'fail': testsFailed++; break;
     case 'error': testsErrors++; break;   
   } 
-  updateUI(test);
+  updateUI(test_);
 }
 
 // Run tests sequentially
@@ -74,18 +74,18 @@ _platformInitialize() {
   // Do nothing
 }
 
-_platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
+_platformCompleteTests(int testsPassed_, int testsFailed_, int testsErrors_) {
   // Do nothing
 }
 
 String getTestResultsCsv() {
   StringBuffer out = new StringBuffer();
-  _tests.forEach((final test) {
+  _tests.forEach((final test_) {
     String result = 'none';
-    if(test.result != null) {
-      result = test.result.toUpperCase();
+    if(test_.result != null) {
+      result = test_.result.toUpperCase();
     }
-    out.add('${test.id}, "${test.description}", $result\n');
+    out.add('${test_.id}, "${test_.description}", $result\n');
   });
   return out.toString();
 }
