@@ -21,11 +21,11 @@
 # ........builtin_runtime.dart
 # ........runtime/
 # ......core/
-# ........core_{compiler, frog, runtime}.dart
-# ........{compiler, frog, runtime}/ 
+# ........core_{frog, runtime}.dart
+# ........{frog, runtime}/ 
 # ......coreimpl/
-# ........coreimpl_{compiler, frog, runtime}.dart
-# ........{compiler, frog, runtime}/ 
+# ........coreimpl_{frog, runtime}.dart
+# ........{frog, runtime}/ 
 # ......dom/
 # ........dom.dart
 # ......frog/
@@ -34,8 +34,8 @@
 # ......htmlimpl/ 
 # ........htmlimpl.dart
 # ......json/
-# ........json_{compiler, frog}.dart
-# ........{compiler, frog}/
+# ........json_{frog}.dart
+# ........{frog}/
 # ......(more will come here - io, etc)
 # ....util/
 # ......dartdoc/
@@ -62,9 +62,6 @@ def Main(argv):
     (eval(open("frog/lib/frog_corelib_sources.gypi").read()))['sources']
   corelib_runtime_sources = \
     (eval(open("runtime/lib/lib_sources.gypi").read()))['sources']
-  corelib_compiler_sources =  \
-    (eval(open("compiler/compiler_corelib_sources.gypi").read())) \
-    ['variables']['compiler_corelib_resources']
   coreimpl_sources = \
     (eval(open("corelib/src/implementation/corelib_impl_sources.gypi").read()))\
     ['sources']
@@ -72,9 +69,6 @@ def Main(argv):
     (eval(open("frog/lib/frog_coreimpl_sources.gypi").read()))['sources']
   coreimpl_runtime_sources = \
     (eval(open("runtime/lib/lib_impl_sources.gypi").read()))['sources']
-  json_compiler_sources = \
-    (eval(open("compiler/jsonlib_sources.gypi").read())) \
-    ['variables']['jsonlib_resources']
   json_frog_sources = \
     (eval(open("frog/lib/frog_json_sources.gypi").read()))['sources']
 
@@ -95,15 +89,15 @@ def Main(argv):
   # Copy the Dart VM binary into sdk/bin.
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = os.path.dirname(argv[1])
-  frogc_src_binary = join(HOME, 'frog', 'frogc')
-  frogc_dest_binary = join(BIN, 'frogc')
+  frogc_file_extension = ''
+  dart_file_extension = ''
   if utils.GuessOS() == 'win32':
-    # TODO(dgrove) - deal with frogc.bat
-    dart_src_binary = join(HOME, build_dir, 'dart.exe')
-    dart_dest_binary = join(BIN, 'dart.exe')
-  else:
-    dart_src_binary = join(HOME, build_dir, 'dart')
-    dart_dest_binary = join(BIN, 'dart')
+    dart_file_extension = '.exe'
+    frogc_file_extension = '.bat'
+  dart_src_binary = join(HOME, build_dir, 'dart' + dart_file_extension)
+  dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
+  frogc_src_binary = join(HOME, 'frog', 'frogc' + frogc_file_extension)
+  frogc_dest_binary = join(BIN, 'frogc' + frogc_file_extension)
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
   copyfile(frogc_src_binary, frogc_dest_binary)
@@ -129,13 +123,11 @@ def Main(argv):
   os.makedirs(LIB)
   corelib_dest_dir = join(LIB, 'core')
   os.makedirs(corelib_dest_dir)
-  os.makedirs(join(corelib_dest_dir, 'compiler'))
   os.makedirs(join(corelib_dest_dir, 'frog'))
   os.makedirs(join(corelib_dest_dir, 'runtime'))
 
   coreimpl_dest_dir = join(LIB, 'coreimpl')
   os.makedirs(coreimpl_dest_dir)
-  os.makedirs(join(coreimpl_dest_dir, 'compiler'))
   os.makedirs(join(coreimpl_dest_dir, 'frog'))
   os.makedirs(join(coreimpl_dest_dir, 'frog', 'node'))
   os.makedirs(join(coreimpl_dest_dir, 'runtime'))
@@ -210,24 +202,12 @@ def Main(argv):
   # Create and populate lib/json.
   #
   json_dest_dir = join(LIB, 'json')
-  json_compiler_dest_dir = join(LIB, 'json', 'compiler')
   os.makedirs(json_dest_dir)
-  os.makedirs(json_compiler_dest_dir)
 
   for filename in json_frog_sources:
     copyfile(join(HOME, 'frog', 'lib', filename), 
              join(json_dest_dir, filename))
-
-  for filename in json_compiler_sources:
-    copyfile(join(HOME, 'compiler', filename),
-             join(json_compiler_dest_dir, os.path.basename(filename)))
-
-  # Create json_compiler.dart from whole cloth.
-  dest_file = open(join(LIB, 'json', 'json_compiler.dart'), 'w')
-  dest_file.write('#library("dart:json");\n')
-  dest_file.write('#import("compiler/json.dart");\n')
-  dest_file.close()
-      
+ 
   #
   # Create and populate lib/dom.
   #
@@ -250,20 +230,11 @@ def Main(argv):
   # Create and populate lib/core.
   #
 
-  # First, copy corelib/* to lib/{compiler, frog, runtime}
+  # First, copy corelib/* to lib/{frog, runtime}
   for filename in corelib_sources:
-    for target_dir in ['compiler', 'frog', 'runtime']:
+    for target_dir in ['frog', 'runtime']:
       copyfile(join('corelib', 'src', filename), 
                join(corelib_dest_dir, target_dir, filename))
-
-  # Next, copy the compiler sources on top of {core,coreimpl}/compiler
-  for filename in corelib_compiler_sources:
-    if filename.endswith('.dart'):
-      filename = re.sub('lib/','', filename)
-      if (not filename.startswith('implementation/') and
-          not filename.startswith('corelib')):
-        copyfile(join('compiler', 'lib', filename), 
-                 join(corelib_dest_dir, 'compiler', filename))
 
   # Next, copy the frog library source on top of core/frog
   # TOOD(dgrove): move json to top-level
@@ -300,31 +271,15 @@ def Main(argv):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
 
-  # construct lib/core_compiler.dart from whole cloth.
-  dest_file = open(join(corelib_dest_dir, 'core_compiler.dart'), 'w')
-  dest_file.write('#library("dart:core");\n')
-  dest_file.write('#import("dart:coreimpl");\n')
-  for filename in os.listdir(join(corelib_dest_dir, 'compiler')):
-    dest_file.write('#import("compiler/' + filename + '");\n')
-  dest_file.close()
-
   #
   # Create and populate lib/coreimpl.
   #
 
-  # First, copy corelib/src/implementation to corelib/{compiler, frog, runtime}.
+  # First, copy corelib/src/implementation to corelib/{frog, runtime}.
   for filename in coreimpl_sources:
-    for target_dir in ['compiler', 'frog', 'runtime']:
+    for target_dir in ['frog', 'runtime']:
       copyfile(join('corelib', 'src', 'implementation', filename), 
                join(coreimpl_dest_dir, target_dir, filename))
-
-  # Next, copy {compiler, frog, runtime}-specific implementations.
-  for filename in corelib_compiler_sources:
-    if (filename.endswith(".dart")):
-      if filename.startswith("lib/implementation/"):
-        filename = os.path.basename(filename)
-        copyfile(join('compiler', 'lib', 'implementation', filename), 
-                 join(coreimpl_dest_dir, 'compiler', filename))
 
   for filename in coreimpl_frog_sources:
     copyfile(join('frog', 'lib', filename), 
@@ -354,13 +309,6 @@ def Main(argv):
   for filename in coreimpl_runtime_sources:
     if filename.endswith('.dart'):
       dest_file.write('#source("runtime/' + filename + '");\n')
-  dest_file.close()
-
-  # construct lib/coreimpl_compiler.dart from whole cloth.
-  dest_file = open(join(coreimpl_dest_dir, 'coreimpl_compiler.dart'), 'w')
-  dest_file.write('#library("dart:coreimpl");\n')
-  for filename in os.listdir(join(coreimpl_dest_dir, 'compiler')):
-    dest_file.write('#import("compiler/' + filename + '");\n')
   dest_file.close()
 
   # Create and copy tools.
