@@ -119,13 +119,20 @@ def Main():
         project_file = 'dart.sln'
         if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
           project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
-        args = [options.devenv + os.sep + 'devenv.com',
-                '/build',
-                build_config,
-		'/project',
-		target,
-                project_file
-               ]
+	if target == 'all':
+          args = [options.devenv + os.sep + 'devenv.com',
+                  '/build',
+                  build_config,
+                  project_file
+                 ]
+	else:
+          args = [options.devenv + os.sep + 'devenv.com',
+                  '/build',
+                  build_config,
+	    	  '/project',
+		  target,
+                  project_file
+                 ]
       else:
         make = 'make'
         if HOST_OS == 'freebsd':
