@@ -122,8 +122,6 @@ def Main():
         args = [options.devenv + os.sep + 'devenv.com',
                 '/build',
                 build_config,
-		'/project',
-		target,
                 project_file
                ]
       else:
