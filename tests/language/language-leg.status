@@ -47,8 +47,8 @@ ConstObjectsAreImmutableTest: Fail
 ConstStringTest: Fail
 ConstTest: Fail
 Constructor2Test: Fail
-Constructor3Test: Fail
 Constructor3NegativeTest: Fail
+Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
@@ -105,6 +105,7 @@ FieldMethodTest: Fail
 FieldOverrideTest/01: Fail
 FieldOverrideTest/none: Fail
 FieldTest: Fail
+FinalVarNegativeTest: Fail
 FirstTest: Fail
 For2Test: Fail
 ForInTest: Fail
