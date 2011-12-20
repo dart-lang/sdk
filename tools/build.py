@@ -119,18 +119,18 @@ def Main():
         project_file = 'dart.sln'
         if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
           project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
-	if target == 'all':
+        if target == 'all':
           args = [options.devenv + os.sep + 'devenv.com',
                   '/build',
                   build_config,
                   project_file
                  ]
-	else:
+        else:
           args = [options.devenv + os.sep + 'devenv.com',
                   '/build',
                   build_config,
-	    	  '/project',
-		  target,
+                  '/project',
+                  target,
                   project_file
                  ]
       else:
