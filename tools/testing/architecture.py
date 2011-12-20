@@ -536,7 +536,7 @@ class LegArchitecture(StandaloneArchitecture):
     super(LegArchitecture, self).__init__(root_path, arch, mode, component,
                                           test)
   def GetOptions(self):
-    return ['--enable_leg', '--leg_only']
+    return ['--leg_only']
 
   def GetExecutable(self):
     """Returns the path to the Dart test runner (executes the .dart file)."""
