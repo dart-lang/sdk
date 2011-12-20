@@ -590,9 +590,9 @@ class Dartdoc {
    * Creates a hyperlink. Handles turning the [href] into an appropriate
    * relative path from the current file.
    */
-  String a(String href, String contents, [String class]) {
-    final css = class == null ? '' : ' class="$class"';
-    return '<a href="${relativePath(href)}"$css>$contents</a>';
+  String a(String href, String contents, [String css]) {
+    final cssClass = css == null ? '' : ' class="$css"';
+    return '<a href="${relativePath(href)}"$cssClass>$contents</a>';
   }
 
   /**
@@ -664,7 +664,7 @@ class Dartdoc {
   typeReference(Type type) {
     // TODO(rnystrom): Do we need to handle ParameterTypes here like
     // annotation() does?
-    return a(typeUrl(type), typeName(type), class: 'crossref');
+    return a(typeUrl(type), typeName(type), css: 'crossref');
   }
 
   /** Generates a human-friendly string representation for a type. */
