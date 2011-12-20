@@ -40,6 +40,7 @@ TimerCancelTest: Skip # Uses EventHandler
 TimerCancel1Test: Skip # Uses EventHandler
 TimerCancel2Test: Skip # Uses EventHandler
 FileInputStreamTest: Skip  # Uses TextFileInputStream.
+FileOutputStreamTest: Skip  # Uses TextFileInputStream.
 Process*: Skip # Uses Process
 Directory*: Skip # Uses Directory
 StreamPipeTest: Skip # Uses Socket
