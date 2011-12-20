@@ -144,7 +144,7 @@ class _DirectoryOperationScheduler {
     operation.replyPort = replyPort.toSendPort();
     _queue.addLast(operation);
     if (_isolate == null) {
-      _isolate = new _FileOperationIsolate();
+      _isolate = new _DirectoryOperationIsolate();
       _isolate.spawn().then((port) {
         schedule(port);
       });
