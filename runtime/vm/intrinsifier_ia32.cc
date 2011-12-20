@@ -199,7 +199,7 @@ static bool Array_setIndexed(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value.
   __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
   __ orl(EAX, EBX);
-  __ testl(EBX, Immediate(kSmiTagMask));
+  __ testl(EAX, Immediate(kSmiTagMask));
   // Value or index not Smi.
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
   __ movl(EAX, Address(ESP, + 3 * kWordSize));  // Array.

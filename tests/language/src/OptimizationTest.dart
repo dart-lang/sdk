@@ -15,6 +15,10 @@ doNeg(a) {
   return -a;
 }
 
+doNeg2(a) {
+  return -a;
+}
+
 doNot(a) {
   return !a;
 }
@@ -52,4 +56,10 @@ main() {
     Expect.equals(-57, doBitNot(56));
     Expect.equals(55, doBitNot(-56));
   }
+
+  for (int i = 0; i < 2000; i++) {
+    Expect.equals(-2.2, doNeg2(2.2));
+  }
+  // Deoptimize.
+  Expect.equals(-5, doNeg2(5));
 }

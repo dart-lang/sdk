@@ -809,6 +809,55 @@ void OptimizingCodeGenerator::GenerateSmiUnaryOp(UnaryOpNode* node) {
 }
 
 
+void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
+  const Register kOperandRegister = ECX;
+  const Register kTempRegister = EBX;
+  const Register kResultRegister = EAX;
+  const ICData& ic_data = node->ICDataAtId(node->id());
+  DeoptReasonId deopt_reason_id = ic_data.NumberOfChecks() == 0 ?
+      kDeoptNoTypeFeedback : kDeoptUnaryOp;
+  DeoptimizationBlob* deopt_blob =
+      AddDeoptimizationBlob(node, kOperandRegister, deopt_reason_id);
+  CodeGenInfo info(node->operand());
+  VisitLoadOne(node->operand(), kOperandRegister);
+  if (ic_data.NumberOfChecks() == 0) {
+    // No type feedback.
+    __ jmp(deopt_blob->label());
+    return;
+  }
+  ASSERT(ic_data.NumberOfChecks() == 1);
+  CheckIfDoubleOrSmi(kOperandRegister,
+                     kTempRegister,
+                     deopt_blob->label(),
+                     deopt_blob->label());
+  // TODO(srdjan): check if we could reuse a temporary object instead of
+  // allocating a new one.
+  const Code& stub =
+      Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
+  const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
+  __ pushl(kOperandRegister);
+  GenerateCall(node->token_index(), &label);
+  ASSERT(kResultRegister == EAX);
+  __ popl(kOperandRegister);
+  __ movsd(XMM0, FieldAddress(kOperandRegister, Double::value_offset()));
+  __ xorps(XMM1, XMM1);  // 0.0 -> XMM1.
+  __ subsd(XMM1, XMM0);
+  __ movsd(FieldAddress(kResultRegister, Double::value_offset()), XMM1);
+  if (CodeGenerator::IsResultNeeded(node)) {
+    if (node->info() != NULL) {
+      node->info()->set_is_temp(true);
+      node->info()->set_is_class(&double_class_);
+    }
+    if (IsResultInEaxRequested(node)) {
+      ASSERT(kResultRegister == EAX);
+      node->info()->set_result_returned_in_eax(true);
+    } else {
+      __ pushl(kResultRegister);
+    }
+  }
+}
+
+
 // TODO(srdjan): Expand inline caches to detect Smi/double operations, so that
 // we do not have to call the instance method, and therefore could guarantee
 // that the result is a Smi at the end.
@@ -2953,7 +3002,15 @@ void OptimizingCodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
       return;
     }
   }
-  // TODO(srdjan): Implement unary kSUB (negate) for doubles and Mint.
+  if (node->kind() == Token::kSUB) {
+    if (AtIdNodeHasReceiverClass(node, node->id(), double_class_)) {
+      const ICData& ic_data = node->ICDataAtId(node->id());
+      ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+      GenerateDoubleUnaryOp(node);
+      return;
+    }
+  }
+  // TODO(srdjan): Implement unary kSUB (negate) Mint.
   CodeGenerator::VisitUnaryOpNode(node);
 }
 

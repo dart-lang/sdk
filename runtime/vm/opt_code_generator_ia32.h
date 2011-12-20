@@ -111,6 +111,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
   void CallDeoptimize(intptr_t node_id, intptr_t token_index);
 
   void GenerateSmiUnaryOp(UnaryOpNode* node);
+  void GenerateDoubleUnaryOp(UnaryOpNode* node);
 
   void GenerateSmiBinaryOp(BinaryOpNode* node);
   void GenerateSmiShiftBinaryOp(BinaryOpNode* node);
