@@ -54,7 +54,40 @@ class DirectoryTest {
   }
 
   static void testExistsCreateDelete() {
-    Directory d = new Directory("/tmp/dart_temp_dir_");
+    Directory d = new Directory("");
+    d.createTempHandler = () {
+      d.existsHandler = (bool exists) {
+        Expect.isTrue(exists);
+        Directory created = new Directory("${d.path}/subdir");
+        created.createHandler = () {
+          created.existsHandler = (bool exists) {
+            Expect.isTrue(exists);
+            created.deleteHandler = () {
+              created.existsHandler = (bool exists) {
+                Expect.isFalse(exists);
+                d.deleteHandler = () {
+                  d.existsHandler = (bool exists) {
+                    Expect.isFalse(exists);
+                  };
+                  d.exists();
+                };
+                d.delete();
+              };
+              created.exists();
+            };
+            created.delete();
+          };
+          created.exists();
+        };
+        created.create();
+      };
+      d.exists();
+    };
+    d.createTemp();
+  }
+
+  static void testExistsCreateDeleteSync() {
+    Directory d = new Directory("");
     d.createTempSync();
     Expect.isTrue(d.existsSync());
     Directory created = new Directory("${d.path}/subdir");
@@ -64,7 +97,9 @@ class DirectoryTest {
     Expect.isFalse(created.existsSync());
     d.deleteSync();
     Expect.isFalse(d.existsSync());
+  }
 
+  static void testCreateTemp() {
     Directory tempDir1 = new Directory("/tmp/dart_temp_dir_");
     Directory tempDir2 = new Directory("/tmp/dart_temp_dir_");
     bool stage1aDone = false;
@@ -137,7 +172,7 @@ class DirectoryTest {
     }
   }
 
-  static void testCreateTemp() {
+  static void testCreateDeleteTemp() {
     Directory tempDirectory = new Directory("");
     tempDirectory.createTempHandler = () {
       String filename = tempDirectory.path +
@@ -148,56 +183,32 @@ class DirectoryTest {
         Expect.fail("testCreateTemp file.errorHandler called: $error");
       };
       file.createHandler = () {
-        file.openHandler = (RandomAccessFile openedFile) {
-          openedFile.writeList([65, 66, 67, 13], 0, 4);
-          openedFile.noPendingWriteHandler = () {
-            openedFile.length();
-          };
-          openedFile.lengthHandler = (int length) {
-            Expect.equals(4, length);
-            openedFile.close();
-          };
-          openedFile.closeHandler = () {
-            file.exists();
-          };
-          file.existsHandler = (bool exists) {
-            Expect.isTrue(exists);
-            // Try to delete the directory containing the file - should throw.
-            bool threw_exception = false;
-            try {
-              tempDirectory.deleteSync();
-            } catch (var e) {
-              Expect.isTrue(tempDirectory.existsSync());
-              threw_exception = true;
-            }
-            Expect.isTrue(threw_exception);
-            Expect.isTrue(tempDirectory.existsSync());
+        file.existsHandler = (bool exists) {
+          Expect.isTrue(exists);
+          // Try to delete the directory containing the file - should throw.
+          Expect.throws(tempDirectory.deleteSync);
+          Expect.isTrue(tempDirectory.existsSync());
 
-            // Delete the file, and then delete the directory.
-            file.delete();
-          };
+          // Delete the file, and then delete the directory.
           file.deleteHandler = () {
             tempDirectory.deleteSync();
             Expect.isFalse(tempDirectory.existsSync());
           };
+          file.delete();
         };
-        file.open(writable: true);
+        file.exists();
       };
       file.create();
     };
     tempDirectory.createTemp();
   }
 
-  static void testNestedTempDirectory() {
-    var test = new NestedTempDirectoryTest();
-  }
-
-
   static void testMain() {
     testListing();
     testExistsCreateDelete();
+    testExistsCreateDeleteSync();
     testCreateTemp();
-    testNestedTempDirectory();
+    testCreateDeleteTemp();
   }
 }
 
@@ -206,7 +217,13 @@ class NestedTempDirectoryTest {
   List<Directory> createdDirectories;
   Directory current;
 
-  NestedTempDirectoryTest(): createdDirectories = new List<Directory>();
+  NestedTempDirectoryTest.run()
+      : createdDirectories = new List<Directory>(),
+        current = new Directory("") {
+    current.createTempHandler = createPhaseCallback;
+    current.errorHandler = errorCallback;
+    current.createTemp();
+  }
 
   void errorCallback(error) {
     Expect.fail("Error callback called in NestedTempDirectoryTest: $error");
@@ -236,16 +253,9 @@ class NestedTempDirectoryTest {
     }
   }
 
-  void startTest() {
-    current = new Directory("");
-    current.createTempHandler = createPhaseCallback;
-    current.errorHandler = errorCallback;
-    current.createTemp();
-  }
-
   static void testMain() {
-    new NestedTempDirectoryTest().startTest();
-    new NestedTempDirectoryTest().startTest();
+    new NestedTempDirectoryTest.run();
+    new NestedTempDirectoryTest.run();
   }
 }
 
