@@ -8,7 +8,7 @@ class CssWorld {
 
   CssWorld(this.classes, this.ids) {
     // Insure no private class names in our CSS world (._foo).
-    for (aClass in classes) {
+    for (var aClass in classes) {
       if (aClass.startsWith('_')) {
         throw new CssSelectorException(
             "private class ('_' prefix) not valid for CssWorld $aClass)");
@@ -16,7 +16,7 @@ class CssWorld {
     }
 
     // Insure no private element ids in our CSS world (#_foo).
-    for (id in ids) {
+    for (var id in ids) {
       if (id.startsWith('_')) {
         throw new CssSelectorException(
             "private id ('_' prefix) not valid for CssWorld $id)");

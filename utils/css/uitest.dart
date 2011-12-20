@@ -7,7 +7,7 @@
 #import("dart:dom");
 #import('css.dart');
 #import('../../frog/lang.dart', prefix:'lang');
-
+#import('../../frog/file_system_memory.dart');
 
 void runCss([bool debug = false, bool parseOnly = false]) {
   final HTMLTextAreaElement classes = document.getElementById('classes');
@@ -17,7 +17,7 @@ void runCss([bool debug = false, bool parseOnly = false]) {
   List<String> knownWorld = classes.value.split("\n");
   List<String> knownClasses = [];
   List<String> knownIds = [];
-  for (name in knownWorld) {
+  for (var name in knownWorld) {
     if (name.startsWith('.')) {
       knownClasses.add(name.substring(1));
     } else if (name.startsWith('#')) {
@@ -41,15 +41,13 @@ void runCss([bool debug = false, bool parseOnly = false]) {
     try {
       Parser parser = new Parser(new lang.SourceFile(
           lang.SourceFile.IN_MEMORY_FILE, cssExpr));
-      List<SelectorGroup> groups = parser.preprocess();
-      StringBuffer groupTree = new StringBuffer();
-      for (group in groups) {
-        String prettySelector = group.toString();
-        groupTree.add("${prettySelector}\n");
-        groupTree.add("-----\n");
-        groupTree.add(group.toDebugString());
-      }
-      dumpTree = groupTree.toString();
+      Stylesheet stylesheet = parser.parse();
+      StringBuffer stylesheetTree = new StringBuffer();
+      String prettyStylesheet = stylesheet.toString();
+      stylesheetTree.add("${prettyStylesheet}\n");
+      stylesheetTree.add("\n============>Tree Dump<============\n");
+      stylesheetTree.add(stylesheet.toDebugString());
+      dumpTree = stylesheetTree.toString();
     } catch (var cssParseException) {
       templateValid = false;
       dumpTree = cssParseException.toString();
@@ -63,9 +61,9 @@ void runCss([bool debug = false, bool parseOnly = false]) {
     }
   }
 
-  final var bgcolor = templateValid ? "white" : "red";
-  final var color = templateValid ? "black" : "white";
-  final var valid = templateValid ? "VALID" : "NOT VALID";
+  var bgcolor = templateValid ? "white" : "red";
+  var color = templateValid ? "black" : "white";
+  var valid = templateValid ? "VALID" : "NOT VALID";
   String resultStyle = 'margin: 0; height: 138px; width: 100%; border: 0; border-top: 1px solid black;';
   result.innerHTML = '''
     <div style="font-weight: bold; background-color: $bgcolor; color: $color;">
@@ -97,11 +95,12 @@ void main() {
   ''';
 
   document.body.appendChild(element);
+//  document.body.elements.add(element);
 
   // TODO(terry): Needed so runCss isn't shakened out.
   if (false) {
     runCss();
   }
 
-  initCssWorld();
+  initCssWorld(false);
 }
