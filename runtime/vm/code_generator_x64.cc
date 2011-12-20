@@ -359,6 +359,13 @@ void CodeGenerator::FinalizePcDescriptors(const Code& code) {
 }
 
 
+void CodeGenerator::FinalizeVarDescriptors(const Code& code) {
+  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
+          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
+  code.set_var_descriptors(var_descs);
+}
+
+
 void CodeGenerator::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(

@@ -839,6 +839,22 @@ void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
+                                                      intptr_t object_id,
+                                                      intptr_t tags,
+                                                      Snapshot::Kind kind) {
+  UNREACHABLE();
+  return LocalVarDescriptors::null();
+}
+
+
+void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
+                                     intptr_t object_id,
+                                     Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   intptr_t tags,

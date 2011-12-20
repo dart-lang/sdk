@@ -7,5 +7,4 @@ prefix vm
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 RunLoop_ExceptionChild: Fail
 
-# Breakpoint needs to be reimplemented after StackOverflow check moved.
-Breakpoint: Fail
+

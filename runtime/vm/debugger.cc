@@ -70,18 +70,19 @@ void Breakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 ActivationFrame::ActivationFrame(uword pc)
     : pc_(pc),
-      function_(Function::null()),
+      function_(NULL),
       token_index_(-1),
-      line_number_(-1) {
+      line_number_(-1),
+      locals_(NULL) {
 }
 
 
-RawFunction* ActivationFrame::DartFunction() {
-  if (function_ == Function::null()) {
+Function* ActivationFrame::DartFunction() {
+  if (function_ == NULL) {
     ASSERT(Isolate::Current() != NULL);
     CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
     ASSERT(code_index_table != NULL);
-    function_ = code_index_table->LookupFunction(pc_);
+    function_ = &Function::ZoneHandle(code_index_table->LookupFunction(pc_));
   }
   return function_;
 }
@@ -109,7 +110,7 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
 
 
 RawString* ActivationFrame::QualifiedFunctionName() {
-  Function& func = Function::Handle(DartFunction());
+  Function& func = *DartFunction();
   return String::New(Debugger::QualifiedFunctionName(func));
 }
 
@@ -121,7 +122,7 @@ RawString* ActivationFrame::SourceUrl() {
 
 
 RawScript* ActivationFrame::SourceScript() {
-  const Function& func = Function::Handle(DartFunction());
+  const Function& func = *DartFunction();
   const Class& cls = Class::Handle(func.owner());
   return cls.script();
 }
@@ -129,7 +130,7 @@ RawScript* ActivationFrame::SourceScript() {
 
 intptr_t ActivationFrame::TokenIndex() {
   if (token_index_ < 0) {
-    const Function& func = Function::Handle(DartFunction());
+    const Function& func = *DartFunction();
     Code& code = Code::Handle(func.code());
     ASSERT(!code.IsNull());
     PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
@@ -156,9 +157,12 @@ intptr_t ActivationFrame::LineNumber() {
 }
 
 
-RawArray* ActivationFrame::Variables() {
-  UNIMPLEMENTED();
-  return NULL;
+ActiveVariables* ActivationFrame::LocalVariables() {
+  if (locals_ == NULL) {
+    const Function& func = *DartFunction();
+    locals_ = new ActiveVariables(func, TokenIndex());
+  }
+  return locals_;
 }
 
 
@@ -171,7 +175,7 @@ RawInstance* ActivationFrame::Value(const String& variable_name) {
 const char* ActivationFrame::ToCString() {
   const char* kFormat = "Function: '%s' url: '%s' line: %d";
 
-  Function& func = Function::Handle(DartFunction());
+  Function& func = *DartFunction();
   String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(func);
@@ -188,6 +192,39 @@ const char* ActivationFrame::ToCString() {
 
 void StackTrace::AddActivation(ActivationFrame* frame) {
   this->trace_.Add(frame);
+}
+
+
+ActiveVariables::ActiveVariables(const Function& function, intptr_t token_pos)
+    : descriptors_(NULL),
+      desc_indices_(8) {
+  const Code& code = Code::Handle(function.code());
+  LocalVarDescriptors& var_descs =
+      LocalVarDescriptors::ZoneHandle(code.var_descriptors());
+  descriptors_ = &var_descs;
+  intptr_t desc_len = var_descs.Length();
+  for (int i = 0; i < desc_len; i++) {
+    intptr_t begin_pos, end_pos;
+    var_descs.GetRange(i, &begin_pos, &end_pos);
+    if ((begin_pos <= token_pos) && (token_pos <= end_pos)) {
+      desc_indices_.Add(i);
+    }
+  }
+}
+
+
+void ActiveVariables::VariableAt(intptr_t i,
+                                 String* name,
+                                 intptr_t* token_pos,
+                                 intptr_t* end_pos,
+                                 Instance* value) const {
+  ASSERT(i < Length());
+  ASSERT(name != NULL);
+  intptr_t desc_index = desc_indices_[i];
+  *name ^= descriptors_->GetName(desc_index);
+  descriptors_->GetRange(i, token_pos, end_pos);
+  ASSERT(value != NULL);
+  *value = Instance::null();  // TODO(hausner): get actual variable value.
 }
 
 
@@ -258,7 +295,7 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function) {
           desc.PC(i), StubCode::BreakpointDynamicEntryPoint());
       bpt = new Breakpoint(target_function, i);
     } else if (kind == PcDescriptors::kOther) {
-      if (CodePatcher::IsDartCall(desc.PC(i))) {
+      if ((desc.TokenIndex(i) > 0) && CodePatcher::IsDartCall(desc.PC(i))) {
         CodePatcher::PatchStaticCallAt(
             desc.PC(i), StubCode::BreakpointStaticEntryPoint());
         bpt = new Breakpoint(target_function, i);
@@ -290,9 +327,20 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 static void DefaultBreakpointHandler(Breakpoint* bpt, StackTrace* stack) {
+  String& var_name = String::Handle();
+  Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < stack->Length(); i++) {
+    ActivationFrame* frame = stack->ActivationFrameAt(i);
     OS::Print("   %d. %s\n",
-              i + 1, stack->ActivationFrameAt(i)->ToCString());
+              i + 1, frame->ToCString());
+    ActiveVariables* locals = frame->LocalVariables();
+    intptr_t num_locals = locals->Length();
+    for (intptr_t i = 0; i < num_locals; i++) {
+      intptr_t token_pos, end_pos;
+      locals->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
+      OS::Print("      var %s (pos %d) = %s\n",
+                var_name.ToCString(), token_pos, value.ToCString());
+    }
   }
 }
 

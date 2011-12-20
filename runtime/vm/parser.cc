@@ -3436,6 +3436,10 @@ void Parser::OpenFunctionBlock(const Function& func) {
 
 SequenceNode* Parser::CloseBlock() {
   SequenceNode* statements = current_block_->statements;
+  if (current_block_->scope != NULL) {
+    // Record the end token index of the scope.
+    current_block_->scope->set_end_token_index(token_index_);
+  }
   current_block_ = current_block_->parent;
   return statements;
 }

@@ -127,6 +127,7 @@ static void CompileFunctionHelper(const Function& function, bool optimized) {
           Code::Handle(Code::FinalizeCode(function_fullname, &assembler));
       code.set_is_optimized(false);
       code_gen.FinalizePcDescriptors(code);
+      code_gen.FinalizeVarDescriptors(code);
       code_gen.FinalizeExceptionHandlers(code);
       function.set_unoptimized_code(code);
       function.SetCode(code);

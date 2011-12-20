@@ -33,6 +33,7 @@ namespace dart {
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(PcDescriptors)                                                             \
+  V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
@@ -573,6 +574,7 @@ class RawCode : public RawObject {
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawLocalVarDescriptors* var_descriptors_;
   // Ongoing redesign of inline caches may soon remove the need for 'ic_data_'.
   RawArray* ic_data_;  // Used to store IC stub data (see class ICData).
   RawObject** to() {
@@ -608,6 +610,22 @@ class RawPcDescriptors : public RawObject {
 
   // Variable length data follows here.
   intptr_t data_[0];
+};
+
+
+class RawLocalVarDescriptors : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
+
+  struct VarInfo {
+    intptr_t index;      // Slot index on stack.
+    intptr_t begin_pos;  // Token position of scope start.
+    intptr_t end_pos;    // Token position of scope end.
+  };
+
+  intptr_t length_;  // Number of descriptors.
+  RawArray* names_;  // Array of [length_] variable names.
+
+  VarInfo data_[0];   // Variable info with [length_] entries.
 };
 
 

@@ -12,6 +12,7 @@ namespace dart {
 class Breakpoint;
 class Isolate;
 class ObjectPointerVisitor;
+class ActiveVariables;
 
 
 // Breakpoint represents a location in Dart source and the corresponding
@@ -53,7 +54,7 @@ class ActivationFrame : public ZoneAllocated {
 
   uword pc() const { return pc_; }
 
-  RawFunction* DartFunction();
+  Function* DartFunction();
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
@@ -61,9 +62,7 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t LineNumber();
   const char* ToCString();
 
-  // Returns an array of String values containing variable names
-  // in this activation frame.
-  RawArray* Variables();
+  ActiveVariables* LocalVariables();
 
   // Returns the value of the given variable in the context of the
   // activation frame.
@@ -71,9 +70,10 @@ class ActivationFrame : public ZoneAllocated {
 
  private:
   uword pc_;
-  RawFunction* function_;
+  Function* function_;
   intptr_t token_index_;
   intptr_t line_number_;
+  ActiveVariables* locals_;
 
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);
 };
@@ -96,6 +96,24 @@ class StackTrace : public ZoneAllocated {
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(StackTrace);
+};
+
+
+class ActiveVariables : public ZoneAllocated {
+ public:
+  ActiveVariables(const Function& function, intptr_t token_pos);
+
+  intptr_t Length() const { return desc_indices_.length(); }
+
+  void VariableAt(intptr_t i,
+                  String* name,
+                  intptr_t* token_pos,
+                  intptr_t* end_pos,
+                  Instance* value) const;
+ private:
+  LocalVarDescriptors* descriptors_;
+  ZoneGrowableArray<intptr_t> desc_indices_;
+  DISALLOW_COPY_AND_ASSIGN(ActiveVariables);
 };
 
 

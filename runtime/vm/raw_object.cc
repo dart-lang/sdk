@@ -128,6 +128,13 @@ intptr_t RawObject::Size() const {
         instance_size = PcDescriptors::InstanceSize(num_descriptors);
         break;
       }
+      case kLocalVarDescriptors: {
+        const RawLocalVarDescriptors* raw_descriptors =
+            reinterpret_cast<const RawLocalVarDescriptors*>(this);
+        intptr_t num_descriptors = raw_descriptors->ptr()->length_;
+        instance_size = LocalVarDescriptors::InstanceSize(num_descriptors);
+        break;
+      }
       case kExceptionHandlers: {
         const RawExceptionHandlers* raw_handlers =
             reinterpret_cast<const RawExceptionHandlers*>(this);
@@ -348,6 +355,15 @@ intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
   intptr_t length = Smi::Value(obj->length_);
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
   return PcDescriptors::InstanceSize(length);
+}
+
+
+intptr_t RawLocalVarDescriptors::VisitLocalVarDescriptorsPointers(
+    RawLocalVarDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
+  RawLocalVarDescriptors* obj = raw_obj->ptr();
+  intptr_t len = obj->length_;
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->names_));
+  return LocalVarDescriptors::InstanceSize(len);
 }
 
 

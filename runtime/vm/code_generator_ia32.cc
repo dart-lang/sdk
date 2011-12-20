@@ -353,6 +353,13 @@ void CodeGenerator::FinalizePcDescriptors(const Code& code) {
 }
 
 
+void CodeGenerator::FinalizeVarDescriptors(const Code& code) {
+  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
+          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
+  code.set_var_descriptors(var_descs);
+}
+
+
 void CodeGenerator::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
@@ -544,7 +551,7 @@ void CodeGenerator::GenerateEntryCode() {
       }
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
-                            function.token_index(),
+                            0,
                             kClosureArgumentMismatchRuntimeEntry);
       } else {
         __ Stop("Wrong number of arguments");
@@ -669,7 +676,7 @@ void CodeGenerator::GenerateEntryCode() {
     __ Bind(&wrong_num_arguments);
     if (function.IsClosureFunction()) {
       GenerateCallRuntime(AstNode::kNoId,
-                          function.token_index(),
+                          0,
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
@@ -734,7 +741,7 @@ void CodeGenerator::GenerateEntryCode() {
   Label no_stack_overflow;
   __ j(ABOVE, &no_stack_overflow);
   GenerateCallRuntime(AstNode::kNoId,
-                      function.token_index(),
+                      0,
                       kStackOverflowRuntimeEntry);
   __ Bind(&no_stack_overflow);
 }
