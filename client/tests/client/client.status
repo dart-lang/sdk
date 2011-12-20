@@ -40,3 +40,6 @@ html/html_tests: Fail  # HTMLDivElement not assignable to EventTarget
 
 [ $component == frog ]
 *: Skip
+
+[ $component == frogsh ]
+*: Skip

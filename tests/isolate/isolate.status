@@ -33,6 +33,10 @@ NestedSpawn2Test: Fail
 NestedSpawnTest: Fail
 Isolate2NegativeTest: Timeout
 
+[ $component == leg ]
+# TODO(ahe): Enable when leg matures.
+*: Skip
+
 [ $arch == x64 ]
 *: Skip
 
