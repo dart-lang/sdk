@@ -163,6 +163,9 @@ class GrowableObjectArray<T> implements List<T> {
   }
 
   T removeLast() {
+    if (_length == 0) {
+      throw new IndexOutOfRangeException(-1);
+    }
     _length--;
     return backingArray[_length];
   }
