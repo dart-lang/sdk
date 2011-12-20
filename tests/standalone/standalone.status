@@ -31,6 +31,7 @@ SocketExceptionTest: Skip # Uses Socket
 SocketManyConnectionsTest: Skip # Uses Socket
 ReadIntoConstList: Skip # Uses File
 FileTest: Skip
+ListInputStreamTest: Skip # Uses InputStream
 ManyEchoServerTest: Skip  # Uses Socket
 TimerTest: Skip # Uses EventHandler
 TimerRepeatTest: Skip # Uses EventHandler
