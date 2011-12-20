@@ -5,7 +5,7 @@
 /// Unit tests for markdown.
 #library('markdown_tests');
 
-#import('../lib.dart');
+#import('../markdown.dart');
 
 // TODO(rnystrom): Better path to unittest.
 #import('../../../client/testing/unittest/unittest_vm.dart');

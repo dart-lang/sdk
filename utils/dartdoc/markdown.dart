@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Parses text in markdown format. Use this entrypoint if you want to parse
-/// markdown from your own Dart code. To parse markdown by running the script
-/// directly from the command line, see markdown.dart.
+/// Parses text in a markdown-like format and renders to HTML.
 #library('markdown');
 
 #source('ast.dart');

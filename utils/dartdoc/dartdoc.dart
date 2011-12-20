@@ -18,7 +18,7 @@
 #import('../../frog/lang.dart');
 #import('../../frog/file_system.dart');
 #import('../../frog/file_system_node.dart');
-#import('../markdown/lib.dart', prefix: 'md');
+#import('markdown.dart', prefix: 'md');
 
 #source('classify.dart');
 #source('comment_map.dart');
