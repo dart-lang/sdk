@@ -7,7 +7,6 @@
     # These variables are used in the creation of the .vcproj file on 
     # Windows.
     'cygwin_dir': 'third_party/cygwin',
-    'msvs_cygwin_dirs': ['<(cygwin_dir)'],
   },
   'targets': [
     {
@@ -44,6 +43,11 @@
     {
       'target_name': 'create_sdk',
       'type': 'none',
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
+      ],
       'dependencies': [
         'frog',
         'runtime',
