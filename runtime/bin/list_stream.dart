@@ -71,12 +71,14 @@ class ListOutputStream implements OutputStream {
     } else {
       _bufferList.add(buffer);
     }
+    return true;
   }
 
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
     if (_streamMarkedClosed) throw new StreamException.streamClosed();
     _bufferList.add(
         buffer.getRange(offset, (len == null) ? buffer.length - offset : len));
+    return true;
   }
 
   void close() {

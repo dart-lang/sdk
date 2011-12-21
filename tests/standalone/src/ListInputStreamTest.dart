@@ -172,7 +172,7 @@ main() {
   testEmptyDynamicListInputStream();
   testListInputStream1();
   testListInputStream2();
-  //testListInputStreamPipe1();
-  //testListInputStreamPipe2();
+  testListInputStreamPipe1();
+  testListInputStreamPipe2();
   testDynamicListInputStream1();
 }
