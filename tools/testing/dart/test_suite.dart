@@ -410,7 +410,8 @@ class StandardTestSuite implements TestSuite {
 
   static String get dumpRenderTreeFilename() {
     if (new Platform().operatingSystem() == 'macos') {
-      return 'client/tests/drt/.app/Contents/MacOS/DumpRenderTree';
+      return 'client/tests/drt/DumpRenderTree.app/Contents/' +
+          'MacOS/DumpRenderTree';
     } 
     return 'client/tests/drt/DumpRenderTree';
   }
