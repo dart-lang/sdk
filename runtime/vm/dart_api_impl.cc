@@ -305,7 +305,7 @@ uword Api::Reallocate(uword ptr, intptr_t old_size, intptr_t new_size) {
 // --- Handles ---
 
 
-DART_EXPORT bool Dart_IsError(const Dart_Handle& handle) {
+DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
   DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   return obj.IsApiError();
@@ -340,7 +340,7 @@ static const char* MakeUnhandledExceptionCString(
 }
 
 
-DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
+DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   DARTSCOPE(Isolate::Current());
 
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));

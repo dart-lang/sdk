@@ -102,7 +102,7 @@ typedef void (*Dart_PeerFinalizer)(void* peer);
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT bool Dart_IsError(const Dart_Handle& handle);
+DART_EXPORT bool Dart_IsError(Dart_Handle handle);
 
 /**
  * Gets the error message from an error handle.
@@ -114,7 +114,7 @@ DART_EXPORT bool Dart_IsError(const Dart_Handle& handle);
  *   String is scope allocated and is only valid until the next call
  *   to Dart_ExitScope.
 */
-DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle);
+DART_EXPORT const char* Dart_GetError(Dart_Handle handle);
 
 /**
  * Is this an error handle for an unhandled exception?
