@@ -96,7 +96,7 @@ interface InputStream {
  * string data. This data can be read either as string chunks or as
  * lines separated by line termination character sequences.
  */
-interface StringInputStream factory _StringInputStream {
+interface StringInputStream default _StringInputStream {
   /**
    * Decodes a binary input stream into characters using the specified
    * encoding.
@@ -160,7 +160,7 @@ interface StringInputStream factory _StringInputStream {
  * A chunked input stream wraps a basic input stream and supplies
  * binary data in configurable chunk sizes.
  */
-interface ChunkedInputStream factory _ChunkedInputStream {
+interface ChunkedInputStream default _ChunkedInputStream {
   /**
    * Adds buffering to an input stream and provide the ability to read
    * the data in known size chunks.

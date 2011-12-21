@@ -51,7 +51,7 @@ static const char* kCustomIsolateScriptChars =
     "  String _entry;\n"
     "}\n"
     "\n"
-    "interface CustomIsolate factory CustomIsolateImpl {\n"
+    "interface CustomIsolate default CustomIsolateImpl {\n"
     "  CustomIsolate(String entry);\n"
     "\n"
     "  Future<SendPort> spawn();\n"
