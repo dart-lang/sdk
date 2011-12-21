@@ -224,7 +224,6 @@ NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
 NativeTest: Fail
-NewExpressionTypeArgsFrogTest/02: Fail
 NewStatementTest: Fail
 NewExpressionTypeArgsFrogTest/02: Fail
 NoSuchMethodTest: Fail
@@ -245,11 +244,11 @@ OptimizationTest: Fail
 OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
 OverriddenNoSuchMethodTest: Fail
+OverrideFieldMethod4NegativeTest: Fail
 OverrideFieldTest/02: Fail
 OverrideFieldTest/03: Fail
 OverrideFieldTest/none: Fail
 OverrideMethodWithFieldTest/none: Fail
-OverrideFieldMethod4NegativeTest: Fail
 Param2Test: Fail
 ParamTest: Fail
 ParameterInitializer2Test: Fail
