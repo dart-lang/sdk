@@ -18,6 +18,7 @@
 #import('../../frog/lang.dart');
 #import('../../frog/file_system.dart');
 #import('../../frog/file_system_node.dart');
+#import('../../frog/lib/node/node.dart');
 #import('markdown.dart', prefix: 'md');
 
 #source('classify.dart');
@@ -47,7 +48,7 @@ void main() {
     }
   }
 
-  FileSystem files = new NodeFileSystem();
+  final files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
   initializeWorld(files);
 
@@ -71,6 +72,15 @@ class Dartdoc {
    * The title used for the overall generated output. Set this to change it.
    */
   String mainTitle = 'Dart Documentation';
+
+  /**
+   * The URL that the Dart logo links to. Defaults "index.html", the main
+   * page for the generated docs, but can be anything.
+   */
+  String mainUrl = 'index.html';
+
+  /** Set this to add footer text to each generated page. */
+  String footerText = '';
 
   CommentMap _comments;
 
@@ -162,17 +172,15 @@ class Dartdoc {
         <!DOCTYPE html>
         <html>
         <head>
-        <meta charset="utf-8">
-        <title>$title</title>
-        <link rel="stylesheet" type="text/css"
-            href="${relativePath('styles.css')}" />
-        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
-        <script src="${relativePath('interact.js')}"></script>
+        ''');
+    writeHeadContents(title);
+    write(
+        '''
         </head>
         <body>
         <div class="page">
         <div class="header">
-          ${a('index.html', '<div class="logo"></div>')}
+          ${a(mainUrl, '<div class="logo"></div>')}
           ${a('index.html', mainTitle)}
         ''');
 
@@ -190,11 +198,26 @@ class Dartdoc {
     writeln('<div class="content">');
   }
 
+  writeHeadContents(String title) {
+    writeln(
+        '''
+        <meta charset="utf-8">
+        <title>$title</title>
+        <link rel="stylesheet" type="text/css"
+            href="${relativePath('styles.css')}" />
+        <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="${relativePath('favicon.ico')}" />
+        <script src="${relativePath('interact.js')}"></script>
+        ''');
+  }
+
   writeFooter() {
     writeln(
         '''
         </div>
-        <div class="footer"</div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">$footerText</div>
         </body></html>
         ''');
   }

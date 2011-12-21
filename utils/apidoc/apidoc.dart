@@ -20,7 +20,6 @@ void main() {
   parseOptions('../../frog', [] /* args */, files);
   initializeWorld(files);
   final apidoc = new Apidoc();
-  apidoc.mainTitle = 'Dart API Reference';
 
   HtmlDiff.initialize();
 
@@ -32,6 +31,48 @@ void main() {
 }
 
 class Apidoc extends doc.Dartdoc {
+  Apidoc() {
+    mainTitle = 'Dart API Reference';
+    mainUrl = 'http://dartlang.org';
+
+    final note    = 'http://code.google.com/policies.html#restrictions';
+    final cca     = 'http://creativecommons.org/licenses/by/3.0/';
+    final bsd     = 'http://code.google.com/google_bsd_license.html';
+    final tos     = 'http://www.dartlang.org/tos.html';
+    final privacy = 'http://www.google.com/intl/en/privacy/privacy-policy.html';
+
+    footerText =
+        '''
+        <p>Except as otherwise <a href="$note">noted</a>, the content of this
+        page is licensed under the <a href="$cca">Creative Commons Attribution
+        3.0 License</a>, and code samples are licensed under the
+        <a href="$bsd">BSD License</a>.</p>
+        <p><a href="$tos">Terms of Service</a> |
+        <a href="$privacy">Privacy Policy</a></p>
+        ''';
+  }
+
+  void writeHeadContents(String title) {
+    super.writeHeadContents(title);
+
+    // Add the analytics code.
+    doc.writeln(
+        '''
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-26406144-4']);
+          _gaq.push(['_setDomainName', 'dartlang.org']);
+          _gaq.push(['_trackPageview']);
+
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
+        ''');
+  }
+
   getTypeComment(Type type) {
     return _mergeComments(super.getTypeComment(type), getTypeDoc(type));
   }

@@ -180,12 +180,24 @@ hr + h2 {
 }
 
 .content {
-  margin-left: 308px; /* 14 x 22px */
+  margin-left: 308px; /* 14 x 22 */
   padding: 22px 22px;
 }
 
-.footer {
+.clear {
   clear: both;
+}
+
+.footer {
+  max-width: 956px; /* 1000 - 22 - 22 */
+  text-align: center;
+  margin: 22px auto;
+  color: #888;
+}
+
+.footer p {
+  font: 400 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
 }
 
 .method .doc,
