@@ -302,6 +302,7 @@ void CodeGenerator::GeneratePreEntryCode() {
       __ cmpq(R8, Immediate(FLAG_optimization_invocation_threshold));
       __ j(GREATER, &StubCode::OptimizeInvokedFunctionLabel());
     }
+    // R8 contains an integer value, not an object.
     __ movq(FieldAddress(RAX, Function::invocation_counter_offset()), R8);
   }
 }
@@ -406,8 +407,10 @@ void CodeGenerator::GenerateStoreVariable(const LocalVariable& variable,
       __ movq(scratch, FieldAddress(base, Context::parent_offset()));
       base = scratch;
     }
-    __ movq(FieldAddress(base, Context::variable_offset(variable.index())),
-            src);
+    __ StoreIntoObject(
+        base,
+        FieldAddress(base, Context::variable_offset(variable.index())),
+        src);
   } else {
     // The variable lives in the current stack frame.
     __ movq(Address(RBP, variable.index() * kWordSize), src);
@@ -934,7 +937,9 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     GenerateCall(node_sequence->token_index(), &label);
 
     // Chain the new context in RAX to its parent in CTX.
-    __ movq(FieldAddress(RAX, Context::parent_offset()), CTX);
+    __ StoreIntoObject(RAX,
+                       FieldAddress(RAX, Context::parent_offset()),
+                       CTX);
     // Set new context as current context.
     __ movq(CTX, RAX);
     state()->set_context_level(scope->context_level());
@@ -1905,6 +1910,7 @@ void CodeGenerator::CountBackwardLoop() {
     __ cmpq(RBX, Immediate(FLAG_optimization_invocation_threshold));
     __ j(GREATER, &done);
   }
+  // RBX contains an integer value, not an object.
   __ movq(FieldAddress(RAX, Function::invocation_counter_offset()), RBX);
   __ Bind(&done);
 }

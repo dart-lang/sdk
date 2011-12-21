@@ -48,7 +48,9 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
     __ movq(Address(TMP, 0), instance_reg);
     ASSERT(instance_size >= kHeapObjectTag);
     __ subq(instance_reg, Immediate(instance_size - kHeapObjectTag));
-    __ movq(FieldAddress(instance_reg, Instance::class_offset()), class_reg);
+    __ StoreIntoObject(instance_reg,
+                       FieldAddress(instance_reg, Instance::class_offset()),
+                       class_reg);
   } else {
     __ jmp(failure);
   }
