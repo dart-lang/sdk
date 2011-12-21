@@ -185,10 +185,10 @@ class RunningProcess {
   }
 
   void compilerExitHandler(int exitCode) {
-    process.close();
     if (exitCode != 0) {
       exitHandler(exitCode);
     } else {
+      process.close();
       runCommand(testCase.executablePath, testCase.arguments, exitHandler);
     }
   }
