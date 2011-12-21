@@ -70,7 +70,6 @@ class TestCase {
   void addToTestSuite(TestSuite suite) {
     suite.addTestCase(this);
   }
-
 }
 
 
@@ -188,12 +187,12 @@ class TestExpectation {
   }
 
   Promise completesWithValue(Promise promise, var expected) {
-    Promise result = new TestPromise(this);
+    Promise promiseResult = new TestPromise(this);
     promise.then((value) {
       Expect.equals(expected, value);
-      result.complete(value);
+      promiseResult.complete(value);
     });
-    return result;
+    return promiseResult;
   }
 
   Function runs0(Function fn) {

@@ -91,6 +91,8 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
+  ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE(
+      "Illegal constructor declaration.  No default clause in interface"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),

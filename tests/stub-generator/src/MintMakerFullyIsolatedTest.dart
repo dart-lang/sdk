@@ -6,7 +6,7 @@
 #library("MintMakerFullyIsolatedTest-generatedTest");
 #import("../../isolate/src/TestFramework.dart");
 
-interface Purse {
+interface Purse default PurseImpl{
   Purse();
   int queryBalance();
   Purse$Proxy sproutPurse();
@@ -121,38 +121,38 @@ class PromiseMap<S extends Promise, T> {
 
   Promise<T> find(S s) {
     print("PromiseMap.find");
-    Promise<T> result = new Promise<T>();
-    s.addCompleteHandler((_) {
+    Promise<T> findResult = new Promise<T>();
+    s.addCompleteHandler((unused) {
       print("PromiseMap.find s completed");
       T t = _map[s];
       if (t != null) {
         print("  immediate");
-        result.complete(t);
+        findResult.complete(t);
         return;
       }
       // Otherwise, we need to wait for map[s] to complete...
       int counter = _incomplete.length;
       if (counter == 0) {
         print("  none incomplete");
-        result.complete(null);
+        findResult.complete(null);
         return;
       }
-      result.join(_incomplete, bool (S completed) {
+      findResult.join(_incomplete, bool _(S completed) {
         if (completed != s) {
           if (--counter == 0) {
             print("PromiseMap.find failed");
-            result.complete(null);
+            findResult.complete(null);
             return true;
           }
           print("PromiseMap.find miss");
           return false;
         }
         print("PromiseMap.find complete");
-        result.complete(_map[s]);
+        findResult.complete(_map[s]);
         return true;
       });
     });
-    return result;
+    return findResult;
   }
 
   PromiseSet<S> _incomplete;
@@ -272,7 +272,7 @@ class MintMakerFullyIsolatedTest {
 
       done = sprouted.deposit(42, purse); 
       expect.completesWithValue(done, 5 + 42);
-      Promise<int> d2 = done.then((val) {
+      Promise<int> d2 = done.then((val_) {
         expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42)
           .then((int value) => inner.complete(0));
         expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42)

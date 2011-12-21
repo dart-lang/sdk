@@ -230,7 +230,7 @@ public class Resolver {
       }
 
       checkClassTypeVariables(classElement);
-      
+
       // Push new resolution context.
       ResolutionContext previousContext = context;
       EnclosingElement previousHolder = currentHolder;
@@ -272,8 +272,12 @@ public class Resolver {
 
         // Check that interface constructors have corresponding methods in default class.
         checkInteraceConstructors(classElement);
-
-
+      } else if (classElement.isInterface() && classElement.getConstructors() != null) {
+        for (ConstructorElement interfaceConstructor : classElement.getConstructors()) {
+          DartMethodDefinition methodNode = (DartMethodDefinition)interfaceConstructor.getNode();
+          onError(methodNode.getName(),
+                  ResolverErrorCode.ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE);
+        }
       }
 
       context = previousContext;

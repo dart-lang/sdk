@@ -99,19 +99,19 @@ class MintMakerPromiseWithStubsTest {
     Promise<bool> p4 = new Promise<bool>();
     Promise<bool> p5 = new Promise<bool>();
     Promise<bool> p6 = new Promise<bool>();
-    result.addCompleteHandler((_) {
+    result.addCompleteHandler((unused) {
       expect.completesWithValue(sprouted.queryBalance(), 0 + 5)
-        .then((_) => p2.complete(true));
+        .then((unused_) => p2.complete(true));
       expect.completesWithValue(purse.queryBalance(), 100 - 5)
-        .then((_) => p3.complete(true));
+        .then((unused_) => p3.complete(true));
 
       result = sprouted.deposit(42, purse);
-      expect.completesWithValue(result, 5 + 42).then((_) => p4.complete(true));
-      result.addCompleteHandler((_) {
+      expect.completesWithValue(result, 5 + 42).then((unused__) => p4.complete(true));
+      result.addCompleteHandler((unused_) {
         expect.completesWithValue(sprouted.queryBalance(), 0 + 5 + 42)
-          .then((_) => p5.complete(true));
+          .then((unused___) => p5.complete(true));
         expect.completesWithValue(purse.queryBalance(), 100 - 5 - 42)
-          .then((_) => p6.complete(true));
+          .then((unused___) => p6.complete(true));
         });
     });
     Promise<bool> done = new Promise<bool>();
