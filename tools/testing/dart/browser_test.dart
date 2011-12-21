@@ -19,8 +19,8 @@ String GetHtmlContents(String title,
 </head>
 <body>
   <h1> Running $title </h1>
-  <script type="text/javascript" src="../../../$controllerScript"></script>
-  <script type="$scriptType" src="../../../$sourceScript"></script>
+  <script type="text/javascript" src="$controllerScript"></script>
+  <script type="$scriptType" src="$sourceScript"></script>
   <script type="text/javascript">
     // If nobody intercepts the error, finish the test.
     onerror = function() { window.layoutTestController.notifyDone() };
@@ -52,9 +52,7 @@ String WrapDartTestInLibrary(String test) =>
 #source('$test');
 """;
 
-String DartTestWrapper(String unittest_ignored,
-                       String test_ignored,
-                       String domLibrary,
+String DartTestWrapper(String domLibrary,
                        String testFramework,
                        String library) =>
 """

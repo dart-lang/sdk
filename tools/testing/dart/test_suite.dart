@@ -60,7 +60,7 @@ class CCTestSuite implements TestSuite {
               String this.suiteName,
               String runnerName,
               List<String> this.statusFilePaths) {
-    runnerPath = TestUtils.buildDir(configuration) + runnerName;
+    runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
   }
 
   void complexStatusMatching() => false;
@@ -260,6 +260,12 @@ class StandardTestSuite implements TestSuite {
                          expectations, isNegative);
       return;
     }
+    if (configuration['component'] == 'chromium') {
+      enqueueChromiumTest(filename, testName, optionsFromFile,
+                         expectations, isNegative);
+      return;
+    }
+
     // Only dartc supports fatal type errors. Enable fatal type
     // errors with a flag and treat tests that have fatal type
     // errors as negative.
@@ -334,9 +340,9 @@ class StandardTestSuite implements TestSuite {
             'in any file that uses #import or #source');
     }      
 
-    Directory tempDir = new Directory((isWebTest ? 'client/' : '') +
-                                      TestUtils.buildDir(configuration) +
-                                      'tmp');
+    String tempDirTemplate = '${TestUtils.buildDir(configuration)}/tmp';
+    if (isWebTest) tempDirTemplate = 'client/' + tempDirTemplate;
+    Directory tempDir = new Directory(tempDirTemplate);
     // TODO(whesse): When implementing client web tests,
     // create directory in the client case, if it doesn't exist.
     tempDir.createTempSync();
@@ -355,11 +361,14 @@ class StandardTestSuite implements TestSuite {
         RandomAccessFile dartLibrary = file.openSync(writable: true);
         dartLibrary.writeStringSync(WrapDartTestInLibrary(dartTestFilename));
         dartLibrary.closeSync();
-      }  
-      
+      }
+
       File file = new File(dartWrapperFilename);
       RandomAccessFile dartWrapper = file.openSync(writable: true);
-      dartWrapper.writeStringSync(dartTestWrapper(dartLibraryFilename));
+      dartWrapper.writeStringSync(DartTestWrapper(
+          'dart:dom',
+          '../../../tests/isolate/src/TestFramework.dart',
+          dartLibraryFilename));
       dartWrapper.closeSync();
     } else {
       return;  // TODO(whesse): Implement client web tests on dartium.
@@ -369,9 +378,9 @@ class StandardTestSuite implements TestSuite {
     RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
     htmlTest.writeStringSync(GetHtmlContents(
         filename,
-        'client/testing/unittest/test_controller.js',
+        '../../../client/testing/unittest/test_controller.js',
         scriptType,
-        dartWrapperFilename));
+        '../../../$dartWrapperFilename'));
     htmlTest.closeSync();
 
     for (var vmOptions in optionsFromFile["vmOptions"]) {
@@ -385,8 +394,8 @@ class StandardTestSuite implements TestSuite {
       // Create BrowserTestCase and queue it.
       var testCase = new BrowserTestCase(
           testName,
-          '/bin/echo',
-          ['No compilation step for component dartium.'],
+          null,
+          null,
           dumpRenderTreeFilename,
           args,
           configuration,
@@ -396,26 +405,161 @@ class StandardTestSuite implements TestSuite {
     }        
   }
 
-  static String dartTestWrapper(String library) {
-    return DartTestWrapper('', '', 'dart:dom',
-                           '../../../tests/isolate/src/TestFramework.dart',
-                           library);
+  void enqueueChromiumTest(String filename,
+                           String testName,
+                           Map optionsFromFile,
+                           Set<String> expectations,
+                           bool isNegative) {
+    if (optionsFromFile['isMultitest']) return;
+    bool isWebTest = optionsFromFile['containsDomImport'];
+    bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
+    if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
+      print('Warning for $filename: Browser tests require #library ' +
+            'in any file that uses #import or #source');
+    }      
+
+    String dartDir = new File('.').fullPathSync();
+    String buildDir = TestUtils.buildDir(configuration);
+    String testPath = new File(filename).fullPathSync();
+    String outputDirBase = '$dartDir/$buildDir/generated_tests/chromium';
+
+    Expect.isTrue(testPath.startsWith(dartDir));
+    String testRelativePath = testPath.substring(dartDir.length + 1);
+    String testNameBase;
+    String testRelativeDir;
+    String testRelativeDirFlattened;
+
+    int start = testRelativePath.lastIndexOf('src' + pathSeparator);
+    if (start != -1) {
+      Expect.isTrue(testRelativePath.endsWith('.dart'));
+      testNameBase =
+          testRelativePath.substring(start + 4, testRelativePath.length - 5);
+      testRelativeDir = testRelativePath.substring(0, start - 1);
+      testRelativeDirFlattened = testRelativeDir.replaceAll(pathSeparator, '_');
+    } else {
+      Expect.fail('Web tests not imlemented yet');
+    }
+
+    if (!new Directory('$dartDir/$buildDir/generated_tests').existsSync()) {
+      new Directory('$dartDir/$buildDir/generated_tests').createSync();
+    }
+    if (!new Directory(outputDirBase).existsSync()) {
+      new Directory(outputDirBase).createSync();
+    }
+    Directory tempDir = new Directory(
+        '$outputDirBase/${testRelativeDirFlattened}_$testNameBase');
+    if (!tempDir.existsSync()) {
+      tempDir.createSync();
+    }
+
+    String dartWrapperFilename = '${tempDir.path}/test.dart';
+    String compiledDartWrapperFilename = '${tempDir.path}/test.js';
+    if (!isWebTest) {
+      // test.dart will import the dart test directly, if it is a library,
+      // or indirectly through test_as_library.dart, if it is not.
+      String dartLibraryFilename;
+      if (isLibraryDefinition) {
+        dartLibraryFilename = testPath;
+      } else {
+        dartLibraryFilename = 'test_as_library.dart';
+        File file = new File('${tempDir.path}/$dartLibraryFilename');
+        RandomAccessFile dartLibrary = file.openSync(writable: true);
+        dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
+        dartLibrary.closeSync();
+      }  
+      
+      File file = new File(dartWrapperFilename);
+      RandomAccessFile dartWrapper = file.openSync(writable: true);
+      dartWrapper.writeStringSync(DartTestWrapper(
+          '$dartDir/client/testing/unittest/dom_for_unittest.dart',
+          '$dartDir/tests/isolate/src/TestFramework.dart',
+          dartLibraryFilename));
+      dartWrapper.closeSync();
+    } else {
+      return;  // TODO(whesse): Implement client web tests on dartium.
+    }
+    // Create the HTML file for the test.
+    File htmlTestBase = new File('${tempDir.path}/${getHtmlName(filename)}');
+    RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
+    htmlTest.writeStringSync(GetHtmlContents(
+        filename,
+        '$dartDir/client/testing/unittest/test_controller.js',
+        scriptType,
+        compiledDartWrapperFilename));
+    htmlTest.closeSync();
+
+    for (var vmOptions in optionsFromFile["vmOptions"]) {
+      List<String> dartcArgs = ['--work', tempDir.path];
+      if (configuration['mode'] ==  'release') {
+        dartcArgs.add('--optimize');
+      }
+      dartcArgs.addAll(vmOptions);
+      dartcArgs.add('--ignore-unrecognized-flags');
+      dartcArgs.add('--out');
+      dartcArgs.add(compiledDartWrapperFilename);
+      dartcArgs.add(dartWrapperFilename);
+      // TODO(whesse): Add --fatal-type-errors if needed.
+      var args = ['--no-timeout'];
+      args.add(htmlTestBase.fullPathSync());
+
+      // Create BrowserTestCase and queue it.
+      var testCase = new BrowserTestCase(
+          testName,
+          TestUtils.dartcCompilationShellPath(configuration),
+          dartcArgs,
+          dumpRenderTreeFilename,
+          args,
+          configuration,
+          completeHandler,
+          expectations,
+          optionsFromFile['isNegative']);
+      doTest(testCase);
+    }        
   }
 
-  static String get scriptType() => 'application/dart';
+  String get scriptType() {
+    switch (configuration['component']) {
+      case 'dartium':
+        return 'application/dart';
+      case 'chromium':
+        return 'text/javascript';
+      default:
+        Expect.fail('Unimplemented component scriptType');
+        return null;
+    }
+  }
+
+  String get scriptName() {
+    switch (configuration['component']) {
+      case 'dartium':
+        return tempDir.path + 'test.dart';
+      case 'chromium':
+        return tempDir.path + 'test.js';
+      default:
+        Expect.fail('Unimplemented component scriptType');
+        return null;
+    }
+  }
 
   String getHtmlName(String filename) {
-    return filename.replaceAll(pathSeparator, '_') + 'dartium.html';
+    switch (configuration['component']) {
+      case 'dartium':
+        return filename.replaceAll(pathSeparator, '_') + 'dartium.html';
+      case 'chromium':
+        return 'test.html';
+      default:
+        Expect.fail('Unimplemented component scriptType');
+        return null;
+    }
   }
 
-  static String get dumpRenderTreeFilename() {
+  String get dumpRenderTreeFilename() {
     if (new Platform().operatingSystem() == 'macos') {
       return 'client/tests/drt/DumpRenderTree.app/Contents/' +
           'MacOS/DumpRenderTree';
     } 
     return 'client/tests/drt/DumpRenderTree';
   }
-
 
   void testGeneratorStarted() {
     ++activeTestGenerators;
@@ -627,7 +771,7 @@ class TestUtils {
   }
 
   static String dartShellFileName(Map configuration) {
-    var name = buildDir(configuration) + executableName(configuration);
+    var name = '${buildDir(configuration)}/${executableName(configuration)}';
     if (!(new File(name)).existsSync()) {
       throw "Executable '$name' does not exist";
     }
@@ -635,7 +779,7 @@ class TestUtils {
   }
 
   static String dartcCompilationShellPath(Map configuration) {
-    var name = buildDir(configuration) + 'compiler/bin/dartc';
+    var name = '${buildDir(configuration)}/compiler/bin/dartc';
     if (!(new File(name)).existsSync()) {
       throw "Executable '$name' does not exist";
     }
@@ -656,7 +800,7 @@ class TestUtils {
   static String buildDir(Map configuration) {
     var buildDir = outputDir(configuration);
     buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    buildDir += configuration['arch'] + '/';
+    buildDir += configuration['arch'];
     return buildDir;
   }
 

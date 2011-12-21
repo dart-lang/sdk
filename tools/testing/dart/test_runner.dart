@@ -208,9 +208,9 @@ class RunningProcess {
     Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
     stdout = new List<String>();
     stderr = new List<String>();
-    if (testCase is BrowserTestCase) {
-      runCommand(testCase.compilerPath,
-                 testCase.compilerArguments,
+    if (testCase is BrowserTestCase && testCase.dynamic.compilerPath != null) {
+      runCommand(testCase.dynamic.compilerPath,
+                 testCase.dynamic.compilerArguments,
                  compilerExitHandler);
     } else {
       runCommand(testCase.executablePath, testCase.arguments, exitHandler);
