@@ -47,6 +47,7 @@ ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstStringTest: Fail
 ConstTest: Fail
+Constructor2NegativeTest: Fail
 Constructor2Test: Fail
 Constructor3NegativeTest: Fail
 Constructor3Test: Fail
@@ -61,7 +62,6 @@ ConstructorReturnTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
-Constructor2NegativeTest: Fail
 ConstructorTest: Fail
 ContextArgsWithDefaultsTest: Fail
 ContextTest: Fail
@@ -106,10 +106,6 @@ FauxverrideTest/02: Fail
 FauxverrideTest/04: Fail
 FauxverrideTest/none: Fail
 FiboTest: Fail
-FieldMethodTest: Fail
-FieldOverrideTest/01: Fail
-FieldOverrideTest/none: Fail
-FieldTest: Fail
 Field1NegativeTest: Fail
 Field2NegativeTest: Fail
 Field4NegativeTest: Fail
@@ -118,6 +114,10 @@ Field6NegativeTest: Fail
 Field6aNegativeTest: Fail
 Field7NegativeTest: Fail
 Field7aNegativeTest: Fail
+FieldMethodTest: Fail
+FieldOverrideTest/01: Fail
+FieldOverrideTest/none: Fail
+FieldTest: Fail
 FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
 For2Test: Fail
@@ -269,8 +269,8 @@ Private3Test: Fail
 PrivateMemberTest: Fail
 PrivateTest: Fail
 PropertyFieldOverrideTest: Fail
-PseudoKWTest: Fail
 PseudoKWNegativeTest: Fail
+PseudoKWTest: Fail
 RawStringTest: Fail
 RegEx2Test: Fail
 RegExp2Test: Fail
@@ -363,5 +363,6 @@ Unary2Test: Fail
 UnaryTest: Fail
 UnboundGetterTest: Fail
 UnqualNameTest: Fail
+UnresolvedInFactoryNegativeTest: Fail
 VarInitTest: Fail
 WhileTest: Fail
