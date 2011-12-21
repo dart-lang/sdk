@@ -266,8 +266,7 @@ class WriteStream : public ValueObject {
 
   // MessageWriter and SnapshotWriter needs access to the private Raw
   // classes.
-  friend class MessageWriter;
-  friend class SnapshotWriter;
+  friend class BaseWriter;
   DISALLOW_COPY_AND_ASSIGN(WriteStream);
 };
 
