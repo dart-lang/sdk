@@ -560,3 +560,12 @@ Window get dom_window() {
 Document get document() {
   return window.document;
 }
+
+class DOMType extends DOMWrapperBase {
+  // FIXME: Remove if/when Dart supports OLS for all objects.
+  var dartObjectLocalStorage;
+
+  String get typeName() {
+    throw new UnsupportedOperationException("typeName must be overridden.");
+  }
+}
