@@ -5,6 +5,7 @@
 prefix language
 
 [ $component == leg ]
+AbstractStaticNegativeTest: Fail
 AckermannTest: Fail
 AllocateTest: Fail
 ApplicationTest: Fail
@@ -16,7 +17,6 @@ BadNamedParametersTest: Fail
 BitOperationsTest: Fail
 BlockScopeTest: Fail
 BoolTest: Fail
-BootstrapTest: Fail
 BranchesTest: Fail
 BreakTest: Fail
 CTConst2Test: Fail
@@ -27,6 +27,7 @@ CallThroughGetterTest: Fail
 CallThroughNullGetterTest: Fail
 CanonicalConstTest: Fail
 CharEscapeTest: Fail
+ClassCycleNegativeTest: Fail
 ClassLiteralTest/none: Fail
 ClassOverrideNegativeTest: Fail
 ClassTest: Fail
@@ -77,6 +78,7 @@ DuplicateConstructorTest/01: Fail
 DynamicCallTest: Fail
 DynamicTest: Fail
 EmptyBlockCaseTest: Fail
+EmptyBodyMemberNegativeTest: Fail
 ExampleConstructorTest: Fail
 ExceptionIdentityTest: Fail
 ExceptionTest: Fail
@@ -105,8 +107,16 @@ FieldMethodTest: Fail
 FieldOverrideTest/01: Fail
 FieldOverrideTest/none: Fail
 FieldTest: Fail
+Field1NegativeTest: Fail
+Field2NegativeTest: Fail
+Field4NegativeTest: Fail
+Field5NegativeTest: Fail
+Field6NegativeTest: Fail
+Field6aNegativeTest: Fail
+Field7NegativeTest: Fail
+Field7aNegativeTest: Fail
+FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
-FirstTest: Fail
 For2Test: Fail
 ForInTest: Fail
 ForTest: Fail
@@ -129,7 +139,6 @@ Generics2Test: Fail
 GenericsTest: Fail
 GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
-HelloDartTest: Fail
 HelloScriptTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail
@@ -148,6 +157,7 @@ IncrOpTest: Fail
 IndexTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializerTest: Fail
+InstanceCallWrongArgumentCountNegativeTest: Fail
 InstanceCompoundAssignmentOperatorTest: Fail
 InstanceFieldInitializerTest: Fail
 InstanceIncrDeoptTest: Fail
@@ -216,8 +226,10 @@ NativePropertyFrogTest: Fail
 NativeTest: Fail
 NewExpressionTypeArgsFrogTest/02: Fail
 NewStatementTest: Fail
+NewExpressionTypeArgsFrogTest/02: Fail
 NoSuchMethodTest: Fail
 NonConstConstructorWithoutBodyTest: Fail
+NonConstSuperNegativeTest: Fail
 NonParameterizedFactory2Test: Fail
 NonParameterizedFactoryTest: Fail
 NullPointerExceptionTest: Fail
@@ -237,7 +249,7 @@ OverrideFieldTest/02: Fail
 OverrideFieldTest/03: Fail
 OverrideFieldTest/none: Fail
 OverrideMethodWithFieldTest/none: Fail
-Param1Test: Fail
+OverrideFieldMethod4NegativeTest: Fail
 Param2Test: Fail
 ParamTest: Fail
 ParameterInitializer2Test: Fail
@@ -256,6 +268,7 @@ PrivateMemberTest: Fail
 PrivateTest: Fail
 PropertyFieldOverrideTest: Fail
 PseudoKWTest: Fail
+PseudoKWNegativeTest: Fail
 RawStringTest: Fail
 RegEx2Test: Fail
 RegExp2Test: Fail
@@ -264,7 +277,7 @@ RegExpTest: Fail
 ResolveTest: Fail
 RethrowTest: Fail
 SavannahTest: Fail
-ScannerTest: Fail
+ScopeNegativeTest: Fail
 ScopeVariableTest: Fail
 SecondTest: Fail
 Setter0Test: Fail
@@ -273,10 +286,7 @@ Setter2Test: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
-StaticField1Test: Fail
-StaticField1aTest: Fail
-StaticField2Test: Fail
-StaticField2aTest: Fail
+StaticCallWrongArgumentCountNegativeTest: Fail
 StaticFieldTest: Fail
 StaticFinalFieldTest: Fail
 StaticImplicitClosureTest: Fail
@@ -295,6 +305,10 @@ StringInterpolationTest/01: Fail
 StringInterpolationTest/none: Fail
 StringJoinTest: Fail
 StringTest: Fail
+StringUnicode1NegativeTest: Fail
+StringUnicode2NegativeTest: Fail
+StringUnicode3NegativeTest: Fail
+StringUnicode4NegativeTest: Fail
 SuperCall2Test: Fail
 SuperCallTest: Fail
 SuperFieldTest: Fail
