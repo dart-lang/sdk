@@ -126,15 +126,17 @@ static bool ObjectArray_Allocate(Assembler* assembler) {
   __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
   __ movl(EDI, Address(EDI, Isolate::object_store_offset()));
   __ movl(EDI, Address(EDI, ObjectStore::array_class_offset()));
-  __ movl(FieldAddress(EAX, Instance::class_offset()), EDI);
+  __ StoreIntoObject(EAX, FieldAddress(EAX, Instance::class_offset()), EDI);
 
   // Store the type argument field.
   __ movl(EDI, Address(ESP, kTypeArgumentsOffset));  // type argument.
-  __ movl(FieldAddress(EAX, Array::type_arguments_offset()), EDI);
+  __ StoreIntoObject(EAX,
+                     FieldAddress(EAX, Array::type_arguments_offset()),
+                     EDI);
 
   // Set the length field.
   __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
-  __ movl(FieldAddress(EAX, Array::length_offset()), EDI);
+  __ StoreIntoObject(EAX, FieldAddress(EAX, Array::length_offset()), EDI);
 
   // Initialize all array elements to raw_null.
   // EAX: new object start as a tagged pointer.
@@ -211,7 +213,9 @@ static bool Array_setIndexed(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   // Destroy ECX as we will not continue in the function.
   __ movl(ECX, Address(ESP, + 1 * kWordSize));
-  __ movl(FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)), ECX);
+  __ StoreIntoObject(EAX,
+                     FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
+                     ECX);
   // Caller is responsible of preserving the value if necessary.
   __ ret();
   __ Bind(&fall_through);
@@ -477,6 +481,7 @@ static bool Integer_shl(Assembler* assembler) {
                                ECX,  // Class register.
                                &fall_through,
                                EAX);  // Result register.
+  // EBX and EDI are not objects but integer values.
   __ movl(FieldAddress(EAX, Mint::value_offset()), EBX);
   __ movl(FieldAddress(EAX, Mint::value_offset() + kWordSize), EDI);
   __ ret();
@@ -890,7 +895,7 @@ static bool FixedSizeArrayIterator_next(Assembler* assembler) {
   __ addl(EBX, value);  // _pos++.
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
-  __ movl(FieldAddress(EAX, pos_offset), EBX);  // Store _pos.
+  __ StoreIntoObject(EAX, FieldAddress(EAX, pos_offset), EBX);  // Store _pos.
   __ movl(EAX, EDI);
   __ ret();
   __ Bind(&fall_through);

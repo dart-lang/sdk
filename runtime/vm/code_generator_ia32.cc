@@ -298,6 +298,7 @@ void CodeGenerator::GeneratePreEntryCode() {
       __ cmpl(EBX, Immediate(FLAG_optimization_invocation_threshold));
       __ j(GREATER, &StubCode::OptimizeInvokedFunctionLabel());
     }
+    // EBX is an integer value (not an object).
     __ movl(FieldAddress(EAX, Function::invocation_counter_offset()), EBX);
   }
 }
@@ -402,8 +403,10 @@ void CodeGenerator::GenerateStoreVariable(const LocalVariable& variable,
       __ movl(scratch, FieldAddress(base, Context::parent_offset()));
       base = scratch;
     }
-    __ movl(FieldAddress(base, Context::variable_offset(variable.index())),
-            src);
+    __ StoreIntoObject(
+        base,
+        FieldAddress(base, Context::variable_offset(variable.index())),
+        src);
   } else {
     // The variable lives in the current stack frame.
     __ movl(Address(EBP, variable.index() * kWordSize), src);
@@ -935,7 +938,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     GenerateCall(node_sequence->token_index(), &label);
 
     // Chain the new context in EAX to its parent in CTX.
-    __ movl(FieldAddress(EAX, Context::parent_offset()), CTX);
+    __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
     // Set new context as current context.
     __ movl(CTX, EAX);
     state()->set_context_level(scope->context_level());
@@ -1907,6 +1910,7 @@ void CodeGenerator::CountBackwardLoop() {
     __ cmpl(EBX, Immediate(FLAG_optimization_invocation_threshold));
     __ j(GREATER, &done);
   }
+  // EBX is an integer value (not an object).
   __ movl(FieldAddress(EAX, Function::invocation_counter_offset()), EBX);
   __ Bind(&done);
 }
