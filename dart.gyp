@@ -81,6 +81,11 @@
     {
       'target_name': 'upload_sdk',
       'type': 'none',
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
+      ],
       'dependencies': [
         'create_sdk',
       ],
