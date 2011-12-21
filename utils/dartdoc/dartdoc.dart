@@ -67,6 +67,11 @@ class Dartdoc {
   /** Set to `false` to not include the source code in the generated docs. */
   bool includeSource = true;
 
+  /**
+   * The title used for the overall generated output. Set this to change it.
+   */
+  String mainTitle = 'Dart Documentation';
+
   CommentMap _comments;
 
   /** The library that we're currently generating docs for. */
@@ -140,8 +145,19 @@ class Dartdoc {
     }
   }
 
-  writeHeader(String title) {
-    writeln(
+  /**
+   * Writes the page header with the given [title] and [breadcrumbs]. The
+   * breadcrumbs are an interleaved list of links and titles. If a link is null,
+   * then no link will be generated. For example, given:
+   *
+   *     ['foo', 'foo.html', 'bar', null]
+   *
+   * It will output:
+   *
+   *     <a href="foo.html">foo</a> &rsaquo; bar
+   */
+  writeHeader(String title, List<String> breadcrumbs) {
+    write(
         '''
         <!DOCTYPE html>
         <html>
@@ -155,7 +171,21 @@ class Dartdoc {
         </head>
         <body>
         <div class="page">
+        <div class="header">
+          ${a('index.html', '<div class="logo"></div>')}
+          ${a('index.html', mainTitle)}
         ''');
+
+    // Write the breadcrumb trail.
+    for (int i = 0; i < breadcrumbs.length; i += 2) {
+      if (breadcrumbs[i + 1] == null) {
+        write(' &rsaquo; ${breadcrumbs[i]}');
+      } else {
+        write(' &rsaquo; ${a(breadcrumbs[i + 1], breadcrumbs[i])}');
+      }
+    }
+    writeln('</div>');
+
     docNavigation();
     writeln('<div class="content">');
   }
@@ -172,9 +202,9 @@ class Dartdoc {
   docIndex() {
     startFile('index.html');
 
-    writeHeader('Dart Documentation');
+    writeHeader(mainTitle, []);
 
-    writeln('<h1>Dart Documentation</h1>');
+    writeln('<h2>$mainTitle</h2>');
     writeln('<h3>Libraries</h3>');
 
     for (final library in orderByName(world.libraries)) {
@@ -192,7 +222,6 @@ class Dartdoc {
     writeln(
         '''
         <div class="nav">
-        <h1>${a("index.html", "Dart Documentation")}</h1>
         ''');
 
     for (final library in orderByName(world.libraries)) {
@@ -256,8 +285,8 @@ class Dartdoc {
     _currentType = null;
 
     startFile(libraryUrl(library));
-    writeHeader(library.name);
-    writeln('<h1>Library <strong>${library.name}</strong></h1>');
+    writeHeader(library.name, [library.name, libraryUrl(library)]);
+    writeln('<h2>Library <strong>${library.name}</strong></h2>');
 
     // Look for a comment for the entire library.
     final comment = _comments.findLibrary(library.baseSource);
@@ -324,11 +353,11 @@ class Dartdoc {
 
     final typeTitle =
       '${type.isClass ? "Class" : "Interface"} ${typeName(type)}';
-    writeHeader('Library ${type.library.name} / $typeTitle');
+    writeHeader('Library ${type.library.name} / $typeTitle',
+        [type.library.name, libraryUrl(type.library),
+         typeName(type), typeUrl(type)]);
     writeln(
         '''
-        <h1>${a(libraryUrl(type.library),
-              "Library <strong>${type.library.name}</strong>")}</h1>
         <h2>${type.isClass ? "Class" : "Interface"}
             <strong>${typeName(type, showBounds: true)}</strong></h2>
         ''');

@@ -20,6 +20,8 @@ void main() {
   parseOptions('../../frog', [] /* args */, files);
   initializeWorld(files);
   final apidoc = new Apidoc();
+  apidoc.mainTitle = 'Dart API Reference';
+
   HtmlDiff.initialize();
 
   _diff = new HtmlDiff();
