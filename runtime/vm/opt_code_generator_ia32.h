@@ -116,7 +116,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
   void GenerateSmiBinaryOp(BinaryOpNode* node);
   void GenerateSmiShiftBinaryOp(BinaryOpNode* node);
 
-  void GenerateDoubleBinaryOp(BinaryOpNode* node);
+  void GenerateDoubleBinaryOp(BinaryOpNode* node, bool receiver_can_be_smi);
   void GenerateMintBinaryOp(BinaryOpNode* node, bool allow_smi);
   void CheckIfDoubleOrSmi(Register reg,
                           Register temp,

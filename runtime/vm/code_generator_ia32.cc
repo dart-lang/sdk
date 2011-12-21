@@ -28,7 +28,7 @@ DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DEFINE_FLAG(bool, print_ic_in_optimized, false,
     "Debugging helper to identify potential performance pitfalls.");
 DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
-    "number of invocations before a function is optimized, -1 means never.");
+    "Number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_invocation_count);
 DECLARE_FLAG(bool, trace_compiler);

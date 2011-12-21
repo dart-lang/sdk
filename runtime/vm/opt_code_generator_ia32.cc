@@ -630,7 +630,8 @@ static bool NodeHasBothReceiverClasses(AstNode* node,
 }
 
 
-// Look only at the first class in all check groups.
+// Look only at the first class in all check groups. Returns true if all
+// receiver classes are 'cls'.
 static bool AtIdNodeHasReceiverClass(AstNode* node,
                                      intptr_t id,
                                      const Class& cls) {
@@ -678,22 +679,6 @@ static bool AtIdNodeHasTwoClasses(AstNode* node,
 }
 
 
-static bool AtIdNodeHasOnlyClass(AstNode* node, intptr_t id, const Class& cls) {
-  ASSERT(node != NULL);
-  ASSERT(!cls.IsNull());
-  const ICData& ic_data = node->ICDataAtId(id);
-  if ((ic_data.NumberOfArgumentsChecked() != 1) ||
-      (ic_data.NumberOfChecks() != 1)) {
-    return false;
-  }
-  Class& target_cls = Class::Handle();
-  Function& target = Function::Handle();
-  ic_data.GetOneClassCheckAt(0, &target_cls, &target);
-  return target_cls.raw() == cls.raw();
-}
-
-
-
 // SHL: Implement with slow case so that it works both with Smi and Mint types.
 // Result is in EAX. Mangles ECX, EBX, EDX.
 void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
@@ -722,10 +707,9 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
     return;
   }
   ASSERT(node->kind() == Token::kSHL);
-  Label done;
-  bool shift_generated = false;
   if (node->right()->IsLiteralNode() &&
       node->right()->AsLiteralNode()->literal().IsSmi()) {
+    Label done;
     // Shift count is a Smi literal.
     Smi& smi = Smi::Handle();
     smi ^= node->right()->AsLiteralNode()->literal().raw();
@@ -746,52 +730,55 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
       __ Bind(&slow_case);
       __ pushl(EAX);
       __ pushl(Immediate(reinterpret_cast<int32_t>(smi.raw())));
-      CodeGenerator::GenerateBinaryOperatorCall(node->id(),
-                                                node->token_index(),
-                                                node->Name());
-      shift_generated = true;
+      const int number_of_arguments = 2;
+      const Array& no_optional_argument_names = Array::Handle();
+      GenerateCheckedInstanceCalls(node,
+                                   node->left(),
+                                   node->id(),
+                                   node->token_index(),
+                                   number_of_arguments,
+                                   no_optional_argument_names);
+      __ Bind(&done);
+      return;
     }
   }
 
-  if (!shift_generated) {
-    Label slow_case;
-    VisitLoadTwo(node->left(), node->right(), EAX, EDX);
-    // TODO(srdjan): Better code for count being a Smi literal.
-    // EAX: value, EDX: shift amount. Preserve them for slow case.
-    // Fast case only if both ar Smi.
-    __ movl(EBX, EAX);
-    __ orl(EBX, EDX);
-    __ testl(EBX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
-    // Check if count too large for handling it inlined.
-    __ cmpl(EDX, Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
-    __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
-    // Shift amount must be in ECX.
-    __ movl(ECX, EDX);
-    __ movl(EBX, EAX);
-    __ SmiUntag(ECX);
-    // Overflow test.
-    __ shll(EBX, ECX);
-    __ sarl(EBX, ECX);
-    __ cmpl(EAX, EBX);
-    __ j(NOT_EQUAL, &slow_case, Assembler::kNearJump);  // Overflow.
+  Label slow_case, done;
+  VisitLoadTwo(node->left(), node->right(), EAX, EDX);
+  // TODO(srdjan): Better code for count being a Smi literal.
+  // EAX: value, EDX: shift amount. Preserve them for slow case.
+  // Fast case only if both ar Smi.
+  __ movl(EBX, EAX);
+  __ orl(EBX, EDX);
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+  // Check if count too large for handling it inlined.
+  __ cmpl(EDX, Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
+  __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+  // Shift amount must be in ECX.
+  __ movl(ECX, EDX);
+  __ movl(EBX, EAX);
+  __ SmiUntag(ECX);
+  // Overflow test.
+  __ shll(EBX, ECX);
+  __ sarl(EBX, ECX);
+  __ cmpl(EAX, EBX);
+  __ j(NOT_EQUAL, &slow_case, Assembler::kNearJump);  // Overflow.
 
-    __ shll(EAX, ECX);  // Shift for result now we know there is no overflow.
-    // EAX is the correctly tagged Smi.
-    __ jmp(&done);
-    __ Bind(&slow_case);
-    __ pushl(EAX);
-    __ pushl(EDX);
-    const int number_of_arguments = 2;
-    const Array& no_optional_argument_names = Array::Handle();
-    GenerateCheckedInstanceCalls(node,
-                                 node->left(),
-                                 node->id(),
-                                 node->token_index(),
-                                 number_of_arguments,
-                                 no_optional_argument_names);
-    shift_generated = true;
-  }
+  __ shll(EAX, ECX);  // Shift for result now we know there is no overflow.
+  // EAX is the correctly tagged Smi.
+  __ jmp(&done);
+  __ Bind(&slow_case);
+  __ pushl(EAX);
+  __ pushl(EDX);
+  const int number_of_arguments = 2;
+  const Array& no_optional_argument_names = Array::Handle();
+  GenerateCheckedInstanceCalls(node,
+                               node->left(),
+                               node->id(),
+                               node->token_index(),
+                               number_of_arguments,
+                               no_optional_argument_names);
   __ Bind(&done);
 }
 
@@ -882,6 +869,8 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
 
 
 // Handles only Smi & Smi.
+// TODO(srdjan): Certain operations always overflow, and thus cause
+// deoptimization. We need to mark those places and handle them.
 void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
   const char* kOptMessage = "Inlines BinaryOp for Smi";
   Label done;
@@ -1046,7 +1035,14 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
     __ Bind(&slow_case);
     __ pushl(EAX);
     __ pushl(EDX);
-    GenerateBinaryOperatorCall(node->id(), node->token_index(), node->Name());
+    const int number_of_arguments = 2;
+    const Array& no_optional_argument_names = Array::Handle();
+    GenerateCheckedInstanceCalls(node,
+                                 node->left(),
+                                 node->id(),
+                                 node->token_index(),
+                                 number_of_arguments,
+                                 no_optional_argument_names);
     __ Bind(&done);
     if (CodeGenerator::IsResultNeeded(node)) {
       __ pushl(EAX);
@@ -1090,14 +1086,16 @@ void OptimizingCodeGenerator::CheckIfDoubleOrSmi(Register reg,
 }
 
 
-// TODO(srdjan): Detect double/Smi operation and remove extra code to
-// always check for Smi on the right hand side.
 // Result of the computation is a newly allocated double object or
 // a temporary object if the parent node specifies a CodeGenInfo for this node
 // and therefore knows how to handle a temporary. A temporary object cannot
 // be used for long living values (e.g., the ones stored on stack or into other
 // objects).
-void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node) {
+// Implement for combinations: Double/Double, Double/Smi, Smi/Double, as
+// the result is always double.
+// TODO(srdjan): Implement Smi/Smi for kDIV (result also double).
+void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
+                                                     bool receiver_can_be_smi) {
   const char* kOptMessage = "Inlines BinaryOp for Doubles";
   const Token::Kind kind = node->kind();
   if ((kind == Token::kADD) ||
@@ -1139,9 +1137,10 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node) {
           Double::ZoneHandle(Double::New(0.0, Heap::kOld));
       __ LoadObject(result_register, double_object);
     }
-    Label is_smi, extract_left;
+
     DeoptimizationBlob* deopt_blob = NULL;
     Label* deopt_lbl = NULL;
+    // Deoptimization can only occur if one of arguments is not double.
     if (!left_info.IsClass(double_class_) ||
         !right_info.IsClass(double_class_)) {
       deopt_blob = AddDeoptimizationBlob(node,
@@ -1151,25 +1150,43 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node) {
       deopt_lbl = deopt_blob->label();
     }
 
+    if (receiver_can_be_smi) {
+      // Only deoptimize if both argument are Smi.
+      __ movl(kTempRegister, kLeftRegister);
+      __ orl(kTempRegister, kRightRegister);
+      __ testl(kTempRegister, Immediate(kSmiTagMask));
+      __ j(ZERO, deopt_lbl);
+    }
+
     bool nodes_of_same_type = AreNodesOfSameType(node->left(), node->right());
     if (!left_info.IsClass(double_class_)) {
-      CheckIfDoubleOrSmi(kLeftRegister, kTempRegister, deopt_lbl, deopt_lbl);
-      // Fall through for double. Jump to 'deopt' if not double.
+      Label is_smi, done;
+      CheckIfDoubleOrSmi(kLeftRegister, kTempRegister, &is_smi, deopt_lbl);
+      // Fall through for double. Jump to 'is_smi' if double, jump to
+      // 'deopt' if neither smi nor double.
+      __ movsd(XMM0, FieldAddress(kLeftRegister, Double::value_offset()));
+      __ jmp(&done);
+      __ Bind(&is_smi);
+      __ SmiUntag(kLeftRegister);
+      __ cvtsi2sd(XMM0, kLeftRegister);
+      __ Bind(&done);
+    } else {
+      __ movsd(XMM0, FieldAddress(kLeftRegister, Double::value_offset()));
     }
     if (!right_info.IsClass(double_class_) && !nodes_of_same_type) {
+      Label is_smi, done;
       CheckIfDoubleOrSmi(kRightRegister, kTempRegister, &is_smi, deopt_lbl);
       // Fall through for double. Jump to 'is_smi' if double, jump to
       // 'deopt' if neither smi nor double.
       __ movsd(XMM1, FieldAddress(kRightRegister, Double::value_offset()));
-      __ jmp(&extract_left);
+      __ jmp(&done);
       __ Bind(&is_smi);
       __ SmiUntag(kRightRegister);
       __ cvtsi2sd(XMM1, kRightRegister);
-      __ Bind(&extract_left);
+      __ Bind(&done);
     } else {
       __ movsd(XMM1, FieldAddress(kRightRegister, Double::value_offset()));
     }
-    __ movsd(XMM0, FieldAddress(kLeftRegister, Double::value_offset()));
 
     switch (kind) {
       case Token::kADD: __ addsd(XMM0, XMM1); break;
@@ -1306,7 +1323,14 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   }
 
   if (AtIdNodeHasReceiverClass(node, node->id(), double_class_)) {
-    GenerateDoubleBinaryOp(node);
+    const bool receiver_can_be_smi = false;
+    GenerateDoubleBinaryOp(node, receiver_can_be_smi);
+    return;
+  }
+
+  if (AtIdNodeHasTwoClasses(node, node->id(), smi_class_, double_class_)) {
+    const bool receiver_can_be_smi = true;
+    GenerateDoubleBinaryOp(node, receiver_can_be_smi);
     return;
   }
 
@@ -2324,13 +2348,14 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
       Class::ZoneHandle(object_store->array_class());
   const Class& immutable_object_array_class =
       Class::ZoneHandle(object_store->immutable_array_class());
-  if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class) ||
-      AtIdNodeHasOnlyClass(node, node->id(), immutable_object_array_class)) {
+  if (AtIdNodeHasReceiverClass(node, node->id(), object_array_class) ||
+      AtIdNodeHasReceiverClass(node, node->id(),
+          immutable_object_array_class)) {
     VisitLoadTwo(node->array(), node->index_expr(), EBX, EDX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EBX, EDX, kDeoptLoadIndexedFixedArray);
     const Class& test_class =
-        AtIdNodeHasOnlyClass(node, node->id(), object_array_class) ?
+        AtIdNodeHasReceiverClass(node, node->id(), object_array_class) ?
             object_array_class : immutable_object_array_class;
     // Type checks of array.
     __ testl(EBX, Immediate(kSmiTagMask));  // Deoptimize if Smi.
@@ -2361,7 +2386,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
       Library::Handle(Library::CoreImplLibrary()).
           LookupClass(growable_object_array_class_name));
   ASSERT(!growable_array_class.IsNull());
-  if (AtIdNodeHasOnlyClass(node, node->id(), growable_array_class)) {
+  if (AtIdNodeHasReceiverClass(node, node->id(), growable_array_class)) {
     const String& growable_array_length_field_name =
         String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName));
     const String& growable_array_array_field_name =
@@ -2420,7 +2445,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     return;
   }
 
-  if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class)) {
+  if (AtIdNodeHasReceiverClass(node, node->id(), object_array_class)) {
     VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EAX, EBX, ECX, kDeoptStoreIndexed);
@@ -2454,7 +2479,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
       Library::Handle(Library::CoreImplLibrary()).
           LookupClass(growable_object_array_class_name));
   ASSERT(!growable_array_class.IsNull());
-  if (AtIdNodeHasOnlyClass(node, node->id(), growable_array_class)) {
+  if (AtIdNodeHasReceiverClass(node, node->id(), growable_array_class)) {
     const String& growable_array_length_field_name =
         String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName));
     const String& growable_array_array_field_name =
@@ -2857,7 +2882,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
           Recognizer::KindToCString(recognized));
     }
     if ((recognized == Recognizer::kIntegerToDouble) &&
-        AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
+        AtIdNodeHasReceiverClass(node, node->id(), smi_class_)) {
       // TODO(srdjan): Check if we could use temporary double instead of
       // allocating a new object every time.
       const Code& stub =
@@ -2877,7 +2902,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
     }
 
     if ((recognized == Recognizer::kDoubleToDouble) &&
-        AtIdNodeHasOnlyClass(node, node->id(), double_class_)) {
+        AtIdNodeHasReceiverClass(node, node->id(), double_class_)) {
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, EAX, kDeoptDoubleToDouble);
       __ popl(EAX);
@@ -3031,7 +3056,7 @@ void OptimizingCodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
 
   if ((node->kind() == Token::kSUB) || (node->kind() == Token::kBIT_NOT)) {
-    if (AtIdNodeHasOnlyClass(node, node->id(), smi_class_)) {
+    if (AtIdNodeHasReceiverClass(node, node->id(), smi_class_)) {
       const ICData& ic_data = node->ICDataAtId(node->id());
       ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
       GenerateSmiUnaryOp(node);
