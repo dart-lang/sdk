@@ -59,6 +59,8 @@ ConstructorRedirectTest: Fail
 ConstructorReturnNegativeTest: Fail
 ConstructorReturnTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
+ConstructorReturnWithInitAndArrowNegativeTest: Fail
+ConstructorSetterNegativeTest: Fail
 ConstructorTest: Fail
 ContextArgsWithDefaultsTest: Fail
 ContextTest: Fail
