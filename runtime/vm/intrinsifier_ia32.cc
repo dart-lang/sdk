@@ -70,6 +70,7 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(ObjectArray, []=, Array_setIndexed)                                        \
   V(GrowableObjectArray, get:length, GrowableArray_getLength)                  \
   V(GrowableObjectArray, [], GrowableArray_getIndexed)                         \
+  V(GrowableObjectArray, []=, GrowableArray_setIndexed)                        \
   V(ImmutableArray, [], Array_getIndexed)                                      \
   V(ImmutableArray, get:length, Array_getLength)                               \
   V(Math, sqrt, Math_sqrt)                                                     \
@@ -198,11 +199,9 @@ static bool Array_setIndexed(Assembler* assembler) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label fall_through;
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Value.
   __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
-  __ orl(EAX, EBX);
-  __ testl(EAX, Immediate(kSmiTagMask));
-  // Value or index not Smi.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  // Index not Smi.
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
   __ movl(EAX, Address(ESP, + 3 * kWordSize));  // Array.
   // Range check.
@@ -212,7 +211,7 @@ static bool Array_setIndexed(Assembler* assembler) {
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
   // Destroy ECX as we will not continue in the function.
-  __ movl(ECX, Address(ESP, + 1 * kWordSize));
+  __ movl(ECX, Address(ESP, + 1 * kWordSize));  // Value.
   __ StoreIntoObject(EAX,
                      FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
                      ECX);
@@ -261,7 +260,7 @@ static bool GrowableArray_getIndexed(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // GrowableArray.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
+  // Range check using _length field.
   __ cmpl(EBX, FieldAddress(EAX, length_offset));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
@@ -270,6 +269,37 @@ static bool GrowableArray_getIndexed(Assembler* assembler) {
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
   __ movl(EAX, FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)));
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+// On stack: array (+3), index (+2), value (+1), return-address (+0).
+static bool GrowableArray_setIndexed(Assembler* assembler) {
+  if (FLAG_enable_type_checks) {
+    return false;
+  }
+  Label fall_through;
+  intptr_t length_offset = GetOffsetForField(kGrowableArrayClassName,
+                                             kGrowableArrayLengthFieldName);
+  intptr_t array_offset = GetOffsetForField(kGrowableArrayClassName,
+                                            kGrowableArrayArrayFieldName);
+  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 3 * kWordSize));  // GrowableArray.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check using _length field.
+  __ cmpl(EBX, FieldAddress(EAX, length_offset));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movl(EAX, FieldAddress(EAX, array_offset));  // backingArray.
+  __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Value.
+  // Note that EBX is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  __ StoreIntoObject(EAX,
+                     FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
+                     EDI);
   __ ret();
   __ Bind(&fall_through);
   return false;

@@ -2360,6 +2360,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
   const Class& growable_array_class = Class::ZoneHandle(
       Library::Handle(Library::CoreImplLibrary()).
           LookupClass(growable_object_array_class_name));
+  ASSERT(!growable_array_class.IsNull());
   if (AtIdNodeHasOnlyClass(node, node->id(), growable_array_class)) {
     const String& growable_array_length_field_name =
         String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName));
@@ -2418,19 +2419,20 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     __ jmp(deopt_blob->label());
     return;
   }
+
   if (AtIdNodeHasOnlyClass(node, node->id(), object_array_class)) {
     VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EAX, EBX, ECX, kDeoptStoreIndexed);
     __ popl(EAX);  // array.
     // ECX: value, EBX:index, EAX: array.
-    // Check type of array.
+    // Check class of array.
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
     __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
     __ CompareObject(EDX, object_array_class);
     __ j(NOT_EQUAL, deopt_blob->label());  // Not ObjectArray -> deopt.
-    // Check type of index.
+    // Check class of index.
     __ testl(EBX, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
     // Range check.
@@ -2439,6 +2441,50 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     ASSERT(kSmiTagShift == 1);
     __ StoreIntoObject(EAX,
                        FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
+                       ECX);
+    if (CodeGenerator::IsResultNeeded(node)) {
+      __ pushl(ECX);
+    }
+    return;
+  }
+
+  const String& growable_object_array_class_name = String::Handle(
+      String::NewSymbol(kGrowableArrayClassName));
+  const Class& growable_array_class = Class::ZoneHandle(
+      Library::Handle(Library::CoreImplLibrary()).
+          LookupClass(growable_object_array_class_name));
+  ASSERT(!growable_array_class.IsNull());
+  if (AtIdNodeHasOnlyClass(node, node->id(), growable_array_class)) {
+    const String& growable_array_length_field_name =
+        String::Handle(String::NewSymbol(kGrowableArrayLengthFieldName));
+    const String& growable_array_array_field_name =
+        String::Handle(String::NewSymbol(kGrowableArrayArrayFieldName));
+    intptr_t length_offset = GetFieldOffset(growable_array_class,
+                                            growable_array_length_field_name);
+    intptr_t array_offset = GetFieldOffset(growable_array_class,
+                                           growable_array_array_field_name);
+    VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
+    DeoptimizationBlob* deopt_blob =
+        AddDeoptimizationBlob(node, EAX, EBX, ECX, kDeoptStoreIndexed);
+    __ popl(EAX);  // Array.
+    // ECX: value, EBX:index, EAX: array, EDX: scratch.
+    // Check class of array.
+    __ testl(EAX, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
+    __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
+    __ CompareObject(EDX, growable_array_class);
+    __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray -> deopt.
+    // Check class of index.
+    __ testl(EBX, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
+    // Range check: deoptimize if out of bounds.
+    __ cmpl(EBX, FieldAddress(EAX, length_offset));
+    __ j(ABOVE_EQUAL, deopt_blob->label());
+    __ movl(EDX, FieldAddress(EAX, array_offset));  // backingArray.
+    // Note that EAX is Smi, i.e, times 2.
+    ASSERT(kSmiTagShift == 1);
+    __ StoreIntoObject(EDX,
+                       FieldAddress(EDX, EBX, TIMES_2, sizeof(RawArray)),
                        ECX);
     if (CodeGenerator::IsResultNeeded(node)) {
       __ pushl(ECX);

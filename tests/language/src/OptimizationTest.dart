@@ -27,6 +27,14 @@ doBitNot(a) {
   return ~a;
 }
 
+doStore1(a, v) {
+  a[1] = v;
+}
+
+doStore2(a, v) {
+  a[2] = v;
+}
+
 main() {
   for (int i = 0; i < 2000; i++) {
     Expect.stringEquals("HI 5", addThem("HI ", 5));
@@ -62,4 +70,20 @@ main() {
   }
   // Deoptimize.
   Expect.equals(-5, doNeg2(5));
+
+  var fixed = new List(10);
+  var growable = [1, 2, 3, 4, 5];
+
+  for (int i = 0; i < 2000; i++) {
+    doStore1(fixed, 7);
+    Expect.equals(7, fixed[1]);
+    doStore2(growable, 12);
+    Expect.equals(12, growable[2]);
+  }
+
+  // Deoptimize.
+  doStore1(growable, 8);
+  Expect.equals(8, growable[1]);
+  doStore2(fixed, 101);
+  Expect.equals(101, fixed[2]);
 }
