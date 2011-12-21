@@ -650,7 +650,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   isolate->object_store()->set_root_library(Library::Handle());
   SnapshotWriter writer(Snapshot::kFull, buffer, ApiAllocator);
   writer.WriteFullSnapshot();
-  *size = writer.Size();
+  *size = writer.BytesWritten();
   return Api::Success();
 }
 
@@ -679,7 +679,7 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   }
   ScriptSnapshotWriter writer(buffer, ApiAllocator);
   writer.WriteScriptSnapshot(library);
-  *size = writer.Size();
+  *size = writer.BytesWritten();
   return Api::Success();
 }
 

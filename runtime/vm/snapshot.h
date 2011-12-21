@@ -330,123 +330,106 @@ class SnapshotReader {
 };
 
 
-class MessageWriter {
+class BaseWriter {
  public:
-  MessageWriter(uint8_t** buffer, ReAlloc alloc) : stream_(buffer, alloc) {
+  // Size of the snapshot.
+  intptr_t BytesWritten() const { return stream_.bytes_written(); }
+
+  // Writes raw data to the stream (basic type).
+  // sizeof(T) must be in {1,2,4,8}.
+  template <typename T>
+  void Write(T value) {
+    WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
+  }
+
+  // Write an object that is serialized as an Id (singleton, object store,
+  // or an object that was already serialized before).
+  void WriteIndexedObject(intptr_t object_id) {
+    WriteSerializationMarker(kObjectId, object_id);
+  }
+
+  // Write out object header value.
+  void WriteObjectHeader(intptr_t class_id, intptr_t tags) {
+    // Write out the class information.
+    WriteIndexedObject(class_id);
+    // Write out the tags information.
+    Write<intptr_t>(tags);
+  }
+
+  // Write serialization header information for an object.
+  void WriteSerializationMarker(SerializedHeaderType type, intptr_t id) {
+    uword value = 0;
+    value = SerializedHeaderTag::update(type, value);
+    value = SerializedHeaderData::update(id, value);
+    Write<uword>(value);
+  }
+
+  // Finalize the serialized buffer by filling in the header information
+  // which comprises of a flag(snaphot kind) and the length of
+  // serialzed bytes.
+  void FinalizeBuffer(Snapshot::Kind kind) {
+    int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
+    data[Snapshot::kLengthIndex] = stream_.bytes_written();
+    data[Snapshot::kSnapshotFlagIndex] = kind;
+  }
+
+ protected:
+  BaseWriter(uint8_t** buffer, ReAlloc alloc) : stream_(buffer, alloc) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
+  }
+  ~BaseWriter() { }
+
+ private:
+  WriteStream stream_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(BaseWriter);
+};
+
+
+class MessageWriter : public BaseWriter {
+ public:
+  MessageWriter(uint8_t** buffer, ReAlloc alloc) : BaseWriter(buffer, alloc) {
   }
   ~MessageWriter() { }
 
   // Writes a message of integers.
   void WriteMessage(intptr_t field_count, intptr_t *data);
 
- private:
-  // Writes raw data to the stream (basic type).
-  // sizeof(T) must be in {1,2,4,8}.
-  template <typename T>
-  void Write(T value) {
-    WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
-  }
-
-  // Write an object that is serialized as an Id (singleton, object store,
-  // or an object that was already serialized before).
-  void WriteIndexedObject(intptr_t object_id) {
-    WriteSerializationMarker(kObjectId, object_id);
-  }
-
-  // Write out object header value.
-  void WriteObjectHeader(intptr_t class_id, intptr_t tags) {
-    // Write out the class information.
-    WriteIndexedObject(class_id);
-    // Write out the tags information.
-    Write<intptr_t>(tags);
-  }
-
-  // Write serialization header information for an object.
-  void WriteSerializationMarker(SerializedHeaderType type, intptr_t id) {
-    uword value = 0;
-    value = SerializedHeaderTag::update(type, value);
-    value = SerializedHeaderData::update(id, value);
-    Write<uword>(value);
-  }
-
-  // Finalize the serialized buffer by filling in the header information
-  // which comprises of a flag(full/partial snaphot) and the length of
-  // serialzed bytes.
   void FinalizeBuffer() {
-    int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = Snapshot::kMessage;
+    BaseWriter::FinalizeBuffer(Snapshot::kMessage);
   }
 
-  WriteStream stream_;
-
+ private:
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };
 
 
-class SnapshotWriter {
+class SnapshotWriter : public BaseWriter {
  public:
   SnapshotWriter(Snapshot::Kind kind, uint8_t** buffer, ReAlloc alloc)
-      : stream_(buffer, alloc),
+      : BaseWriter(buffer, alloc),
         kind_(kind),
         object_store_(Isolate::Current()->object_store()),
         forward_list_() {
-    ASSERT(buffer != NULL);
-    ASSERT(alloc != NULL);
   }
   ~SnapshotWriter() { }
 
   // Snapshot kind.
   Snapshot::Kind kind() const { return kind_; }
 
-  // Size of the snapshot.
-  intptr_t Size() const { return stream_.bytes_written(); }
-
   // Finalize the serialized buffer by filling in the header information
   // which comprises of a flag(full/partial snaphot) and the length of
   // serialzed bytes.
   void FinalizeBuffer() {
-    int32_t* data = reinterpret_cast<int32_t*>(stream_.buffer());
-    data[Snapshot::kLengthIndex] = stream_.bytes_written();
-    data[Snapshot::kSnapshotFlagIndex] = kind_;
+    BaseWriter::FinalizeBuffer(kind_);
     UnmarkAll();
-  }
-
-  // Writes raw data to the stream (basic type).
-  // sizeof(T) must be in {1,2,4,8}.
-  template <typename T>
-  void Write(T value) {
-    WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
 
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
 
   void WriteClassId(RawClass* cls);
-
-  // Write an object that is serialized as an Id (singleton, object store,
-  // or an object that was already serialized before).
-  void WriteIndexedObject(intptr_t object_id) {
-    WriteSerializationMarker(kObjectId, object_id);
-  }
-
-  // Write out object header value.
-  void WriteObjectHeader(intptr_t class_id, intptr_t tags) {
-    // Write out the class information.
-    WriteIndexedObject(class_id);
-    // Write out the tags information.
-    Write<intptr_t>(tags);
-  }
-
-  // Write serialization header information for an object.
-  void WriteSerializationMarker(SerializedHeaderType type, intptr_t id) {
-    uword value = 0;
-    value = SerializedHeaderTag::update(type, value);
-    value = SerializedHeaderData::update(id, value);
-    Write<uword>(value);
-  }
 
   // Unmark all objects that were marked as forwarded for serializing.
   void UnmarkAll();
@@ -474,7 +457,6 @@ class SnapshotWriter {
 
   ObjectStore* object_store() const { return object_store_; }
 
-  WriteStream stream_;
   Snapshot::Kind kind_;
   ObjectStore* object_store_;  // Object store for common classes.
   GrowableArray<ForwardObjectNode*> forward_list_;
