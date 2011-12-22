@@ -700,13 +700,19 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
     // TODO(srdjan): Implement for Mint?
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EAX, ECX, kDeoptSAR);
+    CodeGenInfo left_info(node->left());
+    CodeGenInfo right_info(node->right());
     // EAX: value to shift, ECX: amount to shift.
     VisitLoadTwo(node->left(), node->right(), EAX, ECX);
-    // Check if both Smi.
-    __ movl(EBX, EAX);
-    __ orl(EBX, ECX);
-    __ testl(EBX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt_blob->label());
+    if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
+      // Check if both Smi.
+      __ movl(EBX, EAX);
+      __ orl(EBX, ECX);
+      __ testl(EBX, Immediate(kSmiTagMask));
+      __ j(NOT_ZERO, deopt_blob->label());
+      PropagateBackLocalClass(node->left(), smi_class_);
+      PropagateBackLocalClass(node->right(), smi_class_);
+    }
     Immediate count_limit = Immediate(0x1F);
     __ SmiUntag(ECX);
     __ cmpl(ECX, count_limit);
@@ -729,9 +735,12 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
     smi ^= node->right()->AsLiteralNode()->literal().raw();
     if (smi.Value() < Smi::kBits) {
       Label slow_case;
+      CodeGenInfo left_info(node->left());
       VisitLoadOne(node->left(), EAX);
-      __ testl(EAX, Immediate(kSmiTagMask));
-      __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);  // left not smi
+      if (!left_info.IsClass(smi_class_)) {
+        __ testl(EAX, Immediate(kSmiTagMask));
+        __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);  // left not smi
+      }
       // Overflow test.
       __ movl(EBX, EAX);
       Immediate imm(smi.Value());
@@ -758,14 +767,18 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
   }
 
   Label slow_case, done;
+  CodeGenInfo left_info(node->left());
+  CodeGenInfo right_info(node->right());
   VisitLoadTwo(node->left(), node->right(), EAX, EDX);
   // TODO(srdjan): Better code for count being a Smi literal.
   // EAX: value, EDX: shift amount. Preserve them for slow case.
   // Fast case only if both ar Smi.
-  __ movl(EBX, EAX);
-  __ orl(EBX, EDX);
-  __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+  if (!left_info.IsClass(smi_class_) || !right_info.IsClass(smi_class_)) {
+    __ movl(EBX, EAX);
+    __ orl(EBX, EDX);
+    __ testl(EBX, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+  }
   // Check if count too large for handling it inlined.
   __ cmpl(EDX, Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
   __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
@@ -813,8 +826,11 @@ void OptimizingCodeGenerator::GenerateSmiUnaryOp(UnaryOpNode* node) {
     return;
   }
   ASSERT(ic_data.NumberOfChecks() == 1);
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt_blob->label());
+  if (!info.IsClass(smi_class_)) {
+    __ testl(EAX, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt_blob->label());
+    PropagateBackLocalClass(node->operand(), smi_class_);
+  }
   if (node->kind() == Token::kSUB) {
     __ negl(EAX);
     __ j(OVERFLOW, deopt_blob->label());
@@ -2374,6 +2390,8 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
   if (AtIdNodeHasClassAt(node, node->id(), object_array_class, 0) ||
       AtIdNodeHasClassAt(node, node->id(),
           immutable_object_array_class, 0)) {
+    CodeGenInfo array_info(node->array());
+    CodeGenInfo index_info(node->index_expr());
     VisitLoadTwo(node->array(), node->index_expr(), EBX, EDX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EBX, EDX, kDeoptLoadIndexedFixedArray);
@@ -2381,15 +2399,21 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
         AtIdNodeHasClassAt(node, node->id(), object_array_class, 0) ?
             object_array_class : immutable_object_array_class;
     // Type checks of array.
-    __ testl(EBX, Immediate(kSmiTagMask));  // Deoptimize if Smi.
-    __ j(ZERO, deopt_blob->label());
-    __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
-    __ CompareObject(EAX, test_class);
-    __ j(NOT_EQUAL, deopt_blob->label());
+    if (!array_info.IsClass(test_class)) {
+      __ testl(EBX, Immediate(kSmiTagMask));  // Deoptimize if Smi.
+      __ j(ZERO, deopt_blob->label());
+      __ movl(EAX, FieldAddress(EBX, Object::class_offset()));
+      __ CompareObject(EAX, test_class);
+      __ j(NOT_EQUAL, deopt_blob->label());
+      PropagateBackLocalClass(node->array(), test_class);
+    }
 
     // Type check of index.
-    __ testl(EDX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt_blob->label());
+    if (!index_info.IsClass(smi_class_)) {
+      __ testl(EDX, Immediate(kSmiTagMask));
+      __ j(NOT_ZERO, deopt_blob->label());
+      PropagateBackLocalClass(node->index_expr(), smi_class_);
+    }
     // Range check.
     __ cmpl(EDX, FieldAddress(EBX, Array::length_offset()));
     __ j(ABOVE_EQUAL, deopt_blob->label());
@@ -2416,18 +2440,25 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
                                             growable_array_length_field_name);
     intptr_t array_offset = GetFieldOffset(growable_array_class,
                                            growable_array_array_field_name);
+    CodeGenInfo array_info(node->array());
+    CodeGenInfo index_info(node->index_expr());
     VisitLoadTwo(node->array(), node->index_expr(), EDX, EAX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EDX, EAX, kDeoptLoadIndexedGrowableArray);
-    // TODO(srdjan): Use CodeGenInfo to eliminate Smi test if possible.
     // EAX: index, EDX: array.
-    __ testl(EAX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt_blob->label());  // Not Smi index.
-    __ testl(EDX, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt_blob->label());  // Array is Smi.
-    __ movl(EBX, FieldAddress(EDX, Object::class_offset()));
-    __ CompareObject(EBX, growable_array_class);
-    __ j(NOT_EQUAL, deopt_blob->label());  // Array is not GrowableObjectArray.
+    if (!index_info.IsClass(smi_class_)) {
+      __ testl(EAX, Immediate(kSmiTagMask));
+      __ j(NOT_ZERO, deopt_blob->label());  // Not Smi index.
+      PropagateBackLocalClass(node->index_expr(), smi_class_);
+    }
+    if (!array_info.IsClass(growable_array_class)) {
+      __ testl(EDX, Immediate(kSmiTagMask));
+      __ j(ZERO, deopt_blob->label());  // Array is Smi.
+      __ movl(EBX, FieldAddress(EDX, Object::class_offset()));
+      __ CompareObject(EBX, growable_array_class);
+      __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
+      PropagateBackLocalClass(node->array(), growable_array_class);
+    }
     // Range check: deoptimize if out of bounds.
     __ cmpl(EAX, FieldAddress(EDX, length_offset));
     __ j(ABOVE_EQUAL, deopt_blob->label());
@@ -2464,6 +2495,9 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     return;
   }
 
+  CodeGenInfo array_info(node->array());
+  CodeGenInfo index_info(node->index_expr());
+
   if (AtIdNodeHasClassAt(node, node->id(), object_array_class, 0)) {
     VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
     DeoptimizationBlob* deopt_blob =
@@ -2471,14 +2505,20 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     __ popl(EAX);  // array.
     // ECX: value, EBX:index, EAX: array.
     // Check class of array.
-    __ testl(EAX, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
-    __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
-    __ CompareObject(EDX, object_array_class);
-    __ j(NOT_EQUAL, deopt_blob->label());  // Not ObjectArray -> deopt.
+    if (!array_info.IsClass(object_array_class)) {
+      __ testl(EAX, Immediate(kSmiTagMask));
+      __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
+      __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
+      __ CompareObject(EDX, object_array_class);
+      __ j(NOT_EQUAL, deopt_blob->label());  // Not ObjectArray -> deopt.
+      PropagateBackLocalClass(node->array(), object_array_class);
+    }
     // Check class of index.
-    __ testl(EBX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
+    if (!index_info.IsClass(smi_class_)) {
+      __ testl(EBX, Immediate(kSmiTagMask));
+      __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
+      PropagateBackLocalClass(node->index_expr(), smi_class_);
+    }
     // Range check.
     __ cmpl(EBX, FieldAddress(EAX, Array::length_offset()));
     __ j(ABOVE_EQUAL, deopt_blob->label());  // Range error -> deopt.
@@ -2511,14 +2551,20 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     __ popl(EAX);  // Array.
     // ECX: value, EBX:index, EAX: array, EDX: scratch.
     // Check class of array.
-    __ testl(EAX, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
-    __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
-    __ CompareObject(EDX, growable_array_class);
-    __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray -> deopt.
+    if (!array_info.IsClass(growable_array_class)) {
+      __ testl(EAX, Immediate(kSmiTagMask));
+      __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
+      __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
+      __ CompareObject(EDX, growable_array_class);
+      __ j(NOT_EQUAL, deopt_blob->label());  // Not GrowableObjectArray.
+      PropagateBackLocalClass(node->array(), growable_array_class);
+    }
     // Check class of index.
-    __ testl(EBX, Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
+    if (!index_info.IsClass(smi_class_)) {
+      __ testl(EBX, Immediate(kSmiTagMask));
+      __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
+      PropagateBackLocalClass(node->index_expr(), smi_class_);
+    }
     // Range check: deoptimize if out of bounds.
     __ cmpl(EBX, FieldAddress(EAX, length_offset));
     __ j(ABOVE_EQUAL, deopt_blob->label());
