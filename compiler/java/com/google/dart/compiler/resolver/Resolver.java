@@ -125,6 +125,9 @@ public class Resolver {
    */
   public void resolveMember(ClassElement classElement, Element member, ResolutionContext context) {
     ResolveElementsVisitor visitor;
+    if(member == null) {
+      return;
+    }
     switch (member.getKind()) {
       case CONSTRUCTOR:
       case METHOD:
