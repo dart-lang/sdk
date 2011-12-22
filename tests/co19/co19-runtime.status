@@ -164,7 +164,6 @@ LibTest/core/TypeError/srcType/TypeError/srcType/A01/t01: Fail # Issue co19 - 46
 LibTest/core/double/toRadixString/double/toRadixString/A01/t01: Fail # Issue 463
 LibTest/core/double/toStringAsExponential/double/toStringAsExponential/A01/t01: Fail # Issue 463
 LibTest/core/double/toStringAsPrecision/double/toStringAsPrecision/A01/t01: Fail # Issue 463
-LibTest/core/double/toStringAsFixed/double/toStringAsFixed/A01/t03: Fail # Test needs to be changed.
 LibTest/core/int/operator%/int/operator%/A01/t01: Fail # Issue co19 - 48
 LibTest/core/int/operator%/int/operator%/A01/t02: Fail # Issue co19 - 48
 LibTest/core/int/operator%/int/operator%/A01/t03: Fail # Issue co19 - 49

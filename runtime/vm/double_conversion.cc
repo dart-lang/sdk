@@ -55,8 +55,9 @@ bool DoubleToStringAsFixed(double d, int fraction_digits, String& result) {
   // The boundaries are exclusive.
   static const double kLowerBoundary = -1e21;
   static const double kUpperBoundary = 1e21;
+  // TODO(floitsch): remove the UNIQUE_ZERO flag when the test is updated.
   static const int kConversionFlags =
-      double_conversion::DoubleToStringConverter::NO_FLAGS;
+      double_conversion::DoubleToStringConverter::UNIQUE_ZERO;
   const int kBufferSize = 128;
   // The output contains the sign, at most kMaxDigitsBeforePoint digits,
   // the decimal point followed by at most fraction_digits digits plus the \0.

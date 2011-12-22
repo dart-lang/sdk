@@ -64,9 +64,9 @@ class ToStringAsFixedTest {
     Expect.equals("-0.00000006", (-0.00000006).toStringAsFixed(8));
     Expect.equals("-0.000000060", (-0.00000006).toStringAsFixed(9));
     Expect.equals("-0.0000000600", (-0.00000006).toStringAsFixed(10));
-    Expect.equals("-0", (-0.0).toStringAsFixed(0));
-    Expect.equals("-0.0", (-0.0).toStringAsFixed(1));
-    Expect.equals("-0.00", (-0.0).toStringAsFixed(2));
+    Expect.equals("0", (-0.0).toStringAsFixed(0));
+    Expect.equals("0.0", (-0.0).toStringAsFixed(1));
+    Expect.equals("0.00", (-0.0).toStringAsFixed(2));
 
     Expect.equals("1000", 1000.0.toStringAsFixed(0));
     Expect.equals("0", 0.00001.toStringAsFixed(0));
