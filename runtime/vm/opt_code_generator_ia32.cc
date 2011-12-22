@@ -563,6 +563,20 @@ void OptimizingCodeGenerator::VisitLoadLocalNode(LoadLocalNode* node) {
 }
 
 
+void OptimizingCodeGenerator::HandleResult(AstNode* node, Register result_reg) {
+  if (CodeGenerator::IsResultNeeded(node)) {
+    if (IsResultInEaxRequested(node)) {
+      if (result_reg != EAX) {
+        __ movl(EAX, result_reg);
+      }
+      node->info()->set_result_returned_in_eax(true);
+    } else {
+      __ pushl(result_reg);
+    }
+  }
+}
+
+
 void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
   if (FLAG_enable_type_checks) {
     CodeGenerator::VisitStoreLocalNode(node);
@@ -595,9 +609,7 @@ void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
     }
     CodeGenerator::GenerateStoreVariable(node->local(), EAX, EDX);
   }
-  if (IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
+  HandleResult(node, EAX);
   classes_for_locals_->SetLocalType(node->local(), *value_info.is_class());
 }
 
@@ -809,13 +821,7 @@ void OptimizingCodeGenerator::GenerateSmiUnaryOp(UnaryOpNode* node) {
     __ notl(EAX);
     __ andl(EAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   }
-  if (CodeGenerator::IsResultNeeded(node)) {
-    if (IsResultInEaxRequested(node)) {
-      node->info()->set_result_returned_in_eax(true);
-    } else {
-      __ pushl(EAX);
-    }
-  }
+  HandleResult(node, EAX);
 }
 
 
@@ -858,12 +864,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
       node->info()->set_is_temp(true);
       node->info()->set_is_class(&double_class_);
     }
-    if (IsResultInEaxRequested(node)) {
-      ASSERT(kResultRegister == EAX);
-      node->info()->set_result_returned_in_eax(true);
-    } else {
-      __ pushl(kResultRegister);
-    }
+    HandleResult(node, kResultRegister);
   }
 }
 
@@ -989,13 +990,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
                                               node->Name());
   }
   __ Bind(&done);
-  if (CodeGenerator::IsResultNeeded(node)) {
-    if (IsResultInEaxRequested(node)) {
-      node->info()->set_result_returned_in_eax(true);
-    } else {
-      __ pushl(EAX);
-    }
-  }
+  HandleResult(node, EAX);
 }
 
 
@@ -1044,16 +1039,12 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
                                  number_of_arguments,
                                  no_optional_argument_names);
     __ Bind(&done);
-    if (CodeGenerator::IsResultNeeded(node)) {
-      __ pushl(EAX);
-    }
+    HandleResult(node, EAX);
     return;
   }
   if ((kind == Token::kSHL) && allow_smi) {
     GenerateSmiShiftBinaryOp(node);
-    if (CodeGenerator::IsResultNeeded(node)) {
-      __ pushl(EAX);
-    }
+    HandleResult(node, EAX);
     return;
   }
   TraceNotOpt(node, kOptMessage);
@@ -1201,12 +1192,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
         node->info()->set_is_temp(true);
         node->info()->set_is_class(&double_class_);
       }
-      if (IsResultInEaxRequested(node)) {
-        __ movl(EAX, result_register);
-        node->info()->set_result_returned_in_eax(true);
-      } else {
-        __ pushl(result_register);
-      }
+      HandleResult(node, result_register);
     }
     return;
   }
@@ -1289,9 +1275,7 @@ void OptimizingCodeGenerator::GenerateLogicalBinaryOp(BinaryOpNode* node) {
     __ Bind(&return_false_object);
     __ LoadObject(EAX, bool_false);
     __ Bind(&done);
-    if (IsResultNeeded(node)) {
-      __ pushl(EAX);
-    }
+    HandleResult(node, EAX);
   }
 }
 
@@ -1360,9 +1344,7 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
                                node->token_index(),
                                number_of_arguments,
                                no_optional_argument_names);
-  if (IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
+  HandleResult(node, EAX);
   return;
 }
 
@@ -1739,9 +1721,7 @@ void OptimizingCodeGenerator::VisitInstanceGetterNode(
                        node->field_name(),
                        EBX);
   // Result is in EAX.
-  if (CodeGenerator::IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
+  HandleResult(node, EAX);
 }
 
 
@@ -1886,9 +1866,7 @@ void OptimizingCodeGenerator::VisitInstanceSetterNode(
                        EDX,
                        EAX);
 
-  if (CodeGenerator::IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
+  HandleResult(node, EAX);
 }
 
 
@@ -2373,9 +2351,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Note that EDX is Smi, i.e, times 2.
     ASSERT(kSmiTagShift == 1);
     __ movl(EAX, FieldAddress(EBX, EDX, TIMES_2, sizeof(RawArray)));
-    if (CodeGenerator::IsResultNeeded(node)) {
-      __ pushl(EAX);
-    }
+    HandleResult(node, EAX);
     TraceOpt(node, kMessage);
     return;
   }
@@ -2414,9 +2390,7 @@ void OptimizingCodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Note that EAX is Smi, i.e, times 2.
     ASSERT(kSmiTagShift == 1);
     __ movl(EAX, FieldAddress(EDX, EAX, TIMES_2, sizeof(RawArray)));
-    if (CodeGenerator::IsResultNeeded(node)) {
-      __ pushl(EAX);
-    }
+    HandleResult(node, EAX);
     return;
   } else {
     // E.g., HashMap.
@@ -2467,9 +2441,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     __ StoreIntoObject(EAX,
                        FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
                        ECX);
-    if (CodeGenerator::IsResultNeeded(node)) {
-      __ pushl(ECX);
-    }
+    HandleResult(node, ECX);
     return;
   }
 
@@ -2511,9 +2483,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     __ StoreIntoObject(EDX,
                        FieldAddress(EDX, EBX, TIMES_2, sizeof(RawArray)),
                        ECX);
-    if (CodeGenerator::IsResultNeeded(node)) {
-      __ pushl(ECX);
-    }
+    HandleResult(node, ECX);
     return;
   }
   node->index_expr()->Visit(this);
@@ -2856,9 +2826,7 @@ void OptimizingCodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
                                  node->arguments()->names());
   }
   // Result is in EAX.
-  if (IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
+  HandleResult(node, EAX);
 }
 
 
@@ -2956,9 +2924,7 @@ void OptimizingCodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
   }
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));
   // Result is in EAX.
-  if (IsResultNeeded(node)) {
-    __ pushl(EAX);
-  }
+  HandleResult(node, EAX);
 }
 
 
@@ -3008,10 +2974,8 @@ void OptimizingCodeGenerator::VisitStoreInstanceFieldNode(
   }
   VisitLoadTwo(node->instance(), node->value(), EDX, EAX);
   __ StoreIntoObject(EDX, FieldAddress(EDX, node->field().Offset()), EAX);
-  if (IsResultNeeded(node)) {
-    // The result is the input value.
-    __ pushl(EAX);
-  }
+  // The result is the input value.
+  HandleResult(node, EAX);
 }
 
 
@@ -3045,13 +3009,7 @@ void OptimizingCodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     __ LoadObject(EAX, Bool::ZoneHandle(Bool::False()));
     __ Bind(&done);
-    if (CodeGenerator::IsResultNeeded(node)) {
-      if (IsResultInEaxRequested(node)) {
-        node->info()->set_result_returned_in_eax(true);
-      } else {
-        __ pushl(EAX);
-      }
-    }
+    HandleResult(node, EAX);
     return;
   }
 

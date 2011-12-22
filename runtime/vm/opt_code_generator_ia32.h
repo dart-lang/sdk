@@ -154,6 +154,8 @@ class OptimizingCodeGenerator : public CodeGenerator {
   bool IsResultInEaxRequested(AstNode* node) const;
   bool NodeMayBeSmi(AstNode* node) const;
 
+  void HandleResult(AstNode* node, Register result_reg);
+
   void PrintCollectedClassesAtId(AstNode* node, intptr_t id);
   void TraceOpt(AstNode* node, const char* message);
   void TraceNotOpt(AstNode* node, const char* message);
