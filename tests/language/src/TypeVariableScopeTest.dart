@@ -29,10 +29,10 @@ class Foo<T> {
 
   static void set f(
                     Foo<T> /// 05: compile-time error
-		    value) {}
+                    value) {}
 }
 
-interface I<T> factory Foo<T> {
+interface I<T> default Foo<T> {
   I(I<T> i);
 }
 

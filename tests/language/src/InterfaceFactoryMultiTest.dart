@@ -5,7 +5,7 @@
 
 // Test that a factory provider can provide for more than one interface.
 
-interface A factory F {
+interface A default F {
   A(var secret);
 
   GetSecret();
@@ -19,7 +19,7 @@ class AImpl implements A {
   String GetSecret() { return _secret; }
 }
 
-interface B factory F {
+interface B default F {
   B(var secret);
 
   GetSecret();

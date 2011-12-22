@@ -7,7 +7,7 @@ interface Ai {
   int foo();
 }
 
-interface Bi extends Ai factory InterfaceTest {
+interface Bi extends Ai default InterfaceTest {
   Bi();
 }
 

@@ -87,7 +87,7 @@ class ClassTest {
   }
 }
 
-interface Inter factory Sup {
+interface Inter default Sup {
   Inter.named();
   Inter.fromInt(int x);
   Inter(int x);

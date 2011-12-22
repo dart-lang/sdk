@@ -5,7 +5,7 @@
 // Test that a "default implementation" interface factory checks the
 // arity of its declared constructor arguments
 
-interface Interface factory DefaultImplementation {
+interface Interface default DefaultImplementation {
   Interface(int x, int y);
 }
 

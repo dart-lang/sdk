@@ -8,43 +8,43 @@
 
 // bool.
 class MyBool implements bool {}                     /// 01: compile-time error
-interface MyBoolInterface extends bool factory F {  /// 02: compile-time error
+interface MyBoolInterface extends bool default F {  /// 02: compile-time error
   MyBoolInterface();                                /// 02: continued
 }                                                   /// 02: continued
 
 // num.
 class MyNum implements num {}                       /// 03: compile-time error
-interface MyNumInterface extends num factory F {    /// 04: compile-time error
+interface MyNumInterface extends num default F {    /// 04: compile-time error
   MyNumInterface();                                 /// 04: continued
 }                                                   /// 04: continued
 
 // int.
 class MyInt implements int {}                       /// 05: compile-time error
-interface MyIntInterface extends int factory F {    /// 06: compile-time error
+interface MyIntInterface extends int default F {    /// 06: compile-time error
   MyIntInterface();                                 /// 06: continued
 }                                                   /// 06: continued
 
 // double.
 class MyDouble implements double {}                     /// 07: compile-time error
-interface MyDoubleInterface extends double factory F {  /// 08: compile-time error
+interface MyDoubleInterface extends double default F {  /// 08: compile-time error
   MyDoubleInterface();                                  /// 08: continued
 }                                                       /// 08: continued
 
 // String.
 class MyString implements String {}                     /// 09: compile-time error
-interface MyStringInterface extends String factory F {  /// 10: compile-time error
+interface MyStringInterface extends String default F {  /// 10: compile-time error
   MyStringInterface();                                  /// 10: continued
 }                                                       /// 10: continued
 
 // Function.
 class MyFunction implements Function {}                     /// 11: compile-time error
-interface MyFunctionInterface extends Function factory F {  /// 12: compile-time error
+interface MyFunctionInterface extends Function default F {  /// 12: compile-time error
   MyFunctionInterface();                                    /// 12: continued
 }                                                           /// 12: continued
 
 // Dynamic.
 class MyDynamic implements Dynamic {}                      /// 13: compile-time error
-interface MyDynamicInterface extends Dynamic factory F {   /// 14: compile-time error
+interface MyDynamicInterface extends Dynamic default F {   /// 14: compile-time error
   MyDynamicInterface();                                    /// 14: continued
 }                                                          /// 14: continued
 

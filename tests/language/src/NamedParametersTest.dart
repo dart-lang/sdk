@@ -97,7 +97,7 @@ class NamedParametersTest {
   }
 }
 
-interface I factory C {
+interface I default C {
   I();
   int mul(int a, [int factor]);
 }

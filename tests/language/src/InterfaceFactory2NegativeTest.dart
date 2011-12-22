@@ -5,7 +5,7 @@
 // Test that a "factory provider" interface factory only
 // provides the constructors declared in the interface.
 
-interface Interface factory FactoryProvider {
+interface Interface default FactoryProvider {
   Interface.some_name(var secret);
 }
 

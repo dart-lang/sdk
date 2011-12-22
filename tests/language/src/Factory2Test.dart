@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing factories.
 
-interface Link<T> extends Iterable<T> factory LinkFactory<T> {
+interface Link<T> extends Iterable<T> default LinkFactory<T> {
   Link(T head, [Link<T> tail]);
   Link<T> prepend(T element);
 }

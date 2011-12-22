@@ -5,7 +5,7 @@
 // Test that a "default implementation" interface factory only
 // provides the constructors declared in the interface.
 
-interface Interface factory DefaultImplementation {
+interface Interface default DefaultImplementation {
   Interface.some_name();
 }
 

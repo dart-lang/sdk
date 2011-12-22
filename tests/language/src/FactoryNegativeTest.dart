@@ -4,7 +4,7 @@
 
 // Test compile time error for factories with parametrized types.
 
-interface Link<T> factory LinkFactory { 
+interface Link<T> default LinkFactory { 
   Link.create();
 }
 
