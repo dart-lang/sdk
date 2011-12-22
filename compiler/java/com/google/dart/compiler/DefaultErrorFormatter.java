@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
+
 import java.io.PrintStream;
 
 /**
@@ -12,18 +14,38 @@ import java.io.PrintStream;
  */
 public class DefaultErrorFormatter implements ErrorFormatter {
   protected final PrintStream outputStream;
+  protected final ErrorFormat errorFormat;
   
-  public DefaultErrorFormatter(PrintStream outputStream) {
+  public DefaultErrorFormatter(PrintStream outputStream, ErrorFormat errorFormat) {
     this.outputStream = outputStream;
+    this.errorFormat = errorFormat;
   }
 
   @Override
   public void format(DartCompilationError event) {
-    outputStream.printf("%s:%d:%d: %s\n",
-        (event.getSource() != null)
-            ? event.getSource().getName() : "<unknown-source-file>",
+    String sourceName = "<unknown-source-file>";
+    Source sourceFile = event.getSource();
+    String includeFrom = getImportString(sourceFile);
+
+    if (sourceFile != null) {
+      sourceName = sourceFile.getUri().toString();
+    }
+    outputStream.printf("%s:%d:%d: %s%s\n",
+        sourceName,
         event.getLineNumber(),
         event.getColumnNumber(),
-        event.getMessage());
+        event.getMessage(),
+        includeFrom);
+  }
+
+  public String getImportString(Source sourceFile) {
+    String includeFrom = "";
+    if (sourceFile instanceof DartSource) {
+      LibrarySource lib = ((DartSource) sourceFile).getLibrary();
+      if (!sourceFile.getUri().equals(lib.getUri())) {
+        includeFrom = " (sourced from " + lib.getUri() + ")";
+      }
+    }
+    return includeFrom;
   }
 }

@@ -5,6 +5,7 @@
 package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
 import com.google.dart.runner.DartRunner;
 import com.google.dart.runner.RunnerOptions;
 
@@ -41,9 +42,9 @@ public class CommandLineOptions {
     @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
     private boolean exposeCoreImpl = false;
 
-    @Option(name = "--machine-problems",
-        usage = "Format errors for machine parsing")
-    private boolean printMachineProblems = false;
+    @Option(name = "--error_format",
+        usage = "Format errors as normal or machine")
+    private String errorFormat = "";
 
     @Option(name = "--enable_type_checks",
         usage = "Generate runtime type checks")
@@ -294,14 +295,6 @@ public class CommandLineOptions {
     }
 
     /**
-     * Returns <code>true</code> if the compiler should print compilation problems in machine
-     * format, with all information - severity, subsystem, etc.
-     */
-    public boolean printMachineProblems() {
-      return printMachineProblems;
-    }
-
-    /**
      * Returns whether type errors are fatal.
      */
     public boolean typeErrorsAreFatal() {
@@ -317,6 +310,17 @@ public class CommandLineOptions {
 
     public boolean developerModeChecks() {
       return developerModeChecks;
+    }
+
+    /**
+     * @return the format to use for printing errors
+     */
+    public ErrorFormat printErrorFormat() {
+      String lowerError = errorFormat.toLowerCase();
+      if ("machine".equals(lowerError)) {
+        return ErrorFormat.MACHINE;
+      }
+      return ErrorFormat.NORMAL;
     }
   }
 

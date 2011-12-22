@@ -16,6 +16,11 @@ import java.util.List;
  */
 public interface CompilerConfiguration {
 
+  enum ErrorFormat {
+    NORMAL,  // Library/File, line, message
+    MACHINE, // All information including severity, subsystem, etc
+  }
+
   List<DartCompilationPhase> getPhases();
 
   List<Backend> getBackends();
@@ -84,10 +89,9 @@ public interface CompilerConfiguration {
   boolean shouldWarnOnNoSuchType();
 
   /**
-   * Returns <code>true</code> if the compiler should print compilation problems in machine
-   * format, with all location information - severity, subsystem, etc.
+   * Returns the error formatting the compiler should print with
    */
-  boolean printMachineProblems();
+  ErrorFormat printErrorFormat();
 
   /**
    * Returns <code>true</code> if the compiler should collect comments.

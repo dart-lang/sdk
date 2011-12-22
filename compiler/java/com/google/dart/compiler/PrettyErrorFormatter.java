@@ -5,6 +5,7 @@
 package com.google.dart.compiler;
 
 import com.google.common.io.Closeables;
+import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,14 +25,12 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
   private static String NO_COLOR = "\033[0m";
 
   private final boolean useColor;
-  private final boolean printMachineProblems;
 
   public PrettyErrorFormatter(PrintStream outputStream,
       boolean useColor,
-      boolean printMachineProblems) {
-    super(outputStream);
+      ErrorFormat errorFormat) {
+    super(outputStream, errorFormat);
     this.useColor = useColor;
-    this.printMachineProblems = printMachineProblems;
   }
 
   @Override
@@ -79,7 +78,7 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
       if (useColor) {
         buf.append(RED_BOLD_COLOR);
       }
-      if (printMachineProblems) {
+      if (errorFormat == ErrorFormat.MACHINE) {
         buf.append(String.format(
             "%s:%s:%s:%s:%d:%d:%d: %s",
             event.getErrorCode().getErrorSeverity(),
@@ -91,11 +90,14 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
             length,
             event.getMessage()));
       } else {
+        String sourceName = sourceFile.getUri().toString();
+        String includeFrom = getImportString(sourceFile);
         buf.append(String.format(
-            "%s:%d: %s",
-            sourceFile.getName(),
+            "%s:%d: %s%s",
+            sourceName,
             event.getLineNumber(),
-            event.getMessage()));
+            event.getMessage(),
+            includeFrom));
       }
       if (useColor) {
         buf.append(NO_COLOR);

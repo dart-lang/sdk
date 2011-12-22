@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
 import com.google.dart.compiler.ast.DartUnit;
 
 import java.io.PrintStream;
@@ -35,15 +36,15 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
    */
   protected final ErrorFormatter formatter;
 
-  public DefaultDartCompilerListener(boolean printMachineProblems) {
-    this(System.err, printMachineProblems);
+  public DefaultDartCompilerListener(ErrorFormat errorFormat) {
+    this(System.err, errorFormat);
   }
 
   /**
    * @param outputStream the {@link PrintStream} to use for {@link ErrorFormatter}.
    */
-  public DefaultDartCompilerListener(PrintStream outputStream, boolean printMachineProblems) {
-    formatter = new  PrettyErrorFormatter(outputStream, useColor(), printMachineProblems);
+  public DefaultDartCompilerListener(PrintStream outputStream, ErrorFormat errorFormat) {
+    formatter = new  PrettyErrorFormatter(outputStream, useColor(), errorFormat);
   }
 
   @Override
