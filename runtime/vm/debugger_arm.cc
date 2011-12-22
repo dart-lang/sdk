@@ -11,6 +11,7 @@ namespace dart {
 
 RawInstance* ActivationFrame::GetLocalVarValue(intptr_t slot_index) {
   UNIMPLEMENTED();
+  return NULL;
 }
 
 }  // namespace dart
