@@ -15,7 +15,7 @@ class StubGeneratorTestSuite extends StandardTestSuite {
               "tests/stub-generator/src",
               ["tests/stub-generator/stub-generator.status"]) {
     try {
-      dartcPath = TestUtils.dartcCompilationShellPath(configuration);
+      dartcPath = TestUtils.compilerPath(configuration);
     } catch (var e) {
       // ignore
     }
