@@ -14,17 +14,23 @@ except ImportError:
       'Please ignore if you are running buildbot smoketests.'
 import optparse
 import os
+from os.path import dirname, abspath
 import platform
 import shutil
 import subprocess
 import time
 import traceback
+import sys
+
+TOOLS_PATH = os.path.join(dirname(dirname(dirname(abspath(__file__)))))
+sys.path.append(TOOLS_PATH)
+import utils
 
 """This script runs to track performance and correctness progress of 
 different svn revisions. It tests to see if there a newer version of the code on
 the server, and will sync and run the performance tests if so."""
 
-DART_INSTALL_LOCATION = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+DART_INSTALL_LOCATION = os.path.join(dirname(abspath(__file__)),
     '..', '..', '..')
 V8_MEAN = 'V8 Mean'
 FROG_MEAN = 'frog Mean'
@@ -38,6 +44,10 @@ GRAPH_OUT_DIR = 'graphs'
 SLEEP_TIME = 200
 PERFBOT_MODE = False
 VERBOSE = False
+HAS_SHELL = False
+if platform.system() == 'Windows':
+  # On Windows, shell must be true to get the correct environment variables.
+  HAS_SHELL = True
 
 """First, some utility methods."""
 
@@ -56,13 +66,8 @@ def RunCmd(cmd_list, outfile=None, append=False):
     if append:
       mode = 'a'
     out = open(outfile, mode)
-  p = ''
-  if platform.system() == 'Windows':
-    # On Windows, shell must be true to get the correct environment variables.
-    p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE,
-        shell=True)
-  else:
-    p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE)
+  p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE,
+      shell=HAS_SHELL)
   output, not_used = p.communicate();
   if output:
     print output
@@ -87,33 +92,28 @@ def SyncAndBuild(failed_once=False):
   RunCmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'minfrog')])
 
   RunCmd(['gclient', 'sync'])
-  #TODO(efortuna): Temporary fix to get IE data without requiring Dart to build
-  # on Windows. Take this out once we have SDKs or can build on Windows.
-  if platform.system() != 'Windows':
-    lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release'])
-    os.chdir('frog')
-    lines += RunCmd([os.path.join('..', 'tools', 'build.py'), '-m', 
-        'debug,release'])
-    os.chdir('..')
+  # TODO(efortuna): building the sdk locally is a band-aid until all build
+  # platform SDKs are hosted in Google storage. Pull from https://sandbox.
+  # google.com/storage/?arg=dart-dump-render-tree#dart-dump-render-tree%2Fsdk
+  # eventually.
+  # TODO(efortuna): Currently always building ia32 architecture because we don't
+  # have test statistics for what's passing on x64. Eliminate arch specification
+  # when we have tests running on x64, too.
+  lines = RunCmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release',
+    '--arch=ia32', 'create_sdk'])
   
-    for line in lines:
-      if 'BUILD FAILED' in lines:
-        if failed_once:
-          # Someone checked in a broken build! Just stop trying to make it work
-          # and wait for the next hour to try again.
-          print 'Broken Build'
-          return 1
-        #Remove the xcode directory and attempt to build again. If it still
-        #fails, abort, and try again next hour.
-        out_dir = 'out'
-        if platform.system() == 'Darwin':
-          out_dir = 'xcodebuild'
-        shutil.rmtree(os.path.join(os.getcwd(), out_dir, 'Release_ia32'))
-        shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
-            'Debug_ia32'))
-        shutil.rmtree(os.path.join(os.getcwd(), 'frog', out_dir, 
-            'Release_ia32'))
-        SyncAndBuild(True)
+  for line in lines:
+    if 'BUILD FAILED' in lines:
+      if failed_once:
+        # Someone checked in a broken build! Just stop trying to make it work
+        # and wait to try again.
+        print 'Broken Build'
+        return 1
+      #Remove the output directory and attempt to build again. If it still
+      #fails, abort, and try again in a little bit.
+      shutil.rmtree(os.path.join(os.getcwd(), 
+          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')))
+      SyncAndBuild(True)
   return 0
 
 def EnsureOutputDirectory(dir_name):
@@ -263,7 +263,7 @@ class TestRunner(object):
   def AddSvnRevisionToTrace(self, outfile):
     """Add the svn version number to the provided tracefile."""
     p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE, 
-      stderr = subprocess.STDOUT)
+      stderr = subprocess.STDOUT, shell = HAS_SHELL)
     output, not_used = p.communicate()
     for line in output.split('\n'):
       if 'Revision' in line:
@@ -538,8 +538,12 @@ class BrowserCorrectnessTestRunner(TestRunner):
       self.trace_file = os.path.join('tools', 'testing',
           'perf_testing', self.result_folder_name, current_file)
       self.AddSvnRevisionToTrace(self.trace_file)
+      dart_sdk = os.path.join(os.getcwd(), utils.GetBuildRoot(utils.GuessOS(),
+          'release', 'ia32'), 'dart-sdk')
       RunCmd([os.path.join('.', 'tools', 'test.py'),
-          '--component=webdriver', '--flag=%s' % browser, '--report', 
+          '--component=webdriver', '--flag=%s' % browser, '--flag=--frog=%s' % \
+          os.path.join(dart_sdk, 'bin', 'frogc'), 
+          '--flag=--froglib=%s' % os.path.join(dart_sdk, 'lib'),
           '--timeout=20', '--progress=color', '--mode=release', '-j1',
           self.test_type], self.trace_file, append=True)
 
