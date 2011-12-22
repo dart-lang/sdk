@@ -29,7 +29,6 @@ HTML_CONTENTS = """
 <body>
   <h1> Running %(title)s </h1>
   <script type="text/javascript" src="%(controller_script)s"></script>
-  <script type="%(script_type)s" src="%(source_script)s"></script>
   <script type="text/javascript">
     // If nobody intercepts the error, finish the test.
     onerror = function() { window.layoutTestController.notifyDone() };
@@ -51,6 +50,7 @@ HTML_CONTENTS = """
       }, 50);
     };
   </script>
+  <script type="%(script_type)s" src="%(source_script)s"></script>
 </body>
 </html>
 """

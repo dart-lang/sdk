@@ -243,6 +243,7 @@ GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is r
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 IncrOpTest: Fail
+InstanceofTest: Fail
 Instanceof2Test: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
@@ -270,6 +271,7 @@ NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
 NumbersTest: Fail
+NumberSyntaxTest: Fail
 ObjectDynamicMethodTest: Fail
 OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
@@ -320,17 +322,13 @@ PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
-InstanceofTest: Fail
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
-NumberSyntaxTest: Fail
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
-InstanceofTest: Timeout
-NumberSyntaxTest: Timeout
 
 [ $arch == x64 ]
 *: Skip
