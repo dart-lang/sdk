@@ -220,10 +220,9 @@ class RunningProcess {
   void runCommand(String executable,
                   List<String> arguments,
                   void exitHandler(int exitCode)) {
-    process = new Process(executable, arguments);
+    process = new Process.start(executable, arguments);
     process.exitHandler = exitHandler;
     startTime = new Date.now();
-    process.start();
     InputStream stdoutStream = process.stdout;
     InputStream stderrStream = process.stderr;
     StringInputStream stdoutStringStream = new StringInputStream(stdoutStream);
@@ -255,21 +254,27 @@ class DartcBatchRunnerProcess {
   Date _startTime;
   Timer _timer;
 
-  DartcBatchRunnerProcess(String this._executable) {
-    _startProcess();
-  }
+  DartcBatchRunnerProcess(String this._executable);
 
   bool get active() => _currentTest != null;
 
   void startTest(TestCase testCase) {
     _currentTest = testCase;
-    if (testCase.executablePath != _executable) {
-      // Restart this runner with the right executable for this test.
+    if (_process === null) {
+      // Start process if not yet started.
+      _executable = testCase.executablePath;
+      _startProcess(() {
+        doStartTest(testCase);
+      });
+    } else if (testCase.executablePath != _executable) { 
+      // Restart this runner with the right executable for this test
+      // if needed.
       _executable = testCase.executablePath;
       _process.exitHandler = (exitCode) {
         _process.close();
-        _startProcess();
-        doStartTest(testCase);
+        _startProcess(() {
+          doStartTest(testCase);
+        });
       };
       _process.kill();
     } else {
@@ -278,10 +283,12 @@ class DartcBatchRunnerProcess {
   }
 
   void terminate() {
-    _process.exitHandler = (exitCode) {
-      _process.close();
-    };
-    _process.kill();
+    if (_process !== null) {
+      _process.exitHandler = (exitCode) {
+        _process.close();
+      };
+      _process.kill();
+    }  
   }
 
   void doStartTest(TestCase testCase) {
@@ -342,23 +349,25 @@ class DartcBatchRunnerProcess {
   void _exitHandler(exitCode) {
     if (_timer != null) _timer.cancel();
     _process.close();
-    _startProcess();
-    _reportResult(">>> TEST CRASH");
+    _startProcess(() {
+      _reportResult(">>> TEST CRASH");
+    });
   }
 
   void _timeoutHandler(TestCase test) {
     return (ignore) {
       _process.exitHandler = (exitCode) {
         _process.close();
-        _startProcess();
-        _reportResult(">>> TEST TIMEOUT");
+        _startProcess(() {
+          _reportResult(">>> TEST TIMEOUT");  
+        });
       };
       _process.kill();
     };
   }
 
-  void _startProcess() {
-    _process = new Process(_executable, ['-batch']);
+  void _startProcess(then) {
+    _process = new Process.start(_executable, ['-batch']);
     _stdoutStream = new StringInputStream(_process.stdout);
     _stderrStream = new StringInputStream(_process.stderr);
     _testStdout = new List<String>();
@@ -366,7 +375,7 @@ class DartcBatchRunnerProcess {
     _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
     _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
     _process.exitHandler = _exitHandler;
-    _process.start();
+    _process.startHandler = then;
   }
 }
 

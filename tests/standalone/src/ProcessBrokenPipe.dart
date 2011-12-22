@@ -8,15 +8,12 @@
 
 main() {
   // Running dart without arguments makes it close right away.
-  Process process = new Process(getDartBinFileName(), []);
+  Process process = new Process.start(getDartBinFileName(), []);
 
   // Write to the stdin after the process is terminated to test
   // writing to a broken pipe.
-  OutputStream output = process.stdin;
   process.exitHandler = (code) {
-    Expect.isFalse(output.write([0]));
+    Expect.isFalse(process.stdin.write([0]));
     process.close();
   };
-
-  process.start();
 }

@@ -13,44 +13,48 @@
 #source("ProcessTestUtil.dart");
 
 void test(Process process) {
-  List<int> data = "ABCDEFGHI\n".charCodes();
-  final int dataSize = data.length;
+  // Wait for the process to start and then interact with it.
+  process.startHandler = () {
+    List<int> data = "ABCDEFGHI\n".charCodes();
+    final int dataSize = data.length;
 
-  InputStream input = process.stdout;
-  OutputStream output = process.stdin;
-  process.start();
+    InputStream input = process.stdout;
+    OutputStream output = process.stdin;
 
-  int received = 0;
-  List<int> buffer = [];
+    int received = 0;
+    List<int> buffer = [];
 
-  void readData() {
-    buffer.addAll(input.read());
-    for (int i = received; i < Math.min(data.length, buffer.length) - 1; i++) {
-      Expect.equals(data[i], buffer[i]);
-    }
-    received = buffer.length;
-    if (received >= dataSize) {
-      // We expect an extra character on windows due to carriage return.
-      if (13 === buffer[dataSize - 1] && dataSize + 1 === received) {
-        Expect.equals(13, buffer[dataSize - 1]);
-        Expect.equals(10, buffer[dataSize]);
-        buffer.removeLast();
-        process.close();
-      } else if (received === dataSize) {
-        process.close();
+    void readData() {
+      buffer.addAll(input.read());
+      for (int i = received;
+           i < Math.min(data.length, buffer.length) - 1;
+           i++) {
+        Expect.equals(data[i], buffer[i]);
+      }
+      received = buffer.length;
+      if (received >= dataSize) {
+        // We expect an extra character on windows due to carriage return.
+        if (13 === buffer[dataSize - 1] && dataSize + 1 === received) {
+          Expect.equals(13, buffer[dataSize - 1]);
+          Expect.equals(10, buffer[dataSize]);
+          buffer.removeLast();
+          process.close();
+        } else if (received === dataSize) {
+          process.close();
+        }
       }
     }
-  }
 
-  output.write(data);
-  output.close();
-  input.dataHandler = readData;
+    output.write(data);
+    output.close();
+    input.dataHandler = readData;
+  };
 }
 
 main() {
   // Run the test using the process_test binary.
-  test(new Process(getProcessTestFileName(),
-                   const ["0", "1", "99", "0"]));
+  test(new Process.start(getProcessTestFileName(),
+                         const ["0", "1", "99", "0"]));
 
   // Run the test using the dart binary with an echo script.
   // The test runner can be run from either the root or from runtime.
@@ -59,5 +63,5 @@ main() {
     scriptFile = new File("../tests/standalone/src/ProcessStdIOScript.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(new Process(getDartFileName(), [scriptFile.name, "0"]));
+  test(new Process.start(getDartFileName(), [scriptFile.name, "0"]));
 }

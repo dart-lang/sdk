@@ -20,7 +20,7 @@ class CCTestListerIsolate extends Isolate {
 
   void main() {
     port.receive((String runnerPath, SendPort replyTo) {
-      var p = new Process(runnerPath, ["--list"]);
+      var p = new Process.start(runnerPath, ["--list"]);
       StringInputStream stdoutStream = new StringInputStream(p.stdout);
       List<String> tests = new List<String>();
       stdoutStream.lineHandler = () {
@@ -40,7 +40,6 @@ class CCTestListerIsolate extends Isolate {
         }
         replyTo.send("");
       };
-      p.start();
     });
   }
 }

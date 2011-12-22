@@ -112,11 +112,10 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     if (configuration['verbose']) {
       print("# $dartcPath ${Strings.join(args, ' ')}");
     }
-    Process dartcProcess = new Process(dartcPath, args);
+    Process dartcProcess = new Process.start(dartcPath, args);
     dartcProcess.exitHandler = (int exitCode) {
       combineFiles(filename, stubsPath, onGenerated);
     };
-    dartcProcess.start();
   }
 
   void processFile(String filename) {
