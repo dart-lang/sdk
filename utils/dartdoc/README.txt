@@ -45,7 +45,7 @@ look nice in plain text. For example:
     /// horizontal rule.
     ///
     ///     to.get(a.block + of.code) {
-    ///       indent(it, 4.lines);
+    ///       indent(it, 4.spaces);
     ///       like(this);
     ///     }
     ///
