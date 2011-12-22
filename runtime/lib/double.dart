@@ -108,9 +108,9 @@ class Double implements double {
   double toDouble() { return this; }
 
   double pow(num exponent) {
-    return pow_(exponent.toDouble());
+    return _pow(exponent.toDouble());
   }
-  double pow_(double exponent) native "Double_pow";
+  double _pow(double exponent) native "Double_pow";
 
   String toStringAsFixed(int fractionDigits) {
     // See ECMAScript-262, 15.7.4.5 for details.
@@ -125,64 +125,55 @@ class Double implements double {
     double x = this;
 
     // Step 4.
-    if (x.isNaN()) {
-      return "NaN";
-    }
+    if (isNaN()) return "NaN";
 
-    // Step 5.
-    String s = "";
-
-    // Step 6.
-    if (x.isNegative() && x != 0.0) {
-      s = "-";
-      x = -x;
-    }
+    // Step 5 and 6 skipped. Will be dealt with by native function.
 
     // Step 7.
-    String m;
-    if (x > 10e21) {
-      m = x.toString();
-    } else {
-      // Step 8.
-
-      // Step 8.a.
-      // This is an approximation for n from the standard.
-      int n = (x * (10.0).pow(fractionDigits)).round().toInt();
-
-      // Step 8.b.
-      m = n.toString();
-
-      // Step 8.c.
-      if (fractionDigits != 0) {
-        // Step 8.c.i.
-        int k = m.length;
-        // Step 8.c.ii.
-        if (k <= fractionDigits) {
-          StringBuffer sb = new StringBuffer();
-          for (int i = 0; i < fractionDigits + 1 - k; i++) {
-            sb.add("0");
-          }
-          String z = sb.toString();
-          m = z + m;
-          k = fractionDigits + 1;
-        }
-        // Step 8.c.iii.
-        String a = m.substring(0, k - fractionDigits);
-        String b = m.substring(k - fractionDigits);
-        // Step 8.c.iv.
-        m = a + "." + b;
-      }
+    if (x >= 1e21 || x <= -1e21) {
+      return x.toString();
     }
 
-    // Step 9.
-    return s + m;
+    return _toStringAsFixed(fractionDigits);
   }
+  String _toStringAsFixed(int fractionDigits) native "Double_toStringAsFixed";
+
   String toStringAsExponential(int fractionDigits) {
-    throw "Double.toStringAsExponential unimplemented.";
+    // See ECMAScript-262, 15.7.4.6 for details.
+
+    // The EcmaScript specification checks for NaN and Infinity before looking
+    // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
+    // look at the fractionDigits first.
+
+    // Step 7.
+    if (fractionDigits < 0 || fractionDigits > 20) {
+      // TODO(antonm): should be proper RangeError or Dart counterpart.
+      throw "Range error";
+    }
+
+    return _toStringAsExponential(fractionDigits);
   }
+  String _toStringAsExponential(int fractionDigits)
+      native "Double_toStringAsExponential";
+
   String toStringAsPrecision(int precision) {
-    throw "Double.toStringAsPrecision unimplemented.";
+    // See ECMAScript-262, 15.7.4.7 for details.
+
+    // The EcmaScript specification checks for NaN and Infinity before looking
+    // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
+    // look at the fractionDigits first.
+
+    // Step 8.
+    if (precision < 1 || precision > 21) {
+      // TODO(antonm): should be proper RangeError or Dart counterpart.
+      throw "Range error";
+    }
+
+    return _toStringAsPrecision(precision);
   }
+  String _toStringAsPrecision(int fractionDigits)
+      native "Double_toStringAsPrecision";
+
   String toRadixString(int radix) {
     throw "Double.toRadixString unimplemented.";
   }

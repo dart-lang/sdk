@@ -104,6 +104,8 @@
     'debuginfo_linux.cc',
     'debuginfo_macos.cc',
     'debuginfo_win.cc',
+    'double_conversion.cc',
+    'double_conversion.h',
     'exceptions.cc',
     'exceptions.h',
     'exceptions_test.cc',

@@ -54,6 +54,9 @@ namespace dart {
   V(Double_ceil, 1)                                                            \
   V(Double_truncate, 1)                                                        \
   V(Double_toInt, 1)                                                           \
+  V(Double_toStringAsFixed, 2)                                                 \
+  V(Double_toStringAsExponential, 2)                                           \
+  V(Double_toStringAsPrecision, 2)                                             \
   V(Double_pow, 2)                                                             \
   V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \

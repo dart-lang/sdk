@@ -13,7 +13,8 @@ class ToStringAsFixedTest {
     Expect.equals("NaN", (0.0 / 0.0).toStringAsFixed(3));
     Expect.equals("Infinity", (1.0/0.0).toStringAsFixed(3));
     Expect.equals("-Infinity", (-1.0/0.0).toStringAsFixed(3));
-    // FIXME: currently bigint formatting produces hexes.
+    // TODO(floitsch): enable the following test when double.toString does the
+    // right thing.
     // Expect.equals("1.1111111111111111e+21", 1111111111111111111111.0.toStringAsFixed(8));
     Expect.equals("0.1", 0.1.toStringAsFixed(1));
     Expect.equals("0.10", 0.1.toStringAsFixed(2));
@@ -40,7 +41,8 @@ class ToStringAsFixedTest {
     Expect.equals("0.0", 0.0.toStringAsFixed(1));
     Expect.equals("0.00", 0.0.toStringAsFixed(2));
 
-    // FIXME: currently bigint formatting produces hexes.
+    // TODO(floitsch): enable the following test when double.toString does the
+    // right thing.
     // Expect.equals("-1.1111111111111111e+21", (-1111111111111111111111.0).toStringAsFixed(8));
     Expect.equals("-0.1", (-0.1).toStringAsFixed(1));
     Expect.equals("-0.10", (-0.1).toStringAsFixed(2));
@@ -62,9 +64,9 @@ class ToStringAsFixedTest {
     Expect.equals("-0.00000006", (-0.00000006).toStringAsFixed(8));
     Expect.equals("-0.000000060", (-0.00000006).toStringAsFixed(9));
     Expect.equals("-0.0000000600", (-0.00000006).toStringAsFixed(10));
-    Expect.equals("0", (-0.0).toStringAsFixed(0));
-    Expect.equals("0.0", (-0.0).toStringAsFixed(1));
-    Expect.equals("0.00", (-0.0).toStringAsFixed(2));
+    Expect.equals("-0", (-0.0).toStringAsFixed(0));
+    Expect.equals("-0.0", (-0.0).toStringAsFixed(1));
+    Expect.equals("-0.00", (-0.0).toStringAsFixed(2));
 
     Expect.equals("1000", 1000.0.toStringAsFixed(0));
     Expect.equals("0", 0.00001.toStringAsFixed(0));
@@ -75,22 +77,18 @@ class ToStringAsFixedTest {
     Expect.equals("1000000000000000128", 1000000000000000128.0.toStringAsFixed(0));
     Expect.equals("100000000000000128.0", 100000000000000128.0.toStringAsFixed(1));
     Expect.equals("10000000000000128.00", 10000000000000128.0.toStringAsFixed(2));
-    // FIXME: currently bigint formatting produces hexes.
-    // Expect.equals("10000000000000128.00000000000000000000", 10000000000000128.0.toStringAsFixed(20));
+    Expect.equals("10000000000000128.00000000000000000000", 10000000000000128.0.toStringAsFixed(20));
     Expect.equals("0", 0.0.toStringAsFixed(0));
     Expect.equals("-42.000", (-42.0).toStringAsFixed(3));
     Expect.equals("-1000000000000000128", (-1000000000000000128.0).toStringAsFixed(0));
     Expect.equals("-0.00000000000000000010", (-0.0000000000000000001).toStringAsFixed(20));
-    // FIXME: currently bigint formatting produces hexes.
-    // Expect.equals("0.12312312312312299889", 0.123123123123123.toStringAsFixed(20));
+    Expect.equals("0.12312312312312299889", 0.123123123123123.toStringAsFixed(20));
     // Test that we round up even when the last digit generated is even.
     // dtoa does not do this in its original form.
     Expect.equals("1", 0.5.toStringAsFixed(0));
     Expect.equals("-1", (-0.5).toStringAsFixed(0));
     Expect.equals("1.3", 1.25.toStringAsFixed(1));
-    // This is bizare, but Spidermonkey and KJS behave the same.
-    // FIXME: consider if we'd like to unify this corner case.
-    // Expect.equals("234.2040", 234.20405.toStringAsFixed(4));
+    Expect.equals("234.2040", 234.20405.toStringAsFixed(4));
     Expect.equals("234.2041", 234.2040506.toStringAsFixed(4));
     {
       bool thrown = false;

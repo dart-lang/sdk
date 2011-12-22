@@ -7,6 +7,7 @@
 #include "vm/bootstrap_natives.h"
 
 #include "vm/bigint_operations.h"
+#include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -181,6 +182,33 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
     arguments->SetReturn(
         Bigint::Handle(BigintOperations::NewFromDouble(result)));
   }
+}
+
+
+DEFINE_NATIVE_ENTRY(Double_toStringAsFixed, 2) {
+  const Double& arg = Double::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, fraction_digits, arguments->At(1));
+  double d = arg.value();
+  int fraction_digits_value = fraction_digits.Value();
+  String& result = String::Handle();
+  bool succeeded = DoubleToStringAsFixed(d, fraction_digits_value, result);
+  if (!succeeded) {
+    GrowableArray<const Object*> args;
+    args.Add(&String::ZoneHandle(String::New(
+        "Illegal arguments to double.toStringAsFixed")));
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+  }
+  arguments->SetReturn(result);
+}
+
+
+DEFINE_NATIVE_ENTRY(Double_toStringAsExponential, 2) {
+  UNIMPLEMENTED();
+}
+
+
+DEFINE_NATIVE_ENTRY(Double_toStringAsPrecision, 2) {
+  UNIMPLEMENTED();
 }
 
 
