@@ -68,28 +68,29 @@ void Breakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-ActivationFrame::ActivationFrame(uword pc)
-    : pc_(pc),
-      function_(NULL),
+ActivationFrame::ActivationFrame(uword pc, uword fp)
+    : pc_(pc), fp_(fp),
+      function_(Function::ZoneHandle()),
       token_index_(-1),
       line_number_(-1),
-      locals_(NULL) {
+      var_descriptors_(NULL),
+      desc_indices_(8) {
 }
 
 
-Function* ActivationFrame::DartFunction() {
-  if (function_ == NULL) {
+const Function& ActivationFrame::DartFunction() {
+  if (function_.IsNull()) {
     ASSERT(Isolate::Current() != NULL);
     CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
     ASSERT(code_index_table != NULL);
-    function_ = &Function::ZoneHandle(code_index_table->LookupFunction(pc_));
+    function_ = code_index_table->LookupFunction(pc_);
   }
   return function_;
 }
 
 
 const char* Debugger::QualifiedFunctionName(const Function& func) {
-  String& func_name = String::Handle(func.name());
+  const String& func_name = String::Handle(func.name());
   Class& func_class = Class::Handle(func.owner());
   String& class_name = String::Handle(func_class.Name());
 
@@ -110,7 +111,7 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
 
 
 RawString* ActivationFrame::QualifiedFunctionName() {
-  Function& func = *DartFunction();
+  const Function& func = DartFunction();
   return String::New(Debugger::QualifiedFunctionName(func));
 }
 
@@ -122,7 +123,7 @@ RawString* ActivationFrame::SourceUrl() {
 
 
 RawScript* ActivationFrame::SourceScript() {
-  const Function& func = *DartFunction();
+  const Function& func = DartFunction();
   const Class& cls = Class::Handle(func.owner());
   return cls.script();
 }
@@ -130,7 +131,7 @@ RawScript* ActivationFrame::SourceScript() {
 
 intptr_t ActivationFrame::TokenIndex() {
   if (token_index_ < 0) {
-    const Function& func = *DartFunction();
+    const Function& func = DartFunction();
     Code& code = Code::Handle(func.code());
     ASSERT(!code.IsNull());
     PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
@@ -157,12 +158,44 @@ intptr_t ActivationFrame::LineNumber() {
 }
 
 
-ActiveVariables* ActivationFrame::LocalVariables() {
-  if (locals_ == NULL) {
-    const Function& func = *DartFunction();
-    locals_ = new ActiveVariables(func, TokenIndex());
+void ActivationFrame::GetLocalVariables() {
+  if (var_descriptors_ == NULL) {
+    const Code& code = Code::Handle(DartFunction().code());
+    var_descriptors_ =
+        &LocalVarDescriptors::ZoneHandle(code.var_descriptors());
+    intptr_t activation_token_pos = TokenIndex();
+    intptr_t desc_len = var_descriptors_->Length();
+    for (int i = 0; i < desc_len; i++) {
+      intptr_t begin_pos, end_pos;
+      var_descriptors_->GetRange(i, &begin_pos, &end_pos);
+      if ((begin_pos <= activation_token_pos) &&
+          (activation_token_pos <= end_pos)) {
+        desc_indices_.Add(i);
+      }
+    }
   }
-  return locals_;
+}
+
+
+intptr_t ActivationFrame::NumLocalVariables() {
+  GetLocalVariables();
+  return desc_indices_.length();
+}
+
+
+void ActivationFrame::VariableAt(intptr_t i,
+                                 String* name,
+                                 intptr_t* token_pos,
+                                 intptr_t* end_pos,
+                                 Instance* value) {
+  GetLocalVariables();
+  ASSERT(i < desc_indices_.length());
+  ASSERT(name != NULL);
+  intptr_t desc_index = desc_indices_[i];
+  *name ^= var_descriptors_->GetName(desc_index);
+  var_descriptors_->GetRange(i, token_pos, end_pos);
+  ASSERT(value != NULL);
+  *value = GetLocalVarValue(var_descriptors_->GetSlotIndex(i));
 }
 
 
@@ -175,8 +208,8 @@ RawInstance* ActivationFrame::Value(const String& variable_name) {
 const char* ActivationFrame::ToCString() {
   const char* kFormat = "Function: '%s' url: '%s' line: %d";
 
-  Function& func = *DartFunction();
-  String& url = String::Handle(SourceUrl());
+  const Function& func = DartFunction();
+  const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(func);
 
@@ -192,39 +225,6 @@ const char* ActivationFrame::ToCString() {
 
 void StackTrace::AddActivation(ActivationFrame* frame) {
   this->trace_.Add(frame);
-}
-
-
-ActiveVariables::ActiveVariables(const Function& function, intptr_t token_pos)
-    : descriptors_(NULL),
-      desc_indices_(8) {
-  const Code& code = Code::Handle(function.code());
-  LocalVarDescriptors& var_descs =
-      LocalVarDescriptors::ZoneHandle(code.var_descriptors());
-  descriptors_ = &var_descs;
-  intptr_t desc_len = var_descs.Length();
-  for (int i = 0; i < desc_len; i++) {
-    intptr_t begin_pos, end_pos;
-    var_descs.GetRange(i, &begin_pos, &end_pos);
-    if ((begin_pos <= token_pos) && (token_pos <= end_pos)) {
-      desc_indices_.Add(i);
-    }
-  }
-}
-
-
-void ActiveVariables::VariableAt(intptr_t i,
-                                 String* name,
-                                 intptr_t* token_pos,
-                                 intptr_t* end_pos,
-                                 Instance* value) const {
-  ASSERT(i < Length());
-  ASSERT(name != NULL);
-  intptr_t desc_index = desc_indices_[i];
-  *name ^= descriptors_->GetName(desc_index);
-  descriptors_->GetRange(i, token_pos, end_pos);
-  ASSERT(value != NULL);
-  *value = Instance::null();  // TODO(hausner): get actual variable value.
 }
 
 
@@ -333,11 +333,10 @@ static void DefaultBreakpointHandler(Breakpoint* bpt, StackTrace* stack) {
     ActivationFrame* frame = stack->ActivationFrameAt(i);
     OS::Print("   %d. %s\n",
               i + 1, frame->ToCString());
-    ActiveVariables* locals = frame->LocalVariables();
-    intptr_t num_locals = locals->Length();
+    intptr_t num_locals = frame->NumLocalVariables();
     for (intptr_t i = 0; i < num_locals; i++) {
       intptr_t token_pos, end_pos;
-      locals->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
+      frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
       OS::Print("      var %s (pos %d) = %s\n",
                 var_name.ToCString(), token_pos, value.ToCString());
     }
@@ -370,7 +369,8 @@ void Debugger::BreakpointCallback() {
   while (frame != NULL) {
     ASSERT(frame->IsValid());
     ASSERT(frame->IsDartFrame());
-    ActivationFrame* activation = new ActivationFrame(frame->pc());
+    ActivationFrame* activation =
+        new ActivationFrame(frame->pc(), frame->fp());
     stack_trace->AddActivation(activation);
     frame = iterator.NextFrame();
   }

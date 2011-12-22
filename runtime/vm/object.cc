@@ -4606,6 +4606,13 @@ void LocalVarDescriptors::GetRange(intptr_t var_index,
 }
 
 
+intptr_t LocalVarDescriptors::GetSlotIndex(intptr_t var_index) const {
+  ASSERT(var_index < Length());
+  RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
+  return info->index;
+}
+
+
 void LocalVarDescriptors::SetVar(intptr_t var_index,
                                 const String& name,
                                 intptr_t stack_slot,

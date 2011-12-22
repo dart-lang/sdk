@@ -1752,6 +1752,7 @@ class LocalVarDescriptors : public Object {
   RawString* GetName(intptr_t var_index) const;
   void GetRange(intptr_t var_index,
                 intptr_t* begin_token_pos, intptr_t* end_token_pos) const;
+  intptr_t GetSlotIndex(intptr_t var_index) const;
 
   void SetVar(intptr_t var_index,
               const String& name,

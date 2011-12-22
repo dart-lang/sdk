@@ -50,11 +50,12 @@ class Breakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  explicit ActivationFrame(uword pc);
+  explicit ActivationFrame(uword pc, uword fp);
 
   uword pc() const { return pc_; }
+  uword fp() const { return fp_; }
 
-  Function* DartFunction();
+  const Function& DartFunction();
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
@@ -62,18 +63,30 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t LineNumber();
   const char* ToCString();
 
-  ActiveVariables* LocalVariables();
+  intptr_t NumLocalVariables();
+
+  void VariableAt(intptr_t i,
+                  String* name,
+                  intptr_t* token_pos,
+                  intptr_t* end_pos,
+                  Instance* value);
 
   // Returns the value of the given variable in the context of the
   // activation frame.
   RawInstance* Value(const String& variable_name);
 
  private:
+  void GetLocalVariables();
+  RawInstance* GetLocalVarValue(intptr_t slot_index);
+
   uword pc_;
-  Function* function_;
+  uword fp_;
+  Function& function_;
   intptr_t token_index_;
   intptr_t line_number_;
-  ActiveVariables* locals_;
+
+  LocalVarDescriptors* var_descriptors_;
+  ZoneGrowableArray<intptr_t> desc_indices_;
 
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);
 };
@@ -96,24 +109,6 @@ class StackTrace : public ZoneAllocated {
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(StackTrace);
-};
-
-
-class ActiveVariables : public ZoneAllocated {
- public:
-  ActiveVariables(const Function& function, intptr_t token_pos);
-
-  intptr_t Length() const { return desc_indices_.length(); }
-
-  void VariableAt(intptr_t i,
-                  String* name,
-                  intptr_t* token_pos,
-                  intptr_t* end_pos,
-                  Instance* value) const;
- private:
-  LocalVarDescriptors* descriptors_;
-  ZoneGrowableArray<intptr_t> desc_indices_;
-  DISALLOW_COPY_AND_ASSIGN(ActiveVariables);
 };
 
 
