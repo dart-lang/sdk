@@ -37,13 +37,23 @@ endFile() {
 }
 
 /**
- * Converts [absolute] which is understood to be a full path from the root of
+ * Converts [fullPath] which is understood to be a full path from the root of
  * the generated docs to one relative to the current file.
  */
-String relativePath(String absolute) {
+String relativePath(String fullPath) {
+  // Don't make it relative if it's an absolute path.
+  if (isAbsolute(fullPath)) return fullPath;
+
   // TODO(rnystrom): Walks all the way up to root each time. Shouldn't do this
   // if the paths overlap.
-  return repeat('../', countOccurrences(_filePath, '/')) + absolute;
+  return repeat('../', countOccurrences(_filePath, '/')) + fullPath;
+}
+
+/** Gets whether or not the given URL is absolute or relative. */
+bool isAbsolute(String url) {
+  // TODO(rnystrom): This is a bit hackish. We consider any URL that lacks
+  // a scheme to be relative.
+  return const RegExp(@'^\w+:').hasMatch(url);
 }
 
 /** Gets the URL to the documentation for [library]. */

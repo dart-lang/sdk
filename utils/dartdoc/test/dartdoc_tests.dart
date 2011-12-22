@@ -47,7 +47,26 @@ main() {
     });
   });
 
+  group('isAbsolute', () {
+    test('returns false if there is no scheme', () {
+      expect(isAbsolute('index.html')).isFalse();
+      expect(isAbsolute('foo/index.html')).isFalse();
+      expect(isAbsolute('foo/bar/index.html')).isFalse();
+    });
+
+    test('returns true if there is a scheme', () {
+      expect(isAbsolute('http://google.com')).isTrue();
+      expect(isAbsolute('hTtPs://google.com')).isTrue();
+      expect(isAbsolute('mailto:fake@email.com')).isTrue();
+    });
+  });
+
   group('relativePath', () {
+    test('absolute path is unchanged', () {
+      startFile('dir/sub/file.html');
+      expect(relativePath('http://google.com')).equals('http://google.com');
+    });
+
     test('from root to root', () {
       startFile('root.html');
       expect(relativePath('other.html')).equals('other.html');
