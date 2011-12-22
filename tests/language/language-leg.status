@@ -241,6 +241,8 @@ OptimizationTest: Fail
 OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
 OverriddenNoSuchMethodTest: Fail
+OverrideFieldMethod2NegativeTest: Fail
+OverrideFieldMethod3NegativeTest: Fail
 OverrideFieldMethod4NegativeTest: Fail
 OverrideFieldTest/02: Fail
 OverrideFieldTest/03: Fail
@@ -274,6 +276,8 @@ ScopeNegativeTest: Fail
 ScopeVariableTest: Fail
 Setter0Test: Fail
 Setter1Test: Fail
+SetterDeclaration2NegativeTest: Fail
+SetterDeclarationNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
@@ -349,5 +353,4 @@ TypedMessageTest: Fail
 Unary2Test: Fail
 UnaryTest: Fail
 UnboundGetterTest: Fail
-UnresolvedInFactoryNegativeTest: Fail
 WhileTest: Fail
