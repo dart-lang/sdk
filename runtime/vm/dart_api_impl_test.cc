@@ -3046,6 +3046,7 @@ void BusyLoop_start(uword unused) {
 // This callback handles isolate interrupts for the IsolateInterrupt
 // test.  It ignores the first two interrupts and throws an exception
 // on the third interrupt.
+const int kInterruptCount = 10;
 static int interrupt_count = 0;
 static bool IsolateInterruptTestCallback() {
   OS::Print(" ========== Interrupt callback called #%d\n", interrupt_count + 1);
@@ -3054,7 +3055,7 @@ static bool IsolateInterruptTestCallback() {
     interrupt_count++;
     ml.Notify();
   }
-  if (interrupt_count >= 3) {
+  if (interrupt_count == kInterruptCount) {
     Dart_EnterScope();
     Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
     EXPECT_VALID(lib);
@@ -3065,6 +3066,7 @@ static bool IsolateInterruptTestCallback() {
     UNREACHABLE();  // Dart_ThrowException only returns if it gets an error.
     return false;
   }
+  ASSERT(interrupt_count < kInterruptCount);
   return true;
 }
 
@@ -3085,10 +3087,11 @@ TEST_CASE(IsolateInterrupt) {
     }
   }
 
-  // Send three interrupts to the other isolate.  The first two allow
-  // execution to continue.  The third causes an exception in the
-  // isolate.
-  for (int i = 0; i < 3; i++) {
+  // Send a number of interrupts to the other isolate. All but the
+  // last allow execution to continue. The last causes an exception in
+  // the isolate.
+  for (int i = 0; i < kInterruptCount; i++) {
+    OS::Sleep(i + 1);
     Dart_InterruptIsolate(shared_isolate);
     {
       MonitorLocker ml(sync);
@@ -3098,6 +3101,7 @@ TEST_CASE(IsolateInterrupt) {
       }
       OS::Print(" ========== Interrupt processed #%d\n", interrupt_count);
     }
+    // Space out the interrupts a bit.
   }
 
   {
@@ -3108,8 +3112,8 @@ TEST_CASE(IsolateInterrupt) {
     }
   }
 
-  // We should have received 3 interrupts.
-  EXPECT_EQ(3, interrupt_count);
+  // We should have received the expected number of interrupts.
+  EXPECT_EQ(kInterruptCount, interrupt_count);
 
   // Give the spawned thread enough time to properly exit.
   Isolate::SetInterruptCallback(saved);
