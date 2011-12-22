@@ -3091,6 +3091,7 @@ TEST_CASE(IsolateInterrupt) {
   // last allow execution to continue. The last causes an exception in
   // the isolate.
   for (int i = 0; i < kInterruptCount; i++) {
+    // Space out the interrupts a bit.
     OS::Sleep(i + 1);
     Dart_InterruptIsolate(shared_isolate);
     {
@@ -3101,7 +3102,6 @@ TEST_CASE(IsolateInterrupt) {
       }
       OS::Print(" ========== Interrupt processed #%d\n", interrupt_count);
     }
-    // Space out the interrupts a bit.
   }
 
   {
