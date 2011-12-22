@@ -46,7 +46,7 @@ public enum TypeErrorCode implements ErrorCode {
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),
   VOID("expression does not yield a value"),
-  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments, Expected %d");
   private final ErrorSeverity severity;
   private final String message;
 

@@ -1727,31 +1727,33 @@ public class GenerateJavascriptAST {
       // Create the runtime type checks that will be inserted later
       List<JsStatement> checks = Lists.newArrayList();
 
-      // TODO(zundel): these runtime checks do not work in hoisted functions
-      // created inside of factory methods.  A bad reference to $typeArgs caused an error
-      // in the closure compiler backend.
-      boolean emitChecks = true;
-      if (inFactory ) {
+      // TODO(zundel): Issue 925: these runtime checks do not work in hoisted functions
+      // created inside of factory methods if the parameter references type variables.
+      // A bad reference to $typeArgs caused an error in the closure compiler backend.
+      boolean omitTypeVariableChecks = false;
+      if (inFactory) {
         Element element = (Element)x.getParent().getSymbol();
         if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
           // The code being emitted is something other than the factory method itself.
-          emitChecks = false;
+          omitTypeVariableChecks = true;
         }
       }
 
-      if (emitChecks) {
-        int numParams = params.size();
-        for (int i = 0; i < numParams; ++i) {
-          JsNameRef jsParam = jsParams.get(i).getName().makeRef();
-          DartParameter param = params.get(i);
-          Type paramType = param.getSymbol().getType();
-          JsExpression expr = rtt.addTypeCheck(getCurrentClass(), jsParam, paramType, null, param);
-          if (expr != jsParam) {
-            // if the expression was returned unchanged, omit the check
-            checks.add(new JsExprStmt(expr));
-          }
+      int numParams = params.size();
+      for (int i = 0; i < numParams; ++i) {
+        JsNameRef jsParam = jsParams.get(i).getName().makeRef();
+        DartParameter param = params.get(i);
+        Type paramType = param.getSymbol().getType();
+        if (omitTypeVariableChecks && TypeKind.of(paramType).equals(TypeKind.VARIABLE)) {
+          continue;
+        }
+        JsExpression expr = rtt.addTypeCheck(getCurrentClass(), jsParam, paramType, null, param);
+        if (expr != jsParam) {
+          // if the expression was returned unchanged, omit the check
+          checks.add(new JsExprStmt(expr));
         }
       }
+
 
       // Add temporary variable declarations, if any.
       declareTempsInBlock(body, jsNewDeclarationsStack.pop());

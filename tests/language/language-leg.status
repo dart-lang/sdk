@@ -337,6 +337,7 @@ ToplevelCollision2Test/none: Fail
 TryCatch2Test: Fail
 TryCatch3Test: Fail
 TryCatchTest: Fail
+TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeDartcTest: Fail
 TypeVMTest: Fail
 TypeVariableBoundsTest/01: Fail
