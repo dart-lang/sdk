@@ -6,7 +6,6 @@ prefix language
 
 [ $component == leg ]
 AbstractStaticNegativeTest: Fail
-AckermannTest: Fail
 AllocateTest: Fail
 ApplicationTest: Fail
 ArithmeticTest: Fail
@@ -17,7 +16,6 @@ BadNamedParametersTest: Fail
 BitOperationsTest: Fail
 BlockScopeTest: Fail
 BoolTest: Fail
-BranchesTest: Fail
 BreakTest: Fail
 CTConst2Test: Fail
 CTConst3Test: Fail
@@ -28,7 +26,6 @@ CallThroughNullGetterTest: Fail
 CanonicalConstTest: Fail
 CharEscapeTest: Fail
 ClassCycleNegativeTest: Fail
-ClassLiteralTest/none: Fail
 ClassOverrideNegativeTest: Fail
 ClassTest: Fail
 Closure2Test: Fail
@@ -41,6 +38,7 @@ ClosuresWithComplexParamsTest: Fail
 ComparisonTest: Fail
 CompoundAssignmentOperatorTest: Fail
 ConstEscapeFrogTest: Fail
+ConstInitNegativeTest: Fail
 ConstInitTest: Fail
 ConstListTest: Fail
 ConstNamedTest: Fail
@@ -74,11 +72,9 @@ DefaultImplementationTest: Fail
 DefaultInitTest: Fail
 DeoptNoFeedbackTest: Fail
 DeoptimizationTest: Fail
-DeoptimizedFunctionOnStackTest: Fail
 DivByZeroTest: Fail
 DoWhileTest: Fail
 DuplicateConstructorTest/01: Fail
-DynamicCallTest: Fail
 DynamicTest: Fail
 EmptyBlockCaseTest: Fail
 EmptyBodyMemberNegativeTest: Fail
@@ -105,7 +101,6 @@ FauxverrideTest/01: Fail
 FauxverrideTest/02: Fail
 FauxverrideTest/04: Fail
 FauxverrideTest/none: Fail
-FiboTest: Fail
 Field1NegativeTest: Fail
 Field2NegativeTest: Fail
 Field4NegativeTest: Fail
@@ -202,7 +197,6 @@ MathVMTest: Fail
 MethodBindingTest: Fail
 MethodInvocationTest: Fail
 MethodOverrideTest: Fail
-MultiAssignTest: Fail
 MultiPass2Test: Fail
 MultiPassTest: Fail
 NamedConstructorTest: Fail
@@ -228,7 +222,6 @@ NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
 NativeTest: Fail
 NewExpressionTypeArgsFrogTest/02: Fail
-NewStatementTest: Fail
 NoSuchMethodTest: Fail
 NonConstConstructorWithoutBodyTest: Fail
 NonConstSuperNegativeTest: Fail
@@ -253,10 +246,8 @@ OverrideFieldTest/03: Fail
 OverrideFieldTest/none: Fail
 OverrideMethodWithFieldTest/none: Fail
 Param2Test: Fail
-ParamTest: Fail
 ParameterInitializer2Test: Fail
 ParameterInitializerTest: Fail
-ParseTypesTest: Fail
 Prefix10Test: Fail
 Prefix11Test: Fail
 Prefix12Test: Fail
@@ -276,15 +267,12 @@ RegEx2Test: Fail
 RegExp2Test: Fail
 RegExp3Test: Fail
 RegExpTest: Fail
-ResolveTest: Fail
 RethrowTest: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
 ScopeVariableTest: Fail
-SecondTest: Fail
 Setter0Test: Fail
 Setter1Test: Fail
-Setter2Test: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
@@ -324,7 +312,6 @@ SwitchLabelTest: Fail
 SwitchScopeTest: Fail
 SwitchTest: Fail
 TernaryTest: Fail
-ThirdTest: Fail
 Throw1Test: Fail
 Throw2Test: Fail
 Throw3Test: Fail
@@ -337,7 +324,6 @@ TopLevelEntryTest: Fail
 TopLevelFuncTest: Fail
 TopLevelGetterArrowSyntaxTest: Fail
 TopLevelInInitializerTest: Fail
-TopLevelMethodTest: Fail
 TopLevelMultipleFilesTest: Fail
 TopLevelNonPrefixedLibraryTest: Fail
 TopLevelVarTest: Fail
@@ -362,7 +348,5 @@ TypedMessageTest: Fail
 Unary2Test: Fail
 UnaryTest: Fail
 UnboundGetterTest: Fail
-UnqualNameTest: Fail
 UnresolvedInFactoryNegativeTest: Fail
-VarInitTest: Fail
 WhileTest: Fail
