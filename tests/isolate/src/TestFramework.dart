@@ -275,6 +275,11 @@ class AsynchronousTestCase extends TestCase {
     }
   }
 
+  // AsynchronousTestCase.run() calls variable test, not function performTest.
+  void performTest() {
+    Expect.fail('performTest called in AsynchronousTestCase');
+  }
+
   AsynchronousTestFunction test;
 
   static int running = 0;
