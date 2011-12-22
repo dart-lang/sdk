@@ -155,6 +155,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
   bool NodeMayBeSmi(AstNode* node) const;
 
   void HandleResult(AstNode* node, Register result_reg);
+  void PropagateBackLocalClass(AstNode* node, const Class& cls);
 
   void PrintCollectedClassesAtId(AstNode* node, intptr_t id);
   void TraceOpt(AstNode* node, const char* message);
