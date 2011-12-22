@@ -203,7 +203,7 @@ public class NegativeParserTest extends CompilerTestCase {
 
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
-    String expected =     
+    String expected =
         Joiner.on("\n").join(
             "// unit " + getName(),
             "class A {",
@@ -222,7 +222,7 @@ public class NegativeParserTest extends CompilerTestCase {
       System.err.println("Expected:\n" + expected);
       System.err.println("\nActual:\n" + actual);
     }
-    assertEquals(expected, actual); 
+    assertEquals(expected, actual);
   }
 
   /**
@@ -288,7 +288,7 @@ public class NegativeParserTest extends CompilerTestCase {
   }
 
   /**
-   * Function signatures require the name to be an identifier; especially true at the top level. 
+   * Function signatures require the name to be an identifier; especially true at the top level.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=839
    */
@@ -307,5 +307,11 @@ public class NegativeParserTest extends CompilerTestCase {
         "}"),
         errEx(ParserErrorCode.EXPECTED_TOKEN, 3, 7, 5),
         errEx(ParserErrorCode.UNEXPECTED_TOKEN, 4, 19, 5));
+  }
+
+  public void tstDeprecatedFactoryInInterface() {
+    parseExpectErrors(
+       "interface foo factory bar {}",
+       errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 8));
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface MutationEvent extends Event factory MutationEventWrappingImplementation {
+interface MutationEvent extends Event default MutationEventWrappingImplementation {
 
   MutationEvent(String type, Node relatedNode, String prevValue,
       String newValue, String attrName, int attrChange, [bool canBubble,

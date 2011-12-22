@@ -173,7 +173,7 @@ public class DartToSourceVisitor extends DartVisitor {
     }
 
     if (x.getDefaultClass() != null) {
-      p(" factory ");
+      p(" default ");
       accept(x.getDefaultClass());
     }
 

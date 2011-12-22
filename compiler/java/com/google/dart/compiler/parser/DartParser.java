@@ -628,8 +628,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   private boolean optionalDeprecatedFactory() {
     if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
-      // Uncommenting this makes tests fail until corelib is cleaned up
-      // reportError(position(), ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD);
+      reportError(position(), ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD);
       return true;
     }
     return false;
@@ -3742,7 +3741,7 @@ public class DartParser extends CompletionHooksParserBase {
   private void reportError(DartNode node, ErrorCode errorCode, Object... arguments) {
     reportError(new DartCompilationError(node, errorCode, arguments));
   }
-  
+
   private boolean currentlyParsingToplevel() {
     return   !(isParsingInterface || isParsingAbstract || isParsingClass);
   }

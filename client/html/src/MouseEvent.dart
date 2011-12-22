@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface MouseEvent extends UIEvent factory MouseEventWrappingImplementation {
+interface MouseEvent extends UIEvent default MouseEventWrappingImplementation {
 
   MouseEvent(String type, Window view, int detail, int screenX, int screenY,
       int clientX, int clientY, int button, [bool canBubble, bool cancelable,

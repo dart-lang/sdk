@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitCSSMatrix factory _WebKitCSSMatrixFactoryProvider {
+interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
   WebKitCSSMatrix([String spec]);
 

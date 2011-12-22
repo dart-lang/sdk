@@ -790,7 +790,7 @@ interface CSSKeyframesRule extends CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-interface CSSMatrix factory CSSMatrixFactoryProvider {
+interface CSSMatrix default CSSMatrixFactoryProvider {
 
   CSSMatrix([String spec]);
 
@@ -2384,7 +2384,7 @@ interface FileList {
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader factory FileReaderFactoryProvider {
+interface FileReader default FileReaderFactoryProvider {
 
   FileReader();
 
@@ -4368,7 +4368,7 @@ interface ParamElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface Point factory PointFactoryProvider {
+interface Point default PointFactoryProvider {
 
   Point(num x, num y);
 
@@ -9319,7 +9319,7 @@ interface AbstractWorker extends EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface AnimationEvent extends Event factory AnimationEventWrappingImplementation {
+interface AnimationEvent extends Event default AnimationEventWrappingImplementation {
 
   AnimationEvent(String type, String propertyName, double elapsedTime,
       [bool canBubble, bool cancelable]);
@@ -9332,7 +9332,7 @@ interface AnimationEvent extends Event factory AnimationEventWrappingImplementat
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface BeforeLoadEvent extends Event factory BeforeLoadEventWrappingImplementation {
+interface BeforeLoadEvent extends Event default BeforeLoadEventWrappingImplementation {
 
   BeforeLoadEvent(String type, String url, [bool canBubble, bool cancelable]);
 
@@ -9362,7 +9362,7 @@ interface BodyElement extends Element {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface CloseEvent extends Event factory CloseEventWrappingImplementation {
+interface CloseEvent extends Event default CloseEventWrappingImplementation {
 
   CloseEvent(String type, int code, String reason,
       [bool canBubble, bool cancelable, bool wasClean]);
@@ -9377,7 +9377,7 @@ interface CloseEvent extends Event factory CloseEventWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface CompositionEvent extends UIEvent factory CompositionEventWrappingImplementation {
+interface CompositionEvent extends UIEvent default CompositionEventWrappingImplementation {
 
   CompositionEvent(String type, Window view, String data, [bool canBubble,
       bool cancelable]);
@@ -9396,7 +9396,7 @@ interface CompositionEvent extends UIEvent factory CompositionEventWrappingImple
 
 // TODO(jacobr): add versions that take numeric values in px, miliseconds, etc.
 
-interface CSSStyleDeclaration factory CSSStyleDeclarationWrappingImplementation {
+interface CSSStyleDeclaration default CSSStyleDeclarationWrappingImplementation {
 
   CSSStyleDeclaration();
 
@@ -11273,7 +11273,7 @@ interface CSSStyleDeclaration factory CSSStyleDeclarationWrappingImplementation 
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface CustomEvent extends Event factory CustomEventWrappingImplementation {
+interface CustomEvent extends Event default CustomEventWrappingImplementation {
 
   CustomEvent(String type, [bool canBubble, bool cancelable, Object detail]);
 
@@ -11283,7 +11283,7 @@ interface CustomEvent extends Event factory CustomEventWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DeviceMotionEvent extends Event factory DeviceMotionEventWrappingImplementation {
+interface DeviceMotionEvent extends Event default DeviceMotionEventWrappingImplementation {
 
   // TODO(nweiz): Add more arguments to the constructor when we support
   // DeviceMotionEvent more thoroughly.
@@ -11295,7 +11295,7 @@ interface DeviceMotionEvent extends Event factory DeviceMotionEventWrappingImple
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DeviceOrientationEvent extends Event factory DeviceOrientationEventWrappingImplementation {
+interface DeviceOrientationEvent extends Event default DeviceOrientationEventWrappingImplementation {
 
   DeviceOrientationEvent(String type, double alpha, double beta, double gamma,
       [bool canBubble, bool cancelable]);
@@ -11399,7 +11399,7 @@ interface Document extends Element /*, common.NodeSelector */ {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DocumentFragment extends Element factory DocumentFragmentWrappingImplementation {
+interface DocumentFragment extends Element default DocumentFragmentWrappingImplementation {
  
   DocumentFragment();
 
@@ -11518,7 +11518,7 @@ interface ElementRect {
 
 
 interface Element extends Node /*, common.NodeSelector, common.ElementTraversal */
-    factory ElementWrappingImplementation {
+    default ElementWrappingImplementation {
 
   Element.html(String html);
   Element.tag(String tag);
@@ -11641,7 +11641,7 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface ErrorEvent extends Event factory ErrorEventWrappingImplementation {
+interface ErrorEvent extends Event default ErrorEventWrappingImplementation {
 
   ErrorEvent(String type, String message, String filename, int lineNo,
       [bool canBubble, bool cancelable]);
@@ -11656,7 +11656,7 @@ interface ErrorEvent extends Event factory ErrorEventWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Event factory EventWrappingImplementation {
+interface Event default EventWrappingImplementation {
 
   static final int AT_TARGET = 2;
 
@@ -11811,7 +11811,7 @@ Document get document() {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface HashChangeEvent extends Event factory HashChangeEventWrappingImplementation {
+interface HashChangeEvent extends Event default HashChangeEventWrappingImplementation {
 
   HashChangeEvent(String type, String oldURL, String newURL, [bool canBubble,
       bool cancelable]);
@@ -11824,7 +11824,7 @@ interface HashChangeEvent extends Event factory HashChangeEventWrappingImplement
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface KeyboardEvent extends UIEvent factory KeyboardEventWrappingImplementation {
+interface KeyboardEvent extends UIEvent default KeyboardEventWrappingImplementation {
 
   static final int KEY_LOCATION_LEFT = 0x01;
 
@@ -12394,7 +12394,7 @@ interface KeyName {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface MessageEvent extends Event factory MessageEventWrappingImplementation {
+interface MessageEvent extends Event default MessageEventWrappingImplementation {
 
   MessageEvent(String type, String data, String origin, String lastEventId,
       Window source, MessagePort port, [bool canBubble, bool cancelable]);
@@ -12419,7 +12419,7 @@ interface MessagePort extends EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface MouseEvent extends UIEvent factory MouseEventWrappingImplementation {
+interface MouseEvent extends UIEvent default MouseEventWrappingImplementation {
 
   MouseEvent(String type, Window view, int detail, int screenX, int screenY,
       int clientX, int clientY, int button, [bool canBubble, bool cancelable,
@@ -12462,7 +12462,7 @@ interface MouseEvent extends UIEvent factory MouseEventWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface MutationEvent extends Event factory MutationEventWrappingImplementation {
+interface MutationEvent extends Event default MutationEventWrappingImplementation {
 
   MutationEvent(String type, Node relatedNode, String prevValue,
       String newValue, String attrName, int attrChange, [bool canBubble,
@@ -12653,7 +12653,7 @@ interface ObjectElement extends Element {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface OverflowEvent extends Event factory OverflowEventWrappingImplementation {
+interface OverflowEvent extends Event default OverflowEventWrappingImplementation {
 
   OverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow);
 
@@ -12673,7 +12673,7 @@ interface OverflowEvent extends Event factory OverflowEventWrappingImplementatio
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface PageTransitionEvent extends Event factory PageTransitionEventWrappingImplementation {
+interface PageTransitionEvent extends Event default PageTransitionEventWrappingImplementation {
 
   PageTransitionEvent(String type, [bool canBubble, bool cancelable,
       bool persisted]);
@@ -12684,7 +12684,7 @@ interface PageTransitionEvent extends Event factory PageTransitionEventWrappingI
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface PopStateEvent extends Event factory PopStateEventWrappingImplementation {
+interface PopStateEvent extends Event default PopStateEventWrappingImplementation {
 
   PopStateEvent(String type, Object state, [bool canBubble, bool cancelable]);
 
@@ -12694,7 +12694,7 @@ interface PopStateEvent extends Event factory PopStateEventWrappingImplementatio
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface ProgressEvent extends Event factory ProgressEventWrappingImplementation {
+interface ProgressEvent extends Event default ProgressEventWrappingImplementation {
 
   ProgressEvent(String type, int loaded, [bool canBubble, bool cancelable,
       bool lengthComputable, int total]);
@@ -12722,7 +12722,7 @@ interface SharedWorker extends AbstractWorker {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface StorageEvent extends Event factory StorageEventWrappingImplementation {
+interface StorageEvent extends Event default StorageEventWrappingImplementation {
 
   StorageEvent(String type, String key, String url, Storage storageArea,
       [bool canBubble, bool cancelable, String oldValue, String newValue]);
@@ -12749,7 +12749,7 @@ interface SVGDocument extends Document {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface SVGElement extends Element factory SVGElementWrappingImplementation {
+interface SVGElement extends Element default SVGElementWrappingImplementation {
 
   SVGElement.tag(String tag);
 
@@ -12794,7 +12794,7 @@ interface SVGElementInstance extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
-    factory SVGSVGElementWrappingImplementation {
+    default SVGSVGElementWrappingImplementation {
 
   SVGSVGElement();
 
@@ -12884,7 +12884,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Text extends CharacterData factory TextWrappingImplementation {
+interface Text extends CharacterData default TextWrappingImplementation {
   
   Text(String content);
 
@@ -12898,7 +12898,7 @@ interface Text extends CharacterData factory TextWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface TextEvent extends UIEvent factory TextEventWrappingImplementation {
+interface TextEvent extends UIEvent default TextEventWrappingImplementation {
 
   TextEvent(String type, Window view, String data, [bool canBubble,
       bool cancelable]);
@@ -12914,7 +12914,7 @@ typedef void TimeoutHandler();
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface TouchEvent extends UIEvent factory TouchEventWrappingImplementation {
+interface TouchEvent extends UIEvent default TouchEventWrappingImplementation {
 
   TouchEvent(TouchList touches, TouchList targetTouches,
       TouchList changedTouches, String type, Window view, int screenX,
@@ -12939,7 +12939,7 @@ interface TouchEvent extends UIEvent factory TouchEventWrappingImplementation {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface TransitionEvent extends Event factory TransitionEventWrappingImplementation {
+interface TransitionEvent extends Event default TransitionEventWrappingImplementation {
 
   TransitionEvent(String type, String propertyName, double elapsedTime,
       [bool canBubble, bool cancelable]);
@@ -12952,7 +12952,7 @@ interface TransitionEvent extends Event factory TransitionEventWrappingImplement
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface UIEvent extends Event factory UIEventWrappingImplementation {
+interface UIEvent extends Event default UIEventWrappingImplementation {
 
   UIEvent(String type, Window view, int detail, [bool canBubble,
       bool cancelable]);
@@ -13025,7 +13025,7 @@ interface WebSocket extends EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface WheelEvent extends UIEvent factory WheelEventWrappingImplementation {
+interface WheelEvent extends UIEvent default WheelEventWrappingImplementation {
 
   WheelEvent(int deltaX, int deltaY, Window view, int screenX, int screenY,
       int clientX, int clientY, [bool ctrlKey, bool altKey, bool shiftKey,
@@ -13411,7 +13411,7 @@ interface XMLHttpRequestEvents extends Events {
   EventListenerList get readyStateChange();
 }
 
-interface XMLHttpRequest extends EventTarget factory XMLHttpRequestWrappingImplementation {
+interface XMLHttpRequest extends EventTarget default XMLHttpRequestWrappingImplementation {
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;
@@ -13468,7 +13468,7 @@ interface XMLHttpRequest extends EventTarget factory XMLHttpRequestWrappingImple
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface XMLHttpRequestProgressEvent extends ProgressEvent factory XMLHttpRequestProgressEventWrappingImplementation {
+interface XMLHttpRequestProgressEvent extends ProgressEvent default XMLHttpRequestProgressEventWrappingImplementation {
 
   XMLHttpRequestProgressEvent(String type, int loaded, [bool canBubble,
       bool cancelable, bool lengthComputable, int total]);

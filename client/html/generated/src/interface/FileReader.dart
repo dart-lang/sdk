@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader factory FileReaderFactoryProvider {
+interface FileReader default FileReaderFactoryProvider {
 
   FileReader();
 

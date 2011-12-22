@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface UIEvent extends Event factory UIEventWrappingImplementation {
+interface UIEvent extends Event default UIEventWrappingImplementation {
 
   UIEvent(String type, Window view, int detail, [bool canBubble,
       bool cancelable]);
