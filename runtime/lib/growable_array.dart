@@ -222,6 +222,10 @@ class GrowableObjectArray<T> implements List<T> {
     DualPivotQuicksort.sort(this, compare);
   }
 
+  String toString() {
+    return Arrays.asString(this);
+  }
+
   Iterator<T> iterator() {
     return new VariableSizeArrayIterator<T>(this);
   }
