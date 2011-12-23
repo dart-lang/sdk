@@ -160,20 +160,17 @@ class RawObject {
 
   // Support for GC marking bit.
   bool IsMarked() const {
-    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    uword mark_bits = header_bits & kMarkingMask;
-    ASSERT((mark_bits == kNotMarked) || (mark_bits == kMarked));
-    return mark_bits == kMarked;
+    return MarkBit::decode(ptr()->tags_);
   }
   void SetMarkBit() {
     ASSERT(!IsMarked());
-    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits | kMarked);
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = MarkBit::update(true, tags);
   }
   void ClearMarkBit() {
     ASSERT(IsMarked());
-    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarkBit);
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = MarkBit::update(false, tags);
   }
 
   // Support for object tags.
@@ -220,17 +217,16 @@ class RawObject {
 
  private:
   enum {
-    kMarkingMask = 3,
-    kNotMarked = 1,  // Tagged pointer.
-    kMarked = 3,  // Tagged pointer and forwarding bit set.
-    kMarkBit = 2,
+    kMarkBit = 1,
+    kCanonicalBit = 2,
+    kFromSnapshotBit = 3,
   };
 
-  class CanonicalObjectTag : public BitField<bool, 2, 1> {
-  };
+  class MarkBit : public BitField<bool, kMarkBit, 1> {};
 
-  class CreatedFromSnapshotTag : public BitField<bool, 3, 1> {
-  };
+  class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
+
+  class CreatedFromSnapshotTag : public BitField<bool, kFromSnapshotBit, 1> {};
 
   RawObject* ptr() const {
     ASSERT(IsHeapObject());

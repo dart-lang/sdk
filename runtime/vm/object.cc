@@ -222,6 +222,7 @@ void Object::InitOnce() {
     uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
     null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
     InitializeObject(address, Instance::InstanceSize());  // Using 'null_'.
+    null_->ptr()->tags_ = 0;
   }
 
   // Initialize object_store empty array to null_ in order to be able to check

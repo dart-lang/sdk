@@ -6,17 +6,17 @@
 #define VM_HEAP_H_
 
 #include "vm/allocation.h"
+#include "vm/assert.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/pages.h"
+#include "vm/scavenger.h"
 
 namespace dart {
 
 // Forward declarations.
 class Isolate;
 class ObjectPointerVisitor;
-class PageSpace;
-class Scavenger;
 class VirtualMemory;
 
 DECLARE_FLAG(bool, verbose_gc);
@@ -54,6 +54,19 @@ class Heap {
         UNREACHABLE();
     }
     return 0;
+  }
+
+  uword TryAllocate(intptr_t size, Space space) {
+    switch (space) {
+      case kNew:
+        return new_space_->TryAllocate(size);
+      case kOld:
+        return old_space_->TryAllocate(size);
+      case kExecutable:
+        return code_space_->TryAllocate(size);
+      default:
+        UNREACHABLE();
+    }
   }
 
   // Heap contains the specified address.

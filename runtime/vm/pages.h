@@ -104,7 +104,7 @@ class PageSpace {
 
   static intptr_t LargePageSizeFor(intptr_t size);
   bool CanIncreaseCapacity(intptr_t increase) {
-    ASSERT(capacity_ < max_capacity_);
+    ASSERT(capacity_ <= max_capacity_);
     return increase <= (max_capacity_ - capacity_);
   }
 

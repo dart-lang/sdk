@@ -70,11 +70,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     // below.
     // The scavenger is only interested in objects located in the from space.
     if (!scavenger_->from_->Contains(raw_addr)) {
-      // Addresses being visited cannot point in the to space. As this would
-      // either mean the pointer is being visited twice or this pointer has not
-      // been evacuated during the last scavenge. Both of these situations are
-      // an error.
-      ASSERT(!scavenger_->to_->Contains(raw_addr));
       return;
     }
 
@@ -87,8 +82,29 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       new_addr = ForwardedAddr(header);
     } else {
       intptr_t size = raw_obj->Size();
-      // TODO(iposva): Check whether object should be promoted.
-      new_addr = scavenger_->TryAllocate(size);
+      // Check whether object should be promoted.
+      if (scavenger_->survivor_end_ <= raw_addr) {
+        // Not a survivor of a previous scavenge. Just copy the object into the
+        // to space.
+        new_addr = scavenger_->TryAllocate(size);
+      } else {
+        // TODO(iposva): Experiment with less aggressive promotion. For example
+        // a coin toss determines if an object is promoted or whether it should
+        // survive in this generation.
+        //
+        // This object is a survivor of a previous scavenge. Attempt to promote
+        // the object.
+        new_addr = heap_->TryAllocate(size, Heap::kOld);
+        if (new_addr != 0) {
+          // If promotion succeeded then we need to remember it so that it can
+          // be traversed later.
+          scavenger_->PushToPromotedStack(new_addr);
+        } else {
+          // Promotion did not succeed. Copy into the to space instead.
+          scavenger_->had_promotion_failure_ = true;
+          new_addr = scavenger_->TryAllocate(size);
+        }
+      }
       // During a scavenge we always succeed to at least copy all of the
       // current objects to the to space.
       ASSERT(new_addr != 0);
@@ -168,6 +184,9 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
   // Setup local fields.
   top_ = FirstObjectStart();
   end_ = to_->end();
+
+  survivor_end_ = FirstObjectStart();
+
 #if defined(DEBUG)
   memset(to_->pointer(), 0xf3, to_->size());
   memset(from_->pointer(), 0xf3, from_->size());
@@ -194,6 +213,10 @@ void Scavenger::Prologue() {
 
 
 void Scavenger::Epilogue() {
+  // All objects in the to space have been copied from the from space at this
+  // moment.
+  survivor_end_ = top_;
+
 #if defined(DEBUG)
   memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
@@ -216,9 +239,18 @@ void Scavenger::IterateWeakRoots(Isolate* isolate,
 void Scavenger::ProcessToSpace(ObjectPointerVisitor* visitor) {
   uword resolved_top = FirstObjectStart();
   // Iterate until all work has been drained.
-  while (resolved_top < top_) {
-    RawObject* raw_obj = RawObject::FromAddr(resolved_top);
-    resolved_top += raw_obj->VisitPointers(visitor);
+  while ((resolved_top < top_) || PromotedStackHasMore()) {
+    while (resolved_top < top_) {
+      RawObject* raw_obj = RawObject::FromAddr(resolved_top);
+      resolved_top += raw_obj->VisitPointers(visitor);
+    }
+    while (PromotedStackHasMore()) {
+      RawObject* raw_object = RawObject::FromAddr(PopFromPromotedStack());
+      // Resolve or copy all objects referred to by the current object. This
+      // can potentially push more objects on this stack as well as add more
+      // objects to be resolved in the to space.
+      raw_object->VisitPointers(visitor);
+    }
   }
 }
 
@@ -239,6 +271,12 @@ void Scavenger::Scavenge() {
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 
+  if (FLAG_verify_before_gc) {
+    OS::PrintErr("Verifying before Scavenge... ");
+    heap_->Verify();
+    OS::PrintErr(" done.\n");
+  }
+
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();
   // Setup the visitor and run a scavenge.
@@ -252,6 +290,12 @@ void Scavenger::Scavenge() {
   timer.Stop();
   if (FLAG_verbose_gc) {
     OS::PrintErr("Scavenge[%d]: %dus\n", count_, timer.TotalElapsedTime());
+  }
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after Scavenge... ");
+    heap_->Verify();
+    OS::PrintErr(" done.\n");
   }
 
   count_++;

@@ -127,7 +127,10 @@ static bool ObjectArray_Allocate(Assembler* assembler) {
   __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
   __ movl(EDI, Address(EDI, Isolate::object_store_offset()));
   __ movl(EDI, Address(EDI, ObjectStore::array_class_offset()));
-  __ StoreIntoObject(EAX, FieldAddress(EAX, Instance::class_offset()), EDI);
+  __ StoreIntoObject(EAX, FieldAddress(EAX, Array::class_offset()), EDI);
+
+  // Initialize the tags.
+  __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(0));
 
   // Store the type argument field.
   __ movl(EDI, Address(ESP, kTypeArgumentsOffset));  // type argument.
