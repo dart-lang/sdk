@@ -542,7 +542,7 @@ class BrowserCorrectnessTestRunner(TestRunner):
           'release', 'ia32'), 'dart-sdk')
       run_cmd([os.path.join('.', 'tools', 'test.py'),
           '--component=webdriver', '--flag=%s' % browser, '--flag=--frog=%s' % \
-          os.path.join(dart_sdk, 'bin', 'frogc'), 
+          os.path.join(dart_sdk, 'bin', 'frogc'), '--report'
           '--flag=--froglib=%s' % os.path.join(dart_sdk, 'lib'),
           '--timeout=20', '--progress=color', '--mode=release', '-j1',
           self.test_type], self.trace_file, append=True)
