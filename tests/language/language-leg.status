@@ -101,7 +101,6 @@ FauxverrideTest/01: Fail
 FauxverrideTest/02: Fail
 FauxverrideTest/04: Fail
 FauxverrideTest/none: Fail
-FiboTest: Fail
 Field1NegativeTest: Fail
 Field2NegativeTest: Fail
 Field4NegativeTest: Fail
