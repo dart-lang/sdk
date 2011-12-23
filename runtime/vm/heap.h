@@ -67,6 +67,7 @@ class Heap {
       default:
         UNREACHABLE();
     }
+    return 0;
   }
 
   // Heap contains the specified address.
