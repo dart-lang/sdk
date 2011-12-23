@@ -53,9 +53,12 @@ const char* CanonicalFunction(const char* func) {
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
 const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
-  bool success = (generating_snapshot) ?
-      ClassFinalizer::FinalizePendingClassesForSnapshotCreation() :
-      ClassFinalizer::FinalizePendingClasses();
+  bool success = true;
+  if (!ClassFinalizer::AllClassesFinalized()) {
+    success = (generating_snapshot) ?
+        ClassFinalizer::FinalizePendingClassesForSnapshotCreation() :
+        ClassFinalizer::FinalizePendingClasses();
+  }
   if (success && !generating_snapshot) {
     success = isolate->object_store()->PreallocateObjects();
   }
