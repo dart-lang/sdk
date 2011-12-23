@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface StorageEvent extends Event factory StorageEventWrappingImplementation {
+interface StorageEvent extends Event default StorageEventWrappingImplementation {
 
   StorageEvent(String type, String key, String url, Storage storageArea,
       [bool canBubble, bool cancelable, String oldValue, String newValue]);

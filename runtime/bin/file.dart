@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface File factory _File {
+interface File default _File {
   /**
    * Create a File object.
    */

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan
-    factory SVGSVGElementWrappingImplementation {
+    default SVGSVGElementWrappingImplementation {
 
   SVGSVGElement();
 

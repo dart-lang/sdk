@@ -8,7 +8,7 @@ namespace dart {
 
 // A distinguished callback which indicates that a persistent handle
 // should not be deleted from the dart api.
-void ProtectedHandleCallback() {
+void ProtectedHandleCallback(void* peer) {
   // Do nothing.
 }
 

@@ -15,10 +15,10 @@
 // to inject additional functionality e.g: Logger, file I/O, socket I/O etc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
   V(Directory_List, 7)                                                         \
-  V(Directory_Exists, 2)                                                       \
-  V(Directory_Create, 2)                                                       \
+  V(Directory_Exists, 1)                                                       \
+  V(Directory_Create, 1)                                                       \
   V(Directory_CreateTemp, 2)                                                   \
-  V(Directory_Delete, 2)                                                       \
+  V(Directory_Delete, 1)                                                       \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
   V(Exit, 1)                                                                   \

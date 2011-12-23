@@ -25,8 +25,10 @@ namespace dart {
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
+DEFINE_FLAG(bool, print_ic_in_optimized, false,
+    "Debugging helper to identify potential performance pitfalls.");
 DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
-    "number of invocations before a function is optimized, -1 means never.");
+    "Number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_invocation_count);
 DECLARE_FLAG(bool, trace_compiler);
@@ -296,6 +298,7 @@ void CodeGenerator::GeneratePreEntryCode() {
       __ cmpl(EBX, Immediate(FLAG_optimization_invocation_threshold));
       __ j(GREATER, &StubCode::OptimizeInvokedFunctionLabel());
     }
+    // EBX is an integer value (not an object).
     __ movl(FieldAddress(EAX, Function::invocation_counter_offset()), EBX);
   }
 }
@@ -353,6 +356,13 @@ void CodeGenerator::FinalizePcDescriptors(const Code& code) {
 }
 
 
+void CodeGenerator::FinalizeVarDescriptors(const Code& code) {
+  const LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle(
+          parsed_function_.node_sequence()->scope()->GetVarDescriptors());
+  code.set_var_descriptors(var_descs);
+}
+
+
 void CodeGenerator::FinalizeExceptionHandlers(const Code& code) {
   ASSERT(exception_handlers_list_ != NULL);
   const ExceptionHandlers& handlers = ExceptionHandlers::Handle(
@@ -393,8 +403,10 @@ void CodeGenerator::GenerateStoreVariable(const LocalVariable& variable,
       __ movl(scratch, FieldAddress(base, Context::parent_offset()));
       base = scratch;
     }
-    __ movl(FieldAddress(base, Context::variable_offset(variable.index())),
-            src);
+    __ StoreIntoObject(
+        base,
+        FieldAddress(base, Context::variable_offset(variable.index())),
+        src);
   } else {
     // The variable lives in the current stack frame.
     __ movl(Address(EBP, variable.index() * kWordSize), src);
@@ -428,6 +440,10 @@ void CodeGenerator::GenerateInstanceCall(
     int num_arguments,
     const Array& optional_arguments_names,
     intptr_t num_args_checked) {
+  if (FLAG_print_ic_in_optimized && IsOptimizing()) {
+    OS::Print("Generate IC in optimized code: id %d name: '%s'\n",
+        node_id, function_name.ToCString());
+  }
   ASSERT(num_args_checked > 0);  // At least receiver check is necessary.
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
@@ -544,7 +560,7 @@ void CodeGenerator::GenerateEntryCode() {
       }
       if (function.IsClosureFunction()) {
         GenerateCallRuntime(AstNode::kNoId,
-                            function.token_index(),
+                            0,
                             kClosureArgumentMismatchRuntimeEntry);
       } else {
         __ Stop("Wrong number of arguments");
@@ -669,7 +685,7 @@ void CodeGenerator::GenerateEntryCode() {
     __ Bind(&wrong_num_arguments);
     if (function.IsClosureFunction()) {
       GenerateCallRuntime(AstNode::kNoId,
-                          function.token_index(),
+                          0,
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
@@ -734,7 +750,7 @@ void CodeGenerator::GenerateEntryCode() {
   Label no_stack_overflow;
   __ j(ABOVE, &no_stack_overflow);
   GenerateCallRuntime(AstNode::kNoId,
-                      function.token_index(),
+                      0,
                       kStackOverflowRuntimeEntry);
   __ Bind(&no_stack_overflow);
 }
@@ -922,7 +938,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     GenerateCall(node_sequence->token_index(), &label);
 
     // Chain the new context in EAX to its parent in CTX.
-    __ movl(FieldAddress(EAX, Context::parent_offset()), CTX);
+    __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
     // Set new context as current context.
     __ movl(CTX, EAX);
     state()->set_context_level(scope->context_level());
@@ -1894,6 +1910,7 @@ void CodeGenerator::CountBackwardLoop() {
     __ cmpl(EBX, Immediate(FLAG_optimization_invocation_threshold));
     __ j(GREATER, &done);
   }
+  // EBX is an integer value (not an object).
   __ movl(FieldAddress(EAX, Function::invocation_counter_offset()), EBX);
   __ Bind(&done);
 }

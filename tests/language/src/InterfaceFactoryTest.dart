@@ -7,7 +7,7 @@
 // Variant 1.  The factory class implements the interface and provides
 // a default implementation of the interface.
 
-interface Interface1 factory DefaultImplementation {
+interface Interface1 default DefaultImplementation {
   Interface1(var secret);
   Interface1.named();
 
@@ -31,7 +31,7 @@ class DefaultImplementation implements Interface1 {
 // Variant 2.  The factory class provides factory constructors for the
 // interface.
 
-interface Interface2 factory FactoryProvider {
+interface Interface2 default FactoryProvider {
   Interface2(var secret);
   Interface2.named();
 

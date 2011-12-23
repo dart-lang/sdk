@@ -101,11 +101,6 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean printMachineProblems() {
-    return true;
-  }
-
-  @Override
   public boolean collectComments() {
     return false;
   }
@@ -124,5 +119,10 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   @Override
   public CompilerOptions getCompilerOptions() {
     throw new AssertionError();
+  }
+
+  @Override
+  public ErrorFormat printErrorFormat() {
+    return ErrorFormat.MACHINE;
   }
 }

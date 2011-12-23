@@ -39,8 +39,8 @@ class ConveyorView extends CompositeView {
     return result;
   }
 
-  void selectView(View targetView, [bool animate = true]) {
-    selectedView = targetView;
+  void selectView(View targetView_, [bool animate = true]) {
+    selectedView = targetView_;
 
     // Only animate if we're actually in the document now.
     if (isRendered) {

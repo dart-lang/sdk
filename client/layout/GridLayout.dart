@@ -152,7 +152,7 @@ class GridLayout extends ViewLayout {
   void _computeUsedBreadthOfTracks(List<GridTrack> tracks) {
 
     // TODO(jmesserly): as a performance optimization we could cache this
-    final items = CollectionUtils.map(view.childViews, (view) => view.layout);
+    final items = CollectionUtils.map(view.childViews, (view_) => view_.layout);
     CollectionUtils.sortBy(items, (item) => _getSpanCount(item));
 
     // 1. Initialize per Grid Track variables
@@ -385,7 +385,7 @@ class GridLayout extends ViewLayout {
           sizeMode == ContentSizeMode.MIN && fn.isContentSized) {
 
         // Make sure we don't cross a fractional track
-        return tracks.length == 1 || !tracks.some((t) => t.isFractional);
+        return tracks.length == 1 || !tracks.some((t_) => t_.isFractional);
       }
     }
     return false;
@@ -418,7 +418,7 @@ class GridLayout extends ViewLayout {
    * run before the track sizing algorithm.
    */
   void _ensureAllTracks() {
-    final items = CollectionUtils.map(view.childViews, (view) => view.layout);
+    final items = CollectionUtils.map(view.childViews, (view_) => view_.layout);
 
     for (final child in items) {
       if (child.layoutParams == null) {
@@ -435,7 +435,7 @@ class GridLayout extends ViewLayout {
    * Given the track sizes that were computed, position children in the grid.
    */
   void _setBoundsOfChildren() {
-    final items = CollectionUtils.map(view.childViews, (view) => view.layout);
+    final items = CollectionUtils.map(view.childViews, (view_) => view_.layout);
 
     for (final item in items) {
       GridLayoutParams childLayout = item.layoutParams;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface ServerSocket factory _ServerSocket {
+interface ServerSocket default _ServerSocket {
   /*
    * Constructs a new server socket, binds it to a given address and port,
    * and listens on it.
@@ -32,7 +32,7 @@ interface ServerSocket factory _ServerSocket {
 }
 
 
-interface Socket factory _Socket {
+interface Socket default _Socket {
   /*
    * Constructs a new socket and connects it to the given host on the given
    * port.

@@ -324,7 +324,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testFactory() {
     analyzeClasses(loadSource(
-        "interface Foo factory Bar {",
+        "interface Foo default Bar {",
         "  Foo(String argument);",
         "}",
         "interface Baz {}",
@@ -814,7 +814,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  Foo.foo() {}",
         "  Foo.bar([int i = null]) {}",
         "}",
-        "interface Bar<T> factory Baz<T> {",
+        "interface Bar<T> default Baz<T> {",
         "  Bar.make();",
         "}",
         "class Baz<T> {",
@@ -839,7 +839,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
 
   public void testAssignableTypeArg() {
       analyzeClasses(loadSource(
-          "interface Bar<T> factory Baz<T> {",
+          "interface Bar<T> default Baz<T> {",
           "  Bar.make();",
           "}",
           "class Baz<T> {",

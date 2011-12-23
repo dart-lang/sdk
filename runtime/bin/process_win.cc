@@ -211,10 +211,6 @@ static unsigned int __stdcall TerminationWaitThread(void* args) {
     fprintf(stderr, "GetExitCodeProcess failed %d\n", GetLastError());
   }
   int negative = 0;
-  if (exit_code == 255) {
-    exit_code = 1;
-    negative = 1;
-  }
   if (exit_code < 0) {
     exit_code = abs(exit_code);
     negative = 1;

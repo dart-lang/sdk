@@ -15,7 +15,7 @@ class StubGeneratorTestSuite extends StandardTestSuite {
               "tests/stub-generator/src",
               ["tests/stub-generator/stub-generator.status"]) {
     try {
-      dartcPath = TestUtils.dartcCompilationShellPath(configuration);
+      dartcPath = TestUtils.compilerPath(configuration);
     } catch (var e) {
       // ignore
     }
@@ -112,11 +112,10 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     if (configuration['verbose']) {
       print("# $dartcPath ${Strings.join(args, ' ')}");
     }
-    Process dartcProcess = new Process(dartcPath, args);
+    Process dartcProcess = new Process.start(dartcPath, args);
     dartcProcess.exitHandler = (int exitCode) {
       combineFiles(filename, stubsPath, onGenerated);
     };
-    dartcProcess.start();
   }
 
   void processFile(String filename) {

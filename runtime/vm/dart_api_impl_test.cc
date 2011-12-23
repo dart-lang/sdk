@@ -764,6 +764,112 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 }
 
 
+#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+
+TEST_CASE(WeakPersistentHandle) {
+  Dart_Handle weak_new_ref = Dart_Null();
+  EXPECT(Dart_IsNull(weak_new_ref));
+
+  Dart_Handle weak_old_ref = Dart_Null();
+  EXPECT(Dart_IsNull(weak_old_ref));
+
+  bool is_same;
+
+  {
+    Dart_EnterScope();
+
+    // create an object in new space
+    Dart_Handle new_ref = Dart_NewString("new string");
+    EXPECT_VALID(new_ref);
+
+    // create an object in old space
+    Dart_Handle old_ref;
+    {
+      DARTSCOPE(Isolate::Current());
+      const String& str =
+          String::Handle(String::New("old string", Heap::kOld));
+      old_ref = Api::NewLocalHandle(str);
+      EXPECT_VALID(old_ref);
+    }
+
+    // create a weak ref to the new space object
+    weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, NULL);
+    EXPECT_VALID(weak_new_ref);
+    EXPECT(!Dart_IsNull(weak_new_ref));
+
+    // create a weak ref to the old space object
+    weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, NULL);
+    EXPECT_VALID(weak_old_ref);
+    EXPECT(!Dart_IsNull(weak_old_ref));
+
+    // garbage collect new space
+    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+
+    // nothing should be invalidated or cleared
+    EXPECT_VALID(new_ref);
+    EXPECT(!Dart_IsNull(new_ref));
+    EXPECT_VALID(old_ref);
+    EXPECT(!Dart_IsNull(old_ref));
+
+    EXPECT_VALID(weak_new_ref);
+    EXPECT(!Dart_IsNull(weak_new_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(new_ref, weak_new_ref, &is_same));
+    EXPECT(is_same);
+
+    EXPECT_VALID(weak_old_ref);
+    EXPECT(!Dart_IsNull(weak_old_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(old_ref, weak_old_ref, &is_same));
+    EXPECT(is_same);
+
+    // garbage collect old space
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+
+    // nothing should be invalidated or cleared
+    EXPECT_VALID(new_ref);
+    EXPECT(!Dart_IsNull(new_ref));
+    EXPECT_VALID(old_ref);
+    EXPECT(!Dart_IsNull(old_ref));
+
+    EXPECT_VALID(weak_new_ref);
+    EXPECT(!Dart_IsNull(weak_new_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(new_ref, weak_new_ref, &is_same));
+    EXPECT(is_same);
+
+    EXPECT_VALID(weak_old_ref);
+    EXPECT(!Dart_IsNull(weak_old_ref));
+    is_same = false;
+    EXPECT_VALID(Dart_IsSame(old_ref, weak_old_ref, &is_same));
+    EXPECT(is_same);
+
+    // delete local (strong) references
+    Dart_ExitScope();
+  }
+
+  // garbage collect new space again
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+
+  // weak ref to new space object should now be cleared
+  EXPECT_VALID(weak_new_ref);
+  EXPECT(Dart_IsNull(weak_new_ref));
+  EXPECT_VALID(weak_old_ref);
+  EXPECT(!Dart_IsNull(weak_old_ref));
+
+  // garbage collect old space again
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+
+  // weak ref to old space object should now be cleared
+  EXPECT_VALID(weak_new_ref);
+  EXPECT(Dart_IsNull(weak_new_ref));
+  EXPECT_VALID(weak_old_ref);
+  EXPECT(Dart_IsNull(weak_old_ref));
+}
+
+#endif
+
+
 // Unit test for creating multiple scopes and local handles within them.
 // Ensure that the local handles get all cleaned out when exiting the
 // scope.
@@ -2852,16 +2958,43 @@ UNIT_TEST_CASE(RunLoop_ExceptionParent) {
 }
 
 
+// Utility functions and variables for test case IsolateInterrupt starts here.
 static Monitor* sync = NULL;
 static Dart_Isolate shared_isolate = NULL;
+static bool main_entered = false;
+
+
+void MarkMainEntered(Dart_NativeArguments args) {
+  Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+  // Indicate that main has been entered.
+  {
+    MonitorLocker ml(sync);
+    main_entered = true;
+    ml.Notify();
+  }
+  Dart_SetReturnValue(args, Dart_Null());
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction IsolateInterruptTestNativeLookup(
+    Dart_Handle name, int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&MarkMainEntered);
+}
+
+
 void BusyLoop_start(uword unused) {
   // TODO(turnidge): Get rid of call to 'function' after interrupts
   // are checked on backward branches.
   const char* kScriptChars =
+      "class Native {\n"
+      "  static void markMainEntered() native 'MarkMainEntered';\n"
+      "}\n"
       "void function([foo='hi']) {\n"
       "}\n"
       "\n"
       "void main() {\n"
+      "  Native.markMainEntered();\n"
       "  while (true) {\n"  // Infinite loop.
       "    function();\n"
       "  }\n"
@@ -2880,6 +3013,9 @@ void BusyLoop_start(uword unused) {
     Dart_Handle source = Dart_NewString(kScriptChars);
     lib = Dart_LoadScript(url, source, TestCase::library_handler);
     EXPECT_VALID(lib);
+    Dart_Handle result = Dart_SetNativeResolver(
+        lib, &IsolateInterruptTestNativeLookup);
+    DART_CHECK_VALID(result);
 
     sync->Notify();
     sync->Exit();
@@ -2895,26 +3031,31 @@ void BusyLoop_start(uword unused) {
   EXPECT_SUBSTRING("Unhandled exception:\nfoo\n",
                    Dart_GetError(result));
 
-  // Tell the other thread that we are done.
-  {
-    MonitorLocker ml(sync);
-    shared_isolate = NULL;
-    ml.Notify();
-  }
-
   Dart_ExitScope();
   Dart_ShutdownIsolate();
+
+  // Tell the other thread that we are done (don't use MonitorLocker
+  // as there is no current isolate any more).
+  sync->Enter();
+  shared_isolate = NULL;
+  sync->Notify();
+  sync->Exit();
 }
 
 
 // This callback handles isolate interrupts for the IsolateInterrupt
 // test.  It ignores the first two interrupts and throws an exception
 // on the third interrupt.
+const int kInterruptCount = 10;
 static int interrupt_count = 0;
 static bool IsolateInterruptTestCallback() {
-  interrupt_count++;
-  OS::Print(" =========== Interrupt callback called #%d\n", interrupt_count);
-  if (interrupt_count >= 3) {
+  OS::Print(" ========== Interrupt callback called #%d\n", interrupt_count + 1);
+  {
+    MonitorLocker ml(sync);
+    interrupt_count++;
+    ml.Notify();
+  }
+  if (interrupt_count == kInterruptCount) {
     Dart_EnterScope();
     Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
     EXPECT_VALID(lib);
@@ -2925,6 +3066,7 @@ static bool IsolateInterruptTestCallback() {
     UNREACHABLE();  // Dart_ThrowException only returns if it gets an error.
     return false;
   }
+  ASSERT(interrupt_count < kInterruptCount);
   return true;
 }
 
@@ -2939,20 +3081,28 @@ TEST_CASE(IsolateInterrupt) {
 
   {
     MonitorLocker ml(sync);
-    // Wait for the other isolate to start.
-    while (shared_isolate == NULL) {
+    // Wait for the other isolate to enter main.
+    while (!main_entered) {
       ml.Wait();
     }
   }
 
-  // Send three interrupts to the other isolate.  The first two allow
-  // execution to continue.  The third causes an exception in the
-  // isolate.
-  Dart_InterruptIsolate(shared_isolate);
-  OS::Sleep(5);
-  Dart_InterruptIsolate(shared_isolate);
-  OS::Sleep(5);
-  Dart_InterruptIsolate(shared_isolate);
+  // Send a number of interrupts to the other isolate. All but the
+  // last allow execution to continue. The last causes an exception in
+  // the isolate.
+  for (int i = 0; i < kInterruptCount; i++) {
+    // Space out the interrupts a bit.
+    OS::Sleep(i + 1);
+    Dart_InterruptIsolate(shared_isolate);
+    {
+      MonitorLocker ml(sync);
+      // Wait for interrupt_count to be increased.
+      while (interrupt_count == i) {
+        ml.Wait();
+      }
+      OS::Print(" ========== Interrupt processed #%d\n", interrupt_count);
+    }
+  }
 
   {
     MonitorLocker ml(sync);
@@ -2962,11 +3112,10 @@ TEST_CASE(IsolateInterrupt) {
     }
   }
 
-  // We should have received 3 interrupts.
-  EXPECT_EQ(3, interrupt_count);
+  // We should have received the expected number of interrupts.
+  EXPECT_EQ(kInterruptCount, interrupt_count);
 
   // Give the spawned thread enough time to properly exit.
-  OS::Sleep(20);
   Isolate::SetInterruptCallback(saved);
 }
 

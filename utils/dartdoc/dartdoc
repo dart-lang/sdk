@@ -40,7 +40,7 @@ fi
 mkdir docs
 
 # Copy the static files over.
-cp static/* docs
+cp -R static/ docs
 
 # Ditch the first arg so we can pass any extra arguments to dartdoc.
 shift

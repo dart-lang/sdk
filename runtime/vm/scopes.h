@@ -179,6 +179,9 @@ class LocalScope : public ZoneAllocated {
     context_level_ = context_level;
   }
 
+  intptr_t end_token_index() const { return end_token_index_; }
+  void set_end_token_index(intptr_t value) { end_token_index_ = value; }
+
   // The number of variables allocated in the context and belonging to this
   // scope and to its children at the same loop level.
   int num_context_variables() const { return num_context_variables_; }
@@ -249,6 +252,10 @@ class LocalScope : public ZoneAllocated {
                         LocalScope* loop_owner,
                         LocalScope** context_owner);
 
+  // Creates variable info for the scope and all its nested scopes.
+  // Must be called after AllocateVariables() has been called.
+  RawLocalVarDescriptors* GetVarDescriptors();
+
   // Create a ContextScope object describing all captured variables referenced
   // from this scope and belonging to outer scopes.
   RawContextScope* PreserveOuterScope(int current_context_level) const;
@@ -272,6 +279,8 @@ class LocalScope : public ZoneAllocated {
   void AllocateContextVariable(LocalVariable* variable,
                                LocalScope** context_owner);
 
+  void CollectLocalVariables(GrowableArray<LocalVariable*>* vars);
+
   static const int kUnitializedContextLevel_ = INT_MIN;
   LocalScope* parent_;
   LocalScope* child_;
@@ -280,6 +289,7 @@ class LocalScope : public ZoneAllocated {
   int loop_level_;  // Reflects the loop nesting level.
   int context_level_;  // Reflects the level of the runtime context.
   int num_context_variables_;  // Only set if this scope is a context owner.
+  intptr_t end_token_index_;  // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
 

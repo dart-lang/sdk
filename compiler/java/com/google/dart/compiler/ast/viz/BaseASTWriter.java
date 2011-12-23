@@ -534,7 +534,7 @@ public abstract class BaseASTWriter {
 
     @Override
     public Object visitSyntheticErrorExpression(DartSyntheticErrorExpression node) {
-      write("DartSyntheticErrorExpression", node);
+      write("DartSyntheticErrorExpression(", node, node.getTokenString() + ")");
       visitChildren(node);
       return null;
     }

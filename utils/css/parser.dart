@@ -1,6 +1,5 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
 /**
  * A simple recursive descent parser for CSS.
@@ -8,15 +7,36 @@
 class Parser {
   Tokenizer tokenizer;
 
+  var _fs;                        // If non-null filesystem to read files.
+  String _basePath;               // Base path of CSS file.
+
   final lang.SourceFile source;
 
   lang.Token _previousToken;
   lang.Token _peekToken;
   
-  Parser(this.source, [int startOffset = 0]) {
-    tokenizer = new Tokenizer(source, true, startOffset);
+  Parser(this.source, [int start = 0, this._fs = null, this._basePath = null]) {
+    tokenizer = new Tokenizer(source, true, start);
     _peekToken = tokenizer.next();
     _previousToken = null;
+  }
+
+  // Main entry point for parsing an entire CSS file.
+  Stylesheet parse() {
+    List<lang.Node> productions = [];
+
+    int start = _peekToken.start;
+    while (!_maybeEat(TokenKind.END_OF_FILE)) {
+      // TODO(terry): Need to handle charset, import, media and page.
+      var directive = processDirective();
+      if (directive != null) {
+        productions.add(directive);
+      } else {
+        productions.add(processRuleSet());
+      }
+    }
+
+    return new Stylesheet(productions, _makeSpan(start));
   }
 
   /** Generate an error if [source] has not been completely consumed. */
@@ -106,21 +126,8 @@ class Parser {
   // Top level productions
   ///////////////////////////////////////////////////////////////////
 
-  List<SelectorGroup> preprocess() {
-    List<SelectorGroup> groups = [];
-    while (!_maybeEat(TokenKind.END_OF_FILE)) {
-      do {
-        int start = _peekToken.start;
-        groups.add(new SelectorGroup(selector(),
-            _makeSpan(start)));
-      } while (_maybeEat(TokenKind.COMMA));
-    }
-
-    return groups;
-  }
-
   // Templates are @{selectors} single line nothing else.
-  SelectorGroup template() {
+  SelectorGroup parseTemplate() {
     SelectorGroup selectorGroup = null;
     if (!isPrematureEndOfFile()) {
       selectorGroup = templateExpression();
@@ -133,147 +140,296 @@ class Parser {
    * Expect @{css_expression}
    */
   templateExpression() {
+    List<Selector> selectors = [];
+
     int start = _peekToken.start;
 
     _eat(TokenKind.AT);
     _eat(TokenKind.LBRACE);
 
-    SelectorGroup group = new SelectorGroup(selector(),
-        _makeSpan(start));
+    selectors.add(processSelector());
+    SelectorGroup group = new SelectorGroup(selectors, _makeSpan(start));
 
     _eat(TokenKind.RBRACE);
 
     return group;
   }
 
-  int classNameCheck(var selector, int matches) {
-    if (selector.isCombinatorDescendant() ||
-        (selector.isCombinatorNone() && matches == 0)) {
-      if (matches < 0) {
-        String tooMany = selector.toString();
-        throw new CssSelectorException(
-            'Can not mix Id selector with class selector(s). Id ' +
-            'selector must be singleton too many starting at $tooMany');
-      }
-  
-      return matches + 1;
-    } else {
-      String error = selector.toString();
-      throw new CssSelectorException(
-          'Selectors can not have combinators (>, +, or ~) before $error');
-    }
-  }
-
-  int elementIdCheck(var selector, int matches) {
-    if (selector.isCombinatorNone() && matches == 0) {
-      // Perfect just one element id returns matches of -1.
-      return -1;
-    } else if (selector.isCombinatorDescendant()) {
-        String tooMany = selector.toString();
-        throw new CssSelectorException(
-            'Use of Id selector must be singleton starting at $tooMany');
-    } else {
-      String error = selector.toString();
-      throw new CssSelectorException(
-          'Selectors can not have combinators (>, +, or ~) before $error');
-    }
-  }
-
-  // Validate the @{css expression} only .class and #elementId are valid inside
-  // of @{...}.
-  validateTemplate(List<lang.Node> selectors, CssWorld cssWorld) {
-    var errorSelector;                  // signal which selector didn't match.
-    bool found = false;                 // signal if a selector is matched.
-
-    int matches = 0;                    // < 0 IdSelectors, > 0 ClassSelector
-    for (selector in selectors) {
-      found = false;
-      if (selector is ClassSelector) {
-        // Any class name starting with an underscore is a private class name
-        // that doesn't have to match the world of known classes.
-        if (!selector.name.startsWith('_')) {
-          // TODO(terry): For now iterate through all classes look for faster
-          //              mechanism hash map, etc.
-          for (className in cssWorld.classes) {
-            if (selector.name == className) {
-              matches = classNameCheck(selector, matches);
-              found = true;             // .class found.
-              break;
-            }
-          }
-        } else {
-          // Don't check any class name that is prefixed with an underscore.
-          // However, signal as found and bump up matches; it's a valid class
-          // name.
-          matches = classNameCheck(selector, matches);
-          found = true;                 // ._class are always okay.
-        }
-      } else if (selector is IdSelector) {
-        // Any element id starting with an underscore is a private element id
-        // that doesn't have to match the world of known elemtn ids.
-        if (!selector.name.startsWith('_')) {
-          for (id in cssWorld.ids) {
-            if (selector.name == id) {
-              matches = elementIdCheck(selector, matches);
-              found = true;             // #id found.
-              break;
-            }
-          }
-        } else {
-          // Don't check any element ID that is prefixed with an underscore.
-          // However, signal as found and bump up matches; it's a valid element
-          // ID.
-          matches = elementIdCheck(selector, matches);
-          found = true;                 // #_id are always okay
-        }
-      } else {
-        String badSelector = selector.toString();
-        throw new CssSelectorException(
-            'Invalid template selector $badSelector');
-      }
-
-      if (!found) {
-        String unknownName = selector.toString();
-        throw new CssSelectorException('Unknown selector name $unknownName');
-      }
-    }
-
-    // Every selector must match.
-    assert((matches >= 0 ? matches : -matches) == selectors.length);
-  }
-
   ///////////////////////////////////////////////////////////////////
   // Productions
   ///////////////////////////////////////////////////////////////////
+  
+  processMedia([bool oneRequired = false]) {
+    List<String> media = [];
 
-  selector() {
-    List<SimpleSelector> simpleSelectors = [];
+    while (_peekIdentifier()) {
+      // We have some media types.
+      var medium = identifier();   // Medium ident.
+      media.add(medium);
+      if (!_maybeEat(TokenKind.COMMA)) {
+        // No more media types exit now.
+        break;
+      }
+    }
+
+    if (oneRequired && media.length == 0) {
+      _error('at least one media type required', _peekToken.span);
+    }
+
+    return media;
+  }
+
+  //  Directive grammar:
+  //
+  //  import:       '@import' [string | URI] media_list?
+  //  media:        '@media' media_list '{' ruleset '}'
+  //  page:         '@page' [':' IDENT]? '{' declarations '}'
+  //  include:      '@include' [string | URI]
+  //  stylet:       '@stylet' IDENT '{' ruleset '}'
+  //  media_list:   IDENT [',' IDENT]
+  //  keyframes:    '@-webkit-keyframes ...' (see grammar below).
+  //  font_face:    '@font-face' '{' declarations '}'
+  //
+  processDirective() {
+    int start = _peekToken.start;
+
+    if (_maybeEat(TokenKind.AT)) {
+      switch (_peek()) {
+      case TokenKind.DIRECTIVE_IMPORT:
+        _next();
+
+        String importStr;
+        if (_peekIdentifier()) {
+          var func = processFunction(identifier());
+          if (func is UriTerm) {
+            importStr = func.text;
+          }
+        } else {
+          importStr = processQuotedString(false);
+        }
+
+        // Any medias?
+        List<String> medias = processMedia();
+
+        if (importStr == null) {
+          _error('missing import string', _peekToken.span);
+        }
+        return new ImportDirective(importStr, medias, _makeSpan(start));
+      case TokenKind.DIRECTIVE_MEDIA:
+        _next();
+
+        // Any medias?
+        List<String> media = processMedia(true);
+        RuleSet ruleset;
+
+        if (_maybeEat(TokenKind.LBRACE)) {
+          ruleset = processRuleSet();
+          if (!_maybeEat(TokenKind.RBRACE)) {
+            _error('expected } after ruleset for @media', _peekToken.span);
+          }
+        } else {
+          _error('expected { after media before ruleset', _peekToken.span);
+        }
+        return new MediaDirective(media, ruleset, _makeSpan(start));
+      case TokenKind.DIRECTIVE_PAGE:
+        _next();
+
+        // Any pseudo page?
+        var pseudoPage;
+        if (_maybeEat(TokenKind.COLON)) {
+          if (_peekIdentifier()) {
+            pseudoPage = identifier();
+          }
+        }
+        return new PageDirective(pseudoPage, processDeclarations(),
+            _makeSpan(start));
+      case TokenKind.DIRECTIVE_KEYFRAMES:
+        /*  Key frames grammar:
+         *
+         *  @-webkit-keyframes [IDENT|STRING] '{' keyframes-blocks '}';
+         *
+         *  keyframes-blocks:
+         *    [keyframe-selectors '{' declarations '}']* ;
+         *
+         *  keyframe-selectors:
+         *    ['from'|'to'|PERCENTAGE] [',' ['from'|'to'|PERCENTAGE] ]* ;
+         */
+        _next();
+
+        var name;
+        if (_peekIdentifier()) {
+          name = identifier();
+        }
+
+        _eat(TokenKind.LBRACE);
+
+        KeyFrameDirective kf = new KeyFrameDirective(name, _makeSpan(start));
+
+        do {
+          Expressions selectors = new Expressions(_makeSpan(start));
+
+          do {
+            var term = processTerm();
+
+            // TODO(terry): Only allow from, to and PERCENTAGE ...
+
+            selectors.add(term);
+          } while (_maybeEat(TokenKind.COMMA));
+
+          kf.add(new KeyFrameBlock(selectors, processDeclarations(),
+              _makeSpan(start)));
+
+        } while (!_maybeEat(TokenKind.RBRACE));
+
+        return kf;
+      case TokenKind.DIRECTIVE_FONTFACE:
+        _next();
+
+        List<Declaration> decls = [];
+
+        // TODO(terry): To Be Implemented
+
+        return new FontFaceDirective(decls, _makeSpan(start));
+      case TokenKind.DIRECTIVE_INCLUDE:
+        _next();
+        String filename = processQuotedString(false);
+        if (_fs != null) {
+          // Does CSS file exist?
+          if (_fs.fileExists('${_basePath}${filename}')) {
+            String basePath = "";
+            int idx = filename.lastIndexOf('/');
+            if (idx >= 0) {
+              basePath = filename.substring(0, idx + 1);
+            }
+            basePath = '${_basePath}${basePath}';
+            // Yes, let's parse this file as well.
+            String fullFN = '${basePath}${filename}';
+            String contents = _fs.readAll(fullFN);
+            Parser parser = new Parser(new lang.SourceFile(fullFN, contents), 0,
+                _fs, basePath);
+            Stylesheet stylesheet = parser.parse();
+            return new IncludeDirective(filename, stylesheet, _makeSpan(start));
+          }
+
+          _error('file doesn\'t exist ${filename}', _peekToken.span);
+        }
+
+        print("WARNING: @include doesn't work for uitest");
+        return new IncludeDirective(filename, null, _makeSpan(start));
+      case TokenKind.DIRECTIVE_STYLET:
+        /* Stylet grammar:
+        *
+        *  @stylet IDENT '{'
+        *    ruleset
+        *  '}'
+        */
+        _next();
+
+        var name;
+        if (_peekIdentifier()) {
+          name = identifier();
+        }
+
+        _eat(TokenKind.LBRACE);
+
+        List<lang.Node> productions = [];
+
+        int start = _peekToken.start;
+        while (!_maybeEat(TokenKind.END_OF_FILE)) {
+          RuleSet ruleset = processRuleSet();
+          if (ruleset == null) {
+            break;
+          }
+          productions.add(ruleset);
+        }
+
+        _eat(TokenKind.RBRACE);
+
+        return new StyletDirective(name, productions, _makeSpan(start));
+      default:
+        _error('unknown directive, found $_peekToken', _peekToken.span);
+      }
+    }
+  }
+
+  processRuleSet() {
+    int start = _peekToken.start;
+
+    SelectorGroup selGroup = processSelectorGroup();
+    if (selGroup != null) {
+      return new RuleSet(selGroup, processDeclarations(), _makeSpan(start));
+    }
+  }
+
+  DeclarationGroup processDeclarations() {
+    int start = _peekToken.start;
+
+    _eat(TokenKind.LBRACE);
+
+    List<Declaration> decls = [];
+    do {
+      Declaration decl = processDeclaration();
+      if (decl != null) {
+        decls.add(decl);
+      }
+    } while (_maybeEat(TokenKind.SEMICOLON));
+
+    _eat(TokenKind.RBRACE);
+
+    return new DeclarationGroup(decls, _makeSpan(start));
+  }
+
+  SelectorGroup processSelectorGroup() {
+    List<Selector> selectors = [];
+    int start = _peekToken.start;
+    do {
+      Selector selector = processSelector();
+      if (selector != null) {
+        selectors.add(selector);
+      }
+    } while (_maybeEat(TokenKind.COMMA));
+
+    if (selectors.length > 0) {
+      return new SelectorGroup(selectors, _makeSpan(start));
+    }
+  }
+
+  /* Return list of selectors
+   *
+   */
+  processSelector() {
+    List<SimpleSelectorSequence> simpleSequences = [];
+    int start = _peekToken.start;
     while (true) {
       // First item is never descendant make sure it's COMBINATOR_NONE.
-      var selectorItem = simpleSelectorSequence(simpleSelectors.length == 0);
+      var selectorItem = simpleSelectorSequence(simpleSequences.length == 0);
       if (selectorItem != null) {
-        simpleSelectors.add(selectorItem);
+        simpleSequences.add(selectorItem);
       } else {
         break;
       }
     }
 
-    return simpleSelectors;
+    if (simpleSequences.length > 0) {
+      return new Selector(simpleSequences, _makeSpan(start));
+    }
   }
 
   simpleSelectorSequence(bool forceCombinatorNone) {
+    int start = _peekToken.start;
     int combinatorType = TokenKind.COMBINATOR_NONE;
+
     switch (_peek()) {
-      case TokenKind.COMBINATOR_PLUS:
-        _eat(TokenKind.COMBINATOR_PLUS);
+      case TokenKind.PLUS:
+        _eat(TokenKind.PLUS);
         combinatorType = TokenKind.COMBINATOR_PLUS;
         break;
-      case TokenKind.COMBINATOR_GREATER:
-        _eat(TokenKind.COMBINATOR_GREATER);
+      case TokenKind.GREATER:
+        _eat(TokenKind.GREATER);
         combinatorType = TokenKind.COMBINATOR_GREATER;
         break;
-      case TokenKind.COMBINATOR_TILDE:
-        _eat(TokenKind.COMBINATOR_TILDE);
+      case TokenKind.TILDE:
+        _eat(TokenKind.TILDE);
         combinatorType = TokenKind.COMBINATOR_TILDE;
         break;
     }
@@ -286,11 +442,16 @@ class Parser {
       }
     }
 
-    return simpleSelector(combinatorType);
+    var simpleSel = simpleSelector();
+    if (simpleSel != null) {
+      return new SimpleSelectorSequence(simpleSel, _makeSpan(start),
+          combinatorType);
+    }
   }
 
   /**
    * Simple selector grammar:
+   *
    *    simple_selector_sequence
    *       : [ type_selector | universal ]
    *         [ HASH | class | attrib | pseudo | negation ]*
@@ -306,11 +467,12 @@ class Parser {
    *    class
    *       : '.' IDENT
    */
-  simpleSelector(int combinator) {
+  simpleSelector() {
     // TODO(terry): Nathan makes a good point parsing of namespace and element
     //              are essentially the same (asterisk or identifier) other
     //              than the error message for element.  Should consolidate the
     //              code.
+    // TODO(terry): Need to handle attribute namespace too.
     var first;
     int start = _peekToken.start;
     switch (_peek()) {
@@ -325,14 +487,7 @@ class Parser {
         break;
     }
 
-    if (first == null) {
-      // Check for HASH | class | attrib | pseudo | negation
-      return simpleSelectorTail(combinator);
-    }
-
-    // Could be a namespace?
-    var isNamespace = _maybeEat(TokenKind.NAMESPACE);
-    if (isNamespace) {
+    if (_maybeEat(TokenKind.NAMESPACE)) {
       var element;
       switch (_peek()) {
         case TokenKind.ASTERISK:
@@ -349,38 +504,424 @@ class Parser {
       }
 
       return new NamespaceSelector(first,
-          new ElementSelector(element, element.span),
-          _makeSpan(start), combinator);
+          new ElementSelector(element, element.span), _makeSpan(start));
+    } else if (first != null) {
+      return new ElementSelector(first, _makeSpan(start));
     } else {
-      return new ElementSelector(first, _makeSpan(start), combinator);
+      // Check for HASH | class | attrib | pseudo | negation
+      return simpleSelectorTail();
     }
   }
 
-  simpleSelectorTail(int combinator) {
+  simpleSelectorTail() {
     // Check for HASH | class | attrib | pseudo | negation
     int start = _peekToken.start;
     switch (_peek()) {
       case TokenKind.HASH:
         _eat(TokenKind.HASH);
-        return new IdSelector(identifier(), _makeSpan(start), combinator);
+        return new IdSelector(identifier(), _makeSpan(start));
       case TokenKind.DOT:
         _eat(TokenKind.DOT);
-        return new ClassSelector(identifier(), _makeSpan(start), combinator);
-      case TokenKind.PSEUDO:
+        return new ClassSelector(identifier(), _makeSpan(start));
+      case TokenKind.COLON:
         // :pseudo-class ::pseudo-element
         // TODO(terry): '::' should be token.
-        _eat(TokenKind.PSEUDO);
-        bool pseudoClass = _peek() != TokenKind.PSEUDO;
+        _eat(TokenKind.COLON);
+        bool pseudoClass = _peek() != TokenKind.COLON;
         var name = identifier();
         // TODO(terry): Need to handle specific pseudo class/element name and
         // backward compatible names that are : as well as :: as well as
         // parameters.
         return pseudoClass ?
-            new PseudoClassSelector(name, _makeSpan(start), combinator) :
-            new PseudoElementSelector(name, _makeSpan(start), combinator);
-
-      // TODO(terry): attrib, negation.
+            new PseudoClassSelector(name, _makeSpan(start)) :
+            new PseudoElementSelector(name, _makeSpan(start));
+      case TokenKind.LBRACK:
+        return processAttribute();
     }
+  }
+
+  //  Attribute grammar:
+  //
+  //  attributes :
+  //    '[' S* IDENT S* [ ATTRIB_MATCHES S* [ IDENT | STRING ] S* ]? ']'
+  //
+  //  ATTRIB_MATCHES :
+  //    [ '=' | INCLUDES | DASHMATCH | PREFIXMATCH | SUFFIXMATCH | SUBSTRMATCH ]
+  //
+  //  INCLUDES:         '~='
+  //
+  //  DASHMATCH:        '|='
+  //
+  //  PREFIXMATCH:      '^='
+  //
+  //  SUFFIXMATCH:      '$='
+  //
+  //  SUBSTRMATCH:      '*='
+  //
+  //
+  processAttribute() {
+    int start = _peekToken.start;
+
+    if (_maybeEat(TokenKind.LBRACK)) {
+      var attrName = identifier();
+
+      int op = TokenKind.NO_MATCH;
+      switch (_peek()) {
+      case TokenKind.EQUALS:
+      case TokenKind.INCLUDES:        // ~=
+      case TokenKind.DASH_MATCH:      // |=
+      case TokenKind.PREFIX_MATCH:    // ^=
+      case TokenKind.SUFFIX_MATCH:    // $=
+      case TokenKind.SUBSTRING_MATCH: // *=
+        op = _peek();
+        _next();
+        break;
+      }
+
+      String value;
+      if (op != TokenKind.NO_MATCH) {
+        // Operator hit so we require a value too.
+        if (_peekIdentifier()) {
+          value = identifier();
+        } else {
+          value = processQuotedString(false);
+        }
+
+        if (value == null) {
+          _error('expected attribute value string or ident', _peekToken.span);
+        }
+      }
+
+      _eat(TokenKind.RBRACK);
+
+      return new AttributeSelector(attrName, op, value, _makeSpan(start));
+    }
+  }
+
+  //  Declaration grammar:
+  //
+  //  declaration:  property ':' expr prio?
+  //
+  //  property:  IDENT
+  //  prio:      !important
+  //  expr:      (see processExpr)
+  //
+  processDeclaration() {
+    Declaration decl;
+
+    int start = _peekToken.start;
+
+    // IDENT ':' expr '!important'?
+    if (TokenKind.isIdentifier(_peekToken.kind)) {
+      var propertyIdent = identifier();
+      _eat(TokenKind.COLON);
+  
+      decl = new Declaration(propertyIdent, processExpr(), _makeSpan(start));
+
+      // Handle !important (prio)
+      decl.important = _maybeEat(TokenKind.IMPORTANT);
+    }
+
+    return decl;
+  }
+
+  //  Expression grammar:
+  //
+  //  expression:   term [ operator? term]*
+  //
+  //  operator:     '/' | ','
+  //  term:         (see processTerm)
+  //
+  processExpr() {
+    int start = _peekToken.start;
+    Expressions expressions = new Expressions(_makeSpan(start));
+
+    bool keepGoing = true;
+    var expr;
+    while (keepGoing && (expr = processTerm()) != null) {
+      var op;
+
+      int opStart = _peekToken.start;
+
+      switch (_peek()) {
+      case TokenKind.SLASH:
+        op = new OperatorSlash(_makeSpan(opStart));
+        break;
+      case TokenKind.COMMA:
+        op = new OperatorComma(_makeSpan(opStart));
+        break;
+      }
+
+      if (expr != null) {
+        expressions.add(expr);
+      } else {
+        keepGoing = false;
+      }
+
+      if (op != null) {
+        expressions.add(op);
+        _next();
+      }
+    }
+
+    return expressions;
+  }
+
+  //  Term grammar:
+  //
+  //  term:
+  //    unary_operator?
+  //    [ term_value ]
+  //    | STRING S* | IDENT S* | URI S* | UNICODERANGE S* | hexcolor
+  //
+  //  term_value:
+  //    NUMBER S* | PERCENTAGE S* | LENGTH S* | EMS S* | EXS S* | ANGLE S* |
+  //    TIME S* | FREQ S* | function
+  //
+  //  NUMBER:       {num}
+  //  PERCENTAGE:   {num}%
+  //  LENGTH:       {num}['px' | 'cm' | 'mm' | 'in' | 'pt' | 'pc']
+  //  EMS:          {num}'em'
+  //  EXS:          {num}'ex'
+  //  ANGLE:        {num}['deg' | 'rad' | 'grad']
+  //  TIME:         {num}['ms' | 's']
+  //  FREQ:         {num}['hz' | 'khz']
+  //  function:     IDENT '(' expr ')'
+  //
+  processTerm() {
+    int start = _peekToken.start;
+    lang.Token t;             // token for term's value
+    var value;                // value of term (numeric values)
+
+    var unary = "";
+
+    switch (_peek()) {
+    case TokenKind.HASH:
+      this._eat(TokenKind.HASH);
+      String hexText;
+      if (_peekKind(TokenKind.INTEGER)) {
+        String hexText1 = _peekToken.text;
+        _next();
+        if (_peekIdentifier()) {
+          hexText = '${hexText1}${identifier().name}';
+        } else {
+          hexText = hexText1;
+        }
+      } else if (_peekIdentifier()) {
+        hexText = identifier().name;
+      } else {
+        _errorExpected("hex number");
+      }
+
+      try {
+        int hexValue = parseHex(hexText);
+        return new HexColorTerm(hexValue, hexText, _makeSpan(start));
+      } catch (HexNumberException hne) {
+        _error('Bad hex number', _makeSpan(start));
+      }
+    case TokenKind.INTEGER:
+      t = _next();
+      value = Math.parseInt("${unary}${t.text}");
+      break;
+    case TokenKind.DOUBLE:
+      t = _next();
+      value = Math.parseDouble("${unary}${t.text}");
+      break;
+    case TokenKind.SINGLE_QUOTE:
+    case TokenKind.DOUBLE_QUOTE:
+      value = processQuotedString(false);
+      value = '"${value}"';
+      return new LiteralTerm(value, value, _makeSpan(start));
+    case TokenKind.LPAREN:
+      _next();
+
+      GroupTerm group = new GroupTerm(_makeSpan(start));
+
+      do {
+        var term = processTerm();
+        if (term != null && term is LiteralTerm) {
+          group.add(term);
+        } 
+      } while (!_maybeEat(TokenKind.RPAREN));
+
+      return group;
+    case TokenKind.LBRACK:
+      _next();
+
+      var term = processTerm();
+      if (!(term is NumberTerm)) {
+        _error('Expecting a positive number', _makeSpan(start));
+      }
+
+      _eat(TokenKind.RBRACK);
+
+      return new ItemTerm(term.value, term.text, _makeSpan(start));
+    case TokenKind.IDENTIFIER:
+      var nameValue = identifier();   // Snarf up the ident we'll remap, maybe.
+
+      if (_maybeEat(TokenKind.LPAREN)) {
+        // FUNCTION
+        return processFunction(nameValue);
+      } else {
+        // What kind of identifier is it?
+        int value;
+        try {
+          // Named color?
+          value = TokenKind.matchColorName(nameValue.name);
+
+          // Yes, process the color as an RGB value.
+          String rgbColor = TokenKind.decimalToHex(value);
+          int value;
+          try {
+            value = parseHex(rgbColor);
+          } catch (HexNumberException hne) {
+            _error('Bad hex number', _makeSpan(start));
+          }
+          return new HexColorTerm(value, rgbColor, _makeSpan(start));
+        } catch (var error) {
+          if (error is NoColorMatchException) {
+            // Other named things to match with validator?
+            // TODO(terry): TBD
+//            _error('Unknown property value ${error.name}', _makeSpan(start));
+
+            value = nameValue.name;
+            print('Warning: unknown property value ${error.name}');
+            return new LiteralTerm(nameValue, nameValue.name, _makeSpan(start));
+
+          }
+        }
+      }
+    }
+
+    var term;
+    var unitType = this._peek();
+
+    switch (unitType) {
+    case TokenKind.UNIT_EM:
+      term = new EmTerm(value, t.text, _makeSpan(start));
+      _next();    // Skip the unit
+      break;
+    case TokenKind.UNIT_EX:
+      term = new ExTerm(value, t.text, _makeSpan(start));
+      _next();    // Skip the unit
+      break;
+    case TokenKind.UNIT_LENGTH_PX:
+    case TokenKind.UNIT_LENGTH_CM:
+    case TokenKind.UNIT_LENGTH_MM:
+    case TokenKind.UNIT_LENGTH_IN:
+    case TokenKind.UNIT_LENGTH_PT:
+    case TokenKind.UNIT_LENGTH_PC:
+      term = new LengthTerm(value, t.text, _makeSpan(start), unitType);
+      _next();    // Skip the unit
+      break;
+    case TokenKind.UNIT_ANGLE_DEG:
+    case TokenKind.UNIT_ANGLE_RAD:
+    case TokenKind.UNIT_ANGLE_GRAD:
+      term = new AngleTerm(value, t.text, _makeSpan(start), unitType);
+      _next();    // Skip the unit
+      break;
+    case TokenKind.UNIT_TIME_MS:
+    case TokenKind.UNIT_TIME_S:
+      term = new TimeTerm(value, t.text, _makeSpan(start), unitType);
+      _next();    // Skip the unit
+      break;
+    case TokenKind.UNIT_FREQ_HZ:
+    case TokenKind.UNIT_FREQ_KHZ:
+      term = new FreqTerm(value, t.text, _makeSpan(start), unitType);
+      _next();    // Skip the unit
+      break;
+    case TokenKind.PERCENT:
+      term = new PercentageTerm(value, t.text, _makeSpan(start));
+      _next();    // Skip the %
+      break;
+    case TokenKind.UNIT_FRACTION:
+      term = new FractionTerm(value, t.text, _makeSpan(start));
+      _next();     // Skip the unit
+      break;
+    default:
+      if (value != null) {
+        term = new NumberTerm(value, t.text, _makeSpan(start));
+      }
+    }
+
+    return term;
+  }
+
+  processQuotedString([bool urlString = false]) {
+    int start = _peekToken.start;
+
+    // URI term sucks up everything inside of quotes(' or ") or between parens
+    int stopToken = urlString ? TokenKind.RPAREN : -1;
+    switch (_peek()) {
+    case TokenKind.SINGLE_QUOTE:
+      stopToken = TokenKind.SINGLE_QUOTE;
+      _next();    // Skip the SINGLE_QUOTE.
+      break;
+    case TokenKind.DOUBLE_QUOTE:
+      stopToken = TokenKind.DOUBLE_QUOTE;
+      _next();    // Skip the DOUBLE_QUOTE.
+      break;
+    default:
+      if (urlString) {
+        stopToken = TokenKind.RPAREN;
+      } else {
+        _error('unexpected string', _makeSpan(start));
+      }
+    }
+
+    StringBuffer stringValue = new StringBuffer();
+
+    // Gobble up everything until we hit our stop token.
+    int runningStart = _peekToken.start;
+    while (_peek() != stopToken && _peek() != TokenKind.END_OF_FILE) {
+      var tok = _next();
+      stringValue.add(tok.text);
+    }
+
+    if (stopToken != TokenKind.RPAREN) {
+      _next();    // Skip the SINGLE_QUOTE or DOUBLE_QUOTE;
+    }
+
+    return stringValue.toString();
+  }
+
+  //  Function grammar:
+  //
+  //  function:     IDENT '(' expr ')'
+  //
+  processFunction(Identifier func) {
+    int start = _peekToken.start;
+
+    String name = func.name;
+
+    switch (name) {
+    case 'url':
+      // URI term sucks up everything inside of quotes(' or ") or between parens
+      String urlParam = processQuotedString(true);
+
+      // TODO(terry): Better error messge and checking for mismatched quotes.
+      if (_peek() == TokenKind.END_OF_FILE) {
+        _error("problem parsing URI", _peekToken.span);
+      }
+
+      if (_peek() == TokenKind.RPAREN) {
+        _next();
+      }
+
+      return new UriTerm(urlParam, _makeSpan(start));
+    case 'calc':
+      // TODO(terry): Implement expression handling...
+      break;
+    default:
+      var expr = processExpr();
+      if (!_maybeEat(TokenKind.RPAREN)) {
+        _error("problem parsing function expected ), ", _peekToken.span);
+      }
+
+      return new FunctionTerm(name, name, expr, _makeSpan(start));
+    }
+
+    return null;
   }
 
   identifier() {
@@ -391,4 +932,37 @@ class Parser {
   
     return new Identifier(tok.text, _makeSpan(tok.start));
   }
+
+  // TODO(terry): Move this to base <= 36 and into shared code.
+  static int _hexDigit(int c) {
+    if(c >= 48/*0*/ && c <= 57/*9*/) {
+      return c - 48;
+    } else if (c >= 97/*a*/ && c <= 102/*f*/) {
+      return c - 87;
+    } else if (c >= 65/*A*/ && c <= 70/*F*/) {
+      return c - 55;
+    } else {
+      return -1;
+    }
+  }
+
+  static int parseHex(String hex) {
+    var result = 0;
+
+    for (int i = 0; i < hex.length; i++) {
+      var digit = _hexDigit(hex.charCodeAt(i));
+      if (digit < 0) {
+        throw new HexNumberException();
+      }
+      result = (result << 4) + digit;
+    }
+
+    return result;
+  }
 }
+
+/** Not a hex number. */
+class HexNumberException implements Exception {
+  HexNumberException();
+}
+

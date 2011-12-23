@@ -305,7 +305,7 @@ uword Api::Reallocate(uword ptr, intptr_t old_size, intptr_t new_size) {
 // --- Handles ---
 
 
-DART_EXPORT bool Dart_IsError(const Dart_Handle& handle) {
+DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
   DARTSCOPE(Isolate::Current());
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
   return obj.IsApiError();
@@ -340,7 +340,7 @@ static const char* MakeUnhandledExceptionCString(
 }
 
 
-DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle) {
+DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   DARTSCOPE(Isolate::Current());
 
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
@@ -487,7 +487,7 @@ DART_EXPORT Dart_Handle Dart_IsSame(Dart_Handle obj1, Dart_Handle obj2,
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
+static PersistentHandle* AllocatePersistentHandle(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   DARTSCOPE_NOCHECKS(isolate);
@@ -496,6 +496,24 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
   const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
   PersistentHandle* new_ref = state->persistent_handles().AllocateHandle();
   new_ref->set_raw(old_ref);
+  return new_ref;
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
+  PersistentHandle* new_ref = AllocatePersistentHandle(object);
+  return reinterpret_cast<Dart_Handle>(new_ref);
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
+    Dart_Handle object,
+    void* peer,
+    Dart_PeerFinalizer callback) {
+  PersistentHandle* new_ref = AllocatePersistentHandle(object);
+  new_ref->set_kind(PersistentHandle::WeakReference);
+  new_ref->set_peer(peer);
+  new_ref->set_callback(callback);
   return reinterpret_cast<Dart_Handle>(new_ref);
 }
 
@@ -513,15 +531,16 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_MakeWeakPersistentHandle(Dart_Handle object) {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object) {
-  UNIMPLEMENTED();
-  return NULL;
+DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  if (state->IsValidPersistentHandle(object)) {
+    PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
+    return ref->kind() == PersistentHandle::WeakReference;
+  }
+  return false;
 }
 
 
@@ -613,6 +632,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
                                             intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(time_creating_snapshot);
   if (buffer == NULL) {
     return Api::Error("%s expects argument 'buffer' to be non-null.",
                       CURRENT_FUNC);
@@ -630,16 +650,16 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   isolate->object_store()->set_root_library(Library::Handle());
   SnapshotWriter writer(Snapshot::kFull, buffer, ApiAllocator);
   writer.WriteFullSnapshot();
-  *size = writer.Size();
+  *size = writer.BytesWritten();
   return Api::Success();
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
-                                                  uint8_t** buffer,
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(time_creating_snapshot);
   if (buffer == NULL) {
     return Api::Error("%s expects argument 'buffer' to be non-null.",
                       CURRENT_FUNC);
@@ -648,17 +668,18 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
     return Api::Error("%s expects argument 'size' to be non-null.",
                       CURRENT_FUNC);
   }
-  const Library& root_lib = Api::UnwrapLibraryHandle(library);
-  if (root_lib.IsNull()) {
-    RETURN_TYPE_ERROR(library, Library);
-  }
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
     return Api::Error(msg);
   }
-  ScriptSnapshotWriter writer(root_lib, buffer, ApiAllocator);
-  writer.WriteScriptSnapshot();
-  *size = writer.Size();
+  Library& library = Library::Handle(isolate->object_store()->root_library());
+  if (library.IsNull()) {
+    return Api::Error("%s expects the isolate to have a script loaded in it.",
+                      CURRENT_FUNC);
+  }
+  ScriptSnapshotWriter writer(buffer, ApiAllocator);
+  writer.WriteScriptSnapshot(library);
+  *size = writer.BytesWritten();
   return Api::Success();
 }
 
@@ -2287,6 +2308,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  TIMERSCOPE(time_script_loading);
   if (buffer == NULL) {
     return Api::Error("%s expects argument 'buffer' to be non-null.",
                       CURRENT_FUNC);
@@ -2309,6 +2331,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
                       CURRENT_FUNC);
   }
   library ^= tmp.raw();
+  library.Register();
   isolate->object_store()->set_root_library(library);
   return Api::NewLocalHandle(library);
 }

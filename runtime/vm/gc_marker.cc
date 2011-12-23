@@ -187,20 +187,47 @@ class MarkingVisitor : public ObjectPointerVisitor {
 };
 
 
+class MarkingWeakVisitor : public ObjectPointerVisitor {
+ public:
+  MarkingWeakVisitor() {
+  }
+
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current = first; current <= last; current++) {
+      RawObject* raw_obj = *current;
+      ASSERT(raw_obj->IsHeapObject());
+      if (!raw_obj->IsMarked() && raw_obj->IsOldObject()) {
+        *current = Object::null();
+      }
+    }
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
+};
+
+
 void GCMarker::Prologue(Isolate* isolate) {
   // Nothing to do at the moment.
 }
 
 
-void GCMarker::IterateRoots(Isolate* isolate, MarkingVisitor* visitor) {
-  isolate->VisitObjectPointers(visitor,
-                               StackFrameIterator::kDontValidateFrames);
+void GCMarker::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
+  isolate->VisitStrongObjectPointers(visitor,
+                                     StackFrameIterator::kDontValidateFrames);
   heap_->IterateNewPointers(visitor);
   heap_->IterateCodePointers(visitor);
 }
 
 
-void GCMarker::DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor) {
+void GCMarker::IterateWeakRoots(Isolate* isolate,
+                                ObjectPointerVisitor* visitor) {
+  isolate->VisitWeakObjectPointers(visitor);
+}
+
+
+void GCMarker::DrainMarkingStack(Isolate* isolate,
+                                 MarkingVisitor* visitor) {
   while (!visitor->marking_stack()->IsEmpty()) {
     RawObject* raw_obj = visitor->marking_stack()->Pop();
     raw_obj->VisitPointers(visitor);
@@ -214,6 +241,8 @@ void GCMarker::MarkObjects(Isolate* isolate, PageSpace* page_space) {
   MarkingVisitor mark(heap_, page_space, &marking_stack);
   IterateRoots(isolate, &mark);
   DrainMarkingStack(isolate, &mark);
+  MarkingWeakVisitor mark_weak;
+  IterateWeakRoots(isolate, &mark_weak);
 }
 
 }  // namespace dart

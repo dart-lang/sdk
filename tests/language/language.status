@@ -161,7 +161,7 @@ Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
-
+TypeChecksInFactoryMethodTest: Fail # Issue 925
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -182,7 +182,6 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 [ $component == frogsh ||  $component == frog || $component == webdriver || $component == frogium ]
 # TODO(efortuna): Distinguish between specific browser being run for webdriver
 # (by flag option) to specify which tests pass.
-FactoryNegativeTest: Fail # Issue 417
 Factory3Test: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 OptimizedSetterTest: Fail # Issue 863
@@ -244,6 +243,7 @@ GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is r
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 IncrOpTest: Fail
+InstanceofTest: Fail
 Instanceof2Test: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
@@ -271,6 +271,7 @@ NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
 NumbersTest: Fail
+NumberSyntaxTest: Fail
 ObjectDynamicMethodTest: Fail
 OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
@@ -298,6 +299,7 @@ SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
+TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
 TypeVariableBoundsTest/01: Fail
 TypeVariableBoundsTest/10: Fail
@@ -320,17 +322,13 @@ PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
-InstanceofTest: Fail
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
-NumberSyntaxTest: Fail
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
-InstanceofTest: Timeout
-NumberSyntaxTest: Timeout
 
 [ $arch == x64 ]
 *: Skip

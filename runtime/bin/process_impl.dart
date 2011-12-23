@@ -10,7 +10,7 @@ class _ProcessStartStatus {
 
 class _Process implements Process {
 
-  _Process(String path, List<String> arguments) {
+  _Process.start(String path, List<String> arguments) {
     if (path is !String) {
       throw new ProcessException("Path is not a String: $path");
     }
@@ -37,6 +37,9 @@ class _Process implements Process {
     _killed = false;
     _started = false;
     _exitHandlerCallback = null;
+    // TODO(ager): Make the actual process starting really async instead of
+    // simulating it with a timer.
+    new Timer((Timer ignore) => start(), 0);
   }
 
   int _intFromBytes(List<int> bytes, int offset) {
@@ -52,7 +55,11 @@ class _Process implements Process {
         _path, _arguments, _in, _out, _err, _exitHandler, status);
     if (!success) {
       close();
-      throw new ProcessException(status._errorMessage, status._errorCode);
+      if (_errorHandler !== null) {
+        _errorHandler(new ProcessException(status._errorMessage,
+                                           status._errorCode));
+        return;
+      }
     }
     _started = true;
 
@@ -65,37 +72,41 @@ class _Process implements Process {
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
     _exitHandler.dataHandler = () {
-        final int EXIT_DATA_SIZE = 12;
-        List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
-        InputStream input = _exitHandler.inputStream;
-        int exitDataRead = 0;
+      final int EXIT_DATA_SIZE = 12;
+      List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
+      InputStream input = _exitHandler.inputStream;
+      int exitDataRead = 0;
 
-        int exitCode(List<int> ints) {
-          var code = _intFromBytes(ints, 4);
-          var negative = _intFromBytes(ints, 8);
-          assert(negative == 0 || negative == 1);
-          return (negative == 0) ? code : -code;
+      int exitCode(List<int> ints) {
+        var code = _intFromBytes(ints, 4);
+        var negative = _intFromBytes(ints, 8);
+        assert(negative == 0 || negative == 1);
+        return (negative == 0) ? code : -code;
+      }
+
+      int exitPid(List<int> ints) {
+        return _intFromBytes(ints, 0);
+      }
+
+      void handleExit() {
+        _processExit(exitPid(exitDataBuffer));
+        if (_exitHandlerCallback !== null) {
+          _exitHandlerCallback(exitCode(exitDataBuffer));
         }
+      }
 
-        int exitPid(List<int> ints) {
-          return _intFromBytes(ints, 0);
-        }
+      void exitData() {
+        exitDataRead += input.readInto(
+            exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
+        if (exitDataRead == EXIT_DATA_SIZE) handleExit();
+      }
 
-        void handleExit() {
-          _processExit(exitPid(exitDataBuffer));
-          if (_exitHandlerCallback !== null) {
-            _exitHandlerCallback(exitCode(exitDataBuffer));
-          }
-        }
+      input.dataHandler = exitData;
+    };
 
-        void exitData() {
-          exitDataRead += input.readInto(
-              exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
-          if (exitDataRead == EXIT_DATA_SIZE) handleExit();
-        }
-
-        input.dataHandler = exitData;
-      };
+    if (_startHandler !== null) {
+      _startHandler();
+    }
   }
 
   bool _start(String path,
@@ -129,18 +140,23 @@ class _Process implements Process {
     return _out.outputStream;
   }
 
-  bool kill() {
-    if (_closed && _pid === null) {
-      throw new ProcessException("Process closed");
+  void kill() {
+    if (_closed && _pid === null && _errorHandler !== null) {
+      _errorHandler(new ProcessException("Process closed"));
+      return;
     }
     if (_killed) {
-      return true;
+      return;
     }
+    // TODO(ager): Make the actual kill operation asynchronous.
     if (_kill(_pid)) {
       _killed = true;
-      return true;
+      return;
     }
-    return false;
+    if (_errorHandler !== null) {
+      _errorHandler(new ProcessException("Could not kill process"));
+      return;
+    }
   }
 
   void _kill(int pid) native "Process_Kill";
@@ -166,6 +182,14 @@ class _Process implements Process {
     _exitHandlerCallback = callback;
   }
 
+  void set errorHandler(void callback(ProcessException exception)) {
+    _errorHandler = callback;
+  }
+
+  void set startHandler(void callback()) {
+    _startHandler = callback;
+  }
+
   String _path;
   ObjectArray<String> _arguments;
   Socket _in;
@@ -176,5 +200,7 @@ class _Process implements Process {
   bool _closed;
   bool _killed;
   bool _started;
-  var _exitHandlerCallback;
+  Function _exitHandlerCallback;
+  Function _errorHandler;
+  Function _startHandler;
 }

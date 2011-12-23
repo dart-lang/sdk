@@ -8,25 +8,17 @@
 #source("ProcessTestUtil.dart");
 
 class ProcessExitTest {
-
   static void testExit() {
-    Process process = new Process(getProcessTestFileName(),
-                                  const ["0", "0", "99", "0"]);
+    Process process = new Process.start(getProcessTestFileName(),
+                                        const ["0", "0", "99", "0"]);
 
-    void exitHandler(int exitCode) {
+    process.exitHandler = (int exitCode) {
       Expect.equals(exitCode, 99);
       process.close();
-    }
-
-    process.exitHandler = exitHandler;
-    process.start();
-  }
-
-  static void testMain() {
-    testExit();
+    };
   }
 }
 
 main() {
-  ProcessExitTest.testMain();
+  ProcessExitTest.testExit();
 }

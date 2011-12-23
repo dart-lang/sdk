@@ -4,7 +4,7 @@
 
 interface Super<T> {}
 
-interface Sub<S> extends Super<S> factory SubImplementation<S> {
+interface Sub<S> extends Super<S> default SubImplementation<S> {
   Sub();
 }
 

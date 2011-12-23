@@ -6,34 +6,21 @@
 
 class ProcessStartExceptionTest {
 
-  static void testStartException() {
+  static void testStartError() {
     Process process =
-        new Process("__path_to_something_that_hopefully_does_not_exist__",
-                    const []);
+        new Process.start("__path_to_something_that_should_not_exist__",
+                          const []);
 
-    void exitHandler(int exitCode) {
-      exitHandlerCalled = false;
-    }
+    process.exitHandler = (int exitCode) {
+      Expect.fail("exit handler called");
+    };
 
-    process.exitHandler = exitHandler;
-    try {
-      process.start();
-    } catch (ProcessException e) {
-      errorCode = e.errorCode;
-    }
+    process.errorHandler = (ProcessException e) {
+      Expect.equals(2, e.errorCode);
+    };
   }
-
-  static void testMain() {
-    exitHandlerCalled = false;
-    testStartException();
-    Expect.equals(2, errorCode);
-    Expect.equals(false, exitHandlerCalled);
-  }
-
-  static int errorCode;
-  static bool exitHandlerCalled;
 }
 
 main() {
-  ProcessStartExceptionTest.testMain();
+  ProcessStartExceptionTest.testStartError();
 }

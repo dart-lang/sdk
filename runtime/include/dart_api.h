@@ -95,12 +95,14 @@ typedef unsigned __int64 uint64_t;
  */
 typedef struct _Dart_Handle* Dart_Handle;
 
+typedef void (*Dart_PeerFinalizer)(void* peer);
+
 /**
  * Is this an error handle?
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT bool Dart_IsError(const Dart_Handle& handle);
+DART_EXPORT bool Dart_IsError(Dart_Handle handle);
 
 /**
  * Gets the error message from an error handle.
@@ -112,7 +114,7 @@ DART_EXPORT bool Dart_IsError(const Dart_Handle& handle);
  *   String is scope allocated and is only valid until the next call
  *   to Dart_ExitScope.
 */
-DART_EXPORT const char* Dart_GetError(const Dart_Handle& handle);
+DART_EXPORT const char* Dart_GetError(Dart_Handle handle);
 
 /**
  * Is this an error handle for an unhandled exception?
@@ -204,24 +206,24 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object);
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
 
 /**
- * Takes a persistent handle and makes it weak.
+ * Allocates a weak persistent handle for an object.
  *
- * UNIMPLEMENTED.
+ * This handle has the lifetime of the current isolate unless it is
+ * explicitly deallocated by calling Dart_DeletePersistentHandle.
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT Dart_Handle Dart_MakeWeakPersistentHandle(Dart_Handle object);
-// TODO(turnidge): Needs a "near death" callback here.
-// TODO(turnidge): Add IsWeak, Clear, etc.
+DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
+    Dart_Handle object,
+    void* peer,
+    Dart_PeerFinalizer callback);
 
 /**
- * Takes a weak persistent handle and makes it non-weak.
- *
- * UNIMPLEMENTED.
+ * Is this object a weak persistent handle?
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT Dart_Handle Dart_MakePersistentHandle(Dart_Handle object);
+DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
 
 // --- Initialization and Globals ---
 
@@ -383,16 +385,14 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
                                             intptr_t* size);
 
 /**
- * Creates a snapshot of the specified application script.
+ * Creates a snapshot of the application script loaded in the isolate.
  *
  * A script snapshot can be used for implementing fast startup of applications
  * (skips the script tokenizing and parsing process). A Snapshot of the script
  * can only be created before any dart code has executed.
  *
- * Requires there to be a current isolate.
+ * Requires there to be a current isolate which already has loaded script.
  *
- * \param library An application script for which a snapshot is to be
- *  created.
  * \param buffer Returns a pointer to a buffer containing
  *   the snapshot. This buffer is scope allocated and is only valid
  *   until the next call to Dart_ExitScope.
@@ -400,8 +400,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(Dart_Handle library,
-                                                  uint8_t** buffer,
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size);
 
 
@@ -884,9 +883,6 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
  */
 DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length);
-
-
-typedef void (*Dart_PeerFinalizer)(void* peer);
 
 /**
  * Is this object an external String?

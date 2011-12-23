@@ -11,7 +11,7 @@ interface XMLHttpRequestEvents extends Events {
   EventListenerList get readyStateChange();
 }
 
-interface XMLHttpRequest extends EventTarget factory XMLHttpRequestWrappingImplementation {
+interface XMLHttpRequest extends EventTarget default XMLHttpRequestWrappingImplementation {
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;

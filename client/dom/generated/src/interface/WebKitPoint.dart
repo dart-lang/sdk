@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitPoint factory _WebKitPointFactoryProvider {
+interface WebKitPoint default _WebKitPointFactoryProvider {
 
   WebKitPoint(num x, num y);
 

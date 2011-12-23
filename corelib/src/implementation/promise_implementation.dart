@@ -321,8 +321,8 @@ class ProxyBase extends PromiseImpl<bool> {
       // resolved at this point.
       SendPortImpl outgoing = _promise.value;
       ReceivePort incoming  = outgoing._callNow(marshalled);
-      incoming.receive((List message, replyTo) {
-        result.complete(message[0]);
+      incoming.receive((List receiveMessage, replyTo) {
+        result.complete(receiveMessage[0]);
       });
       return result;
     });
@@ -357,8 +357,8 @@ class ProxyBase extends PromiseImpl<bool> {
             completer.complete(msg[0]);
           });
           entry.addCompleteHandler((value) {
-            completer.addCompleteHandler((SendPort port) {
-              _marshal([value], (List message) => port.send(message, null));
+            completer.addCompleteHandler((SendPort completePort) {
+              _marshal([value], (List completeMessage) => completePort.send(completeMessage, null));
             });
           });
         } else {

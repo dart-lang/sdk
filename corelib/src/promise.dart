@@ -5,7 +5,7 @@
 // Dart core library.
 
 /** A promise to value of type [T] that may be computed asynchronously. */
-interface Promise<T> factory PromiseImpl<T> {
+interface Promise<T> default PromiseImpl<T> {
 
   Promise();
 
@@ -90,7 +90,7 @@ interface Promise<T> factory PromiseImpl<T> {
 }
 
 
-interface Proxy extends Promise<bool> factory ProxyImpl {
+interface Proxy extends Promise<bool> default ProxyImpl {
 
   Proxy.forPort(SendPort port);
   Proxy.forIsolate(Isolate isolate);

@@ -124,7 +124,7 @@ public class DartRunner {
     File outFile =  options.getOutputFilename();
 
     DefaultDartCompilerListener listener =
-        new DefaultDartCompilerListener(stderr, options.printMachineProblems());
+        new DefaultDartCompilerListener(stderr, options.printErrorFormat());
 
     CompilationResult compiled;
     compiled = compileApp(app, imports, options, listener);

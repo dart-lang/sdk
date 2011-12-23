@@ -142,24 +142,26 @@ totalTests() {
   });
 
   test('Scanner', () {
-    String input =
-      "ROUND(R1C0 *  ((R1C1 / 1234.0000) / (1 - POWER(1 + (R1C1 / 1234.5000)," +
-        "   -12 * R1C2))), 2)";
-    Scanner scanner =
-      new Scanner.preserveWhitespace(input, 
-        new CellLocation(null, new RowCol(0, 0)));
-    List<Token> tokens = scanner.scan();
+    {
+      String input =
+        "ROUND(R1C0 *  ((R1C1 / 1234.0000) / (1 - POWER(1 + (R1C1 / 1234.5000)," +
+          "   -12 * R1C2))), 2)";
+      Scanner scanner =
+        new Scanner.preserveWhitespace(input, 
+          new CellLocation(null, new RowCol(0, 0)));
+      List<Token> tokens = scanner.scan();
 
-    List<String> expected = <String>[
-        "ROUND", "(", "R1C0", " ", "*", "  ", "(", "(", "R1C1", " ", "/", " ",
-        "1234", ")", " ", "/", " ", "(", "1", " ", "-", " ", "POWER", "(", "1",
-        " ", "+", " ", "(", "R1C1", " ", "/", " ", "1234.5", ")", ",", "   ", "-",
-        "12", " ", "*", " ", "R1C2", ")", ")", ")", ",", " ", "2", ")", ];
+      List<String> expected = <String>[
+          "ROUND", "(", "R1C0", " ", "*", "  ", "(", "(", "R1C1", " ", "/", " ",
+          "1234", ")", " ", "/", " ", "(", "1", " ", "-", " ", "POWER", "(", "1",
+          " ", "+", " ", "(", "R1C1", " ", "/", " ", "1234.5", ")", ",", "   ", "-",
+          "12", " ", "*", " ", "R1C2", ")", ")", ")", ",", " ", "2", ")", ];
 
-    int index = 0;
-    tokens.forEach((Token token) {
-      Expect.equals(expected[index++], token.toString());
-    });
+      int index = 0;
+      tokens.forEach((Token token) {
+        Expect.equals(expected[index++], token.toString());
+      });
+    }
 
     validate(String input) {
       Scanner scanner =

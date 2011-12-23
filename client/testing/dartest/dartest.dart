@@ -166,17 +166,17 @@ class DARTest{
   }
   
   /** Update the UI after running test. */
-  void _updateDARTestUI(TestCase test) {
-    _updateResultsTable(test, window);
+  void _updateDARTestUI(TestCase test_) {
+    _updateResultsTable(test_, window);
     if(_runnerWindow != window) {
-      _updateResultsTable(test, _runnerWindow);
+      _updateResultsTable(test_, _runnerWindow);
     }
     
-    if(test.result != null) {
-      _log('  Result: ${test.result.toUpperCase()} ${test.message}');
+    if(test_.result != null) {
+      _log('  Result: ${test_.result.toUpperCase()} ${test_.message}');
     }
-    if(test.runningTime != null) {
-      _log('  took ${_printDuration(test.runningTime)}');
+    if(test_.runningTime != null) {
+      _log('  took ${_printDuration(test_.runningTime)}');
     }
     _updateStatusProgress(_appElements);
     if(_runnerWindow != window) {
@@ -240,15 +240,15 @@ class DARTest{
       headDiv.innerHTML = 'DARTest: In-App View';
       HTMLImageElement close = _runnerWindow.document.createElement('img');
       close.className = 'dt-header-close';
-      close.addEventListener('click', (Event) {
+      close.addEventListener('click', (event) {
         containerDiv.className = 'dt-hide';
       }, true);
       HTMLImageElement pop = _runnerWindow.document.createElement('img');
       pop.className = 'dt-header-pop';
-      pop.addEventListener('click', (Event) => _dartestMaximize(), true);
+      pop.addEventListener('click', (event) => _dartestMaximize(), true);
       HTMLImageElement minMax = _runnerWindow.document.createElement('img');
       minMax.className = 'dt-header-min';
-      minMax.addEventListener('click', (Event) {
+      minMax.addEventListener('click', (event) {
         if (mainElem.classList.contains('dt-hide')) {
           mainElem.classList.remove('dt-hide');
           mainElem.classList.add('dt-show');
@@ -275,13 +275,13 @@ class DARTest{
     HTMLLIElement coverageTab = _runnerWindow.document.createElement('li');
     testingTab.className = 'dt-tab-selected';
     testingTab.textContent = 'Testing';
-    testingTab.addEventListener('click', (Event) {
+    testingTab.addEventListener('click', (event) {
       _showTestControls();
       _changeTabs(testingTab, coverageTab);
     }, true);
     tabList.appendChild(testingTab);
     coverageTab.textContent = 'Coverage';
-    coverageTab.addEventListener('click', (Event) {
+    coverageTab.addEventListener('click', (event) {
       _showCoverageControls();
       _changeTabs(coverageTab, testingTab);
     }, true);
@@ -293,7 +293,7 @@ class DARTest{
       HTMLDivElement popIn = _runnerWindow.document.createElement('div');
       popIn.className = 'dt-minimize';
       popIn.innerHTML = 'Pop In &#8690;';
-      popIn.addEventListener('click', (Event) => _dartestMinimize(), true);
+      popIn.addEventListener('click', (event) => _dartestMinimize(), true);
       containerDiv.appendChild(popIn);
     }  
     
@@ -319,7 +319,7 @@ class DARTest{
       runBtn.innerHTML = '&#9658;';
       runBtn.title = 'Run Tests';
       runBtn.className = 'dt-button dt-run';
-      runBtn.addEventListener('click', (Event) {
+      runBtn.addEventListener('click', (event) {
         _log('Running tests');
         updateUI = _updateDARTestUI;
         runDartests();

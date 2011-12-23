@@ -26,7 +26,7 @@ class SelectorLiteralTest {
     Parser parser = new Parser(new lang.SourceFile(
         lang.SourceFile.IN_MEMORY_FILE, ".foobar"));
 
-    List<SelectorGroup> exprTree = parser.preprocess();
+    List<SelectorGroup> exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -41,7 +41,7 @@ class SelectorLiteralTest {
     parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
         ".foobar .bar .no-story"));
 
-    exprTree = parser.preprocess();
+    exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -72,7 +72,7 @@ class SelectorLiteralTest {
     Parser parser = new Parser(new lang.SourceFile(
         lang.SourceFile.IN_MEMORY_FILE, "#elemId"));
 
-    List<SelectorGroup> exprTree = parser.preprocess();
+    List<SelectorGroup> exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     Expect.isNotNull(exprTree);
@@ -89,7 +89,7 @@ class SelectorLiteralTest {
   static void testElement() {
     Parser parser = new Parser(new lang.SourceFile(
         lang.SourceFile.IN_MEMORY_FILE, "div"));
-    List<SelectorGroup> exprTree = parser.preprocess();
+    List<SelectorGroup> exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -103,7 +103,7 @@ class SelectorLiteralTest {
 
     parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
         "div div span"));
-    exprTree = parser.preprocess();
+    exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -133,7 +133,7 @@ class SelectorLiteralTest {
   static void testNamespace() {
     Parser parser = new Parser(new lang.SourceFile(
         lang.SourceFile.IN_MEMORY_FILE, "ns1|div"));
-    List<SelectorGroup> exprTree = parser.preprocess();
+    List<SelectorGroup> exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -152,7 +152,7 @@ class SelectorLiteralTest {
 
     parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
         "ns1|div div ns2|span .foobar"));
-    exprTree = parser.preprocess();
+    exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -195,7 +195,7 @@ class SelectorLiteralTest {
     Parser parser = new Parser(new lang.SourceFile(
         lang.SourceFile.IN_MEMORY_FILE,
         "div, .foobar ,#elemId, .xyzzy .test, ns1|div div #elemId .foobar"));
-    List<SelectorGroup> exprTree = parser.preprocess();
+    List<SelectorGroup> exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 5);
     var groupIdx = 0;
@@ -273,7 +273,7 @@ class SelectorLiteralTest {
         lang.SourceFile.IN_MEMORY_FILE,
         ".foobar > .bar + .no-story ~ myNs|div #elemId"));
 
-    List<SelectorGroup> exprTree = parser.preprocess();
+    List<SelectorGroup> exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -317,7 +317,7 @@ class SelectorLiteralTest {
     Parser parser = new Parser(new lang.SourceFile(
         lang.SourceFile.IN_MEMORY_FILE, "*"));
 
-    List<SelectorGroup> exprTree = parser.preprocess();
+    List<SelectorGroup> exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -333,7 +333,7 @@ class SelectorLiteralTest {
     parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
         "*.foobar"));
 
-    exprTree = parser.preprocess();
+    exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -360,7 +360,7 @@ class SelectorLiteralTest {
     parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
         "myNs|*.foobar"));
 
-    exprTree = parser.preprocess();
+    exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {
@@ -390,7 +390,7 @@ class SelectorLiteralTest {
     parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
         "*|*.foobar"));
 
-    exprTree = parser.preprocess();
+    exprTree = parser.parse();
     Expect.isNotNull(exprTree);
     Expect.equals(exprTree.length, 1);
     for (selectorGroup in exprTree) {

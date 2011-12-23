@@ -659,16 +659,22 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // EDX: Array length as Smi.
 
     // Store the type argument field.
-    __ movl(FieldAddress(EAX, Array::type_arguments_offset()), ECX);
+    __ StoreIntoObject(EAX,
+                       FieldAddress(EAX, Array::type_arguments_offset()),
+                       ECX);
 
     // Set the length field.
-    __ movl(FieldAddress(EAX, Array::length_offset()), EDX);
+    __ StoreIntoObject(EAX,
+                       FieldAddress(EAX, Array::length_offset()),
+                       EDX);
 
     // Store class value for array.
     __ movl(ECX, FieldAddress(CTX, Context::isolate_offset()));
     __ movl(ECX, Address(ECX, Isolate::object_store_offset()));
     __ movl(ECX, Address(ECX, ObjectStore::array_class_offset()));
-    __ movl(FieldAddress(EAX, Array::class_offset()), ECX);
+    __ StoreIntoObject(EAX,
+                       FieldAddress(EAX, Array::class_offset()),
+                       ECX);
     __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(0));  // Tags.
 
     // Initialize all array elements to raw_null.
@@ -969,12 +975,14 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EDX: number of context variables.
     __ LoadObject(EBX, context_class);  // Load up class field of context.
-    __ movl(FieldAddress(EAX, Context::class_offset()), EBX);
+    __ StoreIntoObject(EAX,
+                       FieldAddress(EAX, Context::class_offset()),
+                       EBX);
     __ movl(FieldAddress(EAX, Context::tags_offset()), Immediate(0));  // Tags.
 
     // Setup up number of context variables field.
     // EAX: new object.
-    // EDX: number of context variables.
+    // EDX: number of context variables as integer value (not object).
     __ movl(FieldAddress(EAX, Context::num_variables_offset()), EDX);
 
     // Setup isolate field.
@@ -982,6 +990,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // EAX: new object.
     // EDX: number of context variables.
     __ movl(EBX, FieldAddress(CTX, Context::isolate_offset()));
+    // EBX: Isolate, not an object.
     __ movl(FieldAddress(EAX, Context::isolate_offset()), EBX);
 
     const Immediate raw_null =

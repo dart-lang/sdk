@@ -16,42 +16,42 @@ class A {
                 {
                     int s4 = 4;
 
-                    var _fn_0 = int () => 0; // hoisted
+                    var _fn_0 = int _() => 0; // hoisted
 
-                    var _fn_1 = int (p1) => p1; // hoisted
+                    var _fn_1 = int _(p1) => p1; // hoisted
 
-                    var _fn_2 = int (p1, p2) => p1 + p2; // hoisted
+                    var _fn_2 = int _(p1, p2) => p1 + p2; // hoisted
 
-                    var _fn_3 = int (p1, p2, p3) => p1 + p2 + p3; // hoisted
+                    var _fn_3 = int _(p1, p2, p3) => p1 + p2 + p3; // hoisted
 
-                    var _fn_4 = int (p1, p2, p3, p4) => p1 + p2 + p3 + p4; // hoisted
-
-
-                    var _fn_5 = int () => s1; // bind 1-0
-
-                    var _fn_6 = int () => s1 + s2; // bind 2-0
-
-                    var _fn_7 = int () => s1 + s2 + s3; // bind 3-0
-
-                    var _fn_8 = int () => s1 + s2 + s3 + s4; // bind
+                    var _fn_4 = int _(p1, p2, p3, p4) => p1 + p2 + p3 + p4; // hoisted
 
 
-                    var _fn_9 = int (p1) => p1 + s1; // bind 1-1
+                    var _fn_5 = int _() => s1; // bind 1-0
 
-                    var _fn_A = int (p1, p2) => p1 + p2 + s1 + s2; // bind 2-2
+                    var _fn_6 = int _() => s1 + s2; // bind 2-0
 
-                    var _fn_B = int (p1, p2, p3) => p1 + p2 + p3 + s1 + s2 + s3; // bind 3-3
+                    var _fn_7 = int _() => s1 + s2 + s3; // bind 3-0
+
+                    var _fn_8 = int _() => s1 + s2 + s3 + s4; // bind
+
+
+                    var _fn_9 = int _(p1) => p1 + s1; // bind 1-1
+
+                    var _fn_A = int _(p1, p2) => p1 + p2 + s1 + s2; // bind 2-2
+
+                    var _fn_B = int _(p1, p2, p3) => p1 + p2 + p3 + s1 + s2 + s3; // bind 3-3
 
                     // bind
-                    var _fn_C = int (p1, p2, p3, p4) => p1 + p2 + p3 + p4 + s1 + s2 + s3 + s4;
+                    var _fn_C = int _(p1, p2, p3, p4) => p1 + p2 + p3 + p4 + s1 + s2 + s3 + s4;
 
 
                     // cannot inline - named args
-                    var _fn_D = int (p1, [n1 = 20]) => p1 + s1 + n1;
+                    var _fn_D = int _(p1, [n1 = 20]) => p1 + s1 + n1;
 
-                    var _fn_E = int (p1) => p1 + s1 + this.x;
+                    var _fn_E = int _(p1) => p1 + s1 + this.x;
 
-                    var _fn_F = int (p1) => p1 + s1 + arg1;
+                    var _fn_F = int _(p1) => p1 + s1 + arg1;
                 }
             }
         }

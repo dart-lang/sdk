@@ -234,7 +234,7 @@ class ImmutableArray<E> implements List<E> {
   }
 
   String toString() {
-    return "ImmutableArray";
+    return Arrays.asString(this);
   }
 
   int indexOf(E element, [int start = 0]) {

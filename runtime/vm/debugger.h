@@ -12,6 +12,7 @@ namespace dart {
 class Breakpoint;
 class Isolate;
 class ObjectPointerVisitor;
+class ActiveVariables;
 
 
 // Breakpoint represents a location in Dart source and the corresponding
@@ -49,11 +50,12 @@ class Breakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  explicit ActivationFrame(uword pc);
+  explicit ActivationFrame(uword pc, uword fp);
 
   uword pc() const { return pc_; }
+  uword fp() const { return fp_; }
 
-  RawFunction* DartFunction();
+  const Function& DartFunction();
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
@@ -61,19 +63,30 @@ class ActivationFrame : public ZoneAllocated {
   intptr_t LineNumber();
   const char* ToCString();
 
-  // Returns an array of String values containing variable names
-  // in this activation frame.
-  RawArray* Variables();
+  intptr_t NumLocalVariables();
+
+  void VariableAt(intptr_t i,
+                  String* name,
+                  intptr_t* token_pos,
+                  intptr_t* end_pos,
+                  Instance* value);
 
   // Returns the value of the given variable in the context of the
   // activation frame.
   RawInstance* Value(const String& variable_name);
 
  private:
+  void GetLocalVariables();
+  RawInstance* GetLocalVarValue(intptr_t slot_index);
+
   uword pc_;
-  RawFunction* function_;
+  uword fp_;
+  Function& function_;
   intptr_t token_index_;
   intptr_t line_number_;
+
+  LocalVarDescriptors* var_descriptors_;
+  ZoneGrowableArray<intptr_t> desc_indices_;
 
   DISALLOW_COPY_AND_ASSIGN(ActivationFrame);
 };

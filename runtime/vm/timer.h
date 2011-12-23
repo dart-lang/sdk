@@ -78,6 +78,7 @@ class Timer : public ValueObject {
 // List of per isolate timers.
 #define TIMER_LIST(V)                                                          \
   V(time_script_loading, "Script Loading : ")                                  \
+  V(time_creating_snapshot, "Snapshot Creation : ")                            \
   V(time_compilation, "Function compilation : ")                               \
   V(time_bootstrap, "Bootstrap of core classes : ")                            \
   V(time_total_runtime, "Total runtime for isolate : ")                        \

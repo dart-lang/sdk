@@ -13,6 +13,33 @@
 
 namespace dart {
 
+enum {
+  kForwardingMask = 3,
+  kNotForwarded = 1,  // Tagged pointer.
+  kForwarded = 3,  // Tagged pointer and forwarding bit set.
+};
+
+
+static inline bool IsForwarding(uword header) {
+  uword bits = header & kForwardingMask;
+  ASSERT((bits == kNotForwarded) || (bits == kForwarded));
+  return bits == kForwarded;
+}
+
+
+static inline uword ForwardedAddr(uword header) {
+  ASSERT(IsForwarding(header));
+  return header & ~kForwardingMask;
+}
+
+
+static inline void ForwardTo(uword orignal, uword target) {
+  // Make sure forwarding can be encoded.
+  ASSERT((target & kForwardingMask) == 0);
+  *reinterpret_cast<uword*>(orignal) = target | kForwarded;
+}
+
+
 class ScavengerVisitor : public ObjectPointerVisitor {
  public:
   explicit ScavengerVisitor(Scavenger* scavenger)
@@ -27,29 +54,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   }
 
  private:
-  enum {
-    kForwardingMask = 3,
-    kNotForwarded = 1,  // Tagged pointer.
-    kForwarded = 3,  // Tagged pointer and forwarding bit set.
-  };
-
-  static inline bool IsForwarding(uword header) {
-    uword bits = header & kForwardingMask;
-    ASSERT((bits == kNotForwarded) || (bits == kForwarded));
-    return bits == kForwarded;
-  }
-
-  static inline uword ForwardedAddr(uword header) {
-    ASSERT(IsForwarding(header));
-    return header & ~kForwardingMask;
-  }
-
-  static inline void ForwardTo(uword orignal, uword target) {
-    // Make sure forwarding can be encoded.
-    ASSERT((target & kForwardingMask) == 0);
-    *reinterpret_cast<uword*>(orignal) = target | kForwarded;
-  }
-
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
     // TODO(iposva): Implement store buffers.
   }
@@ -66,11 +70,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     // below.
     // The scavenger is only interested in objects located in the from space.
     if (!scavenger_->from_->Contains(raw_addr)) {
-      // Addresses being visited cannot point in the to space. As this would
-      // either mean the pointer is being visited twice or this pointer has not
-      // been evacuated during the last scavenge. Both of these situations are
-      // an error.
-      ASSERT(!scavenger_->to_->Contains(raw_addr));
       return;
     }
 
@@ -83,8 +82,29 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       new_addr = ForwardedAddr(header);
     } else {
       intptr_t size = raw_obj->Size();
-      // TODO(iposva): Check whether object should be promoted.
-      new_addr = scavenger_->TryAllocate(size);
+      // Check whether object should be promoted.
+      if (scavenger_->survivor_end_ <= raw_addr) {
+        // Not a survivor of a previous scavenge. Just copy the object into the
+        // to space.
+        new_addr = scavenger_->TryAllocate(size);
+      } else {
+        // TODO(iposva): Experiment with less aggressive promotion. For example
+        // a coin toss determines if an object is promoted or whether it should
+        // survive in this generation.
+        //
+        // This object is a survivor of a previous scavenge. Attempt to promote
+        // the object.
+        new_addr = heap_->TryAllocate(size, Heap::kOld);
+        if (new_addr != 0) {
+          // If promotion succeeded then we need to remember it so that it can
+          // be traversed later.
+          scavenger_->PushToPromotedStack(new_addr);
+        } else {
+          // Promotion did not succeed. Copy into the to space instead.
+          scavenger_->had_promotion_failure_ = true;
+          new_addr = scavenger_->TryAllocate(size);
+        }
+      }
       // During a scavenge we always succeed to at least copy all of the
       // current objects to the to space.
       ASSERT(new_addr != 0);
@@ -105,6 +125,36 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Scavenger* scavenger_;
   Heap* heap_;
   Heap* vm_heap_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
+};
+
+
+class ScavengerWeakVisitor : public ObjectPointerVisitor {
+ public:
+  explicit ScavengerWeakVisitor(Scavenger* scavenger) : scavenger_(scavenger) {
+  }
+
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current = first; current <= last; current++) {
+      RawObject* raw_obj = *current;
+      ASSERT(raw_obj->IsHeapObject());
+      uword raw_addr = RawObject::ToAddr(raw_obj);
+      if (scavenger_->from_->Contains(raw_addr)) {
+        uword header = *reinterpret_cast<uword*>(raw_addr);
+        if (IsForwarding(header)) {
+          *current = RawObject::FromAddr(ForwardedAddr(header));
+        } else {
+          *current = Object::null();
+        }
+      }
+    }
+  }
+
+ private:
+  Scavenger* scavenger_;
+
+  DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
 
@@ -134,6 +184,9 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_capacity, uword object_alignment)
   // Setup local fields.
   top_ = FirstObjectStart();
   end_ = to_->end();
+
+  survivor_end_ = FirstObjectStart();
+
 #if defined(DEBUG)
   memset(to_->pointer(), 0xf3, to_->size());
   memset(from_->pointer(), 0xf3, from_->size());
@@ -160,6 +213,10 @@ void Scavenger::Prologue() {
 
 
 void Scavenger::Epilogue() {
+  // All objects in the to space have been copied from the from space at this
+  // moment.
+  survivor_end_ = top_;
+
 #if defined(DEBUG)
   memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
@@ -167,18 +224,33 @@ void Scavenger::Epilogue() {
 
 
 void Scavenger::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
-  isolate->VisitObjectPointers(visitor,
-                               StackFrameIterator::kDontValidateFrames);
+  isolate->VisitStrongObjectPointers(visitor,
+                                     StackFrameIterator::kDontValidateFrames);
   heap_->IterateOldPointers(visitor);
+}
+
+
+void Scavenger::IterateWeakRoots(Isolate* isolate,
+                                 ObjectPointerVisitor* visitor) {
+  isolate->VisitWeakObjectPointers(visitor);
 }
 
 
 void Scavenger::ProcessToSpace(ObjectPointerVisitor* visitor) {
   uword resolved_top = FirstObjectStart();
   // Iterate until all work has been drained.
-  while (resolved_top < top_) {
-    RawObject* raw_obj = RawObject::FromAddr(resolved_top);
-    resolved_top += raw_obj->VisitPointers(visitor);
+  while ((resolved_top < top_) || PromotedStackHasMore()) {
+    while (resolved_top < top_) {
+      RawObject* raw_obj = RawObject::FromAddr(resolved_top);
+      resolved_top += raw_obj->VisitPointers(visitor);
+    }
+    while (PromotedStackHasMore()) {
+      RawObject* raw_object = RawObject::FromAddr(PopFromPromotedStack());
+      // Resolve or copy all objects referred to by the current object. This
+      // can potentially push more objects on this stack as well as add more
+      // objects to be resolved in the to space.
+      raw_object->VisitPointers(visitor);
+    }
   }
 }
 
@@ -199,6 +271,12 @@ void Scavenger::Scavenge() {
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 
+  if (FLAG_verify_before_gc) {
+    OS::PrintErr("Verifying before Scavenge... ");
+    heap_->Verify();
+    OS::PrintErr(" done.\n");
+  }
+
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();
   // Setup the visitor and run a scavenge.
@@ -206,10 +284,18 @@ void Scavenger::Scavenge() {
   Prologue();
   IterateRoots(isolate, &visitor);
   ProcessToSpace(&visitor);
+  ScavengerWeakVisitor weak_visitor(this);
+  IterateWeakRoots(isolate, &weak_visitor);
   Epilogue();
   timer.Stop();
   if (FLAG_verbose_gc) {
     OS::PrintErr("Scavenge[%d]: %dus\n", count_, timer.TotalElapsedTime());
+  }
+
+  if (FLAG_verify_after_gc) {
+    OS::PrintErr("Verifying after Scavenge... ");
+    heap_->Verify();
+    OS::PrintErr(" done.\n");
   }
 
   count_++;

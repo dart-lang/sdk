@@ -137,6 +137,16 @@ class ListTest {
       exceptionCaught = true;
     }
     Expect.equals(true, exceptionCaught);
+
+    exceptionCaught = false;
+    List list = new List();
+    try {
+      list.removeLast();
+    } catch (IndexOutOfRangeException e) {
+      exceptionCaught = true;
+    }
+    Expect.equals(0, list.length);
+    Expect.equals(true, exceptionCaught);
   }
 }
 

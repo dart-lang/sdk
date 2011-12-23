@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface MessageEvent extends Event factory MessageEventWrappingImplementation {
+interface MessageEvent extends Event default MessageEventWrappingImplementation {
 
   MessageEvent(String type, String data, String origin, String lastEventId,
       Window source, MessagePort port, [bool canBubble, bool cancelable]);

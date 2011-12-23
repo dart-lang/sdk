@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DeviceOrientationEvent extends Event factory DeviceOrientationEventWrappingImplementation {
+interface DeviceOrientationEvent extends Event default DeviceOrientationEventWrappingImplementation {
 
   DeviceOrientationEvent(String type, double alpha, double beta, double gamma,
       [bool canBubble, bool cancelable]);

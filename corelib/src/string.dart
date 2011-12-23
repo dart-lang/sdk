@@ -8,7 +8,7 @@
  * scalar character codes accessible through the [charCodeAt] or the
  * [charCodes] method.
  */
-interface String extends Comparable, Hashable, Pattern factory Strings {
+interface String extends Comparable, Hashable, Pattern default Strings {
   /**
    * Allocates a new String for the specified [charCodes].
    */

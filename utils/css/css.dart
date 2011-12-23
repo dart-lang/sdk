@@ -4,19 +4,20 @@
 
 #library('css');
 
-#import('dart:dom');
 #import('../../frog/lang.dart', prefix:'lang');
+#import('../../frog/file_system.dart');
 #import('../../frog/file_system_memory.dart');
-
 #source('tokenkind.dart');
 #source('tokenizer.dart');
 #source('tree.dart');
 #source('cssselectorexception.dart');
 #source('cssworld.dart');
 #source('parser.dart');
+#source('validate.dart');
+#source('generate.dart');
 
 
-void initCssWorld() {
+void initCssWorld([bool commandLine = true]) {
   var fs = new MemoryFileSystem();
   lang.parseOptions('', [], fs);
   lang.initializeWorld(fs);
@@ -28,15 +29,16 @@ void initCssWorld() {
   // problems programmatically.
   lang.options.throwOnErrors = true;
   lang.options.throwOnFatal = true;
+  lang.options.useColors = commandLine ? true : false;
 }
 
 // TODO(terry): Add obfuscation mapping file.
 void cssParseAndValidate(String cssExpression, CssWorld world) {
   Parser parser = new Parser(new lang.SourceFile(lang.SourceFile.IN_MEMORY_FILE,
       cssExpression));
-  var tree = parser.template();
+  var tree = parser.parseTemplate();
   if (tree != null) {
-    parser.validateTemplate(tree.selectors, world);
+    Validate.template(tree.selectors, world);
   }
 }
 
@@ -47,10 +49,10 @@ String cssParseAndValidateDebug(String cssExpression, CssWorld world) {
   String output = "";
   String prettyTree = "";
   try {
-    var tree = parser.template();
+    var tree = parser.parseTemplate();
     if (tree != null) {
       prettyTree = tree.toDebugString();
-      parser.validateTemplate(tree.selectors, world);
+      Validate.template(tree.selectors, world);
       output = prettyTree;
     }
   } catch (var e) {

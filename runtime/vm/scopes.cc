@@ -26,6 +26,7 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       loop_level_(loop_level),
       context_level_(LocalScope::kUnitializedContextLevel_),
       num_context_variables_(0),
+      end_token_index_(0),
       variables_(),
       labels_() {
   // Hook this node into the children of the parent, unless the parent has a
@@ -169,6 +170,45 @@ int LocalScope::AllocateVariables(int first_parameter_index,
     child = child->sibling();
   }
   return min_frame_index;
+}
+
+
+static int CompareVariableRanges(
+    LocalVariable* const* a, LocalVariable* const* b) {
+  if ((*a)->token_index() < (*b)->token_index()) return -1;
+  if ((*a)->token_index() > (*b)->token_index()) return 1;
+  return 0;
+}
+
+
+RawLocalVarDescriptors* LocalScope::GetVarDescriptors() {
+  GrowableArray<LocalVariable*> vars(8);
+  CollectLocalVariables(&vars);
+  vars.Sort(&CompareVariableRanges);
+  const LocalVarDescriptors& var_desc =
+      LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars.length()));
+  for (int i = 0;  i < vars.length(); i++) {
+    LocalVariable* var = vars[i];
+    var_desc.SetVar(i, var->name(), var->index(),
+        var->token_index(), var->owner()->end_token_index());
+  }
+  return var_desc.raw();
+}
+
+
+void LocalScope::CollectLocalVariables(GrowableArray<LocalVariable*>* vars) {
+  for (int i = 0; i < this->variables_.length(); i++) {
+    LocalVariable* var = variables_[i];
+    if ((var->owner() == this) && Scanner::IsIdent(var->name())) {
+      vars->Add(this->variables_[i]);
+    }
+  }
+  if (child() != NULL) {
+    child()->CollectLocalVariables(vars);
+  }
+  if (sibling() != NULL) {
+    sibling()->CollectLocalVariables(vars);
+  }
 }
 
 

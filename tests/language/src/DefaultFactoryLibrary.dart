@@ -8,7 +8,7 @@
 #import("DefaultFactoryLibraryTest.dart", prefix:"test");
 
 // References a factory class in another library
-interface A factory test.C {
+interface A default test.C {
   A();
   int methodA();
 }

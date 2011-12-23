@@ -24,8 +24,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_STATIC_MEMBER("cannot override static member %s of %s"),
-  CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS(
-      "cannot override method %s, wrong number of parameters"),
+  CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS("cannot override method %s, wrong number of parameters"),
   CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS(
       "cannot override method %s, number of named parameters doesn't match"),
   CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS(
@@ -58,8 +57,18 @@ public enum ResolverErrorCode implements ErrorCode {
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
+  DUPLICATE_FUNCTION_EXPRESSION(ErrorSeverity.ERROR, "Duplicate function expression '%s'"),
+  DUPLICATE_FUNCTION_EXPRESSION_WARNING(ErrorSeverity.WARNING,
+      "Function expression '%s' is hiding '%s' at %s"),
+  DUPLICATE_LOCAL_VARIABLE_ERROR(ErrorSeverity.ERROR, "Duplicate local variable '%s'"),
+  DUPLICATE_LOCAL_VARIABLE_WARNING(ErrorSeverity.WARNING,
+      "Local variable '%s' is hiding '%s' at %s"),
   DUPLICATE_MEMBER("Duplicate member '%s'"),
+  DUPLICATE_PARAMETER(ErrorSeverity.ERROR, "Duplicate parameter '%s'"),
+  DUPLICATE_PARAMETER_WARNING(ErrorSeverity.WARNING, "Parameter '%s' is hiding '%s' at %s"),
   DUPLICATE_TOP_LEVEL_DEFINITION("duplicate top-level definition '%s'"),
+  DUPLICATE_TYPE_VARIABLE(ErrorSeverity.ERROR, "Duplicate type variable '%s'"),
+  DUPLICATE_TYPE_VARIABLE_WARNING(ErrorSeverity.WARNING, "Type variable '%s' is hiding '%s' at %s"),
   DYNAMIC_EXTENDS("Dynamic can not be used as superclass"),
   DYNAMIC_IMPLEMENTS("Dynamic can not be used as superinterface"),
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
@@ -82,6 +91,8 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
+  ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE(
+      "Illegal constructor declaration.  No default clause in interface"),
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
@@ -127,7 +138,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
      "Type parameters in default declaration must match referenced class exactly"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
-  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments");
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments.  Expected %d");
   private final ErrorSeverity severity;
   private final String message;
 

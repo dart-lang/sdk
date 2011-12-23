@@ -30,6 +30,26 @@ void Handles<kHandleSizeInWords,
 }
 
 
+template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
+void Handles<kHandleSizeInWords,
+             kHandlesPerChunk,
+             kOffsetOfRawPtr>::Visit(HandleVisitor* visitor) {
+  // Visit all zone handles.
+  HandlesBlock* block = zone_blocks_;
+  while (block != NULL) {
+    block->Visit(visitor);
+    block = block->next_block();
+  }
+
+  // Visit all scoped handles.
+  block = &first_scoped_block_;
+  do {
+    block->Visit(visitor);
+    block = block->next_block();
+  } while (block != NULL);
+}
+
+
 // Figure out the current handle scope using the current Isolate and
 // allocate a handle in that scope. The function assumes that a
 // current Isolate, current zone and current handle scope exist. It
@@ -279,6 +299,17 @@ void Handles<kHandleSizeInWords,
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
     visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&data_[i + kOffsetOfRawPtr/kWordSize]));
+  }
+}
+
+
+template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
+void Handles<kHandleSizeInWords,
+             kHandlesPerChunk,
+             kOffsetOfRawPtr>::HandlesBlock::Visit(HandleVisitor* visitor) {
+  ASSERT(visitor != NULL);
+  for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
+    visitor->Visit(&data_[i + kOffsetOfRawPtr/kWordSize]);
   }
 }
 

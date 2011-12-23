@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface DeviceMotionEvent extends Event factory DeviceMotionEventWrappingImplementation {
+interface DeviceMotionEvent extends Event default DeviceMotionEventWrappingImplementation {
 
   // TODO(nweiz): Add more arguments to the constructor when we support
   // DeviceMotionEvent more thoroughly.

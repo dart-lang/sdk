@@ -44,7 +44,7 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   static const int kExists = 1;
   static const int kDoesNotExist = 0;
   Dart_EnterScope();
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
+  Dart_Handle path = Dart_GetNativeArgument(args, 0);
   if (Dart_IsString(path)) {
     Directory::ExistsResult result =
         Directory::Exists(DartUtils::GetStringValue(path));
@@ -65,7 +65,7 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
+  Dart_Handle path = Dart_GetNativeArgument(args, 0);
   if (Dart_IsString(path)) {
     bool created = Directory::Create(DartUtils::GetStringValue(path));
     Dart_SetReturnValue(args, Dart_NewBoolean(created));
@@ -119,7 +119,7 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle path = Dart_GetNativeArgument(args, 1);
+  Dart_Handle path = Dart_GetNativeArgument(args, 0);
   if (Dart_IsString(path)) {
     bool deleted = Directory::Delete(DartUtils::GetStringValue(path));
     Dart_SetReturnValue(args, Dart_NewBoolean(deleted));

@@ -74,7 +74,7 @@ interface ElementRect {
 
 
 interface Element extends Node /*, common.NodeSelector, common.ElementTraversal */
-    factory ElementWrappingImplementation {
+    default ElementWrappingImplementation {
 
   Element.html(String html);
   Element.tag(String tag);

@@ -28,10 +28,9 @@ class LinkedHashMapImplementation<K extends Hashable, V>
     _list = new DoubleLinkedQueue<KeyValuePair<K, V>>();
   }
 
-  // See issue 417. Works in the vm, fails in dartc and frog.
-  factory LinkedHashMapImplementation.from(Map/*<K, V>*/ other) {
-    Map/*<K, V>*/ result = new LinkedHashMapImplementation/*<K, V>*/();
-    other.forEach((/*K*/ key, /*V*/ value) { result[key] = value; });
+  factory LinkedHashMapImplementation.from(Map<K, V> other) {
+    Map<K, V> result = new LinkedHashMapImplementation<K, V>();
+    other.forEach((K key, V value) { result[key] = value; });
     return result;
   }
 

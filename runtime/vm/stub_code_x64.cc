@@ -614,16 +614,18 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R10: Array length as Smi.
 
     // Store the type argument field.
-    __ movq(FieldAddress(RAX, Array::type_arguments_offset()), RBX);
+    __ StoreIntoObject(RAX,
+                       FieldAddress(RAX, Array::type_arguments_offset()),
+                       RBX);
 
     // Set the length field.
-    __ movq(FieldAddress(RAX, Array::length_offset()), R10);
+    __ StoreIntoObject(RAX, FieldAddress(RAX, Array::length_offset()), R10);
 
     // Store class value for array.
     __ movq(RBX, FieldAddress(CTX, Context::isolate_offset()));
     __ movq(RBX, Address(RBX, Isolate::object_store_offset()));
     __ movq(RBX, Address(RBX, ObjectStore::array_class_offset()));
-    __ movq(FieldAddress(RAX, Array::class_offset()), RBX);
+    __ StoreIntoObject(RAX, FieldAddress(RAX, Array::class_offset()), RBX);
     __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(0));  // Tags.
 
     // Initialize all array elements to raw_null.

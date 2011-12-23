@@ -34,8 +34,13 @@ class ClassScope extends Scope {
       ClassScope scope = new ClassScope(superclass.getElement(),
                                         new Scope("library", (LibraryElement) enclosing));
       element = scope.findElement(inLibrary, name);
-      if (element != null) {
-        return element;
+      switch (ElementKind.of(element)) {
+        case TYPE_VARIABLE:
+          return null;
+        case NONE:
+          break;
+        default:
+          return element;
       }
     }
     for (InterfaceType supertype : classElement.getInterfaces()) {

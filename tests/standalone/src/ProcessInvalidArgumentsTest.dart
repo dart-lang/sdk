@@ -4,35 +4,11 @@
 //
 // Process test program to test that invalid arguments throw exceptions.
 
-void testNonStringPath() {
-  try {
-    Process p = new Process(["true"], []);
-    Expect.fail("Did not throw exception");
-  } catch(var e) {
-    Expect.isTrue(e is ProcessException, "Wrong exception type: $e");
-  }
-}
-
-void testNonListArguments() {
-  try {
-    Process p = new Process("true", "asdf");
-    Expect.fail("Did not throw exception");
-  } catch(var e) {
-    Expect.isTrue(e is ProcessException, "Wrong exception type: $e");
-  }
-}
-
-void testNonStringArgument() {
-  try {
-    Process p = new Process("true", ["asdf", 1]);
-    Expect.fail("Did not throw exception");
-  } catch(var e) {
-    Expect.isTrue(e is ProcessException, "Wrong exception type: $e");
-  }
-}
-
 void main() {
-  testNonStringPath();
-  testNonListArguments();
-  testNonStringArgument();
+  Expect.throws(() => new Process.start(["true"], []),
+                (e) => e is ProcessException);
+  Expect.throws(() => new Process.start("true", "asdf"),
+                (e) => e is ProcessException);
+  Expect.throws(() => new Process.start("true", ["asdf", 1]),
+                (e) => e is ProcessException);
 }

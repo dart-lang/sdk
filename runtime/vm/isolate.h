@@ -46,6 +46,11 @@ class Isolate {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
+  void VisitStrongObjectPointers(ObjectPointerVisitor* visitor,
+                                 bool validate_frames);
+
+  void VisitWeakObjectPointers(ObjectPointerVisitor* visitor);
+
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
 
   Dart_PostMessageCallback post_message_callback() const {

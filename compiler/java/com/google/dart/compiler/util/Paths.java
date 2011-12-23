@@ -30,6 +30,11 @@ public class Paths {
     int baseFilePathLen = baseFilePath.length();
     int relFilePathLen = relFilePath.length();
 
+    // Check for empty cases
+    if (baseFilePathLen == 0 && relFilePathLen == 0) {
+      return relFilePath;
+    }
+
     // Find the common path elements
     int index = 0;
     while (index < baseFilePathLen - 1 && index < relFilePathLen - 1) {

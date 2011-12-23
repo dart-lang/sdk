@@ -6,27 +6,37 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassMember;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSuperExpression;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
+import com.google.dart.compiler.util.Paths;
 
+import java.io.File;
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 
@@ -207,6 +217,87 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return FunctionAliasElementImplementation.fromNode(node, library);
   }
 
+  /**
+   * @return <code>true</code> if given {@link Element} represents {@link VariableElement} for
+   *         parameter in {@link DartMethodDefinition}.
+   */
+  public static boolean isConstructorParameter(Element element) {
+    if (element instanceof VariableElement) {
+      DartNode parentNode = element.getNode().getParent();
+      if (parentNode instanceof DartFunction
+          && parentNode.getParent() instanceof DartMethodDefinition) {
+        DartMethodDefinition parentMethod = (DartMethodDefinition) parentNode.getParent();
+        if (parentMethod.getSymbol().isConstructor()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Element} represents {@link VariableElement} for
+   *         parameter in identically named setter {@link DartMethodDefinition}.
+   */
+  public static boolean isParameterOfSameNameSetter(Element element) {
+    if (element instanceof VariableElement) {
+      DartNode parentNode = element.getNode().getParent();
+      if (parentNode instanceof DartFunction
+          && parentNode.getParent() instanceof DartMethodDefinition) {
+        DartMethodDefinition parentMethod = (DartMethodDefinition) parentNode.getParent();
+        if (parentMethod.getSymbol().getName().equals(element.getName())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Element} represents {@link VariableElement} for
+   *         parameter in {@link DartMethodDefinition} without body, or with {@link DartNativeBlock}
+   *         as body.
+   */
+  public static boolean isParameterOfMethodWithoutBody(Element element) {
+    if (element instanceof VariableElementImplementation) {
+      DartNode parentNode = element.getNode().getParent();
+      if (parentNode instanceof DartFunction) {
+        DartFunction parentFunction = (DartFunction) parentNode;
+        if (parentFunction.getBody() == null || parentFunction.getBody() instanceof DartNativeBlock) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if {@link DartNode} of given {@link Element} if part of static
+   *         {@link DartClassMember} or part of top level declaration.
+   */
+  public static boolean isStaticContext(Element element) {
+    DartNode node = element.getNode();
+    while (node != null) {
+      // Found DartUnit, so top level element was given.
+      if (node instanceof DartUnit) {
+        return true;
+      }
+      // Found DartClass, so not top level element, can not be static.
+      if (node instanceof DartClass) {
+        break;
+      }
+      // May be static method or field.
+      if (node instanceof DartClassMember) {
+        if (((DartClassMember<?>) node).getModifiers().isStatic()) {
+          return true;
+        }
+      }
+      // Go to parent.
+      node = node.getParent();
+    }
+    return false;
+  }
+
   public static boolean isNonFactoryConstructor(Element method) {
     return !method.getModifiers().isFactory()
         && ElementKind.of(method).equals(ElementKind.CONSTRUCTOR);
@@ -322,5 +413,85 @@ static FieldElementImplementation fieldFromNode(DartField node,
       names.add(typeName);
     }
     return names;
+  }
+
+  /**
+   * @return the {@link DartNode} which is name of underlying {@link Element}, or just its
+   *         {@link DartNode} if name can not be found.
+   */
+  @SuppressWarnings("unchecked")
+  public static DartNode getNameNode(Element element) {
+    DartNode node = element.getNode();
+    if (node instanceof DartDeclaration) {
+      node = ((DartDeclaration<DartExpression>) node).getName();
+    }
+    if (node instanceof DartFunctionExpression) {
+      node = ((DartFunctionExpression) node).getName();
+    }
+    return node;
+  }
+
+  /**
+   * @return the {@link String} which contains user-readable description of "target" {@link Element}
+   *         location relative to "source".
+   */
+  public static String getRelativeElementLocation(Element source, Element target) {
+    // Prepare "target" SourceInfo.
+    SourceInfo targetInfo;
+    {
+      DartNode targetNode = getNameNode(target);
+      if (targetNode == null) {
+        return "unknown";
+      }
+      targetInfo = targetNode.getSourceInfo();
+    }
+    // Prepare relative (short) path to the target unit from source unit.
+    String relativePath;
+    {
+      SourceInfo sourceInfo = source.getNode().getSourceInfo();
+      String sourceName = getSourceName(sourceInfo);
+      String targetName = getSourceName(targetInfo);
+      relativePath = Paths.relativePathFor(new File(sourceName), new File(targetName));
+    }
+    // Prepare (may be empty) target class name.
+    String targetClassName;
+    {
+      ClassElement targetClass = getEnclosingClassElement(target);
+      targetClassName = targetClass != null ? targetClass.getName() : "";
+    }
+    // Format location string.
+    return MessageFormat.format(
+        "{0}:{1}:{2}:{3}",
+        relativePath,
+        targetClassName,
+        targetInfo.getSourceLine(),
+        targetInfo.getSourceColumn());
+  }
+  
+  /**
+   * @return the result of {@link Source#getName()} safely, even if {@link Source} is
+   *         <code>null</code>.
+   */
+  private static String getSourceName(SourceInfo sourceInfo) {
+    Source source = sourceInfo.getSource();
+    if (source != null) {
+      return source.getName();
+    }
+    return "";
+  }
+  
+  /**
+   * @return the enclosing {@link ClassElement} (may be same if already given {@link ClassElement}),
+   *         may be <code>null</code> if top level element.
+   */
+  public static ClassElement getEnclosingClassElement(Element element) {
+    DartNode node = element.getNode();
+    while (node != null) {
+      if (node instanceof DartClass) {
+        return ((DartClass) node).getSymbol();
+      }
+      node = node.getParent();
+    }
+    return null;
   }
 }

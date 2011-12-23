@@ -153,7 +153,7 @@ class DualPivotQuicksort {
           // short amount of time. The invariant will be restored when the
           // pivots are put into their final positions.
           while (true) {
-            int comp = compare(a[great], pivot);
+            comp = compare(a[great], pivot);
             if (comp > 0) {
               great--;
               // This is the only location in the while-loop where a new
@@ -216,7 +216,7 @@ class DualPivotQuicksort {
                 continue;
               } else {
                 // a[great] <= pivot2.
-                int comp = compare(a[great], pivot1);
+                comp = compare(a[great], pivot1);
                 if (comp < 0) {
                   // Triple exchange.
                   a[k] = a[less];
@@ -306,7 +306,7 @@ class DualPivotQuicksort {
                 continue;
               } else {
                 // a[great] < pivot2.
-                int comp = compare(a[great], pivot1);
+                comp = compare(a[great], pivot1);
                 if (comp < 0) {
                   // Triple exchange.
                   a[k] = a[less];

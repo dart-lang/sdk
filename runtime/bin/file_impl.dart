@@ -128,7 +128,7 @@ class _FileOutputStream implements FileOutputStream {
     return _write(buffer, 0, buffer.length);
   }
 
-  bool writeFrom(List<int> buffer, [int offset, int len]) {
+  bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
     return _write(
         buffer, offset, (len == null) ? buffer.length - offset : len);
   }

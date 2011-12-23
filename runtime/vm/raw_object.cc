@@ -23,6 +23,10 @@ void RawObject::Validate() const {
   RawClass* raw_class_class = raw_class->ptr()->class_;
   ASSERT(raw_class_class->IsHeapObject());
   ASSERT(raw_class_class->ptr()->instance_kind_ == kClass);
+
+  // Validate that the tags_ field is sensible.
+  intptr_t tags = ptr()->tags_;
+  ASSERT((tags & 0xfffffff0) == 0);
 }
 
 
@@ -33,13 +37,6 @@ intptr_t RawObject::Size() const {
   ASSERT(IsHeapObject());
 
   RawClass* raw_class = ptr()->class_;
-  if (IsMarked()) {
-    // If the object is marked we need to remove the marking bits from the
-    // raw_class which we loaded above.
-    uword header_bits = reinterpret_cast<uword>(raw_class);
-    header_bits = (header_bits & ~kMarkingMask) | kNotMarked;
-    raw_class = reinterpret_cast<RawClass*>(header_bits);
-  }
   intptr_t instance_size = raw_class->ptr()->instance_size_;
   ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
 
@@ -128,6 +125,13 @@ intptr_t RawObject::Size() const {
         instance_size = PcDescriptors::InstanceSize(num_descriptors);
         break;
       }
+      case kLocalVarDescriptors: {
+        const RawLocalVarDescriptors* raw_descriptors =
+            reinterpret_cast<const RawLocalVarDescriptors*>(this);
+        intptr_t num_descriptors = raw_descriptors->ptr()->length_;
+        instance_size = LocalVarDescriptors::InstanceSize(num_descriptors);
+        break;
+      }
       case kExceptionHandlers: {
         const RawExceptionHandlers* raw_handlers =
             reinterpret_cast<const RawExceptionHandlers*>(this);
@@ -167,19 +171,10 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
 
   // Read the necessary data out of the class before visting the class itself.
   RawClass* raw_class = ptr()->class_;
-  if (IsMarked()) {
-    // If the object is marked we need to remove the marking bits from the
-    // raw_class which we loaded above.
-    uword header_bits = reinterpret_cast<uword>(raw_class);
-    header_bits = (header_bits & ~kMarkingMask) | kNotMarked;
-    raw_class = reinterpret_cast<RawClass*>(header_bits);
-  }
   ObjectKind kind = raw_class->ptr()->instance_kind_;
 
   // Visit the class before visting the fields.
-  if (!IsMarked()) {
-    visitor->VisitPointer(reinterpret_cast<RawObject**>(&ptr()->class_));
-  }
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ptr()->class_));
 
   switch (kind) {
 #define RAW_VISITPOINTERS(clazz) \
@@ -348,6 +343,15 @@ intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
   intptr_t length = Smi::Value(obj->length_);
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
   return PcDescriptors::InstanceSize(length);
+}
+
+
+intptr_t RawLocalVarDescriptors::VisitLocalVarDescriptorsPointers(
+    RawLocalVarDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
+  RawLocalVarDescriptors* obj = raw_obj->ptr();
+  intptr_t len = obj->length_;
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->names_));
+  return LocalVarDescriptors::InstanceSize(len);
 }
 
 

@@ -33,6 +33,7 @@ namespace dart {
   V(Code)                                                                      \
   V(Instructions)                                                              \
   V(PcDescriptors)                                                             \
+  V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
@@ -159,20 +160,17 @@ class RawObject {
 
   // Support for GC marking bit.
   bool IsMarked() const {
-    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    uword mark_bits = header_bits & kMarkingMask;
-    ASSERT((mark_bits == kNotMarked) || (mark_bits == kMarked));
-    return mark_bits == kMarked;
+    return MarkBit::decode(ptr()->tags_);
   }
   void SetMarkBit() {
     ASSERT(!IsMarked());
-    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits | kMarked);
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = MarkBit::update(true, tags);
   }
   void ClearMarkBit() {
     ASSERT(IsMarked());
-    uword header_bits = reinterpret_cast<uword>(ptr()->class_);
-    ptr()->class_ = reinterpret_cast<RawClass*>(header_bits ^ kMarkBit);
+    intptr_t tags = ptr()->tags_;
+    ptr()->tags_ = MarkBit::update(false, tags);
   }
 
   // Support for object tags.
@@ -219,17 +217,16 @@ class RawObject {
 
  private:
   enum {
-    kMarkingMask = 3,
-    kNotMarked = 1,  // Tagged pointer.
-    kMarked = 3,  // Tagged pointer and forwarding bit set.
-    kMarkBit = 2,
+    kMarkBit = 1,
+    kCanonicalBit = 2,
+    kFromSnapshotBit = 3,
   };
 
-  class CanonicalObjectTag : public BitField<bool, 2, 1> {
-  };
+  class MarkBit : public BitField<bool, kMarkBit, 1> {};
 
-  class CreatedFromSnapshotTag : public BitField<bool, 3, 1> {
-  };
+  class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
+
+  class CreatedFromSnapshotTag : public BitField<bool, kFromSnapshotBit, 1> {};
 
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
@@ -573,6 +570,7 @@ class RawCode : public RawObject {
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawLocalVarDescriptors* var_descriptors_;
   // Ongoing redesign of inline caches may soon remove the need for 'ic_data_'.
   RawArray* ic_data_;  // Used to store IC stub data (see class ICData).
   RawObject** to() {
@@ -608,6 +606,22 @@ class RawPcDescriptors : public RawObject {
 
   // Variable length data follows here.
   intptr_t data_[0];
+};
+
+
+class RawLocalVarDescriptors : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
+
+  struct VarInfo {
+    intptr_t index;      // Slot index on stack.
+    intptr_t begin_pos;  // Token position of scope start.
+    intptr_t end_pos;    // Token position of scope end.
+  };
+
+  intptr_t length_;  // Number of descriptors.
+  RawArray* names_;  // Array of [length_] variable names.
+
+  VarInfo data_[0];   // Variable info with [length_] entries.
 };
 
 

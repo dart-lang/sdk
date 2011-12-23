@@ -7,7 +7,7 @@
  * can iterate over the elements of a queue through [forEach] or with
  * an [Iterator].
  */
-interface Queue<E> extends Collection<E> factory DoubleLinkedQueue<E> {
+interface Queue<E> extends Collection<E> default DoubleLinkedQueue<E> {
 
   /**
    * Creates a queue.

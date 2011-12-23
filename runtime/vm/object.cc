@@ -68,6 +68,8 @@ RawClass* Object::library_prefix_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::var_descriptors_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -117,6 +119,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kInstructionsClass;
   } else if (raw_class == pc_descriptors_class()) {
     return kPcDescriptorsClass;
+  } else if (raw_class == var_descriptors_class()) {
+    return kLocalVarDescriptorsClass;
   } else if (raw_class == exception_handlers_class()) {
     return kExceptionHandlersClass;
   } else if (raw_class == context_class()) {
@@ -153,6 +157,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kCodeClass: return code_class();
     case kInstructionsClass: return instructions_class();
     case kPcDescriptorsClass: return pc_descriptors_class();
+    case kLocalVarDescriptorsClass: return var_descriptors_class();
     case kExceptionHandlersClass: return exception_handlers_class();
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
@@ -186,6 +191,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kCodeClass: return "Code";
     case kInstructionsClass: return "Instructions";
     case kPcDescriptorsClass: return "PcDescriptors";
+    case kLocalVarDescriptorsClass: return "LocalVarDescriptors";
     case kExceptionHandlersClass: return "ExceptionHandlers";
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
@@ -216,6 +222,7 @@ void Object::InitOnce() {
     uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
     null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
     InitializeObject(address, Instance::InstanceSize());  // Using 'null_'.
+    null_->ptr()->tags_ = 0;
   }
 
   // Initialize object_store empty array to null_ in order to be able to check
@@ -319,6 +326,9 @@ void Object::InitOnce() {
 
   cls = Class::New<PcDescriptors>();
   pc_descriptors_class_ = cls.raw();
+
+  cls = Class::New<LocalVarDescriptors>();
+  var_descriptors_class_ = cls.raw();
 
   cls = Class::New<ExceptionHandlers>();
   exception_handlers_class_ = cls.raw();
@@ -4575,6 +4585,75 @@ const char* PcDescriptors::ToCString() const {
         PC(i), KindAsStr(i), NodeId(i), TryIndex(i), TokenIndex(i));
   }
   return buffer;
+}
+
+
+RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
+  ASSERT(var_index < Length());
+  const Array& names = Array::Handle(raw_ptr()->names_);
+  ASSERT(Length() == names.Length());
+  const String& name = String::CheckedHandle(names.At(var_index));
+  return name.raw();
+}
+
+
+void LocalVarDescriptors::GetRange(intptr_t var_index,
+                                   intptr_t* begin_token_pos,
+                                   intptr_t* end_token_pos) const {
+  ASSERT(var_index < Length());
+  RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
+  *begin_token_pos = info->begin_pos;
+  *end_token_pos = info->end_pos;
+}
+
+
+intptr_t LocalVarDescriptors::GetSlotIndex(intptr_t var_index) const {
+  ASSERT(var_index < Length());
+  RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
+  return info->index;
+}
+
+
+void LocalVarDescriptors::SetVar(intptr_t var_index,
+                                const String& name,
+                                intptr_t stack_slot,
+                                intptr_t begin_pos,
+                                intptr_t end_pos) const {
+  ASSERT(var_index < Length());
+  const Array& names = Array::Handle(raw_ptr()->names_);
+  ASSERT(Length() == names.Length());
+  names.SetAt(var_index, name);
+  RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
+  info->index = stack_slot;
+  info->begin_pos = begin_pos;
+  info->end_pos = end_pos;
+}
+
+
+const char* LocalVarDescriptors::ToCString() const {
+  UNIMPLEMENTED();
+  return "";
+}
+
+
+RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
+  const Class& cls = Class::Handle(Object::var_descriptors_class());
+  LocalVarDescriptors& result = LocalVarDescriptors::Handle();
+  {
+    uword size = LocalVarDescriptors::InstanceSize(num_variables);
+    RawObject* raw = Object::Allocate(cls, size, Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->length_ = num_variables;
+  }
+  const Array& names = Array::Handle(Array::New(num_variables, Heap::kOld));
+  result.raw_ptr()->names_ = names.raw();
+  return result.raw();
+}
+
+
+intptr_t LocalVarDescriptors::Length() const {
+  return raw_ptr()->length_;
 }
 
 

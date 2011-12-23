@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that class allocated via 'const' has a const constructor.
 
-interface I factory C {
+interface I default C {
   I(int i);
 }
 

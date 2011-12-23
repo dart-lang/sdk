@@ -4,6 +4,7 @@
 package com.google.dart.compiler;
 
 import com.google.common.base.Joiner;
+import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -224,8 +225,8 @@ public class PrettyErrorFormatterTest extends TestCase {
       boolean printMachineProblems) {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     PrintStream printStream = new PrintStream(outputStream);
-    ErrorFormatter errorFormatter =
-        new PrettyErrorFormatter(printStream, useColor, printMachineProblems);
+    ErrorFormatter errorFormatter = new PrettyErrorFormatter(printStream, useColor,
+        printMachineProblems ? ErrorFormat.MACHINE : ErrorFormat.NORMAL);
     errorFormatter.format(error);
     return outputStream.toString();
   }

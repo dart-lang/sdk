@@ -5,16 +5,21 @@
 #ifndef VM_SCAVENGER_H_
 #define VM_SCAVENGER_H_
 
+#include "vm/assert.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
-#include "vm/object.h"
+#include "vm/raw_object.h"
 #include "vm/utils.h"
 #include "vm/virtual_memory.h"
+#include "vm/visitor.h"
 
 namespace dart {
 
 // Forward declarations.
 class Heap;
 class Isolate;
+
+DECLARE_FLAG(bool, gc_at_alloc);
 
 class Scavenger {
  public:
@@ -70,8 +75,28 @@ class Scavenger {
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue();
   void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
+  void IterateWeakRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
   void ProcessToSpace(ObjectPointerVisitor* visitor);
   void Epilogue();
+
+  // During a scavenge we need to remember the promoted objects.
+  // This is implemented as a stack of objects at the end of the to space. As
+  // object sizes are always greater than sizeof(uword) and promoted objects do
+  // not consume space in the to space they leave enough room for this stack.
+  void PushToPromotedStack(uword addr) {
+    end_ -= sizeof(addr);
+    ASSERT(end_ > top_);
+    *reinterpret_cast<uword*>(end_) = addr;
+  }
+  uword PopFromPromotedStack() {
+    uword result = *reinterpret_cast<uword*>(end_);
+    end_ += sizeof(result);
+    ASSERT(end_ <= to_->end());
+    return result;
+  }
+  bool PromotedStackHasMore() const {
+    return end_ < to_->end();
+  }
 
   VirtualMemory* space_;
   MemoryRegion* to_;
@@ -84,6 +109,9 @@ class Scavenger {
   uword top_;
   uword end_;
 
+  // Objects below this address have survived a scavenge.
+  uword survivor_end_;
+
   // All object are aligned to this value.
   uword object_alignment_;
 
@@ -91,8 +119,11 @@ class Scavenger {
   int count_;
   // Keep track whether a scavenge is currently running.
   bool scavenging_;
+  // Keep track whether the scavenge had a promotion failure.
+  bool had_promotion_failure_;
 
   friend class ScavengerVisitor;
+  friend class ScavengerWeakVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

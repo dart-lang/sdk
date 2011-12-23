@@ -70,7 +70,6 @@ class TestCase {
   void addToTestSuite(TestSuite suite) {
     suite.addTestCase(this);
   }
-
 }
 
 
@@ -188,12 +187,12 @@ class TestExpectation {
   }
 
   Promise completesWithValue(Promise promise, var expected) {
-    Promise result = new TestPromise(this);
+    Promise promiseResult = new TestPromise(this);
     promise.then((value) {
       Expect.equals(expected, value);
-      result.complete(value);
+      promiseResult.complete(value);
     });
-    return result;
+    return promiseResult;
   }
 
   Function runs0(Function fn) {
@@ -274,6 +273,11 @@ class AsynchronousTestCase extends TestCase {
       keepalive.toSendPort().send(null, null);
       keepalive = null;
     }
+  }
+
+  // AsynchronousTestCase.run() calls variable test, not function performTest.
+  void performTest() {
+    Expect.fail('performTest called in AsynchronousTestCase');
   }
 
   AsynchronousTestFunction test;

@@ -6,20 +6,16 @@ body, h1, h2, h3, h4, li, ol, p, pre, section, ul {
 
 body {
   font-family: Georgia, serif;
-  background: #e4e4e4;
+  background: #e8e8e8;
   color: #333;
-}
-
-h1 {
-  font: 700 22px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
-      sans-serif;
-  margin: 0 0 22px 0;
+  background-image: url('body-bg.png');
+  background-repeat: repeat;
 }
 
 h2 {
   font: 400 28px/44px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
-  margin: 22px 0;
+  margin: 0 0 22px 0;
 }
 
 h3 {
@@ -55,16 +51,16 @@ pre, code {
 }
 
 a {
-  color: hsl(220, 50%, 50%);
+  color: #15c;
   text-decoration: none;
 }
 
 a:hover {
-  color: hsl(220, 100%, 70%);
+  text-decoration: underline;
 }
 
 a:visited {
-  color: hsl(270, 50%, 40%);
+  color: #15c;
 }
 
 li {
@@ -88,17 +84,45 @@ hr + h2 {
 }
 
 .page {
-  max-width: 960px; /* 43 x 22px */
+  max-width: 1000px;
   background: #fff;
   margin: 0 auto 22px auto;
   border: solid 1px #ccc;
   border-top: none;
+  box-shadow: 0 0 50px #888;
+
+  background-image: url('content-bg.png');
+  background-repeat: repeat-y;
+}
+
+.header {
+  background: #333;
+  background-image: url('header-bg.png');
+  height: 44px;
+  color: hsl(0, 0%, 50%);
+  font: 400 15px/44px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+}
+
+.header .logo {
+  background-image: url('dart-logo-small.png');
+  width: 66px;
+  height: 44px;
+  float: left;
+}
+
+.header a {
+  color: hsl(0, 0%, 80%);
+}
+
+.header a:hover {
+  color: hsl(0, 0%, 100%);
 }
 
 .nav {
   float: left;
   width: 263px; /* 12 x 22px - 1 for border */
-  padding: 22px 22px;
+  padding: 0 22px;
   overflow: hidden;
   background: #f4f4f4;
   border-right: solid 1px #ccc;
@@ -156,12 +180,24 @@ hr + h2 {
 }
 
 .content {
-  margin-left: 308px; /* 14 x 22px */
+  margin-left: 308px; /* 14 x 22 */
   padding: 22px 22px;
 }
 
-.footer {
+.clear {
   clear: both;
+}
+
+.footer {
+  max-width: 956px; /* 1000 - 22 - 22 */
+  text-align: center;
+  margin: 22px auto;
+  color: #888;
+}
+
+.footer p {
+  font: 400 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
 }
 
 .method .doc,

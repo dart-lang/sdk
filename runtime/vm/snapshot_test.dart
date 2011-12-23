@@ -1261,7 +1261,7 @@ class IsolateExitHandlerTest extends Isolate {
   }
 }
 
-interface Mint factory MintImpl {
+interface Mint default MintImpl {
 
   Mint();
 

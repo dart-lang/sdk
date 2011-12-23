@@ -5,11 +5,13 @@
 // Process test program to test that compilation errors in the process
 // exit handler is reported correctly.
 
+#source("ProcessTestUtil.dart");
+
 void main() {
-  Process p = new Process("true", []);
+  Process p = new Process.start(getProcessTestFileName(),
+		                        const ["0", "0", "0", "0"]);
   p.exitHandler = (int s) {
     print(a.toString());  // Should cause a compilation error here.
     p.close();
   };
-  p.start();
 }

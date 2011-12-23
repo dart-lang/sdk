@@ -26,7 +26,6 @@ ListGetRangeTest: Fail
 ListIndexOfTest: Fail
 ListInsertRangeTest: Fail
 ListIteratorsTest: Fail
-ListLiteralIsGrowableTest: Fail
 ListLiteralTest: Fail
 ListRemoveRangeTest: Fail
 ListSetRangeTest: Fail
@@ -58,13 +57,10 @@ SplayTreeTest: Fail
 StopwatchTest: Fail
 StringBaseVMTest: Fail
 StringBufferTest: Fail
-StringCaseTest: Fail
 StringFromListTest: Fail
 StringPatternTest: Fail
 StringReplaceTest: Fail
-StringSplitTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail
-StringTrimTest: Fail
 StringsTest: Fail
 UnicodeTest: Fail

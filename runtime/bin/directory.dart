@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Directory factory _Directory {
+interface Directory default _Directory {
   /**
    * Creates a directory object. The path is either a full path or
    * relative to the directory in which the Dart VM was
@@ -11,13 +11,27 @@ interface Directory factory _Directory {
   Directory(String path);
 
   /**
-   * Returns whether a directory with this name already exists.
+   * Check whether a directory with this name already exists. If the
+   * operation completes successfully the [existsHandler] is called with
+   * the result. Otherwise the [errorHandler] is called.
+   */
+  void exists();
+
+  /**
+   * Synchronously check whether a directory with this name already exists.
    */
   bool existsSync();
 
   /**
    * Creates the directory with this name if it does not exist.
-   * Throw an exception if the directory already exists.
+   * If the directory is successfully created the [createHandler] is
+   * called. Otherwise the [errorHandler] is called.
+   */
+  void create();
+
+  /**
+   * Synchronously creates the directory with this name if it does not exist.
+   * Throws an exception if the directory already exists.
    */
   void createSync();
 
@@ -35,14 +49,21 @@ interface Directory factory _Directory {
   void createTemp();
 
   /**
-   * Synchronously creates a temporary directory with a name based on the current path.
-   * This name and path is used as a template, and additional characters are
-   * appended to it by the call to make a unique directory name.  If the
-   * path is the empty string, a default system temp directory and name
+   * Synchronously creates a temporary directory with a name based on the
+   * current path. This name and path is used as a template, and additional
+   * characters are appended to it by the call to make a unique directory name.
+   * If the path is the empty string, a default system temp directory and name
    * are used for the template.
    * The path is modified to be the path of the new directory.
    */
   void createTempSync();
+
+  /**
+   * Deletes the directory with this name. If the operation completes
+   * successfully the [deleteHandler] is called. Otherwise the
+   * [errorHandler] is called.
+   */
+  void delete();
 
   /**
    * Deletes the directory with this name. Throws an exception
@@ -82,10 +103,27 @@ interface Directory factory _Directory {
   void set doneHandler(void doneHandler(bool completed));
 
   /**
+   * Set the handler that is called when checking if a directory with this
+   * name exists.
+   */
+  void set existsHandler(void existsHandler(bool exists));
+
+  /**
+   * Set the handler that is called when a directory is successfully created.
+   */
+  void set createHandler(void createHandler());
+
+  /**
    * Set the handler that is called when a temporary directory is
    * successfully created.
    */
   void set createTempHandler(void doneHandler(bool completed));
+
+  /**
+   * Set the handler that is called when a directory is successfully
+   * deleted.
+   */
+  void set deleteHandler(void deleteHandler());
 
   /**
    * Sets the handler that is called if there is an error while listing

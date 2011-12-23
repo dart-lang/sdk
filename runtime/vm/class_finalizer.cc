@@ -73,7 +73,7 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
       }
       ResolveSuperType(cls);
       if (cls.is_interface()) {
-        ResolveFactoryClass(cls);
+        ResolveDefaultClass(cls);
       }
     }
     // Finalize all classes.
@@ -350,7 +350,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
 }
 
 
-void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
+void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
   ASSERT(interface.is_interface());
   if (interface.is_finalized() ||
       !interface.HasFactoryClass() ||
@@ -369,7 +369,7 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
     const String& factory_name = String::Handle(factory_class.Name());
     const Script& script = Script::Handle(interface.script());
     ReportError(script, unresolved_factory_class.token_index(),
-                "factory clause of interface '%s' names non-class '%s'.\n",
+                "default clause of interface '%s' names non-class '%s'.\n",
                 interface_name.ToCString(),
                 factory_name.ToCString());
   }
@@ -390,7 +390,7 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
     const String& factory_name = String::Handle(factory_class.Name());
     const Script& script = Script::Handle(interface.script());
     ReportWarning(script, unresolved_factory_class.token_index(),
-                  "class '%s' in factory clause of interface '%s' is "
+                  "class '%s' in default clause of interface '%s' is "
                   "missing its type parameter list.\n",
                   factory_name.ToCString(),
                   interface_name.ToCString());

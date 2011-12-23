@@ -65,6 +65,7 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.StringUtils;
 
 import java.util.ArrayList;
@@ -124,6 +125,9 @@ public class Resolver {
    */
   public void resolveMember(ClassElement classElement, Element member, ResolutionContext context) {
     ResolveElementsVisitor visitor;
+    if(member == null) {
+      return;
+    }
     switch (member.getKind()) {
       case CONSTRUCTOR:
       case METHOD:
@@ -227,6 +231,10 @@ public class Resolver {
         onError(cls, ResolverErrorCode.DUPLICATED_INTERFACE,
                         e.getFirst(), e.getSecond());
       }
+
+      checkClassTypeVariables(classElement);
+
+      // Push new resolution context.
       ResolutionContext previousContext = context;
       EnclosingElement previousHolder = currentHolder;
       currentHolder = classElement;
@@ -267,8 +275,12 @@ public class Resolver {
 
         // Check that interface constructors have corresponding methods in default class.
         checkInteraceConstructors(classElement);
-
-
+      } else if (classElement.isInterface() && classElement.getConstructors() != null) {
+        for (ConstructorElement interfaceConstructor : classElement.getConstructors()) {
+          DartMethodDefinition methodNode = (DartMethodDefinition)interfaceConstructor.getNode();
+          onError(methodNode.getName(),
+                  ResolverErrorCode.ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE);
+        }
       }
 
       context = previousContext;
@@ -373,6 +385,36 @@ public class Resolver {
           if (!iVarName.equals(dVarName)) {
             onError(iVar.getElement().getNode(), ResolverErrorCode.TYPE_VARIABLE_DOES_NOT_MATCH,
                     iVarName, dVarName, defaultClassElement.getName());
+          }
+        }
+      }
+    }
+
+    /**
+     * Check that used type variables are unique and don't shadow and existing elements.
+     */
+    private void checkClassTypeVariables(ClassElement classElement) {
+      Scope scope = context.getScope();
+      Set<String> declaredVariableNames = Sets.newHashSet();
+      for (Type type : classElement.getTypeParameters()) {
+        if (type instanceof TypeVariable) {
+          Element typeVariableElement = type.getElement();
+          String name = typeVariableElement.getName();
+          // Check that type variables are unique in this Class  declaration.
+          if (declaredVariableNames.contains(name)) {
+            onError(typeVariableElement.getNode(), ResolverErrorCode.DUPLICATE_TYPE_VARIABLE, name);
+          } else {
+            declaredVariableNames.add(name);
+          }
+          // Check that type variable is not shadowing any element in enclosing context.
+          Element existingElement = scope.findElement(scope.getLibrary(), name);
+          if (existingElement != null) {
+            onError(
+                typeVariableElement.getNode(),
+                ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING,
+                name,
+                existingElement,
+                Elements.getRelativeElementLocation(typeVariableElement, existingElement));
           }
         }
       }
@@ -490,7 +532,10 @@ public class Resolver {
         if (parameter.getQualifier() instanceof DartThisExpression) {
           checkParameterInitializer(node, parameter);
         } else {
-          getContext().declare(parameter.getSymbol());
+          getContext().declare(
+              parameter.getSymbol(),
+              ResolverErrorCode.DUPLICATE_PARAMETER,
+              ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
         }
       }
       for (DartParameter parameter : parameters) {
@@ -628,7 +673,10 @@ public class Resolver {
     public Element visitParameter(DartParameter x) {
       Element element = super.visitParameter(x);
       resolve(x.getDefaultExpr());
-      getContext().declare(element);
+      getContext().declare(
+          element,
+          ResolverErrorCode.DUPLICATE_PARAMETER,
+          ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
       return element;
     }
 
@@ -636,7 +684,10 @@ public class Resolver {
       // Visit the initializer first.
       resolve(x.getValue());
       VariableElement element = Elements.variableElement(x, x.getVariableName(), modifiers);
-      getContext().declare(recordElement(x, element));
+      getContext().declare(
+          recordElement(x, element),
+          ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR,
+          ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING);
       return element;
     }
 

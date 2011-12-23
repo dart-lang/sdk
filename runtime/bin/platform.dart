@@ -6,7 +6,7 @@
  * The [Platform] class exposes details of the machine and operating
  * system.
  */
-interface Platform factory _Platform {
+interface Platform default _Platform {
   /**
    * Create a Platform object.
    */

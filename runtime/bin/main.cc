@@ -24,6 +24,11 @@ extern const uint8_t* snapshot_buffer;
 static char* canonical_script_name = NULL;
 
 
+// Global state that stores a pointer to the application script snapshot.
+static bool use_script_snapshot = false;
+static uint8_t* script_snapshot_buffer = NULL;
+
+
 // Global state that indicates whether pprof symbol information is
 // to be generated or not.
 static const char* generate_pprof_symbols_filename = NULL;
@@ -35,6 +40,11 @@ static const char* generate_pprof_symbols_filename = NULL;
 static const char* breakpoint_at = NULL;
 
 
+// Global flag that is used to indicate that we want to compile all the
+// dart functions and not run anything.
+static bool has_compile_all = false;
+
+
 static bool IsValidFlag(const char* name,
                         const char* prefix,
                         intptr_t prefix_length) {
@@ -44,32 +54,55 @@ static bool IsValidFlag(const char* name,
 }
 
 
-static const char* ProcessOption(const char* option, const char* name) {
-  const intptr_t length = strlen(name);
-  if (strncmp(option, name, length) == 0) {
-    return (option + length);
-  }
-  return NULL;
+static void ProcessBreakpointOption(const char* funcname) {
+  ASSERT(funcname != NULL);
+  breakpoint_at = funcname;
 }
 
 
-static bool ProcessPprofOption(const char* option) {
-  const char* kProfOption = "--generate_pprof_symbols=";
-  const char* filename = ProcessOption(option, kProfOption);
-  if (filename != NULL) {
-    generate_pprof_symbols_filename = filename;
-  }
-  return filename != NULL;
+static void ProcessCompileAllOption(const char* compile_all) {
+  ASSERT(compile_all != NULL);
+  has_compile_all = true;
 }
 
 
-static bool ProcessDebugOption(const char* option) {
-  const char* kDebugOption = "--break_at=";
-  const char* func_name = ProcessOption(option, kDebugOption);
-  if (func_name != NULL) {
-    breakpoint_at = func_name;
+static void ProcessPprofOption(const char* filename) {
+  ASSERT(filename != NULL);
+  generate_pprof_symbols_filename = filename;
+}
+
+
+static void ProcessSnapshotOption(const char* snapshot) {
+  ASSERT(snapshot != NULL);
+  use_script_snapshot = true;
+}
+
+
+static struct {
+  const char* option_name;
+  void (*process)(const char* option);
+} main_options[] = {
+  { "--break_at=", ProcessBreakpointOption },
+  { "--compile_all", ProcessCompileAllOption },
+  { "--generate_pprof_symbols=", ProcessPprofOption },
+  { "--use_script_snapshot", ProcessSnapshotOption },
+  { NULL, NULL }
+};
+
+
+static bool ProcessMainOptions(const char* option) {
+  int i = 0;
+  const char* name = main_options[0].option_name;
+  while (name != NULL) {
+    int length = strlen(name);
+    if (strncmp(option, name, length) == 0) {
+      main_options[i].process(option + length);
+      return true;
+    }
+    i += 1;
+    name = main_options[i].option_name;
   }
-  return func_name != NULL;
+  return false;
 }
 
 
@@ -88,9 +121,7 @@ static int ParseArguments(int argc,
 
   // Parse out the vm options.
   while ((i < argc) && IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
-    if (ProcessPprofOption(argv[i])) {
-      i += 1;
-    } else if (ProcessDebugOption(argv[i])) {
+    if (ProcessMainOptions(argv[i])) {
       i += 1;
     } else {
       vm_options->AddArgument(argv[i]);
@@ -237,7 +268,11 @@ static bool CreateIsolateAndSetup(void* data, char** error) {
   Dart_EnterScope();
 
   // Load the specified application script into the newly created isolate.
-  library = LoadScript(canonical_script_name);
+  if (script_snapshot_buffer != NULL) {
+    library = Dart_LoadScriptFromSnapshot(script_snapshot_buffer);
+  } else {
+    library = LoadScript(canonical_script_name);
+  }
   if (Dart_IsError(library)) {
     *error = strdup(Dart_GetError(library));
     Dart_ExitScope();
@@ -254,7 +289,9 @@ static bool CreateIsolateAndSetup(void* data, char** error) {
     Dart_ShutdownIsolate();
     return false;
   }
-  Builtin::ImportLibrary(library);  // Implicitly import builtin into app.
+  if (script_snapshot_buffer == NULL) {
+    Builtin::ImportLibrary(library);  // Implicitly import builtin into app.
+  }
   if (snapshot_buffer != NULL) {
     // Setup the native resolver as the snapshot does not carry it.
     Builtin::SetNativeResolver();
@@ -264,19 +301,59 @@ static bool CreateIsolateAndSetup(void* data, char** error) {
 }
 
 
-static void PrintUsage() {
-  fprintf(stderr,
-          "dart [<vm-flags>] <dart-script-file> [<dart-options>]\n");
+static bool CaptureScriptSnapshot() {
+  char* error = NULL;
+  Dart_Handle result;
+
+  // First create an isolate and load up the specified script in it.
+  if (!CreateIsolateAndSetup(NULL, &error)) {
+    fprintf(stderr, "%s\n", error);
+    free(canonical_script_name);
+    free(error);
+    return false;  // Indicates we encountered an error.
+  }
+
+  Dart_EnterScope();
+
+#if 0
+  // Lookup the library of the main script.
+  Dart_Handle script_url = Dart_NewString(canonical_script_name);
+  Dart_Handle library = Dart_LookupLibrary(script_url);
+  if (Dart_IsError(library)) {
+    fprintf(stderr, "%s\n", Dart_GetError(library));
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    free(canonical_script_name);
+    return false;  // Indicates we encountered an error.
+  }
+#endif
+
+  // Now create the script snapshot and save into a buffer.
+  uint8_t* buffer;
+  intptr_t size;
+  result = Dart_CreateScriptSnapshot(&buffer, &size);
+  if (Dart_IsError(result)) {
+    fprintf(stderr, "%s\n", Dart_GetError(result));
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    return false;  // Indicates we encountered an error.
+  }
+
+  // Save the script snapshot as we are about to shutdown the isolate.
+  script_snapshot_buffer = reinterpret_cast<uint8_t*>(malloc(size));
+  ASSERT(script_snapshot_buffer != NULL);
+  memmove(script_snapshot_buffer, buffer, size);
+
+  // Shutdown this isolate.
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+  return true;
 }
 
 
-static bool HasCompileAll(const CommandLineOptions& options) {
-  for (int i = 0; i < options.count(); i++) {
-    if (strcmp(options.GetArgument(i), "--compile_all") == 0) {
-      return true;
-    }
-  }
-  return false;
+static void PrintUsage() {
+  fprintf(stderr,
+          "dart [<vm-flags>] <dart-script-file> [<dart-options>]\n");
 }
 
 
@@ -311,6 +388,15 @@ int main(int argc, char** argv) {
     return 255;  // Indicates we encountered an error.
   }
 
+  // If application snapshot option is specified, first create the
+  // application snapshot and then load the script using the snapshot
+  // created.
+  if (use_script_snapshot) {
+    if (!CaptureScriptSnapshot()) {
+      return 255;  // Error capturing script snapshot, error already reported.
+    }
+  }
+
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
@@ -318,16 +404,18 @@ int main(int argc, char** argv) {
     fprintf(stderr, "%s\n", error);
     free(canonical_script_name);
     free(error);
+    free(script_snapshot_buffer);
     return 255;  // Indicates we encountered an error.
   }
 
+  free(script_snapshot_buffer);  // Don't need it anymore.
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   Dart_Handle result;
 
   Dart_EnterScope();
 
-  if (HasCompileAll(vm_options)) {
+  if (has_compile_all) {
     result = Dart_CompileAll();
     if (Dart_IsError(result)) {
       fprintf(stderr, "%s\n", Dart_GetError(result));

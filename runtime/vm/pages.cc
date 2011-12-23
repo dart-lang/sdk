@@ -142,7 +142,8 @@ uword PageSpace::TryAllocate(intptr_t size) {
   if (size < kAllocatablePageSize) {
     result = TryBumpAllocate(size);
     if (result == 0) {
-      if (CanIncreaseCapacity(kPageSize)) {
+      result = freelist_.TryAllocate(size);
+      if ((result == 0) && CanIncreaseCapacity(kPageSize)) {
         AllocatePage();
         result = TryBumpAllocate(size);
         ASSERT(result != 0);

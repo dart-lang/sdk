@@ -214,19 +214,19 @@ _nextBatch() {
 _completeTests() {
   _state = _UNINITIALIZED;
 
-  int testsPassed = 0;
-  int testsFailed = 0;
-  int testsErrors = 0;
+  int testsPassed_ = 0;
+  int testsFailed_ = 0;
+  int testsErrors_ = 0;
 
   for (TestCase t in _tests) {
     switch (t.result) {
-      case _PASS:  testsPassed++; break;
-      case _FAIL:  testsFailed++; break;
-      case _ERROR: testsErrors++; break;
+      case _PASS:  testsPassed_++; break;
+      case _FAIL:  testsFailed_++; break;
+      case _ERROR: testsErrors_++; break;
     }
   }
 
-  _platformCompleteTests(testsPassed, testsFailed, testsErrors);
+  _platformCompleteTests(testsPassed_, testsFailed_, testsErrors_);
 }
 
 String _fullSpec(String spec) {
@@ -347,16 +347,16 @@ class TestCase {
     result = _PASS;
   }
 
-  void fail(String message, String stackTrace) {
+  void fail(String message_, String stackTrace_) {
     result = _FAIL;
-    this.message = message;
-    this.stackTrace = stackTrace;
+    this.message = message_;
+    this.stackTrace = stackTrace_;
   }
 
-  void error(String message, String stackTrace) {
+  void error(String message_, String stackTrace_) {
     result = _ERROR;
-    this.message = message;
-    this.stackTrace = stackTrace;
+    this.message = message_;
+    this.stackTrace = stackTrace_;
   }
 }
 

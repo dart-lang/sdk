@@ -4,7 +4,7 @@
 
 // Dart test program for testing default factories.
 
-interface Vehicle factory GoogleOne {
+interface Vehicle default GoogleOne {
   Vehicle();
 }
 
@@ -14,7 +14,7 @@ class Bike implements Vehicle {
 }
 
 
-interface SpaceShip factory GoogleOne {
+interface SpaceShip default GoogleOne {
   SpaceShip();
 }
 

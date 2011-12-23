@@ -138,6 +138,7 @@ class Object {
     kCodeClass,
     kInstructionsClass,
     kPcDescriptorsClass,
+    kLocalVarDescriptorsClass,
     kExceptionHandlersClass,
     kContextClass,
     kContextScopeClass,
@@ -256,6 +257,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
+  static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
     return exception_handlers_class_;
   }
@@ -361,6 +363,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
+  static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
@@ -1742,6 +1745,40 @@ class Instructions : public Object {
 };
 
 
+class LocalVarDescriptors : public Object {
+ public:
+  intptr_t Length() const;
+
+  RawString* GetName(intptr_t var_index) const;
+  void GetRange(intptr_t var_index,
+                intptr_t* begin_token_pos, intptr_t* end_token_pos) const;
+  intptr_t GetSlotIndex(intptr_t var_index) const;
+
+  void SetVar(intptr_t var_index,
+              const String& name,
+              intptr_t stack_slot,
+              intptr_t begin_pos,
+              intptr_t end_pos) const;
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawLocalVarDescriptors) ==
+        OFFSET_OF(RawLocalVarDescriptors, data_));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(
+        sizeof(RawLocalVarDescriptors) +
+        (len * sizeof(RawLocalVarDescriptors::VarInfo)));
+  }
+
+  static RawLocalVarDescriptors* New(intptr_t num_variables);
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
+  friend class Class;
+};
+
+
 class PcDescriptors : public Object {
  public:
   enum Kind {
@@ -1904,6 +1941,13 @@ class Code : public Object {
   }
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
+  }
+
+  RawLocalVarDescriptors* var_descriptors() const {
+    return raw_ptr()->var_descriptors_;
+  }
+  void set_var_descriptors(const LocalVarDescriptors& value) const {
+    StorePointer(&raw_ptr()->var_descriptors_, value.raw());
   }
 
   // See class ICData for interpretation of the 'ic_data_' array.
@@ -2171,7 +2215,7 @@ class Instance : public Object {
   }
 
   void SetField(const Field& field, const Object& value) const {
-    *FieldAddr(field) = value.raw();
+    StorePointer(FieldAddr(field), value.raw());
   }
 
   RawType* GetType() const;
@@ -2222,7 +2266,7 @@ class Instance : public Object {
                                        + sizeof(RawObject));
   }
   void SetFieldAtOffset(intptr_t offset, const Object& value) const {
-    *FieldAddrAtOffset(offset) = value.raw();
+    StorePointer(FieldAddrAtOffset(offset), value.raw());
   }
   bool IsValidFieldOffset(int offset) const;
 
@@ -2951,7 +2995,7 @@ class Array : public Instance {
   }
   void SetAt(intptr_t index, const Object& value) const {
     // TODO(iposva): Add storing NoGCScope.
-    *ObjectAddr(index) = value.raw();
+    StorePointer(ObjectAddr(index), value.raw());
   }
 
   virtual RawAbstractTypeArguments* GetTypeArguments() const {
@@ -3121,7 +3165,7 @@ class Closure : public Instance {
   // TODO(iposva): Remove smrck support once mapping to arbitrary is available.
   RawInteger* smrck() const { return raw_ptr()->smrck_; }
   void set_smrck(const Integer& smrck) const {
-    raw_ptr()->smrck_ = smrck.raw();
+    StorePointer(&raw_ptr()->smrck_, smrck.raw());
   }
   static intptr_t smrck_offset() { return OFFSET_OF(RawClosure, smrck_); }
 

@@ -1,12 +1,3 @@
-class DOMType extends DOMWrapperBase {
-  // FIXME: Remove if/when Dart supports OLS for all objects.
-  var dartObjectLocalStorage;
-
-  String get typeName() {
-    throw new UnsupportedOperationException("typeName must be overridden.");
-  }
-}
-
 class ListBase<E> extends DOMType implements List<E> {
   ListBase();
 

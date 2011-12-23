@@ -230,12 +230,12 @@ public class ResolverTest extends ResolverTestCase {
      * We should check for signature mismatch but that is a TypeAnalyzer issue.
      */
   }
-  
+
   public void testImplicitDefaultConstructor_ThroughFactories() {
     // Check that we generate implicit constructors through factories also.
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
-        "interface B factory C {}",
+        "interface B default C {}",
         "class C {}",
         "class D { main() { new B(); } }"));
   }
@@ -784,7 +784,7 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "class Foo<T> {}",
         "class MyClass {",
-        "  foo() {",
+        "  bar() {",
         "    Foo<Unknown> foo;",
         "  }",
         "}"),
@@ -796,7 +796,7 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "class Foo<T> {}",
         "class MyClass {",
-        "  foo() {",
+        "  bar() {",
         "    Foo<Object, Object> foo;",
         "  }",
         "}"),
@@ -808,7 +808,7 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "class Foo {}",
         "class MyClass {",
-        "  foo() {",
+        "  bar() {",
         "    Foo<Object> foo;",
         "  }",
         "}"),
@@ -1044,6 +1044,7 @@ public class ResolverTest extends ResolverTestCase {
         "    new Foo<Param>();",
         "  }",
         "}"),
+        ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING,
         TypeErrorCode.NOT_A_TYPE,
         ResolverErrorCode.NO_SUCH_TYPE);
   }

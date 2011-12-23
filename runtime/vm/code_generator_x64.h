@@ -94,6 +94,9 @@ class CodeGenerator : public AstNodeVisitor {
   void GenerateCode();
   virtual void GenerateDeferredCode();
 
+  // Add local variable descriptors to code.
+  void FinalizeVarDescriptors(const Code& code);
+
 #define DEFINE_VISITOR_FUNCTION(type, name)                                    \
   virtual void Visit##type(type* node);
 NODE_LIST(DEFINE_VISITOR_FUNCTION)

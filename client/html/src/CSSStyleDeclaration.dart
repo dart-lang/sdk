@@ -10,7 +10,7 @@
 
 // TODO(jacobr): add versions that take numeric values in px, miliseconds, etc.
 
-interface CSSStyleDeclaration factory CSSStyleDeclarationWrappingImplementation {
+interface CSSStyleDeclaration default CSSStyleDeclarationWrappingImplementation {
 
   CSSStyleDeclaration();
 

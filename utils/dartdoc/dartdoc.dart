@@ -18,7 +18,8 @@
 #import('../../frog/lang.dart');
 #import('../../frog/file_system.dart');
 #import('../../frog/file_system_node.dart');
-#import('../markdown/lib.dart', prefix: 'md');
+#import('../../frog/lib/node/node.dart');
+#import('markdown.dart', prefix: 'md');
 
 #source('classify.dart');
 #source('comment_map.dart');
@@ -47,7 +48,7 @@ void main() {
     }
   }
 
-  FileSystem files = new NodeFileSystem();
+  final files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
   initializeWorld(files);
 
@@ -66,6 +67,20 @@ void main() {
 class Dartdoc {
   /** Set to `false` to not include the source code in the generated docs. */
   bool includeSource = true;
+
+  /**
+   * The title used for the overall generated output. Set this to change it.
+   */
+  String mainTitle = 'Dart Documentation';
+
+  /**
+   * The URL that the Dart logo links to. Defaults "index.html", the main
+   * page for the generated docs, but can be anything.
+   */
+  String mainUrl = 'index.html';
+
+  /** Set this to add footer text to each generated page. */
+  String footerText = '';
 
   CommentMap _comments;
 
@@ -140,31 +155,69 @@ class Dartdoc {
     }
   }
 
-  writeHeader(String title) {
-    writeln(
+  /**
+   * Writes the page header with the given [title] and [breadcrumbs]. The
+   * breadcrumbs are an interleaved list of links and titles. If a link is null,
+   * then no link will be generated. For example, given:
+   *
+   *     ['foo', 'foo.html', 'bar', null]
+   *
+   * It will output:
+   *
+   *     <a href="foo.html">foo</a> &rsaquo; bar
+   */
+  writeHeader(String title, List<String> breadcrumbs) {
+    write(
         '''
         <!DOCTYPE html>
         <html>
         <head>
+        ''');
+    writeHeadContents(title);
+    write(
+        '''
+        </head>
+        <body>
+        <div class="page">
+        <div class="header">
+          ${a(mainUrl, '<div class="logo"></div>')}
+          ${a('index.html', mainTitle)}
+        ''');
+
+    // Write the breadcrumb trail.
+    for (int i = 0; i < breadcrumbs.length; i += 2) {
+      if (breadcrumbs[i + 1] == null) {
+        write(' &rsaquo; ${breadcrumbs[i]}');
+      } else {
+        write(' &rsaquo; ${a(breadcrumbs[i + 1], breadcrumbs[i])}');
+      }
+    }
+    writeln('</div>');
+
+    docNavigation();
+    writeln('<div class="content">');
+  }
+
+  writeHeadContents(String title) {
+    writeln(
+        '''
         <meta charset="utf-8">
         <title>$title</title>
         <link rel="stylesheet" type="text/css"
             href="${relativePath('styles.css')}" />
         <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
+        <link rel="shortcut icon" href="${relativePath('favicon.ico')}" />
         <script src="${relativePath('interact.js')}"></script>
-        </head>
-        <body>
-        <div class="page">
         ''');
-    docNavigation();
-    writeln('<div class="content">');
   }
 
   writeFooter() {
     writeln(
         '''
         </div>
-        <div class="footer"</div>
+        <div class="clear"></div>
+        </div>
+        <div class="footer">$footerText</div>
         </body></html>
         ''');
   }
@@ -172,9 +225,9 @@ class Dartdoc {
   docIndex() {
     startFile('index.html');
 
-    writeHeader('Dart Documentation');
+    writeHeader(mainTitle, []);
 
-    writeln('<h1>Dart Documentation</h1>');
+    writeln('<h2>$mainTitle</h2>');
     writeln('<h3>Libraries</h3>');
 
     for (final library in orderByName(world.libraries)) {
@@ -192,7 +245,6 @@ class Dartdoc {
     writeln(
         '''
         <div class="nav">
-        <h1>${a("index.html", "Dart Documentation")}</h1>
         ''');
 
     for (final library in orderByName(world.libraries)) {
@@ -256,8 +308,8 @@ class Dartdoc {
     _currentType = null;
 
     startFile(libraryUrl(library));
-    writeHeader(library.name);
-    writeln('<h1>Library <strong>${library.name}</strong></h1>');
+    writeHeader(library.name, [library.name, libraryUrl(library)]);
+    writeln('<h2>Library <strong>${library.name}</strong></h2>');
 
     // Look for a comment for the entire library.
     final comment = _comments.findLibrary(library.baseSource);
@@ -324,11 +376,11 @@ class Dartdoc {
 
     final typeTitle =
       '${type.isClass ? "Class" : "Interface"} ${typeName(type)}';
-    writeHeader('Library ${type.library.name} / $typeTitle');
+    writeHeader('Library ${type.library.name} / $typeTitle',
+        [type.library.name, libraryUrl(type.library),
+         typeName(type), typeUrl(type)]);
     writeln(
         '''
-        <h1>${a(libraryUrl(type.library),
-              "Library <strong>${type.library.name}</strong>")}</h1>
         <h2>${type.isClass ? "Class" : "Interface"}
             <strong>${typeName(type, showBounds: true)}</strong></h2>
         ''');
@@ -570,7 +622,7 @@ class Dartdoc {
 
     if (includeSource && showCode) {
       writeln('<pre class="source">');
-      write(formatCode(span));
+      writeln(md.escapeHtml(unindentCode(span)));
       writeln('</pre>');
     }
 
@@ -699,10 +751,9 @@ class Dartdoc {
   }
 
   /**
-   * Takes a string of Dart code and turns it into sanitized HTML.
+   * Remove leading indentation to line up with first line.
    */
-  formatCode(SourceSpan span) {
-    // Remove leading indentation to line up with first line.
+  unindentCode(SourceSpan span) {
     final column = getSpanColumn(span);
     final lines = span.text.split('\n');
     // TODO(rnystrom): Dirty hack.
@@ -711,6 +762,14 @@ class Dartdoc {
     }
 
     final code = Strings.join(lines, '\n');
+    return code;
+  }
+
+  /**
+   * Takes a string of Dart code and turns it into sanitized HTML.
+   */
+  formatCode(SourceSpan span) {
+    final code = unindentCode(span);
 
     // Syntax highlight.
     return classifySource(new SourceFile('', code));
