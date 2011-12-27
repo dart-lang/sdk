@@ -788,8 +788,31 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of contexts.
+// Input:
+// RDX: number of context variables.
+// Output:
+// RAX: new allocated RawContext object.
+// RBX and RDX are destroyed.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ Unimplemented("AllocateContext stub");
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  if (false) {
+    // TODO(regis): Implement fast inline allocation of contexts.
+    __ Unimplemented("AllocateContext stub - inline allocation");
+  }
+  // Create the stub frame.
+  __ EnterFrame(0);
+  __ pushq(raw_null);  // Make space for the return value.
+  __ SmiTag(RDX);
+  __ pushq(RDX);  // Push number of context variables.
+  __ CallRuntimeFromStub(kAllocateContextRuntimeEntry);  // Allocate context.
+  __ popq(RAX);  // Pop number of context variables argument.
+  __ popq(RAX);  // Pop the new context object.
+  // RAX: new object
+  // Restore the frame pointer.
+  __ LeaveFrame();
+  __ ret();
 }
 
 
@@ -844,7 +867,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+      __ j(ABOVE_EQUAL, &slow_case);
     }
 
     // Successfully allocated the object(s), now update top to point to
@@ -987,9 +1010,68 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 }
 
 
+// Called for inline allocation of closures.
+// Input parameters:
+//   If the signature class is not parameterized, the receiver, if any, will be
+//   at RSP + 4 instead of RSP + 8, since no type arguments are passed.
+//   RSP + 8 (or RSP + 4): receiver (only if implicit instance closure).
+//   RSP + 4 : type arguments object (only if signature class is parameterized).
+//   RSP : points to return address.
+// Uses RAX, RBX, RCX, RDX as temporary registers.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
-  __ Unimplemented("AllocateClosure stub");
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  ASSERT(func.IsClosureFunction());
+  const bool is_implicit_static_closure =
+      func.IsImplicitStaticClosureFunction();
+  const bool is_implicit_instance_closure =
+      func.IsImplicitInstanceClosureFunction();
+  const Class& cls = Class::ZoneHandle(func.signature_class());
+  const bool has_type_arguments = cls.HasTypeArguments();
+  const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kReceiverOffset = (has_type_arguments ? 2 : 1) * kWordSize;
+  if (false) {
+    // TODO(regis): Implement inline context allocation.
+    __ Unimplemented("AllocateClosure stub - inline allocation");
+  }
+  if (has_type_arguments) {
+    __ movq(RCX, Address(RSP, kTypeArgumentsOffset));
+  }
+  if (is_implicit_instance_closure) {
+    __ movq(RAX, Address(RSP, kReceiverOffset));
+  }
+  // Create the stub frame.
+  __ EnterFrame(0);
+  __ pushq(raw_null);  // Make space for the return value.
+  __ PushObject(func);
+  if (is_implicit_static_closure) {
+    __ CallRuntimeFromStub(kAllocateImplicitStaticClosureRuntimeEntry);
+  } else {
+    if (is_implicit_instance_closure) {
+      __ pushq(RAX);  // Receiver.
+    }
+    if (has_type_arguments) {
+      __ pushq(RCX);  // Push type arguments of closure to be allocated.
+    } else {
+      __ pushq(raw_null);  // Push null type arguments.
+    }
+    if (is_implicit_instance_closure) {
+      __ CallRuntimeFromStub(kAllocateImplicitInstanceClosureRuntimeEntry);
+      __ popq(RAX);  // Pop type arguments.
+      __ popq(RAX);  // Pop receiver.
+    } else {
+      ASSERT(func.IsNonImplicitClosureFunction());
+      __ CallRuntimeFromStub(kAllocateClosureRuntimeEntry);
+      __ popq(RAX);  // Pop type arguments.
+    }
+  }
+  __ popq(RAX);  // Pop the function object.
+  __ popq(RAX);  // Pop the result.
+  // RAX: New closure object.
+  // Restore the calling frame.
+  __ LeaveFrame();
+  __ ret();
 }
 
 

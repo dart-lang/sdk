@@ -1440,7 +1440,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     __ cmpq(RAX, raw_null);
     __ j(NOT_EQUAL, &non_null, Assembler::kNearJump);
     __ PushObject(negate_result ? bool_true : bool_false);
-    __ jmp(&done, Assembler::kNearJump);
+    __ jmp(&done);
 
     __ Bind(&non_null);
 
@@ -1469,13 +1469,13 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
           __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
           __ Bind(&push_result);
           __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done, Assembler::kNearJump);
+          __ jmp(&done);
         } else if (!type_class.is_interface()) {
           __ movq(RCX, FieldAddress(RAX, Object::class_offset()));
           __ CompareObject(RCX, type_class);
           __ j(NOT_EQUAL, &runtime_call, Assembler::kNearJump);
           __ PushObject(negate_result ? bool_false : bool_true);
-          __ jmp(&done, Assembler::kNearJump);
+          __ jmp(&done);
         }
       }
       __ Bind(&runtime_call);
@@ -1494,7 +1494,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
       } else {
         __ PushObject(negate_result ? bool_true : bool_false);
       }
-      __ jmp(&done, Assembler::kNearJump);
+      __ jmp(&done);
 
       // Compare if the classes are equal.
       __ Bind(&compare_classes);
