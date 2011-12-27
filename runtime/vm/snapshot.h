@@ -40,16 +40,21 @@ enum SerializedHeaderType {
   kInlined = 0x1,
   kObjectId = 0x3,
 };
-
+static const int8_t kHeaderTagBits = 2;
+static const int8_t kObjectIdTagBits = (kBitsPerWord - kHeaderTagBits);
+static const intptr_t kMaxObjectId = (kIntptrMax >> kHeaderTagBits);
 
 typedef uint8_t* (*ReAlloc)(uint8_t* ptr, intptr_t old_size, intptr_t new_size);
 
-
-class SerializedHeaderTag : public BitField<enum SerializedHeaderType, 0, 2> {
+class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
+                                            0,
+                                            kHeaderTagBits> {
 };
 
 
-class SerializedHeaderData : public BitField<intptr_t, 2, 30> {
+class SerializedHeaderData : public BitField<intptr_t,
+                                             kHeaderTagBits,
+                                             kObjectIdTagBits> {
 };
 
 
@@ -291,6 +296,13 @@ class SnapshotReader {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
 
+  // Reads an intptr_t type value.
+  intptr_t ReadIntptrValue() {
+    int64_t value = Read<int64_t>();
+    ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
+    return value;
+  }
+
   Heap* heap() const { return heap_; }
   ObjectStore* object_store() const { return object_store_; }
 
@@ -341,6 +353,11 @@ class BaseWriter {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
 
+  // Writes an intptr_t type value out.
+  void WriteIntptrValue(intptr_t value) {
+    Write<int64_t>(value);
+  }
+
   // Write an object that is serialized as an Id (singleton, object store,
   // or an object that was already serialized before).
   void WriteIndexedObject(intptr_t object_id) {
@@ -352,15 +369,16 @@ class BaseWriter {
     // Write out the class information.
     WriteIndexedObject(class_id);
     // Write out the tags information.
-    Write<intptr_t>(tags);
+    WriteIntptrValue(tags);
   }
 
   // Write serialization header information for an object.
   void WriteSerializationMarker(SerializedHeaderType type, intptr_t id) {
-    uword value = 0;
+    ASSERT(id <= kMaxObjectId);
+    intptr_t value = 0;
     value = SerializedHeaderTag::update(type, value);
     value = SerializedHeaderData::update(id, value);
-    Write<uword>(value);
+    WriteIntptrValue(value);
   }
 
   // Finalize the serialized buffer by filling in the header information

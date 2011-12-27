@@ -42,10 +42,10 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_tags(tags);
 
     // Set all non object fields.
-    cls.set_instance_size(reader->Read<intptr_t>());
-    cls.set_type_arguments_instance_field_offset(reader->Read<intptr_t>());
-    cls.set_next_field_offset(reader->Read<intptr_t>());
-    cls.set_num_native_fields(reader->Read<intptr_t>());
+    cls.set_instance_size(reader->ReadIntptrValue());
+    cls.set_type_arguments_instance_field_offset(reader->ReadIntptrValue());
+    cls.set_next_field_offset(reader->ReadIntptrValue());
+    cls.set_num_native_fields(reader->ReadIntptrValue());
     cls.set_class_state(reader->Read<int8_t>());
     if (reader->Read<bool>()) {
       cls.set_is_const();
@@ -84,10 +84,10 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
     writer->Write<ObjectKind>(ptr()->instance_kind_);
-    writer->Write<intptr_t>(ptr()->instance_size_);
-    writer->Write<intptr_t>(ptr()->type_arguments_instance_field_offset_);
-    writer->Write<intptr_t>(ptr()->next_field_offset_);
-    writer->Write<intptr_t>(ptr()->num_native_fields_);
+    writer->WriteIntptrValue(ptr()->instance_size_);
+    writer->WriteIntptrValue(ptr()->type_arguments_instance_field_offset_);
+    writer->WriteIntptrValue(ptr()->next_field_offset_);
+    writer->WriteIntptrValue(ptr()->num_native_fields_);
     writer->Write<int8_t>(ptr()->class_state_);
     writer->Write<bool>(ptr()->is_const_);
     writer->Write<bool>(ptr()->is_interface_);
@@ -116,7 +116,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   unresolved_class.set_tags(tags);
 
   // Set all non object fields.
-  unresolved_class.set_token_index(reader->Read<intptr_t>());
+  unresolved_class.set_token_index(reader->ReadIntptrValue());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -142,7 +142,7 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kUnresolvedClassClass, ptr()->tags_);
 
   // Write out all the non object pointer fields.
-  writer->Write<intptr_t>(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->token_index_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -234,7 +234,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_tags(tags);
 
   // Set all non object fields.
-  type_parameter.set_index(reader->Read<intptr_t>());
+  type_parameter.set_index(reader->ReadIntptrValue());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -262,7 +262,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kTypeParameterClass, ptr()->tags_);
 
   // Write out all the non object pointer fields.
-  writer->Write<intptr_t>(ptr()->index_);
+  writer->WriteIntptrValue(ptr()->index_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -340,7 +340,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
+  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
   intptr_t len = Smi::Value(smi_len);
 
   TypeArguments& type_arguments =
@@ -451,12 +451,12 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_tags(tags);
 
   // Set all the non object fields.
-  func.set_token_index(reader->Read<intptr_t>());
-  func.set_num_fixed_parameters(reader->Read<intptr_t>());
-  func.set_num_optional_parameters(reader->Read<intptr_t>());
-  func.set_invocation_counter(reader->Read<intptr_t>());
-  func.set_deoptimization_counter(reader->Read<intptr_t>());
-  func.set_kind(static_cast<RawFunction::Kind >(reader->Read<intptr_t>()));
+  func.set_token_index(reader->ReadIntptrValue());
+  func.set_num_fixed_parameters(reader->ReadIntptrValue());
+  func.set_num_optional_parameters(reader->ReadIntptrValue());
+  func.set_invocation_counter(reader->ReadIntptrValue());
+  func.set_deoptimization_counter(reader->ReadIntptrValue());
+  func.set_kind(static_cast<RawFunction::Kind >(reader->ReadIntptrValue()));
   func.set_is_static(reader->Read<bool>());
   func.set_is_const(reader->Read<bool>());
   func.set_is_optimizable(reader->Read<bool>());
@@ -486,12 +486,12 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kFunctionClass, ptr()->tags_);
 
   // Write out all the non object fields.
-  writer->Write<intptr_t>(ptr()->token_index_);
-  writer->Write<intptr_t>(ptr()->num_fixed_parameters_);
-  writer->Write<intptr_t>(ptr()->num_optional_parameters_);
-  writer->Write<intptr_t>(ptr()->invocation_counter_);
-  writer->Write<intptr_t>(ptr()->deoptimization_counter_);
-  writer->Write<intptr_t>(ptr()->kind_);
+  writer->WriteIntptrValue(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
+  writer->WriteIntptrValue(ptr()->num_optional_parameters_);
+  writer->WriteIntptrValue(ptr()->invocation_counter_);
+  writer->WriteIntptrValue(ptr()->deoptimization_counter_);
+  writer->WriteIntptrValue(ptr()->kind_);
   writer->Write<bool>(ptr()->is_static_);
   writer->Write<bool>(ptr()->is_const_);
   writer->Write<bool>(ptr()->is_optimizable_);
@@ -517,7 +517,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_tags(tags);
 
   // Set all non object fields.
-  field.set_token_index(reader->Read<intptr_t>());
+  field.set_token_index(reader->ReadIntptrValue());
   field.set_is_static(reader->Read<bool>());
   field.set_is_final(reader->Read<bool>());
   field.set_has_initializer(reader->Read<bool>());
@@ -547,7 +547,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kFieldClass, ptr()->tags_);
 
   // Write out all the non object fields.
-  writer->Write<intptr_t>(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->token_index_);
   writer->Write<bool>(ptr()->is_static_);
   writer->Write<bool>(ptr()->is_final_);
   writer->Write<bool>(ptr()->has_initializer_);
@@ -566,7 +566,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Read the length so that we can determine number of tokens to read.
-  RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
+  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
   intptr_t len = Smi::Value(smi_len);
 
   // Create the token stream object.
@@ -580,7 +580,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   String& literal = String::Handle();
   for (intptr_t i = 0; i < len; i++) {
     Token::Kind kind = static_cast<Token::Kind>(
-        Smi::Value(GetSmi(reader->Read<intptr_t>())));
+        Smi::Value(GetSmi(reader->ReadIntptrValue())));
     literal ^= reader->ReadObject();
     token_stream.SetTokenAt(i, kind, literal);
   }
@@ -680,9 +680,9 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library.set_tags(tags);
 
     // Set all non object fields.
-    library.raw_ptr()->num_imports_ = reader->Read<intptr_t>();
-    library.raw_ptr()->num_imported_into_ = reader->Read<intptr_t>();
-    library.raw_ptr()->num_anonymous_ = reader->Read<intptr_t>();
+    library.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
+    library.raw_ptr()->num_imported_into_ = reader->ReadIntptrValue();
+    library.raw_ptr()->num_anonymous_ = reader->ReadIntptrValue();
     library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
     library.raw_ptr()->load_state_ = reader->Read<int8_t>();
     // The native resolver is not serialized.
@@ -721,9 +721,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteObject(ptr()->url_);
   } else {
     // Write out all non object fields.
-    writer->Write<intptr_t>(ptr()->num_imports_);
-    writer->Write<intptr_t>(ptr()->num_imported_into_);
-    writer->Write<intptr_t>(ptr()->num_anonymous_);
+    writer->WriteIntptrValue(ptr()->num_imports_);
+    writer->WriteIntptrValue(ptr()->num_imported_into_);
+    writer->WriteIntptrValue(ptr()->num_anonymous_);
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<int8_t>(ptr()->load_state_);
     // We do not serialize the native resolver over, this needs to be explicitly
@@ -878,7 +878,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate context object.
-  intptr_t num_vars = reader->Read<intptr_t>();
+  intptr_t num_vars = reader->ReadIntptrValue();
   Context& context = Context::ZoneHandle(
       Context::New(num_vars,
                    (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
@@ -914,7 +914,7 @@ void RawContext::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kContextClass, ptr()->tags_);
 
   // Write out num of variables in the context.
-  writer->Write<intptr_t>(ptr()->num_variables_);
+  writer->WriteIntptrValue(ptr()->num_variables_);
 
   // Can't serialize the isolate pointer, we set it implicitly on read.
 
@@ -932,7 +932,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
   ASSERT(kind == Snapshot::kMessage);
 
   // Allocate context scope object.
-  intptr_t num_vars = reader->Read<intptr_t>();
+  intptr_t num_vars = reader->ReadIntptrValue();
   ContextScope& scope = ContextScope::ZoneHandle(ContextScope::New(num_vars));
   reader->AddBackwardReference(object_id, &scope);
 
@@ -964,7 +964,7 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kContextScopeClass, ptr()->tags_);
 
   // Serialize number of variables.
-  writer->Write<intptr_t>(ptr()->num_variables_);
+  writer->WriteIntptrValue(ptr()->num_variables_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -1069,7 +1069,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read in the HexCString representation of the bigint.
-  intptr_t len = reader->Read<intptr_t>();
+  intptr_t len = reader->ReadIntptrValue();
   char* str = reinterpret_cast<char*>(ZoneAllocator(len + 1));
   str[len] = '\0';
   for (intptr_t i = 0; i < len; i++) {
@@ -1107,7 +1107,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   ptr()->bn_.d = ptr()->data_;
   const char* str = BigintOperations::ToHexCString(&ptr()->bn_, &ZoneAllocator);
   intptr_t len = strlen(str);
-  writer->Write<intptr_t>(len-2);
+  writer->WriteIntptrValue(len-2);
   for (intptr_t i = 2; i < len; i++) {
     writer->Write<uint8_t>(str[i]);
   }
@@ -1178,9 +1178,9 @@ RawString* String::ReadFromImpl(SnapshotReader* reader,
                                 Snapshot::Kind kind) {
   ASSERT(reader != NULL);
   // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
+  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
   intptr_t len = Smi::Value(smi_len);
-  RawSmi* smi_hash = GetSmi(reader->Read<intptr_t>());
+  RawSmi* smi_hash = GetSmi(reader->ReadIntptrValue());
 
   HandleType& str_obj = HandleType::ZoneHandle();
   if (kind != Snapshot::kFull && RawObject::IsCanonical(tags)) {
@@ -1404,7 +1404,7 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
+  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
   intptr_t len = Smi::Value(smi_len);
   T& result = T::Handle(
       T::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
@@ -1559,7 +1559,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   ASSERT(kind == Snapshot::kMessage);
 
   // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->Read<intptr_t>());
+  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
   intptr_t len = Smi::Value(smi_len);
 
   // Allocate JSRegExp object.
@@ -1571,12 +1571,12 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   regex.set_tags(tags);
 
   // Read and Set all the other fields.
-  regex.raw_ptr()->num_bracket_expressions_ = GetSmi(reader->Read<intptr_t>());
+  regex.raw_ptr()->num_bracket_expressions_ = GetSmi(reader->ReadIntptrValue());
   String& pattern = String::Handle();
   pattern ^= reader->ReadObject();
   regex.raw_ptr()->pattern_ = pattern.raw();
-  regex.raw_ptr()->type_ = reader->Read<intptr_t>();
-  regex.raw_ptr()->flags_ = reader->Read<intptr_t>();
+  regex.raw_ptr()->type_ = reader->ReadIntptrValue();
+  regex.raw_ptr()->flags_ = reader->ReadIntptrValue();
 
   // TODO(5411462): Need to implement a way of recompiling the regex.
 
@@ -1602,8 +1602,8 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->num_bracket_expressions_);
   writer->WriteObject(ptr()->pattern_);
-  writer->Write<intptr_t>(ptr()->type_);
-  writer->Write<intptr_t>(ptr()->flags_);
+  writer->WriteIntptrValue(ptr()->type_);
+  writer->WriteIntptrValue(ptr()->flags_);
 
   // Do not write out the data part which is native.
 }

@@ -168,6 +168,9 @@ const int kBitsPerWord = kWordSize * kBitsPerByte;
 const int KB = 1024;
 const int MB = KB * KB;
 const int GB = KB * KB * KB;
+const intptr_t kIntptrOne = 1;
+const intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));
+const intptr_t kIntptrMax = ~kIntptrMin;
 
 // Time constants.
 const int kMillisecondsPerSecond = 1000;

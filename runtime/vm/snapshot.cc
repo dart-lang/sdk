@@ -53,18 +53,19 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 
 
 RawObject* SnapshotReader::ReadObject() {
-  intptr_t header = Read<intptr_t>();
-  if ((header & kSmiTagMask) == 0) {
-    return reinterpret_cast<RawObject*>(header);
+  int64_t value = Read<int64_t>();
+  if ((value & kSmiTagMask) == 0) {
+    return Integer::New((value >> kSmiTagShift));
   }
-  return ReadObjectImpl(header);
+  ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
+  return ReadObjectImpl(value);
 }
 
 
 RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   ASSERT(kind_ != Snapshot::kFull);
   // Read the class header information and lookup the class.
-  intptr_t class_header = Read<intptr_t>();
+  intptr_t class_header = ReadIntptrValue();
   ASSERT((class_header & kSmiTagMask) != 0);
   Class& cls = Class::ZoneHandle();
   cls ^= LookupInternalClass(class_header);
@@ -111,11 +112,11 @@ void SnapshotReader::ReadFullSnapshot() {
 
 RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   SerializedHeaderType header_type = SerializedHeaderTag::decode(class_header);
-  intptr_t header_value = SerializedHeaderData::decode(class_header);
 
   // If the header is an object Id, lookup singleton VM classes or classes
   // stored in the object store.
   if (header_type == kObjectId) {
+    intptr_t header_value = SerializedHeaderData::decode(class_header);
     if (IsSingletonClassId(header_value)) {
       return Object::GetSingletonClass(header_value);  // return the singleton.
     } else if (IsObjectStoreClassId(header_value)) {
@@ -169,8 +170,8 @@ RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
 
 RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
-  intptr_t class_header = Read<intptr_t>();
-  intptr_t tags = Read<intptr_t>();
+  intptr_t class_header = ReadIntptrValue();
+  intptr_t tags = ReadIntptrValue();
   Class& cls = Class::Handle();
   Object& obj = Object::Handle();
   if (SerializedHeaderData::decode(class_header) == kInstanceId) {
@@ -256,7 +257,7 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 
   // First check if it is a Smi (i.e not a heap object).
   if (!rawobj->IsHeapObject()) {
-    Write<RawObject*>(rawobj);
+    Write<int64_t>(reinterpret_cast<int64_t>(rawobj));
     return;
   }
 
@@ -337,6 +338,7 @@ void SnapshotWriter::WriteFullSnapshot() {
 intptr_t SnapshotWriter::MarkObject(RawObject* raw, RawClass* cls) {
   NoGCScope no_gc;
   intptr_t object_id = forward_list_.length() + kMaxPredefinedObjectIds;
+  ASSERT(object_id <= kMaxObjectId);
   uword value = 0;
   value = SerializedHeaderTag::update(kObjectId, value);
   value = SerializedHeaderData::update(object_id, value);
@@ -378,10 +380,10 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     WriteSerializationMarker(kInlined, object_id);
 
     // Indicate this is an instance object.
-    Write<intptr_t>(SerializedHeaderData::encode(kInstanceId));
+    WriteIntptrValue(SerializedHeaderData::encode(kInstanceId));
 
     // Write out the tags.
-    Write<intptr_t>(raw->ptr()->tags_);
+    WriteIntptrValue(raw->ptr()->tags_);
 
     // Write out the class information for this object.
     WriteObject(cls);
