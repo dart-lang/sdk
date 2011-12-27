@@ -8,6 +8,7 @@ prefix client
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
+html/html_tests: Fail # Issue 993.
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
