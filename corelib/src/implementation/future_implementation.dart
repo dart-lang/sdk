@@ -100,6 +100,7 @@ class FutureImpl<T> implements Future<T> {
       for (Function handler in _exceptionHandlers) {
         if (handler(_exception)) {
           _exceptionHandled = true;
+          break;
         }
       }
     }
