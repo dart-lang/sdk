@@ -5,8 +5,6 @@
 #ifndef VM_ISOLATE_H_
 #define VM_ISOLATE_H_
 
-#include <limits.h>
-
 #include "include/dart_api.h"
 #include "vm/assert.h"
 #include "vm/store_buffer.h"
