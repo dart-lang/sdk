@@ -386,8 +386,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(RBX);  // Preserve ic-data array.
   // First resolve the function to get the function object.
 
-  // Setup space for return value on stack by pushing smi 0.
-  __ pushq(Immediate(0));
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ CallRuntimeFromStub(kResolveCompileInstanceFunctionRuntimeEntry);
   __ popq(RAX);  // Remove receiver pushed earlier.
@@ -422,7 +421,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(R10);  // Preserve ic-data array.
   __ pushq(R13);  // Preserve arguments descriptor array.
 
-  __ pushq(Immediate(0));
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ pushq(R10);  // Ic-data array.
   __ CallRuntimeFromStub(kResolveImplicitClosureFunctionRuntimeEntry);
@@ -457,7 +456,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(R10);  // Preserve ic-data array.
   __ pushq(R13);  // Preserve arguments descriptor array.
 
-  __ pushq(Immediate(0));
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ pushq(R10);  // Ic-data array.
   __ CallRuntimeFromStub(kResolveImplicitClosureThroughGetterRuntimeEntry);
@@ -472,11 +471,11 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ cmpq(RBX, raw_null);
   Label function_not_found;
-  __ j(EQUAL, &function_not_found, Assembler::kNearJump);
+  __ j(EQUAL, &function_not_found);
 
   // RBX: Closure object.
   // R13: Arguments descriptor array.
-  __ pushq(Immediate(0));  // Result from invoking Closure.
+  __ pushq(raw_null);  // Setup space on stack for result from invoking Closure.
   __ pushq(RBX);  // Closure object.
   __ pushq(R13);  // Arguments descriptor.
   __ movq(R13, FieldAddress(R13, Array::data_offset()));
@@ -512,8 +511,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   //   RBX: raw_null.
   //   R13: argument descriptor array.
 
-  // Setup space for return value on stack by pushing smi 0.
-  __ pushq(Immediate(0));  // Result from noSuchMethod.
+  __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
   __ pushq(R10);  // IC-data array.
   __ pushq(R13);  // Argument descriptor array.
@@ -653,7 +651,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // into the runtime.
   __ Bind(&slow_case);
   __ EnterFrame(0);
-  __ pushq(raw_null);  // Push Null object for return value.
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
   __ pushq(raw_null);  // Null instantiator.
@@ -803,7 +801,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   }
   // Create the stub frame.
   __ EnterFrame(0);
-  __ pushq(raw_null);  // Make space for the return value.
+  __ pushq(raw_null);  // Setup space on stack for the return value.
   __ SmiTag(RDX);
   __ pushq(RDX);  // Push number of context variables.
   __ CallRuntimeFromStub(kAllocateContextRuntimeEntry);  // Allocate context.
@@ -988,8 +986,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   }
   // Create a stub frame.
   __ EnterFrame(0);
-  const Object& new_object = Object::ZoneHandle();
-  __ PushObject(new_object);  // Push Null object for return value.
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RAX);  // Push type arguments of object to be allocated.
@@ -1043,7 +1040,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   }
   // Create the stub frame.
   __ EnterFrame(0);
-  __ pushq(raw_null);  // Make space for the return value.
+  __ pushq(raw_null);  // Setup space on stack for the return value.
   __ PushObject(func);
   if (is_implicit_static_closure) {
     __ CallRuntimeFromStub(kAllocateImplicitStaticClosureRuntimeEntry);
@@ -1151,7 +1148,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ movq(RAX, Address(RSP, RAX, TIMES_4, -kWordSize));  // RAX is Smi.
     __ call(&get_class);
     __ cmpq(RAX, R13);  // Match?
-    __ j(EQUAL, &found, Assembler::kNearJump);
+    __ j(EQUAL, &found);
     __ Bind(&no_match);
     __ addq(R12, Immediate(kWordSize * (1 + num_args)));  // Next element.
     __ cmpq(R13, raw_null);   // Done?
@@ -1163,10 +1160,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterFrame(0);
-  // Setup space for return value on stack by pushing smi 0.
   __ pushq(R10);  // Preserve arguments array.
   __ pushq(RBX);  // Preserve IC data array
-  __ pushq(Immediate(0));  // Space for result (target code object).
+  __ pushq(raw_null);  // Setup space on stack for result (target code object).
   __ movq(R10, FieldAddress(R10, Array::data_offset()));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
