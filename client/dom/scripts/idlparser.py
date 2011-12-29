@@ -216,16 +216,20 @@ class IDLParser(object):
     def Operation():
       return syntax_switch(
         # Web IDL:
-        [MAYBE(ExtAttrs), MAYBE(Stringifier), MAYBE(_Specials),
+        [MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier), MAYBE(_Specials),
          ReturnType, MAYBE(Id), '(', _Arguments, ')', MAYBE(Raises),
          ';'],
         # WebKit:
-        [MAYBE(ExtAttrs), ReturnType, MAYBE(Id), '(', _Arguments, ')',
+        [MAYBE(ExtAttrs), MAYBE(Static),
+         ReturnType, MAYBE(Id), '(', _Arguments, ')',
          MAYBE(Raises), ';'],
         # FremontCut:
-        [MAYBE(_Annotations), MAYBE(ExtAttrs), MAYBE(Stringifier),
+        [MAYBE(_Annotations), MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier),
          MAYBE(_Specials), ReturnType, MAYBE(Id), '(', _Arguments, ')',
          MAYBE(Raises), ';'])
+
+    def Static():
+      return 'static'
 
     def _Specials():
       return MANY(Special)
