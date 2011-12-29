@@ -329,34 +329,38 @@ public abstract class CompilerTestCase extends TestCase {
     StringBuffer errorMessage = new StringBuffer();
     // count of errors
     if (errors.size() != expectedErrors.length) {
-      String out = String.format(
-          "Expected %s errors, but got %s: %s",
-          expectedErrors.length,
-          errors.size(),
-          errors);
+      String out =
+          String.format(
+              "Expected %s errors, but got %s: %s",
+              expectedErrors.length,
+              errors.size(),
+              errors);
       errorMessage.append(out + "\n");
-    }
-    // content of errors
-    for (int i = 0; i < expectedErrors.length; i++) {
-      ErrorExpectation expectedError = expectedErrors[i];
-      DartCompilationError actualError = errors.get(i);
-      if (actualError.getErrorCode() != expectedError.errorCode
-          || actualError.getLineNumber() != expectedError.line
-          || actualError.getColumnNumber() != expectedError.column
-          || actualError.getLength() != expectedError.length) {
-        String out = String.format( 
-            "Expected %s:%d:%d/%d, but got %s:%d:%d/%d",
-            expectedError.errorCode,
-            expectedError.line,
-            expectedError.column,
-            expectedError.length,
-            actualError.getErrorCode(),
-            actualError.getLineNumber(),
-            actualError.getColumnNumber(),
-            actualError.getLength());
-        errorMessage.append(out + "\n");
+    } else {
+      // content of errors
+      for (int i = 0; i < expectedErrors.length; i++) {
+        ErrorExpectation expectedError = expectedErrors[i];
+        DartCompilationError actualError = errors.get(i);
+        if (actualError.getErrorCode() != expectedError.errorCode
+            || actualError.getLineNumber() != expectedError.line
+            || actualError.getColumnNumber() != expectedError.column
+            || actualError.getLength() != expectedError.length) {
+          String out =
+              String.format(
+                  "Expected %s:%d:%d/%d, but got %s:%d:%d/%d",
+                  expectedError.errorCode,
+                  expectedError.line,
+                  expectedError.column,
+                  expectedError.length,
+                  actualError.getErrorCode(),
+                  actualError.getLineNumber(),
+                  actualError.getColumnNumber(),
+                  actualError.getLength());
+          errorMessage.append(out + "\n");
+        }
       }
     }
+    // fail
     if (errorMessage.length() > 0) {
       System.err.println(errorMessage);
       fail(errorMessage.toString());

@@ -90,6 +90,7 @@ import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.parser.DartScanner.Location;
+import com.google.dart.compiler.parser.DartScanner.Position;
 import com.google.dart.compiler.util.Lists;
 
 import java.io.IOException;
@@ -111,7 +112,9 @@ public class DartParser extends CompletionHooksParserBase {
   private Set<String> prefixes;
   private boolean isDietParse;
   private boolean isParsingInterface;
-  private boolean isParsingAbstract;
+  private boolean isTopLevelAbstract;
+  private DartScanner.Position topLevelAbstractModifierPosition;
+  private DartScanner.Position classLevelAbstractModifierPosition;
   private boolean isParsingClass;
 
   /**
@@ -254,9 +257,11 @@ public class DartParser extends CompletionHooksParserBase {
         beginTopLevelElement();
         isParsingClass = isParsingInterface = false;
         // Check for ABSTRACT_KEYWORD.
-        isParsingAbstract = false;
+        isTopLevelAbstract = false;
+        topLevelAbstractModifierPosition = null;
         if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
-          isParsingAbstract = true;
+          isTopLevelAbstract = true;
+          topLevelAbstractModifierPosition = position();
         }
         // Parse top level element.
         if (optional(Token.CLASS)) {
@@ -270,8 +275,18 @@ public class DartParser extends CompletionHooksParserBase {
         } else {
           node = done(parseFieldOrMethod(false));
         }
+        // Parsing was successful, add node.
         if (node != null) {
           unit.addTopLevelNode(node);
+          // Only "class" can be top-level abstract element.
+          if (isTopLevelAbstract && !isParsingClass) {
+            Position abstractPositionEnd =
+                topLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length());
+            Location location = new Location(topLevelAbstractModifierPosition, abstractPositionEnd);
+            reportError(new DartCompilationError(source,
+                location,
+                ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT));
+          }
         }
       } catch (ParserException e) {
         Location beginLocation = ctx.getTokenLocation();
@@ -555,7 +570,7 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse modifiers.
     Modifiers modifiers = Modifiers.NONE;
-    if (isParsingAbstract) {
+    if (isTopLevelAbstract) {
       modifiers = modifiers.makeAbstract();
     }
 
@@ -853,6 +868,7 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
       }
       modifiers = modifiers.makeAbstract();
+      classLevelAbstractModifierPosition = position();
     } else if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.FACTORY_MEMBER_IN_INTERFACE);
@@ -1192,6 +1208,16 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartNode parseMethodOrAccessor(Modifiers modifiers, DartTypeNode returnType) {
     DartMethodDefinition method = done(parseMethod(modifiers, returnType));
+    // Abstract method can not have a body.
+    if (method.getModifiers().isAbstract() && method.getFunction().getBody() != null) {
+      Location location =
+          new Location(classLevelAbstractModifierPosition,
+              classLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length()));
+      reportError(new DartCompilationError(ctx.getSource(),
+          location,
+          ParserErrorCode.ABSTRACT_METHOD_WITH_BODY));
+    }
+    // If getter or setter, generate DartFieldDefinition instead.
     if (method.getModifiers().isGetter() || method.getModifiers().isSetter()) {
       DartField field = new DartField((DartIdentifier) method.getName(),
                                       method.getModifiers().makeAbstractField(), method, null);
@@ -1201,6 +1227,7 @@ public class DartParser extends CompletionHooksParserBase {
       fieldDefinition.setSourceInfo(field);
       return fieldDefinition;
     }
+    // OK, use method as method.
     return method;
   }
 
@@ -3792,6 +3819,6 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private boolean currentlyParsingToplevel() {
-    return   !(isParsingInterface || isParsingAbstract || isParsingClass);
+    return   !(isParsingInterface || isTopLevelAbstract || isParsingClass);
   }
 }

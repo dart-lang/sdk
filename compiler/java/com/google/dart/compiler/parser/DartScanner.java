@@ -63,6 +63,14 @@ public class DartScanner {
       }
     }
 
+    /**
+     * @return the {@link Position} which is advanced on the given number of columns, on the same
+     *         line.
+     */
+    public Position getAdvancedColumns(int cols) {
+      return new Position(pos + cols, line, col + cols);
+    }
+
     @Override
     public String toString() {
       return line + "," + col + "@" + pos;
