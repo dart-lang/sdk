@@ -2058,6 +2058,50 @@ public class DartParser extends CompletionHooksParserBase {
     return done(null);
   }
 
+  private enum LastSeenNode {
+    NONE,
+    STRING,
+    EXPRESSION;
+  }
+
+  private class DartStringInterpolationBuilder {
+
+    private List<DartStringLiteral> strings = new ArrayList<DartStringLiteral>();
+    private List<DartExpression> expressions = new ArrayList<DartExpression>();
+    private LastSeenNode lastSeen = LastSeenNode.NONE;
+
+    DartStringInterpolationBuilder() {
+    }
+
+    void addString(DartStringLiteral string) {
+      if (lastSeen == LastSeenNode.STRING) {
+        expressions.add(new DartSyntheticErrorExpression());
+      }
+      strings.add(string);
+      lastSeen = LastSeenNode.STRING;
+    }
+
+    void addExpression(DartExpression expression) {
+      switch (lastSeen) {
+        case EXPRESSION:
+        case NONE:
+          strings.add(DartStringLiteral.get(""));
+          break;
+        default:
+          break;
+      }
+      expressions.add(expression);
+      lastSeen = LastSeenNode.EXPRESSION;
+    }
+
+    DartStringInterpolation buildInterpolation() {
+      if (strings.size() == expressions.size()) {
+        strings.add(DartStringLiteral.get(""));
+      }
+      return new DartStringInterpolation(strings, expressions);
+    }
+  }
+
   /**
    * <pre>
    * string-interpolation
@@ -2073,35 +2117,25 @@ public class DartParser extends CompletionHooksParserBase {
       throw new InternalCompilerException("Invariant broken");
     }
     beginStringInterpolation();
-    List<DartStringLiteral> strings = new ArrayList<DartStringLiteral>();
-    List<DartExpression> expressions = new ArrayList<DartExpression>();
-
+    DartStringInterpolationBuilder builder = new DartStringInterpolationBuilder();
     boolean inString = true;
     while (inString) { // Iterate until we find the last string segment.
       switch (peek(0)) {
         case STRING_SEGMENT: {
-          assert strings.size() == expressions.size() : "Invariant broken";
           beginStringSegment();
           consume(Token.STRING_SEGMENT);
-          strings.add(done(DartStringLiteral.get(ctx.getTokenString())));
+          builder.addString(done(DartStringLiteral.get(ctx.getTokenString())));
           break;
         }
         case STRING_LAST_SEGMENT: {
-          assert strings.size() == expressions.size() : "Invariant broken";
           beginStringSegment();
           consume(Token.STRING_LAST_SEGMENT);
-          strings.add(done(DartStringLiteral.get(ctx.getTokenString())));
+          builder.addString(done(DartStringLiteral.get(ctx.getTokenString())));
           inString = false;
           break;
         }
         case STRING_EMBED_EXP_START: {
           consume(Token.STRING_EMBED_EXP_START);
-          if (strings.size() == expressions.size()) {
-            // Ensure that strings and expressions are alternating, add empty
-            // strings if we see 2 consecutive expressions.
-            beginStringSegment();
-            strings.add(done(DartStringLiteral.get("")));
-          }
           /*
            * We check for ILLEGAL specifically here to give nicer error
            * messages, and because the scanner doesn't generate a
@@ -2111,30 +2145,45 @@ public class DartParser extends CompletionHooksParserBase {
           if (peek(0) == Token.ILLEGAL) {
             reportError(position(), ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
                 next());
-            expressions.add(new DartSyntheticErrorExpression(ctx.getTokenString()));
+            builder.addExpression(new DartSyntheticErrorExpression(""));
             break;
           } else {
-            DartExpression expr = parseExpression();
-            expressions.add(expr);
+            builder.addExpression(parseExpression());
           }
+          Token lookAhead = peek(0);
+          String lookAheadString = getPeekTokenValue(0);
           if (!expect(Token.STRING_EMBED_EXP_END)) {
-            return done(new DartSyntheticErrorExpression());
+            String errorText = null;
+            if (lookAheadString != null && lookAheadString.length() > 0) {
+              errorText = lookAheadString;
+            } else if (lookAhead.getSyntax() != null && lookAhead.getSyntax().length() > 0) {
+              errorText = lookAhead.getSyntax();
+            }
+            if (errorText != null) {
+              builder.addExpression(new DartSyntheticErrorExpression(errorText));
+            }
+            inString = !(Token.STRING_LAST_SEGMENT == lookAhead);
           }
           break;
         }
         case EOS: {
           reportError(position(), ParserErrorCode.INCOMPLETE_STRING_LITERAL);
-          return done(null);
+          inString = false;
+          break;
         }
         default: {
+          String errorText = getPeekTokenValue(0) != null && getPeekTokenValue(0).length() > 0
+              ? getPeekTokenValue(0) : null;
+          if(errorText != null) {
+            builder.addExpression(new DartSyntheticErrorExpression(getPeekTokenValue(0)));
+          }
           reportError(position(), ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
               next());
           break;
         }
       }
     }
-    assert (strings.size() == expressions.size() + 1) : "Invariant broken";
-    return done(new DartStringInterpolation(strings, expressions));
+    return builder.buildInterpolation();
   }
 
   /**

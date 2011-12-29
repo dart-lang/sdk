@@ -309,6 +309,33 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.UNEXPECTED_TOKEN, 4, 19, 5));
   }
 
+  public void testInvalidStringInterpolation() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "void main() {",
+        "  print(\"1 ${42} 2 ${} 3\");",
+        "  print(\"1 ${42} 2 ${10;} 3\");",
+        "  print(\"1 ${42} 2 ${10,20} 3\");",
+        "  print(\"1 ${42} 2 ${10 20} 3\");",
+        "  print(\"$\");",
+        "  print(\"$",
+        "}"),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN, 2, 22, 1),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 2, 23, 3),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 3, 24, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 3, 25, 1),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 4, 24, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 4, 25, 2),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 4, 27, 1),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 5, 25, 2),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 5, 27, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 6, 11, 0),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 7, 11, 0),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 7, 11, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 8, 1, 1),
+        errEx(ParserErrorCode.INCOMPLETE_STRING_LITERAL, 8, 1, 1),
+        errEx(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, 8, 2, 0));
+  }
+
   public void tstDeprecatedFactoryInInterface() {
     parseExpectErrors(
        "interface foo factory bar {}",
