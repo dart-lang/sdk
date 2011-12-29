@@ -129,15 +129,17 @@ public class CompileTimeConstantAnalyzer {
      * determined.
      */
     private Type getMostSpecificType(DartNode node) {
-      Element element = (Element) node.getSymbol();
-      Type type = inferredTypes.get(node);
-      if (type != null) {
-        return type;
-      }
-      if (element != null) {
-        type = element.getType();
+      if (node != null) {
+        Element element = (Element) node.getSymbol();
+        Type type = inferredTypes.get(node);
         if (type != null) {
           return type;
+        }
+        if (element != null) {
+          type = element.getType();
+          if (type != null) {
+            return type;
+          }
         }
       }
       return dynamicType;

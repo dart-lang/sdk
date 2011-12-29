@@ -12,6 +12,8 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.common.ErrorExpectation;
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.parser.DartScannerParserContext;
@@ -301,70 +303,6 @@ public abstract class CompilerTestCase extends TestCase {
   protected final void parseExpectErrors(String code, ErrorExpectation... expectedErrors) {
     List<DartCompilationError> errors = parseSource(code).getErrors();
     assertErrors(errors, expectedErrors);
-  }
-
-  protected static class ErrorExpectation {
-    final ErrorCode errorCode;
-    final int line;
-    final int column;
-    final int length;
-
-    public ErrorExpectation(ErrorCode errorCode, int line, int column, int length) {
-      this.errorCode = errorCode;
-      this.line = line;
-      this.column = column;
-      this.length = length;
-    }
-  }
-
-  protected static ErrorExpectation errEx(ErrorCode errorCode, int line, int column, int length) {
-    return new ErrorExpectation(errorCode, line, column,  length);
-  }
-
-  /**
-   * Asserts that given list of {@link DartCompilationError} is exactly same as expected.
-   */
-  protected static void assertErrors(List<DartCompilationError> errors,
-      ErrorExpectation... expectedErrors) {
-    StringBuffer errorMessage = new StringBuffer();
-    // count of errors
-    if (errors.size() != expectedErrors.length) {
-      String out =
-          String.format(
-              "Expected %s errors, but got %s: %s",
-              expectedErrors.length,
-              errors.size(),
-              errors);
-      errorMessage.append(out + "\n");
-    } else {
-      // content of errors
-      for (int i = 0; i < expectedErrors.length; i++) {
-        ErrorExpectation expectedError = expectedErrors[i];
-        DartCompilationError actualError = errors.get(i);
-        if (actualError.getErrorCode() != expectedError.errorCode
-            || actualError.getLineNumber() != expectedError.line
-            || actualError.getColumnNumber() != expectedError.column
-            || actualError.getLength() != expectedError.length) {
-          String out =
-              String.format(
-                  "Expected %s:%d:%d/%d, but got %s:%d:%d/%d",
-                  expectedError.errorCode,
-                  expectedError.line,
-                  expectedError.column,
-                  expectedError.length,
-                  actualError.getErrorCode(),
-                  actualError.getLineNumber(),
-                  actualError.getColumnNumber(),
-                  actualError.getLength());
-          errorMessage.append(out + "\n");
-        }
-      }
-    }
-    // fail
-    if (errorMessage.length() > 0) {
-      System.err.println(errorMessage);
-      fail(errorMessage.toString());
-    }
   }
 
   /**

@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.testing.TestCompilerContext;
@@ -460,6 +461,29 @@ abstract class ResolverTestCase extends TestCase {
     // resolve and check errors
     resolveCompileTimeConst(unit, ctx);
     checkExpectedErrors(resolveErrors, errorCodes, source);
+    return resolveErrors;
+  }
+
+  protected List<DartCompilationError> resolveAndTestCtConstExpectErrors(String source, ErrorExpectation... expectedErrors) {
+    // parse DartUnit
+    DartUnit unit = parseUnit(source);
+    if (parseErrors.size() != 0) {
+      printSource(source);
+      printEncountered(parseErrors);
+      assertEquals("Expected no errors in parse step:", 0, parseErrors.size());
+    }
+    // prepare for recording resolving errors
+    resetParseErrors();
+    final List<DartCompilationError> resolveErrors = Lists.newArrayList();
+    TestCompilerContext ctx =  new TestCompilerContext() {
+      @Override
+      public void onError(DartCompilationError event) {
+        resolveErrors.add(event);
+      }
+    };
+    // resolve and check errors
+    resolveCompileTimeConst(unit, ctx);
+    ErrorExpectation.assertErrors(resolveErrors, expectedErrors);
     return resolveErrors;
   }
 }

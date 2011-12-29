@@ -9,6 +9,8 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 import java.util.List;
 

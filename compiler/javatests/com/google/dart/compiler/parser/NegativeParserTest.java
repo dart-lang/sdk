@@ -8,6 +8,8 @@ import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartUnit;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 /**
  * Negative Parser/Syntax tests.

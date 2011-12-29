@@ -17,6 +17,8 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
