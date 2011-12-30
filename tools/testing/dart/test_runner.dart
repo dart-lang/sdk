@@ -472,7 +472,8 @@ class ProcessQueue {
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      if (test.configuration['component'] == 'dartc') {
+      if (test.configuration['component'] == 'dartc'  &&
+          test.displayName != 'dartc/junit_tests') {
         _ensureDartcBatchRunnersStarted(test.executablePath);
         _getDartcBatchRunnerProcess().startTest(test);
       } else {

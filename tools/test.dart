@@ -17,6 +17,7 @@
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
 #import("../client/tests/dartc/test_config.dart");
+#import("../compiler/tests/dartc/test_config.dart");
 #import("../frog/tests/frog/test_config.dart");
 #import("../frog/tests/leg/test_config.dart");
 #import("../frog/tests/leg_only/test_config.dart");
@@ -80,6 +81,9 @@ main() {
     }
     if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new ClientDartcTestSuite(conf));
+    }
+    if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
+      queue.addTestSuite(new JUnitDartcTestSuite(conf));
     }
     if (selectors.containsKey('css')) {
       queue.addTestSuite(new CssTestSuite(conf));

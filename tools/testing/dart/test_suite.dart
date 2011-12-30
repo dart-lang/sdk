@@ -751,7 +751,8 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     // directories?
     var tempDir = new Directory('');
     tempDir.createTempSync();
-    return ['-check-only', '-fatal-type-errors', '-Werror', '-out', tempDir.path];
+    return
+        ['-check-only', '-fatal-type-errors', '-Werror', '-out', tempDir.path];
   }
 
   void processDirectory() {
@@ -776,10 +777,125 @@ class DartcCompilationTestSuite extends StandardTestSuite {
 }
 
 
+class JUnitTestSuite implements TestSuite {
+  Map configuration;
+  String suiteName;
+  String directoryPath;
+  String statusFilePath;
+  String dartDir;
+  String buildDir;
+  String classPath;
+  List<String> testClasses;
+  Function doTest;
+  Function doDone;
+  TestExpectations testExpectations;
+
+  JUnitTestSuite(Map this.configuration,
+                 String this.suiteName,
+                 String this.directoryPath,
+                 String this.statusFilePath);
+
+  void isTestFile(String filename) => filename.endsWith("Tests.java") &&
+      !filename.contains('com/google/dart/compiler/vm') &&
+      !filename.contains('com/google/dart/corelib/SharedTests.java');
+
+  void forEachTest(Function onTest,
+                   Map testCacheIgnored,
+                   [Function onDone = null]) {
+    doTest = onTest;
+    doDone = (onDone != null) ? onDone : (() => null);
+    
+    if (configuration['component'] != 'dartc') {
+      // Do nothing.  Asynchronously report that the suite is enqueued.
+      new Timer((timerUnused){ doDone(); }, 0);
+      return;
+    }
+    RegExp pattern = configuration['selectors']['dartc'];
+    if (!pattern.hasMatch('junit_tests')) {
+      new Timer((timerUnused){ doDone(); }, 0);
+      return;
+    }
+
+    dartDir = new File('.').fullPathSync();
+    buildDir = TestUtils.buildDir(configuration);
+    computeClassPath();
+    testClasses = <String>[];
+    // Do not read the status file.
+    // All exclusions are hardcoded in this script, as they are in testcfg.py.
+    processDirectory();
+  }
+
+  void processDirectory() {
+    directoryPath = getDirname(directoryPath);
+    Directory dir = new Directory(directoryPath);
+
+    dir.errorHandler = (s) {
+      throw s;
+    };
+    dir.fileHandler = processFile;
+    dir.doneHandler = createTest;
+    dir.list(recursive: true);
+  }
+
+  void processFile(String filename) {
+    if (!isTestFile(filename)) return;
+
+    int index = filename.indexOf('compiler/javatests/com/google/dart');
+    if (index != -1) {
+      String testRelativePath =
+          filename.substring(index + 'compiler/javatests/'.length,
+                             filename.length - '.java'.length);
+      String testClass = testRelativePath.replaceAll('/', '.');
+      testClasses.add(testClass);
+    }
+  }
+      
+  void createTest(successIgnored) {
+    String d8 = '$dartDir/$buildDir/d8${TestUtils.executableSuffix}';
+    List<String> args = <String>[
+        '-ea',
+        '-classpath', classPath,
+        '-Dcom.google.dart.runner.d8=$d8',
+        '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
+        'org.junit.runner.JUnitCore'];
+    args.addAll(testClasses);
+          
+    doTest(new TestCase(suiteName,
+                        'java',
+                        args,
+                        configuration,
+                        (){},
+                        new Set<String>.from([PASS])));
+    doDone();
+  }
+
+  void computeClassPath() {
+    classPath = Strings.join(
+        ['$buildDir/compiler/lib/dartc.jar',
+         '$buildDir/compiler/lib/corelib.jar',
+         '$buildDir/compiler-tests.jar',
+         '$buildDir/closure_out/compiler.jar',
+         // Third party libraries.
+         'third_party/args4j/2.0.12/args4j-2.0.12.jar',
+         'third_party/guava/r09/guava-r09.jar',
+         'third_party/json/r2_20080312/json.jar',
+         'third_party/rhino/1_7R3/js.jar',
+         'third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
+         'third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
+         'third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
+         'third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
+         'third_party/junit/v4_8_2/junit.jar'],
+        ':');  // Path separator.
+  }
+}
+
+
 class TestUtils {
+  static String get executableSuffix() =>
+      (new Platform().operatingSystem() == 'windows') ? '.exe' : '';      
+
   static String executableName(Map configuration) {
-    String postfix =
-        (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
+    String postfix = executableSuffix;
     switch (configuration['component']) {
       case 'vm':
         return 'dart$postfix';
