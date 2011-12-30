@@ -35178,6 +35178,8 @@ function __dom_get_cached(hashtablename, obj, isolatetoken) {
   if (!obj.hasOwnProperty(hashtablename)) return (void 0);
   var hashtable = obj[hashtablename];
   var hash = isolatetoken.hashCode;
+  // Issue 1005 part (1), may be undefined in CSSStyleDeclaration.
+  hashtable = hashtable || {};
   while (true) {
     var result = hashtable[hash];
     if (result) {
@@ -35199,6 +35201,7 @@ function __dom_set_cached(hashtablename, obj, isolatetoken, value) {
     obj[hashtablename] = hashtable;
   } else {
     hashtable = obj[hashtablename];
+    if (!hashtable) obj[hashtablename] = hashtable = {};  // Issue 1005 part (1)
   }
   var hash = isolatetoken.hashCode;
   while (true) {
