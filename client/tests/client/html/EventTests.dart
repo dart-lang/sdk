@@ -25,17 +25,19 @@ testEvents() {
     Expect.equals(0.5, ev.elapsedTime);
   });
 
-  eventTest('BeforeLoadEvent',
-      () => new BeforeLoadEvent('foo', 'http://example.url'),
-      (ev) { Expect.equals('http://example.url', ev.url); });
+  // Issue 1005.
+  // eventTest('BeforeLoadEvent',
+  //    () => new BeforeLoadEvent('foo', 'http://example.url'),
+  //    (ev) { Expect.equals('http://example.url', ev.url); });
 
-  eventTest('CloseEvent',
-      () => new CloseEvent('foo', 5, 'reason', wasClean: true),
-      (ev) {
-    Expect.equals(5, ev.code);
-    Expect.equals('reason', ev.reason);
-    Expect.isTrue(ev.wasClean);
-  });
+  // Issue 1005.
+  // eventTest('CloseEvent',
+  //     () => new CloseEvent('foo', 5, 'reason', wasClean: true),
+  //     (ev) {
+  //   Expect.equals(5, ev.code);
+  //   Expect.equals('reason', ev.reason);
+  //   Expect.isTrue(ev.wasClean);
+  // });
 
   eventTest('CompositionEvent',
       () => new CompositionEvent('compositionstart', window, 'data'),
@@ -60,13 +62,14 @@ testEvents() {
   //   Expect.equals(0.3, ev.gamma);
   // });
 
-  eventTest('ErrorEvent',
-      () => new ErrorEvent('foo', 'message', 'filename', 10),
-      (ev) {
-    Expect.equals('message', ev.message);
-    Expect.equals('filename', ev.filename);
-    Expect.equals(10, ev.lineno);
-  });
+  // Issue 1005.
+  // eventTest('ErrorEvent',
+  //     () => new ErrorEvent('foo', 'message', 'filename', 10),
+  //     (ev) {
+  //   Expect.equals('message', ev.message);
+  //   Expect.equals('filename', ev.filename);
+  //   Expect.equals(10, ev.lineno);
+  // });
 
   eventTest('Event',
       () => new Event('foo', canBubble: false, cancelable: false),
@@ -127,32 +130,35 @@ testEvents() {
     Expect.equals(MutationEvent.MODIFICATION, ev.attrChange);
   });
 
-  eventTest('OverflowEvent',
-      () => new OverflowEvent(OverflowEvent.BOTH, true, true),
-      (ev) {
-    Expect.equals(OverflowEvent.BOTH, ev.orient);
-    Expect.isTrue(ev.horizontalOverflow);
-    Expect.isTrue(ev.verticalOverflow);
-  }, type: 'overflowchanged');
+  // Issue 1005.
+  // eventTest('OverflowEvent',
+  //     () => new OverflowEvent(OverflowEvent.BOTH, true, true),
+  //     (ev) {
+  //   Expect.equals(OverflowEvent.BOTH, ev.orient);
+  //   Expect.isTrue(ev.horizontalOverflow);
+  //   Expect.isTrue(ev.verticalOverflow);
+  // }, type: 'overflowchanged');
 
-  eventTest('PageTransitionEvent',
-      () => new PageTransitionEvent('foo', persisted: true),
-      (ev) { Expect.isTrue(ev.persisted); });
+  // Issue 1005.
+  // eventTest('PageTransitionEvent',
+  //     () => new PageTransitionEvent('foo', persisted: true),
+  //     (ev) { Expect.isTrue(ev.persisted); });
 
   // initPopStateEvent is not yet implemented
   // eventTest('PopStateEvent', () => new PopStateEvent('foo', 'state'),
   //     (ev) { Expect.equals('state', ev.state); }
 
-  eventTest('ProgressEvent',
-      // canBubble and cancelable are currently required to avoid dartc
-      // complaining about the types of the named arguments.
-      () => new ProgressEvent('foo', 5, canBubble: true, cancelable: true,
-          lengthComputable: true, total: 10),
-      (ev) {
-    Expect.equals(5, ev.loaded);
-    Expect.isTrue(ev.lengthComputable);
-    Expect.equals(10, ev.total);
-  });
+  // Issue 1005.
+  // eventTest('ProgressEvent',
+  //     // canBubble and cancelable are currently required to avoid dartc
+  //     // complaining about the types of the named arguments.
+  //     () => new ProgressEvent('foo', 5, canBubble: true, cancelable: true,
+  //         lengthComputable: true, total: 10),
+  //     (ev) {
+  //   Expect.equals(5, ev.loaded);
+  //   Expect.isTrue(ev.lengthComputable);
+  //   Expect.equals(10, ev.total);
+  // });
 
   eventTest('StorageEvent',
       () => new StorageEvent('foo', 'key', 'http://example.url',
@@ -201,7 +207,8 @@ testEvents() {
 
   // XMLHttpRequestProgressEvent has no properties to itself, so just test that
   // it doesn't error out on creation and can be dispatched.
-  eventTest('XMLHttpRequestProgressEvent',
-      () => new XMLHttpRequestProgressEvent('foo', 5),
-      (ev) {});
+  // Issue 1005.
+  // eventTest('XMLHttpRequestProgressEvent',
+  //     () => new XMLHttpRequestProgressEvent('foo', 5),
+  //     (ev) {});
 }
