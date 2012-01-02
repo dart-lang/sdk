@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FileInputStream implements FileInputStream {
+class _FileInputStream implements InputStream {
   _FileInputStream(File file) {
     _file = file.openSync();
     _length = _file.lengthSync();
@@ -44,19 +44,17 @@ class _FileInputStream implements FileInputStream {
     return result;
   }
 
-  int available() {
-    return _length - _file.positionSync();
-  }
+  int available() => (_closing || _eof) ? 0 : _length - _file.positionSync();
 
   void pipe(OutputStream output, [bool close = true]) {
     _pipe(this, output, close: close);
   }
 
-  bool closed() => _eof;
+  bool get closed() => _eof;
 
   void close() {
+    _closing = true;
     _file.closeSync();
-    _closed = true;
   }
 
   void set dataHandler(void callback()) {
@@ -73,8 +71,6 @@ class _FileInputStream implements FileInputStream {
   }
 
   void _checkScheduleCallbacks() {
-    // TODO(sgjesse): Find a better way of scheduling callbacks from
-    // the event loop.
     void issueDataCallback(Timer timer) {
       _scheduledDataCallback = null;
       if (_clientDataHandler !== null) {
@@ -100,10 +96,11 @@ class _FileInputStream implements FileInputStream {
           _scheduledDataCallback = new Timer(issueDataCallback, 0);
         }
       } else if (!_eof) {
+        close();
         if (_scheduledCloseCallback == null) {
           _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
-          _eof = true;
         }
+        _eof = true;
       }
     }
   }
@@ -111,6 +108,7 @@ class _FileInputStream implements FileInputStream {
   RandomAccessFile _file;
   int _length;
   bool _eof = false;
+  bool _closing = false;
   bool _closed = false;
   Timer _scheduledDataCallback;
   Timer _scheduledCloseCallback;
@@ -119,7 +117,7 @@ class _FileInputStream implements FileInputStream {
 }
 
 
-class _FileOutputStream implements FileOutputStream {
+class _FileOutputStream implements OutputStream {
   _FileOutputStream(File file) {
     _file = file.openSync(true);
   }
@@ -131,10 +129,6 @@ class _FileOutputStream implements FileOutputStream {
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
     return _write(
         buffer, offset, (len == null) ? buffer.length - offset : len);
-  }
-
-  void end() {
-    _file.closeSync();
   }
 
   void close() {

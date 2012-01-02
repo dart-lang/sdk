@@ -67,6 +67,15 @@ interface InputStream {
   void pipe(OutputStream output, [bool close]);
 
   /**
+   * Close the underlying communication channel to avoid getting any
+   * more data. In normal situations, where all data is read from the
+   * stream until the close handler is called, calling [close] is not
+   * required. When [close] is used the close handler will still be
+   * called.
+   */
+  void close();
+
+  /**
    * Returns whether the stream is closed. There will be no more data
    * to read.
    */

@@ -136,7 +136,49 @@ void testListInputStreamPipe2() {
   donePort.receive((x,y) => donePort.close());
 }
 
-void testDynamicListInputStream1() {
+void testListInputClose1() {
+  List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  InputStream stream = new ListInputStream(data);
+  ReceivePort donePort = new ReceivePort();
+
+  void onData() {
+    throw "No data expected";
+  }
+
+  void onClose() {
+    donePort.toSendPort().send(null);
+  }
+
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
+  stream.close();
+
+  donePort.receive((x,y) => donePort.close());
+}
+
+void testListInputClose2() {
+  List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  InputStream stream = new ListInputStream(data);
+  ReceivePort donePort = new ReceivePort();
+  int count = 0;
+
+  void onData() {
+    count += stream.read(2).length;
+    stream.close();
+  }
+
+  void onClose() {
+    Expect.equals(2, count);
+    donePort.toSendPort().send(count);
+  }
+
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
+
+  donePort.receive((x,y) => donePort.close());
+}
+
+void testDynamicListInputStream() {
   List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
   InputStream stream = new DynamicListInputStream();
   int count = 0;
@@ -167,6 +209,54 @@ void testDynamicListInputStream1() {
   donePort.receive((x,y) => donePort.close());
 }
 
+void testDynamicListInputClose1() {
+  List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  InputStream stream = new DynamicListInputStream();
+  ReceivePort donePort = new ReceivePort();
+
+  void onData() {
+    throw "No data expected";
+  }
+
+  void onClose() {
+    donePort.toSendPort().send(null);
+  }
+
+  stream.write(data);
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
+  stream.close();
+  Expect.throws(() => stream.write(data), (e) => e is StreamException);
+
+  donePort.receive((x,y) => donePort.close());
+}
+
+void testDynamicListInputClose2() {
+  List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  InputStream stream = new DynamicListInputStream();
+  ReceivePort donePort = new ReceivePort();
+  int count = 0;
+
+  void onData() {
+    count += stream.read(15).length;
+    stream.close();
+    Expect.throws(() => stream.write(data), (e) => e is StreamException);
+  }
+
+  void onClose() {
+    Expect.equals(15, count);
+    donePort.toSendPort().send(null);
+  }
+
+  stream.write(data);
+  stream.write(data);
+  stream.write(data);
+  stream.dataHandler = onData;
+  stream.closeHandler = onClose;
+
+  donePort.receive((x,y) => donePort.close());
+}
+
 main() {
   testEmptyListInputStream();
   testEmptyDynamicListInputStream();
@@ -174,5 +264,9 @@ main() {
   testListInputStream2();
   testListInputStreamPipe1();
   testListInputStreamPipe2();
-  testDynamicListInputStream1();
+  testListInputClose1();
+  testListInputClose2();
+  testDynamicListInputStream();
+  testDynamicListInputClose1();
+  testDynamicListInputClose2();
 }

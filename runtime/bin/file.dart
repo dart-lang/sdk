@@ -80,14 +80,14 @@ interface File default _File {
    * input stream must be closed when no longer used to free up
    * system resources.
    */
-  FileInputStream openInputStream();
+  InputStream openInputStream();
 
   /**
    * Creates a new independent output stream for the file. The file
    * output stream must be closed when no longer used to free up
    * system resources.
    */
-  FileOutputStream openOutputStream();
+  OutputStream openOutputStream();
 
   /**
    * Get the name of the file.
@@ -251,15 +251,6 @@ interface RandomAccessFile {
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
   void set errorHandler(void handler(String error));
-}
-
-
-interface FileInputStream extends InputStream {
-  void close();
-}
-
-
-interface FileOutputStream extends OutputStream {
 }
 
 

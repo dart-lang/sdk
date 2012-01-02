@@ -71,10 +71,9 @@ class _Process implements Process {
 
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
-    _exitHandler.dataHandler = () {
+    _exitHandler.inputStream.dataHandler = () {
       final int EXIT_DATA_SIZE = 12;
       List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
-      InputStream input = _exitHandler.inputStream;
       int exitDataRead = 0;
 
       int exitCode(List<int> ints) {
@@ -95,13 +94,9 @@ class _Process implements Process {
         }
       }
 
-      void exitData() {
-        exitDataRead += input.readInto(
-            exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
-        if (exitDataRead == EXIT_DATA_SIZE) handleExit();
-      }
-
-      input.dataHandler = exitData;
+      exitDataRead += _exitHandler.inputStream.readInto(
+          exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
+      if (exitDataRead == EXIT_DATA_SIZE) handleExit();
     };
 
     if (_startHandler !== null) {

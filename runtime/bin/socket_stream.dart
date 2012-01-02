@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class SocketInputStream implements InputStream {
-  SocketInputStream(Socket socket) : _socket = socket;
+  SocketInputStream(Socket socket) : _socket = socket {
+    _socket.closeHandler = _closeHandler;
+  }
 
   List<int> read([int len]) {
     int bytesToRead = available();
@@ -40,21 +42,36 @@ class SocketInputStream implements InputStream {
     _pipe(this, output, close: close);
   }
 
+  void close() {
+    if (!_closed) {
+      _socket.close();
+      if (_clientCloseHandler !== null) _clientCloseHandler();
+    }
+  }
+
+  bool get closed() => _closed;
+
   void set dataHandler(void callback()) {
-    _socket.dataHandler = callback;
+    _socket._dataHandler = callback;
   }
 
   void set closeHandler(void callback()) {
     _clientCloseHandler = callback;
-    _socket.closeHandler = callback;
+    _socket._closeHandler = _closeHandler;
   }
 
   void set errorHandler(void callback()) {
     _socket.errorHandler = callback;
   }
 
+  void _closeHandler() {
+    _closed = true;
+    if (_clientCloseHandler !== null) _clientCloseHandler();
+  }
+
   Socket _socket;
   Function _clientCloseHandler;
+  bool _closed = false;
 }
 
 
@@ -75,7 +92,7 @@ class SocketOutputStream implements OutputStream {
     if (!_pendingWrites.isEmpty()) {
       // Mark the socket for close when all data is written.
       _closing = true;
-      _socket.writeHandler = _writeHandler;
+      _socket._writeHandler = _writeHandler;
     } else {
       // Close the socket for writing.
       _socket._closeWrite();
@@ -93,7 +110,7 @@ class SocketOutputStream implements OutputStream {
   void set noPendingWriteHandler(void callback()) {
     _noPendingWriteHandler = callback;
     if (_noPendingWriteHandler != null) {
-      _socket.writeHandler = _writeHandler;
+      _socket._writeHandler = _writeHandler;
     }
   }
 
@@ -130,7 +147,7 @@ class SocketOutputStream implements OutputStream {
       assert(offset + len == buffer.length);
       _pendingWrites.add(buffer, notWrittenOffset);
     }
-    _socket.writeHandler = _writeHandler;
+    _socket._writeHandler = _writeHandler;
     return false;
   }
 
@@ -143,7 +160,7 @@ class SocketOutputStream implements OutputStream {
       int bytesWritten = _socket.writeList(buffer, offset, bytesToWrite);
       _pendingWrites.removeBytes(bytesWritten);
       if (bytesWritten < bytesToWrite) {
-        _socket.writeHandler = _writeHandler;
+        _socket._writeHandler = _writeHandler;
         return;
       }
     }
@@ -155,7 +172,7 @@ class SocketOutputStream implements OutputStream {
     } else {
       if (_noPendingWriteHandler != null) _noPendingWriteHandler();
     }
-    if (_noPendingWriteHandler == null) _socket.writeHandler = null;
+    if (_noPendingWriteHandler == null) _socket._writeHandler = null;
   }
 
   void _errorHandler() {

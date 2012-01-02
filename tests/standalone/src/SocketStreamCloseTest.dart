@@ -60,18 +60,17 @@ class SocketClose {
       switch (_mode) {
         case 0:
         case 1:
-          Expect.fail("No close expected");
           break;
         case 2:
         case 3:
-          _socket.close();
+          _socket.outputStream.close();
           proceed();
           break;
         case 4:
           proceed();
           break;
         case 5:
-          _socket.close();
+          _socket.outputStream.close();
           proceed();
           break;
         case 6:
@@ -88,40 +87,35 @@ class SocketClose {
     }
 
     void connectHandler() {
-      _socket.dataHandler = dataHandler;
-      _socket.closeHandler = closeHandler;
+      _socket.inputStream.dataHandler = dataHandler;
+      _socket.inputStream.closeHandler = closeHandler;
       _socket.errorHandler = errorHandler;
 
       _iterations++;
       switch (_mode) {
         case 0:
-          _socket.close();
+          _socket.inputStream.close();
           proceed();
           break;
         case 1:
-          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
-          Expect.equals(5, bytesWritten);
-          _socket.close();
+          _socket.outputStream.write("Hello".charCodes());
+          _socket.inputStream.close();
           proceed();
           break;
         case 2:
         case 3:
-          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
-          Expect.equals(5, bytesWritten);
+          _socket.outputStream.write("Hello".charCodes());
           break;
         case 4:
-          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
-          Expect.equals(5, bytesWritten);
-          _socket.close(true);
+          _socket.outputStream.write("Hello".charCodes());
+          _socket.outputStream.close();
           break;
         case 5:
-          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
-          Expect.equals(5, bytesWritten);
+          _socket.outputStream.write("Hello".charCodes());
           break;
         case 6:
-          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
-          Expect.equals(5, bytesWritten);
-          _socket.close(true);
+          _socket.outputStream.write("Hello".charCodes());
+          _socket.outputStream.close();
           break;
         default:
           Expect.fail("Unknown test mode");
@@ -149,7 +143,7 @@ class SocketClose {
       case 0:
       case 1:
         Expect.equals(0, _dataEvents);
-        Expect.equals(0, _closeEvents);
+        Expect.equals(10, _closeEvents);
         break;
       case 2:
         Expect.equals(0, _dataEvents);
@@ -197,31 +191,27 @@ class SocketCloseServer extends Isolate {
             Expect.fail("No data expected");
             break;
           case 1:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
+            connection.inputStream.read();
             break;
           case 2:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.close();
+            connection.inputStream.read();
+            connection.inputStream.close();
             break;
           case 3:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.writeList("Hello".charCodes(), 0, 5);
-            connection.close();
+            connection.inputStream.read();
+            connection.outputStream.write("Hello".charCodes());
+            connection.inputStream.close();
+            //connection.outputStream.close();
             break;
           case 4:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.writeList("Hello".charCodes(), 0, 5);
+            connection.inputStream.read();
+            connection.outputStream.write("Hello".charCodes());
             break;
           case 5:
           case 6:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.writeList("Hello".charCodes(), 0, 5);
-            connection.close(true);
+            connection.inputStream.read();
+            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.close();
             break;
           default:
             Expect.fail("Unknown test mode");
@@ -239,8 +229,8 @@ class SocketCloseServer extends Isolate {
 
       _iterations++;
 
-      connection.dataHandler = dataHandler;
-      connection.closeHandler = closeHandler;
+      connection.inputStream.dataHandler = dataHandler;
+      connection.inputStream.closeHandler = closeHandler;
       connection.errorHandler = errorHandler;
     }
 
@@ -269,7 +259,7 @@ class SocketCloseServer extends Isolate {
           case 2:
           case 3:
             Expect.equals(ITERATIONS, _dataEvents);
-            Expect.equals(0, _closeEvents);
+            Expect.equals(ITERATIONS, _closeEvents);
             break;
           case 4:
           case 5:

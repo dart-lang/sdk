@@ -32,7 +32,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
-    FileInputStream input = file.openInputStream();
+    InputStream input = file.openInputStream();
     List<int> buffer = new List<int>(42);
     int bytesRead = input.readInto(buffer, 0, 12);
     Expect.equals(12, bytesRead);
@@ -59,11 +59,11 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     File file = new File(inFilename);
-    FileInputStream input = file.openInputStream();
+    InputStream input = file.openInputStream();
     List<int> buffer1 = new List<int>(42);
     int bytesRead = input.readInto(buffer1, 0, 42);
     Expect.equals(42, bytesRead);
-    input.close();
+    Expect.isTrue(input.closed);
     // Write the contents of the file just read into another file.
     String outFilename = tempDirectory.path + "/out_read_write_stream";
     file = new File(outFilename);
@@ -76,7 +76,7 @@ class FileTest {
     file = new File(outFilename);
     input = file.openInputStream();
     bytesRead = input.readInto(buffer2, 0, 42);
-    input.close();
+    Expect.isTrue(input.closed);
     Expect.equals(42, bytesRead);
     // Now compare the two buffers to check if they are identical.
     for (int i = 0; i < buffer1.length; i++) {
@@ -485,35 +485,17 @@ class FileTest {
 
   // Tests stream exception handling after file was closed.
   static int testCloseExceptionStream() {
-    bool exceptionCaught = false;
-    bool wrongExceptionCaught = false;
+    List<int> buffer = new List<int>(42);
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
-    FileInputStream input = file.openInputStream();
-    input.close();
-    try {
-      List<int> buffer = new List<int>(42);
-      input.readInto(buffer, 0, 12);
-    } catch (FileIOException ex) {
-      exceptionCaught = true;
-    } catch (Exception ex) {
-      wrongExceptionCaught = true;
-    }
-    Expect.equals(true, exceptionCaught);
-    Expect.equals(true, !wrongExceptionCaught);
-    exceptionCaught = false;
+    InputStream input = file.openInputStream();
+    Expect.isTrue(input.closed);
+    Expect.throws(( ) => input.readInto(buffer, 0, 12),
+                  (e) => e is FileIOException);
     OutputStream output = file.openOutputStream();
     output.close();
-    try {
-      List<int> buffer = new List<int>(42);
-      bool readDone = output.writeFrom(buffer, 0, 12);
-    } catch (FileIOException ex) {
-      exceptionCaught = true;
-    } catch (Exception ex) {
-      wrongExceptionCaught = true;
-    }
-    Expect.equals(true, exceptionCaught);
-    Expect.equals(true, !wrongExceptionCaught);
+    Expect.throws(( ) => output.writeFrom(buffer, 0, 12),
+                  (e) => e is FileIOException);
     file.deleteSync();
     return 1;
   }

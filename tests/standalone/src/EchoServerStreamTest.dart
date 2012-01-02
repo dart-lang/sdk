@@ -34,10 +34,6 @@ class EchoServerGame {
 
   void sendData() {
 
-    void closeHandler() {
-      _socket.close();
-    }
-
     void errorHandler() {
       Expect.fail("Socket error");
     }
@@ -51,7 +47,17 @@ class EchoServerGame {
         int offset = 0;
         List<int> data;
 
-        void dataReceived() {
+        void onClose() {
+          Expect.equals(MSGSIZE, offset);
+          _messages++;
+          if (_messages < MESSAGES) {
+            sendData();
+          } else {
+            shutdown();
+          }
+        }
+
+        void onData() {
           // Test both read and readInto.
           int bytesRead = 0;
           if (_messages % 2 == 0) {
@@ -68,26 +74,17 @@ class EchoServerGame {
           }
 
           offset += bytesRead;
-          if (offset == MSGSIZE) {
-            _messages++;
-            _socket.close();
-            if (_messages < MESSAGES) {
-              sendData();
-            } else {
-              shutdown();
-            }
-          }
         }
 
         if (_messages % 2 == 0) data = new List<int>(MSGSIZE);
-        inputStream.dataHandler = dataReceived;
+        inputStream.dataHandler = onData;
+        inputStream.closeHandler = onClose;
       }
 
-      _socket.closeHandler = closeHandler;
       _socket.errorHandler = errorHandler;
 
       // Test both write and writeFrom in different forms.
-      switch (_messages % 2) {
+      switch (_messages % 4) {
         case 0:
           stream.write(_buffer);
           break;
@@ -98,6 +95,7 @@ class EchoServerGame {
           stream.writeFrom(_buffer);
           break;
         case 3:
+          Expect.equals(0, _buffer.length % 2);
           stream.writeFrom(_buffer, len: _buffer.length ~/ 2);
           stream.writeFrom(_buffer, _buffer.length ~/ 2);
           break;
