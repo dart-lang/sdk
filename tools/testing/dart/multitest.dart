@@ -131,63 +131,28 @@ void DoMultitest(String filename,
   int start = filename.lastIndexOf(pathSeparator) + 1;
   int end = filename.indexOf('.dart', start);
   String baseFilename = filename.substring(start, end);
-  Iterator currentKey = tests.getKeys().iterator();
-  WriteMultitestToFileAndQueueIt(tests,
-                                 outcomes,
-                                 currentKey,
-                                 '$directory$pathSeparator$baseFilename',
-                                 doTest,
-                                 multitestDone);
-}
+  for (String key in tests.getKeys()) {
+    final String filename = '$directory/${baseFilename}_$key.dart';
+    final File file = new File(filename);
 
-
-// Write multiple tests to files, using tail recursion in a callback
-// to serialize the file operations, rather than opening all files at once.
-WriteMultitestToFileAndQueueIt(Map<String, String> tests,
-                               Map<String, String> outcomes,
-                               Iterator currentKey,
-                               String basePath,
-                               Function doTest,
-                               Function done) {
-  if (!currentKey.hasNext()) {
-    done();
-    return;
-  }
-  final String key = currentKey.next();
-  final String filename = '${basePath}_$key.dart';
-  final File file = new File(filename);
-  file.errorHandler = (error) {
-    Expect.fail("Error creating temp file: $error");
-  };
-  file.createHandler = () {
-    file.open(writable: true);
-  };
-  file.openHandler = (RandomAccessFile openedFile) {
-    openedFile.noPendingWriteHandler =() {
-      openedFile.close();
-    };
-    openedFile.closeHandler = () {
-      var outcome = outcomes[key];
-      bool enableFatalTypeErrors = outcome.contains('static type error');
-      bool isNegative = (outcome.contains('compile-time error') ||
-                         outcome.contains('runtime error'));
-      bool isNegativeIfChecked = outcome.contains('dynamic type error');
-      doTest(filename,
-             isNegative,
-             isNegativeIfChecked,
-             enableFatalTypeErrors);
-      WriteMultitestToFileAndQueueIt(tests,
-                                     outcomes,
-                                     currentKey,
-                                     basePath,
-                                     doTest,
-                                     done);
-    };
+    file.createSync();
+    RandomAccessFile openedFile = file.openSync(writable: true);
     var bytes = tests[key].charCodes();
-    openedFile.writeList(bytes, 0, bytes.length);
-  };
-  file.create();
+    openedFile.writeListSync(bytes, 0, bytes.length);
+    openedFile.closeSync();
+    var outcome = outcomes[key];
+    bool enableFatalTypeErrors = outcome.contains('static type error');
+    bool isNegative = (outcome.contains('compile-time error') ||
+                       outcome.contains('runtime error'));
+    bool isNegativeIfChecked = outcome.contains('dynamic type error');
+    doTest(filename,
+           isNegative,
+           isNegativeIfChecked,
+           enableFatalTypeErrors);
+  }
+  multitestDone();
 }
+
 
 String CreateMultitestDirectory(String outputDir, String testDir) {
   final String generatedTestDirectory = 'generated_tests';
