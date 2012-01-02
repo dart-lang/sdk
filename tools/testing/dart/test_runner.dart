@@ -385,6 +385,7 @@ class ProcessQueue {
   int _activeTestListers = 0;
   int _maxProcesses;
   bool _verbose;
+  bool _listTests;
   Function _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
@@ -397,16 +398,19 @@ class ProcessQueue {
 
   ProcessQueue(int this._maxProcesses,
                String progress,
-               bool this._verbose,
                Date startTime,
                bool printTiming,
-               Function this._enqueueMoreWork)
+               Function this._enqueueMoreWork,
+               [bool verbose = false,
+                bool listTests = false])
       : _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
         _batchProcesses = new List<DartcBatchRunnerProcess>(),
-        _testCache = new Map<String, List<TestInformation>>() {
+        _testCache = new Map<String, List<TestInformation>>(),
+        _verbose = verbose,
+        _listTests = listTests {
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
@@ -463,6 +467,10 @@ class ProcessQueue {
     if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
       TestCase test = _tests.removeFirst();
       if (_verbose) print(test.commandLine);
+      if (_listTests) {
+        print(test.commandLine);
+        return;
+      }
       _progress.start(test);
       Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {

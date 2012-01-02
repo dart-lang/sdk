@@ -125,6 +125,13 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
+              'list',
+              'List tests only, do not run them',
+              ['--list'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'valgrind',
               'Run tests through valgrind',
               ['--valgrind'],

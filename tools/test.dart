@@ -38,6 +38,7 @@ main() {
   var progressIndicator = firstConf['progress'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
+  var listTests = firstConf['list'];
 
   var configurationIterator = configurations.iterator();
   bool enqueueConfiguration(ProcessQueue queue) {
@@ -101,8 +102,9 @@ main() {
   // Start process queue.
   var queue = new ProcessQueue(maxProcesses,
                                progressIndicator,
-                               verbose,
                                startTime,
                                printTiming,
-                               enqueueConfiguration);
+                               enqueueConfiguration,
+                               verbose: verbose,
+                               listTests: listTests);
 }
