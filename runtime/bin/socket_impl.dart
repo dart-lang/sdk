@@ -390,7 +390,7 @@ class _Socket extends _SocketBase implements Socket {
   InputStream get inputStream() {
     if (_inputStream === null) {
       if (_handlerMap[_IN_EVENT] !== null ||
-          _handlerMap[_CLOSE_EVENT]) {
+          _handlerMap[_CLOSE_EVENT] !== null) {
         throw new StreamException(
             "Cannot get input stream when socket handlers are used");
       }
