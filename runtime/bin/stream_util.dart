@@ -82,6 +82,7 @@ class _BaseDataInputStream {
           _scheduledDataCallback = new Timer(issueDataCallback, 0);
         }
       } else if (_streamMarkedClosed && !_closeCallbackCalled) {
+        _close();
         _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
         _closeCallbackCalled = true;
       }

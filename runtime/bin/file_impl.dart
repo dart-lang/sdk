@@ -11,7 +11,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   int available() {
-    return _length - _file.positionSync();
+    return _closed ? 0 : _length - _file.positionSync();
   }
 
   void pipe(OutputStream output, [bool close = true]) {
@@ -36,13 +36,15 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     return result;
   }
 
-  void close() {
+  void _close() {
+    if (_closed) return;
     _file.closeSync();
-    _closeCallbackCalled = true;
+    _closed = true;
   }
 
   RandomAccessFile _file;
   int _length;
+  bool _closed = false;
 }
 
 
