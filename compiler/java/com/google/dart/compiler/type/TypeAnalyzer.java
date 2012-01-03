@@ -1030,7 +1030,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       node.setReferencedElement(constructorElement);
       DartTypeNode typeNode = Types.constructorTypeNode(node);
       DartNode typeName = typeNode.getIdentifier();
-      Type type = validateTypeNode(typeNode, true);
+      Type type = validateTypeNode(typeNode, false);
       if (constructorElement == null) {
         visit(node.getArgs());
       } else {
