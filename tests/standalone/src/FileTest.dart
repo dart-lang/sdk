@@ -296,6 +296,35 @@ class FileTest {
     return 1;
   }
 
+  static int testReadEmptyFileSync() {
+    String fileName = tempDirectory.path + "/empty_file_sync";
+    File file = new File(fileName);
+    file.createSync();
+    RandomAccessFile openedFile = file.openSync();
+    Expect.throws(() => openedFile.readByteSync(), (e) => e is FileIOException);
+    return 1;
+  }
+
+  static int testReadEmptyFile() {
+    String fileName = tempDirectory.path + "/empty_file";
+    File file = new File(fileName);
+    file.createHandler = () {
+      file.openHandler = (RandomAccessFile openedFile) {
+        openedFile.readByteHandler = (int byte) {
+          Expect.fail("Read byte from empty file");
+        };
+        openedFile.errorHandler = (String err) {
+          Expect.isTrue(err.indexOf("failed") != -1);
+        };
+        openedFile.readByte();
+      };
+      file.open();
+    };
+    asyncTestStarted();
+    file.create();
+    return 1;
+  }
+
   // Test for file length functionality.
   static int testLength() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
@@ -666,6 +695,8 @@ class FileTest {
         Expect.equals(1, testReadWrite());
         Expect.equals(1, testReadWriteSync());
         Expect.equals(1, testReadWriteStream());
+        Expect.equals(1, testReadEmptyFileSync());
+        Expect.equals(1, testReadEmptyFile());
         Expect.equals(1, testTruncate());
         Expect.equals(1, testTruncateSync());
         Expect.equals(1, testCloseException());

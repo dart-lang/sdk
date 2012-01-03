@@ -85,8 +85,10 @@ void FUNCTION_NAME(File_ReadByte)(Dart_NativeArguments args) {
   if (file != NULL) {
     uint8_t buffer;
     int bytes_read = file->Read(reinterpret_cast<void*>(&buffer), 1);
-    if (bytes_read >= 0) {
+    if (bytes_read == 1) {
       return_value = static_cast<intptr_t>(buffer);
+    } else {
+      return_value = -1;
     }
   }
   Dart_SetReturnValue(args, Dart_NewInteger(return_value));
