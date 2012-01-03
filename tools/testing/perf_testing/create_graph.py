@@ -364,16 +364,13 @@ class PerformanceTestRunner(TestRunner):
     (title, y_axis, size_x, size_y, loc, filename) = \
         ('Geometric Mean of benchmark %s performance' % self.platform_type, 
         'Speed (bigger = better)', 16, 5, 'center', 'avg'+png_filename)
+    clear_axis = True
     for platform in self.platform_list:
       self.syle_and_save_perf_plot(title, y_axis, size_x, size_y, loc, filename, 
-          [platform], [V8], [V8_MEAN], True)
+          [platform], [V8], [V8_MEAN], clear_axis)
+      clear_axis = False
       self.syle_and_save_perf_plot(title, y_axis, size_x, size_y, loc, filename, 
-          [platform], [FROG], [FROG_MEAN], False)
-      self.write_html('table', 
-          self.revision_dict[platform][V8], 
-          'V8 mean', self.values_dict[platform][V8][V8_MEAN],
-          'Frog mean', self.values_dict[platform][FROG][FROG_MEAN], 
-          True)
+          [platform], [FROG], [FROG_MEAN], clear_axis)
 
   def plot_results(self, png_filename):
     self.plot_all_perf(png_filename)
@@ -742,7 +739,10 @@ def run_test_sequence(cl, size, language, perf):
     BrowserPerformanceTestRunner('browser-perf').run()
 
   if PERFBOT_MODE:
-    upload_to_app_engine()
+    # TODO(efortuna): Temporarily disabled until you make a safe way to provide
+    # your username/password for the uploading process.
+    #upload_to_app_engine()
+    pass
 
 def main():
   global PERFBOT_MODE, VERBOSE
