@@ -864,9 +864,12 @@ class JUnitTestSuite implements TestSuite {
                         'java',
                         args,
                         configuration,
-                        (){},
+                        completeHandler,
                         new Set<String>.from([PASS])));
     doDone();
+  }
+
+  void completeHandler(TestCase testCase) {
   }
 
   void computeClassPath() {
