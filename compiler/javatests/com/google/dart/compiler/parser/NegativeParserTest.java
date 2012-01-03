@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.parser;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartUnit;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 /**
  * Negative Parser/Syntax tests.
@@ -338,10 +339,10 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, 8, 2, 0));
   }
 
-  public void tstDeprecatedFactoryInInterface() {
-    parseExpectErrors(
+  public void testDeprecatedFactoryInInterface() {
+    parseExpectWarnings(
         "interface foo factory bar {}",
-        errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 8));
+        errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 7));
   }
 
   public void test_abstractTopLevel_class() {
