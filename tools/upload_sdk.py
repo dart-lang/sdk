@@ -10,12 +10,17 @@
 
 import os
 import os.path
+import platform
 import subprocess
 import sys
 import utils
 
 
 GSUTIL = '/b/build/scripts/slave/gsutil'
+HAS_SHELL = False
+if platform.system() == 'Windows':
+  GSUTIL = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
+  HAS_SHELL = True
 GS_SITE = 'gs://'
 GS_DIR = 'dart-dump-render-tree'
 GS_SDK_DIR = 'sdk'
@@ -25,7 +30,8 @@ def ExecuteCommand(cmd):
   """Execute a command in a subprocess.
   """
   print 'Executing: ' + ' '.join(cmd)
-  pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+      shell=HAS_SHELL)
   output = pipe.communicate()
   if pipe.returncode != 0:
     print 'Execution failed: ' + str(output)
@@ -48,7 +54,7 @@ def UploadArchive(source, target):
 
 def GetSVNRevision():
   p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
-      stderr = subprocess.STDOUT, close_fds=True)
+      stderr = subprocess.STDOUT, shell=HAS_SHELL)
   output, not_used = p.communicate()
   for line in output.split('\n'):
     if 'Revision' in line:
@@ -93,12 +99,17 @@ def main(argv):
   sdk_file = 'dart-%s-%s%s.zip' % (utils.GuessOS(), revision, sdk_suffix)
   if (os.path.exists(SDK_LOCAL_ZIP)):
     os.remove(SDK_LOCAL_ZIP)
-  ExecuteCommand(['zip', '-yr', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
+  if platform.system() == 'Windows':
+    # Windows does not have zip. We use the 7 zip utility in third party.
+    ExecuteCommand([os.path.join('..', 'third_party', '7za920', '7za'), 'a',
+        '-tzip', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
+  else:
+    ExecuteCommand(['zip', '-yr', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
   UploadArchive(SDK_LOCAL_ZIP,
-                GS_SITE + os.path.join(gsdir, GS_SDK_DIR, sdk_file))
+                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, sdk_file]))
   latest_name = 'dart-%s-latest%s.zip' % (utils.GuessOS(), sdk_suffix)
   UploadArchive(SDK_LOCAL_ZIP,
-                GS_SITE + os.path.join(gsdir, GS_SDK_DIR, latest_name))
+                GS_SITE + '/'.join([gsdir, GS_SDK_DIR, latest_name]))
 
 
 if __name__ == '__main__':
