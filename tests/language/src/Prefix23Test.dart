@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Unresolved symbols should be reported as an error.
+// Unresolved symbols should be reported as an static type warnings.
+// This should not prevent execution.
 
-#library("Prefix14NegativeTest.dart");
+#library("Prefix22NegativeTest.dart");
 #import("library12.dart", prefix:"lib12");
 
 class myClass {
-  myClass(lib12.Library13 this.fld);
-  lib12.Library13 fld;
+  lib12.Library13 fld; // static type warning
 }
 
 main() {

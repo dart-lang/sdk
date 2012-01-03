@@ -25,6 +25,8 @@ ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
+Prefix22Test: Fail               # Issue 575
+Prefix23Test: Fail               # Issue 575
 
 ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
 ImplicitThisTest/02: Fail # Issue 374
@@ -50,6 +52,7 @@ TypeVariableBoundsTest/05: Fail
 TypeVariableBoundsTest/06: Fail
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
+
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
@@ -147,7 +150,6 @@ OverrideFieldTest/04: Fail       # Bug 5215249
 OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
 Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
-Prefix14NegativeTest: Fail               # Issue 575
 Prefix16NegativeTest: Fail               # Bug 5532534
 Prefix3NegativeTest: Fail                # Bug 5406175
 PseudoKWNegativeTest: Fail   # Bug 4979760.
@@ -282,9 +284,10 @@ Prefix7NegativeTest: Fail
 Prefix8NegativeTest: Fail
 Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail
-Prefix14NegativeTest: Fail
 Prefix16NegativeTest: Fail
 Prefix20NegativeTest: Fail
+Prefix22NegativeTest: Fail
+Prefix23NegativeTest: Fail
 PrivateMemberTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail

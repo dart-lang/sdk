@@ -257,6 +257,8 @@ Prefix14Test: Fail
 Prefix15Test: Fail
 Prefix17Test: Fail
 Prefix21Test: Fail
+Prefix22Test: Fail               # Issue 575
+Prefix23Test: Fail               # Issue 575
 PrefixTest: Fail
 Private2Test: Fail
 Private3Test: Fail
