@@ -1127,6 +1127,8 @@ public class Resolver {
                                                    x.getFunctionNameString());
           if (element == null) {
             diagnoseErrorInMethodInvocation(x, null, null);
+          } else {
+            x.getFunctionName().setSymbol(element);
           }
           break;
       }
