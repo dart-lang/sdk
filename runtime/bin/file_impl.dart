@@ -2,118 +2,47 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FileInputStream implements InputStream {
+class _FileInputStream extends _BaseDataInputStream implements InputStream {
   _FileInputStream(File file) {
     _file = file.openSync();
     _length = _file.lengthSync();
+    _streamMarkedClosed = true;
     _checkScheduleCallbacks();
   }
 
-  List<int> read([int len]) {
-    if (_closed) return null;
-    int bytesToRead = available();
-    if (bytesToRead == 0) {
-      _checkScheduleCallbacks();
-      return null;
-    }
-    if (len !== null) {
-      if (len <= 0) {
-        throw new StreamException("Illegal length $len");
-      } else if (bytesToRead > len) {
-        bytesToRead = len;
-      }
-    }
-    List<int> buffer = new List<int>(bytesToRead);
-    int bytesRead = _file.readListSync(buffer, 0, bytesToRead);
-    if (bytesRead < bytesToRead) {
-      List<int> newBuffer = new List<int>(bytesRead);
-      newBuffer.copyFrom(buffer, 0, 0, bytesRead);
-      return newBuffer;
-    } else {
-      return buffer;
-    }
+  int available() {
+    return _length - _file.positionSync();
   }
-
-  int readInto(List<int> buffer, int offset, int len) {
-    if (offset === null) offset = 0;
-    if (len === null) len = buffer.length;
-    if (offset < 0) throw new StreamException("Illegal offset $offset");
-    if (len < 0) throw new StreamException("Illegal length $len");
-    int result = _file.readListSync(buffer, offset, len);
-    _checkScheduleCallbacks();
-    return result;
-  }
-
-  int available() => (_closing || _eof) ? 0 : _length - _file.positionSync();
 
   void pipe(OutputStream output, [bool close = true]) {
     _pipe(this, output, close: close);
   }
 
-  bool get closed() => _eof;
+  List<int> _read(int bytesToRead) {
+    List<int> result = new List<int>(bytesToRead);
+    int bytesRead = _file.readListSync(result, 0, bytesToRead);
+    if (bytesRead < bytesToRead) {
+      List<int> buffer = new List<int>(bytesRead);
+      buffer.copyFrom(result, 0, 0, bytesRead);
+      result = buffer;
+    }
+    _checkScheduleCallbacks();
+    return result;
+  }
+
+  int _readInto(List<int> buffer, int offset, int len) {
+    int result = _file.readListSync(buffer, offset, len);
+    _checkScheduleCallbacks();
+    return result;
+  }
 
   void close() {
-    _closing = true;
     _file.closeSync();
-  }
-
-  void set dataHandler(void callback()) {
-    _clientDataHandler = callback;
-    _checkScheduleCallbacks();
-  }
-
-  void set closeHandler(void callback()) {
-    _clientCloseHandler = callback;
-  }
-
-  void set errorHandler(void callback()) {
-    // TODO(sgjesse): How to handle this?
-  }
-
-  void _checkScheduleCallbacks() {
-    void issueDataCallback(Timer timer) {
-      _scheduledDataCallback = null;
-      if (_clientDataHandler !== null) {
-        _clientDataHandler();
-        _checkScheduleCallbacks();
-      }
-    }
-
-    void issueCloseCallback(Timer timer) {
-      _scheduledCloseCallback = null;
-      if (!_closed) {
-        if (_clientCloseHandler !== null) _clientCloseHandler();
-        _closed = true;
-      }
-    }
-
-    // Schedule data callback if there is more data to read. Schedule
-    // close callback once when all data has been read. Only schedule
-    // a new callback if the previous one has actually been called.
-    if (!_closed) {
-      if (available() > 0) {
-        if (_scheduledDataCallback == null) {
-          _scheduledDataCallback = new Timer(issueDataCallback, 0);
-        }
-      } else if (!_eof) {
-        close();
-        if (_scheduledCloseCallback == null) {
-          _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
-        }
-        _eof = true;
-      }
-    }
+    _closeCallbackCalled = true;
   }
 
   RandomAccessFile _file;
   int _length;
-  bool _eof = false;
-  bool _closing = false;
-  bool _closed = false;
-  Timer _scheduledDataCallback;
-  Timer _scheduledCloseCallback;
-  Function _clientDataHandler;
-  Function _clientCloseHandler;
 }
 
 

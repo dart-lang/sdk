@@ -56,14 +56,44 @@ class FileTest {
 
   // Test for file read and write functionality.
   static int testReadWriteStream() {
-    // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
-    File file = new File(inFilename);
-    InputStream input = file.openInputStream();
+    File file;
+    InputStream input;
+    int bytesRead;
+
+    // Test reading all using readInto.
+    file = new File(inFilename);
+    input = file.openInputStream();
     List<int> buffer1 = new List<int>(42);
-    int bytesRead = input.readInto(buffer1, 0, 42);
+    bytesRead = input.readInto(buffer1, 0, 42);
     Expect.equals(42, bytesRead);
     Expect.isTrue(input.closed);
+
+    // Test reading all using readInto and read.
+    file = new File(inFilename);
+    input = file.openInputStream();
+    bytesRead = input.readInto(buffer1, 0, 21);
+    Expect.equals(21, bytesRead);
+    buffer1 = input.read();
+    Expect.equals(21, buffer1.length);
+    Expect.isTrue(input.closed);
+
+    // Test reading all using read and readInto.
+    file = new File(inFilename);
+    input = file.openInputStream();
+    buffer1 = input.read(21);
+    Expect.equals(21, buffer1.length);
+    bytesRead = input.readInto(buffer1, 0, 21);
+    Expect.equals(21, bytesRead);
+    Expect.isTrue(input.closed);
+
+    // Test reading all using read.
+    file = new File(inFilename);
+    input = file.openInputStream();
+    buffer1 = input.read();
+    Expect.equals(42, buffer1.length);
+    Expect.isTrue(input.closed);
+
     // Write the contents of the file just read into another file.
     String outFilename = tempDirectory.path + "/out_read_write_stream";
     file = new File(outFilename);
@@ -71,6 +101,7 @@ class FileTest {
     bool writeDone = output.writeFrom(buffer1, 0, 42);
     Expect.equals(true, writeDone);
     output.close();
+
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(42);
     file = new File(outFilename);
@@ -490,8 +521,7 @@ class FileTest {
     file.createSync();
     InputStream input = file.openInputStream();
     Expect.isTrue(input.closed);
-    Expect.throws(( ) => input.readInto(buffer, 0, 12),
-                  (e) => e is FileIOException);
+    Expect.isNull(input.readInto(buffer, 0, 12));
     OutputStream output = file.openOutputStream();
     output.close();
     Expect.throws(( ) => output.writeFrom(buffer, 0, 12),
