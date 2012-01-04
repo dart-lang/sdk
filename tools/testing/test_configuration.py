@@ -269,7 +269,7 @@ class CompilationTestConfiguration(test.TestConfiguration):
     super(CompilationTestConfiguration, self).__init__(context, root)
 
   def ListTests(self, current_path, path, mode, arch, component):
-    """Searches for *Test.dart files and returns list of TestCases."""
+    """Searches for files satisfying IsTest() and returns list of TestCases."""
     tests = []
     client_path = os.path.normpath(os.path.join(self.root, '..', '..'))
 

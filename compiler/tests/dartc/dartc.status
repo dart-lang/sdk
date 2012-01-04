@@ -44,3 +44,7 @@ corelib/SharedTests: Skip
 
 [ $component == frogium ]
 *: Skip
+
+
+[ $component == webdriver ]
+*: Skip

@@ -244,6 +244,11 @@ class StandardTestSuite implements TestSuite {
       start = filename.indexOf(directoryPath);
       testName = filename.substring(start + directoryPath.length + 1,
                                     filename.length);
+      if (configuration['component'] != 'dartc') {
+        if (testName.endsWith('.dart')) {
+          testName = testName.substring(0, testName.length - 5);
+        }
+      }
     }
     Set<String> expectations = testExpectations.expectations(testName);
     if (configuration["report"]) {
@@ -311,6 +316,7 @@ class StandardTestSuite implements TestSuite {
     // Only run the tests that match the pattern.
     RegExp pattern = configuration['selectors'][suiteName];
     if (!pattern.hasMatch(filename)) return;
+    if (filename.endsWith('test_config.dart')) return;
 
     var optionsFromFile = optionsFromFile(filename);
     Function createTestCase = makeTestCaseCreator(optionsFromFile);
@@ -326,12 +332,15 @@ class StandardTestSuite implements TestSuite {
       createTestCase(filename, optionsFromFile['isNegative']);
     }
   }
+        
 
   void enqueueDartiumTest(String filename,
                           String testName,
                           Map optionsFromFile,
                           Set<String> expectations,
                           bool isNegative) {
+    // TODO(whesse): Merge with enqueueChromiumTest, using mainly
+    // enqueueChromiumTest's code and design.
     if (optionsFromFile['isMultitest']) return;
     bool isWebTest = optionsFromFile['containsDomImport'];
     bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
@@ -341,15 +350,17 @@ class StandardTestSuite implements TestSuite {
     }      
 
     String tempDirTemplate = '${TestUtils.buildDir(configuration)}/tmp';
-    if (isWebTest) tempDirTemplate = 'client/' + tempDirTemplate;
     Directory tempDir = new Directory(tempDirTemplate);
-    // TODO(whesse): When implementing client web tests,
-    // create directory in the client case, if it doesn't exist.
     tempDir.createTempSync();
 
     String dartTestFilename = new File(filename).fullPathSync();
-    String dartWrapperFilename = '${tempDir.path}/test.dart';
-    if (!isWebTest) {
+    String dartWrapperFilename;
+    String scriptPath;
+    if (isWebTest) {
+      scriptPath = 'file://$dartTestFilename';
+    } else {
+      dartWrapperFilename = '${tempDir.path}/test.dart';
+      scriptPath = '../../../$dartWrapperFilename';
       // test.dart will import the dart test directly, if it is a library,
       // or indirectly through test_as_library.dart, if it is not.
       String dartLibraryFilename;
@@ -370,21 +381,21 @@ class StandardTestSuite implements TestSuite {
           '../../../tests/isolate/src/TestFramework.dart',
           dartLibraryFilename));
       dartWrapper.closeSync();
-    } else {
-      return;  // TODO(whesse): Implement client web tests on dartium.
     }
     // Create the HTML file for the test.
+    // NOTE: This must be 3 directories below the dart root, due to test
+    // client/samples/dartcombat containing a relative path to its .css file.
     File htmlTestBase = new File('${tempDir.path}/${getHtmlName(filename)}');
     RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
     htmlTest.writeStringSync(GetHtmlContents(
         filename,
         '../../../client/testing/unittest/test_controller.js',
         scriptType,
-        '../../../$dartWrapperFilename'));
+        scriptPath));
     htmlTest.closeSync();
 
     for (var vmOptions in optionsFromFile["vmOptions"]) {
-      var drtFlags = ['-no-timeout'];
+      var drtFlags = ['--no-timeout'];
       var dartFlags = ['--enable_asserts', '--enable_type_checks'];
       dartFlags.addAll(vmOptions);
       drtFlags.add('--dart-flags=${Strings.join(dartFlags, " ")}');
@@ -435,9 +446,12 @@ class StandardTestSuite implements TestSuite {
       testNameBase =
           testRelativePath.substring(start + 4, testRelativePath.length - 5);
       testRelativeDir = testRelativePath.substring(0, start - 1);
-      testRelativeDirFlattened = testRelativeDir.replaceAll(pathSeparator, '_');
+      testRelativeDirFlattened = testRelativeDir.replaceAll('/', '_');
     } else {
-      Expect.fail('Web tests not imlemented yet');
+      Expect.isTrue(testRelativePath.endsWith('_tests.dart'));
+      start = testRelativePath.lastIndexOf(pathSeparator);
+      testNameBase =
+          testRelativePath.substring(start + 1, testRelativePath.length - 11);
     }
 
     if (!new Directory('$dartDir/$buildDir/generated_tests').existsSync()) {
@@ -460,6 +474,7 @@ class StandardTestSuite implements TestSuite {
           '$dartDir/client/testing/unittest/dom_for_unittest.dart';
     }
 
+    File htmlTestBase;
     if (!isWebTest) {
       // test.dart will import the dart test directly, if it is a library,
       // or indirectly through test_as_library.dart, if it is not.
@@ -481,11 +496,15 @@ class StandardTestSuite implements TestSuite {
           '$dartDir/tests/isolate/src/TestFramework.dart',
           dartLibraryFilename));
       dartWrapper.closeSync();
+      htmlTestBase = new File('${tempDir.path}/${getHtmlName(filename)}');
     } else {
-      return;  // TODO(whesse): Implement client web tests on dartium.
+      dartWrapperFilename = testPath;
+      // TODO(whesse): Once test.py is retired, adjust the relative path in
+      // the client/samples/dartcombat test to its css file, remove the
+      // "../../" from this path, and move this out of the isWebTest guard.
+      htmlTestBase = new File('${tempDir.path}/../../${getHtmlName(filename)}');
     }
     // Create the HTML file for the test.
-    File htmlTestBase = new File('${tempDir.path}/${getHtmlName(filename)}');
     RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
     htmlTest.writeStringSync(GetHtmlContents(
         filename,
@@ -566,16 +585,7 @@ class StandardTestSuite implements TestSuite {
   }
 
   String getHtmlName(String filename) {
-    switch (configuration['component']) {
-      case 'dartium':
-        return filename.replaceAll(pathSeparator, '_') + 'dartium.html';
-      case 'chromium':
-      case 'frogium':
-        return 'test.html';
-      default:
-        Expect.fail('Unimplemented component scriptType');
-        return null;
-    }
+    return filename.replaceAll('/', '_') + configuration['component'] + '.html';
   }
 
   String get dumpRenderTreeFilename() {

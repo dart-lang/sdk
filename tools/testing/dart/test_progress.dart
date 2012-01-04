@@ -124,7 +124,7 @@ class ProgressIndicator {
       print('\nstderr:');
       test.output.stderr.forEach((s) => print(s));
     }
-    if (test is BrowserTestCase) {
+    if (test is BrowserTestCase && test.dynamic.compilerPath != null) {
       print('\nCompilation command: ${test.dynamic.compilerPath} ' +
             Strings.join(test.dynamic.compilerArguments, ' '));
     }

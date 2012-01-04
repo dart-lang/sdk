@@ -18,6 +18,7 @@
 #import("../samples/tests/samples/test_config.dart");
 #import("../client/tests/dartc/test_config.dart");
 #import("../compiler/tests/dartc/test_config.dart");
+#import("../client/tests/client/test_config.dart");
 #import("../frog/tests/frog/test_config.dart");
 #import("../frog/tests/leg/test_config.dart");
 #import("../frog/tests/leg_only/test_config.dart");
@@ -94,6 +95,9 @@ main() {
     }
     if (selectors.containsKey('await')) {
       queue.addTestSuite(new AwaitTestSuite(conf));
+    }
+    if (selectors.containsKey('client')) {
+      queue.addTestSuite(new ClientTestSuite(conf));
     }
 
     return true;

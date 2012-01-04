@@ -20,7 +20,6 @@ String GetHtmlContents(String title,
 <body>
   <h1> Running $title </h1>
   <script type="text/javascript" src="$controllerScript"></script>
-  <script type="$scriptType" src="$sourceScript"></script>
   <script type="text/javascript">
     // If nobody intercepts the error, finish the test.
     onerror = function() { window.layoutTestController.notifyDone() };
@@ -42,6 +41,7 @@ String GetHtmlContents(String title,
       }, 50);
     };
   </script>
+  <script type="$scriptType" src="$sourceScript"></script>
 </body>
 </html>
 """;

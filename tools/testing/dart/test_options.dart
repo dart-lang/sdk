@@ -6,7 +6,7 @@
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'stub-generator', 'vm'];
+           'isolate', 'stub-generator', 'vm', 'client'];
 
 /**
  * Specification of a single test option.
