@@ -54,6 +54,7 @@ Constructor5Test: Fail
 Constructor6Test: Fail
 ConstructorBodyTest: Fail
 ConstructorDefaultTest: Fail
+ConstructorDuplicateInitializersTest/*: Skip # Exception
 ConstructorRedirectTest: Fail
 ConstructorReturnNegativeTest: Fail
 ConstructorReturnTest: Fail

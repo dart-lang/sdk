@@ -60,6 +60,9 @@ TypeVariableBoundsTest/10: Fail
 *FrogTest: Skip
 *FrogNegativeTest: Skip
 
+# Issue 1034
+ConstructorDuplicateInitializersTest/01: Fail
+ConstructorDuplicateInitializersTest/02: Fail
 
 [ $component == vm && $mode == debug ]
 
@@ -103,7 +106,6 @@ CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerE
 CharEscapeTest: Fail
 ConstInit6NegativeTest: Fail       # Issue 811
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
-Constructor2NegativeTest: Fail  # Bug 4208594.
 Constructor2Test: Fail       # Issue 255
 Constructor3Test: Fail       # Issue 257
 Constructor4Test: Fail       # Issue 286
@@ -312,6 +314,10 @@ ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
+
+# Issue 1035
+ConstructorDuplicateInitializersTest/01: Fail
+ConstructorDuplicateInitializersTest/02: Fail
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353

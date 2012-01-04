@@ -177,6 +177,7 @@ public class Resolver {
     private LabelElement currentLabel;
     private Set<LabelElement> referencedLabels = Sets.newHashSet();
     private Set<LabelElement> labelsInScopes = Sets.newHashSet();
+    private Set<String> finalsNeedingInitializing = Sets.newHashSet();
 
     @VisibleForTesting
     public ResolveElementsVisitor(ResolutionContext context,
@@ -240,6 +241,7 @@ public class Resolver {
       currentHolder = classElement;
       context = topLevelContext.extend(classElement);
 
+      this.finalsNeedingInitializing.clear();
       for (Element element : classElement.getMembers()) {
         element.getNode().accept(this);
       }
@@ -524,6 +526,7 @@ public class Resolver {
 
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParams();
+      Set<String> initalizedFinals = Sets.newHashSet();
 
       // First declare all normal parameters in the scope, putting them in the
       // scope of the default expressions so we can report better errors.
@@ -531,6 +534,9 @@ public class Resolver {
         assert parameter.getSymbol() != null;
         if (parameter.getQualifier() instanceof DartThisExpression) {
           checkParameterInitializer(node, parameter);
+          if (!initalizedFinals.add(parameter.getParameterName())) {
+            onError(parameter, ResolverErrorCode.DUPLICATE_PARAMETER, parameter.getName());
+          }
         } else {
           getContext().declare(
               parameter.getSymbol(),
@@ -552,7 +558,16 @@ public class Resolver {
       resolve(functionNode.getBody());
 
       if (Elements.isNonFactoryConstructor(member)) {
-        resolveInitializers(node);
+        resolveInitializers(node, initalizedFinals);
+        // Test for missing final initialized fields
+        if (!this.currentHolder.isInterface() && !member.getModifiers().isRedirectedConstructor()
+            && !finalsNeedingInitializing.equals(initalizedFinals)) {
+          for (String field : this.finalsNeedingInitializing) {
+            if (!initalizedFinals.contains(field)) {
+              onError(node.getName(), ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, field);
+            }
+          }
+        }
       }
 
       // If this method is an override, make sure its signature roughly matches any superclass
@@ -643,8 +658,14 @@ public class Resolver {
         if (expression.getType() != null) {
           Elements.setType(element, expression.getType());
         }
-      } else if (isStatic && isFinal) {
-        onError(node, ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
+      } else if (isFinal) {
+        if (isStatic) {
+          onError(node, ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE);
+        } else {
+          // If a final instance field wasn't initialized at declaration, we must check
+          // at construction time.
+          this.finalsNeedingInitializing.add(node.getName().getTargetName());
+        }
       }
 
       // If field is an accessor, both getter and setter need to be visited (if present).
@@ -1679,7 +1700,7 @@ public class Resolver {
       }
     }
 
-    private void resolveInitializers(DartMethodDefinition node) {
+    private void resolveInitializers(DartMethodDefinition node, Set<String> intializedFields) {
       Iterator<DartInitializer> initializers = node.getInitializers().iterator();
       ConstructorElement constructorElement = null;
       while (initializers.hasNext()) {
@@ -1687,6 +1708,11 @@ public class Resolver {
         Element element = resolve(initializer);
         if ((ElementKind.of(element) == ElementKind.CONSTRUCTOR) && initializer.isInvocation()) {
           constructorElement = (ConstructorElement) element;
+        } else if (initializer.getName() != null && initializer.getName().getSymbol() != null
+            && initializer.getName().getSymbol().getModifiers() != null
+            && initializer.getName().getSymbol().getModifiers().isFinal()
+            && !intializedFields.add(initializer.getName().getTargetName())) {
+          onError(initializer, ResolverErrorCode.DUPLICATE_PARAMETER, initializer.getName());
         }
       }
 

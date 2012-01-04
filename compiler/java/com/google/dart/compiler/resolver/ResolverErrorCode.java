@@ -90,6 +90,7 @@ public enum ResolverErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
+  FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE(
       "Illegal constructor declaration.  No default clause in interface"),
