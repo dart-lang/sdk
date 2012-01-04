@@ -4,8 +4,9 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.common.base.Joiner;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
+import com.google.common.base.Joiner;
 
 
 
@@ -511,5 +512,16 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "main() { topLevel(); }"),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 14),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 1, 39));
+  }
+
+  public void testInvalidDefaultParameterWithFunction() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "class Object {}",
+            "class Function {}",
+            "qwerty() => () {};",
+            "topLevel([var x = qwerty]) { x(); }",
+            "main() { topLevel(); }"),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 6));
   }
 }

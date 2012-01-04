@@ -320,6 +320,10 @@ public class CompileTimeConstantAnalyzer {
           rememberInferredType(x, type);
           break;
 
+        case METHOD:
+          expectedConstant(x);
+          return null;
+
         default:
           throw new InternalCompilerException("Unexpected element "
               + x.toString() + " kind: " + ElementKind.of(element)

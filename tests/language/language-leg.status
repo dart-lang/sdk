@@ -39,6 +39,7 @@ ComparisonTest: Fail
 CompoundAssignmentOperatorTest: Fail
 ConstEscapeFrogTest: Fail
 ConstInitNegativeTest: Fail
+ConstInit7NegativeTest: Fail
 ConstInitTest: Fail
 ConstListTest: Fail
 ConstNamedTest: Fail
