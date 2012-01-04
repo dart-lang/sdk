@@ -22,14 +22,14 @@ class FreeListElement {
  public:
   FreeListElement* next() const {
     // Clear the FreeBit.
-    ASSERT((next_ & RawObject::kFreeBit) == 1);
-    return reinterpret_cast<FreeListElement*>(next_ ^ RawObject::kFreeBit);
+    ASSERT((next_ & 1) == 1);
+    return reinterpret_cast<FreeListElement*>(next_ ^ 1);
   }
   void set_next(FreeListElement* next) {
     // Set the FreeBit.
     uword addr = reinterpret_cast<uword>(next);
-    ASSERT((addr & RawObject::kFreeBit) == 0);
-    next_ = addr | RawObject::kFreeBit;
+    ASSERT((addr & 1) == 0);
+    next_ = addr | 1;
   }
 
   intptr_t Size() const {
