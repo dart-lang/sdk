@@ -53,6 +53,7 @@ ObjectStore::ObjectStore()
     sticky_error_(String::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
+    out_of_memory_(Instance::null()),
     preallocate_objects_called_(false) {
 }
 
@@ -86,9 +87,11 @@ bool ObjectStore::PreallocateObjects() {
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     GrowableArray<const Object*> args;
-    const Instance& exception =
-        Instance::Handle(Exceptions::Create(Exceptions::kStackOverflow, args));
+    Instance& exception =Instance::Handle();
+    exception = Exceptions::Create(Exceptions::kStackOverflow, args);
     set_stack_overflow(exception);
+    exception = Exceptions::Create(Exceptions::kOutOfMemory, args);
+    set_out_of_memory(exception);
   } else {
     return false;
   }

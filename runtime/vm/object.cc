@@ -16,6 +16,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/debuginfo.h"
+#include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
 #include "vm/ic_data.h"
@@ -721,6 +722,14 @@ RawObject* Object::Allocate(const Class& cls,
 
   // TODO(iposva): Get a proper halt instruction from the assembler.
   uword address = heap->Allocate(size, space);
+  if (address == 0) {
+    // Use the preallocated out of memory exception to avoid calling
+    // into dart code or allocating any code.
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(exception);
+    UNREACHABLE();
+  }
   NoGCScope no_gc;
   InitializeObject(address, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
