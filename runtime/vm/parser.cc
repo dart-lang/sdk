@@ -2760,6 +2760,9 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
       Warning("'factory' is obsolete, use 'default' instead.");
     }
     ConsumeToken();
+    if (CurrentToken() != Token::kIDENT) {
+      ErrorMsg("class name expected");
+    }
     const intptr_t factory_pos = token_index_;
     QualIdent factory_name;
     ParseQualIdent(&factory_name);
