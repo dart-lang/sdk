@@ -1834,6 +1834,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     }
   }
 
+  OpenBlock();  // Open a nested scope for the outermost function block.
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     ParseStatementSequence();
@@ -1849,7 +1850,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else {
     UnexpectedToken();
   }
-
+  current_block_->statements->Add(CloseBlock());
   SequenceNode* statements = CloseBlock();
   return statements;
 }
