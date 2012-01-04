@@ -184,7 +184,14 @@ is 'dart file.dart' and you specify special command
         var split = arg.lastIndexOf('=');
         if (split == -1) {
           name = arg;
-          value = '';
+          // Boolean options do not have a value.
+          if (_getSpecification(name).type != 'bool') {
+            if ((i + 1) >= arguments.length) {
+              print('No value supplied for option $name');
+              return null;
+            }
+            value = arguments[++i];
+          }
         } else {
           name = arg.substring(0, split);
           value = arg.substring(split + 1, arg.length);
