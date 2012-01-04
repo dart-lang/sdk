@@ -113,6 +113,7 @@ Constructor4Test: Fail       # Issue 286
 Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 DefaultFactoryLibraryTest: Fail          # Issue 514
+DefaultFactory2Test: Fail # Issue 943
 DivByZeroTest: Fail          # Bug 5184183
 DynamicTest: Fail            # Bug 5527899.
 ExampleConstructorTest: Fail # Bug 4205742.
@@ -211,6 +212,7 @@ ClassOverrideNegativeTest: Fail
 ClosureSharedStateTest: Fail
 ConstFactoryNegativeTest: Fail
 ConstInit5NegativeTest: Pass  # Should fail at compile-time, not at runtime
+ConstInit7NegativeTest: Fail # Issue 1000
 ConstObjectsAreImmutableTest: Fail
 CTConstTest: Fail # Not checking for generic type in const expression.
 DefaultFactoryLibraryTest: Fail    # Issue 514
