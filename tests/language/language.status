@@ -274,6 +274,7 @@ MethodOverrideTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
+NestedCommentsTest: Fail
 NonConstSuperNegativeTest: Fail
 NonParameterizedFactoryTest: Fail
 NonParameterizedFactory2Test: Fail

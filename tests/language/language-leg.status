@@ -224,6 +224,7 @@ NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
 NativeTest: Fail
+NestedCommentsTest: Fail
 NewExpressionTypeArgsFrogTest/02: Fail
 NoSuchMethodTest: Fail
 NonConstConstructorWithoutBodyTest: Fail

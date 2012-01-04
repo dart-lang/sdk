@@ -4,4 +4,4 @@
 // line comment
 // another
 class X/**/{//
-}
+}/*/*nested*/*/
