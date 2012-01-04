@@ -4,6 +4,10 @@
 
 prefix dartc/client
 
+# Issue 1036 - remove these two exclusions when test.py is retired.
+tests/dartc/test_config.dart: Skip      # Not a test case.
+tests/client/test_config.dart: Skip     # Not a test case.
+
 dom/scripts/idlparser.dart: Skip        # Bogus dartc error; references dart/utils/peg
 dom/scripts/idlparser_test.dart: Skip   # Bogus dartc error; references dart/utils/peg
 dom/dom_frog.dart: Skip                 # Frog-only
