@@ -101,7 +101,7 @@ def main(argv):
     os.remove(SDK_LOCAL_ZIP)
   if platform.system() == 'Windows':
     # Windows does not have zip. We use the 7 zip utility in third party.
-    ExecuteCommand([os.path.join('..', 'third_party', '7za920', '7za'), 'a',
+    ExecuteCommand([os.path.join('..', 'third_party', '7zip', '7za'), 'a',
         '-tzip', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
   else:
     ExecuteCommand(['zip', '-yr', SDK_LOCAL_ZIP, os.path.basename(argv[1])])
