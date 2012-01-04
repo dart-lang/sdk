@@ -1028,9 +1028,31 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitNewExpression(DartNewExpression node) {
       ConstructorElement constructorElement = node.getSymbol();
       node.setReferencedElement(constructorElement);
+
       DartTypeNode typeNode = Types.constructorTypeNode(node);
+      Type type = null;
+
+      // When using a constructor defined in an interface, the bounds can be tighter
+      // in the default class than defined in the interface.
+      if (TypeKind.of(typeNode.getType()).equals(TypeKind.INTERFACE)
+          && ((InterfaceType)typeNode.getType()).getElement().isInterface()) {
+        InterfaceType itype = (InterfaceType)typeNode.getType();
+        ClassElement interfaceElement = itype.getElement();
+        InterfaceType defaultClassType = interfaceElement.getDefaultClass();
+        if (defaultClassType != null && defaultClassType.getElement() != null) {
+          validateBounds(typeNode.getTypeArguments(),
+                         itype.getArguments(),
+                         defaultClassType.getElement().getTypeParameters(),
+                         false);
+          type = itype;
+        }
+      }
+      if (type == null) {
+        type = validateTypeNode(typeNode, false);
+      }
+
       DartNode typeName = typeNode.getIdentifier();
-      Type type = validateTypeNode(typeNode, false);
+
       if (constructorElement == null) {
         visit(node.getArgs());
       } else {

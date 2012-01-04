@@ -1346,4 +1346,21 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("while ('') {}",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
+
+
+  public void testValidateFactoryBounds() {
+    Map<String, ClassElement> source = loadSource(
+        "class Object {}",
+        "interface Foo {}",
+        "interface Bar extends Foo {}",
+        "interface IA<T> default A<T extends Foo> { IA(); }",
+        "class A<T extends Foo> implements IA<T> {",
+        "  factory A() {}",
+        "}");
+    analyzeClasses(source);
+   // analyze("{ var val1 = new IA<Foo>(); }");
+   // analyze("{ var val1 = new IA<Bar>(); }");
+    analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+
+  }
 }

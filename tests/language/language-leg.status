@@ -69,6 +69,7 @@ ContinueTest: Fail
 CyclicImportTest: Fail
 DefaultClassImplicitConstructorTest: Fail
 DefaultFactoryLibraryTest: Fail
+DefaultFactory2Test: Fail
 DefaultFactoryTest: Fail
 DefaultImplementationTest: Fail
 DefaultInitTest: Fail
