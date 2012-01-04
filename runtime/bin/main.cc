@@ -197,7 +197,8 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
 static void DumpPprofSymbolInfo() {
   if (generate_pprof_symbols_filename != NULL) {
     Dart_EnterScope();
-    File* pprof_file = File::Open(generate_pprof_symbols_filename, true);
+    File* pprof_file =
+        File::Open(generate_pprof_symbols_filename, File::kWriteTruncate);
     ASSERT(pprof_file != NULL);
     void* buffer;
     int buffer_size;

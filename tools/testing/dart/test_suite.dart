@@ -369,13 +369,13 @@ class StandardTestSuite implements TestSuite {
       } else {
         dartLibraryFilename = 'test_as_library.dart';
         File file = new File('${tempDir.path}/$dartLibraryFilename');
-        RandomAccessFile dartLibrary = file.openSync(writable: true);
+        RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
         dartLibrary.writeStringSync(WrapDartTestInLibrary(dartTestFilename));
         dartLibrary.closeSync();
       }
 
       File file = new File(dartWrapperFilename);
-      RandomAccessFile dartWrapper = file.openSync(writable: true);
+      RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
       dartWrapper.writeStringSync(DartTestWrapper(
           'dart:dom',
           '../../../tests/isolate/src/TestFramework.dart',
@@ -386,7 +386,7 @@ class StandardTestSuite implements TestSuite {
     // NOTE: This must be 3 directories below the dart root, due to test
     // client/samples/dartcombat containing a relative path to its .css file.
     File htmlTestBase = new File('${tempDir.path}/${getHtmlName(filename)}');
-    RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
+    RandomAccessFile htmlTest = htmlTestBase.openSync(FileMode.WRITE);
     htmlTest.writeStringSync(GetHtmlContents(
         filename,
         '../../../client/testing/unittest/test_controller.js',
@@ -484,13 +484,13 @@ class StandardTestSuite implements TestSuite {
       } else {
         dartLibraryFilename = 'test_as_library.dart';
         File file = new File('${tempDir.path}/$dartLibraryFilename');
-        RandomAccessFile dartLibrary = file.openSync(writable: true);
+        RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
         dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
         dartLibrary.closeSync();
       }  
       
       File file = new File(dartWrapperFilename);
-      RandomAccessFile dartWrapper = file.openSync(writable: true);
+      RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
       dartWrapper.writeStringSync(DartTestWrapper(
           domLibraryImport,
           '$dartDir/tests/isolate/src/TestFramework.dart',
@@ -505,7 +505,7 @@ class StandardTestSuite implements TestSuite {
       htmlTestBase = new File('${tempDir.path}/../../${getHtmlName(filename)}');
     }
     // Create the HTML file for the test.
-    RandomAccessFile htmlTest = htmlTestBase.openSync(writable: true);
+    RandomAccessFile htmlTest = htmlTestBase.openSync(FileMode.WRITE);
     htmlTest.writeStringSync(GetHtmlContents(
         filename,
         '$dartDir/client/testing/unittest/test_controller.js',

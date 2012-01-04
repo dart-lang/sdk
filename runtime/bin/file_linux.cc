@@ -103,10 +103,13 @@ off_t File::Length() {
 }
 
 
-File* File::Open(const char* name, bool writable) {
+File* File::Open(const char* name, FileOpenMode mode) {
   int flags = O_RDONLY;
-  if (writable) {
-    flags = (O_RDWR | O_CREAT | O_TRUNC);
+  if ((mode & kWrite) != 0) {
+    flags = (O_RDWR | O_CREAT);
+  }
+  if ((mode & kTruncate) != 0) {
+    flags = flags | O_TRUNC;
   }
   int fd = open(name, flags, 0666);
   if (fd < 0) {

@@ -50,7 +50,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 
 class _FileOutputStream implements OutputStream {
   _FileOutputStream(File file) {
-    _file = file.openSync(true);
+    _file = file.openSync(FileMode.WRITE);
   }
 
   bool write(List<int> buffer, [bool copyBuffer = false]) {
@@ -116,15 +116,15 @@ class _ExistsOperation extends _FileOperation {
 
 
 class _OpenOperation extends _FileOperation {
-  _OpenOperation(String this._name, bool this._writable);
+  _OpenOperation(String this._name, int this._mode);
 
   void execute(ReceivePort port) {
-    _replyPort.send(_FileUtils.checkedOpen(_name, _writable),
+    _replyPort.send(_FileUtils.checkedOpen(_name, _mode),
                     port.toSendPort());
   }
 
   String _name;
-  bool _writable;
+  int _mode;
 }
 
 
@@ -411,7 +411,7 @@ class _FileOperationScheduler {
 // Helper class containing static file helper methods.
 class _FileUtils {
   static bool exists(String name) native "File_Exists";
-  static int open(String name, bool writable) native "File_Open";
+  static int open(String name, int mode) native "File_Open";
   static bool create(String name) native "File_Create";
   static bool delete(String name) native "File_Delete";
   static String fullPath(String name) native "File_FullPath";
@@ -429,9 +429,9 @@ class _FileUtils {
   static int length(int id) native "File_Length";
   static int flush(int id) native "File_Flush";
 
-  static int checkedOpen(String name, bool writable) {
-    if (name is !String || writable is !bool) return 0;
-    return open(name, writable);
+  static int checkedOpen(String name, int mode) {
+    if (name is !String || mode is !int) return 0;
+    return open(name, mode);
   }
 
   static bool checkedCreate(String name) {
@@ -545,8 +545,17 @@ class _File implements File {
     }
   }
 
-  void open([bool writable = false]) {
+  void open([FileMode mode = FileMode.READ]) {
     _asyncUsed = true;
+    if (mode != FileMode.READ &&
+        mode != FileMode.WRITE &&
+        mode != FileMode.APPEND) {
+      if (_errorHandler != null) {
+        _errorHandler("Unknown file mode. Use FileMode.READ, FileMode.WRITE " +
+                      "or FileMode.APPEND.");
+        return;
+      }
+    }
     // If no open handler is present, close the file immediately to
     // avoid leaking an open file descriptor.
     var handler = _openHandler;
@@ -561,16 +570,22 @@ class _File implements File {
         _errorHandler("Cannot open file: $_name");
       }
     };
-    var operation = new _OpenOperation(_name, writable);
+    var operation = new _OpenOperation(_name, mode.mode);
     _scheduler.enqueue(operation, handleOpenResult);
   }
 
-  void openSync([bool writable = false]) {
+  void openSync([FileMode mode = FileMode.READ]) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
     }
-    var id = _FileUtils.checkedOpen(_name, writable);
+    if (mode != FileMode.READ &&
+        mode != FileMode.WRITE &&
+        mode != FileMode.APPEND) {
+      throw new FileIOException("Unknown file mode. Use FileMode.READ, " +
+                                "FileMode.WRITE or FileMode.APPEND.");
+    }
+    var id = _FileUtils.checkedOpen(_name, mode.mode);
     if (id == 0) {
       throw new FileIOException("Cannot open file: $_name");
     }

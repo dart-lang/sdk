@@ -28,7 +28,7 @@ class FileTest {
   }
 
   // Test for file read functionality.
-  static int testReadStream() {
+  static void testReadStream() {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
@@ -51,11 +51,11 @@ class FileTest {
     Expect.equals(103, buffer[9]);  // represents 'g' in the file.
     Expect.equals(104, buffer[10]);  // represents 'h' in the file.
     Expect.equals(116, buffer[11]);  // represents 't' in the file.
-    return 1;
   }
 
   // Test for file read and write functionality.
-  static int testReadWriteStream() {
+  static void testReadWriteStream() {
+    // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     File file;
     InputStream input;
@@ -116,10 +116,9 @@ class FileTest {
     // Delete the output file.
     file.deleteSync();
     Expect.isFalse(file.existsSync());
-    return 1;
   }
 
-  static int testRead() {
+  static void testRead() {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
@@ -149,10 +148,9 @@ class FileTest {
       file.readList(buffer, 0, 5);
     };
     file.open();
-    return 1;
   }
 
-  static int testReadSync() {
+  static void testReadSync() {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     RandomAccessFile file = (new File(filename)).openSync();
@@ -174,11 +172,10 @@ class FileTest {
     Expect.equals(103, buffer[9]);  // represents 'g' in the file.
     Expect.equals(104, buffer[10]);  // represents 'h' in the file.
     Expect.equals(116, buffer[11]);  // represents 't' in the file.
-    return 1;
   }
 
   // Test for file read and write functionality.
-  static int testReadWrite() {
+  static void testReadWrite() {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     File file = new File(inFilename);
@@ -241,7 +238,7 @@ class FileTest {
                 };
                 openedFile.writeList(buffer1, 0, bytes_read);
               };
-              file.open(true);
+              file.open(FileMode.WRITE);
             };
             file.fullPath();
           };
@@ -253,11 +250,9 @@ class FileTest {
     };
     asyncTestStarted();
     file.open();
-    return 1;
-
   }
 
-  static int testReadWriteSync() {
+  static void testReadWriteSync() {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     RandomAccessFile file = (new File(inFilename)).openSync();
@@ -276,7 +271,7 @@ class FileTest {
       Expect.fail("Not a full path");
     }
     Expect.isTrue(new File(path).existsSync());
-    RandomAccessFile openedFile = outFile.openSync(true);
+    RandomAccessFile openedFile = outFile.openSync(FileMode.WRITE);
     openedFile.writeListSync(buffer1, 0, bytes_read);
     openedFile.closeSync();
     // Now read the contents of the file just written.
@@ -293,19 +288,17 @@ class FileTest {
     // Delete the output file.
     outFile.deleteSync();
     Expect.isFalse(outFile.existsSync());
-    return 1;
   }
 
-  static int testReadEmptyFileSync() {
+  static void testReadEmptyFileSync() {
     String fileName = tempDirectory.path + "/empty_file_sync";
     File file = new File(fileName);
     file.createSync();
     RandomAccessFile openedFile = file.openSync();
     Expect.throws(() => openedFile.readByteSync(), (e) => e is FileIOException);
-    return 1;
   }
 
-  static int testReadEmptyFile() {
+  static void testReadEmptyFile() {
     String fileName = tempDirectory.path + "/empty_file";
     File file = new File(fileName);
     file.createHandler = () {
@@ -322,11 +315,10 @@ class FileTest {
     };
     asyncTestStarted();
     file.create();
-    return 1;
   }
 
   // Test for file length functionality.
-  static int testLength() {
+  static void testLength() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
     input.errorHandler = (s) {
@@ -337,19 +329,17 @@ class FileTest {
       input.close();
     };
     input.length();
-    return 1;
   }
 
-  static int testLengthSync() {
+  static void testLengthSync() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
     Expect.equals(42, input.lengthSync());
     input.closeSync();
-    return 1;
   }
 
   // Test for file position functionality.
-  static int testPosition() {
+  static void testPosition() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
     input.errorHandler = (s) {
@@ -381,10 +371,9 @@ class FileTest {
       input.readList(buffer, 0, 12);
     };
     input.position();
-    return 1;
   }
 
-  static int testPositionSync() {
+  static void testPositionSync() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     RandomAccessFile input = (new File(filename)).openSync();
     Expect.equals(0, input.positionSync());
@@ -396,10 +385,9 @@ class FileTest {
     input.setPositionSync(8);
     Expect.equals(8, input.positionSync());
     input.closeSync();
-    return 1;
   }
 
-  static int testTruncate() {
+  static void testTruncate() {
     File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     file.errorHandler = (error) {
@@ -433,14 +421,13 @@ class FileTest {
       openedFile.writeList(buffer, 0, 10);
     };
     asyncTestStarted();
-    file.open(true);
-    return 1;
+    file.open(FileMode.WRITE);
   }
 
-  static int testTruncateSync() {
+  static void testTruncateSync() {
     File file = new File(tempDirectory.path + "/out_truncate_sync");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
-    RandomAccessFile openedFile = file.openSync(true);
+    RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
     openedFile.writeListSync(buffer, 0, 10);
     Expect.equals(10, openedFile.lengthSync());
     openedFile.truncateSync(5);
@@ -448,15 +435,14 @@ class FileTest {
     openedFile.closeSync();
     file.deleteSync();
     Expect.isFalse(file.existsSync());
-    return 1;
   }
 
   // Tests exception handling after file was closed.
-  static int testCloseException() {
+  static void testCloseException() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     File input = new File(tempDirectory.path + "/out_close_exception");
-    RandomAccessFile openedFile = input.openSync(true);
+    RandomAccessFile openedFile = input.openSync(FileMode.WRITE);
     openedFile.closeSync();
     try {
       openedFile.readByteSync();
@@ -540,11 +526,10 @@ class FileTest {
     Expect.equals(true, exceptionCaught);
     Expect.equals(true, !wrongExceptionCaught);
     input.deleteSync();
-    return 1;
   }
 
   // Tests stream exception handling after file was closed.
-  static int testCloseExceptionStream() {
+  static void testCloseExceptionStream() {
     List<int> buffer = new List<int>(42);
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
@@ -556,15 +541,14 @@ class FileTest {
     Expect.throws(( ) => output.writeFrom(buffer, 0, 12),
                   (e) => e is FileIOException);
     file.deleteSync();
-    return 1;
   }
 
   // Tests buffer out of bounds exception.
-  static int testBufferOutOfBoundsException() {
+  static void testBufferOutOfBoundsException() {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     File file = new File(tempDirectory.path + "/out_buffer_out_of_bounds");
-    RandomAccessFile openedFile = file.openSync(true);
+    RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
     try {
       List<int> buffer = new List<int>(10);
       bool readDone = openedFile.readListSync(buffer, 0, 12);
@@ -654,10 +638,9 @@ class FileTest {
     Expect.equals(true, !wrongExceptionCaught);
     openedFile.closeSync();
     file.deleteSync();
-    return 1;
   }
 
-  static int testMixedSyncAndAsync() {
+  static void testMixedSyncAndAsync() {
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
     f.errorHandler = (s) {
@@ -672,7 +655,65 @@ class FileTest {
       }
     };
     f.exists();
-    return 1;
+  }
+
+  // Test that opens the same file for writing then for appending to test
+  // that the file is not truncated when opened for appending.
+  static void testAppend() {
+    var file = new File('${tempDirectory.path}/out_append');
+    file.openHandler = (openedFile) {
+      openedFile.noPendingWriteHandler = () {
+        openedFile.closeHandler = () {
+          file.openHandler = (openedFile) {
+            openedFile.lengthHandler = (length) {
+              Expect.equals(4, length);
+              openedFile.setPositionHandler = () {
+                openedFile.noPendingWriteHandler = () {
+                  openedFile.lengthHandler = (length) {
+                    Expect.equals(8, length);
+                    openedFile.closeHandler = () {
+                      file.deleteHandler = () {
+                        file.existsHandler = (exists) {
+                          Expect.isFalse(exists);
+                          asyncTestDone();
+                        };
+                        file.exists();
+                      };
+                      file.delete();
+                    };
+                    openedFile.close();
+                  };
+                  openedFile.length();
+                };
+                openedFile.writeString("asdf");
+              };
+              openedFile.setPosition(4);
+            };
+            openedFile.length();
+          };
+          file.open(FileMode.APPEND);
+        };
+        openedFile.close();
+      };
+      openedFile.writeString("asdf");
+    };
+    asyncTestStarted();
+    file.open(FileMode.WRITE);
+  }
+
+  static void testAppendSync() {
+    var file = new File('${tempDirectory.path}/out_append_sync');
+    var openedFile = file.openSync(FileMode.WRITE);
+    openedFile.writeStringSync("asdf");
+    Expect.equals(4, openedFile.lengthSync());
+    openedFile.closeSync();
+    openedFile = file.openSync(FileMode.WRITE);
+    openedFile.setPositionSync(4);
+    openedFile.writeStringSync("asdf");
+    Expect.equals(8, openedFile.lengthSync());
+    openedFile.closeSync();
+    file.deleteSync();
+    Expect.isFalse(file.existsSync());
   }
 
   // Helper method to be able to run the test from the runtime
@@ -682,26 +723,28 @@ class FileTest {
 
   // Main test entrypoint.
   static testMain() {
-    Expect.equals(1, testRead());
-    Expect.equals(1, testReadSync());
-    Expect.equals(1, testReadStream());
-    Expect.equals(1, testLength());
-    Expect.equals(1, testLengthSync());
-    Expect.equals(1, testPosition());
-    Expect.equals(1, testPositionSync());
-    Expect.equals(1, testMixedSyncAndAsync());
+    testRead();
+    testReadSync();
+    testReadStream();
+    testLength();
+    testLengthSync();
+    testPosition();
+    testPositionSync();
+    testMixedSyncAndAsync();
     asyncTestStarted();
     createTempDirectory(() {
-        Expect.equals(1, testReadWrite());
-        Expect.equals(1, testReadWriteSync());
-        Expect.equals(1, testReadWriteStream());
-        Expect.equals(1, testReadEmptyFileSync());
-        Expect.equals(1, testReadEmptyFile());
-        Expect.equals(1, testTruncate());
-        Expect.equals(1, testTruncateSync());
-        Expect.equals(1, testCloseException());
-        Expect.equals(1, testCloseExceptionStream());
-        Expect.equals(1, testBufferOutOfBoundsException());
+        testReadWrite();
+        testReadWriteSync();
+        testReadWriteStream();
+        testReadEmptyFileSync();
+        testReadEmptyFile();
+        testTruncate();
+        testTruncateSync();
+        testCloseException();
+        testCloseExceptionStream();
+        testBufferOutOfBoundsException();
+        testAppend();
+        testAppendSync();
         asyncTestDone();
       });
   }

@@ -41,11 +41,25 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 
 
 void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
+  // These values have to be kept in sync with the mode values of
+  // FileMode.READ, FileMode.WRITE and FileMode.APPEND in file.dart.
+  static const int kRead = 0;
+  static const int kWrite = 1;
+  static const int kAppend = 2;
+
   Dart_EnterScope();
   const char* filename =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  bool writable = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
-  File* file = File::Open(filename, writable);
+  int mode = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  ASSERT(mode == kRead || mode == kWrite || mode == kAppend);
+  File::FileOpenMode file_mode = File::kRead;
+  if (mode == kWrite) {
+    file_mode = File::kWriteTruncate;
+  }
+  if (mode == kAppend) {
+    file_mode = File::kWrite;
+  }
+  File* file = File::Open(filename, file_mode);
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }

@@ -136,7 +136,7 @@ void DoMultitest(String filename,
     final File file = new File(filename);
 
     file.createSync();
-    RandomAccessFile openedFile = file.openSync(writable: true);
+    RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
     var bytes = tests[key].charCodes();
     openedFile.writeListSync(bytes, 0, bytes.length);
     openedFile.closeSync();
