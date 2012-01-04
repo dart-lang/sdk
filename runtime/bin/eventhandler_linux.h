@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include "bin/thread_pool.h"
 
 class InterruptMessage {
  public:
@@ -99,6 +100,7 @@ class EventHandlerImplementation {
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
   intptr_t GetPollEvents(struct pollfd* pollfd);
 
+  ThreadPool thread_pool;
   SocketData* socket_map_;
   intptr_t socket_map_size_;
   int64_t timeout_;  // Time for next timeout.
