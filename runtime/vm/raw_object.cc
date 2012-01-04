@@ -13,6 +13,11 @@
 namespace dart {
 
 void RawObject::Validate() const {
+  if (Object::null_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
+    // Validation relies on properly initialized class classes. Skip if the
+    // VM is still being initialized.
+    return;
+  }
   // All Smi values are valid.
   if (!IsHeapObject()) {
     return;
@@ -26,11 +31,11 @@ void RawObject::Validate() const {
 
   // Validate that the tags_ field is sensible.
   intptr_t tags = ptr()->tags_;
-  ASSERT((tags & 0xfffffff0) == 0);
+  ASSERT((tags & 0xffff00f0) == 0);
 }
 
 
-intptr_t RawObject::Size() const {
+intptr_t RawObject::SizeFromClass() const {
   NoHandleScope no_handles(Isolate::Current());
 
   // Only reasonable to be called on heap objects.
@@ -147,6 +152,7 @@ intptr_t RawObject::Size() const {
         break;
       }
       case kFreeListElement: {
+        ASSERT(FreeBit::decode(ptr()->tags_));
         uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
         instance_size = element->Size();
@@ -158,6 +164,10 @@ intptr_t RawObject::Size() const {
     }
   }
   ASSERT(instance_size != 0);
+  intptr_t tags = ptr()->tags_;
+  ASSERT((instance_size == (SizeTag::decode(tags))) ||
+         (SizeTag::decode(tags) == 0) ||
+         FreeBit::decode(tags));
   return instance_size;
 }
 
@@ -186,6 +196,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
     CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
 #undef RAW_VISITPOINTERS
     case kFreeListElement: {
+      ASSERT(FreeBit::decode(ptr()->tags_));
       // Nothing to visit for free list elements.
       uword addr = RawObject::ToAddr(this);
       FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
@@ -199,6 +210,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   }
 
   ASSERT(size != 0);
+  ASSERT(size == Size());
   return size;
 }
 

@@ -91,6 +91,7 @@ enum ObjectAlignment {
   kOldObjectAlignmentOffset = 0,
   // Object sizes are aligned to kObjectAlignment.
   kObjectAlignment = 2 * kWordSize,
+  kObjectAlignmentLog2 = kWordSizeLog2 + 1,
   kObjectAlignmentMask = kObjectAlignment - 1,
 };
 
@@ -133,17 +134,54 @@ enum {
 // RawObject is the base class of all raw objects, even though it carries the
 // class_ field not all raw objects are allocated in the heap and thus cannot
 // be dereferenced (e.g. RawSmi).
-//
-// The tags field which is a part of the object header uses the following
-// bit fields for storing tags.
-//
-// bit 0 - SmiTag
-// bit 1 - Mark bit.
-// bit 2 - Canonical object.
-// bit 3 - Created from a full snapshot.
-//
 class RawObject {
  public:
+  // The tags field which is a part of the object header uses the following
+  // bit fields for storing tags.
+  enum TagBits {
+    kFreeBit = 0,
+    kMarkBit = 1,
+    kCanonicalBit = 2,
+    kFromSnapshotBit = 3,
+    kReservedBit10K = 4,
+    kReservedBit100K = 5,
+    kReservedBit1M = 6,
+    kReservedBit10M = 7,
+    kSizeTagBit = 8,
+    kSizeTagSize = 8,
+  };
+
+  // Encodes the object size in the tag in units of object alignment.
+  class SizeTag {
+   public:
+    static const intptr_t kMaxSizeTag =
+        ((1 << RawObject::kSizeTagSize) - 1) << kObjectAlignmentLog2;
+
+    static uword encode(intptr_t size) {
+      return SizeBits::encode(SizeToTagValue(size));
+    }
+
+    static intptr_t decode(uword tag) {
+      return TagValueToSize(SizeBits::decode(tag));
+    }
+
+    static uword update(intptr_t size, uword tag) {
+      return SizeBits::update(SizeToTagValue(size), tag);
+    }
+
+  private:
+    // The actual unscaled bit field used within the tag field.
+    class SizeBits : public BitField<intptr_t, kSizeTagBit, kSizeTagSize> {};
+
+    static intptr_t SizeToTagValue(intptr_t size) {
+      ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      return  (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
+    }
+    static intptr_t TagValueToSize(intptr_t value) {
+      return value << kObjectAlignmentLog2;
+    }
+  };
+
   bool IsHeapObject() const {
     uword value = reinterpret_cast<uword>(this);
     return (value & kSmiTagMask) == kHeapObjectTag;
@@ -164,12 +202,12 @@ class RawObject {
   }
   void SetMarkBit() {
     ASSERT(!IsMarked());
-    intptr_t tags = ptr()->tags_;
+    uword tags = ptr()->tags_;
     ptr()->tags_ = MarkBit::update(true, tags);
   }
   void ClearMarkBit() {
     ASSERT(IsMarked());
-    intptr_t tags = ptr()->tags_;
+    uword tags = ptr()->tags_;
     ptr()->tags_ = MarkBit::update(false, tags);
   }
 
@@ -178,19 +216,30 @@ class RawObject {
     return CanonicalObjectTag::decode(ptr()->tags_);
   }
   void SetCanonical() {
-    intptr_t tags = ptr()->tags_;
+    uword tags = ptr()->tags_;
     ptr()->tags_ = CanonicalObjectTag::update(true, tags);
   }
-  bool IsCreatedFromSnapshot() {
+  bool IsCreatedFromSnapshot() const {
     return CreatedFromSnapshotTag::decode(ptr()->tags_);
   }
   void SetCreatedFromSnapshot() {
-    intptr_t tags = ptr()->tags_;
+    uword tags = ptr()->tags_;
     ptr()->tags_ = CreatedFromSnapshotTag::update(true, tags);
   }
 
+  intptr_t Size() const {
+    uword tags = ptr()->tags_;
+    intptr_t result = SizeTag::decode(tags);
+    if ((result != 0) && !FreeBit::decode(tags)) {
+      ASSERT(result == SizeFromClass());
+      return result;
+    }
+    result = SizeFromClass();
+    ASSERT((result > SizeTag::kMaxSizeTag) || FreeBit::decode(tags));
+    return result;
+  }
+
   void Validate() const;
-  intptr_t Size() const;
   intptr_t VisitPointers(ObjectPointerVisitor* visitor);
 
   static RawObject* FromAddr(uword addr) {
@@ -213,14 +262,10 @@ class RawObject {
 
  protected:
   RawClass* class_;
-  intptr_t tags_;  // Various object tags (bits).
+  uword tags_;  // Various object tags (bits).
 
  private:
-  enum {
-    kMarkBit = 1,
-    kCanonicalBit = 2,
-    kFromSnapshotBit = 3,
-  };
+  class FreeBit : public BitField<bool, kFreeBit, 1> {};
 
   class MarkBit : public BitField<bool, kMarkBit, 1> {};
 
@@ -233,6 +278,8 @@ class RawObject {
     return reinterpret_cast<RawObject*>(
         reinterpret_cast<uword>(this) - kHeapObjectTag);
   }
+
+  intptr_t SizeFromClass() const;
 
   friend class Object;
   friend class Array;

@@ -51,6 +51,8 @@ void AssemblerMacros::TryAllocate(Assembler* assembler,
     __ StoreIntoObject(instance_reg,
                        FieldAddress(instance_reg, Instance::class_offset()),
                        class_reg);
+    __ movq(FieldAddress(instance_reg, Object::tags_offset()),
+            Immediate(RawObject::SizeTag::encode(instance_size)));
   } else {
     __ jmp(failure);
   }

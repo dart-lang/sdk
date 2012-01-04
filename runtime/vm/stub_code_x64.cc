@@ -571,7 +571,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
-      __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+      __ j(NOT_ZERO, &slow_case);
     }
     __ movq(R13, FieldAddress(CTX, Context::isolate_offset()));
     __ movq(R13, Address(R13, Isolate::heap_offset()));
@@ -596,7 +596,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R10: Array length as Smi.
     // R13: Points to new space object.
     __ cmpq(R12, Address(R13, Scavenger::end_offset()));
-    __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    __ j(ABOVE_EQUAL, &slow_case);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -624,7 +624,25 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ movq(RBX, Address(RBX, Isolate::object_store_offset()));
     __ movq(RBX, Address(RBX, ObjectStore::array_class_offset()));
     __ StoreIntoObject(RAX, FieldAddress(RAX, Array::class_offset()), RBX);
-    __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(0));  // Tags.
+    // Calculate the size tag.
+    // RAX: new object start as a tagged pointer.
+    // R12: new object end address.
+    // R10: Array length as Smi.
+    {
+      Label size_tag_overflow, done;
+      __ leaq(RBX, Address(R10, TIMES_2, fixed_size));  // R10 is Smi.
+      ASSERT(kSmiTagShift == 1);
+      __ andq(RBX, Immediate(-kObjectAlignment));
+      __ cmpq(RBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
+      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+      __ shlq(RBX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+      __ movq(FieldAddress(RAX, Array::tags_offset()), RBX);
+      __ jmp(&done);
+
+      __ Bind(&size_tag_overflow);
+      __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(0));
+      __ Bind(&done);
+    }
 
     // Initialize all array elements to raw_null.
     // RAX: new object start as a tagged pointer.
@@ -644,6 +662,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
     // Done allocating and initializing the array.
     // RAX: new object.
+    // R10: Array length as Smi (preserved for the caller.)
     __ ret();
   }
 
@@ -894,7 +913,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ LoadObject(RDX,
           Class::ZoneHandle(Object::instantiated_type_arguments_class()));
       __ movq(Address(RCX, Instance::class_offset()), RDX);  // Set its class.
-      __ movq(Address(RCX, Instance::tags_offset()), Immediate(0));  // Tags.
+      // Set the tags.
+      __ movq(Address(RCX, Instance::tags_offset()),
+              Immediate(RawObject::SizeTag::encode(type_args_size)));
       // Set the new InstantiatedTypeArguments object (RCX) as the type
       // arguments (RDI) of the new object (RAX).
       __ movq(RDI, RCX);
@@ -912,7 +933,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // RDI: new object type arguments (if is_cls_parameterized).
     __ LoadObject(RDX, cls);  // Load class of object to be allocated.
     __ movq(Address(RAX, Instance::class_offset()), RDX);
-    __ movq(Address(RAX, Instance::tags_offset()), Immediate(0));  // Tags.
+    // Set the tags.
+    __ movq(Address(RAX, Instance::tags_offset()),
+            Immediate(RawObject::SizeTag::encode(instance_size)));
 
     // Initialize the remaining words of the object.
     const Immediate raw_null =

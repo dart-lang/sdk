@@ -98,7 +98,7 @@ static bool ObjectArray_Allocate(Assembler* assembler) {
   __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
   // Assert that length is a Smi.
   __ testl(EDI, Immediate(kSmiTagSize));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through);
   intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
   __ leal(EDI, Address(EDI, TIMES_2, fixed_size));  // EDI is a Smi.
   ASSERT(kSmiTagShift == 1);
@@ -106,31 +106,46 @@ static bool ObjectArray_Allocate(Assembler* assembler) {
 
   Heap* heap = Isolate::Current()->heap();
 
-  // EDI: size to allocate.
+  // EDI: allocation size.
   __ movl(EAX, Address::Absolute(heap->TopAddress()));
   __ leal(EBX, Address(EAX, EDI, TIMES_1, 0));
 
   // Check if the allocation fits into the remaining space.
   // EAX: potential new object start.
   // EBX: potential next object start.
+  // EDI: allocation size.
   __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
   __ movl(Address::Absolute(heap->TopAddress()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
 
+  // Initialize the tags.
   // EAX: new object start as a tagged pointer.
   // EBX: new object end address.
+  // EDI: allocation size.
+  {
+    Label size_tag_overflow, done;
+    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shll(EDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+    __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
+    __ jmp(&done);
+
+    __ Bind(&size_tag_overflow);
+    __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(0));
+    __ Bind(&done);
+  }
+
   // Store class value for array.
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
   __ movl(EDI, FieldAddress(CTX, Context::isolate_offset()));
   __ movl(EDI, Address(EDI, Isolate::object_store_offset()));
   __ movl(EDI, Address(EDI, ObjectStore::array_class_offset()));
   __ StoreIntoObject(EAX, FieldAddress(EAX, Array::class_offset()), EDI);
-
-  // Initialize the tags.
-  __ movl(FieldAddress(EAX, Array::tags_offset()), Immediate(0));
 
   // Store the type argument field.
   __ movl(EDI, Address(ESP, kTypeArgumentsOffset));  // type argument.

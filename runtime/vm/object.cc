@@ -704,6 +704,8 @@ void Object::Print() const {
 
 
 void Object::InitializeObject(uword address, intptr_t size) {
+  // TODO(iposva): Get a proper halt instruction from the assembler which
+  // would be needed here for code objects.
   uword initial_value = reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
@@ -717,10 +719,10 @@ void Object::InitializeObject(uword address, intptr_t size) {
 RawObject* Object::Allocate(const Class& cls,
                             intptr_t size,
                             Heap::Space space) {
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
 
-  // TODO(iposva): Get a proper halt instruction from the assembler.
   uword address = heap->Allocate(size, space);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
@@ -734,7 +736,9 @@ RawObject* Object::Allocate(const Class& cls,
   InitializeObject(address, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   raw_obj->ptr()->class_ = cls.raw();
-  raw_obj->ptr()->tags_ = 0;
+  uword tags = 0;
+  tags = RawObject::SizeTag::update(size, tags);
+  raw_obj->ptr()->tags_ = tags;
   return raw_obj;
 }
 

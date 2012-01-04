@@ -152,9 +152,12 @@ class Object {
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { SetRaw(value); }
 
-  void set_tags(intptr_t tags) {
+  void set_tags(intptr_t value) {
+    // TODO(asiva): Remove the capability of setting tags in general. The mask
+    // here only allows for canonical and from_snapshot flags to be set.
     ASSERT(!IsNull());
-    raw()->ptr()->tags_ = tags;
+    uword tags = raw()->ptr()->tags_ & ~0x0000000c;
+    raw()->ptr()->tags_ = tags | (value & 0x0000000c);
   }
   void SetCreatedFromSnapshot() const {
     ASSERT(!IsNull());
@@ -369,6 +372,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
   static RawClass* api_error_class_;  // Class of ApiError.
 
+  friend void RawObject::Validate() const;
   friend class Class;
   friend class SnapshotReader;
 
