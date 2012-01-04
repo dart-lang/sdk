@@ -65,6 +65,10 @@ TypeVariableBoundsTest/10: Fail
 ConstructorDuplicateInitializersTest/01: Fail
 ConstructorDuplicateInitializersTest/02: Fail
 
+[ $component == vm || $component == dartium  && $checked ]
+
+DefaultFactory2Test/01: Fail # Issue 943
+
 [ $component == vm && $mode == debug ]
 
 [ $component == vm && $mode == release ]
@@ -113,7 +117,6 @@ Constructor4Test: Fail       # Issue 286
 Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 DefaultFactoryLibraryTest: Fail          # Issue 514
-DefaultFactory2Test: Fail # Issue 943
 DivByZeroTest: Fail          # Bug 5184183
 DynamicTest: Fail            # Bug 5527899.
 ExampleConstructorTest: Fail # Bug 4205742.
