@@ -406,11 +406,11 @@ is 'dart file.dart' and you specify special command
         var buffer = new StringBuffer();;
         buffer.add(name);
         if (option.type == 'bool') {
-          assert(option.values.empty());
+          assert(option.values.isEmpty());
         } else {
           buffer.add(name.startsWith('--') ? '=' : ' ');
           if (option.type == 'int') {
-            assert(option.values.empty());
+            assert(option.values.isEmpty());
             buffer.add('n (default: ${option.defaultValue})');
           } else {
             buffer.add('[');

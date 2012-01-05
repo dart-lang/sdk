@@ -62,7 +62,7 @@ class CCTestSuite implements TestSuite {
     runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
   }
 
-  void complexStatusMatching() => false;
+  bool complexStatusMatching() => false;
 
   void testNameHandler(String testName, ignore) {
     if (testName == "") {
@@ -161,11 +161,11 @@ class StandardTestSuite implements TestSuite {
                     List<String> this.statusFilePaths)
     : pathSeparator = new Platform().pathSeparator();
 
-  void isTestFile(String filename) => filename.endsWith("Test.dart");
+  bool isTestFile(String filename) => filename.endsWith("Test.dart");
 
-  void listRecursively() => false;
+  bool listRecursively() => false;
 
-  void complexStatusMatching() => false;
+  bool complexStatusMatching() => false;
 
   String shellPath() => TestUtils.dartShellFileName(configuration);
 
@@ -510,19 +510,6 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
-  String get scriptName() {
-    switch (configuration['component']) {
-      case 'dartium':
-        return tempDir.path + 'test.dart';
-      case 'chromium':
-      case 'frogium':
-        return tempDir.path + 'test.js';
-      default:
-        Expect.fail('Unimplemented component scriptType');
-        return null;
-    }
-  }
-
   String getHtmlName(String filename) {
     return filename.replaceAll('/', '_') + configuration['component'] + '.html';
   }
@@ -685,7 +672,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
               directoryPath,
               expectations);
 
-  void activityStarted() => ++activityCount;
+  void activityStarted() { ++activityCount; }
 
   void activityCompleted() {
     if (--activityCount == 0) {
@@ -744,7 +731,7 @@ class JUnitTestSuite implements TestSuite {
                  String this.directoryPath,
                  String this.statusFilePath);
 
-  void isTestFile(String filename) => filename.endsWith("Tests.java") &&
+  bool isTestFile(String filename) => filename.endsWith("Tests.java") &&
       !filename.contains('com/google/dart/compiler/vm') &&
       !filename.contains('com/google/dart/corelib/SharedTests.java');
 

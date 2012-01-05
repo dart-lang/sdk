@@ -193,7 +193,7 @@ class RunningProcess {
     }
   }
       
-  void makeReadHandler(StringInputStream source, List<String> destination) {
+  Function makeReadHandler(StringInputStream source, List<String> destination) {
     return () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
@@ -249,8 +249,8 @@ class DartcBatchRunnerProcess {
   StringInputStream _stderrStream;
 
   TestCase _currentTest;
-  StringBuffer _testStdout;
-  StringBuffer _testStderr;
+  List<String> _testStdout;
+  List<String> _testStderr;
   Date _startTime;
   Timer _timer;
 
@@ -319,7 +319,7 @@ class DartcBatchRunnerProcess {
     test.completed();
   }
 
-  void _readOutput(StringInputStream stream, List<String> buffer) {
+  Function _readOutput(StringInputStream stream, List<String> buffer) {
     return () {
       var status;
       var line = stream.readLine();
@@ -354,7 +354,7 @@ class DartcBatchRunnerProcess {
     });
   }
 
-  void _timeoutHandler(TestCase test) {
+  Function _timeoutHandler(TestCase test) {
     return (ignore) {
       _process.exitHandler = (exitCode) {
         _process.close();

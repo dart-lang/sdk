@@ -13,7 +13,7 @@ class ClientTestSuite extends StandardTestSuite {
               "client/tests/client",
               ["client/tests/client/client.status"]);
 
-  void isTestFile(String filename) => filename.endsWith("_tests.dart");
+  bool isTestFile(String filename) => filename.endsWith("_tests.dart");
 
-  void listRecursively() => true;
+  bool listRecursively() => true;
 }

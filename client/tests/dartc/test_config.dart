@@ -27,11 +27,11 @@ class ClientDartcTestSuite extends DartcCompilationTestSuite {
                'weld'],
               ["client/tests/dartc/dartc.status"]);
 
-  void isTestFile(String filename) {
+  bool isTestFile(String filename) {
     if (!filename.endsWith(".dart")) return false;
     var options = optionsFromFile(filename);
     return optionsFromFile(filename)["containsLeadingHash"];
   }
 
-  void listRecursively() => true;
+  bool listRecursively() => true;
 }

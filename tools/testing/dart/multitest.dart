@@ -119,7 +119,8 @@ void DoMultitest(String filename,
                  String testDir,
                  Function doTest(String filename,
                                  bool isNegative,
-                                 [bool isNegativeIfChecked]),
+                                 [bool isNegativeIfChecked,
+                                  bool hasFatalTypeErrors]),
                  Function multitestDone) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
