@@ -283,7 +283,6 @@ NullTest: Fail
 NullToStringTest: Fail
 NumbersTest: Fail
 NumberSyntaxTest: Fail
-ObjectDynamicMethodTest: Fail
 OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
