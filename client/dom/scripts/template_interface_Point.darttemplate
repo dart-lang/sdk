@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Point$!EXTENDS factory _PointFactoryProvider {
+interface Point$!EXTENDS default _PointFactoryProvider {
 
   Point(num x, num y);
 $!MEMBERS}

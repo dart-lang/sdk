@@ -57,26 +57,17 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static void _copyTo_3(receiver, parent, name, successCallback) native;
   static void _copyTo_4(receiver, parent, name, successCallback, errorCallback) native;
 
-  void getMetadata([MetadataCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _getMetadata(this);
-        return;
-      }
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _getMetadata(this, successCallback);
+      return;
     } else {
-      if (errorCallback === null) {
-        _getMetadata_2(this, successCallback);
-        return;
-      } else {
-        _getMetadata_3(this, successCallback, errorCallback);
-        return;
-      }
+      _getMetadata_2(this, successCallback, errorCallback);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _getMetadata(receiver) native;
-  static void _getMetadata_2(receiver, successCallback) native;
-  static void _getMetadata_3(receiver, successCallback, errorCallback) native;
+  static void _getMetadata(receiver, successCallback) native;
+  static void _getMetadata_2(receiver, successCallback, errorCallback) native;
 
   void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (successCallback === null) {
@@ -130,26 +121,17 @@ class _EntryWrappingImplementation extends DOMWrapperBase implements Entry {
   static void _moveTo_3(receiver, parent, name, successCallback) native;
   static void _moveTo_4(receiver, parent, name, successCallback, errorCallback) native;
 
-  void remove([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _remove(this);
-        return;
-      }
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _remove(this, successCallback);
+      return;
     } else {
-      if (errorCallback === null) {
-        _remove_2(this, successCallback);
-        return;
-      } else {
-        _remove_3(this, successCallback, errorCallback);
-        return;
-      }
+      _remove_2(this, successCallback, errorCallback);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _remove(receiver) native;
-  static void _remove_2(receiver, successCallback) native;
-  static void _remove_3(receiver, successCallback, errorCallback) native;
+  static void _remove(receiver, successCallback) native;
+  static void _remove_2(receiver, successCallback, errorCallback) native;
 
   String toURL() {
     return _toURL(this);

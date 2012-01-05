@@ -11,6 +11,9 @@ class _DatabaseSyncWrappingImplementation extends DOMWrapperBase implements Data
     return new _DatabaseSyncWrappingImplementation();
   }
 
+  String get lastErrorMessage() { return _get_lastErrorMessage(this); }
+  static String _get_lastErrorMessage(var _this) native;
+
   String get version() { return _get_version(this); }
   static String _get_version(var _this) native;
 

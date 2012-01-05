@@ -1451,7 +1451,7 @@ class DartInterfaceGenerator(object):
                            SUPERS=', '.join(suppressed_extends))
 
     if typename in _interface_factories:
-      extends_emitter.Emit(' factory $F', F=_interface_factories[typename])
+      extends_emitter.Emit(' default $F', F=_interface_factories[typename])
 
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:

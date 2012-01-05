@@ -11,6 +11,4 @@ interface ErrorEvent extends Event {
   int get lineno();
 
   String get message();
-
-  void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg);
 }

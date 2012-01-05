@@ -304,8 +304,6 @@ class BarInfo native "*BarInfo" {
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
   String url;
-
-  void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url) native;
 }
 
 class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
@@ -333,6 +331,8 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
   AudioParam gain;
 
   int type;
+
+  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }
 
 class Blob native "*Blob" {
@@ -479,7 +479,7 @@ class CSSRule native "CSSRule" {
 
   static final int WEBKIT_KEYFRAME_RULE = 9;
 
-  static final int WEBKIT_REGION_STYLE_RULE = 10;
+  static final int WEBKIT_REGION_RULE = 10;
 
   String cssText;
 
@@ -627,7 +627,7 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
-  Object fillStyle;
+  Dynamic fillStyle;
 
   String font;
 
@@ -651,7 +651,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   num shadowOffsetY;
 
-  Object strokeStyle;
+  Dynamic strokeStyle;
 
   String textAlign;
 
@@ -829,8 +829,6 @@ class CloseEvent extends Event native "*CloseEvent" {
   String reason;
 
   bool wasClean;
-
-  void initCloseEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool wasCleanArg, int codeArg, String reasonArg) native;
 }
 
 class Comment extends CharacterData native "*Comment" {
@@ -1408,7 +1406,7 @@ class DOMWindow native "@*DOMWindow" {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) native;
+  void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
 
@@ -1436,17 +1434,19 @@ class DOMWindow native "@*DOMWindow" {
 
   void stop() native;
 
+  void webkitCancelAnimationFrame(int id) native;
+
   void webkitCancelRequestAnimationFrame(int id) native;
 
   WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p) native;
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) native;
 
-  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) native;
+  void webkitPostMessage(String message, String targetOrigin, [List transferList = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
@@ -1537,6 +1537,8 @@ class Database native "*Database" {
 
 class DatabaseSync native "*DatabaseSync" {
 
+  String lastErrorMessage;
+
   String version;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native;
@@ -1588,7 +1590,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   void getFile(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
 }
 
 class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
@@ -1756,7 +1758,7 @@ class Document extends Node native "Document" {
 
   DOMSelection getSelection() native;
 
-  Node importNode(Node importedNode, bool deep) native;
+  Node importNode(Node importedNode, [bool deep = null]) native;
 
   bool queryCommandEnabled(String command) native;
 
@@ -1773,6 +1775,8 @@ class Document extends Node native "Document" {
   NodeList querySelectorAll(String selectors) native;
 
   void webkitCancelFullScreen() native;
+
+  WebKitNamedFlow webkitGetFlowByName(String name) native;
 }
 
 class DocumentFragment extends Node native "*DocumentFragment" {
@@ -1959,13 +1963,13 @@ class Entry native "*Entry" {
 
   void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void getMetadata([MetadataCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void remove([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   String toURL() native;
 
@@ -2032,8 +2036,6 @@ class ErrorEvent extends Event native "*ErrorEvent" {
   int lineno;
 
   String message;
-
-  void initErrorEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String messageArg, String filenameArg, int linenoArg) native;
 }
 
 class Event native "Event" {
@@ -2479,8 +2481,6 @@ class HTMLAllCollection native "*HTMLAllCollection" {
 
 class HTMLAnchorElement extends HTMLElement native "*HTMLAnchorElement" {
 
-  String accessKey;
-
   String charset;
 
   String coords;
@@ -2523,8 +2523,6 @@ class HTMLAnchorElement extends HTMLElement native "*HTMLAnchorElement" {
 
   String type;
 
-  String getParameter(String name) native;
-
   String toString() native;
 }
 
@@ -2554,8 +2552,6 @@ class HTMLAppletElement extends HTMLElement native "*HTMLAppletElement" {
 }
 
 class HTMLAreaElement extends HTMLElement native "*HTMLAreaElement" {
-
-  String accessKey;
 
   String alt;
 
@@ -2626,8 +2622,6 @@ class HTMLBodyElement extends HTMLElement native "*HTMLBodyElement" {
 }
 
 class HTMLButtonElement extends HTMLElement native "*HTMLButtonElement" {
-
-  String accessKey;
 
   bool autofocus;
 
@@ -2741,8 +2735,6 @@ class HTMLDocument extends Document native "*HTMLDocument" {
 
   String fgColor;
 
-  int height;
-
   String linkColor;
 
   HTMLCollection plugins;
@@ -2750,8 +2742,6 @@ class HTMLDocument extends Document native "*HTMLDocument" {
   HTMLCollection scripts;
 
   String vlinkColor;
-
-  int width;
 
   void captureEvents() native;
 
@@ -2771,6 +2761,8 @@ class HTMLDocument extends Document native "*HTMLDocument" {
 }
 
 class HTMLElement extends Element native "HTMLElement" {
+
+  String accessKey;
 
   HTMLCollection children;
 
@@ -3041,8 +3033,6 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
 
   String accept;
 
-  String accessKey;
-
   String align;
 
   String alt;
@@ -3056,6 +3046,8 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
   bool defaultChecked;
 
   String defaultValue;
+
+  String dirName;
 
   bool disabled;
 
@@ -3195,8 +3187,6 @@ class HTMLLIElement extends HTMLElement native "*HTMLLIElement" {
 
 class HTMLLabelElement extends HTMLElement native "*HTMLLabelElement" {
 
-  String accessKey;
-
   HTMLElement control;
 
   HTMLFormElement form;
@@ -3205,8 +3195,6 @@ class HTMLLabelElement extends HTMLElement native "*HTMLLabelElement" {
 }
 
 class HTMLLegendElement extends HTMLElement native "*HTMLLegendElement" {
-
-  String accessKey;
 
   String align;
 
@@ -3310,6 +3298,8 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
   TimeRanges buffered;
 
+  MediaController controller;
+
   bool controls;
 
   String currentSrc;
@@ -3329,6 +3319,8 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   num initialTime;
 
   bool loop;
+
+  String mediaGroup;
 
   bool muted;
 
@@ -3351,6 +3343,8 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   String src;
 
   num startTime;
+
+  TextTrackList textTracks;
 
   num volume;
 
@@ -3428,6 +3422,8 @@ class HTMLModElement extends HTMLElement native "*HTMLModElement" {
 class HTMLOListElement extends HTMLElement native "*HTMLOListElement" {
 
   bool compact;
+
+  bool reversed;
 
   int start;
 
@@ -3583,6 +3579,13 @@ class HTMLProgressElement extends HTMLElement native "*HTMLProgressElement" {
   num value;
 }
 
+class HTMLPropertiesCollection extends HTMLCollection native "*HTMLPropertiesCollection" {
+
+  int length;
+
+  Node item(int index) native;
+}
+
 class HTMLQuoteElement extends HTMLElement native "*HTMLQuoteElement" {
 
   String cite;
@@ -3671,6 +3674,8 @@ class HTMLStyleElement extends HTMLElement native "*HTMLStyleElement" {
   bool disabled;
 
   String media;
+
+  bool scoped;
 
   StyleSheet sheet;
 
@@ -3819,13 +3824,13 @@ class HTMLTableSectionElement extends HTMLElement native "*HTMLTableSectionEleme
 
 class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
-  String accessKey;
-
   bool autofocus;
 
   int cols;
 
   String defaultValue;
+
+  String dirName;
 
   bool disabled;
 
@@ -3881,11 +3886,21 @@ class HTMLTitleElement extends HTMLElement native "*HTMLTitleElement" {
 
 class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
 
+  static final int ERROR = 3;
+
+  static final int LOADED = 2;
+
+  static final int LOADING = 1;
+
+  static final int NONE = 0;
+
   bool isDefault;
 
   String kind;
 
   String label;
+
+  int readyState;
 
   String src;
 
@@ -4115,11 +4130,15 @@ class IDBIndex native "*IDBIndex" {
 
   String keyPath;
 
+  bool multiEntry;
+
   String name;
 
   IDBObjectStore objectStore;
 
   bool unique;
+
+  IDBRequest count([IDBKeyRange range = null]) native;
 
   IDBRequest getObject(IDBKey key) native;
 
@@ -4175,6 +4194,8 @@ class IDBObjectStore native "*IDBObjectStore" {
   IDBRequest add(String value, [IDBKey key = null]) native;
 
   IDBRequest clear() native;
+
+  IDBRequest count([IDBKeyRange range = null]) native;
 
   IDBIndex createIndex(String name, String keyPath) native;
 
@@ -4298,6 +4319,8 @@ class InjectedScriptHost native "*InjectedScriptHost" {
 
   Object evaluate(String text) native;
 
+  Object functionLocation(Object object) native;
+
   void inspect(Object objectId, Object hints) native;
 
   Object inspectedNode(int num) native;
@@ -4321,15 +4344,17 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void bringToFront() native;
 
+  bool canSaveAs() native;
+
   void closeWindow() native;
 
   void copyText(String text) native;
 
-  void disconnectFromBackend() native;
-
   String hiddenPanels() native;
 
   void inspectedURLChanged(String newURL) native;
+
+  String loadResourceSynchronously(String url) native;
 
   void loaded() native;
 
@@ -4357,7 +4382,7 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void setAttachedWindowHeight(int height) native;
 
-  void setExtensionAPI(String script) native;
+  void setInjectedScriptForOrigin(String origin, String script) native;
 
   void showContextMenu(MouseEvent event, Object items) native;
 
@@ -4512,8 +4537,6 @@ class Location native "*Location" {
 
   void assign(String url) native;
 
-  String getParameter(String name) native;
-
   void reload() native;
 
   void replace(String url) native;
@@ -4530,6 +4553,43 @@ class LowPass2FilterNode extends AudioNode native "*LowPass2FilterNode" {
   AudioParam cutoff;
 
   AudioParam resonance;
+}
+
+class MediaController native "*MediaController" {
+
+  TimeRanges buffered;
+
+  num currentTime;
+
+  num defaultPlaybackRate;
+
+  num duration;
+
+  bool muted;
+
+  bool paused;
+
+  num playbackRate;
+
+  TimeRanges played;
+
+  TimeRanges seekable;
+
+  num volume;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event evt) native;
+
+  void pause() native;
+
+  void play() native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
 }
 
 class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -4704,6 +4764,10 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   Node toElement;
 
+  int webkitMovementX;
+
+  int webkitMovementY;
+
   int x;
 
   int y;
@@ -4830,26 +4894,6 @@ class Navigator native "*Navigator" {
   bool javaEnabled() native;
 
   void registerProtocolHandler(String scheme, String url, String title) native;
-
-  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class NavigatorUserMediaError native "*NavigatorUserMediaError" {
-
-  static final int PERMISSION_DENIED = 1;
-
-  int code;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
-class NavigatorUserMediaSuccessCallback native "*NavigatorUserMediaSuccessCallback" {
 
   var dartObjectLocalStorage;
 
@@ -5176,15 +5220,11 @@ class OverflowEvent extends Event native "*OverflowEvent" {
   int orient;
 
   bool verticalOverflow;
-
-  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) native;
 }
 
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
   bool persisted;
-
-  void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted) native;
 }
 
 class Performance native "*Performance" {
@@ -5268,11 +5308,22 @@ class PerformanceTiming native "*PerformanceTiming" {
   String get typeName() native;
 }
 
+class PointerLock native "*PointerLock" {
+
+  bool isLocked() native;
+
+  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
+
+  void unlock() native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
 class PopStateEvent extends Event native "*PopStateEvent" {
 
   Object state;
-
-  void initPopStateEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object stateArg) native;
 }
 
 class PositionError native "*PositionError" {
@@ -5308,8 +5359,6 @@ class ProgressEvent extends Event native "*ProgressEvent" {
   int loaded;
 
   int total;
-
-  void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg) native;
 }
 
 class RGBColor native "*RGBColor" {
@@ -9184,19 +9233,11 @@ class TextMetrics native "*TextMetrics" {
 
 class TextTrack native "*TextTrack" {
 
-  static final int Disabled = 0;
+  static final int DISABLED = 0;
 
-  static final int Error = 3;
+  static final int HIDDEN = 1;
 
-  static final int Hidden = 1;
-
-  static final int Loaded = 2;
-
-  static final int Loading = 1;
-
-  static final int None = 0;
-
-  static final int Showing = 2;
+  static final int SHOWING = 2;
 
   TextTrackCueList activeCues;
 
@@ -9210,11 +9251,17 @@ class TextTrack native "*TextTrack" {
 
   int mode;
 
-  int readyState;
+  EventListener oncuechange;
 
   void addCue(TextTrackCue cue) native;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event evt) native;
+
   void removeCue(TextTrackCue cue) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -9233,6 +9280,10 @@ class TextTrackCue native "*TextTrackCue" {
 
   int linePosition;
 
+  EventListener onenter;
+
+  EventListener onexit;
+
   bool pauseOnExit;
 
   int size;
@@ -9245,9 +9296,15 @@ class TextTrackCue native "*TextTrackCue" {
 
   TextTrack track;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event evt) native;
+
   DocumentFragment getCueAsHTML() native;
 
   String getCueAsSource() native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -9261,6 +9318,25 @@ class TextTrackCueList native "*TextTrackCueList" {
   TextTrackCue getCueById(String id) native;
 
   TextTrackCue item(int index) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class TextTrackList native "*TextTrackList" {
+
+  int length;
+
+  EventListener onaddtrack;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event evt) native;
+
+  TextTrack item(int index) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -9345,6 +9421,11 @@ class TouchList native "*TouchList" {
   var dartObjectLocalStorage;
 
   String get typeName() native;
+}
+
+class TrackEvent extends Event native "*TrackEvent" {
+
+  Object track;
 }
 
 class TreeWalker native "*TreeWalker" {
@@ -9514,6 +9595,29 @@ class WebGLBuffer native "*WebGLBuffer" {
   String get typeName() native;
 }
 
+class WebGLCompressedTextures native "*WebGLCompressedTextures" {
+
+  static final int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
+
+  static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
+
+  static final int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
+
+  static final int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
+
+  static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
+
+  static final int ETC1_RGB8_OES = 0x8D64;
+
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native;
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native;
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
 class WebGLContextAttributes native "*WebGLContextAttributes" {
 
   bool alpha;
@@ -9559,6 +9663,17 @@ class WebGLDebugShaders native "*WebGLDebugShaders" {
 }
 
 class WebGLFramebuffer native "*WebGLFramebuffer" {
+
+  var dartObjectLocalStorage;
+
+  String get typeName() native;
+}
+
+class WebGLLoseContext native "*WebGLLoseContext" {
+
+  void loseContext() native;
+
+  void restoreContext() native;
 
   var dartObjectLocalStorage;
 
@@ -10548,11 +10663,13 @@ class WebKitBlobBuilder native "*WebKitBlobBuilder" {
 
 class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
 
-  static final int CSS_FILTER_BLUR = 9;
+  static final int CSS_FILTER_BLUR = 10;
+
+  static final int CSS_FILTER_BRIGHTNESS = 8;
+
+  static final int CSS_FILTER_CONTRAST = 9;
 
   static final int CSS_FILTER_DROP_SHADOW = 11;
-
-  static final int CSS_FILTER_GAMMA = 8;
 
   static final int CSS_FILTER_GRAYSCALE = 2;
 
@@ -10567,8 +10684,6 @@ class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
   static final int CSS_FILTER_SATURATE = 4;
 
   static final int CSS_FILTER_SEPIA = 3;
-
-  static final int CSS_FILTER_SHARPEN = 10;
 
   int operationType;
 }
@@ -10724,20 +10839,16 @@ class WebKitFlags native "*WebKitFlags" {
   String get typeName() native;
 }
 
-class WebKitLoseContext native "*WebKitLoseContext" {
+class WebKitMutationObserver native "*WebKitMutationObserver" {
 
-  void loseContext() native;
-
-  void restoreContext() native;
+  void disconnect() native;
 
   var dartObjectLocalStorage;
 
   String get typeName() native;
 }
 
-class WebKitMutationObserver native "*WebKitMutationObserver" {
-
-  void disconnect() native;
+class WebKitNamedFlow native "*WebKitNamedFlow" {
 
   var dartObjectLocalStorage;
 
@@ -10864,6 +10975,8 @@ class WorkerContext native "*WorkerContext" {
   EventListener onerror;
 
   WorkerContext self;
+
+  IDBFactory webkitIndexedDB;
 
   NotificationCenter webkitNotifications;
 
@@ -11233,13 +11346,6 @@ typedef bool FileWriterCallback(FileWriter fileWriter);
 // WARNING: Do not edit - generated code.
 
 typedef bool MetadataCallback(Metadata metadata);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

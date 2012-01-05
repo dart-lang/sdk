@@ -6,10 +6,6 @@
 
 interface HTMLTextAreaElement extends HTMLElement {
 
-  String get accessKey();
-
-  void set accessKey(String value);
-
   bool get autofocus();
 
   void set autofocus(bool value);
@@ -21,6 +17,10 @@ interface HTMLTextAreaElement extends HTMLElement {
   String get defaultValue();
 
   void set defaultValue(String value);
+
+  String get dirName();
+
+  void set dirName(String value);
 
   bool get disabled();
 

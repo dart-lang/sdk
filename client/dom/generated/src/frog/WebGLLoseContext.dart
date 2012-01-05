@@ -1,5 +1,5 @@
 
-class WebKitLoseContext native "*WebKitLoseContext" {
+class WebGLLoseContext native "*WebGLLoseContext" {
 
   void loseContext() native;
 

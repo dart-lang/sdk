@@ -19,8 +19,6 @@ class HTMLDocument extends Document native "*HTMLDocument" {
 
   String fgColor;
 
-  int height;
-
   String linkColor;
 
   HTMLCollection plugins;
@@ -28,8 +26,6 @@ class HTMLDocument extends Document native "*HTMLDocument" {
   HTMLCollection scripts;
 
   String vlinkColor;
-
-  int width;
 
   void captureEvents() native;
 

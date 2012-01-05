@@ -6,10 +6,6 @@
 
 interface HTMLLabelElement extends HTMLElement {
 
-  String get accessKey();
-
-  void set accessKey(String value);
-
   HTMLElement get control();
 
   HTMLFormElement get form();

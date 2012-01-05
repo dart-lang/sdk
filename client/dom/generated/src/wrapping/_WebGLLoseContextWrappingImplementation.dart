@@ -4,11 +4,11 @@
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitLoseContextWrappingImplementation extends DOMWrapperBase implements WebKitLoseContext {
-  _WebKitLoseContextWrappingImplementation() : super() {}
+class _WebGLLoseContextWrappingImplementation extends DOMWrapperBase implements WebGLLoseContext {
+  _WebGLLoseContextWrappingImplementation() : super() {}
 
-  static create__WebKitLoseContextWrappingImplementation() native {
-    return new _WebKitLoseContextWrappingImplementation();
+  static create__WebGLLoseContextWrappingImplementation() native {
+    return new _WebGLLoseContextWrappingImplementation();
   }
 
   void loseContext() {
@@ -23,5 +23,5 @@ class _WebKitLoseContextWrappingImplementation extends DOMWrapperBase implements
   }
   static void _restoreContext(receiver) native;
 
-  String get typeName() { return "WebKitLoseContext"; }
+  String get typeName() { return "WebGLLoseContext"; }
 }

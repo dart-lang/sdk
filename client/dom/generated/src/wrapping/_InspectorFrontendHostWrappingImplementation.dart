@@ -17,6 +17,11 @@ class _InspectorFrontendHostWrappingImplementation extends DOMWrapperBase implem
   }
   static void _bringToFront(receiver) native;
 
+  bool canSaveAs() {
+    return _canSaveAs(this);
+  }
+  static bool _canSaveAs(receiver) native;
+
   void closeWindow() {
     _closeWindow(this);
     return;
@@ -29,12 +34,6 @@ class _InspectorFrontendHostWrappingImplementation extends DOMWrapperBase implem
   }
   static void _copyText(receiver, text) native;
 
-  void disconnectFromBackend() {
-    _disconnectFromBackend(this);
-    return;
-  }
-  static void _disconnectFromBackend(receiver) native;
-
   String hiddenPanels() {
     return _hiddenPanels(this);
   }
@@ -45,6 +44,11 @@ class _InspectorFrontendHostWrappingImplementation extends DOMWrapperBase implem
     return;
   }
   static void _inspectedURLChanged(receiver, newURL) native;
+
+  String loadResourceSynchronously(String url) {
+    return _loadResourceSynchronously(this, url);
+  }
+  static String _loadResourceSynchronously(receiver, url) native;
 
   void loaded() {
     _loaded(this);
@@ -121,11 +125,11 @@ class _InspectorFrontendHostWrappingImplementation extends DOMWrapperBase implem
   }
   static void _setAttachedWindowHeight(receiver, height) native;
 
-  void setExtensionAPI(String script) {
-    _setExtensionAPI(this, script);
+  void setInjectedScriptForOrigin(String origin, String script) {
+    _setInjectedScriptForOrigin(this, origin, script);
     return;
   }
-  static void _setExtensionAPI(receiver, script) native;
+  static void _setInjectedScriptForOrigin(receiver, origin, script) native;
 
   void showContextMenu(MouseEvent event, Object items) {
     _showContextMenu(this, event, items);

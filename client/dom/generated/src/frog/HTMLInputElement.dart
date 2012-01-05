@@ -3,8 +3,6 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
 
   String accept;
 
-  String accessKey;
-
   String align;
 
   String alt;
@@ -18,6 +16,8 @@ class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
   bool defaultChecked;
 
   String defaultValue;
+
+  String dirName;
 
   bool disabled;
 
