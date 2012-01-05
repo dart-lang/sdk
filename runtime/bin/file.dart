@@ -106,10 +106,10 @@ interface File default _File {
 
   /**
    * Get the canonical full path corresponding to the file name. The
-   * [fullPathHandler] is called when the fullPath operation
-   * completes.
+   * [fullPathHandler] is called with the result when the fullPath
+   * operation completes.
    */
-  String fullPath();
+  void fullPath();
 
   /**
    * Synchronously get the canonical full path corresponding to the file name.
