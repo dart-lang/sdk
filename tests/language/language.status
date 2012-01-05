@@ -214,10 +214,8 @@ CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
 ClosureSharedStateTest: Fail
 ConstFactoryNegativeTest: Fail
-ConstInit5NegativeTest: Pass  # Should fail at compile-time, not at runtime
 ConstInit7NegativeTest: Fail # Issue 1000
 ConstObjectsAreImmutableTest: Fail
-CTConstTest: Fail # Not checking for generic type in const expression.
 DefaultFactoryLibraryTest: Fail    # Issue 514
 DynamicTest: Fail
 ExampleConstructorTest: Fail
@@ -344,6 +342,18 @@ StaticField2RunNegativeTest: Pass
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
+
+
+[ $component == frogsh || $component == frogium ]
+ConstInit5NegativeTest: Pass  # Should fail at compile-time, not at runtime
+CTConstTest: Fail # Not checking for generic type in const expression.
+
+
+[ $component == frog ]
+ConstInit5NegativeTest: Crash
+CTConstTest: Crash
+Prefix19NegativeTest: Crash
+
 
 [ $arch == x64 ]
 *: Skip
