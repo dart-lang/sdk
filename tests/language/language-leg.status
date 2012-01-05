@@ -245,7 +245,7 @@ NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
 NativeTest: Fail
-NestedCommentsTest: Crash
+NestedCommentsTest: Fail
 NewExpression2NegativeTest: Crash
 NewExpression3NegativeTest: Crash
 NewExpressionTypeArgsFrogTest/00: Crash
