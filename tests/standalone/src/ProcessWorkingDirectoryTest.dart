@@ -20,8 +20,6 @@ class ProcessWorkingDirectoryTest {
     directory.createTempSync();
     Expect.isTrue(directory.existsSync());
 
-    print(fullTestFilePath);
-
     Process process = new Process.start(fullTestFilePath,
                                         const ["0", "0", "99", "0"],
                                         directory.path);
