@@ -241,8 +241,11 @@ class StandardTestSuite implements TestSuite {
       // rest. They use the .dart suffix in the status files. They
       // find tests in weird ways (testing that they contain "#").
       // They need to be redone.
-      start = filename.indexOf(directoryPath);
-      testName = filename.substring(start + directoryPath.length + 1,
+      // directoryPath may start with '../'.
+      String sanitizedDirectoryPath = (directoryPath.startsWith('../')) ?
+          directoryPath.substring(3) : directoryPath;
+      start = filename.indexOf(sanitizedDirectoryPath);
+      testName = filename.substring(start + sanitizedDirectoryPath.length + 1,
                                     filename.length);
       if (configuration['component'] != 'dartc') {
         if (testName.endsWith('.dart')) {
@@ -263,7 +266,7 @@ class StandardTestSuite implements TestSuite {
       case 'dartium':
       case 'chromium':
       case 'frogium':
-          enqueueBrowserTest(filename, testName,optionsFromFile,
+          enqueueBrowserTest(filename, testName, optionsFromFile,
                              expectations, isNegative);
         break;
       default:
@@ -475,9 +478,13 @@ class StandardTestSuite implements TestSuite {
                              configuration['component'],
                              testUniqueName];
 
-    Directory tempDir;
-    String tempDirPath =
-        new File(TestUtils.buildDir(configuration)).fullPathSync();
+    String tempDirPath = TestUtils.buildDir(configuration);
+    Directory tempDir = new Directory(tempDirPath);
+    if (!tempDir.existsSync()) {
+      throw new Exception('Build directory $tempDirPath does not exist.');
+    }
+    tempDirPath = new File(tempDirPath).fullPathSync();
+
     for (String subdirectory in generatedTestPath) {
       tempDirPath = '$tempDirPath/$subdirectory';
       tempDir = new Directory(tempDirPath);
