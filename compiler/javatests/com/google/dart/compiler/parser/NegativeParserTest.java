@@ -313,15 +313,16 @@ public class NegativeParserTest extends CompilerTestCase {
   }
 
   public void testInvalidStringInterpolation() {
-    parseExpectErrors(Joiner.on("\n").join(
-        "void main() {",
-        "  print(\"1 ${42} 2 ${} 3\");",
-        "  print(\"1 ${42} 2 ${10;} 3\");",
-        "  print(\"1 ${42} 2 ${10,20} 3\");",
-        "  print(\"1 ${42} 2 ${10 20} 3\");",
-        "  print(\"$\");",
-        "  print(\"$",
-        "}"),
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "void main() {",
+            "  print(\"1 ${42} 2 ${} 3\");",
+            "  print(\"1 ${42} 2 ${10;} 3\");",
+            "  print(\"1 ${42} 2 ${10,20} 3\");",
+            "  print(\"1 ${42} 2 ${10 20} 3\");",
+            "  print(\"$\");",
+            "  print(\"$",
+            "}"),
         errEx(ParserErrorCode.UNEXPECTED_TOKEN, 2, 22, 1),
         errEx(ParserErrorCode.EXPECTED_TOKEN, 2, 23, 3),
         errEx(ParserErrorCode.EXPECTED_TOKEN, 3, 24, 1),
@@ -381,6 +382,17 @@ public class NegativeParserTest extends CompilerTestCase {
             "  abstract foo() {",
             "  }",
             "}"),
-        errEx(ParserErrorCode.ABSTRACT_METHOD_WITH_BODY, 3, 3, 8));
+        errEx(ParserErrorCode.ABSTRACT_METHOD_WITH_BODY, 3, 12, 3));
+  }
+
+  public void test_interfaceMethodWithBody() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface A {",
+            "  foo() {",
+            "  }",
+            "}"),
+        errEx(ParserErrorCode.INTERFACE_METHOD_WITH_BODY, 3, 3, 3));
   }
 }

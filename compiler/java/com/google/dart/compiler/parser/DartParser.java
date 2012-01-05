@@ -114,7 +114,6 @@ public class DartParser extends CompletionHooksParserBase {
   private boolean isParsingInterface;
   private boolean isTopLevelAbstract;
   private DartScanner.Position topLevelAbstractModifierPosition;
-  private DartScanner.Position classLevelAbstractModifierPosition;
   private boolean isParsingClass;
 
   /**
@@ -868,7 +867,6 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
       }
       modifiers = modifiers.makeAbstract();
-      classLevelAbstractModifierPosition = position();
     } else if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.FACTORY_MEMBER_IN_INTERFACE);
@@ -1209,13 +1207,15 @@ public class DartParser extends CompletionHooksParserBase {
   private DartNode parseMethodOrAccessor(Modifiers modifiers, DartTypeNode returnType) {
     DartMethodDefinition method = done(parseMethod(modifiers, returnType));
     // Abstract method can not have a body.
-    if (method.getModifiers().isAbstract() && method.getFunction().getBody() != null) {
-      Location location =
-          new Location(classLevelAbstractModifierPosition,
-              classLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length()));
-      reportError(new DartCompilationError(ctx.getSource(),
-          location,
-          ParserErrorCode.ABSTRACT_METHOD_WITH_BODY));
+    if (method.getFunction().getBody() != null) {
+      if (isParsingInterface) {
+        reportError(new DartCompilationError(method.getName(),
+            ParserErrorCode.INTERFACE_METHOD_WITH_BODY));
+      }
+      if (method.getModifiers().isAbstract()) {
+        reportError(new DartCompilationError(method.getName(),
+            ParserErrorCode.ABSTRACT_METHOD_WITH_BODY));
+      }
     }
     // If getter or setter, generate DartFieldDefinition instead.
     if (method.getModifiers().isGetter() || method.getModifiers().isSetter()) {

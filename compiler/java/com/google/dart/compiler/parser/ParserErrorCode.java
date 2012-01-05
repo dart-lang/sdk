@@ -58,6 +58,7 @@ public enum ParserErrorCode implements ErrorCode {
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
   INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
+  INTERFACE_METHOD_WITH_BODY("Interface method can not have a body"),
   INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),
