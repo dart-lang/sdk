@@ -409,11 +409,11 @@ class StandardTestSuite implements TestSuite {
     htmlTest.closeSync();
 
     for (var vmOptions in optionsFromFile['vmOptions']) {
-      List<String> compilerArgs;
+      List<String> compilerArgs = TestUtils.standardOptions(configuration);
       String compilerExecutable = TestUtils.compilerPath(configuration);
       switch (component) {
         case 'chromium':
-          compilerArgs = ['--work', tempDir.path];
+          compilerArgs.addAll(['--work', tempDir.path]);
           if (configuration['mode'] ==  'release') {
             compilerArgs.add('--optimize');
           }
@@ -425,9 +425,9 @@ class StandardTestSuite implements TestSuite {
           // TODO(whesse): Add --fatal-type-errors if needed.
           break;
         case 'frogium':
-          compilerArgs = ['--libdir=$dartDir/frog/lib',
-                          '--compile-only',
-                          '--out=$compiledDartWrapperFilename'];
+          compilerArgs.addAll(['--libdir=$dartDir/frog/lib',
+                               '--compile-only',
+                               '--out=$compiledDartWrapperFilename']);
           compilerArgs.addAll(vmOptions);
           compilerArgs.add(dartWrapperFilename);
           break;
