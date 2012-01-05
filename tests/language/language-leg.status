@@ -18,7 +18,6 @@ BadNamedParameters2Test: Fail
 BadNamedParametersTest: Fail
 BitOperationsTest: Fail
 BlockScopeTest: Crash
-BoolTest: Fail
 BreakTest: Fail
 CTConst2Test: Fail
 CTConst3Test: Fail
@@ -43,7 +42,6 @@ ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
 ClosuresWithComplexParamsTest: Fail
-ComparisonTest: Fail
 CompoundAssignmentOperatorTest: Crash
 ConstEscapeFrogTest: Fail
 ConstInit7NegativeTest: Fail
@@ -180,7 +178,7 @@ InstanceFieldInitializerTest: Fail
 InstanceIncrDeoptTest: Fail
 Instanceof2Test: Fail
 InstanceofTest: Fail
-InstantiateTypeVariableNegativeTest: Crash
+# InstantiateTypeVariableNegativeTest: Fail  # Fails for the wrong reason.
 IntTest: Fail
 InterfaceConstantsTest: Fail
 InterfaceFactoryMultiTest: Fail
@@ -216,7 +214,7 @@ MapLiteral3Test: Fail
 MapLiteral4Test: Fail
 MapLiteralNegativeTest: Crash
 MapLiteralTest: Fail
-MapTest: Crash
+MapTest: Fail
 MathVMTest: Fail
 MethodBindingTest: Crash
 MethodInvocationTest: Fail
@@ -248,8 +246,6 @@ NativeTest: Fail
 NestedCommentsTest: Fail
 NewExpression2NegativeTest: Crash
 NewExpression3NegativeTest: Crash
-NewExpressionTypeArgsFrogTest/00: Crash
-NewExpressionTypeArgsFrogTest/01: Crash
 NewExpressionTypeArgsFrogTest/02: Fail
 NoSuchMethodTest: Fail
 NonConstConstructorWithoutBodyTest: Crash
@@ -302,14 +298,13 @@ PropertyFieldOverrideTest: Fail
 PseudoKWNegativeTest: Fail
 PseudoKWTest: Fail
 RawStringTest: Fail
-RegEx2Test: Crash
+RegEx2Test: Fail
 RegExp2Test: Fail
 RegExp3Test: Fail
 RegExpTest: Fail
 RethrowTest: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
-ScopeVariableTest: Fail
 Setter0Test: Fail
 Setter1Test: Crash
 SetterDeclaration2NegativeTest: Crash
