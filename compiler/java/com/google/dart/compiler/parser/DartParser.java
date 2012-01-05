@@ -606,8 +606,9 @@ public class DartParser extends CompletionHooksParserBase {
     DartStringLiteral nativeName = null;
     if (!isParsingInterface && optionalPseudoKeyword(NATIVE_KEYWORD)) {
       beginLiteral();
-      expect(Token.STRING);
-      nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
+      if (expect(Token.STRING)) {
+        nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
+      }
       if (superType != null) {
         reportError(position(), ParserErrorCode.EXTENDED_NATIVE_CLASS);
       }
