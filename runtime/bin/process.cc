@@ -14,7 +14,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   intptr_t out;
   intptr_t err;
   intptr_t exit_event;
-  Dart_Handle status_handle = Dart_GetNativeArgument(args, 7);
+  Dart_Handle status_handle = Dart_GetNativeArgument(args, 8);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
   // The Dart code verifies that the path implements the String
   // interface. However, only builtin Strings are handled by
@@ -53,17 +53,38 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     }
     string_args[i] = const_cast<char *>(DartUtils::GetStringValue(arg));
   }
-  Dart_Handle in_handle = Dart_GetNativeArgument(args, 3);
-  Dart_Handle out_handle = Dart_GetNativeArgument(args, 4);
-  Dart_Handle err_handle = Dart_GetNativeArgument(args, 5);
-  Dart_Handle exit_handle = Dart_GetNativeArgument(args, 6);
+  Dart_Handle working_directory_handle = Dart_GetNativeArgument(args, 3);
+  // Defaults to the current working directoy.
+  const char* working_directory = NULL;
+  if (Dart_IsString(working_directory_handle)) {
+    working_directory = DartUtils::GetStringValue(working_directory_handle);
+  } else if (!Dart_IsNull(working_directory_handle)) {
+    delete[] string_args;
+    DartUtils::SetIntegerInstanceField(status_handle, "_errorCode", 0);
+    DartUtils::SetStringInstanceField(
+        status_handle, "_errorMessage",
+        "WorkingDirectory must be a builtin string");
+    Dart_SetReturnValue(args, Dart_NewBoolean(false));
+    Dart_ExitScope();
+    return;
+  }
+  Dart_Handle in_handle = Dart_GetNativeArgument(args, 4);
+  Dart_Handle out_handle = Dart_GetNativeArgument(args, 5);
+  Dart_Handle err_handle = Dart_GetNativeArgument(args, 6);
+  Dart_Handle exit_handle = Dart_GetNativeArgument(args, 7);
   intptr_t pid = -1;
   static const int kMaxChildOsErrorMessageLength = 256;
   char os_error_message[kMaxChildOsErrorMessageLength];
 
-  int error_code = Process::Start(
-      path, string_args, length,
-      &in, &out, &err, &pid, &exit_event,
+  int error_code = Process::Start(path,
+                                  string_args,
+                                  length,
+                                  working_directory,
+                                  &in,
+                                  &out,
+                                  &err,
+                                  &pid,
+                                  &exit_event,
       os_error_message, kMaxChildOsErrorMessageLength);
   if (error_code == 0) {
     DartUtils::SetIntegerInstanceField(in_handle, DartUtils::kIdFieldName, in);

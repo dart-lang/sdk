@@ -229,6 +229,7 @@ static unsigned int __stdcall TerminationWaitThread(void* args) {
 int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
+                   const char* working_directory,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
@@ -346,7 +347,7 @@ int Process::Start(const char* path,
                               TRUE,   // InheritHandles
                               0,      // CreationFlags
                               NULL,   // Environment
-                              NULL,   // CurrentDirectory,
+                              working_directory,
                               &startup_info,
                               &process_info);
 

@@ -133,6 +133,7 @@ static void ReportChildError(int exec_control_fd) {
 int Process::Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
+                   const char* working_directory,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
@@ -259,6 +260,10 @@ int Process::Start(const char* path,
       ReportChildError(exec_control[1]);
     }
     close(read_err[1]);
+
+    if (working_directory != NULL && chdir(working_directory) == -1) {
+      ReportChildError(exec_control[1]);
+    }
 
     execvp(path, const_cast<char* const*>(program_arguments));
     ReportChildError(exec_control[1]);

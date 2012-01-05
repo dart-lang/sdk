@@ -4,15 +4,22 @@
 
 interface Process default _Process {
   /**
-   * Creates a new process object and starts a process running the executable
-   * found at [path] with the specified [arguments]. When the process has
-   * been successfully started the [startHandler] is called. If the process
-   * fails to start the [errorHandler] is called.
+   * Creates a new process object and starts a process running the 
+   * [executable] with the specified [arguments]. When the process has been 
+   * successfully started the [startHandler] is called. If the process fails 
+   * to start the [errorHandler] is called.
+   *
+   * An optional [workingDirectory] can be passed to specify where the process
+   * is run from. Note that the change of directory occurs before executing
+   * the process on some platforms, which may have impact when using relative
+   * paths for [executable] and [arguments].
    *
    * No data can be written to the process stdin and the process cannot be
    * closed nor killed before the [startHandler] has been invoked.
    */
-  Process.start(String path, List<String> arguments);
+  Process.start(String executable, 
+                List<String> arguments, 
+                [String workingDirectory]);
 
   /**
    * Returns an input stream of the process stdout.

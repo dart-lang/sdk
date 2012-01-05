@@ -16,6 +16,7 @@ class Process {
   static int Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
+                   const char* working_directory,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,
