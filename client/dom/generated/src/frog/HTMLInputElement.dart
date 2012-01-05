@@ -1,5 +1,5 @@
 
-class HTMLInputElement extends HTMLElement native "HTMLInputElement" {
+class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
 
   String accept;
 
