@@ -59,7 +59,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    container.elements.addAll(this.clone(true).elements);
+    container.elements.addAll(this.clone(true).dynamic.elements);
     return container.innerHTML;
   }
 
