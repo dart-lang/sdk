@@ -257,7 +257,7 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 
   // First check if it is a Smi (i.e not a heap object).
   if (!rawobj->IsHeapObject()) {
-    Write<int64_t>(reinterpret_cast<int64_t>(rawobj));
+    Write<int64_t>(reinterpret_cast<intptr_t>(rawobj));
     return;
   }
 
