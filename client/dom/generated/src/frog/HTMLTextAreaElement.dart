@@ -1,13 +1,13 @@
 
 class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
+  String accessKey;
+
   bool autofocus;
 
   int cols;
 
   String defaultValue;
-
-  String dirName;
 
   bool disabled;
 

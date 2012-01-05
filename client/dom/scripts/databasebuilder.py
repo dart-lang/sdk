@@ -430,25 +430,21 @@ class DatabaseBuilder(object):
 
     # Step 2: Add all new interfaces and merge overlapping ones
     for interface, module_name, import_options in self._imported_interfaces:
-      if not interface.is_supplemental:
-        if self._database.HasInterface(interface.id):
-          old_interface = self._database.GetInterface(interface.id)
-          self._merge_interfaces(old_interface, interface, import_options)
-        else:
-          if import_options.add_new_interfaces:
-            self._database.AddInterface(interface)
+      if not self._database.HasInterface(interface.id):
+        if import_options.add_new_interfaces:
+          self._database.AddInterface(interface)
+      elif not interface.is_supplemental:
+        old_interface = self._database.GetInterface(interface.id)
+        self._merge_interfaces(old_interface, interface,
+          import_options)
 
     # Step 3: Merge in supplemental interfaces
     for interface, module_name, import_options in self._imported_interfaces:
-      if interface.is_supplemental:
-        # For now, ignore WebKit [Supplemental=BaseInterface] attributes.
-        target = interface.ext_attrs['Supplemental']
-        if target:
-          continue
-        target = interface.id
-        if self._database.HasInterface(target):
-          old_interface = self._database.GetInterface(target)
-          self._merge_interfaces(old_interface, interface, import_options)
+      if (interface.is_supplemental
+          and self._database.HasInterface(interface.id)):
+        old_interface = self._database.GetInterface(interface.id)
+        self._merge_interfaces(old_interface, interface,
+          import_options)
 
     # Step 4: Resolve 'implements' statements
     for impl_stmt, import_options in self._impl_stmts:

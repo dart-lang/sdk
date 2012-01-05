@@ -6,6 +6,10 @@
 
 interface HTMLLegendElement extends HTMLElement {
 
+  String get accessKey();
+
+  void set accessKey(String value);
+
   String get align();
 
   void set align(String value);

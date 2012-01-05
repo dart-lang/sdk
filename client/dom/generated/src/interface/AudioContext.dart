@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface AudioContext factory _AudioContextFactoryProvider {
+interface AudioContext default _AudioContextFactoryProvider {
 
   AudioContext();
 

@@ -41,7 +41,7 @@ dom_externs.abort;                      // operation FileReader.abort, operation
 dom_externs.accept;                     // attribute HTMLInputElement.accept
 dom_externs.acceptCharset;              // attribute HTMLFormElement.acceptCharset
 dom_externs.acceptNode;                 // operation NodeFilter.acceptNode
-dom_externs.accessKey;                  // attribute HTMLElement.accessKey
+dom_externs.accessKey;                  // attribute HTMLAnchorElement.accessKey, attribute HTMLAreaElement.accessKey, attribute HTMLButtonElement.accessKey, attribute HTMLInputElement.accessKey, attribute HTMLLabelElement.accessKey, attribute HTMLLegendElement.accessKey, attribute HTMLTextAreaElement.accessKey
 dom_externs.accuracy;                   // attribute Coordinates.accuracy
 dom_externs.action;                     // attribute HTMLFormElement.action
 dom_externs.activeCues;                 // attribute TextTrack.activeCues
@@ -50,7 +50,7 @@ dom_externs.activeTexture;              // operation WebGLRenderingContext.activ
 dom_externs.add;                        // operation DOMTokenList.add, operation DataTransferItemList.add, operation HTMLSelectElement.add, operation IDBObjectStore.add
 dom_externs.addColorStop;               // operation CanvasGradient.addColorStop
 dom_externs.addCue;                     // operation TextTrack.addCue
-dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation MediaController.addEventListener, operation MessagePort.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation SVGElementInstance.addEventListener, operation TextTrack.addEventListener, operation TextTrackCue.addEventListener, operation TextTrackList.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
+dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation MessagePort.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation SVGElementInstance.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
 dom_externs.addListener;                // operation MediaQueryList.addListener
 dom_externs.addRange;                   // operation DOMSelection.addRange
 dom_externs.addRule;                    // operation CSSStyleSheet.addRule
@@ -158,7 +158,7 @@ dom_externs.buffer;                     // attribute ArrayBufferView.buffer, att
 dom_externs.bufferData;                 // operation WebGLRenderingContext.bufferData
 dom_externs.bufferSize;                 // attribute JavaScriptAudioNode.bufferSize
 dom_externs.bufferSubData;              // operation WebGLRenderingContext.bufferSubData
-dom_externs.buffered;                   // attribute HTMLMediaElement.buffered, attribute MediaController.buffered
+dom_externs.buffered;                   // attribute HTMLMediaElement.buffered
 dom_externs.bufferedAmount;             // attribute WebSocket.bufferedAmount
 dom_externs.button;                     // attribute MouseEvent.button
 dom_externs.byteLength;                 // attribute ArrayBuffer.byteLength, attribute ArrayBufferView.byteLength
@@ -167,7 +167,6 @@ dom_externs.c;                          // attribute SVGMatrix.c, attribute WebK
 dom_externs.callUID;                    // attribute ScriptProfileNode.callUID
 dom_externs.caller;                     // attribute JavaScriptCallFrame.caller
 dom_externs.canPlayType;                // operation HTMLMediaElement.canPlayType
-dom_externs.canSaveAs;                  // operation InspectorFrontendHost.canSaveAs
 dom_externs.cancel;                     // operation Notification.cancel
 dom_externs.cancelBubble;               // attribute Event.cancelBubble
 dom_externs.cancelScheduledValues;      // operation AudioParam.cancelScheduledValues
@@ -231,7 +230,7 @@ dom_externs.closePath;                  // operation CanvasRenderingContext2D.cl
 dom_externs.closeWindow;                // operation InspectorFrontendHost.closeWindow
 dom_externs.closed;                     // attribute DOMWindow.closed
 dom_externs.cmp;                        // operation IDBFactory.cmp
-dom_externs.code;                       // attribute CloseEvent.code, attribute DOMException.code, attribute EventException.code, attribute FileError.code, attribute FileException.code, attribute HTMLAppletElement.code, attribute HTMLObjectElement.code, attribute IDBDatabaseError.code, attribute IDBDatabaseException.code, attribute MediaError.code, attribute OperationNotAllowedException.code, attribute PositionError.code, attribute RangeException.code, attribute SQLError.code, attribute SQLException.code, attribute SVGException.code, attribute XMLHttpRequestException.code, attribute XPathException.code
+dom_externs.code;                       // attribute CloseEvent.code, attribute DOMException.code, attribute EventException.code, attribute FileError.code, attribute FileException.code, attribute HTMLAppletElement.code, attribute HTMLObjectElement.code, attribute IDBDatabaseError.code, attribute IDBDatabaseException.code, attribute MediaError.code, attribute NavigatorUserMediaError.code, attribute OperationNotAllowedException.code, attribute PositionError.code, attribute RangeException.code, attribute SQLError.code, attribute SQLException.code, attribute SVGException.code, attribute XMLHttpRequestException.code, attribute XPathException.code
 dom_externs.codeBase;                   // attribute HTMLAppletElement.codeBase, attribute HTMLObjectElement.codeBase
 dom_externs.codeType;                   // attribute HTMLObjectElement.codeType
 dom_externs.colSpan;                    // attribute HTMLTableCellElement.colSpan
@@ -253,8 +252,6 @@ dom_externs.comparePoint;               // operation Range.comparePoint
 dom_externs.compatMode;                 // attribute Document.compatMode, attribute HTMLDocument.compatMode
 dom_externs.compileShader;              // operation WebGLRenderingContext.compileShader
 dom_externs.complete;                   // attribute HTMLImageElement.complete
-dom_externs.compressedTexImage2D;       // operation WebGLCompressedTextures.compressedTexImage2D
-dom_externs.compressedTexSubImage2D;    // operation WebGLCompressedTextures.compressedTexSubImage2D
 dom_externs.coneGain;                   // attribute AudioPannerNode.coneGain
 dom_externs.coneInnerAngle;             // attribute AudioPannerNode.coneInnerAngle
 dom_externs.coneOuterAngle;             // attribute AudioPannerNode.coneOuterAngle
@@ -277,7 +274,6 @@ dom_externs.contentWindow;              // attribute HTMLFrameElement.contentWin
 dom_externs.context;                    // attribute AudioNode.context
 dom_externs.continueFunction;           // operation IDBCursor.continueFunction
 dom_externs.control;                    // attribute HTMLLabelElement.control
-dom_externs.controller;                 // attribute HTMLMediaElement.controller
 dom_externs.controls;                   // attribute HTMLMediaElement.controls
 dom_externs.convertToSpecifiedUnits;    // operation SVGAngle.convertToSpecifiedUnits, operation SVGLength.convertToSpecifiedUnits
 dom_externs.cookie;                     // attribute Document.cookie
@@ -289,7 +285,7 @@ dom_externs.copyText;                   // operation InjectedScriptHost.copyText
 dom_externs.copyTo;                     // operation Entry.copyTo, operation EntrySync.copyTo
 dom_externs.correspondingElement;       // attribute SVGElementInstance.correspondingElement
 dom_externs.correspondingUseElement;    // attribute SVGElementInstance.correspondingUseElement
-dom_externs.count;                      // operation Console.count, operation IDBIndex.count, operation IDBObjectStore.count
+dom_externs.count;                      // operation Console.count
 dom_externs.create;                     // attribute WebKitFlags.create
 dom_externs.createAnalyser;             // operation AudioContext.createAnalyser
 dom_externs.createAttribute;            // operation Document.createAttribute
@@ -389,7 +385,7 @@ dom_externs.currentNode;                // attribute TreeWalker.currentNode
 dom_externs.currentScale;               // attribute SVGSVGElement.currentScale
 dom_externs.currentSrc;                 // attribute HTMLMediaElement.currentSrc
 dom_externs.currentTarget;              // attribute Event.currentTarget
-dom_externs.currentTime;                // attribute AudioContext.currentTime, attribute HTMLMediaElement.currentTime, attribute MediaController.currentTime
+dom_externs.currentTime;                // attribute AudioContext.currentTime, attribute HTMLMediaElement.currentTime
 dom_externs.currentTranslate;           // attribute SVGSVGElement.currentTranslate
 dom_externs.curve;                      // attribute WaveShaperNode.curve
 dom_externs.customError;                // attribute ValidityState.customError
@@ -408,7 +404,7 @@ dom_externs.decodeAudioData;            // operation AudioContext.decodeAudioDat
 dom_externs.defaultCharset;             // attribute Document.defaultCharset
 dom_externs.defaultChecked;             // attribute HTMLInputElement.defaultChecked
 dom_externs.defaultMuted;               // attribute HTMLMediaElement.defaultMuted
-dom_externs.defaultPlaybackRate;        // attribute HTMLMediaElement.defaultPlaybackRate, attribute MediaController.defaultPlaybackRate
+dom_externs.defaultPlaybackRate;        // attribute HTMLMediaElement.defaultPlaybackRate
 dom_externs.defaultPrevented;           // attribute Event.defaultPrevented
 dom_externs.defaultSelected;            // attribute HTMLOptionElement.defaultSelected
 dom_externs.defaultStatus;              // attribute DOMWindow.defaultStatus
@@ -455,14 +451,14 @@ dom_externs.didCreateWorker;            // operation InjectedScriptHost.didCreat
 dom_externs.didDestroyWorker;           // operation InjectedScriptHost.didDestroyWorker
 dom_externs.diffuseConstant;            // attribute SVGFEDiffuseLightingElement.diffuseConstant
 dom_externs.dir;                        // operation Console.dir, attribute HTMLDocument.dir, attribute HTMLElement.dir, attribute Notification.dir
-dom_externs.dirName;                    // attribute HTMLInputElement.dirName, attribute HTMLTextAreaElement.dirName
 dom_externs.direction;                  // attribute HTMLMarqueeElement.direction, attribute IDBCursor.direction, attribute TextTrackCue.direction, attribute WebKitAnimation.direction
 dom_externs.dirxml;                     // operation Console.dirxml
 dom_externs.disable;                    // operation WebGLRenderingContext.disable
 dom_externs.disableVertexAttribArray;   // operation WebGLRenderingContext.disableVertexAttribArray
 dom_externs.disabled;                   // attribute HTMLButtonElement.disabled, attribute HTMLInputElement.disabled, attribute HTMLKeygenElement.disabled, attribute HTMLLinkElement.disabled, attribute HTMLOptGroupElement.disabled, attribute HTMLOptionElement.disabled, attribute HTMLSelectElement.disabled, attribute HTMLStyleElement.disabled, attribute HTMLTextAreaElement.disabled, attribute StyleSheet.disabled
 dom_externs.disconnect;                 // operation AudioNode.disconnect, operation WebKitMutationObserver.disconnect
-dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation MediaController.dispatchEvent, operation MessagePort.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation SVGElementInstance.dispatchEvent, operation TextTrack.dispatchEvent, operation TextTrackCue.dispatchEvent, operation TextTrackList.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
+dom_externs.disconnectFromBackend;      // operation InspectorFrontendHost.disconnectFromBackend
+dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation MessagePort.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation SVGElementInstance.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
 dom_externs.distanceGain;               // attribute AudioPannerNode.distanceGain
 dom_externs.distanceModel;              // attribute AudioPannerNode.distanceModel
 dom_externs.divisor;                    // attribute SVGFEConvolveMatrixElement.divisor
@@ -488,7 +484,7 @@ dom_externs.drawImageFromRect;          // operation CanvasRenderingContext2D.dr
 dom_externs.drawingBufferHeight;        // attribute WebGLRenderingContext.drawingBufferHeight
 dom_externs.drawingBufferWidth;         // attribute WebGLRenderingContext.drawingBufferWidth
 dom_externs.dropEffect;                 // attribute Clipboard.dropEffect
-dom_externs.duration;                   // attribute AudioBuffer.duration, attribute HTMLMediaElement.duration, attribute MediaController.duration, attribute WebKitAnimation.duration
+dom_externs.duration;                   // attribute AudioBuffer.duration, attribute HTMLMediaElement.duration, attribute WebKitAnimation.duration
 dom_externs.dx;                         // attribute SVGFEDropShadowElement.dx, attribute SVGFEOffsetElement.dx, attribute SVGGlyphRefElement.dx, attribute SVGTextPositioningElement.dx
 dom_externs.dy;                         // attribute SVGFEDropShadowElement.dy, attribute SVGFEOffsetElement.dy, attribute SVGGlyphRefElement.dy, attribute SVGTextPositioningElement.dy
 dom_externs.e;                          // attribute SVGMatrix.e, attribute WebKitCSSMatrix.e
@@ -584,7 +580,6 @@ dom_externs.frequencyBinCount;          // attribute RealtimeAnalyserNode.freque
 dom_externs.fromElement;                // attribute MouseEvent.fromElement
 dom_externs.frontFace;                  // operation WebGLRenderingContext.frontFace
 dom_externs.fullPath;                   // attribute Entry.fullPath, attribute EntrySync.fullPath
-dom_externs.functionLocation;           // operation InjectedScriptHost.functionLocation
 dom_externs.functionName;               // attribute JavaScriptCallFrame.functionName, attribute ScriptProfileNode.functionName
 dom_externs.fx;                         // attribute SVGRadialGradientElement.fx
 dom_externs.fy;                         // attribute SVGRadialGradientElement.fy
@@ -644,7 +639,6 @@ dom_externs.getFloat64;                 // operation DataView.getFloat64
 dom_externs.getFloatFrequencyData;      // operation RealtimeAnalyserNode.getFloatFrequencyData
 dom_externs.getFloatValue;              // operation CSSPrimitiveValue.getFloatValue
 dom_externs.getFramebufferAttachmentParameter;  // operation WebGLRenderingContext.getFramebufferAttachmentParameter
-dom_externs.getFrequencyResponse;       // operation BiquadFilterNode.getFrequencyResponse
 dom_externs.getImageData;               // operation CanvasRenderingContext2D.getImageData
 dom_externs.getInt16;                   // operation DataView.getInt16
 dom_externs.getInt32;                   // operation DataView.getInt32
@@ -658,7 +652,7 @@ dom_externs.getNamedItem;               // operation NamedNodeMap.getNamedItem
 dom_externs.getNamedItemNS;             // operation NamedNodeMap.getNamedItemNS
 dom_externs.getNumberOfChars;           // operation SVGTextContentElement.getNumberOfChars
 dom_externs.getOverrideStyle;           // operation Document.getOverrideStyle
-dom_externs.getParameter;               // operation WebGLRenderingContext.getParameter, operation XSLTProcessor.getParameter
+dom_externs.getParameter;               // operation HTMLAnchorElement.getParameter, operation Location.getParameter, operation WebGLRenderingContext.getParameter, operation XSLTProcessor.getParameter
 dom_externs.getParent;                  // operation Entry.getParent, operation EntrySync.getParent
 dom_externs.getPathSegAtLength;         // operation SVGPathElement.getPathSegAtLength
 dom_externs.getPointAtLength;           // operation SVGPathElement.getPointAtLength
@@ -720,7 +714,7 @@ dom_externs.hash;                       // attribute HTMLAnchorElement.hash, att
 dom_externs.head;                       // attribute Document.head, attribute ScriptProfile.head
 dom_externs.headers;                    // attribute HTMLTableCellElement.headers
 dom_externs.heading;                    // attribute Coordinates.heading
-dom_externs.height;                     // attribute ClientRect.height, attribute HTMLAppletElement.height, attribute HTMLCanvasElement.height, attribute HTMLEmbedElement.height, attribute HTMLFrameElement.height, attribute HTMLIFrameElement.height, attribute HTMLImageElement.height, attribute HTMLMarqueeElement.height, attribute HTMLObjectElement.height, attribute HTMLTableCellElement.height, attribute HTMLVideoElement.height, attribute ImageData.height, attribute SVGFEBlendElement.height, attribute SVGFEColorMatrixElement.height, attribute SVGFEComponentTransferElement.height, attribute SVGFECompositeElement.height, attribute SVGFEConvolveMatrixElement.height, attribute SVGFEDiffuseLightingElement.height, attribute SVGFEDisplacementMapElement.height, attribute SVGFEDropShadowElement.height, attribute SVGFEFloodElement.height, attribute SVGFEGaussianBlurElement.height, attribute SVGFEImageElement.height, attribute SVGFEMergeElement.height, attribute SVGFEMorphologyElement.height, attribute SVGFEOffsetElement.height, attribute SVGFESpecularLightingElement.height, attribute SVGFETileElement.height, attribute SVGFETurbulenceElement.height, attribute SVGFilterElement.height, attribute SVGFilterPrimitiveStandardAttributes.height, attribute SVGForeignObjectElement.height, attribute SVGImageElement.height, attribute SVGMaskElement.height, attribute SVGPatternElement.height, attribute SVGRect.height, attribute SVGRectElement.height, attribute SVGSVGElement.height, attribute SVGUseElement.height, attribute Screen.height
+dom_externs.height;                     // attribute ClientRect.height, attribute HTMLAppletElement.height, attribute HTMLCanvasElement.height, attribute HTMLDocument.height, attribute HTMLEmbedElement.height, attribute HTMLFrameElement.height, attribute HTMLIFrameElement.height, attribute HTMLImageElement.height, attribute HTMLMarqueeElement.height, attribute HTMLObjectElement.height, attribute HTMLTableCellElement.height, attribute HTMLVideoElement.height, attribute ImageData.height, attribute SVGFEBlendElement.height, attribute SVGFEColorMatrixElement.height, attribute SVGFEComponentTransferElement.height, attribute SVGFECompositeElement.height, attribute SVGFEConvolveMatrixElement.height, attribute SVGFEDiffuseLightingElement.height, attribute SVGFEDisplacementMapElement.height, attribute SVGFEDropShadowElement.height, attribute SVGFEFloodElement.height, attribute SVGFEGaussianBlurElement.height, attribute SVGFEImageElement.height, attribute SVGFEMergeElement.height, attribute SVGFEMorphologyElement.height, attribute SVGFEOffsetElement.height, attribute SVGFESpecularLightingElement.height, attribute SVGFETileElement.height, attribute SVGFETurbulenceElement.height, attribute SVGFilterElement.height, attribute SVGFilterPrimitiveStandardAttributes.height, attribute SVGForeignObjectElement.height, attribute SVGImageElement.height, attribute SVGMaskElement.height, attribute SVGPatternElement.height, attribute SVGRect.height, attribute SVGRectElement.height, attribute SVGSVGElement.height, attribute SVGUseElement.height, attribute Screen.height
 dom_externs.hidden;                     // attribute HTMLElement.hidden
 dom_externs.hiddenPanels;               // operation InspectorFrontendHost.hiddenPanels
 dom_externs.high;                       // attribute HTMLMeterElement.high
@@ -747,15 +741,22 @@ dom_externs.incremental;                // attribute HTMLInputElement.incrementa
 dom_externs.indeterminate;              // attribute HTMLInputElement.indeterminate
 dom_externs.index;                      // attribute HTMLOptionElement.index, operation IDBObjectStore.index
 dom_externs.info;                       // operation Console.info
+dom_externs.initBeforeLoadEvent;        // operation BeforeLoadEvent.initBeforeLoadEvent
+dom_externs.initCloseEvent;             // operation CloseEvent.initCloseEvent
 dom_externs.initCompositionEvent;       // operation CompositionEvent.initCompositionEvent
 dom_externs.initCustomEvent;            // operation CustomEvent.initCustomEvent
 dom_externs.initDeviceOrientationEvent;  // operation DeviceOrientationEvent.initDeviceOrientationEvent
+dom_externs.initErrorEvent;             // operation ErrorEvent.initErrorEvent
 dom_externs.initEvent;                  // operation Event.initEvent
 dom_externs.initHashChangeEvent;        // operation HashChangeEvent.initHashChangeEvent
 dom_externs.initKeyboardEvent;          // operation KeyboardEvent.initKeyboardEvent
 dom_externs.initMessageEvent;           // operation MessageEvent.initMessageEvent
 dom_externs.initMouseEvent;             // operation MouseEvent.initMouseEvent
 dom_externs.initMutationEvent;          // operation MutationEvent.initMutationEvent
+dom_externs.initOverflowEvent;          // operation OverflowEvent.initOverflowEvent
+dom_externs.initPageTransitionEvent;    // operation PageTransitionEvent.initPageTransitionEvent
+dom_externs.initPopStateEvent;          // operation PopStateEvent.initPopStateEvent
+dom_externs.initProgressEvent;          // operation ProgressEvent.initProgressEvent
 dom_externs.initStorageEvent;           // operation StorageEvent.initStorageEvent
 dom_externs.initTextEvent;              // operation TextEvent.initTextEvent
 dom_externs.initTouchEvent;             // operation TouchEvent.initTouchEvent
@@ -806,7 +807,6 @@ dom_externs.isFile;                     // attribute Entry.isFile, attribute Ent
 dom_externs.isFramebuffer;              // operation WebGLRenderingContext.isFramebuffer
 dom_externs.isHTMLAllCollection;        // operation InjectedScriptHost.isHTMLAllCollection
 dom_externs.isId;                       // attribute Attr.isId
-dom_externs.isLocked;                   // operation PointerLock.isLocked
 dom_externs.isMap;                      // attribute HTMLImageElement.isMap
 dom_externs.isPointInPath;              // operation CanvasRenderingContext2D.isPointInPath
 dom_externs.isPointInRange;             // operation Range.isPointInRange
@@ -818,7 +818,7 @@ dom_externs.isShader;                   // operation WebGLRenderingContext.isSha
 dom_externs.isSupported;                // operation Node.isSupported
 dom_externs.isTexture;                  // operation WebGLRenderingContext.isTexture
 dom_externs.isVertexArrayOES;           // operation OESVertexArrayObject.isVertexArrayOES
-dom_externs.item;                       // operation CSSRuleList.item, operation CSSStyleDeclaration.item, operation CSSValueList.item, operation ClientRectList.item, operation DOMMimeTypeArray.item, operation DOMPlugin.item, operation DOMPluginArray.item, operation DOMTokenList.item, operation DataTransferItemList.item, operation EntryArray.item, operation EntryArraySync.item, operation FileList.item, operation HTMLAllCollection.item, operation HTMLCollection.item, operation HTMLPropertiesCollection.item, operation HTMLSelectElement.item, operation MediaList.item, operation NamedNodeMap.item, operation NodeList.item, operation SQLResultSetRowList.item, operation SVGElementInstanceList.item, operation SpeechInputResultList.item, operation StyleSheetList.item, operation TextTrackCueList.item, operation TextTrackList.item, operation TouchList.item, operation WebKitAnimationList.item
+dom_externs.item;                       // operation CSSRuleList.item, operation CSSStyleDeclaration.item, operation CSSValueList.item, operation ClientRectList.item, operation DOMMimeTypeArray.item, operation DOMPlugin.item, operation DOMPluginArray.item, operation DOMTokenList.item, operation DataTransferItemList.item, operation EntryArray.item, operation EntryArraySync.item, operation FileList.item, operation HTMLAllCollection.item, operation HTMLCollection.item, operation HTMLSelectElement.item, operation MediaList.item, operation NamedNodeMap.item, operation NodeList.item, operation SQLResultSetRowList.item, operation SVGElementInstanceList.item, operation SpeechInputResultList.item, operation StyleSheetList.item, operation TextTrackCueList.item, operation TouchList.item, operation WebKitAnimationList.item
 dom_externs.itemId;                     // attribute HTMLElement.itemId
 dom_externs.itemProp;                   // attribute HTMLElement.itemProp
 dom_externs.itemRef;                    // attribute HTMLElement.itemRef
@@ -852,7 +852,6 @@ dom_externs.language;                   // attribute Navigator.language, attribu
 dom_externs.largeArcFlag;               // attribute SVGPathSegArcAbs.largeArcFlag, attribute SVGPathSegArcRel.largeArcFlag
 dom_externs.lastChild;                  // attribute Node.lastChild, attribute SVGElementInstance.lastChild, operation TreeWalker.lastChild
 dom_externs.lastElementChild;           // attribute Element.lastElementChild, attribute ElementTraversal.lastElementChild
-dom_externs.lastErrorMessage;           // attribute DatabaseSync.lastErrorMessage
 dom_externs.lastEventId;                // attribute MessageEvent.lastEventId
 dom_externs.lastModified;               // attribute Document.lastModified
 dom_externs.lastModifiedDate;           // attribute File.lastModifiedDate
@@ -860,7 +859,7 @@ dom_externs.latitude;                   // attribute Coordinates.latitude
 dom_externs.layerX;                     // attribute UIEvent.layerX
 dom_externs.layerY;                     // attribute UIEvent.layerY
 dom_externs.left;                       // attribute ClientRect.left, attribute Rect.left
-dom_externs.length;                     // attribute AudioBuffer.length, attribute CSSRuleList.length, attribute CSSStyleDeclaration.length, attribute CSSValueList.length, attribute CanvasPixelArray.length, attribute CharacterData.length, attribute ClientRectList.length, attribute DOMMimeTypeArray.length, attribute DOMPlugin.length, attribute DOMPluginArray.length, attribute DOMTokenList.length, attribute DOMWindow.length, attribute DataTransferItemList.length, attribute EntryArray.length, attribute EntryArraySync.length, attribute FileList.length, attribute FileWriter.length, attribute FileWriterSync.length, attribute Float32Array.length, attribute Float64Array.length, attribute HTMLAllCollection.length, attribute HTMLCollection.length, attribute HTMLFormElement.length, attribute HTMLOptionsCollection.length, attribute HTMLPropertiesCollection.length, attribute HTMLSelectElement.length, attribute History.length, attribute Int16Array.length, attribute Int32Array.length, attribute Int8Array.length, attribute MediaList.length, attribute NamedNodeMap.length, attribute NodeList.length, attribute SQLResultSetRowList.length, attribute SVGElementInstanceList.length, attribute SpeechInputResultList.length, attribute Storage.length, attribute StyleSheetList.length, attribute TextTrackCueList.length, attribute TextTrackList.length, attribute TimeRanges.length, attribute TouchList.length, attribute Uint16Array.length, attribute Uint32Array.length, attribute Uint8Array.length, attribute WebKitAnimationList.length
+dom_externs.length;                     // attribute AudioBuffer.length, attribute CSSRuleList.length, attribute CSSStyleDeclaration.length, attribute CSSValueList.length, attribute CanvasPixelArray.length, attribute CharacterData.length, attribute ClientRectList.length, attribute DOMMimeTypeArray.length, attribute DOMPlugin.length, attribute DOMPluginArray.length, attribute DOMTokenList.length, attribute DOMWindow.length, attribute DataTransferItemList.length, attribute EntryArray.length, attribute EntryArraySync.length, attribute FileList.length, attribute FileWriter.length, attribute FileWriterSync.length, attribute Float32Array.length, attribute Float64Array.length, attribute HTMLAllCollection.length, attribute HTMLCollection.length, attribute HTMLFormElement.length, attribute HTMLOptionsCollection.length, attribute HTMLSelectElement.length, attribute History.length, attribute Int16Array.length, attribute Int32Array.length, attribute Int8Array.length, attribute MediaList.length, attribute NamedNodeMap.length, attribute NodeList.length, attribute SQLResultSetRowList.length, attribute SVGElementInstanceList.length, attribute SpeechInputResultList.length, attribute Storage.length, attribute StyleSheetList.length, attribute TextTrackCueList.length, attribute TimeRanges.length, attribute TouchList.length, attribute Uint16Array.length, attribute Uint32Array.length, attribute Uint8Array.length, attribute WebKitAnimationList.length
 dom_externs.lengthAdjust;               // attribute SVGTextContentElement.lengthAdjust
 dom_externs.lengthComputable;           // attribute ProgressEvent.lengthComputable
 dom_externs.limitingConeAngle;          // attribute SVGFESpotLightElement.limitingConeAngle
@@ -883,13 +882,11 @@ dom_externs.listener;                   // attribute AudioContext.listener
 dom_externs.load;                       // operation HTMLMediaElement.load
 dom_externs.loadEventEnd;               // attribute PerformanceTiming.loadEventEnd
 dom_externs.loadEventStart;             // attribute PerformanceTiming.loadEventStart
-dom_externs.loadResourceSynchronously;  // operation InspectorFrontendHost.loadResourceSynchronously
 dom_externs.loaded;                     // operation InspectorFrontendHost.loaded, attribute ProgressEvent.loaded
 dom_externs.localName;                  // attribute Node.localName
 dom_externs.localizedStringsURL;        // operation InspectorFrontendHost.localizedStringsURL
 dom_externs.location;                   // attribute DOMWindow.location, attribute Document.location, attribute HTMLFrameElement.location, attribute WorkerContext.location
 dom_externs.locationbar;                // attribute DOMWindow.locationbar
-dom_externs.lock;                       // operation PointerLock.lock
 dom_externs.log;                        // operation Console.log
 dom_externs.longDesc;                   // attribute HTMLFrameElement.longDesc, attribute HTMLIFrameElement.longDesc, attribute HTMLImageElement.longDesc
 dom_externs.longitude;                  // attribute Coordinates.longitude
@@ -897,7 +894,7 @@ dom_externs.lookupNamespaceURI;         // operation Node.lookupNamespaceURI, op
 dom_externs.lookupPrefix;               // operation Node.lookupPrefix
 dom_externs.loop;                       // attribute AudioBufferSourceNode.loop, attribute HTMLMarqueeElement.loop, attribute HTMLMediaElement.loop
 dom_externs.looping;                    // attribute AudioBufferSourceNode.looping
-dom_externs.loseContext;                // operation WebGLLoseContext.loseContext
+dom_externs.loseContext;                // operation WebKitLoseContext.loseContext
 dom_externs.low;                        // attribute HTMLMeterElement.low
 dom_externs.lower;                      // attribute IDBKeyRange.lower
 dom_externs.lowerBound;                 // operation IDBKeyRange.lowerBound
@@ -941,7 +938,6 @@ dom_externs.maxValue;                   // attribute AudioParam.maxValue
 dom_externs.measureText;                // operation CanvasRenderingContext2D.measureText
 dom_externs.media;                      // attribute CSSImportRule.media, attribute CSSMediaRule.media, attribute HTMLLinkElement.media, attribute HTMLSourceElement.media, attribute HTMLStyleElement.media, attribute MediaQueryList.media, attribute SVGStyleElement.media, attribute StyleSheet.media
 dom_externs.mediaElement;               // attribute MediaElementAudioSourceNode.mediaElement
-dom_externs.mediaGroup;                 // attribute HTMLMediaElement.mediaGroup
 dom_externs.mediaText;                  // attribute MediaList.mediaText
 dom_externs.meetOrSlice;                // attribute SVGPreserveAspectRatio.meetOrSlice
 dom_externs.memory;                     // attribute Console.memory, attribute Performance.memory
@@ -960,10 +956,9 @@ dom_externs.modify;                     // operation DOMSelection.modify
 dom_externs.moveBy;                     // operation DOMWindow.moveBy
 dom_externs.moveTo;                     // operation CanvasRenderingContext2D.moveTo, operation DOMWindow.moveTo, operation Entry.moveTo, operation EntrySync.moveTo
 dom_externs.moveWindowBy;               // operation InspectorFrontendHost.moveWindowBy
-dom_externs.multiEntry;                 // attribute IDBIndex.multiEntry
 dom_externs.multiple;                   // attribute HTMLInputElement.multiple, attribute HTMLSelectElement.multiple
 dom_externs.multiply;                   // operation SVGMatrix.multiply, operation WebKitCSSMatrix.multiply
-dom_externs.muted;                      // attribute HTMLMediaElement.muted, attribute MediaController.muted
+dom_externs.muted;                      // attribute HTMLMediaElement.muted
 dom_externs.name;                       // attribute Attr.name, attribute AudioParam.name, attribute DOMException.name, attribute DOMFileSystem.name, attribute DOMFileSystemSync.name, attribute DOMPlugin.name, attribute DOMWindow.name, attribute DocumentType.name, attribute Entry.name, attribute EntrySync.name, attribute EventException.name, attribute File.name, attribute FileException.name, attribute HTMLAnchorElement.name, attribute HTMLAppletElement.name, attribute HTMLButtonElement.name, attribute HTMLEmbedElement.name, attribute HTMLFormElement.name, attribute HTMLFrameElement.name, attribute HTMLIFrameElement.name, attribute HTMLImageElement.name, attribute HTMLInputElement.name, attribute HTMLKeygenElement.name, attribute HTMLMapElement.name, attribute HTMLMetaElement.name, attribute HTMLObjectElement.name, attribute HTMLOutputElement.name, attribute HTMLParamElement.name, attribute HTMLSelectElement.name, attribute HTMLTextAreaElement.name, attribute IDBDatabase.name, attribute IDBDatabaseException.name, attribute IDBIndex.name, attribute IDBObjectStore.name, attribute OperationNotAllowedException.name, attribute RangeException.name, attribute SVGException.name, attribute SharedWorkercontext.name, attribute WebGLActiveInfo.name, attribute WebKitAnimation.name, attribute WebKitCSSKeyframesRule.name, attribute XMLHttpRequestException.name, attribute XPathException.name
 dom_externs.namedItem;                  // operation DOMMimeTypeArray.namedItem, operation DOMPlugin.namedItem, operation DOMPluginArray.namedItem, operation HTMLAllCollection.namedItem, operation HTMLCollection.namedItem, operation HTMLSelectElement.namedItem
 dom_externs.namespaceURI;               // attribute Node.namespaceURI
@@ -1020,15 +1015,11 @@ dom_externs.oldURL;                     // attribute HashChangeEvent.oldURL
 dom_externs.oldValue;                   // attribute MutationRecord.oldValue, attribute StorageEvent.oldValue
 dom_externs.onLine;                     // attribute Navigator.onLine, attribute WorkerNavigator.onLine
 dom_externs.onabort;                    // attribute FileReader.onabort, attribute FileWriter.onabort, attribute IDBDatabase.onabort, attribute IDBTransaction.onabort
-dom_externs.onaddtrack;                 // attribute TextTrackList.onaddtrack
 dom_externs.onaudioprocess;             // attribute JavaScriptAudioNode.onaudioprocess
 dom_externs.onblocked;                  // attribute IDBVersionChangeRequest.onblocked
 dom_externs.oncomplete;                 // attribute AudioContext.oncomplete, attribute IDBTransaction.oncomplete
 dom_externs.onconnect;                  // attribute SharedWorkercontext.onconnect
-dom_externs.oncuechange;                // attribute TextTrack.oncuechange
-dom_externs.onenter;                    // attribute TextTrackCue.onenter
 dom_externs.onerror;                    // attribute FileReader.onerror, attribute FileWriter.onerror, attribute IDBDatabase.onerror, attribute IDBRequest.onerror, attribute IDBTransaction.onerror, attribute WorkerContext.onerror
-dom_externs.onexit;                     // attribute TextTrackCue.onexit
 dom_externs.onload;                     // attribute FileReader.onload
 dom_externs.onloadend;                  // attribute FileReader.onloadend
 dom_externs.onloadstart;                // attribute FileReader.onloadstart
@@ -1089,10 +1080,10 @@ dom_externs.patternContentUnits;        // attribute SVGPatternElement.patternCo
 dom_externs.patternMismatch;            // attribute ValidityState.patternMismatch
 dom_externs.patternTransform;           // attribute SVGPatternElement.patternTransform
 dom_externs.patternUnits;               // attribute SVGPatternElement.patternUnits
-dom_externs.pause;                      // operation HTMLMediaElement.pause, operation MediaController.pause, operation WebKitAnimation.pause
+dom_externs.pause;                      // operation HTMLMediaElement.pause, operation WebKitAnimation.pause
 dom_externs.pauseAnimations;            // operation SVGSVGElement.pauseAnimations
 dom_externs.pauseOnExit;                // attribute TextTrackCue.pauseOnExit
-dom_externs.paused;                     // attribute HTMLMediaElement.paused, attribute MediaController.paused, attribute WebKitAnimation.paused
+dom_externs.paused;                     // attribute HTMLMediaElement.paused, attribute WebKitAnimation.paused
 dom_externs.performance;                // attribute DOMWindow.performance
 dom_externs.persisted;                  // attribute PageTransitionEvent.persisted
 dom_externs.personalbar;                // attribute DOMWindow.personalbar
@@ -1103,9 +1094,9 @@ dom_externs.pixelUnitToMillimeterX;     // attribute SVGSVGElement.pixelUnitToMi
 dom_externs.pixelUnitToMillimeterY;     // attribute SVGSVGElement.pixelUnitToMillimeterY
 dom_externs.placeholder;                // attribute HTMLInputElement.placeholder, attribute HTMLTextAreaElement.placeholder
 dom_externs.platform;                   // operation InspectorFrontendHost.platform, attribute Navigator.platform, attribute WorkerNavigator.platform
-dom_externs.play;                       // operation HTMLMediaElement.play, operation MediaController.play, operation WebKitAnimation.play
-dom_externs.playbackRate;               // attribute AudioBufferSourceNode.playbackRate, attribute HTMLMediaElement.playbackRate, attribute MediaController.playbackRate
-dom_externs.played;                     // attribute HTMLMediaElement.played, attribute MediaController.played
+dom_externs.play;                       // operation HTMLMediaElement.play, operation WebKitAnimation.play
+dom_externs.playbackRate;               // attribute AudioBufferSourceNode.playbackRate, attribute HTMLMediaElement.playbackRate
+dom_externs.played;                     // attribute HTMLMediaElement.played
 dom_externs.plugins;                    // attribute HTMLDocument.plugins, attribute Navigator.plugins
 dom_externs.pointerBeforeReferenceNode;  // attribute NodeIterator.pointerBeforeReferenceNode
 dom_externs.points;                     // attribute SVGPolygonElement.points, attribute SVGPolylineElement.points
@@ -1177,7 +1168,7 @@ dom_externs.readEntries;                // operation DirectoryReader.readEntries
 dom_externs.readOnly;                   // attribute HTMLInputElement.readOnly, attribute HTMLTextAreaElement.readOnly
 dom_externs.readPixels;                 // operation WebGLRenderingContext.readPixels
 dom_externs.readTransaction;            // operation Database.readTransaction, operation DatabaseSync.readTransaction
-dom_externs.readyState;                 // attribute Document.readyState, attribute EventSource.readyState, attribute FileReader.readyState, attribute FileWriter.readyState, attribute HTMLMediaElement.readyState, attribute HTMLTrackElement.readyState, attribute IDBRequest.readyState, attribute WebSocket.readyState, attribute XMLHttpRequest.readyState
+dom_externs.readyState;                 // attribute Document.readyState, attribute EventSource.readyState, attribute FileReader.readyState, attribute FileWriter.readyState, attribute HTMLMediaElement.readyState, attribute IDBRequest.readyState, attribute TextTrack.readyState, attribute WebSocket.readyState, attribute XMLHttpRequest.readyState
 dom_externs.reason;                     // attribute CloseEvent.reason
 dom_externs.recordActionTaken;          // operation InspectorFrontendHost.recordActionTaken
 dom_externs.recordPanelShown;           // operation InspectorFrontendHost.recordPanelShown
@@ -1207,7 +1198,7 @@ dom_externs.removeAttributeNS;          // operation Element.removeAttributeNS
 dom_externs.removeAttributeNode;        // operation Element.removeAttributeNode
 dom_externs.removeChild;                // operation Node.removeChild
 dom_externs.removeCue;                  // operation TextTrack.removeCue
-dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation MediaController.removeEventListener, operation MessagePort.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation SVGElementInstance.removeEventListener, operation TextTrack.removeEventListener, operation TextTrackCue.removeEventListener, operation TextTrackList.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
+dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation MessagePort.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation SVGElementInstance.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
 dom_externs.removeItem;                 // operation SVGLengthList.removeItem, operation SVGNumberList.removeItem, operation SVGPathSegList.removeItem, operation SVGPointList.removeItem, operation SVGStringList.removeItem, operation SVGTransformList.removeItem, operation Storage.removeItem
 dom_externs.removeListener;             // operation MediaQueryList.removeListener
 dom_externs.removeNamedItem;            // operation NamedNodeMap.removeNamedItem
@@ -1245,13 +1236,12 @@ dom_externs.responseText;               // attribute XMLHttpRequest.responseText
 dom_externs.responseType;               // attribute XMLHttpRequest.responseType
 dom_externs.responseXML;                // attribute XMLHttpRequest.responseXML
 dom_externs.restore;                    // operation CanvasRenderingContext2D.restore
-dom_externs.restoreContext;             // operation WebGLLoseContext.restoreContext
+dom_externs.restoreContext;             // operation WebKitLoseContext.restoreContext
 dom_externs.result;                     // attribute FileReader.result, attribute IDBRequest.result, attribute SVGFEBlendElement.result, attribute SVGFEColorMatrixElement.result, attribute SVGFEComponentTransferElement.result, attribute SVGFECompositeElement.result, attribute SVGFEConvolveMatrixElement.result, attribute SVGFEDiffuseLightingElement.result, attribute SVGFEDisplacementMapElement.result, attribute SVGFEDropShadowElement.result, attribute SVGFEFloodElement.result, attribute SVGFEGaussianBlurElement.result, attribute SVGFEImageElement.result, attribute SVGFEMergeElement.result, attribute SVGFEMorphologyElement.result, attribute SVGFEOffsetElement.result, attribute SVGFESpecularLightingElement.result, attribute SVGFETileElement.result, attribute SVGFETurbulenceElement.result, attribute SVGFilterPrimitiveStandardAttributes.result
 dom_externs.resultType;                 // attribute XPathResult.resultType
 dom_externs.results;                    // attribute SpeechInputEvent.results
 dom_externs.returnValue;                // attribute Event.returnValue
 dom_externs.rev;                        // attribute HTMLAnchorElement.rev, attribute HTMLLinkElement.rev
-dom_externs.reversed;                   // attribute HTMLOListElement.reversed
 dom_externs.revokeObjectURL;            // operation DOMURL.revokeObjectURL
 dom_externs.rgbColor;                   // attribute SVGColor.rgbColor
 dom_externs.right;                      // attribute ClientRect.right, attribute Rect.right
@@ -1280,7 +1270,6 @@ dom_externs.scissor;                    // operation WebGLRenderingContext.sciss
 dom_externs.scope;                      // attribute HTMLTableCellElement.scope
 dom_externs.scopeChain;                 // attribute JavaScriptCallFrame.scopeChain
 dom_externs.scopeType;                  // operation JavaScriptCallFrame.scopeType
-dom_externs.scoped;                     // attribute HTMLStyleElement.scoped
 dom_externs.screen;                     // attribute DOMWindow.screen
 dom_externs.screenLeft;                 // attribute DOMWindow.screenLeft
 dom_externs.screenPixelToMillimeterX;   // attribute SVGSVGElement.screenPixelToMillimeterX
@@ -1311,7 +1300,7 @@ dom_externs.sectionRowIndex;            // attribute HTMLTableRowElement.section
 dom_externs.secureConnectionStart;      // attribute PerformanceTiming.secureConnectionStart
 dom_externs.seed;                       // attribute SVGFETurbulenceElement.seed
 dom_externs.seek;                       // operation FileWriter.seek, operation FileWriterSync.seek
-dom_externs.seekable;                   // attribute HTMLMediaElement.seekable, attribute MediaController.seekable
+dom_externs.seekable;                   // attribute HTMLMediaElement.seekable
 dom_externs.seeking;                    // attribute HTMLMediaElement.seeking
 dom_externs.select;                     // operation HTMLInputElement.select, operation HTMLTextAreaElement.select
 dom_externs.selectAllChildren;          // operation DOMSelection.selectAllChildren
@@ -1349,12 +1338,12 @@ dom_externs.setDragImage;               // operation Clipboard.setDragImage
 dom_externs.setEnd;                     // operation Range.setEnd
 dom_externs.setEndAfter;                // operation Range.setEndAfter
 dom_externs.setEndBefore;               // operation Range.setEndBefore
+dom_externs.setExtensionAPI;            // operation InspectorFrontendHost.setExtensionAPI
 dom_externs.setFillColor;               // operation CanvasRenderingContext2D.setFillColor
 dom_externs.setFilterRes;               // operation SVGFilterElement.setFilterRes
 dom_externs.setFloat32;                 // operation DataView.setFloat32
 dom_externs.setFloat64;                 // operation DataView.setFloat64
 dom_externs.setFloatValue;              // operation CSSPrimitiveValue.setFloatValue
-dom_externs.setInjectedScriptForOrigin;  // operation InspectorFrontendHost.setInjectedScriptForOrigin
 dom_externs.setInt16;                   // operation DataView.setInt16
 dom_externs.setInt32;                   // operation DataView.setInt32
 dom_externs.setInt8;                    // operation DataView.setInt8
@@ -1514,7 +1503,6 @@ dom_externs.textBaseline;               // attribute CanvasRenderingContext2D.te
 dom_externs.textContent;                // attribute Node.textContent
 dom_externs.textLength;                 // attribute HTMLTextAreaElement.textLength, attribute SVGTextContentElement.textLength
 dom_externs.textPosition;               // attribute TextTrackCue.textPosition
-dom_externs.textTracks;                 // attribute HTMLMediaElement.textTracks
 dom_externs.time;                       // operation Console.time
 dom_externs.timeEnd;                    // operation Console.timeEnd
 dom_externs.timeStamp;                  // operation Console.timeStamp, attribute Event.timeStamp
@@ -1536,7 +1524,7 @@ dom_externs.totalSize;                  // attribute XMLHttpRequestProgressEvent
 dom_externs.totalTime;                  // attribute ScriptProfileNode.totalTime
 dom_externs.touches;                    // attribute TouchEvent.touches
 dom_externs.trace;                      // operation Console.trace
-dom_externs.track;                      // attribute HTMLTrackElement.track, attribute TextTrackCue.track, attribute TrackEvent.track
+dom_externs.track;                      // attribute HTMLTrackElement.track, attribute TextTrackCue.track
 dom_externs.transaction;                // operation Database.transaction, operation DatabaseSync.transaction, operation IDBDatabase.transaction, attribute IDBObjectStore.transaction, attribute IDBRequest.transaction
 dom_externs.transform;                  // operation CanvasRenderingContext2D.transform, attribute SVGAElement.transform, attribute SVGCircleElement.transform, attribute SVGClipPathElement.transform, attribute SVGDefsElement.transform, attribute SVGEllipseElement.transform, attribute SVGForeignObjectElement.transform, attribute SVGGElement.transform, attribute SVGImageElement.transform, attribute SVGLineElement.transform, attribute SVGPathElement.transform, attribute SVGPolygonElement.transform, attribute SVGPolylineElement.transform, attribute SVGRectElement.transform, attribute SVGSwitchElement.transform, attribute SVGTextElement.transform, attribute SVGTransformable.transform, attribute SVGUseElement.transform, attribute SVGViewSpec.transform
 dom_externs.transformString;            // attribute SVGViewSpec.transformString
@@ -1573,7 +1561,6 @@ dom_externs.unitType;                   // attribute SVGAngle.unitType, attribut
 dom_externs.units;                      // attribute AudioParam.units
 dom_externs.unloadEventEnd;             // attribute PerformanceTiming.unloadEventEnd
 dom_externs.unloadEventStart;           // attribute PerformanceTiming.unloadEventStart
-dom_externs.unlock;                     // operation PointerLock.unlock
 dom_externs.unpauseAnimations;          // operation SVGSVGElement.unpauseAnimations
 dom_externs.unsuspendRedraw;            // operation SVGSVGElement.unsuspendRedraw
 dom_externs.unsuspendRedrawAll;         // operation SVGSVGElement.unsuspendRedrawAll
@@ -1628,13 +1615,12 @@ dom_externs.viewport;                   // attribute SVGSVGElement.viewport, ope
 dom_externs.viewportElement;            // attribute SVGElement.viewportElement
 dom_externs.visible;                    // attribute BarInfo.visible, attribute ScriptProfileNode.visible
 dom_externs.vlinkColor;                 // attribute HTMLDocument.vlinkColor
-dom_externs.volume;                     // attribute HTMLMediaElement.volume, attribute MediaController.volume
+dom_externs.volume;                     // attribute HTMLMediaElement.volume
 dom_externs.vspace;                     // attribute HTMLAppletElement.vspace, attribute HTMLImageElement.vspace, attribute HTMLMarqueeElement.vspace, attribute HTMLObjectElement.vspace
 dom_externs.warn;                       // operation Console.warn
 dom_externs.wasClean;                   // attribute CloseEvent.wasClean
 dom_externs.watchPosition;              // operation Geolocation.watchPosition
 dom_externs.webkitAudioDecodedByteCount;  // attribute HTMLMediaElement.webkitAudioDecodedByteCount
-dom_externs.webkitCancelAnimationFrame;  // operation DOMWindow.webkitCancelAnimationFrame
 dom_externs.webkitCancelFullScreen;     // operation Document.webkitCancelFullScreen
 dom_externs.webkitCancelRequestAnimationFrame;  // operation DOMWindow.webkitCancelRequestAnimationFrame
 dom_externs.webkitClosedCaptionsVisible;  // attribute HTMLMediaElement.webkitClosedCaptionsVisible
@@ -1652,19 +1638,17 @@ dom_externs.webkitExitFullScreen;       // operation HTMLVideoElement.webkitExit
 dom_externs.webkitExitFullscreen;       // operation HTMLVideoElement.webkitExitFullscreen
 dom_externs.webkitForce;                // attribute Touch.webkitForce
 dom_externs.webkitFullScreenKeyboardInputAllowed;  // attribute Document.webkitFullScreenKeyboardInputAllowed
-dom_externs.webkitGetFlowByName;        // operation Document.webkitGetFlowByName
+dom_externs.webkitGetUserMedia;         // operation Navigator.webkitGetUserMedia
 dom_externs.webkitGrammar;              // attribute HTMLInputElement.webkitGrammar
 dom_externs.webkitHasClosedCaptions;    // attribute HTMLMediaElement.webkitHasClosedCaptions
 dom_externs.webkitHidden;               // attribute Document.webkitHidden
-dom_externs.webkitIndexedDB;            // attribute DOMWindow.webkitIndexedDB, attribute WorkerContext.webkitIndexedDB
+dom_externs.webkitIndexedDB;            // attribute DOMWindow.webkitIndexedDB
 dom_externs.webkitInitMessageEvent;     // operation MessageEvent.webkitInitMessageEvent
 dom_externs.webkitIsFullScreen;         // attribute Document.webkitIsFullScreen
 dom_externs.webkitLineDash;             // attribute CanvasRenderingContext2D.webkitLineDash
 dom_externs.webkitLineDashOffset;       // attribute CanvasRenderingContext2D.webkitLineDashOffset
 dom_externs.webkitMatchesSelector;      // operation Element.webkitMatchesSelector
 dom_externs.webkitMediaSourceURL;       // attribute HTMLMediaElement.webkitMediaSourceURL
-dom_externs.webkitMovementX;            // attribute MouseEvent.webkitMovementX
-dom_externs.webkitMovementY;            // attribute MouseEvent.webkitMovementY
 dom_externs.webkitNotifications;        // attribute DOMWindow.webkitNotifications, attribute WorkerContext.webkitNotifications
 dom_externs.webkitPostMessage;          // operation DOMWindow.webkitPostMessage, operation DedicatedWorkerContext.webkitPostMessage, operation MessagePort.webkitPostMessage, operation Worker.webkitPostMessage
 dom_externs.webkitPreservesPitch;       // attribute HTMLMediaElement.webkitPreservesPitch
@@ -1696,7 +1680,7 @@ dom_externs.wheelDeltaX;                // attribute WheelEvent.wheelDeltaX
 dom_externs.wheelDeltaY;                // attribute WheelEvent.wheelDeltaY
 dom_externs.which;                      // attribute UIEvent.which
 dom_externs.wholeText;                  // attribute Text.wholeText
-dom_externs.width;                      // attribute ClientRect.width, attribute HTMLAppletElement.width, attribute HTMLCanvasElement.width, attribute HTMLEmbedElement.width, attribute HTMLFrameElement.width, attribute HTMLHRElement.width, attribute HTMLIFrameElement.width, attribute HTMLImageElement.width, attribute HTMLMarqueeElement.width, attribute HTMLObjectElement.width, attribute HTMLPreElement.width, attribute HTMLTableCellElement.width, attribute HTMLTableColElement.width, attribute HTMLTableElement.width, attribute HTMLVideoElement.width, attribute ImageData.width, attribute SVGFEBlendElement.width, attribute SVGFEColorMatrixElement.width, attribute SVGFEComponentTransferElement.width, attribute SVGFECompositeElement.width, attribute SVGFEConvolveMatrixElement.width, attribute SVGFEDiffuseLightingElement.width, attribute SVGFEDisplacementMapElement.width, attribute SVGFEDropShadowElement.width, attribute SVGFEFloodElement.width, attribute SVGFEGaussianBlurElement.width, attribute SVGFEImageElement.width, attribute SVGFEMergeElement.width, attribute SVGFEMorphologyElement.width, attribute SVGFEOffsetElement.width, attribute SVGFESpecularLightingElement.width, attribute SVGFETileElement.width, attribute SVGFETurbulenceElement.width, attribute SVGFilterElement.width, attribute SVGFilterPrimitiveStandardAttributes.width, attribute SVGForeignObjectElement.width, attribute SVGImageElement.width, attribute SVGMaskElement.width, attribute SVGPatternElement.width, attribute SVGRect.width, attribute SVGRectElement.width, attribute SVGSVGElement.width, attribute SVGUseElement.width, attribute Screen.width, attribute TextMetrics.width
+dom_externs.width;                      // attribute ClientRect.width, attribute HTMLAppletElement.width, attribute HTMLCanvasElement.width, attribute HTMLDocument.width, attribute HTMLEmbedElement.width, attribute HTMLFrameElement.width, attribute HTMLHRElement.width, attribute HTMLIFrameElement.width, attribute HTMLImageElement.width, attribute HTMLMarqueeElement.width, attribute HTMLObjectElement.width, attribute HTMLPreElement.width, attribute HTMLTableCellElement.width, attribute HTMLTableColElement.width, attribute HTMLTableElement.width, attribute HTMLVideoElement.width, attribute ImageData.width, attribute SVGFEBlendElement.width, attribute SVGFEColorMatrixElement.width, attribute SVGFEComponentTransferElement.width, attribute SVGFECompositeElement.width, attribute SVGFEConvolveMatrixElement.width, attribute SVGFEDiffuseLightingElement.width, attribute SVGFEDisplacementMapElement.width, attribute SVGFEDropShadowElement.width, attribute SVGFEFloodElement.width, attribute SVGFEGaussianBlurElement.width, attribute SVGFEImageElement.width, attribute SVGFEMergeElement.width, attribute SVGFEMorphologyElement.width, attribute SVGFEOffsetElement.width, attribute SVGFESpecularLightingElement.width, attribute SVGFETileElement.width, attribute SVGFETurbulenceElement.width, attribute SVGFilterElement.width, attribute SVGFilterPrimitiveStandardAttributes.width, attribute SVGForeignObjectElement.width, attribute SVGImageElement.width, attribute SVGMaskElement.width, attribute SVGPatternElement.width, attribute SVGRect.width, attribute SVGRectElement.width, attribute SVGSVGElement.width, attribute SVGUseElement.width, attribute Screen.width, attribute TextMetrics.width
 dom_externs.willValidate;               // attribute HTMLButtonElement.willValidate, attribute HTMLFieldSetElement.willValidate, attribute HTMLInputElement.willValidate, attribute HTMLKeygenElement.willValidate, attribute HTMLObjectElement.willValidate, attribute HTMLOutputElement.willValidate, attribute HTMLSelectElement.willValidate, attribute HTMLTextAreaElement.willValidate
 dom_externs.window;                     // attribute DOMWindow.window
 dom_externs.withCredentials;            // attribute XMLHttpRequest.withCredentials

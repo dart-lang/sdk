@@ -1,13 +1,11 @@
 
 class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
 
-  static final int CSS_FILTER_BLUR = 10;
-
-  static final int CSS_FILTER_BRIGHTNESS = 8;
-
-  static final int CSS_FILTER_CONTRAST = 9;
+  static final int CSS_FILTER_BLUR = 9;
 
   static final int CSS_FILTER_DROP_SHADOW = 11;
+
+  static final int CSS_FILTER_GAMMA = 8;
 
   static final int CSS_FILTER_GRAYSCALE = 2;
 
@@ -22,6 +20,8 @@ class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
   static final int CSS_FILTER_SATURATE = 4;
 
   static final int CSS_FILTER_SEPIA = 3;
+
+  static final int CSS_FILTER_SHARPEN = 10;
 
   int operationType;
 }

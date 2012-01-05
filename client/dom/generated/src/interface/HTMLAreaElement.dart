@@ -6,6 +6,10 @@
 
 interface HTMLAreaElement extends HTMLElement {
 
+  String get accessKey();
+
+  void set accessKey(String value);
+
   String get alt();
 
   void set alt(String value);

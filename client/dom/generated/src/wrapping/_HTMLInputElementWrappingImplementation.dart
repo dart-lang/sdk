@@ -17,6 +17,12 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set accept(String value) { _set_accept(this, value); }
   static void _set_accept(var _this, String value) native;
 
+  String get accessKey() { return _get_accessKey(this); }
+  static String _get_accessKey(var _this) native;
+
+  void set accessKey(String value) { _set_accessKey(this, value); }
+  static void _set_accessKey(var _this, String value) native;
+
   String get align() { return _get_align(this); }
   static String _get_align(var _this) native;
 
@@ -58,12 +64,6 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
 
   void set defaultValue(String value) { _set_defaultValue(this, value); }
   static void _set_defaultValue(var _this, String value) native;
-
-  String get dirName() { return _get_dirName(this); }
-  static String _get_dirName(var _this) native;
-
-  void set dirName(String value) { _set_dirName(this, value); }
-  static void _set_dirName(var _this, String value) native;
 
   bool get disabled() { return _get_disabled(this); }
   static bool _get_disabled(var _this) native;

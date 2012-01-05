@@ -36,10 +36,6 @@ interface MouseEvent extends UIEvent {
 
   Node get toElement();
 
-  int get webkitMovementX();
-
-  int get webkitMovementY();
-
   int get x();
 
   int get y();

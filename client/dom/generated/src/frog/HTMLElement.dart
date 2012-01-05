@@ -1,8 +1,6 @@
 
 class HTMLElement extends Element native "HTMLElement" {
 
-  String accessKey;
-
   HTMLCollection children;
 
   DOMTokenList classList;

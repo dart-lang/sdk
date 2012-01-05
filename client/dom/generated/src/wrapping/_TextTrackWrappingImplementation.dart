@@ -32,11 +32,8 @@ class _TextTrackWrappingImplementation extends DOMWrapperBase implements TextTra
   void set mode(int value) { _set_mode(this, value); }
   static void _set_mode(var _this, int value) native;
 
-  EventListener get oncuechange() { return _get_oncuechange(this); }
-  static EventListener _get_oncuechange(var _this) native;
-
-  void set oncuechange(EventListener value) { _set_oncuechange(this, value); }
-  static void _set_oncuechange(var _this, EventListener value) native;
+  int get readyState() { return _get_readyState(this); }
+  static int _get_readyState(var _this) native;
 
   void addCue(TextTrackCue cue) {
     _addCue(this, cue);
@@ -44,40 +41,11 @@ class _TextTrackWrappingImplementation extends DOMWrapperBase implements TextTra
   }
   static void _addCue(receiver, cue) native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _addEventListener(this, type, listener);
-      return;
-    } else {
-      _addEventListener_2(this, type, listener, useCapture);
-      return;
-    }
-  }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
-
-  bool dispatchEvent(Event evt) {
-    return _dispatchEvent(this, evt);
-  }
-  static bool _dispatchEvent(receiver, evt) native;
-
   void removeCue(TextTrackCue cue) {
     _removeCue(this, cue);
     return;
   }
   static void _removeCue(receiver, cue) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _removeEventListener(this, type, listener);
-      return;
-    } else {
-      _removeEventListener_2(this, type, listener, useCapture);
-      return;
-    }
-  }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
 
   String get typeName() { return "TextTrack"; }
 }

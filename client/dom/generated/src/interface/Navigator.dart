@@ -41,4 +41,6 @@ interface Navigator {
   bool javaEnabled();
 
   void registerProtocolHandler(String scheme, String url, String title);
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }

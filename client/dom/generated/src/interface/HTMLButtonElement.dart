@@ -6,6 +6,10 @@
 
 interface HTMLButtonElement extends HTMLElement {
 
+  String get accessKey();
+
+  void set accessKey(String value);
+
   bool get autofocus();
 
   void set autofocus(bool value);

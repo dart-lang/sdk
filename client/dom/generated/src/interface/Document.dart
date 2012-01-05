@@ -160,7 +160,7 @@ interface Document extends Node, NodeSelector {
 
   DOMSelection getSelection();
 
-  Node importNode(Node importedNode, [bool deep]);
+  Node importNode(Node importedNode, bool deep);
 
   bool queryCommandEnabled(String command);
 
@@ -177,6 +177,4 @@ interface Document extends Node, NodeSelector {
   NodeList querySelectorAll(String selectors);
 
   void webkitCancelFullScreen();
-
-  WebKitNamedFlow webkitGetFlowByName(String name);
 }

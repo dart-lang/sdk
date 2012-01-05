@@ -26,11 +26,5 @@ class _BiquadFilterNodeWrappingImplementation extends _AudioNodeWrappingImplemen
   void set type(int value) { _set_type(this, value); }
   static void _set_type(var _this, int value) native;
 
-  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) {
-    _getFrequencyResponse(this, frequencyHz, magResponse, phaseResponse);
-    return;
-  }
-  static void _getFrequencyResponse(receiver, frequencyHz, magResponse, phaseResponse) native;
-
   String get typeName() { return "BiquadFilterNode"; }
 }

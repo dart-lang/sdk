@@ -10,6 +10,10 @@ interface HTMLInputElement extends HTMLElement {
 
   void set accept(String value);
 
+  String get accessKey();
+
+  void set accessKey(String value);
+
   String get align();
 
   void set align(String value);
@@ -37,10 +41,6 @@ interface HTMLInputElement extends HTMLElement {
   String get defaultValue();
 
   void set defaultValue(String value);
-
-  String get dirName();
-
-  void set dirName(String value);
 
   bool get disabled();
 

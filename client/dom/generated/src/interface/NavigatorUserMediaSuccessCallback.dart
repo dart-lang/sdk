@@ -4,11 +4,5 @@
 
 // WARNING: Do not edit - generated code.
 
-interface PointerLock {
-
-  bool isLocked();
-
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
-
-  void unlock();
+interface NavigatorUserMediaSuccessCallback {
 }

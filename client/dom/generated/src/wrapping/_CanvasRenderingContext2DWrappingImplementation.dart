@@ -11,11 +11,11 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
     return new _CanvasRenderingContext2DWrappingImplementation();
   }
 
-  Dynamic get fillStyle() { return _get_fillStyle(this); }
-  static Dynamic _get_fillStyle(var _this) native;
+  Object get fillStyle() { return _get_fillStyle(this); }
+  static Object _get_fillStyle(var _this) native;
 
-  void set fillStyle(Dynamic value) { _set_fillStyle(this, value); }
-  static void _set_fillStyle(var _this, Dynamic value) native;
+  void set fillStyle(Object value) { _set_fillStyle(this, value); }
+  static void _set_fillStyle(var _this, Object value) native;
 
   String get font() { return _get_font(this); }
   static String _get_font(var _this) native;
@@ -83,11 +83,11 @@ class _CanvasRenderingContext2DWrappingImplementation extends _CanvasRenderingCo
   void set shadowOffsetY(num value) { _set_shadowOffsetY(this, value); }
   static void _set_shadowOffsetY(var _this, num value) native;
 
-  Dynamic get strokeStyle() { return _get_strokeStyle(this); }
-  static Dynamic _get_strokeStyle(var _this) native;
+  Object get strokeStyle() { return _get_strokeStyle(this); }
+  static Object _get_strokeStyle(var _this) native;
 
-  void set strokeStyle(Dynamic value) { _set_strokeStyle(this, value); }
-  static void _set_strokeStyle(var _this, Dynamic value) native;
+  void set strokeStyle(Object value) { _set_strokeStyle(this, value); }
+  static void _set_strokeStyle(var _this, Object value) native;
 
   String get textAlign() { return _get_textAlign(this); }
   static String _get_textAlign(var _this) native;

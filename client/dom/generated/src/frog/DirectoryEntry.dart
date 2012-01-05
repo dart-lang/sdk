@@ -7,5 +7,5 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   void getFile(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 }

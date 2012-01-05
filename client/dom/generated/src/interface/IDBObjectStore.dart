@@ -16,8 +16,6 @@ interface IDBObjectStore {
 
   IDBRequest clear();
 
-  IDBRequest count([IDBKeyRange range]);
-
   IDBIndex createIndex(String name, String keyPath);
 
   IDBRequest delete(IDBKey key);

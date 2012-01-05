@@ -8,15 +8,11 @@ interface IDBIndex {
 
   String get keyPath();
 
-  bool get multiEntry();
-
   String get name();
 
   IDBObjectStore get objectStore();
 
   bool get unique();
-
-  IDBRequest count([IDBKeyRange range]);
 
   IDBRequest getObject(IDBKey key);
 

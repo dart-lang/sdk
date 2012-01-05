@@ -26,18 +26,6 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
   int get linePosition() { return _get_linePosition(this); }
   static int _get_linePosition(var _this) native;
 
-  EventListener get onenter() { return _get_onenter(this); }
-  static EventListener _get_onenter(var _this) native;
-
-  void set onenter(EventListener value) { _set_onenter(this, value); }
-  static void _set_onenter(var _this, EventListener value) native;
-
-  EventListener get onexit() { return _get_onexit(this); }
-  static EventListener _get_onexit(var _this) native;
-
-  void set onexit(EventListener value) { _set_onexit(this, value); }
-  static void _set_onexit(var _this, EventListener value) native;
-
   bool get pauseOnExit() { return _get_pauseOnExit(this); }
   static bool _get_pauseOnExit(var _this) native;
 
@@ -56,23 +44,6 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
   TextTrack get track() { return _get_track(this); }
   static TextTrack _get_track(var _this) native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _addEventListener(this, type, listener);
-      return;
-    } else {
-      _addEventListener_2(this, type, listener, useCapture);
-      return;
-    }
-  }
-  static void _addEventListener(receiver, type, listener) native;
-  static void _addEventListener_2(receiver, type, listener, useCapture) native;
-
-  bool dispatchEvent(Event evt) {
-    return _dispatchEvent(this, evt);
-  }
-  static bool _dispatchEvent(receiver, evt) native;
-
   DocumentFragment getCueAsHTML() {
     return _getCueAsHTML(this);
   }
@@ -82,18 +53,6 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
     return _getCueAsSource(this);
   }
   static String _getCueAsSource(receiver) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
-    if (useCapture === null) {
-      _removeEventListener(this, type, listener);
-      return;
-    } else {
-      _removeEventListener_2(this, type, listener, useCapture);
-      return;
-    }
-  }
-  static void _removeEventListener(receiver, type, listener) native;
-  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
 
   String get typeName() { return "TextTrackCue"; }
 }

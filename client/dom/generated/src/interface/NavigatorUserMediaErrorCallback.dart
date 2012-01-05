@@ -4,9 +4,4 @@
 
 // WARNING: Do not edit - generated code.
 
-interface HTMLPropertiesCollection extends HTMLCollection {
-
-  int get length();
-
-  Node item(int index);
-}
+typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);

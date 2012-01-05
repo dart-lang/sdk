@@ -11,8 +11,6 @@ class IDBObjectStore native "*IDBObjectStore" {
 
   IDBRequest clear() native;
 
-  IDBRequest count([IDBKeyRange range = null]) native;
-
   IDBIndex createIndex(String name, String keyPath) native;
 
   IDBRequest delete(IDBKey key) native;

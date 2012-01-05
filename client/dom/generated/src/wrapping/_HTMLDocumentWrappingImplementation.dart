@@ -56,6 +56,9 @@ class _HTMLDocumentWrappingImplementation extends _DocumentWrappingImplementatio
   void set fgColor(String value) { _set_fgColor(this, value); }
   static void _set_fgColor(var _this, String value) native;
 
+  int get height() { return _get_height(this); }
+  static int _get_height(var _this) native;
+
   String get linkColor() { return _get_linkColor(this); }
   static String _get_linkColor(var _this) native;
 
@@ -73,6 +76,9 @@ class _HTMLDocumentWrappingImplementation extends _DocumentWrappingImplementatio
 
   void set vlinkColor(String value) { _set_vlinkColor(this, value); }
   static void _set_vlinkColor(var _this, String value) native;
+
+  int get width() { return _get_width(this); }
+  static int _get_width(var _this) native;
 
   void captureEvents() {
     _captureEvents(this);

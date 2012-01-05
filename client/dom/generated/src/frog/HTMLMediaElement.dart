@@ -35,8 +35,6 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
 
   TimeRanges buffered;
 
-  MediaController controller;
-
   bool controls;
 
   String currentSrc;
@@ -56,8 +54,6 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   num initialTime;
 
   bool loop;
-
-  String mediaGroup;
 
   bool muted;
 
@@ -80,8 +76,6 @@ class HTMLMediaElement extends HTMLElement native "HTMLMediaElement" {
   String src;
 
   num startTime;
-
-  TextTrackList textTracks;
 
   num volume;
 

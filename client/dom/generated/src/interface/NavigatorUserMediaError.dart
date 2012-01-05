@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface TrackEvent extends Event {
+interface NavigatorUserMediaError {
 
-  Object get track();
+  static final int PERMISSION_DENIED = 1;
+
+  int get code();
 }

@@ -45,21 +45,16 @@ class _InjectedScriptHostWrappingImplementation extends DOMWrapperBase implement
   }
   static Object _evaluate(receiver, text) native;
 
-  Object functionLocation(Object object) {
-    return _functionLocation(this, object);
-  }
-  static Object _functionLocation(receiver, object) native;
-
   void inspect(Object objectId, Object hints) {
     _inspect(this, objectId, hints);
     return;
   }
   static void _inspect(receiver, objectId, hints) native;
 
-  Object inspectedNode(int num) {
-    return _inspectedNode(this, num);
+  Object inspectedNode(int value) {
+    return _inspectedNode(this, value);
   }
-  static Object _inspectedNode(receiver, num) native;
+  static Object _inspectedNode(receiver, value) native;
 
   Object internalConstructorName(Object object) {
     return _internalConstructorName(this, object);

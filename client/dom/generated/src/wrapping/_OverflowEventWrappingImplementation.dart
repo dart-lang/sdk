@@ -20,5 +20,11 @@ class _OverflowEventWrappingImplementation extends _EventWrappingImplementation 
   bool get verticalOverflow() { return _get_verticalOverflow(this); }
   static bool _get_verticalOverflow(var _this) native;
 
+  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) {
+    _initOverflowEvent(this, orient, horizontalOverflow, verticalOverflow);
+    return;
+  }
+  static void _initOverflowEvent(receiver, orient, horizontalOverflow, verticalOverflow) native;
+
   String get typeName() { return "OverflowEvent"; }
 }

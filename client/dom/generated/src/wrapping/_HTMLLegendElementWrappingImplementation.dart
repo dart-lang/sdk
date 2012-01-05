@@ -11,6 +11,12 @@ class _HTMLLegendElementWrappingImplementation extends _HTMLElementWrappingImple
     return new _HTMLLegendElementWrappingImplementation();
   }
 
+  String get accessKey() { return _get_accessKey(this); }
+  static String _get_accessKey(var _this) native;
+
+  void set accessKey(String value) { _set_accessKey(this, value); }
+  static void _set_accessKey(var _this, String value) native;
+
   String get align() { return _get_align(this); }
   static String _get_align(var _this) native;
 

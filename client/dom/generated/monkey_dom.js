@@ -290,6 +290,7 @@ function DOM$fixClass$BeforeLoadEvent(c) {
   if (c.prototype) {
     c.prototype.url$getter = function() { return DOM$EnsureDartNull(this.url); };
   }
+  DOM$fixMembers(c, ['initBeforeLoadEvent']);
   c.$implements$BeforeLoadEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -301,7 +302,6 @@ function DOM$fixClass$BiquadFilterNode(c) {
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
     c.prototype.type$setter = function(value) { this.type = value; };
   }
-  DOM$fixMembers(c, ['getFrequencyResponse']);
   c.$implements$BiquadFilterNode$Dart = 1;
   c.$implements$AudioNode$Dart = 1;
 }
@@ -649,6 +649,7 @@ function DOM$fixClass$CloseEvent(c) {
     c.prototype.reason$getter = function() { return DOM$EnsureDartNull(this.reason); };
     c.prototype.wasClean$getter = function() { return DOM$EnsureDartNull(this.wasClean); };
   }
+  DOM$fixMembers(c, ['initCloseEvent']);
   c.$implements$CloseEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -1026,7 +1027,6 @@ function DOM$fixClass$DOMWindow(c) {
     'setTimeout',
     'showModalDialog',
     'stop',
-    'webkitCancelAnimationFrame',
     'webkitCancelRequestAnimationFrame',
     'webkitConvertPointFromNodeToPage',
     'webkitConvertPointFromPageToNode',
@@ -1092,7 +1092,6 @@ function DOM$fixClass$Database(c) {
 }
 function DOM$fixClass$DatabaseSync(c) {
   if (c.prototype) {
-    c.prototype.lastErrorMessage$getter = function() { return DOM$EnsureDartNull(this.lastErrorMessage); };
     c.prototype.version$getter = function() { return DOM$EnsureDartNull(this.version); };
   }
   DOM$fixMembers(c, [
@@ -1257,8 +1256,7 @@ function DOM$fixClass$Document(c) {
     'queryCommandValue',
     'querySelector',
     'querySelectorAll',
-    'webkitCancelFullScreen',
-    'webkitGetFlowByName']);
+    'webkitCancelFullScreen']);
   c.prototype.createTouch$member = function() {
     return DOM$fixValue$Touch(this.createTouch.apply(this, arguments));
   };
@@ -1451,6 +1449,7 @@ function DOM$fixClass$ErrorEvent(c) {
     c.prototype.lineno$getter = function() { return DOM$EnsureDartNull(this.lineno); };
     c.prototype.message$getter = function() { return DOM$EnsureDartNull(this.message); };
   }
+  DOM$fixMembers(c, ['initErrorEvent']);
   c.$implements$ErrorEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -1681,6 +1680,8 @@ function DOM$fixClass$HTMLAllCollection(c) {
 }
 function DOM$fixClass$HTMLAnchorElement(c) {
   if (c.prototype) {
+    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
+    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.charset$getter = function() { return DOM$EnsureDartNull(this.charset); };
     c.prototype.charset$setter = function(value) { this.charset = value; };
     c.prototype.coords$getter = function() { return DOM$EnsureDartNull(this.coords); };
@@ -1722,7 +1723,9 @@ function DOM$fixClass$HTMLAnchorElement(c) {
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
     c.prototype.type$setter = function(value) { this.type = value; };
   }
-  DOM$fixMembers(c, ['toString']);
+  DOM$fixMembers(c, [
+    'getParameter',
+    'toString']);
   c.$implements$HTMLAnchorElement$Dart = 1;
   c.$implements$HTMLElement$Dart = 1;
   c.$implements$Element$Dart = 1;
@@ -1766,6 +1769,8 @@ function DOM$fixClass$HTMLAppletElement(c) {
 }
 function DOM$fixClass$HTMLAreaElement(c) {
   if (c.prototype) {
+    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
+    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.alt$getter = function() { return DOM$EnsureDartNull(this.alt); };
     c.prototype.alt$setter = function(value) { this.alt = value; };
     c.prototype.coords$getter = function() { return DOM$EnsureDartNull(this.coords); };
@@ -1878,6 +1883,8 @@ function DOM$fixClass$HTMLBodyElement(c) {
 }
 function DOM$fixClass$HTMLButtonElement(c) {
   if (c.prototype) {
+    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
+    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.autofocus$getter = function() { return DOM$EnsureDartNull(this.autofocus); };
     c.prototype.autofocus$setter = function(value) { this.autofocus = value; };
     c.prototype.disabled$getter = function() { return DOM$EnsureDartNull(this.disabled); };
@@ -2025,12 +2032,14 @@ function DOM$fixClass$HTMLDocument(c) {
     c.prototype.embeds$getter = function() { return DOM$EnsureDartNull(this.embeds); };
     c.prototype.fgColor$getter = function() { return DOM$EnsureDartNull(this.fgColor); };
     c.prototype.fgColor$setter = function(value) { this.fgColor = value; };
+    c.prototype.height$getter = function() { return DOM$EnsureDartNull(this.height); };
     c.prototype.linkColor$getter = function() { return DOM$EnsureDartNull(this.linkColor); };
     c.prototype.linkColor$setter = function(value) { this.linkColor = value; };
     c.prototype.plugins$getter = function() { return DOM$EnsureDartNull(this.plugins); };
     c.prototype.scripts$getter = function() { return DOM$EnsureDartNull(this.scripts); };
     c.prototype.vlinkColor$getter = function() { return DOM$EnsureDartNull(this.vlinkColor); };
     c.prototype.vlinkColor$setter = function(value) { this.vlinkColor = value; };
+    c.prototype.width$getter = function() { return DOM$EnsureDartNull(this.width); };
   }
   DOM$fixMembers(c, [
     'captureEvents',
@@ -2049,8 +2058,6 @@ function DOM$fixClass$HTMLDocument(c) {
 }
 function DOM$fixClass$HTMLElement(c) {
   if (c.prototype) {
-    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
-    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.children$getter = function() { return DOM$EnsureDartNull(this.children); };
     c.prototype.classList$getter = function() { return DOM$EnsureDartNull(this.classList); };
     c.prototype.className$getter = function() { return DOM$EnsureDartNull(this.className); };
@@ -2394,6 +2401,8 @@ function DOM$fixClass$HTMLInputElement(c) {
   if (c.prototype) {
     c.prototype.accept$getter = function() { return DOM$EnsureDartNull(this.accept); };
     c.prototype.accept$setter = function(value) { this.accept = value; };
+    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
+    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.align$getter = function() { return DOM$EnsureDartNull(this.align); };
     c.prototype.align$setter = function(value) { this.align = value; };
     c.prototype.alt$getter = function() { return DOM$EnsureDartNull(this.alt); };
@@ -2408,8 +2417,6 @@ function DOM$fixClass$HTMLInputElement(c) {
     c.prototype.defaultChecked$setter = function(value) { this.defaultChecked = value; };
     c.prototype.defaultValue$getter = function() { return DOM$EnsureDartNull(this.defaultValue); };
     c.prototype.defaultValue$setter = function(value) { this.defaultValue = value; };
-    c.prototype.dirName$getter = function() { return DOM$EnsureDartNull(this.dirName); };
-    c.prototype.dirName$setter = function(value) { this.dirName = value; };
     c.prototype.disabled$getter = function() { return DOM$EnsureDartNull(this.disabled); };
     c.prototype.disabled$setter = function(value) { this.disabled = value; };
     c.prototype.files$getter = function() { return DOM$EnsureDartNull(this.files); };
@@ -2559,6 +2566,8 @@ function DOM$fixClass$HTMLLIElement(c) {
 }
 function DOM$fixClass$HTMLLabelElement(c) {
   if (c.prototype) {
+    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
+    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.control$getter = function() { return DOM$EnsureDartNull(this.control); };
     c.prototype.form$getter = function() { return DOM$EnsureDartNull(this.form); };
     c.prototype.htmlFor$getter = function() { return DOM$EnsureDartNull(this.htmlFor); };
@@ -2574,6 +2583,8 @@ function DOM$fixClass$HTMLLabelElement(c) {
 }
 function DOM$fixClass$HTMLLegendElement(c) {
   if (c.prototype) {
+    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
+    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.align$getter = function() { return DOM$EnsureDartNull(this.align); };
     c.prototype.align$setter = function(value) { this.align = value; };
     c.prototype.form$getter = function() { return DOM$EnsureDartNull(this.form); };
@@ -2673,8 +2684,6 @@ function DOM$fixClass$HTMLMediaElement(c) {
     c.prototype.autoplay$getter = function() { return DOM$EnsureDartNull(this.autoplay); };
     c.prototype.autoplay$setter = function(value) { this.autoplay = value; };
     c.prototype.buffered$getter = function() { return DOM$EnsureDartNull(this.buffered); };
-    c.prototype.controller$getter = function() { return DOM$EnsureDartNull(this.controller); };
-    c.prototype.controller$setter = function(value) { this.controller = value; };
     c.prototype.controls$getter = function() { return DOM$EnsureDartNull(this.controls); };
     c.prototype.controls$setter = function(value) { this.controls = value; };
     c.prototype.currentSrc$getter = function() { return DOM$EnsureDartNull(this.currentSrc); };
@@ -2690,8 +2699,6 @@ function DOM$fixClass$HTMLMediaElement(c) {
     c.prototype.initialTime$getter = function() { return DOM$EnsureDartNull(this.initialTime); };
     c.prototype.loop$getter = function() { return DOM$EnsureDartNull(this.loop); };
     c.prototype.loop$setter = function(value) { this.loop = value; };
-    c.prototype.mediaGroup$getter = function() { return DOM$EnsureDartNull(this.mediaGroup); };
-    c.prototype.mediaGroup$setter = function(value) { this.mediaGroup = value; };
     c.prototype.muted$getter = function() { return DOM$EnsureDartNull(this.muted); };
     c.prototype.muted$setter = function(value) { this.muted = value; };
     c.prototype.networkState$getter = function() { return DOM$EnsureDartNull(this.networkState); };
@@ -2707,7 +2714,6 @@ function DOM$fixClass$HTMLMediaElement(c) {
     c.prototype.src$getter = function() { return DOM$EnsureDartNull(this.src); };
     c.prototype.src$setter = function(value) { this.src = value; };
     c.prototype.startTime$getter = function() { return DOM$EnsureDartNull(this.startTime); };
-    c.prototype.textTracks$getter = function() { return DOM$EnsureDartNull(this.textTracks); };
     c.prototype.volume$getter = function() { return DOM$EnsureDartNull(this.volume); };
     c.prototype.volume$setter = function(value) { this.volume = value; };
     c.prototype.webkitAudioDecodedByteCount$getter = function() { return DOM$EnsureDartNull(this.webkitAudioDecodedByteCount); };
@@ -2812,8 +2818,6 @@ function DOM$fixClass$HTMLOListElement(c) {
   if (c.prototype) {
     c.prototype.compact$getter = function() { return DOM$EnsureDartNull(this.compact); };
     c.prototype.compact$setter = function(value) { this.compact = value; };
-    c.prototype.reversed$getter = function() { return DOM$EnsureDartNull(this.reversed); };
-    c.prototype.reversed$setter = function(value) { this.reversed = value; };
     c.prototype.start$getter = function() { return DOM$EnsureDartNull(this.start); };
     c.prototype.start$setter = function(value) { this.start = value; };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
@@ -3023,14 +3027,6 @@ function DOM$fixClass$HTMLProgressElement(c) {
   c.$implements$NodeSelector$Dart = 1;
   c.$implements$ElementTraversal$Dart = 1;
 }
-function DOM$fixClass$HTMLPropertiesCollection(c) {
-  if (c.prototype) {
-    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-  }
-  DOM$fixMembers(c, ['item']);
-  c.$implements$HTMLPropertiesCollection$Dart = 1;
-  c.$implements$HTMLCollection$Dart = 1;
-}
 function DOM$fixClass$HTMLQuoteElement(c) {
   if (c.prototype) {
     c.prototype.cite$getter = function() { return DOM$EnsureDartNull(this.cite); };
@@ -3148,8 +3144,6 @@ function DOM$fixClass$HTMLStyleElement(c) {
     c.prototype.disabled$setter = function(value) { this.disabled = value; };
     c.prototype.media$getter = function() { return DOM$EnsureDartNull(this.media); };
     c.prototype.media$setter = function(value) { this.media = value; };
-    c.prototype.scoped$getter = function() { return DOM$EnsureDartNull(this.scoped); };
-    c.prototype.scoped$setter = function(value) { this.scoped = value; };
     c.prototype.sheet$getter = function() { return DOM$EnsureDartNull(this.sheet); };
     c.prototype.type$getter = function() { return DOM$EnsureDartNull(this.type); };
     c.prototype.type$setter = function(value) { this.type = value; };
@@ -3336,14 +3330,14 @@ function DOM$fixClass$HTMLTableSectionElement(c) {
 }
 function DOM$fixClass$HTMLTextAreaElement(c) {
   if (c.prototype) {
+    c.prototype.accessKey$getter = function() { return DOM$EnsureDartNull(this.accessKey); };
+    c.prototype.accessKey$setter = function(value) { this.accessKey = value; };
     c.prototype.autofocus$getter = function() { return DOM$EnsureDartNull(this.autofocus); };
     c.prototype.autofocus$setter = function(value) { this.autofocus = value; };
     c.prototype.cols$getter = function() { return DOM$EnsureDartNull(this.cols); };
     c.prototype.cols$setter = function(value) { this.cols = value; };
     c.prototype.defaultValue$getter = function() { return DOM$EnsureDartNull(this.defaultValue); };
     c.prototype.defaultValue$setter = function(value) { this.defaultValue = value; };
-    c.prototype.dirName$getter = function() { return DOM$EnsureDartNull(this.dirName); };
-    c.prototype.dirName$setter = function(value) { this.dirName = value; };
     c.prototype.disabled$getter = function() { return DOM$EnsureDartNull(this.disabled); };
     c.prototype.disabled$setter = function(value) { this.disabled = value; };
     c.prototype.form$getter = function() { return DOM$EnsureDartNull(this.form); };
@@ -3410,7 +3404,6 @@ function DOM$fixClass$HTMLTrackElement(c) {
     c.prototype.kind$setter = function(value) { this.kind = value; };
     c.prototype.label$getter = function() { return DOM$EnsureDartNull(this.label); };
     c.prototype.label$setter = function(value) { this.label = value; };
-    c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
     c.prototype.src$getter = function() { return DOM$EnsureDartNull(this.src); };
     c.prototype.src$setter = function(value) { this.src = value; };
     c.prototype.srclang$getter = function() { return DOM$EnsureDartNull(this.srclang); };
@@ -3589,13 +3582,11 @@ function DOM$fixClass$IDBFactory(c) {
 function DOM$fixClass$IDBIndex(c) {
   if (c.prototype) {
     c.prototype.keyPath$getter = function() { return DOM$EnsureDartNull(this.keyPath); };
-    c.prototype.multiEntry$getter = function() { return DOM$EnsureDartNull(this.multiEntry); };
     c.prototype.name$getter = function() { return DOM$EnsureDartNull(this.name); };
     c.prototype.objectStore$getter = function() { return DOM$EnsureDartNull(this.objectStore); };
     c.prototype.unique$getter = function() { return DOM$EnsureDartNull(this.unique); };
   }
   DOM$fixMembers(c, [
-    'count',
     'getKey',
     'openCursor',
     'openKeyCursor']);
@@ -3632,7 +3623,6 @@ function DOM$fixClass$IDBObjectStore(c) {
   DOM$fixMembers(c, [
     'add',
     'clear',
-    'count',
     'createIndex',
     'deleteIndex',
     'index',
@@ -3734,7 +3724,6 @@ function DOM$fixClass$InjectedScriptHost(c) {
     'didCreateWorker',
     'didDestroyWorker',
     'evaluate',
-    'functionLocation',
     'inspect',
     'inspectedNode',
     'internalConstructorName',
@@ -3749,12 +3738,11 @@ function DOM$fixClass$InspectorFrontendHost(c) {
   }
   DOM$fixMembers(c, [
     'bringToFront',
-    'canSaveAs',
     'closeWindow',
     'copyText',
+    'disconnectFromBackend',
     'hiddenPanels',
     'inspectedURLChanged',
-    'loadResourceSynchronously',
     'loaded',
     'localizedStringsURL',
     'moveWindowBy',
@@ -3768,7 +3756,7 @@ function DOM$fixClass$InspectorFrontendHost(c) {
     'saveAs',
     'sendMessageToBackend',
     'setAttachedWindowHeight',
-    'setInjectedScriptForOrigin',
+    'setExtensionAPI',
     'showContextMenu']);
   c.$implements$InspectorFrontendHost$Dart = 1;
 }
@@ -3863,6 +3851,7 @@ function DOM$fixClass$Location(c) {
   }
   DOM$fixMembers(c, [
     'assign',
+    'getParameter',
     'reload',
     'replace']);
   c.prototype.toString$member = function() {
@@ -3877,32 +3866,6 @@ function DOM$fixClass$LowPass2FilterNode(c) {
   }
   c.$implements$LowPass2FilterNode$Dart = 1;
   c.$implements$AudioNode$Dart = 1;
-}
-function DOM$fixClass$MediaController(c) {
-  if (c.prototype) {
-    c.prototype.buffered$getter = function() { return DOM$EnsureDartNull(this.buffered); };
-    c.prototype.currentTime$getter = function() { return DOM$EnsureDartNull(this.currentTime); };
-    c.prototype.currentTime$setter = function(value) { this.currentTime = value; };
-    c.prototype.defaultPlaybackRate$getter = function() { return DOM$EnsureDartNull(this.defaultPlaybackRate); };
-    c.prototype.defaultPlaybackRate$setter = function(value) { this.defaultPlaybackRate = value; };
-    c.prototype.duration$getter = function() { return DOM$EnsureDartNull(this.duration); };
-    c.prototype.muted$getter = function() { return DOM$EnsureDartNull(this.muted); };
-    c.prototype.muted$setter = function(value) { this.muted = value; };
-    c.prototype.paused$getter = function() { return DOM$EnsureDartNull(this.paused); };
-    c.prototype.playbackRate$getter = function() { return DOM$EnsureDartNull(this.playbackRate); };
-    c.prototype.playbackRate$setter = function(value) { this.playbackRate = value; };
-    c.prototype.played$getter = function() { return DOM$EnsureDartNull(this.played); };
-    c.prototype.seekable$getter = function() { return DOM$EnsureDartNull(this.seekable); };
-    c.prototype.volume$getter = function() { return DOM$EnsureDartNull(this.volume); };
-    c.prototype.volume$setter = function(value) { this.volume = value; };
-  }
-  DOM$fixMembers(c, [
-    'addEventListener',
-    'dispatchEvent',
-    'pause',
-    'play',
-    'removeEventListener']);
-  c.$implements$MediaController$Dart = 1;
 }
 function DOM$fixClass$MediaElementAudioSourceNode(c) {
   if (c.prototype) {
@@ -4014,8 +3977,6 @@ function DOM$fixClass$MouseEvent(c) {
     c.prototype.screenY$getter = function() { return DOM$EnsureDartNull(this.screenY); };
     c.prototype.shiftKey$getter = function() { return DOM$EnsureDartNull(this.shiftKey); };
     c.prototype.toElement$getter = function() { return DOM$EnsureDartNull(this.toElement); };
-    c.prototype.webkitMovementX$getter = function() { return DOM$EnsureDartNull(this.webkitMovementX); };
-    c.prototype.webkitMovementY$getter = function() { return DOM$EnsureDartNull(this.webkitMovementY); };
     c.prototype.x$getter = function() { return DOM$EnsureDartNull(this.x); };
     c.prototype.y$getter = function() { return DOM$EnsureDartNull(this.y); };
   }
@@ -4092,8 +4053,20 @@ function DOM$fixClass$Navigator(c) {
   DOM$fixMembers(c, [
     'getStorageUpdates',
     'javaEnabled',
-    'registerProtocolHandler']);
+    'registerProtocolHandler',
+    'webkitGetUserMedia']);
   c.$implements$Navigator$Dart = 1;
+}
+function DOM$fixClass$NavigatorUserMediaError(c) {
+  if (c.prototype) {
+    c.prototype.code$getter = function() { return DOM$EnsureDartNull(this.code); };
+  }
+  c.$implements$NavigatorUserMediaError$Dart = 1;
+}
+function DOM$fixClass$NavigatorUserMediaSuccessCallback(c) {
+  if (c.prototype) {
+  }
+  c.$implements$NavigatorUserMediaSuccessCallback$Dart = 1;
 }
 function DOM$fixClass$Node(c) {
   if (c.prototype) {
@@ -4294,6 +4267,7 @@ function DOM$fixClass$OverflowEvent(c) {
     c.prototype.orient$getter = function() { return DOM$EnsureDartNull(this.orient); };
     c.prototype.verticalOverflow$getter = function() { return DOM$EnsureDartNull(this.verticalOverflow); };
   }
+  DOM$fixMembers(c, ['initOverflowEvent']);
   c.$implements$OverflowEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -4301,6 +4275,7 @@ function DOM$fixClass$PageTransitionEvent(c) {
   if (c.prototype) {
     c.prototype.persisted$getter = function() { return DOM$EnsureDartNull(this.persisted); };
   }
+  DOM$fixMembers(c, ['initPageTransitionEvent']);
   c.$implements$PageTransitionEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -4345,19 +4320,11 @@ function DOM$fixClass$PerformanceTiming(c) {
   }
   c.$implements$PerformanceTiming$Dart = 1;
 }
-function DOM$fixClass$PointerLock(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, [
-    'isLocked',
-    'lock',
-    'unlock']);
-  c.$implements$PointerLock$Dart = 1;
-}
 function DOM$fixClass$PopStateEvent(c) {
   if (c.prototype) {
     c.prototype.state$getter = function() { return DOM$EnsureDartNull(this.state); };
   }
+  DOM$fixMembers(c, ['initPopStateEvent']);
   c.$implements$PopStateEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -4385,6 +4352,7 @@ function DOM$fixClass$ProgressEvent(c) {
     c.prototype.loaded$getter = function() { return DOM$EnsureDartNull(this.loaded); };
     c.prototype.total$getter = function() { return DOM$EnsureDartNull(this.total); };
   }
+  DOM$fixMembers(c, ['initProgressEvent']);
   c.$implements$ProgressEvent$Dart = 1;
   c.$implements$Event$Dart = 1;
 }
@@ -7498,15 +7466,11 @@ function DOM$fixClass$TextTrack(c) {
     c.prototype.language$getter = function() { return DOM$EnsureDartNull(this.language); };
     c.prototype.mode$getter = function() { return DOM$EnsureDartNull(this.mode); };
     c.prototype.mode$setter = function(value) { this.mode = value; };
-    c.prototype.oncuechange$getter = function() { return DOM$EnsureDartNull(this.oncuechange); };
-    c.prototype.oncuechange$setter = function(value) { this.oncuechange = value; };
+    c.prototype.readyState$getter = function() { return DOM$EnsureDartNull(this.readyState); };
   }
   DOM$fixMembers(c, [
     'addCue',
-    'addEventListener',
-    'dispatchEvent',
-    'removeCue',
-    'removeEventListener']);
+    'removeCue']);
   c.$implements$TextTrack$Dart = 1;
 }
 function DOM$fixClass$TextTrackCue(c) {
@@ -7516,10 +7480,6 @@ function DOM$fixClass$TextTrackCue(c) {
     c.prototype.endTime$getter = function() { return DOM$EnsureDartNull(this.endTime); };
     c.prototype.id$getter = function() { return DOM$EnsureDartNull(this.id); };
     c.prototype.linePosition$getter = function() { return DOM$EnsureDartNull(this.linePosition); };
-    c.prototype.onenter$getter = function() { return DOM$EnsureDartNull(this.onenter); };
-    c.prototype.onenter$setter = function(value) { this.onenter = value; };
-    c.prototype.onexit$getter = function() { return DOM$EnsureDartNull(this.onexit); };
-    c.prototype.onexit$setter = function(value) { this.onexit = value; };
     c.prototype.pauseOnExit$getter = function() { return DOM$EnsureDartNull(this.pauseOnExit); };
     c.prototype.size$getter = function() { return DOM$EnsureDartNull(this.size); };
     c.prototype.snapToLines$getter = function() { return DOM$EnsureDartNull(this.snapToLines); };
@@ -7528,11 +7488,8 @@ function DOM$fixClass$TextTrackCue(c) {
     c.prototype.track$getter = function() { return DOM$EnsureDartNull(this.track); };
   }
   DOM$fixMembers(c, [
-    'addEventListener',
-    'dispatchEvent',
     'getCueAsHTML',
-    'getCueAsSource',
-    'removeEventListener']);
+    'getCueAsSource']);
   c.$implements$TextTrackCue$Dart = 1;
 }
 function DOM$fixClass$TextTrackCueList(c) {
@@ -7543,19 +7500,6 @@ function DOM$fixClass$TextTrackCueList(c) {
     'getCueById',
     'item']);
   c.$implements$TextTrackCueList$Dart = 1;
-}
-function DOM$fixClass$TextTrackList(c) {
-  if (c.prototype) {
-    c.prototype.length$getter = function() { return DOM$EnsureDartNull(this.length); };
-    c.prototype.onaddtrack$getter = function() { return DOM$EnsureDartNull(this.onaddtrack); };
-    c.prototype.onaddtrack$setter = function(value) { this.onaddtrack = value; };
-  }
-  DOM$fixMembers(c, [
-    'addEventListener',
-    'dispatchEvent',
-    'item',
-    'removeEventListener']);
-  c.$implements$TextTrackList$Dart = 1;
 }
 function DOM$fixClass$TimeRanges(c) {
   if (c.prototype) {
@@ -7642,13 +7586,6 @@ function DOM$fixValue$TouchList(value) {
     return value;
   DOM$fixClassOnDemand$TouchList(constructor);
   return value;
-}
-function DOM$fixClass$TrackEvent(c) {
-  if (c.prototype) {
-    c.prototype.track$getter = function() { return DOM$EnsureDartNull(this.track); };
-  }
-  c.$implements$TrackEvent$Dart = 1;
-  c.$implements$Event$Dart = 1;
 }
 function DOM$fixClass$TreeWalker(c) {
   if (c.prototype) {
@@ -7750,14 +7687,6 @@ function DOM$fixClass$WebGLBuffer(c) {
   }
   c.$implements$WebGLBuffer$Dart = 1;
 }
-function DOM$fixClass$WebGLCompressedTextures(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, [
-    'compressedTexImage2D',
-    'compressedTexSubImage2D']);
-  c.$implements$WebGLCompressedTextures$Dart = 1;
-}
 function DOM$fixClass$WebGLContextAttributes(c) {
   if (c.prototype) {
     c.prototype.alpha$getter = function() { return DOM$EnsureDartNull(this.alpha); };
@@ -7797,14 +7726,6 @@ function DOM$fixClass$WebGLFramebuffer(c) {
   if (c.prototype) {
   }
   c.$implements$WebGLFramebuffer$Dart = 1;
-}
-function DOM$fixClass$WebGLLoseContext(c) {
-  if (c.prototype) {
-  }
-  DOM$fixMembers(c, [
-    'loseContext',
-    'restoreContext']);
-  c.$implements$WebGLLoseContext$Dart = 1;
 }
 function DOM$fixClass$WebGLProgram(c) {
   if (c.prototype) {
@@ -8127,16 +8048,19 @@ function DOM$fixClass$WebKitFlags(c) {
   }
   c.$implements$WebKitFlags$Dart = 1;
 }
+function DOM$fixClass$WebKitLoseContext(c) {
+  if (c.prototype) {
+  }
+  DOM$fixMembers(c, [
+    'loseContext',
+    'restoreContext']);
+  c.$implements$WebKitLoseContext$Dart = 1;
+}
 function DOM$fixClass$WebKitMutationObserver(c) {
   if (c.prototype) {
   }
   DOM$fixMembers(c, ['disconnect']);
   c.$implements$WebKitMutationObserver$Dart = 1;
-}
-function DOM$fixClass$WebKitNamedFlow(c) {
-  if (c.prototype) {
-  }
-  c.$implements$WebKitNamedFlow$Dart = 1;
 }
 function DOM$fixClass$WebKitPoint(c) {
   if (c.prototype) {
@@ -8220,7 +8144,6 @@ function DOM$fixClass$WorkerContext(c) {
     c.prototype.onerror$setter = function(value) { this.onerror = value; };
     c.prototype.self$getter = function() { return DOM$EnsureDartNull(this.self); };
     c.prototype.self$setter = function(value) { this.self = value; };
-    c.prototype.webkitIndexedDB$getter = function() { return DOM$EnsureDartNull(this.webkitIndexedDB); };
     c.prototype.webkitNotifications$getter = function() { return DOM$fixValue$NotificationCenter(this.webkitNotifications); };
     c.prototype.webkitURL$getter = function() { return DOM$EnsureDartNull(this.webkitURL); };
   }
@@ -9130,10 +9053,6 @@ var _;
     w.HTMLProgressElement$Dart = _;
     DOM$fixClass$HTMLProgressElement(_);
   }
-  if ((_ = w.HTMLPropertiesCollection)) {
-    w.HTMLPropertiesCollection$Dart = _;
-    DOM$fixClass$HTMLPropertiesCollection(_);
-  }
   if ((_ = w.HTMLQuoteElement)) {
     w.HTMLQuoteElement$Dart = _;
     DOM$fixClass$HTMLQuoteElement(_);
@@ -9331,10 +9250,6 @@ var _;
     w.LowPass2FilterNode$Dart = _;
     DOM$fixClass$LowPass2FilterNode(_);
   }
-  if ((_ = w.MediaController)) {
-    w.MediaController$Dart = _;
-    DOM$fixClass$MediaController(_);
-  }
   if ((_ = w.MediaElementAudioSourceNode)) {
     w.MediaElementAudioSourceNode$Dart = _;
     DOM$fixClass$MediaElementAudioSourceNode(_);
@@ -9401,6 +9316,14 @@ var _;
   if ((_ = w.Navigator)) {
     w.Navigator$Dart = _;
     DOM$fixClass$Navigator(_);
+  }
+  if ((_ = w.NavigatorUserMediaError)) {
+    w.NavigatorUserMediaError$Dart = _;
+    DOM$fixClass$NavigatorUserMediaError(_);
+  }
+  if ((_ = w.NavigatorUserMediaSuccessCallback)) {
+    w.NavigatorUserMediaSuccessCallback$Dart = _;
+    DOM$fixClass$NavigatorUserMediaSuccessCallback(_);
   }
   if ((_ = w.Node)) {
     w.Node$Dart = _;
@@ -9485,10 +9408,6 @@ var _;
   if ((_ = w.PerformanceTiming)) {
     w.PerformanceTiming$Dart = _;
     DOM$fixClass$PerformanceTiming(_);
-  }
-  if ((_ = w.PointerLock)) {
-    w.PointerLock$Dart = _;
-    DOM$fixClass$PointerLock(_);
   }
   if ((_ = w.PopStateEvent)) {
     w.PopStateEvent$Dart = _;
@@ -10250,10 +10169,6 @@ var _;
     w.TextTrackCueList$Dart = _;
     DOM$fixClass$TextTrackCueList(_);
   }
-  if ((_ = w.TextTrackList)) {
-    w.TextTrackList$Dart = _;
-    DOM$fixClass$TextTrackList(_);
-  }
   if ((_ = w.TimeRanges)) {
     w.TimeRanges$Dart = _;
     DOM$fixClass$TimeRanges(_);
@@ -10269,10 +10184,6 @@ var _;
   if ((_ = w.TouchList)) {
     w.TouchList$Dart = _;
     DOM$fixClassOnDemand$TouchList(_);
-  }
-  if ((_ = w.TrackEvent)) {
-    w.TrackEvent$Dart = _;
-    DOM$fixClass$TrackEvent(_);
   }
   if ((_ = w.TreeWalker)) {
     w.TreeWalker$Dart = _;
@@ -10310,10 +10221,6 @@ var _;
     w.WebGLBuffer$Dart = _;
     DOM$fixClass$WebGLBuffer(_);
   }
-  if ((_ = w.WebGLCompressedTextures)) {
-    w.WebGLCompressedTextures$Dart = _;
-    DOM$fixClass$WebGLCompressedTextures(_);
-  }
   if ((_ = w.WebGLContextAttributes)) {
     w.WebGLContextAttributes$Dart = _;
     DOM$fixClass$WebGLContextAttributes(_);
@@ -10333,10 +10240,6 @@ var _;
   if ((_ = w.WebGLFramebuffer)) {
     w.WebGLFramebuffer$Dart = _;
     DOM$fixClass$WebGLFramebuffer(_);
-  }
-  if ((_ = w.WebGLLoseContext)) {
-    w.WebGLLoseContext$Dart = _;
-    DOM$fixClass$WebGLLoseContext(_);
   }
   if ((_ = w.WebGLProgram)) {
     w.WebGLProgram$Dart = _;
@@ -10406,13 +10309,13 @@ var _;
     w.WebKitFlags$Dart = _;
     DOM$fixClass$WebKitFlags(_);
   }
+  if ((_ = w.WebKitLoseContext)) {
+    w.WebKitLoseContext$Dart = _;
+    DOM$fixClass$WebKitLoseContext(_);
+  }
   if ((_ = w.WebKitMutationObserver)) {
     w.WebKitMutationObserver$Dart = _;
     DOM$fixClass$WebKitMutationObserver(_);
-  }
-  if ((_ = w.WebKitNamedFlow)) {
-    w.WebKitNamedFlow$Dart = _;
-    DOM$fixClass$WebKitNamedFlow(_);
   }
   if ((_ = w.WebKitPoint)) {
     w.WebKitPoint$Dart = _;

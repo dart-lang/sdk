@@ -19,7 +19,7 @@ class CSSRule native "CSSRule" {
 
   static final int WEBKIT_KEYFRAME_RULE = 9;
 
-  static final int WEBKIT_REGION_RULE = 10;
+  static final int WEBKIT_REGION_STYLE_RULE = 10;
 
   String cssText;
 

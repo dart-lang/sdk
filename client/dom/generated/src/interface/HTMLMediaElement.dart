@@ -42,10 +42,6 @@ interface HTMLMediaElement extends HTMLElement {
 
   TimeRanges get buffered();
 
-  MediaController get controller();
-
-  void set controller(MediaController value);
-
   bool get controls();
 
   void set controls(bool value);
@@ -76,10 +72,6 @@ interface HTMLMediaElement extends HTMLElement {
 
   void set loop(bool value);
 
-  String get mediaGroup();
-
-  void set mediaGroup(String value);
-
   bool get muted();
 
   void set muted(bool value);
@@ -109,8 +101,6 @@ interface HTMLMediaElement extends HTMLElement {
   void set src(String value);
 
   num get startTime();
-
-  TextTrackList get textTracks();
 
   num get volume();
 

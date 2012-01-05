@@ -35,9 +35,6 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   void set self(WorkerContext value) { _set_self(this, value); }
   static void _set_self(var _this, WorkerContext value) native;
 
-  IDBFactory get webkitIndexedDB() { return _get_webkitIndexedDB(this); }
-  static IDBFactory _get_webkitIndexedDB(var _this) native;
-
   NotificationCenter get webkitNotifications() { return _get_webkitNotifications(this); }
   static NotificationCenter _get_webkitNotifications(var _this) native;
 

@@ -37,6 +37,8 @@ class Navigator native "*Navigator" {
 
   void registerProtocolHandler(String scheme, String url, String title) native;
 
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+
   var dartObjectLocalStorage;
 
   String get typeName() native;

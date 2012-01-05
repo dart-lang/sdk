@@ -17,12 +17,6 @@ class _HTMLOListElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set compact(bool value) { _set_compact(this, value); }
   static void _set_compact(var _this, bool value) native;
 
-  bool get reversed() { return _get_reversed(this); }
-  static bool _get_reversed(var _this) native;
-
-  void set reversed(bool value) { _set_reversed(this, value); }
-  static void _set_reversed(var _this, bool value) native;
-
   int get start() { return _get_start(this); }
   static int _get_start(var _this) native;
 

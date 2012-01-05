@@ -36,6 +36,8 @@ interface HTMLDocument extends Document {
 
   void set fgColor(String value);
 
+  int get height();
+
   String get linkColor();
 
   void set linkColor(String value);
@@ -47,6 +49,8 @@ interface HTMLDocument extends Document {
   String get vlinkColor();
 
   void set vlinkColor(String value);
+
+  int get width();
 
   void captureEvents();
 

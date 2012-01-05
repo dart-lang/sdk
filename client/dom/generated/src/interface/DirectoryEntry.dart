@@ -12,5 +12,5 @@ interface DirectoryEntry extends Entry {
 
   void getFile(String path, [WebKitFlags flags, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
+  void removeRecursively([VoidCallback successCallback, ErrorCallback errorCallback]);
 }

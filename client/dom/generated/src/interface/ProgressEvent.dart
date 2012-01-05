@@ -11,4 +11,6 @@ interface ProgressEvent extends Event {
   int get loaded();
 
   int get total();
+
+  void initProgressEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool lengthComputableArg, int loadedArg, int totalArg);
 }

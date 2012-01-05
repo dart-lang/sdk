@@ -16,14 +16,6 @@ interface TextTrackCue {
 
   int get linePosition();
 
-  EventListener get onenter();
-
-  void set onenter(EventListener value);
-
-  EventListener get onexit();
-
-  void set onexit(EventListener value);
-
   bool get pauseOnExit();
 
   int get size();
@@ -36,13 +28,7 @@ interface TextTrackCue {
 
   TextTrack get track();
 
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool dispatchEvent(Event evt);
-
   DocumentFragment getCueAsHTML();
 
   String getCueAsSource();
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }

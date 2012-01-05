@@ -13,13 +13,13 @@ class Entry native "*Entry" {
 
   void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void getMetadata([MetadataCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void moveTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void remove([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   String toURL() native;
 

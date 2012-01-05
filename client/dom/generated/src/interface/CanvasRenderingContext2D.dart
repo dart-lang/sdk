@@ -6,9 +6,9 @@
 
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
-  Dynamic get fillStyle();
+  Object get fillStyle();
 
-  void set fillStyle(Dynamic value);
+  void set fillStyle(Object value);
 
   String get font();
 
@@ -54,9 +54,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void set shadowOffsetY(num value);
 
-  Dynamic get strokeStyle();
+  Object get strokeStyle();
 
-  void set strokeStyle(Dynamic value);
+  void set strokeStyle(Object value);
 
   String get textAlign();
 

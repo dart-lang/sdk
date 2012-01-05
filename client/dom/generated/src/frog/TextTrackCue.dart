@@ -11,10 +11,6 @@ class TextTrackCue native "*TextTrackCue" {
 
   int linePosition;
 
-  EventListener onenter;
-
-  EventListener onexit;
-
   bool pauseOnExit;
 
   int size;
@@ -27,15 +23,9 @@ class TextTrackCue native "*TextTrackCue" {
 
   TextTrack track;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  bool dispatchEvent(Event evt) native;
-
   DocumentFragment getCueAsHTML() native;
 
   String getCueAsSource() native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   var dartObjectLocalStorage;
 

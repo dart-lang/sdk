@@ -18,8 +18,6 @@ interface InjectedScriptHost {
 
   Object evaluate(String text);
 
-  Object functionLocation(Object object);
-
   void inspect(Object objectId, Object hints);
 
   Object inspectedNode(int num);

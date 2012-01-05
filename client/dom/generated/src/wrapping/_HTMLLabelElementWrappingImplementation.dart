@@ -11,6 +11,12 @@ class _HTMLLabelElementWrappingImplementation extends _HTMLElementWrappingImplem
     return new _HTMLLabelElementWrappingImplementation();
   }
 
+  String get accessKey() { return _get_accessKey(this); }
+  static String _get_accessKey(var _this) native;
+
+  void set accessKey(String value) { _set_accessKey(this, value); }
+  static void _set_accessKey(var _this, String value) native;
+
   HTMLElement get control() { return _get_control(this); }
   static HTMLElement _get_control(var _this) native;
 

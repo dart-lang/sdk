@@ -12,4 +12,6 @@ class OverflowEvent extends Event native "*OverflowEvent" {
   int orient;
 
   bool verticalOverflow;
+
+  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow) native;
 }

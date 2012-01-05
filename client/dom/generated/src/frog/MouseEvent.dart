@@ -31,10 +31,6 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   Node toElement;
 
-  int webkitMovementX;
-
-  int webkitMovementY;
-
   int x;
 
   int y;

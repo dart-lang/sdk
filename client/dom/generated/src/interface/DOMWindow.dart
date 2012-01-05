@@ -222,7 +222,7 @@ interface Window extends EventTarget {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
-  void postMessage(String message, String targetOrigin, [List messagePorts]);
+  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin]);
 
   void print();
 
@@ -250,19 +250,17 @@ interface Window extends EventTarget {
 
   void stop();
 
-  void webkitCancelAnimationFrame(int id);
-
   void webkitCancelRequestAnimationFrame(int id);
 
   WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p);
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
 
-  void webkitPostMessage(String message, String targetOrigin, [List transferList]);
+  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
 
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]);
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]);
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]);
 }

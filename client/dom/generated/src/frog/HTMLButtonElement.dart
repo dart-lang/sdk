@@ -1,6 +1,8 @@
 
 class HTMLButtonElement extends HTMLElement native "*HTMLButtonElement" {
 
+  String accessKey;
+
   bool autofocus;
 
   bool disabled;

@@ -13,8 +13,6 @@ class InjectedScriptHost native "*InjectedScriptHost" {
 
   Object evaluate(String text) native;
 
-  Object functionLocation(Object object) native;
-
   void inspect(Object objectId, Object hints) native;
 
   Object inspectedNode(int num) native;
