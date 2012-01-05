@@ -65,7 +65,7 @@ TypeVariableBoundsTest/10: Fail
 ConstructorDuplicateInitializersTest/01: Fail
 ConstructorDuplicateInitializersTest/02: Fail
 
-[ $component == vm || $component == dartium  && $checked ]
+[ ($component == vm || $component == dartium) && $checked ]
 
 DefaultFactory2Test/01: Fail # Issue 943
 
