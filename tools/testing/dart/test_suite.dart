@@ -227,13 +227,14 @@ class StandardTestSuite implements TestSuite {
 
     // Look up expectations in status files using a modified file path.
     String testName;
-    int start = filename.lastIndexOf('src' + pathSeparator);
+    filename = filename.replaceAll('\\', '/');
+    int start = filename.lastIndexOf('src/');
     if (start != -1) {
       testName = filename.substring(start + 4, filename.length - 5);
     } else if (optionsFromFile['isMultitest']) {
-      start = filename.lastIndexOf(pathSeparator);
+      start = filename.lastIndexOf('/');
       int middle = filename.lastIndexOf('_');
-      testName = filename.substring(start + 1, middle) + pathSeparator +
+      testName = filename.substring(start + 1, middle) + '/' +
           filename.substring(middle + 1, filename.length - 5);
     } else {
       // This case is hit by the dartc client compilation
@@ -242,6 +243,7 @@ class StandardTestSuite implements TestSuite {
       // find tests in weird ways (testing that they contain "#").
       // They need to be redone.
       // directoryPath may start with '../'.
+      // TODO(1058): This does not work on Windows.
       String sanitizedDirectoryPath = (directoryPath.startsWith('../')) ?
           directoryPath.substring(3) : directoryPath;
       start = filename.indexOf(sanitizedDirectoryPath);

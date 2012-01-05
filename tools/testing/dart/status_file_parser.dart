@@ -180,7 +180,7 @@ class TestExpectations {
    */
   Set<String> expectations(String filename) {
     var result = new Set();
-    var splitFilename = filename.split(new Platform().pathSeparator());
+    var splitFilename = filename.split('/');
 
     // If complex matching is required split the last filename
     // component at '_'. Additionally, remove the prefix of the last
