@@ -546,6 +546,18 @@ struct TopLevel {
 };
 
 
+static bool HasReturnNode(SequenceNode* seq) {
+  if (seq->length() == 0) {
+    return false;
+  } else if ((seq->length()) == 1 &&
+             (seq->NodeAt(seq->length() - 1)->IsSequenceNode())) {
+    return HasReturnNode(seq->NodeAt(seq->length() - 1)->AsSequenceNode());
+  } else {
+    return seq->NodeAt(seq->length() - 1)->IsReturnNode();
+  }
+}
+
+
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Isolate* isolate = Isolate::Current();
   // Compilation can be nested, preserve the ast node id.
@@ -584,8 +596,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       UNREACHABLE();
   }
 
-  if ((node_sequence->length() == 0) ||
-      !node_sequence->NodeAt(node_sequence->length() - 1)->IsReturnNode()) {
+  if (!HasReturnNode(node_sequence)) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(parser.token_index_));
   }
@@ -1834,6 +1845,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     }
   }
 
+  OpenBlock();  // Open a nested scope for the outermost function block.
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     ParseStatementSequence();
@@ -1849,6 +1861,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else {
     UnexpectedToken();
   }
+  SequenceNode* body = CloseBlock();
+  current_block_->statements->Add(body);
   return CloseBlock();
 }
 
