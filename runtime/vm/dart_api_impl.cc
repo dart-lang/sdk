@@ -2340,22 +2340,18 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
 }
 
 
-DEFINE_FLAG(bool, compile_all, false, "Eagerly compile all code.");
-
 static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   *result = Api::Success();
-  if (FLAG_compile_all) {
-    ASSERT(isolate != NULL);
-    LongJump* base = isolate->long_jump_base();
-    LongJump jump;
-    isolate->set_long_jump_base(&jump);
-    if (setjmp(*jump.Set()) == 0) {
-      Library::CompileAll();
-    } else {
-      SetupErrorResult(result);
-    }
-    isolate->set_long_jump_base(base);
+  ASSERT(isolate != NULL);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    Library::CompileAll();
+  } else {
+    SetupErrorResult(result);
   }
+  isolate->set_long_jump_base(base);
 }
 
 

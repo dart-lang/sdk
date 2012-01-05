@@ -4610,11 +4610,14 @@ RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
 }
 
 
-void LocalVarDescriptors::GetRange(intptr_t var_index,
-                                   intptr_t* begin_token_pos,
-                                   intptr_t* end_token_pos) const {
+void LocalVarDescriptors::GetScopeInfo(
+                              intptr_t var_index,
+                              intptr_t* scope_id,
+                              intptr_t* begin_token_pos,
+                              intptr_t* end_token_pos) const {
   ASSERT(var_index < Length());
   RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
+  *scope_id = info->scope_id;
   *begin_token_pos = info->begin_pos;
   *end_token_pos = info->end_pos;
 }
@@ -4628,16 +4631,18 @@ intptr_t LocalVarDescriptors::GetSlotIndex(intptr_t var_index) const {
 
 
 void LocalVarDescriptors::SetVar(intptr_t var_index,
-                                const String& name,
-                                intptr_t stack_slot,
-                                intptr_t begin_pos,
-                                intptr_t end_pos) const {
+                                 const String& name,
+                                 intptr_t stack_slot,
+                                 intptr_t scope_id,
+                                 intptr_t begin_pos,
+                                 intptr_t end_pos) const {
   ASSERT(var_index < Length());
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
   names.SetAt(var_index, name);
   RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
   info->index = stack_slot;
+  info->scope_id = scope_id;
   info->begin_pos = begin_pos;
   info->end_pos = end_pos;
 }
@@ -4645,7 +4650,7 @@ void LocalVarDescriptors::SetVar(intptr_t var_index,
 
 const char* LocalVarDescriptors::ToCString() const {
   UNIMPLEMENTED();
-  return "";
+  return "LocalVarDescriptors";
 }
 
 

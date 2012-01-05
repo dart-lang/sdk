@@ -173,29 +173,31 @@ int LocalScope::AllocateVariables(int first_parameter_index,
 }
 
 
-static int CompareVariableRanges(
-    LocalVariable* const* a, LocalVariable* const* b) {
-  if ((*a)->token_index() < (*b)->token_index()) return -1;
-  if ((*a)->token_index() > (*b)->token_index()) return 1;
-  return 0;
-}
-
-
 RawLocalVarDescriptors* LocalScope::GetVarDescriptors() {
   GrowableArray<LocalVariable*> vars(8);
+  // Variables of each scope are guaranteed to be consecutive elements
+  // in array vars. See CollectLocalVariables() below. The outermost
+  // scope (containing the function parameters) has id 0.
   CollectLocalVariables(&vars);
-  vars.Sort(&CompareVariableRanges);
   const LocalVarDescriptors& var_desc =
       LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars.length()));
+  intptr_t scope_id = -1;
+  LocalScope* current_scope = NULL;
   for (int i = 0;  i < vars.length(); i++) {
     LocalVariable* var = vars[i];
+    if (current_scope != var->owner()) {
+      current_scope = var->owner();
+      scope_id += 1;
+    }
     var_desc.SetVar(i, var->name(), var->index(),
-        var->token_index(), var->owner()->end_token_index());
+        scope_id, var->token_index(), var->owner()->end_token_index());
   }
   return var_desc.raw();
 }
 
 
+// Add variables that are declared in this scope to vars, then collect
+// variables of children, followed by siblings.
 void LocalScope::CollectLocalVariables(GrowableArray<LocalVariable*>* vars) {
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];

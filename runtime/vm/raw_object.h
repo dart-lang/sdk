@@ -660,7 +660,8 @@ class RawLocalVarDescriptors : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors);
 
   struct VarInfo {
-    intptr_t index;      // Slot index on stack.
+    intptr_t index;      // Slot index on stack or in context.
+    intptr_t scope_id;   // Scope to which the variable belongs.
     intptr_t begin_pos;  // Token position of scope start.
     intptr_t end_pos;    // Token position of scope end.
   };
