@@ -13,6 +13,8 @@ class WorkerContext native "*WorkerContext" {
 
   WorkerContext self;
 
+  IDBFactory webkitIndexedDB;
+
   NotificationCenter webkitNotifications;
 
   DOMURL webkitURL;

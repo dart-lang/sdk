@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+interface Int8Array extends ArrayBufferView, List<int> factory _TypedArrayFactoryProvider {
 
   Int8Array(int length);
 

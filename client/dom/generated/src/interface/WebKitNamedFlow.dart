@@ -4,9 +4,5 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitLoseContext {
-
-  void loseContext();
-
-  void restoreContext();
+interface WebKitNamedFlow {
 }

@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFactoryProvider {
+interface Float32Array extends ArrayBufferView, List<num> factory _TypedArrayFactoryProvider {
 
   Float32Array(int length);
 

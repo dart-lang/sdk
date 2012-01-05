@@ -179,6 +179,7 @@
 #source('generated/src/frog/HTMLParamElement.dart');
 #source('generated/src/frog/HTMLPreElement.dart');
 #source('generated/src/frog/HTMLProgressElement.dart');
+#source('generated/src/frog/HTMLPropertiesCollection.dart');
 #source('generated/src/frog/HTMLQuoteElement.dart');
 #source('generated/src/frog/HTMLScriptElement.dart');
 #source('generated/src/frog/HTMLSelectElement.dart');
@@ -226,6 +227,7 @@
 #source('generated/src/frog/KeyboardEvent.dart');
 #source('generated/src/frog/Location.dart');
 #source('generated/src/frog/LowPass2FilterNode.dart');
+#source('generated/src/frog/MediaController.dart');
 #source('generated/src/frog/MediaElementAudioSourceNode.dart');
 #source('generated/src/frog/MediaError.dart');
 #source('generated/src/frog/MediaList.dart');
@@ -242,8 +244,6 @@
 #source('generated/src/frog/MutationRecord.dart');
 #source('generated/src/frog/NamedNodeMap.dart');
 #source('generated/src/frog/Navigator.dart');
-#source('generated/src/frog/NavigatorUserMediaError.dart');
-#source('generated/src/frog/NavigatorUserMediaSuccessCallback.dart');
 #source('generated/src/frog/Node.dart');
 #source('generated/src/frog/NodeFilter.dart');
 #source('generated/src/frog/NodeIterator.dart');
@@ -262,6 +262,7 @@
 #source('generated/src/frog/Performance.dart');
 #source('generated/src/frog/PerformanceNavigation.dart');
 #source('generated/src/frog/PerformanceTiming.dart');
+#source('generated/src/frog/PointerLock.dart');
 #source('generated/src/frog/PopStateEvent.dart');
 #source('generated/src/frog/PositionError.dart');
 #source('generated/src/frog/ProcessingInstruction.dart');
@@ -449,10 +450,12 @@
 #source('generated/src/frog/TextTrack.dart');
 #source('generated/src/frog/TextTrackCue.dart');
 #source('generated/src/frog/TextTrackCueList.dart');
+#source('generated/src/frog/TextTrackList.dart');
 #source('generated/src/frog/TimeRanges.dart');
 #source('generated/src/frog/Touch.dart');
 #source('generated/src/frog/TouchEvent.dart');
 #source('generated/src/frog/TouchList.dart');
+#source('generated/src/frog/TrackEvent.dart');
 #source('generated/src/frog/TreeWalker.dart');
 #source('generated/src/frog/UIEvent.dart');
 #source('generated/src/frog/Uint16Array.dart');
@@ -462,11 +465,13 @@
 #source('generated/src/frog/WaveShaperNode.dart');
 #source('generated/src/frog/WebGLActiveInfo.dart');
 #source('generated/src/frog/WebGLBuffer.dart');
+#source('generated/src/frog/WebGLCompressedTextures.dart');
 #source('generated/src/frog/WebGLContextAttributes.dart');
 #source('generated/src/frog/WebGLContextEvent.dart');
 #source('generated/src/frog/WebGLDebugRendererInfo.dart');
 #source('generated/src/frog/WebGLDebugShaders.dart');
 #source('generated/src/frog/WebGLFramebuffer.dart');
+#source('generated/src/frog/WebGLLoseContext.dart');
 #source('generated/src/frog/WebGLProgram.dart');
 #source('generated/src/frog/WebGLRenderbuffer.dart');
 #source('generated/src/frog/WebGLRenderingContext.dart');
@@ -484,8 +489,8 @@
 #source('generated/src/frog/WebKitCSSMatrix.dart');
 #source('generated/src/frog/WebKitCSSTransformValue.dart');
 #source('generated/src/frog/WebKitFlags.dart');
-#source('generated/src/frog/WebKitLoseContext.dart');
 #source('generated/src/frog/WebKitMutationObserver.dart');
+#source('generated/src/frog/WebKitNamedFlow.dart');
 #source('generated/src/frog/WebKitPoint.dart');
 #source('generated/src/frog/WebKitTransitionEvent.dart');
 #source('generated/src/frog/WebSocket.dart');
@@ -514,7 +519,6 @@
 #source('generated/src/interface/FileSystemCallback.dart');
 #source('generated/src/interface/FileWriterCallback.dart');
 #source('generated/src/interface/MetadataCallback.dart');
-#source('generated/src/interface/NavigatorUserMediaErrorCallback.dart');
 #source('generated/src/interface/PositionCallback.dart');
 #source('generated/src/interface/PositionErrorCallback.dart');
 #source('generated/src/interface/SQLStatementCallback.dart');

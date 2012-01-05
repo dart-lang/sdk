@@ -22,6 +22,8 @@ interface WorkerGlobalScope {
 
   void set self(WorkerContext value);
 
+  IDBFactory get webkitIndexedDB();
+
   NotificationCenter get webkitNotifications();
 
   DOMURL get webkitURL();

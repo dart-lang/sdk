@@ -14,6 +14,9 @@ class _IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex
   String get keyPath() { return _get_keyPath(this); }
   static String _get_keyPath(var _this) native;
 
+  bool get multiEntry() { return _get_multiEntry(this); }
+  static bool _get_multiEntry(var _this) native;
+
   String get name() { return _get_name(this); }
   static String _get_name(var _this) native;
 
@@ -22,6 +25,16 @@ class _IDBIndexWrappingImplementation extends DOMWrapperBase implements IDBIndex
 
   bool get unique() { return _get_unique(this); }
   static bool _get_unique(var _this) native;
+
+  IDBRequest count([IDBKeyRange range = null]) {
+    if (range === null) {
+      return _count(this);
+    } else {
+      return _count_2(this, range);
+    }
+  }
+  static IDBRequest _count(receiver) native;
+  static IDBRequest _count_2(receiver, range) native;
 
   IDBRequest getObject(IDBKey key) {
     return _getObject(this, key);

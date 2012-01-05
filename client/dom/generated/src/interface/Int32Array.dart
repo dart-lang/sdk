@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFactoryProvider {
+interface Int32Array extends ArrayBufferView, List<int> factory _TypedArrayFactoryProvider {
 
   Int32Array(int length);
 

@@ -304,10 +304,15 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
   }
   static DOMSelection _getSelection(receiver) native;
 
-  Node importNode(Node importedNode, bool deep) {
-    return _importNode(this, importedNode, deep);
+  Node importNode(Node importedNode, [bool deep = null]) {
+    if (deep === null) {
+      return _importNode(this, importedNode);
+    } else {
+      return _importNode_2(this, importedNode, deep);
+    }
   }
-  static Node _importNode(receiver, importedNode, deep) native;
+  static Node _importNode(receiver, importedNode) native;
+  static Node _importNode_2(receiver, importedNode, deep) native;
 
   bool queryCommandEnabled(String command) {
     return _queryCommandEnabled(this, command);
@@ -349,6 +354,11 @@ class _DocumentWrappingImplementation extends _NodeWrappingImplementation implem
     return;
   }
   static void _webkitCancelFullScreen(receiver) native;
+
+  WebKitNamedFlow webkitGetFlowByName(String name) {
+    return _webkitGetFlowByName(this, name);
+  }
+  static WebKitNamedFlow _webkitGetFlowByName(receiver, name) native;
 
   String get typeName() { return "Document"; }
 }

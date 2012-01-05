@@ -6,6 +6,10 @@
 
 interface HTMLElement extends Element {
 
+  String get accessKey();
+
+  void set accessKey(String value);
+
   HTMLCollection get children();
 
   DOMTokenList get classList();

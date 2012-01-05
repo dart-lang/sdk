@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
+interface WebSocket extends EventTarget factory _WebSocketFactoryProvider {
 
   WebSocket(String url);
 

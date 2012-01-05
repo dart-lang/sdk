@@ -11,12 +11,6 @@ class _HTMLAnchorElementWrappingImplementation extends _HTMLElementWrappingImple
     return new _HTMLAnchorElementWrappingImplementation();
   }
 
-  String get accessKey() { return _get_accessKey(this); }
-  static String _get_accessKey(var _this) native;
-
-  void set accessKey(String value) { _set_accessKey(this, value); }
-  static void _set_accessKey(var _this, String value) native;
-
   String get charset() { return _get_charset(this); }
   static String _get_charset(var _this) native;
 
@@ -136,11 +130,6 @@ class _HTMLAnchorElementWrappingImplementation extends _HTMLElementWrappingImple
 
   void set type(String value) { _set_type(this, value); }
   static void _set_type(var _this, String value) native;
-
-  String getParameter(String name) {
-    return _getParameter(this, name);
-  }
-  static String _getParameter(receiver, name) native;
 
   String toString() {
     return _toString(this);

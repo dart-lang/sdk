@@ -68,11 +68,6 @@ class _LocationWrappingImplementation extends DOMWrapperBase implements Location
   }
   static void _assign(receiver, url) native;
 
-  String getParameter(String name) {
-    return _getParameter(this, name);
-  }
-  static String _getParameter(receiver, name) native;
-
   void reload() {
     _reload(this);
     return;

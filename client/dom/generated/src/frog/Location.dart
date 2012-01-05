@@ -21,8 +21,6 @@ class Location native "*Location" {
 
   void assign(String url) native;
 
-  String getParameter(String name) native;
-
   void reload() native;
 
   void replace(String url) native;

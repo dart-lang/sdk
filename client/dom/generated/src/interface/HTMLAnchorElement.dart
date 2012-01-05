@@ -6,10 +6,6 @@
 
 interface HTMLAnchorElement extends HTMLElement {
 
-  String get accessKey();
-
-  void set accessKey(String value);
-
   String get charset();
 
   void set charset(String value);
@@ -89,8 +85,6 @@ interface HTMLAnchorElement extends HTMLElement {
   String get type();
 
   void set type(String value);
-
-  String getParameter(String name);
 
   String toString();
 }

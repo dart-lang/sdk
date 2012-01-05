@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
+interface XMLHttpRequest extends EventTarget factory _XMLHttpRequestFactoryProvider {
 
   XMLHttpRequest();
 

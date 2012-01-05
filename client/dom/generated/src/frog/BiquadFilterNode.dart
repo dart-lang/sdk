@@ -24,4 +24,6 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
   AudioParam gain;
 
   int type;
+
+  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }

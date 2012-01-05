@@ -29,6 +29,9 @@ class _HTMLTrackElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set label(String value) { _set_label(this, value); }
   static void _set_label(var _this, String value) native;
 
+  int get readyState() { return _get_readyState(this); }
+  static int _get_readyState(var _this) native;
+
   String get src() { return _get_src(this); }
   static String _get_src(var _this) native;
 
