@@ -78,7 +78,7 @@ ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
 ConstructorTest: Crash
-ContextArgsWithDefaultsTest: Crash
+ContextArgsWithDefaultsTest: Fail
 ContextTest: Crash
 ContinueTest: Fail
 CyclicImportTest: Fail
@@ -343,7 +343,7 @@ StringUnicode4NegativeTest: Fail
 SuperCall2Test: Fail
 SuperCallTest: Fail
 SuperFieldTest: Fail
-SuperImplicitClosureTest: Crash
+SuperImplicitClosureTest: Fail
 SuperOperatorTest: Fail
 SuperSetterTest: Fail
 SuperTest: Crash
