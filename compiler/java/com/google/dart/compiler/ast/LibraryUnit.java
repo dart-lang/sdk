@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -39,7 +40,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public class LibraryUnit {
 
   // This is intentionally unparseable as Dart.
-  private static final String UNIT_SEPARATOR = "--- unit: ";
+  private static final String UNIT_SEPARATOR_NAME = "--- unit-name: ";
+  private static final String UNIT_SEPARATOR_URI = "--- unit-uri: ";
 
   private final LibrarySource libSource;
   private final LibraryNode selfSourcePath;
@@ -255,19 +257,31 @@ public class LibraryUnit {
       r.close();
 
       // Split it up by unit.
-      int idx = srcCode.indexOf(UNIT_SEPARATOR);
+      int idx = srcCode.indexOf(UNIT_SEPARATOR_NAME);
       while (idx != -1) {
-        idx += UNIT_SEPARATOR.length();
-        int endIdx = srcCode.indexOf('\n', idx);
+        int endIdx;
+
+        // Prepare unit name.
+        idx += UNIT_SEPARATOR_NAME.length();
+        endIdx = srcCode.indexOf('\n', idx);
         String unitName = srcCode.substring(idx, endIdx);
         idx = endIdx;
 
-        endIdx = srcCode.indexOf(UNIT_SEPARATOR, idx);
-        if (endIdx != -1) {
-          parseApiUnit(unitName, srcCode.substring(idx, endIdx), libSource, listener);
-        } else {
-          parseApiUnit(unitName, srcCode.substring(idx, srcCode.length()), libSource, listener);
-        }
+        // Prepare unit URI.
+        idx = srcCode.indexOf(UNIT_SEPARATOR_URI, endIdx);
+        idx += UNIT_SEPARATOR_URI.length();
+        endIdx = srcCode.indexOf('\n', idx);
+        String unitUri = srcCode.substring(idx, endIdx);
+        idx = endIdx;
+
+        // Find next unit, may be end string.
+        endIdx = srcCode.indexOf(UNIT_SEPARATOR_NAME, idx);
+
+        // Parse diet source unit.
+        String code = endIdx != -1 ? srcCode.substring(idx, endIdx) : srcCode.substring(idx);
+        parseApiUnit(unitName, unitUri, code, libSource, listener);
+
+        // Process next unit.
         idx = endIdx;
       }
 
@@ -282,9 +296,12 @@ public class LibraryUnit {
    */
   public void saveApi(DartCompilerContext context) throws IOException {
     Writer w = context.getArtifactWriter(libSource, "", DartCompiler.EXTENSION_API);
-    for (String unitName : units.keySet()) {
-      w.write(UNIT_SEPARATOR + unitName + "\n");
-      w.write(units.get(unitName).toDietSource());
+    for (Entry<String, DartUnit> entry : units.entrySet()) {
+      String unitName = entry.getKey();
+      DartUnit unit = entry.getValue();
+      w.write(UNIT_SEPARATOR_NAME + unitName + "\n");
+      w.write(UNIT_SEPARATOR_URI + unit.getSource().getUri() + "\n");
+      w.write(unit.toDietSource());
     }
     w.close();
   }
@@ -395,7 +412,10 @@ public class LibraryUnit {
     writer.close();
   }
 
-  private void parseApiUnit(final String unitName, String srcCode, final LibrarySource libSrc,
+  private void parseApiUnit(final String unitName,
+      final String unitUri,
+      String srcCode,
+      final LibrarySource libSrc,
       DartCompilerListener listener) {
     // Dummy source for the api unit.
     DartSource src = new DartSource() {
@@ -416,7 +436,7 @@ public class LibraryUnit {
 
       @Override
       public URI getUri() {
-        return URI.create(unitName);
+        return URI.create(unitUri);
       }
 
       @Override
