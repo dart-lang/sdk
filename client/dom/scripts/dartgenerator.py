@@ -54,17 +54,6 @@ _dart_to_idl_type_conversions = dict((v,k) for k, v in
                                      _idl_to_dart_type_conversions.iteritems())
 
 #
-# Types which are unreachable until we call something that returns an instance.
-#
-_evasive_types = set(['CanvasPixelArray',
-                      'ImageData',  # Not really unreachable, testing multi-hop
-                      'Notification',
-                      'NotificationCenter',
-                      'TouchList',
-                      'Touch'
-                      ])
-
-#
 # Types with user-invocable constructors.  We do not have enough
 # information in IDL to create the signature.
 #
@@ -584,8 +573,8 @@ class DartGenerator(object):
     self._output_dir = output_dir
     self._dart_callback_file_paths = []
 
+    self._ComputeInheritanceClosure()
     self._StartGenerateInterfaceLibrary()
-    self._StartGenerateJavaScriptMonkeyImpl(output_dir)
     self._StartGenerateWrappingImpl(output_dir)
     self._StartGenerateFrogImpl(output_dir)
 
@@ -629,12 +618,6 @@ class DartGenerator(object):
 
     # Libraries
     if lib_dir:
-      # New version: Monkey-patching interface library.
-      self.GenerateLibFile('template_monkey_dom.darttemplate',
-                           os.path.join(lib_dir, 'monkey_dom.dart'),
-                           self._dart_interface_file_paths +
-                           self._dart_callback_file_paths)
-
       # New version: Wrapping implementation combined interface and
       # implementation library.
       self.GenerateLibFile('template_wrapping_dom.darttemplate',
@@ -653,7 +636,6 @@ class DartGenerator(object):
 
 
     # JavaScript externs files
-    self._GenerateJavaScriptExternsMonkey(database, output_dir)
     self._GenerateJavaScriptExternsWrapping(database, output_dir)
 
 
@@ -694,8 +676,6 @@ class DartGenerator(object):
         super_interface_name,
         source_filter)
 
-    monkey_interface_generator = self._MakeMonkeyInterfaceGenerator(interface)
-
     wrapping_interface_generator = self._MakeWrappingImplInterfaceGenerator(
         interface,
         common_prefix,
@@ -709,7 +689,6 @@ class DartGenerator(object):
         source_filter)
 
     generators = [dart_interface_generator,
-                  monkey_interface_generator,
                   wrapping_interface_generator,
                   frog_interface_generator]
 
@@ -1067,32 +1046,6 @@ class DartGenerator(object):
                                   dart_code)
 
 
-  def _StartGenerateJavaScriptMonkeyImpl(self, output_dir):
-    """Generate a JavaScript implementation that is coherent with
-    generated Dart APIs.
-    """
-    self._ComputeInheritanceClosure()
-    js_file_name = os.path.join(output_dir, 'monkey_dom.js')
-    code = self._emitters.FileEmitter(js_file_name)
-
-    template = ''.join(open('template_monkey_dom.js').readlines())
-
-    (self._monkey_global_code,
-     self._monkey_init_sequence) = code.Emit(template)
-
-    self._monkey_init_sequence.Emit('var $TEMP;\n', TEMP='_')
-    self._protomap = self._GenerateProtoMap()
-
-    _logger.info('Started Generating %s' % js_file_name)
-
-  def _MakeMonkeyInterfaceGenerator(self, interface):
-    """Generate JavaScript patch code to match DartC output.
-    """
-    return MonkeyInterfaceGenerator(self,
-                                    interface,
-                                    self._monkey_global_code,
-                                    self._monkey_init_sequence)
-
   def _ComputeInheritanceClosure(self):
     def Collect(interface, seen, collected):
       name = interface.id
@@ -1120,8 +1073,6 @@ class DartGenerator(object):
     """Returns a list of the names of all interfaces implemented by 'interface'.
     List includes the name of 'interface'.
     """
-    if not self._inheritance_closure:
-      self._ComputeInheritanceClosure()
     return self._inheritance_closure[interface.id]
 
   def _GenerateProtoMap(self):
@@ -1187,23 +1138,6 @@ class DartGenerator(object):
         separator = ','
       members.Emit('\n')
 
-  def _GenerateJavaScriptExternsMonkey(self, database, output_dir):
-    """Generates a JavaScript externs file.
-
-    Generates an externs file that is consistent with generated JavaScript code
-    and Dart APIs for the monkey-patching implementation.
-    """
-    js_file_name = os.path.join(output_dir, 'monkey_dom_externs.js')
-    code = self._emitters.FileEmitter(js_file_name)
-
-    template = ''.join(open('template_monkey_dom_externs.js').readlines())
-    namespace = 'dart_externs'
-    (window_code, defs_code) = code.Emit(template, NAMESPACE=namespace)
-
-    self._GenerateJavaScriptExternInterfaces(
-        database, namespace, window_code, defs_code)
-
-    _logger.info('Generated %s' % js_file_name)
 
   def _GenerateJavaScriptExternInterfaces(self,
                                           database,
@@ -2011,206 +1945,6 @@ class WrappingInterfaceGenerator(object):
         true_code, info, indent + '  ', position + 1, positive)
     return True
 
-
-# ------------------------------------------------------------------------------
-
-class MonkeyInterfaceGenerator(object):
-  """Generates JS code for monkey-patched implementation of DOM."""
-
-  def __init__(self, generator, interface, global_code, init_sequence):
-    self._generator = generator
-    self._interface = interface
-    self._global_code = global_code
-    self._init_sequence = init_sequence
-
-  def StartInterface(self):
-    temp = '_'
-    (fixup, guard) = self._init_sequence.Emit('$!FIXUP$!GUARD',
-                                              ID=self._interface.id, TEMP=temp)
-    global_helper_code = self._global_code.Emit('$!HELPERS',
-                                                ID=self._interface.id)
-    # Define a function that initializes the class prototype and constructor.
-    (init_proto_code, fix_members_code, init_class_code) = global_helper_code.Emit(
-        'function DOM$fixClass$$ID(c) {\n'
-        '  if (c.prototype) {\n'
-        '$!INIT_PROTO_CODE'
-        '  }\n'
-        '$!FIX_MEMBERS_CODE$!INIT_CLASS_CODE'
-        '}\n');
-    fix_members_code.Bind('CLASSREF', 'c');
-    init_class_code.Bind('CLASSREF', 'c');
-    init_proto_code.Bind('PROTOREF', 'c.prototype');
-
-    # Generate code that finds the constructor
-    if self._interface.id in self._generator._protomap:
-      # Use an existing field to find the actual prototype.
-      exemplar_access_path = self._generator._protomap[self._interface.id]
-      fetch_alternate = self._FetchAlternateConstructor(
-          'w', self._interface.id, exemplar_access_path, temp);
-      fixup.Emit(
-          '  if (!w.$ID && $FETCH) {\n'
-          '    w.$ID = $TEMP;\n'
-          '  }\n', FETCH=fetch_alternate)
-
-    call_fix_class = guard.Emit(
-        '  if (($TEMP = w.$ID)) {\n'
-        '    w.$ID$Dart = $TEMP;\n'
-        '    $!CALL\n'
-        '  }\n')
-
-    if self._InterfaceIsAugmentedOnDemand(self._interface):
-      self._GenerateOnDemandInterfaceSetupHelpers(self._interface,
-                                                  global_helper_code)
-      call_fix_class.Emit('DOM$fixClassOnDemand$$ID($TEMP);')
-    else:
-      call_fix_class.Emit('DOM$fixClass$$ID($TEMP);')
-
-    self._fix_members_code = fix_members_code
-    self._class_code = init_class_code
-    self._proto_code = init_proto_code
-    self._batched_operation_names = []
-
-  def FinishInterface(self):
-    # Any operations left over for fixMembers?
-    if self._batched_operation_names:
-      member_string = _FormatNameList(self._batched_operation_names)
-      self._fix_members_code.Emit('  DOM$fixMembers($CLASSREF, $NAMES);\n',
-                                  NAMES=member_string)
-
-    # Define instanceof metadata.
-    names = self._generator._AllImplementedInterfaces(self._interface)
-    for name in names:
-      # TODO(sra): Make this more compact.
-      # TODO(sra): Generate metadata for parameterized superclasses.
-      self._class_code.Emit('  $CLASSREF.$implements$$NAME$Dart = 1;\n',
-                            NAME=name)
-
-  def _InterfaceIsAugmentedOnDemand(self, interface):
-    return interface.id in _evasive_types
-
-  def _GenerateOnDemandInterfaceSetupHelpers(self, interface, code):
-    """Generate functions that can initialize a prototype given an instance."""
-    code.Emit(
-        'function DOM$fixClassOnDemand$$ID(c) {\n'
-        '  if (c.DOM$initialized === true)\n'
-        '    return;\n'
-        '  c.DOM$initialized = true;\n'
-        '  DOM$fixClass$$ID(c);\n'
-        '}\n'
-        'function DOM$fixValue$$ID(value) {\n'
-        '  if (value == null)\n'
-        '    return DOM$EnsureDartNull(value);\n'
-        '  if (typeof value != "object")\n'
-        '    return value;\n'
-        '  var constructor = value.constructor;\n'
-        '  if (constructor == null)\n'
-        '    return value;\n'
-        '  DOM$fixClassOnDemand$$ID(constructor);\n'
-        '  return value;\n'
-        '}\n')
-
-
-  def _FetchAlternateConstructor(self, root, typename, accessors, temp):
-    """Returns an expression that fetches the constructor for |typename|.
-
-    The expression also assigns the constructor to temp.
-
-    The constructor is generated by traversing a path of property accessors to
-    find an exemplar object and then creating a fake constructor for the type of
-    the object..  The temp is also used to avoid re-evaluation of the path
-    prefixes.
-    """
-    # TODO(sra): Rather than return the fake constructor:
-    #   {prototype: window.blah.blah.__proto__}
-    # perhaps we should return the real constructor:
-    #   window.blah.blah.constructor
-    prefix = root;
-    steps = []
-    for accessor in accessors + ['__proto__']:
-      steps.append("(%s = %s.%s)" % (temp, prefix, accessor));
-      prefix = temp
-    return "%s && (%s = {prototype: %s})" % (' && '.join(steps), temp, temp)
-
-  def AddConstant(self, constant):
-    pass
-
-  def AddGetter(self, attr):
-    """Emits code to initialize an attribute getter."""
-    if attr.type.id in _evasive_types:
-      self._proto_code.Emit('    $PROTOREF.$NAME$getter = function() {'
-                            ' return DOM$fixValue$$TYPE(this.$NAME);'
-                            ' };\n',
-                            NAME=attr.id, TYPE=attr.type.id)
-    else:
-      self._proto_code.Emit('    $PROTOREF.$NAME$getter = function() {'
-                            ' return DOM$EnsureDartNull(this.$NAME);'
-                            ' };\n',
-                            NAME=attr.id)
-
-  def AddSetter(self, attr):
-    """Emits code to initialize an attribute setter."""
-    # TODO(sra): Pick implementation depending on checked/unchecked mode.
-    self._proto_code.Emit('    $PROTOREF.$NAME$setter = function(value) {'
-                          ' this.$NAME = value;'
-                          ' };\n',
-                          NAME=attr.id)
-
-  def AddIndexer(self, element_type):
-    """Emits code to initialize an indexer."""
-    # Does the indexer return an evasive type?
-    if element_type in _evasive_types:
-      self._proto_code.Emit(
-          '    $PROTOREF.INDEX$operator = function(k) {'
-          ' return DOM$fixValue$$TYPE(this[k]);'
-          ' };\n',
-          TYPE=element_type)
-    else:
-      self._proto_code.Emit(
-          '    $PROTOREF.INDEX$operator = function(k) {'
-          ' return DOM$EnsureDartNull(this[k]);'
-          ' };\n')
-    # TODO(sra): Check for read-only indexers.
-    # TODO(sra): Validate 'v' argument when checked.
-    self._proto_code.Emit(
-        '    $PROTOREF.ASSIGN_INDEX$operator = function(k, v) {'
-        ' this[k] = v;'
-        ' };\n')
-
-  def AddOperation(self, info):
-    """
-    Arguments:
-      info: An OperationInfo object.
-    """
-    name = info.name
-
-    returned_types = [op.type.id for op in info.overloads]
-    if any(type in _evasive_types for type in returned_types):
-      if len(set(returned_types)) > 1:
-        raise Exception('Cannot fix types on the fly when types different %s' %
-                        returned_types);
-
-      self._class_code.Emit(
-          '  $CLASSREF.prototype.$NAME$member = function() {\n'
-          '    return DOM$fixValue$$TYPE(this.$JSNAME.apply(this, arguments));\n'
-          '  };\n',
-          NAME=info.name, JSNAME=info.js_name, TYPE=returned_types[0])
-    elif info.name != info.js_name:
-      self._class_code.Emit(
-          '  $CLASSREF.prototype.$NAME$member = function() {\n'
-          '    return DOM$EnsureDartNull(this.$JSNAME.apply(this, arguments));\n'
-          '  };\n',
-          NAME=info.name, JSNAME=info.js_name, TYPE=returned_types[0])
-    else:
-      self._batched_operation_names.append(info.name)
-
-  def AddSecondaryGetter(self, interface, attr):
-    self.AddGetter(attr)
-
-  def AddSecondarySetter(self, interface, attr):
-    self.AddSetter(attr)
-
-  def AddSecondaryOperation(self, interface, info):
-    self.AddOperation(info)
 
 # ------------------------------------------------------------------------------
 
