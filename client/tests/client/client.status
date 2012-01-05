@@ -12,6 +12,7 @@ layout/layout_tests: Fail  # Issue 152.
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
+html/html_tests: Skip  # Doesn't recognize SVGElement constructors
 
 [ $component == frogium ]
 touch/touch_tests: Fail  # Issue 157.

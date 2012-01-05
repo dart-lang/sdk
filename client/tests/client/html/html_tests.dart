@@ -15,6 +15,7 @@
 #source('ElementTests.dart');
 #source('EventTests.dart');
 #source('MeasurementTests.dart');
+#source('SVGElementTests.dart');
 
 main() {
   group('CSSStyleDeclaration', testCSSStyleDeclaration);
@@ -22,4 +23,5 @@ main() {
   group('Element', testElement);
   group('Event', testEvents);
   group('Measurement', testMeasurement);
+  group('SVGElement', testSVGElement);
 }

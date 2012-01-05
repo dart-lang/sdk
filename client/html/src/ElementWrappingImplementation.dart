@@ -480,10 +480,11 @@ class ElementRectWrappingImplementation implements ElementRect {
   }
 }
 
+final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+
 /** @domName Element, HTMLElement */
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
   
-    static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
     static final _CUSTOM_PARENT_TAG_MAP = const {
       'body' : 'html',
       'head' : 'html',
@@ -528,7 +529,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
       // only contains a head or body element.
       return LevelDom.wrapElement(temp.children.item(tag == 'head' ? 0 : 1));
     } else {
-      throw 'HTML had ${temp.childElementCount} top level elements but 1 expected';
+      throw new IllegalArgumentException('HTML had ${temp.childElementCount} ' +
+          'top level elements but 1 expected');
     }
   }
 
@@ -564,11 +566,9 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set elements(Collection<Element> value) {
-    // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
     final elements = this.elements;
     elements.clear();
-    elements.addAll(copy);
+    elements.addAll(value);
   }
 
   /**

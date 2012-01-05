@@ -12752,6 +12752,7 @@ interface SVGDocument extends Document {
 interface SVGElement extends Element default SVGElementWrappingImplementation {
 
   SVGElement.tag(String tag);
+  SVGElement.svg(String svg);
 
   String get id();
 

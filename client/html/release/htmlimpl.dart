@@ -22742,10 +22742,11 @@ class ElementRectWrappingImplementation implements ElementRect {
   }
 }
 
+final _START_TAG_REGEXP = const RegExp('<(\\w+)');
+
 /** @domName Element, HTMLElement */
 class ElementWrappingImplementation extends NodeWrappingImplementation implements Element {
   
-    static final _START_TAG_REGEXP = const RegExp('<(\\w+)');
     static final _CUSTOM_PARENT_TAG_MAP = const {
       'body' : 'html',
       'head' : 'html',
@@ -22790,7 +22791,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
       // only contains a head or body element.
       return LevelDom.wrapElement(temp.children.item(tag == 'head' ? 0 : 1));
     } else {
-      throw 'HTML had ${temp.childElementCount} top level elements but 1 expected';
+      throw new IllegalArgumentException('HTML had ${temp.childElementCount} ' +
+          'top level elements but 1 expected');
     }
   }
 
@@ -22826,11 +22828,9 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set elements(Collection<Element> value) {
-    // Copy list first since we don't want liveness during iteration.
-    List copy = new List.from(value);
     final elements = this.elements;
     elements.clear();
-    elements.addAll(copy);
+    elements.addAll(value);
   }
 
   /**
@@ -24021,6 +24021,22 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
     LevelDom.wrapSVGElement(dom.document.createElementNS(
         "http://www.w3.org/2000/svg", tag));
 
+  factory SVGElementWrappingImplementation.svg(String svg) {
+    Element parentTag;
+    final match = _START_TAG_REGEXP.firstMatch(svg);
+    if (match != null && match.group(1).toLowerCase() == 'svg') {
+      parentTag = new Element.tag('div');
+    } else {
+      parentTag = new SVGSVGElement();
+    }
+
+    parentTag.innerHTML = svg;
+    if (parentTag.elements.length == 1) return parentTag.elements[0];
+
+    throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
+        'top-level elements but 1 expected');
+  }
+
   String get id() { return _ptr.id; }
 
   void set id(String value) { _ptr.id = value; }
@@ -24032,6 +24048,40 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
   String get xmlbase() { return _ptr.xmlbase; }
 
   void set xmlbase(String value) { _ptr.xmlbase = value; }
+
+  ElementList get elements() {
+    if (_elements == null) {
+      _elements = new FilteredElementList(this);
+    }
+    return _elements;
+  }
+
+  // TODO: The type of value should be Collection<Element>. See http://b/5392897
+  void set elements(value) {
+    final elements = this.elements;
+    elements.clear();
+    elements.addAll(value);
+  }
+
+  String get outerHTML() {
+    final container = new Element.tag("div");
+    container.elements.add(this.clone(true));
+    return container.innerHTML;
+  }
+
+  String get innerHTML() {
+    final container = new Element.tag("div");
+    container.elements.addAll(this.clone(true).elements);
+    return container.innerHTML;
+  }
+
+  void set innerHTML(String svg) {
+    var container = new Element.tag("div");
+    // Wrap the SVG string in <svg> so that SVGElements are created, rather than
+    // HTMLElements.
+    container.innerHTML = '<svg version="1.1">$svg</svg>';
+    this.elements = container.elements.first.elements;
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24069,7 +24119,7 @@ class SVGSVGElementWrappingImplementation extends SVGElementWrappingImplementati
   factory SVGSVGElementWrappingImplementation() {
     var el = new SVGElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
-    el.attributes['version'] = 1.1;
+    el.attributes['version'] = "1.1";
     return el;
   }
 
