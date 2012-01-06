@@ -5,7 +5,8 @@
 #include "bin/dartutils.h"
 
 #include "bin/file.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";

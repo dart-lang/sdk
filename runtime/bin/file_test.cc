@@ -4,8 +4,9 @@
 
 #include "bin/file.h"
 
+#include "platform/globals.h"
+
 #include "vm/assert.h"
-#include "vm/globals.h"
 #include "vm/unit_test.h"
 
 

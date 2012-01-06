@@ -6,7 +6,8 @@
 #define BIN_THREAD_POOL_H_
 
 #include "bin/builtin.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_LINUX)

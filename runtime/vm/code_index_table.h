@@ -92,6 +92,7 @@ class CodeIndexTable {
       data_ = new_data;
       capacity_ = new_capacity;
     }
+
    private:
     intptr_t length_;
     intptr_t capacity_;

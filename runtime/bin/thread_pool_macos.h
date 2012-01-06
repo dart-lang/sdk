@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 
-#include "vm/globals.h"
+#include "platform/globals.h"
 
 
 class TaskQueueData {

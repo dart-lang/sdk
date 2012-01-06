@@ -5,7 +5,7 @@
 #ifndef BIN_THREAD_POOL_WIN_H_
 #define BIN_THREAD_POOL_WIN_H_
 
-#include "vm/globals.h"
+#include "platform/globals.h"
 
 class TaskQueueData {
  private:

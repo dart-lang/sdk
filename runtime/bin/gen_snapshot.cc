@@ -14,7 +14,8 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.

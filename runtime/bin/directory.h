@@ -6,7 +6,8 @@
 #define BIN_DIRECTORY_H_
 
 #include "bin/builtin.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 class Directory {
  public:

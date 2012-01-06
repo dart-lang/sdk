@@ -5,9 +5,10 @@
 #include <process.h>
 
 #include "bin/builtin.h"
-#include "bin/globals.h"
 #include "bin/process.h"
 #include "bin/eventhandler.h"
+
+#include "platform/globals.h"
 
 static const int kReadHandle = 0;
 static const int kWriteHandle = 1;

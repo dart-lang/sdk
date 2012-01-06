@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_C99_SUPPORT_WIN_H_
-#define VM_C99_SUPPORT_WIN_H_
+#ifndef PLATFORM_C99_SUPPORT_WIN_H_
+#define PLATFORM_C99_SUPPORT_WIN_H_
 
 // Visual C++ is missing a bunch of C99 math macros and
 // functions. Define them here.
@@ -49,4 +49,4 @@ static inline double round(double x) {
   }
 }
 
-#endif  // VM_C99_SUPPORT_WIN_H_
+#endif  // PLATFORM_C99_SUPPORT_WIN_H_

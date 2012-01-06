@@ -12,8 +12,9 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
-#include "bin/globals.h"
 #include "bin/platform.h"
+
+#include "platform/globals.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.

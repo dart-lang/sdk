@@ -6,7 +6,8 @@
 #define BIN_FDUTILS_H_
 
 #include "bin/builtin.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 class FDUtils {
  public:

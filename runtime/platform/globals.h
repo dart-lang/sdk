@@ -1,9 +1,14 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_GLOBALS_H_
-#define BIN_GLOBALS_H_
+#ifndef PLATFORM_GLOBALS_H_
+#define PLATFORM_GLOBALS_H_
+
+// __STDC_FORMAT_MACROS has to be defined to enable platform independent printf.
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
 
 #if defined(_WIN32)
 // Cut down on the amount of stuff that gets included via windows.h.
@@ -19,52 +24,25 @@
 #include <Rpc.h>
 #endif
 
-// Processor architecture detection.  For more info on what's defined, see:
-//   http://msdn.microsoft.com/en-us/library/b0084kay.aspx
-//   http://www.agner.org/optimize/calling_conventions.pdf
-//   or with gcc, run: "echo | gcc -E -dM -"
-#if defined(_M_X64) || defined(__x86_64__)
-#define HOST_ARCH_X64 1
-#define ARCH_IS_64_BIT 1
-#elif defined(_M_IX86) || defined(__i386__)
-#define HOST_ARCH_IA32 1
-#define ARCH_IS_32_BIT 1
-#elif defined(__ARMEL__)
-#define HOST_ARCH_ARM 1
-#define ARCH_IS_32_BIT 1
-#else
-#error Architecture was not detected as supported by Dart.
+#if !defined(_WIN32)
+#include <inttypes.h>
+#include <stdint.h>
 #endif
 
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <openssl/bn.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
 
-#if !defined(TARGET_ARCH_ARM)
-#if !defined(TARGET_ARCH_X64)
-#if !defined(TARGET_ARCH_IA32)
-// No target architecture specified pick the one matching the host architecture.
-#if defined(HOST_ARCH_ARM)
-#define TARGET_ARCH_ARM 1
-#elif defined(HOST_ARCH_X64)
-#define TARGET_ARCH_X64 1
-#elif defined(HOST_ARCH_IA32)
-#define TARGET_ARCH_IA32 1
-#else
-#error Automatic target architecture detection failed.
-#endif
-#endif
-#endif
-#endif
-
-
-// Verify that host and target architectures match, we cannot
-// have a 64 bit Dart VM generating 32 bit code or vice-versa.
-#if defined(TARGET_ARCH_X64)
-#if !defined(ARCH_IS_64_BIT)
-#error Mismatched Host/Target architectures.
-#endif
-#elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
-#if !defined(ARCH_IS_32_BIT)
-#error Mismatched Host/Target architectures.
-#endif
+#if defined(_WIN32)
+#include "platform/c99_support_win.h"
+#include "platform/inttypes_support_win.h"
 #endif
 
 
@@ -124,4 +102,4 @@ static inline void USE(T) { }
 #define strtok_r strtok_s
 #endif
 
-#endif  // BIN_GLOBALS_H_
+#endif  // PLATFORM_GLOBALS_H_
