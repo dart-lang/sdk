@@ -41,7 +41,7 @@ ClosureBreak2Test: Fail
 ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
-ClosuresWithComplexParamsTest: Fail
+ClosuresWithComplexParamsTest: Crash
 CompoundAssignmentOperatorTest: Crash
 ConstEscapeFrogTest: Fail
 ConstInit7NegativeTest: Fail
