@@ -213,7 +213,6 @@ CharEscapeTest: Fail
 ClassOverrideNegativeTest: Fail
 ClosureSharedStateTest: Fail
 ConstFactoryNegativeTest: Fail
-ConstInit7NegativeTest: Fail # Issue 1000
 ConstObjectsAreImmutableTest: Fail
 DefaultFactoryLibraryTest: Fail    # Issue 514
 DynamicTest: Fail

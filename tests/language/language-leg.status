@@ -44,7 +44,6 @@ ClosureTest: Fail
 ClosuresWithComplexParamsTest: Crash
 CompoundAssignmentOperatorTest: Crash
 ConstEscapeFrogTest: Fail
-ConstInit7NegativeTest: Fail
 ConstInitNegativeTest: Fail
 ConstInitTest: Fail
 ConstListTest: Fail
