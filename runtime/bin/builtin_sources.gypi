@@ -5,6 +5,7 @@
 # This file contains all sources (vm and tests) for the dart virtual machine.
 # Unit test files need to have a '_test' suffix appended to the name.
 {
+
   'sources': [
     #
     # Dart sources.
