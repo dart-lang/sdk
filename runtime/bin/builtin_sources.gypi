@@ -5,7 +5,6 @@
 # This file contains all sources (vm and tests) for the dart virtual machine.
 # Unit test files need to have a '_test' suffix appended to the name.
 {
-
   'sources': [
     #
     # Dart sources.
@@ -58,7 +57,6 @@
     'fdutils.h',
     'fdutils_linux.cc',
     'fdutils_macos.cc',
-    'globals.h',
     'platform.cc',
     'platform.h',
     'platform_linux.cc',
