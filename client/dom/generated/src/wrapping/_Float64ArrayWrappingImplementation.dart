@@ -67,6 +67,10 @@ class _Float64ArrayWrappingImplementation extends _ArrayBufferViewWrappingImplem
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(num element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<num> filter(bool f(num element)) {
     return _Collections.filter(this, new List<num>(), f);
   }

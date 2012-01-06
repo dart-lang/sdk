@@ -66,6 +66,10 @@ class _HTMLCollectionWrappingImplementation extends DOMWrapperBase implements HT
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(Node element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<Node> filter(bool f(Node element)) {
     return _Collections.filter(this, new List<Node>(), f);
   }
