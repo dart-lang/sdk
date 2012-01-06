@@ -242,7 +242,6 @@ NativeLibrarySameNameUsedFrogTest: Fail
 NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
-NativeTest: Fail
 NestedCommentsTest: Fail
 NewExpression2NegativeTest: Crash
 NewExpression3NegativeTest: Crash
