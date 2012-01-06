@@ -36,7 +36,7 @@ void main() {
     }
   });
 
-  for (var type in world.dom.types.getValues()) {
+  for (var type in diff.dom.types.getValues()) {
     if (type.name == null) continue;
     if (type.definition is FunctionTypeDefinition) continue;
     for (var member in type.members.getValues()) {
@@ -85,6 +85,8 @@ class HtmlDiff {
 
   final CommentMap comments;
 
+  final Library dom;
+
   /**
    * Perform static initialization of [world]. This should be run before
    * calling [HtmlDiff.run].
@@ -92,6 +94,7 @@ class HtmlDiff {
   static void initialize() {
     world.processDartScript('dart:htmlimpl');
     world.resolveAll();
+    dom = world.libraries['dart:dom'];
   }
 
   HtmlDiff() :
@@ -227,18 +230,18 @@ class HtmlDiff {
       return map(domNames, (domName) {
         // DOMWindow is Chrome-specific, so we don't use it in our annotations.
         if (domName == 'Window') domName = 'DOMWindow';
-        final domType = world.dom.types[domName];
+        final domType = dom.types[domName];
         if (domType == null) print('Warning: no dart:dom type named $domName');
         return domType;
       });
     } else {
       if (!htmlType.name.endsWith('WrappingImplementation')) return [];
       final domName = htmlType.name.replaceFirst('WrappingImplementation', '');
-      var domType = world.dom.types[domName];
+      var domType = dom.types[domName];
       if (domType == null && domName.endsWith('Element')) {
-        domType = world.dom.types['HTML$domName'];
+        domType = dom.types['HTML$domName'];
       }
-      if (domType == null) domType = world.dom.types['WebKit$domName'];
+      if (domType == null) domType = dom.types['WebKit$domName'];
       if (domType == null) {
         print('Warning: no dart:dom type matches dart:htmlimpl ' +
             htmlType.name);
@@ -320,7 +323,7 @@ class HtmlDiff {
     }
     var typeName = splitName[0];
     if (typeName == 'Window') typeName = 'DOMWindow';
-    final type = world.dom.types[typeName];
+    final type = dom.types[typeName];
     if (type == null) return new Set();
     final member = type.members[splitName[1]];
     if (member == null) return new Set();
