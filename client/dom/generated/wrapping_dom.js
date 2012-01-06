@@ -2734,9 +2734,9 @@ function native__ConsoleWrappingImplementation__get_profiles(_this) {
   }
 }
 
-function native__ConsoleWrappingImplementation__assert(_this, condition) {
+function native__ConsoleWrappingImplementation__assert_(_this, condition) {
   try {
-    return __dom_wrap(_this.$dom.assertCondition(__dom_unwrap(condition)));
+    return __dom_wrap(_this.$dom.assert(__dom_unwrap(condition)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -10200,7 +10200,7 @@ function native__HTMLFormElementWrappingImplementation__reset(_this) {
 
 function native__HTMLFormElementWrappingImplementation__submit(_this) {
   try {
-    return __dom_wrap(_this.$dom.submitFromJavaScript());
+    return __dom_wrap(_this.$dom.submit());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16112,7 +16112,7 @@ function native__IDBCursorWrappingImplementation__get_source(_this) {
 
 function native__IDBCursorWrappingImplementation__continueFunction(_this) {
   try {
-    return __dom_wrap(_this.$dom.continueFunction());
+    return __dom_wrap(_this.$dom.continue());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16120,7 +16120,7 @@ function native__IDBCursorWrappingImplementation__continueFunction(_this) {
 
 function native__IDBCursorWrappingImplementation__continueFunction_2(_this, key) {
   try {
-    return __dom_wrap(_this.$dom.continueFunction(__dom_unwrap(key)));
+    return __dom_wrap(_this.$dom.continue(__dom_unwrap(key)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16128,7 +16128,7 @@ function native__IDBCursorWrappingImplementation__continueFunction_2(_this, key)
 
 function native__IDBCursorWrappingImplementation__delete(_this) {
   try {
-    return __dom_wrap(_this.$dom.deleteFunction());
+    return __dom_wrap(_this.$dom.delete());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16680,7 +16680,7 @@ function native__IDBObjectStoreWrappingImplementation__createIndex(_this, name, 
 
 function native__IDBObjectStoreWrappingImplementation__delete(_this, key) {
   try {
-    return __dom_wrap(_this.$dom.deleteFunction(__dom_unwrap(key)));
+    return __dom_wrap(_this.$dom.delete(__dom_unwrap(key)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17768,7 +17768,7 @@ function native__LocationWrappingImplementation__replace(_this, url) {
 
 function native__LocationWrappingImplementation__toString(_this) {
   try {
-    return __dom_wrap(_this.$dom.toStringFunction());
+    return __dom_wrap(_this.$dom.toString());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

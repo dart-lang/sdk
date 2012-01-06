@@ -667,8 +667,7 @@ class DartGenerator(object):
     info.overloads = operations
     info.declared_name = operations[0].id
     info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
-    info.js_name = operations[0].ext_attrs.get('ImplementationFunction',
-                                               info.declared_name)
+    info.js_name = info.declared_name
     info.type_name = operations[0].type.id   # TODO: widen.
     info.arg_interface_declaration = FormatArgs(args, True)
     info.arg_implementation_declaration = FormatArgs(args, False)

@@ -96,7 +96,7 @@ dom_externs.arcTo;                      // operation CanvasRenderingContext2D.ar
 dom_externs.archive;                    // attribute HTMLAppletElement.archive, attribute HTMLObjectElement.archive
 dom_externs.areas;                      // attribute HTMLMapElement.areas
 dom_externs.asBlob;                     // attribute XMLHttpRequest.asBlob
-dom_externs.assertCondition;            // operation Console.assertCondition
+dom_externs.assert;                     // operation Console.assert
 dom_externs.assign;                     // operation Location.assign
 dom_externs.async;                      // attribute HTMLScriptElement.async
 dom_externs.atob;                       // operation DOMWindow.atob
@@ -275,7 +275,7 @@ dom_externs.contentScriptType;          // attribute SVGSVGElement.contentScript
 dom_externs.contentStyleType;           // attribute SVGSVGElement.contentStyleType
 dom_externs.contentWindow;              // attribute HTMLFrameElement.contentWindow, attribute HTMLIFrameElement.contentWindow
 dom_externs.context;                    // attribute AudioNode.context
-dom_externs.continueFunction;           // operation IDBCursor.continueFunction
+dom_externs.continue;                   // operation IDBCursor.continue
 dom_externs.control;                    // attribute HTMLLabelElement.control
 dom_externs.controller;                 // attribute HTMLMediaElement.controller
 dom_externs.controls;                   // attribute HTMLMediaElement.controls
@@ -418,6 +418,7 @@ dom_externs.defaultstatus;              // attribute DOMWindow.defaultstatus
 dom_externs.defer;                      // attribute HTMLScriptElement.defer
 dom_externs.delay;                      // attribute WebKitAnimation.delay
 dom_externs.delayTime;                  // attribute DelayNode.delayTime
+dom_externs.delete;                     // operation IDBCursor.delete, operation IDBObjectStore.delete
 dom_externs.deleteBuffer;               // operation WebGLRenderingContext.deleteBuffer
 dom_externs.deleteCaption;              // operation HTMLTableElement.deleteCaption
 dom_externs.deleteCell;                 // operation HTMLTableRowElement.deleteCell
@@ -426,7 +427,6 @@ dom_externs.deleteData;                 // operation CharacterData.deleteData
 dom_externs.deleteDatabase;             // operation IDBFactory.deleteDatabase
 dom_externs.deleteFramebuffer;          // operation WebGLRenderingContext.deleteFramebuffer
 dom_externs.deleteFromDocument;         // operation DOMSelection.deleteFromDocument
-dom_externs.deleteFunction;             // operation IDBCursor.deleteFunction, operation IDBObjectStore.deleteFunction
 dom_externs.deleteIndex;                // operation IDBObjectStore.deleteIndex
 dom_externs.deleteMedium;               // operation MediaList.deleteMedium
 dom_externs.deleteObjectStore;          // operation IDBDatabase.deleteObjectStore
@@ -1480,7 +1480,7 @@ dom_externs.styleMedia;                 // attribute DOMWindow.styleMedia
 dom_externs.styleSheet;                 // attribute CSSImportRule.styleSheet
 dom_externs.styleSheets;                // attribute Document.styleSheets
 dom_externs.subarray;                   // operation Float32Array.subarray, operation Float64Array.subarray, operation Int16Array.subarray, operation Int32Array.subarray, operation Int8Array.subarray, operation Uint16Array.subarray, operation Uint32Array.subarray, operation Uint8Array.subarray
-dom_externs.submitFromJavaScript;       // operation HTMLFormElement.submitFromJavaScript
+dom_externs.submit;                     // operation HTMLFormElement.submit
 dom_externs.substringData;              // operation CharacterData.substringData
 dom_externs.suffixes;                   // attribute DOMMimeType.suffixes
 dom_externs.summary;                    // attribute HTMLTableElement.summary
@@ -1523,8 +1523,7 @@ dom_externs.timing;                     // attribute Performance.timing
 dom_externs.title;                      // attribute Document.title, attribute HTMLElement.title, attribute SVGStyleElement.title, attribute ScriptProfile.title, attribute StyleSheet.title
 dom_externs.toDataURL;                  // operation HTMLCanvasElement.toDataURL
 dom_externs.toElement;                  // attribute MouseEvent.toElement
-dom_externs.toString;                   // operation DOMException.toString, operation DOMSelection.toString, operation DOMTokenList.toString, operation EventException.toString, operation FileException.toString, operation HTMLAnchorElement.toString, operation IDBDatabaseException.toString, operation OperationNotAllowedException.toString, operation Range.toString, operation RangeException.toString, operation SVGException.toString, operation WebKitCSSMatrix.toString, operation WorkerLocation.toString, operation XMLHttpRequestException.toString, operation XPathException.toString
-dom_externs.toStringFunction;           // operation Location.toStringFunction
+dom_externs.toString;                   // operation DOMException.toString, operation DOMSelection.toString, operation DOMTokenList.toString, operation EventException.toString, operation FileException.toString, operation HTMLAnchorElement.toString, operation IDBDatabaseException.toString, operation Location.toString, operation OperationNotAllowedException.toString, operation Range.toString, operation RangeException.toString, operation SVGException.toString, operation WebKitCSSMatrix.toString, operation WorkerLocation.toString, operation XMLHttpRequestException.toString, operation XPathException.toString
 dom_externs.toURL;                      // operation Entry.toURL, operation EntrySync.toURL
 dom_externs.toggle;                     // operation DOMTokenList.toggle
 dom_externs.tooLong;                    // attribute ValidityState.tooLong

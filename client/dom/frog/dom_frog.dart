@@ -846,7 +846,7 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
 
   List profiles;
 
-  void assert(bool condition) native;
+  void assert_(bool condition) native;
 
   void count() native;
 
