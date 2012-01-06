@@ -7,7 +7,6 @@ package com.google.dart.compiler.backend.common;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.dart.compiler.CompilerTestCase;
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
@@ -70,15 +69,7 @@ public class TypeHeuristicImplementationTest extends CompilerTestCase {
     Map<URI, DartUnit> parsedUnits = new HashMap<URI, DartUnit>();
     DefaultCompilerConfiguration config = new DefaultCompilerConfiguration();
     DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(Files.createTempDir());
-    DartCompilerListener listener = new DartCompilerListener() {
-      @Override      
-      public void onError(DartCompilationError event) {
-      }
-
-      @Override
-      public void unitCompiled(DartUnit unit) {
-      }
-    };
+    DartCompilerListener listener = DartCompilerListener.EMPTY;
     LibraryUnit libUnit = DartCompiler.analyzeLibrary(lib, parsedUnits, config, provider,
         listener);
     LibraryUnit corelibUnit = libUnit.getImports().iterator().next();

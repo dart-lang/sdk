@@ -13,7 +13,7 @@ import java.io.PrintStream;
  * A default implementation of {@link DartCompilerListener} which counts
  * compilation errors.
  */
-public class DefaultDartCompilerListener extends DartCompilerListener {
+public class DefaultDartCompilerListener implements DartCompilerListener {
 
   /**
    * The number of (fatal) problems that occurred during compilation.
@@ -45,18 +45,6 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
    */
   public DefaultDartCompilerListener(PrintStream outputStream, ErrorFormat errorFormat) {
     formatter = new  PrettyErrorFormatter(outputStream, useColor(), errorFormat);
-  }
-
-  @Override
-  public void onError(DartCompilationError event) {
-    formatter.format(event);
-    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
-      incrementTypeErrorCount();
-    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
-      incrementErrorCount();
-    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
-      incrementWarningCount();
-    }
   }
 
   private boolean useColor() {
@@ -109,6 +97,22 @@ public class DefaultDartCompilerListener extends DartCompilerListener {
    */
   protected void incrementTypeErrorCount() {
     typeErrorCount++;
+  }
+
+  @Override
+  public void onError(DartCompilationError event) {
+    formatter.format(event);
+    if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
+      incrementTypeErrorCount();
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
+      incrementErrorCount();
+    } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
+      incrementWarningCount();
+    }
+  }
+
+  @Override
+  public void unitAboutToCompile(DartSource source, boolean diet) {
   }
 
   @Override

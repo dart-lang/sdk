@@ -24,8 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * such should not be instantiated or subclassed by those outside the compiler
  * itself.
  */
-final class DartCompilerMainContext extends DartCompilerListener implements
-    DartCompilerContext {
+final class DartCompilerMainContext implements DartCompilerListener, DartCompilerContext {
 
   private final LibrarySource lib;
   private final DartArtifactProvider provider;
@@ -174,6 +173,10 @@ final class DartCompilerMainContext extends DartCompilerListener implements
   @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     return compilerConfiguration.getSystemLibraryFor(importSpec);
+  }
+
+  @Override
+  public void unitAboutToCompile(DartSource source, boolean diet) {
   }
 
   @Override

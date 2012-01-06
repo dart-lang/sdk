@@ -4,12 +4,10 @@
 
 package com.google.dart.compiler;
 
-import com.google.dart.compiler.ast.DartUnit;
-
 /**
  * Testing implementation of {@link DartCompilerListener}.
  */
-public class DartCompilerListenerTest extends DartCompilerListener {
+public class DartCompilerListenerTest extends DartCompilerListener.Empty {
 
   private final String srcName;
   private String[] messages;
@@ -81,9 +79,5 @@ public class DartCompilerListenerTest extends DartCompilerListener {
   public void checkAllErrorsReported() {
     CompilerTestCase.assertEquals("Not all expected errors were reported",
         total, current);
-  }
-
-  @Override
-  public void unitCompiled(DartUnit unit) {
   }
 }

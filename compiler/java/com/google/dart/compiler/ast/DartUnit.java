@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.ast;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.util.DefaultTextOutput;
 
@@ -20,21 +21,15 @@ public class DartUnit extends DartNode {
 
   private LibraryUnit library;
   private List<DartDirective> directives;
-  private final List<DartNode> topLevelNodes;
+  private final List<DartNode> topLevelNodes = Lists.newArrayList();
   private final DartSource source;
   /** A list of comments. May be null. */
   private List<DartComment> comments;
   private boolean isDiet;
   private String dietParse;
 
-  public DartUnit(DartSource sourceName) {
-    this(sourceName, new ArrayList<DartNode>());
-  }
-
-  public DartUnit(DartSource source,
-                  List<DartNode> nodes) {
+  public DartUnit(DartSource source) {
     this.source = source;
-    this.topLevelNodes = becomeParentOf(nodes);
   }
 
   public void addTopLevelNode(DartNode node) {

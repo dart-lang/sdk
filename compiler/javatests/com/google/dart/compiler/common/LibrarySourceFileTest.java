@@ -10,7 +10,6 @@ import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
@@ -95,7 +94,7 @@ public class LibrarySourceFileTest extends AbstractSourceFileTest {
     if (libUnit == null) {
       UrlLibrarySource lib = new UrlLibrarySource(file);
 
-      DartCompilerListener listener = new DartCompilerListener() {
+      DartCompilerListener listener = new DartCompilerListener.Empty() {
         @Override
         public void onError(DartCompilationError event) {
           // Ignore warnings when testing.
@@ -104,9 +103,6 @@ public class LibrarySourceFileTest extends AbstractSourceFileTest {
           }
           // Rethrow error.
           throw new RuntimeException(event.getMessage());
-        }
-        @Override
-        public void unitCompiled(DartUnit unit) {
         }
       };
 

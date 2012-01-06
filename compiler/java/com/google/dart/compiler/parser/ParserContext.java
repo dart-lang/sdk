@@ -5,6 +5,7 @@
 package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
 
 /**
@@ -73,6 +74,11 @@ public interface ParserContext {
    * @param dartError helpful error messaging describing what the expected tokens were
    */
   void error(DartCompilationError dartError);
+
+  /**
+   * Called by the {@link DartParser} before parsing given {@link DartSource}.
+   */
+  void unitAboutToCompile(DartSource source, boolean diet);
 
   /**
    * Return the current token.

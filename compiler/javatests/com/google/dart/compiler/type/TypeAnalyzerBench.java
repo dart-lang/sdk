@@ -7,7 +7,6 @@ package com.google.dart.compiler.type;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerContext;
@@ -150,15 +149,7 @@ public class TypeAnalyzerBench {
   }
 
   private static DartCompilerListener getListener() {
-    return new DartCompilerListener() {
-      @Override
-      public void onError(DartCompilationError event) {
-      }
-
-      @Override
-      public void unitCompiled(DartUnit unit) {
-      }
-    };
+    return DartCompilerListener.EMPTY;
   }
 
   static class CollectingPhase implements DartCompilationPhase {

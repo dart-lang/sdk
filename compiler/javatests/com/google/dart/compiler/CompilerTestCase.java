@@ -83,7 +83,7 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Collects the results of running analyzeLibrary.
    */
-  protected static class AnalyzeLibraryResult extends DartCompilerListener {
+  protected static class AnalyzeLibraryResult extends DartCompilerListener.Empty {
     private final List<DartCompilationError> compilationErrors;
     private final List<DartCompilationError> compilationWarnings;
     private final List<DartCompilationError> typeErrors;
@@ -130,10 +130,6 @@ public abstract class CompilerTestCase extends TestCase {
      */
     public LibraryUnit getLibraryUnitResult() {
       return result;
-    }
-
-    @Override
-    public void unitCompiled(DartUnit unit) {
     }
   }
 

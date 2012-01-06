@@ -6,6 +6,7 @@ package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.HasSourceInfo;
@@ -119,6 +120,11 @@ public class DartScannerParserContext implements ParserContext {
   @Override
   public void error(DartCompilationError dartError) {
     listener.onError(dartError);
+  }
+  
+  @Override
+  public void unitAboutToCompile(DartSource source, boolean diet) {
+    listener.unitAboutToCompile(source, diet);
   }
 
   @Override

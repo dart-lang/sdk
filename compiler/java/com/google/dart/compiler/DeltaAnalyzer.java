@@ -141,7 +141,7 @@ class DeltaAnalyzer {
     return new DartParser(new DartScannerParserContext(source, sourceString, listener), false);
   }
 
-  private class Context extends DartCompilerListener implements DartCompilerContext {
+  private class Context implements DartCompilerListener, DartCompilerContext {
     @Override
     public LibraryUnit getApplicationUnit() {
       throw new AssertionError();
@@ -200,6 +200,10 @@ class DeltaAnalyzer {
     @Override
     public void onError(DartCompilationError event) {
       listener.onError(event);
+    }
+
+    @Override
+    public void unitAboutToCompile(DartSource source, boolean diet) {
     }
 
     @Override

@@ -311,14 +311,10 @@ abstract class ResolverTestCase extends TestCase {
   }
 
   private DartCompilerListener getListener() {
-    return new DartCompilerListener() {
+    return new DartCompilerListener.Empty() {
       @Override
       public void onError(DartCompilationError event) {
         parseErrors.add(event);
-      }
-
-      @Override
-      public void unitCompiled(DartUnit unit) {
       }
     };
   }
