@@ -351,7 +351,8 @@ class StandardTestSuite implements TestSuite {
     final String component = configuration['component'];
     final String testPath = new File(filename).fullPathSync();
     String dartDir = new File('.').fullPathSync();
-    if (!testPath.startsWith(dartDir)) {
+    if (!testPath.startsWith(dartDir) ||
+        dartDir.endsWith('/frog')) {
       dartDir = new File('..').fullPathSync();
       if (!testPath.startsWith(dartDir)) {
         print('Run test.dart from the dart directory or' +
