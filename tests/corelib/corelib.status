@@ -34,7 +34,7 @@ IndexedListAccessTest: Fail     # Issue 274
 ConstList*: Fail # 'const' is not currently checked.
 CoreRuntimeTypesTest: Fail
 DateTimeTest: Fail
-ForInTest: Fail
+# ForInTest: Fail
 IndexedListAccessTest: Fail
 IndexOutOfRangeExceptionTest: Fail
 ListGetRangeTest: Fail
