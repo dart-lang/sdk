@@ -41,7 +41,6 @@ ListGetRangeTest: Fail
 ListFromListTest: Fail
 ListInsertRangeTest: Fail
 ListRemoveRangeTest: Fail
-ListSetRangeTest: Fail
 ListTest: Fail
 MapsTest: Fail
 MathTest: Fail
