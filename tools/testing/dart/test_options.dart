@@ -294,8 +294,9 @@ is 'dart file.dart' and you specify special command
       configuration['special-command'] = 'python -u $valgrind @';
     }
 
-    // Use verbose progress indication for verbose output.
-    if (configuration['verbose']) {
+    // Use verbose progress indication for verbose output unless buildbot
+    // progress indication is requested.
+    if (configuration['verbose'] && configuration['progress'] != 'buildbot') {
       configuration['progress'] = 'verbose';
     }
 
