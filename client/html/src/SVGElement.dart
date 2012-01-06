@@ -18,4 +18,6 @@ interface SVGElement extends Element default SVGElementWrappingImplementation {
   String get xmlbase();
 
   void set xmlbase(String value);
+
+  SVGElement clone(bool deep);
 }

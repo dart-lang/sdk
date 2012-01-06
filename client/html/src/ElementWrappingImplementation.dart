@@ -764,4 +764,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
     return _on;
   }
+
+  Element clone(bool deep) => super.clone(deep);
 }

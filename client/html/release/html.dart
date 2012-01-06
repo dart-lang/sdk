@@ -11404,6 +11404,8 @@ interface DocumentFragment extends Element default DocumentFragmentWrappingImple
   DocumentFragment();
 
   DocumentFragment.html(String html);
+
+  DocumentFragment clone(bool deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11636,6 +11638,8 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   ElementEvents get on();
+
+  Element clone(bool deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12765,6 +12769,8 @@ interface SVGElement extends Element default SVGElementWrappingImplementation {
   String get xmlbase();
 
   void set xmlbase(String value);
+
+  SVGElement clone(bool deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

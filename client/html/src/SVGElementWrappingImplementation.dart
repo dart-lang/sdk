@@ -59,7 +59,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    container.elements.addAll(this.clone(true).dynamic.elements);
+    container.elements.addAll(this.clone(true).elements);
     return container.innerHTML;
   }
 
@@ -70,4 +70,6 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
     container.innerHTML = '<svg version="1.1">$svg</svg>';
     this.elements = container.elements.first.elements;
   }
+
+  SVGElement clone(bool deep) => super.clone(deep);
 }

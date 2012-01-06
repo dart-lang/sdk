@@ -22050,6 +22050,8 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     throw new UnsupportedOperationException(
       "WebKit drop zone can't be set for document fragments.");
   }
+
+  DocumentFragment clone(bool deep) => super.clone(deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23026,6 +23028,8 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     }
     return _on;
   }
+
+  Element clone(bool deep) => super.clone(deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24071,7 +24075,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   String get innerHTML() {
     final container = new Element.tag("div");
-    container.elements.addAll(this.clone(true).dynamic.elements);
+    container.elements.addAll(this.clone(true).elements);
     return container.innerHTML;
   }
 
@@ -24082,6 +24086,8 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
     container.innerHTML = '<svg version="1.1">$svg</svg>';
     this.elements = container.elements.first.elements;
   }
+
+  SVGElement clone(bool deep) => super.clone(deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

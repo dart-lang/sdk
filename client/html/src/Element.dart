@@ -192,4 +192,6 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
   Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   ElementEvents get on();
+
+  Element clone(bool deep);
 }
