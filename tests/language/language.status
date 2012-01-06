@@ -43,7 +43,6 @@ Constructor6Test: Fail          # (Discussion ongoing)
 # Regular bugs which should be fixed.
 
 ConstInit6NegativeTest: Fail       # Issue 811
-ConstInit7NegativeTest: Fail       # Issue 811
 WrongNumberTypeArgumentsTest: Fail # Issue 441
 
 # Issue 905.

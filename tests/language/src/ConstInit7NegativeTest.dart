@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Check that a method reference is not an acceptable compile time constant
-
+// VMOptions=
+// VMOptions=--compile_all
 
 topMethod() { }
 
@@ -13,5 +14,5 @@ class ConstInit7NegativeTest {
 }
 
 main() {
- new ConstInit7NegativeTest();
+ (new ConstInit7NegativeTest()).classMethod();
 }
