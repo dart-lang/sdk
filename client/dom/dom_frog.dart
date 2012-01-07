@@ -534,6 +534,7 @@
 #source('src/EventListener.dart');
 #source('src/KeyLocation.dart');
 #source('src/KeyName.dart');
+#source('src/ReadyState.dart');
 #source('src/RequestAnimationFrameCallback.dart');
 #source('src/TimeoutHandler.dart');
 #source('src/_Collections.dart');
