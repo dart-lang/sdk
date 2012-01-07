@@ -65,6 +65,7 @@ Isolate* Dart::CreateIsolate() {
 
 void Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
+  TIMERSCOPE(time_isolate_initialization);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   Zone zone(isolate);

@@ -5282,11 +5282,6 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
       *reinterpret_cast<uword*>(addr + offset) = 0;
       offset += kWordSize;
     }
-    // Initialize all dart fields to null.
-    while (offset < instance_size) {
-      *reinterpret_cast<RawObject**>(addr + offset) = Object::null();
-      offset += kWordSize;
-    }
   }
   return result.raw();
 }
@@ -7117,9 +7112,6 @@ RawArray* Array::New(word len, bool immutable, Heap::Space space) {
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(len);
-    for (intptr_t i = 0; i < len; i++) {
-      *result.ObjectAddr(i) = Object::null();
-    }
   }
   return result.raw();
 }
