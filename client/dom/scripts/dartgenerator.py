@@ -1640,18 +1640,22 @@ class WrappingInterfaceGenerator(object):
             PARAMS=', '.join(['_this'] + arg_names),
             ARGS=', '.join(['_this.$dom'] + unwrap_args))
       else:
+        if info.js_name in ['delete', 'continue']:
+          access = "['%s']" % info.js_name
+        else:
+          access = ".%s" % info.js_name
         self._js_code.Emit(
             '\n'
             'function native_$(CLASS)_$(NATIVENAME)($PARAMS) {\n'
             '  try {\n'
-            '    return __dom_wrap(_this.$dom.$JSNAME($ARGS));\n'
+            '    return __dom_wrap(_this.$dom$ACCESS($ARGS));\n'
             '  } catch (e) {\n'
             '    throw __dom_wrap_exception(e);\n'
             '  }\n'
             '}\n',
             CLASS=self._class_name,
             NAME=info.name,
-            JSNAME=info.js_name,
+            ACCESS=access,
             NATIVENAME=native_name,
             PARAMS=', '.join(['_this'] + arg_names),
             ARGS=', '.join(unwrap_args))

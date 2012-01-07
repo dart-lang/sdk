@@ -16112,7 +16112,7 @@ function native__IDBCursorWrappingImplementation__get_source(_this) {
 
 function native__IDBCursorWrappingImplementation__continueFunction(_this) {
   try {
-    return __dom_wrap(_this.$dom.continue());
+    return __dom_wrap(_this.$dom['continue']());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16120,7 +16120,7 @@ function native__IDBCursorWrappingImplementation__continueFunction(_this) {
 
 function native__IDBCursorWrappingImplementation__continueFunction_2(_this, key) {
   try {
-    return __dom_wrap(_this.$dom.continue(__dom_unwrap(key)));
+    return __dom_wrap(_this.$dom['continue'](__dom_unwrap(key)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16128,7 +16128,7 @@ function native__IDBCursorWrappingImplementation__continueFunction_2(_this, key)
 
 function native__IDBCursorWrappingImplementation__delete(_this) {
   try {
-    return __dom_wrap(_this.$dom.delete());
+    return __dom_wrap(_this.$dom['delete']());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -16680,7 +16680,7 @@ function native__IDBObjectStoreWrappingImplementation__createIndex(_this, name, 
 
 function native__IDBObjectStoreWrappingImplementation__delete(_this, key) {
   try {
-    return __dom_wrap(_this.$dom.delete(__dom_unwrap(key)));
+    return __dom_wrap(_this.$dom['delete'](__dom_unwrap(key)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
