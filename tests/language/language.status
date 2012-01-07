@@ -348,7 +348,6 @@ CTConstTest: Fail # Not checking for generic type in const expression.
 [ $component == frog ]
 ConstInit5NegativeTest: Crash
 CTConstTest: Crash
-Prefix19NegativeTest: Crash
 
 
 [ $arch == x64 ]
