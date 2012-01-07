@@ -12000,7 +12000,7 @@ class _Collections {
 
   static List map(Iterable<Object> source,
                   List<Object> destination,
-                  bool f(o)) {
+                  f(o)) {
     for (final e in source) {
       destination.add(f(e));
     }
