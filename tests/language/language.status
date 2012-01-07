@@ -209,7 +209,7 @@ FactoryImplementationTest: Fail # Issue 523
 
 BitOperationsTest: Fail  # relies on big integers not available in JS
 CallThroughGetterTest: Fail
-CharEscapeTest: Fail
+CharEscapeTest: Fail # relies on 4 byte unicode not available in JS
 ClassOverrideNegativeTest: Fail
 ClosureSharedStateTest: Fail
 ConstFactoryNegativeTest: Fail
@@ -299,7 +299,6 @@ PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
 RegExp3Test: Fail
 ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
-StringEscapesTest: Fail
 StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
