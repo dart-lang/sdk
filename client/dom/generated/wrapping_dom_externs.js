@@ -275,7 +275,6 @@ dom_externs.contentScriptType;          // attribute SVGSVGElement.contentScript
 dom_externs.contentStyleType;           // attribute SVGSVGElement.contentStyleType
 dom_externs.contentWindow;              // attribute HTMLFrameElement.contentWindow, attribute HTMLIFrameElement.contentWindow
 dom_externs.context;                    // attribute AudioNode.context
-dom_externs.continue;                   // operation IDBCursor.continue
 dom_externs.control;                    // attribute HTMLLabelElement.control
 dom_externs.controller;                 // attribute HTMLMediaElement.controller
 dom_externs.controls;                   // attribute HTMLMediaElement.controls
@@ -418,7 +417,6 @@ dom_externs.defaultstatus;              // attribute DOMWindow.defaultstatus
 dom_externs.defer;                      // attribute HTMLScriptElement.defer
 dom_externs.delay;                      // attribute WebKitAnimation.delay
 dom_externs.delayTime;                  // attribute DelayNode.delayTime
-dom_externs.delete;                     // operation IDBCursor.delete, operation IDBObjectStore.delete
 dom_externs.deleteBuffer;               // operation WebGLRenderingContext.deleteBuffer
 dom_externs.deleteCaption;              // operation HTMLTableElement.deleteCaption
 dom_externs.deleteCell;                 // operation HTMLTableRowElement.deleteCell

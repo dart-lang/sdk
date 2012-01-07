@@ -53,6 +53,13 @@ _idl_to_dart_type_conversions = {
 _dart_to_idl_type_conversions = dict((v,k) for k, v in
                                      _idl_to_dart_type_conversions.iteritems())
 
+
+#
+# Identifiers that are used in the IDL than need to be treated specially because
+# *some* JavaScript processors forbid them as properties.
+#
+_javascript_keywords = ['delete', 'continue']
+
 #
 # Types with user-invocable constructors.  We do not have enough
 # information in IDL to create the signature.
@@ -923,9 +930,10 @@ class DartGenerator(object):
 
     names = dict()  # maps name to (interface, kind)
     for (interface, name, kind) in self._wrapping_externs:
-      if name not in names:
-        names[name] = set()
-      names[name].add((interface, kind))
+      if name not in _javascript_keywords:
+        if name not in names:
+          names[name] = set()
+        names[name].add((interface, kind))
 
     for name in sorted(names.keys()):
       # Simply export the property name.
@@ -1640,7 +1648,7 @@ class WrappingInterfaceGenerator(object):
             PARAMS=', '.join(['_this'] + arg_names),
             ARGS=', '.join(['_this.$dom'] + unwrap_args))
       else:
-        if info.js_name in ['delete', 'continue']:
+        if info.js_name in _javascript_keywords:
           access = "['%s']" % info.js_name
         else:
           access = ".%s" % info.js_name
