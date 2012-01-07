@@ -177,6 +177,7 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
 
   @Override
   public void unitAboutToCompile(DartSource source, boolean diet) {
+    listener.unitAboutToCompile(source, diet);
   }
 
   @Override
