@@ -32,11 +32,6 @@ Message2Test: Fail           # postMessage API currently expects String messages
 NestedSpawn2Test: Fail
 NestedSpawnTest: Fail
 
-
-[ $component == frog ]
-MessageTest: Crash
-
-
 [ $component == leg ]
 # TODO(ahe): Enable when leg matures.
 *: Skip

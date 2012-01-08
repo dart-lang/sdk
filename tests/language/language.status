@@ -249,7 +249,6 @@ GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is r
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 IncrOpTest: Fail
-InstanceofTest: Fail
 Instanceof2Test: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
@@ -277,7 +276,6 @@ NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
 NumbersTest: Fail
-NumberSyntaxTest: Fail
 OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
