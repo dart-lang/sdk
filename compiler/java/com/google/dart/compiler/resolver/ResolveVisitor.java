@@ -72,9 +72,6 @@ abstract class ResolveVisitor extends DartNodeTraverser<Element> {
       TypeVariableElement typeVar = (TypeVariableElement) type.getElement();
       getContext().getScope().declareElement(typeVar.getName(), typeVar);
     }
-    for (DartTypeParameter param : node.getTypeParameters()) {
-      param.accept(this);
-    }
     return null;
   }
 

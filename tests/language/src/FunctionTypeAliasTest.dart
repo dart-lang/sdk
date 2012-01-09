@@ -24,12 +24,14 @@ typedef ParametrizedFun1<T, U extends bool, V>(T t, U u);
 typedef List<T> ParametrizedFun2<T, U, V extends Map<T, int>>(
     Map<T, int> t, U u);
 
+typedef void BoundsCheck<T extends num>(T arg);
+
 class FunctionTypeAliasTest {
   FunctionTypeAliasTest() {}
   static int test(CompareObj compare, Object a, Object b) {
     return compare(a, b);
   }
-  foo(Test test) {}
+  foo(Test arg) {}
   static bar() {
     FunctionTypeAliasTest a = new FunctionTypeAliasTest();
     a.foo(() { });
@@ -93,6 +95,11 @@ class FunctionTypeAliasTest {
     Expect.isTrue(plus is !CompareString);
 
     Expect.equals(0, bar());
+
+    Function boundsTrue = void _(int arg) { };
+    Function boundsFalse = void _(String arg) { };
+    Expect.isTrue(boundsTrue is BoundsCheck<num>);
+    Expect.isFalse(boundsFalse is BoundsCheck<num>);
   }
 }
 

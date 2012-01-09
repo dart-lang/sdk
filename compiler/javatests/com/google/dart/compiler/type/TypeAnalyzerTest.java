@@ -1361,6 +1361,5 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
    // analyze("{ var val1 = new IA<Foo>(); }");
    // analyze("{ var val1 = new IA<Bar>(); }");
     analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-
   }
 }

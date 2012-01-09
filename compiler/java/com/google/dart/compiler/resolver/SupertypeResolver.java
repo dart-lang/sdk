@@ -19,6 +19,7 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -108,33 +109,38 @@ public class SupertypeResolver {
           }
         }
       }
-
-      for (Type typeParameter : classElement.getTypeParameters()) {
-        TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
-        DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
-        DartTypeNode boundNode = typeParameterNode.getBound();
-        Type bound;
-        if (boundNode != null) {
-          bound =
-              classContext.resolveType(
-                  boundNode,
-                  false,
-                  false,
-                  ResolverErrorCode.NO_SUCH_TYPE);
-          boundNode.setType(bound);
-        } else {
-          bound = typeProvider.getObjectType();
-        }
-        variable.setBound(bound);
-      }
-
+      setBoundsOnTypeParameters(classElement.getTypeParameters(), classContext);
       return null;
     }
 
     @Override
     public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      ResolutionContext resolutionContext = topLevelContext.extend(node.getSymbol());
       Elements.addInterface(node.getSymbol(), typeProvider.getFunctionType());
+      setBoundsOnTypeParameters(node.getSymbol().getTypeParameters(), resolutionContext);
       return null;
+    }
+  }
+
+  private void setBoundsOnTypeParameters(List<? extends Type> typeParameters,
+                                         ResolutionContext resolutionContext) {
+    for (Type typeParameter : typeParameters) {
+      TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
+      DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
+      DartTypeNode boundNode = typeParameterNode.getBound();
+      Type bound;
+      if (boundNode != null) {
+        bound =
+            resolutionContext.resolveType(
+                boundNode,
+                false,
+                false,
+                ResolverErrorCode.NO_SUCH_TYPE);
+        boundNode.setType(bound);
+      } else {
+        bound = typeProvider.getObjectType();
+      }
+      variable.setBound(bound);
     }
   }
 
