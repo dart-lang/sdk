@@ -19,12 +19,6 @@ class Helper {
   }
 }
 
-class TryCatch7NegativeTest {
-  static testMain() {
-    Expect.equals(1, Helper.f1(1));
-  }
-}
-
 main() {
-  TryCatch7NegativeTest.testMain();
+  Expect.equals(1, Helper.f1(1));
 }
