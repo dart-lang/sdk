@@ -4,7 +4,11 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.DartCompilerContext;
+import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNodeTraverser;
@@ -13,12 +17,23 @@ import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
+
+import java.util.Set;
 
 /**
  * Resolves the super class, interfaces, default implementation and
  * bounds type parameters of classes in a DartUnit.
  */
 public class SupertypeResolver {
+  private static final Set<String> BLACK_LISTED_TYPES = ImmutableSet.of(
+      "Dynamic",
+      "Function",
+      "bool",
+      "num",
+      "int",
+      "double",
+      "String");
 
   private ResolutionContext topLevelContext;
   private CoreTypeProvider typeProvider;
@@ -57,10 +72,13 @@ public class SupertypeResolver {
         supertype.getClass(); // Quick null check.
       }
       if (supertype != null) {
-        // TODO(scheglov) check for "extends/implements Dynamic"
-        /*if (supertype == typeProvider.getDynamicType()) {
-          topLevelContext.onError(superclassNode, ResolverErrorCode.EXTENDS_DYNAMIC, node.getName());
-        }*/
+        if (Elements.isTypeNode(superclassNode, BLACK_LISTED_TYPES)
+            && !isCoreLibrarySource(node.getSource())) {
+          topLevelContext.onError(
+              superclassNode,
+              ResolverErrorCode.BLACK_LISTED_EXTENDS,
+              superclassNode);
+        }
         classElement.setSupertype(supertype);
       } else {
         assert classElement.getName().equals("Object") : classElement;
@@ -75,8 +93,19 @@ public class SupertypeResolver {
       }
 
       if (node.getInterfaces() != null) {
-        for (DartTypeNode cls : node.getInterfaces()) {
-          Elements.addInterface(classElement, classContext.resolveInterface(cls, false, false));
+        for (DartTypeNode intNode : node.getInterfaces()) {
+          InterfaceType intElement = classContext.resolveInterface(intNode, false, false);
+          Elements.addInterface(classElement, intElement);
+          // Dynamic can not be used as interface.
+          if (Elements.isTypeNode(intNode, BLACK_LISTED_TYPES)
+              && !isCoreLibrarySource(node.getSource())) {
+            topLevelContext.onError(intNode, ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, intNode);
+            continue;
+          }
+          // May be unresolved type, error already reported, ignore.
+          if (intElement.getKind() == TypeKind.DYNAMIC) {
+            continue;
+          }
         }
       }
 
@@ -107,5 +136,22 @@ public class SupertypeResolver {
       Elements.addInterface(node.getSymbol(), typeProvider.getFunctionType());
       return null;
     }
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Source} represents code library declaration or
+   *         implementation.
+   */
+  static boolean isCoreLibrarySource(Source source) {
+    if (source instanceof DartSource) {
+      DartSource dartSource = (DartSource) source;
+      LibrarySource library = dartSource.getLibrary();
+      if (library != null) {
+        String libraryName = library.getName();
+        return libraryName.equals("dart://core/com/google/dart/corelib/corelib.dart")
+            || libraryName.equals("dart://core/com/google/dart/corelib/corelib_impl.dart");
+      }
+    }
+    return false;
   }
 }

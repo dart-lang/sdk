@@ -664,12 +664,8 @@ public class ResolverTest extends ResolverTestCase {
   /**
    * Test that a class may implement the implied interface of another class and that interfaces may
    * extend the implied interface of a class.
-   *
-   * @throws DuplicatedInterfaceException
-   * @throws CyclicDeclarationException
    */
-  public void testImpliedInterfaces() throws CyclicDeclarationException,
-      DuplicatedInterfaceException {
+  public void testImpliedInterfaces() throws Exception {
     DartClass a = makeClass("A", null);
     DartClass b = makeClass("B", null, makeTypes("A"));
     DartClass ia = makeInterface("IA", makeTypes("B"), null);
@@ -839,22 +835,6 @@ public class ResolverTest extends ResolverTestCase {
         "class MyClass<E> extends E {",
         "}"),
         ResolverErrorCode.NOT_A_CLASS);
-  }
-
-  public void test_noSuchType_classImplements() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class MyClass implements Unknown {",
-        "}"),
-        ResolverErrorCode.NO_SUCH_TYPE);
-  }
-
-  public void test_noSuchType_classImplementsTypeVariable() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class MyClass<E> implements E {",
-        "}"),
-        ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE);
   }
 
   public void test_noSuchType_superClass_typeArgument() throws Exception {
@@ -1057,32 +1037,6 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING,
         TypeErrorCode.NOT_A_TYPE,
         ResolverErrorCode.NO_SUCH_TYPE);
-  }
-
-  // TODO(scheglov) check for "extends/implements Dynamic"
-  public void _test_extendsDynamic() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class MyClass extends Dynamic {",
-        "}"),
-        ResolverErrorCode.DYNAMIC_EXTENDS);
-  }
-
-  // TODO(scheglov) check for "extends/implements Dynamic"
-  public void _test_implementsDynamic() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class MyClass implements Dynamic {",
-        "}"),
-        ResolverErrorCode.DYNAMIC_IMPLEMENTS);
-  }
-
-  public void test_explicitDynamicTypeArgument() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class Map<K, V>{}",
-        "class MyClass implements Map<Object, Dynamic> {",
-        "}"));
   }
 
   public void test_operatorIs_withFunctionAlias() throws Exception {

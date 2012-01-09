@@ -91,20 +91,6 @@ ToplevelCollision2Test/none: Fail        # Issue 647
 [ $component == dartc || $component == chromium ]
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
-BlackListedTest/01: Fail # Bug 5469684
-BlackListedTest/02: Fail # Bug 5469684
-BlackListedTest/03: Fail # Bug 5469684
-BlackListedTest/04: Fail # Bug 5469684
-BlackListedTest/05: Fail # Bug 5469684
-BlackListedTest/06: Fail # Bug 5469684
-BlackListedTest/07: Fail # Bug 5469684
-BlackListedTest/08: Fail # Bug 5469684
-BlackListedTest/09: Fail # Bug 5469684
-BlackListedTest/10: Fail # Bug 5469684
-BlackListedTest/11: Fail # Bug 5469684
-BlackListedTest/12: Fail # Bug 5469684
-BlackListedTest/13: Fail # Bug 5469684
-BlackListedTest/14: Fail # Bug 5469684
 CTConstTest: Fail            # Bug 4510015.
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CharEscapeTest: Fail

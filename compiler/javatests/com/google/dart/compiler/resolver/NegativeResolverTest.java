@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
 import java.util.ArrayList;
@@ -52,12 +53,16 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   private void resolve(DartUnit unit) {
+    unit.addTopLevelNode(ResolverTestCase.makeClass("bool", null));
+    unit.addTopLevelNode(ResolverTestCase.makeClass("num", null));
+    unit.addTopLevelNode(ResolverTestCase.makeClass("double", null));
     unit.addTopLevelNode(ResolverTestCase.makeClass("int", null));
     unit.addTopLevelNode(ResolverTestCase.makeClass("Object", null));
+    unit.addTopLevelNode(ResolverTestCase.makeClass("Null", null));
     unit.addTopLevelNode(ResolverTestCase.makeClass("String", null));
     unit.addTopLevelNode(ResolverTestCase.makeClass("Function", null));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("List", null, "T"));
-    unit.addTopLevelNode(ResolverTestCase.makeClass("Map", null, "K", "V"));
+    unit.addTopLevelNode(ResolverTestCase.makeInterface("List", "T"));
+    unit.addTopLevelNode(ResolverTestCase.makeInterface("Map", "K", "V"));
     ResolverTestCase.resolve(unit, getContext());
   }
 
@@ -220,20 +225,53 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void testNameConflict_field_field() {
     checkSourceErrors(
         makeCode(
-            "class ClassDeclarationWithLongEnoughNameToForceLineSplitting {",
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
             "  var foo;",
             "  var foo;",
             "}"),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 2, 7, 3),
-        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3));
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3));
   }
 
   public void testCall1() {
     checkNumErrors("StaticInstanceCallNegativeTest.dart", 1);
   }
 
-  public void testClassExtendsInterfaceNegativeTest() {
-    checkNumErrors("ClassExtendsInterfaceNegativeTest.dart", 1);
+  /**
+   * Section 7.8: It is a compile-time error if the extends clause of a class C includes a type
+   * expression that does not denote a class available in the lexical scope of C.
+   */
+  public void test_classExtendsInterface() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface I {}",
+            "class A extends I {",
+            "}"),
+        errEx(ResolverErrorCode.NOT_A_CLASS, 3, 17, 1));
+  }
+
+  /**
+   * Class can implement class, this causes implementation of an implicit interface.
+   */
+  public void test_classImplementsClass() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B implements A {",
+        "}"));
+  }
+
+  /**
+   * Interface can extend class, this causes implementation of an implicit interface.
+   */
+  public void test_interfaceExtendsClass() {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "interface B extends A {",
+        "}"));
   }
 
   public void tesClassImplementsUnknownInterfaceNegativeTest() {
@@ -902,5 +940,118 @@ public class NegativeResolverTest extends CompilerTestCase {
         errors.add(event);
       }
     };
+  }
+
+  public void test_blackListed_Dynamic() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A extends Dynamic {",
+            "}",
+            "class B implements Dynamic {",
+            "}"),
+        errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 7),
+        errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 7));
+    assertEquals("'Dynamic' can not be used as superclass", errors.get(0).getMessage());
+    assertEquals("'Dynamic' can not be used as superinterface", errors.get(1).getMessage());
+  }
+
+  public void test_blackListed_Function() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A extends Function {",
+            "}",
+            "class B implements Function {",
+            "}"),
+        errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 8),
+        errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 8));
+  }
+
+  public void test_blackListed_bool() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A extends bool {",
+            "}",
+            "class B implements bool {",
+            "}"),
+        errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 4),
+        errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 4));
+    assertEquals("'bool' can not be used as superclass", errors.get(0).getMessage());
+    assertEquals("'bool' can not be used as superinterface", errors.get(1).getMessage());
+  }
+
+  public void test_blackListed_int() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A extends int {",
+            "}",
+            "class B implements int {",
+            "}"),
+        errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 3),
+        errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 3));
+  }
+
+  public void test_blackListed_double() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A extends double {",
+            "}",
+            "class B implements double {",
+            "}"),
+        errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 6),
+        errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 6));
+  }
+
+  public void test_blackListed_num() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A extends num {",
+            "}",
+            "class B implements num {",
+            "}"),
+        errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 3),
+        errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 3));
+  }
+
+  public void test_blackListed_String() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A extends String {",
+            "}",
+            "class B implements String {",
+            "}"),
+        errEx(ResolverErrorCode.BLACK_LISTED_EXTENDS, 2, 17, 6),
+        errEx(ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, 4, 20, 6));
+  }
+
+  public void test_noSuchType_classImplements() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass implements Unknown {",
+            "}"),
+        errEx(ResolverErrorCode.NO_SUCH_TYPE, 2, 26, 7));
+  }
+
+  public void test_noSuchType_classImplementsTypeVariable() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass<E> implements E {",
+            "}"),
+        errEx(ResolverErrorCode.NOT_A_CLASS_OR_INTERFACE, 2, 29, 1));
+  }
+
+  public void test_explicitDynamicTypeArgument() throws Exception {
+    checkSourceErrors(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class MyClass implements Map<Object, Dynamic> {",
+        "}"));
   }
 }

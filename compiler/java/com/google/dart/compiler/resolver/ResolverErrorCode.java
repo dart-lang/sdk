@@ -11,6 +11,8 @@ import com.google.dart.compiler.SubSystem;
  * {@link ErrorCode}s for resolver.
  */
 public enum ResolverErrorCode implements ErrorCode {
+  BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
+  BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
   CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ASSIGN_TO_FINAL("cannot assign value to final variable \"%s\"."),
@@ -69,8 +71,6 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_TOP_LEVEL_DEFINITION("duplicate top-level definition '%s'"),
   DUPLICATE_TYPE_VARIABLE(ErrorSeverity.ERROR, "Duplicate type variable '%s'"),
   DUPLICATE_TYPE_VARIABLE_WARNING(ErrorSeverity.WARNING, "Type variable '%s' is hiding '%s' at %s"),
-  DYNAMIC_EXTENDS("Dynamic can not be used as superclass"),
-  DYNAMIC_IMPLEMENTS("Dynamic can not be used as superinterface"),
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
       "expected an instance field in the super class, but got %s"),
   EXPECTED_CONSTANT_EXPRESSION("Expected constant expression"),
@@ -111,6 +111,7 @@ public enum ResolverErrorCode implements ErrorCode {
   NO_SUCH_TYPE_VARAIBLE("no such type variable \"%s\" defined"),
   NOT_A_CLASS("\"%s\" is not a class"),
   NOT_A_CLASS_OR_INTERFACE("\"%s\" is not a class or interface"),
+  NOT_AN_INTERFACE("\"%s\" is not an interface"),
   NOT_A_LABEL("\"%s\" is not a label"),
   NOT_A_STATIC_FIELD("\"%s\" is not a static field"),
   NOT_A_STATIC_METHOD("\"%s\" is not a static method"),

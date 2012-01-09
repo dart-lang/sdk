@@ -201,10 +201,10 @@ public class ResolutionContext implements ResolutionErrorListener {
             isFactory,
             errorCode);
       case NONE:
-        if (identifier.toString().equals("void")) {
+        if (Elements.isIdentifierName(identifier, "void")) {
           return typeProvider.getVoidType();
         }
-        if (identifier.toString().equals("Dynamic")) {
+        if (Elements.isIdentifierName(identifier, "Dynamic")) {
           return typeProvider.getDynamicType();
         }
         break;

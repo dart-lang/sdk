@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
@@ -24,6 +25,7 @@ import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSuperExpression;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility and factory methods for elements.
@@ -491,6 +494,45 @@ static FieldElementImplementation fieldFromNode(DartField node,
         return ((DartClass) node).getSymbol();
       }
       node = node.getParent();
+    }
+    return null;
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link DartTypeNode} is type with one of the given
+   *         names.
+   */
+  public static boolean isTypeNode(DartTypeNode typeNode, Set<String> names) {
+    if (typeNode != null) {
+      DartNode identifier = typeNode.getIdentifier();
+      String typeName = getIdentifierName(identifier);
+      return names.contains(typeName);
+    }
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link DartTypeNode} is type with given name.
+   */
+  public static boolean isTypeNode(DartTypeNode typeNode, String name) {
+    return typeNode != null && isIdentifierName(typeNode.getIdentifier(), name);
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link DartNode} is type identifier with given name.
+   */
+  public static boolean isIdentifierName(DartNode identifier, String name) {
+    String identifierName = getIdentifierName(identifier);
+    return Objects.equal(identifierName, name);
+  }
+
+  /**
+   * @return the name of given {@link DartNode} if it is {@link DartIdentifier}, or
+   *         <code>null</code> otherwise.
+   */
+  private static String getIdentifierName(DartNode identifier) {
+    if (identifier != null && identifier instanceof DartIdentifier) {
+      return ((DartIdentifier) identifier).getTargetName();
     }
     return null;
   }
