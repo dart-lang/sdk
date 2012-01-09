@@ -362,55 +362,65 @@ class StandardTestSuite implements TestSuite {
       }
     }
 
-    Directory tempDir = createTemporaryDirectory(testPath, dartDir);
-
-    String dartWrapperFilename = '${tempDir.path}/test.dart';
-    String compiledDartWrapperFilename = '${tempDir.path}/test.js';
-    String domLibraryImport = (component == 'chromium') ?
-        '$dartDir/client/testing/unittest/dom_for_unittest.dart' : 'dart:dom';
-
-    String htmlPath = '${tempDir.path}/test.html';
-    if (!isWebTest) {
-      // test.dart will import the dart test directly, if it is a library,
-      // or indirectly through test_as_library.dart, if it is not.
-      String dartLibraryFilename;
-      if (isLibraryDefinition) {
-        dartLibraryFilename = testPath;
-      } else {
-        dartLibraryFilename = 'test_as_library.dart';
-        File file = new File('${tempDir.path}/$dartLibraryFilename');
-        RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
-        dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
-        dartLibrary.closeSync();
-      }  
-      
-      File file = new File(dartWrapperFilename);
-      RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
-      dartWrapper.writeStringSync(DartTestWrapper(
-          domLibraryImport,
-          '$dartDir/tests/isolate/src/TestFramework.dart',
-          dartLibraryFilename));
-      dartWrapper.closeSync();
-    } else {
-      dartWrapperFilename = testPath;
-      // TODO(whesse): Once test.py is retired, adjust the relative path in
-      // the client/samples/dartcombat test to its css file, remove the
-      // "../../" from this path, and move this out of the isWebTest guard.
-      // Also remove getHtmlName, and just use test.html.
-      htmlPath = '${tempDir.path}/../../${getHtmlName(filename)}';
-    }
-    final String scriptPath = (component == 'dartium') ?
-        dartWrapperFilename : compiledDartWrapperFilename;
-    // Create the HTML file for the test.
-    RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
-    htmlTest.writeStringSync(GetHtmlContents(
-        filename,
-        '$dartDir/client/testing/unittest/test_controller.js',
-        scriptType,
-        scriptPath));
-    htmlTest.closeSync();
-
     for (var vmOptions in optionsFromFile['vmOptions']) {
+      // Create a unique temporary directory for each set of vmOptions.
+      // TODO(whesse): Replace separate replaces with a RegExp when
+      // replaceAll(RegExp, String) is implemented.
+      String optionsName = '';
+      if (optionsFromFile['vmOptions'].length > 1) {
+          optionsName = Strings.join(vmOptions, '-').replaceAll('-','')
+                                                    .replaceAll('=','')
+                                                    .replaceAll('/','');
+      }
+      Directory tempDir =
+          createTemporaryDirectory(testPath, dartDir, optionsName);
+
+      String dartWrapperFilename = '${tempDir.path}/test.dart';
+      String compiledDartWrapperFilename = '${tempDir.path}/test.js';
+      String domLibraryImport = (component == 'chromium') ?
+          '$dartDir/client/testing/unittest/dom_for_unittest.dart' : 'dart:dom';
+
+      String htmlPath = '${tempDir.path}/test.html';
+      if (!isWebTest) {
+        // test.dart will import the dart test directly, if it is a library,
+        // or indirectly through test_as_library.dart, if it is not.
+        String dartLibraryFilename;
+        if (isLibraryDefinition) {
+          dartLibraryFilename = testPath;
+        } else {
+          dartLibraryFilename = 'test_as_library.dart';
+          File file = new File('${tempDir.path}/$dartLibraryFilename');
+          RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
+          dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
+          dartLibrary.closeSync();
+        }  
+      
+        File file = new File(dartWrapperFilename);
+        RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
+        dartWrapper.writeStringSync(DartTestWrapper(
+            domLibraryImport,
+            '$dartDir/tests/isolate/src/TestFramework.dart',
+            dartLibraryFilename));
+        dartWrapper.closeSync();
+      } else {
+        dartWrapperFilename = testPath;
+        // TODO(whesse): Once test.py is retired, adjust the relative path in
+        // the client/samples/dartcombat test to its css file, remove the
+        // "../../" from this path, and move this out of the isWebTest guard.
+        // Also remove getHtmlName, and just use test.html.
+        htmlPath = '${tempDir.path}/../../${getHtmlName(filename)}';
+      }
+      final String scriptPath = (component == 'dartium') ?
+          dartWrapperFilename : compiledDartWrapperFilename;
+      // Create the HTML file for the test.
+      RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
+      htmlTest.writeStringSync(GetHtmlContents(
+          filename,
+          '$dartDir/client/testing/unittest/test_controller.js',
+          scriptType,
+          scriptPath));
+      htmlTest.closeSync();
+
       List<String> compilerArgs = TestUtils.standardOptions(configuration);
       String compilerExecutable = TestUtils.compilerPath(configuration);
       switch (component) {
@@ -500,11 +510,14 @@ class StandardTestSuite implements TestSuite {
    * all path separators with underscores.
    * All variables are block local, except tempDir.
    */
-  Directory createTemporaryDirectory(String testPath, String dartDir)
+  Directory createTemporaryDirectory(String testPath,
+                                     String dartDir,
+                                     String optionsName)
   {
     String testUniqueName =
         testPath.substring(dartDir.length + 1, testPath.length - 5);
     testUniqueName = testUniqueName.replaceAll('/', '_');
+    testUniqueName += '-$optionsName';
     // Create '[build dir]/generated_tests/$component/$testUniqueName',
       // including any intermediate directories that don't exist.
     var generatedTestPath = ['generated_tests',
