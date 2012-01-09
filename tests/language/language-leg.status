@@ -59,6 +59,7 @@ Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
 ConstructorBodyTest: Crash
+ConstructorCallWrongArgumentCountNegativeTest: Fail
 ConstructorDefaultTest: Fail
 ConstructorDuplicateInitializersTest/01: Crash
 ConstructorDuplicateInitializersTest/02: Crash
