@@ -212,7 +212,6 @@ CallThroughGetterTest: Fail
 CharEscapeTest: Fail # relies on 4 byte unicode not available in JS
 ClassOverrideNegativeTest: Fail
 ClosureSharedStateTest: Fail
-ConstFactoryNegativeTest: Fail
 ConstObjectsAreImmutableTest: Fail
 DefaultFactoryLibraryTest: Fail    # Issue 514
 DynamicTest: Fail
@@ -223,10 +222,7 @@ Constructor5Test: Fail    # Order of initializers.
 Constructor6Test: Fail    # Parse failure in initializers.
 ExecuteFinally6Test: Fail
 ExpectTest: Fail
-#FauxverrideTest/01: Fail  # see r607 (10/21) passes, but we should be issuing warnings
-#FauxverrideTest/02: Fail  # see r607 (10/21) passes, but we should be issuing warnings
 FauxverrideTest/03: Fail
-#FauxverrideTest/04: Fail  # see r607 (10/21) passes, but we should be issuing warnings
 FauxverrideTest/05: Fail
 FieldOverrideTest/none: Fail  # Issue 743: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 743: field shadowing now allowed
@@ -276,9 +272,9 @@ NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
 NumbersTest: Fail
-OverrideMethodWithFieldTest/01: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
+OverrideMethodWithFieldTest/01: Fail
 ParameterInitializer5NegativeTest: Fail  # Issue 581
 Prefix3NegativeTest: Fail
 Prefix7NegativeTest: Fail
@@ -313,9 +309,6 @@ ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
-# Issue 1035
-ConstructorDuplicateInitializersTest/01: Fail
-ConstructorDuplicateInitializersTest/02: Fail
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
@@ -336,16 +329,6 @@ StaticField2RunNegativeTest: Pass
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
-
-
-[ $component == frogsh || $component == frogium ]
-ConstInit5NegativeTest: Pass  # Should fail at compile-time, not at runtime
-CTConstTest: Fail # Not checking for generic type in const expression.
-
-
-[ $component == frog ]
-ConstInit5NegativeTest: Crash
-CTConstTest: Crash
 
 
 [ $arch == x64 ]

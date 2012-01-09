@@ -34,6 +34,7 @@ IndexedListAccessTest: Fail     # Issue 274
 ConstList*: Fail # 'const' is not currently checked.
 CoreRuntimeTypesTest: Fail
 DateTimeTest: Fail
+DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
 ForInTest: Fail
 IndexedListAccessTest: Fail
 IndexOutOfRangeExceptionTest: Fail
@@ -49,16 +50,6 @@ RegExp4Test: Fail # New test added on 10/28.
 StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
-
-
-[ $component == frog ]
-DoubleCompareTest: Crash # Issue with static finals and -Infinity, -0.
-NanInfinityTest: Crash
-
-
-[ $component == frogsh || $component == frogium ]
-DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
-NanInfinityTest: Fail
 
 
 [ $arch == x64 ]
