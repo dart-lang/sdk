@@ -6,11 +6,18 @@
 #library('dartdoc_tests');
 
 #import('../dartdoc.dart');
+#import('../markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
 #import('../../../client/testing/unittest/unittest_node.dart');
+#import('../../../frog/lang.dart');
+#import('../../../frog/file_system_node.dart');
 
 main() {
+  var files = new NodeFileSystem();
+  parseOptions('../../frog', [], files);
+  initializeWorld(files);
+
   group('countOccurrences', () {
     test('empty text returns 0', () {
       expect(countOccurrences('', 'needle')).equals(0);
@@ -107,6 +114,67 @@ main() {
       startFile('dir/sub/file.html');
       expect(relativePath('other/file.html')).equals(
           '../../other/file.html');
+    });
+  });
+
+  group('name reference', () {
+    var doc = new Dartdoc();
+    doc.document('test/dummy.dart');
+    var dummy = world.libraries['test/dummy.dart'];
+    var klass = dummy.findTypeByName('Class');
+    var method = klass.getMember('method');
+
+    String render(md.Node node) => md.renderToHtml([node]);
+
+    test('to a parameter of the current method', () {
+      expect(render(doc.resolveNameReference('param', currentMember: method))).
+        equals('<span class="param">param</span>');
+    });
+
+    test('to a member of the current type', () {
+      expect(render(doc.resolveNameReference('method', currentType: klass))).
+        equals('<a href="../../dummy/Class.html#method" class="crossref">' +
+            'method</a>');
+    });
+
+    test('to a property with only a getter links to the getter', () {
+      expect(render(doc.resolveNameReference('getterOnly',
+                  currentType: klass))).
+        equals('<a href="../../dummy/Class.html#get:getterOnly" ' +
+            'class="crossref">getterOnly</a>');
+    });
+
+    test('to a property with only a setter links to the setter', () {
+      expect(render(doc.resolveNameReference('setterOnly',
+                  currentType: klass))).
+        equals('<a href="../../dummy/Class.html#set:setterOnly" ' +
+            'class="crossref">setterOnly</a>');
+    });
+
+    test('to a property with a getter and setter links to the getter', () {
+      expect(render(doc.resolveNameReference('getterAndSetter',
+                  currentType: klass))).
+        equals('<a href="../../dummy/Class.html#get:getterAndSetter" ' +
+            'class="crossref">getterAndSetter</a>');
+    });
+
+    test('to a type in the current library', () {
+      expect(render(doc.resolveNameReference('Class', currentLibrary: dummy))).
+        equals('<a href="../../dummy/Class.html" class="crossref">Class</a>');
+    });
+
+    test('to a top-level member in the current library', () {
+      expect(render(doc.resolveNameReference('topLevelMethod',
+                  currentLibrary: dummy))).
+        equals('<a href="../../dummy.html#topLevelMethod" class="crossref">' +
+            'topLevelMethod</a>');
+    });
+
+    test('to an unknown name', () {
+      expect(render(doc.resolveNameReference('unknownName',
+                  currentLibrary: dummy, currentType: klass,
+                  currentMember: method))).
+        equals('<code>unknownName</code>');
     });
   });
 }
