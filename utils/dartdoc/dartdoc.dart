@@ -108,8 +108,8 @@ class Dartdoc {
   }
 
   document(String entrypoint) {
+    var oldDietParse = options.dietParse;
     try {
-      var oldDietParse = options.dietParse;
       options.dietParse = true;
 
       // Handle the built-in entrypoints.
