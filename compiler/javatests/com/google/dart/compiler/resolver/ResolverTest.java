@@ -278,6 +278,16 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR);
   }
 
+  public void testImplicitSuperCall_NonExistentSuper2() {
+    // Check that we generate an error if the implicit constructor would call a non-existent super.
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class B { B.foo() {} }",
+        "class C extends B {}",
+        "class D { main() { new C(); } }"),
+        ResolverErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR);
+  }
+
   public void testCyclicSupertype() {
 
     resolveAndTest(Joiner.on("\n").join(

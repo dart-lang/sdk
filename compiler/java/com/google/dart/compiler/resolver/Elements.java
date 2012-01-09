@@ -329,7 +329,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    * Returns true if the class needs an implicit default constructor.
    */
   public static boolean needsImplicitDefaultConstructor(ClassElement classElement) {
-    return !classElement.isObject() && classElement.getConstructors().isEmpty()
+    return classElement.getConstructors().isEmpty()
         && (!classElement.isInterface() || classElement.getDefaultClass() != null);
   }
 

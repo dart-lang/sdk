@@ -499,7 +499,10 @@ public class Resolver {
         ClassElement superElement = supertype.getElement();
         if (!superElement.isDynamic()) {
           ConstructorElement superCtor = Elements.lookupConstructor(superElement, "");
-          if (superCtor != null && !superCtor.getParameters().isEmpty()) {
+          boolean superHasDefaultCtor =
+              (superCtor != null && superCtor.getParameters().isEmpty())
+                  || (superCtor == null && Elements.needsImplicitDefaultConstructor(superElement));
+          if (!superHasDefaultCtor) {
             onError(cls.getName(),
                 ResolverErrorCode.CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR,
                 cls.getSuperclass());
