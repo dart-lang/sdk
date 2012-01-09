@@ -38,7 +38,6 @@
 # ........{frog}/
 # ......(more will come here - io, etc)
 # ....util/
-# ......dartdoc/
 # ......(more will come here)
 
 
@@ -315,9 +314,6 @@ def Main(argv):
 
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
-
-  copytree(join(HOME, 'utils', 'dartdoc'), join(UTIL, 'dartdoc'), 
-           ignore=ignore_patterns('.svn'))
 
   move(SDK_tmp, SDK)
 
