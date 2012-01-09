@@ -104,7 +104,7 @@ class IDLParser(object):
         # WebKit:
         OR(Const, Attribute, Operation),
         # FremontCut:
-        OR(Const, Attribute, Operation, Snippet))
+        OR(Const, Attribute, Operation))
 
     # Interface inheritance:
     def _ParentInterfaces():
@@ -380,13 +380,6 @@ class IDLParser(object):
 
     def AnnotationArgValue():
       return re.compile(r'[\w&0-9:/\-\.]+')
-
-    # Snippets - used in the FremontCut IDL grammer:
-    def Snippet():
-      return [MAYBE(_Annotations), 'snippet', '{', SnippetText, '}', ';']
-
-    def SnippetText():
-      return re.compile(r'[^\}]*')
 
     ###################### END GRAMMAR #####################
 

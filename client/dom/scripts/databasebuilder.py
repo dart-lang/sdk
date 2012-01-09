@@ -181,7 +181,6 @@ class DatabaseBuilder(object):
     map(add_source_annotation, interface.constants)
     map(add_source_annotation, interface.attributes)
     map(add_source_annotation, interface.operations)
-    map(add_source_annotation, interface.snippets)
 
   def _sign(self, node):
     """Computes a unique signature for the node, for merging purposed, by
@@ -372,12 +371,6 @@ class DatabaseBuilder(object):
     if self._merge_ext_attrs(old_interface.ext_attrs, new_interface.ext_attrs):
       changed = True
 
-    # Snippets are just concatentated:
-    if new_interface.snippets:
-      old_interface.snippets.extend(
-        copy.deepcopy(new_interface.snippets))
-      changed = True
-
     _logger.info('merged interface %s (changed=%s, supplemental=%s)' %
       (old_interface.id, changed, new_interface.is_supplemental))
 
@@ -561,4 +554,3 @@ class DatabaseBuilder(object):
         map(normalize, interface.constants)
         map(normalize, interface.attributes)
         map(normalize, interface.operations)
-        map(normalize, interface.snippets)

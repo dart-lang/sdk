@@ -141,14 +141,6 @@ AST   :
       'interface Shape {}; interface Rectangle : Shape {}; interface Square : Rectangle, Shape {};',
       {'interfaces': [{'id': 'Shape'}, {'parents': [{'type': {'id': 'Shape'}}], 'id': 'Rectangle'}, {'parents': [{'type': {'id': 'Rectangle'}}, {'type': {'id': 'Shape'}}], 'id': 'Square'}]})
 
-  def test_snippets(self):
-    self._run_test(
-      idlparser.FREMONTCUT_SYNTAX,
-      '''interface I {
-        snippet {bla bla bla bla};
-      };''',
-      {'interfaces': [{'id': 'I', 'snippets': [{'text': 'bla bla bla bla'}]}]})
-
 if __name__ == "__main__":
   logging.config.fileConfig("logging.conf")
   if __name__ == '__main__':

@@ -12,7 +12,6 @@ import multiemitter
 import os
 import re
 import shutil
-import snippet_manager
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -153,16 +152,14 @@ def _IsDartCollectionType(type):
 class DartGenerator(object):
   """Utilities to generate Dart APIs and corresponding JavaScript."""
 
-  def __init__(self, auxiliary_dir, snippet_dir, base_package):
+  def __init__(self, auxiliary_dir, base_package):
     """Constructor for the DartGenerator.
 
     Args:
       auxiliary_dir -- location of auxiliary handwritten classes
-      snippet_dir -- location of implementation snippets
       base_package -- the base package name for the generated code.
     """
     self._auxiliary_dir = auxiliary_dir
-    self._snippet_manager = snippet_manager.SnippetManager(snippet_dir)
     self._base_package = base_package
     self._auxiliary_files = {}
     self._dart_templates_re = re.compile(r'[\w.:]+<([\w\.<>:]+)>')
@@ -351,7 +348,6 @@ class DartGenerator(object):
         interface.attributes = filter(HasAnnotations, interface.attributes)
         interface.operations = filter(HasAnnotations, interface.operations)
         interface.parents = filter(HasAnnotations, interface.parents)
-        interface.snippets = filter(HasAnnotations, interface.snippets)
       else:
         database.DeleteInterface(interface.id)
 
@@ -760,12 +756,10 @@ class DartGenerator(object):
       template_file = 'template_interface.darttemplate'
     template = ''.join(open(template_file).readlines())
 
-    snippet = self._snippet_manager.snippet_map.get(interface_name)
-
     return DartInterfaceGenerator(
         interface, dart_interface_code,
         template,
-        snippet, common_prefix, super_interface_name,
+        common_prefix, super_interface_name,
         source_filter)
 
 
@@ -1074,15 +1068,13 @@ class DartInterfaceGenerator(object):
   """Generates Dart Interface definition for one DOM IDL interface."""
 
   def __init__(self, interface, emitter, template,
-               extra_snippets, common_prefix, super_interface, source_filter):
+               common_prefix, super_interface, source_filter):
     """Generates Dart code for the given interface.
 
     Args:
       interface -- an IDLInterface instance. It is assumed that all types have
         been converted to Dart types (e.g. int, String), unless they are in the
         same package as the interface.
-      extra_snippets -- additional snippet text with method signatures that were
-        extracted from the implementation snippet file
       common_prefix -- the prefix for the common library, if any.
       super_interface -- the name of the common interface that this interface
         implements, if any.
@@ -1092,7 +1084,6 @@ class DartInterfaceGenerator(object):
     self._interface = interface
     self._emitter = emitter
     self._template = template
-    self._extra_snippets = extra_snippets
     self._common_prefix = common_prefix
     self._super_interface = super_interface
     self._source_filter = source_filter
@@ -1153,21 +1144,6 @@ class DartInterfaceGenerator(object):
 
 
   def FinishInterface(self):
-    # Write snippet text that was inlined in the IDL.
-    for snippet in self._interface.snippets:
-      self._members_emitter.Emit('\n$LINES',
-                                 LINES=IndentText(snippets.text, '  '))
-
-    # TODO(vsm): Test if snippets are extra methods or extra types.
-    # Since Dart doesn't permit inner types, append after the interface.
-    # Consider moving these types to auxilary classes instead.
-    if self._extra_snippets is not None:
-      if 'interface' in self._extra_snippets:
-        self._top_level_emitter.Emit('\n$TEXT', TEXT=self._extra_snippets)
-      else:
-        self._members_emitter.Emit('\n$TEXT',
-                                   TEXT=IndentText(self._extra_snippets, '  '))
-
     # TODO(vsm): Use typedef if / when that is supported in Dart.
     # Define variant as subtype.
     if (self._super_interface and

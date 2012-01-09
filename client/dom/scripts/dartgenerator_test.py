@@ -77,13 +77,11 @@ FILE CONTENT:
     self._output_dir = os.path.join(self._working_dir, 'output')
     self._database_dir = os.path.join(self._working_dir, 'database')
     self._auxiliary_dir = os.path.join(self._working_dir, 'auxiliary')
-    self._snippet_dir = os.path.join(self._working_dir, 'snippet')
     self.assertFalse(os.path.exists(self._database_dir))
 
     # Create database and add one interface.
     db = database.Database(self._database_dir)
     os.mkdir(self._auxiliary_dir)
-    os.mkdir(self._snippet_dir)
     self.assertTrue(os.path.exists(self._database_dir))
 
     content = """
@@ -133,13 +131,11 @@ FILE CONTENT:
 
     self._database = database.Database(self._database_dir)
     self._generator = dartgenerator.DartGenerator(self._auxiliary_dir,
-                                                  self._snippet_dir,
                                                   'test')
 
   def tearDown(self):
     shutil.rmtree(self._database_dir)
     shutil.rmtree(self._auxiliary_dir)
-    shutil.rmtree(self._snippet_dir)
 
   def testBasicGeneration(self):
     # Generate all interfaces:

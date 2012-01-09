@@ -77,10 +77,6 @@ def render(idl_node, indent_str='  '):
         wln()
         wln('/* Operations */')
         w(sort(node.operations))
-      if node.snippets:
-        wln()
-        wln('/* Snippets */')
-        w(sort(node.snippets))
       end_indent()
       wln('};')
     elif isinstance(node, IDLParentInterface):
@@ -124,9 +120,6 @@ def render(idl_node, indent_str='  '):
       w(node.annotations)
       w(node.ext_attrs)
       wln('const %s %s = %s;' % (node.type.id, node.id, node.value))
-    elif isinstance(node, IDLSnippet):
-      w(node.annotations)
-      wln('snippet {%s};' % node.text)
     elif isinstance(node, IDLOperation):
       w(node.annotations)
       w(node.ext_attrs)

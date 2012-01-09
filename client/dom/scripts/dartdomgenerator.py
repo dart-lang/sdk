@@ -37,7 +37,6 @@ def main():
 
   generator = dartgenerator.DartGenerator(
       auxiliary_dir=os.path.join(current_dir, '..', 'src'),
-      snippet_dir=os.path.join(current_dir, '..', 'snippets'),
       base_package='')
   generator.LoadAuxiliary()
 
