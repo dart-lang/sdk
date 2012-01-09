@@ -362,7 +362,10 @@ class StandardTestSuite implements TestSuite {
       }
     }
 
-    for (var vmOptions in optionsFromFile['vmOptions']) {
+    // TODO(whesse): Find out if this loop is turning the buildbot red.
+    // for (var vmOptions in optionsFromFile['vmOptions']) {
+    var vmOptions = optionsFromFile['vmOptions'][0]; {
+
       // Create a unique temporary directory for each set of vmOptions.
       // TODO(whesse): Replace separate replaces with a RegExp when
       // replaceAll(RegExp, String) is implemented.
