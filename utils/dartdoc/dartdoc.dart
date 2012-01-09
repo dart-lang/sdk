@@ -105,8 +105,8 @@ class Dartdoc {
         new md.CodeSyntax(@'\[\:((?:.|\n)*?)\:\]'));
 
     md.setImplicitLinkResolver((name) => resolveNameReference(name,
-            currentLibrary: _currentLibrary, currentType: _currentType,
-            currentMember: _currentMember));
+            library: _currentLibrary, type: _currentType,
+            member: _currentMember));
   }
 
   document(String entrypoint) {
@@ -782,8 +782,8 @@ class Dartdoc {
    * brackets. It will try to figure out what the name refers to and link or
    * style it appropriately.
    */
-  md.Node resolveNameReference(String name, [Member currentMember = null,
-      Type currentType = null, Library currentLibrary = null]) {
+  md.Node resolveNameReference(String name, [Member member = null,
+      Type type = null, Library library = null]) {
     makeLink(String href) {
       final anchor = new md.Element.text('a', name);
       anchor.attributes['href'] = relativePath(href);
@@ -806,8 +806,8 @@ class Dartdoc {
     }
 
     // See if it's a parameter of the current method.
-    if (currentMember != null) {
-      for (final parameter in currentMember.parameters) {
+    if (member != null) {
+      for (final parameter in member.parameters) {
         if (parameter.name == name) {
           final element = new md.Element.text('span', name);
           element.attributes['class'] = 'param';
@@ -817,22 +817,22 @@ class Dartdoc {
     }
 
     // See if it's another member of the current type.
-    if (currentType != null) {
-      final member = findMember(currentType);
+    if (type != null) {
+      final member = findMember(type);
       if (member != null) {
         return makeLink(memberUrl(member));
       }
     }
 
     // See if it's another type in the current library.
-    if (currentLibrary != null) {
-      final type = currentLibrary.types[name];
+    if (library != null) {
+      final type = library.types[name];
       if (type != null) {
         return makeLink(typeUrl(type));
       }
 
       // See if it's a top-level member in the current library.
-      final member = findMember(currentLibrary.topType);
+      final member = findMember(library.topType);
       if (member != null) {
         return makeLink(memberUrl(member));
       }

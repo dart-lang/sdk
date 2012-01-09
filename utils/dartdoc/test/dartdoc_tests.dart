@@ -127,53 +127,49 @@ main() {
     String render(md.Node node) => md.renderToHtml([node]);
 
     test('to a parameter of the current method', () {
-      expect(render(doc.resolveNameReference('param', currentMember: method))).
+      expect(render(doc.resolveNameReference('param', member: method))).
         equals('<span class="param">param</span>');
     });
 
     test('to a member of the current type', () {
-      expect(render(doc.resolveNameReference('method', currentType: klass))).
+      expect(render(doc.resolveNameReference('method', type: klass))).
         equals('<a href="../../dummy/Class.html#method" class="crossref">' +
             'method</a>');
     });
 
     test('to a property with only a getter links to the getter', () {
-      expect(render(doc.resolveNameReference('getterOnly',
-                  currentType: klass))).
+      expect(render(doc.resolveNameReference('getterOnly', type: klass))).
         equals('<a href="../../dummy/Class.html#get:getterOnly" ' +
             'class="crossref">getterOnly</a>');
     });
 
     test('to a property with only a setter links to the setter', () {
-      expect(render(doc.resolveNameReference('setterOnly',
-                  currentType: klass))).
+      expect(render(doc.resolveNameReference('setterOnly', type: klass))).
         equals('<a href="../../dummy/Class.html#set:setterOnly" ' +
             'class="crossref">setterOnly</a>');
     });
 
     test('to a property with a getter and setter links to the getter', () {
-      expect(render(doc.resolveNameReference('getterAndSetter',
-                  currentType: klass))).
+      expect(render(doc.resolveNameReference('getterAndSetter', type: klass))).
         equals('<a href="../../dummy/Class.html#get:getterAndSetter" ' +
             'class="crossref">getterAndSetter</a>');
     });
 
     test('to a type in the current library', () {
-      expect(render(doc.resolveNameReference('Class', currentLibrary: dummy))).
+      expect(render(doc.resolveNameReference('Class', library: dummy))).
         equals('<a href="../../dummy/Class.html" class="crossref">Class</a>');
     });
 
     test('to a top-level member in the current library', () {
       expect(render(doc.resolveNameReference('topLevelMethod',
-                  currentLibrary: dummy))).
+                  library: dummy))).
         equals('<a href="../../dummy.html#topLevelMethod" class="crossref">' +
             'topLevelMethod</a>');
     });
 
     test('to an unknown name', () {
-      expect(render(doc.resolveNameReference('unknownName',
-                  currentLibrary: dummy, currentType: klass,
-                  currentMember: method))).
+      expect(render(doc.resolveNameReference('unknownName', library: dummy,
+                  type: klass, member: method))).
         equals('<code>unknownName</code>');
     });
   });
