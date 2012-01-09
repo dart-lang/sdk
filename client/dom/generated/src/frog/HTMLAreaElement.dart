@@ -1,8 +1,6 @@
 
 class HTMLAreaElement extends HTMLElement native "*HTMLAreaElement" {
 
-  String accessKey;
-
   String alt;
 
   String coords;

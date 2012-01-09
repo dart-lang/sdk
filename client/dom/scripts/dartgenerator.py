@@ -53,16 +53,12 @@ _idl_to_dart_type_conversions = {
 _dart_to_idl_type_conversions = dict((v,k) for k, v in
                                      _idl_to_dart_type_conversions.iteritems())
 
+
 #
-# Types which are unreachable until we call something that returns an instance.
+# Identifiers that are used in the IDL than need to be treated specially because
+# *some* JavaScript processors forbid them as properties.
 #
-_evasive_types = set(['CanvasPixelArray',
-                      'ImageData',  # Not really unreachable, testing multi-hop
-                      'Notification',
-                      'NotificationCenter',
-                      'TouchList',
-                      'Touch'
-                      ])
+_javascript_keywords = ['delete', 'continue']
 
 #
 # Types with user-invocable constructors.  We do not have enough
@@ -127,202 +123,7 @@ _frog_dom_custom_native_specs = {
 
     # DOMWindow aliased with global scope.
     'DOMWindow': '@*DOMWindow',
-
-    # Temporary hack: make these be 'hidden'.
-    'SVGPathSeg': '*SVGPathSeg',
 }
-
-#
-# Publically visible types common across all supported browsers.
-#
-_BROWSER_SHARED_TYPES = [
-        'Attr',
-        'CDATASection',
-        'CSSFontFaceRule',
-        'CSSImportRule',
-        'CSSMediaRule',
-        'CSSPageRule',
-        'CSSRule',
-        'CSSRuleList',
-        'CSSStyleDeclaration',
-        'CSSStyleRule',
-        'CSSStyleSheet',
-        'CanvasRenderingContext2D',
-        'CharacterData',
-        'ClientRect',
-        'ClientRectList',
-        'Comment',
-        'DOMException',
-        'DOMImplementation',
-        'DOMParser',
-        'Document',
-        'DocumentFragment',
-        'DocumentType',
-        'Element',
-        'Event',
-        'EventException',
-        'HTMLAnchorElement',
-        'HTMLAppletElement',
-        'HTMLAreaElement',
-        'HTMLAudioElement',
-        'HTMLBRElement',
-        'HTMLBaseElement',
-        'HTMLBodyElement',
-        'HTMLButtonElement',
-        'HTMLCanvasElement',
-        'HTMLCollection',
-        'HTMLDListElement',
-        'HTMLDirectoryElement',
-        'HTMLDivElement',
-        'HTMLElement',
-        'HTMLEmbedElement',
-        'HTMLFieldSetElement',
-        'HTMLFontElement',
-        'HTMLFormElement',
-        'HTMLFrameElement',
-        'HTMLFrameSetElement',
-        'HTMLHRElement',
-        'HTMLHeadElement',
-        'HTMLHeadingElement',
-        'HTMLHtmlElement',
-        'HTMLIFrameElement',
-        'HTMLImageElement',
-        'HTMLInputElement',
-        'HTMLLIElement',
-        'HTMLLabelElement',
-        'HTMLLegendElement',
-        'HTMLLinkElement',
-        'HTMLMapElement',
-        'HTMLMediaElement',
-        'HTMLMenuElement',
-        'HTMLMetaElement',
-        'HTMLModElement',
-        'HTMLOListElement',
-        'HTMLObjectElement',
-        'HTMLOptGroupElement',
-        'HTMLOptionElement',
-        'HTMLParagraphElement',
-        'HTMLParamElement',
-        'HTMLPreElement',
-        'HTMLQuoteElement',
-        'HTMLScriptElement',
-        'HTMLSelectElement',
-        'HTMLStyleElement',
-        'HTMLTableCaptionElement',
-        'HTMLTableCellElement',
-        'HTMLTableColElement',
-        'HTMLTableElement',
-        'HTMLTableRowElement',
-        'HTMLTableSectionElement',
-        'HTMLTextAreaElement',
-        'HTMLTitleElement',
-        'HTMLUListElement',
-        'HTMLVideoElement',
-        'KeyboardEvent',
-        'MediaError',
-        'MediaList',
-        'MessageEvent',
-        'MouseEvent',
-        'MutationEvent',
-        'NamedNodeMap',
-        'Node',
-        'NodeFilter',
-        'NodeList',
-        'ProcessingInstruction',
-        'Range',
-        'RangeException',
-        'SVGAElement',
-        'SVGAngle',
-        'SVGAnimatedAngle',
-        'SVGAnimatedBoolean',
-        'SVGAnimatedEnumeration',
-        'SVGAnimatedInteger',
-        'SVGAnimatedLength',
-        'SVGAnimatedLengthList',
-        'SVGAnimatedNumber',
-        'SVGAnimatedNumberList',
-        'SVGAnimatedPreserveAspectRatio',
-        'SVGAnimatedRect',
-        'SVGAnimatedString',
-        'SVGAnimatedTransformList',
-        'SVGCircleElement',
-        'SVGClipPathElement',
-        'SVGDefsElement',
-        'SVGDescElement',
-        'SVGElement',
-        'SVGEllipseElement',
-        'SVGException',
-        'SVGGElement',
-        'SVGGradientElement',
-        'SVGImageElement',
-        'SVGLength',
-        'SVGLengthList',
-        'SVGLineElement',
-        'SVGLinearGradientElement',
-        'SVGMarkerElement',
-        'SVGMaskElement',
-        'SVGMatrix',
-        'SVGMetadataElement',
-        'SVGNumber',
-        'SVGNumberList',
-        'SVGPathElement',
-        'SVGPathSeg',
-        'SVGPathSegArcAbs',
-        'SVGPathSegArcRel',
-        'SVGPathSegClosePath',
-        'SVGPathSegCurvetoCubicAbs',
-        'SVGPathSegCurvetoCubicRel',
-        'SVGPathSegCurvetoCubicSmoothAbs',
-        'SVGPathSegCurvetoCubicSmoothRel',
-        'SVGPathSegCurvetoQuadraticAbs',
-        'SVGPathSegCurvetoQuadraticRel',
-        'SVGPathSegCurvetoQuadraticSmoothAbs',
-        'SVGPathSegCurvetoQuadraticSmoothRel',
-        'SVGPathSegLinetoAbs',
-        'SVGPathSegLinetoHorizontalAbs',
-        'SVGPathSegLinetoHorizontalRel',
-        'SVGPathSegLinetoRel',
-        'SVGPathSegLinetoVerticalAbs',
-        'SVGPathSegLinetoVerticalRel',
-        'SVGPathSegList',
-        'SVGPathSegMovetoAbs',
-        'SVGPathSegMovetoRel',
-        'SVGPatternElement',
-        'SVGPoint',
-        'SVGPointList',
-        'SVGPolygonElement',
-        'SVGPolylineElement',
-        'SVGPreserveAspectRatio',
-        'SVGRadialGradientElement',
-        'SVGRect',
-        'SVGRectElement',
-        'SVGSVGElement',
-        'SVGScriptElement',
-        'SVGStopElement',
-        'SVGStyleElement',
-        'SVGSwitchElement',
-        'SVGSymbolElement',
-        'SVGTSpanElement',
-        'SVGTextContentElement',
-        'SVGTextElement',
-        'SVGTextPathElement',
-        'SVGTextPositioningElement',
-        'SVGTitleElement',
-        'SVGTransform',
-        'SVGTransformList',
-        'SVGUnitTypes',
-        'SVGUseElement',
-        'SVGZoomEvent',
-        'Storage',
-        'StorageEvent',
-        'StyleSheet',
-        'StyleSheetList',
-        'Text',
-        'TextMetrics',
-        'UIEvent',
-        'XMLHttpRequest',
-        'XMLSerializer',
-]
 
 #
 # Simple method substitution when one method had different names on different
@@ -584,8 +385,8 @@ class DartGenerator(object):
     self._output_dir = output_dir
     self._dart_callback_file_paths = []
 
+    self._ComputeInheritanceClosure()
     self._StartGenerateInterfaceLibrary()
-    self._StartGenerateJavaScriptMonkeyImpl(output_dir)
     self._StartGenerateWrappingImpl(output_dir)
     self._StartGenerateFrogImpl(output_dir)
 
@@ -627,17 +428,8 @@ class DartGenerator(object):
                                source_filter, common_prefix)
       processed_interfaces.append(interface)
 
-    self._GenerateBrowserAnalysis(processed_interfaces, output_dir)
-
-
     # Libraries
     if lib_dir:
-      # New version: Monkey-patching interface library.
-      self.GenerateLibFile('template_monkey_dom.darttemplate',
-                           os.path.join(lib_dir, 'monkey_dom.dart'),
-                           self._dart_interface_file_paths +
-                           self._dart_callback_file_paths)
-
       # New version: Wrapping implementation combined interface and
       # implementation library.
       self.GenerateLibFile('template_wrapping_dom.darttemplate',
@@ -656,7 +448,6 @@ class DartGenerator(object):
 
 
     # JavaScript externs files
-    self._GenerateJavaScriptExternsMonkey(database, output_dir)
     self._GenerateJavaScriptExternsWrapping(database, output_dir)
 
 
@@ -697,8 +488,6 @@ class DartGenerator(object):
         super_interface_name,
         source_filter)
 
-    monkey_interface_generator = self._MakeMonkeyInterfaceGenerator(interface)
-
     wrapping_interface_generator = self._MakeWrappingImplInterfaceGenerator(
         interface,
         common_prefix,
@@ -712,7 +501,6 @@ class DartGenerator(object):
         source_filter)
 
     generators = [dart_interface_generator,
-                  monkey_interface_generator,
                   wrapping_interface_generator,
                   frog_interface_generator]
 
@@ -886,8 +674,7 @@ class DartGenerator(object):
     info.overloads = operations
     info.declared_name = operations[0].id
     info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
-    info.js_name = operations[0].ext_attrs.get('ImplementationFunction',
-                                               info.declared_name)
+    info.js_name = info.declared_name
     info.type_name = operations[0].type.id   # TODO: widen.
     info.arg_interface_declaration = FormatArgs(args, True)
     info.arg_implementation_declaration = FormatArgs(args, False)
@@ -1070,32 +857,6 @@ class DartGenerator(object):
                                   dart_code)
 
 
-  def _StartGenerateJavaScriptMonkeyImpl(self, output_dir):
-    """Generate a JavaScript implementation that is coherent with
-    generated Dart APIs.
-    """
-    self._ComputeInheritanceClosure()
-    js_file_name = os.path.join(output_dir, 'monkey_dom.js')
-    code = self._emitters.FileEmitter(js_file_name)
-
-    template = ''.join(open('template_monkey_dom.js').readlines())
-
-    (self._monkey_global_code,
-     self._monkey_init_sequence) = code.Emit(template)
-
-    self._monkey_init_sequence.Emit('var $TEMP;\n', TEMP='_')
-    self._protomap = self._GenerateProtoMap()
-
-    _logger.info('Started Generating %s' % js_file_name)
-
-  def _MakeMonkeyInterfaceGenerator(self, interface):
-    """Generate JavaScript patch code to match DartC output.
-    """
-    return MonkeyInterfaceGenerator(self,
-                                    interface,
-                                    self._monkey_global_code,
-                                    self._monkey_init_sequence)
-
   def _ComputeInheritanceClosure(self):
     def Collect(interface, seen, collected):
       name = interface.id
@@ -1123,8 +884,6 @@ class DartGenerator(object):
     """Returns a list of the names of all interfaces implemented by 'interface'.
     List includes the name of 'interface'.
     """
-    if not self._inheritance_closure:
-      self._ComputeInheritanceClosure()
     return self._inheritance_closure[interface.id]
 
   def _GenerateProtoMap(self):
@@ -1171,9 +930,10 @@ class DartGenerator(object):
 
     names = dict()  # maps name to (interface, kind)
     for (interface, name, kind) in self._wrapping_externs:
-      if name not in names:
-        names[name] = set()
-      names[name].add((interface, kind))
+      if name not in _javascript_keywords:
+        if name not in names:
+          names[name] = set()
+        names[name].add((interface, kind))
 
     for name in sorted(names.keys()):
       # Simply export the property name.
@@ -1190,23 +950,6 @@ class DartGenerator(object):
         separator = ','
       members.Emit('\n')
 
-  def _GenerateJavaScriptExternsMonkey(self, database, output_dir):
-    """Generates a JavaScript externs file.
-
-    Generates an externs file that is consistent with generated JavaScript code
-    and Dart APIs for the monkey-patching implementation.
-    """
-    js_file_name = os.path.join(output_dir, 'monkey_dom_externs.js')
-    code = self._emitters.FileEmitter(js_file_name)
-
-    template = ''.join(open('template_monkey_dom_externs.js').readlines())
-    namespace = 'dart_externs'
-    (window_code, defs_code) = code.Emit(template, NAMESPACE=namespace)
-
-    self._GenerateJavaScriptExternInterfaces(
-        database, namespace, window_code, defs_code)
-
-    _logger.info('Generated %s' % js_file_name)
 
   def _GenerateJavaScriptExternInterfaces(self,
                                           database,
@@ -1250,63 +993,6 @@ class DartGenerator(object):
     members = sorted(set(operations))
     for name in members:
        props.add(name + '$member')
-
-
-  def _GenerateBrowserAnalysis(self, interfaces, output_dir):
-    """Generate a JavaScript file that provides info from the browser.
-    """
-    js_file_name = os.path.join(output_dir, 'browser_analysis.html')
-    code = self._emitters.FileEmitter(js_file_name)
-
-    template = """<head>
-<script>
-function addText(e, text) {
-  var node = document.createElement('text');
-  node.innerHTML = String(text);
-  e.appendChild(node);
-}
-function check() {
-  var supported = [];
-  var missing = [];
-$!CHECKS
-  addText(document.getElementById('agent'), navigator.userAgent);
-
-  function fill(tag, elems) {
-    addText(document.getElementById(tag + '_count'), elems.length);
-    for (var i = 0; i < elems.length; ++i) {
-      var e = document.createElement('div');
-      e.innerHTML = '&nbsp;&nbsp;"' + elems[i] + '",'
-      document.getElementById(tag).appendChild(e);
-    }
-  }
-  fill('supported', supported);
-  fill('missing', missing);
-}
-window.onload = check;
-</script>
-</head>
-<div>
-{ 'userAgent': '<span id='agent'></span>',
-</div>
-<div>
-'supported': [ // (<span id='supported_count'></span>)
-<div id='supported' style='font-size: -2;'></div>
-],</div>
-<div>
-'missing':  [ // (<span id='missing_count'></span>)
-<div id='missing' style='font-size: -2;'></div>
-]}</div>
-
-"""
-    checks = code.Emit(template)
-    names = sorted(interface.id for interface in interfaces)
-    for id in names:
-      checks.Emit(
-          '  if (typeof $ID == "undefined")\n'
-          '    missing.push("$ID");\n'
-          '  else\n'
-          '    supported.push("$ID");\n',
-          ID=id);
 
 
 class OperationInfo(object):
@@ -1451,7 +1137,7 @@ class DartInterfaceGenerator(object):
                            SUPERS=', '.join(suppressed_extends))
 
     if typename in _interface_factories:
-      extends_emitter.Emit(' factory $F', F=_interface_factories[typename])
+      extends_emitter.Emit(' default $F', F=_interface_factories[typename])
 
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
@@ -1828,6 +1514,10 @@ class WrappingInterfaceGenerator(object):
         '    _Collections.forEach(this, f);\n'
         '  }\n'
         '\n'
+        '  Collection map(f($TYPE element)) {\n'
+        '    return _Collections.map(this, [], f);\n'
+        '  }\n'
+        '\n'
         '  Collection<$TYPE> filter(bool f($TYPE element)) {\n'
         '    return _Collections.filter(this, new List<$TYPE>(), f);\n'
         '  }\n'
@@ -1958,18 +1648,22 @@ class WrappingInterfaceGenerator(object):
             PARAMS=', '.join(['_this'] + arg_names),
             ARGS=', '.join(['_this.$dom'] + unwrap_args))
       else:
+        if info.js_name in _javascript_keywords:
+          access = "['%s']" % info.js_name
+        else:
+          access = ".%s" % info.js_name
         self._js_code.Emit(
             '\n'
             'function native_$(CLASS)_$(NATIVENAME)($PARAMS) {\n'
             '  try {\n'
-            '    return __dom_wrap(_this.$dom.$JSNAME($ARGS));\n'
+            '    return __dom_wrap(_this.$dom$ACCESS($ARGS));\n'
             '  } catch (e) {\n'
             '    throw __dom_wrap_exception(e);\n'
             '  }\n'
             '}\n',
             CLASS=self._class_name,
             NAME=info.name,
-            JSNAME=info.js_name,
+            ACCESS=access,
             NATIVENAME=native_name,
             PARAMS=', '.join(['_this'] + arg_names),
             ARGS=', '.join(unwrap_args))
@@ -2074,206 +1768,6 @@ class WrappingInterfaceGenerator(object):
 
 # ------------------------------------------------------------------------------
 
-class MonkeyInterfaceGenerator(object):
-  """Generates JS code for monkey-patched implementation of DOM."""
-
-  def __init__(self, generator, interface, global_code, init_sequence):
-    self._generator = generator
-    self._interface = interface
-    self._global_code = global_code
-    self._init_sequence = init_sequence
-
-  def StartInterface(self):
-    temp = '_'
-    (fixup, guard) = self._init_sequence.Emit('$!FIXUP$!GUARD',
-                                              ID=self._interface.id, TEMP=temp)
-    global_helper_code = self._global_code.Emit('$!HELPERS',
-                                                ID=self._interface.id)
-    # Define a function that initializes the class prototype and constructor.
-    (init_proto_code, fix_members_code, init_class_code) = global_helper_code.Emit(
-        'function DOM$fixClass$$ID(c) {\n'
-        '  if (c.prototype) {\n'
-        '$!INIT_PROTO_CODE'
-        '  }\n'
-        '$!FIX_MEMBERS_CODE$!INIT_CLASS_CODE'
-        '}\n');
-    fix_members_code.Bind('CLASSREF', 'c');
-    init_class_code.Bind('CLASSREF', 'c');
-    init_proto_code.Bind('PROTOREF', 'c.prototype');
-
-    # Generate code that finds the constructor
-    if self._interface.id in self._generator._protomap:
-      # Use an existing field to find the actual prototype.
-      exemplar_access_path = self._generator._protomap[self._interface.id]
-      fetch_alternate = self._FetchAlternateConstructor(
-          'w', self._interface.id, exemplar_access_path, temp);
-      fixup.Emit(
-          '  if (!w.$ID && $FETCH) {\n'
-          '    w.$ID = $TEMP;\n'
-          '  }\n', FETCH=fetch_alternate)
-
-    call_fix_class = guard.Emit(
-        '  if (($TEMP = w.$ID)) {\n'
-        '    w.$ID$Dart = $TEMP;\n'
-        '    $!CALL\n'
-        '  }\n')
-
-    if self._InterfaceIsAugmentedOnDemand(self._interface):
-      self._GenerateOnDemandInterfaceSetupHelpers(self._interface,
-                                                  global_helper_code)
-      call_fix_class.Emit('DOM$fixClassOnDemand$$ID($TEMP);')
-    else:
-      call_fix_class.Emit('DOM$fixClass$$ID($TEMP);')
-
-    self._fix_members_code = fix_members_code
-    self._class_code = init_class_code
-    self._proto_code = init_proto_code
-    self._batched_operation_names = []
-
-  def FinishInterface(self):
-    # Any operations left over for fixMembers?
-    if self._batched_operation_names:
-      member_string = _FormatNameList(self._batched_operation_names)
-      self._fix_members_code.Emit('  DOM$fixMembers($CLASSREF, $NAMES);\n',
-                                  NAMES=member_string)
-
-    # Define instanceof metadata.
-    names = self._generator._AllImplementedInterfaces(self._interface)
-    for name in names:
-      # TODO(sra): Make this more compact.
-      # TODO(sra): Generate metadata for parameterized superclasses.
-      self._class_code.Emit('  $CLASSREF.$implements$$NAME$Dart = 1;\n',
-                            NAME=name)
-
-  def _InterfaceIsAugmentedOnDemand(self, interface):
-    return interface.id in _evasive_types
-
-  def _GenerateOnDemandInterfaceSetupHelpers(self, interface, code):
-    """Generate functions that can initialize a prototype given an instance."""
-    code.Emit(
-        'function DOM$fixClassOnDemand$$ID(c) {\n'
-        '  if (c.DOM$initialized === true)\n'
-        '    return;\n'
-        '  c.DOM$initialized = true;\n'
-        '  DOM$fixClass$$ID(c);\n'
-        '}\n'
-        'function DOM$fixValue$$ID(value) {\n'
-        '  if (value == null)\n'
-        '    return DOM$EnsureDartNull(value);\n'
-        '  if (typeof value != "object")\n'
-        '    return value;\n'
-        '  var constructor = value.constructor;\n'
-        '  if (constructor == null)\n'
-        '    return value;\n'
-        '  DOM$fixClassOnDemand$$ID(constructor);\n'
-        '  return value;\n'
-        '}\n')
-
-
-  def _FetchAlternateConstructor(self, root, typename, accessors, temp):
-    """Returns an expression that fetches the constructor for |typename|.
-
-    The expression also assigns the constructor to temp.
-
-    The constructor is generated by traversing a path of property accessors to
-    find an exemplar object and then creating a fake constructor for the type of
-    the object..  The temp is also used to avoid re-evaluation of the path
-    prefixes.
-    """
-    # TODO(sra): Rather than return the fake constructor:
-    #   {prototype: window.blah.blah.__proto__}
-    # perhaps we should return the real constructor:
-    #   window.blah.blah.constructor
-    prefix = root;
-    steps = []
-    for accessor in accessors + ['__proto__']:
-      steps.append("(%s = %s.%s)" % (temp, prefix, accessor));
-      prefix = temp
-    return "%s && (%s = {prototype: %s})" % (' && '.join(steps), temp, temp)
-
-  def AddConstant(self, constant):
-    pass
-
-  def AddGetter(self, attr):
-    """Emits code to initialize an attribute getter."""
-    if attr.type.id in _evasive_types:
-      self._proto_code.Emit('    $PROTOREF.$NAME$getter = function() {'
-                            ' return DOM$fixValue$$TYPE(this.$NAME);'
-                            ' };\n',
-                            NAME=attr.id, TYPE=attr.type.id)
-    else:
-      self._proto_code.Emit('    $PROTOREF.$NAME$getter = function() {'
-                            ' return DOM$EnsureDartNull(this.$NAME);'
-                            ' };\n',
-                            NAME=attr.id)
-
-  def AddSetter(self, attr):
-    """Emits code to initialize an attribute setter."""
-    # TODO(sra): Pick implementation depending on checked/unchecked mode.
-    self._proto_code.Emit('    $PROTOREF.$NAME$setter = function(value) {'
-                          ' this.$NAME = value;'
-                          ' };\n',
-                          NAME=attr.id)
-
-  def AddIndexer(self, element_type):
-    """Emits code to initialize an indexer."""
-    # Does the indexer return an evasive type?
-    if element_type in _evasive_types:
-      self._proto_code.Emit(
-          '    $PROTOREF.INDEX$operator = function(k) {'
-          ' return DOM$fixValue$$TYPE(this[k]);'
-          ' };\n',
-          TYPE=element_type)
-    else:
-      self._proto_code.Emit(
-          '    $PROTOREF.INDEX$operator = function(k) {'
-          ' return DOM$EnsureDartNull(this[k]);'
-          ' };\n')
-    # TODO(sra): Check for read-only indexers.
-    # TODO(sra): Validate 'v' argument when checked.
-    self._proto_code.Emit(
-        '    $PROTOREF.ASSIGN_INDEX$operator = function(k, v) {'
-        ' this[k] = v;'
-        ' };\n')
-
-  def AddOperation(self, info):
-    """
-    Arguments:
-      info: An OperationInfo object.
-    """
-    name = info.name
-
-    returned_types = [op.type.id for op in info.overloads]
-    if any(type in _evasive_types for type in returned_types):
-      if len(set(returned_types)) > 1:
-        raise Exception('Cannot fix types on the fly when types different %s' %
-                        returned_types);
-
-      self._class_code.Emit(
-          '  $CLASSREF.prototype.$NAME$member = function() {\n'
-          '    return DOM$fixValue$$TYPE(this.$JSNAME.apply(this, arguments));\n'
-          '  };\n',
-          NAME=info.name, JSNAME=info.js_name, TYPE=returned_types[0])
-    elif info.name != info.js_name:
-      self._class_code.Emit(
-          '  $CLASSREF.prototype.$NAME$member = function() {\n'
-          '    return DOM$EnsureDartNull(this.$JSNAME.apply(this, arguments));\n'
-          '  };\n',
-          NAME=info.name, JSNAME=info.js_name, TYPE=returned_types[0])
-    else:
-      self._batched_operation_names.append(info.name)
-
-  def AddSecondaryGetter(self, interface, attr):
-    self.AddGetter(attr)
-
-  def AddSecondarySetter(self, interface, attr):
-    self.AddSetter(attr)
-
-  def AddSecondaryOperation(self, interface, info):
-    self.AddOperation(info)
-
-# ------------------------------------------------------------------------------
-
 class FrogInterfaceGenerator(object):
   """Generates a Frog class for a DOM IDL interface."""
 
@@ -2338,17 +1832,10 @@ class FrogInterfaceGenerator(object):
     if interface_name in _frog_dom_custom_native_specs:
       native_spec = _frog_dom_custom_native_specs[interface_name]
     else:
-      # Is the type's JavaScript constructor accessible from the global scope?
-      # If so, we can directly patch the prototype.  We don't really want to do
-      # this yet because the dynamic patching mechanism is tricky and we want to
-      # test it a lot.  But patching is currently broken on FireFox for non-leaf
-      # types, so 'hide' only the leaf types.
-      is_hidden = interface_name not in _BROWSER_SHARED_TYPES
-      if interface_name not in self._interfaces_with_subtypes:
-        is_hidden = True
-
-      native_spec = '*' if is_hidden else ''
-      native_spec += interface_name
+      # Make the class 'hidden' so it is dynamically patched at runtime.  This
+      # is useful not only for browser compat, but to allow code that links
+      # against dart:dom to load in a worker isolate.
+      native_spec = '*' + interface_name
 
     # TODO: Include all implemented interfaces, including other Lists.
     implements = ''

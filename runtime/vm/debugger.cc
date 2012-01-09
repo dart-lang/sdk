@@ -166,8 +166,8 @@ void ActivationFrame::GetLocalVariables() {
     intptr_t activation_token_pos = TokenIndex();
     intptr_t desc_len = var_descriptors_->Length();
     for (int i = 0; i < desc_len; i++) {
-      intptr_t begin_pos, end_pos;
-      var_descriptors_->GetRange(i, &begin_pos, &end_pos);
+      intptr_t scope_id, begin_pos, end_pos;
+      var_descriptors_->GetScopeInfo(i, &scope_id, &begin_pos, &end_pos);
       if ((begin_pos <= activation_token_pos) &&
           (activation_token_pos <= end_pos)) {
         desc_indices_.Add(i);
@@ -193,15 +193,10 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(name != NULL);
   intptr_t desc_index = desc_indices_[i];
   *name ^= var_descriptors_->GetName(desc_index);
-  var_descriptors_->GetRange(i, token_pos, end_pos);
+  intptr_t scope_id;
+  var_descriptors_->GetScopeInfo(i, &scope_id, token_pos, end_pos);
   ASSERT(value != NULL);
   *value = GetLocalVarValue(var_descriptors_->GetSlotIndex(i));
-}
-
-
-RawInstance* ActivationFrame::Value(const String& variable_name) {
-  UNIMPLEMENTED();
-  return NULL;
 }
 
 

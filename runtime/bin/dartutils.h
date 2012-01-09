@@ -6,9 +6,10 @@
 #define BIN_DARTUTILS_H_
 
 #include "bin/builtin.h"
-#include "bin/globals.h"
 
 #include "include/dart_api.h"
+
+#include "platform/globals.h"
 
 class CommandLineOptions {
  public:

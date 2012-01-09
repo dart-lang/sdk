@@ -14,11 +14,5 @@ class _BeforeLoadEventWrappingImplementation extends _EventWrappingImplementatio
   String get url() { return _get_url(this); }
   static String _get_url(var _this) native;
 
-  void initBeforeLoadEvent(String type, bool canBubble, bool cancelable, String url) {
-    _initBeforeLoadEvent(this, type, canBubble, cancelable, url);
-    return;
-  }
-  static void _initBeforeLoadEvent(receiver, type, canBubble, cancelable, url) native;
-
   String get typeName() { return "BeforeLoadEvent"; }
 }

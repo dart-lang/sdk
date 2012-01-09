@@ -1,6 +1,8 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=
+// VMOptions=--compile_all
 
 // Exercises language constructs that require compile time constants
 
@@ -13,8 +15,6 @@ final h = 0xf;
 final n = null;
 final aList = const[1, 2, 3]; // array literal
 final aMap = const { "1": "one", "2": "banana" }; // map literal
-final value0 = aList[0]; // array access
-final value1 = aList[i]; 
 
 final INT_LIT = 5;
 final INT_LIT_REF = INT_LIT;

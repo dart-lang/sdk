@@ -78,26 +78,17 @@ class _DirectoryEntryWrappingImplementation extends _EntryWrappingImplementation
   static void _getFile_3(receiver, path, flags, successCallback) native;
   static void _getFile_4(receiver, path, flags, successCallback, errorCallback) native;
 
-  void removeRecursively([VoidCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _removeRecursively(this);
-        return;
-      }
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _removeRecursively(this, successCallback);
+      return;
     } else {
-      if (errorCallback === null) {
-        _removeRecursively_2(this, successCallback);
-        return;
-      } else {
-        _removeRecursively_3(this, successCallback, errorCallback);
-        return;
-      }
+      _removeRecursively_2(this, successCallback, errorCallback);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _removeRecursively(receiver) native;
-  static void _removeRecursively_2(receiver, successCallback) native;
-  static void _removeRecursively_3(receiver, successCallback, errorCallback) native;
+  static void _removeRecursively(receiver, successCallback) native;
+  static void _removeRecursively_2(receiver, successCallback, errorCallback) native;
 
   String get typeName() { return "DirectoryEntry"; }
 }

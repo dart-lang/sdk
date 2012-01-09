@@ -193,7 +193,7 @@ class RunningProcess {
     }
   }
       
-  void makeReadHandler(StringInputStream source, List<String> destination) {
+  Function makeReadHandler(StringInputStream source, List<String> destination) {
     return () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
       var line = source.readLine();
@@ -249,8 +249,8 @@ class DartcBatchRunnerProcess {
   StringInputStream _stderrStream;
 
   TestCase _currentTest;
-  StringBuffer _testStdout;
-  StringBuffer _testStderr;
+  List<String> _testStdout;
+  List<String> _testStderr;
   Date _startTime;
   Timer _timer;
 
@@ -319,7 +319,7 @@ class DartcBatchRunnerProcess {
     test.completed();
   }
 
-  void _readOutput(StringInputStream stream, List<String> buffer) {
+  Function _readOutput(StringInputStream stream, List<String> buffer) {
     return () {
       var status;
       var line = stream.readLine();
@@ -354,7 +354,7 @@ class DartcBatchRunnerProcess {
     });
   }
 
-  void _timeoutHandler(TestCase test) {
+  Function _timeoutHandler(TestCase test) {
     return (ignore) {
       _process.exitHandler = (exitCode) {
         _process.close();
@@ -385,6 +385,7 @@ class ProcessQueue {
   int _activeTestListers = 0;
   int _maxProcesses;
   bool _verbose;
+  bool _listTests;
   Function _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
@@ -397,16 +398,19 @@ class ProcessQueue {
 
   ProcessQueue(int this._maxProcesses,
                String progress,
-               bool this._verbose,
                Date startTime,
                bool printTiming,
-               Function this._enqueueMoreWork)
+               Function this._enqueueMoreWork,
+               [bool verbose = false,
+                bool listTests = false])
       : _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
         _batchProcesses = new List<DartcBatchRunnerProcess>(),
-        _testCache = new Map<String, List<TestInformation>>() {
+        _testCache = new Map<String, List<TestInformation>>(),
+        _verbose = verbose,
+        _listTests = listTests {
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
@@ -463,6 +467,10 @@ class ProcessQueue {
     if (_numProcesses < _maxProcesses && !_tests.isEmpty()) {
       TestCase test = _tests.removeFirst();
       if (_verbose) print(test.commandLine);
+      if (_listTests) {
+        print(test.commandLine);
+        return;
+      }
       _progress.start(test);
       Function oldCallback = test.completedHandler;
       Function wrapper = (TestCase test_arg) {
@@ -472,7 +480,8 @@ class ProcessQueue {
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      if (test.configuration['component'] == 'dartc') {
+      if (test.configuration['component'] == 'dartc'  &&
+          test.displayName != 'dartc/junit_tests') {
         _ensureDartcBatchRunnersStarted(test.executablePath);
         _getDartcBatchRunnerProcess().startTest(test);
       } else {

@@ -819,6 +819,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "}",
         "class Baz<T> {",
         "  factory Bar.make(T x) { return null; }",
+        "}",
+        "class Foobar<T extends String> {",
         "}"));
 
     analyze("Foo x = new Foo(0);");
@@ -833,7 +835,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyze("Foo x = new Foo.bar(0);");
     analyzeFail("Foo x = new Foo.bar('');", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("Foo x = new Foo.bar(0, null);", TypeErrorCode.EXTRA_ARGUMENT);
-
+    analyzeFail("var x = new Foobar<num>();", TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("Bar<String> x = new Bar.make('');");
   }
 
@@ -1343,5 +1345,22 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("while ('') {}",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+  }
+
+
+  public void testValidateFactoryBounds() {
+    Map<String, ClassElement> source = loadSource(
+        "class Object {}",
+        "interface Foo {}",
+        "interface Bar extends Foo {}",
+        "interface IA<T> default A<T extends Foo> { IA(); }",
+        "class A<T extends Foo> implements IA<T> {",
+        "  factory A() {}",
+        "}");
+    analyzeClasses(source);
+   // analyze("{ var val1 = new IA<Foo>(); }");
+   // analyze("{ var val1 = new IA<Bar>(); }");
+    analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
+
   }
 }

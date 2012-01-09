@@ -386,8 +386,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(RBX);  // Preserve ic-data array.
   // First resolve the function to get the function object.
 
-  // Setup space for return value on stack by pushing smi 0.
-  __ pushq(Immediate(0));
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ CallRuntimeFromStub(kResolveCompileInstanceFunctionRuntimeEntry);
   __ popq(RAX);  // Remove receiver pushed earlier.
@@ -422,7 +421,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(R10);  // Preserve ic-data array.
   __ pushq(R13);  // Preserve arguments descriptor array.
 
-  __ pushq(Immediate(0));
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ pushq(R10);  // Ic-data array.
   __ CallRuntimeFromStub(kResolveImplicitClosureFunctionRuntimeEntry);
@@ -457,7 +456,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ pushq(R10);  // Preserve ic-data array.
   __ pushq(R13);  // Preserve arguments descriptor array.
 
-  __ pushq(Immediate(0));
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(RAX);  // Push receiver.
   __ pushq(R10);  // Ic-data array.
   __ CallRuntimeFromStub(kResolveImplicitClosureThroughGetterRuntimeEntry);
@@ -472,11 +471,11 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ cmpq(RBX, raw_null);
   Label function_not_found;
-  __ j(EQUAL, &function_not_found, Assembler::kNearJump);
+  __ j(EQUAL, &function_not_found);
 
   // RBX: Closure object.
   // R13: Arguments descriptor array.
-  __ pushq(Immediate(0));  // Result from invoking Closure.
+  __ pushq(raw_null);  // Setup space on stack for result from invoking Closure.
   __ pushq(RBX);  // Closure object.
   __ pushq(R13);  // Arguments descriptor.
   __ movq(R13, FieldAddress(R13, Array::data_offset()));
@@ -512,8 +511,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   //   RBX: raw_null.
   //   R13: argument descriptor array.
 
-  // Setup space for return value on stack by pushing smi 0.
-  __ pushq(Immediate(0));  // Result from noSuchMethod.
+  __ pushq(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushq(RAX);  // Receiver.
   __ pushq(R10);  // IC-data array.
   __ pushq(R13);  // Argument descriptor array.
@@ -573,7 +571,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
-      __ j(NOT_ZERO, &slow_case, Assembler::kNearJump);
+      __ j(NOT_ZERO, &slow_case);
     }
     __ movq(R13, FieldAddress(CTX, Context::isolate_offset()));
     __ movq(R13, Address(R13, Isolate::heap_offset()));
@@ -598,7 +596,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // R10: Array length as Smi.
     // R13: Points to new space object.
     __ cmpq(R12, Address(R13, Scavenger::end_offset()));
-    __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+    __ j(ABOVE_EQUAL, &slow_case);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -626,7 +624,25 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ movq(RBX, Address(RBX, Isolate::object_store_offset()));
     __ movq(RBX, Address(RBX, ObjectStore::array_class_offset()));
     __ StoreIntoObject(RAX, FieldAddress(RAX, Array::class_offset()), RBX);
-    __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(0));  // Tags.
+    // Calculate the size tag.
+    // RAX: new object start as a tagged pointer.
+    // R12: new object end address.
+    // R10: Array length as Smi.
+    {
+      Label size_tag_overflow, done;
+      __ leaq(RBX, Address(R10, TIMES_2, fixed_size));  // R10 is Smi.
+      ASSERT(kSmiTagShift == 1);
+      __ andq(RBX, Immediate(-kObjectAlignment));
+      __ cmpq(RBX, Immediate(RawObject::SizeTag::kMaxSizeTag));
+      __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+      __ shlq(RBX, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+      __ movq(FieldAddress(RAX, Array::tags_offset()), RBX);
+      __ jmp(&done);
+
+      __ Bind(&size_tag_overflow);
+      __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(0));
+      __ Bind(&done);
+    }
 
     // Initialize all array elements to raw_null.
     // RAX: new object start as a tagged pointer.
@@ -646,6 +662,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
     // Done allocating and initializing the array.
     // RAX: new object.
+    // R10: Array length as Smi (preserved for the caller.)
     __ ret();
   }
 
@@ -653,7 +670,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // into the runtime.
   __ Bind(&slow_case);
   __ EnterFrame(0);
-  __ pushq(raw_null);  // Push Null object for return value.
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
   __ pushq(raw_null);  // Null instantiator.
@@ -788,8 +805,31 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of contexts.
+// Input:
+// RDX: number of context variables.
+// Output:
+// RAX: new allocated RawContext object.
+// RBX and RDX are destroyed.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ Unimplemented("AllocateContext stub");
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  if (false) {
+    // TODO(regis): Implement fast inline allocation of contexts.
+    __ Unimplemented("AllocateContext stub - inline allocation");
+  }
+  // Create the stub frame.
+  __ EnterFrame(0);
+  __ pushq(raw_null);  // Setup space on stack for the return value.
+  __ SmiTag(RDX);
+  __ pushq(RDX);  // Push number of context variables.
+  __ CallRuntimeFromStub(kAllocateContextRuntimeEntry);  // Allocate context.
+  __ popq(RAX);  // Pop number of context variables argument.
+  __ popq(RAX);  // Pop the new context object.
+  // RAX: new object
+  // Restore the frame pointer.
+  __ LeaveFrame();
+  __ ret();
 }
 
 
@@ -844,7 +884,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
-      __ j(ABOVE_EQUAL, &slow_case, Assembler::kNearJump);
+      __ j(ABOVE_EQUAL, &slow_case);
     }
 
     // Successfully allocated the object(s), now update top to point to
@@ -873,7 +913,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ LoadObject(RDX,
           Class::ZoneHandle(Object::instantiated_type_arguments_class()));
       __ movq(Address(RCX, Instance::class_offset()), RDX);  // Set its class.
-      __ movq(Address(RCX, Instance::tags_offset()), Immediate(0));  // Tags.
+      // Set the tags.
+      __ movq(Address(RCX, Instance::tags_offset()),
+              Immediate(RawObject::SizeTag::encode(type_args_size)));
       // Set the new InstantiatedTypeArguments object (RCX) as the type
       // arguments (RDI) of the new object (RAX).
       __ movq(RDI, RCX);
@@ -891,7 +933,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // RDI: new object type arguments (if is_cls_parameterized).
     __ LoadObject(RDX, cls);  // Load class of object to be allocated.
     __ movq(Address(RAX, Instance::class_offset()), RDX);
-    __ movq(Address(RAX, Instance::tags_offset()), Immediate(0));  // Tags.
+    // Set the tags.
+    __ movq(Address(RAX, Instance::tags_offset()),
+            Immediate(RawObject::SizeTag::encode(instance_size)));
 
     // Initialize the remaining words of the object.
     const Immediate raw_null =
@@ -965,8 +1009,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   }
   // Create a stub frame.
   __ EnterFrame(0);
-  const Object& new_object = Object::ZoneHandle();
-  __ PushObject(new_object);  // Push Null object for return value.
+  __ pushq(raw_null);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
     __ pushq(RAX);  // Push type arguments of object to be allocated.
@@ -987,9 +1030,68 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 }
 
 
+// Called for inline allocation of closures.
+// Input parameters:
+//   If the signature class is not parameterized, the receiver, if any, will be
+//   at RSP + 4 instead of RSP + 8, since no type arguments are passed.
+//   RSP + 8 (or RSP + 4): receiver (only if implicit instance closure).
+//   RSP + 4 : type arguments object (only if signature class is parameterized).
+//   RSP : points to return address.
+// Uses RAX, RBX, RCX, RDX as temporary registers.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
-  __ Unimplemented("AllocateClosure stub");
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  ASSERT(func.IsClosureFunction());
+  const bool is_implicit_static_closure =
+      func.IsImplicitStaticClosureFunction();
+  const bool is_implicit_instance_closure =
+      func.IsImplicitInstanceClosureFunction();
+  const Class& cls = Class::ZoneHandle(func.signature_class());
+  const bool has_type_arguments = cls.HasTypeArguments();
+  const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kReceiverOffset = (has_type_arguments ? 2 : 1) * kWordSize;
+  if (false) {
+    // TODO(regis): Implement inline context allocation.
+    __ Unimplemented("AllocateClosure stub - inline allocation");
+  }
+  if (has_type_arguments) {
+    __ movq(RCX, Address(RSP, kTypeArgumentsOffset));
+  }
+  if (is_implicit_instance_closure) {
+    __ movq(RAX, Address(RSP, kReceiverOffset));
+  }
+  // Create the stub frame.
+  __ EnterFrame(0);
+  __ pushq(raw_null);  // Setup space on stack for the return value.
+  __ PushObject(func);
+  if (is_implicit_static_closure) {
+    __ CallRuntimeFromStub(kAllocateImplicitStaticClosureRuntimeEntry);
+  } else {
+    if (is_implicit_instance_closure) {
+      __ pushq(RAX);  // Receiver.
+    }
+    if (has_type_arguments) {
+      __ pushq(RCX);  // Push type arguments of closure to be allocated.
+    } else {
+      __ pushq(raw_null);  // Push null type arguments.
+    }
+    if (is_implicit_instance_closure) {
+      __ CallRuntimeFromStub(kAllocateImplicitInstanceClosureRuntimeEntry);
+      __ popq(RAX);  // Pop type arguments.
+      __ popq(RAX);  // Pop receiver.
+    } else {
+      ASSERT(func.IsNonImplicitClosureFunction());
+      __ CallRuntimeFromStub(kAllocateClosureRuntimeEntry);
+      __ popq(RAX);  // Pop type arguments.
+    }
+  }
+  __ popq(RAX);  // Pop the function object.
+  __ popq(RAX);  // Pop the result.
+  // RAX: New closure object.
+  // Restore the calling frame.
+  __ LeaveFrame();
+  __ ret();
 }
 
 
@@ -1069,7 +1171,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ movq(RAX, Address(RSP, RAX, TIMES_4, -kWordSize));  // RAX is Smi.
     __ call(&get_class);
     __ cmpq(RAX, R13);  // Match?
-    __ j(EQUAL, &found, Assembler::kNearJump);
+    __ j(EQUAL, &found);
     __ Bind(&no_match);
     __ addq(R12, Immediate(kWordSize * (1 + num_args)));  // Next element.
     __ cmpq(R13, raw_null);   // Done?
@@ -1081,10 +1183,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
   __ leaq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
   __ EnterFrame(0);
-  // Setup space for return value on stack by pushing smi 0.
   __ pushq(R10);  // Preserve arguments array.
   __ pushq(RBX);  // Preserve IC data array
-  __ pushq(Immediate(0));  // Space for result (target code object).
+  __ pushq(raw_null);  // Setup space on stack for result (target code object).
   __ movq(R10, FieldAddress(R10, Array::data_offset()));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {

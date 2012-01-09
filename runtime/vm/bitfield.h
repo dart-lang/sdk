@@ -7,6 +7,8 @@
 
 namespace dart {
 
+static const uword kUwordOne = 1U;
+
 // BitField is a template for encoding and decoding a bit field inside
 // an unsigned machine word.
 template<typename T, int position, int size>
@@ -14,18 +16,18 @@ class BitField {
  public:
   // Tells whether the provided value fits into the bit field.
   static bool is_valid(T value) {
-    return (static_cast<uword>(value) & ~((1U << size) - 1)) == 0;
+    return (static_cast<uword>(value) & ~((kUwordOne << size) - 1)) == 0;
   }
 
   // Returns a uword mask of the bit field.
   static uword mask() {
-    return (1U << size) - 1;
+    return (kUwordOne << size) - 1;
   }
 
   // Returns a uword mask of the bit field which can be applied directly to
   // to the raw unshifted bits.
   static uword mask_in_place() {
-    return ((1U << size) - 1) << position;
+    return ((kUwordOne << size) - 1) << position;
   }
 
   // Returns the shift count needed to right-shift the bit field to
@@ -47,7 +49,7 @@ class BitField {
 
   // Extracts the bit field from the value.
   static T decode(uword value) {
-    return static_cast<T>((value >> position) & ((1U << size) - 1));
+    return static_cast<T>((value >> position) & ((kUwordOne << size) - 1));
   }
 
   // Returns a uword with the bit field value encoded based on the

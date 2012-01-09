@@ -17,6 +17,4 @@ interface OverflowEvent extends Event {
   int get orient();
 
   bool get verticalOverflow();
-
-  void initOverflowEvent(int orient, bool horizontalOverflow, bool verticalOverflow);
 }

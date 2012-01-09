@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.parser;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -200,7 +203,6 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.EXPECTED_EXTENDS, 3, 11, 2),
         errEx(ParserErrorCode.EXPECTED_EXTENDS, 5, 11, 7),
         errEx(ParserErrorCode.EXPECTED_EXTENDS, 7, 11, 7));
-
     // check structure of AST
     DartUnit dartUnit = parserRunner.getDartUnit();
     String expected =
@@ -299,19 +301,98 @@ public class NegativeParserTest extends CompilerTestCase {
   }
 
   public void testReservedWordClass() {
-    parseExpectErrors(Joiner.on("\n").join(
-        "class foo {}",
-        "main() {",
-        "  int class = 10;",
-        "  print(\"class = $class\");",
-        "}"),
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "class foo {}",
+            "main() {",
+            "  int class = 10;",
+            "  print(\"class = $class\");",
+            "}"),
         errEx(ParserErrorCode.EXPECTED_TOKEN, 3, 7, 5),
         errEx(ParserErrorCode.UNEXPECTED_TOKEN, 4, 19, 5));
   }
 
-  public void tstDeprecatedFactoryInInterface() {
+  public void testInvalidStringInterpolation() {
     parseExpectErrors(
-       "interface foo factory bar {}",
-       errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 8));
+        Joiner.on("\n").join(
+            "void main() {",
+            "  print(\"1 ${42} 2 ${} 3\");",
+            "  print(\"1 ${42} 2 ${10;} 3\");",
+            "  print(\"1 ${42} 2 ${10,20} 3\");",
+            "  print(\"1 ${42} 2 ${10 20} 3\");",
+            "  print(\"$\");",
+            "  print(\"$",
+            "}"),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN, 2, 22, 1),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 2, 23, 3),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 3, 24, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 3, 25, 1),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 4, 24, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 4, 25, 2),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 4, 27, 1),
+        errEx(ParserErrorCode.EXPECTED_TOKEN, 5, 25, 2),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 5, 27, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 6, 11, 0),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 7, 11, 0),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 7, 11, 1),
+        errEx(ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION, 8, 1, 1),
+        errEx(ParserErrorCode.INCOMPLETE_STRING_LITERAL, 8, 1, 1),
+        errEx(ParserErrorCode.EXPECTED_COMMA_OR_RIGHT_PAREN, 8, 2, 0));
+  }
+
+  public void testDeprecatedFactoryInInterface() {
+    parseExpectWarnings(
+        "interface foo factory bar {}",
+        errEx(ParserErrorCode.DEPRECATED_USE_OF_FACTORY_KEYWORD, 1, 15, 7));
+  }
+
+  public void test_abstractTopLevel_class() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "abstract class A {",
+        "}"));
+  }
+
+  public void test_abstractTopLevel_interface() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "abstract interface A {",
+            "}"),
+        errEx(ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT, 2, 1, 8));
+  }
+
+  public void test_abstractTopLevel_typedef() {
+    parseExpectErrors(
+        "abstract typedef void f();",
+        errEx(ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT, 1, 1, 8));
+  }
+
+  public void test_abstractTopLevel_method() {
+    parseExpectErrors(
+        "abstract void foo() {}",
+        errEx(ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT, 1, 1, 8));
+  }
+
+  public void test_abstractMethodWithBody() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  abstract foo() {",
+            "  }",
+            "}"),
+        errEx(ParserErrorCode.ABSTRACT_METHOD_WITH_BODY, 3, 12, 3));
+  }
+
+  public void test_interfaceMethodWithBody() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface A {",
+            "  foo() {",
+            "  }",
+            "}"),
+        errEx(ParserErrorCode.INTERFACE_METHOD_WITH_BODY, 3, 3, 3));
   }
 }

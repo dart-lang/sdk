@@ -5,7 +5,8 @@
 #include "bin/dartutils.h"
 
 #include "bin/file.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
@@ -130,7 +131,7 @@ Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
 
 
 Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
-  File* file = File::Open(filename, false);
+  File* file = File::Open(filename, File::kRead);
   if (file == NULL) {
     const char* format = "Unable to open file: %s";
     intptr_t len = snprintf(NULL, 0, format, filename);

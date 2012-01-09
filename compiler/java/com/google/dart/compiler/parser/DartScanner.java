@@ -63,6 +63,14 @@ public class DartScanner {
       }
     }
 
+    /**
+     * @return the {@link Position} which is advanced on the given number of columns, on the same
+     *         line.
+     */
+    public Position getAdvancedColumns(int cols) {
+      return new Position(pos + cols, line, col + cols);
+    }
+
     @Override
     public String toString() {
       return line + "," + col + "@" + pos;
@@ -1374,15 +1382,22 @@ public class DartScanner {
     int start = currPos.pos - 1;
     int line = currPos.line;
     int col = currPos.col;
+    int commentDepth = 1;
     advance();
     while (!isEos()) {
       int first = lookahead(0);
       advance();
       if (first == '*' && is('/')) {
-        Token result = select(Token.COMMENT);
-        int stop = internalState.lookaheadPos[0].pos;
-        commentLocation(start, stop, line, internalState.lookaheadPos[0].line, col);
-        return result;
+        if(--commentDepth == 0) {
+          Token result = select(Token.COMMENT);
+          int stop = internalState.lookaheadPos[0].pos;
+          commentLocation(start, stop, line, internalState.lookaheadPos[0].line, col);
+          return result;
+        }
+        advance();
+      } else if (first == '/' && is('*')) {
+        commentDepth++;
+        advance();
       }
     }
     int stop = internalState.lookaheadPos[0].pos;

@@ -1,7 +1,7 @@
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
-  Object fillStyle;
+  Dynamic fillStyle;
 
   String font;
 
@@ -25,7 +25,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   num shadowOffsetY;
 
-  Object strokeStyle;
+  Dynamic strokeStyle;
 
   String textAlign;
 

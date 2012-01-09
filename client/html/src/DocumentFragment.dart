@@ -7,4 +7,6 @@ interface DocumentFragment extends Element default DocumentFragmentWrappingImple
   DocumentFragment();
 
   DocumentFragment.html(String html);
+
+  DocumentFragment clone(bool deep);
 }

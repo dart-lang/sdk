@@ -6,19 +6,11 @@
 
 interface TextTrack {
 
-  static final int Disabled = 0;
+  static final int DISABLED = 0;
 
-  static final int Error = 3;
+  static final int HIDDEN = 1;
 
-  static final int Hidden = 1;
-
-  static final int Loaded = 2;
-
-  static final int Loading = 1;
-
-  static final int None = 0;
-
-  static final int Showing = 2;
+  static final int SHOWING = 2;
 
   TextTrackCueList get activeCues();
 
@@ -34,9 +26,17 @@ interface TextTrack {
 
   void set mode(int value);
 
-  int get readyState();
+  EventListener get oncuechange();
+
+  void set oncuechange(EventListener value);
 
   void addCue(TextTrackCue cue);
 
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event evt);
+
   void removeCue(TextTrackCue cue);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }

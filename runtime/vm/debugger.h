@@ -71,10 +71,6 @@ class ActivationFrame : public ZoneAllocated {
                   intptr_t* end_pos,
                   Instance* value);
 
-  // Returns the value of the given variable in the context of the
-  // activation frame.
-  RawInstance* Value(const String& variable_name);
-
  private:
   void GetLocalVariables();
   RawInstance* GetLocalVarValue(intptr_t slot_index);

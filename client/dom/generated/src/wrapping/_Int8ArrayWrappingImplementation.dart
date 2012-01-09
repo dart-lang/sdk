@@ -67,6 +67,10 @@ class _Int8ArrayWrappingImplementation extends _ArrayBufferViewWrappingImplement
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<int> filter(bool f(int element)) {
     return _Collections.filter(this, new List<int>(), f);
   }

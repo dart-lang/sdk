@@ -34,7 +34,7 @@ class StubGeneratorTestSuite extends StandardTestSuite {
         new StringInputStream(orig.openInputStream());
     StringInputStream stubsStream =
         new StringInputStream(stubs.openInputStream());
-    FileOutputStream resultStream = result.openOutputStream();
+    OutputStream resultStream = result.openOutputStream();
     var origLine;
 
     void writeResultLine(String line) {

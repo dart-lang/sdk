@@ -17,6 +17,8 @@
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
 #import("../client/tests/dartc/test_config.dart");
+#import("../compiler/tests/dartc/test_config.dart");
+#import("../client/tests/client/test_config.dart");
 #import("../frog/tests/frog/test_config.dart");
 #import("../frog/tests/leg/test_config.dart");
 #import("../frog/tests/leg_only/test_config.dart");
@@ -37,6 +39,7 @@ main() {
   var progressIndicator = firstConf['progress'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
+  var listTests = firstConf['list'];
 
   var configurationIterator = configurations.iterator();
   bool enqueueConfiguration(ProcessQueue queue) {
@@ -81,6 +84,9 @@ main() {
     if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new ClientDartcTestSuite(conf));
     }
+    if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
+      queue.addTestSuite(new JUnitDartcTestSuite(conf));
+    }
     if (selectors.containsKey('css')) {
       queue.addTestSuite(new CssTestSuite(conf));
     }
@@ -90,6 +96,9 @@ main() {
     if (selectors.containsKey('await')) {
       queue.addTestSuite(new AwaitTestSuite(conf));
     }
+    if (selectors.containsKey('client')) {
+      queue.addTestSuite(new ClientTestSuite(conf));
+    }
 
     return true;
   }
@@ -97,8 +106,9 @@ main() {
   // Start process queue.
   var queue = new ProcessQueue(maxProcesses,
                                progressIndicator,
-                               verbose,
                                startTime,
                                printTiming,
-                               enqueueConfiguration);
+                               enqueueConfiguration,
+                               verbose: verbose,
+                               listTests: listTests);
 }

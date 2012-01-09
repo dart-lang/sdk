@@ -10,7 +10,9 @@ class _ProcessStartStatus {
 
 class _Process implements Process {
 
-  _Process.start(String path, List<String> arguments) {
+  _Process.start(String path, 
+                 List<String> arguments, 
+                 [String workingDirectory]) {
     if (path is !String) {
       throw new ProcessException("Path is not a String: $path");
     }
@@ -28,6 +30,12 @@ class _Process implements Process {
       }
       _arguments[i] = arguments[i];
     }
+
+    if (workingDirectory is !String && workingDirectory !== null) {
+      throw new ProcessException(
+          "WorkingDirectory is not a String: $workingDirectory");
+    }
+    _workingDirectory = workingDirectory;
 
     _in = new _Socket._internalReadOnly();  // stdout coming from process.
     _out = new _Socket._internalWriteOnly();  // stdin going to process.
@@ -51,8 +59,14 @@ class _Process implements Process {
 
   void start() {
     var status = new _ProcessStartStatus();
-    bool success = _start(
-        _path, _arguments, _in, _out, _err, _exitHandler, status);
+    bool success = _start(_path, 
+                          _arguments, 
+                          _workingDirectory, 
+                          _in, 
+                          _out, 
+                          _err, 
+                          _exitHandler, 
+                          status);
     if (!success) {
       close();
       if (_errorHandler !== null) {
@@ -71,10 +85,9 @@ class _Process implements Process {
 
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
-    _exitHandler.dataHandler = () {
+    _exitHandler.inputStream.dataHandler = () {
       final int EXIT_DATA_SIZE = 12;
       List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
-      InputStream input = _exitHandler.inputStream;
       int exitDataRead = 0;
 
       int exitCode(List<int> ints) {
@@ -95,13 +108,9 @@ class _Process implements Process {
         }
       }
 
-      void exitData() {
-        exitDataRead += input.readInto(
-            exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
-        if (exitDataRead == EXIT_DATA_SIZE) handleExit();
-      }
-
-      input.dataHandler = exitData;
+      exitDataRead += _exitHandler.inputStream.readInto(
+          exitDataBuffer, exitDataRead, EXIT_DATA_SIZE - exitDataRead);
+      if (exitDataRead == EXIT_DATA_SIZE) handleExit();
     };
 
     if (_startHandler !== null) {
@@ -111,6 +120,7 @@ class _Process implements Process {
 
   bool _start(String path,
               List<String> arguments,
+              String workingDirectory,
               Socket input,
               Socket output,
               Socket error,
@@ -141,8 +151,10 @@ class _Process implements Process {
   }
 
   void kill() {
-    if (_closed && _pid === null && _errorHandler !== null) {
-      _errorHandler(new ProcessException("Process closed"));
+    if (_closed && _pid === null) {
+      if (_errorHandler !== null) {
+        _errorHandler(new ProcessException("Process closed"));
+      }
       return;
     }
     if (_killed) {
@@ -192,6 +204,7 @@ class _Process implements Process {
 
   String _path;
   ObjectArray<String> _arguments;
+  String _workingDirectory;
   Socket _in;
   Socket _out;
   Socket _err;

@@ -11,9 +11,11 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/eventhandler.h"
 #include "bin/file.h"
-#include "bin/globals.h"
 #include "bin/platform.h"
+
+#include "platform/globals.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
@@ -197,7 +199,8 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
 static void DumpPprofSymbolInfo() {
   if (generate_pprof_symbols_filename != NULL) {
     Dart_EnterScope();
-    File* pprof_file = File::Open(generate_pprof_symbols_filename, true);
+    File* pprof_file =
+        File::Open(generate_pprof_symbols_filename, File::kWriteTruncate);
     ASSERT(pprof_file != NULL);
     void* buffer;
     int buffer_size;
@@ -379,6 +382,9 @@ int main(int argc, char** argv) {
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
+  // Initialize event handler.
+  EventHandler::Initialize();
+
   // Initialize the Dart VM.
   Dart_Initialize(CreateIsolateAndSetup, NULL);
 
@@ -502,5 +508,8 @@ int main(int argc, char** argv) {
   DumpPprofSymbolInfo();
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
+  // Terminate event handler.
+  EventHandler::Terminate();
+
   return 0;
 }

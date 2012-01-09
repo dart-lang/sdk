@@ -2714,8 +2714,14 @@ public class GenerateJavascriptAST {
           }
 
           case FIELD: {
-            mangledName = mangler.mangleNamedMethod(x.getFunctionNameString(), unitLibrary);
-            qualifier = (JsExpression)generate(x.getTarget());
+            if(ElementKind.of(x.getTarget().getSymbol()) == ElementKind.LIBRARY) {
+              // Handled very much like a unqualified invocation
+              mangledName = null;
+              qualifier = (JsExpression) generate(x.getFunctionName());
+            } else {
+              mangledName = mangler.mangleNamedMethod(x.getFunctionNameString(), unitLibrary);
+              qualifier = (JsExpression) generate(x.getTarget());
+            }
             break;
           }
 

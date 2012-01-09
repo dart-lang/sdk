@@ -16,6 +16,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/debuginfo.h"
+#include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
 #include "vm/ic_data.h"
@@ -703,6 +704,8 @@ void Object::Print() const {
 
 
 void Object::InitializeObject(uword address, intptr_t size) {
+  // TODO(iposva): Get a proper halt instruction from the assembler which
+  // would be needed here for code objects.
   uword initial_value = reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
@@ -716,16 +719,26 @@ void Object::InitializeObject(uword address, intptr_t size) {
 RawObject* Object::Allocate(const Class& cls,
                             intptr_t size,
                             Heap::Space space) {
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
 
-  // TODO(iposva): Get a proper halt instruction from the assembler.
   uword address = heap->Allocate(size, space);
+  if (address == 0) {
+    // Use the preallocated out of memory exception to avoid calling
+    // into dart code or allocating any code.
+    const Instance& exception =
+        Instance::Handle(isolate->object_store()->out_of_memory());
+    Exceptions::Throw(exception);
+    UNREACHABLE();
+  }
   NoGCScope no_gc;
   InitializeObject(address, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   raw_obj->ptr()->class_ = cls.raw();
-  raw_obj->ptr()->tags_ = 0;
+  uword tags = 0;
+  tags = RawObject::SizeTag::update(size, tags);
+  raw_obj->ptr()->tags_ = tags;
   return raw_obj;
 }
 
@@ -4597,11 +4610,14 @@ RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {
 }
 
 
-void LocalVarDescriptors::GetRange(intptr_t var_index,
-                                   intptr_t* begin_token_pos,
-                                   intptr_t* end_token_pos) const {
+void LocalVarDescriptors::GetScopeInfo(
+                              intptr_t var_index,
+                              intptr_t* scope_id,
+                              intptr_t* begin_token_pos,
+                              intptr_t* end_token_pos) const {
   ASSERT(var_index < Length());
   RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
+  *scope_id = info->scope_id;
   *begin_token_pos = info->begin_pos;
   *end_token_pos = info->end_pos;
 }
@@ -4615,16 +4631,18 @@ intptr_t LocalVarDescriptors::GetSlotIndex(intptr_t var_index) const {
 
 
 void LocalVarDescriptors::SetVar(intptr_t var_index,
-                                const String& name,
-                                intptr_t stack_slot,
-                                intptr_t begin_pos,
-                                intptr_t end_pos) const {
+                                 const String& name,
+                                 intptr_t stack_slot,
+                                 intptr_t scope_id,
+                                 intptr_t begin_pos,
+                                 intptr_t end_pos) const {
   ASSERT(var_index < Length());
   const Array& names = Array::Handle(raw_ptr()->names_);
   ASSERT(Length() == names.Length());
   names.SetAt(var_index, name);
   RawLocalVarDescriptors::VarInfo *info = &raw_ptr()->data_[var_index];
   info->index = stack_slot;
+  info->scope_id = scope_id;
   info->begin_pos = begin_pos;
   info->end_pos = end_pos;
 }
@@ -4632,7 +4650,7 @@ void LocalVarDescriptors::SetVar(intptr_t var_index,
 
 const char* LocalVarDescriptors::ToCString() const {
   UNIMPLEMENTED();
-  return "";
+  return "LocalVarDescriptors";
 }
 
 
@@ -5262,11 +5280,6 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
     // Initialize all native fields to NULL.
     for (intptr_t i = 0; i < cls.num_native_fields(); i++) {
       *reinterpret_cast<uword*>(addr + offset) = 0;
-      offset += kWordSize;
-    }
-    // Initialize all dart fields to null.
-    while (offset < instance_size) {
-      *reinterpret_cast<RawObject**>(addr + offset) = Object::null();
       offset += kWordSize;
     }
   }
@@ -7099,9 +7112,6 @@ RawArray* Array::New(word len, bool immutable, Heap::Space space) {
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(len);
-    for (intptr_t i = 0; i < len; i++) {
-      *result.ObjectAddr(i) = Object::null();
-    }
   }
   return result.raw();
 }

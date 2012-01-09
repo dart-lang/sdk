@@ -35,6 +35,12 @@ class _BaseDataInputStream {
     _pipe(this, output, close: close);
   }
 
+  void close() {
+    if (_scheduledDataCallback != null) _scheduledDataCallback.cancel();
+    _close();
+    _checkScheduleCallbacks();
+  }
+
   bool get closed() => _closeCallbackCalled;
 
   void set dataHandler(void callback()) {
@@ -76,6 +82,7 @@ class _BaseDataInputStream {
           _scheduledDataCallback = new Timer(issueDataCallback, 0);
         }
       } else if (_streamMarkedClosed && !_closeCallbackCalled) {
+        _close();
         _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
         _closeCallbackCalled = true;
       }

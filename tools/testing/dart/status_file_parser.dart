@@ -66,7 +66,7 @@ void ReadTestExpectationsInto(TestExpectations expectations,
 void ReadConfigurationInto(path, sections, onDone) {
   File file = new File(getFilename(path));
   if (!file.existsSync()) return;  // TODO(whesse): Handle missing file.
-  FileInputStream file_stream = file.openInputStream();
+  InputStream file_stream = file.openInputStream();
   StringInputStream lines = new StringInputStream(file_stream);
 
   Section current = new Section.always();
@@ -114,7 +114,6 @@ void ReadConfigurationInto(path, sections, onDone) {
   };
 
   lines.closeHandler = () {
-    file_stream.close();
     onDone();
   };
 }
@@ -181,7 +180,7 @@ class TestExpectations {
    */
   Set<String> expectations(String filename) {
     var result = new Set();
-    var splitFilename = filename.split(new Platform().pathSeparator());
+    var splitFilename = filename.split('/');
 
     // If complex matching is required split the last filename
     // component at '_'. Additionally, remove the prefix of the last

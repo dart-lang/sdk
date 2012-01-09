@@ -7,6 +7,9 @@ import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.ErrorExpectation;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import com.google.dart.compiler.testing.TestCompilerContext;
 
 import java.util.ArrayList;

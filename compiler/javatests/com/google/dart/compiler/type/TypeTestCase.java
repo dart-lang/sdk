@@ -16,7 +16,6 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartTypeNode;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Elements;
@@ -163,14 +162,10 @@ abstract class TypeTestCase extends TestCase {
     checkNotSubtype(s, t);
   }
 
-  final DartCompilerListener listener = new DartCompilerListener() {
+  final DartCompilerListener listener = new DartCompilerListener.Empty() {
     @Override
     public void onError(DartCompilationError event) {
       throw new AssertionError(event);
-    }
-
-    @Override
-    public void unitCompiled(DartUnit unit) {
     }
   };
 

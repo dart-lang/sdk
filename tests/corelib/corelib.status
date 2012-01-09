@@ -42,11 +42,9 @@ ListGetRangeTest: Fail
 ListFromListTest: Fail
 ListInsertRangeTest: Fail
 ListRemoveRangeTest: Fail
-ListSetRangeTest: Fail
 ListTest: Fail
 MapsTest: Fail
 MathTest: Fail
-NanInfinityTest: Fail
 RegExpAllMatchesTest: Fail
 RegExp4Test: Fail # New test added on 10/28.
 StringPatternTest: Fail

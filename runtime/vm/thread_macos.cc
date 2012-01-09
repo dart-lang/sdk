@@ -126,7 +126,7 @@ void Mutex::Lock() {
 bool Mutex::TryLock() {
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
-  if (result == EBUSY) {
+  if ((result == EBUSY) || (result == EDEADLK)) {
     return false;
   }
   ASSERT(result == 0);  // Verify no other errors.

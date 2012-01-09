@@ -3,11 +3,15 @@ class IDBIndex native "*IDBIndex" {
 
   String keyPath;
 
+  bool multiEntry;
+
   String name;
 
   IDBObjectStore objectStore;
 
   bool unique;
+
+  IDBRequest count([IDBKeyRange range = null]) native;
 
   IDBRequest getObject(IDBKey key) native;
 

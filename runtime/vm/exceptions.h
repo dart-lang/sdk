@@ -28,6 +28,7 @@ class Exceptions : AllStatic {
     kObjectNotClosure,
     kBadNumberFormat,
     kStackOverflow,
+    kOutOfMemory,
     kWrongArgumentCount,
     kInternalError,
     kNullPointer,

@@ -6,6 +6,14 @@
 
 interface HTMLTrackElement extends HTMLElement {
 
+  static final int ERROR = 3;
+
+  static final int LOADED = 2;
+
+  static final int LOADING = 1;
+
+  static final int NONE = 0;
+
   bool get isDefault();
 
   void set isDefault(bool value);
@@ -17,6 +25,8 @@ interface HTMLTrackElement extends HTMLElement {
   String get label();
 
   void set label(String value);
+
+  int get readyState();
 
   String get src();
 

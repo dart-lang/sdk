@@ -179,6 +179,20 @@ static void CompileFunctionHelper(const Function& function, bool optimized) {
         PcDescriptors::Handle(code.pc_descriptors());
     OS::Print("%s", descriptors.ToCString());
     OS::Print("}\n");
+    OS::Print("Variable Descriptors for function '%s' {\n", function_fullname);
+    const LocalVarDescriptors& var_descriptors =
+        LocalVarDescriptors::Handle(code.var_descriptors());
+    intptr_t var_desc_length = var_descriptors.Length();
+    String& var_name = String::Handle();
+    for (intptr_t i = 0; i < var_desc_length; i++) {
+      var_name = var_descriptors.GetName(i);
+      intptr_t scope_id, ignore;
+      var_descriptors.GetScopeInfo(i, &scope_id, &ignore, &ignore);
+      intptr_t slot = var_descriptors.GetSlotIndex(i);
+      OS::Print("  var %s scope %ld offset %ld\n",
+                var_name.ToCString(), scope_id, slot);
+    }
+    OS::Print("}\n");
     OS::Print("Exception Handlers for function '%s' {\n", function_fullname);
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(code.exception_handlers());

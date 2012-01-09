@@ -10,6 +10,7 @@
 
 static const intptr_t kNativeEventHandlerFieldIndex = 0;
 
+ThreadPool* EventHandler::thread_pool_ = NULL;
 
 /*
  * Returns the reference of the EventHandler stored in the native field.

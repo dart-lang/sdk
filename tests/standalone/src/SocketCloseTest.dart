@@ -9,27 +9,6 @@ final SERVERSHUTDOWN = -1;
 final ITERATIONS = 10;
 
 
-// Run the close test in these different "modes".
-// 0: Client closes without sending at all.
-// 1: Client sends and closes.
-// 2: Client sends. Server closes.
-// 3: Client sends. Server responds and closes.
-// 4: Client sends and half-closes. Server responds and closes.
-// 5: Client sends. Server responds and half closes.
-// 6: Client sends and half-closes. Server responds and half closes.
-class SocketCloseTest {
-  static void testMain() {
-    new SocketClose.start(0);
-    new SocketClose.start(1);
-    new SocketClose.start(2);
-    new SocketClose.start(3);
-    new SocketClose.start(4);
-    new SocketClose.start(5);
-    new SocketClose.start(6);
-  }
-}
-
-
 class SocketClose {
 
   SocketClose.start(mode)
@@ -337,5 +316,19 @@ class SocketCloseServer extends Isolate {
 
 
 main() {
-  SocketCloseTest.testMain();
+  // Run the close test in these different "modes".
+  // 0: Client closes without sending at all.
+  // 1: Client sends and closes.
+  // 2: Client sends. Server closes.
+  // 3: Client sends. Server responds and closes.
+  // 4: Client sends and half-closes. Server responds and closes.
+  // 5: Client sends. Server responds and half closes.
+  // 6: Client sends and half-closes. Server responds and half closes.
+  new SocketClose.start(0);
+  new SocketClose.start(1);
+  new SocketClose.start(2);
+  new SocketClose.start(3);
+  new SocketClose.start(4);
+  new SocketClose.start(5);
+  new SocketClose.start(6);
 }

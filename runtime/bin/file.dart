@@ -2,6 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+/**
+ * FileMode describes the modes in which a file can be opened.
+ */
+class FileMode {
+  static final READ = const FileMode(0);
+  static final WRITE = const FileMode(1);
+  static final APPEND = const FileMode(2);
+  const FileMode(int this.mode);
+  final int mode;
+}
+
 interface File default _File {
   /**
    * Create a File object.
@@ -49,26 +61,55 @@ interface File default _File {
 
   /**
    * Open the file for random access operations. When the file is
-   * opened the openHandler is called with the resulting
+   * opened the [openHandler] is called with the resulting
    * RandomAccessFile. RandomAccessFiles must be closed using the
-   * close method. By default writable is false.
+   * [close] method. If the file cannot be opened the [errorHandler]
+   * is called.
+   *
+   * Files can be opened in three modes:
+   *
+   * FileMode.READ: open the file for reading. If the file does not
+   * exist the [errorHandler] is called.
+   *
+   * FileMode.WRITE: open the file for both reading and writing and
+   * truncate the file to length zero. If the file does not exist the
+   * file is created.
+   *
+   * FileMode.APPEND: same as FileMode.WRITE except that the file is
+   * not truncated.
+   *
+   * By default mode is FileMode.READ.
    */
-  void open([bool writable]);
+  void open([FileMode mode]);
 
   /**
    * Synchronously open the file for random access operations. The
    * result is a RandomAccessFile on which random access operations
    * can be performed. Opened RandomAccessFiles must be closed using
-   * the close method. By default writable is false.
+   * the [close] method.
+   *
+   * Files can be opened in three modes:
+   *
+   * FileMode.READ: open the file for reading. If the file does not
+   * exist the [errorHandler] is called.
+   *
+   * FileMode.WRITE: open the file for both reading and writing and
+   * truncate the file to length zero. If the file does not exist the
+   * file is created.
+   *
+   * FileMode.APPEND: same as FileMode.WRITE except that the file is
+   * not truncated.
+   *
+   * By default mode is FileMode.READ.
    */
-  RandomAccessFile openSync([bool writable]);
+  RandomAccessFile openSync([FileMode mode]);
 
   /**
    * Get the canonical full path corresponding to the file name. The
-   * [fullPathHandler] is called when the fullPath operation
-   * completes.
+   * [fullPathHandler] is called with the result when the fullPath
+   * operation completes.
    */
-  String fullPath();
+  void fullPath();
 
   /**
    * Synchronously get the canonical full path corresponding to the file name.
@@ -80,14 +121,14 @@ interface File default _File {
    * input stream must be closed when no longer used to free up
    * system resources.
    */
-  FileInputStream openInputStream();
+  InputStream openInputStream();
 
   /**
    * Creates a new independent output stream for the file. The file
    * output stream must be closed when no longer used to free up
    * system resources.
    */
-  FileOutputStream openOutputStream();
+  OutputStream openOutputStream();
 
   /**
    * Get the name of the file.
@@ -251,15 +292,6 @@ interface RandomAccessFile {
   void set lengthHandler(void handler(int length));
   void set flushHandler(void handler());
   void set errorHandler(void handler(String error));
-}
-
-
-interface FileInputStream extends InputStream {
-  void close();
-}
-
-
-interface FileOutputStream extends OutputStream {
 }
 
 

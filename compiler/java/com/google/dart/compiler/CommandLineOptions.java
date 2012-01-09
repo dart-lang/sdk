@@ -60,7 +60,7 @@ public class CommandLineOptions {
 
     @Option(name = "--documentation-out", aliases = { "-documentation-out" },
         usage = "Directory to write documentation")
-    private String documentationOutputDirectory = null;
+    private String documentationOutputDirectory = "out";
 
     @Option(name = "--generate-documentation", aliases = { "-generate-documentation" },
         usage = "Generate docs from source")

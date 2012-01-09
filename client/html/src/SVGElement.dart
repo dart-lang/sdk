@@ -5,6 +5,7 @@
 interface SVGElement extends Element default SVGElementWrappingImplementation {
 
   SVGElement.tag(String tag);
+  SVGElement.svg(String svg);
 
   String get id();
 
@@ -17,4 +18,6 @@ interface SVGElement extends Element default SVGElementWrappingImplementation {
   String get xmlbase();
 
   void set xmlbase(String value);
+
+  SVGElement clone(bool deep);
 }

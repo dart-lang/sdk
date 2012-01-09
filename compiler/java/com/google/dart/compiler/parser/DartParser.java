@@ -90,6 +90,7 @@ import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.parser.DartScanner.Location;
+import com.google.dart.compiler.parser.DartScanner.Position;
 import com.google.dart.compiler.util.Lists;
 
 import java.io.IOException;
@@ -111,7 +112,8 @@ public class DartParser extends CompletionHooksParserBase {
   private Set<String> prefixes;
   private boolean isDietParse;
   private boolean isParsingInterface;
-  private boolean isParsingAbstract;
+  private boolean isTopLevelAbstract;
+  private DartScanner.Position topLevelAbstractModifierPosition;
   private boolean isParsingClass;
 
   /**
@@ -243,6 +245,7 @@ public class DartParser extends CompletionHooksParserBase {
    */
   public DartUnit parseUnit(DartSource source) {
     beginCompilationUnit();
+    ctx.unitAboutToCompile(source, isDietParse);
     DartUnit unit = new DartUnit(source);
 
     // parse any directives at the beginning of the source
@@ -254,9 +257,11 @@ public class DartParser extends CompletionHooksParserBase {
         beginTopLevelElement();
         isParsingClass = isParsingInterface = false;
         // Check for ABSTRACT_KEYWORD.
-        isParsingAbstract = false;
+        isTopLevelAbstract = false;
+        topLevelAbstractModifierPosition = null;
         if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
-          isParsingAbstract = true;
+          isTopLevelAbstract = true;
+          topLevelAbstractModifierPosition = position();
         }
         // Parse top level element.
         if (optional(Token.CLASS)) {
@@ -270,8 +275,18 @@ public class DartParser extends CompletionHooksParserBase {
         } else {
           node = done(parseFieldOrMethod(false));
         }
+        // Parsing was successful, add node.
         if (node != null) {
           unit.addTopLevelNode(node);
+          // Only "class" can be top-level abstract element.
+          if (isTopLevelAbstract && !isParsingClass) {
+            Position abstractPositionEnd =
+                topLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length());
+            Location location = new Location(topLevelAbstractModifierPosition, abstractPositionEnd);
+            reportError(new DartCompilationError(source,
+                location,
+                ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT));
+          }
         }
       } catch (ParserException e) {
         Location beginLocation = ctx.getTokenLocation();
@@ -555,7 +570,7 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Parse modifiers.
     Modifiers modifiers = Modifiers.NONE;
-    if (isParsingAbstract) {
+    if (isTopLevelAbstract) {
       modifiers = modifiers.makeAbstract();
     }
 
@@ -592,8 +607,9 @@ public class DartParser extends CompletionHooksParserBase {
     DartStringLiteral nativeName = null;
     if (!isParsingInterface && optionalPseudoKeyword(NATIVE_KEYWORD)) {
       beginLiteral();
-      expect(Token.STRING);
-      nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
+      if (expect(Token.STRING)) {
+        nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
+      }
       if (superType != null) {
         reportError(position(), ParserErrorCode.EXTENDED_NATIVE_CLASS);
       }
@@ -1192,6 +1208,18 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartNode parseMethodOrAccessor(Modifiers modifiers, DartTypeNode returnType) {
     DartMethodDefinition method = done(parseMethod(modifiers, returnType));
+    // Abstract method can not have a body.
+    if (method.getFunction().getBody() != null) {
+      if (isParsingInterface) {
+        reportError(new DartCompilationError(method.getName(),
+            ParserErrorCode.INTERFACE_METHOD_WITH_BODY));
+      }
+      if (method.getModifiers().isAbstract()) {
+        reportError(new DartCompilationError(method.getName(),
+            ParserErrorCode.ABSTRACT_METHOD_WITH_BODY));
+      }
+    }
+    // If getter or setter, generate DartFieldDefinition instead.
     if (method.getModifiers().isGetter() || method.getModifiers().isSetter()) {
       DartField field = new DartField((DartIdentifier) method.getName(),
                                       method.getModifiers().makeAbstractField(), method, null);
@@ -1201,6 +1229,7 @@ public class DartParser extends CompletionHooksParserBase {
       fieldDefinition.setSourceInfo(field);
       return fieldDefinition;
     }
+    // OK, use method as method.
     return method;
   }
 
@@ -2058,6 +2087,50 @@ public class DartParser extends CompletionHooksParserBase {
     return done(null);
   }
 
+  private enum LastSeenNode {
+    NONE,
+    STRING,
+    EXPRESSION;
+  }
+
+  private class DartStringInterpolationBuilder {
+
+    private List<DartStringLiteral> strings = new ArrayList<DartStringLiteral>();
+    private List<DartExpression> expressions = new ArrayList<DartExpression>();
+    private LastSeenNode lastSeen = LastSeenNode.NONE;
+
+    DartStringInterpolationBuilder() {
+    }
+
+    void addString(DartStringLiteral string) {
+      if (lastSeen == LastSeenNode.STRING) {
+        expressions.add(new DartSyntheticErrorExpression());
+      }
+      strings.add(string);
+      lastSeen = LastSeenNode.STRING;
+    }
+
+    void addExpression(DartExpression expression) {
+      switch (lastSeen) {
+        case EXPRESSION:
+        case NONE:
+          strings.add(DartStringLiteral.get(""));
+          break;
+        default:
+          break;
+      }
+      expressions.add(expression);
+      lastSeen = LastSeenNode.EXPRESSION;
+    }
+
+    DartStringInterpolation buildInterpolation() {
+      if (strings.size() == expressions.size()) {
+        strings.add(DartStringLiteral.get(""));
+      }
+      return new DartStringInterpolation(strings, expressions);
+    }
+  }
+
   /**
    * <pre>
    * string-interpolation
@@ -2073,35 +2146,25 @@ public class DartParser extends CompletionHooksParserBase {
       throw new InternalCompilerException("Invariant broken");
     }
     beginStringInterpolation();
-    List<DartStringLiteral> strings = new ArrayList<DartStringLiteral>();
-    List<DartExpression> expressions = new ArrayList<DartExpression>();
-
+    DartStringInterpolationBuilder builder = new DartStringInterpolationBuilder();
     boolean inString = true;
     while (inString) { // Iterate until we find the last string segment.
       switch (peek(0)) {
         case STRING_SEGMENT: {
-          assert strings.size() == expressions.size() : "Invariant broken";
           beginStringSegment();
           consume(Token.STRING_SEGMENT);
-          strings.add(done(DartStringLiteral.get(ctx.getTokenString())));
+          builder.addString(done(DartStringLiteral.get(ctx.getTokenString())));
           break;
         }
         case STRING_LAST_SEGMENT: {
-          assert strings.size() == expressions.size() : "Invariant broken";
           beginStringSegment();
           consume(Token.STRING_LAST_SEGMENT);
-          strings.add(done(DartStringLiteral.get(ctx.getTokenString())));
+          builder.addString(done(DartStringLiteral.get(ctx.getTokenString())));
           inString = false;
           break;
         }
         case STRING_EMBED_EXP_START: {
           consume(Token.STRING_EMBED_EXP_START);
-          if (strings.size() == expressions.size()) {
-            // Ensure that strings and expressions are alternating, add empty
-            // strings if we see 2 consecutive expressions.
-            beginStringSegment();
-            strings.add(done(DartStringLiteral.get("")));
-          }
           /*
            * We check for ILLEGAL specifically here to give nicer error
            * messages, and because the scanner doesn't generate a
@@ -2111,30 +2174,45 @@ public class DartParser extends CompletionHooksParserBase {
           if (peek(0) == Token.ILLEGAL) {
             reportError(position(), ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
                 next());
-            expressions.add(new DartSyntheticErrorExpression(ctx.getTokenString()));
+            builder.addExpression(new DartSyntheticErrorExpression(""));
             break;
           } else {
-            DartExpression expr = parseExpression();
-            expressions.add(expr);
+            builder.addExpression(parseExpression());
           }
+          Token lookAhead = peek(0);
+          String lookAheadString = getPeekTokenValue(0);
           if (!expect(Token.STRING_EMBED_EXP_END)) {
-            return done(new DartSyntheticErrorExpression());
+            String errorText = null;
+            if (lookAheadString != null && lookAheadString.length() > 0) {
+              errorText = lookAheadString;
+            } else if (lookAhead.getSyntax() != null && lookAhead.getSyntax().length() > 0) {
+              errorText = lookAhead.getSyntax();
+            }
+            if (errorText != null) {
+              builder.addExpression(new DartSyntheticErrorExpression(errorText));
+            }
+            inString = !(Token.STRING_LAST_SEGMENT == lookAhead);
           }
           break;
         }
         case EOS: {
           reportError(position(), ParserErrorCode.INCOMPLETE_STRING_LITERAL);
-          return done(null);
+          inString = false;
+          break;
         }
         default: {
+          String errorText = getPeekTokenValue(0) != null && getPeekTokenValue(0).length() > 0
+              ? getPeekTokenValue(0) : null;
+          if(errorText != null) {
+            builder.addExpression(new DartSyntheticErrorExpression(getPeekTokenValue(0)));
+          }
           reportError(position(), ParserErrorCode.UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION,
               next());
           break;
         }
       }
     }
-    assert (strings.size() == expressions.size() + 1) : "Invariant broken";
-    return done(new DartStringInterpolation(strings, expressions));
+    return builder.buildInterpolation();
   }
 
   /**
@@ -3743,6 +3821,6 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private boolean currentlyParsingToplevel() {
-    return   !(isParsingInterface || isParsingAbstract || isParsingClass);
+    return   !(isParsingInterface || isTopLevelAbstract || isParsingClass);
   }
 }

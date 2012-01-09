@@ -30,6 +30,7 @@ public class CommentTest extends CompilerTestCase {
       super(source, sourceCode, listener);
     }
 
+    @Override
     protected DartScanner createScanner(String sourceCode) {
       return new CommentScanner(sourceCode);
     }
@@ -65,7 +66,7 @@ public class CommentTest extends CompilerTestCase {
   private String source;
 
   private static String[] EXPECTED001 = {"/*\n * Beginning comment\n */",
-    "// line comment", "// another", "/**/", "//",
+    "// line comment", "// another", "/**/", "//", "/*/*nested*/*/",
   };
   private static String[] EXPECTED002 = {"/*\n*\n //comment\nX Y"};
 

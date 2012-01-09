@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -12,6 +14,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
+import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartParserRunner;
 import com.google.dart.compiler.parser.DartScannerParserContext;
@@ -80,7 +83,7 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Collects the results of running analyzeLibrary.
    */
-  protected static class AnalyzeLibraryResult extends DartCompilerListener {
+  protected static class AnalyzeLibraryResult extends DartCompilerListener.Empty {
     private final List<DartCompilationError> compilationErrors;
     private final List<DartCompilationError> compilationWarnings;
     private final List<DartCompilationError> typeErrors;
@@ -127,10 +130,6 @@ public abstract class CompilerTestCase extends TestCase {
      */
     public LibraryUnit getLibraryUnitResult() {
       return result;
-    }
-
-    @Override
-    public void unitCompiled(DartUnit unit) {
     }
   }
 
@@ -303,66 +302,14 @@ public abstract class CompilerTestCase extends TestCase {
     assertErrors(errors, expectedErrors);
   }
 
-  protected static class ErrorExpectation {
-    final ErrorCode errorCode;
-    final int line;
-    final int column;
-    final int length;
-
-    public ErrorExpectation(ErrorCode errorCode, int line, int column, int length) {
-      this.errorCode = errorCode;
-      this.line = line;
-      this.column = column;
-      this.length = length;
-    }
-  }
-
-  protected static ErrorExpectation errEx(ErrorCode errorCode, int line, int column, int length) {
-    return new ErrorExpectation(errorCode, line, column,  length);
-  }
-
   /**
-   * Asserts that given list of {@link DartCompilationError} is exactly same as expected.
+   * Parses given source and checks parsing problems.
    */
-  protected static void assertErrors(List<DartCompilationError> errors,
-      ErrorExpectation... expectedErrors) {
-    StringBuffer errorMessage = new StringBuffer();
-    // count of errors
-    if (errors.size() != expectedErrors.length) {
-      String out = String.format(
-          "Expected %s errors, but got %s: %s",
-          expectedErrors.length,
-          errors.size(),
-          errors);
-      errorMessage.append(out + "\n");
-    }
-    // content of errors
-    for (int i = 0; i < expectedErrors.length; i++) {
-      ErrorExpectation expectedError = expectedErrors[i];
-      DartCompilationError actualError = errors.get(i);
-      if (actualError.getErrorCode() != expectedError.errorCode
-          || actualError.getLineNumber() != expectedError.line
-          || actualError.getColumnNumber() != expectedError.column
-          || actualError.getLength() != expectedError.length) {
-        String out = String.format( 
-            "Expected %s:%d:%d/%d, but got %s:%d:%d/%d",
-            expectedError.errorCode,
-            expectedError.line,
-            expectedError.column,
-            expectedError.length,
-            actualError.getErrorCode(),
-            actualError.getLineNumber(),
-            actualError.getColumnNumber(),
-            actualError.getLength());
-        errorMessage.append(out + "\n");
-      }
-    }
-    if (errorMessage.length() > 0) {
-      System.err.println(errorMessage);
-      fail(errorMessage.toString());
-    }
+  protected final void parseExpectWarnings(String code, ErrorExpectation... expectedWarnings) {
+    DartParserRunner runner =  DartParserRunner.parse(getName(), code, Integer.MAX_VALUE, true);
+    List<DartCompilationError> errors = runner.getErrors();
+    assertErrors(errors, expectedWarnings);
   }
-
   /**
    * @return the {@link DartInvocation} with given source. This is inaccurate approach, but good
    *         enough for specific tests.

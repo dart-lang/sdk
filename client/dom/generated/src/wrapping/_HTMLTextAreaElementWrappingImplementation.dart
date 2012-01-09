@@ -11,12 +11,6 @@ class _HTMLTextAreaElementWrappingImplementation extends _HTMLElementWrappingImp
     return new _HTMLTextAreaElementWrappingImplementation();
   }
 
-  String get accessKey() { return _get_accessKey(this); }
-  static String _get_accessKey(var _this) native;
-
-  void set accessKey(String value) { _set_accessKey(this, value); }
-  static void _set_accessKey(var _this, String value) native;
-
   bool get autofocus() { return _get_autofocus(this); }
   static bool _get_autofocus(var _this) native;
 
@@ -34,6 +28,12 @@ class _HTMLTextAreaElementWrappingImplementation extends _HTMLElementWrappingImp
 
   void set defaultValue(String value) { _set_defaultValue(this, value); }
   static void _set_defaultValue(var _this, String value) native;
+
+  String get dirName() { return _get_dirName(this); }
+  static String _get_dirName(var _this) native;
+
+  void set dirName(String value) { _set_dirName(this, value); }
+  static void _set_dirName(var _this, String value) native;
 
   bool get disabled() { return _get_disabled(this); }
   static bool _get_disabled(var _this) native;

@@ -22,7 +22,6 @@ handlers:
   mime_type: application/json
   static_files: static/\1
   upload: static/(.*\.json)
-  expiration: "1h"
 
 # image files
 - url: /(.*\.(bmp|gif|ico|jpeg|jpg|png))
@@ -39,6 +38,13 @@ handlers:
   static_files: static/\1/index.html
   upload: static/(.+)/index.html
   expiration: "15m"
+
+- url: /graphs
+  static_dir: static/graphs
+
+- url: /graphs/(.*)
+  static_files: static/graphs/\1
+  upload: static/graphs/(.*)
 
 # site root
 - url: /

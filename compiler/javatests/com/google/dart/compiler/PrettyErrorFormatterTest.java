@@ -70,7 +70,9 @@ public class PrettyErrorFormatterTest extends TestCase {
         new DartCompilationError(badDartSource, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
     String errorString = getErrorString(error, false, false);
-    assertEquals("my/path/Test.dart:1:3: no such type \"Foo\"\n", errorString);
+    assertEquals(
+        "my/path/Test.dart:1:3: no such type \"Foo\" (sourced from Test_app)\n",
+        errorString);
   }
 
   /**
@@ -83,7 +85,9 @@ public class PrettyErrorFormatterTest extends TestCase {
         new DartCompilationError(emptyDartSource, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
     String errorString = getErrorString(error, false, false);
-    assertEquals("my/path/Test.dart:1:3: no such type \"Foo\"\n", errorString);
+    assertEquals(
+        "my/path/Test.dart:1:3: no such type \"Foo\" (sourced from Test_app)\n",
+        errorString);
   }
 
   /**
@@ -97,7 +101,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, false, false);
     assertEquals(
         Joiner.on("\n").join(
-            "my/path/Test.dart:1: no such type \"Foo\"",
+            "my/path/Test.dart:1: no such type \"Foo\" (sourced from Test_app)",
             "     1: lineAAA",
             "          ~~~",
             ""),
@@ -115,7 +119,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, false, false);
     assertEquals(
         Joiner.on("\n").join(
-            "my/path/Test.dart:2: no such type \"Foo\"",
+            "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)",
             "     1: lineAAA",
             "     2: lineBBB",
             "          ~~~~~",
@@ -134,7 +138,9 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, true, false);
     assertEquals(
         Joiner.on("\n").join(
-            RED_BOLD_COLOR + "my/path/Test.dart:2: no such type \"Foo\"" + NO_COLOR,
+            RED_BOLD_COLOR
+                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + RED_COLOR + "neBBB" + NO_COLOR,
             ""),
@@ -152,7 +158,7 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, false, false);
     assertEquals(
         Joiner.on("\n").join(
-            "my/path/Test.dart:2: no such type \"Foo\"",
+            "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)",
             "     1: lineAAA",
             "     2: lineBBB",
             "          ~~~",
@@ -171,7 +177,9 @@ public class PrettyErrorFormatterTest extends TestCase {
     String errorString = getErrorString(error, true, false);
     assertEquals(
         Joiner.on("\n").join(
-            RED_BOLD_COLOR + "my/path/Test.dart:2: no such type \"Foo\"" + NO_COLOR,
+            RED_BOLD_COLOR
+                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + NO_COLOR,
             "     1: lineAAA",
             "     2: li" + RED_COLOR + "neB" + NO_COLOR + "BB",
             ""),
@@ -225,8 +233,10 @@ public class PrettyErrorFormatterTest extends TestCase {
       boolean printMachineProblems) {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     PrintStream printStream = new PrintStream(outputStream);
-    ErrorFormatter errorFormatter = new PrettyErrorFormatter(printStream, useColor,
-        printMachineProblems ? ErrorFormat.MACHINE : ErrorFormat.NORMAL);
+    ErrorFormatter errorFormatter =
+        new PrettyErrorFormatter(printStream, useColor, printMachineProblems
+            ? ErrorFormat.MACHINE
+            : ErrorFormat.NORMAL);
     errorFormatter.format(error);
     return outputStream.toString();
   }

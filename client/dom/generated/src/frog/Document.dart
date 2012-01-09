@@ -1,5 +1,5 @@
 
-class Document extends Node native "Document" {
+class Document extends Node native "*Document" {
 
   String URL;
 
@@ -135,7 +135,7 @@ class Document extends Node native "Document" {
 
   DOMSelection getSelection() native;
 
-  Node importNode(Node importedNode, bool deep) native;
+  Node importNode(Node importedNode, [bool deep = null]) native;
 
   bool queryCommandEnabled(String command) native;
 
@@ -152,4 +152,6 @@ class Document extends Node native "Document" {
   NodeList querySelectorAll(String selectors) native;
 
   void webkitCancelFullScreen() native;
+
+  WebKitNamedFlow webkitGetFlowByName(String name) native;
 }

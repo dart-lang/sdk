@@ -10,7 +10,7 @@ interface Console {
 
   List get profiles();
 
-  void assert(bool condition);
+  void assert_(bool condition);
 
   void count();
 

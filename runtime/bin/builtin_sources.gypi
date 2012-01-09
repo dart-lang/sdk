@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -57,7 +57,6 @@
     'fdutils.h',
     'fdutils_linux.cc',
     'fdutils_macos.cc',
-    'globals.h',
     'platform.cc',
     'platform.h',
     'platform_linux.cc',
@@ -75,5 +74,13 @@
     'socket_win.cc',
     'set.h',
     'set_test.cc',
+    'thread_pool.cc',
+    'thread_pool_linux.cc',
+    'thread_pool_linux.h',
+    'thread_pool_macos.cc',
+    'thread_pool_macos.h',
+    'thread_pool_test.cc',
+    'thread_pool_win.cc',
+    'thread_pool_win.h',
   ],
 }

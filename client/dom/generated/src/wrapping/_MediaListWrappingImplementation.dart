@@ -72,6 +72,10 @@ class _MediaListWrappingImplementation extends DOMWrapperBase implements MediaLi
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(String element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<String> filter(bool f(String element)) {
     return _Collections.filter(this, new List<String>(), f);
   }

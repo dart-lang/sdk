@@ -6,7 +6,8 @@
 #define BIN_PROCESS_H_
 
 #include "bin/builtin.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 
 class Process {
@@ -16,6 +17,7 @@ class Process {
   static int Start(const char* path,
                    char* arguments[],
                    intptr_t arguments_length,
+                   const char* working_directory,
                    intptr_t* in,
                    intptr_t* out,
                    intptr_t* err,

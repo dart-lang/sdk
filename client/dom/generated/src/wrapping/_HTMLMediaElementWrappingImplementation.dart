@@ -20,6 +20,12 @@ class _HTMLMediaElementWrappingImplementation extends _HTMLElementWrappingImplem
   TimeRanges get buffered() { return _get_buffered(this); }
   static TimeRanges _get_buffered(var _this) native;
 
+  MediaController get controller() { return _get_controller(this); }
+  static MediaController _get_controller(var _this) native;
+
+  void set controller(MediaController value) { _set_controller(this, value); }
+  static void _set_controller(var _this, MediaController value) native;
+
   bool get controls() { return _get_controls(this); }
   static bool _get_controls(var _this) native;
 
@@ -65,6 +71,12 @@ class _HTMLMediaElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set loop(bool value) { _set_loop(this, value); }
   static void _set_loop(var _this, bool value) native;
 
+  String get mediaGroup() { return _get_mediaGroup(this); }
+  static String _get_mediaGroup(var _this) native;
+
+  void set mediaGroup(String value) { _set_mediaGroup(this, value); }
+  static void _set_mediaGroup(var _this, String value) native;
+
   bool get muted() { return _get_muted(this); }
   static bool _get_muted(var _this) native;
 
@@ -109,6 +121,9 @@ class _HTMLMediaElementWrappingImplementation extends _HTMLElementWrappingImplem
 
   num get startTime() { return _get_startTime(this); }
   static num _get_startTime(var _this) native;
+
+  TextTrackList get textTracks() { return _get_textTracks(this); }
+  static TextTrackList _get_textTracks(var _this) native;
 
   num get volume() { return _get_volume(this); }
   static num _get_volume(var _this) native;

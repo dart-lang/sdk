@@ -368,4 +368,6 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     throw new UnsupportedOperationException(
       "WebKit drop zone can't be set for document fragments.");
   }
+
+  DocumentFragment clone(bool deep) => super.clone(deep);
 }

@@ -149,7 +149,7 @@ class DOMWindow native "@*DOMWindow" {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) native;
+  void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
 
@@ -177,17 +177,19 @@ class DOMWindow native "@*DOMWindow" {
 
   void stop() native;
 
+  void webkitCancelAnimationFrame(int id) native;
+
   void webkitCancelRequestAnimationFrame(int id) native;
 
   WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p) native;
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) native;
 
-  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) native;
+  void webkitPostMessage(String message, String targetOrigin, [List transferList = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 

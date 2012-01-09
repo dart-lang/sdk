@@ -89,8 +89,5 @@ def main():
   target = os.path.join(lib_dir, DOM_LIBRARY)
   shutil.copyfile(default, target)
 
-  # Remove monkey_dom.dart
-  os.rename('../monkey_dom.dart', '../monkey_dom.dart.broken')
-
 if __name__ == '__main__':
   sys.exit(main())

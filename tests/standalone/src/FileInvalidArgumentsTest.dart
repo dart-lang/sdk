@@ -88,7 +88,7 @@ class FileTest {
 
   static void testWriteByteInvalidArgs(value) {
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    var file = (new File(filename + "_out")).openSync(true);
+    var file = (new File(filename + "_out")).openSync(FileMode.WRITE);
     try {
       file.writeByteSync(value);
       Expect.fail('exception expected');
@@ -114,7 +114,7 @@ class FileTest {
 
   static void testWriteListInvalidArgs(buffer, offset, bytes) {
     String filename = getFilename("tests/vm/data/fixed_length_file");
-    var file = (new File(filename + "_out")).openSync(true);
+    var file = (new File(filename + "_out")).openSync(FileMode.WRITE);
     try {
       file.writeListSync(buffer, offset, bytes);
       Expect.fail('exception expected');
@@ -141,7 +141,7 @@ class FileTest {
   static void testWriteStringInvalidArgs(string) {
     String filename = getFilename("tests/vm/data/fixed_length_file");
     var file = new File(filename + "_out");
-    file.openSync(true);
+    file.openSync(FileMode.WRITE);
     try {
       file.writeString(string);
       Expect.fail('exception expected');

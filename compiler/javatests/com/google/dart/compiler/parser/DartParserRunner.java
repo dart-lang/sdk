@@ -6,6 +6,7 @@ package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.ast.DartUnit;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DartParserRunner extends DartCompilerListener implements Runnable {
+public class DartParserRunner implements DartCompilerListener, Runnable {
 
   public static final int DEFAULT_TIMEOUT_IN_MILISECONDS = 10 * 1000;
 
@@ -190,6 +191,10 @@ public class DartParserRunner extends DartCompilerListener implements Runnable {
 
   private boolean isAlive() {
     return parserWorker.isAlive();
+  }
+
+  @Override
+  public void unitAboutToCompile(DartSource source, boolean diet) {
   }
 
   @Override

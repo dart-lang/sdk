@@ -854,8 +854,6 @@ DEFINE_RUNTIME_ENTRY(ReportObjectNotClosure, 2) {
     GrowableArray<const Object*> args;
     Exceptions::ThrowByType(Exceptions::kObjectNotClosure, args);
   }
-  // const Array& arguments = Array::CheckedHandle(arguments.At(1));
-  OS::PrintErr("object '%s' is not a closure\n", bad_closure.ToCString());
   GrowableArray<const Object*> args;
   Exceptions::ThrowByType(Exceptions::kObjectNotClosure, args);
 }

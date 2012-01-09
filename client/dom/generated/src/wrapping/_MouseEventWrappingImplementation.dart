@@ -56,6 +56,12 @@ class _MouseEventWrappingImplementation extends _UIEventWrappingImplementation i
   Node get toElement() { return _get_toElement(this); }
   static Node _get_toElement(var _this) native;
 
+  int get webkitMovementX() { return _get_webkitMovementX(this); }
+  static int _get_webkitMovementX(var _this) native;
+
+  int get webkitMovementY() { return _get_webkitMovementY(this); }
+  static int _get_webkitMovementY(var _this) native;
+
   int get x() { return _get_x(this); }
   static int _get_x(var _this) native;
 

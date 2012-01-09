@@ -3,15 +3,17 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void bringToFront() native;
 
+  bool canSaveAs() native;
+
   void closeWindow() native;
 
   void copyText(String text) native;
 
-  void disconnectFromBackend() native;
-
   String hiddenPanels() native;
 
   void inspectedURLChanged(String newURL) native;
+
+  String loadResourceSynchronously(String url) native;
 
   void loaded() native;
 
@@ -39,7 +41,7 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void setAttachedWindowHeight(int height) native;
 
-  void setExtensionAPI(String script) native;
+  void setInjectedScriptForOrigin(String origin, String script) native;
 
   void showContextMenu(MouseEvent event, Object items) native;
 

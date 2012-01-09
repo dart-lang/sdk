@@ -403,22 +403,17 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
   static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
 
-  void postMessage(String message, var messagePorts_OR_targetOrigin, [String targetOrigin = null]) {
-    if (messagePorts_OR_targetOrigin is String) {
-      if (targetOrigin === null) {
-        _postMessage(this, message, messagePorts_OR_targetOrigin);
-        return;
-      }
+  void postMessage(String message, String targetOrigin, [List messagePorts = null]) {
+    if (messagePorts === null) {
+      _postMessage(this, message, targetOrigin);
+      return;
     } else {
-      if (messagePorts_OR_targetOrigin is List) {
-        _postMessage_2(this, message, messagePorts_OR_targetOrigin, targetOrigin);
-        return;
-      }
+      _postMessage_2(this, message, targetOrigin, messagePorts);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _postMessage(receiver, message, messagePorts_OR_targetOrigin) native;
-  static void _postMessage_2(receiver, message, messagePorts_OR_targetOrigin, targetOrigin) native;
+  static void _postMessage(receiver, message, targetOrigin) native;
+  static void _postMessage_2(receiver, message, targetOrigin, messagePorts) native;
 
   void print() {
     _print(this);
@@ -513,6 +508,12 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static void _stop(receiver) native;
 
+  void webkitCancelAnimationFrame(int id) {
+    _webkitCancelAnimationFrame(this, id);
+    return;
+  }
+  static void _webkitCancelAnimationFrame(receiver, id) native;
+
   void webkitCancelRequestAnimationFrame(int id) {
     _webkitCancelRequestAnimationFrame(this, id);
     return;
@@ -529,48 +530,34 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static WebKitPoint _webkitConvertPointFromPageToNode(receiver, node, p) native;
 
-  void webkitPostMessage(String message, var targetOrigin_OR_transferList, [String targetOrigin = null]) {
-    if (targetOrigin_OR_transferList is String) {
-      if (targetOrigin === null) {
-        _webkitPostMessage(this, message, targetOrigin_OR_transferList);
-        return;
-      }
+  void webkitPostMessage(String message, String targetOrigin, [List transferList = null]) {
+    if (transferList === null) {
+      _webkitPostMessage(this, message, targetOrigin);
+      return;
     } else {
-      if (targetOrigin_OR_transferList is List) {
-        _webkitPostMessage_2(this, message, targetOrigin_OR_transferList, targetOrigin);
-        return;
-      }
+      _webkitPostMessage_2(this, message, targetOrigin, transferList);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _webkitPostMessage(receiver, message, targetOrigin_OR_transferList) native;
-  static void _webkitPostMessage_2(receiver, message, targetOrigin_OR_transferList, targetOrigin) native;
+  static void _webkitPostMessage(receiver, message, targetOrigin) native;
+  static void _webkitPostMessage_2(receiver, message, targetOrigin, transferList) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) {
     return _webkitRequestAnimationFrame(this, callback, element);
   }
   static int _webkitRequestAnimationFrame(receiver, callback, element) native;
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) {
-    if (successCallback === null) {
-      if (errorCallback === null) {
-        _webkitRequestFileSystem(this, type, size);
-        return;
-      }
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _webkitRequestFileSystem(this, type, size, successCallback);
+      return;
     } else {
-      if (errorCallback === null) {
-        _webkitRequestFileSystem_2(this, type, size, successCallback);
-        return;
-      } else {
-        _webkitRequestFileSystem_3(this, type, size, successCallback, errorCallback);
-        return;
-      }
+      _webkitRequestFileSystem_2(this, type, size, successCallback, errorCallback);
+      return;
     }
-    throw "Incorrect number or type of arguments";
   }
-  static void _webkitRequestFileSystem(receiver, type, size) native;
-  static void _webkitRequestFileSystem_2(receiver, type, size, successCallback) native;
-  static void _webkitRequestFileSystem_3(receiver, type, size, successCallback, errorCallback) native;
+  static void _webkitRequestFileSystem(receiver, type, size, successCallback) native;
+  static void _webkitRequestFileSystem_2(receiver, type, size, successCallback, errorCallback) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) {
     if (successCallback === null) {

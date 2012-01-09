@@ -32,7 +32,7 @@ class ProgressIndicator {
     }
   }
 
-  void testAdded() => _foundTests++;
+  void testAdded() { _foundTests++; }
 
   void start(TestCase test) {
     _printStartProgress(test);
@@ -79,8 +79,8 @@ class ProgressIndicator {
     exit(_failedTests > 0 ? 1 : 0);
   }
 
-  abstract _printStartProgress();
-  abstract _printDoneProgress();
+  abstract _printStartProgress(TestCase test);
+  abstract _printDoneProgress(TestCase test);
 
   String _pad(String s, int length) {
     StringBuffer buffer = new StringBuffer();
@@ -124,7 +124,7 @@ class ProgressIndicator {
       print('\nstderr:');
       test.output.stderr.forEach((s) => print(s));
     }
-    if (test is BrowserTestCase) {
+    if (test is BrowserTestCase && test.dynamic.compilerPath != null) {
       print('\nCompilation command: ${test.dynamic.compilerPath} ' +
             Strings.join(test.dynamic.compilerArguments, ' '));
     }
@@ -169,6 +169,8 @@ class CompactIndicator extends ProgressIndicator {
 
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
+  
+  abstract void _printProgress();
 }
 
 

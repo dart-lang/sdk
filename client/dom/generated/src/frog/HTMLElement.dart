@@ -1,5 +1,7 @@
 
-class HTMLElement extends Element native "HTMLElement" {
+class HTMLElement extends Element native "*HTMLElement" {
+
+  String accessKey;
 
   HTMLCollection children;
 

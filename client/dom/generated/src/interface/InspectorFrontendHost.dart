@@ -8,15 +8,17 @@ interface InspectorFrontendHost {
 
   void bringToFront();
 
+  bool canSaveAs();
+
   void closeWindow();
 
   void copyText(String text);
 
-  void disconnectFromBackend();
-
   String hiddenPanels();
 
   void inspectedURLChanged(String newURL);
+
+  String loadResourceSynchronously(String url);
 
   void loaded();
 
@@ -44,7 +46,7 @@ interface InspectorFrontendHost {
 
   void setAttachedWindowHeight(int height);
 
-  void setExtensionAPI(String script);
+  void setInjectedScriptForOrigin(String origin, String script);
 
   void showContextMenu(MouseEvent event, Object items);
 }

@@ -18,6 +18,6 @@ class Co19TestSuite extends StandardTestSuite {
                "tests/co19/co19-frog.status"]);
 
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);
-  void listRecursively() => true;
-  void complexStatusMatching() => true;
+  bool listRecursively() => true;
+  bool complexStatusMatching() => true;
 }

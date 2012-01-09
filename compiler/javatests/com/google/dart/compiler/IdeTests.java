@@ -18,6 +18,7 @@ public class IdeTests extends TestSetup {
     TestSuite suite = new TestSuite("IDE/dartc integration test suite.");
     suite.addTestSuite(IdeTest.class);
     suite.addTestSuite(DeltaAnalyzerTest.class);
+    suite.addTestSuite(CodeCompletionParseTest.class);
     return suite;
   }
 }

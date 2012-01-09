@@ -5,7 +5,6 @@
 package com.google.dart.corelib;
 
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
@@ -218,7 +217,7 @@ public abstract class SharedTestCase extends TestCase {
   }
 
   private DartCompilerListener getListener() {
-    DartCompilerListener listener = new DartCompilerListener() {
+    DartCompilerListener listener = new DartCompilerListener.Empty() {
       @Override
       public void onError(DartCompilationError event) {
         if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
@@ -239,10 +238,6 @@ public abstract class SharedTestCase extends TestCase {
           // It is easier to debug a failing regular test if we throw an exception.
           throw new AssertionError(event);
         }
-      }
-
-      @Override
-      public void unitCompiled(DartUnit unit) {
       }
     };
     return listener;

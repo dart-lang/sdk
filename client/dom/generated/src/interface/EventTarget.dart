@@ -11,6 +11,4 @@ interface EventTarget {
   bool dispatchEvent(Event event);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  // void addEventListener(String type, EventListener listener);
 }

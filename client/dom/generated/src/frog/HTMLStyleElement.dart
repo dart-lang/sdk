@@ -5,6 +5,8 @@ class HTMLStyleElement extends HTMLElement native "*HTMLStyleElement" {
 
   String media;
 
+  bool scoped;
+
   StyleSheet sheet;
 
   String type;

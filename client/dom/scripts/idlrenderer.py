@@ -130,6 +130,8 @@ def render(idl_node, indent_str='  '):
     elif isinstance(node, IDLOperation):
       w(node.annotations)
       w(node.ext_attrs)
+      if node.is_static:
+        w('static ')
       if node.specials:
         w(node.specials, ' ')
         w(' ')

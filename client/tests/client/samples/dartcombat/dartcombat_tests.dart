@@ -21,7 +21,7 @@ main() {
   var link = new Element.tag('link');
   link.rel = 'stylesheet';
   link.type = 'text/css';
-  link.href = '../../samples/dartcombat/dartcombat.css';
+  link.href = '../../../client/samples/dartcombat/dartcombat.css';
   document.head.nodes.add(link);
 
   asyncTest('wait until setup', 1, () {

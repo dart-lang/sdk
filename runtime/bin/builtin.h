@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "bin/globals.h"
 #include "include/dart_api.h"
+
+#include "platform/globals.h"
 
 #ifdef DEBUG
 #define ASSERT(expr) assert(expr)

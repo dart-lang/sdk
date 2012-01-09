@@ -67,6 +67,10 @@ class _CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements 
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<int> filter(bool f(int element)) {
     return _Collections.filter(this, new List<int>(), f);
   }

@@ -7,6 +7,4 @@
 interface PageTransitionEvent extends Event {
 
   bool get persisted();
-
-  void initPageTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, bool persisted);
 }

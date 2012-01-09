@@ -12,6 +12,8 @@ import com.google.dart.compiler.SubSystem;
  */
 public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_MEMBER_IN_INTERFACE("Abstract members are not allowed in interfaces"),
+  ABSTRACT_METHOD_WITH_BODY("Abstract method can not have a body"),
+  ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
   CATCH_OR_FINALLY_EXPECTED("catch or finally clause expected."),
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_ABSTRACT(
       "Default values can not be specified in abstract method"),
@@ -56,6 +58,7 @@ public enum ParserErrorCode implements ErrorCode {
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
   INCOMPLETE_STRING_LITERAL("Incomplete string literal"),
+  INTERFACE_METHOD_WITH_BODY("Interface method can not have a body"),
   INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),

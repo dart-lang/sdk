@@ -31,4 +31,6 @@ interface BiquadFilterNode extends AudioNode {
   int get type();
 
   void set type(int value);
+
+  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse);
 }

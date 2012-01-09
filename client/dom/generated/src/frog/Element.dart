@@ -1,5 +1,5 @@
 
-class Element extends Node native "Element" {
+class Element extends Node native "*Element" {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 

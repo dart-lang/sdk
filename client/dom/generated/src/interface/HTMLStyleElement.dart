@@ -14,6 +14,10 @@ interface HTMLStyleElement extends HTMLElement {
 
   void set media(String value);
 
+  bool get scoped();
+
+  void set scoped(bool value);
+
   StyleSheet get sheet();
 
   String get type();

@@ -1,8 +1,6 @@
 
 class HTMLAnchorElement extends HTMLElement native "*HTMLAnchorElement" {
 
-  String accessKey;
-
   String charset;
 
   String coords;
@@ -44,8 +42,6 @@ class HTMLAnchorElement extends HTMLElement native "*HTMLAnchorElement" {
   String text;
 
   String type;
-
-  String getParameter(String name) native;
 
   String toString() native;
 }

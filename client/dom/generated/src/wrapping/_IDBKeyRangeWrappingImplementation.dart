@@ -48,8 +48,8 @@ class _IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKe
       return _lowerBound_2(this, bound_, open);
     }
   }
-  static IDBKeyRange _lowerBound(receiver, bound_) native;
-  static IDBKeyRange _lowerBound_2(receiver, bound_, open) native;
+  static IDBKeyRange _lowerBound(receiver, bound) native;
+  static IDBKeyRange _lowerBound_2(receiver, bound, open) native;
 
   IDBKeyRange only(IDBKey value) {
     return _only(this, value);
@@ -63,8 +63,8 @@ class _IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKe
       return _upperBound_2(this, bound_, open);
     }
   }
-  static IDBKeyRange _upperBound(receiver, bound_) native;
-  static IDBKeyRange _upperBound_2(receiver, bound_, open) native;
+  static IDBKeyRange _upperBound(receiver, bound) native;
+  static IDBKeyRange _upperBound_2(receiver, bound, open) native;
 
   String get typeName() { return "IDBKeyRange"; }
 }

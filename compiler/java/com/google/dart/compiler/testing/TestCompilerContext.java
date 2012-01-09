@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * Common context for test cases.
  */
-public class TestCompilerContext extends DartCompilerListener implements DartCompilerContext {
+public class TestCompilerContext implements DartCompilerListener, DartCompilerContext {
 
   private final Set<EventKind> ignoredEvents;
   final List<ErrorCode> errors;
@@ -148,6 +148,10 @@ public class TestCompilerContext extends DartCompilerListener implements DartCom
   @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     return null;
+  }
+
+  @Override
+  public void unitAboutToCompile(DartSource source, boolean diet) {
   }
 
   @Override

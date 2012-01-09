@@ -10,6 +10,10 @@ interface HTMLOListElement extends HTMLElement {
 
   void set compact(bool value);
 
+  bool get reversed();
+
+  void set reversed(bool value);
+
   int get start();
 
   void set start(int value);

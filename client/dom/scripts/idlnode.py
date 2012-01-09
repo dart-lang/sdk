@@ -380,6 +380,7 @@ class IDLOperation(IDLMember):
     self.raises = self._convert_first(ast, 'Raises', IDLType)
     self.specials = self._find_all(ast, 'Special')
     self.is_stringifier = self._has(ast, 'Stringifier')
+    self.is_static = self._has(ast, 'Static')
   def _extra_repr(self):
     return [self.arguments]
 

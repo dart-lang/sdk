@@ -8,7 +8,7 @@ class SVGSVGElementWrappingImplementation extends SVGElementWrappingImplementati
   factory SVGSVGElementWrappingImplementation() {
     var el = new SVGElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
-    el.attributes['version'] = 1.1;
+    el.attributes['version'] = "1.1";
     return el;
   }
 

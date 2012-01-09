@@ -22,6 +22,13 @@ class FileHandle;
 
 class File {
  public:
+  enum FileOpenMode {
+    kRead = 0,
+    kWrite = 1,
+    kTruncate = 1 << 2,
+    kWriteTruncate = kWrite | kTruncate
+  };
+
   ~File();
 
   // Read/Write attempt to transfer num_bytes to/from buffer. It returns
@@ -58,7 +65,13 @@ class File {
 
   const char* name() const { return name_; }
 
-  static File* Open(const char* name, bool writable);
+  // Open the file with the given name. The file is always opened for
+  // reading. If mode contains kWrite the file is opened for both
+  // reading and writing. If mode contains kWrite and the file does
+  // not exist the file is created. The file is truncated to length 0 if
+  // mode contains kTruncate.
+  static File* Open(const char* name, FileOpenMode mode);
+
   static bool Exists(const char* name);
   static bool Create(const char* name);
   static bool Delete(const char* name);

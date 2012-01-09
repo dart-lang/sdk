@@ -7,6 +7,7 @@
  */
 class FutureNotCompleteException implements Exception {
   FutureNotCompleteException() {}
+  String toString() => "Exception: future has not been completed";
 }
 
 /**
@@ -15,6 +16,7 @@ class FutureNotCompleteException implements Exception {
  */
 class FutureAlreadyCompleteException implements Exception {
   FutureAlreadyCompleteException() {}
+  String toString() => "Exception: future already completed";
 }
 
 
@@ -81,8 +83,10 @@ class FutureImpl<T> implements Future<T> {
   void then(void onComplete(T value)) {
     if (hasValue) {
       onComplete(value);
-    } else {
+    } else if (!isComplete) {
       _listeners.add(onComplete);
+    } else if (!_exceptionHandled) {
+      throw _exception;
     }
   }
 
@@ -96,6 +100,7 @@ class FutureImpl<T> implements Future<T> {
       for (Function handler in _exceptionHandlers) {
         if (handler(_exception)) {
           _exceptionHandled = true;
+          break;
         }
       }
     }

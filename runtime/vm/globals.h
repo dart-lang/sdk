@@ -1,51 +1,20 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #ifndef VM_GLOBALS_H_
 #define VM_GLOBALS_H_
 
-// __STDC_FORMAT_MACROS has to be defined to enable platform independent printf.
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
+// This file contains global definitions for the VM library only. Anything that
+// is more globally useful should be added to 'vm/globals.h'.
+
+#include "platform/globals.h"
 
 #if defined(_WIN32)
-// Cut down on the amount of stuff that gets included via windows.h.
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#define NOKERNEL
-#define NOUSER
-#define NOSERVICE
-#define NOSOUND
-#define NOMCX
-
-#include <windows.h>
-
 // Undef conflicting defines.
 #undef PARITY_EVEN
 #undef PARITY_ODD
 #undef near
-#endif
-
-#if !defined(_WIN32)
-#include <inttypes.h>
-#include <stdint.h>
-#endif
-
-#include <float.h>
-#include <math.h>
-#include <openssl/bn.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-
-#if defined(_WIN32)
-#include "vm/c99_support_win.h"
-#include "vm/inttypes_support_win.h"
 #endif
 
 // The following #defines are invalidated.
@@ -97,21 +66,6 @@ namespace dart {
 #if !defined(ARCH_IS_32_BIT)
 #error Mismatched Host/Target architectures.
 #endif
-#endif
-
-
-// Target OS detection.
-// for more information on predefined macros:
-//   - http://msdn.microsoft.com/en-us/library/b0084kay.aspx
-//   - with gcc, run: "echo | gcc -E -dM -"
-#if defined(__linux__) || defined(__FreeBSD__)
-#define TARGET_OS_LINUX 1
-#elif defined(__APPLE__)
-#define TARGET_OS_MACOS 1
-#elif defined(_WIN32)
-#define TARGET_OS_WINDOWS 1
-#else
-#error Automatic target os detection failed.
 #endif
 
 
@@ -168,6 +122,9 @@ const int kBitsPerWord = kWordSize * kBitsPerByte;
 const int KB = 1024;
 const int MB = KB * KB;
 const int GB = KB * KB * KB;
+const intptr_t kIntptrOne = 1;
+const intptr_t kIntptrMin = (kIntptrOne << (kBitsPerWord - 1));
+const intptr_t kIntptrMax = ~kIntptrMin;
 
 // Time constants.
 const int kMillisecondsPerSecond = 1000;
@@ -179,34 +136,6 @@ const int kNanosecondsPerMillisecond = (kNanosecondsPerMicrosecond *
                                         kMicrosecondsPerMillisecond);
 const int kNanosecondsPerSecond = (kNanosecondsPerMicrosecond *
                                    kMicrosecondsPerSecond);
-
-// A macro to disallow the copy constructor and operator= functions.
-// This should be used in the private: declarations for a class.
-#define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
-private:                                                                       \
-  TypeName(const TypeName&);                                                   \
-  void operator=(const TypeName&)
-
-
-// A macro to disallow all the implicit constructors, namely the default
-// constructor, copy constructor and operator= functions. This should be
-// used in the private: declarations for a class that wants to prevent
-// anyone from instantiating it. This is especially useful for classes
-// containing only static methods.
-#define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName)                               \
-private:                                                                       \
-  TypeName();                                                                  \
-  DISALLOW_COPY_AND_ASSIGN(TypeName)
-
-
-// Macro to disallow allocation in the C++ heap. This should be used
-// in the private section for a class.
-#define DISALLOW_ALLOCATION()                                                  \
-public:                                                                        \
-  void operator delete(void* pointer) { UNREACHABLE(); }                       \
-private:                                                                       \
-  void* operator new(size_t size);
-
 
 // The expression ARRAY_SIZE(array) is a compile-time constant of type
 // size_t which represents the number of elements of the given
@@ -235,12 +164,6 @@ const intptr_t kOffsetOfPtr = 32;
 #define OFFSET_OF_RETURNED_VALUE(type, accessor)                            \
   (reinterpret_cast<intptr_t>(                                              \
       (reinterpret_cast<type*>(kOffsetOfPtr)->accessor())) - kOffsetOfPtr)
-
-
-// The USE(x) template is used to silence C++ compiler warnings issued
-// for unused variables.
-template <typename T>
-static inline void USE(T) { }
 
 
 // Use implicit_cast as a safe version of static_cast or const_cast

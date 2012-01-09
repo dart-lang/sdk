@@ -16,7 +16,7 @@ public class SystemLibraryManagerTest extends TestCase {
     assertNotNull(fullUri);
     assertEquals("dart", fullUri.getScheme());
     assertEquals("core", fullUri.getHost());
-    assertTrue(fullUri.getPath().endsWith("/corelib.dart"));
+    assertTrue(getPath(fullUri).endsWith("/corelib.dart"));
   }
 
   public void testExpand2() throws Exception {
@@ -25,7 +25,7 @@ public class SystemLibraryManagerTest extends TestCase {
     assertNotNull(fullUri);
     assertEquals("dart", fullUri.getScheme());
     assertEquals("core", fullUri.getHost());
-    assertTrue(fullUri.getPath().endsWith("/corelib_impl.dart"));
+    assertTrue(getPath(fullUri).endsWith("/corelib_impl.dart"));
   }
 
   public void testExpand3() throws Exception {
@@ -35,7 +35,7 @@ public class SystemLibraryManagerTest extends TestCase {
     assertNotNull(fullUri2);
     assertEquals("dart", fullUri2.getScheme());
     assertEquals("core", fullUri2.getHost());
-    assertTrue(fullUri2.getPath().endsWith("/corelib_impl.dart"));
+    assertTrue(getPath(fullUri2).endsWith("/corelib_impl.dart"));
   }
 
   public void testExpand4() throws Exception {
@@ -51,7 +51,7 @@ public class SystemLibraryManagerTest extends TestCase {
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
     assertTrue(scheme.equals("file") || scheme.equals("jar"));
-    assertTrue(translatedURI.getPath().endsWith("/corelib.dart"));
+    assertTrue(getPath(translatedURI).endsWith("/corelib.dart"));
   }
 
   public void testTranslate2() throws Exception {
@@ -61,7 +61,7 @@ public class SystemLibraryManagerTest extends TestCase {
     assertNotNull(translatedURI);
     String scheme = translatedURI.getScheme();
     assertTrue(scheme.equals("file") || scheme.equals("jar"));
-    assertTrue(translatedURI.getPath().endsWith("/corelib_impl.dart"));
+    assertTrue(getPath(translatedURI).endsWith("/corelib_impl.dart"));
   }
 
   public void testTranslate3() throws Exception {
@@ -74,5 +74,18 @@ public class SystemLibraryManagerTest extends TestCase {
       assertTrue(message.startsWith("No system library"));
       assertTrue(message.contains(fullUri.toString()));
     }
+  }
+
+  /**
+   * For FS based {@link URI} the path is not <code>null</code>, for JAR {@link URI} the scheme
+   * specific part is not <code>null</code>.
+   * 
+   * @return the scheme specific path.
+   */
+  private static String getPath(URI uri) {
+    if (uri.getPath() != null) {
+      return uri.getPath();
+    }
+    return uri.getSchemeSpecificPart();
   }
 }

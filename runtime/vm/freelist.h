@@ -20,8 +20,17 @@ namespace dart {
 // the address following the next_ field.
 class FreeListElement {
  public:
-  FreeListElement* next() const { return next_; }
-  void set_next(FreeListElement* next) { next_ = next; }
+  FreeListElement* next() const {
+    // Clear the FreeBit.
+    ASSERT((next_ & 1) == 1);
+    return reinterpret_cast<FreeListElement*>(next_ ^ 1);
+  }
+  void set_next(FreeListElement* next) {
+    // Set the FreeBit.
+    uword addr = reinterpret_cast<uword>(next);
+    ASSERT((addr & 1) == 0);
+    next_ = addr | 1;
+  }
 
   intptr_t Size() const {
     if (class_ == minimal_element_class_) {
@@ -42,7 +51,7 @@ class FreeListElement {
  private:
   // This layout mirrors the layout of RawObject.
   RawClass* class_;
-  FreeListElement* next_;
+  uword next_;
 
   // Returns the address of the embedded size.
   intptr_t* SizeAddress() const {

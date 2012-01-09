@@ -11,12 +11,6 @@ class _HTMLAreaElementWrappingImplementation extends _HTMLElementWrappingImpleme
     return new _HTMLAreaElementWrappingImplementation();
   }
 
-  String get accessKey() { return _get_accessKey(this); }
-  static String _get_accessKey(var _this) native;
-
-  void set accessKey(String value) { _set_accessKey(this, value); }
-  static void _set_accessKey(var _this, String value) native;
-
   String get alt() { return _get_alt(this); }
   static String _get_alt(var _this) native;
 

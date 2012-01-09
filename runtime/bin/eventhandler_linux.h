@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include "bin/thread_pool.h"
 
 class InterruptMessage {
  public:
@@ -46,7 +47,7 @@ class SocketData {
     Unregister();
     flags_ = 0;
     close(fd_);
-    fd_ = 0;
+    fd_ = -1;
   }
 
   bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
@@ -60,6 +61,7 @@ class SocketData {
   bool HasPollEvents() { return mask_ != 0; }
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
+    ASSERT(fd_ != -1);
     port_ = port;
     mask_ = mask;
   }

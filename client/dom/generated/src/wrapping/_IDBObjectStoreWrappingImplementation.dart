@@ -35,6 +35,16 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   }
   static IDBRequest _clear(receiver) native;
 
+  IDBRequest count([IDBKeyRange range = null]) {
+    if (range === null) {
+      return _count(this);
+    } else {
+      return _count_2(this, range);
+    }
+  }
+  static IDBRequest _count(receiver) native;
+  static IDBRequest _count_2(receiver, range) native;
+
   IDBIndex createIndex(String name, String keyPath) {
     return _createIndex(this, name, keyPath);
   }

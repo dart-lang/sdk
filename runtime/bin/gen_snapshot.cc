@@ -14,7 +14,8 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
-#include "bin/globals.h"
+
+#include "platform/globals.h"
 
 // Global state that indicates whether a snapshot is to be created and
 // if so which file to write the snapshot into.
@@ -105,8 +106,7 @@ static int ParseArguments(int argc,
 
 
 static void WriteSnapshotFile(const uint8_t* buffer, const intptr_t size) {
-  const bool kWritable = true;
-  File* file = File::Open(snapshot_filename, kWritable);
+  File* file = File::Open(snapshot_filename, File::kWriteTruncate);
   ASSERT(file != NULL);
   for (intptr_t i = 0; i < size; i++) {
     file->WriteByte(buffer[i]);

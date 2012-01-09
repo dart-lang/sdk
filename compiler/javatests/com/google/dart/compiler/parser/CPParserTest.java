@@ -21,7 +21,7 @@ import java.util.List;
 public class CPParserTest extends CompilerTestCase {
 
   private static String[] EXPECTED001 = {"/*\n * Beginning comment\n */",
-    "// line comment", "// another", "/**/", "//",
+    "// line comment", "// another", "/**/", "//", "/*/*nested*/*/",
   };
   private static String[] EXPECTED002 = {"/*\n*\n //comment\nX Y"};
 

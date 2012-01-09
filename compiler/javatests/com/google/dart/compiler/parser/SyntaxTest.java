@@ -5,7 +5,6 @@
 package com.google.dart.compiler.parser;
 
 import com.google.common.base.Joiner;
-import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.ast.DartArrayLiteral;
@@ -108,14 +107,7 @@ public class SyntaxTest extends AbstractParserTest {
     try {
       DartSourceTest dartSrc = new DartSourceTest(getName(), sourceCode, null);
       DartScannerParserContext context =
-        new DartScannerParserContext(dartSrc, sourceCode, new DartCompilerListener() {
-        @Override
-        public void onError(DartCompilationError event) {
-        }
-        @Override
-        public void unitCompiled(DartUnit unit) {
-        }
-      });
+        new DartScannerParserContext(dartSrc, sourceCode, new DartCompilerListener.Empty());
       DartParser parser = new DartParser(context);
       parser.parseExpression();
     }

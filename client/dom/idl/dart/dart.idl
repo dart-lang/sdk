@@ -56,6 +56,8 @@ module html {
     void warn(DOMObject arg);
     [Suppressed] void trace();
     void trace(DOMObject arg);
+
+    [DartName=assert_] void assert(in boolean condition);
   };
 
   [Supplemental]

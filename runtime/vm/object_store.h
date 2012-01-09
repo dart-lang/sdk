@@ -291,6 +291,11 @@ class ObjectStore {
     stack_overflow_ = value.raw();
   }
 
+  RawInstance* out_of_memory() const { return out_of_memory_; }
+  void set_out_of_memory(const Instance& value) {
+    out_of_memory_ = value.raw();
+  }
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -353,7 +358,8 @@ class ObjectStore {
   RawString* sticky_error_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&stack_overflow_); }
+  RawInstance* out_of_memory_;
+  RawObject** to() { return reinterpret_cast<RawObject**>(&out_of_memory_); }
 
   bool preallocate_objects_called_;
 

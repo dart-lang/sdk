@@ -6,7 +6,7 @@
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'stub-generator', 'vm'];
+           'isolate', 'stub-generator', 'vm', 'client'];
 
 /**
  * Specification of a single test option.
@@ -125,6 +125,13 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
+              'list',
+              'List tests only, do not run them',
+              ['--list'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'valgrind',
               'Run tests through valgrind',
               ['--valgrind'],
@@ -177,7 +184,14 @@ is 'dart file.dart' and you specify special command
         var split = arg.lastIndexOf('=');
         if (split == -1) {
           name = arg;
-          value = '';
+          // Boolean options do not have a value.
+          if (_getSpecification(name).type != 'bool') {
+            if ((i + 1) >= arguments.length) {
+              print('No value supplied for option $name');
+              return null;
+            }
+            value = arguments[++i];
+          }
         } else {
           name = arg.substring(0, split);
           value = arg.substring(split + 1, arg.length);
@@ -280,8 +294,9 @@ is 'dart file.dart' and you specify special command
       configuration['special-command'] = 'python -u $valgrind @';
     }
 
-    // Use verbose progress indication for verbose output.
-    if (configuration['verbose']) {
+    // Use verbose progress indication for verbose output unless buildbot
+    // progress indication is requested.
+    if (configuration['verbose'] && configuration['progress'] != 'buildbot') {
       configuration['progress'] = 'verbose';
     }
 
@@ -392,11 +407,11 @@ is 'dart file.dart' and you specify special command
         var buffer = new StringBuffer();;
         buffer.add(name);
         if (option.type == 'bool') {
-          assert(option.values.empty());
+          assert(option.values.isEmpty());
         } else {
           buffer.add(name.startsWith('--') ? '=' : ' ');
           if (option.type == 'int') {
-            assert(option.values.empty());
+            assert(option.values.isEmpty());
             buffer.add('n (default: ${option.defaultValue})');
           } else {
             buffer.add('[');

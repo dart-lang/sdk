@@ -352,28 +352,48 @@ class _Socket extends _SocketBase implements Socket {
   bool _createConnect(String host, int port) native "Socket_CreateConnect";
 
   void set writeHandler(void callback()) {
-    _setHandler(_OUT_EVENT, callback);
+    if (_outputStream != null) throw new StreamException(
+            "Cannot set write handler when output stream is used");
+    _clientWriteHandler = callback;
+    _updateOutHandler();
   }
 
   void set connectHandler(void callback()) {
-    // TODO(ager): Make sure that write handler and connect handler do
-    // not compete for the out events.
-    _setHandler(_OUT_EVENT, callback);
+    if (_seenFirstOutEvent || _outputStream != null) {
+      throw new StreamException(
+          "Cannot set connect handler when already connected");
+    }
+    if (_outputStream != null) {
+      throw new StreamException(
+          "Cannot set connect handler when output stream is used");
+    }
+    _clientConnectHandler = callback;
+    _updateOutHandler();
   }
 
   void set dataHandler(void callback()) {
-    _setHandler(_IN_EVENT, callback);
+    if (_inputStream != null) throw new StreamException(
+            "Cannot set data handler when input stream is used");
+    _dataHandler = callback;
   }
 
   void set closeHandler(void callback()) {
-    _setHandler(_CLOSE_EVENT, callback);
+    if (_inputStream != null) throw new StreamException(
+            "Cannot set data handler when input stream is used");
+    _closeHandler = callback;
   }
 
   bool _isListenSocket() => false;
+
   bool _isPipe() => _pipe;
 
   InputStream get inputStream() {
     if (_inputStream === null) {
+      if (_handlerMap[_IN_EVENT] !== null ||
+          _handlerMap[_CLOSE_EVENT] !== null) {
+        throw new StreamException(
+            "Cannot get input stream when socket handlers are used");
+      }
       _inputStream = new SocketInputStream(this);
     }
     return _inputStream;
@@ -381,14 +401,63 @@ class _Socket extends _SocketBase implements Socket {
 
   OutputStream get outputStream() {
     if (_outputStream === null) {
+      if (_handlerMap[_OUT_EVENT] !== null) {
+        throw new StreamException(
+            "Cannot get input stream when socket handlers are used");
+      }
       _outputStream = new SocketOutputStream(this);
     }
     return _outputStream;
   }
 
+  void set _writeHandler(void callback()) {
+    _setHandler(_OUT_EVENT, callback);
+  }
+
+  void set _dataHandler(void callback()) {
+    _setHandler(_IN_EVENT, callback);
+  }
+
+  void set _closeHandler(void callback()) {
+    _setHandler(_CLOSE_EVENT, callback);
+  }
+
+  void _updateOutHandler() {
+    void firstWriteHandler() {
+      assert(!_seenFirstOutEvent);
+      _seenFirstOutEvent = true;
+
+      // From now on the write handler is only the client write
+      // handler (connect handler cannot be called again). Change this
+      // before calling any handlers as handlers can change the
+      // handlers.
+      if (_clientWriteHandler === null) _writeHandler = _clientWriteHandler;
+
+      // First out event is socket connected event.
+      if (_clientConnectHandler !== null) _clientConnectHandler();
+      _clientConnectHandler = null;
+
+      // Always (even for the first out event) call the write handler.
+      if (_clientWriteHandler !== null) _clientWriteHandler();
+    }
+
+    if (_clientConnectHandler === null && _clientWriteHandler === null) {
+      _writeHandler = null;
+    } else {
+      if (_seenFirstOutEvent) {
+        _writeHandler = _clientWriteHandler;
+      } else {
+        _writeHandler = firstWriteHandler;
+      }
+    }
+  }
+
+  bool _seenFirstOutEvent = false;
   bool _closedRead = false;
   bool _closedWrite = false;
   bool _pipe = false;
+  Function _clientConnectHandler;
+  Function _clientWriteHandler;
   SocketInputStream _inputStream;
   SocketOutputStream _outputStream;
 }

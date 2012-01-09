@@ -144,6 +144,9 @@ RawInstance* Exceptions::Create(
     case kStackOverflow:
       class_name = String::NewSymbol("StackOverflowException");
       break;
+    case kOutOfMemory:
+      class_name = String::NewSymbol("OutOfMemoryException");
+      break;
     case kWrongArgumentCount:
       class_name = String::NewSymbol("WrongArgumentCountException");
       break;
