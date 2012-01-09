@@ -924,13 +924,33 @@ public class NegativeResolverTest extends CompilerTestCase {
             "class A {",
             "  const A(x) : this.foo(x);",
             "  A.foo(this.x) { }",
-            "  var x;",
+            "  final x;",
             "}"),
         errEx(ResolverErrorCode.CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER, 3, 3, 25));
   }
 
   public void testRawTypesNegativeTest() {
     checkNumErrors("RawTypesNegativeTest.dart", 6);
+  }
+
+  public void testConstConstructorNonFinalFieldsNegativeTest() {
+    checkSourceErrors(
+        makeCode(
+            "class A extends B {",
+            "  const A();",
+            "  var x;",
+            "  final y = 10;",
+            "  set z(value) {}",
+            "}",
+            "class B implements C {",
+            "  final bar;",
+            "  var baz;",
+            "}",
+            "interface C {",
+            "  var x;",
+            "}"),
+        errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 3, 7, 1),
+        errEx(ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS, 9, 7, 3));
   }
 
   private TestCompilerContext getContext() {

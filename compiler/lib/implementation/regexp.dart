@@ -64,8 +64,8 @@ class JSSyntaxMatch implements Match {
 }
 
 class _LazyAllMatches implements Collection<Match> {
-  JSSyntaxRegExp _regexp;
-  String _str;
+  final JSSyntaxRegExp _regexp;
+  final String _str;
 
   const _LazyAllMatches(this._regexp, this._str);
 

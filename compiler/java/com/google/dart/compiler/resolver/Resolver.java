@@ -246,8 +246,21 @@ public class Resolver {
         element.getNode().accept(this);
       }
 
+      boolean testForAllConstantFields = false;
       for (Element element : classElement.getConstructors()) {
         element.getNode().accept(this);
+        if (element.getModifiers().isConstant()) {
+          testForAllConstantFields = true;
+        }
+      }
+
+      if (testForAllConstantFields) {
+        InterfaceType interfaceType = classElement.getType();
+        while (interfaceType != null && interfaceType != typeProvider.getObjectType()) {
+          ClassElement interfaceElement = interfaceType.getElement();
+          constVerifyMembers(interfaceElement.getMembers(), classElement, interfaceElement);
+          interfaceType = interfaceElement.getSupertype();
+        }
       }
 
       checkRedirectConstructorCycle(classElement.getConstructors(), context);
@@ -288,6 +301,23 @@ public class Resolver {
       context = previousContext;
       currentHolder = previousHolder;
       return classElement;
+    }
+
+    private void constVerifyMembers(Iterable<Element> members, ClassElement originalClass,
+        ClassElement currentClass) {
+      for (Element element : members) {
+        Modifiers modifiers = element.getModifiers();
+        if (ElementKind.of(element).equals(ElementKind.FIELD) && !modifiers.isFinal()
+            && !modifiers.isAbstractField()) {
+          FieldElement field = (FieldElement) element;
+          DartNode errorNode = field.getSetter() == null ? element.getNode()
+              : field.getSetter().getNode();
+          onError(errorNode, currentClass == originalClass
+              ? ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS
+              : ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS,
+              originalClass.getName(), field.getName(), currentClass.getName());
+        }
+      }
     }
 
     /**
