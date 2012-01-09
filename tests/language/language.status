@@ -247,7 +247,7 @@ LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MapLiteral4Test: Fail # missing checks on map index operations
 MathTest: Fail
-MethodOverrideTest: Fail
+MethodOverrideTest: Fail # checking on precise type rules for methods
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
