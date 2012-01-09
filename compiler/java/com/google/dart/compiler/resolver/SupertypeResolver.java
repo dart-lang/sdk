@@ -6,8 +6,6 @@ package com.google.dart.compiler.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.DartCompilerContext;
-import com.google.dart.compiler.DartSource;
-import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
@@ -149,15 +147,7 @@ public class SupertypeResolver {
    *         implementation.
    */
   static boolean isCoreLibrarySource(Source source) {
-    if (source instanceof DartSource) {
-      DartSource dartSource = (DartSource) source;
-      LibrarySource library = dartSource.getLibrary();
-      if (library != null) {
-        String libraryName = library.getName();
-        return libraryName.equals("dart://core/com/google/dart/corelib/corelib.dart")
-            || libraryName.equals("dart://core/com/google/dart/corelib/corelib_impl.dart");
-      }
-    }
-    return false;
+    return Elements.isLibrarySource(source, "corelib.dart")
+        || Elements.isLibrarySource(source, "corelib_impl.dart");
   }
 }

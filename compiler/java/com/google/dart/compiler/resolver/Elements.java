@@ -7,6 +7,8 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
@@ -535,5 +537,20 @@ static FieldElementImplementation fieldFromNode(DartField node,
       return ((DartIdentifier) identifier).getTargetName();
     }
     return null;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Source} represents library with given name.
+   */
+  public static boolean isLibrarySource(Source source, String name) {
+    if (source instanceof DartSource) {
+      DartSource dartSource = (DartSource) source;
+      LibrarySource library = dartSource.getLibrary();
+      if (library != null) {
+        String libraryName = library.getName();
+        return libraryName.startsWith("dart://") && libraryName.endsWith("/" + name);
+      }
+    }
+    return false;
   }
 }

@@ -246,7 +246,7 @@ public class DartParser extends CompletionHooksParserBase {
   public DartUnit parseUnit(DartSource source) {
     beginCompilationUnit();
     ctx.unitAboutToCompile(source, isDietParse);
-    DartUnit unit = new DartUnit(source);
+    DartUnit unit = new DartUnit(source, isDietParse);
 
     // parse any directives at the beginning of the source
     parseDirectives(unit);

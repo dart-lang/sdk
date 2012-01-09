@@ -456,7 +456,7 @@ public class LibraryUnit {
     };
 
     DartScannerParserContext parserContext = new DartScannerParserContext(src, srcCode, listener);
-    DartParser parser = new DartParser(parserContext);
+    DartParser parser = new DartParser(parserContext, true);
     DartUnit unit = parser.parseUnit(src);
 
     // When parsing from an API file, generate and store the hash for top level
@@ -470,7 +470,6 @@ public class LibraryUnit {
         ((DartClass)node).setHash(nodeString.hashCode());
       }
     }
-    unit.setDiet(true);
     putUnit(unit);
   }
 }

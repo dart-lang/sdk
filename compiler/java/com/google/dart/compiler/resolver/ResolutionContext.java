@@ -79,7 +79,11 @@ public class ResolutionContext implements ResolutionErrorListener {
             && !existingElement.getModifiers().isAbstractField()) {
           DartNode nameNode = Elements.getNameNode(element);
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
-          onError(nameNode, warningCode, name, existingElement, existingLocation);
+          // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
+          // http://code.google.com/p/dart/issues/detail?id=1060
+          if (!Elements.isLibrarySource(element.getNode().getSource(), "htmlimpl.dart")) {
+            onError(nameNode, warningCode, name, existingElement, existingLocation);
+          }
         }
       }
     }

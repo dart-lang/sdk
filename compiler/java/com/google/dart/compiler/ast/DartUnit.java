@@ -23,13 +23,14 @@ public class DartUnit extends DartNode {
   private List<DartDirective> directives;
   private final List<DartNode> topLevelNodes = Lists.newArrayList();
   private final DartSource source;
+  private final boolean isDiet;
   /** A list of comments. May be null. */
   private List<DartComment> comments;
-  private boolean isDiet;
   private String dietParse;
 
-  public DartUnit(DartSource source) {
+  public DartUnit(DartSource source, boolean isDiet) {
     this.source = source;
+    this.isDiet = isDiet;
   }
 
   public void addTopLevelNode(DartNode node) {
@@ -100,13 +101,6 @@ public class DartUnit extends DartNode {
   @Override
   public <R> R accept(DartPlainVisitor<R> visitor) {
     return visitor.visitUnit(this);
-  }
-
-  /**
-   * Sets this unit to be a diet unit, meaning it contains no method bodies.
-   */
-  public void setDiet(boolean isDiet) {
-    this.isDiet = isDiet;
   }
 
   /**
