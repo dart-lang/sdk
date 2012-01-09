@@ -158,6 +158,9 @@ void DoMultitest(String filename,
 String CreateMultitestDirectory(String outputDir, String testDir) {
   final String generatedTestDirectory = 'generated_tests';
   Directory parentDir = new Directory(outputDir + generatedTestDirectory);
+  if (!new Directory(outputDir).existsSync()) {
+    new Directory(outputDir).createSync();
+  }
   if (!parentDir.existsSync()) {
     parentDir.createSync();
   }

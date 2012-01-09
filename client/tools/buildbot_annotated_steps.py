@@ -84,7 +84,7 @@ def RunBrowserTests(component, mode, platform):
     cmd = ['xvfb-run']
   else:
     cmd = []
-  cmd += [sys.executable, './tools/test.py',
+  cmd += [sys.executable, './tools/test_wrapper.py',
      '--component=' + component, '--mode=' + mode,
      '--time', '--report', '--progress=buildbot', '-v']
   return subprocess.call(cmd)

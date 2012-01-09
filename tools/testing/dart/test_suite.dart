@@ -471,7 +471,9 @@ class StandardTestSuite implements TestSuite {
       } else {
         args = ['--no-timeout'];
         if (component == 'dartium') {
-          var dartFlags = ['--enable_asserts', '--enable_type_checks'];
+          var dartFlags = ['--enable_asserts',
+                           '--enable_type_checks',
+                           '--ignore-unrecognized-flags'];
           dartFlags.addAll(vmOptions);
           args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
         }
@@ -512,7 +514,22 @@ class StandardTestSuite implements TestSuite {
     String tempDirPath = TestUtils.buildDir(configuration);
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
-      throw new Exception('Build directory $tempDirPath does not exist.');
+      // Dartium tests can be run with no build step, with no output directory.
+      // This special case builds the build directory that should be there.
+      var buildPath = tempDirPath.split('/');
+      tempDirPath = buildPath[0];
+      if (tempDirPath == '') {
+        throw new Exception(
+            'Non-relative path to build directory in test_suite.dart');
+      }
+      buildPath.removeRange(0, 1);
+      if (buildPath.last() == '') buildPath.removeLast();
+      buildPath.addAll(generatedTestPath);
+      generatedTestPath = buildPath;
+      tempDir = new Directory(tempDirPath);
+      if (!tempDir.existsSync()) {
+        tempDir.createSync();
+      }      
     }
     tempDirPath = new File(tempDirPath).fullPathSync();
 
