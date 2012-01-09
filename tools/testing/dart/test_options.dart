@@ -62,7 +62,7 @@ is 'dart file.dart' and you specify special command
               'The component to test against',
               ['-c', '--component'],
               ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
-               'dartium', 'chromium', 'frogium'],
+               'dartium', 'chromium', 'frogium', 'webdriver'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -150,7 +150,13 @@ is 'dart file.dart' and you specify special command
               ['--time'],
               [],
               false,
-              'bool')];
+              'bool'),
+          new _TestOptionSpecification(
+              'flag',
+              'Component-specific extra flags, comma separated',
+              ['--flag'],
+              [],
+              '')];
   }
 
 
@@ -181,7 +187,7 @@ is 'dart file.dart' and you specify special command
           _printHelp();
           return null;
         }
-        var split = arg.lastIndexOf('=');
+        var split = arg.indexOf('=');
         if (split == -1) {
           name = arg;
           // Boolean options do not have a value.
@@ -246,10 +252,12 @@ is 'dart file.dart' and you specify special command
         }
       } else {
         assert(spec.type == 'string');
-        for (var v in value.split(',')) {
-          if (spec.values.lastIndexOf(v) == -1) {
-            print('Unknown value ($v) for option $name');
-            exit(1);
+        if (!spec.values.isEmpty()) {
+          for (var v in value.split(',')) {
+            if (spec.values.lastIndexOf(v) == -1) {
+              print('Unknown value ($v) for option $name');
+              exit(1);
+            }
           }
         }
         configuration[spec.name] = value;

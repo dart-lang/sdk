@@ -66,7 +66,7 @@ class TestCase {
         executablePath = newExecutablePath;
       }
       newArguments.addAll(arguments);
-      var suffixSplit = prefix.split(' ');
+      var suffixSplit = suffix.split(' ');
       suffixSplit.forEach((e) {
         if (!e.isEmpty()) newArguments.add(e);
       });

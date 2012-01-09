@@ -268,8 +268,9 @@ class StandardTestSuite implements TestSuite {
       case 'dartium':
       case 'chromium':
       case 'frogium':
-          enqueueBrowserTest(filename, testName, optionsFromFile,
-                             expectations, isNegative);
+      case 'webdriver':
+        enqueueBrowserTest(filename, testName, optionsFromFile,
+                           expectations, isNegative);
         break;
       default:
         // Only dartc supports fatal type errors. Enable fatal type
@@ -426,6 +427,7 @@ class StandardTestSuite implements TestSuite {
           // TODO(whesse): Add --fatal-type-errors if needed.
           break;
         case 'frogium':
+        case 'webdriver':
           compilerArgs.addAll(['--libdir=$dartDir/frog/lib',
                                '--compile-only',
                                '--out=$compiledDartWrapperFilename']);
@@ -441,20 +443,46 @@ class StandardTestSuite implements TestSuite {
           Expect.fail('unimplemented component $component');
       }
 
-      var args = ['--no-timeout'];
-      if (component == 'dartium') {
-        var dartFlags = ['--enable_asserts', '--enable_type_checks'];
-        dartFlags.addAll(vmOptions);
-        args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
+      String executable = getFilename(dumpRenderTreeFilename);
+      List<String> args;
+      if (component == 'webdriver') {
+        executable = '$dartDir/tools/testing/run_selenium.py';
+        String browserFlag = 'chrome';
+        if (configuration['flag'] != null) {
+          for (var flag in configuration['flag'].split(',')) {
+            switch (flag) {
+              case 'ff':
+              case 'firefox':
+                browserFlag = 'ff';
+                break;
+              case 'ie':
+              case 'explorer':
+              case 'internet-explorer':
+                browserFlag = 'ie';
+                break;
+              case 'safari':
+                browserFlag = 'safari';
+                break;
+            }
+          }
+        }
+        args = ['--out', htmlPath, '--browser', browserFlag];
+        
+      } else {
+        args = ['--no-timeout'];
+        if (component == 'dartium') {
+          var dartFlags = ['--enable_asserts', '--enable_type_checks'];
+          dartFlags.addAll(vmOptions);
+          args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
+        }
+        args.add(htmlPath);
       }
-      args.add(htmlPath);
-
       // Create BrowserTestCase and queue it.
       var testCase = new BrowserTestCase(
           testName,
           compilerExecutable,
           compilerArgs,
-          getFilename(dumpRenderTreeFilename),
+          executable,
           args,
           configuration,
           completeHandler,
@@ -504,6 +532,7 @@ class StandardTestSuite implements TestSuite {
         return 'application/dart';
       case 'chromium':
       case 'frogium':
+      case 'webdriver':
         return 'text/javascript';
       default:
         Expect.fail('Unimplemented component scriptType');
@@ -859,6 +888,7 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$postfix';
       case 'frogium':
+      case 'webdriver':
         return 'frog/bin/frogsh$postfix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
