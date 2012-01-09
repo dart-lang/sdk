@@ -370,13 +370,6 @@ void EventHandlerImplementation::StartEventHandler() {
   if (result != 0) {
     FATAL("Create start event handler thread");
   }
-
-  if (Dart_IsVMFlagSet("enable_thread_pool")) {
-    thread_pool.Start();
-    for (int i = 0; i < 100; i++) {
-      thread_pool.InsertTask(i);
-    }
-  }
 }
 
 

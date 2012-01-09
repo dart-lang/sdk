@@ -4,21 +4,16 @@
 
 #include "bin/thread_pool.h"
 
-void ThreadPool::Shutdown() {
-  UNIMPLEMENTED();
-}
-
-
 void ThreadPool::InsertTask(Task task) {
   TaskQueueEntry* entry = new TaskQueueEntry(task);
-  queue.Insert(entry);
+  queue_.Insert(entry);
 }
 
 
 Task ThreadPool::WaitForTask() {
-  TaskQueueEntry* entry = queue.Remove();
+  TaskQueueEntry* entry = queue_.Remove();
   if (entry == NULL) {
-    return -1;
+    return NULL;
   }
   Task task = entry->task();
   delete entry;
@@ -31,14 +26,13 @@ void* ThreadPool::Main(void* args) {
     printf("Thread pool thread started\n");
   }
   ThreadPool* pool = reinterpret_cast<ThreadPool*>(args);
-  while (true) {
+  while (!pool->terminate_) {
     if (Dart_IsVMFlagSet("trace_thread_pool")) {
       printf("Waiting for task\n");
     }
     Task task = pool->WaitForTask();
-    if (Dart_IsVMFlagSet("trace_thread_pool")) {
-      printf("Got task %d\n", task);
-    }
+    if (pool->terminate_) return NULL;
+    (*(pool->task_handler_))(task);
   }
   return NULL;
 };

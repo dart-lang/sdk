@@ -21,7 +21,7 @@
 #endif
 
 
-typedef int Task;
+typedef void* Task;
 
 
 class TaskQueueEntry {
@@ -48,8 +48,10 @@ class TaskQueue {
 
   void Insert(TaskQueueEntry* task);
   TaskQueueEntry* Remove();
+  void Shutdown();
 
  private:
+  bool terminate_;
   TaskQueueEntry* head_;
   TaskQueueEntry* tail_;
   TaskQueueData data_;
@@ -60,7 +62,12 @@ class TaskQueue {
 
 class ThreadPool {
  public:
-  explicit ThreadPool(int initial_size = 4) : size_(initial_size) {}
+  typedef void* (*TaskHandler)(void* args);
+
+  ThreadPool(TaskHandler task_handler, int initial_size = 4)
+      : terminate_(false),
+        size_(initial_size),
+        task_handler_(task_handler) {}
 
   void Start();
   void Shutdown();
@@ -72,8 +79,12 @@ class ThreadPool {
 
   static void* Main(void* args);
 
-  TaskQueue queue;
+  TaskQueue queue_;
+  // TODO(sgjesse): Move the monitor in TaskQueue to ThreadPool and
+  // obtain it for updating terminate_.
+  bool terminate_;
   int size_;  // Number of threads.
+  TaskHandler task_handler_;
   ThreadPoolData data_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadPool);

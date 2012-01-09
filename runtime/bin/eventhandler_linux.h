@@ -100,7 +100,6 @@ class EventHandlerImplementation {
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
   intptr_t GetPollEvents(struct pollfd* pollfd);
 
-  ThreadPool thread_pool;
   SocketData* socket_map_;
   intptr_t socket_map_size_;
   int64_t timeout_;  // Time for next timeout.

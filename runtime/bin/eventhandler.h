@@ -6,6 +6,7 @@
 #define BIN_EVENTHANDLER_H_
 
 #include "bin/builtin.h"
+#include "bin/thread_pool.h"
 
 // Flags used to provide information and actions to the eventhandler
 // when sending a message about a file descriptor. These flags should
@@ -41,6 +42,29 @@ class EventHandler {
     delegate_.SendData(id, dart_port, data);
   }
 
+  static void* AsyncTaskHandler(void* args) {
+    if (Dart_IsVMFlagSet("trace_thread_pool")) {
+      printf("Got async task\n");
+    }
+    return NULL;
+  }
+
+  static void Initialize() {
+    if (Dart_IsVMFlagSet("enable_thread_pool")) {
+      ASSERT(thread_pool_ == NULL);
+      thread_pool_ = new ThreadPool(&EventHandler::AsyncTaskHandler);
+      thread_pool_->Start();
+    }
+  }
+
+  static void Terminate() {
+    if (Dart_IsVMFlagSet("enable_thread_pool")) {
+      if (thread_pool_ != NULL) {
+        thread_pool_->Shutdown();
+      }
+    }
+  }
+
   static EventHandler* StartEventHandler() {
     EventHandler* handler = new EventHandler();
     handler->delegate_.StartEventHandler();
@@ -49,6 +73,7 @@ class EventHandler {
 
  private:
   EventHandlerImplementation delegate_;
+  static ThreadPool* thread_pool_;
 };
 
 
