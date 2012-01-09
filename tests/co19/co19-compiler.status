@@ -24,6 +24,7 @@ LibTest/core/String/toUpperCase/String/toUpperCase/A01/t04: Fail
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/A09/t02: Fail # Issue 219
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/A09/t04: Fail # Issue 219
+LangSpecTest/13_Types/13_4_Interface_Types/A11/t01: Pass, Crash     # Issue 1097
 LibTest/core/Date/Date.withTimeZone/Date/Date.withTimeZone/A01/t09: Fail # Issue 202
 LibTest/core/List/List/List/A01/t04: Fail                         # Issue 218
 LibTest/core/List/sort/List/sort/A01/t06: Skip                    # Out of memory.
