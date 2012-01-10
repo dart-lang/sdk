@@ -103,7 +103,14 @@ class BrowserTestCase extends TestCase {
                                                   configuration,
                                                   completedHandler,
                                                   expectedOutcomes,
-                                                  isNegative);
+                                                  isNegative) {
+    if (compilerPath != null) {
+      commandLine = 'execution command: $commandLine';
+      String compilationCommand =
+          '$compilerPath ${Strings.join(compilerArguments, " ")}';
+      commandLine = 'compilation command: $compilationCommand\n$commandLine';
+    }
+  }
 }
 
 
@@ -186,9 +193,12 @@ class RunningProcess {
 
   void compilerExitHandler(int exitCode) {
     if (exitCode != 0) {
+      stderr.add('test.dart: Compilation step failed (exit code $exitCode)\n');
       exitHandler(exitCode);
     } else {
       process.close();
+      stderr.add('test.dart: Compilation finished, starting execution\n');
+      stdout.add('test.dart: Compilation finished, starting execution\n');
       runCommand(testCase.executablePath, testCase.arguments, exitHandler);
     }
   }
