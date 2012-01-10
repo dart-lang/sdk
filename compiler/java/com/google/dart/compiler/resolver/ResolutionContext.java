@@ -81,7 +81,8 @@ public class ResolutionContext implements ResolutionErrorListener {
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
           // TODO(scheglov) remove condition once HTML will be fixed to don't have duplicates.
           // http://code.google.com/p/dart/issues/detail?id=1060
-          if (!Elements.isLibrarySource(element.getNode().getSource(), "htmlimpl.dart")) {
+          if (!Elements.isLibrarySource(element.getNode().getSource(), "htmlimpl.dart")
+              && !Elements.isLibrarySource(element.getNode().getSource(), "dom.dart")) {
             onError(nameNode, warningCode, name, existingElement, existingLocation);
           }
         }
