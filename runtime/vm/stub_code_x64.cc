@@ -113,6 +113,52 @@ void StubCode::GenerateStubCallToRuntimeStub(Assembler* assembler) {
 }
 
 
+// Print the stop message.
+static void PrintStopMessage(const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+
+
+// Input parameters:
+//   RSP : points to return address.
+//   RDI : stop message (const char*).
+// Must preserve all registers, except RDI and TMP.
+void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
+  // Preserve caller-saved registers.
+  __ pushq(RAX);
+  __ pushq(RCX);
+  __ pushq(RDX);
+  __ pushq(RSI);
+  __ pushq(R8);
+  __ pushq(R9);
+  __ pushq(R10);
+
+  __ EnterFrame(0);
+
+  // Align frame before entering C++ world.
+  if (OS::ActivationFrameAlignment() > 0) {
+    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  // Stop message is already in RDI.
+  __ movq(TMP, Immediate(reinterpret_cast<uword>(&PrintStopMessage)));
+  __ call(TMP);
+
+  __ LeaveFrame();
+
+  // Restore caller-saved registers.
+  __ popq(R10);
+  __ popq(R9);
+  __ popq(R8);
+  __ popq(RSI);
+  __ popq(RDX);
+  __ popq(RCX);
+  __ popq(RAX);
+
+  __ ret();
+}
+
+
 // Input parameters:
 //   RSP : points to return address.
 //   RSP + 8 : address of return value.
@@ -1033,11 +1079,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 // Called for inline allocation of closures.
 // Input parameters:
 //   If the signature class is not parameterized, the receiver, if any, will be
-//   at RSP + 4 instead of RSP + 8, since no type arguments are passed.
-//   RSP + 8 (or RSP + 4): receiver (only if implicit instance closure).
-//   RSP + 4 : type arguments object (only if signature class is parameterized).
+//   at RSP + 8 instead of RSP + 16, since no type arguments are passed.
+//   RSP + 16 (or RSP + 8): receiver (only if implicit instance closure).
+//   RSP + 8 : type arguments object (only if signature class is parameterized).
 //   RSP : points to return address.
-// Uses RAX, RBX, RCX, RDX as temporary registers.
+// Uses RAX, RCX as temporary registers.
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
   const Immediate raw_null =

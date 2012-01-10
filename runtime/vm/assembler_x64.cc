@@ -9,8 +9,12 @@
 #include "vm/heap.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
+#include "vm/stub_code.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
   memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
@@ -1302,13 +1306,22 @@ void Assembler::StoreIntoObject(Register object,
 
 
 void Assembler::Stop(const char* message) {
-  // Emit the lower half and the higher half of the message address as immediate
-  // operands in the test rax instructions, followed by the int3 instruction.
-  // Execution can be resumed with the 'cont' command in gdb.
   int64_t message_address = reinterpret_cast<int64_t>(message);
-  testl(RAX, Immediate(Utils::Low32Bits(message_address)));
-  testl(RAX, Immediate(Utils::High32Bits(message_address)));
-  int3();
+  if (FLAG_print_stop_message) {
+    pushq(TMP);  // Preserve TMP register.
+    pushq(RDI);  // Preserve RDI register.
+    movq(RDI, Immediate(message_address));
+    call(&StubCode::PrintStopMessageLabel());
+    popq(RDI);  // Restore RDI register.
+    popq(TMP);  // Restore TMP register.
+  } else {
+    // Emit the lower half and the higher half of the message address as
+    // immediate operands in the test rax instructions.
+    testl(RAX, Immediate(Utils::Low32Bits(message_address)));
+    testl(RAX, Immediate(Utils::High32Bits(message_address)));
+  }
+  // Emit the int3 instruction.
+  int3();  // Execution can be resumed with the 'cont' command in gdb.
 }
 
 

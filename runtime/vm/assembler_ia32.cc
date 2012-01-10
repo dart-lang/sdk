@@ -9,8 +9,12 @@
 #include "vm/heap.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
+#include "vm/stub_code.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
+
 
 class DirectCallRelocation : public AssemblerFixup {
  public:
@@ -1438,11 +1442,17 @@ void Assembler::Bind(Label* label) {
 
 
 void Assembler::Stop(const char* message) {
-  // Emit the message address as immediate operand in the test rax instruction,
-  // followed by the int3 instruction.
-  // Execution can be resumed with the 'cont' command in gdb.
-  testl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
-  int3();
+  if (FLAG_print_stop_message) {
+    pushl(EAX);  // Preserve EAX.
+    movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
+    call(&StubCode::PrintStopMessageLabel());  // Passing message in EAX.
+    popl(EAX);  // Restore EAX.
+  } else {
+    // Emit the message address as immediate operand in the test instruction.
+    testl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
+  }
+  // Emit the int3 instruction.
+  int3();  // Execution can be resumed with the 'cont' command in gdb.
 }
 
 
