@@ -171,6 +171,7 @@ SyntaxTest/33: Fail # Issue 1108
 # TODO: These need to be retriaged.
 RichardsTest: Fail
 TypedMessageTest: Fail # Bug 5246195
+Unary2Test: Pass, Fail # Issue 1113
 
 
 [ $component == frog ]
