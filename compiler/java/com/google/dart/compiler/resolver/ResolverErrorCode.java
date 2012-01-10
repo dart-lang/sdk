@@ -16,6 +16,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ASSIGN_TO_FINAL("cannot assign value to final variable \"%s\"."),
+  CANNOT_ASSIGN_TO_METHOD("cannot assign value to method '%s'."),
   CANNOT_BE_RESOLVED("cannot resolve %s"),
   CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
   CANNOT_BE_INITIALIZED("cannot be initialized"),

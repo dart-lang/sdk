@@ -1075,6 +1075,17 @@ public class NegativeResolverTest extends CompilerTestCase {
         "}"));
   }
 
+  public void testAssignToFunc() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "double func(a) {}",
+            "main() {",
+            "  func = null;",
+            "}"),
+         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD, 4, 3, 4));
+  }
+  
   public void testConstructorDuplicateInitializationTest() {
     checkSourceErrors(
         makeCode(

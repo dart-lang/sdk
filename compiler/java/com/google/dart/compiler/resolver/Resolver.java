@@ -1586,11 +1586,17 @@ public class Resolver {
          case PARAMETER:
          case VARIABLE:
            if (lhs.getModifiers().isFinal()) {
-             topLevelContext.onError(node, ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, lhs.getName());
+             topLevelContext.onError(node.getArg1(), ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL,
+                                     lhs.getName());
            }
+           break;
+         case METHOD:
+           topLevelContext.onError(node.getArg1(),  ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD,
+                                   lhs.getName());
            break;
         }
       }
+
       return null;
     }
 

@@ -11,6 +11,7 @@ ApplicationTest: Fail
 ArithmeticTest: Fail
 AssertionTest: Fail
 AssignInstanceMethodNegativeTest: Crash
+AssignTopMethodNegativeTest: Crash
 BadInitializer2NegativeTest: Crash
 BadNamedConstructorNegativeTest: Crash
 BadNamedParameters2Test: Fail

@@ -2,13 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class A {
-  A() {}
-  imethod() { return 0; }
-}
+method() { return 0; }
 
 main() {
-  var a = new A();
-  // Illegal, can't change a member method
-  a.imethod = () { return 1; };
+  // Illegal, can't change a top level method
+  method = () { return 1; };
 }
