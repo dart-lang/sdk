@@ -4,7 +4,8 @@
 
 prefix css
 
-[$component == leg ]
+[$component == leg || $component == frogium]
+# #-directives not supported by test architecture
 DeclarationTest: Fail
 ExpressionTest: Fail
 SelectorLiteralTest: Fail
