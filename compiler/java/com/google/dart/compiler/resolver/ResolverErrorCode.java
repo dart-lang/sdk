@@ -61,6 +61,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
+  DUPLICATE_INITIALIZATION(ErrorSeverity.ERROR, "Duplicate initialization of '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION(ErrorSeverity.ERROR, "Duplicate function expression '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION_WARNING(ErrorSeverity.WARNING,
       "Function expression '%s' is hiding '%s' at %s"),

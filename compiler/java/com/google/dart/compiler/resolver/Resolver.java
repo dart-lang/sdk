@@ -177,7 +177,7 @@ public class Resolver {
     private LabelElement currentLabel;
     private Set<LabelElement> referencedLabels = Sets.newHashSet();
     private Set<LabelElement> labelsInScopes = Sets.newHashSet();
-    private Set<String> finalsNeedingInitializing = Sets.newHashSet();
+    private Set<FieldElement> finalsNeedingInitializing = Sets.newHashSet();
 
     @VisibleForTesting
     public ResolveElementsVisitor(ResolutionContext context,
@@ -559,7 +559,7 @@ public class Resolver {
 
       DartFunction functionNode = node.getFunction();
       List<DartParameter> parameters = functionNode.getParams();
-      Set<String> initalizedFinals = Sets.newHashSet();
+      Set<FieldElement> initializedFields = Sets.newHashSet();
 
       // First declare all normal parameters in the scope, putting them in the
       // scope of the default expressions so we can report better errors.
@@ -567,9 +567,6 @@ public class Resolver {
         assert parameter.getSymbol() != null;
         if (parameter.getQualifier() instanceof DartThisExpression) {
           checkParameterInitializer(node, parameter);
-          if (!initalizedFinals.add(parameter.getParameterName())) {
-            onError(parameter, ResolverErrorCode.DUPLICATE_PARAMETER, parameter.getName());
-          }
         } else {
           getContext().declare(
               parameter.getSymbol(),
@@ -580,6 +577,10 @@ public class Resolver {
       for (DartParameter parameter : parameters) {
         // Then resolve the default values.
         resolve(parameter.getDefaultExpr());
+        if (parameter.getQualifier() instanceof DartThisExpression && parameter.getSymbol() != null
+            && !initializedFields.add(parameter.getSymbol().getParameterInitializerElement())) {
+          onError(parameter, ResolverErrorCode.DUPLICATE_INITIALIZATION, parameter.getName());
+        }
       }
 
       if ((functionNode.getBody() == null)
@@ -591,13 +592,13 @@ public class Resolver {
       resolve(functionNode.getBody());
 
       if (Elements.isNonFactoryConstructor(member)) {
-        resolveInitializers(node, initalizedFinals);
+        resolveInitializers(node, initializedFields);
         // Test for missing final initialized fields
-        if (!this.currentHolder.isInterface() && !member.getModifiers().isRedirectedConstructor()
-            && !finalsNeedingInitializing.equals(initalizedFinals)) {
-          for (String field : this.finalsNeedingInitializing) {
-            if (!initalizedFinals.contains(field)) {
-              onError(node.getName(), ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, field);
+        if (!this.currentHolder.isInterface() && !member.getModifiers().isRedirectedConstructor()) {
+          for (FieldElement finalField : this.finalsNeedingInitializing) {
+            if (!initializedFields.contains(finalField)) {
+              onError(node.getName(), ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED,
+                  finalField.getName());
             }
           }
         }
@@ -697,7 +698,7 @@ public class Resolver {
         } else {
           // If a final instance field wasn't initialized at declaration, we must check
           // at construction time.
-          this.finalsNeedingInitializing.add(node.getName().getTargetName());
+          this.finalsNeedingInitializing.add(node.getSymbol());
         }
       }
 
@@ -1733,7 +1734,7 @@ public class Resolver {
       }
     }
 
-    private void resolveInitializers(DartMethodDefinition node, Set<String> intializedFields) {
+    private void resolveInitializers(DartMethodDefinition node, Set<FieldElement> intializedFields) {
       Iterator<DartInitializer> initializers = node.getInitializers().iterator();
       ConstructorElement constructorElement = null;
       while (initializers.hasNext()) {
@@ -1743,9 +1744,8 @@ public class Resolver {
           constructorElement = (ConstructorElement) element;
         } else if (initializer.getName() != null && initializer.getName().getSymbol() != null
             && initializer.getName().getSymbol().getModifiers() != null
-            && initializer.getName().getSymbol().getModifiers().isFinal()
-            && !intializedFields.add(initializer.getName().getTargetName())) {
-          onError(initializer, ResolverErrorCode.DUPLICATE_PARAMETER, initializer.getName());
+            && !intializedFields.add((FieldElement)initializer.getName().getTargetSymbol())) {
+          onError(initializer, ResolverErrorCode.DUPLICATE_INITIALIZATION, initializer.getName());
         }
       }
 

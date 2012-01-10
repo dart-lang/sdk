@@ -1074,4 +1074,16 @@ public class NegativeResolverTest extends CompilerTestCase {
         "class MyClass implements Map<Object, Dynamic> {",
         "}"));
   }
+
+  public void testConstructorDuplicateInitializationTest() {
+    checkSourceErrors(
+        makeCode(
+            "class A {",
+            "  A.one(this.x) : this.x = 42;",
+            "  A.two(y) : this.x = y, x = y;",
+            "  var x;",
+            "}"),
+        errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 2, 19, 11),
+        errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 3, 26, 5));
+  }
 }
