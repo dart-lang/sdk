@@ -938,6 +938,8 @@ public class Resolver {
         onError(x, ResolverErrorCode.THIS_IN_STATIC_METHOD);
       } else if (currentMethod.getModifiers().isFactory()) {
         onError(x, ResolverErrorCode.THIS_IN_FACTORY_CONSTRUCTOR);
+      } else if (inInitializer) {
+        onError(x, ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION);
       }
       return null;
     }

@@ -1086,4 +1086,18 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 2, 19, 11),
         errEx(ResolverErrorCode.DUPLICATE_INITIALIZATION, 3, 26, 5));
   }
+
+  public void testInitializerReferenceToThis() throws Exception {
+      checkSourceErrors(
+          makeCode(
+              "class A {",
+              "  var x, y;",
+              "  A.one(z) : x = z, y = this.x;",
+              "  A.two(this.x) : y = (() { return this; });",
+              "  A.three(this.x) : y = this.x;",
+              "}"),
+          errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 3, 25, 4),
+          errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 4, 36, 4),
+          errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 5, 25, 4));
+    }
 }

@@ -133,6 +133,7 @@ public enum ResolverErrorCode implements ErrorCode {
   SUPER_OUTSIDE_OF_METHOD("Cannot use 'super' outside of a method"),
   SUPER_ON_TOP_LEVEL("Cannot use 'super' in a top-level element"),
   THIS_IN_STATIC_METHOD("Cannot use 'this' in a static method"),
+  THIS_IN_INITIALIZER_AS_EXPRESSION("Cannot reference 'this' as expression in initializer list"),
   THIS_ON_TOP_LEVEL("Cannot use 'this' in a top-level element"),
   THIS_OUTSIDE_OF_METHOD("Cannot use 'this' outside of a method"),
   THIS_IN_FACTORY_CONSTRUCTOR("Cannot use 'this' in a factory constructor"),

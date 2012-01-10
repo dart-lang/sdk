@@ -19,7 +19,7 @@ class BBB {
 
 class CCC extends BBB {
   int d;
-  CCC(this.d) : super(this.d) { }
+  CCC(x) : d = x, super(x) { }
 }
 
 class DDD {
