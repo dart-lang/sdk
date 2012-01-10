@@ -741,8 +741,7 @@ static RawInstance* DeserializeMessage(void* data) {
   ASSERT(snapshot->IsMessageSnapshot());
 
   // Read object back from the snapshot.
-  Isolate* isolate = Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   Instance& instance = Instance::Handle();
   instance ^= reader.ReadObject();
   return instance.raw();
@@ -2327,7 +2326,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
     return Api::Error("%s: A script has already been loaded from '%s'.",
                       CURRENT_FUNC, library_url.ToCString());
   }
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, isolate);
   const Object& tmp = Object::Handle(reader.ReadObject());
   if (!tmp.IsLibrary()) {
     return Api::Error("%s: Unable to deserialize snapshot correctly.",

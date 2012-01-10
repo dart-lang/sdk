@@ -279,13 +279,10 @@ class WriteStream : public ValueObject {
 // Reads a snapshot into objects.
 class SnapshotReader {
  public:
-  SnapshotReader(const Snapshot* snapshot,
-                 Heap* heap,
-                 ObjectStore* object_store)
+  SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
       : stream_(snapshot->content(), snapshot->length()),
         kind_(snapshot->kind()),
-        heap_(heap),
-        object_store_(object_store),
+        isolate_(isolate),
         backward_references_() { }
   ~SnapshotReader() { }
 
@@ -303,8 +300,9 @@ class SnapshotReader {
     return value;
   }
 
-  Heap* heap() const { return heap_; }
-  ObjectStore* object_store() const { return object_store_; }
+  Isolate* isolate() const { return isolate_; }
+  Heap* heap() const { return isolate_->heap(); }
+  ObjectStore* object_store() const { return isolate_->object_store(); }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -333,8 +331,7 @@ class SnapshotReader {
 
   ReadStream stream_;  // input stream.
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
-  Heap* heap_;  // Heap into which the objects are deserialized into.
-  ObjectStore* object_store_;  // Object store for common classes.
+  Isolate* isolate_;  // Current isolate.
   GrowableArray<Object*> backward_references_;
 
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);

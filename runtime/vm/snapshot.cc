@@ -67,17 +67,17 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
   ASSERT((class_header & kSmiTagMask) != 0);
-  Class& cls = Class::ZoneHandle();
+  Class& cls = Class::ZoneHandle(isolate(), Class::null());
   cls ^= LookupInternalClass(class_header);
   AddBackwardReference(object_id, &cls);
   if (cls.IsNull()) {
     // Read the library/class information and lookup the class.
-    String& library_url = String::Handle();
+    String& library_url = String::Handle(isolate(), String::null());
     library_url ^= ReadObjectImpl(class_header);
-    String& class_name = String::Handle();
+    String& class_name = String::Handle(isolate(), String::null());
     class_name ^= ReadObject();
     const Library& library =
-        Library::Handle(Library::LookupLibrary(library_url));
+        Library::Handle(isolate(), Library::LookupLibrary(library_url));
     ASSERT(!library.IsNull());
     cls ^= library.LookupClass(class_name);
   }
@@ -172,11 +172,11 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
   intptr_t tags = ReadIntptrValue();
-  Class& cls = Class::Handle();
-  Object& obj = Object::Handle();
+  Class& cls = Class::Handle(isolate(), Class::null());
+  Object& obj = Object::Handle(isolate(), Object::null());
   if (SerializedHeaderData::decode(class_header) == kInstanceId) {
     // Object is regular dart instance.
-    Instance& result = Instance::ZoneHandle();
+    Instance& result = Instance::ZoneHandle(isolate(), Instance::null());
     AddBackwardReference(object_id, &result);
 
     cls ^= ReadObject();

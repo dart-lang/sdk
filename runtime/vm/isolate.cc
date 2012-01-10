@@ -294,8 +294,7 @@ static RawInstance* DeserializeMessage(void* data) {
   ASSERT(snapshot->IsMessageSnapshot());
 
   // Read object back from the snapshot.
-  Isolate* isolate = Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   Instance& instance = Instance::Handle();
   instance ^= reader.ReadObject();
   return instance.raw();

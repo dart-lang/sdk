@@ -28,7 +28,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
-  Class& cls = Class::ZoneHandle();
+  Class& cls = Class::ZoneHandle(reader->isolate(), Class::null());
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
@@ -109,7 +109,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
 
   // Allocate parameterized type object.
   UnresolvedClass& unresolved_class =
-      UnresolvedClass::ZoneHandle(UnresolvedClass::New());
+      UnresolvedClass::ZoneHandle(reader->isolate(), UnresolvedClass::New());
   reader->AddBackwardReference(object_id, &unresolved_class);
 
   // Set the object tags.
@@ -173,7 +173,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate parameterized type object.
-  Type& parameterized_type = Type::ZoneHandle(Type::New());
+  Type& parameterized_type = Type::ZoneHandle(reader->isolate(), Type::New());
   reader->AddBackwardReference(object_id, &parameterized_type);
 
   // Set the object tags.
@@ -227,7 +227,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
   // Allocate type parameter object.
   TypeParameter& type_parameter =
-      TypeParameter::ZoneHandle(TypeParameter::New());
+      TypeParameter::ZoneHandle(reader->isolate(), TypeParameter::New());
   reader->AddBackwardReference(object_id, &type_parameter);
 
   // Set the object tags.
@@ -280,7 +280,7 @@ RawInstantiatedType* InstantiatedType::ReadFrom(SnapshotReader* reader,
 
   // Allocate instantiated type object.
   InstantiatedType& instantiated_type =
-      InstantiatedType::ZoneHandle(InstantiatedType::New());
+      InstantiatedType::ZoneHandle(reader->isolate(), InstantiatedType::New());
   reader->AddBackwardReference(object_id, &instantiated_type);
 
   // Set the object tags.
@@ -344,11 +344,12 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
 
   TypeArguments& type_arguments =
-      TypeArguments::Handle(TypeArguments::New(len));
+      TypeArguments::Handle(reader->isolate(), TypeArguments::New(len));
   reader->AddBackwardReference(object_id, &type_arguments);
 
   // Now set all the object fields.
-  AbstractType& type = AbstractType::Handle();
+  AbstractType& type = AbstractType::Handle(reader->isolate(),
+                                            AbstractType::null());
   for (intptr_t i = 0; i < len; i++) {
     type ^= reader->ReadObject();
     type_arguments.SetTypeAt(i, type);
@@ -399,7 +400,8 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
 
   // Allocate instantiated types object.
   InstantiatedTypeArguments& instantiated_type_arguments =
-      InstantiatedTypeArguments::ZoneHandle(InstantiatedTypeArguments::New());
+      InstantiatedTypeArguments::ZoneHandle(reader->isolate(),
+                                            InstantiatedTypeArguments::New());
   reader->AddBackwardReference(object_id, &instantiated_type_arguments);
 
   // Set the object tags.
@@ -444,7 +446,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate function object.
-  Function& func = Function::ZoneHandle(Function::New());
+  Function& func = Function::ZoneHandle(reader->isolate(), Function::New());
   reader->AddBackwardReference(object_id, &func);
 
   // Set the object tags.
@@ -510,7 +512,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate field object.
-  Field& field = Field::ZoneHandle(Field::New());
+  Field& field = Field::ZoneHandle(reader->isolate(), Field::New());
   reader->AddBackwardReference(object_id, &field);
 
   // Set the object tags.
@@ -570,14 +572,15 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
 
   // Create the token stream object.
-  TokenStream& token_stream = TokenStream::ZoneHandle(TokenStream::New(len));
+  TokenStream& token_stream = TokenStream::ZoneHandle(reader->isolate(),
+                                                      TokenStream::New(len));
   reader->AddBackwardReference(object_id, &token_stream);
 
   // Set the object tags.
   token_stream.set_tags(tags);
 
   // Read the token stream into the TokenStream.
-  String& literal = String::Handle();
+  String& literal = String::Handle(reader->isolate(), String::null());
   for (intptr_t i = 0; i < len; i++) {
     Token::Kind kind = static_cast<Token::Kind>(
         Smi::Value(GetSmi(reader->ReadIntptrValue())));
@@ -619,7 +622,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate script object.
-  Script& script = Script::ZoneHandle(Script::New());
+  Script& script = Script::ZoneHandle(reader->isolate(), Script::New());
   reader->AddBackwardReference(object_id, &script);
 
   // Set the object tags.
@@ -663,13 +666,13 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
   ASSERT(kind != Snapshot::kMessage);
 
-  Library& library = Library::ZoneHandle();
+  Library& library = Library::ZoneHandle(reader->isolate(), Library::null());
   reader->AddBackwardReference(object_id, &library);
 
   if (RawObject::IsCreatedFromSnapshot(tags)) {
     ASSERT(kind != Snapshot::kFull);
     // Lookup the object as it should already exist in the heap.
-    String& library_url = String::Handle();
+    String& library_url = String::Handle(reader->isolate(), String::null());
     library_url ^= reader->ReadObject();
     library = Library::LookupLibrary(library_url);
   } else {
@@ -745,7 +748,8 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate library prefix object.
-  LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(LibraryPrefix::New());
+  LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(reader->isolate(),
+                                                    LibraryPrefix::New());
   reader->AddBackwardReference(object_id, &prefix);
 
   // Set the object tags.
@@ -789,7 +793,7 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage);
 
   // Create Code object.
-  Code& code = Code::ZoneHandle(Code::New(0));
+  Code& code = Code::ZoneHandle(reader->isolate(), Code::New(0));
   reader->AddBackwardReference(object_id, &code);
   return code.raw();
 }
@@ -880,6 +884,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   // Allocate context object.
   intptr_t num_vars = reader->ReadIntptrValue();
   Context& context = Context::ZoneHandle(
+      reader->isolate(),
       Context::New(num_vars,
                    (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &context);
@@ -933,7 +938,8 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
 
   // Allocate context scope object.
   intptr_t num_vars = reader->ReadIntptrValue();
-  ContextScope& scope = ContextScope::ZoneHandle(ContextScope::New(num_vars));
+  ContextScope& scope = ContextScope::ZoneHandle(reader->isolate(),
+                                                 ContextScope::New(num_vars));
   reader->AddBackwardReference(object_id, &scope);
 
   // Set the object tags.
@@ -1030,7 +1036,7 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
   int64_t value = reader->Read<int64_t>();
 
   // Create a Mint object or get canonical one if it is a canonical constant.
-  Mint& mint = Mint::ZoneHandle();
+  Mint& mint = Mint::ZoneHandle(reader->isolate(), Mint::null());
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     mint = Mint::NewCanonical(value);
   } else {
@@ -1077,7 +1083,8 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   }
 
   // Create a Bigint object from HexCString.
-  Bigint& obj = Bigint::ZoneHandle(BigintOperations::FromHexCString(str));
+  Bigint& obj = Bigint::ZoneHandle(reader->isolate(),
+                                   BigintOperations::FromHexCString(str));
 
   // If it is a canonical constant make it one.
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
@@ -1123,7 +1130,7 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   double value = reader->Read<double>();
 
   // Create a Double object or get canonical one if it is a canonical constant.
-  Double& dbl = Double::ZoneHandle();
+  Double& dbl = Double::ZoneHandle(reader->isolate(), Double::null());
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
     dbl = Double::NewCanonical(value);
   } else {
@@ -1182,7 +1189,8 @@ RawString* String::ReadFromImpl(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
   RawSmi* smi_hash = GetSmi(reader->ReadIntptrValue());
 
-  HandleType& str_obj = HandleType::ZoneHandle();
+  HandleType& str_obj = HandleType::ZoneHandle(reader->isolate(),
+                                               HandleType::null());
   if (kind != Snapshot::kFull && RawObject::IsCanonical(tags)) {
     CharacterType* ptr = reinterpret_cast<CharacterType*>(ZoneAllocator(len));
     for (intptr_t i = 0; i < len; i++) {
@@ -1407,6 +1415,7 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
   RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
   intptr_t len = Smi::Value(smi_len);
   T& result = T::Handle(
+      reader->isolate(),
       T::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &result);
 
@@ -1414,11 +1423,13 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
   result.set_tags(tags);
 
   // Setup the object fields.
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::Handle();
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::Handle(reader->isolate(),
+                                    AbstractTypeArguments::null());
   type_arguments ^= reader->ReadObject();
   result.SetTypeArguments(type_arguments);
 
-  Object& obj = Object::Handle();
+  Object& obj = Object::Handle(reader->isolate(), Object::null());
   for (intptr_t i = 0; i < len; i++) {
     obj = reader->ReadObject();
     result.SetAt(i, obj);
@@ -1564,6 +1575,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
   // Allocate JSRegExp object.
   JSRegExp& regex = JSRegExp::ZoneHandle(
+      reader->isolate(),
       JSRegExp::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &regex);
 
@@ -1572,7 +1584,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
   // Read and Set all the other fields.
   regex.raw_ptr()->num_bracket_expressions_ = GetSmi(reader->ReadIntptrValue());
-  String& pattern = String::Handle();
+  String& pattern = String::Handle(reader->isolate(), String::null());
   pattern ^= reader->ReadObject();
   regex.raw_ptr()->pattern_ = pattern.raw();
   regex.raw_ptr()->type_ = reader->ReadIntptrValue();

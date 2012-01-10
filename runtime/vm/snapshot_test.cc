@@ -53,8 +53,7 @@ TEST_CASE(SerializeNull) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(null_object, serialized_object));
 }
@@ -72,8 +71,7 @@ TEST_CASE(SerializeSmi1) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
 }
@@ -91,8 +89,7 @@ TEST_CASE(SerializeSmi2) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
 }
@@ -110,8 +107,7 @@ TEST_CASE(SerializeDouble) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(dbl, serialized_object));
 }
@@ -131,8 +127,7 @@ TEST_CASE(SerializeBool) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   EXPECT(Bool::True() == reader.ReadObject());
   EXPECT(Bool::False() == reader.ReadObject());
 }
@@ -150,8 +145,7 @@ TEST_CASE(SerializeBigint) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
   OS::Print("%lld", BigintOperations::ToInt64(obj));
@@ -188,8 +182,7 @@ TEST_CASE(SerializeSingletons) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   EXPECT(Object::class_class() == reader.ReadObject());
   EXPECT(Object::null_class() == reader.ReadObject());
   EXPECT(Object::type_class() == reader.ReadObject());
@@ -224,8 +217,7 @@ TEST_CASE(SerializeString) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   String& serialized_str = String::Handle();
   serialized_str ^= reader.ReadObject();
   EXPECT(str.Equals(serialized_str));
@@ -250,8 +242,7 @@ TEST_CASE(SerializeArray) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
   EXPECT(array.Equals(serialized_array));
@@ -283,8 +274,7 @@ TEST_CASE(SerializeScript) {
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot.
-  Isolate* isolate= Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   Script& serialized_script = Script::Handle();
   serialized_script ^= reader.ReadObject();
 

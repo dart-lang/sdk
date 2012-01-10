@@ -39,37 +39,51 @@ class LocalScope;
     initializeHandle(this, value);                                             \
     ASSERT(IsNull() || Is##object());                                          \
   }                                                                            \
+  static object& Handle(Isolate* islt, Raw##object* raw_ptr) {                 \
+    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(islt));  \
+    initializeHandle(obj, raw_ptr);                                            \
+    return *obj;                                                               \
+  }                                                                            \
   static object& Handle() {                                                    \
-    return Handle(object::null());                                             \
+    return Handle(Isolate::Current(), object::null());                         \
   }                                                                            \
   static object& Handle(Raw##object* raw_ptr) {                                \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle());      \
+    return Handle(Isolate::Current(), raw_ptr);                                \
+  }                                                                            \
+  static object& CheckedHandle(Isolate* islt, RawObject* raw_ptr) {            \
+    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle(islt));  \
     initializeHandle(obj, raw_ptr);                                            \
+    if (!obj->Is##object()) {                                                  \
+      FATAL("Handle check failed.");                                           \
+    }                                                                          \
     return *obj;                                                               \
   }                                                                            \
   static object& CheckedHandle(RawObject* raw_ptr) {                           \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateHandle());      \
+    return CheckedHandle(Isolate::Current(), raw_ptr);                         \
+  }                                                                            \
+  static object& ZoneHandle(Isolate* isolate, Raw##object* raw_ptr) {          \
+    object* obj = reinterpret_cast<object*>(                                   \
+        VMHandles::AllocateZoneHandle(isolate));                               \
     initializeHandle(obj, raw_ptr);                                            \
-    if (!obj->Is##object()) {                                                  \
-      FATAL("Handle check failed.");                                           \
-    }                                                                          \
     return *obj;                                                               \
   }                                                                            \
   static object& ZoneHandle() {                                                \
-    return ZoneHandle(object::null());                                         \
+    return ZoneHandle(Isolate::Current(), object::null());                     \
   }                                                                            \
   static object& ZoneHandle(Raw##object* raw_ptr) {                            \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateZoneHandle());  \
-    initializeHandle(obj, raw_ptr);                                            \
-    return *obj;                                                               \
+    return ZoneHandle(Isolate::Current(), raw_ptr);                            \
   }                                                                            \
-  static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
-    object* obj = reinterpret_cast<object*>(VMHandles::AllocateZoneHandle());  \
+  static object& CheckedZoneHandle(Isolate* isolate, RawObject* raw_ptr) {     \
+    object* obj = reinterpret_cast<object*>(                                   \
+        VMHandles::AllocateZoneHandle(isolate));                               \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
       FATAL("Handle check failed.");                                           \
     }                                                                          \
     return *obj;                                                               \
+  }                                                                            \
+  static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
+    return CheckedZoneHandle(Isolate::Current(), raw_ptr);                     \
   }                                                                            \
   static Raw##object* null() {                                                 \
     return reinterpret_cast<Raw##object*>(Object::null());                     \
@@ -202,24 +216,33 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
   }
 
+  static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
+    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(isolate));
+    obj->SetRaw(raw_ptr);
+    return *obj;
+  }
+
   static Object& Handle() {
-    return Handle(null_);
+    return Handle(Isolate::Current(), null_);
   }
 
   static Object& Handle(RawObject* raw_ptr) {
-    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle());
+    return Handle(Isolate::Current(), raw_ptr);
+  }
+
+  static Object& ZoneHandle(Isolate* isolate, RawObject* raw_ptr) {
+    Object* obj = reinterpret_cast<Object*>(
+        VMHandles::AllocateZoneHandle(isolate));
     obj->SetRaw(raw_ptr);
     return *obj;
   }
 
   static Object& ZoneHandle() {
-    return ZoneHandle(null_);
+    return ZoneHandle(Isolate::Current(), null_);
   }
 
   static Object& ZoneHandle(RawObject* raw_ptr) {
-    Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateZoneHandle());
-    obj->SetRaw(raw_ptr);
-    return *obj;
+    return ZoneHandle(Isolate::Current(), raw_ptr);
   }
 
   static RawObject* null() { return null_; }
@@ -321,7 +344,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     // TODO(iposva): Implement real store barrier here.
     *addr = value;
     // Filter stores based on source and target.
-    if (raw()->IsOldObject() && value->IsNewObject()) {
+    if (value->IsNewObject() && raw()->IsOldObject()) {
       uword ptr = reinterpret_cast<uword>(addr);
       Isolate::Current()->store_buffer()->AddPointer(ptr);
     }
@@ -373,8 +396,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* api_error_class_;  // Class of ApiError.
 
   friend void RawObject::Validate() const;
-  friend class Class;
-  friend class SnapshotReader;
 
   // Disallow allocation.
   void* operator new(size_t size);

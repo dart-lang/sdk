@@ -80,9 +80,7 @@ void Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     // of Object::Init(..) in a regular isolate creation path.
     Object::InitFromSnapshot(isolate);
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
-    SnapshotReader reader(snapshot,
-                          isolate->heap(),
-                          isolate->object_store());
+    SnapshotReader reader(snapshot, isolate);
     reader.ReadFullSnapshot();
   }
 

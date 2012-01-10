@@ -747,7 +747,7 @@ RawString* Class::Name() const {
   if (raw_ptr()->name_ != String::null()) {
     return raw_ptr()->name_;
   }
-  ASSERT(class_class() != null_);  // Or GetSingletonClassIndex will not work.
+  ASSERT(class_class() != Class::null());  // class_class_ should be set up.
   intptr_t index = GetSingletonClassIndex(raw());
   return String::NewSymbol(GetSingletonClassName(index));
 }
