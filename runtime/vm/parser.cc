@@ -2512,9 +2512,18 @@ void Parser::ParseClassDefinition(GrowableArray<const Class*>* classes) {
   Type& super_type = Type::Handle();
   if (CurrentToken() == Token::kEXTENDS) {
     ConsumeToken();
-    super_type ^= ParseType(kCanResolve);
+    const intptr_t type_pos = token_index_;
+    const AbstractType& type = AbstractType::Handle(ParseType(kCanResolve));
+    if (type.IsTypeParameter()) {
+      ErrorMsg(type_pos,
+               "class '%s' may not extend type parameter '%s'",
+               class_name.ToCString(),
+               String::Handle(type.Name()).ToCString());
+    }
+    super_type ^= type.raw();
     if (super_type.IsInterfaceType()) {
-      ErrorMsg("class '%s' may implement, but cannot extend interface '%s'",
+      ErrorMsg(type_pos,
+               "class '%s' may implement, but cannot extend interface '%s'",
                class_name.ToCString(),
                String::Handle(super_type.Name()).ToCString());
     }
@@ -3004,6 +3013,19 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
   for (intptr_t i = 0; i < interfaces.Length(); i++) {
     AbstractType& interface = AbstractType::ZoneHandle();
     interface ^= interfaces.At(i);
+    if (interface.IsTypeParameter()) {
+      if (cls.is_interface()) {
+        ErrorMsg(interfaces_pos,
+                 "interface '%s' may not extend type parameter '%s'",
+                 String::Handle(cls.Name()).ToCString(),
+                 String::Handle(interface.Name()).ToCString());
+      } else {
+        ErrorMsg(interfaces_pos,
+                 "class '%s' may not implement type parameter '%s'",
+                 String::Handle(cls.Name()).ToCString(),
+                 String::Handle(interface.Name()).ToCString());
+      }
+    }
     if (!ClassFinalizer::AddInterfaceIfUnique(&all_interfaces,
                                               &interface,
                                               &conflicting)) {
