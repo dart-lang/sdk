@@ -155,8 +155,9 @@ class FrozenElementList implements ElementList {
   }
 
   void forEach(void f(Element element)) {
-    for (var element in _ptr) {
-      f(LevelDom.wrapElement(element));
+    final length = _ptr.length;
+    for (var i = 0; i < length; i++) {
+      f(LevelDom.wrapElement(_ptr[i]));
     }
   }
 

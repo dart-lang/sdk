@@ -4325,11 +4325,11 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
     throw "Incorrect number or type of arguments";
   }
 
-  IDBKeyRange lowerBound(IDBKey bound_, [bool open]) {
+  IDBKeyRange lowerBound(IDBKey bound, [bool open]) {
     if (open === null) {
-      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound_)));
+      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound)));
     } else {
-      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound_), open));
+      return LevelDom.wrapIDBKeyRange(_ptr.lowerBound(LevelDom.unwrap(bound), open));
     }
   }
 
@@ -4337,11 +4337,11 @@ class IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKey
     return LevelDom.wrapIDBKeyRange(_ptr.only(LevelDom.unwrap(value)));
   }
 
-  IDBKeyRange upperBound(IDBKey bound_, [bool open]) {
+  IDBKeyRange upperBound(IDBKey bound, [bool open]) {
     if (open === null) {
-      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound_)));
+      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound)));
     } else {
-      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound_), open));
+      return LevelDom.wrapIDBKeyRange(_ptr.upperBound(LevelDom.unwrap(bound), open));
     }
   }
 }
@@ -11116,21 +11116,21 @@ class StorageWrappingImplementation extends DOMWrapperBase implements Storage {
     return;
   }
 
-  String getItem(String key_) {
-    return _ptr.getItem(key_);
+  String getItem(String key) {
+    return _ptr.getItem(key);
   }
 
   String key(int index) {
     return _ptr.key(index);
   }
 
-  void removeItem(String key_) {
-    _ptr.removeItem(key_);
+  void removeItem(String key) {
+    _ptr.removeItem(key);
     return;
   }
 
-  void setItem(String key_, String data) {
-    _ptr.setItem(key_, data);
+  void setItem(String key, String data) {
+    _ptr.setItem(key, data);
     return;
   }
 }
@@ -21765,11 +21765,11 @@ class FilteredElementList implements ElementList {
   }
 
   Element removeLast() {
-    var last_ = this.last();
-    if (last_ != null) {
-      last_.remove();
+    var last = this.last();
+    if (last != null) {
+      last.remove();
     }
-    return last_;
+    return last;
   }
 
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
@@ -22397,11 +22397,11 @@ class _ChildrenElementList implements ElementList {
   }
 
   Element removeLast() {
-    final last_ = this.last();
-    if (last_ != null) {
-      _element.removeChild(LevelDom.unwrap(last_));
+    final last = this.last();
+    if (last != null) {
+      _element.removeChild(LevelDom.unwrap(last));
     }
-    return last_;
+    return last;
   }
 
   Element last() {
@@ -22419,8 +22419,9 @@ class FrozenElementList implements ElementList {
   }
 
   void forEach(void f(Element element)) {
-    for (var element in _ptr) {
-      f(LevelDom.wrapElement(element));
+    final length = _ptr.length;
+    for (var i = 0; i < length; i++) {
+      f(LevelDom.wrapElement(_ptr[i]));
     }
   }
 
@@ -23677,11 +23678,11 @@ class _ChildrenNodeList implements NodeList {
   }
 
   Node removeLast() {
-    final last_ = this.last();
-    if (last_ != null) {
-      _node.removeChild(LevelDom.unwrap(last_));
+    final last = this.last();
+    if (last != null) {
+      _node.removeChild(LevelDom.unwrap(last));
     }
-    return last_;
+    return last;
   }
 
   Node last() {
