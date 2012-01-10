@@ -37,8 +37,11 @@ namespace dart {
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
-  V(UnhandledException)                                                        \
-  V(ApiError)                                                                  \
+  V(Error)                                                                     \
+    V(ApiError)                                                                \
+    V(LanguageError)                                                           \
+    V(UnhandledException)                                                      \
+    V(UnwindError)                                                             \
   V(Instance)                                                                  \
     V(Number)                                                                  \
       V(Integer)                                                               \
@@ -726,7 +729,38 @@ class RawContextScope : public RawObject {
 };
 
 
-class RawUnhandledException : public RawObject {
+class RawError : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Error);
+};
+
+
+class RawApiError : public RawError {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+  RawString* message_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+};
+
+
+class RawLanguageError : public RawError {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LanguageError);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+  RawString* message_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+};
+
+
+class RawUnhandledException : public RawError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnhandledException);
 
   RawObject** from() {
@@ -740,15 +774,15 @@ class RawUnhandledException : public RawObject {
 };
 
 
-class RawApiError : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
+class RawUnwindError : public RawError {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnwindError);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
-  RawObject* data_;
+  RawString* message_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
 };
 

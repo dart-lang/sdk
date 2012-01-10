@@ -978,6 +978,54 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawError* Error::ReadFrom(SnapshotReader* reader,
+                                intptr_t object_id,
+                                intptr_t tags,
+                                Snapshot::Kind kind) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+void RawError::WriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
+RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
+                                intptr_t object_id,
+                                intptr_t tags,
+                                Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+  return ApiError::null();
+}
+
+
+void RawApiError::WriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+}
+
+
+RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
+                                          intptr_t object_id,
+                                          intptr_t tags,
+                                          Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+  return LanguageError::null();
+}
+
+
+void RawLanguageError::WriteTo(SnapshotWriter* writer,
+                               intptr_t object_id,
+                               Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+}
+
+
 RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
                                                     intptr_t object_id,
                                                     intptr_t tags,
@@ -994,18 +1042,18 @@ void RawUnhandledException::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind) {
+RawUnwindError* UnwindError::ReadFrom(SnapshotReader* reader,
+                                      intptr_t object_id,
+                                      intptr_t tags,
+                                      Snapshot::Kind kind) {
   UNIMPLEMENTED();
-  return ApiError::null();
+  return UnwindError::null();
 }
 
 
-void RawApiError::WriteTo(SnapshotWriter* writer,
-                          intptr_t object_id,
-                          Snapshot::Kind kind) {
+void RawUnwindError::WriteTo(SnapshotWriter* writer,
+                             intptr_t object_id,
+                             Snapshot::Kind kind) {
   UNIMPLEMENTED();
 }
 

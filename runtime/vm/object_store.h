@@ -50,7 +50,6 @@ class ObjectStore {
     kArrayClass,
     kImmutableArrayClass,
     kByteBufferClass,
-    kUnhandledExceptionClass,
     kStacktraceClass,
     kJSRegExpClass,
     kMaxId,
@@ -192,16 +191,6 @@ class ObjectStore {
     byte_buffer_class_ = value.raw();
   }
 
-  RawClass* unhandled_exception_class() const {
-    return unhandled_exception_class_;
-  }
-  void set_unhandled_exception_class(const Class& value) {
-    unhandled_exception_class_ = value.raw();
-  }
-  static intptr_t unhandled_exception_class_offset() {
-    return OFFSET_OF(ObjectStore, unhandled_exception_class_);
-  }
-
   RawClass* stacktrace_class() const {
     return stacktrace_class_;
   }
@@ -341,7 +330,6 @@ class ObjectStore {
   RawClass* array_class_;
   RawClass* immutable_array_class_;
   RawClass* byte_buffer_class_;
-  RawClass* unhandled_exception_class_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawBool* true_value_;

@@ -76,6 +76,10 @@ RawClass* Object::exception_handlers_class_ =
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::api_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::unhandled_exception_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
@@ -130,6 +134,12 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kContextScopeClass;
   } else if (raw_class == api_error_class()) {
     return kApiErrorClass;
+  } else if (raw_class == language_error_class()) {
+    return kLanguageErrorClass;
+  } else if (raw_class == unhandled_exception_class()) {
+    return kUnhandledExceptionClass;
+  } else if (raw_class == unwind_error_class()) {
+    return kUnwindErrorClass;
   }
   return kInvalidIndex;
 }
@@ -163,6 +173,9 @@ RawClass* Object::GetSingletonClass(int index) {
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
     case kApiErrorClass: return api_error_class();
+    case kLanguageErrorClass: return language_error_class();
+    case kUnhandledExceptionClass: return unhandled_exception_class();
+    case kUnwindErrorClass: return unwind_error_class();
     default: break;
   }
   UNREACHABLE();
@@ -197,6 +210,9 @@ const char* Object::GetSingletonClassName(int index) {
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
     case kApiErrorClass: return "ApiError";
+    case kLanguageErrorClass: return "LanguageError";
+    case kUnhandledExceptionClass: return "UnhandledException";
+    case kUnwindErrorClass: return "UnwindError";
     default: break;
   }
   UNREACHABLE();
@@ -342,6 +358,15 @@ void Object::InitOnce() {
 
   cls = Class::New<ApiError>();
   api_error_class_ = cls.raw();
+
+  cls = Class::New<LanguageError>();
+  language_error_class_ = cls.raw();
+
+  cls = Class::New<UnhandledException>();
+  unhandled_exception_class_ = cls.raw();
+
+  cls = Class::New<UnwindError>();
+  unwind_error_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 }
@@ -491,11 +516,6 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
   RegisterClass(cls, "ExternalFourByteString", impl_script, core_impl_lib);
-  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
-
-  cls = Class::New<UnhandledException>();
-  object_store->set_unhandled_exception_class(cls);
-  RegisterClass(cls, "UnhandledException", impl_script, core_impl_lib);
   pending_classes.Add(&Class::ZoneHandle(cls.raw()));
 
   cls = Class::New<Stacktrace>();
@@ -679,9 +699,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
-
-  cls = Class::New<UnhandledException>();
-  object_store->set_unhandled_exception_class(cls);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
@@ -1164,9 +1181,6 @@ RawClass* Class::NewSignatureClass(const String& name,
 RawClass* Class::GetClass(ObjectKind kind) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   switch (kind) {
-    case kUnhandledException:
-      ASSERT(object_store->unhandled_exception_class() != Class::null());
-      return object_store->unhandled_exception_class();
     case kSmi:
       ASSERT(object_store->smi_class() != Class::null());
       return object_store->smi_class();
@@ -5022,12 +5036,67 @@ const char* ContextScope::ToCString() const {
 }
 
 
+const char* Error::ToCString() const {
+  // Error is an abstract class.  We should never reach here.
+  UNREACHABLE();
+  return "Error";
+}
+
+
+RawApiError* ApiError::New(const String& message, Heap::Space space) {
+  const Class& cls = Class::Handle(Object::api_error_class());
+  ApiError& result = ApiError::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls,
+                                      ApiError::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_message(message);
+  return result.raw();
+}
+
+
+void ApiError::set_message(const String& message) const {
+  StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+const char* ApiError::ToCString() const {
+  return "ApiError";
+}
+
+
+RawLanguageError* LanguageError::New(const String& message, Heap::Space space) {
+  const Class& cls = Class::Handle(Object::language_error_class());
+  LanguageError& result = LanguageError::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls,
+                                      LanguageError::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_message(message);
+  return result.raw();
+}
+
+
+void LanguageError::set_message(const String& message) const {
+  StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+const char* LanguageError::ToCString() const {
+  return "LanguageError";
+}
+
+
 RawUnhandledException* UnhandledException::New(const Instance& exception,
                                                const Instance& stacktrace,
                                                Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(
-      isolate->object_store()->unhandled_exception_class());
+  const Class& cls = Class::Handle(Object::unhandled_exception_class());
   UnhandledException& result = UnhandledException::Handle();
   {
     RawObject* raw = Object::Allocate(cls,
@@ -5057,44 +5126,28 @@ const char* UnhandledException::ToCString() const {
 }
 
 
-RawApiError* ApiError::New(const String& message, Heap::Space space) {
-  const Class& cls = Class::Handle(Object::api_error_class());
-  ApiError& result = ApiError::Handle();
+RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
+  const Class& cls = Class::Handle(Object::unwind_error_class());
+  UnwindError& result = UnwindError::Handle();
   {
     RawObject* raw = Object::Allocate(cls,
-                                      ApiError::InstanceSize(),
+                                      UnwindError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
     result ^= raw;
   }
-  result.set_data(message);
+  result.set_message(message);
   return result.raw();
 }
 
 
-RawApiError* ApiError::New(const UnhandledException& exception,
-                           Heap::Space space) {
-  const Class& cls = Class::Handle(Object::api_error_class());
-  ApiError& result = ApiError::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      ApiError::InstanceSize(),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  result.set_data(exception);
-  return result.raw();
+void UnwindError::set_message(const String& message) const {
+  StorePointer(&raw_ptr()->message_, message.raw());
 }
 
 
-void ApiError::set_data(const Object& data) const {
-  StorePointer(&raw_ptr()->data_, data.raw());
-}
-
-
-const char* ApiError::ToCString() const {
-  return "ApiError";
+const char* UnwindError::ToCString() const {
+  return "UnwindError";
 }
 
 

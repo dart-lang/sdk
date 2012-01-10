@@ -392,10 +392,11 @@ intptr_t RawContextScope::VisitContextScopePointers(
 }
 
 
-intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
-    RawUnhandledException* raw_obj, ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return UnhandledException::InstanceSize();
+intptr_t RawError::VisitErrorPointers(RawError* raw_obj,
+                                      ObjectPointerVisitor* visitor) {
+  // Error is an abstract class.
+  UNREACHABLE();
+  return 0;
 }
 
 
@@ -403,6 +404,27 @@ intptr_t RawApiError::VisitApiErrorPointers(
     RawApiError* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ApiError::InstanceSize();
+}
+
+
+intptr_t RawLanguageError::VisitLanguageErrorPointers(
+    RawLanguageError* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return LanguageError::InstanceSize();
+}
+
+
+intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
+    RawUnhandledException* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UnhandledException::InstanceSize();
+}
+
+
+intptr_t RawUnwindError::VisitUnwindErrorPointers(
+    RawUnwindError* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UnwindError::InstanceSize();
 }
 
 

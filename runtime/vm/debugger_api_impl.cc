@@ -16,13 +16,13 @@ namespace dart {
   do {                                                                        \
     const Object& tmp = Object::Handle(Api::UnwrapHandle(param));             \
     if (tmp.IsNull()) {                                                       \
-      return Api::Error("%s expects argument '%s' to be non-null.",           \
-                        CURRENT_FUNC, #param);                                \
+      return Api::NewError("%s expects argument '%s' to be non-null.",        \
+                           CURRENT_FUNC, #param);                             \
     } else if (tmp.IsApiError()) {                                            \
       return param;                                                           \
     } else if (!tmp.Is##type()) {                                             \
-      return Api::Error("%s expects argument '%s' to be of type %s.",         \
-                        CURRENT_FUNC, #param, #type);                         \
+      return Api::NewError("%s expects argument '%s' to be of type %s.",      \
+                           CURRENT_FUNC, #param, #type);                      \
     }                                                                         \
     var ^= tmp.raw();                                                         \
   } while (0);
@@ -30,16 +30,16 @@ namespace dart {
 
 #define CHECK_AND_CAST(type, var, param)                                      \
   if (param == NULL) {                                                        \
-    return Api::Error("%s expects argument '%s' to be non-null.",             \
-                      CURRENT_FUNC, #param);                                  \
+    return Api::NewError("%s expects argument '%s' to be non-null.",          \
+                         CURRENT_FUNC, #param);                               \
   }                                                                           \
   type* var = reinterpret_cast<type*>(param);
 
 
 #define CHECK_NOT_NULL(param)                                                 \
   if (param == NULL) {                                                        \
-    return Api::Error("%s expects argument '%s' to be non-null.",             \
-                      CURRENT_FUNC, #param);                                  \
+    return Api::NewError("%s expects argument '%s' to be non-null.",          \
+                         CURRENT_FUNC, #param);                               \
   }
 
 
@@ -64,8 +64,8 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
   CHECK_NOT_NULL(frame);
   CHECK_AND_CAST(StackTrace, stack_trace, trace);
   if ((frame_index < 0) || (frame_index >= stack_trace->Length())) {
-    return Api::Error("argument 'frame_index' is out of range for %s",
-                      CURRENT_FUNC);
+    return Api::NewError("argument 'frame_index' is out of range for %s",
+                         CURRENT_FUNC);
   }
   *frame = reinterpret_cast<Dart_ActivationFrame>(
        stack_trace->ActivationFrameAt(frame_index));
@@ -125,7 +125,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
 
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
-    return Api::Error(msg);
+    return Api::NewError(msg);
   }
 
   // Resolve the breakpoint target function.
@@ -134,11 +134,11 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
       debugger->ResolveFunction(library, class_name, function_name));
   if (bp_target.IsNull()) {
     const bool toplevel = class_name.Length() == 0;
-    return Api::Error("%s: could not find function '%s%s%s'",
-                      CURRENT_FUNC,
-                      toplevel ? "" : class_name.ToCString(),
-                      toplevel ? "" : ".",
-                      function_name.ToCString());
+    return Api::NewError("%s: could not find function '%s%s%s'",
+                         CURRENT_FUNC,
+                         toplevel ? "" : class_name.ToCString(),
+                         toplevel ? "" : ".",
+                         function_name.ToCString());
   }
 
   LongJump* base = isolate->long_jump_base();
@@ -150,8 +150,8 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
     Breakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
     if (bpt == NULL) {
       const char* target_name = Debugger::QualifiedFunctionName(bp_target);
-      result = Api::Error("%s: no breakpoint location found in '%s'",
-                          CURRENT_FUNC, target_name);
+      result = Api::NewError("%s: no breakpoint location found in '%s'",
+                             CURRENT_FUNC, target_name);
     } else {
       *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
     }

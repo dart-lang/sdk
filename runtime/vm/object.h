@@ -157,6 +157,9 @@ class Object {
     kContextClass,
     kContextScopeClass,
     kApiErrorClass,
+    kLanguageErrorClass,
+    kUnhandledExceptionClass,
+    kUnwindErrorClass,
     kMaxId,
     kInvalidIndex = -1,
   };
@@ -290,6 +293,11 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* context_class() { return context_class_; }
   static RawClass* context_scope_class() { return context_scope_class_; }
   static RawClass* api_error_class() { return api_error_class_; }
+  static RawClass* language_error_class() { return language_error_class_; }
+  static RawClass* unhandled_exception_class() {
+    return unhandled_exception_class_;
+  }
+  static RawClass* unwind_error_class() { return unwind_error_class_; }
 
   static int GetSingletonClassIndex(const RawClass* raw_class);
   static RawClass* GetSingletonClass(int index);
@@ -394,6 +402,9 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
   static RawClass* api_error_class_;  // Class of ApiError.
+  static RawClass* language_error_class_;  // Class of LanguageError.
+  static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
+  static RawClass* unwind_error_class_;  // Class of UnwindError.
 
   friend void RawObject::Validate() const;
 
@@ -2177,7 +2188,57 @@ class ContextScope : public Object {
 };
 
 
-class UnhandledException : public Object {
+class Error : public Object {
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(Error, Object);
+};
+
+
+class ApiError : public Error {
+ public:
+  RawString* message() const { return raw_ptr()->message_; }
+  static intptr_t message_offset() {
+    return OFFSET_OF(RawApiError, message_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawApiError));
+  }
+
+  static RawApiError* New(const String& message,
+                          Heap::Space space = Heap::kNew);
+
+ private:
+  void set_message(const String& message) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(ApiError, Error);
+  friend class Class;
+};
+
+
+class LanguageError : public Error {
+ public:
+  RawString* message() const { return raw_ptr()->message_; }
+  static intptr_t message_offset() {
+    return OFFSET_OF(RawLanguageError, message_);
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawLanguageError));
+  }
+
+  static RawLanguageError* New(const String& message,
+                               Heap::Space space = Heap::kNew);
+
+ private:
+  void set_message(const String& message) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(LanguageError, Error);
+  friend class Class;
+};
+
+
+class UnhandledException : public Error {
  public:
   RawInstance* exception() const { return raw_ptr()->exception_; }
   static intptr_t exception_offset() {
@@ -2201,32 +2262,29 @@ class UnhandledException : public Object {
   void set_exception(const Instance& exception) const;
   void set_stacktrace(const Instance& stacktrace) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Object);
+  HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
 };
 
 
-class ApiError : public Object {
+class UnwindError : public Error {
  public:
-  RawObject* data() const { return raw_ptr()->data_; }
-  static intptr_t data_offset() {
-    return OFFSET_OF(RawApiError, data_);
+  RawString* message() const { return raw_ptr()->message_; }
+  static intptr_t message_offset() {
+    return OFFSET_OF(RawUnwindError, message_);
   }
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawApiError));
+    return RoundedAllocationSize(sizeof(RawUnwindError));
   }
 
-  static RawApiError* New(const String& message,
-                          Heap::Space space = Heap::kNew);
-
-  static RawApiError* New(const UnhandledException& exception,
-                          Heap::Space space = Heap::kNew);
+  static RawUnwindError* New(const String& message,
+                             Heap::Space space = Heap::kNew);
 
  private:
-  void set_data(const Object& data) const;
+  void set_message(const String& message) const;
 
-  HEAP_OBJECT_IMPLEMENTATION(ApiError, Object);
+  HEAP_OBJECT_IMPLEMENTATION(UnwindError, Error);
   friend class Class;
 };
 

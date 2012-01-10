@@ -27,7 +27,7 @@ TEST_CASE(ErrorHandles) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   Dart_Handle instance = Dart_True();
-  Dart_Handle error = Api::Error("myerror");
+  Dart_Handle error = Api::NewError("myerror");
   Dart_Handle exception = Dart_InvokeStatic(lib,
                                             Dart_NewString("TestClass"),
                                             Dart_NewString("testMain"),
