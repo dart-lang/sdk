@@ -61,6 +61,10 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
   void forEach(void f(Touch element)) {
     _Collections.forEach(this, f);
   }
+ 
+  Collection map(f(Touch element)) {
+    return _Collections.map(this, [], f);
+  }
 
   Collection<Touch> filter(bool f(Touch element)) {
     return _Collections.filter(this, new List<Touch>(), f);

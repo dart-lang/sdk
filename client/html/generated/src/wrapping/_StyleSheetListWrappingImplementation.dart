@@ -62,6 +62,10 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(StyleSheet element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<StyleSheet> filter(bool f(StyleSheet element)) {
     return _Collections.filter(this, new List<StyleSheet>(), f);
   }

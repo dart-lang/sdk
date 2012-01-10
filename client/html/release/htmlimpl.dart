@@ -1436,6 +1436,10 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<int> filter(bool f(int element)) {
     return _Collections.filter(this, new List<int>(), f);
   }
@@ -5519,6 +5523,10 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
 
   void forEach(void f(String element)) {
     _Collections.forEach(this, f);
+  }
+
+  Collection map(f(String element)) {
+    return _Collections.map(this, [], f);
   }
 
   Collection<String> filter(bool f(String element)) {
@@ -11236,6 +11244,10 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
     _Collections.forEach(this, f);
   }
 
+  Collection map(f(StyleSheet element)) {
+    return _Collections.map(this, [], f);
+  }
+
   Collection<StyleSheet> filter(bool f(StyleSheet element)) {
     return _Collections.filter(this, new List<StyleSheet>(), f);
   }
@@ -11900,6 +11912,10 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
 
   void forEach(void f(Touch element)) {
     _Collections.forEach(this, f);
+  }
+ 
+  Collection map(f(Touch element)) {
+    return _Collections.map(this, [], f);
   }
 
   Collection<Touch> filter(bool f(Touch element)) {
@@ -18258,6 +18274,15 @@ class _Collections {
     for (final e in iterable) {
       f(e);
     }
+  }
+
+  static List map(Iterable<Object> source,
+                  List<Object> destination,
+                  f(o)) {
+    for (final e in source) {
+      destination.add(f(e));
+    }
+    return destination;
   }
 
   static bool some(Iterable<Object> iterable, bool f(Object o)) {
