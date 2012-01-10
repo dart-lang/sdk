@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -43,7 +43,6 @@
     'bootstrap.h',
     'bootstrap_natives.h',
     'bootstrap_natives.cc',
-    'c99_support_win.h',
     'class_finalizer.h',
     'class_finalizer.cc',
     'class_finalizer_test.cc',
@@ -134,7 +133,6 @@
     'ic_data.h',
     'ic_data.cc',
     'ic_data_test.cc',
-    'inttypes_support_win.h',
     'instructions.h',
     'instructions_ia32.cc',
     'instructions_ia32.h',
