@@ -520,6 +520,9 @@ class Dartdoc {
     } else if (name.startsWith('set:')) {
       // Setter.
       name = 'set ${name.substring(4)}';
+    } else if (name == ':negate') {
+      // Dart uses 'negate' for prefix negate operators, not '!'.
+      name = 'operator negate';
     } else {
       // See if it's an operator.
       name = TokenKind.rawOperatorFromMethod(name);
