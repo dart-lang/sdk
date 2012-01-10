@@ -104,7 +104,7 @@ class Parser {
     var message;
     try {
       message = 'expected $expected, but found $tok';
-    } catch (var e) {
+    } catch (final e) {
       message = 'parsing error expected $expected';
     }
     _error(message, tok.span);
@@ -116,6 +116,14 @@ class Parser {
     }
 
     lang.world.fatal(message, location);    // syntax errors are fatal for now
+  }
+
+  void _warning(String message, [lang.SourceSpan location=null]) {
+    if (location === null) {
+      location = _peekToken.span;
+    }
+
+    lang.world.warning(message, location);
   }
 
   lang.SourceSpan _makeSpan(int start) {
@@ -763,6 +771,12 @@ class Parser {
         // FUNCTION
         return processFunction(nameValue);
       } else {
+        // TODO(terry): Need to have a list of known identifiers today only
+        //              'from' is special.
+        if (nameValue.name == 'from') {
+          return new LiteralTerm(nameValue, nameValue.name, _makeSpan(start));
+        }
+
         // What kind of identifier is it?
         int value;
         try {
@@ -778,16 +792,11 @@ class Parser {
             _error('Bad hex number', _makeSpan(start));
           }
           return new HexColorTerm(value, rgbColor, _makeSpan(start));
-        } catch (var error) {
+        } catch (final error) {
           if (error is NoColorMatchException) {
-            // Other named things to match with validator?
-            // TODO(terry): TBD
-//            _error('Unknown property value ${error.name}', _makeSpan(start));
-
-            value = nameValue.name;
-            print('Warning: unknown property value ${error.name}');
+            // TODO(terry): Other named things to match with validator?
+            _warning('Unknown property value ${error.name}', _makeSpan(start));
             return new LiteralTerm(nameValue, nameValue.name, _makeSpan(start));
-
           }
         }
       }
@@ -863,6 +872,9 @@ class Parser {
       break;
     default:
       if (urlString) {
+        if (_peek() == TokenKind.LPAREN) {
+          _next();    // Skip the LPAREN.
+        }
         stopToken = TokenKind.RPAREN;
       } else {
         _error('unexpected string', _makeSpan(start));

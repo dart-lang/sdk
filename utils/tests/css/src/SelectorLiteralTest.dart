@@ -42,7 +42,7 @@ class SelectorLiteralTest {
 
       // Valid selectors for private element IDs (leading underscore).
       cssParseAndValidate('@{._privateClass}', cssWorld);
-    } catch (var e) {
+    } catch (final e) {
       // CSS Expressions failed
       Expect.fail(e.toString());
     }
@@ -59,9 +59,9 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
-      Expect.equals("${ERROR}1:4: fatal: expected identifier, but found " +
-          "TokenKind(506)(-)\n${css}\n   ^", e.toString());
+    } catch (final e) {
+      Expect.equals("CssSelectorException: Unknown selector name .-foobar",
+          e.toString());
     }
 
     // Error this class name is not known.
@@ -69,7 +69,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Unknown selector name .foobar1",
           e.toString());
     }
@@ -79,7 +79,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Unknown selector name .xyzzy1",
           e.toString());
     }
@@ -89,10 +89,9 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
-      Expect.equals(
-          "${ERROR}1:12: fatal: expected identifier, but found error(1a)\n" +
-          "${css}\n           ^^", e.toString());
+    } catch (final e) {
+      Expect.equals("${ERROR}1:11: fatal: expected }, but found double(.1)\n" +
+          "${css}\n          ^^", e.toString());
     }
 
     // element id must be single selector.
@@ -100,7 +99,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Use of Id selector must be " +
           "singleton starting at #id2", e.toString());
     }
@@ -110,7 +109,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("@{#id-number-3 .foobar} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       // CSS Expressions failed
       Expect.equals("CssSelectorException: Can not mix Id selector with "+
           "class selector(s). Id selector must be singleton too many " +
@@ -122,7 +121,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       // CSS Expressions failed
       Expect.equals("CssSelectorException: Use of Id selector must be " +
           "singleton starting at #id-number-3", e.toString());
@@ -133,7 +132,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Invalid template selector foo|div",
           e.toString());
     }
@@ -143,7 +142,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("$css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Invalid template selector foo|div",
           e.toString());
     }
@@ -153,7 +152,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Invalid template selector foo|div",
           e.toString());
     }
@@ -163,7 +162,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Invalid template selector foo|div",
           e.toString());
     }
@@ -173,7 +172,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Invalid template selector foo|div",
           e.toString());
     }
@@ -183,9 +182,9 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Selectors can not have " +
-          "combinators (>, +, or ~) before .xyzzy", e.toString());
+          "combinators (>, +, or ~) before >.xyzzy", e.toString());
     }
   }
 
@@ -200,7 +199,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Use of Id selector must be " +
           "singleton starting at #id2", e.toString());
     }
@@ -210,7 +209,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Unknown selector name .foobar2",
           e.toString());
     }
@@ -220,7 +219,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Use of Id selector must be " +
           "singleton starting at #id2", e.toString());
     }
@@ -230,7 +229,7 @@ class SelectorLiteralTest {
     try {
       cssParseAndValidate('${css}', cssWorld);
       Expect.fail("${css} should not succeed.");
-    } catch (var e) {
+    } catch (final e) {
       Expect.equals("CssSelectorException: Use of Id selector must be " +
           "singleton starting at #_privateId2", e.toString());
     }

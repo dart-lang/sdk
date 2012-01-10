@@ -377,12 +377,12 @@ class TokenKind {
    */
   static int matchList(var identList, String tokenField, String text,
                        int offset, int length) {
-    for (var entry in identList) {
+    for (final entry in identList) {
       String ident = entry['value'];
       if (length == ident.length) {
         int idx = offset;
         bool match = true;
-        for (var identIdx = 0; identIdx < ident.length; identIdx++) {
+        for (final identIdx = 0; identIdx < ident.length; identIdx++) {
           int identChar = ident.charCodeAt(identIdx);
           int char = text.charCodeAt(idx++);
           // Compare lowercase to lowercase then check if char is uppercase.
@@ -425,7 +425,7 @@ class TokenKind {
     if (unitTokenToFind == TokenKind.PERCENT) {
       return '%';
     } else {
-      for (var entry in _UNITS) {
+      for (final entry in _UNITS) {
         int unit = entry['unit'];
         if (unit == unitTokenToFind) {
           return entry['value'];
@@ -442,12 +442,12 @@ class TokenKind {
    */
   static int matchColorName(String text) {
     int length = text.length;
-    for (var entry in _EXTENDED_COLOR_NAMES) {
+    for (final entry in _EXTENDED_COLOR_NAMES) {
       String ident = entry['name'];
       if (length == ident.length) {
         int idx = 0;
         bool match = true;
-        for (var identIdx = 0; identIdx < ident.length; identIdx++) {
+        for (final identIdx = 0; identIdx < ident.length; identIdx++) {
           int identChar = ident.charCodeAt(identIdx);
           int char = text.charCodeAt(idx++);
           // Compare lowercase to lowercase then check if char is uppercase.
@@ -485,7 +485,7 @@ class TokenKind {
     }
 
     StringBuffer invertResult = new StringBuffer();
-    for (var idx = result.length - 1; idx >= 0; idx--) {
+    for (final idx = result.length - 1; idx >= 0; idx--) {
       invertResult.add(result[idx]);
     }
     return invertResult.toString();

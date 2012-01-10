@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//#import('../file_system.dart');
-
-#import("dart:dom");
+#import('dart:dom');
 #import('css.dart');
 #import('../../frog/lang.dart', prefix:'lang');
 #import('../../frog/file_system_memory.dart');
@@ -17,7 +15,7 @@ void runCss([bool debug = false, bool parseOnly = false]) {
   List<String> knownWorld = classes.value.split("\n");
   List<String> knownClasses = [];
   List<String> knownIds = [];
-  for (var name in knownWorld) {
+  for (final name in knownWorld) {
     if (name.startsWith('.')) {
       knownClasses.add(name.substring(1));
     } else if (name.startsWith('#')) {
@@ -33,7 +31,7 @@ void runCss([bool debug = false, bool parseOnly = false]) {
   if (!debug) {
     try {
       cssParseAndValidate(cssExpr, cssWorld);
-    } catch (var cssException) {
+    } catch (final cssException) {
       templateValid = false;
       dumpTree = cssException.toString();
     }
@@ -48,14 +46,14 @@ void runCss([bool debug = false, bool parseOnly = false]) {
       stylesheetTree.add("\n============>Tree Dump<============\n");
       stylesheetTree.add(stylesheet.toDebugString());
       dumpTree = stylesheetTree.toString();
-    } catch (var cssParseException) {
+    } catch (final cssParseException) {
       templateValid = false;
       dumpTree = cssParseException.toString();
     }
   } else {
     try {
       dumpTree = cssParseAndValidateDebug(cssExpr, cssWorld);
-    } catch (var cssException) {
+    } catch (final cssException) {
       templateValid = false;
       dumpTree = cssException.toString();
     }
@@ -95,7 +93,6 @@ void main() {
   ''';
 
   document.body.appendChild(element);
-//  document.body.elements.add(element);
 
   // TODO(terry): Needed so runCss isn't shakened out.
   if (false) {

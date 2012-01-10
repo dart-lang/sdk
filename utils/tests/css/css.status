@@ -4,7 +4,8 @@
 
 prefix css
 
-[ $component == frog || $component == frogsh || $component == leg ]
+[$component == leg ]
+DeclarationTest: Fail
 ExpressionTest: Fail
 SelectorLiteralTest: Fail
 
