@@ -3,6 +3,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+set -e
+
 SCRIPT_DIR=$(dirname $0)
 DARTC_HOME=$(dirname $SCRIPT_DIR)
 DARTC_LIBS=$DARTC_HOME/lib
