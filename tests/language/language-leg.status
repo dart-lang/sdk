@@ -200,7 +200,6 @@ LibrarySameNameUsedTest: Fail
 ListLiteral2Test: Fail
 ListLiteral3Test: Fail
 ListLiteral4Test: Fail
-ListLiteralNegativeTest: Crash
 ListLiteralTest: Fail
 ListTest: Fail
 LocalFunction2Test: Fail
@@ -212,7 +211,6 @@ ManyOverriddenNoSuchMethodTest: Fail
 MapLiteral2Test: Fail
 MapLiteral3Test: Fail
 MapLiteral4Test: Fail
-MapLiteralNegativeTest: Crash
 MapLiteralTest: Fail
 MapTest: Fail
 MathVMTest: Fail
@@ -346,6 +344,7 @@ SwitchFallthruTest: Fail
 SwitchLabelTest: Fail
 SwitchScopeTest: Fail
 SwitchTest: Fail
+SyntaxTest/none: Fail
 TernaryTest: Fail
 TestNegativeTest: Crash
 Throw1Test: Fail

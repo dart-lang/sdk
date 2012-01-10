@@ -156,6 +156,9 @@ SwitchLabelTest: Fail        # Bug 4208467.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
 TypeChecksInFactoryMethodTest: Fail # Issue 925
+SyntaxTest/31: Fail # Issue 1108
+SyntaxTest/32: Fail # Issue 1108
+SyntaxTest/33: Fail # Issue 1108
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -312,6 +315,15 @@ PrivateMemberTest/none: Fail # test seems bad - see issue #353
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass
 StaticField2RunNegativeTest: Pass
+SyntaxTest/28: Fail # Issue 1109
+SyntaxTest/29: Fail # Issue 1109
+SyntaxTest/31: Fail # Issue 1109
+SyntaxTest/32: Fail # Issue 1109
+SyntaxTest/33: Fail # Issue 1109
+SyntaxTest/55: Fail # Issue 1110
+SyntaxTest/60: Fail # Issue 1110
+SyntaxTest/61: Fail # Issue 1110
+SyntaxTest/62: Fail # Issue 1110
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
