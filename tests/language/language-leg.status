@@ -49,7 +49,6 @@ ConstInitTest: Fail
 ConstListTest: Fail
 ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
-ConstStringTest: Fail
 ConstTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
@@ -145,9 +144,9 @@ FunctionTypeAliasTest: Fail
 FunctionTypeParameter2Test: Crash
 FunctionTypeParameterTest: Crash
 GenericDeepTest: Fail
-GenericInheritanceTest: Fail
+GenericInheritanceTest: Crash
 GenericInstanceofTest: Fail
-GenericParameterizedExtendsTest: Fail
+GenericParameterizedExtendsTest: Crash
 GenericSyntaxTest: Fail
 GenericTest: Fail
 Generics2Test: Fail
@@ -240,7 +239,6 @@ NativeLibrarySameNameUsedFrogTest: Fail
 NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
-NestedCommentsTest: Fail
 NewExpression2NegativeTest: Crash
 NewExpression3NegativeTest: Crash
 NewExpressionTypeArgsFrogTest/02: Fail
@@ -252,7 +250,6 @@ NonParameterizedFactoryTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
-NumberConstantFolding1Test: Fail
 NumberIdentifierNegativeTest: Crash
 NumberSyntaxTest: Fail
 NumbersTest: Fail
