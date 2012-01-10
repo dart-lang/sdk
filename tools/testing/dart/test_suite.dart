@@ -228,8 +228,11 @@ class StandardTestSuite implements TestSuite {
     // Look up expectations in status files using a modified file path.
     String testName;
     filename = filename.replaceAll('\\', '/');
+
+    // See if there's a 'src' directory inside the 'tests' one.
+    int testsStart = filename.lastIndexOf('tests/');
     int start = filename.lastIndexOf('src/');
-    if (start != -1) {
+    if (start > testsStart) {
       testName = filename.substring(start + 4, filename.length - 5);
     } else if (optionsFromFile['isMultitest']) {
       start = filename.lastIndexOf('/');
@@ -335,7 +338,7 @@ class StandardTestSuite implements TestSuite {
       createTestCase(filename, optionsFromFile['isNegative']);
     }
   }
-        
+
   void enqueueBrowserTest(String filename,
                           String testName,
                           Map optionsFromFile,
@@ -347,7 +350,7 @@ class StandardTestSuite implements TestSuite {
     if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
       print('Warning for $filename: Browser tests require #library ' +
             'in any file that uses #import or #source');
-    }      
+    }
 
     final String component = configuration['component'];
     final String testPath = new File(filename).fullPathSync();
@@ -396,8 +399,8 @@ class StandardTestSuite implements TestSuite {
           RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
           dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
           dartLibrary.closeSync();
-        }  
-      
+        }
+
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
         dartWrapper.writeStringSync(DartTestWrapper(
@@ -480,7 +483,7 @@ class StandardTestSuite implements TestSuite {
           }
         }
         args = ['--out', htmlPath, '--browser', browserFlag];
-        
+
       } else {
         args = ['--no-timeout'];
         if (component == 'dartium') {
@@ -504,7 +507,7 @@ class StandardTestSuite implements TestSuite {
           expectations,
           optionsFromFile['isNegative']);
       doTest(testCase);
-    }        
+    }
   }
 
   /***
@@ -545,7 +548,7 @@ class StandardTestSuite implements TestSuite {
       tempDir = new Directory(tempDirPath);
       if (!tempDir.existsSync()) {
         tempDir.createSync();
-      }      
+      }
     }
     tempDirPath = new File(tempDirPath).fullPathSync();
 
@@ -581,7 +584,7 @@ class StandardTestSuite implements TestSuite {
     if (new Platform().operatingSystem() == 'macos') {
       return 'client/tests/drt/DumpRenderTree.app/Contents/' +
           'MacOS/DumpRenderTree';
-    } 
+    }
     return 'client/tests/drt/DumpRenderTree';
   }
 
@@ -657,7 +660,7 @@ class StandardTestSuite implements TestSuite {
         const RegExp(@"^#library\(", multiLine: true);
     RegExp sourceOrImportRegExp =
         const RegExp(@"^#(source|import)\(", multiLine: true);
-    
+
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
     // we are interested in will be ascii in any case.
@@ -803,7 +806,7 @@ class JUnitTestSuite implements TestSuite {
                    [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
-    
+
     if (configuration['component'] != 'dartc') {
       // Do nothing.  Asynchronously report that the suite is enqueued.
       new Timer((timerUnused){ doDone(); }, 0);
@@ -848,7 +851,7 @@ class JUnitTestSuite implements TestSuite {
       testClasses.add(testClass);
     }
   }
-      
+
   void createTest(successIgnored) {
     String d8 = '$dartDir/$buildDir/d8${TestUtils.executableSuffix}';
     List<String> args = <String>[
@@ -858,7 +861,7 @@ class JUnitTestSuite implements TestSuite {
         '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
-          
+
     doTest(new TestCase(suiteName,
                         'java',
                         args,
@@ -894,7 +897,7 @@ class JUnitTestSuite implements TestSuite {
 
 class TestUtils {
   static String get executableSuffix() =>
-      (new Platform().operatingSystem() == 'windows') ? '.exe' : '';      
+      (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
 
   static String executableName(Map configuration) {
     String postfix = executableSuffix;
