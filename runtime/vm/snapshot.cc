@@ -184,7 +184,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     intptr_t instance_size = cls.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    RawObject* raw = Object::Allocate(cls, instance_size, Heap::kNew);
+    RawObject* raw = Instance::New(cls, Heap::kNew);
     result ^= raw;
     intptr_t offset = Object::InstanceSize();
     while (offset < instance_size) {
