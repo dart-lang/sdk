@@ -379,16 +379,26 @@ class DartGenerator(object):
     self._emitters = multiemitter.MultiEmitter()
     self._database = database
     self._output_dir = output_dir
-    self._dart_callback_file_paths = []
 
     self._ComputeInheritanceClosure()
-    self._StartGenerateInterfaceLibrary()
-    self._StartGenerateWrappingImpl(output_dir)
-    self._StartGenerateFrogImpl(output_dir)
+
+    interface_system = WrappingInterfacesSystem(
+        self._database, self._emitters, self._output_dir)
+
+    wrapping_system = WrappingImplementationSystem(
+        self._database, self._emitters, self._output_dir)
+
+    # Makes wrapper implementations available for listing in interface lib.
+    interface_system._implementation_system = wrapping_system
+
+    frog_system = FrogSystem(
+        self._database, self._emitters, self._output_dir)
+
+    self._systems = [interface_system,
+                     wrapping_system,
+                     frog_system]
 
     # Render all interfaces into Dart and save them in files.
-    dart_file_paths = []
-    processed_interfaces = []
     for interface in database.GetInterfaces():
 
       super_interface = None
@@ -416,35 +426,21 @@ class DartGenerator(object):
 
       info = self._RecognizeCallback(interface)
       if info:
-        self._ProcessCallback(interface, info)
+        for system in self._systems:
+          system.ProcessCallback(interface, info)
       else:
         if 'Callback' in interface.ext_attrs:
           _logger.info('Malformed callback: %s' % interface.id)
         self._ProcessInterface(interface, super_interface,
                                source_filter, common_prefix)
-      processed_interfaces.append(interface)
 
     # Libraries
     if lib_dir:
-      # New version: Wrapping implementation combined interface and
-      # implementation library.
-      self.GenerateLibFile('template_wrapping_dom.darttemplate',
-                           os.path.join(lib_dir, 'wrapping_dom.dart'),
-                           (self._dart_interface_file_paths +
-                            self._dart_callback_file_paths +
-                            # FIXME: Move the implementation to a separate
-                            # library.
-                            self._dart_wrapping_file_paths))
+      for system in self._systems:
+        system.GenerateLibraries(lib_dir)
 
-      # New version: Frog
-      self.GenerateLibFile('template_frog_dom.darttemplate',
-                           os.path.join(lib_dir, 'dom_frog.dart'),
-                           self._dart_frog_file_paths +
-                           self._dart_callback_file_paths)
-
-
-    # JavaScript externs files
-    self._GenerateJavaScriptExternsWrapping(database, output_dir)
+    for system in self._systems:
+      system.Finish()
 
 
   def _RecognizeCallback(self, interface):
@@ -457,20 +453,6 @@ class DartGenerator(object):
     if not (handlers == interface.operations): return None
     return self._AnalyzeOperation(interface, handlers)
 
-  def _ProcessCallback(self, interface, info):
-    """Generates a typedef for the callback interface."""
-    interface_name = interface.id
-    file_path = self.FilePathForDartInterface(interface_name)
-    self._dart_callback_file_paths.append(file_path)
-    code = self._emitters.FileEmitter(file_path)
-
-    template_file = 'template_callback.darttemplate'
-    code.Emit(''.join(open(template_file).readlines()))
-    code.Emit('typedef $TYPE $NAME($ARGS);\n',
-              NAME=interface.id,
-              TYPE=info.type_name,
-              ARGS=info.arg_implementation_declaration)
-
 
   def _ProcessInterface(self, interface, super_interface_name,
                         source_filter,
@@ -478,27 +460,11 @@ class DartGenerator(object):
     """."""
     _logger.info('Generating %s' % interface.id)
 
-    dart_interface_generator = self._MakeDartInterfaceGenerator(
-        interface,
-        common_prefix,
-        super_interface_name,
-        source_filter)
-
-    wrapping_interface_generator = self._MakeWrappingImplInterfaceGenerator(
-        interface,
-        common_prefix,
-        super_interface_name,
-        source_filter)
-
-    frog_interface_generator = self._MakeFrogImplInterfaceGenerator(
-        interface,
-        common_prefix,
-        super_interface_name,
-        source_filter)
-
-    generators = [dart_interface_generator,
-                  wrapping_interface_generator,
-                  frog_interface_generator]
+    generators = [system.InterfaceGenerator(interface,
+                                            common_prefix,
+                                            super_interface_name,
+                                            source_filter)
+                  for system in self._systems]
 
     for generator in generators:
       generator.StartInterface()
@@ -731,126 +697,6 @@ class DartGenerator(object):
                         '%s.dart' % interface_name)
 
 
-  def _StartGenerateInterfaceLibrary(self):
-    """."""
-    self._dart_interface_file_paths = []
-    self._dart_wrapping_file_paths = []
-    self._dart_frog_file_paths = []
-
-
-  def _MakeDartInterfaceGenerator(self,
-                                  interface,
-                                  common_prefix,
-                                  super_interface_name,
-                                  source_filter):
-    """."""
-    interface_name = interface.id
-    dart_interface_file_path = self.FilePathForDartInterface(interface_name)
-
-    self._dart_interface_file_paths.append(dart_interface_file_path)
-
-    dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
-
-    template_file = 'template_interface_%s.darttemplate' % interface_name
-    if not os.path.exists(template_file):
-      template_file = 'template_interface.darttemplate'
-    template = ''.join(open(template_file).readlines())
-
-    return DartInterfaceGenerator(
-        interface, dart_interface_code,
-        template,
-        common_prefix, super_interface_name,
-        source_filter)
-
-
-  def _StartGenerateWrappingImpl(self, output_dir):
-    """Prepared for generating wrapping implementation.
-
-    - Creates emitter for JS code.
-    - Creates emitter for Dart code.
-    """
-    js_file_name = os.path.join(output_dir, 'wrapping_dom.js')
-    code = self._emitters.FileEmitter(js_file_name)
-    template = ''.join(open('template_wrapping_dom.js').readlines())
-    (self._wrapping_js_natives,
-     self._wrapping_map) = code.Emit(template)
-
-    _logger.info('Started Generating %s' % js_file_name)
-
-    # Set of (interface, name, kind), kind is 'attribute' or 'operation'.
-    self._wrapping_externs = set()
-
-
-  def _MakeWrappingImplInterfaceGenerator(self,
-                                          interface,
-                                          common_prefix,
-                                          super_interface_name,
-                                          source_filter):
-    """."""
-    interface_name = interface.id
-    dart_wrapping_file_path = self.FilePathForDartWrappingImpl(interface_name)
-
-    self._dart_wrapping_file_paths.append(dart_wrapping_file_path)
-
-    dart_code = self._emitters.FileEmitter(dart_wrapping_file_path)
-    dart_code.Emit(
-        ''.join(open('template_wrapping_impl.darttemplate').readlines()))
-    return WrappingInterfaceGenerator(interface, super_interface_name,
-                                      dart_code, self._wrapping_js_natives,
-                                      self._wrapping_map,
-                                      self._wrapping_externs,
-                                      self._BaseDefines(interface))
-
-  def _BaseDefines(self, interface):
-    """Returns a set of names (strings) for members defined in a base class.
-    """
-    def WalkParentChain(interface):
-      if interface.parents:
-        # Only consider primary parent, secondary parents are not on the
-        # implementation class inheritance chain.
-        parent = interface.parents[0]
-        if _IsDartCollectionType(parent.type.id):
-          return
-        if self._database.HasInterface(parent.type.id):
-          parent_interface = self._database.GetInterface(parent.type.id)
-          for attr in parent_interface.attributes:
-            result.add(attr.id)
-          for op in parent_interface.operations:
-            result.add(op.id)
-          WalkParentChain(parent_interface)
-
-    result = set()
-    WalkParentChain(interface)
-    return result;
-
-
-  def _StartGenerateFrogImpl(self, output_dir):
-    """Prepared for generating frog implementation.
-    """
-    self._interface_names_with_subtypes = set()
-    for interface in self._database.GetInterfaces():
-      for parent in interface.parents:
-        self._interface_names_with_subtypes.add(parent.type.id)
-
-  def _MakeFrogImplInterfaceGenerator(self,
-                                      interface,
-                                      common_prefix,
-                                      super_interface_name,
-                                      source_filter):
-    """."""
-    interface_name = interface.id
-    dart_frog_file_path = self.FilePathForFrogImpl(interface_name)
-
-    self._dart_frog_file_paths.append(dart_frog_file_path)
-
-    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
-    dart_code.Emit(
-        ''.join(open('template_frog_impl.darttemplate').readlines()))
-    return FrogInterfaceGenerator(interface, super_interface_name,
-                                  self._interface_names_with_subtypes,
-                                  dart_code)
-
-
   def _ComputeInheritanceClosure(self):
     def Collect(interface, seen, collected):
       name = interface.id
@@ -880,69 +726,6 @@ class DartGenerator(object):
     """
     return self._inheritance_closure[interface.id]
 
-  def _GenerateProtoMap(self):
-    """Determine which DOM type prototypes can be obtained
-    from window properties.
-    """
-    window = None
-    for interface in self._database.GetInterfaces():
-      if interface.id == 'DOMWindow':
-        window = interface
-    prototype_table = {}
-    boring_type_ids = set(['bool', 'int', 'Number', 'String'])
-    if window:
-      for attr in window.attributes:
-        if attr.is_fc_getter:
-          if attr.type.id not in boring_type_ids:
-            prototype_table[attr.type.id] = [attr.id]
-
-    # Manual fixups
-    prototype_table['EventListener'] = ['onload']  # avoid webkit specific.
-    prototype_table['PerformanceMemoryInfo'] = ['performance', 'memory']
-    prototype_table['PerformanceNavigation'] = ['performance', 'navigation']
-    prototype_table['PerformanceTiming'] = ['performance', 'timing']
-
-    return prototype_table
-
-  def _GenerateJavaScriptExternsWrapping(self, database, output_dir):
-    """Generates a JavaScript externs file.
-
-    Generates an externs file that is consistent with generated JavaScript code
-    and Dart APIs for the wrapping implementation.
-    """
-    externs_file_name = os.path.join(output_dir, 'wrapping_dom_externs.js')
-    code = self._emitters.FileEmitter(externs_file_name)
-    _logger.info('Started generating %s' % externs_file_name)
-
-    template = ''.join(open('template_wrapping_dom_externs.js').readlines())
-    namespace = 'dom_externs'
-    members = code.Emit(template, NAMESPACE=namespace)
-
-    # TODO: Filter out externs that are known to the JavaScript back-end.  Some
-    # of the known externs have useful declarations like @nosideeffects that
-    # might improve back-end analysis.
-
-    names = dict()  # maps name to (interface, kind)
-    for (interface, name, kind) in self._wrapping_externs:
-      if name not in _javascript_keywords:
-        if name not in names:
-          names[name] = set()
-        names[name].add((interface, kind))
-
-    for name in sorted(names.keys()):
-      # Simply export the property name.
-      extern = emitter.Format('$NAMESPACE.$NAME;',
-                              NAMESPACE=namespace, NAME=name)
-      members.EmitRaw(extern)
-      # Add a big comment of all the attributes and operations contributing to
-      # the export.
-      filler = ' ' * (40 - 2 - len(extern))  # '2' for 2 spaces before comment.
-      separator = filler + '  //'
-      for (interface, kind) in sorted(names[name]):
-        members.Emit('$SEP $KIND $INTERFACE.$NAME',
-                     NAME=name, INTERFACE=interface, KIND=kind, SEP=separator)
-        separator = ','
-      members.Emit('\n')
 
 
   def _GenerateJavaScriptExternInterfaces(self,
@@ -1061,6 +844,290 @@ def IndentText(text, indent):
     else:
       return '\n'
   return ''.join(FormatLine(line) for line in text.split('\n'))
+
+# ------------------------------------------------------------------------------
+
+class System(object):
+  """Generates all the files for one implementation."""
+
+  def __init__(self, database, emitters, output_dir):
+    self._database = database
+    self._emitters = emitters
+    self._output_dir = output_dir
+    self._dart_callback_file_paths = []
+
+  def InterfaceGenerator(self,
+                         interface,
+                         common_prefix,
+                         super_interface_name,
+                         source_filter):
+    """Returns an interface generator for |interface|."""
+    return None
+
+  def ProcessCallback(self, interface, info):
+    pass
+
+  def GenerateLibraries(self, lib_dir):
+    pass
+
+  def Finish(self):
+    pass
+
+
+  def _ProcessCallback(self, interface, info, file_path):
+    """Generates a typedef for the callback interface."""
+    self._dart_callback_file_paths.append(file_path)
+    code = self._emitters.FileEmitter(file_path)
+
+    template_file = 'template_callback.darttemplate'
+    code.Emit(''.join(open(template_file).readlines()))
+    code.Emit('typedef $TYPE $NAME($ARGS);\n',
+              NAME=interface.id,
+              TYPE=info.type_name,
+              ARGS=info.arg_implementation_declaration)
+
+  def _GenerateLibFile(self, lib_template, lib_file_path, file_paths):
+    """Generates a lib file from a template and a list of files."""
+    # Load template.
+    template = ''.join(open(lib_template).readlines())
+    # Generate the .lib file.
+    lib_file_contents = self._emitters.FileEmitter(lib_file_path)
+
+    # Emit the list of #source directives.
+    list_emitter = lib_file_contents.Emit(template)
+    lib_file_dir = os.path.dirname(lib_file_path)
+    for path in sorted(file_paths):
+      relpath = os.path.relpath(path, lib_file_dir)
+      list_emitter.Emit("#source('$PATH');\n", PATH=relpath)
+
+
+  def _BaseDefines(self, interface):
+    """Returns a set of names (strings) for members defined in a base class.
+    """
+    def WalkParentChain(interface):
+      if interface.parents:
+        # Only consider primary parent, secondary parents are not on the
+        # implementation class inheritance chain.
+        parent = interface.parents[0]
+        if _IsDartCollectionType(parent.type.id):
+          return
+        if self._database.HasInterface(parent.type.id):
+          parent_interface = self._database.GetInterface(parent.type.id)
+          for attr in parent_interface.attributes:
+            result.add(attr.id)
+          for op in parent_interface.operations:
+            result.add(op.id)
+          WalkParentChain(parent_interface)
+
+    result = set()
+    WalkParentChain(interface)
+    return result;
+
+
+# ------------------------------------------------------------------------------
+
+class WrappingInterfacesSystem(System):
+
+  def __init__(self, database, emitters, output_dir):
+    super(WrappingInterfacesSystem, self).__init__(
+        database, emitters, output_dir)
+    self._dart_interface_file_paths = []
+
+
+  def InterfaceGenerator(self,
+                         interface,
+                         common_prefix,
+                         super_interface_name,
+                         source_filter):
+    """."""
+    interface_name = interface.id
+    dart_interface_file_path = self._FilePathForDartInterface(interface_name)
+
+    self._dart_interface_file_paths.append(dart_interface_file_path)
+
+    dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
+
+    template_file = 'template_interface_%s.darttemplate' % interface_name
+    if not os.path.exists(template_file):
+      template_file = 'template_interface.darttemplate'
+    template = ''.join(open(template_file).readlines())
+
+    return DartInterfaceGenerator(
+        interface, dart_interface_code,
+        template,
+        common_prefix, super_interface_name,
+        source_filter)
+
+  def ProcessCallback(self, interface, info):
+    """Generates a typedef for the callback interface."""
+    interface_name = interface.id
+    file_path = self._FilePathForDartInterface(interface_name)
+    self._ProcessCallback(interface, info, file_path)
+
+  def GenerateLibraries(self, lib_dir):
+    # Library generated for implementation.
+    self._GenerateLibFile(
+        'template_wrapping_dom.darttemplate',
+        os.path.join(lib_dir, 'wrapping_dom.dart'),
+        (self._dart_interface_file_paths +
+         self._dart_callback_file_paths +
+         # FIXME: Move the implementation to a separate
+         # library.
+         self._implementation_system._dart_wrapping_file_paths
+         ))
+
+
+  def _FilePathForDartInterface(self, interface_name):
+    """Returns the file path of the Dart interface definition."""
+    return os.path.join(self._output_dir, 'src', 'interface',
+                        '%s.dart' % interface_name)
+
+
+# ------------------------------------------------------------------------------
+
+class WrappingImplementationSystem(System):
+
+  def __init__(self, database, emitters, output_dir):
+    """Prepared for generating wrapping implementation.
+
+    - Creates emitter for JS code.
+    - Creates emitter for Dart code.
+    """
+    super(WrappingImplementationSystem, self).__init__(
+        database, emitters, output_dir)
+    self._dart_wrapping_file_paths = []
+
+    js_file_name = os.path.join(output_dir, 'wrapping_dom.js')
+    code = self._emitters.FileEmitter(js_file_name)
+    template = ''.join(open('template_wrapping_dom.js').readlines())
+    (self._wrapping_js_natives,
+     self._wrapping_map) = code.Emit(template)
+
+    _logger.info('Started Generating %s' % js_file_name)
+
+    # Set of (interface, name, kind), kind is 'attribute' or 'operation'.
+    self._wrapping_externs = set()
+
+
+  def InterfaceGenerator(self,
+                         interface,
+                         common_prefix,
+                         super_interface_name,
+                         source_filter):
+    """."""
+    interface_name = interface.id
+    dart_wrapping_file_path = self._FilePathForDartWrappingImpl(interface_name)
+
+    self._dart_wrapping_file_paths.append(dart_wrapping_file_path)
+
+    dart_code = self._emitters.FileEmitter(dart_wrapping_file_path)
+    dart_code.Emit(
+        ''.join(open('template_wrapping_impl.darttemplate').readlines()))
+    return WrappingInterfaceGenerator(interface, super_interface_name,
+                                      dart_code, self._wrapping_js_natives,
+                                      self._wrapping_map,
+                                      self._wrapping_externs,
+                                      self._BaseDefines(interface))
+
+  def ProcessCallback(self, interface, info):
+    pass
+
+  def GenerateLibraries(self, lib_dir):
+    pass
+
+  def Finish(self):
+    self._GenerateJavaScriptExternsWrapping(self._database, self._output_dir)
+
+
+  def _FilePathForDartWrappingImpl(self, interface_name):
+    """Returns the file path of the Dart wrapping implementation."""
+    return os.path.join(self._output_dir, 'src', 'wrapping',
+                        '_%sWrappingImplementation.dart' % interface_name)
+
+  def _GenerateJavaScriptExternsWrapping(self, database, output_dir):
+    """Generates a JavaScript externs file.
+
+    Generates an externs file that is consistent with generated JavaScript code
+    and Dart APIs for the wrapping implementation.
+    """
+    externs_file_name = os.path.join(output_dir, 'wrapping_dom_externs.js')
+    code = self._emitters.FileEmitter(externs_file_name)
+    _logger.info('Started generating %s' % externs_file_name)
+
+    template = ''.join(open('template_wrapping_dom_externs.js').readlines())
+    namespace = 'dom_externs'
+    members = code.Emit(template, NAMESPACE=namespace)
+
+    # TODO: Filter out externs that are known to the JavaScript back-end.  Some
+    # of the known externs have useful declarations like @nosideeffects that
+    # might improve back-end analysis.
+
+    names = dict()  # maps name to (interface, kind)
+    for (interface, name, kind) in self._wrapping_externs:
+      if name not in _javascript_keywords:
+        if name not in names:
+          names[name] = set()
+        names[name].add((interface, kind))
+
+    for name in sorted(names.keys()):
+      # Simply export the property name.
+      extern = emitter.Format('$NAMESPACE.$NAME;',
+                              NAMESPACE=namespace, NAME=name)
+      members.EmitRaw(extern)
+      # Add a big comment of all the attributes and operations contributing to
+      # the export.
+      filler = ' ' * (40 - 2 - len(extern))  # '2' for 2 spaces before comment.
+      separator = filler + '  //'
+      for (interface, kind) in sorted(names[name]):
+        members.Emit('$SEP $KIND $INTERFACE.$NAME',
+                     NAME=name, INTERFACE=interface, KIND=kind, SEP=separator)
+        separator = ','
+      members.Emit('\n')
+
+# ------------------------------------------------------------------------------
+
+class FrogSystem(System):
+
+  def __init__(self, database, emitters, output_dir):
+    super(FrogSystem, self).__init__(database, emitters, output_dir)
+    self._dart_frog_file_paths = []
+
+  def InterfaceGenerator(self,
+                         interface,
+                         common_prefix,
+                         super_interface_name,
+                         source_filter):
+    """."""
+    dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
+
+    self._dart_frog_file_paths.append(dart_frog_file_path)
+
+    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
+    dart_code.Emit(
+        ''.join(open('template_frog_impl.darttemplate').readlines()))
+    return FrogInterfaceGenerator(interface, super_interface_name,
+                                  dart_code)
+
+  def ProcessCallback(self, interface, info):
+    """Generates a typedef for the callback interface."""
+    file_path = self._FilePathForFrogImpl(interface.id)
+    self._ProcessCallback(interface, info, file_path)
+
+  def GenerateLibraries(self, lib_dir):
+    self._GenerateLibFile(
+        'template_frog_dom.darttemplate',
+        os.path.join(lib_dir, 'dom_frog.dart'),
+        self._dart_frog_file_paths +
+        self._dart_callback_file_paths)
+
+  def Finish(self):
+    pass
+
+  def _FilePathForFrogImpl(self, interface_name):
+    """Returns the file path of the Frog implementation."""
+    return os.path.join(self._output_dir, 'src', 'frog',
+                        '%s.dart' % interface_name)
+
 
 # ------------------------------------------------------------------------------
 
@@ -1747,8 +1814,7 @@ class WrappingInterfaceGenerator(object):
 class FrogInterfaceGenerator(object):
   """Generates a Frog class for a DOM IDL interface."""
 
-  def __init__(self, interface, super_interface, interfaces_with_subtypes,
-               dart_code):
+  def __init__(self, interface, super_interface, dart_code):
     """Generates Dart code for the given interface.
 
     Args:
@@ -1758,14 +1824,11 @@ class FrogInterfaceGenerator(object):
           the same package as the interface.
       super_interface: A string or None, the name of the common interface that
           this interface implements, if any.
-      interfaces_with_subtypes: A set of strings names of interfaces that have
-          at least one subtype.
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
     self._interface = interface
     self._super_interface = super_interface
-    self._interfaces_with_subtypes = interfaces_with_subtypes
     self._dart_code = dart_code
     self._current_secondary_parent = None
 
