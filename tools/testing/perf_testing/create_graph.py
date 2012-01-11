@@ -79,14 +79,11 @@ def time_cmd(cmd):
   run_cmd(cmd)
   return time.time() - start
 
-def sync_and_build(failed_once=False):
+def sync_and_build():
   """Make sure we have the latest version of of the repo, and build it. We
   begin and end standing in DART_INSTALL_LOCATION.
-  Args:
-    failed_once True if we have attempted to build this once before, and we've
-      failed, indicating the build is broken.
   Returns:
-    err_code = 1 if there was a problem building two times in a row."""
+    err_code = 1 if there was a problem building."""
   os.chdir(DART_INSTALL_LOCATION)
   #Revert our newly built minfrog to prevent conflicts when we update
   run_cmd(['svn', 'revert',  os.path.join(os.getcwd(), 'frog', 'minfrog')])
@@ -99,21 +96,17 @@ def sync_and_build(failed_once=False):
   # TODO(efortuna): Currently always building ia32 architecture because we don't
   # have test statistics for what's passing on x64. Eliminate arch specification
   # when we have tests running on x64, too.
+  shutil.rmtree(os.path.join(os.getcwd(), 
+    utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')))
   lines = run_cmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release',
     '--arch=ia32', 'create_sdk'])
   
   for line in lines:
     if 'BUILD FAILED' in lines:
-      if failed_once:
-        # Someone checked in a broken build! Just stop trying to make it work
-        # and wait to try again.
-        print 'Broken Build'
-        return 1
-      #Remove the output directory and attempt to build again. If it still
-      #fails, abort, and try again in a little bit.
-      shutil.rmtree(os.path.join(os.getcwd(), 
-          utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')))
-      sync_and_build(True)
+      # Someone checked in a broken build! Just stop trying to make it work
+      # and wait to try again.
+      print 'Broken Build'
+      return 1
   return 0
 
 def ensure_output_directory(dir_name):
@@ -159,6 +152,16 @@ def get_benchmarks():
     'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
     'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
     'TreeSort']
+
+def get_os_directory():
+  """Specifies the name of the directory for the testing build of dart, which
+  has yet a different naming convention from utils.getBuildRoot(...)."""
+  if platform.system() == 'Windows':
+    return 'windows'
+  elif platform.system() == 'Darwin':
+    return 'macos'
+  else:
+    return 'linux'
 
 def upload_to_app_engine():
   """Upload our results to our appengine server."""
@@ -530,6 +533,10 @@ class BrowserCorrectnessTestRunner(TestRunner):
 
   def run_tests(self):
     """run a test of the latest svn revision."""
+    the_os = get_os_directory()
+    suffix = ''
+    if platform.system() == 'Windows':
+      suffix = '.exe'
     for browser in get_browsers():
       current_file = 'correctness%s-%s' % (self.cur_time, browser)
       self.trace_file = os.path.join('tools', 'testing',
@@ -537,10 +544,11 @@ class BrowserCorrectnessTestRunner(TestRunner):
       self.add_svn_revision_to_trace(self.trace_file)
       dart_sdk = os.path.join(os.getcwd(), utils.GetBuildRoot(utils.GuessOS(),
           'release', 'ia32'), 'dart-sdk')
-      run_cmd([os.path.join('.', 'tools', 'test.py'),
-          '--component=webdriver', '--flag=%s' % browser, '--flag=--frog=%s' % \
-          os.path.join(dart_sdk, 'bin', 'frogc'), '--report',
-          '--flag=--froglib=%s' % os.path.join(dart_sdk, 'lib'),
+      run_cmd([os.path.join('.', 'tools', 'testing', 'bin', the_os, 
+          'dart' + suffix), os.path.join('tools', 'test.dart'), 
+          '--component=webdriver', '--flag=%s,--frog=%s,--froglib=%s' % \
+          (browser, os.path.join(dart_sdk, 'bin', 'frogc'), 
+          os.path.join(dart_sdk, 'lib')), '--report',
           '--timeout=20', '--progress=color', '--mode=release', '-j1',
           self.test_type], self.trace_file, append=True)
 
