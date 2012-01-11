@@ -365,12 +365,9 @@ class StandardTestSuite implements TestSuite {
       }
     }
 
-    // TODO(whesse): Find out if this loop is turning the buildbot red.
-    // for (var vmOptions in optionsFromFile['vmOptions']) {
-    var vmOptions = optionsFromFile['vmOptions'][0]; {
-
+    for (var vmOptions in optionsFromFile['vmOptions']) {
       // Create a unique temporary directory for each set of vmOptions.
-      // TODO(whesse): Replace separate replaces with a RegExp when
+      // TODO(dart:429): Replace separate replaceAlls with a RegExp when
       // replaceAll(RegExp, String) is implemented.
       String optionsName = '';
       if (optionsFromFile['vmOptions'].length > 1) {
