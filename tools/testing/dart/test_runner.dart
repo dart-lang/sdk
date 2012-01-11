@@ -161,14 +161,17 @@ class TestOutput {
       if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
         return (exitCode != 0 && !hasCrashed);
       }
-      // If the browser test failed, it may have been because DumpRenderTree
-      // and the virtual framebuffer X server didn't hook up.
+      previous_line = line;
+    }
+
+    // If the browser test failed, it may have been because DumpRenderTree
+    // and the virtual framebuffer X server didn't hook up.
+    for (String line in stderr) {
       if (line.contains('Gtk-WARNING **: cannot open display: :99')) {
         // If we get the X server error, return the expected value
         // We cannot restart the test from here.  Issue dart:1135 is filed.
         return testCase.isNegative;
       }
-      previous_line = line;
     }
     return true;
   }
