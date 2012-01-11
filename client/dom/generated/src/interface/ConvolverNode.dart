@@ -9,4 +9,8 @@ interface ConvolverNode extends AudioNode {
   AudioBuffer get buffer();
 
   void set buffer(AudioBuffer value);
+
+  bool get normalize();
+
+  void set normalize(bool value);
 }

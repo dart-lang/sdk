@@ -508,7 +508,6 @@
 #source('generated/src/frog/WebKitCSSKeyframesRule.dart');
 #source('generated/src/frog/WebKitCSSMatrix.dart');
 #source('generated/src/frog/WebKitCSSTransformValue.dart');
-#source('generated/src/frog/WebKitFlags.dart');
 #source('generated/src/frog/WebKitMutationObserver.dart');
 #source('generated/src/frog/WebKitNamedFlow.dart');
 #source('generated/src/frog/WebKitPoint.dart');

@@ -138,7 +138,7 @@ class AudioContext native "*AudioContext" {
 
   BiquadFilterNode createBiquadFilter() native;
 
-  AudioBuffer createBuffer() native;
+  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
 
   AudioBufferSourceNode createBufferSource() native;
 
@@ -213,9 +213,9 @@ class AudioNode native "*AudioNode" {
 
   int numberOfOutputs;
 
-  void connect(AudioNode destination, [int output = null, int input = null]) native;
+  void connect(AudioNode destination, int output, int input) native;
 
-  void disconnect([int output = null]) native;
+  void disconnect(int output) native;
 
   var dartObjectLocalStorage;
 
@@ -899,6 +899,8 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
   AudioBuffer buffer;
+
+  bool normalize;
 }
 
 class Coordinates native "*Coordinates" {
@@ -1599,9 +1601,9 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   DirectoryReader createReader() native;
 
-  void getDirectory(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void getFile(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
 }
@@ -1610,9 +1612,9 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   DirectoryReaderSync createReader() native;
 
-  DirectoryEntrySync getDirectory(String path, WebKitFlags flags) native;
+  DirectoryEntrySync getDirectory(String path, Object flags) native;
 
-  FileEntrySync getFile(String path, WebKitFlags flags) native;
+  FileEntrySync getFile(String path, Object flags) native;
 
   void removeRecursively() native;
 }
@@ -2353,6 +2355,10 @@ class FileReader native "*FileReader" {
 
   void abort() native;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event evt) native;
+
   void readAsArrayBuffer(Blob blob) native;
 
   void readAsBinaryString(Blob blob) native;
@@ -2360,6 +2366,8 @@ class FileReader native "*FileReader" {
   void readAsDataURL(Blob blob) native;
 
   void readAsText(Blob blob, [String encoding = null]) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -4430,6 +4438,8 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
   void requestAttachWindow() native;
 
   void requestDetachWindow() native;
+
+  void requestSetDockSide(String side) native;
 
   void saveAs(String fileName, String content) native;
 
@@ -10805,8 +10815,6 @@ class WebKitAnimationEvent extends Event native "*WebKitAnimationEvent" {
   String animationName;
 
   num elapsedTime;
-
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg) native;
 }
 
 class WebKitAnimationList native "*WebKitAnimationList" {
@@ -10998,17 +11006,6 @@ class WebKitCSSTransformValue extends CSSValueList native "*WebKitCSSTransformVa
   int operationType;
 }
 
-class WebKitFlags native "*WebKitFlags" {
-
-  bool create;
-
-  bool exclusive;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
@@ -11043,8 +11040,6 @@ class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
   num elapsedTime;
 
   String propertyName;
-
-  void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg) native;
 }
 
 class WebSocket native "*WebSocket" {

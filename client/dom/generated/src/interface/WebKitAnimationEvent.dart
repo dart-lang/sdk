@@ -9,6 +9,4 @@ interface WebKitAnimationEvent extends Event {
   String get animationName();
 
   num get elapsedTime();
-
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg);
 }

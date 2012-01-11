@@ -35,6 +35,8 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void requestDetachWindow() native;
 
+  void requestSetDockSide(String side) native;
+
   void saveAs(String fileName, String content) native;
 
   void sendMessageToBackend(String message) native;

@@ -47,6 +47,10 @@ _idl_to_dart_type_conversions = {
     # TODO(vsm): Automatically recognize types defined in src.
     'TimeoutHandler': 'TimeoutHandler',
     'RequestAnimationFrameCallback': 'RequestAnimationFrameCallback',
+
+    # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
+    # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
+    'WebKitFlags': 'Object',
     }
 
 _dart_to_idl_type_conversions = dict((v,k) for k, v in

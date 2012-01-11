@@ -17,11 +17,5 @@ class _WebKitAnimationEventWrappingImplementation extends _EventWrappingImplemen
   num get elapsedTime() { return _get_elapsedTime(this); }
   static num _get_elapsedTime(var _this) native;
 
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg) {
-    _initWebKitAnimationEvent(this, typeArg, canBubbleArg, cancelableArg, animationNameArg, elapsedTimeArg);
-    return;
-  }
-  static void _initWebKitAnimationEvent(receiver, typeArg, canBubbleArg, cancelableArg, animationNameArg, elapsedTimeArg) native;
-
   String get typeName() { return "WebKitAnimationEvent"; }
 }

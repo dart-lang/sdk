@@ -8,13 +8,23 @@ interface TextTrackCue {
 
   String get alignment();
 
+  void set alignment(String value);
+
   String get direction();
+
+  void set direction(String value);
 
   num get endTime();
 
+  void set endTime(num value);
+
   String get id();
 
+  void set id(String value);
+
   int get linePosition();
+
+  void set linePosition(int value);
 
   EventListener get onenter();
 
@@ -26,13 +36,23 @@ interface TextTrackCue {
 
   bool get pauseOnExit();
 
+  void set pauseOnExit(bool value);
+
   int get size();
+
+  void set size(int value);
 
   bool get snapToLines();
 
+  void set snapToLines(bool value);
+
   num get startTime();
 
+  void set startTime(num value);
+
   int get textPosition();
+
+  void set textPosition(int value);
 
   TextTrack get track();
 

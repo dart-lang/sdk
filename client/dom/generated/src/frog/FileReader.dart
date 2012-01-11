@@ -29,6 +29,10 @@ class FileReader native "*FileReader" {
 
   void abort() native;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event evt) native;
+
   void readAsArrayBuffer(Blob blob) native;
 
   void readAsBinaryString(Blob blob) native;
@@ -36,6 +40,8 @@ class FileReader native "*FileReader" {
   void readAsDataURL(Blob blob) native;
 
   void readAsText(Blob blob, [String encoding = null]) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   var dartObjectLocalStorage;
 

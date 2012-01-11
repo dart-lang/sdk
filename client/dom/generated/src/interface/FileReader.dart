@@ -46,6 +46,10 @@ interface FileReader default _FileReaderFactoryProvider {
 
   void abort();
 
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event evt);
+
   void readAsArrayBuffer(Blob blob);
 
   void readAsBinaryString(Blob blob);
@@ -53,4 +57,6 @@ interface FileReader default _FileReaderFactoryProvider {
   void readAsDataURL(Blob blob);
 
   void readAsText(Blob blob, [String encoding]);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }

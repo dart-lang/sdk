@@ -9,6 +9,4 @@ interface WebKitTransitionEvent extends Event {
   num get elapsedTime();
 
   String get propertyName();
-
-  void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg);
 }

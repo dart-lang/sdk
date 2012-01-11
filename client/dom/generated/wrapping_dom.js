@@ -350,9 +350,17 @@ function native__AudioContextWrappingImplementation__createBiquadFilter(_this) {
   }
 }
 
-function native__AudioContextWrappingImplementation__createBuffer(_this) {
+function native__AudioContextWrappingImplementation__createBuffer(_this, buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) {
   try {
-    return __dom_wrap(_this.$dom.createBuffer());
+    return __dom_wrap(_this.$dom.createBuffer(__dom_unwrap(buffer_OR_numberOfChannels), __dom_unwrap(mixToMono_OR_numberOfFrames)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__AudioContextWrappingImplementation__createBuffer_2(_this, buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) {
+  try {
+    return __dom_wrap(_this.$dom.createBuffer(__dom_unwrap(buffer_OR_numberOfChannels), __dom_unwrap(mixToMono_OR_numberOfFrames), __dom_unwrap(sampleRate)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -582,23 +590,7 @@ function native__AudioNodeWrappingImplementation__get_numberOfOutputs(_this) {
   }
 }
 
-function native__AudioNodeWrappingImplementation__connect(_this, destination) {
-  try {
-    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__AudioNodeWrappingImplementation__connect_2(_this, destination, output) {
-  try {
-    return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination), __dom_unwrap(output)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__AudioNodeWrappingImplementation__connect_3(_this, destination, output, input) {
+function native__AudioNodeWrappingImplementation__connect(_this, destination, output, input) {
   try {
     return __dom_wrap(_this.$dom.connect(__dom_unwrap(destination), __dom_unwrap(output), __dom_unwrap(input)));
   } catch (e) {
@@ -606,15 +598,7 @@ function native__AudioNodeWrappingImplementation__connect_3(_this, destination, 
   }
 }
 
-function native__AudioNodeWrappingImplementation__disconnect(_this) {
-  try {
-    return __dom_wrap(_this.$dom.disconnect());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__AudioNodeWrappingImplementation__disconnect_2(_this, output) {
+function native__AudioNodeWrappingImplementation__disconnect(_this, output) {
   try {
     return __dom_wrap(_this.$dom.disconnect(__dom_unwrap(output)));
   } catch (e) {
@@ -2897,6 +2881,22 @@ function native__ConvolverNodeWrappingImplementation__get_buffer(_this) {
 function native__ConvolverNodeWrappingImplementation__set_buffer(_this, value) {
   try {
     _this.$dom.buffer = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConvolverNodeWrappingImplementation__get_normalize(_this) {
+  try {
+    return __dom_wrap(_this.$dom.normalize);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__ConvolverNodeWrappingImplementation__set_normalize(_this, value) {
+  try {
+    _this.$dom.normalize = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -7534,6 +7534,30 @@ function native__FileReaderWrappingImplementation__abort(_this) {
   }
 }
 
+function native__FileReaderWrappingImplementation__addEventListener(_this, type, listener) {
+  try {
+    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__addEventListener_2(_this, type, listener, useCapture) {
+  try {
+    return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__dispatchEvent(_this, evt) {
+  try {
+    return __dom_wrap(_this.$dom.dispatchEvent(__dom_unwrap(evt)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__FileReaderWrappingImplementation__readAsArrayBuffer(_this, blob) {
   try {
     return __dom_wrap(_this.$dom.readAsArrayBuffer(__dom_unwrap(blob)));
@@ -7569,6 +7593,22 @@ function native__FileReaderWrappingImplementation__readAsText(_this, blob) {
 function native__FileReaderWrappingImplementation__readAsText_2(_this, blob, encoding) {
   try {
     return __dom_wrap(_this.$dom.readAsText(__dom_unwrap(blob), __dom_unwrap(encoding)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__removeEventListener(_this, type, listener) {
+  try {
+    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__FileReaderWrappingImplementation__removeEventListener_2(_this, type, listener, useCapture) {
+  try {
+    return __dom_wrap(_this.$dom.removeEventListener(__dom_unwrap(type), __dom_unwrap(listener), __dom_unwrap(useCapture)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17281,6 +17321,14 @@ function native__InspectorFrontendHostWrappingImplementation__requestAttachWindo
 function native__InspectorFrontendHostWrappingImplementation__requestDetachWindow(_this) {
   try {
     return __dom_wrap(_this.$dom.requestDetachWindow());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__InspectorFrontendHostWrappingImplementation__requestSetDockSide(_this, side) {
+  try {
+    return __dom_wrap(_this.$dom.requestSetDockSide(__dom_unwrap(side)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30670,9 +30718,25 @@ function native__TextTrackCueWrappingImplementation__get_alignment(_this) {
   }
 }
 
+function native__TextTrackCueWrappingImplementation__set_alignment(_this, value) {
+  try {
+    _this.$dom.alignment = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__TextTrackCueWrappingImplementation__get_direction(_this) {
   try {
     return __dom_wrap(_this.$dom.direction);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TextTrackCueWrappingImplementation__set_direction(_this, value) {
+  try {
+    _this.$dom.direction = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30686,6 +30750,14 @@ function native__TextTrackCueWrappingImplementation__get_endTime(_this) {
   }
 }
 
+function native__TextTrackCueWrappingImplementation__set_endTime(_this, value) {
+  try {
+    _this.$dom.endTime = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__TextTrackCueWrappingImplementation__get_id(_this) {
   try {
     return __dom_wrap(_this.$dom.id);
@@ -30694,9 +30766,25 @@ function native__TextTrackCueWrappingImplementation__get_id(_this) {
   }
 }
 
+function native__TextTrackCueWrappingImplementation__set_id(_this, value) {
+  try {
+    _this.$dom.id = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__TextTrackCueWrappingImplementation__get_linePosition(_this) {
   try {
     return __dom_wrap(_this.$dom.linePosition);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TextTrackCueWrappingImplementation__set_linePosition(_this, value) {
+  try {
+    _this.$dom.linePosition = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30742,9 +30830,25 @@ function native__TextTrackCueWrappingImplementation__get_pauseOnExit(_this) {
   }
 }
 
+function native__TextTrackCueWrappingImplementation__set_pauseOnExit(_this, value) {
+  try {
+    _this.$dom.pauseOnExit = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__TextTrackCueWrappingImplementation__get_size(_this) {
   try {
     return __dom_wrap(_this.$dom.size);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TextTrackCueWrappingImplementation__set_size(_this, value) {
+  try {
+    _this.$dom.size = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30758,6 +30862,14 @@ function native__TextTrackCueWrappingImplementation__get_snapToLines(_this) {
   }
 }
 
+function native__TextTrackCueWrappingImplementation__set_snapToLines(_this, value) {
+  try {
+    _this.$dom.snapToLines = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__TextTrackCueWrappingImplementation__get_startTime(_this) {
   try {
     return __dom_wrap(_this.$dom.startTime);
@@ -30766,9 +30878,25 @@ function native__TextTrackCueWrappingImplementation__get_startTime(_this) {
   }
 }
 
+function native__TextTrackCueWrappingImplementation__set_startTime(_this, value) {
+  try {
+    _this.$dom.startTime = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__TextTrackCueWrappingImplementation__get_textPosition(_this) {
   try {
     return __dom_wrap(_this.$dom.textPosition);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__TextTrackCueWrappingImplementation__set_textPosition(_this, value) {
+  try {
+    _this.$dom.textPosition = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -32990,14 +33118,6 @@ function native__WebKitAnimationEventWrappingImplementation__get_elapsedTime(_th
   }
 }
 
-function native__WebKitAnimationEventWrappingImplementation__initWebKitAnimationEvent(_this, typeArg, canBubbleArg, cancelableArg, animationNameArg, elapsedTimeArg) {
-  try {
-    return __dom_wrap(_this.$dom.initWebKitAnimationEvent(__dom_unwrap(typeArg), __dom_unwrap(canBubbleArg), __dom_unwrap(cancelableArg), __dom_unwrap(animationNameArg), __dom_unwrap(elapsedTimeArg)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__WebKitAnimationListWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
@@ -33582,38 +33702,6 @@ function native__WebKitCSSTransformValueWrappingImplementation__get_operationTyp
   }
 }
 
-function native__WebKitFlagsWrappingImplementation__get_create(_this) {
-  try {
-    return __dom_wrap(_this.$dom.create);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__WebKitFlagsWrappingImplementation__set_create(_this, value) {
-  try {
-    _this.$dom.create = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__WebKitFlagsWrappingImplementation__get_exclusive(_this) {
-  try {
-    return __dom_wrap(_this.$dom.exclusive);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__WebKitFlagsWrappingImplementation__set_exclusive(_this, value) {
-  try {
-    _this.$dom.exclusive = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__WebKitMutationObserverWrappingImplementation__disconnect(_this) {
   try {
     return __dom_wrap(_this.$dom.disconnect());
@@ -33665,14 +33753,6 @@ function native__WebKitTransitionEventWrappingImplementation__get_elapsedTime(_t
 function native__WebKitTransitionEventWrappingImplementation__get_propertyName(_this) {
   try {
     return __dom_wrap(_this.$dom.propertyName);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__WebKitTransitionEventWrappingImplementation__initWebKitTransitionEvent(_this, typeArg, canBubbleArg, cancelableArg, propertyNameArg, elapsedTimeArg) {
-  try {
-    return __dom_wrap(_this.$dom.initWebKitTransitionEvent(__dom_unwrap(typeArg), __dom_unwrap(canBubbleArg), __dom_unwrap(cancelableArg), __dom_unwrap(propertyNameArg), __dom_unwrap(elapsedTimeArg)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -35556,7 +35636,6 @@ var __dom_type_map = {
   "WebKitCSSKeyframesRule": native__WebKitCSSKeyframesRuleWrappingImplementation_create__WebKitCSSKeyframesRuleWrappingImplementation,
   "WebKitCSSMatrix": native__WebKitCSSMatrixWrappingImplementation_create__WebKitCSSMatrixWrappingImplementation,
   "WebKitCSSTransformValue": native__WebKitCSSTransformValueWrappingImplementation_create__WebKitCSSTransformValueWrappingImplementation,
-  "WebKitFlags": native__WebKitFlagsWrappingImplementation_create__WebKitFlagsWrappingImplementation,
   "WebKitMutationObserver": native__WebKitMutationObserverWrappingImplementation_create__WebKitMutationObserverWrappingImplementation,
   "WebKitNamedFlow": native__WebKitNamedFlowWrappingImplementation_create__WebKitNamedFlowWrappingImplementation,
   "WebKitPoint": native__WebKitPointWrappingImplementation_create__WebKitPointWrappingImplementation,
