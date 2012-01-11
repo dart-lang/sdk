@@ -161,6 +161,12 @@ class TestOutput {
       if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
         return false;
       }
+      // If the browser test failed, it may have been because DumpRenderTree
+      // and the virtual framebuffer X server didn't hook up.  So return false
+      // if we get the X server error.  Issue dart:1135 is filed.
+      if (line.contains('Gtk-WARNING **: cannot open display: :99')) {
+        return false;
+      }
       previous_line = line;
     }
     return true;
