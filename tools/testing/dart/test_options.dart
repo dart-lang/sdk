@@ -152,6 +152,12 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
+              'browser',
+              'Web browser to use on webdriver tests',
+              ['-b', '--browser'],
+              ['ff', 'chrome', 'safari', 'ie'],
+              'chrome'),
+          new _TestOptionSpecification(
               'flag',
               'Component-specific extra flags, comma separated',
               ['--flag'],

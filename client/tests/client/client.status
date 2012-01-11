@@ -14,7 +14,7 @@ layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 html/html_tests: Skip  # Doesn't recognize SVGElement constructors
 
-[ $component == frogium ]
+[ $component == frogium || ($component == webdriver && $browser == chrome) ]
 touch/touch_tests: Fail  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
@@ -24,6 +24,15 @@ samples/total/total_tests: Skip # Issue 867.
 
 [ $component == frogium && $checked ]
 html/html_tests: Fail  # HTMLDivElement not assignable to EventTarget
+
+[ $component == webdriver && $browser == ff ]
+*: Skip
+
+[ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
+*: Skip
+
+[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
+*: Skip
 
 [ $component == chromium && $mode == release ]
 

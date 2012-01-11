@@ -460,27 +460,7 @@ class StandardTestSuite implements TestSuite {
       List<String> args;
       if (component == 'webdriver') {
         executable = '$dartDir/tools/testing/run_selenium.py';
-        String browserFlag = 'chrome';
-        if (configuration['flag'] != null) {
-          for (var flag in configuration['flag'].split(',')) {
-            switch (flag) {
-              case 'ff':
-              case 'firefox':
-                browserFlag = 'ff';
-                break;
-              case 'ie':
-              case 'explorer':
-              case 'internet-explorer':
-                browserFlag = 'ie';
-                break;
-              case 'safari':
-                browserFlag = 'safari';
-                break;
-            }
-          }
-        }
-        args = ['--out', htmlPath, '--browser', browserFlag];
-
+        args = ['--out', htmlPath, '--browser', configuration['browser']];
       } else {
         args = ['--no-timeout'];
         if (component == 'dartium') {
