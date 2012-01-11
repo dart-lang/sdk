@@ -36,11 +36,18 @@ _platformCompleteTests(int testsPassed, int testsFailed, int testsErrors) {
   // Show the summary.
   print('');
 
+  var success = false;
   if (testsPassed == 0 && testsFailed == 0 && testsErrors == 0) {
     print('No tests found.');
+    // This is considered a failure too: if this happens you probably have a
+    // bug in your unit tests.
   } else if (testsFailed == 0 && testsErrors == 0) {
     print('All $testsPassed tests passed.');
+    success = true;
   } else {
     print('$testsPassed PASSED, $testsFailed FAILED, $testsErrors ERRORS');
   }
+
+  // A non-zero exit code is used by the test infrastructure to detect failure.
+  if (!success) process.exit(1);
 }
