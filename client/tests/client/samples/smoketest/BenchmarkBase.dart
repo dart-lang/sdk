@@ -83,7 +83,6 @@ class BenchmarkBase {
   void report() {
     num score = measure();
     Map<String, int> normalizingDict = {'Smoketest': 100};
-    window.console.log(name + " " + score.toString());
     score = score / normalizingDict[name];
     BENCHMARK_SUITE.updateIndividualScore(name, score);
   }
@@ -167,8 +166,9 @@ class BenchmarkView {
   /** Update the page HTML to show the calculated score. */
   setScore(num score) {
     String newScore = formatScore(score * 100.0);
-    Element status = document.query("#status");
-    status.innerHTML =  "Score: $newScore <br>";
+    Element body = document.queryAll("body")[0];
+    body.nodes.add(
+        new Element.html("<p id='testResultScore'>Score: $newScore</p>"));
   }
  
   /**
@@ -177,15 +177,10 @@ class BenchmarkView {
    */
   incrementProgress(String name, num score, num totalBenchmarks) {
     String newScore = formatScore(score * 100.0);
-    Element results = document.query("#results");
-    results.innerHTML +=  "$name: $newScore <br>";
-
-    Element status = document.query("#status");
     numCompleted++;
     // Slightly incorrect (truncating) percentage, but this is just to show
     // the user we're making progress.
     num percentage = 100 * numCompleted ~/ totalBenchmarks;
-    status.innerHTML = "Running: $percentage% completed.";
   }
   
   /** 

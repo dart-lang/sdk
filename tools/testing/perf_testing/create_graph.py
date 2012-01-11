@@ -6,12 +6,8 @@
 
 import datetime
 import math
-try:
-  from matplotlib.font_manager import FontProperties
-  import matplotlib.pyplot as plt
-except ImportError:
-  print 'Warning: no matplotlib. ' + \
-      'Please ignore if you are running buildbot smoketests.'
+from matplotlib.font_manager import FontProperties
+import matplotlib.pyplot as plt
 import optparse
 import os
 from os.path import dirname, abspath
@@ -42,7 +38,6 @@ CORRECTNESS = 'Percent passing'
 COLORS = ['blue', 'green', 'red', 'cyan', 'magenta', 'black']
 GRAPH_OUT_DIR = 'graphs'
 SLEEP_TIME = 200
-PERFBOT_MODE = False
 VERBOSE = False
 HAS_SHELL = False
 if platform.system() == 'Windows':
@@ -130,28 +125,21 @@ def has_new_code():
   return False
 
 def get_browsers():
-  if not PERFBOT_MODE:
-    # Only Firefox (and Chrome, but we have Dump Render Tree) works in Linux
-    return ['ff']
-  browsers = ['ff', 'chrome', 'safari']
+  browsers = ['ff', 'chrome']
+  if platform.system() == 'Darwin':
+    browsers += ['safari']
   if platform.system() == 'Windows':
     browsers += ['ie']
   return browsers
 
 def get_versions():
-  if not PERFBOT_MODE:
-    return [FROG]
-  else:
-    return V8_AND_FROG
+  return V8_AND_FROG
 
 def get_benchmarks():
-  if not PERFBOT_MODE:
-    return ['Smoketest']
-  else:
-    return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
-    'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
-    'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
-    'TreeSort']
+  return ['Mandelbrot', 'DeltaBlue', 'Richards', 'NBody', 'BinaryTrees',
+  'Fannkuch', 'Meteor', 'BubbleSort', 'Fibonacci', 'Loop', 'Permute',
+  'Queens', 'QuickSort', 'Recurse', 'Sieve', 'Sum', 'Tak', 'Takl', 'Towers',
+  'TreeSort']
 
 def get_os_directory():
   """Specifies the name of the directory for the testing build of dart, which
@@ -324,8 +312,7 @@ class TestRunner(object):
   def run(self):
     """Run the benchmarks/tests from the command line and plot the 
     results."""
-    if PERFBOT_MODE:
-      plt.cla() # cla = clear current axes
+    plt.cla() # cla = clear current axes
     os.chdir(DART_INSTALL_LOCATION)
     ensure_output_directory(self.result_folder_name)
     ensure_output_directory(GRAPH_OUT_DIR)
@@ -340,8 +327,7 @@ class TestRunner(object):
       if not afile.startswith('.'):
         self.process_file(afile)
 
-    if PERFBOT_MODE:
-      self.plot_results('%s.png' % self.result_folder_name)
+    self.plot_results('%s.png' % self.result_folder_name)
 
 class PerformanceTestRunner(TestRunner):
   """Super class for all performance testing."""
@@ -440,17 +426,9 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
 
   def run_tests(self):
     """Run a performance test in the browser."""
-      # For the smoke test, just run a simple test, not the actual benchmarks to
-      # ensure we haven't broken the Firefox DOM.
 
     os.chdir('frog')
-    if PERFBOT_MODE:
-      run_cmd(['python', os.path.join('benchmarks', 'make_web_benchmarks.py')])
-    else:
-      run_cmd(['./minfrog', '--out=../tools/testing/perf_testing/smoketest/' + \
-      'smoketest_frog.js', '--libdir=%s/lib' % os.getcwd(),
-      '--compile-only', '../tools/testing/perf_testing/smoketest/' + \
-      'dartWebBase.dart'])
+    run_cmd(['python', os.path.join('benchmarks', 'make_web_benchmarks.py')])
     os.chdir('..')
 
     for browser in get_browsers():
@@ -461,9 +439,6 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
         self.add_svn_revision_to_trace(self.trace_file)
         file_path = os.path.join(os.getcwd(), 'internal', 'browserBenchmarks', 
             'benchmark_page_%s.html' % version)
-        if not PERFBOT_MODE:
-          file_path = os.path.join(os.getcwd(), 'tools', 'testing',
-              'perf_testing', 'smoketest', 'smoketest_%s.html' % version)
         run_cmd(['python', os.path.join('tools', 'testing', 'run_selenium.py'), 
             '--out', file_path, '--browser', browser, 
             '--timeout', '600', '--perf'], self.trace_file, append=True)
@@ -485,11 +460,7 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       i += 1
 
     if i >= len(lines) or revision_num == 0:
-      # Then this run did not complete. Ignore this tracefile. or in the case of
-      # the smoke test, report an error.
-      if not PERFBOT_MODE:
-        print 'FAIL %s %s' % (browser, version)
-        os.remove(os.path.join(self.result_folder_name, afile))
+      # Then this run did not complete. Ignore this tracefile.
       return
 
     line = lines[i]
@@ -513,11 +484,7 @@ class BrowserPerformanceTestRunner(PerformanceTestRunner):
       self.revision_dict[browser][version][name] += [revision_num]
 
     f.close()
-    if not PERFBOT_MODE:
-      print 'PASS'
-      os.remove(os.path.join(self.result_folder_name, afile))
-    else:
-      self.calculate_geometric_mean(browser, version, revision_num)
+    self.calculate_geometric_mean(browser, version, revision_num)
 
   def write_html(self, delimiter, rev_nums, label_1, dict_1, label_2, dict_2, 
       cleanFile=False):
@@ -533,7 +500,7 @@ class BrowserCorrectnessTestRunner(TestRunner):
 
   def run_tests(self):
     """run a test of the latest svn revision."""
-    the_os = get_os_directory()
+    system = get_os_directory()
     suffix = ''
     if platform.system() == 'Windows':
       suffix = '.exe'
@@ -544,7 +511,7 @@ class BrowserCorrectnessTestRunner(TestRunner):
       self.add_svn_revision_to_trace(self.trace_file)
       dart_sdk = os.path.join(os.getcwd(), utils.GetBuildRoot(utils.GuessOS(),
           'release', 'ia32'), 'dart-sdk')
-      run_cmd([os.path.join('.', 'tools', 'testing', 'bin', the_os, 
+      run_cmd([os.path.join('.', 'tools', 'testing', 'bin', system, 
           'dart' + suffix), os.path.join('tools', 'test.dart'), 
           '--component=webdriver', '--flag=%s,--frog=%s,--froglib=%s' % \
           (browser, os.path.join(dart_sdk, 'bin', 'frogc'), 
@@ -719,9 +686,6 @@ def parse_args():
   parser.add_option('--forever', '-f', dest = 'continuous',
       help = 'Run this script forever, always checking for the next svn '
       'checkin', action = 'store_true', default = False)
-  parser.add_option('--perfbot', '-p', dest = 'perfbot',
-      help = "Run in perfbot mode. (Generate plots, and keep trace files)", 
-      action = 'store_true', default = False)
   parser.add_option('--verbose', '-v', dest = 'verbose',
       help = 'Print extra debug output', action = 'store_true', default = False)
 
@@ -729,14 +693,13 @@ def parse_args():
   if not (args.cl or args.size or args.language or args.perf):
     args.cl = args.size = args.language = args.perf = True
   return (args.cl, args.size, args.language, args.perf, args.continuous,
-      args.perfbot, args.verbose)
+      args.verbose)
 
 def run_test_sequence(cl, size, language, perf):
-  if PERFBOT_MODE:
-    # The buildbot already builds and syncs to a specific revision. Don't fight
-    # with it or replicate work.
-    if sync_and_build() == 1:
-      return # The build is broken.
+  # The buildbot already builds and syncs to a specific revision. Don't fight
+  # with it or replicate work.
+  if sync_and_build() == 1:
+    return # The build is broken.
   if cl:
     CommandLinePerformanceTestRunner('cl-results').run()
   if size:
@@ -746,16 +709,13 @@ def run_test_sequence(cl, size, language, perf):
   if perf:
     BrowserPerformanceTestRunner('browser-perf').run()
 
-  if PERFBOT_MODE:
-    # TODO(efortuna): Temporarily disabled until you make a safe way to provide
-    # your username/password for the uploading process.
-    #upload_to_app_engine()
-    pass
+  # TODO(efortuna): Temporarily disabled until you make a safe way to provide
+  # your username/password for the uploading process.
+  #upload_to_app_engine()
 
 def main():
-  global PERFBOT_MODE, VERBOSE
-  (cl, size, language, perf, continuous, perfbot, verbose) = parse_args()
-  PERFBOT_MODE = perfbot
+  global VERBOSE
+  (cl, size, language, perf, continuous, verbose) = parse_args()
   VERBOSE = verbose
   if continuous:
     while True:
