@@ -17,6 +17,10 @@ BadNamedConstructorNegativeTest: Crash
 BadNamedParameters2Test: Fail
 BadNamedParametersTest: Fail
 BitOperationsTest: Fail
+BlackListedTest/01: Fail
+BlackListedTest/05: Fail
+BlackListedTest/07: Fail
+BlackListedTest/09: Fail
 BlockScopeTest: Crash
 BreakTest: Fail
 CTConst2Test: Fail
@@ -28,6 +32,7 @@ CallThroughNullGetterTest: Fail
 CanonicalConstTest: Fail
 CharEscapeTest: Crash
 ClassCycleNegativeTest: Fail
+ClassExtendsNegativeTest: Fail
 ClassLiteralTest/28: Crash
 ClassLiteralTest/29: Crash
 ClassOverrideNegativeTest: Fail
@@ -176,8 +181,11 @@ InstanceofTest: Fail
 # InstantiateTypeVariableNegativeTest: Fail  # Fails for the wrong reason.
 IntTest: Fail
 InterfaceConstantsTest: Fail
+InterfaceCycleNegativeTest: Fail
+InterfaceFactoryConstructorNegativeTest: Fail
 InterfaceFactoryMultiTest: Fail
 InterfaceFactoryTest: Fail
+InterfaceStaticMethodNegativeTest: Fail
 InterfaceTest: Fail
 IntrinsifiedMethodsTest: Fail
 IsObjectTest: Fail
