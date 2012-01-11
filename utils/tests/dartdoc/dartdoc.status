@@ -7,7 +7,7 @@ prefix dartdoc
 [ $component == leg ]
 *: Skip # library tags are not implemented: Bug 1126
 
-[ $component == vm || $component == dartc ]
+[ $component == vm || $component == dartc || $component == chromium ]
 *: Skip # Tests use node flavor of unittest lib. :(
 
 [ $component == frogium || $component == dartium || $component == webdriver ]
