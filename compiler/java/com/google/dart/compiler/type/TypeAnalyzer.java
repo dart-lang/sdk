@@ -996,8 +996,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitMethodDefinition(DartMethodDefinition node) {
       MethodElement methodElement = node.getSymbol();
-      if (methodElement.getModifiers().isFactory()) {
+      Modifiers modifiers = methodElement.getModifiers();
+      if (modifiers.isFactory()) {
         analyzeFactory(node.getName(), (ConstructorElement) methodElement);
+      } else if (modifiers.isSetter()) {
+        DartTypeNode returnType = node.getFunction().getReturnTypeNode();
+        if (returnType != null && returnType.getType() != voidType) {
+          typeError(returnType, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
+        }
       }
       return typeAsVoid(node);
     }

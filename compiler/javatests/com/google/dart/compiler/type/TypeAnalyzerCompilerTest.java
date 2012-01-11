@@ -421,4 +421,26 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.INSTANTIATION_OF_ABSTRACT_CLASS_USING_FACTORY, 8, 16, 1));
   }
+
+  /**
+   * Factory constructor can instantiate any class and return it non-abstract class instance, but
+   * spec requires warnings, so we provide it, but using different constant.
+   */
+  public void testWarnOnNonVoidSetter()
+      throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class A {",
+                "  void set foo(bool a) {}",
+                "  set bar(bool a) {}",
+                "  Dynamic set baz(bool a) {}",
+                "  bool set bob(bool a) {}",
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.SETTER_RETURN_TYPE, 4, 3, 7),
+        errEx(TypeErrorCode.SETTER_RETURN_TYPE, 5, 3, 4));
+  }
 }

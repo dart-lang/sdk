@@ -39,6 +39,7 @@ public enum TypeErrorCode implements ErrorCode {
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
+  SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),
   SUPERTYPE_HAS_FIELD("%s is a field in %s"),
