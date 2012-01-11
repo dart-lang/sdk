@@ -298,9 +298,12 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parses given source and checks parsing problems.
    */
-  protected final void parseExpectErrors(String code, ErrorExpectation... expectedErrors) {
-    List<DartCompilationError> errors = parseSource(code).getErrors();
+  protected final DartParserRunner parseExpectErrors(String code,
+      ErrorExpectation... expectedErrors) {
+    DartParserRunner parserRunner = parseSource(code);
+    List<DartCompilationError> errors = parserRunner.getErrors();
     assertErrors(errors, expectedErrors);
+    return parserRunner;
   }
 
   /**

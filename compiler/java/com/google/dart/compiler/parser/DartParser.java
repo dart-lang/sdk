@@ -856,7 +856,7 @@ public class DartParser extends CompletionHooksParserBase {
     Modifiers modifiers = Modifiers.NONE;
     if (optionalPseudoKeyword(STATIC_KEYWORD)) {
       if (!allowStatic) {
-        reportError(position(), ParserErrorCode.TOP_LEVEL_IS_STATIC);
+        reportError(position(), ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
       } else {
         if (isParsingInterface
             && (peek(0) != Token.FINAL)) {
@@ -2367,7 +2367,7 @@ public class DartParser extends CompletionHooksParserBase {
    * </pre>
    *
    * @param namePtr out parameter - parsed function name stored in namePtr[0]
-   * @param isDeclaration true if this is a declaration (ie, a name is required and a trailing
+   * @param isDeclaration true if this is a declaration (i.e. a name is required and a trailing
    *     semicolon is needed for arrow syntax
    * @return a {@link DartFunction} containing the body of the function, or null
    *     if the next tokens cannot be parsed as a function declaration or expression
@@ -2376,6 +2376,9 @@ public class DartParser extends CompletionHooksParserBase {
         boolean isDeclaration) {
     DartTypeNode returnType = null;
     namePtr[0] = null;
+    if (optionalPseudoKeyword(STATIC_KEYWORD)) {
+      reportError(position(), ParserErrorCode.LOCAL_CANNOT_BE_STATIC);
+    }
     switch (peek(0)) {
       case LPAREN:
         // no type or name, just the formal parameter list
@@ -2996,6 +2999,7 @@ public class DartParser extends CompletionHooksParserBase {
   private boolean looksLikeFunctionDeclarationOrExpression() {
     beginMethodName();
     try {
+      optionalPseudoKeyword(STATIC_KEYWORD);
       if (peek(0) == Token.IDENTIFIER && peek(1) == Token.LPAREN) {
         // just a name, no return type
         consume(Token.IDENTIFIER);
