@@ -151,21 +151,22 @@ class TestOutput {
   bool get hasTimedOut() => timedOut;
 
   bool get didFail() {
-    if (exitCode != 0 && !hasCrashed) return true;
+    if (testCase is !BrowserTestCase) return (exitCode != 0 && !hasCrashed);
 
+    // Browser case:
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain\nPASS'.
-    if (testCase is !BrowserTestCase) return false;
     String previous_line = '';
     for (String line in stdout) {
       if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
-        return false;
+        return (exitCode != 0 && !hasCrashed);
       }
       // If the browser test failed, it may have been because DumpRenderTree
-      // and the virtual framebuffer X server didn't hook up.  So return false
-      // if we get the X server error.  Issue dart:1135 is filed.
+      // and the virtual framebuffer X server didn't hook up.
       if (line.contains('Gtk-WARNING **: cannot open display: :99')) {
-        return false;
+        // If we get the X server error, return the expected value
+        // We cannot restart the test from here.  Issue dart:1135 is filed.
+        return testCase.isNegative;
       }
       previous_line = line;
     }
