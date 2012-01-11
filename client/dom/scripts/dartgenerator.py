@@ -136,6 +136,43 @@ _alternate_methods = {
     ('WheelEvent', 'initWheelEvent'): ['initWebKitWheelEvent', 'initWheelEvent']
 }
 
+#
+# Unexpandable types require special support for
+# dartObjectLocalStorage.  Normally, in the overlay dom, it is
+# implemented as an expando field.  For these types, we cannot use an
+# expando.  Instead, we define a specialized getter and setter.
+#
+_frog_unexpandable_types = {
+    # (type name, field name) -> Replacement text
+    ('Storage', 'dartObjectLocalStorage'): '''
+  var get dartObjectLocalStorage() native """
+
+    if (this === window.localStorage)
+      return window._dartLocalStorageLocalStorage;
+    else if (this === window.sessionStorage)
+      return window._dartSessionStorageLocalStorage;
+    else
+      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
+
+""" {
+    throw new UnsupportedOperationException('');
+  }
+
+  void set dartObjectLocalStorage(var value) native """
+
+    if (this === window.localStorage)
+      window._dartLocalStorageLocalStorage = value;
+    else if (this === window.sessionStorage)
+      window._dartSessionStorageLocalStorage = value;
+    else
+      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
+
+""" {
+    throw new UnsupportedOperationException('');
+  }
+''',
+}
+
 def _MatchSourceFilter(filter, thing):
   if not filter:
     return True
@@ -1893,7 +1930,7 @@ class FrogInterfaceGenerator(object):
         IMPLEMENTS=implements,
         NATIVE=native_spec)
 
-    if interface_name in _constructable_types.keys():
+    if interface_name in _constructable_types:
       self._members_emitter.Emit(
           '  $NAME($PARAMS) native;\n\n',
           NAME=interface_name,
@@ -1905,9 +1942,15 @@ class FrogInterfaceGenerator(object):
 
     if not base:
       # Emit shared base functionality here as we have no common base type.
+      if (interface_name, 'dartObjectLocalStorage') in _frog_unexpandable_types:
+        ols_code = _frog_unexpandable_types[(interface_name,
+                                        'dartObjectLocalStorage')]
+        self._base_emitter.Emit(ols_code)
+      else:
+        self._base_emitter.Emit(
+            '\n'
+            '  var dartObjectLocalStorage;\n')
       self._base_emitter.Emit(
-          '\n'
-          '  var dartObjectLocalStorage;\n'
           '\n'
           '  String get typeName() native;\n')
 

@@ -9233,7 +9233,31 @@ class Storage native "*Storage" {
 
   void setItem(String key, String data) native;
 
-  var dartObjectLocalStorage;
+  var get dartObjectLocalStorage() native """
+
+    if (this === window.localStorage)
+      return window._dartLocalStorageLocalStorage;
+    else if (this === window.sessionStorage)
+      return window._dartSessionStorageLocalStorage;
+    else
+      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
+
+""" {
+    throw new UnsupportedOperationException('');
+  }
+
+  void set dartObjectLocalStorage(var value) native """
+
+    if (this === window.localStorage)
+      window._dartLocalStorageLocalStorage = value;
+    else if (this === window.sessionStorage)
+      window._dartSessionStorageLocalStorage = value;
+    else
+      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
+
+""" {
+    throw new UnsupportedOperationException('');
+  }
 
   String get typeName() native;
 }
