@@ -12,6 +12,7 @@ dom/scripts/idlparser.dart: Skip        # Bogus dartc error; references dart/uti
 dom/scripts/idlparser_test.dart: Skip   # Bogus dartc error; references dart/utils/peg
 dom/dom_frog.dart: Skip                 # Frog-only
 dom/frog/dom_frog.dart: Skip            # Frog-only
+dom/wrapping_dom.dart                   # Awaiting resolution: param shadows method - sensible warng?
 testing/unittest/unittest_vm.dart: Skip # Relies on VM libs
 testing/unittest/unittest_node.dart: Skip # Relies on frog syntax
 
