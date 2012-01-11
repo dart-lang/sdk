@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,7 +39,10 @@ static bool ListRecursively(const char* dir_name,
 static void ComputeFullPath(const char* dir_name,
                             char* path,
                             int* path_length) {
-  char* abs_path = realpath(dir_name, path);
+  char* abs_path;
+  do {
+    abs_path = realpath(dir_name, path);
+  } while (abs_path == NULL && errno == EINTR);
   ASSERT(abs_path != NULL);
   *path_length = strlen(path);
   size_t written = snprintf(path + *path_length,
@@ -128,7 +131,10 @@ static bool ListRecursively(const char* dir_name,
                             Dart_Port file_port,
                             Dart_Port done_port,
                             Dart_Port error_port) {
-  DIR* dir_pointer = opendir(dir_name);
+  DIR* dir_pointer;
+  do {
+    dir_pointer = opendir(dir_name);
+  } while (dir_pointer == NULL && errno == EINTR);
   if (dir_pointer == NULL) {
     PostError(error_port, "Directory listing failed for: ", dir_name, errno);
     return false;
@@ -146,7 +152,9 @@ static bool ListRecursively(const char* dir_name,
   bool listing_error = false;
   dirent entry;
   dirent* result;
-  while ((success = readdir_r(dir_pointer, &entry, &result)) == 0 &&
+  while ((success = TEMP_FAILURE_RETRY(readdir_r(dir_pointer,
+                                                 &entry,
+                                                 &result))) == 0 &&
          result != NULL &&
          !listing_error) {
     switch (entry.d_type) {
@@ -173,7 +181,7 @@ static bool ListRecursively(const char* dir_name,
                                   "%s",
                                   entry.d_name);
         ASSERT(written == strlen(entry.d_name));
-        int lstat_success = lstat(path, &entry_info);
+        int lstat_success = TEMP_FAILURE_RETRY(lstat(path, &entry_info));
         if (lstat_success == -1) {
           listing_error = true;
           PostError(error_port, "Directory listing failed for: ", path, errno);
@@ -233,7 +241,7 @@ void Directory::List(const char* dir_name,
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
   struct stat entry_info;
-  int lstat_success = lstat(dir_name, &entry_info);
+  int lstat_success = TEMP_FAILURE_RETRY(lstat(dir_name, &entry_info));
   if (lstat_success == 0) {
     if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
       return EXISTS;
@@ -263,7 +271,7 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 bool Directory::Create(const char* dir_name) {
   // Create the directory with the permissions specified by the
   // process umask.
-  return (mkdir(dir_name, 0777) == 0);
+  return (TEMP_FAILURE_RETRY(mkdir(dir_name, 0777)) == 0);
 }
 
 
@@ -287,7 +295,10 @@ int Directory::CreateTemp(const char* const_template,
   } else {
     snprintf(*path, PATH_MAX, "/tmp/temp_dir1_XXXXXX");
   }
-  char* result = mkdtemp(*path);
+  char* result;
+  do {
+    result = mkdtemp(*path);
+  } while (result == NULL && errno == EINTR);
   if (result == NULL) {
     SetOsErrorMessage(os_error_message, os_error_message_len);
     free(*path);
@@ -299,5 +310,5 @@ int Directory::CreateTemp(const char* const_template,
 
 
 bool Directory::Delete(const char* dir_name) {
-  return (rmdir(dir_name) == 0);
+  return (TEMP_FAILURE_RETRY(rmdir(dir_name)) == 0);
 }

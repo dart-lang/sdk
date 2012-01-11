@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,7 +38,7 @@ File::~File() {
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  int err = close(handle_->fd());
+  int err = TEMP_FAILURE_RETRY(close(handle_->fd()));
   if (err != 0) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
@@ -56,49 +56,49 @@ bool File::IsClosed() {
 
 int64_t File::Read(void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
-  return read(handle_->fd(), buffer, num_bytes);
+  return TEMP_FAILURE_RETRY(read(handle_->fd(), buffer, num_bytes));
 }
 
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
   ASSERT(handle_->fd() >= 0);
-  return write(handle_->fd(), buffer, num_bytes);
+  return TEMP_FAILURE_RETRY(write(handle_->fd(), buffer, num_bytes));
 }
 
 
 off_t File::Position() {
   ASSERT(handle_->fd() >= 0);
-  return lseek(handle_->fd(), 0, SEEK_CUR);
+  return TEMP_FAILURE_RETRY(lseek(handle_->fd(), 0, SEEK_CUR));
 }
 
 
 bool File::SetPosition(int64_t position) {
   ASSERT(handle_->fd() >= 0);
-  return (lseek(handle_->fd(), position, SEEK_SET) != -1);
+  return TEMP_FAILURE_RETRY(lseek(handle_->fd(), position, SEEK_SET) != -1);
 }
 
 
 bool File::Truncate(int64_t length) {
   ASSERT(handle_->fd() >= 0);
-  return (ftruncate(handle_->fd(), length) != -1);
+  return TEMP_FAILURE_RETRY(ftruncate(handle_->fd(), length) != -1);
 }
 
 
 void File::Flush() {
   ASSERT(handle_->fd() >= 0);
-  fsync(handle_->fd());
+  TEMP_FAILURE_RETRY(fsync(handle_->fd()));
 }
 
 
 off_t File::Length() {
   ASSERT(handle_->fd() >= 0);
-  off_t position = lseek(handle_->fd(), 0, SEEK_CUR);
+  off_t position = TEMP_FAILURE_RETRY(lseek(handle_->fd(), 0, SEEK_CUR));
   if (position < 0) {
     // The file is not capable of seeking. Return an error.
     return -1;
   }
-  off_t result = lseek(handle_->fd(), 0, SEEK_END);
-  lseek(handle_->fd(), position, SEEK_SET);
+  off_t result = TEMP_FAILURE_RETRY(lseek(handle_->fd(), 0, SEEK_END));
+  TEMP_FAILURE_RETRY(lseek(handle_->fd(), position, SEEK_SET));
   return result;
 }
 
@@ -111,7 +111,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;
   }
-  int fd = open(name, flags, 0666);
+  int fd = TEMP_FAILURE_RETRY(open(name, flags, 0666));
   if (fd < 0) {
     return NULL;
   }
@@ -121,7 +121,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
 
 bool File::Exists(const char* name) {
   struct stat st;
-  if (stat(name, &st) == 0) {
+  if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
     return S_ISREG(st.st_mode);  // Deal with symlinks?
   } else {
     return false;
@@ -130,7 +130,7 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  int fd = open(name, O_RDONLY | O_CREAT, 0666);
+  int fd = TEMP_FAILURE_RETRY(open(name, O_RDONLY | O_CREAT, 0666));
   if (fd < 0) {
     return false;
   }
@@ -139,7 +139,7 @@ bool File::Create(const char* name) {
 
 
 bool File::Delete(const char* name) {
-  int status = remove(name);
+  int status = TEMP_FAILURE_RETRY(remove(name));
   if (status == -1) {
     return false;
   }
@@ -155,7 +155,9 @@ bool File::IsAbsolutePath(const char* pathname) {
 char* File::GetCanonicalPath(const char* pathname) {
   char* abs_path = NULL;
   if (pathname != NULL) {
-    abs_path = realpath(pathname, NULL);
+    do {
+      abs_path = realpath(pathname, NULL);
+    } while (abs_path == NULL && errno == EINTR);
     assert(abs_path == NULL || IsAbsolutePath(abs_path));
   }
   return abs_path;

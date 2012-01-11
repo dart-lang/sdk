@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #if defined(_WIN32)
 #include "platform/c99_support_win.h"
@@ -100,6 +101,19 @@ static inline void USE(T) { }
 #if defined(TARGET_OS_WINDOWS)
 #define snprintf _snprintf
 #define strtok_r strtok_s
+#endif
+
+#if !defined(TARGET_OS_WINDOWS) && !defined(TEMP_FAILURE_RETRY)
+// TEMP_FAILURE_RETRY is defined in unistd.h on some platforms. The
+// definition below is copied from Linux and adapted to avoid lint
+// errors (type long int changed to int64_t and do/while split on
+// separate lines with body in {}s).
+# define TEMP_FAILURE_RETRY(expression)                                        \
+    ({ int64_t __result;                                                       \
+       do {                                                                    \
+         __result = (int64_t) (expression);                                    \
+       } while (__result == -1L && errno == EINTR);                            \
+       __result; })
 #endif
 
 #endif  // PLATFORM_GLOBALS_H_
