@@ -27,6 +27,7 @@
 #if !defined(_WIN32)
 #include <inttypes.h>
 #include <stdint.h>
+#include <unistd.h>
 #endif
 
 #include <float.h>
@@ -39,7 +40,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #if defined(_WIN32)
 #include "platform/c99_support_win.h"
