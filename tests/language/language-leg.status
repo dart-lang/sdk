@@ -325,7 +325,6 @@ StringUnicode1NegativeTest: Fail
 StringUnicode2NegativeTest: Fail
 StringUnicode3NegativeTest: Fail
 StringUnicode4NegativeTest: Fail
-SuperCall2Test: Fail
 SuperCallTest: Fail
 SuperFieldTest: Fail
 SuperImplicitClosureTest: Fail
