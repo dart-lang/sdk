@@ -123,8 +123,8 @@ Field7NegativeTest: Fail
 Field7aNegativeTest: Fail
 FieldMethod4NegativeTest: Crash
 FieldMethodTest: Crash
-FieldOverrideTest/01: Crash
-FieldOverrideTest/none: Crash
+FieldOverrideTest/01: Fail
+FieldOverrideTest/none: Fail
 FieldTest: Fail
 FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
@@ -141,9 +141,9 @@ FunctionTypeAliasTest: Fail
 FunctionTypeParameter2Test: Crash
 FunctionTypeParameterTest: Crash
 GenericDeepTest: Fail
-GenericInheritanceTest: Crash
+GenericInheritanceTest: Fail
 GenericInstanceofTest: Fail
-GenericParameterizedExtendsTest: Crash
+GenericParameterizedExtendsTest: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
 Generics2Test: Fail
@@ -180,8 +180,6 @@ InterfaceFactoryMultiTest: Fail
 InterfaceFactoryTest: Fail
 InterfaceTest: Fail
 IntrinsifiedMethodsTest: Fail
-IsNotClass2NegativeTest: Crash
-IsNotClass3NegativeTest: Crash
 IsObjectTest: Fail
 IsOperatorTest: Fail
 Issue4157508Test: Fail
@@ -246,7 +244,6 @@ NonParameterizedFactoryTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
-NumberIdentifierNegativeTest: Crash
 NumberSyntaxTest: Fail
 NumbersTest: Fail
 ObjectDynamicMethodTest: Fail
