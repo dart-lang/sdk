@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -240,10 +240,10 @@ Instanceof2Test: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail
-Library1NegativeTest: Fail # issue with test see #354
-Library4NegativeTest: Fail # issue with test see #354
-Library5NegativeTest: Fail # issue with test see #354
-Library6NegativeTest: Fail # issue with test see #354
+Library1NegativeTest: Fail
+Library4NegativeTest: Fail
+Library5NegativeTest: Fail
+Library6NegativeTest: Fail
 ListLiteral3Test: Fail # vm and frog throw different exceptions
 ListLiteral4Test: Fail # missing type checks on index operations
 ListTest: Fail         # array bound checks not implemented
