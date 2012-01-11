@@ -316,7 +316,6 @@ StringEscapesTest: Fail
 StringInterpolate2Test: Crash
 StringInterpolateNPETest: Fail
 StringInterpolateTest: Fail
-StringInterpolation7Test: Fail
 StringInterpolationTest/01: Fail
 StringInterpolationTest/none: Fail
 StringJoinTest: Fail
