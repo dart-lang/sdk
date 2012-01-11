@@ -20,8 +20,8 @@ class _StorageWrappingImplementation extends DOMWrapperBase implements Storage {
   }
   static void _clear(receiver) native;
 
-  String getItem(String key) {
-    return _getItem(this, key);
+  String getItem(String key_) {
+    return _getItem(this, key_);
   }
   static String _getItem(receiver, key) native;
 
@@ -30,14 +30,14 @@ class _StorageWrappingImplementation extends DOMWrapperBase implements Storage {
   }
   static String _key(receiver, index) native;
 
-  void removeItem(String key) {
-    _removeItem(this, key);
+  void removeItem(String key_) {
+    _removeItem(this, key_);
     return;
   }
   static void _removeItem(receiver, key) native;
 
-  void setItem(String key, String data) {
-    _setItem(this, key, data);
+  void setItem(String key_, String data) {
+    _setItem(this, key_, data);
     return;
   }
   static void _setItem(receiver, key, data) native;

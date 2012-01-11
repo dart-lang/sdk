@@ -41,11 +41,11 @@ class _IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKe
   static IDBKeyRange _bound_2(receiver, lower, upper, lowerOpen) native;
   static IDBKeyRange _bound_3(receiver, lower, upper, lowerOpen, upperOpen) native;
 
-  IDBKeyRange lowerBound(IDBKey bound, [bool open = null]) {
+  IDBKeyRange lowerBound(IDBKey bound_, [bool open = null]) {
     if (open === null) {
-      return _lowerBound(this, bound);
+      return _lowerBound(this, bound_);
     } else {
-      return _lowerBound_2(this, bound, open);
+      return _lowerBound_2(this, bound_, open);
     }
   }
   static IDBKeyRange _lowerBound(receiver, bound) native;
@@ -56,11 +56,11 @@ class _IDBKeyRangeWrappingImplementation extends DOMWrapperBase implements IDBKe
   }
   static IDBKeyRange _only(receiver, value) native;
 
-  IDBKeyRange upperBound(IDBKey bound, [bool open = null]) {
+  IDBKeyRange upperBound(IDBKey bound_, [bool open = null]) {
     if (open === null) {
-      return _upperBound(this, bound);
+      return _upperBound(this, bound_);
     } else {
-      return _upperBound_2(this, bound, open);
+      return _upperBound_2(this, bound_, open);
     }
   }
   static IDBKeyRange _upperBound(receiver, bound) native;
