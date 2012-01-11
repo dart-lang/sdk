@@ -28,9 +28,6 @@ CallThroughNullGetterTest: Fail
 CanonicalConstTest: Fail
 CharEscapeTest: Crash
 ClassCycleNegativeTest: Fail
-ClassLiteralTest/02: Crash
-ClassLiteralTest/07: Crash
-ClassLiteralTest/14: Crash
 ClassLiteralTest/28: Crash
 ClassLiteralTest/29: Crash
 ClassOverrideNegativeTest: Fail
@@ -63,7 +60,7 @@ ConstructorDefaultTest: Fail
 ConstructorDuplicateInitializersTest/01: Crash
 ConstructorDuplicateInitializersTest/02: Crash
 ConstructorDuplicateInitializersTest/none: Crash
-ConstructorNegativeTest: Crash
+ConstructorNegativeTest: Pass # For the wrong reason.
 ConstructorRedirect1NegativeTest: Crash
 ConstructorRedirect3NegativeTest: Crash
 ConstructorRedirect4NegativeTest: Crash
