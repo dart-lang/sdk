@@ -5,13 +5,13 @@
 /// Unit tests for dartdoc.
 #library('dartdoc_tests');
 
-#import('../dartdoc.dart');
-#import('../markdown.dart', prefix: 'md');
+#import('../../../dartdoc/dartdoc.dart');
+#import('../../../dartdoc/markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../../client/testing/unittest/unittest_node.dart');
-#import('../../../frog/lang.dart');
-#import('../../../frog/file_system_node.dart');
+#import('../../../../client/testing/unittest/unittest_node.dart');
+#import('../../../../frog/lang.dart');
+#import('../../../../frog/file_system_node.dart');
 
 main() {
   var files = new NodeFileSystem();
@@ -118,9 +118,28 @@ main() {
   });
 
   group('name reference', () {
+    // TODO(rnystrom): The paths here are a bit strange. They're relative to
+    // where test.dart happens to be invoked from.
+    final dummyPath = 'utils/tests/dartdoc/src/dummy.dart';
+
+    // TODO(rnystrom): Bail if we couldn't find the test file. The problem is
+    // that loading dummy.dart is sensitive to the location that dart was
+    // *invoked* from and not relative to *this* file like we'd like. That
+    // means these tests only run correctly from one place. Unfortunately,
+    // test.py/test.dart runs this from one directory and frog/presubmit.py
+    // runs it from another.
+    // See Bug 1145.
+    var fileSystem = new NodeFileSystem();
+    if (!fileSystem.fileExists(dummyPath)) {
+      print("Can't run dartdoc name reference tests because dummy.dart " +
+          "could not be found.");
+      return;
+    }
+
     var doc = new Dartdoc();
-    doc.document('test/dummy.dart');
-    var dummy = world.libraries['test/dummy.dart'];
+    world.processDartScript(dummyPath);
+    world.resolveAll();
+    var dummy = world.libraries[dummyPath];
     var klass = dummy.findTypeByName('Class');
     var method = klass.getMember('method');
 
@@ -133,37 +152,38 @@ main() {
 
     test('to a member of the current type', () {
       expect(render(doc.resolveNameReference('method', type: klass))).
-        equals('<a href="../../dummy/Class.html#method" class="crossref">' +
+        equals('<a class="crossref" href="../../dummy/Class.html#method">' +
             'method</a>');
     });
 
     test('to a property with only a getter links to the getter', () {
       expect(render(doc.resolveNameReference('getterOnly', type: klass))).
-        equals('<a href="../../dummy/Class.html#get:getterOnly" ' +
-            'class="crossref">getterOnly</a>');
+        equals('<a class="crossref" ' +
+            'href="../../dummy/Class.html#get:getterOnly">getterOnly</a>');
     });
 
     test('to a property with only a setter links to the setter', () {
       expect(render(doc.resolveNameReference('setterOnly', type: klass))).
-        equals('<a href="../../dummy/Class.html#set:setterOnly" ' +
-            'class="crossref">setterOnly</a>');
+        equals('<a class="crossref" ' +
+            'href="../../dummy/Class.html#set:setterOnly">setterOnly</a>');
     });
 
     test('to a property with a getter and setter links to the getter', () {
       expect(render(doc.resolveNameReference('getterAndSetter', type: klass))).
-        equals('<a href="../../dummy/Class.html#get:getterAndSetter" ' +
-            'class="crossref">getterAndSetter</a>');
+        equals('<a class="crossref" ' +
+            'href="../../dummy/Class.html#get:getterAndSetter">' +
+            'getterAndSetter</a>');
     });
 
     test('to a type in the current library', () {
       expect(render(doc.resolveNameReference('Class', library: dummy))).
-        equals('<a href="../../dummy/Class.html" class="crossref">Class</a>');
+        equals('<a class="crossref" href="../../dummy/Class.html">Class</a>');
     });
 
     test('to a top-level member in the current library', () {
       expect(render(doc.resolveNameReference('topLevelMethod',
                   library: dummy))).
-        equals('<a href="../../dummy.html#topLevelMethod" class="crossref">' +
+        equals('<a class="crossref" href="../../dummy.html#topLevelMethod">' +
             'topLevelMethod</a>');
     });
 

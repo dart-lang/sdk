@@ -24,6 +24,7 @@
 #import("../frog/tests/leg_only/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
 #import("../utils/tests/css/test_config.dart");
+#import("../utils/tests/dartdoc/test_config.dart");
 #import("../utils/tests/peg/test_config.dart");
 
 main() {
@@ -89,6 +90,9 @@ main() {
     }
     if (selectors.containsKey('css')) {
       queue.addTestSuite(new CssTestSuite(conf));
+    }
+    if (selectors.containsKey('dartdoc')) {
+      queue.addTestSuite(new DartdocTestSuite(conf));
     }
     if (selectors.containsKey('peg')) {
       queue.addTestSuite(new PegTestSuite(conf));
