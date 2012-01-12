@@ -3,16 +3,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(ager): Get rid of this version of test.dart when we don't have
-// to worry about the special runtime checkout anymore.
-// This file is identical to test.dart with test suites in the
-// directories samples, client, compiler, frog, and utils removed.
-
 #library("test");
 
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
 
+// This file is identical to test.dart with suites in frog and utils removed.
 #import("../tests/co19/test_config.dart");
 #import("../tests/corelib/test_config.dart");
 #import("../tests/isolate/test_config.dart");
@@ -20,6 +16,10 @@
 #import("../tests/standalone/test_config.dart");
 #import("../tests/stub-generator/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
+#import("../samples/tests/samples/test_config.dart");
+#import("../client/tests/dartc/test_config.dart");
+#import("../compiler/tests/dartc/test_config.dart");
+#import("../client/tests/client/test_config.dart");
 
 main() {
   var startTime = new Date.now();
@@ -43,6 +43,9 @@ main() {
     }
 
     var conf = configurationIterator.next();
+    if (selectors.containsKey('samples')) {
+      queue.addTestSuite(new SamplesTestSuite(conf));
+    }
     if (selectors.containsKey('standalone')) {
       queue.addTestSuite(new StandaloneTestSuite(conf));
     }
@@ -61,8 +64,14 @@ main() {
     if (selectors.containsKey('stub-generator')) {
       queue.addTestSuite(new StubGeneratorTestSuite(conf));
     }
-    if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
-      queue.addTestSuite(new VMTestSuite(conf));
+    if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
+      queue.addTestSuite(new ClientDartcTestSuite(conf));
+    }
+    if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
+      queue.addTestSuite(new JUnitDartcTestSuite(conf));
+    }
+    if (selectors.containsKey('client')) {
+      queue.addTestSuite(new ClientTestSuite(conf));
     }
 
     return true;

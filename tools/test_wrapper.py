@@ -19,7 +19,15 @@ def Main():
     dart_binary = os.path.join(dart_binary_prefix, 'windows', 'dart.exe')
   else:
     dart_binary = os.path.join(dart_binary_prefix, GuessOS(), 'dart')
-  dart_test_script = string.join([tools_dir, 'test.dart'], os.sep)
+  current_directory = os.path.abspath('');
+  client = os.path.abspath(os.path.join(tools_dir, '..'));
+  if current_directory == os.path.join(client, 'runtime'):
+    dart_script_name = 'test-runtime.dart'
+  elif current_directory == os.path.join(client, 'compiler'):
+    dart_script_name = 'test-compiler.dart'
+  else:
+    dart_script_name = 'test.dart'
+  dart_test_script = string.join([tools_dir, dart_script_name], os.sep)
   command = [dart_binary, dart_test_script] + args
   return subprocess.call(command)
 
