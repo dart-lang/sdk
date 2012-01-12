@@ -1,0 +1,3 @@
+# Always include the bin directory here as it contains the source code
+# for the dart executable.
+!bin
