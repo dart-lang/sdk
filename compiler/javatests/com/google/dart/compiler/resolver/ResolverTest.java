@@ -563,7 +563,7 @@ public class ResolverTest extends ResolverTestCase {
         "  A();",
         "}",
         "class B<T extends int> {",
-        "  A() {}",
+        "  factory A() {}",
         "}"),
         ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
   }
@@ -577,7 +577,7 @@ public class ResolverTest extends ResolverTestCase {
         "  A();",
         "}",
         "class B<T> {",
-        "  A() {}",
+        "  factory A() {}",
         "}"),
         ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
   }
@@ -603,7 +603,7 @@ public class ResolverTest extends ResolverTestCase {
         "  A();",
         "}",
         "class B {",
-        "  A() {}",
+        "  factory A() {}",
         "}"),
         ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
   }

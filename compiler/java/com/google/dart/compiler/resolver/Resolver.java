@@ -1331,7 +1331,8 @@ public class Resolver {
         }
       }
       // If constructor not found, try implicit default constructor of the default class.
-      if (constructor.getParameters().isEmpty()
+      if (Elements.isDefaultConstructor(constructor)
+          && (Elements.isSyntheticConstructor(constructor) || factoryImplementsInterface)
           && Elements.needsImplicitDefaultConstructor(defaultClass)) {
         return new SyntheticDefaultConstructorElement(null, defaultClass, typeProvider);
       }

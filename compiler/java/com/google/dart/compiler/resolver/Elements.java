@@ -529,6 +529,22 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   /**
+   * @return <code>true</code> if the given {@link ConstructorElement} is a synthetic default
+   *         constructor.
+   */
+  public static boolean isSyntheticConstructor(ConstructorElement element) {
+    return element != null && element.getNode() == null;
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link ConstructorElement} is a default constructor.
+   */
+  public static boolean isDefaultConstructor(ConstructorElement element) {
+    return element != null && element.getParameters().isEmpty()
+        && Elements.getRawMethodName(element).equals(element.getEnclosingElement().getName());
+  }
+
+  /**
    * @return the name of given {@link DartNode} if it is {@link DartIdentifier}, or
    *         <code>null</code> otherwise.
    */

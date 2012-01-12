@@ -1099,16 +1099,26 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   public void testInitializerReferenceToThis() throws Exception {
-      checkSourceErrors(
-          makeCode(
-              "class A {",
-              "  var x, y;",
-              "  A.one(z) : x = z, y = this.x;",
-              "  A.two(this.x) : y = (() { return this; });",
-              "  A.three(this.x) : y = this.x;",
-              "}"),
-          errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 3, 25, 4),
-          errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 4, 36, 4),
-          errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 5, 25, 4));
-    }
+    checkSourceErrors(
+        makeCode(
+            "class A {",
+            "  var x, y;",
+            "  A.one(z) : x = z, y = this.x;",
+            "  A.two(this.x) : y = (() { return this; });",
+            "  A.three(this.x) : y = this.x;",
+            "}"),
+        errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 3, 25, 4),
+        errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 4, 36, 4),
+        errEx(ResolverErrorCode.THIS_IN_INITIALIZER_AS_EXPRESSION, 5, 25, 4));
+  }
+
+  public void testInterfaceWithConcreteConstructorAndDefaultNonImlplementing() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "class A {}",
+            "interface I default A {",
+            "  I();",
+            "}"),
+        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 4));
+  }
 }
