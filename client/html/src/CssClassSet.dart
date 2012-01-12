@@ -117,7 +117,7 @@ class _CssClassSet implements Set<String> {
   Set<String> _read() {
     // TODO(mattsh) simplify this once split can take regex.
     Set<String> s = new Set<String>();
-    for (String name in _element.className.split(' ')) {
+    for (String name in _className().split(' ')) {
       String trimmed = name.trim();
       if (!trimmed.isEmpty()) {
         s.add(trimmed);
@@ -125,6 +125,12 @@ class _CssClassSet implements Set<String> {
     }
     return s;
   }
+
+  /**
+   * Read the class names as a space-separated string. This is meant to be
+   * overridden by subclasses.
+   */
+  String _className() => _element.className;
 
   /**
    * Join all the elements of a set into one string and write

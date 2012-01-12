@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _SVGClassSet extends _CssClassSet {
+  _SVGClassSet(element) : super(element);
+
+  String _className() => _element.className.baseVal;
+
+  viod _write(Set s) {
+    _element.className.baseVal = _formatSet(s);
+  }
+}
+
 class SVGElementWrappingImplementation extends ElementWrappingImplementation implements SVGElement {
   SVGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -23,6 +33,13 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
     throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
         'top-level elements but 1 expected');
+  }
+
+  Set<String> get classes() {
+    if (_cssClassSet === null) {
+      _cssClassSet = new _SVGClassSet(_ptr);
+    }
+    return _cssClassSet;
   }
 
   String get id() { return _ptr.id; }

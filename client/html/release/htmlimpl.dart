@@ -18660,7 +18660,7 @@ class _CssClassSet implements Set<String> {
   Set<String> _read() {
     // TODO(mattsh) simplify this once split can take regex.
     Set<String> s = new Set<String>();
-    for (String name in _element.className.split(' ')) {
+    for (String name in _className().split(' ')) {
       String trimmed = name.trim();
       if (!trimmed.isEmpty()) {
         s.add(trimmed);
@@ -18668,6 +18668,12 @@ class _CssClassSet implements Set<String> {
     }
     return s;
   }
+
+  /**
+   * Read the class names as a space-separated string. This is meant to be
+   * overridden by subclasses.
+   */
+  String _className() => _element.className;
 
   /**
    * Join all the elements of a set into one string and write
@@ -24040,6 +24046,16 @@ class SVGDocumentWrappingImplementation extends DocumentWrappingImplementation i
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _SVGClassSet extends _CssClassSet {
+  _SVGClassSet(element) : super(element);
+
+  String _className() => _element.className.baseVal;
+
+  viod _write(Set s) {
+    _element.className.baseVal = _formatSet(s);
+  }
+}
+
 class SVGElementWrappingImplementation extends ElementWrappingImplementation implements SVGElement {
   SVGElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -24061,6 +24077,13 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
     throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
         'top-level elements but 1 expected');
+  }
+
+  Set<String> get classes() {
+    if (_cssClassSet === null) {
+      _cssClassSet = new _SVGClassSet(_ptr);
+    }
+    return _cssClassSet;
   }
 
   String get id() { return _ptr.id; }
