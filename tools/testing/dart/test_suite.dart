@@ -1009,16 +1009,15 @@ class SummaryReport {
 
   static void printReport() {
     if (total == 0) return;
-    String report = """\
-Total: $total tests
+    String report = """Total: $total tests
  * $skipped tests will be skipped
  * $noCrash tests are expected to be flaky but not crash
  * $pass tests are expected to pass
  * $failOk tests are expected to fail that we won't fix
  * $fail tests are expected to fail that we should fix
  * $crash tests are expected to crash that we should fix
- * $timeout tests are allowed to timeout\
+ * $timeout tests are allowed to timeout
 """;
     print(report);
-  }
+   }
 }

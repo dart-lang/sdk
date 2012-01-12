@@ -167,6 +167,16 @@ class CompactIndicator extends ProgressIndicator {
     exit(_failedTests > 0 ? 1 : 0);
   }
 
+  void allTestsKnown() {
+    if (!_allTestsKnown) {
+      // Clear progress indicator before printing summary report.
+      stdout.write(
+          '\r                                               \r'.charCodes());
+      SummaryReport.printReport();
+    }
+    _allTestsKnown = true;
+  }
+
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
   
