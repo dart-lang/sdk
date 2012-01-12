@@ -18573,6 +18573,10 @@ class _CssClassSet implements Set<String> {
     _read().forEach(f);
   }
 
+  Collection map(f(String element)) {
+    return _read().map(f);
+  }
+
   Collection<String> filter(bool f(String element)) {
     return _read().filter(f);
   }
@@ -21784,6 +21788,7 @@ class FilteredElementList implements ElementList {
     return last;
   }
 
+  Collection map(f(Element element)) => _filtered.map(f);
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
   bool every(bool f(Element element)) => _filtered.every(f);
   bool some(bool f(Element element)) => _filtered.some(f);
@@ -22303,6 +22308,14 @@ class _ChildrenElementList implements ElementList {
     }
   }
 
+  Collection map(f(Element element)) {
+    List output = new List();
+    forEach((Element element) {
+      output.add(f(element));
+    });
+    return output;
+  }
+
   Collection<Element> filter(bool f(Element element)) {
     List<Element> output = new List<Element>();
     forEach((Element element) {
@@ -22434,12 +22447,19 @@ class FrozenElementList implements ElementList {
     }
   }
 
+  Collection map(f(Element element)) {
+    //TODO(jacobr): Implement this.
+    throw 'Not implemented yet.';
+  }
+
   Collection<Element> filter(bool f(Element element)) {
-    throw 'Not impl yet. todo(jacobr)';
+    //TODO(jacobr): Implement this.
+    throw 'Not implemented yet.';
   }
 
   bool every(bool f(Element element)) {
-    throw 'Not impl yet. todo(jacobr)';
+    //TODO(jacobr): Implement this.
+    throw 'Not implemented yet.';
   }
 
   bool some(bool f(Element element)) {
@@ -23596,6 +23616,14 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void forEach(void f(Node element)) => _toList().forEach(f);
+
+  Collection map(f(Node element)) {
+    List output = new List();
+    forEach((Node element) {
+        output.add(f(element));
+    });
+    return output;
+  }
 
   Collection<Node> filter(bool f(Node element)) {
     List<Node> output = new List<Node>();
