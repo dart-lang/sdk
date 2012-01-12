@@ -28,6 +28,15 @@ class Collections {
     return true;
   }
 
+  static List<Object> map(Iterable<Object> source,
+                          List<Object> destination,
+                          f(Object o)) {
+    for (final e in source) {
+      destination.add(f(e));
+    }
+    return destination;
+  }
+
   static List<Object> filter(Iterable<Object> source,
                              List<Object> destination,
                              bool f(Object o)) {

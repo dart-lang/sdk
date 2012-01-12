@@ -13,6 +13,16 @@ interface Collection<E> extends Iterable<E> {
   void forEach(void f(E element));
 
   /**
+   * Returns a new collection with the elements [: f(e) :]
+   * for each element [e] of this collection. 
+   *
+   * Note on typing: the return type of f() could be an arbitrary
+   * type and consequently the returned collection's
+   * typeis Collection.  
+   */
+  Collection map(f(E element));
+
+  /**
    * Returns a new collection with the elements of this collection
    * that satisfy the predicate [f].
    *

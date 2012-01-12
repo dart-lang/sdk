@@ -205,6 +205,18 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     return false;
   }
 
+  Queue map(f(E element)) {
+    Queue other = new Queue();
+    DoubleLinkedQueueEntry<E> entry = _sentinel._next;
+    while (entry !== _sentinel) {
+      DoubleLinkedQueueEntry<E> nextEntry = entry._next;
+      other.addLast(f(entry._element));
+      entry = nextEntry;
+    }
+    return other;
+  }
+
+
   Queue<E> filter(bool f(E element)) {
     Queue<E> other = new Queue<E>();
     DoubleLinkedQueueEntry<E> entry = _sentinel._next;

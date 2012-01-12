@@ -25,6 +25,14 @@ class _ChildrenNodeList implements NodeList {
 
   void forEach(void f(Node element)) => _toList().forEach(f);
 
+  Collection map(f(Node element)) {
+    List output = new List();
+    forEach((Node element) {
+        output.add(f(element));
+    });
+    return output;
+  }
+
   Collection<Node> filter(bool f(Node element)) {
     List<Node> output = new List<Node>();
     forEach((Node element) {

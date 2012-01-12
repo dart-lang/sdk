@@ -198,6 +198,10 @@ class GrowableObjectArray<T> implements List<T> {
     }
   }
 
+  Collection map(f(T element)) {
+    return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
+  }
+
   Collection<T> filter(bool f(T element)) {
     return Collections.filter(this, new GrowableObjectArray<T>(), f);
   }

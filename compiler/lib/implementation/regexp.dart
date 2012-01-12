@@ -75,6 +75,14 @@ class _LazyAllMatches implements Collection<Match> {
     }
   }
 
+  Collection map(f(Match match)) {
+    List result = new List();
+    for (Match match in this) {
+      result.add(f(match));
+    }
+    return result;
+  }
+
   Collection<Match> filter(bool f(Match match)) {
     List<Match> result = new List<Match>();
     for (Match match in this) {

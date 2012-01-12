@@ -76,6 +76,10 @@ class ListImplementation<T> implements List<T> native "Array" {
     Collections.forEach(this, f);
   }
 
+  Collection map(f(T element)) {
+    return Collections.map(this, new List(), f);
+  }
+
   Collection<T> filter(bool f(T element)) {
     return Collections.filter(this, new List<T>(), f);
   }

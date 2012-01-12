@@ -336,6 +336,14 @@ class HashSetImplementation<E extends Hashable> implements HashSet<E> {
     });
   }
 
+  Set map(f(E element)) {
+    Set result = new Set();
+    _backingMap.forEach(void _(E key, E value) {
+      result.add(f(key));
+    });
+    return result;
+  }
+
   Set<E> filter(bool f(E element)) {
     Set<E> result = new Set<E>();
     _backingMap.forEach(void _(E key, E value) {

@@ -20,6 +20,13 @@ class ListTest {
   }
 
   static void testClosures(List list) {
+    testMap(val) {return val * 2 + 10; }
+    Collection mapped = list.map(testMap);
+    Expect.equals(mapped.length, list.length);
+    for (var i = 0; i < list.length; i++) {
+      Expect.equals(mapped[i], list[i]*2 + 10);
+    }
+
     testFilter(val) { return val == 3; }
     Collection filtered = list.filter(testFilter);
     Expect.equals(filtered.length, 1);

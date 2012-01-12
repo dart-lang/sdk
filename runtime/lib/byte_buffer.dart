@@ -93,6 +93,10 @@ class ByteBuffer implements List {
     return Collections.every(this, f);
   }
 
+  Collection map(f(int element)) {
+    return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
+  }
+
   Collection filter(bool f(int element)) {
     return Collections.filter(this, new GrowableObjectArray(), f);
   }

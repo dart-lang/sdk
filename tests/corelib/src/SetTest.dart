@@ -46,19 +46,48 @@ class SetTest {
     Expect.equals(true, set.isSubsetOf(set));
     Expect.equals(true, set.containsAll(set));
 
+    // Test Set.map.
+    testMap(int val) {
+      return val * val;
+    }
+
+    Set mapped = set.map(testMap);
+    Expect.equals(10, mapped.length);
+
+    Expect.equals(true, mapped.contains(0));
+    Expect.equals(true, mapped.contains(1));
+    Expect.equals(true, mapped.contains(4));
+    Expect.equals(true, mapped.contains(9));
+    Expect.equals(true, mapped.contains(16));
+    Expect.equals(true, mapped.contains(25));
+    Expect.equals(true, mapped.contains(36));
+    Expect.equals(true, mapped.contains(49));
+    Expect.equals(true, mapped.contains(64));
+    Expect.equals(true, mapped.contains(81));
+
+    sum = 0;
+    set.forEach(testForEach);
+    Expect.equals(10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1, sum);
+
+    sum = 0;
+
+    mapped.forEach(testForEach);
+    Expect.equals(1 + 2 + 5 + 10 + 17 + 26 + 37 + 50 + 65 + 82, sum);
+
     // Test Set.filter.
     testFilter(int val) {
       return val.isEven();
     }
 
     Set filtered = set.filter(testFilter);
+
     Expect.equals(5, filtered.length);
 
-    Expect.equals(true, set.contains(0));
-    Expect.equals(true, set.contains(2));
-    Expect.equals(true, set.contains(4));
-    Expect.equals(true, set.contains(6));
-    Expect.equals(true, set.contains(8));
+    Expect.equals(true, filtered.contains(0));
+    Expect.equals(true, filtered.contains(2));
+    Expect.equals(true, filtered.contains(4));
+    Expect.equals(true, filtered.contains(6));
+    Expect.equals(true, filtered.contains(8));
 
     sum = 0;
     filtered.forEach(testForEach);

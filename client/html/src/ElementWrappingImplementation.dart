@@ -30,6 +30,14 @@ class _ChildrenElementList implements ElementList {
     }
   }
 
+  Collection map(f(Element element)) {
+    List output = new List();
+    forEach((Element element) {
+      output.add(f(element));
+    });
+    return output;
+  }
+
   Collection<Element> filter(bool f(Element element)) {
     List<Element> output = new List<Element>();
     forEach((Element element) {
@@ -161,12 +169,19 @@ class FrozenElementList implements ElementList {
     }
   }
 
+  Collection map(f(Element element)) {
+    //TODO(jacobr): Implement this.
+    throw 'Not implemented yet.';
+  }
+
   Collection<Element> filter(bool f(Element element)) {
-    throw 'Not impl yet. todo(jacobr)';
+    //TODO(jacobr): Implement this.
+    throw 'Not implemented yet.';
   }
 
   bool every(bool f(Element element)) {
-    throw 'Not impl yet. todo(jacobr)';
+    //TODO(jacobr): Implement this.
+    throw 'Not implemented yet.';
   }
 
   bool some(bool f(Element element)) {

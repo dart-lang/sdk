@@ -263,6 +263,7 @@ class ObservableList<T>
 
   // Collection<T>:
   Collection<T> filter(bool f(T element)) => _internal.filter(f);
+  Collection map(f(T element)) => _internal.map(f);
   bool every(bool f(T element)) => _internal.every(f);
   bool some(bool f(T element)) => _internal.some(f);
   void forEach(void f(T element)) { _internal.forEach(f); }

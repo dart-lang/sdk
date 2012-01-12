@@ -26,6 +26,10 @@ class _CssClassSet implements Set<String> {
     _read().forEach(f);
   }
 
+  Collection map(f(String element)) {
+    return _read().map(f);
+  }
+
   Collection<String> filter(bool f(String element)) {
     return _read().filter(f);
   }

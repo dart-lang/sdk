@@ -34,9 +34,20 @@ class QueueTest {
     queue.removeFirst();
     checkQueue(queue, 3, 1110);
 
+    int mapTest(int value) {
+      return value ~/ 10;
+    }
+
     bool is10(int value) {
       return (value == 10);
     }
+
+    Queue mapped = queue.map(mapTest);
+    checkQueue(mapped, 3, 111);
+    checkQueue(queue, 3, 1110);
+    Expect.equals(1, mapped.removeFirst());
+    Expect.equals(100, mapped.removeLast());
+    Expect.equals(10, mapped.removeFirst());
 
     Queue other = queue.filter(is10);
     checkQueue(other, 1, 10);
@@ -155,8 +166,8 @@ class QueueTest {
   }
 
   static testQueueElements() {
-    Queue<int> queue1 = new DoubleLinkedQueue<int>.from([1, 2, 4]);
-    Queue<int> queue2 = new DoubleLinkedQueue<int>();
+    DoubleLinkedQueue<int> queue1 = new DoubleLinkedQueue<int>.from([1, 2, 4]);
+    DoubleLinkedQueue<int> queue2 = new DoubleLinkedQueue<int>();
     queue2.addAll(queue1);
 
     Expect.equals(queue1.length, queue2.length);
