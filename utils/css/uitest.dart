@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import('dart:dom');
+#import('dart:html');
 #import('css.dart');
 #import('../../frog/lang.dart', prefix:'lang');
 #import('../../frog/file_system_memory.dart');
 
 void runCss([bool debug = false, bool parseOnly = false]) {
-  final HTMLTextAreaElement classes = document.getElementById('classes');
-  final HTMLTextAreaElement expression = document.getElementById('expression');
-  final HTMLDivElement result = document.getElementById('result');
+  final Document doc = window.document;
+  final TextAreaElement classes = doc.query("#classes");
+  final TextAreaElement expression = doc.query('#expression');
+  final TableCellElement validity = doc.query('#validity');
+  final TableCellElement result = doc.query('#result');
 
   List<String> knownWorld = classes.value.split("\n");
   List<String> knownClasses = [];
@@ -59,40 +61,119 @@ void runCss([bool debug = false, bool parseOnly = false]) {
     }
   }
 
-  var bgcolor = templateValid ? "white" : "red";
-  var color = templateValid ? "black" : "white";
-  var valid = templateValid ? "VALID" : "NOT VALID";
-  String resultStyle = 'margin: 0; height: 138px; width: 100%; border: 0; border-top: 1px solid black;';
-  result.innerHTML = '''
-    <div style="font-weight: bold; background-color: $bgcolor; color: $color;">
+  final bgcolor = templateValid ? "white" : "red";
+  final color = templateValid ? "black" : "white";
+  final valid = templateValid ? "VALID" : "NOT VALID";
+  String resultStyle = 'resize: none; margin: 0; height: 100%; width: 100%; padding: 5px 7px;';
+  String validityStyle = '''
+    font-weight: bold; background-color: $bgcolor; color: $color; border: 1px solid black; border-bottom: 0px solid white;
+  ''';
+  validity.innerHTML = '''
+    <div style="$validityStyle">
       Expression: $cssExpr is $valid
     </div>
+  ''';
+  result.innerHTML = '''
     <textarea style="$resultStyle">$dumpTree</textarea>
   ''';
 }
 
 void main() {
-  var element = document.createElement('div');
+  final element = new Element.tag('div');
   element.innerHTML = '''
-    <div style="position: absolute; top: 10px; width: 200px;" align=center>
-      <span style="font-weight:bold;">Classes</span><br/>
-      <textarea id="classes" style="width: 200px; height: 310px;">.foobar\n.xyzzy\n.test\n.dummy\n#myId\n#myStory</textarea>
-    </div>
-    <div style="left: 225px; position: absolute; top: 10px;">
-      <span style="font-weight:bold;">Selector Expression</span><br/>
-      <textarea id="expression" style="width: 400px; height: 100px;"></textarea>
-      <br/>
-    </div>
-    <button onclick="runCss(true, true)" style="position: absolute; left: 430px; top: 135px;">Parse</button>
-    <button onclick="runCss()" style="position: absolute; left: 500px; top: 135px;">Check</button>
-    <button onclick="runCss(true)" style="position: absolute; left: 570px; top: 135px;">Debug</button>
-    <div style="top: 160px; left: 225px; position: absolute;">
-      <span style="font-weight:bold;">Result</span><br/>
-      <div id="result" style="width: 400px; height: 158px; border: black solid 1px;"></textarea>
-    </div>
+    <table style="width: 100%; height: 100%;">
+      <tbody>
+        <tr>
+          <td style="vertical-align: top; width: 200px;">
+            <table style="height: 100%;">
+              <tbody>
+                <tr style="vertical-align: top; height: 1em;">
+                  <td>
+                    <span style="font-weight:bold;">Classes</span>
+                  </td>
+                </tr>
+                <tr style="vertical-align: top;">
+                  <td>
+                    <textarea id="classes" style="resize: none; width: 200px; height: 100%; padding: 5px 7px;">.foobar\n.xyzzy\n.test\n.dummy\n#myId\n#myStory</textarea>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+          <td>
+            <table style="width: 100%; height: 100%;" cellspacing=0 cellpadding=0 border=0>
+              <tbody>
+                <tr style="vertical-align: top; height: 100px;">
+                  <td>
+                    <table style="width: 100%;">
+                      <tbody>
+                        <tr>
+                          <td>
+                            <span style="font-weight:bold;">Selector Expression</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <textarea id="expression" style="resize: none; width: 100%; height: 100px; padding: 5px 7px;"></textarea>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+
+                <tr style="vertical-align: top; height: 50px;">
+                  <td>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <button onclick="runCss(true, true)">Parse</button>
+                          </td>
+                          <td>
+                            <button onclick="runCss()">Check</button>
+                          </td>
+                          <td>
+                            <button onclick="runCss(true)">Debug</button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+
+                <tr style="vertical-align: top;">
+                  <td>
+                    <table style="width: 100%; height: 100%;" border="0" cellpadding="0" cellspacing="0">
+                      <tbody>
+                        <tr style="vertical-align: top; height: 1em;">
+                          <td>
+                            <span style="font-weight:bold;">Result</span>
+                          </td>
+                        </tr>
+                        <tr style="vertical-align: top; height: 1em;">
+                          <td id="validity">
+                          </td>
+                        </tr>
+                        <tr style="vertical-align: top;">
+                          <td id="result">
+                            <textarea style="resize: none; width: 100%; height: 100%; border: black solid 1px; padding: 5px 7px;"></textarea>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   ''';
 
-  document.body.appendChild(element);
+  document.body.style.setProperty("background-color", "lightgray");
+  document.body.elements.add(element);
 
   // TODO(terry): Needed so runCss isn't shakened out.
   if (false) {

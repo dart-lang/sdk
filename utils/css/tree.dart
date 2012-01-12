@@ -27,18 +27,18 @@ class Wildcard extends lang.Node {
 }
 
 // /*  ....   */
-class Comment extends lang.Node {
+class CssComment extends lang.Node {
   String comment;
 
-  Comment(this.comment, lang.SourceSpan span): super(span);
+  CssComment(this.comment, lang.SourceSpan span): super(span);
 
-  visit(TreeVisitor visitor) => visitor.visitComment(this);
+  visit(TreeVisitor visitor) => visitor.visitCssComment(this);
 
   String toString() => '/* ${comment} */';
 }
 
 // CDO/CDC (Comment Definition Open <!-- and Comment Definition Close -->).
-class CommentDefinition extends Comment {
+class CommentDefinition extends CssComment {
   CommentDefinition(String comment, lang.SourceSpan span): super(comment, span);
 
   visit(TreeVisitor visitor) => visitor.visitCommentDefinition(this);
@@ -817,7 +817,7 @@ class UnaryExpression extends lang.Expression {
 }
 
 interface TreeVisitor {
-  void visitComment(Comment node);
+  void visitCssComment(CssComment node);
   void visitCommentDefinition(CommentDefinition node);
   void visitStylesheet(Stylesheet node);
   void visitTopLevelProduction(TopLevelProduction node);
@@ -896,7 +896,7 @@ class TreePrinter implements TreeVisitor {
     output.heading('Directive', node.span);
   }
 
-  void visitComment(Comment node) {
+  void visitCssComment(CssComment node) {
     output.heading('Comment', node.span);
     output.depth++;
     output.writeValue('comment value', node.comment);
