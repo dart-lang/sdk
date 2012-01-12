@@ -238,10 +238,6 @@ Instanceof2Test: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
 LabelTest: Fail
-Library1NegativeTest: Fail
-Library4NegativeTest: Fail
-Library5NegativeTest: Fail
-Library6NegativeTest: Fail
 ListLiteral3Test: Fail # vm and frog throw different exceptions
 ListLiteral4Test: Fail # missing type checks on index operations
 ListTest: Fail         # array bound checks not implemented
@@ -265,8 +261,6 @@ OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
 OverrideMethodWithFieldTest/01: Fail
 ParameterInitializer5NegativeTest: Fail  # Issue 581
-Prefix3NegativeTest: Fail
-Prefix7NegativeTest: Fail
 Prefix8NegativeTest: Fail
 Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail

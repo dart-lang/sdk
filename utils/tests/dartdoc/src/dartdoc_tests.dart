@@ -1,11 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /// Unit tests for dartdoc.
 #library('dartdoc_tests');
 
-#import('../../../dartdoc/dartdoc.dart');
+#import('../../../dartdoc/dartdoc.dart', prefix: 'dd');
 #import('../../../dartdoc/markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
@@ -20,99 +20,99 @@ main() {
 
   group('countOccurrences', () {
     test('empty text returns 0', () {
-      expect(countOccurrences('', 'needle')).equals(0);
+      expect(dd.countOccurrences('', 'needle')).equals(0);
     });
 
     test('one occurrence', () {
-      expect(countOccurrences('bananarama', 'nara')).equals(1);
+      expect(dd.countOccurrences('bananarama', 'nara')).equals(1);
     });
 
     test('multiple occurrences', () {
-      expect(countOccurrences('bananarama', 'a')).equals(5);
+      expect(dd.countOccurrences('bananarama', 'a')).equals(5);
     });
 
     test('overlapping matches do not count', () {
-      expect(countOccurrences('bananarama', 'ana')).equals(1);
+      expect(dd.countOccurrences('bananarama', 'ana')).equals(1);
     });
   });
 
   group('repeat', () {
     test('zero times returns an empty string', () {
-      expect(repeat('ba', 0)).equals('');
+      expect(dd.repeat('ba', 0)).equals('');
     });
 
     test('one time returns the string', () {
-      expect(repeat('ba', 1)).equals('ba');
+      expect(dd.repeat('ba', 1)).equals('ba');
     });
 
     test('multiple times', () {
-      expect(repeat('ba', 3)).equals('bababa');
+      expect(dd.repeat('ba', 3)).equals('bababa');
     });
 
     test('multiple times with a separator', () {
-      expect(repeat('ba', 3, separator: ' ')).equals('ba ba ba');
+      expect(dd.repeat('ba', 3, separator: ' ')).equals('ba ba ba');
     });
   });
 
   group('isAbsolute', () {
     test('returns false if there is no scheme', () {
-      expect(isAbsolute('index.html')).isFalse();
-      expect(isAbsolute('foo/index.html')).isFalse();
-      expect(isAbsolute('foo/bar/index.html')).isFalse();
+      expect(dd.isAbsolute('index.html')).isFalse();
+      expect(dd.isAbsolute('foo/index.html')).isFalse();
+      expect(dd.isAbsolute('foo/bar/index.html')).isFalse();
     });
 
     test('returns true if there is a scheme', () {
-      expect(isAbsolute('http://google.com')).isTrue();
-      expect(isAbsolute('hTtPs://google.com')).isTrue();
-      expect(isAbsolute('mailto:fake@email.com')).isTrue();
+      expect(dd.isAbsolute('http://google.com')).isTrue();
+      expect(dd.isAbsolute('hTtPs://google.com')).isTrue();
+      expect(dd.isAbsolute('mailto:fake@email.com')).isTrue();
     });
   });
 
   group('relativePath', () {
     test('absolute path is unchanged', () {
-      startFile('dir/sub/file.html');
-      expect(relativePath('http://google.com')).equals('http://google.com');
+      dd.startFile('dir/sub/file.html');
+      expect(dd.relativePath('http://google.com')).equals('http://google.com');
     });
 
     test('from root to root', () {
-      startFile('root.html');
-      expect(relativePath('other.html')).equals('other.html');
+      dd.startFile('root.html');
+      expect(dd.relativePath('other.html')).equals('other.html');
     });
 
     test('from root to directory', () {
-      startFile('root.html');
-      expect(relativePath('dir/file.html')).equals('dir/file.html');
+      dd.startFile('root.html');
+      expect(dd.relativePath('dir/file.html')).equals('dir/file.html');
     });
 
     test('from root to nested', () {
-      startFile('root.html');
-      expect(relativePath('dir/sub/file.html')).equals('dir/sub/file.html');
+      dd.startFile('root.html');
+      expect(dd.relativePath('dir/sub/file.html')).equals('dir/sub/file.html');
     });
 
     test('from directory to root', () {
-      startFile('dir/file.html');
-      expect(relativePath('root.html')).equals('../root.html');
+      dd.startFile('dir/file.html');
+      expect(dd.relativePath('root.html')).equals('../root.html');
     });
 
     test('from nested to root', () {
-      startFile('dir/sub/file.html');
-      expect(relativePath('root.html')).equals('../../root.html');
+      dd.startFile('dir/sub/file.html');
+      expect(dd.relativePath('root.html')).equals('../../root.html');
     });
 
     test('from dir to dir with different path', () {
-      startFile('dir/file.html');
-      expect(relativePath('other/file.html')).equals('../other/file.html');
+      dd.startFile('dir/file.html');
+      expect(dd.relativePath('other/file.html')).equals('../other/file.html');
     });
 
     test('from nested to nested with different path', () {
-      startFile('dir/sub/file.html');
-      expect(relativePath('other/sub/file.html')).equals(
+      dd.startFile('dir/sub/file.html');
+      expect(dd.relativePath('other/sub/file.html')).equals(
           '../../other/sub/file.html');
     });
 
     test('from nested to directory with different path', () {
-      startFile('dir/sub/file.html');
-      expect(relativePath('other/file.html')).equals(
+      dd.startFile('dir/sub/file.html');
+      expect(dd.relativePath('other/file.html')).equals(
           '../../other/file.html');
     });
   });
@@ -136,7 +136,7 @@ main() {
       return;
     }
 
-    var doc = new Dartdoc();
+    var doc = new dd.Dartdoc();
     world.processDartScript(dummyPath);
     world.resolveAll();
     var dummy = world.libraries[dummyPath];
