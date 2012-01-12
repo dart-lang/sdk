@@ -424,15 +424,18 @@ class DartGenerator(object):
     self._ComputeInheritanceClosure()
 
     interface_system = WrappingInterfacesSystem(
+        TemplateLoader('../templates', ['dom/interface', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
     wrapping_system = WrappingImplementationSystem(
+        TemplateLoader('../templates', ['dom/wrapping', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
     # Makes wrapper implementations available for listing in interface lib.
     interface_system._implementation_system = wrapping_system
 
     frog_system = FrogSystem(
+        TemplateLoader('../templates', ['dom/frog', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
     self._systems = [interface_system,
@@ -685,36 +688,6 @@ class DartGenerator(object):
     return info
 
 
-  def GenerateOldLibFile(self, lib_template, lib_file_path, file_paths):
-    """Generates a lib file from a template and a list of files."""
-    # Generate the .lib file.
-    if lib_file_path:
-      # Load template.
-      template = ''.join(open(lib_template).readlines())
-      lib_file_contents = self._emitters.FileEmitter(lib_file_path)
-
-      # Emit the list of path names.
-      list_emitter = lib_file_contents.Emit(template)
-      lib_file_dir = os.path.dirname(lib_file_path)
-      for path in sorted(file_paths):
-        relpath = os.path.relpath(path, lib_file_dir)
-        list_emitter.Emit("\n    '$PATH',", PATH=relpath)
-
-  def GenerateLibFile(self, lib_template, lib_file_path, file_paths):
-    """Generates a lib file from a template and a list of files."""
-    # Load template.
-    template = ''.join(open(lib_template).readlines())
-    # Generate the .lib file.
-    lib_file_contents = self._emitters.FileEmitter(lib_file_path)
-
-    # Emit the list of #source directives.
-    list_emitter = lib_file_contents.Emit(template)
-    lib_file_dir = os.path.dirname(lib_file_path)
-    for path in sorted(file_paths):
-      relpath = os.path.relpath(path, lib_file_dir)
-      list_emitter.Emit("#source('$PATH');\n", PATH=relpath)
-
-
   def Flush(self):
     """Write out all pending files."""
     _logger.info('Flush...')
@@ -888,10 +861,50 @@ def IndentText(text, indent):
 
 # ------------------------------------------------------------------------------
 
+class TemplateLoader(object):
+  """Loads template files from a path."""
+
+  def __init__(self, root, subpaths):
+    """Initializes loader.
+
+    Args:
+      root - a string, the directory under which the templates are stored.
+      subpaths - a list of strings, subpaths of root in search order.
+    """
+    self._root = root
+    self._subpaths = subpaths
+    self._cache = {}
+
+  def TryLoad(self, name):
+    """Returns content of template file as a string, or None of not found."""
+    if name in self._cache:
+      return self._cache[name]
+
+    for subpath in self._subpaths:
+      template_file = os.path.join(self._root, subpath, name)
+      if os.path.exists(template_file):
+        template = ''.join(open(template_file).readlines())
+        self._cache[name] = template
+        return template
+
+    return None
+
+  def Load(self, name):
+    """Returns contents of template file as a string, or raises an exception."""
+    template = self.TryLoad(name)
+    if template is not None:  # Can be empty string
+      return template
+    raise Exception("Could not find template '%s' on %s / %s" % (
+        name, self._root, self._subpaths))
+
+
+# ------------------------------------------------------------------------------
+
 class System(object):
   """Generates all the files for one implementation."""
 
-  def __init__(self, database, emitters, output_dir):
+  def __init__(self, templates, database, emitters, output_dir):
+    self._templates = templates
     self._database = database
     self._emitters = emitters
     self._output_dir = output_dir
@@ -920,8 +933,7 @@ class System(object):
     self._dart_callback_file_paths.append(file_path)
     code = self._emitters.FileEmitter(file_path)
 
-    template_file = 'template_callback.darttemplate'
-    code.Emit(''.join(open(template_file).readlines()))
+    code.Emit(self._templates.Load('callback.darttemplate'))
     code.Emit('typedef $TYPE $NAME($ARGS);\n',
               NAME=interface.id,
               TYPE=info.type_name,
@@ -930,7 +942,7 @@ class System(object):
   def _GenerateLibFile(self, lib_template, lib_file_path, file_paths):
     """Generates a lib file from a template and a list of files."""
     # Load template.
-    template = ''.join(open(lib_template).readlines())
+    template = self._templates.Load(lib_template)
     # Generate the .lib file.
     lib_file_contents = self._emitters.FileEmitter(lib_file_path)
 
@@ -969,9 +981,9 @@ class System(object):
 
 class WrappingInterfacesSystem(System):
 
-  def __init__(self, database, emitters, output_dir):
+  def __init__(self, templates, database, emitters, output_dir):
     super(WrappingInterfacesSystem, self).__init__(
-        database, emitters, output_dir)
+        templates, database, emitters, output_dir)
     self._dart_interface_file_paths = []
 
 
@@ -988,10 +1000,10 @@ class WrappingInterfacesSystem(System):
 
     dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
 
-    template_file = 'template_interface_%s.darttemplate' % interface_name
-    if not os.path.exists(template_file):
-      template_file = 'template_interface.darttemplate'
-    template = ''.join(open(template_file).readlines())
+    template_file = 'interface_%s.darttemplate' % interface_name
+    template = self._templates.TryLoad(template_file)
+    if not template:
+      template = self._templates.Load('interface.darttemplate')
 
     return DartInterfaceGenerator(
         interface, dart_interface_code,
@@ -1008,7 +1020,7 @@ class WrappingInterfacesSystem(System):
   def GenerateLibraries(self, lib_dir):
     # Library generated for implementation.
     self._GenerateLibFile(
-        'template_wrapping_dom.darttemplate',
+        'wrapping_dom.darttemplate',
         os.path.join(lib_dir, 'wrapping_dom.dart'),
         (self._dart_interface_file_paths +
          self._dart_callback_file_paths +
@@ -1028,19 +1040,19 @@ class WrappingInterfacesSystem(System):
 
 class WrappingImplementationSystem(System):
 
-  def __init__(self, database, emitters, output_dir):
+  def __init__(self, templates, database, emitters, output_dir):
     """Prepared for generating wrapping implementation.
 
     - Creates emitter for JS code.
     - Creates emitter for Dart code.
     """
     super(WrappingImplementationSystem, self).__init__(
-        database, emitters, output_dir)
+        templates, database, emitters, output_dir)
     self._dart_wrapping_file_paths = []
 
     js_file_name = os.path.join(output_dir, 'wrapping_dom.js')
     code = self._emitters.FileEmitter(js_file_name)
-    template = ''.join(open('template_wrapping_dom.js').readlines())
+    template = self._templates.Load('wrapping_dom.js')
     (self._wrapping_js_natives,
      self._wrapping_map) = code.Emit(template)
 
@@ -1062,8 +1074,7 @@ class WrappingImplementationSystem(System):
     self._dart_wrapping_file_paths.append(dart_wrapping_file_path)
 
     dart_code = self._emitters.FileEmitter(dart_wrapping_file_path)
-    dart_code.Emit(
-        ''.join(open('template_wrapping_impl.darttemplate').readlines()))
+    dart_code.Emit(self._templates.Load('wrapping_impl.darttemplate'))
     return WrappingInterfaceGenerator(interface, super_interface_name,
                                       dart_code, self._wrapping_js_natives,
                                       self._wrapping_map,
@@ -1095,7 +1106,7 @@ class WrappingImplementationSystem(System):
     code = self._emitters.FileEmitter(externs_file_name)
     _logger.info('Started generating %s' % externs_file_name)
 
-    template = ''.join(open('template_wrapping_dom_externs.js').readlines())
+    template = self._templates.Load('wrapping_dom_externs.js')
     namespace = 'dom_externs'
     members = code.Emit(template, NAMESPACE=namespace)
 
@@ -1129,8 +1140,9 @@ class WrappingImplementationSystem(System):
 
 class FrogSystem(System):
 
-  def __init__(self, database, emitters, output_dir):
-    super(FrogSystem, self).__init__(database, emitters, output_dir)
+  def __init__(self, templates, database, emitters, output_dir):
+    super(FrogSystem, self).__init__(
+        templates, database, emitters, output_dir)
     self._dart_frog_file_paths = []
 
   def InterfaceGenerator(self,
@@ -1144,8 +1156,7 @@ class FrogSystem(System):
     self._dart_frog_file_paths.append(dart_frog_file_path)
 
     dart_code = self._emitters.FileEmitter(dart_frog_file_path)
-    dart_code.Emit(
-        ''.join(open('template_frog_impl.darttemplate').readlines()))
+    dart_code.Emit(self._templates.Load('frog_impl.darttemplate'))
     return FrogInterfaceGenerator(interface, super_interface_name,
                                   dart_code)
 
@@ -1156,7 +1167,7 @@ class FrogSystem(System):
 
   def GenerateLibraries(self, lib_dir):
     self._GenerateLibFile(
-        'template_frog_dom.darttemplate',
+        'frog_dom.darttemplate',
         os.path.join(lib_dir, 'dom_frog.dart'),
         self._dart_frog_file_paths +
         self._dart_callback_file_paths)
@@ -1823,7 +1834,7 @@ class WrappingInterfaceGenerator(object):
       return fallthrough1 or fallthrough2
 
     if negative:
-      raise 'Internal error, must be all positive'
+      raise Exception('Internal error, must be all positive')
 
     # All overloads require the same test.  Do we bother?
 

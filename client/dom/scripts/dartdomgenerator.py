@@ -31,9 +31,9 @@ _webkit_renames = {
 
 _webkit_renames_inverse = dict((v,k) for k, v in _webkit_renames.iteritems())
 
-def main():
+def GenerateDOM():
+  # TODO(sra): Make this entry point also generate HTML.
   current_dir = os.path.dirname(__file__)
-  logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
 
   generator = dartgenerator.DartGenerator(
       auxiliary_dir=os.path.join(current_dir, '..', 'src'),
@@ -87,6 +87,11 @@ def main():
   default = os.path.join(lib_dir, DOM_DEFAULT_LIBRARY)
   target = os.path.join(lib_dir, DOM_LIBRARY)
   shutil.copyfile(default, target)
+
+def main():
+  current_dir = os.path.dirname(__file__)
+  logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
+  GenerateDOM()
 
 if __name__ == '__main__':
   sys.exit(main())
