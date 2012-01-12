@@ -134,7 +134,6 @@ FieldTest: Fail
 FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
 For2Test: Crash
-ForInTest: Fail
 ForTest: Fail
 FunctionArgumentTest: Crash
 FunctionLiterals2Test: Crash
