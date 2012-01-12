@@ -39,12 +39,15 @@ bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
 
 
 intptr_t FDUtils::AvailableBytes(intptr_t fd) {
-  size_t available;
+  int available;  // ioctl for FIONREAD expects an 'int*' argument.
   int result = TEMP_FAILURE_RETRY(ioctl(fd, FIONREAD, &available));
   if (result < 0) {
     return result;
   }
-  return available;
+#ifdef DEBUG
+  ASSERT(available >= 0);
+#endif
+  return static_cast<intptr_t>(available);
 }
 
 
