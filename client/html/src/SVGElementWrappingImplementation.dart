@@ -7,7 +7,7 @@ class _SVGClassSet extends _CssClassSet {
 
   String _className() => _element.className.baseVal;
 
-  viod _write(Set s) {
+  void _write(Set s) {
     _element.className.baseVal = _formatSet(s);
   }
 }

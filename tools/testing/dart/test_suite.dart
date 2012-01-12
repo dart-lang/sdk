@@ -731,10 +731,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     var tempDir = new Directory('');
     tempDir.createTempSync();
     return
-        [ // TODO(zundel): re-enable the --fatal-* flags as soon as warnings in 
-          // htmllib introduced by r3223 are resolved.
-          // '--fatal-warnings', '--fatal-type-errors', 
-          '-check-only', '-out', tempDir.path];
+        ['-check-only', '-fatal-type-errors', '-Werror', '-out', tempDir.path];
   }
 
   void processDirectory() {
