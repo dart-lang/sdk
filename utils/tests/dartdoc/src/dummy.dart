@@ -8,6 +8,8 @@
 topLevelMethod() => null;
 
 class Class {
+  Class() => null;
+  Class.namedConstructor() => null;
   method(param) => null;
   get getterOnly() => null;
   get getterAndSetter() => null;

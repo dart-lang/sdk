@@ -794,8 +794,8 @@ class Dartdoc {
       return anchor;
     }
 
-    findMember(Type type) {
-      final member = type.members[name];
+    findMember(Type type, String memberName) {
+      final member = type.members[memberName];
       if (member == null) return null;
 
       // Special case: if the member we've resolved is a property (i.e. it wraps
@@ -821,21 +821,47 @@ class Dartdoc {
 
     // See if it's another member of the current type.
     if (type != null) {
-      final member = findMember(type);
+      final member = findMember(type, name);
       if (member != null) {
         return makeLink(memberUrl(member));
       }
     }
 
-    // See if it's another type in the current library.
+    // See if it's another type or a member of another type in the current
+    // library.
     if (library != null) {
+      // See if it's a constructor
+      final constructorLink = (() {
+        final match = new RegExp(@'new (\w+)(?:\.(\w+))?').firstMatch(name);
+        if (match == null) return;
+        final type = library.types[match[1]];
+        if (type == null) return;
+        final constructor = type.getConstructor(
+            match[2] == null ? '' : match[2]);
+        if (constructor == null) return;
+        return makeLink(memberUrl(constructor));
+      })();
+      if (constructorLink != null) return constructorLink;
+
+      // See if it's a member of another type
+      final foreignMemberLink = (() {
+        final match = new RegExp(@'(\w+)\.(\w+)').firstMatch(name);
+        if (match == null) return;
+        final type = library.types[match[1]];
+        if (type == null) return;
+        final member = findMember(type, match[2]);
+        if (member == null) return;
+        return makeLink(memberUrl(member));
+      })();
+      if (foreignMemberLink != null) return foreignMemberLink;
+
       final type = library.types[name];
       if (type != null) {
         return makeLink(typeUrl(type));
       }
 
       // See if it's a top-level member in the current library.
-      final member = findMember(library.topType);
+      final member = findMember(library.topType, name);
       if (member != null) {
         return makeLink(memberUrl(member));
       }

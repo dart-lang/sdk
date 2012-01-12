@@ -192,5 +192,25 @@ main() {
                   type: klass, member: method))).
         equals('<code>unknownName</code>');
     });
+
+    test('to a member of another class', () {
+      expect(render(doc.resolveNameReference('Class.method', library: dummy))).
+        equals('<a class="crossref" href="../../dummy/Class.html#method">' +
+            'Class.method</a>');
+    });
+
+    test('to a constructor', () {
+      expect(render(doc.resolveNameReference('new Class', library: dummy))).
+        equals('<a class="crossref" href="../../dummy/Class.html#new:Class">' +
+            'new Class</a>');
+    });
+
+    test('to a named constructor', () {
+      expect(render(doc.resolveNameReference('new Class.namedConstructor',
+                  library: dummy))).
+        equals('<a class="crossref" ' +
+            'href="../../dummy/Class.html#new:Class.namedConstructor">new ' +
+            'Class.namedConstructor</a>');
+    });
   });
 }
