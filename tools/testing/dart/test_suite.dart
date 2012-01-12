@@ -796,6 +796,12 @@ class JUnitTestSuite implements TestSuite {
     }
 
     dartDir = new File('.').fullPathSync();
+    if (dartDir.endsWith('compiler')) {
+      dartDir = new File('..').fullPathSync();
+      if (!new File('$dartDir/tools/test.dart').existsSync()) {
+        throw new Exception('Cannot find client checkout $dartDir');
+      }
+    }
     buildDir = TestUtils.buildDir(configuration);
     computeClassPath();
     testClasses = <String>[];
@@ -830,7 +836,7 @@ class JUnitTestSuite implements TestSuite {
   }
 
   void createTest(successIgnored) {
-    String d8 = '$dartDir/$buildDir/d8${TestUtils.executableSuffix}';
+    String d8 = '$buildDir/d8${TestUtils.executableSuffix}';
     List<String> args = <String>[
         '-ea',
         '-classpath', classPath,
@@ -858,15 +864,15 @@ class JUnitTestSuite implements TestSuite {
          '$buildDir/compiler-tests.jar',
          '$buildDir/closure_out/compiler.jar',
          // Third party libraries.
-         'third_party/args4j/2.0.12/args4j-2.0.12.jar',
-         'third_party/guava/r09/guava-r09.jar',
-         'third_party/json/r2_20080312/json.jar',
-         'third_party/rhino/1_7R3/js.jar',
-         'third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
-         'third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
-         'third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
-         'third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
-         'third_party/junit/v4_8_2/junit.jar'],
+         '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
+         '$dartDir/third_party/guava/r09/guava-r09.jar',
+         '$dartDir/third_party/json/r2_20080312/json.jar',
+         '$dartDir/third_party/rhino/1_7R3/js.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
+         '$dartDir/third_party/junit/v4_8_2/junit.jar'],
         ':');  // Path separator.
   }
 }
