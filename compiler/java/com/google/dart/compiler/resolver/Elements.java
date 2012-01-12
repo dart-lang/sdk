@@ -40,6 +40,7 @@ import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.Paths;
 
 import java.io.File;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -436,6 +437,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return node;
   }
 
+
   /**
    * @return the {@link String} which contains user-readable description of "target" {@link Element}
    *         location relative to "source".
@@ -450,13 +452,11 @@ static FieldElementImplementation fieldFromNode(DartField node,
       }
       targetInfo = targetNode.getSourceInfo();
     }
-    // Prepare relative (short) path to the target unit from source unit.
-    String relativePath;
+    // Prepare path to the target unit from source unit.
+    String targetPath;
     {
       SourceInfo sourceInfo = source.getNode().getSourceInfo();
-      String sourceName = getSourceName(sourceInfo);
-      String targetName = getSourceName(targetInfo);
-      relativePath = Paths.relativePathFor(new File(sourceName), new File(targetName));
+      targetPath = getRelativeSourcePath(sourceInfo, targetInfo);
     }
     // Prepare (may be empty) target class name.
     String targetClassName;
@@ -467,35 +467,50 @@ static FieldElementImplementation fieldFromNode(DartField node,
     // Format location string.
     return MessageFormat.format(
         "{0}:{1}:{2}:{3}",
-        relativePath,
+        targetPath,
         targetClassName,
         targetInfo.getSourceLine(),
         targetInfo.getSourceColumn());
   }
-  
+
   /**
-   * @return the result of {@link Source#getName()} safely, even if {@link Source} is
-   *         <code>null</code>.
+   * @return the relative or absolute path from "source" to "target".
    */
-  private static String getSourceName(SourceInfo sourceInfo) {
-    Source source = sourceInfo.getSource();
-    if (source != null) {
-      return source.getName();
+  private static String getRelativeSourcePath(SourceInfo source, SourceInfo target) {
+    Source sourceSource = source.getSource();
+    Source targetSource = target.getSource();
+    // If both source are from file, prepare relative path.
+    if (sourceSource != null && targetSource != null) {
+      URI sourceUri = sourceSource.getUri();
+      URI targetUri = targetSource.getUri();
+      if (Objects.equal(sourceUri.getScheme(), "file")
+          && Objects.equal(targetUri.getScheme(), "file")) {
+        return Paths.relativePathFor(new File(sourceUri.getPath()), new File(targetUri.getPath()));
+      }
     }
-    return "";
+    // Else return absolute path (including dart:// protocol).
+    if (targetSource != null) {
+      URI targetUri = targetSource.getUri();
+      return targetUri.toString();
+    }
+    // No source for target.
+    return "<unknown>";
   }
-  
+
   /**
    * @return the enclosing {@link ClassElement} (may be same if already given {@link ClassElement}),
    *         may be <code>null</code> if top level element.
    */
   public static ClassElement getEnclosingClassElement(Element element) {
     DartNode node = element.getNode();
-    while (node != null) {
-      if (node instanceof DartClass) {
-        return ((DartClass) node).getSymbol();
-      }
+    if (node != null) {
       node = node.getParent();
+      while (node != null) {
+        if (node instanceof DartClass) {
+          return ((DartClass) node).getSymbol();
+        }
+        node = node.getParent();
+      }
     }
     return null;
   }

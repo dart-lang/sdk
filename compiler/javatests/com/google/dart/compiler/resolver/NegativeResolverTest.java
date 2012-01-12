@@ -644,6 +644,10 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  }",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 14, 1));
+    {
+      String message = errors.get(0).getMessage();
+      assertEquals("Parameter 'a' is hiding 'FIELD a' at Test.dart::2:5", message);
+    }
   }
 
   public void test_nameShadow_staticField_instanceMethodParameter() {
@@ -724,7 +728,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING, 4, 12, 2));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Type variable 'BB' is hiding 'CLASS BB' at Test.dart:BB:2:7", message);
+      assertEquals("Type variable 'BB' is hiding 'CLASS BB' at Test.dart::2:7", message);
     }
   }
 
@@ -1083,9 +1087,9 @@ public class NegativeResolverTest extends CompilerTestCase {
             "main() {",
             "  func = null;",
             "}"),
-         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD, 4, 3, 4));
+        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD, 4, 3, 4));
   }
-  
+
   public void testConstructorDuplicateInitializationTest() {
     checkSourceErrors(
         makeCode(
@@ -1115,10 +1119,11 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void testInterfaceWithConcreteConstructorAndDefaultNonImlplementing() throws Exception {
     checkSourceErrors(
         makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
             "class A {}",
             "interface I default A {",
             "  I();",
             "}"),
-        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 4));
+        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 4, 3, 4));
   }
 }
