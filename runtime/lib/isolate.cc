@@ -53,15 +53,11 @@ static uint8_t* SerializeObject(const Instance& obj) {
 }
 
 
-static void ProcessUnhandledException(const UnhandledException& uhe) {
-  const Instance& exception = Instance::Handle(uhe.exception());
-  Instance& string = Instance::Handle(DartLibraryCalls::ToString(exception));
-  const char* str = string.ToCString();
-  fprintf(stderr, "%s\n", str);
-  const Instance& stack = Instance::Handle(uhe.stacktrace());
-  string = DartLibraryCalls::ToString(stack);
-  str = string.ToCString();
-  fprintf(stderr, "%s\n", str);
+static void ProcessError(const Object& obj) {
+  ASSERT(obj.IsError());
+  Error& error = Error::Handle();
+  error ^= obj.raw();
+  OS::PrintErr("%s\n", error.ToErrorCString());
   exit(255);
 }
 
@@ -103,10 +99,8 @@ RawInstance* ReceivePortCreate(intptr_t port_id) {
   arguments.Add(&Integer::Handle(Integer::New(port_id)));
   const Instance& result = Instance::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  if (result.IsUnhandledException()) {
-    UnhandledException& uhe = UnhandledException::Handle();
-    uhe ^= result.raw();
-    ProcessUnhandledException(uhe);
+  if (result.IsError()) {
+    ProcessError(result);
   } else {
     PortMap::SetLive(port_id);
   }
@@ -178,10 +172,8 @@ static void RunIsolate(uword parameter) {
       result = DartEntry::InvokeStatic(default_constructor,
                                        arguments,
                                        kNoArgumentNames);
-      if (result.IsUnhandledException()) {
-        UnhandledException& uhe = UnhandledException::Handle();
-        uhe ^= result.raw();
-        ProcessUnhandledException(uhe);
+      if (result.IsError()) {
+        ProcessError(result);
       }
       ASSERT(result.IsNull());
     }
@@ -200,18 +192,14 @@ static void RunIsolate(uword parameter) {
                                       target_function,
                                       arguments,
                                       kNoArgumentNames);
-    if (result.IsUnhandledException()) {
-      UnhandledException& uhe = UnhandledException::Handle();
-      uhe ^= result.raw();
-      ProcessUnhandledException(uhe);
+    if (result.IsError()) {
+      ProcessError(result);
     }
     ASSERT(result.IsNull());
     free(class_name);
     result = isolate->StandardRunLoop();
-    if (result.IsUnhandledException()) {
-      UnhandledException& uhe = UnhandledException::Handle();
-      uhe ^= result.raw();
-      ProcessUnhandledException(uhe);
+    if (result.IsError()) {
+      ProcessError(result);
     }
     ASSERT(result.IsNull());
 
@@ -221,7 +209,7 @@ static void RunIsolate(uword parameter) {
     const String& error = String::Handle(
         Isolate::Current()->object_store()->sticky_error());
     const char* errmsg = error.ToCString();
-    fprintf(stderr, "%s\n", errmsg);
+    OS::PrintErr("%s\n", errmsg);
     exit(255);
   }
   isolate->set_long_jump_base(base);
@@ -317,11 +305,15 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
                         class_name);
   }
   const Instance& port = Instance::Handle(SendPortCreate(port_id));
-  if (port.IsUnhandledException()) {
-    ThrowErrorException(Exceptions::kInternalError,
-                        "Unable to create send port to isolate",
-                        library_url,
-                        class_name);
+  if (port.IsError()) {
+    if (port.IsUnhandledException()) {
+      ThrowErrorException(Exceptions::kInternalError,
+                          "Unable to create send port to isolate",
+                          library_url,
+                          class_name);
+    } else {
+      ProcessError(port);
+    }
   }
   arguments->SetReturn(port);
 }

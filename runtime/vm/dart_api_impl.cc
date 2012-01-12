@@ -292,68 +292,19 @@ DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
 }
 
 
-static const char* MakeUnhandledExceptionCString(
-    const UnhandledException& uhe) {
-  const Instance& exception = Instance::Handle(uhe.exception());
-  Object& strtmp = Object::Handle(DartLibraryCalls::ToString(exception));
-  const char* exc_str =
-      "<Received error while converting exception to string>";
-  if (!strtmp.IsError()) {
-    exc_str = strtmp.ToCString();
-  }
-
-  const Instance& stack = Instance::Handle(uhe.stacktrace());
-  strtmp = DartLibraryCalls::ToString(stack);
-  const char* stack_str =
-      "<Received error while converting stack trace to string>";
-  if (!strtmp.IsError()) {
-    stack_str = strtmp.ToCString();
-  }
-
-  const char* format = "Unhandled exception:\n%s\n%s";
-  int len = (strlen(exc_str) + strlen(stack_str) + strlen(format)
-             - 4    // Two '%s'
-             + 1);  // '\0'
-  char* buffer = reinterpret_cast<char*>(Api::Allocate(len));
-  OS::SNPrint(buffer, len, format, exc_str, stack_str);
-  return buffer;
-}
-
-
 DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
   DARTSCOPE(Isolate::Current());
-
   const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
-  if (!obj.IsError()) {
-    return "";
-  }
-  if (obj.IsApiError()) {
-    ApiError& error = ApiError::Handle();
+  if (obj.IsError()) {
+    Error& error = Error::Handle();
     error ^= obj.raw();
-    const String& message = String::Handle(error.message());
-    const char* msg = message.ToCString();
-    intptr_t len = strlen(msg) + 1;
-    char* msg_copy = reinterpret_cast<char*>(Api::Allocate(len));
-    strncpy(msg_copy, msg, len);
-    return msg_copy;
-  } else if (obj.IsLanguageError()) {
-    LanguageError& error = LanguageError::Handle();
-    error ^= obj.raw();
-    const String& message = String::Handle(error.message());
-    const char* msg = message.ToCString();
-    intptr_t len = strlen(msg) + 1;
-    char* msg_copy = reinterpret_cast<char*>(Api::Allocate(len));
-    strncpy(msg_copy, msg, len);
-    return msg_copy;
-  } else if (obj.IsUnhandledException()) {
-    UnhandledException& error = UnhandledException::Handle();
-    error ^= obj.raw();
-    return MakeUnhandledExceptionCString(error);
-  } else if (obj.IsUnwindError()) {
-    UNIMPLEMENTED();
-    return "<unimplemented>;";
+    const char* str = error.ToErrorCString();
+    intptr_t len = strlen(str) + 1;
+    char* str_copy = reinterpret_cast<char*>(Api::Allocate(len));
+    strncpy(str_copy, str, len);
+    return str_copy;
   } else {
-    return "<Internal error in Dart_GetError: unexpected error type>";
+    return "";
   }
 }
 

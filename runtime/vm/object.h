@@ -2189,6 +2189,9 @@ class ContextScope : public Object {
 
 
 class Error : public Object {
+ public:
+  virtual const char* ToErrorCString() const;
+
  private:
   HEAP_OBJECT_IMPLEMENTATION(Error, Object);
 };
@@ -2207,6 +2210,8 @@ class ApiError : public Error {
 
   static RawApiError* New(const String& message,
                           Heap::Space space = Heap::kNew);
+
+  virtual const char* ToErrorCString() const;
 
  private:
   void set_message(const String& message) const;
@@ -2229,6 +2234,8 @@ class LanguageError : public Error {
 
   static RawLanguageError* New(const String& message,
                                Heap::Space space = Heap::kNew);
+
+  virtual const char* ToErrorCString() const;
 
  private:
   void set_message(const String& message) const;
@@ -2258,6 +2265,8 @@ class UnhandledException : public Error {
                                     const Instance& stacktrace,
                                     Heap::Space space = Heap::kNew);
 
+  virtual const char* ToErrorCString() const;
+
  private:
   void set_exception(const Instance& exception) const;
   void set_stacktrace(const Instance& stacktrace) const;
@@ -2280,6 +2289,8 @@ class UnwindError : public Error {
 
   static RawUnwindError* New(const String& message,
                              Heap::Space space = Heap::kNew);
+
+  virtual const char* ToErrorCString() const;
 
  private:
   void set_message(const String& message) const;

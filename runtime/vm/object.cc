@@ -15,6 +15,7 @@
 #include "vm/compiler_stats.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
+#include "vm/dart_entry.h"
 #include "vm/debuginfo.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
@@ -5036,6 +5037,12 @@ const char* ContextScope::ToCString() const {
 }
 
 
+const char* Error::ToErrorCString() const {
+  UNREACHABLE();
+  return "Internal Error";
+}
+
+
 const char* Error::ToCString() const {
   // Error is an abstract class.  We should never reach here.
   UNREACHABLE();
@@ -5063,6 +5070,12 @@ void ApiError::set_message(const String& message) const {
 }
 
 
+const char* ApiError::ToErrorCString() const {
+  const String& msg_str = String::Handle(message());
+  return msg_str.ToCString();
+}
+
+
 const char* ApiError::ToCString() const {
   return "ApiError";
 }
@@ -5085,6 +5098,12 @@ RawLanguageError* LanguageError::New(const String& message, Heap::Space space) {
 
 void LanguageError::set_message(const String& message) const {
   StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+const char* LanguageError::ToErrorCString() const {
+  const String& msg_str = String::Handle(message());
+  return msg_str.ToCString();
 }
 
 
@@ -5121,6 +5140,36 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 }
 
 
+const char* UnhandledException::ToErrorCString() const {
+  Isolate* isolate = Isolate::Current();
+  HANDLESCOPE(isolate);
+  Object& strtmp = Object::Handle();
+
+  const Instance& exc = Instance::Handle(exception());
+  strtmp = DartLibraryCalls::ToString(exc);
+  const char* exc_str =
+      "<Received error while converting exception to string>";
+  if (!strtmp.IsError()) {
+    exc_str = strtmp.ToCString();
+  }
+  const Instance& stack = Instance::Handle(stacktrace());
+  strtmp = DartLibraryCalls::ToString(stack);
+  const char* stack_str =
+      "<Received error while converting stack trace to string>";
+  if (!strtmp.IsError()) {
+    stack_str = strtmp.ToCString();
+  }
+
+  const char* format = "Unhandled exception:\n%s\n%s";
+  int len = (strlen(exc_str) + strlen(stack_str) + strlen(format)
+             - 4    // Two '%s'
+             + 1);  // '\0'
+  char* chars = reinterpret_cast<char*>(isolate->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, format, exc_str, stack_str);
+  return chars;
+}
+
+
 const char* UnhandledException::ToCString() const {
   return "UnhandledException";
 }
@@ -5143,6 +5192,12 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
 
 void UnwindError::set_message(const String& message) const {
   StorePointer(&raw_ptr()->message_, message.raw());
+}
+
+
+const char* UnwindError::ToErrorCString() const {
+  UNIMPLEMENTED();
+  return "UnwindError";
 }
 
 
