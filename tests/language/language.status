@@ -27,6 +27,11 @@ FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
 Prefix22Test: Fail               # Issue 575
 Prefix23Test: Fail               # Issue 575
+PseudoKWTest: Fail # Issue 356
+PseudoKWIllegalTest/03: Fail # Issue 356
+PseudoKWIllegalTest/08: Fail # Issue 356
+PseudoKWIllegalTest/10: Fail # Issue 356
+PseudoKWIllegalTest/14: Fail # Issue 356
 
 ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
 ImplicitThisTest/02: Fail # Issue 374
@@ -144,7 +149,6 @@ Prefix11NegativeTest: Fail               # Bug 5406175
 Prefix12NegativeTest: Fail               # Bug 5406175
 Prefix16NegativeTest: Fail               # Bug 5532534
 Prefix3NegativeTest: Fail                # Bug 5406175
-PseudoKWNegativeTest: Fail   # Bug 4979760.
 RegExp3Test: Fail                    # 5299683
 ScopeNegativeTest: Fail      # Bug 4207538.
 StackOverflowTest: Fail      # Bug 4591172.
@@ -159,6 +163,23 @@ TypeChecksInFactoryMethodTest: Fail # Issue 925
 SyntaxTest/31: Fail # Issue 1108
 SyntaxTest/32: Fail # Issue 1108
 SyntaxTest/33: Fail # Issue 1108
+
+PseudoKWIllegalTest/01: Fail # Issue 356
+PseudoKWIllegalTest/02: Fail # Issue 356
+PseudoKWIllegalTest/03: Fail # Issue 356
+PseudoKWIllegalTest/04: Fail # Issue 356
+PseudoKWIllegalTest/05: Fail # Issue 356
+PseudoKWIllegalTest/06: Fail # Issue 356
+PseudoKWIllegalTest/07: Fail # Issue 356
+PseudoKWIllegalTest/08: Fail # Issue 356
+PseudoKWIllegalTest/09: Fail # Issue 356
+PseudoKWIllegalTest/10: Fail # Issue 356
+PseudoKWIllegalTest/11: Fail # Issue 356
+PseudoKWIllegalTest/12: Fail # Issue 356
+PseudoKWIllegalTest/13: Fail # Issue 356
+PseudoKWIllegalTest/14: Fail # Issue 356
+PseudoKWIllegalTest/15: Fail # Issue 356
+PseudoKWIllegalTest/16: Fail # Issue 356
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -272,7 +293,6 @@ PrivateMemberTest: Fail
 PrivateMember2NegativeTest: Fail
 PrivateMember3NegativeTest: Fail
 PrivateTest: Fail
-PseudoKWNegativeTest: Fail # verifying test vs. spec - issue #356
 RegExp3Test: Fail
 ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
@@ -292,14 +312,22 @@ ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
-[ $component == webdriver && $browser == ff ]
-*: Skip
+PseudoKWIllegalTest/01: Fail # Issue 356
+PseudoKWIllegalTest/02: Fail # Issue 356
+PseudoKWIllegalTest/03: Fail # Issue 356
+PseudoKWIllegalTest/05: Fail # Issue 356
+PseudoKWIllegalTest/06: Fail # Issue 356
+PseudoKWIllegalTest/07: Fail # Issue 356
+PseudoKWIllegalTest/08: Fail # Issue 356
+PseudoKWIllegalTest/09: Fail # Issue 356
+PseudoKWIllegalTest/10: Fail # Issue 356
+PseudoKWIllegalTest/11: Fail # Issue 356
+PseudoKWIllegalTest/12: Fail # Issue 356
+PseudoKWIllegalTest/13: Fail # Issue 356
+PseudoKWIllegalTest/14: Fail # Issue 356
+PseudoKWIllegalTest/15: Fail # Issue 356
+PseudoKWIllegalTest/16: Fail # Issue 356
 
-[ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
-*: Skip
-
-[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
-*: Skip
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
