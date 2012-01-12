@@ -15,6 +15,7 @@
 #source('ElementTests.dart');
 #source('EventTests.dart');
 #source('MeasurementTests.dart');
+#source('NodeTests.dart');
 #source('SVGElementTests.dart');
 
 main() {
@@ -23,5 +24,6 @@ main() {
   group('Element', testElement);
   group('Event', testEvents);
   group('Measurement', testMeasurement);
+  group('Node', testNode);
   group('SVGElement', testSVGElement);
 }
