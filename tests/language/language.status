@@ -312,22 +312,6 @@ ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
-PseudoKWIllegalTest/01: Fail # Issue 356
-PseudoKWIllegalTest/02: Fail # Issue 356
-PseudoKWIllegalTest/03: Fail # Issue 356
-PseudoKWIllegalTest/05: Fail # Issue 356
-PseudoKWIllegalTest/06: Fail # Issue 356
-PseudoKWIllegalTest/07: Fail # Issue 356
-PseudoKWIllegalTest/08: Fail # Issue 356
-PseudoKWIllegalTest/09: Fail # Issue 356
-PseudoKWIllegalTest/10: Fail # Issue 356
-PseudoKWIllegalTest/11: Fail # Issue 356
-PseudoKWIllegalTest/12: Fail # Issue 356
-PseudoKWIllegalTest/13: Fail # Issue 356
-PseudoKWIllegalTest/14: Fail # Issue 356
-PseudoKWIllegalTest/15: Fail # Issue 356
-PseudoKWIllegalTest/16: Fail # Issue 356
-
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $unchecked ]
 PrivateMemberTest/01: Fail # test seems bad - see issue #353
