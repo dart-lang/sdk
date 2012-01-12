@@ -159,9 +159,11 @@ String CreateMultitestDirectory(String outputDir, String testDir) {
   final String generatedTestDirectory = 'generated_tests';
   Directory parentDir = new Directory(outputDir + generatedTestDirectory);
   if (!new Directory(outputDir).existsSync()) {
+    print('test.dart: build dir does not exist: $outputDir');
     new Directory(outputDir).createSync();
   }
   if (!parentDir.existsSync()) {
+    print('test.dart: generated tests dir does not exist: ${parentDir.path}');
     parentDir.createSync();
   }
   var split = testDir.split('/');
