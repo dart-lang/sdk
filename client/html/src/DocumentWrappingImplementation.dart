@@ -51,9 +51,6 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   /** @domName defaultView */
   Window get window() => LevelDom.wrapWindow(_documentPtr.defaultView);
 
-  /** @domName designMode */
-  void set designMode(String value) { _documentPtr.dynamic.designMode = value; }
-
   /** @domName domain */
   String get domain() => _documentPtr.domain;
 

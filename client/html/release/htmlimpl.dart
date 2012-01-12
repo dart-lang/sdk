@@ -5219,25 +5219,6 @@ class LocationWrappingImplementation extends DOMWrapperBase implements Location 
 
 // WARNING: Do not edit - generated code.
 
-class LoseContextWrappingImplementation extends DOMWrapperBase implements LoseContext {
-  LoseContextWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  void loseContext() {
-    _ptr.loseContext();
-    return;
-  }
-
-  void restoreContext() {
-    _ptr.restoreContext();
-    return;
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class LowPass2FilterNodeWrappingImplementation extends AudioNodeWrappingImplementation implements LowPass2FilterNode {
   LowPass2FilterNodeWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -22131,9 +22112,6 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   /** @domName defaultView */
   Window get window() => LevelDom.wrapWindow(_documentPtr.defaultView);
 
-  /** @domName designMode */
-  void set designMode(String value) { _documentPtr.dynamic.designMode = value; }
-
   /** @domName domain */
   String get domain() => _documentPtr.domain;
 
@@ -22863,7 +22841,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
-   *   children, appendChild
+   *   children, Node.appendChild
    */
   ElementList get elements() {
     if (_elements == null) {
@@ -23335,6 +23313,24 @@ class KeyboardEventWrappingImplementation extends UIEventWrappingImplementation 
 
   bool getModifierState(String keyIdentifierArg) {
     return _ptr.getModifierState(keyIdentifierArg);
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/** @domName WebGLLoseContext */
+class LoseContextWrappingImplementation extends DOMWrapperBase implements LoseContext {
+  LoseContextWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  void loseContext() {
+    _ptr.loseContext();
+    return;
+  }
+
+  void restoreContext() {
+    _ptr.restoreContext();
+    return;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

@@ -167,7 +167,6 @@
 #source('generated/src/interface/LegendElement.dart');
 #source('generated/src/interface/LinkElement.dart');
 #source('generated/src/interface/Location.dart');
-#source('generated/src/interface/LoseContext.dart');
 #source('generated/src/interface/LowPass2FilterNode.dart');
 #source('generated/src/interface/MapElement.dart');
 #source('generated/src/interface/MarqueeElement.dart');
@@ -446,6 +445,7 @@
 #source('src/GlobalProperties.dart');
 #source('src/HashChangeEvent.dart');
 #source('src/KeyboardEvent.dart');
+#source('src/LoseContext.dart');
 #source('src/MessageEvent.dart');
 #source('src/MessagePort.dart');
 #source('src/MouseEvent.dart');

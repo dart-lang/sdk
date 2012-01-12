@@ -160,7 +160,6 @@
 #source('generated/src/wrapping/_LegendElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_LinkElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_LocationWrappingImplementation.dart');
-#source('generated/src/wrapping/_LoseContextWrappingImplementation.dart');
 #source('generated/src/wrapping/_LowPass2FilterNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_MapElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_MarqueeElementWrappingImplementation.dart');
@@ -439,6 +438,7 @@
 #source('src/EventWrappingImplementation.dart');
 #source('src/HashChangeEventWrappingImplementation.dart');
 #source('src/KeyboardEventWrappingImplementation.dart');
+#source('src/LoseContextWrappingImplementation.dart');
 #source('src/Measurement.dart');
 #source('src/MessageEventWrappingImplementation.dart');
 #source('src/MessagePortWrappingImplementation.dart');

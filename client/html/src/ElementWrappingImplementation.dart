@@ -574,7 +574,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   /**
    * @domName childElementCount, firstElementChild, lastElementChild,
-   *   children, appendChild
+   *   children, Node.appendChild
    */
   ElementList get elements() {
     if (_elements == null) {
