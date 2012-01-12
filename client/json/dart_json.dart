@@ -134,6 +134,8 @@ class JsonTokenizer {
   static final int A_SMALL = 97;  // 'a'.charCodeAt(0)
   static final int B_SMALL = 98;  // 'b'.charCodeAt(0)
   static final int E_SMALL = 101;  // 'e'.charCodeAt(0)
+  static final int N_SMALL = 110;  // 'n'.charCodeAt(0)
+  static final int R_SMALL = 114;  // 'r'.charCodeAt(0)
   static final int Z_SMALL = 122;  // 'z'.charCodeAt(0)
   static final int LBRACE = 123;  // '{'.charCodeAt(0)
   static final int RBRACE = 125;  // '}'.charCodeAt(0)
@@ -493,7 +495,8 @@ class JsonStringifier {
 
   // TODO: add others.
   static bool _needsEscape(int charCode) {
-    return JsonTokenizer.QUOTE == charCode || JsonTokenizer.BACKSLASH == charCode;
+    return JsonTokenizer.QUOTE == charCode || JsonTokenizer.BACKSLASH == charCode
+      || JsonTokenizer.NEW_LINE == charCode || JsonTokenizer.LINE_FEED == charCode;
   }
 
   static void _escape(StringBuffer sb, String s) {
@@ -504,10 +507,16 @@ class JsonStringifier {
     bool needsEscape = false;
     final charCodes = new List<int>();
     for (int i = 0; i < length; i++) {
-      final int charCode = s.charCodeAt(i);
+      int charCode = s.charCodeAt(i);
       if (_needsEscape(charCode)) {
         charCodes.add(JsonTokenizer.BACKSLASH);
         needsEscape = true;
+
+        if (JsonTokenizer.NEW_LINE == charCode) {
+          charCode = N_SMALL;
+        } else if (JsonTokenizer.LINE_FEED == charCode) {
+          charCode = R_SMALL;
+        }
       }
       charCodes.add(charCode);
     }
