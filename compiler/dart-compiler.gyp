@@ -157,7 +157,9 @@
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.api',
           ],
           'action': [
-            '<(PRODUCT_DIR)/dartc', 'api.dart', '-out', '<(INTERMEDIATE_DIR)/<(_target_name)/api',
+            '<(PRODUCT_DIR)/dartc', 'api.dart', 
+            '--fatal-warnings', '--fatal-type-errors', 
+            '-out', '<(INTERMEDIATE_DIR)/<(_target_name)/api',
           ],
         },
         {

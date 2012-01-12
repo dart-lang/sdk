@@ -731,7 +731,8 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     var tempDir = new Directory('');
     tempDir.createTempSync();
     return
-        ['-check-only', '-fatal-type-errors', '-Werror', '-out', tempDir.path];
+        [ '--fatal-warnings', '--fatal-type-errors', 
+          '-check-only', '-out', tempDir.path];
   }
 
   void processDirectory() {
