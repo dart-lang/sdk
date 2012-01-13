@@ -23667,7 +23667,7 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void operator []=(int index, Node value) {
-    _childNodes[index] = LevelDom.unwrap(value);
+    _node.replaceChild(LevelDom.unwrap(value), _childNodes[index]);
   }
 
    void set length(int newLength) {
@@ -23704,11 +23704,39 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (startFrom < 0) {
+      throw new IndexOutOfRangeException(startFrom);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > this.length) {
+      throw new IndexOutOfRangeException(Math.min(this.length, start));
+    } else if (startFrom + length > from.length) {
+      throw new IndexOutOfRangeException(Math.min(from.length, startFrom));
+    }
+
+    for (var i = 0; i < length; i++) {
+      this[start + i] = from[startFrom + i];
+    }
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > this.length) {
+      throw new IndexOutOfRangeException(Math.min(this.length, start));
+    }
+
+    for (var i = 0; i < length; i++) {
+      this[start].remove();
+    }
   }
 
   void insertRange(int start, int length, [initialValue = null]) {
@@ -23716,7 +23744,21 @@ class _ChildrenNodeList implements NodeList {
   }
 
   List getRange(int start, int length) {
-    throw const NotImplementedException();
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > this.length) {
+      throw new IndexOutOfRangeException(Math.min(this.length, start));
+    }
+
+    var nodes = <Node>[];
+    for (var i = 0; i < length; i++) {
+      nodes.add(this[start + i]);
+    }
+    return nodes;
   }
 
   int indexOf(Node element, [int start = 0]) {
