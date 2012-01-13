@@ -333,7 +333,7 @@ class StandardTestSuite implements TestSuite {
     if (optionsFromFile['isMultitest']) {
       testGeneratorStarted();
       DoMultitest(filename,
-                  TestUtils.outputDir(configuration),
+                  TestUtils.buildDir(configuration),
                   directoryPath,
                   createTestCase,
                   testGeneratorDone);
