@@ -431,8 +431,9 @@ class DartGenerator(object):
         TemplateLoader('../templates', ['dom/wrapping', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
-    # Makes wrapper implementations available for listing in interface lib.
-    interface_system._implementation_system = wrapping_system
+    # Makes interface files available for listing in the library for the
+    # wrapping implementation.
+    wrapping_system._interface_system = interface_system
 
     frog_system = FrogSystem(
         TemplateLoader('../templates', ['dom/frog', 'dom', '']),
@@ -1018,16 +1019,7 @@ class WrappingInterfacesSystem(System):
     self._ProcessCallback(interface, info, file_path)
 
   def GenerateLibraries(self, lib_dir):
-    # Library generated for implementation.
-    self._GenerateLibFile(
-        'wrapping_dom.darttemplate',
-        os.path.join(lib_dir, 'wrapping_dom.dart'),
-        (self._dart_interface_file_paths +
-         self._dart_callback_file_paths +
-         # FIXME: Move the implementation to a separate
-         # library.
-         self._implementation_system._dart_wrapping_file_paths
-         ))
+    pass
 
 
   def _FilePathForDartInterface(self, interface_name):
@@ -1085,7 +1077,16 @@ class WrappingImplementationSystem(System):
     pass
 
   def GenerateLibraries(self, lib_dir):
-    pass
+    # Library generated for implementation.
+    self._GenerateLibFile(
+        'wrapping_dom.darttemplate',
+        os.path.join(lib_dir, 'wrapping_dom.dart'),
+        (self._interface_system._dart_interface_file_paths +
+         self._interface_system._dart_callback_file_paths +
+         # FIXME: Move the implementation to a separate library.
+         self._dart_wrapping_file_paths
+         ))
+
 
   def Finish(self):
     self._GenerateJavaScriptExternsWrapping(self._database, self._output_dir)
