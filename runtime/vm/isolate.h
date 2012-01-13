@@ -18,6 +18,7 @@ class BigintStore;
 class CodeIndexTable;
 class Debugger;
 class HandleScope;
+class HandleVisitor;
 class Heap;
 class LongJump;
 class MessageQueue;
@@ -44,10 +45,7 @@ class Isolate {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
-  void VisitStrongObjectPointers(ObjectPointerVisitor* visitor,
-                                 bool validate_frames);
-
-  void VisitWeakObjectPointers(ObjectPointerVisitor* visitor);
+  void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
 

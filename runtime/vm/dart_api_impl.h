@@ -13,6 +13,7 @@ namespace dart {
 class ApiState;
 class LocalHandle;
 class PersistentHandle;
+class WeakPersistentHandle;
 
 const char* CanonicalFunction(const char* func);
 
@@ -91,6 +92,11 @@ class Api : AllStatic {
   // Validates and converts the passed in handle as a persistent handle.
   static PersistentHandle* UnwrapAsPersistentHandle(const ApiState& state,
                                                     Dart_Handle object);
+
+  // Validates and converts the passed in handle as a weak persistent handle.
+  static WeakPersistentHandle* UnwrapAsWeakPersistentHandle(
+      const ApiState& state,
+      Dart_Handle object);
 
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);

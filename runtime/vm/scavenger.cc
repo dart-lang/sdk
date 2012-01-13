@@ -5,6 +5,7 @@
 #include "vm/scavenger.h"
 
 #include "vm/dart.h"
+#include "vm/dart_api_state.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
@@ -130,23 +131,22 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 };
 
 
-class ScavengerWeakVisitor : public ObjectPointerVisitor {
+class ScavengerWeakVisitor : public HandleVisitor {
  public:
   explicit ScavengerWeakVisitor(Scavenger* scavenger) : scavenger_(scavenger) {
   }
 
-  void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** current = first; current <= last; current++) {
-      RawObject* raw_obj = *current;
-      ASSERT(raw_obj->IsHeapObject());
-      uword raw_addr = RawObject::ToAddr(raw_obj);
-      if (scavenger_->from_->Contains(raw_addr)) {
-        uword header = *reinterpret_cast<uword*>(raw_addr);
-        if (IsForwarding(header)) {
-          *current = RawObject::FromAddr(ForwardedAddr(header));
-        } else {
-          *current = Object::null();
-        }
+  void VisitHandle(uword addr) {
+    WeakPersistentHandle* handle =
+        reinterpret_cast<WeakPersistentHandle*>(addr);
+    RawObject* raw_obj = handle->raw();
+    uword raw_addr = RawObject::ToAddr(raw_obj);
+    if (scavenger_->from_->Contains(raw_addr)) {
+      uword header = *reinterpret_cast<uword*>(raw_addr);
+      if (IsForwarding(header)) {
+        handle->set_raw(RawObject::FromAddr(ForwardedAddr(header)));
+      } else {
+        handle->Finalize();
       }
     }
   }
@@ -224,15 +224,14 @@ void Scavenger::Epilogue() {
 
 
 void Scavenger::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
-  isolate->VisitStrongObjectPointers(visitor,
-                                     StackFrameIterator::kDontValidateFrames);
+  isolate->VisitObjectPointers(visitor,
+                               StackFrameIterator::kDontValidateFrames);
   heap_->IterateOldPointers(visitor);
 }
 
 
-void Scavenger::IterateWeakRoots(Isolate* isolate,
-                                 ObjectPointerVisitor* visitor) {
-  isolate->VisitWeakObjectPointers(visitor);
+void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
+  isolate->VisitWeakPersistentHandles(visitor);
 }
 
 

@@ -303,7 +303,7 @@ void Handles<kHandleSizeInWords,
              kOffsetOfRawPtr>::HandlesBlock::Visit(HandleVisitor* visitor) {
   ASSERT(visitor != NULL);
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
-    visitor->Visit(&data_[i + kOffsetOfRawPtr/kWordSize]);
+    visitor->VisitHandle(reinterpret_cast<uword>(&data_[i]));
   }
 }
 

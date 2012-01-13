@@ -831,6 +831,37 @@ TEST_CASE(WeakPersistentHandle) {
   EXPECT(Dart_IsNull(weak_new_ref));
   EXPECT_VALID(weak_old_ref);
   EXPECT(Dart_IsNull(weak_old_ref));
+
+  Dart_DeletePersistentHandle(weak_new_ref);
+  Dart_DeletePersistentHandle(weak_old_ref);
+}
+
+
+static void WeakPersistentHandlePeerFinalizer(void* peer) {
+  *static_cast<int*>(peer) = 42;
+}
+
+
+TEST_CASE(WeakPersistentHandleCallback) {
+  Dart_Handle weak_ref = Dart_Null();
+  EXPECT(Dart_IsNull(weak_ref));
+  int* peer = new int();
+  {
+    Dart_EnterScope();
+    Dart_Handle obj = Dart_NewString("new string");
+    EXPECT_VALID(obj);
+    weak_ref = Dart_NewWeakPersistentHandle(obj, peer,
+                                            WeakPersistentHandlePeerFinalizer);
+    Dart_ExitScope();
+  }
+  EXPECT_VALID(weak_ref);
+  EXPECT(*peer == 0);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT(*peer == 0);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT(*peer == 42);
+  delete peer;
+  Dart_DeletePersistentHandle(weak_ref);
 }
 
 #endif

@@ -75,7 +75,7 @@ class Scavenger {
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue();
   void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
+  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
   void ProcessToSpace(ObjectPointerVisitor* visitor);
   void Epilogue();
 

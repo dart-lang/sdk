@@ -60,7 +60,7 @@ class ObjectPointerVisitor;
 
 class HandleVisitor {
  public:
-  virtual void Visit(uword* addr) = 0;
+  virtual void VisitHandle(uword addr) = 0;
 
   virtual ~HandleVisitor() {
   }
@@ -82,7 +82,7 @@ class Handles {
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  // Visits all of the various handles.
+  // Visit all of the various handles.
   void Visit(HandleVisitor* visitor);
 
   // Allocates a handle in the current handle scope. This handle is valid only
