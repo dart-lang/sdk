@@ -52,7 +52,7 @@ class ElfGen {
 
   // Write out all the Elf information using the specified handle.
   bool WriteToFile(File* handle);
-  bool WriteToMemory(ByteArray* region);
+  bool WriteToMemory(DebugInfo::ByteBuffer* region);
 
   // Register this generated section with GDB using the JIT interface.
   static void RegisterSectionWithGDB(const char* name,
@@ -64,15 +64,16 @@ class ElfGen {
 
  private:
   // ELF helpers
-  typedef int (*OutputWriter)(void* handle, const ByteArray& section);
+  typedef int (*OutputWriter)(void* handle,
+                              const DebugInfo::ByteBuffer& section);
   typedef void (*OutputPadder)(void* handle, int padding_size);
 
-  int AddString(ByteArray* buf, const char* str);
+  int AddString(DebugInfo::ByteBuffer* buf, const char* str);
   int AddSectionName(const char* str);
   int AddName(const char* str);
   void AddELFHeader(int shoff);
   void AddSectionHeader(int section, int offset);
-  int PadSection(ByteArray* section, int offset, int alignment);
+  int PadSection(DebugInfo::ByteBuffer* section, int offset, int alignment);
   bool WriteOutput(void* handle, OutputWriter writer, OutputPadder padder);
 
   uword text_vma_;  // text section vma
@@ -81,10 +82,11 @@ class ElfGen {
 
   static const int kNumSections = 5;  // we generate 5 sections
   int section_name_[kNumSections];  // array of section name indices
-  ByteArray section_buf_[kNumSections];  // array of section buffers
-  ByteArray header_;  // ELF header buffer
-  ByteArray sheaders_;  // section header table buffer
-  ByteArray lineprog_;  // line statement program, part of '.debug_line' section
+  DebugInfo::ByteBuffer section_buf_[kNumSections];  // array of section buffers
+  DebugInfo::ByteBuffer header_;  // ELF header buffer
+  DebugInfo::ByteBuffer sheaders_;  // section header table buffer
+  DebugInfo::ByteBuffer lineprog_;  // line statement program, part of
+                                    // '.debug_line' section
 
   // current state of the DWARF line info generator
   uintptr_t cur_addr_;  // current pc
@@ -179,42 +181,44 @@ static inline uintptr_t Align(uintptr_t x, intptr_t size) {
 }
 
 
-// Convenience function writing a single byte to a ByteArray.
-static inline void WriteByte(ByteArray* buf, uint8_t byte) {
+// Convenience function writing a single byte to a ByteBuffer.
+static inline void WriteByte(DebugInfo::ByteBuffer* buf, uint8_t byte) {
   buf->Add(byte);
 }
 
 
-// Convenience function writing an unsigned native word to a ByteArray.
+// Convenience function writing an unsigned native word to a ByteBuffer.
 // The word is 32-bit wide in 32-bit mode and 64-bit wide in 64-bit mode.
-static inline void WriteWord(ByteArray* buf, uword word) {
+static inline void WriteWord(DebugInfo::ByteBuffer* buf, uword word) {
   uint8_t* p = reinterpret_cast<uint8_t*>(&word);
   for (size_t i = 0; i < sizeof(word); i++) {
     buf->Add(p[i]);
   }
 }
 
-static inline void WriteInt(ByteArray* buf, int word) {
+static inline void WriteInt(DebugInfo::ByteBuffer* buf, int word) {
   uint8_t* p = reinterpret_cast<uint8_t*>(&word);
   for (size_t i = 0; i < sizeof(word); i++) {
     buf->Add(p[i]);
   }
 }
 
-static inline void WriteShort(ByteArray* buf, uint16_t word) {
+static inline void WriteShort(DebugInfo::ByteBuffer* buf, uint16_t word) {
   uint8_t* p = reinterpret_cast<uint8_t*>(&word);
   for (size_t i = 0; i < sizeof(word); i++) {
     buf->Add(p[i]);
   }
 }
 
-static inline void WriteString(ByteArray* buf, const char* str) {
+static inline void WriteString(DebugInfo::ByteBuffer* buf, const char* str) {
   for (size_t i = 0; i < strlen(str); i++) {
     buf->Add(static_cast<uint8_t>(str[i]));
   }
 }
 
-static inline void Write(ByteArray* buf, const void* mem, int length) {
+static inline void Write(DebugInfo::ByteBuffer* buf,
+                         const void* mem,
+                         int length) {
   const uint8_t* p = reinterpret_cast<const uint8_t*>(mem);
   for (int i = 0; i < length; i++) {
     buf->Add(p[i]);
@@ -223,7 +227,8 @@ static inline void Write(ByteArray* buf, const void* mem, int length) {
 
 
 // Write given section to file and return written size.
-static int WriteSectionToFile(void* handle, const ByteArray& section) {
+static int WriteSectionToFile(void* handle,
+                              const DebugInfo::ByteBuffer& section) {
 #if 0
   File* fp = reinterpret_cast<File*>(handle);
   int size = section.size();
@@ -247,8 +252,10 @@ static void PadFile(void* handle, int padding_size) {
 
 
 // Write given section to specified memory region and return written size.
-static int WriteSectionToMemory(void* handle, const ByteArray& section) {
-  ByteArray* buffer = reinterpret_cast<ByteArray*>(handle);
+static int WriteSectionToMemory(void* handle,
+                                const DebugInfo::ByteBuffer& section) {
+  DebugInfo::ByteBuffer* buffer =
+      reinterpret_cast<DebugInfo::ByteBuffer*>(handle);
   int size = section.size();
   for (int i = 0; i < size; i++) {
     buffer->Add(static_cast<uint8_t>(section.data()[i]));
@@ -259,7 +266,8 @@ static int WriteSectionToMemory(void* handle, const ByteArray& section) {
 
 // Pad memory to specified padding size.
 static void PadMemory(void* handle, int padding_size) {
-  ByteArray* buffer = reinterpret_cast<ByteArray*>(handle);
+  DebugInfo::ByteBuffer* buffer =
+      reinterpret_cast<DebugInfo::ByteBuffer*>(handle);
   for (int i = 0; i < padding_size; i++) {
     buffer->Add(static_cast<uint8_t>(0));
   }
@@ -282,7 +290,7 @@ ElfGen::ElfGen()
   ASSERT(section_buf_[kStrtab].size() == 1);
 
   // Symbol at index 0 in symtab is always STN_UNDEF (all zero):
-  ByteArray* symtab = &section_buf_[kSymtab];
+  DebugInfo::ByteBuffer* symtab = &section_buf_[kSymtab];
   while (symtab->size() < kSymbolSize) {
     WriteInt(symtab, 0);
   }
@@ -327,7 +335,7 @@ void ElfGen::AddCodeRegion(const char* name, uword pc, intptr_t size) {
 
 int ElfGen::AddFunction(const char* name, uword pc, intptr_t size) {
   ASSERT(text_vma_ != 0);  // code must have been added
-  ByteArray* symtab = &section_buf_[kSymtab];
+  DebugInfo::ByteBuffer* symtab = &section_buf_[kSymtab];
   const int beg = symtab->size();
   WriteInt(symtab, AddName(name));  // st_name
 #if defined(TARGET_ARCH_X64)
@@ -351,12 +359,12 @@ bool ElfGen::WriteToFile(File* handle) {
 }
 
 
-bool ElfGen::WriteToMemory(ByteArray* region) {
+bool ElfGen::WriteToMemory(DebugInfo::ByteBuffer* region) {
   return WriteOutput(region, WriteSectionToMemory, PadMemory);
 }
 
 
-int ElfGen::AddString(ByteArray* buf, const char* str) {
+int ElfGen::AddString(DebugInfo::ByteBuffer* buf, const char* str) {
   const int str_index = buf->size();
   WriteString(buf, str);
   WriteByte(buf, 0);  // terminating '\0'
@@ -430,7 +438,9 @@ void ElfGen::AddSectionHeader(int section, int offset) {
 // Pads the given section with zero bytes for the given aligment, assuming the
 // section starts at given file offset; returns file offset after padded
 // section.
-int ElfGen::PadSection(ByteArray* section, int offset, int alignment) {
+int ElfGen::PadSection(DebugInfo::ByteBuffer* section,
+                       int offset,
+                       int alignment) {
   offset += section->size();
   int aligned_offset = Align(offset, alignment);
   while (offset++ < aligned_offset) {
@@ -510,7 +520,7 @@ void DebugInfo::AddCodeRegion(const char* name, uword pc, intptr_t size) {
 }
 
 
-bool DebugInfo::WriteToMemory(ByteArray* region) {
+bool DebugInfo::WriteToMemory(ByteBuffer* region) {
   ElfGen* elf_gen = reinterpret_cast<ElfGen*>(handle_);
   return elf_gen->WriteToMemory(region);
 }
@@ -529,7 +539,7 @@ void DebugInfo::RegisterSection(const char* name,
   elf_section->AddCode(entry_point, size);
   elf_section->AddCodeRegion(name, entry_point, size);
 
-  ByteArray* dynamic_region = new ByteArray();
+  ByteBuffer* dynamic_region = new ByteBuffer();
   ASSERT(dynamic_region != NULL);
 
   elf_section->WriteToMemory(dynamic_region);

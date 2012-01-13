@@ -2453,7 +2453,7 @@ DART_EXPORT void Dart_InitPprofSupport() {
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
   DebugInfo* pprof_symbol_generator = Dart::pprof_symbol_generator();
   if (pprof_symbol_generator != NULL) {
-    ByteArray* debug_region = new ByteArray();
+    DebugInfo::ByteBuffer* debug_region = new DebugInfo::ByteBuffer();
     ASSERT(debug_region != NULL);
     pprof_symbol_generator->WriteToMemory(debug_region);
     *buffer_size = debug_region->size();
