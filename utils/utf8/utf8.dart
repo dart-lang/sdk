@@ -4,15 +4,67 @@
 
 #library('utf8');
 
-class Utf8Decoder {
+class Utf8Decoder implements Iterable<int>, Iterator<int> {
   final List<int> bytes;
-  final int offset;
-  final int length;
+  int offset;
+  final int end;
 
-  Utf8Decoder(List<int> this.bytes, int this.offset, int this.length);
+  Utf8Decoder(List<int> this.bytes, int offset, int length)
+      : this.offset = offset, end = offset + length;
 
-  String toString() {
-    return new String.fromCharCodes(decodeUtf8(bytes.getRange(offset, length)));
+  /** Decode the remaininder of the characters in this decoder
+    * into a [List<int>].
+    */
+  List<int> decodeRest() {
+    List<int> result = <int>[];
+    for (int char in this) result.add(char);
+    return result;
+  }
+
+  Iterator<int> iterator() => this;
+
+  bool hasNext() => offset < end;
+
+  int next() {
+    assert(hasNext());
+    int byte = bytes[offset++];
+    if (byte < 0x80) {
+      return byte;
+    }
+    if (byte < 0xC2) {
+      throw new Exception('Cannot decode UTF-8 @ $offset');
+    }
+    if (byte < 0xE0) {
+      int char = (byte & 0x1F) << 6;
+      char += decodeTrailing(bytes[offset++]);
+      if (char < 0x80) {
+        throw new Exception('Cannot decode UTF-8 @ ${offset-1}');
+      }
+      return char;
+    }
+    if (byte < 0xF0) {
+      int char = (byte & 0x0F) << 6;
+      char += decodeTrailing(bytes[offset++]);
+      char <<= 6;
+      char += decodeTrailing(bytes[offset++]);
+      if (char < 0x800 || (0xD800 <= char && char <= 0xDFFF)) {
+        throw new Exception('Cannot decode UTF-8 @ ${offset-2}');
+      }
+      return char;
+    }
+    if (byte < 0xF8) {
+      int char = (byte & 0x07) << 6;
+      char += decodeTrailing(bytes[offset++]);
+      char <<= 6;
+      char += decodeTrailing(bytes[offset++]);
+      char <<= 6;
+      char += decodeTrailing(bytes[offset++]);
+      if (char < 0x10000) {
+        throw new Exception('Cannot decode UTF-8 @ ${offset-3}');
+      }
+      return char;
+    }
+    throw new Exception('Cannot decode UTF-8 @ ${offset}');
   }
 
   static int decodeTrailing(int byte) {
@@ -24,46 +76,6 @@ class Utf8Decoder {
   }
 
   static List<int> decodeUtf8(List<int> bytes) {
-    List<int> result = new List<int>();
-    for (int i = 0; i < bytes.length; i++) {
-      if (bytes[i] < 0x80) {
-        result.add(bytes[i]);
-      } else if (bytes[i] < 0xC2) {
-        throw new Exception('Cannot decode UTF-8 @ $i');
-      } else if (bytes[i] < 0xE0) {
-        int char = (bytes[i++] & 0x1F) << 6;
-        char += decodeTrailing(bytes[i]);
-        if (char < 0x80) {
-          throw new Exception('Cannot decode UTF-8 @ ${i-1}');
-        } else {
-          result.add(char);
-        }
-      } else if (bytes[i] < 0xF0) {
-        int char = (bytes[i++] & 0x0F) << 6;
-        char += decodeTrailing(bytes[i++]);
-        char <<= 6;
-        char += decodeTrailing(bytes[i]);
-        if (char < 0x800 || (0xD800 <= char && char <= 0xDFFF)) {
-          throw new Exception('Cannot decode UTF-8 @ ${i-2}');
-        } else {
-          result.add(char);
-        }
-      } else if (bytes[i] < 0xF8) {
-        int char = (bytes[i++] & 0x07) << 6;
-        char += decodeTrailing(bytes[i++]);
-        char <<= 6;
-        char += decodeTrailing(bytes[i++]);
-        char <<= 6;
-        char += decodeTrailing(bytes[i]);
-        if (char < 0x10000) {
-          throw new Exception('Cannot decode UTF-8 @ ${i-3}');
-        } else {
-          result.add(char);
-        }
-      } else {
-        throw new Exception('Cannot decode UTF-8 @ $i');
-      }
-    }
-    return result;
+    return new Utf8Decoder(bytes, 0, bytes.length).decodeRest();
   }
 }
