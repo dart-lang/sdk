@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,15 +17,15 @@ class UnhandledException;
 class CPU : public AllStatic {
  public:
   static void FlushICache(uword start, uword size);
-  static void JumpToExceptionHandler(uword pc,
-                                     uword sp,
-                                     uword fp,
+  static void JumpToExceptionHandler(uword program_counter,
+                                     uword stack_pointer,
+                                     uword frame_pointer,
                                      const Instance& exception_object,
                                      const Instance& stacktrace_object);
   static void JumpToUnhandledExceptionHandler(
-      uword pc,
-      uword sp,
-      uword fp,
+      uword program_counter,
+      uword stack_pointer,
+      uword frame_pointer,
       const UnhandledException& unhandled_exception);
   static const char* Id();
 };

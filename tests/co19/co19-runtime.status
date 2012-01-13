@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -168,6 +168,7 @@ LibTest/core/int/operator%/int/operator%/A01/t01: Fail # Issue co19 - 48
 LibTest/core/int/operator%/int/operator%/A01/t02: Fail # Issue co19 - 48
 LibTest/core/int/operator%/int/operator%/A01/t03: Fail # Issue co19 - 49
 LibTest/core/int/operator_mul/int/operator/mul/A01/t01: Fail # Issue co19 -50
+LibTest/core/int/operator_r_shift/int/operator/r/shift/A01/t02: Fail # Issue co19 - 67
 LibTest/core/int/remainder/int/remainder/A01/t02: Fail # Issue co19 - 48
 LibTest/core/int/remainder/int/remainder/A01/t03: Fail # Issue co19 - 49
 LibTest/core/int/toRadixString/int/toRadixString/A01/t01: Fail # Issue 461
@@ -191,8 +192,19 @@ LibTest/core/Math/tan/Math/tan/A01/t01: Fail  # Issue co19 - 44
 [ $component == vm && $system == linux ]
 LibTest/core/Math/exp/Math/exp/A01/t01: Fail
 LibTest/core/Math/pow/Math/pow/A18/t01: Fail
+
+[ $component == vm && $system == linux && $arch == ia32 ]
 LibTest/core/Math/sin/Math/sin/A01/t01: Fail
 LibTest/core/Math/tan/Math/tan/A01/t01: Fail
+
+[ $component == vm && $arch == x64 && $mode == debug ]
+LibTest/core/Map/A01/t04: Skip # Timeout
+LibTest/core/List/add/List/add/A01/t01: Skip # Timeout
+LibTest/core/List/sort/List/sort/A01/t06: Skip # Timeout
+LibTest/core/Queue/iterator_hasNext/Queue/iterator/hasNext/A01/t01: Skip # Timeout
+LibTest/core/Queue/addLast/Queue/addLast/A01/t01: Skip # Timeout
+LibTest/core/Queue/add/Queue/add/A01/t01: Skip # Timeout
+
 [ $component == vm && $unchecked ]
 LibTest/core/TypeError/column/TypeError/column/A01/t01: Fail # Issue co19 - 47
 LibTest/core/TypeError/dstName/TypeError/dstName/A01/t01: Fail # Issue co19 - 47
@@ -201,6 +213,7 @@ LibTest/core/TypeError/failedAssertion/TypeError/failedAssertion/A01/t01: Fail #
 LibTest/core/TypeError/line/TypeError/line/A01/t01: Fail # Issue co19 - 47
 LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail # Issue co19 - 47
 LibTest/core/TypeError/url/TypeError/url/A01/t01: Fail # Issue co19 - 47
+
 [ $component == vm && $checked ]
 LangGuideTest/03_Values/03_2_Numbers/A02/t01: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_1_Static_Types/A01/t01: Fail # Issue co19 - 37
@@ -311,10 +324,6 @@ LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t01: Fail # Issue co19 - 30
 LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t02: Fail # Issue co19 - 30
 LibTest/core/StopWatch/elapsed/StopWatch/elapsed/A01/t03: Fail # Issue co19 - 30
 LibTest/core/StopWatch/frequency/StopWatch/frequency/A01/t01: Fail # Issue co19 - 30
-
-[ $arch == x64 ]
-*: Skip
-
 
 [ $arch == simarm ]
 *: Skip

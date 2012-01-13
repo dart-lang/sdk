@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -182,6 +182,18 @@ class Mint extends IntegerImplementation implements int {
     return this;
   }
   int operator ~() native "Mint_bitNegate";
+
+  // Shift by mint exceeds range that can be handled by the VM.
+  int sarFromInt(int other) {
+    if (other < 0) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
+  int shlFromInt(int other) {
+    throw const OutOfMemoryException();
+  }
 }
 
 // A number that can be represented as Smi or Mint will never be represented as

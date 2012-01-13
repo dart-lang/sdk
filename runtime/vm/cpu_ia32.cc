@@ -25,6 +25,8 @@ void CPU::JumpToExceptionHandler(uword program_counter,
                                  uword frame_pointer,
                                  const Instance& exception_object,
                                  const Instance& stacktrace_object) {
+  // The no_gc StackResource is unwound through the tear down of
+  // stack resources below.
   NoGCScope no_gc;
   RawInstance* exception = exception_object.raw();
   RawInstance* stacktrace = stacktrace_object.raw();
@@ -76,6 +78,8 @@ void CPU::JumpToUnhandledExceptionHandler(
     uword stack_pointer,
     uword frame_pointer,
     const UnhandledException& unhandled_exception_object) {
+  // The no_gc StackResource is unwound through the tear down of
+  // stack resources below.
   NoGCScope no_gc;
   ASSERT(!unhandled_exception_object.IsNull());
   RawUnhandledException* unhandled_exception = unhandled_exception_object.raw();

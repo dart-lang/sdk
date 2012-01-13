@@ -349,9 +349,6 @@ StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
 
 
-[ $arch == x64 ]
-*: Skip
-
 [ $arch == simarm ]
 *: Skip
 

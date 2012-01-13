@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -65,6 +65,20 @@ static RawBigint* AsBigint(const Integer& value) {
 
 static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
   return !op1.IsBigint() && !op2.IsBigint();
+}
+
+
+static bool Are63bitOperands(const Integer& op1, const Integer& op2) {
+  if (op1.IsBigint() || op2.IsBigint()) {
+    return false;
+  }
+  const int64_t limit = (static_cast<int64_t>(1)) << 62;
+  const int64_t value1 = op1.AsInt64Value();
+  if ((-limit > value1) || (value1 >= limit)) {
+    return false;
+  }
+  const int64_t value2 = op2.AsInt64Value();
+  return (-limit <= value2) && (value2 < limit);
 }
 
 
@@ -202,53 +216,6 @@ DEFINE_NATIVE_ENTRY(Integer_bitXorFromInteger, 2) {
 }
 
 
-// The result is invalid if it is outside the range
-// Smi::kMinValue..Smi::kMaxValue.
-static int64_t BinaryOpWithTwoSmis(Token::Kind operation,
-                                   const Smi& left,
-                                   const Smi& right) {
-  switch (operation) {
-    case Token::kADD:
-      // TODO(regis): We may need an overflow check in 64-bit mode. Revisit.
-      return left.Value() + right.Value();
-    case Token::kSUB:
-      return left.Value() - right.Value();
-    case Token::kMUL: {
-      // TODO(regis): Using Bigint here may be a performance issue. Revisit.
-      const Bigint& big_left =
-          Bigint::Handle(BigintOperations::NewFromSmi(left));
-      const Bigint& big_right =
-          Bigint::Handle(BigintOperations::NewFromSmi(right));
-      const Bigint& big_result =
-          Bigint::Handle(BigintOperations::Multiply(big_left, big_right));
-      if (BigintOperations::FitsIntoInt64(big_result)) {
-        return BigintOperations::ToInt64(big_result);
-      } else {
-        // Overflow, return an invalid Smi.
-        return Smi::kMaxValue + 1;
-      }
-    }
-    case Token::kTRUNCDIV:
-      return left.Value() / right.Value();
-    case Token::kMOD: {
-      intptr_t remainder = left.Value() % right.Value();
-      if (remainder < 0) {
-        if (right.Value() < 0) {
-          return remainder - right.Value();
-        } else {
-          return remainder + right.Value();
-        }
-      } else {
-        return remainder;
-      }
-    }
-    default:
-      UNIMPLEMENTED();
-      return 0;
-  }
-}
-
-
 static RawBigint* BinaryOpWithTwoBigints(Token::Kind operation,
                                          const Bigint& left,
                                          const Bigint& right) {
@@ -270,65 +237,80 @@ static RawBigint* BinaryOpWithTwoBigints(Token::Kind operation,
 }
 
 
-// TODO(srdjan): Implement correct overflow checking before allowing 64 bit
-// operands.
-static bool AreBoth64bitOperands(const Integer& op1, const Integer& op2) {
-  return false;
-}
-
-
 static RawInteger* IntegerBinopHelper(Token::Kind operation,
                                       const Integer& left_int,
                                       const Integer& right_int) {
-  if (left_int.IsSmi() && right_int.IsSmi()) {
+  // The result of any operation (except multiplication in 64-bit mode) between
+  // two Smis will always fit in a 64-bit signed result (no overflow).
+  if (((Smi::kBits < 32) || (operation != Token::kMUL)) &&
+      left_int.IsSmi() && right_int.IsSmi()) {
     Smi& left_smi = Smi::Handle();
     Smi& right_smi = Smi::Handle();
     left_smi ^= left_int.raw();
     right_smi ^= right_int.raw();
-    int64_t result = BinaryOpWithTwoSmis(operation, left_smi, right_smi);
-    if (Smi::IsValid64(result)) {
-      return Smi::New(result);
-    } else {
-      // TODO(regis): This is not going to work on x64. Check other operations.
-#if defined(TARGET_ARCH_X64)
-      UNIMPLEMENTED();
-      return 0;
-#else
-      // Overflow to Mint.
-      return Mint::New(result);
-#endif
-    }
-  } else if (AreBoth64bitOperands(left_int, right_int)) {
-    // TODO(srdjan): Test for overflow of result instead of operand
-    // types.
-    const int64_t a = left_int.AsInt64Value();
-    const int64_t b = right_int.AsInt64Value();
+    const intptr_t left_value = left_smi.Value();
+    const intptr_t right_value = right_smi.Value();
     switch (operation) {
       case Token::kADD:
-        return Integer::New(a + b);
+        return Integer::New(left_value + right_value);
       case Token::kSUB:
-        return Integer::New(a - b);
-      case Token::kMUL:
-        return Integer::New(a * b);
+        return Integer::New(left_value - right_value);
+      case Token::kMUL: {
+        ASSERT(Smi::kBits < 32);  // Do not use this code in 64-bit mode.
+        return Integer::New(static_cast<int64_t>(left_value) *
+                            static_cast<int64_t>(right_value));
+      }
       case Token::kTRUNCDIV:
-        return Integer::New(a / b);
+        return Integer::New(left_value / right_value);
       case Token::kMOD: {
-        int64_t remainder = a % b;
-        int64_t c = 0;
+        const intptr_t remainder = left_value % right_value;
         if (remainder < 0) {
-          if (b < 0) {
-            c = remainder - b;
+          if (right_value < 0) {
+            return Integer::New(remainder - right_value);
           } else {
-            c = remainder + b;
+            return Integer::New(remainder + right_value);
           }
         } else {
-          c = remainder;
+          return Integer::New(remainder);
         }
-        return Integer::New(c);
       }
       default:
         UNIMPLEMENTED();
     }
+    UNREACHABLE();
+    return Integer::null();
+  }
+  // The result of any operation (except multiplication) between two 63-bit
+  // signed integers will fit in a 64-bit signed result.
+  // In 64-bit mode, this case was already handled above.
+  if ((Smi::kBits < 32) && (operation != Token::kMUL) &&
+      Are63bitOperands(left_int, right_int)) {
+    const int64_t left_value = left_int.AsInt64Value();
+    const int64_t right_value = right_int.AsInt64Value();
+    switch (operation) {
+      case Token::kADD:
+        return Integer::New(left_value + right_value);
+      case Token::kSUB:
+        return Integer::New(left_value - right_value);
+      case Token::kTRUNCDIV:
+        return Integer::New(left_value / right_value);
+      case Token::kMOD: {
+        const int64_t remainder = left_value % right_value;
+        if (remainder < 0) {
+          if (right_value < 0) {
+            return Integer::New(remainder - right_value);
+          } else {
+            return Integer::New(remainder + right_value);
+          }
+        } else {
+          return Integer::New(remainder);
+        }
+      }
+      default:
+        UNIMPLEMENTED();
+    }
+    UNREACHABLE();
+    return Integer::null();
   }
   const Bigint& left_big = Bigint::Handle(AsBigint(left_int));
   const Bigint& right_big = Bigint::Handle(AsBigint(right_int));
@@ -456,32 +438,36 @@ static int HighestBit(int64_t v) {
 static RawInteger* SmiShiftOperation(Token::Kind kind,
                                      const Smi& left,
                                      const Smi& right) {
-  ASSERT(right.Value() >= 0);
   intptr_t result = 0;
+  const intptr_t left_value = left.Value();
+  const intptr_t right_value = right.Value();
+  ASSERT(right_value >= 0);
   switch (kind) {
-    case Token::kSHL:
-      if ((left.Value() == 0) || (right.Value() == 0)) {
+    case Token::kSHL: {
+      if ((left_value == 0) || (right_value == 0)) {
         return left.raw();
       }
       { // Check for overflow.
-        int cnt = HighestBit(left.Value());
-        if ((cnt + right.Value()) >= Smi::kBits) {
-          if ((cnt + right.Value()) >= Mint::kBits) {
+        int cnt = HighestBit(left_value);
+        if ((cnt + right_value) >= Smi::kBits) {
+          if ((cnt + right_value) >= Mint::kBits) {
             return BigintOperations::ShiftLeft(
-                Bigint::Handle(AsBigint(left)), right.Value());
+                Bigint::Handle(AsBigint(left)), right_value);
           } else {
-            int64_t left_64 = left.Value();
-            return Integer::New(left_64 << right.Value());
+            int64_t left_64 = left_value;
+            return Integer::New(left_64 << right_value);
           }
         }
       }
-      result = left.Value() << right.Value();
+      result = left_value << right_value;
       break;
+    }
     case Token::kSHR: {
-        int shift_amount = (right.Value() > 0x1F) ? 0x1F : right.Value();
-        result = left.Value() >> shift_amount;
-        break;
-      }
+      const intptr_t shift_amount =
+          (right_value >= kBitsPerWord) ? (kBitsPerWord - 1) : right_value;
+      result = left_value >> shift_amount;
+      break;
+    }
     default:
       UNIMPLEMENTED();
   }
