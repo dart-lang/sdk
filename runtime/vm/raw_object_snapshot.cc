@@ -344,15 +344,13 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   intptr_t len = Smi::Value(smi_len);
 
   TypeArguments& type_arguments =
-      TypeArguments::Handle(reader->isolate(), TypeArguments::New(len));
+      TypeArguments::ZoneHandle(reader->isolate(), TypeArguments::New(len));
   reader->AddBackwardReference(object_id, &type_arguments);
 
   // Now set all the object fields.
-  AbstractType& type = AbstractType::Handle(reader->isolate(),
-                                            AbstractType::null());
   for (intptr_t i = 0; i < len; i++) {
-    type ^= reader->ReadObject();
-    type_arguments.SetTypeAt(i, type);
+    *reader->TypeHandle() ^= reader->ReadObject();
+    type_arguments.SetTypeAt(i, *reader->TypeHandle());
   }
 
   // Set the object tags (This is done after setting the object fields
@@ -580,12 +578,11 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   token_stream.set_tags(tags);
 
   // Read the token stream into the TokenStream.
-  String& literal = String::Handle(reader->isolate(), String::null());
   for (intptr_t i = 0; i < len; i++) {
     Token::Kind kind = static_cast<Token::Kind>(
         Smi::Value(GetSmi(reader->ReadIntptrValue())));
-    literal ^= reader->ReadObject();
-    token_stream.SetTokenAt(i, kind, literal);
+    *reader->StringHandle() ^= reader->ReadObject();
+    token_stream.SetTokenAt(i, kind, *reader->StringHandle());
   }
   return token_stream.raw();
 }
@@ -672,9 +669,8 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   if (RawObject::IsCreatedFromSnapshot(tags)) {
     ASSERT(kind != Snapshot::kFull);
     // Lookup the object as it should already exist in the heap.
-    String& library_url = String::Handle(reader->isolate(), String::null());
-    library_url ^= reader->ReadObject();
-    library = Library::LookupLibrary(library_url);
+    *reader->StringHandle() ^= reader->ReadObject();
+    library = Library::LookupLibrary(*reader->StringHandle());
   } else {
     // Allocate library object.
     library = Library::New();
@@ -1462,7 +1458,7 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
   // Read the length so that we can determine instance size to allocate.
   RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
   intptr_t len = Smi::Value(smi_len);
-  T& result = T::Handle(
+  T& result = T::ZoneHandle(
       reader->isolate(),
       T::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
   reader->AddBackwardReference(object_id, &result);
@@ -1471,16 +1467,12 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
   result.set_tags(tags);
 
   // Setup the object fields.
-  AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(reader->isolate(),
-                                    AbstractTypeArguments::null());
-  type_arguments ^= reader->ReadObject();
-  result.SetTypeArguments(type_arguments);
+  *reader->TypeArgumentsHandle() ^= reader->ReadObject();
+  result.SetTypeArguments(*reader->TypeArgumentsHandle());
 
-  Object& obj = Object::Handle(reader->isolate(), Object::null());
   for (intptr_t i = 0; i < len; i++) {
-    obj = reader->ReadObject();
-    result.SetAt(i, obj);
+    *reader->ObjectHandle() = reader->ReadObject();
+    result.SetAt(i, *reader->ObjectHandle());
   }
   return result.raw();
 }
@@ -1632,9 +1624,8 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
   // Read and Set all the other fields.
   regex.raw_ptr()->num_bracket_expressions_ = GetSmi(reader->ReadIntptrValue());
-  String& pattern = String::Handle(reader->isolate(), String::null());
-  pattern ^= reader->ReadObject();
-  regex.raw_ptr()->pattern_ = pattern.raw();
+  *reader->StringHandle() ^= reader->ReadObject();
+  regex.raw_ptr()->pattern_ = (*reader->StringHandle()).raw();
   regex.raw_ptr()->type_ = reader->ReadIntptrValue();
   regex.raw_ptr()->flags_ = reader->ReadIntptrValue();
 

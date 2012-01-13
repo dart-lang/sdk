@@ -16,12 +16,16 @@
 namespace dart {
 
 // Forward declarations.
+class AbstractType;
+class AbstractTypeArguments;
+class Class;
 class Heap;
 class Library;
 class Object;
 class ObjectStore;
 class RawClass;
 class RawObject;
+class String;
 
 static const int8_t kSerializedBitsPerByte = 7;
 static const int8_t kMaxSerializedUnsignedValuePerByte = 127;
@@ -279,11 +283,7 @@ class WriteStream : public ValueObject {
 // Reads a snapshot into objects.
 class SnapshotReader {
  public:
-  SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
-      : stream_(snapshot->content(), snapshot->length()),
-        kind_(snapshot->kind()),
-        isolate_(isolate),
-        backward_references_() { }
+  SnapshotReader(const Snapshot* snapshot, Isolate* isolate);
   ~SnapshotReader() { }
 
   // Reads raw data (for basic types).
@@ -303,6 +303,10 @@ class SnapshotReader {
   Isolate* isolate() const { return isolate_; }
   Heap* heap() const { return isolate_->heap(); }
   ObjectStore* object_store() const { return isolate_->object_store(); }
+  Object* ObjectHandle() { return &obj_; }
+  String* StringHandle() { return &str_; }
+  AbstractType* TypeHandle() { return &type_; }
+  AbstractTypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -332,6 +336,12 @@ class SnapshotReader {
   ReadStream stream_;  // input stream.
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
+  Class& cls_;  // Temporary Class handle.
+  Object& obj_;  // Temporary Object handle.
+  String& str_;  // Temporary String handle.
+  Library& library_;  // Temporary library handle.
+  AbstractType& type_;  // Temporary type handle.
+  AbstractTypeArguments& type_arguments_;  // Temporary type argument handle.
   GrowableArray<Object*> backward_references_;
 
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);

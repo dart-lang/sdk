@@ -52,6 +52,20 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 }
 
 
+SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
+    : stream_(snapshot->content(), snapshot->length()),
+      kind_(snapshot->kind()),
+      isolate_(isolate),
+      cls_(Class::Handle()),
+      obj_(Object::Handle()),
+      str_(String::Handle()),
+      library_(Library::Handle()),
+      type_(AbstractType::Handle()),
+      type_arguments_(AbstractTypeArguments::Handle()),
+      backward_references_() {
+}
+
+
 RawObject* SnapshotReader::ReadObject() {
   int64_t value = Read<int64_t>();
   if ((value & kSmiTagMask) == 0) {
@@ -72,14 +86,11 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   AddBackwardReference(object_id, &cls);
   if (cls.IsNull()) {
     // Read the library/class information and lookup the class.
-    String& library_url = String::Handle(isolate(), String::null());
-    library_url ^= ReadObjectImpl(class_header);
-    String& class_name = String::Handle(isolate(), String::null());
-    class_name ^= ReadObject();
-    const Library& library =
-        Library::Handle(isolate(), Library::LookupLibrary(library_url));
-    ASSERT(!library.IsNull());
-    cls ^= library.LookupClass(class_name);
+    str_ ^= ReadObjectImpl(class_header);
+    library_ = Library::LookupLibrary(str_);
+    ASSERT(!library_.IsNull());
+    str_ ^= ReadObject();
+    cls ^= library_.LookupClass(str_);
   }
   ASSERT(!cls.IsNull());
   return cls.raw();
@@ -172,24 +183,22 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
   intptr_t tags = ReadIntptrValue();
-  Class& cls = Class::Handle(isolate(), Class::null());
-  Object& obj = Object::Handle(isolate(), Object::null());
   if (SerializedHeaderData::decode(class_header) == kInstanceId) {
     // Object is regular dart instance.
     Instance& result = Instance::ZoneHandle(isolate(), Instance::null());
     AddBackwardReference(object_id, &result);
 
-    cls ^= ReadObject();
-    ASSERT(!cls.IsNull());
-    intptr_t instance_size = cls.instance_size();
+    cls_ ^= ReadObject();
+    ASSERT(!cls_.IsNull());
+    intptr_t instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    RawObject* raw = Instance::New(cls, Heap::kNew);
+    RawObject* raw = Instance::New(cls_, Heap::kNew);
     result ^= raw;
     intptr_t offset = Object::InstanceSize();
     while (offset < instance_size) {
-      obj = ReadObject();
-      result.SetFieldAtOffset(offset, obj);
+      obj_ = ReadObject();
+      result.SetFieldAtOffset(offset, obj_);
       offset += kWordSize;
     }
     if (kind_ == Snapshot::kFull) {
@@ -200,13 +209,13 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     return result.raw();
   } else {
     ASSERT((class_header & kSmiTagMask) != 0);
-    cls ^= LookupInternalClass(class_header);
-    ASSERT(!cls.IsNull());
+    cls_ ^= LookupInternalClass(class_header);
+    ASSERT(!cls_.IsNull());
   }
-  switch (cls.instance_kind()) {
+  switch (cls_.instance_kind()) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kInstanceKind: {                                               \
-      obj = clazz::ReadFrom(this, object_id, tags, kind_);                     \
+      obj_ = clazz::ReadFrom(this, object_id, tags, kind_);                    \
       break;                                                                   \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
@@ -214,9 +223,9 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     default: UNREACHABLE(); break;
   }
   if (kind_ == Snapshot::kFull) {
-    obj.SetCreatedFromSnapshot();
+    obj_.SetCreatedFromSnapshot();
   }
-  return obj.raw();
+  return obj_.raw();
 }
 
 
