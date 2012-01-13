@@ -161,6 +161,8 @@ SyntaxTest/31: Fail # Issue 1108
 SyntaxTest/32: Fail # Issue 1108
 SyntaxTest/33: Fail # Issue 1108
 
+PseudoKWTest: Fail           # Issue 356
+NamingTest: Fail             # Issue 356
 PseudoKWIllegalTest/01: Fail # Issue 356
 PseudoKWIllegalTest/02: Fail # Issue 356
 PseudoKWIllegalTest/03: Fail # Issue 356
@@ -202,8 +204,8 @@ ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
 ImplementTypeParameterNegativeTest: Skip # Issue 887
 FactoryImplementationTest: Fail # Issue 523
-PseudoKWTest: Fail
-NamingTest: Fail
+PseudoKWTest: Fail  # Issue 356
+NamingTest: Fail    # Issue 356
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
