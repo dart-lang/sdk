@@ -695,23 +695,6 @@ class DartGenerator(object):
     self._emitters.Flush()
 
 
-  def FilePathForDartInterface(self, interface_name):
-    """Returns the file path of the Dart interface definition."""
-    return os.path.join(self._output_dir, 'src', 'interface',
-                        '%s.dart' % interface_name)
-
-
-  def FilePathForDartWrappingImpl(self, interface_name):
-    """Returns the file path of the Dart wrapping implementation."""
-    return os.path.join(self._output_dir, 'src', 'wrapping',
-                        '_%sWrappingImplementation.dart' % interface_name)
-
-  def FilePathForFrogImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
-    return os.path.join(self._output_dir, 'src', 'frog',
-                        '%s.dart' % interface_name)
-
-
   def _ComputeInheritanceClosure(self):
     def Collect(interface, seen, collected):
       name = interface.id
@@ -740,51 +723,6 @@ class DartGenerator(object):
     List includes the name of 'interface'.
     """
     return self._inheritance_closure[interface.id]
-
-
-
-  def _GenerateJavaScriptExternInterfaces(self,
-                                          database,
-                                          namespace,
-                                          window_code,
-                                          prop_code):
-    """Generate externs for JavaScript patch code.
-    """
-
-    props = set()
-
-    for interface in database.GetInterfaces():
-      self._GatherInterfacePropertyNames(interface, props)
-
-    for name in sorted(list(props)):
-      prop_code.Emit('$NAMESPACE.prototype.$NAME;\n',
-                     NAMESPACE=namespace, NAME=name)
-
-    for interface in database.GetInterfaces():
-      window_code.Emit('Window.prototype.$CLASSREF;\n',
-                       CLASSREF=interface.id)
-
-
-  def _GatherInterfacePropertyNames(self, interface, props):
-    """Gather the properties that will be defined on the interface.
-    """
-
-    # Define getters and setters.
-    getters = [attr.id for attr in interface.attributes if attr.is_fc_getter]
-    setters = [attr.id for attr in interface.attributes if attr.is_fc_setter]
-
-    for name in getters:
-       props.add(name + '$getter')
-
-    for name in setters:
-       props.add(name + '$setter')
-
-    # Define members.
-    operations = [op.ext_attrs.get('DartName', op.id)
-                  for op in interface.operations]
-    members = sorted(set(operations))
-    for name in members:
-       props.add(name + '$member')
 
 
 class OperationInfo(object):
