@@ -166,7 +166,6 @@ bool BinaryOpNode::IsKindValid() const {
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
     case Token::kSHL:
-    case Token::kSAR:
     case Token::kSHR:
       return true;
     default:
@@ -226,7 +225,6 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
     case Token::kSHL:
-    case Token::kSAR:
     case Token::kSHR:
       if (left_val->IsInteger() &&
           right_val->IsInteger()) {

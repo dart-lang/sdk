@@ -13,7 +13,7 @@ namespace dart {
 //
 //  13  multiplicative  * / ~/ %
 //  12  additive        + -
-//  11  shift           << >> >>>
+//  11  shift           << >>
 //  10  relational      >= > <= < is
 //   9  equality        == != === !==
 //   8  bitwise and     &
@@ -22,7 +22,7 @@ namespace dart {
 //   5  logical and     &&
 //   4  logical or      ||
 //   3  conditional     ?
-//   2  assignment      = *= /= ~/= %= += -= <<= >>>= >>= &= ^= |=
+//   2  assignment      = *= /= ~/= %= += -= <<= >>= &= ^= |=
 //   1  comma           ,
 
 
@@ -54,8 +54,7 @@ namespace dart {
   TOK(kASSIGN_XOR, "^=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_AND, "&=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_SHL, "<<=", 2, kNoAttribute)                                     \
-  TOK(kASSIGN_SAR, ">>=", 2, kNoAttribute)                                     \
-  TOK(kASSIGN_SHR, ">>>=", 2, kNoAttribute)                                    \
+  TOK(kASSIGN_SHR, ">>=", 2, kNoAttribute)                                     \
   TOK(kASSIGN_ADD, "+=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_SUB, "-=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_MUL, "*=", 2, kNoAttribute)                                      \
@@ -73,8 +72,7 @@ namespace dart {
                                                                                \
   /* Shift operators. */                                                       \
   TOK(kSHL, "<<", 11, kNoAttribute)                                            \
-  TOK(kSAR, ">>", 11, kNoAttribute)                                            \
-  TOK(kSHR, ">>>", 11, kNoAttribute)                                           \
+  TOK(kSHR, ">>", 11, kNoAttribute)                                            \
                                                                                \
   /* Additive operators. */                                                    \
   TOK(kADD, "+", 12, kNoAttribute)                                             \
@@ -241,12 +239,11 @@ class Token {
     ASSERT(tok < kNumTokens);
     return IsRelationalOperator(tok) ||
            (tok == kEQ) ||
-           (tok >= kADD && tok <= kMOD) ||
-           (tok >= kBIT_OR && tok <= kSHR) ||
+           (tok >= kADD && tok <= kMOD) ||  // Arithmetic operations.
+           (tok >= kBIT_OR && tok <= kSHR) ||  // Bit operations.
            (tok == kINDEX) ||
            (tok == kASSIGN_INDEX) ||
-           (tok == kNEGATE) ||
-           (tok >= kBIT_OR && tok <= kBIT_NOT);
+           (tok == kNEGATE);
   }
 
  private:

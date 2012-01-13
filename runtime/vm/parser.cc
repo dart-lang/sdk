@@ -2870,10 +2870,8 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
 void Parser::ConsumeRightAngleBracket() {
   if (token_kind_ == Token::kGT) {
     ConsumeToken();
-  } else if (token_kind_ == Token::kSAR) {
-    token_kind_ = Token::kGT;
   } else if (token_kind_ == Token::kSHR) {
-    token_kind_ = Token::kSAR;
+    token_kind_ = Token::kGT;
   } else {
     UNREACHABLE();
   }
@@ -2887,9 +2885,7 @@ void Parser::SkipTypeArguments() {
       SkipType(false);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
-    if ((token == Token::kGT) ||
-        (token == Token::kSAR) ||
-        (token == Token::kSHR)) {
+    if ((token == Token::kGT) || (token == Token::kSHR)) {
       ConsumeRightAngleBracket();
     } else {
       ErrorMsg("right angle bracket expected");
@@ -2936,9 +2932,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
       type_parameter_extends.Add(&type_extends);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
-    if ((token == Token::kGT) ||
-        (token == Token::kSAR) ||
-        (token == Token::kSHR)) {
+    if ((token == Token::kGT) || (token == Token::kSHR)) {
       ConsumeRightAngleBracket();
     } else {
       ErrorMsg("right angle bracket expected");
@@ -2970,9 +2964,7 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
       types.Add(&type);
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
-    if ((token == Token::kGT) ||
-        (token == Token::kSAR) ||
-        (token == Token::kSHR)) {
+    if ((token == Token::kGT) || (token == Token::kSHR)) {
       ConsumeRightAngleBracket();
     } else {
       ErrorMsg("right angle bracket expected");
@@ -3911,10 +3903,8 @@ bool Parser::IsTypeParameter() {
         nesting_level++;
       } else if (CurrentToken() == Token::kGT) {
         nesting_level--;
-      } else if (CurrentToken() == Token::kSAR) {
-        nesting_level -= 2;
       } else if (CurrentToken() == Token::kSHR) {
-        nesting_level -= 3;
+        nesting_level -= 2;
       } else if (CurrentToken() == Token::kIDENT) {
         // Check to see if it is a qualified identifier.
         if (LookaheadToken(1) == Token::kPERIOD) {
@@ -5577,12 +5567,10 @@ AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
       return new BinaryOpNode(op_pos, Token::kDIV, lhs, rhs);
     case Token::kASSIGN_MOD:
       return new BinaryOpNode(op_pos, Token::kMOD, lhs, rhs);
-    case Token::kASSIGN_SAR:
-      return new BinaryOpNode(op_pos, Token::kSAR, lhs, rhs);
-    case Token::kASSIGN_SHL:
-      return new BinaryOpNode(op_pos, Token::kSHL, lhs, rhs);
     case Token::kASSIGN_SHR:
       return new BinaryOpNode(op_pos, Token::kSHR, lhs, rhs);
+    case Token::kASSIGN_SHL:
+      return new BinaryOpNode(op_pos, Token::kSHL, lhs, rhs);
     case Token::kASSIGN_OR:
       return new BinaryOpNode(op_pos, Token::kBIT_OR, lhs, rhs);
     case Token::kASSIGN_AND:

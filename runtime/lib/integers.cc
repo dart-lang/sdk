@@ -477,7 +477,7 @@ static RawInteger* SmiShiftOperation(Token::Kind kind,
       }
       result = left.Value() << right.Value();
       break;
-    case Token::kSAR: {
+    case Token::kSHR: {
         int shift_amount = (right.Value() > 0x1F) ? 0x1F : right.Value();
         result = left.Value() >> shift_amount;
         break;
@@ -511,7 +511,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
       switch (kind) {
         case Token::kSHL:
           return Integer::New(mint_value << amount.Value());
-        case Token::kSAR:
+        case Token::kSHR:
           return Integer::New(mint_value >> amount.Value());
         default:
           UNIMPLEMENTED();
@@ -527,7 +527,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
   switch (kind) {
     case Token::kSHL:
       return BigintOperations::ShiftLeft(big_value, amount.Value());
-    case Token::kSAR:
+    case Token::kSHR:
       return BigintOperations::ShiftRight(big_value, amount.Value());
     default:
       UNIMPLEMENTED();
@@ -542,7 +542,7 @@ DEFINE_NATIVE_ENTRY(Smi_sarFromInt, 2) {
   ASSERT(CheckInteger(amount));
   ASSERT(CheckInteger(value));
   Integer& result = Integer::Handle(
-      ShiftOperationHelper(Token::kSAR, value, amount));
+      ShiftOperationHelper(Token::kSHR, value, amount));
   arguments->SetReturn(Integer::Handle(AsInteger(result)));
 }
 

@@ -667,19 +667,14 @@ void Scanner::Scan() {
         }
         break;
 
-      case '>':  // >  >=  >>  >>=  >>>  >>>=
+      case '>':  // >  >=  >>  >>=
         Recognize(Token::kGT);
         if (c0_ == '=') {
           Recognize(Token::kGTE);
         } else if (c0_ == '>') {
-          Recognize(Token::kSAR);
+          Recognize(Token::kSHR);
           if (c0_ == '=') {
-            Recognize(Token::kASSIGN_SAR);
-          } else if (c0_ == '>') {
-            Recognize(Token::kSHR);
-            if (c0_ == '=') {
-              Recognize(Token::kASSIGN_SHR);
-            }
+            Recognize(Token::kASSIGN_SHR);
           }
         }
         break;
