@@ -30,6 +30,10 @@ class CCTestListerIsolate extends Isolate {
           line = stdoutStream.readLine();
         }
       };
+      p.errorHandler = (error) {
+        print("Failed to list tests: $runnerPath --list");
+        replyTo.send("");
+      };
       p.exitHandler = (code) {
         if (code < 0) {
           print("Failed to list tests: $runnerPath --list");
@@ -40,6 +44,7 @@ class CCTestListerIsolate extends Isolate {
         }
         replyTo.send("");
       };
+      port.close();
     });
   }
 }
@@ -94,8 +99,6 @@ class CCTestSuite implements TestSuite {
                           configuration,
                           completeHandler,
                           expectations));
-
-      receiveTestName.receive(testNameHandler);
     }
   }
 
