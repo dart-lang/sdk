@@ -49,7 +49,52 @@ class PseudoKWTest {
   }
 }
 
+typedef(x) => "typedef " + x;
+
+static(abstract) {
+  return abstract == true;
+}
+
+class A {
+  var typedef = 0;
+  set(x) { typedef = x; }
+  get() => typedef - 5;
+
+  static static() {
+    return 1;
+  }
+  static check() {
+    var o = new A();
+    o.set(55);
+    Expect.equals(50, o.get());
+    static();
+  }
+}
+
+class B {
+  var set = 100;
+  get get() => set;
+  set get(get) => set = 2 * get.get;
+
+  static() {
+    var set = new B();
+    set.get = set;
+    Expect.equals(200, set.get);
+  }
+  int operator() {
+    return 1;
+  }
+}
+
 
 main() {
   PseudoKWTest.testMain();
+  A.check();
+  new B().static();
+  Expect.equals(1, new B().operator());
+  Expect.equals(1, A.static());
+  typedef("T");
+  Expect.equals("typedef T", typedef("T"));
+  static("true");
+  Expect.equals(false, static("true"));
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -142,6 +142,7 @@ class Parser : ValueObject {
   void ExpectToken(Token::Kind token_expected);
   void ExpectSemicolon();
   void UnexpectedToken();
+  String* ExpectTypeIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
 
@@ -324,6 +325,7 @@ class Parser : ValueObject {
   SequenceNode* ParseNestedStatement(bool parsing_loop_body,
                                      SourceLabel* label);
   void ParseStatementSequence();
+  bool IsIdentifier();
   bool IsFunctionTypeAliasName();
   bool IsTypeParameter();
   bool IsOptionalType();
@@ -378,6 +380,7 @@ class Parser : ValueObject {
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
   RawClass* TypeParametersScopeClass();
   bool IsInstantiatorRequired() const;
+  bool IsDefinedInLexicalScope(const String& ident);
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,
                                 AstNode** node);

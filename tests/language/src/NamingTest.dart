@@ -182,10 +182,6 @@ class Hoisting {
     return () { return x + 1; };
   }
 
-  negate(x) {
-    return () { return x + 2; };
-  }
-
   operator[] (x) {
     return () { return x + 3; };
   }
@@ -195,7 +191,7 @@ class Hoisting {
     Expect.equals(1, (h.f_)());
     var f = -h;
     Expect.equals(4, f());
-    Expect.equals(6, h.negate(4)());
+    Expect.equals(4, h.negate()());
     Expect.equals(7, h[4]());
   }
 }
@@ -518,21 +514,8 @@ class Naming2Test {
   }
 }
 
-// Ensure we don't have false positivesj.
-class Naming3Test {
-  Naming3Test() { }
-  operator negate() { }
-  negate() => 777;
-
-  static void main(args) {
-    var a = new Naming3Test();
-    Expect.equals(777, a.negate());
-  }
-}
-
 main() {
   NamingTest.testMain();
   Naming1Test.main(null);
   Naming2Test.main(null);
-  Naming3Test.main(null);
 }

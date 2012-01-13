@@ -19,19 +19,16 @@ prefix language
 
 
 [ $component == vm || $component == dartium ]
-ClassTest: Fail             # Bug 4504458 (pseudo keyword)
-NamingTest: Fail            # Bug 4504458 (pseudo keyword)
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
-Prefix22Test: Fail               # Issue 575
-Prefix23Test: Fail               # Issue 575
-PseudoKWTest: Fail # Issue 356
-PseudoKWIllegalTest/03: Fail # Issue 356
-PseudoKWIllegalTest/08: Fail # Issue 356
-PseudoKWIllegalTest/10: Fail # Issue 356
-PseudoKWIllegalTest/14: Fail # Issue 356
+Prefix22Test: Fail            # Issue 575
+Prefix23Test: Fail            # Issue 575
+PseudoKWIllegalTest/03: Fail  # Issue 356
+PseudoKWIllegalTest/08: Fail  # Issue 356
+PseudoKWIllegalTest/10: Fail  # Issue 356
+PseudoKWIllegalTest/14: Fail  # Issue 356
 
 ImplicitThisTest/01: Fail # Issue 374 (not yet specified)
 ImplicitThisTest/02: Fail # Issue 374
