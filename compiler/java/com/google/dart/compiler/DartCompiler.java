@@ -260,7 +260,7 @@ public class DartCompiler {
             }
 
             DartUnit apiUnit = apiLib.getUnit(dartSrc.getName());
-            if (apiUnit == null || (!libIsDartUri && isSourceOutOfDate(dartSrc, libSrc))) {
+            if (apiUnit == null || isSourceOutOfDate(dartSrc, libSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes());
               if (unit != null) {
                 if (libNode == selfSourcePath) {
