@@ -24,15 +24,13 @@ StaticStateTest: Fail         # Bug 5401734
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
 
-[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff)) ]
-Message2Test: Fail           # postMessage API currently expects String messages
-NestedSpawn2Test: Fail
-NestedSpawnTest: Fail
-
 [ $component == frogium || ($component == webdriver && $browser == chrome) ]
 CrossIsolateMessageTest:Fail # HTMLElement should be hidden in workers
 MixedTest: Fail              # HTMLElement should be hidden in workers
 Mixed2Test: Fail             # HTMLElement should be hidden in workers
+Message2Test: Fail           # postMessage API currently expects String messages
+NestedSpawn2Test: Fail
+NestedSpawnTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
