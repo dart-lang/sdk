@@ -202,6 +202,8 @@ ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
 ImplementTypeParameterNegativeTest: Skip # Issue 887
 FactoryImplementationTest: Fail # Issue 523
+PseudoKWTest: Fail
+NamingTest: Fail
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip

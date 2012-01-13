@@ -57,6 +57,8 @@ static(abstract) {
 
 class A {
   var typedef = 0;
+  final operator = "smooth";
+
   set(x) { typedef = x; }
   get() => typedef - 5;
 

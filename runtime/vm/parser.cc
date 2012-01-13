@@ -2401,14 +2401,16 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       ErrorMsg("left parenthesis expected");
     }
   } else if ((CurrentToken() == Token::kGET) &&
-             (LookaheadToken(1) != Token::kLPAREN) && !member.has_var) {
+             (LookaheadToken(1) != Token::kLPAREN) &&
+             !member.has_var && !member.has_final) {
     ConsumeToken();
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->token_index_;
     member.name = ExpectIdentifier("identifier expected");
     // If the result type was not specified, it will be set to DynamicType.
   } else if ((CurrentToken() == Token::kSET) &&
-             (LookaheadToken(1) != Token::kLPAREN) && !member.has_var)  {
+             (LookaheadToken(1) != Token::kLPAREN) &&
+             !member.has_var && !member.has_final)  {
     ConsumeToken();
     member.kind = RawFunction::kSetterFunction;
     member.name_pos = this->token_index_;
@@ -2419,7 +2421,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
   } else if ((CurrentToken() == Token::kOPERATOR) &&
-             (LookaheadToken(1) != Token::kLPAREN) && !member.has_var) {
+             (LookaheadToken(1) != Token::kLPAREN) &&
+             !member.has_var && !member.has_final) {
     ConsumeToken();
     if (!Token::CanBeOverloaded(CurrentToken())) {
       ErrorMsg("invalid operator overloading");
