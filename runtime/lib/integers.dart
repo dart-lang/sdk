@@ -60,7 +60,7 @@ class IntegerImplementation {
     return other - (other ~/ this) * this;
   }
   int operator >>(int other) {
-    return other.sarFromInt(this);
+    return other.shrFromInt(this);
   }
   int operator <<(int other) {
     return other.shlFromInt(this);
@@ -168,7 +168,7 @@ class Smi extends IntegerImplementation implements int {
     return this;
   }
   int operator ~() native "Smi_bitNegate";
-  int sarFromInt(int other) native "Smi_sarFromInt";
+  int shrFromInt(int other) native "Smi_shrFromInt";
   int shlFromInt(int other) native "Smi_shlFromInt";
 }
 
@@ -184,7 +184,7 @@ class Mint extends IntegerImplementation implements int {
   int operator ~() native "Mint_bitNegate";
 
   // Shift by mint exceeds range that can be handled by the VM.
-  int sarFromInt(int other) {
+  int shrFromInt(int other) {
     if (other < 0) {
       return -1;
     } else {
@@ -209,7 +209,7 @@ class Bigint extends IntegerImplementation implements int {
   int operator ~() native "Bigint_bitNegate";
 
   // Shift by bigint exceeds range that can be handled by the VM.
-  int sarFromInt(int other) {
+  int shrFromInt(int other) {
     if (other < 0) {
       return -1;
     } else {

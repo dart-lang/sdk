@@ -30,7 +30,7 @@ namespace dart {
   V(ReceivePortImpl_closeInternal, 1)                                          \
   V(SendPortImpl_sendInternal_, 3)                                             \
   V(Smi_shlFromInt, 2)                                                         \
-  V(Smi_sarFromInt, 2)                                                         \
+  V(Smi_shrFromInt, 2)                                                         \
   V(Smi_bitNegate, 1)                                                          \
   V(Mint_bitNegate, 1)                                                         \
   V(Bigint_bitNegate, 1)                                                       \

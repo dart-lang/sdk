@@ -522,7 +522,7 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
 }
 
 
-DEFINE_NATIVE_ENTRY(Smi_sarFromInt, 2) {
+DEFINE_NATIVE_ENTRY(Smi_shrFromInt, 2) {
   const Smi& amount = Smi::CheckedHandle(arguments->At(0));
   GET_NATIVE_ARGUMENT(Integer, value, arguments->At(1));
   ASSERT(CheckInteger(amount));
