@@ -511,11 +511,13 @@ class BrowserCorrectnessTestRunner(TestRunner):
       self.add_svn_revision_to_trace(self.trace_file)
       dart_sdk = os.path.join(os.getcwd(), utils.GetBuildRoot(utils.GuessOS(),
           'release', 'ia32'), 'dart-sdk')
+      #TODO(efortuna): Ensure that the frog and froglib flags work when they get
+      # implemented in test.dart (Bug #1046)
       run_cmd([os.path.join('.', 'tools', 'testing', 'bin', system, 
           'dart' + suffix), os.path.join('tools', 'test.dart'), 
-          '--component=webdriver', '--flag=%s,--frog=%s,--froglib=%s' % \
-          (browser, os.path.join(dart_sdk, 'bin', 'frogc'), 
-          os.path.join(dart_sdk, 'lib')), '--report',
+          '--component=webdriver', 
+          '--browser=%s' % browser, '--frog=%s' % os.path.join(dart_sdk, 'bin',
+          'frogc'), '--froglib=%s' % os.path.join(dart_sdk, 'lib')), '--report',
           '--timeout=20', '--progress=color', '--mode=release', '-j1',
           self.test_type], self.trace_file, append=True)
 

@@ -196,7 +196,7 @@ TypedMessageTest: Fail # Bug 5246195
 [ $component == frog ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-[ $component == frogsh ||  $component == frog || ($component == webdriver && $browser == chrome) || $component == frogium ]
+[ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff)) || $component == frogium ]
 Factory3Test: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 OptimizedSetterTest: Fail # Issue 863
@@ -314,7 +314,14 @@ ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
 [ $component == webdriver && $browser == ff ]
-*: Skip
+MethodInvocationTest: Fail
+NamingTest: Fail
+Private3Test: Fail
+StackTraceTest: Fail
+StackOverflowTest: Fail
+StringConcatTest: Fail
+StringInterpolateNPETest: Fail
+ToStringAsFixedTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
