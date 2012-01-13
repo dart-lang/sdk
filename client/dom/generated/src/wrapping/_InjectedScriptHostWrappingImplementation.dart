@@ -56,8 +56,8 @@ class _InjectedScriptHostWrappingImplementation extends DOMWrapperBase implement
   }
   static void _inspect(receiver, objectId, hints) native;
 
-  Object inspectedNode(int num_) {
-    return _inspectedNode(this, num_);
+  Object inspectedNode(int num) {
+    return _inspectedNode(this, num);
   }
   static Object _inspectedNode(receiver, num) native;
 
