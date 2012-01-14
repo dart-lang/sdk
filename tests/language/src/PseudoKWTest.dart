@@ -88,6 +88,13 @@ class B {
   }
 }
 
+class C {
+  static int operator = (5);
+  static var get;
+  static get set() => 111;
+  static set set(set) { }
+}
+
 
 main() {
   PseudoKWTest.testMain();
@@ -99,4 +106,8 @@ main() {
   Expect.equals("typedef T", typedef("T"));
   static("true");
   Expect.equals(false, static("true"));
+  Expect.equals(5, C.operator);
+  Expect.equals(null, C.get);
+  C.set = 0;
+  Expect.equals(111, C.set);
 }

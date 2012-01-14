@@ -2402,7 +2402,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
   } else if ((CurrentToken() == Token::kGET) &&
              (LookaheadToken(1) != Token::kLPAREN) &&
-             !member.has_var && !member.has_final) {
+             (LookaheadToken(1) != Token::kASSIGN) &&
+             (LookaheadToken(1) != Token::kCOMMA)  &&
+             (LookaheadToken(1) != Token::kSEMICOLON)) {
     ConsumeToken();
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->token_index_;
@@ -2410,7 +2412,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     // If the result type was not specified, it will be set to DynamicType.
   } else if ((CurrentToken() == Token::kSET) &&
              (LookaheadToken(1) != Token::kLPAREN) &&
-             !member.has_var && !member.has_final)  {
+             (LookaheadToken(1) != Token::kASSIGN) &&
+             (LookaheadToken(1) != Token::kCOMMA)  &&
+             (LookaheadToken(1) != Token::kSEMICOLON))  {
     ConsumeToken();
     member.kind = RawFunction::kSetterFunction;
     member.name_pos = this->token_index_;
@@ -2422,7 +2426,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     }
   } else if ((CurrentToken() == Token::kOPERATOR) &&
              (LookaheadToken(1) != Token::kLPAREN) &&
-             !member.has_var && !member.has_final) {
+             (LookaheadToken(1) != Token::kASSIGN) &&
+             (LookaheadToken(1) != Token::kCOMMA)  &&
+             (LookaheadToken(1) != Token::kSEMICOLON)) {
     ConsumeToken();
     if (!Token::CanBeOverloaded(CurrentToken())) {
       ErrorMsg("invalid operator overloading");
