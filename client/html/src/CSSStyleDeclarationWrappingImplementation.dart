@@ -39,7 +39,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
 
   String get cssText() { return _ptr.cssText; }
 
-  void set cssText(String value) { _ptr.cssText = value; }
+  void set cssText(var value) { _ptr.cssText = value; }
 
   int get length() { return _ptr.length; }
 
@@ -73,8 +73,8 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     return _ptr.removeProperty(propertyName);
   }
 
-  void setProperty(String propertyName, String value, [String priority = '']) {
-    _ptr.setProperty(propertyName, value, priority);
+  void setProperty(String propertyName, var value, [String priority = '']) {
+    _ptr.setProperty(propertyName, '$value', priority);
   }
 
   String get typeName() { return "CSSStyleDeclaration"; }
@@ -85,7 +85,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation');
 
   /** Sets the value of "animation" */
-  void set animation(String value) {
+  void set animation(var value) {
     setProperty('${_browserPrefix}animation', value, '');
   }
 
@@ -94,7 +94,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-delay');
 
   /** Sets the value of "animation-delay" */
-  void set animationDelay(String value) {
+  void set animationDelay(var value) {
     setProperty('${_browserPrefix}animation-delay', value, '');
   }
 
@@ -103,7 +103,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-direction');
 
   /** Sets the value of "animation-direction" */
-  void set animationDirection(String value) {
+  void set animationDirection(var value) {
     setProperty('${_browserPrefix}animation-direction', value, '');
   }
 
@@ -112,7 +112,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-duration');
 
   /** Sets the value of "animation-duration" */
-  void set animationDuration(String value) {
+  void set animationDuration(var value) {
     setProperty('${_browserPrefix}animation-duration', value, '');
   }
 
@@ -121,7 +121,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
-  void set animationFillMode(String value) {
+  void set animationFillMode(var value) {
     setProperty('${_browserPrefix}animation-fill-mode', value, '');
   }
 
@@ -130,7 +130,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
-  void set animationIterationCount(String value) {
+  void set animationIterationCount(var value) {
     setProperty('${_browserPrefix}animation-iteration-count', value, '');
   }
 
@@ -139,7 +139,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-name');
 
   /** Sets the value of "animation-name" */
-  void set animationName(String value) {
+  void set animationName(var value) {
     setProperty('${_browserPrefix}animation-name', value, '');
   }
 
@@ -148,7 +148,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-play-state');
 
   /** Sets the value of "animation-play-state" */
-  void set animationPlayState(String value) {
+  void set animationPlayState(var value) {
     setProperty('${_browserPrefix}animation-play-state', value, '');
   }
 
@@ -157,7 +157,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
-  void set animationTimingFunction(String value) {
+  void set animationTimingFunction(var value) {
     setProperty('${_browserPrefix}animation-timing-function', value, '');
   }
 
@@ -166,7 +166,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}appearance');
 
   /** Sets the value of "appearance" */
-  void set appearance(String value) {
+  void set appearance(var value) {
     setProperty('${_browserPrefix}appearance', value, '');
   }
 
@@ -175,7 +175,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}backface-visibility');
 
   /** Sets the value of "backface-visibility" */
-  void set backfaceVisibility(String value) {
+  void set backfaceVisibility(var value) {
     setProperty('${_browserPrefix}backface-visibility', value, '');
   }
 
@@ -184,7 +184,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background');
 
   /** Sets the value of "background" */
-  void set background(String value) {
+  void set background(var value) {
     setProperty('background', value, '');
   }
 
@@ -193,7 +193,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
-  void set backgroundAttachment(String value) {
+  void set backgroundAttachment(var value) {
     setProperty('background-attachment', value, '');
   }
 
@@ -202,7 +202,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
-  void set backgroundClip(String value) {
+  void set backgroundClip(var value) {
     setProperty('background-clip', value, '');
   }
 
@@ -211,7 +211,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
-  void set backgroundColor(String value) {
+  void set backgroundColor(var value) {
     setProperty('background-color', value, '');
   }
 
@@ -220,7 +220,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}background-composite');
 
   /** Sets the value of "background-composite" */
-  void set backgroundComposite(String value) {
+  void set backgroundComposite(var value) {
     setProperty('${_browserPrefix}background-composite', value, '');
   }
 
@@ -229,7 +229,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
-  void set backgroundImage(String value) {
+  void set backgroundImage(var value) {
     setProperty('background-image', value, '');
   }
 
@@ -238,7 +238,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
-  void set backgroundOrigin(String value) {
+  void set backgroundOrigin(var value) {
     setProperty('background-origin', value, '');
   }
 
@@ -247,7 +247,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
-  void set backgroundPosition(String value) {
+  void set backgroundPosition(var value) {
     setProperty('background-position', value, '');
   }
 
@@ -256,7 +256,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
-  void set backgroundPositionX(String value) {
+  void set backgroundPositionX(var value) {
     setProperty('background-position-x', value, '');
   }
 
@@ -265,7 +265,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
-  void set backgroundPositionY(String value) {
+  void set backgroundPositionY(var value) {
     setProperty('background-position-y', value, '');
   }
 
@@ -274,7 +274,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
-  void set backgroundRepeat(String value) {
+  void set backgroundRepeat(var value) {
     setProperty('background-repeat', value, '');
   }
 
@@ -283,7 +283,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
-  void set backgroundRepeatX(String value) {
+  void set backgroundRepeatX(var value) {
     setProperty('background-repeat-x', value, '');
   }
 
@@ -292,7 +292,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
-  void set backgroundRepeatY(String value) {
+  void set backgroundRepeatY(var value) {
     setProperty('background-repeat-y', value, '');
   }
 
@@ -301,7 +301,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
-  void set backgroundSize(String value) {
+  void set backgroundSize(var value) {
     setProperty('background-size', value, '');
   }
 
@@ -310,7 +310,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border');
 
   /** Sets the value of "border" */
-  void set border(String value) {
+  void set border(var value) {
     setProperty('border', value, '');
   }
 
@@ -319,7 +319,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-after');
 
   /** Sets the value of "border-after" */
-  void set borderAfter(String value) {
+  void set borderAfter(var value) {
     setProperty('${_browserPrefix}border-after', value, '');
   }
 
@@ -328,7 +328,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-after-color');
 
   /** Sets the value of "border-after-color" */
-  void set borderAfterColor(String value) {
+  void set borderAfterColor(var value) {
     setProperty('${_browserPrefix}border-after-color', value, '');
   }
 
@@ -337,7 +337,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-after-style');
 
   /** Sets the value of "border-after-style" */
-  void set borderAfterStyle(String value) {
+  void set borderAfterStyle(var value) {
     setProperty('${_browserPrefix}border-after-style', value, '');
   }
 
@@ -346,7 +346,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-after-width');
 
   /** Sets the value of "border-after-width" */
-  void set borderAfterWidth(String value) {
+  void set borderAfterWidth(var value) {
     setProperty('${_browserPrefix}border-after-width', value, '');
   }
 
@@ -355,7 +355,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-before');
 
   /** Sets the value of "border-before" */
-  void set borderBefore(String value) {
+  void set borderBefore(var value) {
     setProperty('${_browserPrefix}border-before', value, '');
   }
 
@@ -364,7 +364,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-before-color');
 
   /** Sets the value of "border-before-color" */
-  void set borderBeforeColor(String value) {
+  void set borderBeforeColor(var value) {
     setProperty('${_browserPrefix}border-before-color', value, '');
   }
 
@@ -373,7 +373,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-before-style');
 
   /** Sets the value of "border-before-style" */
-  void set borderBeforeStyle(String value) {
+  void set borderBeforeStyle(var value) {
     setProperty('${_browserPrefix}border-before-style', value, '');
   }
 
@@ -382,7 +382,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-before-width');
 
   /** Sets the value of "border-before-width" */
-  void set borderBeforeWidth(String value) {
+  void set borderBeforeWidth(var value) {
     setProperty('${_browserPrefix}border-before-width', value, '');
   }
 
@@ -391,7 +391,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
-  void set borderBottom(String value) {
+  void set borderBottom(var value) {
     setProperty('border-bottom', value, '');
   }
 
@@ -400,7 +400,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
-  void set borderBottomColor(String value) {
+  void set borderBottomColor(var value) {
     setProperty('border-bottom-color', value, '');
   }
 
@@ -409,7 +409,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
-  void set borderBottomLeftRadius(String value) {
+  void set borderBottomLeftRadius(var value) {
     setProperty('border-bottom-left-radius', value, '');
   }
 
@@ -418,7 +418,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
-  void set borderBottomRightRadius(String value) {
+  void set borderBottomRightRadius(var value) {
     setProperty('border-bottom-right-radius', value, '');
   }
 
@@ -427,7 +427,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
-  void set borderBottomStyle(String value) {
+  void set borderBottomStyle(var value) {
     setProperty('border-bottom-style', value, '');
   }
 
@@ -436,7 +436,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
-  void set borderBottomWidth(String value) {
+  void set borderBottomWidth(var value) {
     setProperty('border-bottom-width', value, '');
   }
 
@@ -445,7 +445,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
-  void set borderCollapse(String value) {
+  void set borderCollapse(var value) {
     setProperty('border-collapse', value, '');
   }
 
@@ -454,7 +454,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
-  void set borderColor(String value) {
+  void set borderColor(var value) {
     setProperty('border-color', value, '');
   }
 
@@ -463,7 +463,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-end');
 
   /** Sets the value of "border-end" */
-  void set borderEnd(String value) {
+  void set borderEnd(var value) {
     setProperty('${_browserPrefix}border-end', value, '');
   }
 
@@ -472,7 +472,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-end-color');
 
   /** Sets the value of "border-end-color" */
-  void set borderEndColor(String value) {
+  void set borderEndColor(var value) {
     setProperty('${_browserPrefix}border-end-color', value, '');
   }
 
@@ -481,7 +481,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-end-style');
 
   /** Sets the value of "border-end-style" */
-  void set borderEndStyle(String value) {
+  void set borderEndStyle(var value) {
     setProperty('${_browserPrefix}border-end-style', value, '');
   }
 
@@ -490,7 +490,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-end-width');
 
   /** Sets the value of "border-end-width" */
-  void set borderEndWidth(String value) {
+  void set borderEndWidth(var value) {
     setProperty('${_browserPrefix}border-end-width', value, '');
   }
 
@@ -499,7 +499,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-fit');
 
   /** Sets the value of "border-fit" */
-  void set borderFit(String value) {
+  void set borderFit(var value) {
     setProperty('${_browserPrefix}border-fit', value, '');
   }
 
@@ -508,7 +508,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
-  void set borderHorizontalSpacing(String value) {
+  void set borderHorizontalSpacing(var value) {
     setProperty('${_browserPrefix}border-horizontal-spacing', value, '');
   }
 
@@ -517,7 +517,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
-  void set borderImage(String value) {
+  void set borderImage(var value) {
     setProperty('border-image', value, '');
   }
 
@@ -526,7 +526,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
-  void set borderImageOutset(String value) {
+  void set borderImageOutset(var value) {
     setProperty('border-image-outset', value, '');
   }
 
@@ -535,7 +535,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
-  void set borderImageRepeat(String value) {
+  void set borderImageRepeat(var value) {
     setProperty('border-image-repeat', value, '');
   }
 
@@ -544,7 +544,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
-  void set borderImageSlice(String value) {
+  void set borderImageSlice(var value) {
     setProperty('border-image-slice', value, '');
   }
 
@@ -553,7 +553,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
-  void set borderImageSource(String value) {
+  void set borderImageSource(var value) {
     setProperty('border-image-source', value, '');
   }
 
@@ -562,7 +562,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
-  void set borderImageWidth(String value) {
+  void set borderImageWidth(var value) {
     setProperty('border-image-width', value, '');
   }
 
@@ -571,7 +571,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
-  void set borderLeft(String value) {
+  void set borderLeft(var value) {
     setProperty('border-left', value, '');
   }
 
@@ -580,7 +580,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
-  void set borderLeftColor(String value) {
+  void set borderLeftColor(var value) {
     setProperty('border-left-color', value, '');
   }
 
@@ -589,7 +589,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
-  void set borderLeftStyle(String value) {
+  void set borderLeftStyle(var value) {
     setProperty('border-left-style', value, '');
   }
 
@@ -598,7 +598,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
-  void set borderLeftWidth(String value) {
+  void set borderLeftWidth(var value) {
     setProperty('border-left-width', value, '');
   }
 
@@ -607,7 +607,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
-  void set borderRadius(String value) {
+  void set borderRadius(var value) {
     setProperty('border-radius', value, '');
   }
 
@@ -616,7 +616,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
-  void set borderRight(String value) {
+  void set borderRight(var value) {
     setProperty('border-right', value, '');
   }
 
@@ -625,7 +625,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
-  void set borderRightColor(String value) {
+  void set borderRightColor(var value) {
     setProperty('border-right-color', value, '');
   }
 
@@ -634,7 +634,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
-  void set borderRightStyle(String value) {
+  void set borderRightStyle(var value) {
     setProperty('border-right-style', value, '');
   }
 
@@ -643,7 +643,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
-  void set borderRightWidth(String value) {
+  void set borderRightWidth(var value) {
     setProperty('border-right-width', value, '');
   }
 
@@ -652,7 +652,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
-  void set borderSpacing(String value) {
+  void set borderSpacing(var value) {
     setProperty('border-spacing', value, '');
   }
 
@@ -661,7 +661,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-start');
 
   /** Sets the value of "border-start" */
-  void set borderStart(String value) {
+  void set borderStart(var value) {
     setProperty('${_browserPrefix}border-start', value, '');
   }
 
@@ -670,7 +670,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-start-color');
 
   /** Sets the value of "border-start-color" */
-  void set borderStartColor(String value) {
+  void set borderStartColor(var value) {
     setProperty('${_browserPrefix}border-start-color', value, '');
   }
 
@@ -679,7 +679,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-start-style');
 
   /** Sets the value of "border-start-style" */
-  void set borderStartStyle(String value) {
+  void set borderStartStyle(var value) {
     setProperty('${_browserPrefix}border-start-style', value, '');
   }
 
@@ -688,7 +688,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-start-width');
 
   /** Sets the value of "border-start-width" */
-  void set borderStartWidth(String value) {
+  void set borderStartWidth(var value) {
     setProperty('${_browserPrefix}border-start-width', value, '');
   }
 
@@ -697,7 +697,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
-  void set borderStyle(String value) {
+  void set borderStyle(var value) {
     setProperty('border-style', value, '');
   }
 
@@ -706,7 +706,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
-  void set borderTop(String value) {
+  void set borderTop(var value) {
     setProperty('border-top', value, '');
   }
 
@@ -715,7 +715,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
-  void set borderTopColor(String value) {
+  void set borderTopColor(var value) {
     setProperty('border-top-color', value, '');
   }
 
@@ -724,7 +724,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
-  void set borderTopLeftRadius(String value) {
+  void set borderTopLeftRadius(var value) {
     setProperty('border-top-left-radius', value, '');
   }
 
@@ -733,7 +733,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
-  void set borderTopRightRadius(String value) {
+  void set borderTopRightRadius(var value) {
     setProperty('border-top-right-radius', value, '');
   }
 
@@ -742,7 +742,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
-  void set borderTopStyle(String value) {
+  void set borderTopStyle(var value) {
     setProperty('border-top-style', value, '');
   }
 
@@ -751,7 +751,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
-  void set borderTopWidth(String value) {
+  void set borderTopWidth(var value) {
     setProperty('border-top-width', value, '');
   }
 
@@ -760,7 +760,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
-  void set borderVerticalSpacing(String value) {
+  void set borderVerticalSpacing(var value) {
     setProperty('${_browserPrefix}border-vertical-spacing', value, '');
   }
 
@@ -769,7 +769,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
-  void set borderWidth(String value) {
+  void set borderWidth(var value) {
     setProperty('border-width', value, '');
   }
 
@@ -778,7 +778,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
-  void set bottom(String value) {
+  void set bottom(var value) {
     setProperty('bottom', value, '');
   }
 
@@ -787,7 +787,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-align');
 
   /** Sets the value of "box-align" */
-  void set boxAlign(String value) {
+  void set boxAlign(var value) {
     setProperty('${_browserPrefix}box-align', value, '');
   }
 
@@ -796,7 +796,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-direction');
 
   /** Sets the value of "box-direction" */
-  void set boxDirection(String value) {
+  void set boxDirection(var value) {
     setProperty('${_browserPrefix}box-direction', value, '');
   }
 
@@ -805,7 +805,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-flex');
 
   /** Sets the value of "box-flex" */
-  void set boxFlex(String value) {
+  void set boxFlex(var value) {
     setProperty('${_browserPrefix}box-flex', value, '');
   }
 
@@ -814,7 +814,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-flex-group');
 
   /** Sets the value of "box-flex-group" */
-  void set boxFlexGroup(String value) {
+  void set boxFlexGroup(var value) {
     setProperty('${_browserPrefix}box-flex-group', value, '');
   }
 
@@ -823,7 +823,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-lines');
 
   /** Sets the value of "box-lines" */
-  void set boxLines(String value) {
+  void set boxLines(var value) {
     setProperty('${_browserPrefix}box-lines', value, '');
   }
 
@@ -832,7 +832,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
-  void set boxOrdinalGroup(String value) {
+  void set boxOrdinalGroup(var value) {
     setProperty('${_browserPrefix}box-ordinal-group', value, '');
   }
 
@@ -841,7 +841,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-orient');
 
   /** Sets the value of "box-orient" */
-  void set boxOrient(String value) {
+  void set boxOrient(var value) {
     setProperty('${_browserPrefix}box-orient', value, '');
   }
 
@@ -850,7 +850,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-pack');
 
   /** Sets the value of "box-pack" */
-  void set boxPack(String value) {
+  void set boxPack(var value) {
     setProperty('${_browserPrefix}box-pack', value, '');
   }
 
@@ -859,7 +859,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}box-reflect');
 
   /** Sets the value of "box-reflect" */
-  void set boxReflect(String value) {
+  void set boxReflect(var value) {
     setProperty('${_browserPrefix}box-reflect', value, '');
   }
 
@@ -868,7 +868,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
-  void set boxShadow(String value) {
+  void set boxShadow(var value) {
     setProperty('box-shadow', value, '');
   }
 
@@ -877,7 +877,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
-  void set boxSizing(String value) {
+  void set boxSizing(var value) {
     setProperty('box-sizing', value, '');
   }
 
@@ -886,7 +886,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
-  void set captionSide(String value) {
+  void set captionSide(var value) {
     setProperty('caption-side', value, '');
   }
 
@@ -895,7 +895,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
-  void set clear(String value) {
+  void set clear(var value) {
     setProperty('clear', value, '');
   }
 
@@ -904,7 +904,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
-  void set clip(String value) {
+  void set clip(var value) {
     setProperty('clip', value, '');
   }
 
@@ -913,7 +913,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('color');
 
   /** Sets the value of "color" */
-  void set color(String value) {
+  void set color(var value) {
     setProperty('color', value, '');
   }
 
@@ -922,7 +922,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}color-correction');
 
   /** Sets the value of "color-correction" */
-  void set colorCorrection(String value) {
+  void set colorCorrection(var value) {
     setProperty('${_browserPrefix}color-correction', value, '');
   }
 
@@ -931,7 +931,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-break-after');
 
   /** Sets the value of "column-break-after" */
-  void set columnBreakAfter(String value) {
+  void set columnBreakAfter(var value) {
     setProperty('${_browserPrefix}column-break-after', value, '');
   }
 
@@ -940,7 +940,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-break-before');
 
   /** Sets the value of "column-break-before" */
-  void set columnBreakBefore(String value) {
+  void set columnBreakBefore(var value) {
     setProperty('${_browserPrefix}column-break-before', value, '');
   }
 
@@ -949,7 +949,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-break-inside');
 
   /** Sets the value of "column-break-inside" */
-  void set columnBreakInside(String value) {
+  void set columnBreakInside(var value) {
     setProperty('${_browserPrefix}column-break-inside', value, '');
   }
 
@@ -958,7 +958,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-count');
 
   /** Sets the value of "column-count" */
-  void set columnCount(String value) {
+  void set columnCount(var value) {
     setProperty('${_browserPrefix}column-count', value, '');
   }
 
@@ -967,7 +967,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-gap');
 
   /** Sets the value of "column-gap" */
-  void set columnGap(String value) {
+  void set columnGap(var value) {
     setProperty('${_browserPrefix}column-gap', value, '');
   }
 
@@ -976,7 +976,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-rule');
 
   /** Sets the value of "column-rule" */
-  void set columnRule(String value) {
+  void set columnRule(var value) {
     setProperty('${_browserPrefix}column-rule', value, '');
   }
 
@@ -985,7 +985,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-rule-color');
 
   /** Sets the value of "column-rule-color" */
-  void set columnRuleColor(String value) {
+  void set columnRuleColor(var value) {
     setProperty('${_browserPrefix}column-rule-color', value, '');
   }
 
@@ -994,7 +994,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-rule-style');
 
   /** Sets the value of "column-rule-style" */
-  void set columnRuleStyle(String value) {
+  void set columnRuleStyle(var value) {
     setProperty('${_browserPrefix}column-rule-style', value, '');
   }
 
@@ -1003,7 +1003,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-rule-width');
 
   /** Sets the value of "column-rule-width" */
-  void set columnRuleWidth(String value) {
+  void set columnRuleWidth(var value) {
     setProperty('${_browserPrefix}column-rule-width', value, '');
   }
 
@@ -1012,7 +1012,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-span');
 
   /** Sets the value of "column-span" */
-  void set columnSpan(String value) {
+  void set columnSpan(var value) {
     setProperty('${_browserPrefix}column-span', value, '');
   }
 
@@ -1021,7 +1021,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}column-width');
 
   /** Sets the value of "column-width" */
-  void set columnWidth(String value) {
+  void set columnWidth(var value) {
     setProperty('${_browserPrefix}column-width', value, '');
   }
 
@@ -1030,7 +1030,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}columns');
 
   /** Sets the value of "columns" */
-  void set columns(String value) {
+  void set columns(var value) {
     setProperty('${_browserPrefix}columns', value, '');
   }
 
@@ -1039,7 +1039,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('content');
 
   /** Sets the value of "content" */
-  void set content(String value) {
+  void set content(var value) {
     setProperty('content', value, '');
   }
 
@@ -1048,7 +1048,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
-  void set counterIncrement(String value) {
+  void set counterIncrement(var value) {
     setProperty('counter-increment', value, '');
   }
 
@@ -1057,7 +1057,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
-  void set counterReset(String value) {
+  void set counterReset(var value) {
     setProperty('counter-reset', value, '');
   }
 
@@ -1066,7 +1066,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
-  void set cursor(String value) {
+  void set cursor(var value) {
     setProperty('cursor', value, '');
   }
 
@@ -1075,7 +1075,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
-  void set direction(String value) {
+  void set direction(var value) {
     setProperty('direction', value, '');
   }
 
@@ -1084,7 +1084,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('display');
 
   /** Sets the value of "display" */
-  void set display(String value) {
+  void set display(var value) {
     setProperty('display', value, '');
   }
 
@@ -1093,7 +1093,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
-  void set emptyCells(String value) {
+  void set emptyCells(var value) {
     setProperty('empty-cells', value, '');
   }
 
@@ -1102,7 +1102,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}filter');
 
   /** Sets the value of "filter" */
-  void set filter(String value) {
+  void set filter(var value) {
     setProperty('${_browserPrefix}filter', value, '');
   }
 
@@ -1111,7 +1111,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}flex-align');
 
   /** Sets the value of "flex-align" */
-  void set flexAlign(String value) {
+  void set flexAlign(var value) {
     setProperty('${_browserPrefix}flex-align', value, '');
   }
 
@@ -1120,7 +1120,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}flex-flow');
 
   /** Sets the value of "flex-flow" */
-  void set flexFlow(String value) {
+  void set flexFlow(var value) {
     setProperty('${_browserPrefix}flex-flow', value, '');
   }
 
@@ -1129,7 +1129,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}flex-order');
 
   /** Sets the value of "flex-order" */
-  void set flexOrder(String value) {
+  void set flexOrder(var value) {
     setProperty('${_browserPrefix}flex-order', value, '');
   }
 
@@ -1138,7 +1138,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}flex-pack');
 
   /** Sets the value of "flex-pack" */
-  void set flexPack(String value) {
+  void set flexPack(var value) {
     setProperty('${_browserPrefix}flex-pack', value, '');
   }
 
@@ -1147,7 +1147,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('float');
 
   /** Sets the value of "float" */
-  void set float(String value) {
+  void set float(var value) {
     setProperty('float', value, '');
   }
 
@@ -1156,7 +1156,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}flow-from');
 
   /** Sets the value of "flow-from" */
-  void set flowFrom(String value) {
+  void set flowFrom(var value) {
     setProperty('${_browserPrefix}flow-from', value, '');
   }
 
@@ -1165,7 +1165,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}flow-into');
 
   /** Sets the value of "flow-into" */
-  void set flowInto(String value) {
+  void set flowInto(var value) {
     setProperty('${_browserPrefix}flow-into', value, '');
   }
 
@@ -1174,7 +1174,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('font');
 
   /** Sets the value of "font" */
-  void set font(String value) {
+  void set font(var value) {
     setProperty('font', value, '');
   }
 
@@ -1183,7 +1183,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
-  void set fontFamily(String value) {
+  void set fontFamily(var value) {
     setProperty('font-family', value, '');
   }
 
@@ -1192,7 +1192,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
-  void set fontFeatureSettings(String value) {
+  void set fontFeatureSettings(var value) {
     setProperty('${_browserPrefix}font-feature-settings', value, '');
   }
 
@@ -1201,7 +1201,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
-  void set fontSize(String value) {
+  void set fontSize(var value) {
     setProperty('font-size', value, '');
   }
 
@@ -1210,7 +1210,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}font-size-delta');
 
   /** Sets the value of "font-size-delta" */
-  void set fontSizeDelta(String value) {
+  void set fontSizeDelta(var value) {
     setProperty('${_browserPrefix}font-size-delta', value, '');
   }
 
@@ -1219,7 +1219,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}font-smoothing');
 
   /** Sets the value of "font-smoothing" */
-  void set fontSmoothing(String value) {
+  void set fontSmoothing(var value) {
     setProperty('${_browserPrefix}font-smoothing', value, '');
   }
 
@@ -1228,7 +1228,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
-  void set fontStretch(String value) {
+  void set fontStretch(var value) {
     setProperty('font-stretch', value, '');
   }
 
@@ -1237,7 +1237,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
-  void set fontStyle(String value) {
+  void set fontStyle(var value) {
     setProperty('font-style', value, '');
   }
 
@@ -1246,7 +1246,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
-  void set fontVariant(String value) {
+  void set fontVariant(var value) {
     setProperty('font-variant', value, '');
   }
 
@@ -1255,7 +1255,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
-  void set fontWeight(String value) {
+  void set fontWeight(var value) {
     setProperty('font-weight', value, '');
   }
 
@@ -1264,7 +1264,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('height');
 
   /** Sets the value of "height" */
-  void set height(String value) {
+  void set height(var value) {
     setProperty('height', value, '');
   }
 
@@ -1273,7 +1273,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}highlight');
 
   /** Sets the value of "highlight" */
-  void set highlight(String value) {
+  void set highlight(var value) {
     setProperty('${_browserPrefix}highlight', value, '');
   }
 
@@ -1282,7 +1282,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
-  void set hyphenateCharacter(String value) {
+  void set hyphenateCharacter(var value) {
     setProperty('${_browserPrefix}hyphenate-character', value, '');
   }
 
@@ -1291,7 +1291,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}hyphenate-limit-after');
 
   /** Sets the value of "hyphenate-limit-after" */
-  void set hyphenateLimitAfter(String value) {
+  void set hyphenateLimitAfter(var value) {
     setProperty('${_browserPrefix}hyphenate-limit-after', value, '');
   }
 
@@ -1300,7 +1300,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}hyphenate-limit-before');
 
   /** Sets the value of "hyphenate-limit-before" */
-  void set hyphenateLimitBefore(String value) {
+  void set hyphenateLimitBefore(var value) {
     setProperty('${_browserPrefix}hyphenate-limit-before', value, '');
   }
 
@@ -1309,7 +1309,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}hyphenate-limit-lines');
 
   /** Sets the value of "hyphenate-limit-lines" */
-  void set hyphenateLimitLines(String value) {
+  void set hyphenateLimitLines(var value) {
     setProperty('${_browserPrefix}hyphenate-limit-lines', value, '');
   }
 
@@ -1318,7 +1318,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}hyphens');
 
   /** Sets the value of "hyphens" */
-  void set hyphens(String value) {
+  void set hyphens(var value) {
     setProperty('${_browserPrefix}hyphens', value, '');
   }
 
@@ -1327,7 +1327,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
-  void set imageRendering(String value) {
+  void set imageRendering(var value) {
     setProperty('image-rendering', value, '');
   }
 
@@ -1336,7 +1336,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('left');
 
   /** Sets the value of "left" */
-  void set left(String value) {
+  void set left(var value) {
     setProperty('left', value, '');
   }
 
@@ -1345,7 +1345,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
-  void set letterSpacing(String value) {
+  void set letterSpacing(var value) {
     setProperty('letter-spacing', value, '');
   }
 
@@ -1354,7 +1354,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}line-box-contain');
 
   /** Sets the value of "line-box-contain" */
-  void set lineBoxContain(String value) {
+  void set lineBoxContain(var value) {
     setProperty('${_browserPrefix}line-box-contain', value, '');
   }
 
@@ -1363,7 +1363,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}line-break');
 
   /** Sets the value of "line-break" */
-  void set lineBreak(String value) {
+  void set lineBreak(var value) {
     setProperty('${_browserPrefix}line-break', value, '');
   }
 
@@ -1372,7 +1372,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}line-clamp');
 
   /** Sets the value of "line-clamp" */
-  void set lineClamp(String value) {
+  void set lineClamp(var value) {
     setProperty('${_browserPrefix}line-clamp', value, '');
   }
 
@@ -1381,7 +1381,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
-  void set lineHeight(String value) {
+  void set lineHeight(var value) {
     setProperty('line-height', value, '');
   }
 
@@ -1390,7 +1390,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
-  void set listStyle(String value) {
+  void set listStyle(var value) {
     setProperty('list-style', value, '');
   }
 
@@ -1399,7 +1399,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
-  void set listStyleImage(String value) {
+  void set listStyleImage(var value) {
     setProperty('list-style-image', value, '');
   }
 
@@ -1408,7 +1408,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
-  void set listStylePosition(String value) {
+  void set listStylePosition(var value) {
     setProperty('list-style-position', value, '');
   }
 
@@ -1417,7 +1417,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
-  void set listStyleType(String value) {
+  void set listStyleType(var value) {
     setProperty('list-style-type', value, '');
   }
 
@@ -1426,7 +1426,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}locale');
 
   /** Sets the value of "locale" */
-  void set locale(String value) {
+  void set locale(var value) {
     setProperty('${_browserPrefix}locale', value, '');
   }
 
@@ -1435,7 +1435,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}logical-height');
 
   /** Sets the value of "logical-height" */
-  void set logicalHeight(String value) {
+  void set logicalHeight(var value) {
     setProperty('${_browserPrefix}logical-height', value, '');
   }
 
@@ -1444,7 +1444,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}logical-width');
 
   /** Sets the value of "logical-width" */
-  void set logicalWidth(String value) {
+  void set logicalWidth(var value) {
     setProperty('${_browserPrefix}logical-width', value, '');
   }
 
@@ -1453,7 +1453,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
-  void set margin(String value) {
+  void set margin(var value) {
     setProperty('margin', value, '');
   }
 
@@ -1462,7 +1462,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-after');
 
   /** Sets the value of "margin-after" */
-  void set marginAfter(String value) {
+  void set marginAfter(var value) {
     setProperty('${_browserPrefix}margin-after', value, '');
   }
 
@@ -1471,7 +1471,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
-  void set marginAfterCollapse(String value) {
+  void set marginAfterCollapse(var value) {
     setProperty('${_browserPrefix}margin-after-collapse', value, '');
   }
 
@@ -1480,7 +1480,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-before');
 
   /** Sets the value of "margin-before" */
-  void set marginBefore(String value) {
+  void set marginBefore(var value) {
     setProperty('${_browserPrefix}margin-before', value, '');
   }
 
@@ -1489,7 +1489,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
-  void set marginBeforeCollapse(String value) {
+  void set marginBeforeCollapse(var value) {
     setProperty('${_browserPrefix}margin-before-collapse', value, '');
   }
 
@@ -1498,7 +1498,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
-  void set marginBottom(String value) {
+  void set marginBottom(var value) {
     setProperty('margin-bottom', value, '');
   }
 
@@ -1507,7 +1507,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
-  void set marginBottomCollapse(String value) {
+  void set marginBottomCollapse(var value) {
     setProperty('${_browserPrefix}margin-bottom-collapse', value, '');
   }
 
@@ -1516,7 +1516,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-collapse');
 
   /** Sets the value of "margin-collapse" */
-  void set marginCollapse(String value) {
+  void set marginCollapse(var value) {
     setProperty('${_browserPrefix}margin-collapse', value, '');
   }
 
@@ -1525,7 +1525,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-end');
 
   /** Sets the value of "margin-end" */
-  void set marginEnd(String value) {
+  void set marginEnd(var value) {
     setProperty('${_browserPrefix}margin-end', value, '');
   }
 
@@ -1534,7 +1534,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
-  void set marginLeft(String value) {
+  void set marginLeft(var value) {
     setProperty('margin-left', value, '');
   }
 
@@ -1543,7 +1543,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
-  void set marginRight(String value) {
+  void set marginRight(var value) {
     setProperty('margin-right', value, '');
   }
 
@@ -1552,7 +1552,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-start');
 
   /** Sets the value of "margin-start" */
-  void set marginStart(String value) {
+  void set marginStart(var value) {
     setProperty('${_browserPrefix}margin-start', value, '');
   }
 
@@ -1561,7 +1561,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
-  void set marginTop(String value) {
+  void set marginTop(var value) {
     setProperty('margin-top', value, '');
   }
 
@@ -1570,7 +1570,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
-  void set marginTopCollapse(String value) {
+  void set marginTopCollapse(var value) {
     setProperty('${_browserPrefix}margin-top-collapse', value, '');
   }
 
@@ -1579,7 +1579,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}marquee');
 
   /** Sets the value of "marquee" */
-  void set marquee(String value) {
+  void set marquee(var value) {
     setProperty('${_browserPrefix}marquee', value, '');
   }
 
@@ -1588,7 +1588,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}marquee-direction');
 
   /** Sets the value of "marquee-direction" */
-  void set marqueeDirection(String value) {
+  void set marqueeDirection(var value) {
     setProperty('${_browserPrefix}marquee-direction', value, '');
   }
 
@@ -1597,7 +1597,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}marquee-increment');
 
   /** Sets the value of "marquee-increment" */
-  void set marqueeIncrement(String value) {
+  void set marqueeIncrement(var value) {
     setProperty('${_browserPrefix}marquee-increment', value, '');
   }
 
@@ -1606,7 +1606,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}marquee-repetition');
 
   /** Sets the value of "marquee-repetition" */
-  void set marqueeRepetition(String value) {
+  void set marqueeRepetition(var value) {
     setProperty('${_browserPrefix}marquee-repetition', value, '');
   }
 
@@ -1615,7 +1615,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}marquee-speed');
 
   /** Sets the value of "marquee-speed" */
-  void set marqueeSpeed(String value) {
+  void set marqueeSpeed(var value) {
     setProperty('${_browserPrefix}marquee-speed', value, '');
   }
 
@@ -1624,7 +1624,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}marquee-style');
 
   /** Sets the value of "marquee-style" */
-  void set marqueeStyle(String value) {
+  void set marqueeStyle(var value) {
     setProperty('${_browserPrefix}marquee-style', value, '');
   }
 
@@ -1633,7 +1633,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask');
 
   /** Sets the value of "mask" */
-  void set mask(String value) {
+  void set mask(var value) {
     setProperty('${_browserPrefix}mask', value, '');
   }
 
@@ -1642,7 +1642,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-attachment');
 
   /** Sets the value of "mask-attachment" */
-  void set maskAttachment(String value) {
+  void set maskAttachment(var value) {
     setProperty('${_browserPrefix}mask-attachment', value, '');
   }
 
@@ -1651,7 +1651,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-box-image');
 
   /** Sets the value of "mask-box-image" */
-  void set maskBoxImage(String value) {
+  void set maskBoxImage(var value) {
     setProperty('${_browserPrefix}mask-box-image', value, '');
   }
 
@@ -1660,7 +1660,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
-  void set maskBoxImageOutset(String value) {
+  void set maskBoxImageOutset(var value) {
     setProperty('${_browserPrefix}mask-box-image-outset', value, '');
   }
 
@@ -1669,7 +1669,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
-  void set maskBoxImageRepeat(String value) {
+  void set maskBoxImageRepeat(var value) {
     setProperty('${_browserPrefix}mask-box-image-repeat', value, '');
   }
 
@@ -1678,7 +1678,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
-  void set maskBoxImageSlice(String value) {
+  void set maskBoxImageSlice(var value) {
     setProperty('${_browserPrefix}mask-box-image-slice', value, '');
   }
 
@@ -1687,7 +1687,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
-  void set maskBoxImageSource(String value) {
+  void set maskBoxImageSource(var value) {
     setProperty('${_browserPrefix}mask-box-image-source', value, '');
   }
 
@@ -1696,7 +1696,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
-  void set maskBoxImageWidth(String value) {
+  void set maskBoxImageWidth(var value) {
     setProperty('${_browserPrefix}mask-box-image-width', value, '');
   }
 
@@ -1705,7 +1705,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-clip');
 
   /** Sets the value of "mask-clip" */
-  void set maskClip(String value) {
+  void set maskClip(var value) {
     setProperty('${_browserPrefix}mask-clip', value, '');
   }
 
@@ -1714,7 +1714,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-composite');
 
   /** Sets the value of "mask-composite" */
-  void set maskComposite(String value) {
+  void set maskComposite(var value) {
     setProperty('${_browserPrefix}mask-composite', value, '');
   }
 
@@ -1723,7 +1723,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-image');
 
   /** Sets the value of "mask-image" */
-  void set maskImage(String value) {
+  void set maskImage(var value) {
     setProperty('${_browserPrefix}mask-image', value, '');
   }
 
@@ -1732,7 +1732,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-origin');
 
   /** Sets the value of "mask-origin" */
-  void set maskOrigin(String value) {
+  void set maskOrigin(var value) {
     setProperty('${_browserPrefix}mask-origin', value, '');
   }
 
@@ -1741,7 +1741,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-position');
 
   /** Sets the value of "mask-position" */
-  void set maskPosition(String value) {
+  void set maskPosition(var value) {
     setProperty('${_browserPrefix}mask-position', value, '');
   }
 
@@ -1750,7 +1750,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-position-x');
 
   /** Sets the value of "mask-position-x" */
-  void set maskPositionX(String value) {
+  void set maskPositionX(var value) {
     setProperty('${_browserPrefix}mask-position-x', value, '');
   }
 
@@ -1759,7 +1759,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-position-y');
 
   /** Sets the value of "mask-position-y" */
-  void set maskPositionY(String value) {
+  void set maskPositionY(var value) {
     setProperty('${_browserPrefix}mask-position-y', value, '');
   }
 
@@ -1768,7 +1768,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-repeat');
 
   /** Sets the value of "mask-repeat" */
-  void set maskRepeat(String value) {
+  void set maskRepeat(var value) {
     setProperty('${_browserPrefix}mask-repeat', value, '');
   }
 
@@ -1777,7 +1777,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
-  void set maskRepeatX(String value) {
+  void set maskRepeatX(var value) {
     setProperty('${_browserPrefix}mask-repeat-x', value, '');
   }
 
@@ -1786,7 +1786,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
-  void set maskRepeatY(String value) {
+  void set maskRepeatY(var value) {
     setProperty('${_browserPrefix}mask-repeat-y', value, '');
   }
 
@@ -1795,7 +1795,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}mask-size');
 
   /** Sets the value of "mask-size" */
-  void set maskSize(String value) {
+  void set maskSize(var value) {
     setProperty('${_browserPrefix}mask-size', value, '');
   }
 
@@ -1804,7 +1804,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}match-nearest-mail-blockquote-color');
 
   /** Sets the value of "match-nearest-mail-blockquote-color" */
-  void set matchNearestMailBlockquoteColor(String value) {
+  void set matchNearestMailBlockquoteColor(var value) {
     setProperty('${_browserPrefix}match-nearest-mail-blockquote-color', value, '');
   }
 
@@ -1813,7 +1813,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
-  void set maxHeight(String value) {
+  void set maxHeight(var value) {
     setProperty('max-height', value, '');
   }
 
@@ -1822,7 +1822,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}max-logical-height');
 
   /** Sets the value of "max-logical-height" */
-  void set maxLogicalHeight(String value) {
+  void set maxLogicalHeight(var value) {
     setProperty('${_browserPrefix}max-logical-height', value, '');
   }
 
@@ -1831,7 +1831,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}max-logical-width');
 
   /** Sets the value of "max-logical-width" */
-  void set maxLogicalWidth(String value) {
+  void set maxLogicalWidth(var value) {
     setProperty('${_browserPrefix}max-logical-width', value, '');
   }
 
@@ -1840,7 +1840,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
-  void set maxWidth(String value) {
+  void set maxWidth(var value) {
     setProperty('max-width', value, '');
   }
 
@@ -1849,7 +1849,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
-  void set minHeight(String value) {
+  void set minHeight(var value) {
     setProperty('min-height', value, '');
   }
 
@@ -1858,7 +1858,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}min-logical-height');
 
   /** Sets the value of "min-logical-height" */
-  void set minLogicalHeight(String value) {
+  void set minLogicalHeight(var value) {
     setProperty('${_browserPrefix}min-logical-height', value, '');
   }
 
@@ -1867,7 +1867,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}min-logical-width');
 
   /** Sets the value of "min-logical-width" */
-  void set minLogicalWidth(String value) {
+  void set minLogicalWidth(var value) {
     setProperty('${_browserPrefix}min-logical-width', value, '');
   }
 
@@ -1876,7 +1876,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
-  void set minWidth(String value) {
+  void set minWidth(var value) {
     setProperty('min-width', value, '');
   }
 
@@ -1885,7 +1885,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}nbsp-mode');
 
   /** Sets the value of "nbsp-mode" */
-  void set nbspMode(String value) {
+  void set nbspMode(var value) {
     setProperty('${_browserPrefix}nbsp-mode', value, '');
   }
 
@@ -1894,7 +1894,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
-  void set opacity(String value) {
+  void set opacity(var value) {
     setProperty('opacity', value, '');
   }
 
@@ -1903,7 +1903,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
-  void set orphans(String value) {
+  void set orphans(var value) {
     setProperty('orphans', value, '');
   }
 
@@ -1912,7 +1912,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
-  void set outline(String value) {
+  void set outline(var value) {
     setProperty('outline', value, '');
   }
 
@@ -1921,7 +1921,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
-  void set outlineColor(String value) {
+  void set outlineColor(var value) {
     setProperty('outline-color', value, '');
   }
 
@@ -1930,7 +1930,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
-  void set outlineOffset(String value) {
+  void set outlineOffset(var value) {
     setProperty('outline-offset', value, '');
   }
 
@@ -1939,7 +1939,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
-  void set outlineStyle(String value) {
+  void set outlineStyle(var value) {
     setProperty('outline-style', value, '');
   }
 
@@ -1948,7 +1948,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
-  void set outlineWidth(String value) {
+  void set outlineWidth(var value) {
     setProperty('outline-width', value, '');
   }
 
@@ -1957,7 +1957,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
-  void set overflow(String value) {
+  void set overflow(var value) {
     setProperty('overflow', value, '');
   }
 
@@ -1966,7 +1966,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
-  void set overflowX(String value) {
+  void set overflowX(var value) {
     setProperty('overflow-x', value, '');
   }
 
@@ -1975,7 +1975,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
-  void set overflowY(String value) {
+  void set overflowY(var value) {
     setProperty('overflow-y', value, '');
   }
 
@@ -1984,7 +1984,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
-  void set padding(String value) {
+  void set padding(var value) {
     setProperty('padding', value, '');
   }
 
@@ -1993,7 +1993,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}padding-after');
 
   /** Sets the value of "padding-after" */
-  void set paddingAfter(String value) {
+  void set paddingAfter(var value) {
     setProperty('${_browserPrefix}padding-after', value, '');
   }
 
@@ -2002,7 +2002,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}padding-before');
 
   /** Sets the value of "padding-before" */
-  void set paddingBefore(String value) {
+  void set paddingBefore(var value) {
     setProperty('${_browserPrefix}padding-before', value, '');
   }
 
@@ -2011,7 +2011,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
-  void set paddingBottom(String value) {
+  void set paddingBottom(var value) {
     setProperty('padding-bottom', value, '');
   }
 
@@ -2020,7 +2020,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}padding-end');
 
   /** Sets the value of "padding-end" */
-  void set paddingEnd(String value) {
+  void set paddingEnd(var value) {
     setProperty('${_browserPrefix}padding-end', value, '');
   }
 
@@ -2029,7 +2029,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
-  void set paddingLeft(String value) {
+  void set paddingLeft(var value) {
     setProperty('padding-left', value, '');
   }
 
@@ -2038,7 +2038,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
-  void set paddingRight(String value) {
+  void set paddingRight(var value) {
     setProperty('padding-right', value, '');
   }
 
@@ -2047,7 +2047,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}padding-start');
 
   /** Sets the value of "padding-start" */
-  void set paddingStart(String value) {
+  void set paddingStart(var value) {
     setProperty('${_browserPrefix}padding-start', value, '');
   }
 
@@ -2056,7 +2056,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
-  void set paddingTop(String value) {
+  void set paddingTop(var value) {
     setProperty('padding-top', value, '');
   }
 
@@ -2065,7 +2065,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('page');
 
   /** Sets the value of "page" */
-  void set page(String value) {
+  void set page(var value) {
     setProperty('page', value, '');
   }
 
@@ -2074,7 +2074,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
-  void set pageBreakAfter(String value) {
+  void set pageBreakAfter(var value) {
     setProperty('page-break-after', value, '');
   }
 
@@ -2083,7 +2083,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
-  void set pageBreakBefore(String value) {
+  void set pageBreakBefore(var value) {
     setProperty('page-break-before', value, '');
   }
 
@@ -2092,7 +2092,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
-  void set pageBreakInside(String value) {
+  void set pageBreakInside(var value) {
     setProperty('page-break-inside', value, '');
   }
 
@@ -2101,7 +2101,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}perspective');
 
   /** Sets the value of "perspective" */
-  void set perspective(String value) {
+  void set perspective(var value) {
     setProperty('${_browserPrefix}perspective', value, '');
   }
 
@@ -2110,7 +2110,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}perspective-origin');
 
   /** Sets the value of "perspective-origin" */
-  void set perspectiveOrigin(String value) {
+  void set perspectiveOrigin(var value) {
     setProperty('${_browserPrefix}perspective-origin', value, '');
   }
 
@@ -2119,7 +2119,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
-  void set perspectiveOriginX(String value) {
+  void set perspectiveOriginX(var value) {
     setProperty('${_browserPrefix}perspective-origin-x', value, '');
   }
 
@@ -2128,7 +2128,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
-  void set perspectiveOriginY(String value) {
+  void set perspectiveOriginY(var value) {
     setProperty('${_browserPrefix}perspective-origin-y', value, '');
   }
 
@@ -2137,7 +2137,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
-  void set pointerEvents(String value) {
+  void set pointerEvents(var value) {
     setProperty('pointer-events', value, '');
   }
 
@@ -2146,7 +2146,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('position');
 
   /** Sets the value of "position" */
-  void set position(String value) {
+  void set position(var value) {
     setProperty('position', value, '');
   }
 
@@ -2155,7 +2155,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
-  void set quotes(String value) {
+  void set quotes(var value) {
     setProperty('quotes', value, '');
   }
 
@@ -2164,7 +2164,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}region-break-after');
 
   /** Sets the value of "region-break-after" */
-  void set regionBreakAfter(String value) {
+  void set regionBreakAfter(var value) {
     setProperty('${_browserPrefix}region-break-after', value, '');
   }
 
@@ -2173,7 +2173,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}region-break-before');
 
   /** Sets the value of "region-break-before" */
-  void set regionBreakBefore(String value) {
+  void set regionBreakBefore(var value) {
     setProperty('${_browserPrefix}region-break-before', value, '');
   }
 
@@ -2182,7 +2182,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}region-break-inside');
 
   /** Sets the value of "region-break-inside" */
-  void set regionBreakInside(String value) {
+  void set regionBreakInside(var value) {
     setProperty('${_browserPrefix}region-break-inside', value, '');
   }
 
@@ -2191,7 +2191,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}region-overflow');
 
   /** Sets the value of "region-overflow" */
-  void set regionOverflow(String value) {
+  void set regionOverflow(var value) {
     setProperty('${_browserPrefix}region-overflow', value, '');
   }
 
@@ -2200,7 +2200,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
-  void set resize(String value) {
+  void set resize(var value) {
     setProperty('resize', value, '');
   }
 
@@ -2209,7 +2209,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('right');
 
   /** Sets the value of "right" */
-  void set right(String value) {
+  void set right(var value) {
     setProperty('right', value, '');
   }
 
@@ -2218,7 +2218,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
-  void set rtlOrdering(String value) {
+  void set rtlOrdering(var value) {
     setProperty('${_browserPrefix}rtl-ordering', value, '');
   }
 
@@ -2227,7 +2227,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('size');
 
   /** Sets the value of "size" */
-  void set size(String value) {
+  void set size(var value) {
     setProperty('size', value, '');
   }
 
@@ -2236,7 +2236,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
-  void set speak(String value) {
+  void set speak(var value) {
     setProperty('speak', value, '');
   }
 
@@ -2245,7 +2245,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('src');
 
   /** Sets the value of "src" */
-  void set src(String value) {
+  void set src(var value) {
     setProperty('src', value, '');
   }
 
@@ -2254,7 +2254,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
-  void set tableLayout(String value) {
+  void set tableLayout(var value) {
     setProperty('table-layout', value, '');
   }
 
@@ -2263,7 +2263,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
-  void set tapHighlightColor(String value) {
+  void set tapHighlightColor(var value) {
     setProperty('${_browserPrefix}tap-highlight-color', value, '');
   }
 
@@ -2272,7 +2272,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
-  void set textAlign(String value) {
+  void set textAlign(var value) {
     setProperty('text-align', value, '');
   }
 
@@ -2281,7 +2281,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-combine');
 
   /** Sets the value of "text-combine" */
-  void set textCombine(String value) {
+  void set textCombine(var value) {
     setProperty('${_browserPrefix}text-combine', value, '');
   }
 
@@ -2290,7 +2290,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
-  void set textDecoration(String value) {
+  void set textDecoration(var value) {
     setProperty('text-decoration', value, '');
   }
 
@@ -2299,7 +2299,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
-  void set textDecorationsInEffect(String value) {
+  void set textDecorationsInEffect(var value) {
     setProperty('${_browserPrefix}text-decorations-in-effect', value, '');
   }
 
@@ -2308,7 +2308,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-emphasis');
 
   /** Sets the value of "text-emphasis" */
-  void set textEmphasis(String value) {
+  void set textEmphasis(var value) {
     setProperty('${_browserPrefix}text-emphasis', value, '');
   }
 
@@ -2317,7 +2317,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
-  void set textEmphasisColor(String value) {
+  void set textEmphasisColor(var value) {
     setProperty('${_browserPrefix}text-emphasis-color', value, '');
   }
 
@@ -2326,7 +2326,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
-  void set textEmphasisPosition(String value) {
+  void set textEmphasisPosition(var value) {
     setProperty('${_browserPrefix}text-emphasis-position', value, '');
   }
 
@@ -2335,7 +2335,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
-  void set textEmphasisStyle(String value) {
+  void set textEmphasisStyle(var value) {
     setProperty('${_browserPrefix}text-emphasis-style', value, '');
   }
 
@@ -2344,7 +2344,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-fill-color');
 
   /** Sets the value of "text-fill-color" */
-  void set textFillColor(String value) {
+  void set textFillColor(var value) {
     setProperty('${_browserPrefix}text-fill-color', value, '');
   }
 
@@ -2353,7 +2353,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
-  void set textIndent(String value) {
+  void set textIndent(var value) {
     setProperty('text-indent', value, '');
   }
 
@@ -2362,7 +2362,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-line-through');
 
   /** Sets the value of "text-line-through" */
-  void set textLineThrough(String value) {
+  void set textLineThrough(var value) {
     setProperty('text-line-through', value, '');
   }
 
@@ -2371,7 +2371,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
-  void set textLineThroughColor(String value) {
+  void set textLineThroughColor(var value) {
     setProperty('text-line-through-color', value, '');
   }
 
@@ -2380,7 +2380,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
-  void set textLineThroughMode(String value) {
+  void set textLineThroughMode(var value) {
     setProperty('text-line-through-mode', value, '');
   }
 
@@ -2389,7 +2389,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
-  void set textLineThroughStyle(String value) {
+  void set textLineThroughStyle(var value) {
     setProperty('text-line-through-style', value, '');
   }
 
@@ -2398,7 +2398,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
-  void set textLineThroughWidth(String value) {
+  void set textLineThroughWidth(var value) {
     setProperty('text-line-through-width', value, '');
   }
 
@@ -2407,7 +2407,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-orientation');
 
   /** Sets the value of "text-orientation" */
-  void set textOrientation(String value) {
+  void set textOrientation(var value) {
     setProperty('${_browserPrefix}text-orientation', value, '');
   }
 
@@ -2416,7 +2416,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
-  void set textOverflow(String value) {
+  void set textOverflow(var value) {
     setProperty('text-overflow', value, '');
   }
 
@@ -2425,7 +2425,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-overline');
 
   /** Sets the value of "text-overline" */
-  void set textOverline(String value) {
+  void set textOverline(var value) {
     setProperty('text-overline', value, '');
   }
 
@@ -2434,7 +2434,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
-  void set textOverlineColor(String value) {
+  void set textOverlineColor(var value) {
     setProperty('text-overline-color', value, '');
   }
 
@@ -2443,7 +2443,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
-  void set textOverlineMode(String value) {
+  void set textOverlineMode(var value) {
     setProperty('text-overline-mode', value, '');
   }
 
@@ -2452,7 +2452,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
-  void set textOverlineStyle(String value) {
+  void set textOverlineStyle(var value) {
     setProperty('text-overline-style', value, '');
   }
 
@@ -2461,7 +2461,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
-  void set textOverlineWidth(String value) {
+  void set textOverlineWidth(var value) {
     setProperty('text-overline-width', value, '');
   }
 
@@ -2470,7 +2470,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
-  void set textRendering(String value) {
+  void set textRendering(var value) {
     setProperty('text-rendering', value, '');
   }
 
@@ -2479,7 +2479,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-security');
 
   /** Sets the value of "text-security" */
-  void set textSecurity(String value) {
+  void set textSecurity(var value) {
     setProperty('${_browserPrefix}text-security', value, '');
   }
 
@@ -2488,7 +2488,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
-  void set textShadow(String value) {
+  void set textShadow(var value) {
     setProperty('text-shadow', value, '');
   }
 
@@ -2497,7 +2497,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-size-adjust');
 
   /** Sets the value of "text-size-adjust" */
-  void set textSizeAdjust(String value) {
+  void set textSizeAdjust(var value) {
     setProperty('${_browserPrefix}text-size-adjust', value, '');
   }
 
@@ -2506,7 +2506,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-stroke');
 
   /** Sets the value of "text-stroke" */
-  void set textStroke(String value) {
+  void set textStroke(var value) {
     setProperty('${_browserPrefix}text-stroke', value, '');
   }
 
@@ -2515,7 +2515,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
-  void set textStrokeColor(String value) {
+  void set textStrokeColor(var value) {
     setProperty('${_browserPrefix}text-stroke-color', value, '');
   }
 
@@ -2524,7 +2524,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
-  void set textStrokeWidth(String value) {
+  void set textStrokeWidth(var value) {
     setProperty('${_browserPrefix}text-stroke-width', value, '');
   }
 
@@ -2533,7 +2533,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
-  void set textTransform(String value) {
+  void set textTransform(var value) {
     setProperty('text-transform', value, '');
   }
 
@@ -2542,7 +2542,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-underline');
 
   /** Sets the value of "text-underline" */
-  void set textUnderline(String value) {
+  void set textUnderline(var value) {
     setProperty('text-underline', value, '');
   }
 
@@ -2551,7 +2551,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
-  void set textUnderlineColor(String value) {
+  void set textUnderlineColor(var value) {
     setProperty('text-underline-color', value, '');
   }
 
@@ -2560,7 +2560,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
-  void set textUnderlineMode(String value) {
+  void set textUnderlineMode(var value) {
     setProperty('text-underline-mode', value, '');
   }
 
@@ -2569,7 +2569,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
-  void set textUnderlineStyle(String value) {
+  void set textUnderlineStyle(var value) {
     setProperty('text-underline-style', value, '');
   }
 
@@ -2578,7 +2578,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
-  void set textUnderlineWidth(String value) {
+  void set textUnderlineWidth(var value) {
     setProperty('text-underline-width', value, '');
   }
 
@@ -2587,7 +2587,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('top');
 
   /** Sets the value of "top" */
-  void set top(String value) {
+  void set top(var value) {
     setProperty('top', value, '');
   }
 
@@ -2596,7 +2596,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transform');
 
   /** Sets the value of "transform" */
-  void set transform(String value) {
+  void set transform(var value) {
     setProperty('${_browserPrefix}transform', value, '');
   }
 
@@ -2605,7 +2605,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transform-origin');
 
   /** Sets the value of "transform-origin" */
-  void set transformOrigin(String value) {
+  void set transformOrigin(var value) {
     setProperty('${_browserPrefix}transform-origin', value, '');
   }
 
@@ -2614,7 +2614,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
-  void set transformOriginX(String value) {
+  void set transformOriginX(var value) {
     setProperty('${_browserPrefix}transform-origin-x', value, '');
   }
 
@@ -2623,7 +2623,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
-  void set transformOriginY(String value) {
+  void set transformOriginY(var value) {
     setProperty('${_browserPrefix}transform-origin-y', value, '');
   }
 
@@ -2632,7 +2632,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
-  void set transformOriginZ(String value) {
+  void set transformOriginZ(var value) {
     setProperty('${_browserPrefix}transform-origin-z', value, '');
   }
 
@@ -2641,7 +2641,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transform-style');
 
   /** Sets the value of "transform-style" */
-  void set transformStyle(String value) {
+  void set transformStyle(var value) {
     setProperty('${_browserPrefix}transform-style', value, '');
   }
 
@@ -2650,7 +2650,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transition');
 
   /** Sets the value of "transition" */
-  void set transition(String value) {
+  void set transition(var value) {
     setProperty('${_browserPrefix}transition', value, '');
   }
 
@@ -2659,7 +2659,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transition-delay');
 
   /** Sets the value of "transition-delay" */
-  void set transitionDelay(String value) {
+  void set transitionDelay(var value) {
     setProperty('${_browserPrefix}transition-delay', value, '');
   }
 
@@ -2668,7 +2668,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transition-duration');
 
   /** Sets the value of "transition-duration" */
-  void set transitionDuration(String value) {
+  void set transitionDuration(var value) {
     setProperty('${_browserPrefix}transition-duration', value, '');
   }
 
@@ -2677,7 +2677,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transition-property');
 
   /** Sets the value of "transition-property" */
-  void set transitionProperty(String value) {
+  void set transitionProperty(var value) {
     setProperty('${_browserPrefix}transition-property', value, '');
   }
 
@@ -2686,7 +2686,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
-  void set transitionTimingFunction(String value) {
+  void set transitionTimingFunction(var value) {
     setProperty('${_browserPrefix}transition-timing-function', value, '');
   }
 
@@ -2695,7 +2695,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
-  void set unicodeBidi(String value) {
+  void set unicodeBidi(var value) {
     setProperty('unicode-bidi', value, '');
   }
 
@@ -2704,7 +2704,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
-  void set unicodeRange(String value) {
+  void set unicodeRange(var value) {
     setProperty('unicode-range', value, '');
   }
 
@@ -2713,7 +2713,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}user-drag');
 
   /** Sets the value of "user-drag" */
-  void set userDrag(String value) {
+  void set userDrag(var value) {
     setProperty('${_browserPrefix}user-drag', value, '');
   }
 
@@ -2722,7 +2722,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}user-modify');
 
   /** Sets the value of "user-modify" */
-  void set userModify(String value) {
+  void set userModify(var value) {
     setProperty('${_browserPrefix}user-modify', value, '');
   }
 
@@ -2731,7 +2731,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}user-select');
 
   /** Sets the value of "user-select" */
-  void set userSelect(String value) {
+  void set userSelect(var value) {
     setProperty('${_browserPrefix}user-select', value, '');
   }
 
@@ -2740,7 +2740,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
-  void set verticalAlign(String value) {
+  void set verticalAlign(var value) {
     setProperty('vertical-align', value, '');
   }
 
@@ -2749,7 +2749,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
-  void set visibility(String value) {
+  void set visibility(var value) {
     setProperty('visibility', value, '');
   }
 
@@ -2758,7 +2758,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
-  void set whiteSpace(String value) {
+  void set whiteSpace(var value) {
     setProperty('white-space', value, '');
   }
 
@@ -2767,7 +2767,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
-  void set widows(String value) {
+  void set widows(var value) {
     setProperty('widows', value, '');
   }
 
@@ -2776,7 +2776,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('width');
 
   /** Sets the value of "width" */
-  void set width(String value) {
+  void set width(var value) {
     setProperty('width', value, '');
   }
 
@@ -2785,7 +2785,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
-  void set wordBreak(String value) {
+  void set wordBreak(var value) {
     setProperty('word-break', value, '');
   }
 
@@ -2794,7 +2794,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
-  void set wordSpacing(String value) {
+  void set wordSpacing(var value) {
     setProperty('word-spacing', value, '');
   }
 
@@ -2803,7 +2803,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
-  void set wordWrap(String value) {
+  void set wordWrap(var value) {
     setProperty('word-wrap', value, '');
   }
 
@@ -2812,7 +2812,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}wrap-shape');
 
   /** Sets the value of "wrap-shape" */
-  void set wrapShape(String value) {
+  void set wrapShape(var value) {
     setProperty('${_browserPrefix}wrap-shape', value, '');
   }
 
@@ -2821,7 +2821,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('${_browserPrefix}writing-mode');
 
   /** Sets the value of "writing-mode" */
-  void set writingMode(String value) {
+  void set writingMode(var value) {
     setProperty('${_browserPrefix}writing-mode', value, '');
   }
 
@@ -2830,7 +2830,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
-  void set zIndex(String value) {
+  void set zIndex(var value) {
     setProperty('z-index', value, '');
   }
 
@@ -2839,7 +2839,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */
-  void set zoom(String value) {
+  void set zoom(var value) {
     setProperty('zoom', value, '');
   }
 }
