@@ -25,9 +25,23 @@ class _ChildrenNodeList implements NodeList {
 
   void forEach(void f(Node element)) => _toList().forEach(f);
 
-  Collection map(f(Node element)) => _toList().map(f);
+  Collection map(f(Node element)) {
+    List output = new List();
+    forEach((Node element) {
+        output.add(f(element));
+    });
+    return output;
+  }
 
-  Collection<Node> filter(bool f(Node element)) => _toList().filter(f);
+  Collection<Node> filter(bool f(Node element)) {
+    List<Node> output = new List<Node>();
+    forEach((Node element) {
+      if (f(element)) {
+        output.add(element);
+      }
+    });
+    return output;
+  }
 
   bool every(bool f(Node element)) {
     for(Node element in this) {
@@ -97,25 +111,71 @@ class _ChildrenNodeList implements NodeList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) =>
-    Lists.setRange(this, start, length, from, startFrom);
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (startFrom < 0) {
+      throw new IndexOutOfRangeException(startFrom);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > this.length) {
+      throw new IndexOutOfRangeException(Math.min(this.length, start));
+    } else if (startFrom + length > from.length) {
+      throw new IndexOutOfRangeException(Math.min(from.length, startFrom));
+    }
 
-  void removeRange(int start, int length) =>
-    Lists.removeRange(this, start, length, (i) => this[i].remove());
+    for (var i = 0; i < length; i++) {
+      this[start + i] = from[startFrom + i];
+    }
+  }
+
+  void removeRange(int start, int length) {
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > this.length) {
+      throw new IndexOutOfRangeException(Math.min(this.length, start));
+    }
+
+    for (var i = 0; i < length; i++) {
+      this[start].remove();
+    }
+  }
 
   void insertRange(int start, int length, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  List getRange(int start, int length) {
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > this.length) {
+      throw new IndexOutOfRangeException(Math.min(this.length, start));
+    }
+
+    var nodes = <Node>[];
+    for (var i = 0; i < length; i++) {
+      nodes.add(this[start + i]);
+    }
+    return nodes;
+  }
 
   int indexOf(Node element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Node element, [int start = null]) {
     if (start === null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {

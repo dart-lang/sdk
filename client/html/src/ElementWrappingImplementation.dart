@@ -24,11 +24,29 @@ class _ChildrenElementList implements ElementList {
     return LevelDom.wrapElement(_element.firstElementChild);
   }
 
-  void forEach(void f(Element element)) => _toList().forEach(f);
+  void forEach(void f(Element element)) {
+    for (var element in _childElements) {
+      f(LevelDom.wrapElement(element));
+    }
+  }
 
-  Collection map(f(Element element)) => _toList().map(f);
+  Collection map(f(Element element)) {
+    List output = new List();
+    forEach((Element element) {
+      output.add(f(element));
+    });
+    return output;
+  }
 
-  Collection<Element> filter(bool f(Element element)) => _toList().filter(f);
+  Collection<Element> filter(bool f(Element element)) {
+    List<Element> output = new List<Element>();
+    forEach((Element element) {
+      if (f(element)) {
+        output.add(element);
+      }
+    });
+    return output;
+  }
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -49,7 +67,7 @@ class _ChildrenElementList implements ElementList {
   }
 
   bool isEmpty() {
-    return _element.firstElementChild === null;
+    return _element.firstElementChild !== null;
   }
 
   int get length() {
@@ -92,25 +110,29 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) =>
-    Lists.setRange(this, start, length, from, startFrom);
+  void setRange(int start, int length, List from, [int startFrom = 0]) {
+    throw const NotImplementedException();
+  }
 
-  void removeRange(int start, int length) =>
-    Lists.removeRange(this, start, length, (i) => this[i].remove());
+  void removeRange(int start, int length) {
+    throw const NotImplementedException();
+  }
 
   void insertRange(int start, int length, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  List getRange(int start, int length) {
+    throw const NotImplementedException();
+  }
 
   int indexOf(Element element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Element element, [int start = null]) {
     if (start === null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {

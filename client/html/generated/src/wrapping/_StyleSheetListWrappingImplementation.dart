@@ -38,12 +38,12 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   }
 
   int indexOf(StyleSheet element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
+    return _Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(StyleSheet element, [int start = null]) {
     if (start === null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
