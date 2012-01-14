@@ -14,6 +14,7 @@
 #source('DocumentFragmentTests.dart');
 #source('ElementTests.dart');
 #source('EventTests.dart');
+#source('ListsTests.dart');
 #source('MeasurementTests.dart');
 #source('NodeTests.dart');
 #source('SVGElementTests.dart');
@@ -23,6 +24,7 @@ main() {
   group('DocumentFragment', testDocumentFragment);
   group('Element', testElement);
   group('Event', testEvents);
+  group('Lists', testLists);
   group('Measurement', testMeasurement);
   group('Node', testNode);
   group('SVGElement', testSVGElement);
