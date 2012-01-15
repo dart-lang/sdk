@@ -199,7 +199,6 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 [ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff)) || $component == frogium ]
 Factory3Test: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
-OptimizedSetterTest: Fail # Issue 863
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
 ImplementTypeParameterNegativeTest: Skip # Issue 887
@@ -255,7 +254,6 @@ GenericsTest: Fail
 GetterClosureExecutionOrderTest: Pass # TODO(jmesserly): I don't think this is really passing in the static case
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
-IncrOpTest: Fail
 Instanceof2Test: Fail
 InterfaceFactory3NegativeTest: Fail
 IsNotClass4NegativeTest: Fail
