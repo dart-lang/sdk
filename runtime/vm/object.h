@@ -6,6 +6,7 @@
 #define VM_OBJECT_H_
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/dart.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
@@ -14,7 +15,6 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/scanner.h"
-#include "vm/utils.h"
 
 #include "include/dart_api.h"
 

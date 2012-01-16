@@ -4,10 +4,9 @@
 
 #include "vm/disassembler.h"
 
-#include "platform/assert.h"
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
 #if defined(TARGET_ARCH_ARM)
-
+#include "platform/assert.h"
 
 namespace dart {
 

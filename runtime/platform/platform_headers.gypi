@@ -6,8 +6,9 @@
 {
   'sources': [
     'assert.h',
-    'globals.h',
     'c99_support_win.h',
+    'globals.h',
     'inttypes_support_win.h',
+    'utils.h',
   ],
 }

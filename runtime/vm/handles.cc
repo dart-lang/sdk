@@ -5,11 +5,11 @@
 #include "vm/handles.h"
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
-#include "vm/utils.h"
 #include "vm/visitor.h"
 #include "vm/zone.h"
 

@@ -4,11 +4,11 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/thread.h"
 #include "vm/unit_test.h"
-#include "vm/utils.h"
 #include "vm/verifier.h"
 
 namespace dart {

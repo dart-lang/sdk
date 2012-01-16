@@ -251,8 +251,6 @@
     'unicode_test.cc',
     'unit_test.cc',
     'unit_test.h',
-    'utils.cc',
-    'utils.h',
     'utils_test.cc',
     'virtual_memory.cc',
     'virtual_memory.h',

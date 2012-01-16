@@ -6,8 +6,8 @@
 #define VM_DEBUGINFO_H_
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/globals.h"
-#include "vm/utils.h"
 
 namespace dart {
 

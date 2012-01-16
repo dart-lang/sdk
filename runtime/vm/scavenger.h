@@ -6,10 +6,10 @@
 #define VM_SCAVENGER_H_
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/raw_object.h"
-#include "vm/utils.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
 

@@ -10,8 +10,8 @@
 #endif
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/constants_x64.h"
-#include "vm/utils.h"
 
 namespace dart {
 

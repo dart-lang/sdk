@@ -6,10 +6,10 @@
 
 #include <openssl/crypto.h>
 
+#include "platform/utils.h"
 #include "vm/bigint_store.h"
 #include "vm/double_internals.h"
 #include "vm/exceptions.h"
-#include "vm/utils.h"
 #include "vm/zone.h"
 
 namespace dart {

@@ -11,9 +11,9 @@
 #include <unistd.h>
 #endif
 
-#include "platform/assert.h"
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
+#include "platform/assert.h"
 
 namespace dart {
 

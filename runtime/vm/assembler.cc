@@ -1,13 +1,14 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/assembler.h"
+
+#include "platform/utils.h"
 #include "vm/cpu.h"
 #include "vm/heap.h"
 #include "vm/memory_region.h"
 #include "vm/os.h"
-#include "vm/utils.h"
 #include "vm/zone.h"
 
 namespace dart {

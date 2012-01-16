@@ -6,13 +6,12 @@
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_IA32.
 #if defined(TARGET_ARCH_IA32)
-
+#include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/code_index_table.h"
 #include "vm/heap.h"
 #include "vm/os.h"
 #include "vm/stub_code.h"
-#include "vm/utils.h"
 
 namespace dart {
 

@@ -5,10 +5,10 @@
 #include "vm/zone.h"
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
-#include "vm/utils.h"
 
 namespace dart {
 

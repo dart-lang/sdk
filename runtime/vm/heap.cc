@@ -5,13 +5,13 @@
 #include "vm/heap.h"
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/compiler_stats.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
 #include "vm/pages.h"
 #include "vm/scavenger.h"
-#include "vm/utils.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
 

@@ -6,5 +6,6 @@
 {
   'sources': [
     'assert.cc',
+    'utils.cc',
   ],
 }

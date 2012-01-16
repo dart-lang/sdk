@@ -13,8 +13,8 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#include "platform/utils.h"
 #include "vm/isolate.h"
-#include "vm/utils.h"
 
 namespace dart {
 

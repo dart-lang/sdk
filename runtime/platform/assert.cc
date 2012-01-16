@@ -7,7 +7,7 @@
 #include <string>
 
 #include "platform/assert.h"
-#include "vm/globals.h"
+#include "platform/globals.h"
 
 namespace dart {
 

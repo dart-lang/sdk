@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include "platform/assert.h"
-#include "vm/utils.h"
+#include "platform/utils.h"
 
 namespace dart {
 
