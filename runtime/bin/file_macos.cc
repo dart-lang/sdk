@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/file.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -10,7 +12,6 @@
 #include <limits.h>
 
 #include "bin/builtin.h"
-#include "bin/file.h"
 
 class FileHandle {
  public:
@@ -165,7 +166,7 @@ char* File::GetCanonicalPath(const char* pathname) {
     do {
       abs_path = realpath(pathname, NULL);
     } while (abs_path == NULL && errno == EINTR);
-    assert(abs_path == NULL || IsAbsolutePath(abs_path));
+    ASSERT(abs_path == NULL || IsAbsolutePath(abs_path));
   }
   return abs_path;
 }

@@ -9,24 +9,8 @@
 #include <stdlib.h>
 
 #include "include/dart_api.h"
+#include "platform/assert.h"
 #include "platform/globals.h"
-
-#ifdef DEBUG
-#define ASSERT(expr) assert(expr)
-#else
-#define ASSERT(expr) USE(expr)
-#endif
-
-#define FATAL(error)                                                           \
-  fprintf(stderr, "%s\n", error);                                              \
-  fflush(stderr);                                                              \
-  abort();
-
-#define UNREACHABLE()                                                          \
-  FATAL("unreachable code")
-
-#define UNIMPLEMENTED()                                                        \
-  FATAL("unimplemented code")
 
 #define FUNCTION_NAME(name) Builtin_##name
 #define REGISTER_FUNCTION(name, count)                                         \

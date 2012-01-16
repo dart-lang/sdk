@@ -1,9 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ASSERT_H_
-#define VM_ASSERT_H_
+#ifndef PLATFORM_ASSERT_H_
+#define PLATFORM_ASSERT_H_
 
 // TODO(5411406): include sstream for now, once we have a Utils::toString()
 // implemented for all the primitive types we can replace the usage of
@@ -13,7 +13,7 @@
 #include <string>
 #endif
 
-#include "vm/globals.h"
+#include "platform/globals.h"
 
 #if !defined(DEBUG) && !defined(NDEBUG)
 #error neither DEBUG nor NDEBUG defined
@@ -293,4 +293,4 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
 #define WARN2(format, p1, p2)                                                 \
   dart::Expect(__FILE__, __LINE__).Fail(format, (p1), (p2))
 
-#endif  // VM_ASSERT_H_
+#endif  // PLATFORM_ASSERT_H_

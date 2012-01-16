@@ -1,12 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/snapshot.h"
-
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
+#include "vm/snapshot.h"
 #include "vm/unit_test.h"
 
 namespace dart {

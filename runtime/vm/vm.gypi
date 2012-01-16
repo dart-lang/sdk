@@ -19,6 +19,7 @@
       'type': 'static_library',
       'includes': [
         'vm_sources.gypi',
+        '../platform/platform_headers.gypi',
         '../platform/platform_sources.gypi',
       ],
       'sources/': [

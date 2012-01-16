@@ -5,6 +5,7 @@
 #include "bin/dartutils.h"
 
 #include "bin/file.h"
+#include "platform/assert.h"
 #include "platform/globals.h"
 
 const char* DartUtils::kDartScheme = "dart:";

@@ -22,7 +22,7 @@
       ],
       'includes': [
         'builtin_sources.gypi',
-        '../platform/platform_sources.gypi',
+        '../platform/platform_headers.gypi',
       ],
       'sources/': [
         ['exclude', '\\.(cc|h)$'],

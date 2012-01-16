@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/file.h"
+#include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/assert.h"
 #include "vm/unit_test.h"
 
 

@@ -5,7 +5,7 @@
 #ifndef VM_TOKEN_H_
 #define VM_TOKEN_H_
 
-#include "vm/assert.h"
+#include "platform/assert.h"
 
 namespace dart {
 

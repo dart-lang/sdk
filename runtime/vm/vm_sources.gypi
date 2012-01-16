@@ -23,8 +23,6 @@
     'assembler_x64.cc',
     'assembler_x64.h',
     'assembler_x64_test.cc',
-    'assert.cc',
-    'assert.h',
     'assert_test.cc',
     'ast.cc',
     'ast.h',
