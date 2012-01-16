@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,8 @@
 #import("test_suite.dart");
 
 class ProgressIndicator {
-  ProgressIndicator(this._startTime, this._printTiming) : _tests = [];
+  ProgressIndicator(this._startTime, this._printTiming)
+      : _tests = [], _failureSummary = [];
 
   factory ProgressIndicator.fromName(String name,
                                      Date startTime,
@@ -74,6 +75,7 @@ class ProgressIndicator {
   }
 
   void allDone() {
+    _printFailureSummary();
     _printStatus();
     _printTimingInformation();
     exit(_failedTests > 0 ? 1 : 0);
@@ -108,27 +110,49 @@ class ProgressIndicator {
   }
 
   void _printFailureOutput(TestCase test) {
-    print('\nFAILED: ${test.displayName}');
+    List<String> output = new List<String>();
+    output.add('');
+    output.add('FAILED: ${test.displayName}');
     StringBuffer expected = new StringBuffer();
     expected.add('Expected: ');
     for (var expectation in test.expectedOutcomes) {
       expected.add('$expectation ');
     }
-    print(expected.toString());
-    print('Actual: ${test.output.result}');
+    output.add(expected.toString());
+    output.add('Actual: ${test.output.result}');
     if (!test.output.stdout.isEmpty()) {
-      print('\nstdout:');
-      test.output.stdout.forEach((s) => print(s));
+      output.add('');
+      output.add('stdout:');
+      for (var s in test.output.stdout) {
+        output.add(s);
+      }
     }
     if (!test.output.stderr.isEmpty()) {
-      print('\nstderr:');
-      test.output.stderr.forEach((s) => print(s));
+      output.add('');
+      output.add('stderr:');
+      for (var s in test.output.stderr) {
+        output.add(s);
+      }
     }
     if (test is BrowserTestCase && test.dynamic.compilerPath != null) {
-      print('\nCompilation command: ${test.dynamic.compilerPath} ' +
-            Strings.join(test.dynamic.compilerArguments, ' '));
+      output.add('');
+      output.add('Compilation command: ${test.dynamic.compilerPath} ' +
+                 Strings.join(test.dynamic.compilerArguments, ' '));
     }
-    print('\nCommand line: ${test.commandLine}');
+    output.add('');
+    output.add('Command line: ${test.commandLine}');
+
+    for (String line in output) {
+      print(line);
+    }
+    _failureSummary.addAll(output);
+  }
+
+  void _printFailureSummary() {
+    for (String line in _failureSummary) {
+      print(line);
+    }
+    print('');
   }
 
   void _printStatus() {
@@ -153,6 +177,7 @@ class ProgressIndicator {
   Date _startTime;
   bool _printTiming;
   List<TestCase> _tests;
+  List<String> _failureSummary;
 }
 
 
@@ -162,7 +187,13 @@ class CompactIndicator extends ProgressIndicator {
 
   void allDone() {
     stdout.write('\n'.charCodes());
+    _printFailureSummary();
     _printTimingInformation();
+    if (_failedTests > 0) {
+      // We may have printed many failure logs, so reprint the summary data.
+      _printProgress();
+      print('');
+    }
     stdout.close();
     exit(_failedTests > 0 ? 1 : 0);
   }
