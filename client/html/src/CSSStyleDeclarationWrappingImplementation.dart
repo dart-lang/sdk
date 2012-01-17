@@ -39,7 +39,7 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
 
   String get cssText() { return _ptr.cssText; }
 
-  void set cssText(var value) { _ptr.cssText = value; }
+  void set cssText(String value) { _ptr.cssText = value; }
 
   int get length() { return _ptr.length; }
 
