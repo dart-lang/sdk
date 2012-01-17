@@ -22272,7 +22272,7 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
 
   DocumentEvents get on() {
     if (_on === null) {
-      _on = new DocumentEventsImplementation._wrap(_ptr);
+      _on = new DocumentEventsImplementation._wrap(_documentPtr);
     }
     return _on;
   }
