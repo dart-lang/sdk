@@ -885,13 +885,13 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       ASSERT(signature_function.signature_class() == signature_class.raw());
       Type& signature_type = Type::ZoneHandle(signature_class.SignatureType());
       if (!is_top_level_ && !signature_type.IsFinalized()) {
-        String& errmsg = String::Handle();
+        Error& error = Error::Handle();
         signature_type ^=
             ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
                                                         signature_type,
-                                                        &errmsg);
-        if (!errmsg.IsNull()) {
-          ErrorMsg(errmsg.ToCString());
+                                                        &error);
+        if (!error.IsNull()) {
+          ErrorMsg(error.ToErrorCString());
         }
       }
       // The type of the parameter is now the signature type.
@@ -3836,13 +3836,13 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // Since the signature type is cached by the signature class, it may have
     // been finalized already.
     if (!signature_type.IsFinalized()) {
-      String& errmsg = String::Handle();
+      Error& error = Error::Handle();
       signature_type ^=
           ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
                                                       signature_type,
-                                                      &errmsg);
-      if (!errmsg.IsNull()) {
-        ErrorMsg(errmsg.ToCString());
+                                                      &error);
+      if (!error.IsNull()) {
+        ErrorMsg(error.ToErrorCString());
       }
       // The call to ClassFinalizer::FinalizeAndCanonicalizeType may have
       // extended the vector of type arguments.
@@ -5169,6 +5169,22 @@ AstNode* Parser::ParseStatement() {
 }
 
 
+// Static
+RawError* Parser::FormatError(const Script& script,
+                              intptr_t token_index,
+                              const char* message_header,
+                              const char* format,
+                              va_list args) {
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
+  FormatMessage(script, token_index, message_header,
+                message_buffer, kMessageBufferSize,
+                format, args);
+  const String& msg = String::Handle(String::New(message_buffer));
+  return LanguageError::New(msg);
+}
+
+
 // Static.
 void Parser::FormatMessage(const Script& script,
                            intptr_t token_index,
@@ -5234,67 +5250,55 @@ void Parser::FormatMessage(const Script& script,
 
 
 void Parser::ErrorMsg(intptr_t token_index, const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
-  FormatMessage(script_, token_index, "Error",
-                message_buffer, kMessageBufferSize,
-                format, args);
+  const Error& error = Error::Handle(
+      FormatError(script_, token_index, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+  Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
 
 void Parser::ErrorMsg(const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
-  FormatMessage(script_, token_index_, "Error",
-                message_buffer, kMessageBufferSize,
-                format, args);
+  const Error& error = Error::Handle(
+      FormatError(script_, token_index_, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+  Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
 
 void Parser::Warning(intptr_t token_index, const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   if (FLAG_silent_warnings) return;
   va_list args;
   va_start(args, format);
-  FormatMessage(script_, token_index, "Warning",
-                message_buffer, kMessageBufferSize,
-                format, args);
+  const Error& error = Error::Handle(
+      FormatError(script_, token_index, "Warning", format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
-    Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+    Isolate::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
   } else {
-    OS::Print(message_buffer);
+    OS::Print("%s", error.ToErrorCString());
   }
 }
 
 
 void Parser::Warning(const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   if (FLAG_silent_warnings) return;
   va_list args;
   va_start(args, format);
-  FormatMessage(script_, token_index_, "Warning",
-                message_buffer, kMessageBufferSize,
-                format, args);
+  const Error& error = Error::Handle(
+      FormatError(script_, token_index_, "Warning", format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
-    Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+    Isolate::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
   } else {
-    OS::Print(message_buffer);
+    OS::Print("%s", error.ToErrorCString());
   }
 }
 
@@ -6681,13 +6685,13 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
                      String::Handle(type_parameter.Name()).ToCString());
           }
           if (type_resolution == kMustResolve) {
-            String& errmsg = String::Handle();
+            Error& error = Error::Handle();
             type_parameter ^=
                 ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
                                                             type_parameter,
-                                                            &errmsg);
-            if (!errmsg.IsNull()) {
-              ErrorMsg(errmsg.ToCString());
+                                                            &error);
+            if (!error.IsNull()) {
+              ErrorMsg(error.ToErrorCString());
             }
           }
           return type_parameter.raw();
@@ -6703,12 +6707,12 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
       Type::NewParameterizedType(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
     ASSERT(type_class.IsClass());  // Must be resolved.
-    String& errmsg = String::Handle();
+    Error& error = Error::Handle();
     type ^= ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
                                                         type,
-                                                        &errmsg);
-    if (!errmsg.IsNull()) {
-      ErrorMsg(errmsg.ToCString());
+                                                        &error);
+    if (!error.IsNull()) {
+      ErrorMsg(error.ToErrorCString());
     }
   }
   return type.raw();
@@ -7260,12 +7264,12 @@ AstNode* Parser::ParseNewOperator() {
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::NewParameterizedType(signature_class, type_arguments));
-    String& errmsg = String::Handle();
+    Error& error = Error::Handle();
     type ^= ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
                                                         type,
-                                                        &errmsg);
-    if (!errmsg.IsNull()) {
-      ErrorMsg(errmsg.ToCString());
+                                                        &error);
+    if (!error.IsNull()) {
+      ErrorMsg(error.ToErrorCString());
     }
     // The type argument vector may have been expanded with the type arguments
     // of the super type when finalizing the type.

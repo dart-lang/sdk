@@ -49,7 +49,7 @@ ObjectStore::ObjectStore()
     root_library_(Library::null()),
     registered_libraries_(Library::null()),
     pending_classes_(Array::null()),
-    sticky_error_(String::null()),
+    sticky_error_(Error::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),

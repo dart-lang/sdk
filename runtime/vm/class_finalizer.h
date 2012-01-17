@@ -13,12 +13,12 @@ namespace dart {
 class AbstractType;
 class AbstractTypeArguments;
 class Class;
+class Error;
 class Function;
 class RawAbstractType;
 class RawClass;
 class RawType;
 class Script;
-class String;
 class Type;
 class UnresolvedClass;
 
@@ -42,10 +42,10 @@ class ClassFinalizer : public AllStatic {
                                    AbstractType* conflicting);
 
   // Finalize and canonicalize type while parsing class cls.
-  // Set the error message on failure (to String::null() if no error).
+  // Set the error message on failure (to Error::null() if no error).
   static RawAbstractType* FinalizeAndCanonicalizeType(const Class& cls,
                                                       const AbstractType& type,
-                                                      String* errmsg);
+                                                      Error* error);
 
   // Pending classes are classes that need to be finalized.
   static void AddPendingClasses(const GrowableArray<const Class*>& classes);

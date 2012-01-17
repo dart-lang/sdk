@@ -255,8 +255,8 @@ class ObjectStore {
     pending_classes_ = value.raw();
   }
 
-  RawString* sticky_error() const { return sticky_error_; }
-  void set_sticky_error(const String& value) {
+  RawError* sticky_error() const { return sticky_error_; }
+  void set_sticky_error(const Error& value) {
     ASSERT(!value.IsNull());
     sticky_error_ = value.raw();
   }
@@ -343,7 +343,7 @@ class ObjectStore {
   RawLibrary* root_library_;
   RawLibrary* registered_libraries_;
   RawArray* pending_classes_;
-  RawString* sticky_error_;
+  RawError* sticky_error_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;

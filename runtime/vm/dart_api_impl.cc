@@ -67,9 +67,9 @@ const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
   } else {
     // Make a copy of the error message as the original message string
     // may get deallocated when we return back from the Dart API call.
-    const String& err =
-    String::Handle(isolate->object_store()->sticky_error());
-    const char* errmsg = err.ToCString();
+    const Error& err =
+        Error::Handle(isolate->object_store()->sticky_error());
+    const char* errmsg = err.ToErrorCString();
     intptr_t errlen = strlen(errmsg) + 1;
     char* msg = reinterpret_cast<char*>(Api::Allocate(errlen));
     OS::SNPrint(msg, errlen, "%s", errmsg);
@@ -79,12 +79,9 @@ const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
 
 
 void SetupErrorResult(Dart_Handle* handle) {
-  // Make a copy of the error message as the original message string
-  // may get deallocated when we return back from the Dart API call.
-  const String& error = String::Handle(
+  const Error& error = Error::Handle(
       Isolate::Current()->object_store()->sticky_error());
-  const Object& obj = Object::Handle(LanguageError::New(error));
-  *handle = Api::NewLocalHandle(obj);
+  *handle = Api::NewLocalHandle(error);
 }
 
 
@@ -516,9 +513,9 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
   } else {
     {
       DARTSCOPE_NOCHECKS(isolate);
-      const String& errmsg =
-          String::Handle(isolate->object_store()->sticky_error());
-      *error = strdup(errmsg.ToCString());
+      const Error& error_obj =
+          Error::Handle(isolate->object_store()->sticky_error());
+      *error = strdup(error_obj.ToErrorCString());
     }
     Dart::ShutdownIsolate();
   }

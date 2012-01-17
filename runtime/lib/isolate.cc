@@ -205,9 +205,9 @@ static void RunIsolate(uword parameter) {
   } else {
     Zone zone(isolate);
     HandleScope handle_scope(isolate);
-    const String& error = String::Handle(
+    const Error& error = Error::Handle(
         Isolate::Current()->object_store()->sticky_error());
-    const char* errmsg = error.ToCString();
+    const char* errmsg = error.ToErrorCString();
     OS::PrintErr("%s\n", errmsg);
     exit(255);
   }
@@ -229,16 +229,18 @@ static bool CheckArguments(const char* library_url, const char* class_name) {
   name ^= String::NewSymbol(library_url);
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   if (lib.IsNull()) {
-    const String& error = String::Handle(
+    const String& error_str = String::Handle(
         String::New("Error starting Isolate, library not loaded : "));
+    const Error& error = Error::Handle(LanguageError::New(error_str));
     Isolate::Current()->object_store()->set_sticky_error(error);
     return false;
   }
   name ^= String::NewSymbol(class_name);
   const Class& target_class = Class::Handle(lib.LookupClass(name));
   if (target_class.IsNull()) {
-    const String& error = String::Handle(
+    const String& error_str = String::Handle(
         String::New("Error starting Isolate, class not loaded : "));
+    const Error& error = Error::Handle(LanguageError::New(error_str));
     Isolate::Current()->object_store()->set_sticky_error(error);
     return false;
   }
@@ -285,9 +287,9 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
       {
         Zone zone(spawned_isolate);
         HandleScope scope(spawned_isolate);
-        const String& errmsg = String::Handle(
+        const Error& err_obj = Error::Handle(
             spawned_isolate->object_store()->sticky_error());
-        error = strdup(errmsg.ToCString());
+        error = strdup(err_obj.ToErrorCString());
       }
       Dart::ShutdownIsolate();
       spawned_isolate = NULL;

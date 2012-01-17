@@ -3331,11 +3331,11 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
-    String& errmsg = String::Handle();
+    Error& error = Error::Handle();
     ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
                                                 signature_type,
-                                                &errmsg);
-    ASSERT(errmsg.IsNull());
+                                                &error);
+    ASSERT(error.IsNull());
   }
   ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);
