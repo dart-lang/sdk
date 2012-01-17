@@ -15,13 +15,15 @@ namespace dart {
 class Timer : public ValueObject {
  public:
   Timer(bool enabled, const char* message)
-      : start_(0), stop_(0), total_(0), enabled_(enabled), message_(message) {}
+      : start_(0), stop_(0), total_(0),
+        enabled_(enabled), running_(false), message_(message) {}
   ~Timer() {}
 
   // Start timer.
   void Start() {
     if (enabled_) {
       start_ = OS::GetCurrentTimeMicros();
+      running_ = true;
     }
   }
 
@@ -29,8 +31,10 @@ class Timer : public ValueObject {
   void Stop() {
     if (enabled_) {
       ASSERT(start_ != 0);
+      ASSERT(running());
       stop_ = OS::GetCurrentTimeMicros();
       total_ += ElapsedMicros();
+      running_ = false;
     }
   }
 
@@ -46,6 +50,7 @@ class Timer : public ValueObject {
 
   // Accessors.
   bool enabled() const { return enabled_; }
+  bool running() const { return running_; }
   const char* message() const { return message_; }
 
  private:
@@ -63,6 +68,7 @@ class Timer : public ValueObject {
       start_ = 0;
       stop_ = 0;
       total_ = 0;
+      running_ = false;
     }
   }
 
@@ -70,6 +76,7 @@ class Timer : public ValueObject {
   int64_t stop_;
   int64_t total_;
   bool enabled_;
+  bool running_;
   const char* message_;
 
   DISALLOW_COPY_AND_ASSIGN(Timer);
@@ -135,19 +142,27 @@ class TimerList : public ValueObject {
 // }
 class TimerScope : public ValueObject {
  public:
-  TimerScope(bool flag, Timer* timer) : flag_(flag), timer_(timer) {
+  TimerScope(bool flag, Timer* timer)
+      : flag_(flag), nested_(false), timer_(timer) {
     if (flag_) {
-      timer_->Start();
+      if (!timer_->running()) {
+        timer_->Start();
+      } else {
+        nested_ = true;
+      }
     }
   }
   ~TimerScope() {
     if (flag_) {
-      timer_->Stop();
+      if (!nested_) {
+        timer_->Stop();
+      }
     }
   }
 
  private:
   bool flag_;
+  bool nested_;
   Timer* timer_;
   DISALLOW_COPY_AND_ASSIGN(TimerScope);
 };

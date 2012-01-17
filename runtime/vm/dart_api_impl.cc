@@ -2207,9 +2207,9 @@ static void CompileSource(Isolate* isolate,
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         Dart_LibraryTagHandler handler) {
+  TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  TIMERSCOPE(time_script_loading);
   const String& url_str = Api::UnwrapStringHandle(url);
   if (url_str.IsNull()) {
     RETURN_TYPE_ERROR(url, String);
@@ -2357,6 +2357,7 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
+  TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const String& url_str = Api::UnwrapStringHandle(url);
@@ -2407,6 +2408,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
                                         Dart_Handle source) {
+  TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Library& lib = Api::UnwrapLibraryHandle(library);
