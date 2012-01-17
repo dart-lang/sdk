@@ -28,8 +28,6 @@ CanonicalConstTest: Fail
 CharEscapeTest: Fail
 ClassCycleNegativeTest: Fail
 ClassExtendsNegativeTest: Fail
-ClassLiteralTest/28: Crash
-ClassLiteralTest/29: Crash
 ClassOverrideNegativeTest: Fail
 ClassTest: Fail
 Closure2Test: Fail
@@ -39,7 +37,6 @@ ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
 ClosuresWithComplexParamsTest: Fail
-CompoundAssignmentOperatorTest: Crash
 ConstEscapeFrogTest: Fail
 ConstInit4NegativeTest: Fail
 ConstInitNegativeTest: Fail
@@ -68,7 +65,6 @@ ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
 ConstructorTest: Fail
 ContextArgsWithDefaultsTest: Fail
-ContextTest: Crash
 ContinueTest: Fail
 CyclicImportTest: Fail
 DefaultClassImplicitConstructorTest: Fail
@@ -157,7 +153,6 @@ ImplicitThisTest/none: Fail
 ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
 ImportCoreNoPrefixTest: Fail
-IncrOpTest: Crash
 IndexTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
@@ -230,8 +225,6 @@ NativeLibrarySameNameUsedFrogTest: Fail
 NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
-NewExpression2NegativeTest: Crash
-NewExpression3NegativeTest: Crash
 NewExpressionTypeArgsFrogTest/02: Fail
 NoSuchMethodTest: Fail
 NonConstConstructorWithoutBodyTest: Fail
@@ -301,9 +294,6 @@ RethrowTest: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
 Setter0Test: Fail
-Setter1Test: Crash
-SetterDeclaration2NegativeTest: Crash
-SetterDeclarationNegativeTest: Crash
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
@@ -346,7 +336,6 @@ SwitchScopeTest: Fail
 SwitchTest: Fail
 SyntaxTest/none: Fail
 TernaryTest: Fail
-TestNegativeTest: Crash
 Throw1Test: Fail
 Throw2Test: Fail
 Throw3Test: Fail
@@ -384,3 +373,17 @@ Unary2Test: Fail
 UnaryTest: Fail
 UnboundGetterTest: Fail
 WhileTest: Fail
+
+# Tree validation fails.
+ClassLiteralTest/28: Crash
+ClassLiteralTest/29: Crash
+CompoundAssignmentOperatorTest: Crash
+IncrOpTest: Crash
+
+# NPE in Types.isSubtype.
+ContextTest: Crash
+
+# Type assertion in SsaBuilder.updateDefinition.
+Setter1Test: Crash
+SetterDeclaration2NegativeTest: crash
+SetterDeclarationNegativeTest: crash
