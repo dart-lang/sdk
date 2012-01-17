@@ -20,6 +20,7 @@
 #source("implementation/string_base.dart");
 #source("implementation/string_buffer.dart");
 #source("implementation/time_zone_implementation.dart");
+#source("implementation/type_token.dart");
 #source("src/implementation/dual_pivot_quicksort.dart");
 #source("src/implementation/duration_implementation.dart");
 #source("src/implementation/exceptions.dart");
