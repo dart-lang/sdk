@@ -50,6 +50,10 @@ interface TextTrackCue {
 
   void set startTime(num value);
 
+  String get text();
+
+  void set text(String value);
+
   int get textPosition();
 
   void set textPosition(int value);
@@ -61,8 +65,6 @@ interface TextTrackCue {
   bool dispatchEvent(Event evt);
 
   DocumentFragment getCueAsHTML();
-
-  String getCueAsSource();
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }

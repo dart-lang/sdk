@@ -11,10 +11,8 @@ class _PointerLockWrappingImplementation extends DOMWrapperBase implements Point
     return new _PointerLockWrappingImplementation();
   }
 
-  bool isLocked() {
-    return _isLocked(this);
-  }
-  static bool _isLocked(receiver) native;
+  bool get isLocked() { return _get_isLocked(this); }
+  static bool _get_isLocked(var _this) native;
 
   void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) {
     if (successCallback === null) {

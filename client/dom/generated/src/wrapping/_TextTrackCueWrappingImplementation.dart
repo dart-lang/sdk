@@ -77,6 +77,12 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
   void set startTime(num value) { _set_startTime(this, value); }
   static void _set_startTime(var _this, num value) native;
 
+  String get text() { return _get_text(this); }
+  static String _get_text(var _this) native;
+
+  void set text(String value) { _set_text(this, value); }
+  static void _set_text(var _this, String value) native;
+
   int get textPosition() { return _get_textPosition(this); }
   static int _get_textPosition(var _this) native;
 
@@ -107,11 +113,6 @@ class _TextTrackCueWrappingImplementation extends DOMWrapperBase implements Text
     return _getCueAsHTML(this);
   }
   static DocumentFragment _getCueAsHTML(receiver) native;
-
-  String getCueAsSource() {
-    return _getCueAsSource(this);
-  }
-  static String _getCueAsSource(receiver) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

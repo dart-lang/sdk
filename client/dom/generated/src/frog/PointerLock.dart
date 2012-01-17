@@ -1,7 +1,7 @@
 
 class PointerLock native "*PointerLock" {
 
-  bool isLocked() native;
+  bool isLocked;
 
   void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
 

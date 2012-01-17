@@ -1412,8 +1412,6 @@ class DOMWindow native "@*DOMWindow" {
 
   DOMWindow open(String url, String name, [String options = null]) native;
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
-
   void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
@@ -4133,13 +4131,11 @@ class IDBDatabaseError native "*IDBDatabaseError" {
 
 class IDBDatabaseException native "*IDBDatabaseException" {
 
-  static final int ABORT_ERR = 13;
+  static final int ABORT_ERR = 8;
 
   static final int CONSTRAINT_ERR = 4;
 
   static final int DATA_ERR = 5;
-
-  static final int DEADLOCK_ERR = 11;
 
   static final int NON_TRANSIENT_ERR = 2;
 
@@ -4149,17 +4145,17 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int NO_ERR = 0;
 
-  static final int READ_ONLY_ERR = 12;
+  static final int QUOTA_ERR = 11;
 
-  static final int RECOVERABLE_ERR = 8;
-
-  static final int SERIAL_ERR = 7;
+  static final int READ_ONLY_ERR = 9;
 
   static final int TIMEOUT_ERR = 10;
 
-  static final int TRANSIENT_ERR = 9;
+  static final int TRANSACTION_INACTIVE_ERR = 7;
 
   static final int UNKNOWN_ERR = 1;
+
+  static final int VER_ERR = 12;
 
   int code;
 
@@ -5382,7 +5378,7 @@ class PerformanceTiming native "*PerformanceTiming" {
 
 class PointerLock native "*PointerLock" {
 
-  bool isLocked() native;
+  bool isLocked;
 
   void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
 
@@ -9465,6 +9461,8 @@ class TextTrackCue native "*TextTrackCue" {
 
   num startTime;
 
+  String text;
+
   int textPosition;
 
   TextTrack track;
@@ -9474,8 +9472,6 @@ class TextTrackCue native "*TextTrackCue" {
   bool dispatchEvent(Event evt) native;
 
   DocumentFragment getCueAsHTML() native;
-
-  String getCueAsSource() native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

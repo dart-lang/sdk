@@ -617,7 +617,6 @@ dom_externs.getContext;                 // operation HTMLCanvasElement.getContex
 dom_externs.getContextAttributes;       // operation WebGLRenderingContext.getContextAttributes
 dom_externs.getCounterValue;            // operation CSSPrimitiveValue.getCounterValue
 dom_externs.getCueAsHTML;               // operation TextTrackCue.getCueAsHTML
-dom_externs.getCueAsSource;             // operation TextTrackCue.getCueAsSource
 dom_externs.getCueById;                 // operation TextTrackCueList.getCueById
 dom_externs.getCurrentPosition;         // operation Geolocation.getCurrentPosition
 dom_externs.getCurrentTime;             // operation SVGAnimationElement.getCurrentTime, operation SVGSVGElement.getCurrentTime
@@ -800,7 +799,7 @@ dom_externs.isFile;                     // attribute Entry.isFile, attribute Ent
 dom_externs.isFramebuffer;              // operation WebGLRenderingContext.isFramebuffer
 dom_externs.isHTMLAllCollection;        // operation InjectedScriptHost.isHTMLAllCollection
 dom_externs.isId;                       // attribute Attr.isId
-dom_externs.isLocked;                   // operation PointerLock.isLocked
+dom_externs.isLocked;                   // attribute PointerLock.isLocked
 dom_externs.isMap;                      // attribute HTMLImageElement.isMap
 dom_externs.isPointInPath;              // operation CanvasRenderingContext2D.isPointInPath
 dom_externs.isPointInRange;             // operation Range.isPointInRange
@@ -1036,7 +1035,7 @@ dom_externs.onwriteend;                 // attribute FileWriter.onwriteend
 dom_externs.onwritestart;               // attribute FileWriter.onwritestart
 dom_externs.open;                       // operation DOMWindow.open, attribute HTMLDetailsElement.open, operation HTMLDocument.open, operation IDBFactory.open, operation XMLHttpRequest.open
 dom_externs.openCursor;                 // operation IDBIndex.openCursor, operation IDBObjectStore.openCursor
-dom_externs.openDatabase;               // operation DOMWindow.openDatabase, operation WorkerContext.openDatabase
+dom_externs.openDatabase;               // operation WorkerContext.openDatabase
 dom_externs.openDatabaseSync;           // operation WorkerContext.openDatabaseSync
 dom_externs.openKeyCursor;              // operation IDBIndex.openKeyCursor
 dom_externs.opener;                     // attribute DOMWindow.opener
@@ -1503,7 +1502,7 @@ dom_externs.texImage2D;                 // operation WebGLRenderingContext.texIm
 dom_externs.texParameterf;              // operation WebGLRenderingContext.texParameterf
 dom_externs.texParameteri;              // operation WebGLRenderingContext.texParameteri
 dom_externs.texSubImage2D;              // operation WebGLRenderingContext.texSubImage2D
-dom_externs.text;                       // attribute HTMLAnchorElement.text, attribute HTMLBodyElement.text, attribute HTMLOptionElement.text, attribute HTMLScriptElement.text, attribute HTMLTitleElement.text
+dom_externs.text;                       // attribute HTMLAnchorElement.text, attribute HTMLBodyElement.text, attribute HTMLOptionElement.text, attribute HTMLScriptElement.text, attribute HTMLTitleElement.text, attribute TextTrackCue.text
 dom_externs.textAlign;                  // attribute CanvasRenderingContext2D.textAlign
 dom_externs.textBaseline;               // attribute CanvasRenderingContext2D.textBaseline
 dom_externs.textContent;                // attribute Node.textContent

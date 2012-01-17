@@ -6,7 +6,7 @@
 
 interface PointerLock {
 
-  bool isLocked();
+  bool get isLocked();
 
   void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
 

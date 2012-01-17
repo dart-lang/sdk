@@ -393,16 +393,6 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static DOMWindow _open(receiver, url, name) native;
   static DOMWindow _open_2(receiver, url, name, options) native;
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
-    if (creationCallback === null) {
-      return _openDatabase(this, name, version, displayName, estimatedSize);
-    } else {
-      return _openDatabase_2(this, name, version, displayName, estimatedSize, creationCallback);
-    }
-  }
-  static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
-  static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
-
   void postMessage(String message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts === null) {
       _postMessage(this, message, targetOrigin);
