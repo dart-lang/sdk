@@ -6,51 +6,81 @@
 
 function native_NumberImplementation_BIT_OR(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this | other;
 }
 
 function native_NumberImplementation_BIT_XOR(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this ^ other;
 }
 
 function native_NumberImplementation_BIT_AND(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this & other;
 }
 
 function native_NumberImplementation_SHL(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this << other;
 }
 
 function native_NumberImplementation_SAR(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this >> other;
 }
 
 function native_NumberImplementation_ADD(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this + other;
 }
 
 function native_NumberImplementation_SUB(other) {
   "use strict";
-   return this - other;
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
+  return this - other;
 }
 
 function native_NumberImplementation_MUL(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this * other;
 }
 
 function native_NumberImplementation_DIV(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this / other;
 }
 
 function native_NumberImplementation_TRUNC(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   var tmp = this / other;
   if (tmp < 0) {
     return Math.ceil(tmp);
@@ -75,26 +105,41 @@ function number$euclideanModulo(a, b) {
 
 function native_NumberImplementation_MOD(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return number$euclideanModulo(this, other);
 }
 
 function native_NumberImplementation_LT(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this < other;
 }
 
 function native_NumberImplementation_GT(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this > other;
 }
 
 function native_NumberImplementation_LTE(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this <= other;
 }
 
 function native_NumberImplementation_GTE(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this >= other;
 }
 
@@ -115,6 +160,9 @@ function native_NumberImplementation_negate() {
 
 function native_NumberImplementation_remainder(other) {
   "use strict";
+  if (typeof other != 'number') {
+    native__NumberJsUtil__throwIllegalArgumentException(other);
+  }
   return this % other;
 }
 

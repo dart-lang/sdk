@@ -87,3 +87,9 @@ class NumberImplementation implements int, double native "Number" {
   int hashCode() native;
   get dynamic() { return toDouble(); }
 }
+
+class _NumberJsUtil {
+  static void _throwIllegalArgumentException(var argument) native {
+    throw new IllegalArgumentException([argument]);
+  }
+}

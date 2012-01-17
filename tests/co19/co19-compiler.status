@@ -153,7 +153,6 @@ LibTest/core/List/length/List/set/length/A06/t01: Fail
 LibTest/core/List/operator\[]/List/operator\[]/A01/t02: Fail
 LibTest/core/List/operator\[]/List/operator\[]/A02/t02: Fail
 LibTest/core/List/operator\[]/List/operator\[]/A03/t01: Fail
-LibTest/core/List/operator\[]/List/operator\[]/A04/t01: Fail
 LibTest/core/List/operator\[]=/List/operator\[]=/A02/t01: Fail
 LibTest/core/List/operator\[]=/List/operator\[]=/A03/t01: Fail
 LibTest/core/List/removeRange/List/removeRange/A01/t01: Fail
