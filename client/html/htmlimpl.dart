@@ -413,7 +413,7 @@
 #source('src/_Collections.dart');
 #source('src/_FactoryProviders.dart');
 #source('src/_ListIterators.dart');
-#source('src/_Lists.dart');
+#source('src/Lists.dart');
 #source('src/AbstractWorkerWrappingImplementation.dart');
 #source('src/AnimationEventWrappingImplementation.dart');
 #source('src/BeforeLoadEventWrappingImplementation.dart');

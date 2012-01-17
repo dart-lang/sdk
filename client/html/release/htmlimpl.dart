@@ -1412,12 +1412,12 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   }
 
   int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(int element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -5482,12 +5482,12 @@ class MediaListWrappingImplementation extends DOMWrapperBase implements MediaLis
   }
 
   int indexOf(String element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(String element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -11201,12 +11201,12 @@ class StyleSheetListWrappingImplementation extends DOMWrapperBase implements Sty
   }
 
   int indexOf(StyleSheet element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(StyleSheet element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -11871,12 +11871,12 @@ class TouchListWrappingImplementation extends DOMWrapperBase implements TouchLis
   }
 
   int indexOf(Touch element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Touch element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -18361,7 +18361,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
 // TODO(jacobr): move into a core library or at least merge with the copy
 // in client/dom/src
-class _Lists {
+class Lists {
 
   /**
    * Returns the index in the array [a] of the given [element], starting
@@ -18404,6 +18404,62 @@ class _Lists {
       }
     }
     return -1;
+  }
+
+  static void setRange(List to, int start, int length, List from,
+      int startFrom) {
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (startFrom < 0) {
+      throw new IndexOutOfRangeException(startFrom);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > to.length) {
+      throw new IndexOutOfRangeException(Math.min(to.length, start));
+    } else if (startFrom + length > from.length) {
+      throw new IndexOutOfRangeException(Math.min(from.length, startFrom));
+    }
+
+    for (var i = 0; i < length; i++) {
+      to[start + i] = from[startFrom + i];
+    }
+  }
+
+  static void removeRange(List a, int start, int length,
+      void removeOne(int index)) {
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > a.length) {
+      throw new IndexOutOfRangeException(Math.min(a.length, start));
+    }
+
+    for (var i = 0; i < length; i++) {
+      removeOne(start);
+    }
+  }
+
+  static List getRange(List a, int start, int length) {
+    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
+    // checking for List indexing
+    if (start < 0) {
+      throw new IndexOutOfRangeException(start);
+    } else if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    } else if (start + length > a.length) {
+      throw new IndexOutOfRangeException(Math.min(a.length, start));
+    }
+
+    var result = [];
+    for (var i = 0; i < length; i++) {
+      result.add(a[start + i]);
+    }
+    return result;
   }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -22302,29 +22358,11 @@ class _ChildrenElementList implements ElementList {
     return LevelDom.wrapElement(_element.firstElementChild);
   }
 
-  void forEach(void f(Element element)) {
-    for (var element in _childElements) {
-      f(LevelDom.wrapElement(element));
-    }
-  }
+  void forEach(void f(Element element)) => _toList().forEach(f);
 
-  Collection map(f(Element element)) {
-    List output = new List();
-    forEach((Element element) {
-      output.add(f(element));
-    });
-    return output;
-  }
+  Collection map(f(Element element)) => _toList().map(f);
 
-  Collection<Element> filter(bool f(Element element)) {
-    List<Element> output = new List<Element>();
-    forEach((Element element) {
-      if (f(element)) {
-        output.add(element);
-      }
-    });
-    return output;
-  }
+  Collection<Element> filter(bool f(Element element)) => _toList().filter(f);
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -22345,7 +22383,7 @@ class _ChildrenElementList implements ElementList {
   }
 
   bool isEmpty() {
-    return _element.firstElementChild !== null;
+    return _element.firstElementChild === null;
   }
 
   int get length() {
@@ -22388,29 +22426,25 @@ class _ChildrenElementList implements ElementList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
-  }
+  void setRange(int start, int length, List from, [int startFrom = 0]) =>
+    Lists.setRange(this, start, length, from, startFrom);
 
-  void removeRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  void removeRange(int start, int length) =>
+    Lists.removeRange(this, start, length, (i) => this[i].remove());
 
   void insertRange(int start, int length, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  List getRange(int start, int length) => Lists.getRange(this, start, length);
 
   int indexOf(Element element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Element element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
@@ -23617,23 +23651,9 @@ class _ChildrenNodeList implements NodeList {
 
   void forEach(void f(Node element)) => _toList().forEach(f);
 
-  Collection map(f(Node element)) {
-    List output = new List();
-    forEach((Node element) {
-        output.add(f(element));
-    });
-    return output;
-  }
+  Collection map(f(Node element)) => _toList().map(f);
 
-  Collection<Node> filter(bool f(Node element)) {
-    List<Node> output = new List<Node>();
-    forEach((Node element) {
-      if (f(element)) {
-        output.add(element);
-      }
-    });
-    return output;
-  }
+  Collection<Node> filter(bool f(Node element)) => _toList().filter(f);
 
   bool every(bool f(Node element)) {
     for(Node element in this) {
@@ -23703,71 +23723,25 @@ class _ChildrenNodeList implements NodeList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
-    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
-    // checking for List indexing
-    if (start < 0) {
-      throw new IndexOutOfRangeException(start);
-    } else if (startFrom < 0) {
-      throw new IndexOutOfRangeException(startFrom);
-    } else if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
-    } else if (start + length > this.length) {
-      throw new IndexOutOfRangeException(Math.min(this.length, start));
-    } else if (startFrom + length > from.length) {
-      throw new IndexOutOfRangeException(Math.min(from.length, startFrom));
-    }
+  void setRange(int start, int length, List from, [int startFrom = 0]) =>
+    Lists.setRange(this, start, length, from, startFrom);
 
-    for (var i = 0; i < length; i++) {
-      this[start + i] = from[startFrom + i];
-    }
-  }
-
-  void removeRange(int start, int length) {
-    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
-    // checking for List indexing
-    if (start < 0) {
-      throw new IndexOutOfRangeException(start);
-    } else if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
-    } else if (start + length > this.length) {
-      throw new IndexOutOfRangeException(Math.min(this.length, start));
-    }
-
-    for (var i = 0; i < length; i++) {
-      this[start].remove();
-    }
-  }
+  void removeRange(int start, int length) =>
+    Lists.removeRange(this, start, length, (i) => this[i].remove());
 
   void insertRange(int start, int length, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) {
-    // TODO(nweiz): remove these IndexOutOfRange checks once Frog has bounds
-    // checking for List indexing
-    if (start < 0) {
-      throw new IndexOutOfRangeException(start);
-    } else if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
-    } else if (start + length > this.length) {
-      throw new IndexOutOfRangeException(Math.min(this.length, start));
-    }
-
-    var nodes = <Node>[];
-    for (var i = 0; i < length; i++) {
-      nodes.add(this[start + i]);
-    }
-    return nodes;
-  }
+  List getRange(int start, int length) => Lists.getRange(this, start, length);
 
   int indexOf(Node element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Node element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
