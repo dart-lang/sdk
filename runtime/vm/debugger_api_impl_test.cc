@@ -8,8 +8,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // Only ia32 can run execution tests.
-
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 static bool breakpoint_hit = false;
 
@@ -81,6 +81,6 @@ UNIT_TEST_CASE(Breakpoint) {
   EXPECT(breakpoint_hit == true);
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

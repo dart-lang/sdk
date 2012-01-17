@@ -13,7 +13,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(ErrorHandles) {
   const char* kScriptChars =
@@ -114,7 +115,8 @@ TEST_CASE(IsSame) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(ObjectEquals) {
   bool equal = false;
@@ -136,6 +138,7 @@ TEST_CASE(ObjectEquals) {
 }
 
 #endif
+
 
 TEST_CASE(BooleanValues) {
   Dart_Handle str = Dart_NewString("test");
@@ -198,7 +201,8 @@ TEST_CASE(DoubleValues) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(NumberValues) {
   // TODO(antonm): add various kinds of ints (smi, mint, bigint).
@@ -488,7 +492,8 @@ TEST_CASE(ExternalStringGetPeer) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(ListAccess) {
   const char* kScriptChars =
@@ -607,7 +612,7 @@ TEST_CASE(ListAccess) {
   EXPECT(Dart_IsError(result));
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif
 
 
 // Unit test for entering a scope, creating a local handle and exiting
@@ -729,7 +734,8 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(WeakPersistentHandle) {
   Dart_Handle weak_new_ref = Dart_Null();
@@ -1027,7 +1033,8 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(FieldAccess) {
   const char* kScriptChars =
@@ -3005,6 +3012,6 @@ TEST_CASE(IsolateInterrupt) {
   Isolate::SetInterruptCallback(saved);
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

@@ -298,7 +298,8 @@ TEST_CASE(SerializeScript) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 UNIT_TEST_CASE(FullSnapshot) {
   const char* kScriptChars =
       "class Fields  {\n"
@@ -523,6 +524,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
   free(script_snapshot);
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

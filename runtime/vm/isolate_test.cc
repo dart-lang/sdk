@@ -18,7 +18,8 @@ UNIT_TEST_CASE(IsolateCurrent) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run dart execution tests.
+// Only ia32 and x64 can run dart execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 // Unit test case to verify error during isolate spawning (application classes
 // not loaded into the isolate).
 TEST_CASE(IsolateSpawn) {
@@ -48,6 +49,6 @@ TEST_CASE(IsolateSpawn) {
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
 }
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

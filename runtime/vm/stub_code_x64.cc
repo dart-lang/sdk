@@ -1701,7 +1701,6 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 //  R10: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ Untested("BreakpointStatic stub");
   __ EnterFrame(0);
   __ pushq(R10);
   __ pushq(RBX);
