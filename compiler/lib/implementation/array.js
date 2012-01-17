@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-function native_ListFactory__new(typeToken, length) {
-  return RTT.setTypeInfo(
-      new Array(length),
-      Array.$lookupRTT(RTT.getTypeInfo(typeToken).typeArgs));
-}
-
 function native_ListImplementation__indexOperator(index) {
   return this[index];
 }
