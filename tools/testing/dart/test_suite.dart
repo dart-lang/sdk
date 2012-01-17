@@ -490,16 +490,14 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
-  /***
+  /**
    * Create a directory for the generated test.  Drop the path to the
    * dart checkout and the final ".dart" from the test path, and replace
    * all path separators with underscores.
-   * All variables are block local, except tempDir.
    */
   Directory createTemporaryDirectory(String testPath,
                                      String dartDir,
-                                     String optionsName)
-  {
+                                     String optionsName) {
     String testUniqueName =
         testPath.substring(dartDir.length + 1, testPath.length - 5);
     testUniqueName = testUniqueName.replaceAll('/', '_');
