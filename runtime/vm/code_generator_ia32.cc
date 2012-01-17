@@ -909,7 +909,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
 void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
   // PrimaryNodes are temporary during parsing.
   ErrorMsg(node->token_index(),
-      "Unexpected primary node: %s", node->primary().ToCString());
+      "Unresolved identifier '%s'", node->primary().ToCString());
 }
 
 
