@@ -40,12 +40,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <cstdlib>
+#include <sstream>
 
 #if defined(_WIN32)
 #include "platform/c99_support_win.h"
 #include "platform/inttypes_support_win.h"
 #endif
-
 
 // Target OS detection.
 // for more information on predefined macros:
@@ -192,10 +193,15 @@ private:                                                                       \
 
 
 // Macro to disallow allocation in the C++ heap. This should be used
-// in the private section for a class.
+// in the private section for a class. Don't use UNREACHABLE here to
+// avoid circular dependencies between platform/globals.h and
+// platform/assert.h.
 #define DISALLOW_ALLOCATION()                                                  \
 public:                                                                        \
-  void operator delete(void* pointer) { UNREACHABLE(); }                       \
+  void operator delete(void* pointer) {                                        \
+    fprintf(stderr, "unreachable code\n");                                     \
+    std::abort();                                                              \
+  }                                                                            \
 private:                                                                       \
   void* operator new(size_t size);
 
