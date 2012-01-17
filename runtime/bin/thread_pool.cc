@@ -4,6 +4,50 @@
 
 #include "bin/thread_pool.h"
 
+void TaskQueue::Insert(TaskQueueEntry* entry) {
+  monitor_.Enter();
+  if (head_ == NULL) {
+    head_ = entry;
+    tail_ = entry;
+    monitor_.Notify();
+  } else {
+    tail_->set_next(entry);
+    tail_ = entry;
+  }
+  monitor_.Exit();
+}
+
+
+TaskQueueEntry* TaskQueue::Remove() {
+  monitor_.Enter();
+  TaskQueueEntry* result = head_;
+  while (result == NULL) {
+    if (terminate_) {
+      monitor_.Exit();
+      return NULL;
+    }
+    monitor_.Wait(dart::Monitor::kNoTimeout);
+    if (terminate_) {
+      monitor_.Exit();
+      return NULL;
+    }
+    result = head_;
+  }
+  head_ = result->next();
+  ASSERT(head_ != NULL || tail_ == result);
+  monitor_.Exit();
+  return result;
+}
+
+
+void TaskQueue::Shutdown() {
+  monitor_.Enter();
+  terminate_ = true;
+  monitor_.NotifyAll();
+  monitor_.Exit();
+}
+
+
 void ThreadPool::InsertTask(Task task) {
   TaskQueueEntry* entry = new TaskQueueEntry(task);
   queue_.Insert(entry);

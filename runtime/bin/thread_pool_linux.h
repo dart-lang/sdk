@@ -10,24 +10,6 @@
 #include "platform/globals.h"
 
 
-class TaskQueueData {
- private:
-  TaskQueueData() {}
-  ~TaskQueueData() {}
-
-  pthread_mutex_t* mutex() { return &mutex_; }
-  pthread_cond_t* cond() { return &cond_; }
-
-  pthread_mutex_t mutex_;
-  pthread_cond_t cond_;
-
-  friend class TaskQueue;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(TaskQueueData);
-};
-
-
 class ThreadPoolData {
  private:
   ThreadPoolData() {}

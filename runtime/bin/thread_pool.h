@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "platform/globals.h"
+#include "platform/thread.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_LINUX)
@@ -43,7 +44,7 @@ class TaskQueueEntry {
 // removed from the head.
 class TaskQueue {
  public:
-  TaskQueue();
+  TaskQueue() : terminate_(false), head_(NULL), tail_(NULL) {}
 
   void Insert(TaskQueueEntry* task);
   TaskQueueEntry* Remove();
@@ -53,7 +54,7 @@ class TaskQueue {
   bool terminate_;
   TaskQueueEntry* head_;
   TaskQueueEntry* tail_;
-  TaskQueueData data_;
+  dart::Monitor monitor_;
 
   DISALLOW_COPY_AND_ASSIGN(TaskQueue);
 };
