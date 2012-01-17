@@ -14,8 +14,8 @@ CoreRuntimeTypesTest: Fail
 DateTimeTest: Fail
 DoubleCompareTest: Fail
 ExceptionImplementationTest: Fail
-ExpressionTest: Crash
-ForInTest: Crash
+ExpressionTest: Fail
+ForInTest: Fail
 FuturesTest: Fail
 GrowableObjectArray2VMTest: Fail
 GrowableObjectArrayVMTest: Fail
@@ -28,7 +28,7 @@ ListIndexOfTest: Fail
 ListInsertRangeTest: Fail
 ListIteratorsTest: Fail
 ListLiteralTest: Fail
-ListRemoveRangeTest: Crash
+ListRemoveRangeTest: Fail
 ListSetRangeTest: Fail
 ListSortTest: Fail
 ListTest: Fail
@@ -58,10 +58,10 @@ SplayTreeTest: Fail
 StopwatchTest: Fail
 StringBaseVMTest: Fail
 StringBufferTest: Fail
-StringFromListTest: Crash
+StringFromListTest: Fail
 StringPatternTest: Fail
 StringReplaceTest: Fail
-StringSubstringTest: Crash
+StringSubstringTest: Fail
 StringTest: Fail
-StringsTest: Crash
-UnicodeTest: Crash
+StringsTest: Fail
+UnicodeTest: Fail
