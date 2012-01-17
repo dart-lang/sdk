@@ -9,6 +9,10 @@
     'c99_support_win.h',
     'globals.h',
     'inttypes_support_win.h',
+    'thread.h',
+    'thread_linux.h',
+    'thread_macos.h',
+    'thread_win.h',
     'utils.h',
   ],
 }

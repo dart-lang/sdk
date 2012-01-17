@@ -5,6 +5,7 @@
 #ifndef VM_OBJECT_H_
 #define VM_OBJECT_H_
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/dart.h"
@@ -15,8 +16,6 @@
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/scanner.h"
-
-#include "include/dart_api.h"
 
 namespace dart {
 

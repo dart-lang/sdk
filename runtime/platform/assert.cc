@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/assert.h"
+
 #include <cstdlib>
 #include <sstream>
 #include <string>
 
-#include "platform/assert.h"
 #include "platform/globals.h"
 
 namespace dart {
