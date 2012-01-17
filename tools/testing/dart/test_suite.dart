@@ -444,7 +444,11 @@ class StandardTestSuite implements TestSuite {
           break;
         case 'frogium':
         case 'webdriver':
-          compilerArgs.addAll(['--libdir=$dartDir/frog/lib',
+          String libdir = configuration['froglib'];
+          if (libdir == '') {
+            libdir = '$dartDir/frog/lib';
+          }
+          compilerArgs.addAll(['--libdir=$libdir',
                                '--compile-only',
                                '--out=$compiledDartWrapperFilename']);
           compilerArgs.addAll(vmOptions);
@@ -462,6 +466,7 @@ class StandardTestSuite implements TestSuite {
       String executable = getFilename(dumpRenderTreeFilename);
       List<String> args;
       if (component == 'webdriver') {
+        // TODO(efortuna): These paths are not OS independent! 
         executable = '$dartDir/tools/testing/run_selenium.py';
         args = ['--out', htmlPath, '--browser', configuration['browser']];
       } else {
@@ -928,7 +933,10 @@ class TestUtils {
     if (configuration['component'] == 'dartium') {
       return null;  // No separate compiler for dartium tests.
     }
-    var name = '${buildDir(configuration)}/${compilerName(configuration)}';
+    var name = configuration['frog'];
+    if (name == '') {
+      name = '${buildDir(configuration)}/${compilerName(configuration)}';
+    }
     if (!(new File(name)).existsSync()) {
       throw "Executable '$name' does not exist";
     }

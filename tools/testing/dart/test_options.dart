@@ -158,9 +158,15 @@ is 'dart file.dart' and you specify special command
               ['ff', 'chrome', 'safari', 'ie'],
               'chrome'),
           new _TestOptionSpecification(
-              'flag',
-              'Component-specific extra flags, comma separated',
-              ['--flag'],
+              'frog',
+              'Path to frog executable',
+              ['--frog'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'froglib',
+              'Path to frog library',
+              ['--froglib'],
               [],
               '')];
   }
