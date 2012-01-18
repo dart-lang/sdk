@@ -482,6 +482,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
             case DYNAMIC:
               return member.getType();
             default:
+              // target.field() as Function invocation. 
+              if (types.isAssignable(functionType, field.getType())) {
+                return dynamicType;
+              }
+              // "field" is not Function, so bad structure.
               return typeError(diagnosticNode, TypeErrorCode.USE_ASSIGNMENT_ON_SETTER,
                                name, receiver);
           }
