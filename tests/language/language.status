@@ -184,6 +184,7 @@ PseudoKWIllegalTest/13: Fail # Issue 356
 PseudoKWIllegalTest/14: Fail # Issue 356
 PseudoKWIllegalTest/15: Fail # Issue 356
 PseudoKWIllegalTest/16: Fail # Issue 356
+DuplicateImplementsTest: Fail # Issue 976
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
