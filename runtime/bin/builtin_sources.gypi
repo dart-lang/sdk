@@ -74,6 +74,7 @@
     'socket_win.cc',
     'set.h',
     'set_test.cc',
+    'thread.h',
     'thread_pool.cc',
     'thread_pool_linux.cc',
     'thread_pool_linux.h',
