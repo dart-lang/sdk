@@ -39,6 +39,7 @@ ClosureTest: Fail
 ClosuresWithComplexParamsTest: Fail
 CompoundAssignmentOperatorTest: Fail
 ConstEscapeFrogTest: Fail
+ConstFieldNegativeTest: Fail
 ConstInit4NegativeTest: Fail
 ConstInitNegativeTest: Fail
 ConstInitTest: Fail
@@ -156,7 +157,6 @@ ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
 ImportCoreNoPrefixTest: Fail
 IncrOpTest: Fail
-IndexTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
@@ -167,7 +167,6 @@ Instanceof2Test: Fail
 InstanceofTest: Fail
 InstantiateTypeVariableNegativeTest: Pass  # For the wrong reason.
 IntTest: Fail
-InterfaceConstantsTest: Fail
 InterfaceCycleNegativeTest: Fail
 InterfaceFactoryConstructorNegativeTest: Fail
 InterfaceFactoryMultiTest: Fail
@@ -305,6 +304,7 @@ StaticCallWrongArgumentCountNegativeTest: Fail
 StaticFieldTest: Fail
 StaticFinalFieldNegativeTest: Fail
 StaticFinalFieldTest: Fail
+StaticFinalField2NegativeTest: Fail
 StaticImplicitClosureTest: Fail
 StaticImplicitClosureTest: Fail
 StaticTopLevelTest/00: Fail
