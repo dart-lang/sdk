@@ -184,7 +184,7 @@ PseudoKWIllegalTest/13: Fail # Issue 356
 PseudoKWIllegalTest/14: Fail # Issue 356
 PseudoKWIllegalTest/15: Fail # Issue 356
 PseudoKWIllegalTest/16: Fail # Issue 356
-DuplicateImplementsTest: Fail # Issue 976
+DuplicateImplementsTest: Skip # Issue 976
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -211,7 +211,7 @@ ImplementTypeParameterNegativeTest: Skip # Issue 887
 FactoryImplementationTest: Fail # Issue 523
 PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
-DuplicateImplementsTest: Fail   # Issue 976
+DuplicateImplementsTest: Skip   # Issue 976
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
