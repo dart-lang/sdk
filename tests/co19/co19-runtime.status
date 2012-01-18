@@ -213,6 +213,10 @@ LibTest/core/TypeError/failedAssertion/TypeError/failedAssertion/A01/t01: Fail #
 LibTest/core/TypeError/line/TypeError/line/A01/t01: Fail # Issue co19 - 47
 LibTest/core/TypeError/toString/TypeError/toString/A01/t01: Fail # Issue co19 - 47
 LibTest/core/TypeError/url/TypeError/url/A01/t01: Fail # Issue co19 - 47
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t01: Fail # Issue co19 - 37
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t02: Fail # Issue co19 - 37
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t03: Fail # Issue co19 - 37
+LangSpecTest/13_Types/13_8_Parameterized_Types/13/8/Parameterized/types/A01/t04: Fail # Issue co19 - 37
 
 [ $component == vm && $checked ]
 LangGuideTest/03_Values/03_2_Numbers/A02/t01: Fail # Issue co19 - 37
@@ -258,6 +262,10 @@ LibTest/core/Set/addAll/Set/addAll/A01/t03: Fail # Issue co19 - 53
 LibTest/core/Map/A01/t03: Fail # Issue co19 - 53
 LibTest/core/Map/Map/Map/A01/t01: Fail # Issue co19 - 53
 LangSpecTest/13_Types/13_4_Interface_Types/A07/t03: Fail # Issue co19 - 53
+LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t02: Fail # Issue co19 - 37
+LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t03: Fail # Issue co19 - 37
+LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail # Issue co19 - 37
+LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail # Issue co19 - 37
 
 [ $component == vm && $system == win32 ]
 LibTest/core/int/operator\^/int/operator\^/A01/t01: Skip # Bad file name.
@@ -274,10 +282,6 @@ LibTest/core/TypeError/url/TypeError/url/A01/t01: Fail
 
 # Started failing after making @static-type-error non-negative.
 [ $component == vm ]
-LangSpecTest/13_Types/13_1_Static_Types/A03/t01: Fail # Issue 441
-LangSpecTest/13_Types/13_1_Static_Types/A03/t02: Fail # Issue 441
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t02: Fail # Issue co19 - 35
-LangSpecTest/13_Types/13_8_Parameterized_Types/A02/t03: Fail # Issue co19 - 35
 LibTest/core/Map/forEach/Map/forEach/A01/t03: Fail # Issue co19 - 34
 LibTest/core/Map/operator\[]/Map/operator\[]/A01/t03: Fail # Issue co19 - 34
 LibTest/core/Map/operator\[]=/Map/operator\[]=/A01/t03: Fail # Issue co19 - 34

@@ -218,6 +218,7 @@ class Parser : ValueObject {
                                const Class& cls,
                                AbstractType* type);
   enum TypeResolution {
+    kIgnore,  // Parsed type is ignored and replaced by Dynamic.
     kDoNotResolve,  // Type resolution is postponed.
     kCanResolve,  // Type resolution is optional.
     kMustResolve  // Type resolution is required.
@@ -318,14 +319,7 @@ class Parser : ValueObject {
   // Add the inlined finally block to the specified node.
   void AddFinallyBlockToNode(AstNode* node, InlinedFinallyNode* finally_node);
   AstNode* ParseTryStatement(String* label_name);
-
-  enum TypeSpecification {
-    kIsOptional,  // Type specification is optional.
-    kIsMandatory  // Type specification is mandatory.
-  };
-  RawAbstractType* ParseFinalVarOrType(TypeSpecification type_specification,
-                               TypeResolution type_resolution);
-  const AbstractType& ParseConstVarOrType(TypeSpecification type_specification);
+  RawAbstractType* ParseFinalVarOrType(TypeResolution type_resolution);
   AstNode* ParseVariableDeclaration(const AbstractType& type, bool is_const);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);

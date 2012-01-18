@@ -2973,7 +2973,9 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
     } else {
       ErrorMsg("right angle bracket expected");
     }
-    return NewTypeArguments(types);
+    if (type_resolution != kIgnore) {
+      return NewTypeArguments(types);
+    }
   }
   return TypeArguments::null();
 }
@@ -3050,8 +3052,8 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
 void Parser::ParseTopLevelVariable(TopLevel* top_level) {
   const bool is_final = (CurrentToken() == Token::kFINAL);
   const bool is_static = true;
-  const AbstractType& type = AbstractType::ZoneHandle(
-      ParseFinalVarOrType(kIsMandatory, kCanResolve));
+  const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
+      FLAG_enable_type_checks ? kCanResolve : kIgnore));
 
   while (true) {
     const intptr_t name_pos = token_index_;
@@ -3667,27 +3669,25 @@ AstNode* Parser::ParseVariableDeclaration(
 
 // Parses ('var' | 'final' [type] | type).
 // The presence of 'final' must be detected and remembered before the call.
-// If type_specification is kIsOptional, and no type can be parsed, then return
-// the DynamicType.
 // If a type is parsed, it is resolved (or not) according to type_resolution.
-RawAbstractType* Parser::ParseFinalVarOrType(
-    TypeSpecification type_specification, TypeResolution type_resolution) {
+RawAbstractType* Parser::ParseFinalVarOrType(TypeResolution type_resolution) {
   if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
     return Type::DynamicType();
   }
+  bool type_is_optional = false;
   if (CurrentToken() == Token::kFINAL) {
     ConsumeToken();
-    type_specification = kIsOptional;
+    type_is_optional = true;
   }
   if (CurrentToken() != Token::kIDENT) {
-    if (type_specification == kIsOptional) {
+    if (type_is_optional) {
       return Type::DynamicType();
     } else {
       ErrorMsg("type name expected");
     }
   }
-  if (type_specification == kIsOptional) {
+  if (type_is_optional) {
     Token::Kind follower = LookaheadToken(1);
     // We have an identifier followed by a 'follower' token.
     // We either parse a type or return now.
@@ -3708,8 +3708,8 @@ RawAbstractType* Parser::ParseFinalVarOrType(
 AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
   bool is_final = (CurrentToken() == Token::kFINAL);
-  const AbstractType& type = AbstractType::ZoneHandle(
-      ParseFinalVarOrType(kIsMandatory, kMustResolve));
+  const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
+      FLAG_enable_type_checks ? kMustResolve : kIgnore));
   if (!IsIdentifier()) {
     ErrorMsg("identifier expected");
   }
@@ -4401,8 +4401,8 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     loop_var_name = ExpectIdentifier("variable name expected");
   } else {
     // The case without a type is handled above, so require a type here.
-    const AbstractType& type = AbstractType::ZoneHandle(
-        ParseFinalVarOrType(kIsMandatory, kMustResolve));
+    const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
+        FLAG_enable_type_checks ? kMustResolve : kIgnore));
     loop_var_pos = token_index_;
     loop_var_name = ExpectIdentifier("variable name expected");
     loop_var = new LocalVariable(loop_var_pos, *loop_var_name, type);
@@ -4662,8 +4662,10 @@ void Parser::ParseCatchParameter(CatchParamDesc* catch_param) {
   TRACE_PARSER("ParseCatchParameter");
   ASSERT(catch_param != NULL);
   catch_param->is_final = (CurrentToken() == Token::kFINAL);
+  // The type of the catch parameter must always be resolved, even in unchecked
+  // mode.
   catch_param->type = &AbstractType::ZoneHandle(
-      ParseFinalVarOrType(kIsMandatory, kMustResolve));
+      ParseFinalVarOrType(kMustResolve));
   catch_param->token_index = token_index_;
   catch_param->var = ExpectIdentifier("identifier expected");
 }
@@ -6668,7 +6670,9 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   }
   Class& scope_class = Class::Handle();
   Object& type_class = Object::Handle();
-  if (type_resolution == kDoNotResolve) {
+  if (type_resolution == kIgnore) {
+    // Leave type_class as null.
+  } else if (type_resolution == kDoNotResolve) {
     String& qualifier = String::Handle();
     if (type_name.qualifier != NULL) {
       qualifier ^= type_name.qualifier->raw();
@@ -6713,6 +6717,9 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   }
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(ParseTypeArguments(type_resolution));
+  if (type_resolution == kIgnore) {
+    return Type::DynamicType();
+  }
   Type& type = Type::Handle(
       Type::NewParameterizedType(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
