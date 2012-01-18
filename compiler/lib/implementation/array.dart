@@ -22,15 +22,11 @@ class ListFactory<E> {
     } else if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }
-    // TODO(floitsch): make list creation more efficient. Currently we allocate
-    // a new TypeToken at every allocation. Either we can optimize them away,
-    // or we need to find other ways to pass type-information from Dart to JS.
-    ListImplementation list = _new(new TypeToken<E>(), length);
+    
+    ListImplementation<E> list = new ListImplementation<E>(length);
     list._isFixed = isFixed;
     return list;
   }
-
-  static ListImplementation _new(TypeToken typeToken, int length) native;
 }
 
 
@@ -41,6 +37,8 @@ class ListImplementation<T> implements List<T> native "Array" {
   // code generator will not add the property. It will be 'undefined'
   // and coerce to false.
   bool _isFixed;
+
+  ListImplementation(int length);
 
   T operator[](int index) native;
   void operator[]=(int index, T value) native;
