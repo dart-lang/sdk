@@ -86,22 +86,28 @@ class Utils {
   static uint32_t WordHash(word key);
 
   // Check whether an N-bit two's-complement representation can hold value.
-  static inline bool IsInt(int N, word value) {
-    ASSERT((0 < N) && (N < kBitsPerWord));
-    word limit = static_cast<word>(1) << (N - 1);
+  template<typename T>
+  static inline bool IsInt(int N, T value) {
+    ASSERT((0 < N) &&
+           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
+    T limit = static_cast<T>(1) << (N - 1);
     return (-limit <= value) && (value < limit);
   }
 
-  static inline bool IsUint(int N, word value) {
-    ASSERT((0 < N) && (N < kBitsPerWord));
-    word limit = static_cast<word>(1) << N;
+  template<typename T>
+  static inline bool IsUint(int N, T value) {
+    ASSERT((0 < N) &&
+           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
+    T limit = static_cast<T>(1) << N;
     return (0 <= value) && (value < limit);
   }
 
   // Check whether the magnitude of value fits in N bits, i.e., whether an
   // (N+1)-bit sign-magnitude representation can hold value.
-  static inline bool IsAbsoluteUint(int N, word value) {
-    ASSERT((0 < N) && (N < kBitsPerWord));
+  template<typename T>
+  static inline bool IsAbsoluteUint(int N, T value) {
+    ASSERT((0 < N) &&
+           (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
     if (value < 0) value = -value;
     return IsUint(N, value);
   }

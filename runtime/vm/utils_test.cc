@@ -130,6 +130,10 @@ UNIT_TEST_CASE(IsInt) {
   EXPECT(!Utils::IsInt(16, 65535));
   EXPECT(Utils::IsInt(16, 32767));
   EXPECT(Utils::IsInt(16, -32768));
+  EXPECT(Utils::IsInt(32, 16LL));
+  EXPECT(Utils::IsInt(32, 2147483647LL));
+  EXPECT(Utils::IsInt(32, -2147483648LL));
+  EXPECT(!Utils::IsInt(32, 4294967295LL));
 }
 
 
@@ -142,6 +146,10 @@ UNIT_TEST_CASE(IsUint) {
   EXPECT(Utils::IsUint(16, 0));
   EXPECT(Utils::IsUint(16, 65535));
   EXPECT(!Utils::IsUint(16, 65536));
+  EXPECT(Utils::IsUint(32, 16LL));
+  EXPECT(Utils::IsUint(32, 0LL));
+  EXPECT(Utils::IsUint(32, 4294967295LL));
+  EXPECT(!Utils::IsUint(32, 4294967296LL));
 }
 
 
@@ -156,6 +164,11 @@ UNIT_TEST_CASE(IsAbsoluteUint) {
   EXPECT(Utils::IsAbsoluteUint(16, 65535));
   EXPECT(Utils::IsAbsoluteUint(16, -32768));
   EXPECT(!Utils::IsAbsoluteUint(16, 65536));
+  EXPECT(Utils::IsAbsoluteUint(32, 16LL));
+  EXPECT(Utils::IsAbsoluteUint(32, 0LL));
+  EXPECT(Utils::IsAbsoluteUint(32, -2147483648LL));
+  EXPECT(Utils::IsAbsoluteUint(32, 4294967295LL));
+  EXPECT(!Utils::IsAbsoluteUint(32, 4294967296LL));
 }
 
 

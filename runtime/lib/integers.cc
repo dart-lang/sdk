@@ -68,20 +68,6 @@ static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
 }
 
 
-static bool Are63bitOperands(const Integer& op1, const Integer& op2) {
-  if (op1.IsBigint() || op2.IsBigint()) {
-    return false;
-  }
-  const int64_t limit = (static_cast<int64_t>(1)) << 62;
-  const int64_t value1 = op1.AsInt64Value();
-  if ((-limit > value1) || (value1 >= limit)) {
-    return false;
-  }
-  const int64_t value2 = op2.AsInt64Value();
-  return (-limit <= value2) && (value2 < limit);
-}
-
-
 static RawInteger* IntegerBitOperation(Token::Kind kind,
                                        const Integer& op1_int,
                                        const Integer& op2_int) {
@@ -240,10 +226,12 @@ static RawBigint* BinaryOpWithTwoBigints(Token::Kind operation,
 static RawInteger* IntegerBinopHelper(Token::Kind operation,
                                       const Integer& left_int,
                                       const Integer& right_int) {
-  // The result of any operation (except multiplication in 64-bit mode) between
-  // two Smis will always fit in a 64-bit signed result (no overflow).
-  if (((Smi::kBits < 32) || (operation != Token::kMUL)) &&
-      left_int.IsSmi() && right_int.IsSmi()) {
+  // In 32-bit mode, the result of any operation between two Smis will fit in a
+  // 32-bit signed result, except the product of two Smis, which will be 64-bit.
+  // In 64-bit mode, the result of any operation between two Smis will fit in a
+  // 64-bit signed result, except the product of two Smis (unless the Smis are
+  // 32-bit or less).
+  if (left_int.IsSmi() && right_int.IsSmi()) {
     Smi& left_smi = Smi::Handle();
     Smi& right_smi = Smi::Handle();
     left_smi ^= left_int.raw();
@@ -256,9 +244,20 @@ static RawInteger* IntegerBinopHelper(Token::Kind operation,
       case Token::kSUB:
         return Integer::New(left_value - right_value);
       case Token::kMUL: {
-        ASSERT(Smi::kBits < 32);  // Do not use this code in 64-bit mode.
-        return Integer::New(static_cast<int64_t>(left_value) *
-                            static_cast<int64_t>(right_value));
+        if (Smi::kBits < 32) {
+          // In 32-bit mode, the product of two Smis fits in a 64-bit result.
+          return Integer::New(static_cast<int64_t>(left_value) *
+                              static_cast<int64_t>(right_value));
+        } else {
+          // In 64-bit mode, the product of two 32-bit signed integers fits in a
+          // 64-bit result.
+          ASSERT(sizeof(intptr_t) == sizeof(int64_t));
+          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
+            return Integer::New(left_value * right_value);
+          }
+        }
+        // Perform a Bigint multiplication below.
+        break;
       }
       case Token::kTRUNCDIV:
         return Integer::New(left_value / right_value);
@@ -270,47 +269,51 @@ static RawInteger* IntegerBinopHelper(Token::Kind operation,
           } else {
             return Integer::New(remainder + right_value);
           }
-        } else {
-          return Integer::New(remainder);
         }
+        return Integer::New(remainder);
       }
       default:
         UNIMPLEMENTED();
     }
-    UNREACHABLE();
-    return Integer::null();
   }
-  // The result of any operation (except multiplication) between two 63-bit
-  // signed integers will fit in a 64-bit signed result.
-  // In 64-bit mode, this case was already handled above.
-  if ((Smi::kBits < 32) && (operation != Token::kMUL) &&
-      Are63bitOperands(left_int, right_int)) {
+  // In 32-bit mode, the result of any operation between two 63-bit signed
+  // integers (or 32-bit for multiplication) will fit in a 64-bit signed result.
+  // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
+  if ((Smi::kBits < 32) && !left_int.IsBigint() && !right_int.IsBigint()) {
     const int64_t left_value = left_int.AsInt64Value();
-    const int64_t right_value = right_int.AsInt64Value();
-    switch (operation) {
-      case Token::kADD:
-        return Integer::New(left_value + right_value);
-      case Token::kSUB:
-        return Integer::New(left_value - right_value);
-      case Token::kTRUNCDIV:
-        return Integer::New(left_value / right_value);
-      case Token::kMOD: {
-        const int64_t remainder = left_value % right_value;
-        if (remainder < 0) {
-          if (right_value < 0) {
-            return Integer::New(remainder - right_value);
-          } else {
-            return Integer::New(remainder + right_value);
+    if (Utils::IsInt(63, left_value)) {
+      const int64_t right_value = right_int.AsInt64Value();
+      if (Utils::IsInt(63, right_value)) {
+        switch (operation) {
+        case Token::kADD:
+          return Integer::New(left_value + right_value);
+        case Token::kSUB:
+          return Integer::New(left_value - right_value);
+        case Token::kMUL: {
+          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
+            return Integer::New(left_value * right_value);
           }
-        } else {
+          // Perform a Bigint multiplication below.
+          break;
+        }
+        case Token::kTRUNCDIV:
+          return Integer::New(left_value / right_value);
+        case Token::kMOD: {
+          const int64_t remainder = left_value % right_value;
+          if (remainder < 0) {
+            if (right_value < 0) {
+              return Integer::New(remainder - right_value);
+            } else {
+              return Integer::New(remainder + right_value);
+            }
+          }
           return Integer::New(remainder);
         }
+        default:
+          UNIMPLEMENTED();
+        }
       }
-      default:
-        UNIMPLEMENTED();
     }
-    UNREACHABLE();
-    return Integer::null();
   }
   const Bigint& left_big = Bigint::Handle(AsBigint(left_int));
   const Bigint& right_big = Bigint::Handle(AsBigint(right_int));
