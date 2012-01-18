@@ -2758,7 +2758,8 @@ TEST_CASE(ImportLibrary5) {
 }
 
 
-static bool RunLoopTestCallback(void* data, char** error) {
+static bool RunLoopTestCallback(const char* name_prefix,
+                                void* data, char** error) {
   const char* kScriptChars =
       "#import('builtin');\n"
       "class MyIsolate extends Isolate {\n"
@@ -2804,7 +2805,7 @@ static void RunLoopTest(bool throw_exception_child,
                         bool throw_exception_parent) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
-  RunLoopTestCallback(NULL, NULL);
+  RunLoopTestCallback(NULL, NULL, NULL);
 
   Dart_EnterScope();
   Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
@@ -2899,7 +2900,7 @@ void BusyLoop_start(uword unused) {
   {
     sync->Enter();
     char* error = NULL;
-    shared_isolate = Dart_CreateIsolate(NULL, NULL, &error);
+    shared_isolate = Dart_CreateIsolate(NULL, NULL, NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = Dart_NewString(TestCase::url());

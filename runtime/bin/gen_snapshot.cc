@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
   Dart_Initialize(NULL, NULL);
 
   char* error;
-  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, &error);
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, &error);
   if (isolate == NULL) {
     fprintf(stderr, "%s", error);
     free(error);

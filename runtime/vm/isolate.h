@@ -39,7 +39,7 @@ class Isolate {
   static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();
-  static Isolate* Init();
+  static Isolate* Init(const char* name_prefix);
   void Shutdown();
 
   // Visit all object pointers.
@@ -65,6 +65,8 @@ class Isolate {
 
   MessageQueue* message_queue() const { return message_queue_; }
   void set_message_queue(MessageQueue* value) { message_queue_ = value; }
+
+  const char* name() const { return name_; }
 
   // The number of ports is only correct when read from the current
   // isolate. This value is not protected from being updated
@@ -261,6 +263,7 @@ class Isolate {
  private:
   Isolate();
 
+  void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
 
   static uword GetSpecifiedStackSize();
@@ -272,6 +275,7 @@ class Isolate {
   MessageQueue* message_queue_;
   Dart_PostMessageCallback post_message_callback_;
   Dart_ClosePortCallback close_port_callback_;
+  char* name_;
   intptr_t num_ports_;
   intptr_t live_ports_;
   Dart_Port main_port_;

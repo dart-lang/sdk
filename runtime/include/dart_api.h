@@ -245,7 +245,9 @@ DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
  *   In the case of errors the caller is responsible for freeing the buffer
  *   returned in error containing an error string.
  */
-typedef bool (*Dart_IsolateCreateCallback)(void* callback_data, char** error);
+typedef bool (*Dart_IsolateCreateCallback)(const char* name_prefix,
+                                           void* callback_data,
+                                           char** error);
 
 /**
  * An isolate interrupt callback function.
@@ -323,7 +325,8 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  * \return The new isolate is returned. May be NULL if an error
  *   occurs duing isolate initialization.
  */
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* name_prefix,
+                                            const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error);
 // TODO(turnidge): Document behavior when there is already a current

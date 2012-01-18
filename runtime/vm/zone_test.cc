@@ -16,7 +16,7 @@ UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zone_sizes = true;
 #endif
-  Isolate* isolate = Isolate::Init();
+  Isolate* isolate = Isolate::Init(NULL);
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
@@ -77,7 +77,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zone_sizes = true;
 #endif
-  Isolate* isolate = Isolate::Init();
+  Isolate* isolate = Isolate::Init(NULL);
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   static int marker;

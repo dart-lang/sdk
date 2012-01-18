@@ -39,7 +39,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
   {
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
-    vm_isolate_ = Isolate::Init();
+    vm_isolate_ = Isolate::Init("vm-isolate");
     Zone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_);
@@ -55,9 +55,9 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
 }
 
 
-Isolate* Dart::CreateIsolate() {
+Isolate* Dart::CreateIsolate(const char* name_prefix) {
   // Create a new isolate.
-  Isolate* isolate = Isolate::Init();
+  Isolate* isolate = Isolate::Init(name_prefix);
   ASSERT(isolate != NULL);
   return isolate;
 }

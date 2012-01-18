@@ -497,10 +497,11 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name) {
 // --- Isolates ---
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const uint8_t* snapshot,
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* name_prefix,
+                                            const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error) {
-  Isolate* isolate = Dart::CreateIsolate();
+  Isolate* isolate = Dart::CreateIsolate(name_prefix);
   assert(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
   LongJump jump;

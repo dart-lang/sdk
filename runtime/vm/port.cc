@@ -11,6 +11,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_isolates);
 
 Mutex* PortMap::mutex_ = NULL;
 
@@ -219,7 +220,19 @@ bool PortMap::PostMessage(Dart_Port dest_port,
   ASSERT(callback);
   bool result =
       (*callback)(Api::CastIsolate(isolate), dest_port, reply_port, message);
-
+  if (FLAG_trace_isolates) {
+    const char* source_name = "<native code>";
+    Isolate* source_isolate = Isolate::Current();
+    if (source_isolate) {
+      source_name = source_isolate->name();
+    }
+    OS::Print("[>] Posting message:\n"
+              "\tsource:     %s\n"
+              "\treply_port: %lld\n"
+              "\tdest:       %s\n"
+              "\tdest_port:  %lld\n",
+              source_name, reply_port, isolate->name(), dest_port);
+  }
   mutex_->Unlock();
   return result;
 }

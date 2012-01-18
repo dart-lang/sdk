@@ -248,6 +248,25 @@ static bool CheckArguments(const char* library_url, const char* class_name) {
 }
 
 
+static char* BuildIsolateName(const char* script_name,
+                              const char* class_name,
+                              const char* func_name) {
+  // Skip past any slashes in the script name.
+  const char* last_slash = strrchr(script_name, '/');
+  if (last_slash != NULL) {
+    script_name = last_slash + 1;
+  }
+
+  const char* kFormat = "%s/%s.%s";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, script_name, class_name,
+                             func_name) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, kFormat, script_name, class_name, func_name);
+  return chars;
+}
+
+
 DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   Isolate* preserved_isolate = Isolate::Current();
   const Instance& runnable = Instance::CheckedHandle(arguments->At(0));
@@ -263,9 +282,10 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   void* callback_data = preserved_isolate->init_callback_data();
   char* error = NULL;
   Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
+  const char* isolate_name = BuildIsolateName(library_url, class_name, "main");
   if (callback == NULL) {
     error = strdup("Null callback specified for isolate creation\n");
-  } else if (callback(callback_data, &error)) {
+  } else if (callback(isolate_name, callback_data, &error)) {
     spawned_isolate = Isolate::Current();
     ASSERT(spawned_isolate != NULL);
     // Check arguments to see if the specified library and classes are

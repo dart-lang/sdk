@@ -260,8 +260,10 @@ static Dart_Handle LoadScript(const char* script_name) {
 }
 
 
-static bool CreateIsolateAndSetup(void* data, char** error) {
-  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer, data, error);
+static bool CreateIsolateAndSetup(const char* name_prefix,
+                                  void* data, char** error) {
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(name_prefix, snapshot_buffer, data, error);
   if (isolate == NULL) {
     return false;
   }
@@ -308,7 +310,7 @@ static bool CaptureScriptSnapshot() {
   Dart_Handle result;
 
   // First create an isolate and load up the specified script in it.
-  if (!CreateIsolateAndSetup(NULL, &error)) {
+  if (!CreateIsolateAndSetup(NULL, NULL, &error)) {
     fprintf(stderr, "%s\n", error);
     free(canonical_script_name);
     free(error);
@@ -359,6 +361,23 @@ static void PrintUsage() {
 }
 
 
+char* BuildIsolateName(const char* script_name,
+                       const char* func_name) {
+  // Skip past any slashes in the script name.
+  const char* last_slash = strrchr(script_name, '/');
+  if (last_slash != NULL) {
+    script_name = last_slash + 1;
+  }
+
+  const char* kFormat = "%s/%s";
+  intptr_t len = strlen(script_name) + strlen(func_name) + 2;
+  char* buffer = new char[len];
+  ASSERT(buffer != NULL);
+  snprintf(buffer, len, kFormat, script_name, func_name);
+  return buffer;
+}
+
+
 int main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
@@ -405,15 +424,18 @@ int main(int argc, char** argv) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
-  if (!CreateIsolateAndSetup(NULL, &error)) {
+  char* isolate_name = BuildIsolateName(canonical_script_name, "main");
+  if (!CreateIsolateAndSetup(isolate_name, NULL, &error)) {
     fprintf(stderr, "%s\n", error);
     free(canonical_script_name);
     free(error);
     free(script_snapshot_buffer);
+    delete [] isolate_name;
     return 255;  // Indicates we encountered an error.
   }
-
   free(script_snapshot_buffer);  // Don't need it anymore.
+  delete [] isolate_name;
+
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   Dart_Handle result;
@@ -440,7 +462,6 @@ int main(int argc, char** argv) {
     free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
-
   // Lookup the library of the main script.
   Dart_Handle script_url = Dart_NewString(canonical_script_name);
   Dart_Handle library = Dart_LookupLibrary(script_url);

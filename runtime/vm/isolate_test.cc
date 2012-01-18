@@ -10,7 +10,7 @@
 namespace dart {
 
 UNIT_TEST_CASE(IsolateCurrent) {
-  Isolate* isolate = Isolate::Init();
+  Isolate* isolate = Isolate::Init(NULL);
   EXPECT_EQ(isolate, Isolate::Current());
   isolate->Shutdown();
   EXPECT_EQ(reinterpret_cast<Isolate*>(NULL), Isolate::Current());
