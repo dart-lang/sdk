@@ -369,7 +369,7 @@ function EQ$operator(val1, val2) {
   } else if (typeof(val1) == typeof(val2) && typeof val1 != 'object') {
     // number, boolean, string
     return val1 === val2;
-  } 
+  }
   return val1.EQ$operator(val2);
 }
 

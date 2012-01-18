@@ -8,12 +8,24 @@ function native_ListFactory__new(typeToken, length) {
       Array.$lookupRTT(RTT.getTypeInfo(typeToken).typeArgs));
 }
 
-function native_ListImplementation__indexOperator(index) {
-  return this[index];
+function native_ListImplementation_INDEX(index) {
+  var i = index | 0;
+  if (i !== index) {
+    native__NumberJsUtil__throwIllegalArgumentException(index);
+  } else if (i < 0 || i >= this.length) {
+    native__ListJsUtil__throwIndexOutOfRangeException(index);
+  }
+  return this[i];
 }
 
-function native_ListImplementation__indexAssignOperator(index, value) {
-  this[index] = value;
+function native_ListImplementation_ASSIGN_INDEX(index, value) {
+  var i = index | 0;
+  if (i !== index) {
+    native__NumberJsUtil__throwIllegalArgumentException(index);
+  } else if (i < 0 || i >= this.length) {
+    native__ListJsUtil__throwIndexOutOfRangeException(index);
+  }
+  this[i] = value;
 }
 
 function native_ListImplementation_get$length() {
@@ -28,13 +40,6 @@ function native_ListImplementation__add(element) {
   this.push(element);
 }
 
-function $inlineArrayIndexCheck(array, index) {
-  if (index >= 0 && index < array.length) {
-    return index;
-  }
-  native__ListJsUtil__throwIndexOutOfRangeException(index);
-}
-
 function native_ListImplementation__removeRange(start, length) {
   this.splice(start, length);
 }
@@ -45,4 +50,14 @@ function native_ListImplementation__insertRange(start, length, initialValue) {
     array.push(initialValue);
   }
   this.splice.apply(this, array);
+}
+
+function $inlineArrayIndexCheck(array, index) {
+  var i = index | 0;
+  if (i !== index) {
+    native__NumberJsUtil__throwIllegalArgumentException(index);
+  } else if (i < 0 || i >= array.length) {
+    native__ListJsUtil__throwIndexOutOfRangeException(index);
+  }
+  return i;
 }

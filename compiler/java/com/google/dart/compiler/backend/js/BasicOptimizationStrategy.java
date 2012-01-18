@@ -423,7 +423,7 @@ class BasicOptimizationStrategy implements OptimizationStrategy {
     // For now we only inline classes that don't have Only immediate subtypes of object that are
     // not subclassed.
     // We will refine this in the near future to include arbitrary class hierarchies.
-    if (classElement.getModifiers().isNative()) {
+    if (classElement.getNativeName() != null) {
       return false;
     }
     List<ConstructorElement> constructors = classElement.getConstructors();
