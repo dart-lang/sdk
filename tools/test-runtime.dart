@@ -35,6 +35,7 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
+  var keepGeneratedTests = firstConf['keep-generated-tests'];
 
   var configurationIterator = configurations.iterator();
   bool enqueueConfiguration(ProcessQueue queue) {
@@ -74,6 +75,7 @@ main() {
                                startTime,
                                printTiming,
                                enqueueConfiguration,
-                               verbose: verbose,
-                               listTests: listTests);
+                               verbose,
+                               listTests,
+                               keepGeneratedTests);
 }
