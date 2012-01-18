@@ -96,6 +96,7 @@ class PipeServerGame {
           // file.
           bool result = compareFileContent(srcFileName, dstFileName);
           new File(dstFileName).deleteSync();
+          tempDir.deleteSync();
           Expect.isTrue(result);
 
           _socket.close();
@@ -170,6 +171,7 @@ testFileToFilePipe1() {
   srcStream.closeHandler = () {
     bool result = compareFileContent(srcFileName, dstFileName);
     new File(dstFileName).deleteSync();
+    tempDir.deleteSync();
     Expect.isTrue(result);
   };
 
@@ -210,6 +212,7 @@ testFileToFilePipe2() {
     src.closeSync();
     dst.closeSync();
     dstFile.deleteSync();
+    tempDir.deleteSync();
   };
 
   srcStream.pipe(dstStream, close: false);
@@ -249,6 +252,7 @@ testFileToFilePipe3() {
       src.closeSync();
       dst.closeSync();
       dstFile.deleteSync();
+      tempDir.deleteSync();
     };
 
     // Pipe another copy of the source file.

@@ -123,7 +123,7 @@ class FileTest {
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
     file.errorHandler = (s) {
-      Expect.fail("No errors expected");
+      Expect.fail("No errors expected : $s");
     };
     file.openHandler = (RandomAccessFile file) {
       List<int> buffer = new List<int>(10);
@@ -178,40 +178,48 @@ class FileTest {
   static void testReadWrite() {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
-    File file = new File(inFilename);
+    final File file = new File(inFilename);
     file.errorHandler = (s) {
-      Expect.fail("No errors expected");
+      Expect.fail("No errors expected : $s");
     };
     file.openHandler = (RandomAccessFile openedFile) {
+      openedFile.errorHandler = (s) {
+        Expect.fail("No errors expected : $s");
+      };
       List<int> buffer1 = new List<int>(42);
       openedFile.readListHandler = (bytes_read) {
         Expect.equals(42, bytes_read);
         openedFile.closeHandler = () {
           // Write the contents of the file just read into another file.
           String outFilename = tempDirectory.path + "/out_read_write";
-          file = new File(outFilename);
-          file.errorHandler = (s) {
-            Expect.fail("No errors expected");
+          final File file2 = new File(outFilename);
+          file2.errorHandler = (s) {
+            Expect.fail("No errors expected : $s");
           };
-          file.createHandler = () {
-            file.fullPathHandler = (s) {
+          file2.createHandler = () {
+            file2.fullPathHandler = (s) {
               Expect.isTrue(new File(s).existsSync());
               if (s[0] != '/' && s[0] != '\\' && s[1] != ':') {
                 Expect.fail("Not a full path");
               }
-              file.openHandler = (RandomAccessFile openedFile) {
-                openedFile.noPendingWriteHandler = () {
-                  openedFile.closeHandler = () {
-                    // Now read the contents of the file just written.
+              file2.openHandler = (RandomAccessFile openedFile2) {
+                openedFile2.errorHandler = (s) {
+                  Expect.fail("No errors expected : $s");
+                };
+                openedFile2.noPendingWriteHandler = () {
+                  openedFile2.closeHandler = () {
                     List<int> buffer2 = new List<int>(bytes_read);
-                    file = new File(outFilename);
-                    file.errorHandler = (s) {
-                      Expect.fail("No errors expected");
+                    final File file3 = new File(outFilename);
+                    file3.errorHandler = (s) {
+                      Expect.fail("No errors expected : $s");
                     };
-                    file.openHandler = (RandomAccessFile openedfile) {
-                      openedFile.readListHandler = (bytes_read) {
-                        Expect.equals(42, bytes_read);
-                        openedFile.closeHandler = () {
+                    file3.openHandler = (RandomAccessFile openedFile3) {
+                      openedFile3.errorHandler = (s) {
+                        Expect.fail("No errors expected : $s");
+                      };
+                      openedFile3.readListHandler = (bytes_read) {
+                       Expect.equals(42, bytes_read);
+                        openedFile3.closeHandler = () {
                           // Now compare the two buffers to check if they
                           // are identical.
                           Expect.equals(buffer1.length, buffer2.length);
@@ -219,30 +227,31 @@ class FileTest {
                             Expect.equals(buffer1[i],  buffer2[i]);
                           }
                           // Delete the output file.
-                          file.deleteHandler = () {
-                            file.existsHandler = (exists) {
+                          final file4 = file3;
+                          file4.deleteHandler = () {
+                            file4.existsHandler = (exists) {
                               Expect.isFalse(exists);
                               asyncTestDone();
                             };
-                            file.exists();
+                            file4.exists();
                           };
-                          file.delete();
+                          file4.delete();
                         };
-                        openedFile.close();
+                        openedFile3.close();
                       };
-                      openedFile.readList(buffer2, 0, 42);
+                      openedFile3.readList(buffer2, 0, 42);
                     };
-                    file.open();
+                    file3.open();
                   };
-                  openedFile.close();
+                  openedFile2.close();
                 };
-                openedFile.writeList(buffer1, 0, bytes_read);
+                openedFile2.writeList(buffer1, 0, bytes_read);
               };
-              file.open(FileMode.WRITE);
+              file2.open(FileMode.WRITE);
             };
-            file.fullPath();
+            file2.fullPath();
           };
-          file.create();
+          file2.create();
         };
         openedFile.close();
       };
@@ -296,11 +305,15 @@ class FileTest {
     file.createSync();
     RandomAccessFile openedFile = file.openSync();
     Expect.throws(() => openedFile.readByteSync(), (e) => e is FileIOException);
+    file.deleteSync();
   }
 
   static void testReadEmptyFile() {
     String fileName = tempDirectory.path + "/empty_file";
     File file = new File(fileName);
+    file.errorHandler = (s) {
+      Expect.fail("No errors expected : $s");
+    };
     file.createHandler = () {
       file.openHandler = (RandomAccessFile openedFile) {
         openedFile.readByteHandler = (int byte) {
@@ -308,6 +321,10 @@ class FileTest {
         };
         openedFile.errorHandler = (String err) {
           Expect.isTrue(err.indexOf("failed") != -1);
+          file.deleteHandler = () {
+            asyncTestDone();
+          };
+          file.delete();
         };
         openedFile.readByte();
       };
