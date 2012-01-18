@@ -196,7 +196,7 @@ TypedMessageTest: Fail # Bug 5246195
 [ $component == frog ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-[ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff)) || $component == frogium ]
+[ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) || $component == frogium ]
 Factory3Test: Fail # Issue 417
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
@@ -311,15 +311,29 @@ ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
 
-[ $component == webdriver && $browser == ff ]
+[ $component == webdriver && ($browser == ff || $browser == safari) ]
 MethodInvocationTest: Fail
-NamingTest: Fail
 Private3Test: Fail
 StackTraceTest: Fail
-StackOverflowTest: Fail
-StringConcatTest: Fail
 StringInterpolateNPETest: Fail
 ToStringAsFixedTest: Fail
+
+[ $component == webdriver && $browser == safari ]
+BlockScopeTest: Fail
+ClosureBreak1Test: Fail
+ClosureBreakTest: Fail
+ExecuteFinally7Test: Fail
+FunctionLiteralsTest: Fail
+ImplicitClosure1Test: Fail
+ImplicitClosureTest: Fail
+MethodBindingTest: Fail
+Prefix15Test: Fail
+StringConcatTest: Fail
+
+[ $component == webdriver && $browser == ff ]
+NamingTest: Fail
+StackOverflowTest: Fail
+StringConcatTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip

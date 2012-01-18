@@ -89,19 +89,23 @@ To continue on to run the performance tests:
 10)Download the Chrome Driver: http://code.google.com/p/chromium/downloads/list
    and make sure it is in your path.
 
-10)Disable pop-up blocking in Safari: 
-   Preferences -> Security -> (unselect) Block pop-up windows.
+11) a) Disable pop-up blocking in Safari: 
+       Preferences -> Security -> (unselect) Block pop-up windows.
+    b) copy the file in /Library/Preferences/com.apple.Safari.plist to 
+       $DARTDIR/tools/testing/com.apple.Safari.plist
+       (We do this because Safari deletes our preferences (on no pop-up 
+       blocking) if it crashes (aka times out) two times in a row.)
 
-11)TODO(efortuna): Deal with appengine check in! Run 
+12)TODO(efortuna): Deal with appengine check in! Run 
    '../../../third_party/appengine-python/1.5.4/appcfg.py update appengine/' 
    while standing in dart/tools/testing/perf_tests.
 
-12)Install matplotlib http://matplotlib.sourceforge.net/
+13)Install matplotlib http://matplotlib.sourceforge.net/
 
-13)Pull down benchmarks from internal repo (Google only): 
+14)Pull down benchmarks from internal repo (Google only): 
    http://chromegw.corp.google.com/viewvc/dash/trunk/internal/browserBenchmarks/README.txt?view=markup
 
-14) Run the tests! While standing in dart/tools/testing/perf_testing, run 
+15) Run the tests! While standing in dart/tools/testing/perf_testing, run 
     $> python create_graph.py --forever --verbose --perfbot 
     to run all the tests (browser performance, language correctness in the
     browser, command line performance, and self-hosted compile time and compiled

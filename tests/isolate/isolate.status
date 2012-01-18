@@ -28,9 +28,15 @@ MandelIsolateTest: Skip     # Bug 5353937.
 CrossIsolateMessageTest:Fail # HTMLElement should be hidden in workers
 MixedTest: Fail              # HTMLElement should be hidden in workers
 Mixed2Test: Fail             # HTMLElement should be hidden in workers
+
+[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
 Message2Test: Fail           # postMessage API currently expects String messages
 NestedSpawn2Test: Fail
 NestedSpawnTest: Fail
+
+[ $component == webdriver && $browser == safari ]
+MessageTest: Fail
+PromiseBasedTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip

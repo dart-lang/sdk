@@ -22,7 +22,7 @@ IndexedListAccessTest: Fail     # Issue 274
 *VMTest: Skip
 
 
-[ $component == frog || $component == frogsh || $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff)) ]
+[ $component == frog || $component == frogsh || $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
 *VMTest: Skip
 *VMNegativeTest: Skip
@@ -52,6 +52,9 @@ StringTest: Fail  # Needs index out of range checks.
 
 [ $component == webdriver && $browser == ff ]
 UnicodeTest: Fail
+
+[ $component == webdriver && $browser == safari ]
+FuturesTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
