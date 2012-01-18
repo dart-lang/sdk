@@ -107,6 +107,52 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
+                            Dart_Handle script_url_in,
+                            Dart_Handle line_number_in,
+                            Dart_Breakpoint* breakpoint) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  String& script_url = String::Handle();
+  Integer& line_number = Integer::Handle();
+  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+  UNWRAP_AND_CHECK_PARAM(Integer, line_number, line_number_in);
+  CHECK_NOT_NULL(breakpoint);
+
+  if (!line_number.IsSmi()) {
+    return Api::NewError("%s: line number out of range", CURRENT_FUNC);
+  }
+  intptr_t line = line_number.AsInt64Value();
+
+  const char* msg = CheckIsolateState(isolate);
+  if (msg != NULL) {
+    return Api::NewError(msg);
+  }
+
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  Dart_Handle result = Api::True();
+  *breakpoint = NULL;
+  Debugger* debugger = isolate->debugger();
+  ASSERT(debugger != NULL);
+  if (setjmp(*jump.Set()) == 0) {
+    Breakpoint* bpt = debugger->SetBreakpointAtLine(script_url, line);
+    if (bpt == NULL) {
+      result = Api::NewError("%s: could not set breakpoint at line %d of '%s'",
+                             CURRENT_FUNC, line, script_url.ToCString());
+    } else {
+      *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
+    }
+  } else {
+    SetupErrorResult(&result);
+  }
+  isolate->set_long_jump_base(base);
+  return result;
+}
+
+
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle library_in,
                             Dart_Handle class_name_in,

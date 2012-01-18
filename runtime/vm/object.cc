@@ -1585,6 +1585,25 @@ RawFunction* Class::LookupFunction(const String& name) const {
 }
 
 
+RawFunction* Class::LookupFunctionAtToken(intptr_t token_index) const {
+  // TODO(hausner): we can shortcut the negative case if we knew the
+  // beginning and end token position of the class.
+  Array& funcs = Array::Handle(functions());
+  Function& func = Function::Handle();
+  intptr_t len = funcs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    func ^= funcs.At(i);
+    if ((func.token_index() <= token_index) &&
+        (token_index < func.end_token_index())) {
+      return func.raw();
+    }
+  }
+
+  // No function found.
+  return Function::null();
+}
+
+
 RawField* Class::LookupInstanceField(const String& name) const {
   ASSERT(is_finalized());
   const Field& field = Field::Handle(LookupField(name));
@@ -3241,6 +3260,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_static(is_static);
   result.set_is_const(is_const);
   result.set_token_index(token_index);
+  result.set_end_token_index(token_index);
   result.set_num_fixed_parameters(0);
   result.set_num_optional_parameters(0);
   result.set_invocation_counter(0);
@@ -3703,6 +3723,14 @@ void Script::GetTokenLocation(intptr_t token_index,
 }
 
 
+intptr_t Script::TokenIndexAtLine(intptr_t line_number) const {
+  const String& src = String::Handle(source());
+  const String& dummy_key = String::Handle(String::New(""));
+  Scanner scanner(src, dummy_key);
+  return scanner.TokenIndexAtLine(line_number);
+}
+
+
 RawString* Script::GetLine(intptr_t line_number) const {
   const String& src = String::Handle(source());
   intptr_t current_line = 1;
@@ -3979,6 +4007,93 @@ void Library::AddClass(const Class& cls) const {
   AddObject(cls, String::Handle(cls.Name()));
   // Link class to this library.
   cls.set_library(*this);
+}
+
+
+// TODO(hausner): we might want to add a script dictionary to the
+// library class to make this lookup less cumbersome.
+RawScript* Library::LookupScript(const String& url) const {
+  Object& entry = Object::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  Field& field = Field::Handle();
+  Script& owner_script = Script::Handle();
+  String& owner_url = String::Handle();
+
+  DictionaryIterator it(*this);
+  while (it.HasNext()) {
+    entry = it.GetNext();
+    if (entry.IsClass()) {
+      cls ^= entry.raw();
+    } else if (entry.IsFunction()) {
+      func ^= entry.raw();
+      cls = func.owner();
+    } else if (entry.IsField()) {
+      field ^= entry.raw();
+      cls = field.owner();
+    } else {
+      continue;
+    }
+    owner_script = cls.script();
+    if (owner_script.IsNull()) {
+      continue;
+    }
+    owner_url = owner_script.url();
+    if (owner_url.Equals(url)) {
+      return owner_script.raw();
+    }
+  }
+  return Script::null();
+}
+
+
+RawFunction* Library::LookupFunctionInSource(const String& script_url,
+                                             intptr_t line_number) const {
+  Script& script = Script::Handle(LookupScript(script_url));
+  if (script.IsNull()) {
+    // The given script url is not loaded into this library.
+    return Function::null();
+  }
+
+  // Determine token position at given line number.
+  intptr_t token_index_at_line = script.TokenIndexAtLine(line_number);
+  if (token_index_at_line < 0) {
+    // Script does not contain the given line number.
+    return Function::null();
+  }
+
+  return LookupFunctionInScript(script, token_index_at_line);
+}
+
+
+RawFunction* Library::LookupFunctionInScript(const Script& script,
+                                             intptr_t token_index) const {
+  Object& entry = Object::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  DictionaryIterator it(*this);
+  while (it.HasNext()) {
+    entry = it.GetNext();
+    if (entry.IsFunction()) {
+      func ^= entry.raw();
+      cls = func.owner();
+      if (script.raw() == cls.script()) {
+        if ((func.token_index() <= token_index) &&
+            (token_index < func.end_token_index())) {
+          return func.raw();
+        }
+      }
+    } else if (entry.IsClass()) {
+      cls ^= entry.raw();
+      if (script.raw() == cls.script()) {
+        func = cls.LookupFunctionAtToken(token_index);
+        if (!func.IsNull()) {
+          return func.raw();
+        }
+      }
+    }
+  }
+  return Function::null();
 }
 
 

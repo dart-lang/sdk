@@ -17,6 +17,24 @@ typedef void Dart_BreakpointHandler(
                  Dart_Breakpoint breakpoint,
                  Dart_StackTrace stack_trace);
 
+
+/**
+ * Sets a breakpoint at line \line_number in \script_url, or the closest
+ * following line (within the same function) where a breakpoint can be set.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \breakpoint If non-null, will point to the breakpoint object
+ *   if a breakpoint was successfully created.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
+                            Dart_Handle script_url,
+                            Dart_Handle line_number,
+                            Dart_Breakpoint* breakpoint);
+
+
 /**
  * Sets a breakpoint at the entry of the given function. If class_name
  * is the empty string, looks for a library function with the given
@@ -34,6 +52,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle class_name,
                             Dart_Handle function_name,
                             Dart_Breakpoint* breakpoint);
+
 
 /**
  * Installs a handler callback function that gets called by the VM

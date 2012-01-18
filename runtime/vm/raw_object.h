@@ -494,6 +494,7 @@ class RawFunction : public RawObject {
   }
 
   intptr_t token_index_;
+  intptr_t end_token_index_;
   intptr_t num_fixed_parameters_;
   intptr_t num_optional_parameters_;
   intptr_t invocation_counter_;

@@ -51,6 +51,7 @@ class Scanner : ValueObject {
 
   // Initializes scanner to scan string source.
   Scanner(const String& source, const String& private_key);
+  ~Scanner();
 
   // Scans one token at a time.
   void Scan();
@@ -58,6 +59,10 @@ class Scanner : ValueObject {
   // Scans to specified token position.
   // Use CurrentPosition() to extract position.
   void ScanTo(intptr_t token_index);
+
+  // Returns token index of first token on or after given line number.
+  // Returns negative value if no token exists on or after the line.
+  intptr_t TokenIndexAtLine(intptr_t line_number);
 
   // Scans entire source and returns a stream of tokens.
   // Should be called only once.
@@ -96,6 +101,9 @@ class Scanner : ValueObject {
     int keyword_len;
     String* keyword_symbol;
   };
+
+  // Rewind scanner position to token 0.
+  void Reset();
 
   // Initialize Scanner tables.
   void InitKeywordTable();

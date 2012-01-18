@@ -469,6 +469,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
 
   // Set all the non object fields.
   func.set_token_index(reader->ReadIntptrValue());
+  func.set_end_token_index(reader->ReadIntptrValue());
   func.set_num_fixed_parameters(reader->ReadIntptrValue());
   func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_invocation_counter(reader->ReadIntptrValue());
@@ -504,6 +505,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->end_token_index_);
   writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->invocation_counter_);

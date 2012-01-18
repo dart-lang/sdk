@@ -2069,6 +2069,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   // Only constructors can redirect to another method.
   ASSERT((method->redirect_name == NULL) || method->IsConstructor());
 
+  intptr_t method_end_pos = method_pos;
   if ((CurrentToken() == Token::kLBRACE) ||
       (CurrentToken() == Token::kARROW)) {
     if (method->has_abstract) {
@@ -2094,6 +2095,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       SkipExpr();
       ExpectSemicolon();
     }
+    method_end_pos = token_index_;
   } else if (IsLiteral("native")) {
     if (method->has_abstract) {
       ErrorMsg(method->name_pos,
@@ -2151,6 +2153,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_const,
                     method_pos));
   func.set_result_type(*method->type);
+  func.set_end_token_index(method_end_pos);
 
   // No need to resolve parameter types yet, or add parameters to local scope.
   ASSERT(is_top_level_);
@@ -3144,12 +3147,15 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   const bool allow_explicit_default_values = true;
   ParseFormalParameterList(allow_explicit_default_values, &params);
 
+  intptr_t function_end_pos = function_pos;
   if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
+    function_end_pos = token_index_;
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
     ExpectSemicolon();
+    function_end_pos = token_index_;
   } else if (IsLiteral("native")) {
     ParseNativeDeclaration();
   } else {
@@ -3159,6 +3165,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
       Function::New(func_name, RawFunction::kFunction,
                     is_static, false, function_pos));
   func.set_result_type(result_type);
+  func.set_end_token_index(function_end_pos);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(&func);
   library_.AddObject(func, func_name);

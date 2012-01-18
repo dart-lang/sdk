@@ -361,6 +361,41 @@ static void PrintUsage() {
 }
 
 
+static Dart_Handle SetBreakpoint(const char* breakpoint_at,
+                                 Dart_Handle library) {
+  Dart_Handle result;
+  if (strchr(breakpoint_at, ':')) {
+    char* bpt_line = strdup(breakpoint_at);
+    char* colon = strchr(bpt_line, ':');
+    ASSERT(colon != NULL);
+    *colon = '\0';
+    Dart_Handle url = Dart_NewString(bpt_line);
+    Dart_Handle line_number = Dart_NewInteger(atoi(colon + 1));
+    free(bpt_line);
+    Dart_Breakpoint bpt;
+    result = Dart_SetBreakpointAtLine(url, line_number, &bpt);
+  } else {
+    char* bpt_function = strdup(breakpoint_at);
+    Dart_Handle class_name;
+    Dart_Handle function_name;
+    char* dot = strchr(bpt_function, '.');
+    if (dot == NULL) {
+      class_name = Dart_NewString("");
+      function_name = Dart_NewString(breakpoint_at);
+    } else {
+      *dot = '\0';
+      class_name = Dart_NewString(bpt_function);
+      function_name = Dart_NewString(dot + 1);
+    }
+    free(bpt_function);
+    Dart_Breakpoint bpt;
+    result = Dart_SetBreakpointAtEntry(
+                 library, class_name, function_name, &bpt);
+  }
+  return result;
+}
+
+
 char* BuildIsolateName(const char* script_name,
                        const char* func_name) {
   // Skip past any slashes in the script name.
@@ -474,22 +509,7 @@ int main(int argc, char** argv) {
   }
   // Set debug breakpoint if specified on the command line.
   if (breakpoint_at != NULL) {
-    char* bpt_function = strdup(breakpoint_at);
-    Dart_Handle class_name;
-    Dart_Handle function_name;
-    char* dot = strchr(bpt_function, '.');
-    if (dot == NULL) {
-      class_name = Dart_NewString("");
-      function_name = Dart_NewString(breakpoint_at);
-    } else {
-      *dot = '\0';
-      class_name = Dart_NewString(bpt_function);
-      function_name = Dart_NewString(dot + 1);
-    }
-    free(bpt_function);
-    Dart_Breakpoint bpt;
-    result = Dart_SetBreakpointAtEntry(
-                 library, class_name, function_name, &bpt);
+    result = SetBreakpoint(breakpoint_at, library);
     if (Dart_IsError(result)) {
       fprintf(stderr, "Error setting breakpoint at '%s': %s\n",
           breakpoint_at,

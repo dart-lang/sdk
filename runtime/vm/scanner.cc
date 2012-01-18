@@ -25,22 +25,41 @@ void Scanner::InitKeywordTable() {
 }
 
 
+void Scanner::Reset() {
+  lookahead_pos_ = 0;
+  token_start_ = 0;
+  c0_ = source_length_ == 0 ? '\0' : source_.CharAt(0);
+  newline_seen_ = false;
+  while (saved_context_ != NULL) {
+    ScanContext* ctx = saved_context_;
+    saved_context_ = ctx->next;
+    delete ctx;
+  }
+  string_delimiter_ = '\0';
+  string_is_multiline_ = false;
+  brace_level_ = 0;
+  c0_pos_.line = 1;
+  c0_pos_.column = 1;
+}
+
+
 Scanner::Scanner(const String& src, const String& private_key)
     : source_(src),
       source_length_(src.Length()),
-      lookahead_pos_(0),
-      token_start_(0),
-      c0_(source_length_ == 0 ? '\0' : src.CharAt(0)),
-      newline_seen_(false),
       saved_context_(NULL),
-      string_delimiter_('\0'),
-      string_is_multiline_(false),
-      brace_level_(0),
       private_key_(String::ZoneHandle(private_key.raw())) {
-  c0_pos_.line = 1;
-  c0_pos_.column = 1;
+  Reset();
   InitKeywordTable();
 }
+
+Scanner::~Scanner() {
+  while (saved_context_ != NULL) {
+    ScanContext* ctx = saved_context_;
+    saved_context_ = ctx->next;
+    delete ctx;
+  }
+}
+
 
 void Scanner::ErrorMsg(const char* msg) {
   current_token_.kind = Token::kERROR;
@@ -795,19 +814,38 @@ void Scanner::Scan() {
 
 
 void Scanner::ScanAll(GrowableTokenStream* token_stream) {
+  Reset();
   do {
     Scan();
     token_stream->Add(current_token_);
   } while (current_token_.kind != Token::kEOS);
 }
 
+
 void Scanner::ScanTo(intptr_t token_index) {
   int index = 0;
+  Reset();
   do {
     Scan();
     index++;
   } while ((token_index >= index) && (current_token_.kind != Token::kEOS));
 }
+
+
+intptr_t Scanner::TokenIndexAtLine(intptr_t line_number) {
+  ASSERT(line_number >= 0);
+  Reset();
+  int token_index = 0;
+  do {
+    Scan();
+    if (current_token_.position.line >= line_number) {
+      return token_index;
+    }
+    token_index++;
+  } while (current_token_.kind != Token::kEOS);
+  return -1;
+}
+
 
 
 const Scanner::GrowableTokenStream& Scanner::GetStream() {

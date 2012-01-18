@@ -601,7 +601,7 @@ class Class : public Object {
   RawFunction* LookupConstructor(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
-
+  RawFunction* LookupFunctionAtToken(intptr_t token_index) const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -1252,6 +1252,11 @@ class Function : public Object {
 
   intptr_t token_index() const { return raw_ptr()->token_index_; }
 
+  intptr_t end_token_index() const { return raw_ptr()->end_token_index_; }
+  void set_end_token_index(intptr_t value) const {
+    raw_ptr()->end_token_index_ = value;
+  }
+
   static intptr_t num_fixed_parameters_offset() {
     return OFFSET_OF(RawFunction, num_fixed_parameters_);
   }
@@ -1548,6 +1553,8 @@ class Script : public Object {
   void GetTokenLocation(intptr_t token_index,
                         intptr_t* line, intptr_t* column) const;
 
+  intptr_t TokenIndexAtLine(intptr_t line_number) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
   }
@@ -1637,12 +1644,18 @@ class Library : public Object {
   RawClass* LookupClass(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
+  RawScript* LookupScript(const String& url) const;
 
   void AddAnonymousClass(const Class& cls) const;
 
   // Library imports.
   void AddImport(const Library& library) const;
   RawLibrary* LookupImport(const String& url) const;
+
+  RawFunction* LookupFunctionInSource(const String& script_url,
+                                      intptr_t line_number) const;
+  RawFunction* LookupFunctionInScript(const Script& script,
+                                      intptr_t token_index) const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
@@ -1653,6 +1666,9 @@ class Library : public Object {
   }
 
   void Register() const;
+
+  RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
+
   static RawLibrary* LookupLibrary(const String& url);
   static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
@@ -1684,7 +1700,6 @@ class Library : public Object {
   RawArray* imports() const { return raw_ptr()->imports_; }
   RawArray* imported_into() const { return raw_ptr()->imported_into_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
-  RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
   void InitClassDictionary() const;
   void InitImportList() const;
   void InitImportedIntoList() const;
@@ -1702,6 +1717,7 @@ class Library : public Object {
   HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
   friend class DictionaryIterator;
+  friend class Debugger;
   friend class Isolate;
 };
 

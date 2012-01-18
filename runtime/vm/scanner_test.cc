@@ -331,6 +331,23 @@ void InvalidText() {
 }
 
 
+void FindLineTest() {
+  const char* source =
+      "/*1*/   \n"
+      "/*2*/   class A {\n"
+      "/*3*/      void foo() { }\n"
+      "/*4*/   }\n";
+
+  Scanner scanner(String::Handle(String::New(source)),
+                  String::Handle(String::New("")));
+
+  intptr_t token_index = scanner.TokenIndexAtLine(3);
+  EXPECT_EQ(3, token_index);
+  token_index = scanner.TokenIndexAtLine(100);
+  EXPECT(token_index < 0);
+}
+
+
 TEST_CASE(Scanner_Test) {
   ScanLargeText();
 
@@ -344,6 +361,7 @@ TEST_CASE(Scanner_Test) {
   EmptyMultilineString();
   NumberLiteral();
   InvalidText();
+  FindLineTest();
 }
 
 }  // namespace dart
