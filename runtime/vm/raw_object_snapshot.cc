@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,9 +10,21 @@
 
 namespace dart {
 
-static RawSmi* GetSmi(intptr_t value) {
+#define NEW_OBJECT(type)                                                       \
+  ((kind == Snapshot::kFull) ? reader->New##type() : type::New())
+
+#define NEW_OBJECT_WITH_LEN(type, len)                                         \
+  ((kind == Snapshot::kFull) ? reader->New##type(len) : type::New(len))
+
+
+static RawSmi* AsSmi(intptr_t value) {
   ASSERT((value & kSmiTagMask) == 0);
   return reinterpret_cast<RawSmi*>(value);
+}
+
+
+static intptr_t GetSmiValue(intptr_t value) {
+  return Smi::Value(AsSmi(value));
 }
 
 
@@ -32,10 +44,14 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
-    ObjectKind kind = reader->Read<ObjectKind>();
+    ObjectKind object_kind = reader->Read<ObjectKind>();
 
     // Allocate class object of specified kind.
-    cls = Class::GetClass(kind);
+    if (kind == Snapshot::kFull) {
+      cls = reader->NewClass(object_kind);
+    } else {
+      cls = Class::GetClass(object_kind);
+    }
     reader->AddBackwardReference(object_id, &cls);
 
     // Set the object tags.
@@ -108,8 +124,8 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate parameterized type object.
-  UnresolvedClass& unresolved_class =
-      UnresolvedClass::ZoneHandle(reader->isolate(), UnresolvedClass::New());
+  UnresolvedClass& unresolved_class = UnresolvedClass::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(UnresolvedClass));
   reader->AddBackwardReference(object_id, &unresolved_class);
 
   // Set the object tags.
@@ -173,7 +189,8 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate parameterized type object.
-  Type& parameterized_type = Type::ZoneHandle(reader->isolate(), Type::New());
+  Type& parameterized_type = Type::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(Type));
   reader->AddBackwardReference(object_id, &parameterized_type);
 
   // Set the object tags.
@@ -226,8 +243,8 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Allocate type parameter object.
-  TypeParameter& type_parameter =
-      TypeParameter::ZoneHandle(reader->isolate(), TypeParameter::New());
+  TypeParameter& type_parameter = TypeParameter::ZoneHandle(
+          reader->isolate(), NEW_OBJECT(TypeParameter));
   reader->AddBackwardReference(object_id, &type_parameter);
 
   // Set the object tags.
@@ -340,11 +357,10 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
-  intptr_t len = Smi::Value(smi_len);
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
 
-  TypeArguments& type_arguments =
-      TypeArguments::ZoneHandle(reader->isolate(), TypeArguments::New(len));
+  TypeArguments& type_arguments = TypeArguments::ZoneHandle(
+      reader->isolate(), NEW_OBJECT_WITH_LEN(TypeArguments, len));
   reader->AddBackwardReference(object_id, &type_arguments);
 
   // Now set all the object fields.
@@ -444,7 +460,8 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate function object.
-  Function& func = Function::ZoneHandle(reader->isolate(), Function::New());
+  Function& func = Function::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(Function));
   reader->AddBackwardReference(object_id, &func);
 
   // Set the object tags.
@@ -510,7 +527,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate field object.
-  Field& field = Field::ZoneHandle(reader->isolate(), Field::New());
+  Field& field = Field::ZoneHandle(reader->isolate(), NEW_OBJECT(Field));
   reader->AddBackwardReference(object_id, &field);
 
   // Set the object tags.
@@ -566,12 +583,11 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Read the length so that we can determine number of tokens to read.
-  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
-  intptr_t len = Smi::Value(smi_len);
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
 
   // Create the token stream object.
-  TokenStream& token_stream = TokenStream::ZoneHandle(reader->isolate(),
-                                                      TokenStream::New(len));
+  TokenStream& token_stream = TokenStream::ZoneHandle(
+      reader->isolate(), NEW_OBJECT_WITH_LEN(TokenStream, len));
   reader->AddBackwardReference(object_id, &token_stream);
 
   // Set the object tags.
@@ -580,7 +596,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Read the token stream into the TokenStream.
   for (intptr_t i = 0; i < len; i++) {
     Token::Kind kind = static_cast<Token::Kind>(
-        Smi::Value(GetSmi(reader->ReadIntptrValue())));
+        GetSmiValue(reader->ReadIntptrValue()));
     *reader->StringHandle() ^= reader->ReadObject();
     token_stream.SetTokenAt(i, kind, *reader->StringHandle());
   }
@@ -619,7 +635,7 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate script object.
-  Script& script = Script::ZoneHandle(reader->isolate(), Script::New());
+  Script& script = Script::ZoneHandle(reader->isolate(), NEW_OBJECT(Script));
   reader->AddBackwardReference(object_id, &script);
 
   // Set the object tags.
@@ -673,7 +689,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     library = Library::LookupLibrary(*reader->StringHandle());
   } else {
     // Allocate library object.
-    library = Library::New();
+    library = NEW_OBJECT(Library);
 
     // Set the object tags.
     library.set_tags(tags);
@@ -744,8 +760,8 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Allocate library prefix object.
-  LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(reader->isolate(),
-                                                    LibraryPrefix::New());
+  LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(LibraryPrefix));
   reader->AddBackwardReference(object_id, &prefix);
 
   // Set the object tags.
@@ -785,13 +801,8 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,
                         Snapshot::Kind kind) {
-  ASSERT(reader != NULL);
-  ASSERT(kind != Snapshot::kMessage);
-
-  // Create Code object.
-  Code& code = Code::ZoneHandle(reader->isolate(), Code::New(0));
-  reader->AddBackwardReference(object_id, &code);
-  return code.raw();
+  UNREACHABLE();
+  return Code::null();
 }
 
 
@@ -879,10 +890,12 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
 
   // Allocate context object.
   intptr_t num_vars = reader->ReadIntptrValue();
-  Context& context = Context::ZoneHandle(
-      reader->isolate(),
-      Context::New(num_vars,
-                   (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
+  Context& context = Context::ZoneHandle(reader->isolate(), Context::null());
+  if (kind == Snapshot::kFull) {
+    context = reader->NewContext(num_vars);
+  } else {
+    context = Context::New(num_vars);
+  }
   reader->AddBackwardReference(object_id, &context);
 
   // Set the object tags.
@@ -1081,11 +1094,14 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
 
   // Create a Mint object or get canonical one if it is a canonical constant.
   Mint& mint = Mint::ZoneHandle(reader->isolate(), Mint::null());
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
-    mint = Mint::NewCanonical(value);
+  if (kind == Snapshot::kFull) {
+    mint = reader->NewMint(value);
   } else {
-    mint = Mint::New(value,
-                     (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew);
+    if (RawObject::IsCanonical(tags)) {
+      mint = Mint::NewCanonical(value);
+    } else {
+      mint = Mint::New(value, Heap::kNew);
+    }
   }
   reader->AddBackwardReference(object_id, &mint);
 
@@ -1175,11 +1191,14 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
 
   // Create a Double object or get canonical one if it is a canonical constant.
   Double& dbl = Double::ZoneHandle(reader->isolate(), Double::null());
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
-    dbl = Double::NewCanonical(value);
+  if (kind == Snapshot::kFull) {
+    dbl = reader->NewDouble(value);
   } else {
-    dbl = Double::New(value,
-                      (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew);
+    if (RawObject::IsCanonical(tags)) {
+      dbl = Double::NewCanonical(value);
+    } else {
+      dbl = Double::New(value, Heap::kNew);
+    }
   }
   reader->AddBackwardReference(object_id, &dbl);
 
@@ -1223,37 +1242,28 @@ void RawString::WriteTo(SnapshotWriter* writer,
 
 
 template<typename HandleType, typename CharacterType>
-RawString* String::ReadFromImpl(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind) {
+void String::ReadFromImpl(SnapshotReader* reader,
+                          HandleType* str_obj,
+                          intptr_t len,
+                          intptr_t tags) {
   ASSERT(reader != NULL);
-  // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
-  intptr_t len = Smi::Value(smi_len);
-  RawSmi* smi_hash = GetSmi(reader->ReadIntptrValue());
-
-  HandleType& str_obj = HandleType::ZoneHandle(reader->isolate(),
-                                               HandleType::null());
-  if (kind != Snapshot::kFull && RawObject::IsCanonical(tags)) {
+  if (RawObject::IsCanonical(tags)) {
+    // Set up canonical string object.
+    ASSERT(reader != NULL);
     CharacterType* ptr = reinterpret_cast<CharacterType*>(ZoneAllocator(len));
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
-    str_obj ^= String::NewSymbol(ptr, len);
+    *str_obj ^= String::NewSymbol(ptr, len);
   } else {
     // Set up the string object.
-    str_obj = HandleType::New(
-        len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew);
+    *str_obj = HandleType::New(len, Heap::kNew);
+    str_obj->set_tags(tags);
+    str_obj->SetHash(0);  // Will get computed when needed.
     for (intptr_t i = 0; i < len; i++) {
-      *str_obj.CharAddr(i) = reader->Read<CharacterType>();
+      *str_obj->CharAddr(i) = reader->Read<CharacterType>();
     }
-    str_obj.set_tags(tags);
-    str_obj.SetHash(Smi::Value(smi_hash));
   }
-  reader->AddBackwardReference(object_id, &str_obj);
-
-  return str_obj.raw();
 }
 
 
@@ -1261,8 +1271,31 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
-  return static_cast<RawOneByteString*>(
-      ReadFromImpl<OneByteString, uint8_t>(reader, object_id, tags, kind));
+  // Read the length so that we can determine instance size to allocate.
+  ASSERT(reader != NULL);
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t hash = GetSmiValue(reader->ReadIntptrValue());
+  OneByteString& str_obj = OneByteString::ZoneHandle(reader->isolate(),
+                                                     OneByteString::null());
+
+  if (kind == Snapshot::kFull) {
+    ASSERT(reader->isolate()->no_gc_scope_depth() != 0);
+    RawOneByteString* obj = reader->NewOneByteString(len);
+    str_obj = obj;
+    str_obj.set_tags(tags);
+    obj->ptr()->hash_ = Smi::New(hash);
+    uint8_t* raw_ptr = (len > 0) ? str_obj.CharAddr(0) : NULL;
+    for (intptr_t i = 0; i < len; i++) {
+      ASSERT(str_obj.CharAddr(i) == raw_ptr);  // Will trigger assertions.
+      *raw_ptr = reader->Read<uint8_t>();
+      raw_ptr += 1;
+    }
+    ASSERT((hash == 0) || (String::Hash(str_obj, 0, str_obj.Length()) == hash));
+  } else {
+    ReadFromImpl<OneByteString, uint8_t>(reader, &str_obj, len, tags);
+  }
+  reader->AddBackwardReference(object_id, &str_obj);
+  return str_obj.raw();
 }
 
 
@@ -1270,8 +1303,30 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
-  return static_cast<RawTwoByteString*>(
-      ReadFromImpl<TwoByteString, uint16_t>(reader, object_id, tags, kind));
+  // Read the length so that we can determine instance size to allocate.
+  ASSERT(reader != NULL);
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t hash = GetSmiValue(reader->ReadIntptrValue());
+  TwoByteString& str_obj = TwoByteString::ZoneHandle(reader->isolate(),
+                                                     TwoByteString::null());
+
+  if (kind == Snapshot::kFull) {
+    RawTwoByteString* obj = reader->NewTwoByteString(len);
+    str_obj = obj;
+    str_obj.set_tags(tags);
+    obj->ptr()->hash_ = Smi::New(hash);
+    uint16_t* raw_ptr = (len > 0)? str_obj.CharAddr(0) : NULL;
+    for (intptr_t i = 0; i < len; i++) {
+      ASSERT(str_obj.CharAddr(i) == raw_ptr);  // Will trigger assertions.
+      *raw_ptr = reader->Read<uint16_t>();
+      raw_ptr += 1;
+    }
+    ASSERT(String::Hash(str_obj, 0, str_obj.Length()) == hash);
+  } else {
+    ReadFromImpl<TwoByteString, uint16_t>(reader, &str_obj, len, tags);
+  }
+  reader->AddBackwardReference(object_id, &str_obj);
+  return str_obj.raw();
 }
 
 
@@ -1279,8 +1334,30 @@ RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
                                             intptr_t tags,
                                             Snapshot::Kind kind) {
-  return static_cast<RawFourByteString*>(
-      ReadFromImpl<FourByteString, uint32_t>(reader, object_id, tags, kind));
+  // Read the length so that we can determine instance size to allocate.
+  ASSERT(reader != NULL);
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t hash = GetSmiValue(reader->ReadIntptrValue());
+  FourByteString& str_obj = FourByteString::ZoneHandle(reader->isolate(),
+                                                       FourByteString::null());
+
+  if (kind == Snapshot::kFull) {
+    RawFourByteString* obj = reader->NewFourByteString(len);
+    str_obj = obj;
+    str_obj.set_tags(tags);
+    obj->ptr()->hash_ = Smi::New(hash);
+    uint32_t* raw_ptr = (len > 0)? str_obj.CharAddr(0) : NULL;
+    for (intptr_t i = 0; i < len; i++) {
+      ASSERT(str_obj.CharAddr(i) == raw_ptr);  // Will trigger assertions.
+      *raw_ptr = reader->Read<uint32_t>();
+      raw_ptr += 1;
+    }
+    ASSERT(String::Hash(str_obj, 0, str_obj.Length()) == hash);
+  } else {
+    ReadFromImpl<FourByteString, uint32_t>(reader, &str_obj, len, tags);
+  }
+  reader->AddBackwardReference(object_id, &str_obj);
+  return str_obj.raw();
 }
 
 
@@ -1448,20 +1525,11 @@ void RawBool::WriteTo(SnapshotWriter* writer,
 }
 
 
-template <class T>
-static RawObject* ArrayReadFrom(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind) {
+static void ArrayReadFrom(SnapshotReader* reader,
+                          const Array& result,
+                          intptr_t len,
+                          intptr_t tags) {
   ASSERT(reader != NULL);
-
-  // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
-  intptr_t len = Smi::Value(smi_len);
-  T& result = T::ZoneHandle(
-      reader->isolate(),
-      T::New(len, (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
-  reader->AddBackwardReference(object_id, &result);
 
   // Set the object tags.
   result.set_tags(tags);
@@ -1474,7 +1542,6 @@ static RawObject* ArrayReadFrom(SnapshotReader* reader,
     *reader->ObjectHandle() = reader->ReadObject();
     result.SetAt(i, *reader->ObjectHandle());
   }
-  return result.raw();
 }
 
 
@@ -1482,8 +1549,15 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
                           intptr_t object_id,
                           intptr_t tags,
                           Snapshot::Kind kind) {
-  return reinterpret_cast<RawArray*>(
-      ArrayReadFrom<Array>(reader, object_id, tags, kind));
+  ASSERT(reader != NULL);
+
+  // Read the length so that we can determine instance size to allocate.
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  Array& array = Array::ZoneHandle(reader->isolate(),
+                                   NEW_OBJECT_WITH_LEN(Array, len));
+  reader->AddBackwardReference(object_id, &array);
+  ArrayReadFrom(reader, array, len, tags);
+  return array.raw();
 }
 
 
@@ -1491,8 +1565,15 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
                                             intptr_t tags,
                                             Snapshot::Kind kind) {
-  return reinterpret_cast<RawImmutableArray*>(
-      ArrayReadFrom<ImmutableArray>(reader, object_id, tags, kind));
+  ASSERT(reader != NULL);
+
+  // Read the length so that we can determine instance size to allocate.
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  ImmutableArray& array = ImmutableArray::ZoneHandle(
+      reader->isolate(), NEW_OBJECT_WITH_LEN(ImmutableArray, len));
+  reader->AddBackwardReference(object_id, &array);
+  ArrayReadFrom(reader, array, len, tags);
+  return array.raw();
 }
 
 
@@ -1610,8 +1691,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   ASSERT(kind == Snapshot::kMessage);
 
   // Read the length so that we can determine instance size to allocate.
-  RawSmi* smi_len = GetSmi(reader->ReadIntptrValue());
-  intptr_t len = Smi::Value(smi_len);
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
 
   // Allocate JSRegExp object.
   JSRegExp& regex = JSRegExp::ZoneHandle(
@@ -1623,7 +1703,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   regex.set_tags(tags);
 
   // Read and Set all the other fields.
-  regex.raw_ptr()->num_bracket_expressions_ = GetSmi(reader->ReadIntptrValue());
+  regex.raw_ptr()->num_bracket_expressions_ = AsSmi(reader->ReadIntptrValue());
   *reader->StringHandle() ^= reader->ReadObject();
   regex.raw_ptr()->pattern_ = (*reader->StringHandle()).raw();
   regex.raw_ptr()->type_ = reader->ReadIntptrValue();

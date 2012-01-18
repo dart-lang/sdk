@@ -23,8 +23,26 @@ class Heap;
 class Library;
 class Object;
 class ObjectStore;
+class RawArray;
 class RawClass;
+class RawContext;
+class RawDouble;
+class RawField;
+class RawFourByteString;
+class RawFunction;
+class RawImmutableArray;
+class RawLibrary;
+class RawLibraryPrefix;
+class RawMint;
 class RawObject;
+class RawOneByteString;
+class RawScript;
+class RawTokenStream;
+class RawType;
+class RawTypeParameter;
+class RawTypeArguments;
+class RawTwoByteString;
+class RawUnresolvedClass;
 class String;
 
 static const int8_t kSerializedBitsPerByte = 7;
@@ -319,7 +337,33 @@ class SnapshotReader {
   // Read a full snap shot.
   void ReadFullSnapshot();
 
+  // Helper functions for creating uninitialized versions
+  // of various object types. These are used when reading a
+  // full snapshot.
+  RawArray* NewArray(intptr_t len);
+  RawImmutableArray* NewImmutableArray(intptr_t len);
+  RawOneByteString* NewOneByteString(intptr_t len);
+  RawTwoByteString* NewTwoByteString(intptr_t len);
+  RawFourByteString* NewFourByteString(intptr_t len);
+  RawTypeArguments* NewTypeArguments(intptr_t len);
+  RawTokenStream* NewTokenStream(intptr_t len);
+  RawContext* NewContext(intptr_t num_variables);
+  RawClass* NewClass(int value);
+  RawMint* NewMint(int64_t value);
+  RawDouble* NewDouble(double value);
+  RawUnresolvedClass* NewUnresolvedClass();
+  RawType* NewType();
+  RawTypeParameter* NewTypeParameter();
+  RawFunction* NewFunction();
+  RawField* NewField();
+  RawLibrary* NewLibrary();
+  RawLibraryPrefix* NewLibraryPrefix();
+  RawScript* NewScript();
+
  private:
+  // Allocate uninitialized objects, this is used when reading a full snapshot.
+  RawObject* AllocateUninitialized(const Class& cls, intptr_t size);
+
   // Internal implementation of ReadObject once the header value is read.
   RawObject* ReadObjectImpl(intptr_t header);
 

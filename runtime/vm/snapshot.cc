@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
+#include "vm/exceptions.h"
 #include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -16,6 +17,8 @@ enum {
   kInstanceId = ObjectStore::kMaxId,
   kMaxPredefinedObjectIds,
 };
+static const int kNumInitialReferencesInFullSnapshot = 160 * KB;
+static const int kNumInitialReferences = 4;
 
 
 static bool IsSingletonClassId(intptr_t index) {
@@ -62,7 +65,9 @@ SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
       library_(Library::Handle()),
       type_(AbstractType::Handle()),
       type_arguments_(AbstractTypeArguments::Handle()),
-      backward_references_() {
+      backward_references_((snapshot->kind() == Snapshot::kFull) ?
+                           kNumInitialReferencesInFullSnapshot :
+                           kNumInitialReferences) {
 }
 
 
@@ -109,6 +114,10 @@ void SnapshotReader::ReadFullSnapshot() {
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
+  NoGCScope no_gc;
+
+  // TODO(asiva): Add a check here to ensure we have the right heap
+  // size for the full snapshot being read.
 
   // Read in all the objects stored in the object store.
   intptr_t num_flds = (object_store->to() - object_store->from());
@@ -121,6 +130,166 @@ void SnapshotReader::ReadFullSnapshot() {
 }
 
 
+#define ALLOC_NEW_OBJECT_WITH_LEN(type, class_obj, length)                     \
+  ASSERT(kind_ == Snapshot::kFull);                                            \
+  ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
+  cls_ = class_obj;                                                            \
+  Raw##type* obj = reinterpret_cast<Raw##type*>(                               \
+      AllocateUninitialized(cls_, type::InstanceSize(length)));                \
+  obj->ptr()->length_ = Smi::New(length);                                      \
+  return obj;                                                                  \
+
+
+RawArray* SnapshotReader::NewArray(intptr_t len) {
+  ALLOC_NEW_OBJECT_WITH_LEN(Array, object_store()->array_class(), len);
+}
+
+
+RawImmutableArray* SnapshotReader::NewImmutableArray(intptr_t len) {
+  ALLOC_NEW_OBJECT_WITH_LEN(ImmutableArray,
+                            object_store()->immutable_array_class(),
+                            len);
+}
+
+
+RawOneByteString* SnapshotReader::NewOneByteString(intptr_t len) {
+  ALLOC_NEW_OBJECT_WITH_LEN(OneByteString,
+                            object_store()->one_byte_string_class(),
+                            len);
+}
+
+
+RawTwoByteString* SnapshotReader::NewTwoByteString(intptr_t len) {
+  ALLOC_NEW_OBJECT_WITH_LEN(TwoByteString,
+                            object_store()->two_byte_string_class(),
+                            len);
+}
+
+
+RawFourByteString* SnapshotReader::NewFourByteString(intptr_t len) {
+  ALLOC_NEW_OBJECT_WITH_LEN(FourByteString,
+                            object_store()->four_byte_string_class(),
+                            len);
+}
+
+
+RawTypeArguments* SnapshotReader::NewTypeArguments(intptr_t len) {
+  ALLOC_NEW_OBJECT_WITH_LEN(TypeArguments,
+                            Object::type_arguments_class(),
+                            len);
+}
+
+
+RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
+  ALLOC_NEW_OBJECT_WITH_LEN(TokenStream,
+                            Object::token_stream_class(),
+                            len);
+}
+
+
+RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = Object::context_class();
+  RawContext* obj = reinterpret_cast<RawContext*>(
+      AllocateUninitialized(cls_, Context::InstanceSize(num_variables)));
+  obj->ptr()->num_variables_ = num_variables;
+  return obj;
+}
+
+
+RawClass* SnapshotReader::NewClass(int value) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ObjectKind object_kind = static_cast<ObjectKind>(value);
+  if ((object_kind == kInstance || object_kind == kClosure)) {
+    cls_ = Object::class_class();
+    RawClass* obj = reinterpret_cast<RawClass*>(
+        AllocateUninitialized(cls_, Class::InstanceSize()));
+    obj->ptr()->instance_kind_ = object_kind;
+    if (object_kind == kInstance) {
+      Instance fake;
+      obj->ptr()->handle_vtable_ = fake.vtable();
+    } else {
+      Closure fake;
+      obj->ptr()->handle_vtable_ = fake.vtable();
+    }
+    return obj;
+  }
+  return Class::GetClass(object_kind);
+}
+
+
+RawMint* SnapshotReader::NewMint(int64_t value) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = object_store()->mint_class();
+  RawMint* obj = reinterpret_cast<RawMint*>(
+      AllocateUninitialized(cls_, Mint::InstanceSize()));
+  obj->ptr()->value_ = value;
+  return obj;
+}
+
+
+RawDouble* SnapshotReader::NewDouble(double value) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  cls_ = object_store()->double_class();
+  RawDouble* obj = reinterpret_cast<RawDouble*>(
+      AllocateUninitialized(cls_, Double::InstanceSize()));
+  obj->ptr()->value_ = value;
+  return obj;
+}
+
+
+#define ALLOC_NEW_OBJECT(type, class_obj)                                      \
+  ASSERT(kind_ == Snapshot::kFull);                                            \
+  ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
+  cls_ = class_obj;                                                            \
+  return reinterpret_cast<Raw##type*>(                                         \
+      AllocateUninitialized(cls_, type::InstanceSize()));                      \
+
+
+RawUnresolvedClass* SnapshotReader::NewUnresolvedClass() {
+  ALLOC_NEW_OBJECT(UnresolvedClass, Object::unresolved_class_class());
+}
+
+
+RawType* SnapshotReader::NewType() {
+  ALLOC_NEW_OBJECT(Type, Object::type_class());
+}
+
+
+RawTypeParameter* SnapshotReader::NewTypeParameter() {
+  ALLOC_NEW_OBJECT(TypeParameter, Object::type_parameter_class());
+}
+
+
+RawFunction* SnapshotReader::NewFunction() {
+  ALLOC_NEW_OBJECT(Function, Object::function_class());
+}
+
+
+RawField* SnapshotReader::NewField() {
+  ALLOC_NEW_OBJECT(Field, Object::field_class());
+}
+
+
+RawLibrary* SnapshotReader::NewLibrary() {
+  ALLOC_NEW_OBJECT(Library, Object::library_class());
+}
+
+
+RawLibraryPrefix* SnapshotReader::NewLibraryPrefix() {
+  ALLOC_NEW_OBJECT(LibraryPrefix, Object::library_prefix_class());
+}
+
+
+RawScript* SnapshotReader::NewScript() {
+  ALLOC_NEW_OBJECT(Script, Object::script_class());
+}
+
+
 RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   SerializedHeaderType header_type = SerializedHeaderTag::decode(class_header);
 
@@ -128,13 +297,37 @@ RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   // stored in the object store.
   if (header_type == kObjectId) {
     intptr_t header_value = SerializedHeaderData::decode(class_header);
-    if (IsSingletonClassId(header_value)) {
-      return Object::GetSingletonClass(header_value);  // return the singleton.
-    } else if (IsObjectStoreClassId(header_value)) {
+    if (IsObjectStoreClassId(header_value)) {
       return object_store()->GetClass(header_value);
+    } else if (IsSingletonClassId(header_value)) {
+      return Object::GetSingletonClass(header_value);  // return the singleton.
     }
   }
   return Class::null();
+}
+
+
+RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
+                                                 intptr_t size) {
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  Heap* heap = isolate()->heap();
+
+  uword address = heap->TryAllocate(size, Heap::kOld);
+  if (address == 0) {
+    // Use the preallocated out of memory exception to avoid calling
+    // into dart code or allocating any code.
+    const Instance& exception =
+        Instance::Handle(object_store()->out_of_memory());
+    Exceptions::Throw(exception);
+    UNREACHABLE();
+  }
+  RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
+  raw_obj->ptr()->class_ = cls.raw();
+  uword tags = 0;
+  tags = RawObject::SizeTag::update(size, tags);
+  raw_obj->ptr()->tags_ = tags;
+  return raw_obj;
 }
 
 
@@ -193,8 +386,11 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     intptr_t instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
-    RawObject* raw = Instance::New(cls_, Heap::kNew);
-    result ^= raw;
+    if (kind_ == Snapshot::kFull) {
+      result ^= AllocateUninitialized(cls_, instance_size);
+    } else {
+      result ^= Object::Allocate(cls_, instance_size, Heap::kNew);
+    }
     intptr_t offset = Object::InstanceSize();
     while (offset < instance_size) {
       obj_ = ReadObject();

@@ -168,7 +168,7 @@ class Object {
   RawObject* raw() const { return raw_; }
   void operator=(RawObject* value) { SetRaw(value); }
 
-  void set_tags(intptr_t value) {
+  void set_tags(intptr_t value) const {
     // TODO(asiva): Remove the capability of setting tags in general. The mask
     // here only allows for canonical and from_snapshot flags to be set.
     ASSERT(!IsNull());
@@ -347,7 +347,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   template<typename type> void StorePointer(type* addr, type value) const {
-    ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
     // TODO(iposva): Implement real store barrier here.
     *addr = value;
     // Filter stores based on source and target.
@@ -406,6 +405,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* unwind_error_class_;  // Class of UnwindError.
 
   friend void RawObject::Validate() const;
+  friend class SnapshotReader;
 
   // Disallow allocation.
   void* operator new(size_t size);
@@ -2751,10 +2751,10 @@ class String : public Instance {
   }
 
   template<typename HandleType, typename ElementType>
-  static RawString* ReadFromImpl(SnapshotReader* reader,
-                                 intptr_t object_id,
-                                 intptr_t tags,
-                                 Snapshot::Kind kind);
+  static void ReadFromImpl(SnapshotReader* reader,
+                           HandleType* str_obj,
+                           intptr_t len,
+                           intptr_t tags);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
 };
@@ -3122,9 +3122,7 @@ class Array : public Instance {
   // to ImmutableArray.
   void MakeImmutable() const;
 
-  static RawArray* New(intptr_t len, Heap::Space space = Heap::kNew) {
-    return New(len, false, space);
-  }
+  static RawArray* New(intptr_t len, Heap::Space space = Heap::kNew);
 
   // Creates and returns a new array with 'new_length'. Copies all elements from
   // 'source' to the new array. 'new_length' must be greater than or equal to
@@ -3137,8 +3135,8 @@ class Array : public Instance {
   static RawArray* Empty();
 
  protected:
-  static RawArray* New(intptr_t len,
-                       bool immutable,
+  static RawArray* New(const Class& cls,
+                       intptr_t len,
                        Heap::Space space = Heap::kNew);
 
  private:
@@ -3164,9 +3162,7 @@ class Array : public Instance {
 
 class ImmutableArray : public Array {
  public:
-  static RawImmutableArray* New(intptr_t len, Heap::Space space = Heap::kNew) {
-    return reinterpret_cast<RawImmutableArray*>(Array::New(len, true, space));
-  }
+  static RawImmutableArray* New(intptr_t len, Heap::Space space = Heap::kNew);
 
  private:
   HEAP_OBJECT_IMPLEMENTATION(ImmutableArray, Array);

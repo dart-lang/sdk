@@ -2667,9 +2667,6 @@ RawTypeArguments* TypeArguments::New(intptr_t len) {
     result ^= raw;
     // Length must be set before we start storing into the array.
     result.SetLength(len);
-    for (intptr_t i = 0; i < len; i++) {
-      *result.TypeAddr(i) = Type::null();
-    }
   }
   return result.raw();
 }
@@ -7198,19 +7195,18 @@ bool Array::Equals(const Instance& other) const {
 }
 
 
-RawArray* Array::New(word len, bool immutable, Heap::Space space) {
+RawArray* Array::New(intptr_t len, Heap::Space space) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Class& cls = Class::Handle(object_store->array_class());
+  return New(cls, len, space);
+}
+
+
+RawArray* Array::New(const Class& cls, intptr_t len, Heap::Space space) {
   if ((len < 0) || (len > kMaxArrayElements)) {
     // TODO(iposva): Should we throw an illegal parameter exception?
     UNIMPLEMENTED();
     return null();
-  }
-
-  Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle();
-  if (immutable) {
-    cls = isolate->object_store()->immutable_array_class();
-  } else {
-    cls = isolate->object_store()->array_class();
   }
   Array& result = Array::Handle();
   {
@@ -7252,6 +7248,14 @@ RawArray* Array::Grow(const Array& source, int new_length, Heap::Space space) {
 
 RawArray* Array::Empty() {
   return Isolate::Current()->object_store()->empty_array();
+}
+
+
+RawImmutableArray* ImmutableArray::New(intptr_t len,
+                                       Heap::Space space) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Class& cls = Class::Handle(object_store->immutable_array_class());
+  return reinterpret_cast<RawImmutableArray*>(Array::New(cls, len, space));
 }
 
 
