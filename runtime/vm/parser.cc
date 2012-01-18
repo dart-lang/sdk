@@ -562,14 +562,14 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   isolate->set_ast_node_id(0);
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
-  const Class& cls = Class::Handle(func.owner());
-  const Script& script = Script::Handle(cls.script());
+  const Class& cls = Class::Handle(isolate, func.owner());
+  const Script& script = Script::Handle(isolate, cls.script());
   Parser parser(script, func, func.token_index());
   if (FLAG_compiler_stats) {
     CompilerStats::parser_timer.Start();
   }
   SequenceNode* node_sequence = NULL;
-  Array& default_parameter_values = Array::Handle();
+  Array& default_parameter_values = Array::Handle(isolate, Array::null());
   switch (func.kind()) {
     case RawFunction::kFunction:
     case RawFunction::kClosureFunction:

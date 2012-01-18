@@ -2633,6 +2633,15 @@ class String : public Instance {
 
   virtual intptr_t CharSize() const;
 
+  bool Equals(const String& str) const {
+    if (raw() == str.raw()) {
+      return true;  // Both handles point to the same raw instance.
+    }
+    if (str.IsNull()) {
+      return false;
+    }
+    return Equals(str, 0, str.Length());
+  }
   bool Equals(const String& str, intptr_t begin_index, intptr_t len) const;
   bool Equals(const char* str) const;
   bool Equals(const uint8_t* characters, intptr_t len) const;

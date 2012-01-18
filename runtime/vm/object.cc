@@ -1567,9 +1567,10 @@ static bool MatchesPrivateName(const String& name, const String& private_name) {
 
 
 RawFunction* Class::LookupFunction(const String& name) const {
-  Array& funcs = Array::Handle(functions());
-  Function& function = Function::Handle();
-  String& function_name = String::Handle();
+  Isolate* isolate = Isolate::Current();
+  Array& funcs = Array::Handle(isolate, functions());
+  Function& function = Function::Handle(isolate, Function::null());
+  String& function_name = String::Handle(isolate, String::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -1615,9 +1616,10 @@ RawField* Class::LookupStaticField(const String& name) const {
 
 
 RawField* Class::LookupField(const String& name) const {
-  const Array& flds = Array::Handle(fields());
-  Field& field = Field::Handle();
-  String& field_name = String::Handle();
+  Isolate* isolate = Isolate::Current();
+  const Array& flds = Array::Handle(isolate, fields());
+  Field& field = Field::Handle(isolate, Field::null());
+  String& field_name = String::Handle(isolate, String::null());
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
@@ -1632,9 +1634,11 @@ RawField* Class::LookupField(const String& name) const {
 
 
 RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
-  LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
-  const Library& lib = Library::Handle(library());
-  Object& obj = Object::Handle(lib.LookupLocalObject(name));
+  Isolate* isolate = Isolate::Current();
+  LibraryPrefix& lib_prefix = LibraryPrefix::Handle(isolate,
+                                                    LibraryPrefix::null());
+  const Library& lib = Library::Handle(isolate, library());
+  Object& obj = Object::Handle(isolate, lib.LookupLocalObject(name));
   if (!obj.IsNull()) {
     if (obj.IsLibraryPrefix()) {
       lib_prefix ^= obj.raw();
@@ -3979,16 +3983,18 @@ void Library::AddClass(const Class& cls) const {
 
 
 RawObject* Library::LookupLocalObject(const String& name) const {
-  const Array& dict = Array::Handle(dictionary());
+  Isolate* isolate = Isolate::Current();
+  const Array& dict = Array::Handle(isolate, dictionary());
   intptr_t dict_size = dict.Length() - 1;
   intptr_t index = name.Hash() % dict_size;
 
-  Object& entry = Object::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
-  LibraryPrefix& library_prefix = LibraryPrefix::Handle();
-  String& entry_name = String::Handle();
+  Object& entry = Object::Handle(isolate, Object::null());
+  Class& cls = Class::Handle(isolate, Class::null());
+  Function& func = Function::Handle(isolate, Function::null());
+  Field& field = Field::Handle(isolate, Field::null());
+  LibraryPrefix& library_prefix = LibraryPrefix::Handle(isolate,
+                                                        LibraryPrefix::null());
+  String& entry_name = String::Handle(isolate, String::null());
   entry = dict.At(index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
@@ -4051,9 +4057,11 @@ RawObject* Library::LookupObject(const String& name) const {
 
 
 RawLibrary* Library::LookupObjectInImporter(const String& name) const {
-  const Array& imported_into_libs = Array::Handle(this->imported_into());
-  Library& lib = Library::Handle();
-  Object& obj = Object::Handle();
+  Isolate* isolate = Isolate::Current();
+  const Array& imported_into_libs = Array::Handle(isolate,
+                                                  this->imported_into());
+  Library& lib = Library::Handle(isolate, Library::null());
+  Object& obj = Object::Handle(isolate, Object::null());
   for (intptr_t i = 0; i < this->num_imported_into(); i++) {
     lib ^= imported_into_libs.At(i);
     obj = lib.LookupObjectFiltered(name, *this);
@@ -4061,9 +4069,9 @@ RawLibrary* Library::LookupObjectInImporter(const String& name) const {
       // If the object found is a class, field or function extract the
       // library in which it is defined as it might be defined in one of
       // the imported libraries.
-      Class& cls = Class::Handle();
-      Function& func = Function::Handle();
-      Field& field = Field::Handle();
+      Class& cls = Class::Handle(isolate, Class::null());
+      Function& func = Function::Handle(isolate, Function::null());
+      Field& field = Field::Handle(isolate, Field::null());
       if (obj.IsClass()) {
         cls ^= obj.raw();
         lib ^= cls.library();
@@ -4175,10 +4183,11 @@ void Library::AddAnonymousClass(const Class& cls) const {
 
 
 RawLibrary* Library::LookupImport(const String& url) const {
-  const Array& imports = Array::Handle(this->imports());
+  Isolate* isolate = Isolate::Current();
+  const Array& imports = Array::Handle(isolate, this->imports());
   intptr_t num_imports = this->num_imports();
-  Library& lib = Library::Handle();
-  String& import_url = String::Handle();
+  Library& lib = Library::Handle(isolate, Library::null());
+  String& import_url = String::Handle(isolate, String::null());
   for (int i = 0; i < num_imports; i++) {
     lib ^= imports.At(i);
     import_url = lib.url();
@@ -4332,9 +4341,10 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
 
 
 RawLibrary* Library::LookupLibrary(const String &url) {
-  Library& lib = Library::Handle();
-  String& lib_url = String::Handle();
-  lib = Isolate::Current()->object_store()->registered_libraries();
+  Isolate* isolate = Isolate::Current();
+  Library& lib = Library::Handle(isolate, Library::null());
+  String& lib_url = String::Handle(isolate, String::null());
+  lib = isolate->object_store()->registered_libraries();
   while (!lib.IsNull()) {
     lib_url = lib.url();
     if (lib_url.Equals(url)) {
