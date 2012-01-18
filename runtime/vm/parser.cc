@@ -2984,9 +2984,19 @@ RawArray* Parser::ParseInterfaceList() {
   ASSERT((CurrentToken() == Token::kIMPLEMENTS) ||
          (CurrentToken() == Token::kEXTENDS));
   GrowableArray<AbstractType*> interfaces;
+  String& interface_name = String::Handle();
   do {
     ConsumeToken();
+    intptr_t supertype_pos = token_index_;
     AbstractType& interface = AbstractType::ZoneHandle(ParseType(kCanResolve));
+    interface_name = interface.Name();
+    for (int i = 0; i < interfaces.length(); i++) {
+      String& other_name = String::Handle(interfaces[i]->Name());
+      if (interface_name.Equals(other_name)) {
+        ErrorMsg(supertype_pos, "Duplicate supertype '%s'",
+                 interface_name.ToCString());
+      }
+    }
     interfaces.Add(&interface);
   } while (CurrentToken() == Token::kCOMMA);
   return NewArray<AbstractType>(interfaces);
