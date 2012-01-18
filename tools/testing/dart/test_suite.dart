@@ -11,7 +11,8 @@
 #source("browser_test.dart");
 
 interface TestSuite {
-  void forEachTest(Function onTest, Map testCache, [Function onDone]);
+  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
+                   [Function onDone]);
 }
 
 
@@ -102,7 +103,8 @@ class CCTestSuite implements TestSuite {
     }
   }
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone]) {
+  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
+                   [Function onDone]) {
     doTest = onTest;
     doDone = (ignore) => (onDone != null) ? onDone() : null;
 
@@ -156,13 +158,14 @@ class StandardTestSuite implements TestSuite {
   bool listingDone = false;
   TestExpectations testExpectations;
   List<TestInformation> cachedTests;
-  final String pathSeparator;
+  final String dartDir;
+  Function globalTemporaryDirectory;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
                     List<String> this.statusFilePaths)
-    : pathSeparator = new Platform().pathSeparator();
+    : dartDir = TestUtils.dartDir();
 
   bool isTestFile(String filename) => filename.endsWith("Test.dart");
 
@@ -172,11 +175,13 @@ class StandardTestSuite implements TestSuite {
 
   String shellPath() => TestUtils.dartShellFileName(configuration);
 
-  List<String> additionalOptions() => [];
+  List<String> additionalOptions(String filename) => [];
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone = null]) {
+  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
+                   [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
+    globalTemporaryDirectory = globalTempDir;
 
     var filesRead = 0;
     void statusFileRead() {
@@ -357,16 +362,6 @@ class StandardTestSuite implements TestSuite {
 
     final String component = configuration['component'];
     final String testPath = new File(filename).fullPathSync();
-    String dartDir = new File('.').fullPathSync();
-    if (!testPath.startsWith(dartDir) ||
-        dartDir.endsWith('/frog')) {
-      dartDir = new File('..').fullPathSync();
-      if (!testPath.startsWith(dartDir)) {
-        print('Run test.dart from the dart directory or' +
-              ' an immediate subdirectory only.');
-        Expect.fail('Could not find top level dart directory.');
-      }
-    }
 
     for (var vmOptions in optionsFromFile['vmOptions']) {
       // Create a unique temporary directory for each set of vmOptions.
@@ -378,8 +373,7 @@ class StandardTestSuite implements TestSuite {
                                                     .replaceAll('=','')
                                                     .replaceAll('/','');
       }
-      Directory tempDir =
-          createTemporaryDirectory(testPath, dartDir, optionsName);
+      Directory tempDir = createOutputDirectory(testPath, optionsName);
 
       String dartWrapperFilename = '${tempDir.path}/test.dart';
       String compiledDartWrapperFilename = '${tempDir.path}/test.js';
@@ -495,25 +489,34 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
+  bool get requiresCleanTemporaryDirectory() =>
+      configuration['component'] == 'dartc' ||
+      configuration['component'] == 'chromium';
+
   /**
    * Create a directory for the generated test.  Drop the path to the
    * dart checkout and the final ".dart" from the test path, and replace
    * all path separators with underscores.
    */
-  Directory createTemporaryDirectory(String testPath,
-                                     String dartDir,
-                                     String optionsName) {
+  Directory createOutputDirectory(String testPath, String optionsName) {
     String testUniqueName =
         testPath.substring(dartDir.length + 1, testPath.length - 5);
     testUniqueName = testUniqueName.replaceAll('/', '_');
     testUniqueName += '-$optionsName';
+
     // Create '[build dir]/generated_tests/$component/$testUniqueName',
       // including any intermediate directories that don't exist.
-    var generatedTestPath = ['generated_tests',
+    String debugMode =
+        (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+    var generatedTestPath = [debugMode + configuration["arch"],
+                             'generated_tests',
                              configuration['component'],
                              testUniqueName];
 
     String tempDirPath = TestUtils.buildDir(configuration);
+    if (requiresCleanTemporaryDirectory) {
+      tempDirPath = globalTemporaryDirectory();
+    }
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
       // Dartium tests can be run with no build step, with no output directory.
@@ -596,7 +599,7 @@ class StandardTestSuite implements TestSuite {
                                            Map optionsFromFile,
                                            bool enableFatalTypeErrors) {
     List args = TestUtils.standardOptions(configuration);
-    args.addAll(additionalOptions());
+    args.addAll(additionalOptions(filename));
     if (enableFatalTypeErrors && configuration['component'] == 'dartc') {
       args.add('--fatal-type-errors');
     }
@@ -731,11 +734,9 @@ class DartcCompilationTestSuite extends StandardTestSuite {
 
   String shellPath() => TestUtils.compilerPath(configuration);
 
-  List<String> additionalOptions() {
-    // TODO(ager): potentially register cleanup action to delete the temporary
-    // directories?
-    var tempDir = new Directory('');
-    tempDir.createTempSync();
+  List<String> additionalOptions(String filename) {
+    filename = new File(filename).fullPathSync();
+    Directory tempDir = createOutputDirectory(filename, 'dartc-test');
     return
         [ '--fatal-warnings', '--fatal-type-errors', 
           '-check-only', '-out', tempDir.path];
@@ -768,7 +769,7 @@ class JUnitTestSuite implements TestSuite {
   String suiteName;
   String directoryPath;
   String statusFilePath;
-  String dartDir;
+  final String dartDir;
   String buildDir;
   String classPath;
   List<String> testClasses;
@@ -779,7 +780,8 @@ class JUnitTestSuite implements TestSuite {
   JUnitTestSuite(Map this.configuration,
                  String this.suiteName,
                  String this.directoryPath,
-                 String this.statusFilePath);
+                 String this.statusFilePath)
+      : dartDir = TestUtils.dartDir();
 
   bool isTestFile(String filename) => filename.endsWith("Tests.java") &&
       !filename.contains('com/google/dart/compiler/vm') &&
@@ -787,6 +789,7 @@ class JUnitTestSuite implements TestSuite {
 
   void forEachTest(Function onTest,
                    Map testCacheIgnored,
+                   String globalTempDir(),
                    [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
@@ -802,13 +805,6 @@ class JUnitTestSuite implements TestSuite {
       return;
     }
 
-    dartDir = new File('.').fullPathSync();
-    if (dartDir.endsWith('compiler')) {
-      dartDir = new File('..').fullPathSync();
-      if (!new File('$dartDir/tools/test.dart').existsSync()) {
-        throw new Exception('Cannot find client checkout $dartDir');
-      }
-    }
     buildDir = TestUtils.buildDir(configuration);
     computeClassPath();
     testClasses = <String>[];
@@ -959,6 +955,19 @@ class TestUtils {
     buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
     buildDir += configuration['arch'];
     return buildDir;
+  }
+
+  static String dartDir() {
+    Directory dart;
+    if (new File('tools/testing/dart/test_suite.dart').existsSync()) {
+      return new File('.').fullPathSync();
+    } else if (new File('../tools/testing/dart/test_suite.dart').existsSync()) {
+      return new File('..').fullPathSync();
+    } else {
+      print('Run test.dart from the dart directory or' +
+            ' an immediate subdirectory only.');
+      Expect.fail('Could not find top level dart directory.');
+    }
   }
 
   static List<String> standardOptions(Map configuration) {
