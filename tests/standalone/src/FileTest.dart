@@ -305,6 +305,7 @@ class FileTest {
     file.createSync();
     RandomAccessFile openedFile = file.openSync();
     Expect.throws(() => openedFile.readByteSync(), (e) => e is FileIOException);
+    openedFile.closeSync();
     file.deleteSync();
   }
 
@@ -321,10 +322,13 @@ class FileTest {
         };
         openedFile.errorHandler = (String err) {
           Expect.isTrue(err.indexOf("failed") != -1);
-          file.deleteHandler = () {
-            asyncTestDone();
+          openedFile.closeHandler = () {
+            file.deleteHandler = () {
+              asyncTestDone();
+            };
+            file.delete();
           };
-          file.delete();
+          openedFile.close();
         };
         openedFile.readByte();
       };
