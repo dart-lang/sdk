@@ -310,7 +310,6 @@ StaticTopLevelTest/03: Fail
 StaticTopLevelTest/04: Fail
 StaticTopLevelTest/05: Fail
 StringConcatTest: Fail
-StringEscapesTest: Fail
 StringInterpolate2Test: Fail
 StringInterpolateNPETest: Fail
 StringInterpolateTest: Fail
