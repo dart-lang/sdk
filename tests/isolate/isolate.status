@@ -35,6 +35,9 @@ NestedSpawn2Test: Fail
 NestedSpawnTest: Fail
 
 [ $component == webdriver && $browser == safari ]
+CrossIsolateMessageTest: Pass,Fail # Depends on 32/64 bit Safari. See Issue 1120
+MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
+Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 MessageTest: Fail
 PromiseBasedTest: Fail
 

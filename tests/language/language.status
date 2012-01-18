@@ -323,7 +323,6 @@ MethodInvocationTest: Fail
 Private3Test: Fail
 StackTraceTest: Fail
 StringInterpolateNPETest: Fail
-ToStringAsFixedTest: Fail
 
 [ $component == webdriver && $browser == safari ]
 BlockScopeTest: Fail
@@ -336,11 +335,13 @@ ImplicitClosureTest: Fail
 MethodBindingTest: Fail
 Prefix15Test: Fail
 StringConcatTest: Fail
+ToStringAsFixedTest: Pass,Fail # Passes in 32-bit Safari, but fails in 64-bit Issue #1220
 
 [ $component == webdriver && $browser == ff ]
 NamingTest: Fail
 StackOverflowTest: Fail
 StringConcatTest: Fail
+ToStringAsFixedTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
