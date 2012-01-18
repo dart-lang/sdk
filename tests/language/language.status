@@ -210,6 +210,7 @@ ImplementTypeParameterNegativeTest: Skip # Issue 887
 FactoryImplementationTest: Fail # Issue 523
 PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
+DuplicateImplementsTest: Fail   # Issue 976
 
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
