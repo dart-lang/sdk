@@ -101,7 +101,7 @@ class StubGeneratorTestSuite extends StandardTestSuite {
                         String classes,
                         Function onGenerated) {
     testGeneratorStarted();
-    Directory temp = createOutputDirectory(interfaceFile, '');
+    Directory temp = createOutputDirectory(filename, 'stub_generator');
 
     File stubsOutFile = new File("${temp.path}/${interfaceFile}");
     stubsOutFile.createSync();
@@ -121,6 +121,7 @@ class StubGeneratorTestSuite extends StandardTestSuite {
   }
 
   void processFile(String filename) {
+    filename = filename.replaceAll('\\', '/') ;
     // Only run the tests that match the pattern.
     RegExp pattern = configuration['selectors'][suiteName];
     if (!pattern.hasMatch(filename)) return;

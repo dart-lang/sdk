@@ -361,7 +361,8 @@ class StandardTestSuite implements TestSuite {
     }
 
     final String component = configuration['component'];
-    final String testPath = new File(filename).fullPathSync();
+    final String testPath =
+        new File(filename).fullPathSync().replaceAll('\\', '/');
 
     for (var vmOptions in optionsFromFile['vmOptions']) {
       // Create a unique temporary directory for each set of vmOptions.
@@ -536,7 +537,7 @@ class StandardTestSuite implements TestSuite {
         tempDir.createSync();
       }
     }
-    tempDirPath = new File(tempDirPath).fullPathSync();
+    tempDirPath = new File(tempDirPath).fullPathSync().replaceAll('\\', '/');
 
     for (String subdirectory in generatedTestPath) {
       tempDirPath = '$tempDirPath/$subdirectory';
@@ -735,7 +736,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   String shellPath() => TestUtils.compilerPath(configuration);
 
   List<String> additionalOptions(String filename) {
-    filename = new File(filename).fullPathSync();
+    filename = new File(filename).fullPathSync().replaceAll('\\', '/');
     Directory tempDir = createOutputDirectory(filename, 'dartc-test');
     return
         [ '--fatal-warnings', '--fatal-type-errors', 
@@ -960,9 +961,9 @@ class TestUtils {
   static String dartDir() {
     Directory dart;
     if (new File('tools/testing/dart/test_suite.dart').existsSync()) {
-      return new File('.').fullPathSync();
+      return new File('.').fullPathSync().replaceAll('\\', '/');
     } else if (new File('../tools/testing/dart/test_suite.dart').existsSync()) {
-      return new File('..').fullPathSync();
+      return new File('..').fullPathSync().replaceAll('\\', '/');
     } else {
       print('Run test.dart from the dart directory or' +
             ' an immediate subdirectory only.');
