@@ -81,6 +81,7 @@ Isolate::~Isolate() {
   delete api_state_;
   delete stub_code_;
   delete code_index_table_;
+  delete debugger_;
   delete mutex_;
   mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
 }

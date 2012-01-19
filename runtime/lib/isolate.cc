@@ -196,6 +196,7 @@ static void RunIsolate(uword parameter) {
     }
     ASSERT(result.IsNull());
     free(class_name);
+    free(library_url);
     result = isolate->StandardRunLoop();
     if (result.IsError()) {
       ProcessError(result);
