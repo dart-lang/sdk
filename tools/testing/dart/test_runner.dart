@@ -76,6 +76,9 @@ class TestCase {
 
   int get timeout() => configuration['timeout'];
 
+  String get configurationString() =>
+      configuration['mode'] + configuration['arch'];
+
   void completed() { completedHandler(this); }
 }
 
