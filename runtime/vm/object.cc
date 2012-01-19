@@ -1480,46 +1480,19 @@ bool Class::TestType(TypeTestKind test,
 
 RawFunction* Class::LookupDynamicFunction(const String& name) const {
   Function& function = Function::Handle(LookupFunction(name));
-  if (function.IsNull() || function.is_static()) {
+  if (function.IsNull() || !function.IsDynamicFunction()) {
     return Function::null();
   }
-  switch (function.kind()) {
-    case RawFunction::kFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitSetter:
-      return function.raw();
-    case RawFunction::kConstructor:
-    case RawFunction::kConstImplicitGetter:
-    case RawFunction::kAbstract:
-      return Function::null();
-    default:
-      UNREACHABLE();
-      return Function::null();
-  }
+  return function.raw();
 }
 
 
 RawFunction* Class::LookupStaticFunction(const String& name) const {
   Function& function = Function::Handle(LookupFunction(name));
-  if (function.IsNull() || !function.is_static()) {
+  if (function.IsNull() || !function.IsStaticFunction()) {
     return Function::null();
   }
-  switch (function.kind()) {
-    case RawFunction::kFunction:
-    case RawFunction::kGetterFunction:
-    case RawFunction::kSetterFunction:
-    case RawFunction::kImplicitGetter:
-    case RawFunction::kImplicitSetter:
-    case RawFunction::kConstImplicitGetter:
-      return function.raw();
-    case RawFunction::kConstructor:
-      return Function::null();
-    default:
-      UNREACHABLE();
-      return Function::null();
-  }
+  return function.raw();
 }
 
 
@@ -6681,12 +6654,12 @@ RawString* String::NewSymbol(const String& str,
   intptr_t hash = String::Hash(str, begin_index, len);
 
   const Array& symbol_table =
-      Array::Handle(isolate->object_store()->symbol_table());
+      Array::Handle(isolate, isolate->object_store()->symbol_table());
   // Last element of the array is the number of used elements.
   intptr_t table_size = symbol_table.Length() - 1;
   intptr_t index = hash % table_size;
 
-  String& symbol = String::Handle();
+  String& symbol = String::Handle(isolate, String::null());
   symbol ^= symbol_table.At(index);
   while (!symbol.IsNull() && !symbol.Equals(str, begin_index, len)) {
     index = (index + 1) % table_size;  // Move to next element.

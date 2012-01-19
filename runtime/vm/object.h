@@ -1248,6 +1248,45 @@ class Function : public Object {
   bool IsAbstract() const {
     return kind() == RawFunction::kAbstract;
   }
+  bool IsDynamicFunction() const {
+    if (is_static()) {
+      return false;
+    }
+    switch (kind()) {
+      case RawFunction::kFunction:
+      case RawFunction::kGetterFunction:
+      case RawFunction::kSetterFunction:
+      case RawFunction::kImplicitGetter:
+      case RawFunction::kImplicitSetter:
+        return true;
+      case RawFunction::kConstructor:
+      case RawFunction::kConstImplicitGetter:
+      case RawFunction::kAbstract:
+        return false;
+      default:
+        UNREACHABLE();
+        return false;
+    }
+  }
+  bool IsStaticFunction() const {
+    if (!is_static()) {
+      return false;
+    }
+    switch (kind()) {
+      case RawFunction::kFunction:
+      case RawFunction::kGetterFunction:
+      case RawFunction::kSetterFunction:
+      case RawFunction::kImplicitGetter:
+      case RawFunction::kImplicitSetter:
+      case RawFunction::kConstImplicitGetter:
+        return true;
+      case RawFunction::kConstructor:
+        return false;
+      default:
+        UNREACHABLE();
+        return false;
+    }
+  }
   bool IsInFactoryScope() const;
 
   intptr_t token_index() const { return raw_ptr()->token_index_; }
@@ -3433,7 +3472,7 @@ void Object::SetRaw(RawObject* value) {
          vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
 #endif
   set_vtable((raw_ == null_) ?
-      handle_vtable_ : raw_->ptr()->class_->ptr()->handle_vtable_);
+             handle_vtable_ : raw_->ptr()->class_->ptr()->handle_vtable_);
 }
 
 

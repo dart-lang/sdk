@@ -1914,9 +1914,10 @@ void Parser::SkipInitializers() {
 void Parser::ParseQualIdent(QualIdent* qual_ident) {
   ASSERT(IsIdentifier());
   if (!is_top_level_) {
+    AstNode* var_or_field = NULL;
     bool is_local_ident = ResolveIdentInLocalScope(token_index_,
                                                    *CurrentLiteral(),
-                                                   NULL);
+                                                   &var_or_field);
     qual_ident->ident_pos = token_index_;
     qual_ident->ident = CurrentLiteral();
     qual_ident->lib_prefix = NULL;
@@ -5066,7 +5067,8 @@ AstNode* Parser::ParseJump(String* label_name) {
 
 
 bool Parser::IsDefinedInLexicalScope(const String& ident) {
-  if (ResolveIdentInLocalScope(token_index_, ident, NULL)) {
+  AstNode* var_or_field = NULL;
+  if (ResolveIdentInLocalScope(token_index_, ident, &var_or_field)) {
     return true;
   }
   Object& obj = Object::Handle();
@@ -6434,104 +6436,88 @@ RawInstance* Parser::EvaluateConstConstructorCall(
 bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
                                       const String &ident,
                                       AstNode** node) {
+  ASSERT(node != NULL);
   TRACE_PARSER("ResolveIdentInLocalScope");
+  Isolate* isolate = Isolate::Current();
   // First try to find the identifier in the nested local scopes.
   LocalVariable* local = LookupLocalScope(ident);
   if (local != NULL) {
-    if (node != NULL) {
-      *node = new LoadLocalNode(ident_pos, *local);
-    }
+    *node = new LoadLocalNode(ident_pos, *local);
     return true;
   }
 
   // Try to find the identifier in the class scope.
-  Class& cls = Class::Handle(current_class().raw());
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
+  Class& cls = Class::Handle(isolate, current_class().raw());
+  Function& func = Function::Handle(isolate, Function::null());
+  Field& field = Field::Handle(isolate, Field::null());
+  String& accessor_name = String::Handle(isolate, String::null());
   while (!cls.IsNull()) {
     // First check if a field exists.
-    field = cls.LookupInstanceField(ident);
+    field = cls.LookupField(ident);
     if (!field.IsNull()) {
-      if (node != NULL) {
+      if (!field.is_static()) {
         CheckInstanceFieldAccess(ident_pos, ident);
         *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-      }
-      return true;
-    }
-    field = cls.LookupStaticField(ident);
-    if (!field.IsNull()) {
-      if (node != NULL) {
+      } else {
         *node = GenerateStaticFieldLookup(field, ident_pos);
       }
       return true;
     }
 
-    // Now check if a getter/setter method exists for it in which case
-    // it is still a field.
-    const String& getter_name = String::Handle(Field::GetterName(ident));
-    func = cls.LookupDynamicFunction(getter_name);
-    if (!func.IsNull()) {
-      if (node != NULL) {
-        CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-      }
-      return true;
-    }
-    func = cls.LookupStaticFunction(getter_name);
-    if (!func.IsNull()) {
-      if (node != NULL) {
-        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        *node = new StaticGetterNode(ident_pos,
-                                     Class::ZoneHandle(cls.raw()),
-                                     ident);
-      }
-      return true;
-    }
-    const String& setter_name = String::Handle(Field::SetterName(ident));
-    func = cls.LookupDynamicFunction(setter_name);
-    if (!func.IsNull()) {
-      if (node != NULL) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
-        CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-      }
-      return true;
-    }
-    func = cls.LookupStaticFunction(setter_name);
-    if (!func.IsNull()) {
-      if (node != NULL) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
-        *node = new StaticGetterNode(ident_pos,
-                                     Class::ZoneHandle(cls.raw()),
-                                     ident);
-      }
+    // Check if an instance/static function exists.
+    func = cls.LookupFunction(ident);
+    if (!func.IsNull() &&
+        (func.IsDynamicFunction() || func.IsStaticFunction())) {
+      *node = new PrimaryNode(ident_pos,
+                              Function::ZoneHandle(isolate, func.raw()));
       return true;
     }
 
-    // Check if an instance/static function exists.
-    func = cls.LookupDynamicFunction(ident);
-    if (func.IsNull()) {
-      func = cls.LookupStaticFunction(ident);
-    }
+    // Now check if a getter/setter method exists for it in which case
+    // it is still a field.
+    accessor_name = Field::GetterName(ident);
+    func = cls.LookupFunction(accessor_name);
     if (!func.IsNull()) {
-      if (node != NULL) {
-        *node = new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
+      if (func.IsDynamicFunction()) {
+        CheckInstanceFieldAccess(ident_pos, ident);
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        return true;
+      } else if (func.IsStaticFunction()) {
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = new StaticGetterNode(ident_pos,
+                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     ident);
+        return true;
       }
-      return true;
     }
+    accessor_name = Field::SetterName(ident);
+    func = cls.LookupFunction(accessor_name);
+    if (!func.IsNull()) {
+      if (func.IsDynamicFunction()) {
+        // We create a getter node even though a getter doesn't exist as
+        // it could be followed by an assignment which will convert it to
+        // a setter node. If there is no assignment we will get an error
+        // when we try to invoke the getter.
+        CheckInstanceFieldAccess(ident_pos, ident);
+        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        return true;
+      } else if (func.IsStaticFunction()) {
+        // We create a getter node even though a getter doesn't exist as
+        // it could be followed by an assignment which will convert it to
+        // a setter node. If there is no assignment we will get an error
+        // when we try to invoke the getter.
+        *node = new StaticGetterNode(ident_pos,
+                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     ident);
+        return true;
+      }
+    }
+
     cls = cls.SuperClass();
   }
-  if (node != NULL) {
-    *node = NULL;
-  }
+  *node = NULL;
   return false;  // Not an unqualified identifier.
 }
 
