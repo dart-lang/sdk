@@ -24,14 +24,18 @@ fi
 # Run from dartdoc directory to get correct relative paths.
 pushd `dirname "$0"` >>/dev/null
 
-# Generate the client-side .js file from interact.dart if we haven't already or
-# if it's out of date.
-if [ "interact.dart" -nt "static/interact.js" ]
-  then
-  ../../frog/minfrog --libdir=../../frog/lib \
-    --out=static/interact.js --compile-only interact.dart
-  echo "Compiled interact.dart."
-fi
+compileToJs() {
+  if [ "$1.dart" -nt "static/$1.js" ]
+    then
+    ../../frog/minfrog --libdir=../../frog/lib \
+      --out=static/$1.js --compile-only $1.dart
+    echo "Compiled $1.dart."
+  fi
+}
+
+# Generate the client-side .js files if needed.
+compileToJs "client-static"
+compileToJs "client-live-nav"
 
 # Clean the output directory.
 if [ -d "docs" ]; then

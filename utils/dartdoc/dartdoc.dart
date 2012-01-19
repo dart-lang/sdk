@@ -15,16 +15,38 @@
  */
 #library('dartdoc');
 
+#import('dart:json');
 #import('../../frog/lang.dart');
 #import('../../frog/file_system.dart');
 #import('../../frog/file_system_node.dart');
 #import('../../frog/lib/node/node.dart');
+#import('classify.dart');
 #import('markdown.dart', prefix: 'md');
 
-#source('classify.dart');
 #source('comment_map.dart');
 #source('files.dart');
 #source('utils.dart');
+
+/**
+ * Generates completely static HTML containing everything you need to browse
+ * the docs. The only client side behavior is trivial stuff like syntax
+ * highlighting code.
+ */
+final MODE_STATIC = 0;
+
+/**
+ * Generated docs do not include baked HTML navigation. Instead, a single
+ * `nav.json` file is created and the appropriate navigation is generated
+ * client-side by parsing that and building HTML.
+ *
+ * This dramatically reduces the generated size of the HTML since a large
+ * fraction of each static page is just redundant navigation links.
+ *
+ * In this mode, the browser will do a XHR for nav.json which means that to
+ * preview docs locally, you will need to enable requesting file:// links in
+ * your browser or run a little local server like `python -m SimpleHTTPServer`.
+ */
+final MODE_LIVE_NAV = 1;
 
 /**
  * Run this from the `utils/dartdoc` directory.
@@ -35,12 +57,21 @@ void main() {
 
   // Parse the dartdoc options.
   bool includeSource = true;
+  var mode = MODE_LIVE_NAV;
 
   for (int i = 2; i < process.argv.length - 1; i++) {
     final arg = process.argv[i];
     switch (arg) {
       case '--no-code':
         includeSource = false;
+        break;
+
+      case '--mode=static':
+        mode = MODE_STATIC;
+        break;
+
+      case '--mode=live-nav':
+        mode = MODE_LIVE_NAV;
         break;
 
       default:
@@ -56,6 +87,8 @@ void main() {
   final elapsed = time(() {
     dartdoc = new Dartdoc();
     dartdoc.includeSource = includeSource;
+    dartdoc.mode = mode;
+
     dartdoc.document(entrypoint);
   });
 
@@ -67,6 +100,13 @@ void main() {
 class Dartdoc {
   /** Set to `false` to not include the source code in the generated docs. */
   bool includeSource = true;
+
+  /**
+   * Dartdoc can generate docs in a few different ways based on how dynamic you
+   * want the client-side behavior to be. The value for this should be one of
+   * the `MODE_` constants.
+   */
+  int mode = MODE_LIVE_NAV;
 
   /**
    * The title used for the overall generated output. Set this to change it.
@@ -148,6 +188,8 @@ class Dartdoc {
       world.resolveAll();
 
       // Generate the docs.
+      if (mode == MODE_LIVE_NAV) docNavigationJson();
+
       docIndex();
       for (final library in world.libraries.getValues()) {
         docLibrary(library);
@@ -176,10 +218,21 @@ class Dartdoc {
         <head>
         ''');
     writeHeadContents(title);
+
+    // Add data attributes describing what the page documents.
+    var data = '';
+    if (_currentLibrary != null) {
+      data += ' data-library="${md.escapeHtml(_currentLibrary.name)}"';
+    }
+
+    if (_currentType != null) {
+      data += ' data-type="${md.escapeHtml(typeName(_currentType))}"';
+    }
+
     write(
         '''
         </head>
-        <body>
+        <body$data>
         <div class="page">
         <div class="header">
           ${a(mainUrl, '<div class="logo"></div>')}
@@ -200,6 +253,14 @@ class Dartdoc {
     writeln('<div class="content">');
   }
 
+  String get clientScript() {
+    switch (mode) {
+      case MODE_STATIC:   return 'client-static';
+      case MODE_LIVE_NAV: return 'client-live-nav';
+      default: throw 'Unknown mode $mode.';
+    }
+  }
+
   writeHeadContents(String title) {
     writeln(
         '''
@@ -209,7 +270,7 @@ class Dartdoc {
             href="${relativePath('styles.css')}" />
         <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800" rel="stylesheet" type="text/css">
         <link rel="shortcut icon" href="${relativePath('favicon.ico')}" />
-        <script src="${relativePath('interact.js')}"></script>
+        <script src="${relativePath('$clientScript.js')}"></script>
         ''');
   }
 
@@ -243,24 +304,54 @@ class Dartdoc {
     endFile();
   }
 
+  /**
+   * Walks the libraries and creates a JSON object containing the data needed
+   * to generate navigation for them.
+   */
+  docNavigationJson() {
+    startFile('nav.json');
+
+    final libraries = {};
+
+    for (final library in orderByName(world.libraries)) {
+      final types = [];
+
+      for (final type in orderByName(library.types)) {
+        if (type.isTop) continue;
+        if (type.name.startsWith('_')) continue;
+
+        final kind = type.isClass ? 'class' : 'interface';
+        final url = typeUrl(type);
+        types.add({ 'name': typeName(type), 'kind': kind, 'url': url });
+      }
+
+      libraries[library.name] = types;
+    }
+
+    writeln(JSON.stringify(libraries));
+    endFile();
+  }
+
   docNavigation() {
     writeln(
         '''
         <div class="nav">
         ''');
 
-    for (final library in orderByName(world.libraries)) {
-      write('<h2><div class="icon-library"></div>');
+    if (mode == MODE_STATIC) {
+      for (final library in orderByName(world.libraries)) {
+        write('<h2><div class="icon-library"></div>');
 
-      if ((_currentLibrary == library) && (_currentType == null)) {
-        write('<strong>${library.name}</strong>');
-      } else {
-        write('${a(libraryUrl(library), library.name)}');
+        if ((_currentLibrary == library) && (_currentType == null)) {
+          write('<strong>${library.name}</strong>');
+        } else {
+          write('${a(libraryUrl(library), library.name)}');
+        }
+        write('</h2>');
+
+        // Only expand classes in navigation for current library.
+        if (_currentLibrary == library) docLibraryNavigation(library);
       }
-      write('</h2>');
-
-      // Only expand classes in navigation for current library.
-      if (_currentLibrary == library) docLibraryNavigation(library);
     }
 
     writeln('</div>');
