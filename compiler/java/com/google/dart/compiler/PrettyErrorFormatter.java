@@ -20,9 +20,15 @@ import java.io.Reader;
  * extra line underlying the portion of the line containing the error.
  */
 public class PrettyErrorFormatter extends DefaultErrorFormatter {
-  private static String RED_BOLD_COLOR = "\033[31;1m";
-  private static String RED_COLOR = "\033[31m";
-  private static String NO_COLOR = "\033[0m";
+  public static final String ERROR_BOLD_COLOR = "\033[31;1m";
+  public static final String ERROR_COLOR = "\033[31m";
+
+  // Mix ANSI with xterm colors, giving ANSI priority.  The terminal should ignore xterm codes
+  // if it doesn't support them.
+  public static final String WARNING_BOLD_COLOR = "\033[33;1m\033[38;5;202m";
+  public static final String WARNING_COLOR = "\033[33m\033[38;5;208m";
+
+  public static final String NO_COLOR = "\033[0m";
 
   private final boolean useColor;
 
@@ -76,7 +82,8 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
       // print the error message
       StringBuilder buf = new StringBuilder();
       if (useColor) {
-        buf.append(RED_BOLD_COLOR);
+        buf.append(event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING
+            ? WARNING_BOLD_COLOR : ERROR_BOLD_COLOR);
       }
       if (errorFormat == ErrorFormat.MACHINE) {
         buf.append(String.format(
@@ -113,7 +120,8 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
         buf.append(String.format("%6d: %s%s%s%s%s\n",
               line,
               lineText.substring(0, col),
-              RED_COLOR,
+              event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING
+              ? WARNING_COLOR : ERROR_COLOR,
               lineText.substring(col, col + length),
               NO_COLOR,
               lineText.substring(col + length)));
@@ -154,7 +162,7 @@ public class PrettyErrorFormatter extends DefaultErrorFormatter {
     // TODO(sigmund): do something more efficient - we currently do a linear
     // scan of the file every time an error is reported. This will not scale
     // when many errors are reported on the same file.
-    while ((currentLine = reader.readLine()) != null && line-- > 1);
+    while ((currentLine = reader.readLine()) != null && line-- > 1){}
     return currentLine;
   }
 

@@ -1709,7 +1709,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
        */
       private boolean canOverride(DartExpression node, Modifiers modifiers, Element element) {
         if (element.getModifiers().isStatic()) {
-          onError(node, ResolverErrorCode.CANNOT_OVERRIDE_STATIC_MEMBER,
+          onError(node, TypeErrorCode.OVERRIDING_INHERITED_STATIC_MEMBER,
                           element.getName(), element.getEnclosingElement().getName());
           return false;
         } else if (modifiers.isStatic()) {

@@ -7,6 +7,7 @@ import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import junit.framework.TestCase;
@@ -20,9 +21,12 @@ import java.io.Reader;
  * Test for {@link PrettyErrorFormatter}.
  */
 public class PrettyErrorFormatterTest extends TestCase {
-  private static String RED_BOLD_COLOR = "\033[31;1m";
-  private static String RED_COLOR = "\033[31m";
-  private static String NO_COLOR = "\033[0m";
+  private static final String ERROR_BOLD_COLOR = PrettyErrorFormatter.ERROR_BOLD_COLOR;
+  private static final String ERROR_COLOR = PrettyErrorFormatter.ERROR_COLOR;
+  private static final String WARNING_BOLD_COLOR = PrettyErrorFormatter.WARNING_BOLD_COLOR;
+  private static final String WARNING_COLOR = PrettyErrorFormatter.WARNING_COLOR;
+  private static final String NO_COLOR = PrettyErrorFormatter.NO_COLOR;
+
   private static final Source SOURCE = new DartSourceTest("my/path/Test.dart",
       Joiner.on("\n").join("lineAAA", "lineBBB", "lineCCC"),
       new MockLibrarySource());
@@ -33,7 +37,7 @@ public class PrettyErrorFormatterTest extends TestCase {
   public void test_notDartSource() throws Exception {
     Source emptyDartSource = new SourceTest("Test.dart") {
       @Override
-      public Reader getSourceReader() throws IOException {
+      public Reader getSourceReader() {
         return null;
       }
     };
@@ -60,7 +64,7 @@ public class PrettyErrorFormatterTest extends TestCase {
           }
 
           @Override
-          public void close() throws IOException {
+          public void close() {
           }
         };
       }
@@ -134,15 +138,26 @@ public class PrettyErrorFormatterTest extends TestCase {
     Location location = new Location(new Position(-1, 2, 3));
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
-    //
     String errorString = getErrorString(error, true, false);
     assertEquals(
         Joiner.on("\n").join(
-            RED_BOLD_COLOR
+            WARNING_BOLD_COLOR
                 + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
                 + NO_COLOR,
             "     1: lineAAA",
-            "     2: li" + RED_COLOR + "neBBB" + NO_COLOR,
+            "     2: li" + WARNING_COLOR + "neBBB" + NO_COLOR,
+            ""),
+        errorString);
+
+    error = new DartCompilationError(SOURCE, location, ResolverErrorCode.NO_SUCH_TYPE, "Foo");
+    errorString = getErrorString(error, true, false);
+    assertEquals(
+        Joiner.on("\n").join(
+            ERROR_BOLD_COLOR
+                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + NO_COLOR,
+            "     1: lineAAA",
+            "     2: li" + ERROR_COLOR + "neBBB" + NO_COLOR,
             ""),
         errorString);
   }
@@ -173,15 +188,26 @@ public class PrettyErrorFormatterTest extends TestCase {
     Location location = new Location(new Position(8 + 3, 2, 3), new Position(8 + 6, 2, 6));
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
-    //
     String errorString = getErrorString(error, true, false);
     assertEquals(
         Joiner.on("\n").join(
-            RED_BOLD_COLOR
+            WARNING_BOLD_COLOR
                 + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
                 + NO_COLOR,
             "     1: lineAAA",
-            "     2: li" + RED_COLOR + "neB" + NO_COLOR + "BB",
+            "     2: li" + WARNING_COLOR + "neB" + NO_COLOR + "BB",
+            ""),
+        errorString);
+
+    error = new DartCompilationError(SOURCE, location, ResolverErrorCode.NO_SUCH_TYPE, "Foo");
+    errorString = getErrorString(error, true, false);
+    assertEquals(
+        Joiner.on("\n").join(
+            ERROR_BOLD_COLOR
+                + "my/path/Test.dart:2: no such type \"Foo\" (sourced from Test_app)"
+                + NO_COLOR,
+            "     1: lineAAA",
+            "     2: li" + ERROR_COLOR + "neB" + NO_COLOR + "BB",
             ""),
         errorString);
   }
@@ -212,15 +238,26 @@ public class PrettyErrorFormatterTest extends TestCase {
     Location location = new Location(new Position(8 + 3, 2, 3), new Position(8 + 7, 2, 7));
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
-    //
     String errorString = getErrorString(error, true, true);
     assertEquals(
         Joiner.on("\n").join(
-            RED_BOLD_COLOR
+            WARNING_BOLD_COLOR
                 + "WARNING:STATIC_TYPE:NO_SUCH_TYPE:my/path/Test.dart:2:3:4: no such type \"Foo\""
                 + NO_COLOR,
             "     1: lineAAA",
-            "     2: li" + RED_COLOR + "neBB" + NO_COLOR + "B",
+            "     2: li" + WARNING_COLOR + "neBB" + NO_COLOR + "B",
+            ""),
+        errorString);
+
+    error = new DartCompilationError(SOURCE, location, ResolverErrorCode.NO_SUCH_TYPE, "Foo");
+    errorString = getErrorString(error, true, true);
+    assertEquals(
+        Joiner.on("\n").join(
+            ERROR_BOLD_COLOR
+                + "ERROR:RESOLVER:NO_SUCH_TYPE:my/path/Test.dart:2:3:4: no such type \"Foo\""
+                + NO_COLOR,
+            "     1: lineAAA",
+            "     2: li" + ERROR_COLOR + "neBB" + NO_COLOR + "B",
             ""),
         errorString);
   }
