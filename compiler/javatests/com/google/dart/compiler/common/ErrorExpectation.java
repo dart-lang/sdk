@@ -28,21 +28,33 @@ public class ErrorExpectation {
     return new ErrorExpectation(errorCode, line, column,  length);
   }
 
+  public static void formatExpectations(StringBuffer out, List<DartCompilationError> errors,
+                                        ErrorExpectation[] expectedErrors) {
+    out.append(String.format("Expected %d errors\n", expectedErrors.length));
+    for (ErrorExpectation errEx : expectedErrors) {
+      out.append(String.format("  %s (%d,%d/%d)\n", errEx.errorCode.toString(),
+                               errEx.line, errEx.column, errEx.length));
+    }
+    out.append(String.format("Encountered %d errors\n", errors.size()));
+    for (DartCompilationError error : errors) {
+      out.append(String.format("  %s (%d,%d/%d): %s\n", error.getErrorCode().toString(),
+                               error.getLineNumber(), error.getColumnNumber(),
+                               error.getLength(), error.getMessage()));
+    }
+  }
   /**
    * Asserts that given list of {@link DartCompilationError} is exactly same as expected.
    */
   public static void assertErrors(List<DartCompilationError> errors,
-      ErrorExpectation... expectedErrors) {
+                                  ErrorExpectation... expectedErrors) {
     StringBuffer errorMessage = new StringBuffer();
     // count of errors
     if (errors.size() != expectedErrors.length) {
-      String out =
-          String.format(
-              "Expected %s errors, but got %s: %s",
-              expectedErrors.length,
-              errors.size(),
-              errors);
-      errorMessage.append(out + "\n");
+      errorMessage.append(String.format("Wrong number of errors encountered\n",
+                                        expectedErrors.length,
+                                        errors.size()));
+
+      formatExpectations(errorMessage, errors, expectedErrors);
     } else {
       // content of errors
       for (int i = 0; i < expectedErrors.length; i++) {
@@ -52,18 +64,9 @@ public class ErrorExpectation {
             || actualError.getLineNumber() != expectedError.line
             || actualError.getColumnNumber() != expectedError.column
             || actualError.getLength() != expectedError.length) {
-          String out =
-              String.format(
-                  "Expected %s:%d:%d/%d, but got %s:%d:%d/%d",
-                  expectedError.errorCode,
-                  expectedError.line,
-                  expectedError.column,
-                  expectedError.length,
-                  actualError.getErrorCode(),
-                  actualError.getLineNumber(),
-                  actualError.getColumnNumber(),
-                  actualError.getLength());
-          errorMessage.append(out + "\n");
+          errorMessage.append(String.format("Expected errors didn't match actual\n"));
+          formatExpectations(errorMessage, errors, expectedErrors);
+          break;
         }
       }
     }

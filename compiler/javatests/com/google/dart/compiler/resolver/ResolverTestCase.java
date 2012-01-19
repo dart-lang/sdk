@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -63,8 +63,9 @@ abstract class ResolverTestCase extends TestCase {
 
   static Scope resolve(DartUnit unit, TestCompilerContext context) {
     LibraryUnit libraryUnit = MockLibraryUnit.create(unit);
+
     // Prepare for running phases.
-    Scope scope = new Scope("library", libraryUnit.getElement());
+    Scope scope = libraryUnit.getElement().getScope();
     CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
     // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
@@ -77,7 +78,7 @@ abstract class ResolverTestCase extends TestCase {
   static Scope resolveCompileTimeConst(DartUnit unit, TestCompilerContext context) {
     LibraryUnit libraryUnit = MockLibraryUnit.create(unit);
     // Prepare for running phases.
-    Scope scope = new Scope("library", libraryUnit.getElement());
+    Scope scope = libraryUnit.getElement().getScope();
     CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
     // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
@@ -139,7 +140,6 @@ abstract class ResolverTestCase extends TestCase {
     private final InterfaceType defaultMapLiteralType;
     private final InterfaceType defaultListType;
     private final ClassElement objectElement;
-
 
     {
       ClassElement dynamicElement = Elements.classNamed("Dynamic");

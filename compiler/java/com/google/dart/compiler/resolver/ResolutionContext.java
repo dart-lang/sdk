@@ -1,9 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.resolver;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
@@ -24,6 +23,7 @@ import com.google.dart.compiler.type.TypeVariable;
 
 import java.util.Arrays;
 import java.util.List;
+
 
 /**
  * Resolution context for resolution of Dart programs. The initial context is
@@ -190,9 +190,30 @@ public class ResolutionContext implements ResolutionErrorListener {
         TypeVariableElement typeVariableElement = (TypeVariableElement) element;
         if (!isFactory && isStatic &&
             typeVariableElement.getDeclaringElement().getKind().equals(ElementKind.CLASS)) {
-          onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-                          identifier);
-          return typeProvider.getDynamicType();
+
+          // Check that type variable is not shadowing any element in enclosing context.
+          Scope libraryScope = scope.getLibrary().getScope();
+          String name = element.getName();
+          Element existingElement = libraryScope.findElement(scope.getLibrary(), name);
+
+          switch(ElementKind.of(existingElement)) {
+            case CLASS:
+            case FUNCTION_TYPE_ALIAS:
+            return instantiateParameterizedType((ClassElement)existingElement,
+                                                diagnosticNode,
+                                                typeArguments,
+                                                isStatic,
+                                                isFactory,
+                                                errorCode);
+            case NONE:
+              onError(identifier, ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
+                      identifier);
+              return typeProvider.getDynamicType();
+
+            default:
+              onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
+              return typeProvider.getDynamicType();
+          }
         }
         return makeTypeVariable(typeVariableElement, typeArguments);
       }

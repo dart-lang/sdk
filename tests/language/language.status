@@ -311,6 +311,7 @@ TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
 TypeVariableBoundsTest/01: Fail
 TypeVariableBoundsTest/10: Fail
+TypeVariableShadowsClass: Fail # Issue 643
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
