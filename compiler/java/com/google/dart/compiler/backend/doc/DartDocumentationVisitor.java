@@ -623,9 +623,10 @@ class DartDocumentationVisitor extends DartNodeTraverser<Void> {
     if (isPrivateName(name)) {
       return;
     }
-    String fileName = outputDirectory + File.separator + name + ".html";
     try {
-      stream = new PrintStream(fileName);
+      File output = new File(outputDirectory, name + ".html");
+      output.getParentFile().mkdirs();
+      stream = new PrintStream(output);
     } catch (FileNotFoundException e) {
       throw new RuntimeException(e);
     }
