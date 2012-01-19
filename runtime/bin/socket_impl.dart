@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -322,7 +322,23 @@ class _Socket extends _SocketBase implements Socket {
       if ((offset + bytes) > buffer.length) {
         throw new IndexOutOfRangeException(offset + bytes);
       }
-      var bytes_written = _writeList(buffer, offset, bytes);
+      // When using the Dart C API access to ObjectArray by index is
+      // currently much faster. This function will make a copy of the
+      // supplied List to an ObjectArray if it isn't already.
+      ObjectArray outBuffer;
+      int outOffset = offset;
+      if (buffer is ObjectArray) {
+        outBuffer = buffer;
+      } else {
+        outBuffer = new ObjectArray(bytes);
+        outOffset = 0;
+        int j = offset;
+        for (int i = 0; i < bytes; i++) {
+          outBuffer[i] = buffer[j];
+          j++;
+        }
+      }
+      var bytes_written = _writeList(outBuffer, outOffset, bytes);
       if (bytes_written < 0) {
         // If writing fails we return 0 as the number of bytes and
         // report the error on the error handler.

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -221,7 +221,7 @@ class _WriteListOperation extends _FileOperation {
                       port.toSendPort());
       return;
     }
-    var result = _FileUtils._writeList(_id, _buffer, _offset, _bytes);
+    var result = _FileUtils.writeList(_id, _buffer, _offset, _bytes);
     _replyPort.send(result, port.toSendPort());
   }
 
@@ -420,23 +420,26 @@ class _FileUtils {
   static int readList(int id, List<int> buffer, int offset, int bytes)
       native "File_ReadList";
   static int writeByte(int id, int value) native "File_WriteByte";
-  static int _writeList(int id, List<int> buffer, int offset, int bytes) {
-    ObjectArray out_buffer;
-    int out_offset = offset;
+  static int writeList(int id, List<int> buffer, int offset, int bytes) {
+    // When using the Dart C API access to ObjectArray by index is
+    // currently much faster. This function will make a copy of the
+    // supplied List to an ObjectArray if it isn't already.
+    ObjectArray outBuffer;
+    int outOffset = offset;
     if (buffer is ObjectArray) {
-      out_buffer = buffer;
+      outBuffer = buffer;
     } else {
-      out_buffer = new ObjectArray(bytes);
-      out_offset = 0;
+      outBuffer = new ObjectArray(bytes);
+      outOffset = 0;
       int j = offset;
       for (int i = 0; i < bytes; i++) {
-        out_buffer[i] = buffer[j];
+        outBuffer[i] = buffer[j];
         j++;
       }
     }
-    return __writeList(id, out_buffer, out_offset, bytes);
+    return writeListNative(id, outBuffer, outOffset, bytes);
   }
-  static int __writeList(int id, List<int> buffer, int offset, int bytes)
+  static int writeListNative(int id, List<int> buffer, int offset, int bytes)
       native "File_WriteList";
   static int writeString(int id, String string) native "File_WriteString";
   static int position(int id) native "File_Position";
@@ -863,7 +866,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (index != 0) {
       throw new IndexOutOfRangeException(index);
     }
-    int result = _FileUtils._writeList(_id, buffer, offset, bytes);
+    int result = _FileUtils.writeList(_id, buffer, offset, bytes);
     if (result == -1) {
       throw new FileIOException("writeList failed");
     }
