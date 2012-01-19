@@ -1501,7 +1501,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private Type checkInitializedDeclaration(DartDeclaration<?> node, DartExpression value) {
-      if (value != null) {
+      if (value != null && node.getSymbol() != null) {
         checkAssignable(node.getSymbol().getType(), value);
       }
       return voidType;
