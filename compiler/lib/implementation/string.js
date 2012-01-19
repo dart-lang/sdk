@@ -18,8 +18,17 @@ function native_StringImplementation_get$length() {
 }
 
 function native_StringImplementation_EQ(other) {
-  "use strict";
-  return typeof other == 'string' && this == other;
+  // TODO(kasperl): We should really try to avoid having wrapped
+  // strings floating around. The usually stem from referencing [this]
+  // in Dart methods patched onto the String.prototype object.
+
+  // Because of the checks in EQ$operator, we know [this] is a string
+  // wrapper, but we have to make sure that [other] is either a
+  // wrapper or a proper string before we can use == to compare the
+  // contents.
+  return (typeof(other) == 'string' || other.constructor === String)
+      ? this == other
+      : false;
 }
 
 function native_StringImplementation__nativeIndexOf(other, startIndex) {

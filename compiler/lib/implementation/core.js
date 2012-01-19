@@ -252,7 +252,6 @@ function assert(expr) {
   }
 }
 
-// TODO(jimhug): Remove these functions after updating compiler backend.
 function BIT_OR$operator(val1, val2) {
   return (typeof(val1) == 'number' && typeof(val2) == 'number')
       ? val1 | val2
@@ -334,6 +333,18 @@ function negate$operator(val) {
   return (typeof(val) == 'number') ? -val : val.negate$operator();
 }
 
+function EQ$operator(val1, val2) {
+  return (typeof val1 != 'object')
+      ? val1 === val2
+      : val1.EQ$operator(val2);
+}
+
+function NE$operator(val1, val2) {
+  return (typeof val1 != 'object')
+      ? val1 !== val2
+      : !val1.EQ$operator(val2);
+}
+
 function LT$operator(val1, val2) {
   return (typeof(val1) == 'number' && typeof(val2) == 'number')
       ? val1 < val2
@@ -356,25 +367,6 @@ function GTE$operator(val1, val2) {
   return (typeof(val1) == 'number' && typeof(val2) == 'number')
       ? val1 >= val2
       : val1.GTE$operator(val2);
-}
-
-
-/**
- * These operators need to work correctly with undefined
- * so must be functions.
- */
-function EQ$operator(val1, val2) {
-  if (val1 === $Dart$Null) {
-    return val2 === $Dart$Null;
-  } else if (typeof(val1) == typeof(val2) && typeof val1 != 'object') {
-    // number, boolean, string
-    return val1 === val2;
-  }
-  return val1.EQ$operator(val2);
-}
-
-function NE$operator(val1, val2) {
-  return !EQ$operator(val1, val2);
 }
 
 // The following operator-functions are not called from Dart-generated code, but

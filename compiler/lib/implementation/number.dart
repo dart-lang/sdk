@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class NumberImplementation implements int, double native "Number" {
+
   NumberImplementation operator +(NumberImplementation other) native;
   NumberImplementation operator -(NumberImplementation other) native;
   NumberImplementation operator *(NumberImplementation other) native;
@@ -10,18 +11,19 @@ class NumberImplementation implements int, double native "Number" {
   NumberImplementation operator ~/(NumberImplementation other) native;
   NumberImplementation operator %(NumberImplementation shiftAmount) native;
   NumberImplementation operator negate() native;
+
   int operator |(int other) native;
   int operator &(int other) native;
   int operator ^(int other) native;
   int operator <<(int shiftAmount) native;
   int operator >>(int shiftAmount) native;
   int operator ~() native;
+
   bool operator ==(NumberImplementation other) native;
   bool operator <(NumberImplementation other) native;
   bool operator <=(NumberImplementation other) native;
   bool operator >(NumberImplementation other) native;
   bool operator >=(NumberImplementation other) native;
-
 
   NumberImplementation remainder(num other) native;
   NumberImplementation abs() native;
