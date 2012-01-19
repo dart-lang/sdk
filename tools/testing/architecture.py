@@ -290,10 +290,10 @@ class BrowserArchitecture(Architecture):
         drt_location += '.app/Contents/MacOS/DumpRenderTree'
 
     drt_flags = ['--no-timeout']
-    dart_flags = '--dart-flags=--enable_asserts --enable_type_checks '
-    dart_flags += ' '.join(self.vm_options)
-
-    drt_flags.append(dart_flags)
+    if len(self.vm_options) > 0:
+      dart_flags = '--dart-flags='
+      dart_flags += ' '.join(self.vm_options)
+      drt_flags.append(dart_flags)
 
     html_output_file = os.path.join(self.GetHtmlPath(), self.GetHtmlName())
     f = open(html_output_file, 'w')

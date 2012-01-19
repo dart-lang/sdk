@@ -467,9 +467,11 @@ class StandardTestSuite implements TestSuite {
       } else {
         args = ['--no-timeout'];
         if (component == 'dartium') {
-          var dartFlags = ['--enable_asserts',
-                           '--enable_type_checks',
-                           '--ignore-unrecognized-flags'];
+          var dartFlags = ['--ignore-unrecognized-flags'];
+          if (configuration["checked"]) {
+            dartFlags.add('--enable_asserts');
+            dartFlags.add("--enable_type_checks");
+          }
           dartFlags.addAll(vmOptions);
           args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
         }
