@@ -221,7 +221,7 @@ class _WriteListOperation extends _FileOperation {
                       port.toSendPort());
       return;
     }
-    var result = _FileUtils.writeList(_id, _buffer, _offset, _bytes);
+    var result = _FileUtils._writeList(_id, _buffer, _offset, _bytes);
     _replyPort.send(result, port.toSendPort());
   }
 
@@ -420,7 +420,23 @@ class _FileUtils {
   static int readList(int id, List<int> buffer, int offset, int bytes)
       native "File_ReadList";
   static int writeByte(int id, int value) native "File_WriteByte";
-  static int writeList(int id, List<int> buffer, int offset, int bytes)
+  static int _writeList(int id, List<int> buffer, int offset, int bytes) {
+    ObjectArray out_buffer;
+    int out_offset = offset;
+    if (buffer is ObjectArray) {
+      out_buffer = buffer;
+    } else {
+      out_buffer = new ObjectArray(bytes);
+      out_offset = 0;
+      int j = offset;
+      for (int i = 0; i < bytes; i++) {
+        out_buffer[i] = buffer[j];
+        j++;
+      }
+    }
+    return __writeList(id, out_buffer, out_offset, bytes);
+  }
+  static int __writeList(int id, List<int> buffer, int offset, int bytes)
       native "File_WriteList";
   static int writeString(int id, String string) native "File_WriteString";
   static int position(int id) native "File_Position";
@@ -574,7 +590,7 @@ class _File implements File {
     _scheduler.enqueue(operation, handleOpenResult);
   }
 
-  void openSync([FileMode mode = FileMode.READ]) {
+  RandomAccessFile openSync([FileMode mode = FileMode.READ]) {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");
@@ -847,7 +863,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (index != 0) {
       throw new IndexOutOfRangeException(index);
     }
-    int result = _FileUtils.writeList(_id, buffer, offset, bytes);
+    int result = _FileUtils._writeList(_id, buffer, offset, bytes);
     if (result == -1) {
       throw new FileIOException("writeList failed");
     }
