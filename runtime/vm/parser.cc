@@ -228,13 +228,10 @@ void Parser::SetPosition(intptr_t position) {
 
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Parser parser(script, library);
-  if (FLAG_compiler_stats) {
-    CompilerStats::parser_timer.Start();
-  }
   parser.ParseTopLevel();
   if (FLAG_compiler_stats) {
-    CompilerStats::parser_timer.Stop();
     CompilerStats::num_tokens_total += parser.tokens_.Length();
   }
 }
@@ -556,6 +553,7 @@ static bool HasReturnNode(SequenceNode* seq) {
 
 
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
   // Compilation can be nested, preserve the ast node id.
   const int prev_ast_node_id = isolate->ast_node_id();
@@ -565,9 +563,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   const Class& cls = Class::Handle(isolate, func.owner());
   const Script& script = Script::Handle(isolate, cls.script());
   Parser parser(script, func, func.token_index());
-  if (FLAG_compiler_stats) {
-    CompilerStats::parser_timer.Start();
-  }
   SequenceNode* node_sequence = NULL;
   Array& default_parameter_values = Array::Handle(isolate, Array::null());
   switch (func.kind()) {
@@ -616,9 +611,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   }
 
   parsed_function->set_default_parameter_values(default_parameter_values);
-  if (FLAG_compiler_stats) {
-    CompilerStats::parser_timer.Stop();
-  }
   isolate->set_ast_node_id(prev_ast_node_id);
 }
 
