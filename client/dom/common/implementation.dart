@@ -2,6 +2,7 @@ class ListBase<E> extends DOMType implements List<E> {
   ListBase();
 
   void forEach(void f(E element)) => Collections.forEach(this, f);
+  Collection map(f(E element)) => Collections.map(this, [], f);
   Collection<E> filter(bool f(E element)) => Collections.filter(this, [], f);
   bool every(bool f(E element)) => Collections.every(this, f);
   bool some(bool f(E element)) => Collections.some(this, f);

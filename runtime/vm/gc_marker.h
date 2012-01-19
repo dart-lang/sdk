@@ -10,6 +10,7 @@
 namespace dart {
 
 // Forward declarations.
+class HandleVisitor;
 class Heap;
 class Isolate;
 class MarkingVisitor;
@@ -28,7 +29,7 @@ class GCMarker : public ValueObject {
  private:
   void Prologue(Isolate* isolate);
   void IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate, ObjectPointerVisitor* visitor);
+  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
   void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
 
   Heap* heap_;

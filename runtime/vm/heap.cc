@@ -1,17 +1,17 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/heap.h"
 
-#include "vm/assert.h"
+#include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/compiler_stats.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
 #include "vm/pages.h"
 #include "vm/scavenger.h"
-#include "vm/utils.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
 

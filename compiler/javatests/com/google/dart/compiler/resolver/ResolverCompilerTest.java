@@ -3,14 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import com.google.dart.compiler.type.FunctionAliasType;
+import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeVariable;
 
 import java.util.List;
 
@@ -19,6 +24,32 @@ import java.util.List;
  * slower, not actually unit test, but easier to use if you need access to DartNode's.
  */
 public class ResolverCompilerTest extends CompilerTestCase {
+
+  public void test_parameters_withFunctionAlias() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            "Test.dart",
+            "typedef List<T> TypeAlias<T, U extends List<T>>(List<T> arg, U u);");
+    assertErrors(libraryResult.getCompilationErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    DartFunctionTypeAlias typeAlias = findTypedef(unit, "TypeAlias");
+    assertNotNull(typeAlias);
+    FunctionAliasElement element = typeAlias.getSymbol();
+    FunctionAliasType ftype = element.getType();
+    Type returnType = ftype.getElement().getFunctionType().getReturnType();
+    assertEquals("List<TypeAlias.T>", returnType.toString());
+    List<? extends Type> arguments = ftype.getArguments();
+    assertEquals(2, arguments.size());
+    TypeVariable arg0 = (TypeVariable)arguments.get(0);
+    assertEquals("T", arg0.getTypeVariableElement().getName());
+    Type bound0 = arg0.getTypeVariableElement().getBound();
+    assertEquals("Object", bound0.toString());
+    TypeVariable arg1 = (TypeVariable)arguments.get(1);
+    assertEquals("U", arg1.getTypeVariableElement().getName());
+    Type bound1 = arg1.getTypeVariableElement().getBound();
+    assertEquals("List<TypeAlias.T>", bound1.toString());
+  }
+
   /**
    * We should be able to resolve implicit default constructor.
    */

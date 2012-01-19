@@ -13,6 +13,7 @@ import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.DefaultDartArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
@@ -34,6 +35,7 @@ import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.type.Type;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -68,7 +70,18 @@ public class TypeHeuristicImplementationTest extends CompilerTestCase {
     lib.addSource(src);
     Map<URI, DartUnit> parsedUnits = new HashMap<URI, DartUnit>();
     DefaultCompilerConfiguration config = new DefaultCompilerConfiguration();
-    DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(Files.createTempDir());
+    File tempDir = Files.createTempDir();
+    tempDir.deleteOnExit();
+    DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(tempDir) {
+      @Override
+      protected File getArtifactFile(Source source, String part, String extension) {
+        File file = super.getArtifactFile(source, part, extension);
+        if (file != null) {
+          file.deleteOnExit();
+        }
+        return file;
+      }
+    };
     DartCompilerListener listener = DartCompilerListener.EMPTY;
     LibraryUnit libUnit = DartCompiler.analyzeLibrary(lib, parsedUnits, config, provider,
         listener);

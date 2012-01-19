@@ -22,15 +22,11 @@ class ListFactory<E> {
     } else if (length < 0) {
       throw new IllegalArgumentException("negative length $length");
     }
-    // TODO(floitsch): make list creation more efficient. Currently we allocate
-    // a new TypeToken at every allocation. Either we can optimize them away,
-    // or we need to find other ways to pass type-information from Dart to JS.
-    ListImplementation list = _new(new TypeToken<E>(), length);
+    
+    ListImplementation<E> list = new ListImplementation<E>(length);
     list._isFixed = isFixed;
     return list;
   }
-
-  static ListImplementation _new(TypeToken typeToken, int length) native;
 }
 
 
@@ -42,19 +38,10 @@ class ListImplementation<T> implements List<T> native "Array" {
   // and coerce to false.
   bool _isFixed;
 
-  T operator[](int index) {
-    if (0 <= index && index < length) {
-      return _indexOperator(index);
-    }
-    throw new IndexOutOfRangeException(index);
-  }
+  ListImplementation(int length);
 
-  void operator[]=(int index, T value) {
-    if (index < 0 || length <= index) {
-      throw new IndexOutOfRangeException(index);
-    }
-    _indexAssignOperator(index, value);
-  }
+  T operator[](int index) native;
+  void operator[]=(int index, T value) native;
 
   Iterator<T> iterator() {
     if (_isFixed) {
@@ -64,8 +51,6 @@ class ListImplementation<T> implements List<T> native "Array" {
     }
   }
 
-  T _indexOperator(int index) native;
-  void _indexAssignOperator(int index, T value) native;
   int get length() native;
   void _setLength(int length) native;
   void _add(T value) native;
@@ -74,6 +59,10 @@ class ListImplementation<T> implements List<T> native "Array" {
 
   void forEach(void f(T element)) {
     Collections.forEach(this, f);
+  }
+
+  Collection map(f(T element)) {
+    return Collections.map(this, new List(), f);
   }
 
   Collection<T> filter(bool f(T element)) {

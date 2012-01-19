@@ -25,15 +25,9 @@ class _ChildrenNodeList implements NodeList {
 
   void forEach(void f(Node element)) => _toList().forEach(f);
 
-  Collection<Node> filter(bool f(Node element)) {
-    List<Node> output = new List<Node>();
-    forEach((Node element) {
-      if (f(element)) {
-        output.add(element);
-      }
-    });
-    return output;
-  }
+  Collection map(f(Node element)) => _toList().map(f);
+
+  Collection<Node> filter(bool f(Node element)) => _toList().filter(f);
 
   bool every(bool f(Node element)) {
     for(Node element in this) {
@@ -67,7 +61,7 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void operator []=(int index, Node value) {
-    _childNodes[index] = LevelDom.unwrap(value);
+    _node.replaceChild(LevelDom.unwrap(value), _childNodes[index]);
   }
 
    void set length(int newLength) {
@@ -103,29 +97,25 @@ class _ChildrenNodeList implements NodeList {
     throw 'Not impl yet. todo(jacobr)';
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
-  }
+  void setRange(int start, int length, List from, [int startFrom = 0]) =>
+    Lists.setRange(this, start, length, from, startFrom);
 
-  void removeRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  void removeRange(int start, int length) =>
+    Lists.removeRange(this, start, length, (i) => this[i].remove());
 
   void insertRange(int start, int length, [initialValue = null]) {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  List getRange(int start, int length) => Lists.getRange(this, start, length);
 
   int indexOf(Node element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(Node element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {

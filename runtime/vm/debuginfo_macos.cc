@@ -25,7 +25,7 @@ void DebugInfo::AddCodeRegion(const char* name, uword pc, intptr_t size) {
 }
 
 
-bool DebugInfo::WriteToMemory(ByteArray* region) {
+bool DebugInfo::WriteToMemory(ByteBuffer* region) {
   // Nothing to do as there is no support for this on macos.
   return false;
 }

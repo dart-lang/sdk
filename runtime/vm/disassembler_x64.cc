@@ -1,6 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+#include "vm/disassembler.h"
 
 #if !defined(_WIN32)  // Disassembler is not yet supported under WIN32.
 #include <errno.h>
@@ -11,10 +13,7 @@
 
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_X64.
 #if defined(TARGET_ARCH_X64)
-
-#include "vm/disassembler.h"
-
-#include "vm/assert.h"
+#include "platform/assert.h"
 
 namespace dart {
 

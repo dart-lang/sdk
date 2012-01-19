@@ -1,11 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #ifndef VM_RAW_OBJECT_H_
 #define VM_RAW_OBJECT_H_
 
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/globals.h"
 #include "vm/snapshot.h"
 
@@ -37,8 +37,11 @@ namespace dart {
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
-  V(UnhandledException)                                                        \
-  V(ApiError)                                                                  \
+  V(Error)                                                                     \
+    V(ApiError)                                                                \
+    V(LanguageError)                                                           \
+    V(UnhandledException)                                                      \
+    V(UnwindError)                                                             \
   V(Instance)                                                                  \
     V(Number)                                                                  \
       V(Integer)                                                               \
@@ -338,6 +341,7 @@ class RawClass : public RawObject {
   friend class Object;
   friend class RawInstance;
   friend RawClass* AllocateFakeClass();
+  friend class SnapshotReader;
 };
 
 
@@ -433,6 +437,8 @@ class RawTypeArguments : public RawAbstractTypeArguments {
   RawObject** to(intptr_t length) {
     return reinterpret_cast<RawObject**>(&ptr()->types_[length - 1]);
   }
+
+  friend class SnapshotReader;
 };
 
 
@@ -488,6 +494,7 @@ class RawFunction : public RawObject {
   }
 
   intptr_t token_index_;
+  intptr_t end_token_index_;
   intptr_t num_fixed_parameters_;
   intptr_t num_optional_parameters_;
   intptr_t invocation_counter_;
@@ -537,6 +544,8 @@ class RawTokenStream : public RawObject {
     return reinterpret_cast<RawObject**>(
         &ptr()->data_[length * kNumberOfEntries - 1]);
   }
+
+  friend class SnapshotReader;
 };
 
 
@@ -697,6 +706,8 @@ class RawContext : public RawObject {
   RawObject** to(intptr_t num_vars) {
     return reinterpret_cast<RawObject**>(&ptr()->data_[num_vars - 1]);
   }
+
+  friend class SnapshotReader;
 };
 
 
@@ -726,7 +737,38 @@ class RawContextScope : public RawObject {
 };
 
 
-class RawUnhandledException : public RawObject {
+class RawError : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Error);
+};
+
+
+class RawApiError : public RawError {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+  RawString* message_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+};
+
+
+class RawLanguageError : public RawError {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LanguageError);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+  RawString* message_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
+  }
+};
+
+
+class RawUnhandledException : public RawError {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnhandledException);
 
   RawObject** from() {
@@ -740,15 +782,15 @@ class RawUnhandledException : public RawObject {
 };
 
 
-class RawApiError : public RawObject {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ApiError);
+class RawUnwindError : public RawError {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnwindError);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
-  RawObject* data_;
+  RawString* message_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
 };
 
@@ -777,6 +819,8 @@ class RawMint : public RawInteger {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Mint);
 
   int64_t value_;
+
+  friend class SnapshotReader;
 };
 
 
@@ -796,6 +840,8 @@ class RawDouble : public RawNumber {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Double);
 
   double value_;
+
+  friend class SnapshotReader;
 };
 
 
@@ -815,6 +861,8 @@ class RawOneByteString : public RawString {
 
   // Variable length data follows here.
   uint8_t data_[0];
+
+  friend class SnapshotReader;
 };
 
 
@@ -823,6 +871,8 @@ class RawTwoByteString : public RawString {
 
   // Variable length data follows here.
   uint16_t data_[0];
+
+  friend class SnapshotReader;
 };
 
 
@@ -831,6 +881,8 @@ class RawFourByteString : public RawString {
 
   // Variable length data follows here.
   uint32_t data_[0];
+
+  friend class SnapshotReader;
 };
 
 
@@ -893,11 +945,14 @@ class RawArray : public RawInstance {
   }
 
   friend class RawImmutableArray;
+  friend class SnapshotReader;
 };
 
 
 class RawImmutableArray : public RawArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray);
+
+  friend class SnapshotReader;
 };
 
 

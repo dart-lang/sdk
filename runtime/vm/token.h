@@ -1,11 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #ifndef VM_TOKEN_H_
 #define VM_TOKEN_H_
 
-#include "vm/assert.h"
+#include "platform/assert.h"
 
 namespace dart {
 
@@ -13,7 +13,7 @@ namespace dart {
 //
 //  13  multiplicative  * / ~/ %
 //  12  additive        + -
-//  11  shift           << >> >>>
+//  11  shift           << >>
 //  10  relational      >= > <= < is
 //   9  equality        == != === !==
 //   8  bitwise and     &
@@ -22,7 +22,7 @@ namespace dart {
 //   5  logical and     &&
 //   4  logical or      ||
 //   3  conditional     ?
-//   2  assignment      = *= /= ~/= %= += -= <<= >>>= >>= &= ^= |=
+//   2  assignment      = *= /= ~/= %= += -= <<= >>= &= ^= |=
 //   1  comma           ,
 
 
@@ -54,8 +54,7 @@ namespace dart {
   TOK(kASSIGN_XOR, "^=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_AND, "&=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_SHL, "<<=", 2, kNoAttribute)                                     \
-  TOK(kASSIGN_SAR, ">>=", 2, kNoAttribute)                                     \
-  TOK(kASSIGN_SHR, ">>>=", 2, kNoAttribute)                                    \
+  TOK(kASSIGN_SHR, ">>=", 2, kNoAttribute)                                     \
   TOK(kASSIGN_ADD, "+=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_SUB, "-=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_MUL, "*=", 2, kNoAttribute)                                      \
@@ -73,8 +72,7 @@ namespace dart {
                                                                                \
   /* Shift operators. */                                                       \
   TOK(kSHL, "<<", 11, kNoAttribute)                                            \
-  TOK(kSAR, ">>", 11, kNoAttribute)                                            \
-  TOK(kSHR, ">>>", 11, kNoAttribute)                                           \
+  TOK(kSHR, ">>", 11, kNoAttribute)                                            \
                                                                                \
   /* Additive operators. */                                                    \
   TOK(kADD, "+", 12, kNoAttribute)                                             \
@@ -136,7 +134,7 @@ namespace dart {
 // to update kFirstKeyword and kLastKeyword below.
 #define DART_KEYWORD_LIST(KW)                                                  \
   KW(kABSTRACT, "abstract", 0, kPseudoKeyword) /* == kFirstKeyword */          \
-  KW(kASSERT, "assert", 0, kKeyword)                                           \
+  KW(kASSERT, "assert", 0, kPseudoKeyword)                                     \
   KW(kBREAK, "break", 0, kKeyword)                                             \
   KW(kCASE, "case", 0, kKeyword)                                               \
   KW(kCATCH, "catch", 0, kKeyword)                                             \
@@ -171,7 +169,7 @@ namespace dart {
   KW(kTHROW, "throw", 0, kKeyword)                                             \
   KW(kTRUE, "true", 0, kKeyword)                                               \
   KW(kTRY, "try", 0, kKeyword)                                                 \
-  KW(kTYPEDEF, "typedef", 0, kKeyword)                                         \
+  KW(kTYPEDEF, "typedef", 0, kPseudoKeyword)                                   \
   KW(kVAR, "var", 0, kKeyword)                                                 \
   KW(kVOID, "void", 0, kKeyword)                                               \
   KW(kWHILE, "while", 0, kKeyword) /* == kLastKeyword */
@@ -217,6 +215,10 @@ class Token {
     return (Attributes(tok) & kPseudoKeyword) != 0;
   }
 
+  static bool IsIdentifier(Kind tok) {
+    return (tok == kIDENT) || IsPseudoKeyword(tok);
+  }
+
   static const char* Name(Kind tok) {
     ASSERT(tok < kNumTokens);
     return name_[tok];
@@ -241,12 +243,11 @@ class Token {
     ASSERT(tok < kNumTokens);
     return IsRelationalOperator(tok) ||
            (tok == kEQ) ||
-           (tok >= kADD && tok <= kMOD) ||
-           (tok >= kBIT_OR && tok <= kSHR) ||
+           (tok >= kADD && tok <= kMOD) ||  // Arithmetic operations.
+           (tok >= kBIT_OR && tok <= kSHR) ||  // Bit operations.
            (tok == kINDEX) ||
            (tok == kASSIGN_INDEX) ||
-           (tok == kNEGATE) ||
-           (tok >= kBIT_OR && tok <= kBIT_NOT);
+           (tok == kNEGATE);
   }
 
  private:

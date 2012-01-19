@@ -62,6 +62,23 @@ class _FileReaderWrappingImplementation extends DOMWrapperBase implements FileRe
   }
   static void _abort(receiver) native;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _addEventListener(this, type, listener);
+      return;
+    } else {
+      _addEventListener_2(this, type, listener, useCapture);
+      return;
+    }
+  }
+  static void _addEventListener(receiver, type, listener) native;
+  static void _addEventListener_2(receiver, type, listener, useCapture) native;
+
+  bool dispatchEvent(Event evt) {
+    return _dispatchEvent(this, evt);
+  }
+  static bool _dispatchEvent(receiver, evt) native;
+
   void readAsArrayBuffer(Blob blob) {
     _readAsArrayBuffer(this, blob);
     return;
@@ -91,6 +108,18 @@ class _FileReaderWrappingImplementation extends DOMWrapperBase implements FileRe
   }
   static void _readAsText(receiver, blob) native;
   static void _readAsText_2(receiver, blob, encoding) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _removeEventListener(this, type, listener);
+      return;
+    } else {
+      _removeEventListener_2(this, type, listener, useCapture);
+      return;
+    }
+  }
+  static void _removeEventListener(receiver, type, listener) native;
+  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
 
   String get typeName() { return "FileReader"; }
 }

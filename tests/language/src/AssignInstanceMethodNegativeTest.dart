@@ -7,15 +7,8 @@ class A {
   imethod() { return 0; }
 }
 
-class AssignInstanceMethodNegativeTest {
-
-  static testMain() {
-    var a = new A();
-    // Illegal, can't change a member method
-    a.imethod = () { return 1; };
-  }
-}
-
 main() {
-  AssignInstanceMethodNegativeTest.testMain();
+  var a = new A();
+  // Illegal, can't change a member method
+  a.imethod = () { return 1; };
 }

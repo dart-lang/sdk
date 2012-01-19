@@ -1,11 +1,12 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/verifier.h"
 
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/dart.h"
+#include "vm/dart_api_state.h"
 #include "vm/freelist.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
@@ -39,11 +40,21 @@ void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
 }
 
 
+void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
+  WeakPersistentHandle* handle = reinterpret_cast<WeakPersistentHandle*>(addr);
+  RawObject* raw_obj = handle->raw();
+  visitor_->VisitPointer(&raw_obj);
+}
+
+
 void VerifyPointersVisitor::VerifyPointers() {
   NoGCScope no_gc;
+  Isolate* isolate = Isolate::Current();
   VerifyPointersVisitor visitor;
-  Isolate::Current()->VisitObjectPointers(&visitor,
-                                          StackFrameIterator::kValidateFrames);
+  isolate->VisitObjectPointers(&visitor,
+                               StackFrameIterator::kValidateFrames);
+  VerifyWeakPointersVisitor weak_visitor(&visitor);
+  isolate->VisitWeakPersistentHandles(&weak_visitor);
 }
 
 }  // namespace dart

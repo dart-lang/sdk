@@ -220,8 +220,6 @@ interface Window extends EventTarget {
 
   DOMWindow open(String url, String name, [String options]);
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
-
   void postMessage(String message, String targetOrigin, [List messagePorts]);
 
   void print();

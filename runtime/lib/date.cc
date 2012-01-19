@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -38,10 +38,10 @@ DEFINE_NATIVE_ENTRY(DateNatives_brokenDownToSecondsSinceEpoch, 7) {
   // mktime takes the years since 1900.
   // TODO(floitsch): Removing 1900 could underflow the intptr_t.
   intptr_t year = smi_years.Value() - 1900;
-  // TODO(floitsch): We don't handle the case yet where intptr_t and int have
+  // TODO(1143): We don't handle the case yet where intptr_t and int have
   // different sizes.
-  ASSERT(sizeof(year) <= sizeof(broken_down.year));
-  broken_down.year = year;
+  // ASSERT(sizeof(year) <= sizeof(broken_down.year));
+  broken_down.year = static_cast<int>(year);
   // libc months are 0-based (contrary to Dart' 1-based months).
   broken_down.month = dart_month.Value() - 1;
   broken_down.day = dart_day.Value();

@@ -345,7 +345,6 @@ class IDLInterface(IDLNode):
     self.operations = self._convert_all(ast, 'Operation', IDLOperation)
     self.attributes = self._convert_all(ast, 'Attribute', IDLAttribute)
     self.constants = self._convert_all(ast, 'Const', IDLConstant)
-    self.snippets = self._convert_all(ast, 'Snippet', IDLSnippet)
     self.is_supplemental = 'Supplemental' in self.ext_attrs
     self.is_no_interface_object = 'NoInterfaceObject' in self.ext_attrs
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
@@ -412,14 +411,6 @@ class IDLConstant(IDLMember):
   def __init__(self, ast):
     IDLMember.__init__(self, ast)
     self.value = self._find_first(ast, 'ConstExpr')
-
-
-class IDLSnippet(IDLMember):
-  """IDLNode specialization for 'snippet { data };"""
-  def __init__(self, ast):
-    IDLMember.__init__(self, ast)
-    self._convert_annotations(ast)
-    self.text = self._find_first(ast, 'SnippetText')
 
 
 class IDLArgument(IDLNode):

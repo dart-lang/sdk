@@ -38,6 +38,17 @@ class RegExpAllMatchesTest {
     Expect.equals("foofoo", str);
   }
 
+  static testMap() {
+    var matches = new RegExp("foo?").allMatches("foo fo foo fo");
+    var mapped = matches.map((Match m) => m.group(0) + "bar");
+    Expect.equals(4, mapped.length);
+    var str = "";
+    for (String s in mapped) {
+      str += s;
+    }
+    Expect.equals("foobarfobarfoobarfobar", str);
+  }
+
   static testFilter() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
     var filtered = matches.filter((Match m) {
@@ -91,6 +102,7 @@ class RegExpAllMatchesTest {
   static testMain() {
     testIterator();
     testForEach();
+    testMap();
     testFilter();
     testEvery();
     testSome();

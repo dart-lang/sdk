@@ -50,7 +50,7 @@ dom_externs.activeTexture;              // operation WebGLRenderingContext.activ
 dom_externs.add;                        // operation DOMTokenList.add, operation DataTransferItemList.add, operation HTMLSelectElement.add, operation IDBObjectStore.add
 dom_externs.addColorStop;               // operation CanvasGradient.addColorStop
 dom_externs.addCue;                     // operation TextTrack.addCue
-dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation MediaController.addEventListener, operation MessagePort.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation SVGElementInstance.addEventListener, operation TextTrack.addEventListener, operation TextTrackCue.addEventListener, operation TextTrackList.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
+dom_externs.addEventListener;           // operation AbstractWorker.addEventListener, operation DOMApplicationCache.addEventListener, operation DOMWindow.addEventListener, operation EventSource.addEventListener, operation EventTarget.addEventListener, operation FileReader.addEventListener, operation IDBDatabase.addEventListener, operation IDBRequest.addEventListener, operation IDBTransaction.addEventListener, operation MediaController.addEventListener, operation MessagePort.addEventListener, operation Node.addEventListener, operation Notification.addEventListener, operation SVGElementInstance.addEventListener, operation TextTrack.addEventListener, operation TextTrackCue.addEventListener, operation TextTrackList.addEventListener, operation WebSocket.addEventListener, operation WorkerContext.addEventListener, operation XMLHttpRequest.addEventListener, operation XMLHttpRequestUpload.addEventListener
 dom_externs.addListener;                // operation MediaQueryList.addListener
 dom_externs.addRange;                   // operation DOMSelection.addRange
 dom_externs.addRule;                    // operation CSSStyleSheet.addRule
@@ -289,7 +289,6 @@ dom_externs.copyTo;                     // operation Entry.copyTo, operation Ent
 dom_externs.correspondingElement;       // attribute SVGElementInstance.correspondingElement
 dom_externs.correspondingUseElement;    // attribute SVGElementInstance.correspondingUseElement
 dom_externs.count;                      // operation Console.count, operation IDBIndex.count, operation IDBObjectStore.count
-dom_externs.create;                     // attribute WebKitFlags.create
 dom_externs.createAnalyser;             // operation AudioContext.createAnalyser
 dom_externs.createAttribute;            // operation Document.createAttribute
 dom_externs.createAttributeNS;          // operation Document.createAttributeNS
@@ -460,7 +459,7 @@ dom_externs.disable;                    // operation WebGLRenderingContext.disab
 dom_externs.disableVertexAttribArray;   // operation WebGLRenderingContext.disableVertexAttribArray
 dom_externs.disabled;                   // attribute HTMLButtonElement.disabled, attribute HTMLInputElement.disabled, attribute HTMLKeygenElement.disabled, attribute HTMLLinkElement.disabled, attribute HTMLOptGroupElement.disabled, attribute HTMLOptionElement.disabled, attribute HTMLSelectElement.disabled, attribute HTMLStyleElement.disabled, attribute HTMLTextAreaElement.disabled, attribute StyleSheet.disabled
 dom_externs.disconnect;                 // operation AudioNode.disconnect, operation WebKitMutationObserver.disconnect
-dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation MediaController.dispatchEvent, operation MessagePort.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation SVGElementInstance.dispatchEvent, operation TextTrack.dispatchEvent, operation TextTrackCue.dispatchEvent, operation TextTrackList.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
+dom_externs.dispatchEvent;              // operation AbstractWorker.dispatchEvent, operation DOMApplicationCache.dispatchEvent, operation DOMWindow.dispatchEvent, operation EventSource.dispatchEvent, operation EventTarget.dispatchEvent, operation FileReader.dispatchEvent, operation IDBDatabase.dispatchEvent, operation IDBRequest.dispatchEvent, operation IDBTransaction.dispatchEvent, operation MediaController.dispatchEvent, operation MessagePort.dispatchEvent, operation Node.dispatchEvent, operation Notification.dispatchEvent, operation SVGElementInstance.dispatchEvent, operation TextTrack.dispatchEvent, operation TextTrackCue.dispatchEvent, operation TextTrackList.dispatchEvent, operation WebSocket.dispatchEvent, operation WorkerContext.dispatchEvent, operation XMLHttpRequest.dispatchEvent, operation XMLHttpRequestUpload.dispatchEvent
 dom_externs.distanceGain;               // attribute AudioPannerNode.distanceGain
 dom_externs.distanceModel;              // attribute AudioPannerNode.distanceModel
 dom_externs.divisor;                    // attribute SVGFEConvolveMatrixElement.divisor
@@ -516,7 +515,6 @@ dom_externs.errorCode;                  // attribute IDBRequest.errorCode
 dom_externs.evaluate;                   // operation Document.evaluate, operation InjectedScriptHost.evaluate, operation JavaScriptCallFrame.evaluate, operation XPathEvaluator.evaluate, operation XPathExpression.evaluate
 dom_externs.event;                      // attribute DOMWindow.event, attribute HTMLScriptElement.event
 dom_externs.eventPhase;                 // attribute Event.eventPhase
-dom_externs.exclusive;                  // attribute WebKitFlags.exclusive
 dom_externs.execCommand;                // operation Document.execCommand
 dom_externs.expand;                     // operation Range.expand
 dom_externs.expandEntityReferences;     // attribute NodeIterator.expandEntityReferences, attribute TreeWalker.expandEntityReferences
@@ -619,7 +617,6 @@ dom_externs.getContext;                 // operation HTMLCanvasElement.getContex
 dom_externs.getContextAttributes;       // operation WebGLRenderingContext.getContextAttributes
 dom_externs.getCounterValue;            // operation CSSPrimitiveValue.getCounterValue
 dom_externs.getCueAsHTML;               // operation TextTrackCue.getCueAsHTML
-dom_externs.getCueAsSource;             // operation TextTrackCue.getCueAsSource
 dom_externs.getCueById;                 // operation TextTrackCueList.getCueById
 dom_externs.getCurrentPosition;         // operation Geolocation.getCurrentPosition
 dom_externs.getCurrentTime;             // operation SVGAnimationElement.getCurrentTime, operation SVGSVGElement.getCurrentTime
@@ -758,8 +755,6 @@ dom_externs.initStorageEvent;           // operation StorageEvent.initStorageEve
 dom_externs.initTextEvent;              // operation TextEvent.initTextEvent
 dom_externs.initTouchEvent;             // operation TouchEvent.initTouchEvent
 dom_externs.initUIEvent;                // operation UIEvent.initUIEvent
-dom_externs.initWebKitAnimationEvent;   // operation WebKitAnimationEvent.initWebKitAnimationEvent
-dom_externs.initWebKitTransitionEvent;  // operation WebKitTransitionEvent.initWebKitTransitionEvent
 dom_externs.initWebKitWheelEvent;       // operation WheelEvent.initWebKitWheelEvent
 dom_externs.initialTime;                // attribute HTMLMediaElement.initialTime
 dom_externs.initialize;                 // operation SVGLengthList.initialize, operation SVGNumberList.initialize, operation SVGPathSegList.initialize, operation SVGPointList.initialize, operation SVGStringList.initialize, operation SVGTransformList.initialize
@@ -804,7 +799,7 @@ dom_externs.isFile;                     // attribute Entry.isFile, attribute Ent
 dom_externs.isFramebuffer;              // operation WebGLRenderingContext.isFramebuffer
 dom_externs.isHTMLAllCollection;        // operation InjectedScriptHost.isHTMLAllCollection
 dom_externs.isId;                       // attribute Attr.isId
-dom_externs.isLocked;                   // operation PointerLock.isLocked
+dom_externs.isLocked;                   // attribute PointerLock.isLocked
 dom_externs.isMap;                      // attribute HTMLImageElement.isMap
 dom_externs.isPointInPath;              // operation CanvasRenderingContext2D.isPointInPath
 dom_externs.isPointInRange;             // operation Range.isPointInRange
@@ -989,7 +984,7 @@ dom_externs.noWrap;                     // attribute HTMLTableCellElement.noWrap
 dom_externs.nodeName;                   // attribute Node.nodeName
 dom_externs.nodeType;                   // attribute Node.nodeType
 dom_externs.nodeValue;                  // attribute Node.nodeValue
-dom_externs.normalize;                  // operation Node.normalize
+dom_externs.normalize;                  // attribute ConvolverNode.normalize, operation Node.normalize
 dom_externs.normalizedPathSegList;      // attribute SVGPathElement.normalizedPathSegList
 dom_externs.notationName;               // attribute Entity.notationName
 dom_externs.notations;                  // attribute DocumentType.notations
@@ -1040,7 +1035,7 @@ dom_externs.onwriteend;                 // attribute FileWriter.onwriteend
 dom_externs.onwritestart;               // attribute FileWriter.onwritestart
 dom_externs.open;                       // operation DOMWindow.open, attribute HTMLDetailsElement.open, operation HTMLDocument.open, operation IDBFactory.open, operation XMLHttpRequest.open
 dom_externs.openCursor;                 // operation IDBIndex.openCursor, operation IDBObjectStore.openCursor
-dom_externs.openDatabase;               // operation DOMWindow.openDatabase, operation WorkerContext.openDatabase
+dom_externs.openDatabase;               // operation WorkerContext.openDatabase
 dom_externs.openDatabaseSync;           // operation WorkerContext.openDatabaseSync
 dom_externs.openKeyCursor;              // operation IDBIndex.openKeyCursor
 dom_externs.opener;                     // attribute DOMWindow.opener
@@ -1205,7 +1200,7 @@ dom_externs.removeAttributeNS;          // operation Element.removeAttributeNS
 dom_externs.removeAttributeNode;        // operation Element.removeAttributeNode
 dom_externs.removeChild;                // operation Node.removeChild
 dom_externs.removeCue;                  // operation TextTrack.removeCue
-dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation MediaController.removeEventListener, operation MessagePort.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation SVGElementInstance.removeEventListener, operation TextTrack.removeEventListener, operation TextTrackCue.removeEventListener, operation TextTrackList.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
+dom_externs.removeEventListener;        // operation AbstractWorker.removeEventListener, operation DOMApplicationCache.removeEventListener, operation DOMWindow.removeEventListener, operation EventSource.removeEventListener, operation EventTarget.removeEventListener, operation FileReader.removeEventListener, operation IDBDatabase.removeEventListener, operation IDBRequest.removeEventListener, operation IDBTransaction.removeEventListener, operation MediaController.removeEventListener, operation MessagePort.removeEventListener, operation Node.removeEventListener, operation Notification.removeEventListener, operation SVGElementInstance.removeEventListener, operation TextTrack.removeEventListener, operation TextTrackCue.removeEventListener, operation TextTrackList.removeEventListener, operation WebSocket.removeEventListener, operation WorkerContext.removeEventListener, operation XMLHttpRequest.removeEventListener, operation XMLHttpRequestUpload.removeEventListener
 dom_externs.removeItem;                 // operation SVGLengthList.removeItem, operation SVGNumberList.removeItem, operation SVGPathSegList.removeItem, operation SVGPointList.removeItem, operation SVGStringList.removeItem, operation SVGTransformList.removeItem, operation Storage.removeItem
 dom_externs.removeListener;             // operation MediaQueryList.removeListener
 dom_externs.removeNamedItem;            // operation NamedNodeMap.removeNamedItem
@@ -1228,6 +1223,7 @@ dom_externs.requestAttachWindow;        // operation InspectorFrontendHost.reque
 dom_externs.requestDetachWindow;        // operation InspectorFrontendHost.requestDetachWindow
 dom_externs.requestPermission;          // operation NotificationCenter.requestPermission
 dom_externs.requestQuota;               // operation StorageInfo.requestQuota
+dom_externs.requestSetDockSide;         // operation InspectorFrontendHost.requestSetDockSide
 dom_externs.requestStart;               // attribute PerformanceTiming.requestStart
 dom_externs.required;                   // attribute HTMLInputElement.required, attribute HTMLSelectElement.required, attribute HTMLTextAreaElement.required
 dom_externs.requiredExtensions;         // attribute SVGAElement.requiredExtensions, attribute SVGAnimationElement.requiredExtensions, attribute SVGCircleElement.requiredExtensions, attribute SVGClipPathElement.requiredExtensions, attribute SVGCursorElement.requiredExtensions, attribute SVGDefsElement.requiredExtensions, attribute SVGEllipseElement.requiredExtensions, attribute SVGForeignObjectElement.requiredExtensions, attribute SVGGElement.requiredExtensions, attribute SVGImageElement.requiredExtensions, attribute SVGLineElement.requiredExtensions, attribute SVGMaskElement.requiredExtensions, attribute SVGPathElement.requiredExtensions, attribute SVGPatternElement.requiredExtensions, attribute SVGPolygonElement.requiredExtensions, attribute SVGPolylineElement.requiredExtensions, attribute SVGRectElement.requiredExtensions, attribute SVGSVGElement.requiredExtensions, attribute SVGSwitchElement.requiredExtensions, attribute SVGTests.requiredExtensions, attribute SVGTextContentElement.requiredExtensions, attribute SVGUseElement.requiredExtensions
@@ -1506,7 +1502,7 @@ dom_externs.texImage2D;                 // operation WebGLRenderingContext.texIm
 dom_externs.texParameterf;              // operation WebGLRenderingContext.texParameterf
 dom_externs.texParameteri;              // operation WebGLRenderingContext.texParameteri
 dom_externs.texSubImage2D;              // operation WebGLRenderingContext.texSubImage2D
-dom_externs.text;                       // attribute HTMLAnchorElement.text, attribute HTMLBodyElement.text, attribute HTMLOptionElement.text, attribute HTMLScriptElement.text, attribute HTMLTitleElement.text
+dom_externs.text;                       // attribute HTMLAnchorElement.text, attribute HTMLBodyElement.text, attribute HTMLOptionElement.text, attribute HTMLScriptElement.text, attribute HTMLTitleElement.text, attribute TextTrackCue.text
 dom_externs.textAlign;                  // attribute CanvasRenderingContext2D.textAlign
 dom_externs.textBaseline;               // attribute CanvasRenderingContext2D.textBaseline
 dom_externs.textContent;                // attribute Node.textContent

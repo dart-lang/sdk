@@ -128,7 +128,7 @@ public abstract class UrlSource implements Source {
       synchronized(this) {
         if (!propertiesInitialized) {
           try {
-            URI resolvedUri = BASE_URI.resolve(uri);
+            URI resolvedUri = BASE_URI.resolve(translatedUri);
             String scheme = resolvedUri.getScheme();
             if (scheme == null || FILE_PROTOCOL.equals(scheme)) {
               // Faster than using URLConnection

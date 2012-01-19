@@ -39,7 +39,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
   {
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
-    vm_isolate_ = Isolate::Init();
+    vm_isolate_ = Isolate::Init("vm-isolate");
     Zone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_);
@@ -55,9 +55,9 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
 }
 
 
-Isolate* Dart::CreateIsolate() {
+Isolate* Dart::CreateIsolate(const char* name_prefix) {
   // Create a new isolate.
-  Isolate* isolate = Isolate::Init();
+  Isolate* isolate = Isolate::Init(name_prefix);
   ASSERT(isolate != NULL);
   return isolate;
 }
@@ -80,9 +80,7 @@ void Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     // of Object::Init(..) in a regular isolate creation path.
     Object::InitFromSnapshot(isolate);
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
-    SnapshotReader reader(snapshot,
-                          isolate->heap(),
-                          isolate->object_store());
+    SnapshotReader reader(snapshot, isolate);
     reader.ReadFullSnapshot();
   }
 

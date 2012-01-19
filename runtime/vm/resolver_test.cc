@@ -1,9 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/assert.h"
 #include "vm/assembler.h"
-#include "vm/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
@@ -13,7 +13,8 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 // Setup function for invocation.
 static void SetupFunction(const char* test_library_name,
@@ -222,6 +223,6 @@ TEST_CASE(DartDynamicResolve) {
   }
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

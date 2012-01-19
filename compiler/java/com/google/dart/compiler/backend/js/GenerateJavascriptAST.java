@@ -1037,9 +1037,11 @@ public class GenerateJavascriptAST {
       // Add the arguments to the constructor invocation. Note that the constructor call is still
       // missing the 'tmp' variable. We will add it later.
       List<DartParameter> params = x.getFunction().getParams();
+      List<JsName> jsArgNames = new ArrayList<JsName>();
       for (DartParameter p : params) {
         // TODO(ngeoffray): We should actually copy the arguments. See b/4424659.
         JsName argName = getJsName(p.getNormalizedNode().getSymbol());
+        jsArgNames.add(argName);
         constructorInvocation.getArguments().add(argName.makeRef());
       }
 
@@ -1058,6 +1060,16 @@ public class GenerateJavascriptAST {
         addInitializers(x, factoryFunction, tempVar);
         rtt.maybeAddClassRuntimeTypeToConstructor(classElement, factoryFunction, tempVar.makeRef());
         JsNew jsNew = new JsNew(curClassJsName.makeRef());
+        if (classElement.getNativeName() != null && x.getFunction().getBody() == null) {
+          /*
+           * For native classes with bodyless constructors, we pass the user-declared arguments of 
+           * the factory method to the native "new" expression.
+           */
+          List<JsExpression> newArguments = jsNew.getArguments();
+          for (JsName jsArgName : jsArgNames) {
+            newArguments.add(jsArgName.makeRef());
+          }
+        }
         factoryFunction.getBody().getStatements().add(0, AstUtil.newVar(x, tempVar, jsNew));
       }
 

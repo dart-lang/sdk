@@ -21,6 +21,8 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     }
   }
 
+  bool get requiresCleanTemporaryDirectory() => true;
+
   void combineFiles(String filename,
                     String stubsFile,
                     Function onGenerated) {
@@ -99,8 +101,8 @@ class StubGeneratorTestSuite extends StandardTestSuite {
                         String classes,
                         Function onGenerated) {
     testGeneratorStarted();
-    Directory temp = new Directory('');
-    temp.createTempSync();
+    Directory temp = createOutputDirectory(filename, 'stub_generator');
+
     File stubsOutFile = new File("${temp.path}/${interfaceFile}");
     stubsOutFile.createSync();
     String stubsPath = stubsOutFile.fullPathSync();
@@ -119,6 +121,7 @@ class StubGeneratorTestSuite extends StandardTestSuite {
   }
 
   void processFile(String filename) {
+    filename = filename.replaceAll('\\', '/') ;
     // Only run the tests that match the pattern.
     RegExp pattern = configuration['selectors'][suiteName];
     if (!pattern.hasMatch(filename)) return;

@@ -4,6 +4,48 @@
 
 #include "bin/thread_pool.h"
 
+#include "bin/thread.h"
+
+void TaskQueue::Insert(TaskQueueEntry* entry) {
+  MonitorLocker monitor(&monitor_);
+  monitor_.Enter();
+  if (head_ == NULL) {
+    head_ = entry;
+    tail_ = entry;
+    monitor.Notify();
+  } else {
+    tail_->set_next(entry);
+    tail_ = entry;
+  }
+}
+
+
+TaskQueueEntry* TaskQueue::Remove() {
+  MonitorLocker monitor(&monitor_);
+  TaskQueueEntry* result = head_;
+  while (result == NULL) {
+    if (terminate_) {
+      return NULL;
+    }
+    monitor.Wait();
+    if (terminate_) {
+      return NULL;
+    }
+    result = head_;
+  }
+  head_ = result->next();
+  ASSERT(head_ != NULL || tail_ == result);
+  return result;
+}
+
+
+void TaskQueue::Shutdown() {
+  MonitorLocker monitor(&monitor_);
+  terminate_ = true;
+  monitor.NotifyAll();
+}
+
+
 void ThreadPool::InsertTask(Task task) {
   TaskQueueEntry* entry = new TaskQueueEntry(task);
   queue_.Insert(entry);

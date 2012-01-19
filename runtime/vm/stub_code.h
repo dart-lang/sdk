@@ -22,6 +22,7 @@ class RawCode;
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(DartCallToRuntime)                                                         \
   V(StubCallToRuntime)                                                         \
+  V(PrintStopMessage)                                                          \
   V(CallNativeCFunction)                                                       \
   V(AllocateArray)                                                             \
   V(CallNoSuchMethodFunction)                                                  \

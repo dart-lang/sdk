@@ -152,14 +152,6 @@ ERROR   : %s''' % (all_syntaxes[syntax], content, expected, actual, error))
       '@Ano1 @Ano2() @Ano3(x) @Ano4(x=1,y=2) interface I {};',
       [('Interface', [('Annotation', [('Id', 'Ano1')]), ('Annotation', [('Id', 'Ano2')]), ('Annotation', [('Id', 'Ano3'), ('AnnotationArg', [('Id', 'x')])]), ('Annotation', [('Id', 'Ano4'), ('AnnotationArg', [('Id', 'x'), ('AnnotationArgValue', '1')]), ('AnnotationArg', [('Id', 'y'), ('AnnotationArgValue', '2')])]), ('Id', 'I')])])
 
-  def test_snippets(self):
-    self._run_test(
-      idlparser.FREMONTCUT_SYNTAX,
-      '''interface I {
-        snippet {bla bla bla bla};
-      };''',
-      [('Interface', [('Id', 'I'), ('Snippet', [('SnippetText', 'bla bla bla bla')])])])
-
 
 if __name__ == "__main__":
   logging.config.fileConfig("logging.conf")

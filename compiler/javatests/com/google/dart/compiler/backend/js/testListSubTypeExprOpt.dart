@@ -22,6 +22,7 @@ class MyList<T> implements List<T> {
   T removeLast() { return null; }
   T last() { return null; }
   void forEach(void f(T)) {}
+  List map(f(T)) { return null; }
   Collection<T> filter(bool f(T)) { return null; }
   bool every(bool f(T)) { return null; }
   bool some(bool f(T)) { return null; }

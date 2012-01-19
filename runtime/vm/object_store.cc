@@ -36,7 +36,6 @@ ObjectStore::ObjectStore()
     array_class_(Class::null()),
     immutable_array_class_(Class::null()),
     byte_buffer_class_(Class::null()),
-    unhandled_exception_class_(Class::null()),
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     true_value_(Bool::null()),
@@ -50,7 +49,7 @@ ObjectStore::ObjectStore()
     root_library_(Library::null()),
     registered_libraries_(Library::null()),
     pending_classes_(Array::null()),
-    sticky_error_(String::null()),
+    sticky_error_(Error::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
@@ -118,7 +117,6 @@ RawClass* ObjectStore::GetClass(int index) {
     case kArrayClass: return array_class_;
     case kImmutableArrayClass: return immutable_array_class_;
     case kByteBufferClass: return byte_buffer_class_;
-    case kUnhandledExceptionClass: return unhandled_exception_class_;
     case kStacktraceClass: return stacktrace_class_;
     case kJSRegExpClass: return jsregexp_class_;
     default: break;
@@ -160,8 +158,6 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
     return kImmutableArrayClass;
   } else if (raw_class == byte_buffer_class_) {
     return kByteBufferClass;
-  } else if (raw_class == unhandled_exception_class_) {
-    return kUnhandledExceptionClass;
   } else if (raw_class == stacktrace_class_) {
     return kStacktraceClass;
   } else if (raw_class == jsregexp_class_) {

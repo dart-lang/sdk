@@ -1,9 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/assert.h"
 #include "vm/allocation.h"
-#include "vm/assert.h"
 #include "vm/longjump.h"
 #include "vm/unit_test.h"
 
@@ -88,7 +88,10 @@ static void StackAllocatedLongJumpHelper(int* ptr, LongJump* jump) {
   TestValueObject stacked(ptr);
   EXPECT_EQ(2, *ptr);
   *ptr = 3;
-  jump->Jump(1, "StackAllocatedLongJump Test");
+  const Error& error =
+      Error::Handle(LanguageError::New(
+          String::Handle(String::New("StackAllocatedLongJump"))));
+  jump->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -132,7 +135,10 @@ static void StackedStackResourceLongJumpHelper(int* ptr, LongJump* jump) {
   TestStackedStackResource stacked(ptr);
   EXPECT_EQ(4, *ptr);
   *ptr = 5;
-  jump->Jump(1, "StackResourceLongJump Test");
+  const Error& error =
+      Error::Handle(LanguageError::New(
+          String::Handle(String::New("StackedStackResourceLongJump"))));
+  jump->Jump(1, error);
   UNREACHABLE();
 }
 

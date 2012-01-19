@@ -4,17 +4,6 @@
 
 package com.google.dart;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.compiler.CompilerConfiguration;
@@ -27,8 +16,18 @@ import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Your one stop service for invoking the {@link DartCompiler} on an in-memory request.
@@ -123,7 +122,7 @@ public class CompileService {
   /**
    * Captures the errors and warnings during a compiler run.
    */
-  private static class Listener  extends DartCompilerListener {
+  private static class Listener extends DartCompilerListener.Empty {
 
     private final List<CompileError> errors = Lists.newArrayList();
 
@@ -137,12 +136,8 @@ public class CompileService {
         warnings.add(CompileError.from(error));
       }
     }
-
-    @Override
-    public void unitCompiled(DartUnit unit) {
-    }
   }
-  
+
   /**
    * Provides an immutable view of an Artifact provider. This allows
    * {@link Artifacts} to be built and then referenced as an immutable
@@ -161,7 +156,7 @@ public class CompileService {
   public static CompileService create() {
     return create(false);
   }
-  
+
   public static CompileService create(LibrarySource lib) {
     return create(lib, false);
   }
@@ -184,14 +179,10 @@ public class CompileService {
       DartCompiler.compileLib(lib,
           config,
           snapshot,
-          new DartCompilerListener() {
+          new DartCompilerListener.Empty() {
             @Override
             public void onError(DartCompilationError error) {
               throw new RuntimeException("Unable to build runtime lib: " + error);
-            }
-
-            @Override
-            public void unitCompiled(DartUnit unit) { 
             }
           });
       return snapshot;
@@ -207,12 +198,12 @@ public class CompileService {
       public boolean incremental() {
         return incremental;
       }
-      
+
       @Override
       public boolean shouldWarnOnNoSuchType() {
         return true;
       }
-      
+
       @Override
       public boolean developerModeChecks() {
         return checked;
@@ -221,11 +212,11 @@ public class CompileService {
   }
 
   private final ThreadSafeArtifacts artifactCache;
-  
+
   private final LibrarySource runtimeLibrary;
-  
+
   private final boolean useCheckedMode;
-  
+
   private CompileService(ThreadSafeArtifacts artifactCache, LibrarySource runtimeLibrary,
       boolean useCheckedMode) {
     this.artifactCache = artifactCache;
@@ -239,10 +230,10 @@ public class CompileService {
 
   /**
    * Compiles a Dart app comprised of source code and a declared entryPoint.
-   * 
+   *
    * NOTE: This method is intended to be thread-safe. All mutable state will
    * be thread local. Only the artifactCache is shared and it is intentionally
-   * immutable. 
+   * immutable.
    */
   public CompileResult build(String source) {
     // Create the libary for the app.
@@ -258,11 +249,11 @@ public class CompileService {
       throw new RuntimeException(e);
     }
   }
-  
+
   private CompileResult build(LibrarySource source) {
     final Listener listener = new Listener();
     final Artifacts artifacts = new Artifacts(artifactCache);
-    
+
     final long startedAt = System.currentTimeMillis();
     try {
       DartCompiler.compileLib(source,

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@
 #define VM_ISOLATE_H_
 
 #include "include/dart_api.h"
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/store_buffer.h"
 #include "vm/timer.h"
 
@@ -18,6 +18,7 @@ class BigintStore;
 class CodeIndexTable;
 class Debugger;
 class HandleScope;
+class HandleVisitor;
 class Heap;
 class LongJump;
 class MessageQueue;
@@ -38,16 +39,13 @@ class Isolate {
   static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();
-  static Isolate* Init();
+  static Isolate* Init(const char* name_prefix);
   void Shutdown();
 
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
-  void VisitStrongObjectPointers(ObjectPointerVisitor* visitor,
-                                 bool validate_frames);
-
-  void VisitWeakObjectPointers(ObjectPointerVisitor* visitor);
+  void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
 
@@ -67,6 +65,8 @@ class Isolate {
 
   MessageQueue* message_queue() const { return message_queue_; }
   void set_message_queue(MessageQueue* value) { message_queue_ = value; }
+
+  const char* name() const { return name_; }
 
   // The number of ports is only correct when read from the current
   // isolate. This value is not protected from being updated
@@ -263,6 +263,7 @@ class Isolate {
  private:
   Isolate();
 
+  void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
 
   static uword GetSpecifiedStackSize();
@@ -274,6 +275,7 @@ class Isolate {
   MessageQueue* message_queue_;
   Dart_PostMessageCallback post_message_callback_;
   Dart_ClosePortCallback close_port_callback_;
+  char* name_;
   intptr_t num_ports_;
   intptr_t live_ports_;
   Dart_Port main_port_;

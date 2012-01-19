@@ -11,7 +11,8 @@
 #source("browser_test.dart");
 
 interface TestSuite {
-  void forEachTest(Function onTest, Map testCache, [Function onDone]);
+  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
+                   [Function onDone]);
 }
 
 
@@ -30,6 +31,10 @@ class CCTestListerIsolate extends Isolate {
           line = stdoutStream.readLine();
         }
       };
+      p.errorHandler = (error) {
+        print("Failed to list tests: $runnerPath --list");
+        replyTo.send("");
+      };
       p.exitHandler = (code) {
         if (code < 0) {
           print("Failed to list tests: $runnerPath --list");
@@ -40,6 +45,7 @@ class CCTestListerIsolate extends Isolate {
         }
         replyTo.send("");
       };
+      port.close();
     });
   }
 }
@@ -94,12 +100,11 @@ class CCTestSuite implements TestSuite {
                           configuration,
                           completeHandler,
                           expectations));
-
-      receiveTestName.receive(testNameHandler);
     }
   }
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone]) {
+  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
+                   [Function onDone]) {
     doTest = onTest;
     doDone = (ignore) => (onDone != null) ? onDone() : null;
 
@@ -153,13 +158,14 @@ class StandardTestSuite implements TestSuite {
   bool listingDone = false;
   TestExpectations testExpectations;
   List<TestInformation> cachedTests;
-  final String pathSeparator;
+  final String dartDir;
+  Function globalTemporaryDirectory;
 
   StandardTestSuite(Map this.configuration,
                     String this.suiteName,
                     String this.directoryPath,
                     List<String> this.statusFilePaths)
-    : pathSeparator = new Platform().pathSeparator();
+    : dartDir = TestUtils.dartDir();
 
   bool isTestFile(String filename) => filename.endsWith("Test.dart");
 
@@ -169,11 +175,13 @@ class StandardTestSuite implements TestSuite {
 
   String shellPath() => TestUtils.dartShellFileName(configuration);
 
-  List<String> additionalOptions() => [];
+  List<String> additionalOptions(String filename) => [];
 
-  void forEachTest(Function onTest, Map testCache, [Function onDone = null]) {
+  void forEachTest(Function onTest, Map testCache, String globalTempDir(),
+                   [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
+    globalTemporaryDirectory = globalTempDir;
 
     var filesRead = 0;
     void statusFileRead() {
@@ -228,8 +236,11 @@ class StandardTestSuite implements TestSuite {
     // Look up expectations in status files using a modified file path.
     String testName;
     filename = filename.replaceAll('\\', '/');
+
+    // See if there's a 'src' directory inside the 'tests' one.
+    int testsStart = filename.lastIndexOf('tests/');
     int start = filename.lastIndexOf('src/');
-    if (start != -1) {
+    if (start > testsStart) {
       testName = filename.substring(start + 4, filename.length - 5);
     } else if (optionsFromFile['isMultitest']) {
       start = filename.lastIndexOf('/');
@@ -268,8 +279,9 @@ class StandardTestSuite implements TestSuite {
       case 'dartium':
       case 'chromium':
       case 'frogium':
-          enqueueBrowserTest(filename, testName, optionsFromFile,
-                             expectations, isNegative);
+      case 'webdriver':
+        enqueueBrowserTest(filename, testName, optionsFromFile,
+                           expectations, isNegative);
         break;
       default:
         // Only dartc supports fatal type errors. Enable fatal type
@@ -326,7 +338,7 @@ class StandardTestSuite implements TestSuite {
     if (optionsFromFile['isMultitest']) {
       testGeneratorStarted();
       DoMultitest(filename,
-                  TestUtils.outputDir(configuration),
+                  TestUtils.buildDir(configuration),
                   directoryPath,
                   createTestCase,
                   testGeneratorDone);
@@ -334,7 +346,7 @@ class StandardTestSuite implements TestSuite {
       createTestCase(filename, optionsFromFile['isNegative']);
     }
   }
-        
+
   void enqueueBrowserTest(String filename,
                           String testName,
                           Map optionsFromFile,
@@ -346,70 +358,70 @@ class StandardTestSuite implements TestSuite {
     if (!isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
       print('Warning for $filename: Browser tests require #library ' +
             'in any file that uses #import or #source');
-    }      
+    }
 
     final String component = configuration['component'];
-    final String testPath = new File(filename).fullPathSync();
-    String dartDir = new File('.').fullPathSync();
-    if (!testPath.startsWith(dartDir) ||
-        dartDir.endsWith('/frog')) {
-      dartDir = new File('..').fullPathSync();
-      if (!testPath.startsWith(dartDir)) {
-        print('Run test.dart from the dart directory or' +
-              ' an immediate subdirectory only.');
-        Expect.fail('Could not find top level dart directory.');
-      }
-    }
-
-    Directory tempDir = createTemporaryDirectory(testPath, dartDir);
-
-    String dartWrapperFilename = '${tempDir.path}/test.dart';
-    String compiledDartWrapperFilename = '${tempDir.path}/test.js';
-    String domLibraryImport = (component == 'chromium') ?
-        '$dartDir/client/testing/unittest/dom_for_unittest.dart' : 'dart:dom';
-
-    String htmlPath = '${tempDir.path}/test.html';
-    if (!isWebTest) {
-      // test.dart will import the dart test directly, if it is a library,
-      // or indirectly through test_as_library.dart, if it is not.
-      String dartLibraryFilename;
-      if (isLibraryDefinition) {
-        dartLibraryFilename = testPath;
-      } else {
-        dartLibraryFilename = 'test_as_library.dart';
-        File file = new File('${tempDir.path}/$dartLibraryFilename');
-        RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
-        dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
-        dartLibrary.closeSync();
-      }  
-      
-      File file = new File(dartWrapperFilename);
-      RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
-      dartWrapper.writeStringSync(DartTestWrapper(
-          domLibraryImport,
-          '$dartDir/tests/isolate/src/TestFramework.dart',
-          dartLibraryFilename));
-      dartWrapper.closeSync();
-    } else {
-      dartWrapperFilename = testPath;
-      // TODO(whesse): Once test.py is retired, adjust the relative path in
-      // the client/samples/dartcombat test to its css file, remove the
-      // "../../" from this path, and move this out of the isWebTest guard.
-      // Also remove getHtmlName, and just use test.html.
-      htmlPath = '${tempDir.path}/../../${getHtmlName(filename)}';
-    }
-    final String scriptPath = (component == 'dartium') ?
-        dartWrapperFilename : compiledDartWrapperFilename;
-    // Create the HTML file for the test.
-    RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
-    htmlTest.writeStringSync(GetHtmlContents(
-        filename,
-        '$dartDir/client/testing/unittest/test_controller.js',
-        scriptType,
-        scriptPath));
-    htmlTest.closeSync();
+    final String testPath =
+        new File(filename).fullPathSync().replaceAll('\\', '/');
 
     for (var vmOptions in optionsFromFile['vmOptions']) {
+      // Create a unique temporary directory for each set of vmOptions.
+      // TODO(dart:429): Replace separate replaceAlls with a RegExp when
+      // replaceAll(RegExp, String) is implemented.
+      String optionsName = '';
+      if (optionsFromFile['vmOptions'].length > 1) {
+          optionsName = Strings.join(vmOptions, '-').replaceAll('-','')
+                                                    .replaceAll('=','')
+                                                    .replaceAll('/','');
+      }
+      Directory tempDir = createOutputDirectory(testPath, optionsName);
+
+      String dartWrapperFilename = '${tempDir.path}/test.dart';
+      String compiledDartWrapperFilename = '${tempDir.path}/test.js';
+      String domLibraryImport = (component == 'chromium') ?
+          '$dartDir/client/testing/unittest/dom_for_unittest.dart' : 'dart:dom';
+
+      String htmlPath = '${tempDir.path}/test.html';
+      if (!isWebTest) {
+        // test.dart will import the dart test directly, if it is a library,
+        // or indirectly through test_as_library.dart, if it is not.
+        String dartLibraryFilename;
+        if (isLibraryDefinition) {
+          dartLibraryFilename = testPath;
+        } else {
+          dartLibraryFilename = 'test_as_library.dart';
+          File file = new File('${tempDir.path}/$dartLibraryFilename');
+          RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
+          dartLibrary.writeStringSync(WrapDartTestInLibrary(testPath));
+          dartLibrary.closeSync();
+        }
+
+        File file = new File(dartWrapperFilename);
+        RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
+        dartWrapper.writeStringSync(DartTestWrapper(
+            domLibraryImport,
+            '$dartDir/tests/isolate/src/TestFramework.dart',
+            dartLibraryFilename));
+        dartWrapper.closeSync();
+      } else {
+        dartWrapperFilename = testPath;
+        // TODO(whesse): Once test.py is retired, adjust the relative path in
+        // the client/samples/dartcombat test to its css file, remove the
+        // "../../" from this path, and move this out of the isWebTest guard.
+        // Also remove getHtmlName, and just use test.html.
+        htmlPath = '${tempDir.path}/../../${getHtmlName(filename)}';
+      }
+      final String scriptPath = (component == 'dartium') ?
+          dartWrapperFilename : compiledDartWrapperFilename;
+      // Create the HTML file for the test.
+      RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
+      htmlTest.writeStringSync(GetHtmlContents(
+          filename,
+          '$dartDir/client/testing/unittest/test_controller.js',
+          scriptType,
+          scriptPath));
+      htmlTest.closeSync();
+
       List<String> compilerArgs = TestUtils.standardOptions(configuration);
       String compilerExecutable = TestUtils.compilerPath(configuration);
       switch (component) {
@@ -426,7 +438,12 @@ class StandardTestSuite implements TestSuite {
           // TODO(whesse): Add --fatal-type-errors if needed.
           break;
         case 'frogium':
-          compilerArgs.addAll(['--libdir=$dartDir/frog/lib',
+        case 'webdriver':
+          String libdir = configuration['froglib'];
+          if (libdir == '') {
+            libdir = '$dartDir/frog/lib';
+          }
+          compilerArgs.addAll(['--libdir=$libdir',
                                '--compile-only',
                                '--out=$compiledDartWrapperFilename']);
           compilerArgs.addAll(vmOptions);
@@ -441,52 +458,88 @@ class StandardTestSuite implements TestSuite {
           Expect.fail('unimplemented component $component');
       }
 
-      var args = ['--no-timeout'];
-      if (component == 'dartium') {
-        var dartFlags = ['--enable_asserts', '--enable_type_checks'];
-        dartFlags.addAll(vmOptions);
-        args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
+      String executable = getFilename(dumpRenderTreeFilename);
+      List<String> args;
+      if (component == 'webdriver') {
+        // TODO(efortuna): These paths are not OS independent! 
+        executable = '$dartDir/tools/testing/run_selenium.py';
+        args = ['--out', htmlPath, '--browser', configuration['browser']];
+      } else {
+        args = ['--no-timeout'];
+        if (component == 'dartium') {
+          var dartFlags = ['--ignore-unrecognized-flags'];
+          if (configuration["checked"]) {
+            dartFlags.add('--enable_asserts');
+            dartFlags.add("--enable_type_checks");
+          }
+          dartFlags.addAll(vmOptions);
+          args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
+        }
+        args.add(htmlPath);
       }
-      args.add(htmlPath);
-
       // Create BrowserTestCase and queue it.
       var testCase = new BrowserTestCase(
           testName,
           compilerExecutable,
           compilerArgs,
-          getFilename(dumpRenderTreeFilename),
+          executable,
           args,
           configuration,
           completeHandler,
           expectations,
           optionsFromFile['isNegative']);
       doTest(testCase);
-    }        
+    }
   }
 
-  /***
+  bool get requiresCleanTemporaryDirectory() =>
+      configuration['component'] == 'dartc' ||
+      configuration['component'] == 'chromium';
+
+  /**
    * Create a directory for the generated test.  Drop the path to the
    * dart checkout and the final ".dart" from the test path, and replace
    * all path separators with underscores.
-   * All variables are block local, except tempDir.
    */
-  Directory createTemporaryDirectory(String testPath, String dartDir)
-  {
+  Directory createOutputDirectory(String testPath, String optionsName) {
     String testUniqueName =
         testPath.substring(dartDir.length + 1, testPath.length - 5);
     testUniqueName = testUniqueName.replaceAll('/', '_');
+    testUniqueName += '-$optionsName';
+
     // Create '[build dir]/generated_tests/$component/$testUniqueName',
       // including any intermediate directories that don't exist.
-    var generatedTestPath = ['generated_tests',
+    String debugMode =
+        (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+    var generatedTestPath = [debugMode + configuration["arch"],
+                             'generated_tests',
                              configuration['component'],
                              testUniqueName];
 
     String tempDirPath = TestUtils.buildDir(configuration);
+    if (requiresCleanTemporaryDirectory) {
+      tempDirPath = globalTemporaryDirectory();
+    }
     Directory tempDir = new Directory(tempDirPath);
     if (!tempDir.existsSync()) {
-      throw new Exception('Build directory $tempDirPath does not exist.');
+      // Dartium tests can be run with no build step, with no output directory.
+      // This special case builds the build directory that should be there.
+      var buildPath = tempDirPath.split('/');
+      tempDirPath = buildPath[0];
+      if (tempDirPath == '') {
+        throw new Exception(
+            'Non-relative path to build directory in test_suite.dart');
+      }
+      buildPath.removeRange(0, 1);
+      if (buildPath.last() == '') buildPath.removeLast();
+      buildPath.addAll(generatedTestPath);
+      generatedTestPath = buildPath;
+      tempDir = new Directory(tempDirPath);
+      if (!tempDir.existsSync()) {
+        tempDir.createSync();
+      }
     }
-    tempDirPath = new File(tempDirPath).fullPathSync();
+    tempDirPath = new File(tempDirPath).fullPathSync().replaceAll('\\', '/');
 
     for (String subdirectory in generatedTestPath) {
       tempDirPath = '$tempDirPath/$subdirectory';
@@ -504,6 +557,7 @@ class StandardTestSuite implements TestSuite {
         return 'application/dart';
       case 'chromium':
       case 'frogium':
+      case 'webdriver':
         return 'text/javascript';
       default:
         Expect.fail('Unimplemented component scriptType');
@@ -519,7 +573,7 @@ class StandardTestSuite implements TestSuite {
     if (new Platform().operatingSystem() == 'macos') {
       return 'client/tests/drt/DumpRenderTree.app/Contents/' +
           'MacOS/DumpRenderTree';
-    } 
+    }
     return 'client/tests/drt/DumpRenderTree';
   }
 
@@ -548,7 +602,7 @@ class StandardTestSuite implements TestSuite {
                                            Map optionsFromFile,
                                            bool enableFatalTypeErrors) {
     List args = TestUtils.standardOptions(configuration);
-    args.addAll(additionalOptions());
+    args.addAll(additionalOptions(filename));
     if (enableFatalTypeErrors && configuration['component'] == 'dartc') {
       args.add('--fatal-type-errors');
     }
@@ -595,7 +649,7 @@ class StandardTestSuite implements TestSuite {
         const RegExp(@"^#library\(", multiLine: true);
     RegExp sourceOrImportRegExp =
         const RegExp(@"^#(source|import)\(", multiLine: true);
-    
+
     // Read the entire file into a byte buffer and transform it to a
     // String. This will treat the file as ascii but the only parts
     // we are interested in will be ascii in any case.
@@ -683,13 +737,12 @@ class DartcCompilationTestSuite extends StandardTestSuite {
 
   String shellPath() => TestUtils.compilerPath(configuration);
 
-  List<String> additionalOptions() {
-    // TODO(ager): potentially register cleanup action to delete the temporary
-    // directories?
-    var tempDir = new Directory('');
-    tempDir.createTempSync();
+  List<String> additionalOptions(String filename) {
+    filename = new File(filename).fullPathSync().replaceAll('\\', '/');
+    Directory tempDir = createOutputDirectory(filename, 'dartc-test');
     return
-        ['-check-only', '-fatal-type-errors', '-Werror', '-out', tempDir.path];
+        [ '--fatal-warnings', '--fatal-type-errors', 
+          '-check-only', '-out', tempDir.path];
   }
 
   void processDirectory() {
@@ -719,7 +772,7 @@ class JUnitTestSuite implements TestSuite {
   String suiteName;
   String directoryPath;
   String statusFilePath;
-  String dartDir;
+  final String dartDir;
   String buildDir;
   String classPath;
   List<String> testClasses;
@@ -730,7 +783,8 @@ class JUnitTestSuite implements TestSuite {
   JUnitTestSuite(Map this.configuration,
                  String this.suiteName,
                  String this.directoryPath,
-                 String this.statusFilePath);
+                 String this.statusFilePath)
+      : dartDir = TestUtils.dartDir();
 
   bool isTestFile(String filename) => filename.endsWith("Tests.java") &&
       !filename.contains('com/google/dart/compiler/vm') &&
@@ -738,10 +792,11 @@ class JUnitTestSuite implements TestSuite {
 
   void forEachTest(Function onTest,
                    Map testCacheIgnored,
+                   String globalTempDir(),
                    [Function onDone = null]) {
     doTest = onTest;
     doDone = (onDone != null) ? onDone : (() => null);
-    
+
     if (configuration['component'] != 'dartc') {
       // Do nothing.  Asynchronously report that the suite is enqueued.
       new Timer((timerUnused){ doDone(); }, 0);
@@ -753,7 +808,6 @@ class JUnitTestSuite implements TestSuite {
       return;
     }
 
-    dartDir = new File('.').fullPathSync();
     buildDir = TestUtils.buildDir(configuration);
     computeClassPath();
     testClasses = <String>[];
@@ -786,9 +840,9 @@ class JUnitTestSuite implements TestSuite {
       testClasses.add(testClass);
     }
   }
-      
+
   void createTest(successIgnored) {
-    String d8 = '$dartDir/$buildDir/d8${TestUtils.executableSuffix}';
+    String d8 = '$buildDir/d8${TestUtils.executableSuffix}';
     List<String> args = <String>[
         '-ea',
         '-classpath', classPath,
@@ -796,7 +850,7 @@ class JUnitTestSuite implements TestSuite {
         '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
-          
+
     doTest(new TestCase(suiteName,
                         'java',
                         args,
@@ -816,15 +870,15 @@ class JUnitTestSuite implements TestSuite {
          '$buildDir/compiler-tests.jar',
          '$buildDir/closure_out/compiler.jar',
          // Third party libraries.
-         'third_party/args4j/2.0.12/args4j-2.0.12.jar',
-         'third_party/guava/r09/guava-r09.jar',
-         'third_party/json/r2_20080312/json.jar',
-         'third_party/rhino/1_7R3/js.jar',
-         'third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
-         'third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
-         'third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
-         'third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
-         'third_party/junit/v4_8_2/junit.jar'],
+         '$dartDir/third_party/args4j/2.0.12/args4j-2.0.12.jar',
+         '$dartDir/third_party/guava/r09/guava-r09.jar',
+         '$dartDir/third_party/json/r2_20080312/json.jar',
+         '$dartDir/third_party/rhino/1_7R3/js.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar',
+         '$dartDir/third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar',
+         '$dartDir/third_party/junit/v4_8_2/junit.jar'],
         ':');  // Path separator.
   }
 }
@@ -832,7 +886,7 @@ class JUnitTestSuite implements TestSuite {
 
 class TestUtils {
   static String get executableSuffix() =>
-      (new Platform().operatingSystem() == 'windows') ? '.exe' : '';      
+      (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
 
   static String executableName(Map configuration) {
     String postfix = executableSuffix;
@@ -859,6 +913,7 @@ class TestUtils {
       case 'dartc':
         return 'compiler/bin/dartc$postfix';
       case 'frogium':
+      case 'webdriver':
         return 'frog/bin/frogsh$postfix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
@@ -877,7 +932,10 @@ class TestUtils {
     if (configuration['component'] == 'dartium') {
       return null;  // No separate compiler for dartium tests.
     }
-    var name = '${buildDir(configuration)}/${compilerName(configuration)}';
+    var name = configuration['frog'];
+    if (name == '') {
+      name = '${buildDir(configuration)}/${compilerName(configuration)}';
+    }
     if (!(new File(name)).existsSync()) {
       throw "Executable '$name' does not exist";
     }
@@ -900,6 +958,19 @@ class TestUtils {
     buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
     buildDir += configuration['arch'];
     return buildDir;
+  }
+
+  static String dartDir() {
+    Directory dart;
+    if (new File('tools/testing/dart/test_suite.dart').existsSync()) {
+      return new File('.').fullPathSync().replaceAll('\\', '/');
+    } else if (new File('../tools/testing/dart/test_suite.dart').existsSync()) {
+      return new File('..').fullPathSync().replaceAll('\\', '/');
+    } else {
+      print('Run test.dart from the dart directory or' +
+            ' an immediate subdirectory only.');
+      Expect.fail('Could not find top level dart directory.');
+    }
   }
 
   static List<String> standardOptions(Map configuration) {
@@ -960,16 +1031,15 @@ class SummaryReport {
 
   static void printReport() {
     if (total == 0) return;
-    String report = """\
-Total: $total tests
+    String report = """Total: $total tests
  * $skipped tests will be skipped
  * $noCrash tests are expected to be flaky but not crash
  * $pass tests are expected to pass
  * $failOk tests are expected to fail that we won't fix
  * $fail tests are expected to fail that we should fix
  * $crash tests are expected to crash that we should fix
- * $timeout tests are allowed to timeout\
+ * $timeout tests are allowed to timeout
 """;
     print(report);
-  }
+   }
 }

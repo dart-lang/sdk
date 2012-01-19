@@ -1,8 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/os.h"
 #include "vm/scanner.h"
 #include "vm/token.h"
@@ -331,6 +331,23 @@ void InvalidText() {
 }
 
 
+void FindLineTest() {
+  const char* source =
+      "/*1*/   \n"
+      "/*2*/   class A {\n"
+      "/*3*/      void foo() { }\n"
+      "/*4*/   }\n";
+
+  Scanner scanner(String::Handle(String::New(source)),
+                  String::Handle(String::New("")));
+
+  intptr_t token_index = scanner.TokenIndexAtLine(3);
+  EXPECT_EQ(3, token_index);
+  token_index = scanner.TokenIndexAtLine(100);
+  EXPECT(token_index < 0);
+}
+
+
 TEST_CASE(Scanner_Test) {
   ScanLargeText();
 
@@ -344,6 +361,7 @@ TEST_CASE(Scanner_Test) {
   EmptyMultilineString();
   NumberLiteral();
   InvalidText();
+  FindLineTest();
 }
 
 }  // namespace dart

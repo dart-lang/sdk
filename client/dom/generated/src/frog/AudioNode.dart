@@ -7,9 +7,9 @@ class AudioNode native "*AudioNode" {
 
   int numberOfOutputs;
 
-  void connect(AudioNode destination, [int output = null, int input = null]) native;
+  void connect(AudioNode destination, int output, int input) native;
 
-  void disconnect([int output = null]) native;
+  void disconnect(int output) native;
 
   var dartObjectLocalStorage;
 

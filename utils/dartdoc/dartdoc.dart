@@ -104,12 +104,14 @@ class Dartdoc {
     md.InlineParser.syntaxes.insertRange(0, 1,
         new md.CodeSyntax(@'\[\:((?:.|\n)*?)\:\]'));
 
-    md.setImplicitLinkResolver(resolveNameReference);
+    md.setImplicitLinkResolver((name) => resolveNameReference(name,
+            library: _currentLibrary, type: _currentType,
+            member: _currentMember));
   }
 
   document(String entrypoint) {
+    var oldDietParse = options.dietParse;
     try {
-      var oldDietParse = options.dietParse;
       options.dietParse = true;
 
       // Handle the built-in entrypoints.
@@ -518,6 +520,9 @@ class Dartdoc {
     } else if (name.startsWith('set:')) {
       // Setter.
       name = 'set ${name.substring(4)}';
+    } else if (name == ':negate') {
+      // Dart uses 'negate' for prefix negate operators, not '!'.
+      name = 'operator negate';
     } else {
       // See if it's an operator.
       name = TokenKind.rawOperatorFromMethod(name);
@@ -780,7 +785,8 @@ class Dartdoc {
    * brackets. It will try to figure out what the name refers to and link or
    * style it appropriately.
    */
-  md.Node resolveNameReference(String name) {
+  md.Node resolveNameReference(String name, [Member member = null,
+      Type type = null, Library library = null]) {
     makeLink(String href) {
       final anchor = new md.Element.text('a', name);
       anchor.attributes['href'] = relativePath(href);
@@ -788,8 +794,8 @@ class Dartdoc {
       return anchor;
     }
 
-    findMember(Type type) {
-      final member = type.members[name];
+    findMember(Type type, String memberName) {
+      final member = type.members[memberName];
       if (member == null) return null;
 
       // Special case: if the member we've resolved is a property (i.e. it wraps
@@ -803,8 +809,8 @@ class Dartdoc {
     }
 
     // See if it's a parameter of the current method.
-    if (_currentMember != null) {
-      for (final parameter in _currentMember.parameters) {
+    if (member != null) {
+      for (final parameter in member.parameters) {
         if (parameter.name == name) {
           final element = new md.Element.text('span', name);
           element.attributes['class'] = 'param';
@@ -814,22 +820,48 @@ class Dartdoc {
     }
 
     // See if it's another member of the current type.
-    if (_currentType != null) {
-      final member = findMember(_currentType);
+    if (type != null) {
+      final member = findMember(type, name);
       if (member != null) {
         return makeLink(memberUrl(member));
       }
     }
 
-    // See if it's another type in the current library.
-    if (_currentLibrary != null) {
-      final type = _currentLibrary.types[name];
+    // See if it's another type or a member of another type in the current
+    // library.
+    if (library != null) {
+      // See if it's a constructor
+      final constructorLink = (() {
+        final match = new RegExp(@'new (\w+)(?:\.(\w+))?').firstMatch(name);
+        if (match == null) return;
+        final type = library.types[match[1]];
+        if (type == null) return;
+        final constructor = type.getConstructor(
+            match[2] == null ? '' : match[2]);
+        if (constructor == null) return;
+        return makeLink(memberUrl(constructor));
+      })();
+      if (constructorLink != null) return constructorLink;
+
+      // See if it's a member of another type
+      final foreignMemberLink = (() {
+        final match = new RegExp(@'(\w+)\.(\w+)').firstMatch(name);
+        if (match == null) return;
+        final type = library.types[match[1]];
+        if (type == null) return;
+        final member = findMember(type, match[2]);
+        if (member == null) return;
+        return makeLink(memberUrl(member));
+      })();
+      if (foreignMemberLink != null) return foreignMemberLink;
+
+      final type = library.types[name];
       if (type != null) {
         return makeLink(typeUrl(type));
       }
 
       // See if it's a top-level member in the current library.
-      final member = findMember(_currentLibrary.topType);
+      final member = findMember(library.topType, name);
       if (member != null) {
         return makeLink(memberUrl(member));
       }

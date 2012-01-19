@@ -132,24 +132,19 @@ class Futures {
     // As each future completes, put its value into the corresponding
     // position in the list of values.
     for (int i = 0; i < futures.length; i++) {
-      if (futures[i].isComplete) {
-        values[i] = futures[i].value;
-        remaining--;
-      } else {
-        // TODO(mattsh) - remove this after bug
-        // http://code.google.com/p/dart/issues/detail?id=333 is fixed.
-        int pos = i;
-        futures[pos].then((Object value) {
-          values[pos] = value;
-          if (--remaining == 0) {
-            completer.complete(values);
-          }
-        });
-      }
+      // TODO(mattsh) - remove this after bug
+      // http://code.google.com/p/dart/issues/detail?id=333 is fixed.
+      int pos = i;
+      futures[pos].then((Object value) {
+        values[pos] = value;
+        if (--remaining == 0) {
+          completer.complete(values);
+        }
+      });
     }
     // Special case where all the futures are already completed,
     // trigger the value now.
-    if (remaining == 0) {
+    if (futures.length == 0) {
       completer.complete(values);
     }
 

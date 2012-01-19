@@ -1,20 +1,20 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_api.h"
-
-#include "vm/assert.h"
+#include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/thread.h"
 #include "vm/unit_test.h"
-#include "vm/utils.h"
 #include "vm/verifier.h"
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(ErrorHandles) {
   const char* kScriptChars =
@@ -27,7 +27,7 @@ TEST_CASE(ErrorHandles) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   Dart_Handle instance = Dart_True();
-  Dart_Handle error = Api::Error("myerror");
+  Dart_Handle error = Api::NewError("myerror");
   Dart_Handle exception = Dart_InvokeStatic(lib,
                                             Dart_NewString("TestClass"),
                                             Dart_NewString("testMain"),
@@ -115,7 +115,8 @@ TEST_CASE(IsSame) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(ObjectEquals) {
   bool equal = false;
@@ -137,6 +138,7 @@ TEST_CASE(ObjectEquals) {
 }
 
 #endif
+
 
 TEST_CASE(BooleanValues) {
   Dart_Handle str = Dart_NewString("test");
@@ -199,7 +201,8 @@ TEST_CASE(DoubleValues) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(NumberValues) {
   // TODO(antonm): add various kinds of ints (smi, mint, bigint).
@@ -489,7 +492,8 @@ TEST_CASE(ExternalStringGetPeer) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(ListAccess) {
   const char* kScriptChars =
@@ -608,7 +612,7 @@ TEST_CASE(ListAccess) {
   EXPECT(Dart_IsError(result));
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif
 
 
 // Unit test for entering a scope, creating a local handle and exiting
@@ -730,7 +734,8 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(WeakPersistentHandle) {
   Dart_Handle weak_new_ref = Dart_Null();
@@ -831,6 +836,37 @@ TEST_CASE(WeakPersistentHandle) {
   EXPECT(Dart_IsNull(weak_new_ref));
   EXPECT_VALID(weak_old_ref);
   EXPECT(Dart_IsNull(weak_old_ref));
+
+  Dart_DeletePersistentHandle(weak_new_ref);
+  Dart_DeletePersistentHandle(weak_old_ref);
+}
+
+
+static void WeakPersistentHandlePeerFinalizer(void* peer) {
+  *static_cast<int*>(peer) = 42;
+}
+
+
+TEST_CASE(WeakPersistentHandleCallback) {
+  Dart_Handle weak_ref = Dart_Null();
+  EXPECT(Dart_IsNull(weak_ref));
+  int* peer = new int();
+  {
+    Dart_EnterScope();
+    Dart_Handle obj = Dart_NewString("new string");
+    EXPECT_VALID(obj);
+    weak_ref = Dart_NewWeakPersistentHandle(obj, peer,
+                                            WeakPersistentHandlePeerFinalizer);
+    Dart_ExitScope();
+  }
+  EXPECT_VALID(weak_ref);
+  EXPECT(*peer == 0);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT(*peer == 0);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT(*peer == 42);
+  delete peer;
+  Dart_DeletePersistentHandle(weak_ref);
 }
 
 #endif
@@ -997,7 +1033,8 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 }
 
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run execution tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(FieldAccess) {
   const char* kScriptChars =
@@ -2721,7 +2758,8 @@ TEST_CASE(ImportLibrary5) {
 }
 
 
-static bool RunLoopTestCallback(void* data, char** error) {
+static bool RunLoopTestCallback(const char* name_prefix,
+                                void* data, char** error) {
   const char* kScriptChars =
       "#import('builtin');\n"
       "class MyIsolate extends Isolate {\n"
@@ -2767,7 +2805,7 @@ static void RunLoopTest(bool throw_exception_child,
                         bool throw_exception_parent) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
-  RunLoopTestCallback(NULL, NULL);
+  RunLoopTestCallback(NULL, NULL, NULL);
 
   Dart_EnterScope();
   Dart_Handle lib = Dart_LookupLibrary(Dart_NewString(TestCase::url()));
@@ -2862,7 +2900,7 @@ void BusyLoop_start(uword unused) {
   {
     sync->Enter();
     char* error = NULL;
-    shared_isolate = Dart_CreateIsolate(NULL, NULL, &error);
+    shared_isolate = Dart_CreateIsolate(NULL, NULL, NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = Dart_NewString(TestCase::url());
@@ -2975,6 +3013,6 @@ TEST_CASE(IsolateInterrupt) {
   Isolate::SetInterruptCallback(saved);
 }
 
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

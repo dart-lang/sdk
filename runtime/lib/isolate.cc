@@ -1,10 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
-
-#include "vm/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
@@ -53,15 +52,11 @@ static uint8_t* SerializeObject(const Instance& obj) {
 }
 
 
-static void ProcessUnhandledException(const UnhandledException& uhe) {
-  const Instance& exception = Instance::Handle(uhe.exception());
-  Instance& string = Instance::Handle(DartLibraryCalls::ToString(exception));
-  const char* str = string.ToCString();
-  fprintf(stderr, "%s\n", str);
-  const Instance& stack = Instance::Handle(uhe.stacktrace());
-  string = DartLibraryCalls::ToString(stack);
-  str = string.ToCString();
-  fprintf(stderr, "%s\n", str);
+static void ProcessError(const Object& obj) {
+  ASSERT(obj.IsError());
+  Error& error = Error::Handle();
+  error ^= obj.raw();
+  OS::PrintErr("%s\n", error.ToErrorCString());
   exit(255);
 }
 
@@ -103,10 +98,8 @@ RawInstance* ReceivePortCreate(intptr_t port_id) {
   arguments.Add(&Integer::Handle(Integer::New(port_id)));
   const Instance& result = Instance::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  if (result.IsUnhandledException()) {
-    UnhandledException& uhe = UnhandledException::Handle();
-    uhe ^= result.raw();
-    ProcessUnhandledException(uhe);
+  if (result.IsError()) {
+    ProcessError(result);
   } else {
     PortMap::SetLive(port_id);
   }
@@ -178,10 +171,8 @@ static void RunIsolate(uword parameter) {
       result = DartEntry::InvokeStatic(default_constructor,
                                        arguments,
                                        kNoArgumentNames);
-      if (result.IsUnhandledException()) {
-        UnhandledException& uhe = UnhandledException::Handle();
-        uhe ^= result.raw();
-        ProcessUnhandledException(uhe);
+      if (result.IsError()) {
+        ProcessError(result);
       }
       ASSERT(result.IsNull());
     }
@@ -200,28 +191,24 @@ static void RunIsolate(uword parameter) {
                                       target_function,
                                       arguments,
                                       kNoArgumentNames);
-    if (result.IsUnhandledException()) {
-      UnhandledException& uhe = UnhandledException::Handle();
-      uhe ^= result.raw();
-      ProcessUnhandledException(uhe);
+    if (result.IsError()) {
+      ProcessError(result);
     }
     ASSERT(result.IsNull());
     free(class_name);
     result = isolate->StandardRunLoop();
-    if (result.IsUnhandledException()) {
-      UnhandledException& uhe = UnhandledException::Handle();
-      uhe ^= result.raw();
-      ProcessUnhandledException(uhe);
+    if (result.IsError()) {
+      ProcessError(result);
     }
     ASSERT(result.IsNull());
 
   } else {
     Zone zone(isolate);
     HandleScope handle_scope(isolate);
-    const String& error = String::Handle(
+    const Error& error = Error::Handle(
         Isolate::Current()->object_store()->sticky_error());
-    const char* errmsg = error.ToCString();
-    fprintf(stderr, "%s\n", errmsg);
+    const char* errmsg = error.ToErrorCString();
+    OS::PrintErr("%s\n", errmsg);
     exit(255);
   }
   isolate->set_long_jump_base(base);
@@ -242,20 +229,41 @@ static bool CheckArguments(const char* library_url, const char* class_name) {
   name ^= String::NewSymbol(library_url);
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   if (lib.IsNull()) {
-    const String& error = String::Handle(
+    const String& error_str = String::Handle(
         String::New("Error starting Isolate, library not loaded : "));
+    const Error& error = Error::Handle(LanguageError::New(error_str));
     Isolate::Current()->object_store()->set_sticky_error(error);
     return false;
   }
   name ^= String::NewSymbol(class_name);
   const Class& target_class = Class::Handle(lib.LookupClass(name));
   if (target_class.IsNull()) {
-    const String& error = String::Handle(
+    const String& error_str = String::Handle(
         String::New("Error starting Isolate, class not loaded : "));
+    const Error& error = Error::Handle(LanguageError::New(error_str));
     Isolate::Current()->object_store()->set_sticky_error(error);
     return false;
   }
   return true;  // No errors.
+}
+
+
+static char* BuildIsolateName(const char* script_name,
+                              const char* class_name,
+                              const char* func_name) {
+  // Skip past any slashes in the script name.
+  const char* last_slash = strrchr(script_name, '/');
+  if (last_slash != NULL) {
+    script_name = last_slash + 1;
+  }
+
+  const char* kFormat = "%s/%s.%s";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, script_name, class_name,
+                             func_name) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, kFormat, script_name, class_name, func_name);
+  return chars;
 }
 
 
@@ -274,9 +282,10 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   void* callback_data = preserved_isolate->init_callback_data();
   char* error = NULL;
   Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
+  const char* isolate_name = BuildIsolateName(library_url, class_name, "main");
   if (callback == NULL) {
     error = strdup("Null callback specified for isolate creation\n");
-  } else if (callback(callback_data, &error)) {
+  } else if (callback(isolate_name, callback_data, &error)) {
     spawned_isolate = Isolate::Current();
     ASSERT(spawned_isolate != NULL);
     // Check arguments to see if the specified library and classes are
@@ -298,9 +307,9 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
       {
         Zone zone(spawned_isolate);
         HandleScope scope(spawned_isolate);
-        const String& errmsg = String::Handle(
+        const Error& err_obj = Error::Handle(
             spawned_isolate->object_store()->sticky_error());
-        error = strdup(errmsg.ToCString());
+        error = strdup(err_obj.ToErrorCString());
       }
       Dart::ShutdownIsolate();
       spawned_isolate = NULL;
@@ -317,11 +326,15 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
                         class_name);
   }
   const Instance& port = Instance::Handle(SendPortCreate(port_id));
-  if (port.IsUnhandledException()) {
-    ThrowErrorException(Exceptions::kInternalError,
-                        "Unable to create send port to isolate",
-                        library_url,
-                        class_name);
+  if (port.IsError()) {
+    if (port.IsUnhandledException()) {
+      ThrowErrorException(Exceptions::kInternalError,
+                          "Unable to create send port to isolate",
+                          library_url,
+                          class_name);
+    } else {
+      ProcessError(port);
+    }
   }
   arguments->SetReturn(port);
 }

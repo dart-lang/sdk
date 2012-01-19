@@ -7,18 +7,6 @@
 
 #include "platform/globals.h"
 
-class TaskQueueData {
- private:
-  TaskQueueData() { UNIMPLEMENTED(); }
-  ~TaskQueueData() {}
-
-  friend class TaskQueue;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(TaskQueueData);
-};
-
-
 class ThreadPoolData {
  private:
   static const int kMaxThreadPoolSize = 16;

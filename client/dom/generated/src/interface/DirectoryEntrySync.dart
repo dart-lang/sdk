@@ -8,9 +8,9 @@ interface DirectoryEntrySync extends EntrySync {
 
   DirectoryReaderSync createReader();
 
-  DirectoryEntrySync getDirectory(String path, WebKitFlags flags);
+  DirectoryEntrySync getDirectory(String path, Object flags);
 
-  FileEntrySync getFile(String path, WebKitFlags flags);
+  FileEntrySync getFile(String path, Object flags);
 
   void removeRecursively();
 }

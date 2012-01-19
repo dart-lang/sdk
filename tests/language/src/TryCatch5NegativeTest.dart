@@ -10,7 +10,7 @@ interface TestException {
 }
 
 class MyException implements TestException {
-  const MyException(String message = "") : message_ = message;
+  const MyException([String message = ""]) : message_ = message;
   String getMessage() { return message_; }
   final String message_;
 }
@@ -24,7 +24,6 @@ class Helper {
     try {
       int j;
       j = f2();
-      j = f3();
     } catch () {
       i = 200;
     }
@@ -34,22 +33,8 @@ class Helper {
   static int f2() {
     return 2;
   }
-
-  static int f3() {
-    int i = 0;
-    while (i < 10) {
-      i++;
-    }
-    return i;
-  }
-}
-
-class TryCatch5NegativeTest {
-  static testMain() {
-    Expect.equals(1, Helper.f1(1));
-  }
 }
 
 main() {
-  TryCatch5NegativeTest.testMain();
+  Expect.equals(1, Helper.f1(1));
 }

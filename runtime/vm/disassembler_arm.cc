@@ -1,13 +1,12 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
-#if defined(TARGET_ARCH_ARM)
-
 #include "vm/disassembler.h"
 
-#include "vm/assert.h"
+#include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM.
+#if defined(TARGET_ARCH_ARM)
+#include "platform/assert.h"
 
 namespace dart {
 

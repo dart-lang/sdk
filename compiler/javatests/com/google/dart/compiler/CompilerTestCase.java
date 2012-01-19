@@ -8,6 +8,7 @@ import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
+import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
@@ -297,9 +298,12 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parses given source and checks parsing problems.
    */
-  protected final void parseExpectErrors(String code, ErrorExpectation... expectedErrors) {
-    List<DartCompilationError> errors = parseSource(code).getErrors();
+  protected final DartParserRunner parseExpectErrors(String code,
+      ErrorExpectation... expectedErrors) {
+    DartParserRunner parserRunner = parseSource(code);
+    List<DartCompilationError> errors = parserRunner.getErrors();
     assertErrors(errors, expectedErrors);
+    return parserRunner;
   }
 
   /**
@@ -323,6 +327,20 @@ public abstract class CompilerTestCase extends TestCase {
           result[0] = node;
         }
         return super.visitInvocation(node);
+      }
+    });
+    return result[0];
+  }
+
+  protected static DartFunctionTypeAlias findTypedef(DartNode rootNode, final String name) {
+    final DartFunctionTypeAlias result[] = new DartFunctionTypeAlias[1];
+    rootNode.accept(new DartNodeTraverser<Void>() {
+      @Override
+      public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+        if (node.getName().getTargetName().equals(name)) {
+          result[0] = node;
+        }
+        return null;
       }
     });
     return result[0];

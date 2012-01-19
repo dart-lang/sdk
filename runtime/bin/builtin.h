@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,25 +9,8 @@
 #include <stdlib.h>
 
 #include "include/dart_api.h"
-
+#include "platform/assert.h"
 #include "platform/globals.h"
-
-#ifdef DEBUG
-#define ASSERT(expr) assert(expr)
-#else
-#define ASSERT(expr) USE(expr)
-#endif
-
-#define FATAL(error)                                                           \
-  fprintf(stderr, "%s\n", error);                                              \
-  fflush(stderr);                                                              \
-  abort();
-
-#define UNREACHABLE()                                                          \
-  FATAL("unreachable code")
-
-#define UNIMPLEMENTED()                                                        \
-  FATAL("unimplemented code")
 
 #define FUNCTION_NAME(name) Builtin_##name
 #define REGISTER_FUNCTION(name, count)                                         \

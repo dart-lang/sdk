@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,9 +31,9 @@ void CPU::FlushICache(uword start, uword size) {
 }
 
 
-void CPU::JumpToExceptionHandler(uword pc,
-                                 uword sp,
-                                 uword fp,
+void CPU::JumpToExceptionHandler(uword program_counter,
+                                 uword stack_pointer,
+                                 uword frame_pointer,
                                  const Instance& exception_object,
                                  const Instance& stacktrace_object) {
   UNIMPLEMENTED();
@@ -41,9 +41,9 @@ void CPU::JumpToExceptionHandler(uword pc,
 
 
 void CPU::JumpToUnhandledExceptionHandler(
-    uword pc,
-    uword sp,
-    uword fp,
+    uword program_counter,
+    uword stack_pointer,
+    uword frame_pointer,
     const UnhandledException& unhandled_exception) {
   UNIMPLEMENTED();
 }

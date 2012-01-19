@@ -66,7 +66,7 @@ class TestCase {
         executablePath = newExecutablePath;
       }
       newArguments.addAll(arguments);
-      var suffixSplit = prefix.split(' ');
+      var suffixSplit = suffix.split(' ');
       suffixSplit.forEach((e) {
         if (!e.isEmpty()) newArguments.add(e);
       });
@@ -103,7 +103,14 @@ class BrowserTestCase extends TestCase {
                                                   configuration,
                                                   completedHandler,
                                                   expectedOutcomes,
-                                                  isNegative);
+                                                  isNegative) {
+    if (compilerPath != null) {
+      commandLine = 'execution command: $commandLine';
+      String compilationCommand =
+          '$compilerPath ${Strings.join(compilerArguments, " ")}';
+      commandLine = 'compilation command: $compilationCommand\n$commandLine';
+    }
+  }
 }
 
 
@@ -144,17 +151,27 @@ class TestOutput {
   bool get hasTimedOut() => timedOut;
 
   bool get didFail() {
-    if (exitCode != 0 && !hasCrashed) return true;
+    if (testCase is !BrowserTestCase) return (exitCode != 0 && !hasCrashed);
 
+    // Browser case:
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain\nPASS'.
-    if (testCase is !BrowserTestCase) return false;
     String previous_line = '';
     for (String line in stdout) {
       if (line == 'PASS' && previous_line == 'Content-Type: text/plain') {
-        return false;
+        return (exitCode != 0 && !hasCrashed);
       }
       previous_line = line;
+    }
+
+    // If the browser test failed, it may have been because DumpRenderTree
+    // and the virtual framebuffer X server didn't hook up.
+    for (String line in stderr) {
+      if (line.contains('Gtk-WARNING **: cannot open display: :99')) {
+        // If we get the X server error, return the expected value
+        // We cannot restart the test from here.  Issue dart:1135 is filed.
+        return testCase.isNegative;
+      }
     }
     return true;
   }
@@ -186,9 +203,12 @@ class RunningProcess {
 
   void compilerExitHandler(int exitCode) {
     if (exitCode != 0) {
+      stderr.add('test.dart: Compilation step failed (exit code $exitCode)\n');
       exitHandler(exitCode);
     } else {
       process.close();
+      stderr.add('test.dart: Compilation finished, starting execution\n');
+      stdout.add('test.dart: Compilation finished, starting execution\n');
       runCommand(testCase.executablePath, testCase.arguments, exitHandler);
     }
   }
@@ -386,9 +406,11 @@ class ProcessQueue {
   int _maxProcesses;
   bool _verbose;
   bool _listTests;
+  bool _keepGeneratedTests;
   Function _enqueueMoreWork;
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
+  String _temporaryDirectory;
   // For dartc batch processing we keep a list of batch processes.
   List<DartcBatchRunnerProcess> _batchProcesses;
   // Cache information about test cases per test suite. For multiple
@@ -401,28 +423,42 @@ class ProcessQueue {
                Date startTime,
                bool printTiming,
                Function this._enqueueMoreWork,
-               [bool verbose = false,
-                bool listTests = false])
+               [bool this._verbose = false,
+                bool this._listTests = false,
+                bool this._keepGeneratedTests = false])
       : _tests = new Queue<TestCase>(),
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
         _batchProcesses = new List<DartcBatchRunnerProcess>(),
-        _testCache = new Map<String, List<TestInformation>>(),
-        _verbose = verbose,
-        _listTests = listTests {
+        _testCache = new Map<String, List<TestInformation>>() {
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
   void addTestSuite(TestSuite testSuite) {
     _activeTestListers++;
-    testSuite.forEachTest(_runTest, _testCache, _testListerDone);
+    testSuite.forEachTest(_runTest, _testCache, globalTemporaryDirectory,
+                          _testListerDone);
   }
 
   void _testListerDone() {
     _activeTestListers--;
     _checkDone();
   }
+
+  String globalTemporaryDirectory() {
+    if (_temporaryDirectory != null) return _temporaryDirectory;
+
+    if (new Platform().operatingSystem() == 'windows') {
+      throw new Exception(
+          'Test suite requires temporary directory. Not supported on Windows.');
+    }
+    var tempDir = new Directory('');
+    tempDir.createTempSync();
+    _temporaryDirectory = tempDir.path;
+    return _temporaryDirectory;
+  }
+
 
   void _checkDone() {
     // When there are no more active test listers ask for more work
@@ -431,7 +467,22 @@ class ProcessQueue {
       _progress.allTestsKnown();
       if (_tests.isEmpty() && _numProcesses == 0) {
         _terminateDartcBatchRunners();
-        _progress.allDone();
+        if (_keepGeneratedTests || _temporaryDirectory == null) {
+          _progress.allDone();
+        } else if (!_temporaryDirectory.startsWith('/tmp/') ||
+                   _temporaryDirectory.contains('/../')) {
+          // Let's be extra careful, since rm -rf is so dangerous.
+          print('Temporary directory $_temporaryDirectory unsafe to delete!');
+          _progress.allDone();
+        } else {
+          // TODO(dart:1211): Use delete(recursive=true) in Dart when it is
+          // implemented, and add Windows support.
+          var deletion =
+              new Process.start('/bin/rm', ['-rf', _temporaryDirectory]);
+          deletion.startHandler = (){
+            _progress.allDone();
+          };
+        }
       }
     }
   }

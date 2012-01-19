@@ -57,10 +57,7 @@ void Handles<kHandleSizeInWords,
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 uword Handles<kHandleSizeInWords,
               kHandlesPerChunk,
-              kOffsetOfRawPtr>::AllocateHandle() {
-  // TODO(5411412): Accessing the current isolate is a performance problem,
-  // consider passing it down as a parameter.
-  Isolate* isolate = Isolate::Current();
+              kOffsetOfRawPtr>::AllocateHandle(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ASSERT(isolate->current_zone() != NULL);
   ASSERT(isolate->top_handle_scope() != NULL);
@@ -78,10 +75,7 @@ uword Handles<kHandleSizeInWords,
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 uword Handles<kHandleSizeInWords,
               kHandlesPerChunk,
-              kOffsetOfRawPtr>::AllocateZoneHandle() {
-  // TODO(5411412): Accessing the current isolate is a performance problem,
-  // consider passing it down as a parameter.
-  Isolate* isolate = Isolate::Current();
+              kOffsetOfRawPtr>::AllocateZoneHandle(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ASSERT(isolate->current_zone() != NULL);
   ASSERT(isolate->no_handle_scope_depth() == 0);
@@ -309,7 +303,7 @@ void Handles<kHandleSizeInWords,
              kOffsetOfRawPtr>::HandlesBlock::Visit(HandleVisitor* visitor) {
   ASSERT(visitor != NULL);
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
-    visitor->Visit(&data_[i + kOffsetOfRawPtr/kWordSize]);
+    visitor->VisitHandle(reinterpret_cast<uword>(&data_[i]));
   }
 }
 

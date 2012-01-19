@@ -107,7 +107,6 @@ class CoreRuntimeTypesTest {
     assertTypeError(() { x & y;});
     assertTypeError(() { x << y;});
     assertTypeError(() { x >> y;});
-    assertTypeError(() { x >>> y;});
     assertTypeError(() { x ~/ y;});
     assertTypeError(() { x % y;});
 

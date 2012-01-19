@@ -696,7 +696,7 @@ static bool AtIdNodeHasTwoClasses(AstNode* node,
 // SHL: Implement with slow case so that it works both with Smi and Mint types.
 // Result is in EAX. Mangles ECX, EBX, EDX.
 void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
-  if (node->kind() == Token::kSAR) {
+  if (node->kind() == Token::kSHR) {
     // TODO(srdjan): Implement for Mint?
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EAX, ECX, kDeoptSAR);
@@ -1003,7 +1003,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
       default:
         UNREACHABLE();
     }
-  } else if ((kind == Token::kSHL) || (kind == Token::kSAR)) {
+  } else if ((kind == Token::kSHL) || (kind == Token::kSHR)) {
     GenerateSmiShiftBinaryOp(node);
   } else {
     // Unhandled node kind.

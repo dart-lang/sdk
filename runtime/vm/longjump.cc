@@ -20,14 +20,13 @@ jmp_buf* LongJump::Set() {
 }
 
 
-void LongJump::Jump(int value, const char* msg) {
+void LongJump::Jump(int value, const Error& error) {
   // A zero is the default return value from setting up a LongJump using Set.
   ASSERT(value != 0);
 
   Isolate* isolate = Isolate::Current();
 
-  // Remember the message in the sticky error message of this isolate.
-  const String& error = String::Handle(String::New(msg));
+  // Remember the error in the sticky error of this isolate.
   isolate->object_store()->set_sticky_error(error);
 
   // Destruct all the active StackResource objects.

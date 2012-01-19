@@ -172,9 +172,13 @@ public class DartCompiler {
           return;
         }
         if (!context.getFilesHaveChanged()) {
-          return;
+          for (Backend be : backends) {
+            if(context.isOutOfDate(app, app, be.getAppExtension())) {
+              packageApp = true;
+              break;
+            }
+          }
         }
-
         compileLibraries();
         packageApp();
       } catch (IOException e) {
@@ -205,9 +209,6 @@ public class DartCompiler {
         parseOutOfDateFiles();
         if (incremental) {
           addOutOfDateDeps();
-        }
-        if (!context.getFilesHaveChanged()) {
-          return library;
         }
         if (!config.resolveDespiteParseErrors() && (context.getErrorCount() > 0)) {
           return library;
@@ -260,7 +261,7 @@ public class DartCompiler {
             }
 
             DartUnit apiUnit = apiLib.getUnit(dartSrc.getName());
-            if (apiUnit == null || (!libIsDartUri && isSourceOutOfDate(dartSrc, libSrc))) {
+            if (apiUnit == null || isSourceOutOfDate(dartSrc, libSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes());
               if (unit != null) {
                 if (libNode == selfSourcePath) {

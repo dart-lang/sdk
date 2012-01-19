@@ -482,6 +482,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
             case DYNAMIC:
               return member.getType();
             default:
+              // target.field() as Function invocation. 
+              if (types.isAssignable(functionType, field.getType())) {
+                return dynamicType;
+              }
+              // "field" is not Function, so bad structure.
               return typeError(diagnosticNode, TypeErrorCode.USE_ASSIGNMENT_ON_SETTER,
                                name, receiver);
           }
@@ -996,8 +1001,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitMethodDefinition(DartMethodDefinition node) {
       MethodElement methodElement = node.getSymbol();
-      if (methodElement.getModifiers().isFactory()) {
+      Modifiers modifiers = methodElement.getModifiers();
+      if (modifiers.isFactory()) {
         analyzeFactory(node.getName(), (ConstructorElement) methodElement);
+      } else if (modifiers.isSetter()) {
+        DartTypeNode returnType = node.getFunction().getReturnTypeNode();
+        if (returnType != null && returnType.getType() != voidType) {
+          typeError(returnType, TypeErrorCode.SETTER_RETURN_TYPE, methodElement.getName());
+        }
       }
       return typeAsVoid(node);
     }

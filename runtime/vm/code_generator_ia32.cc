@@ -909,7 +909,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
 void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
   // PrimaryNodes are temporary during parsing.
   ErrorMsg(node->token_index(),
-      "Unexpected primary node: %s", node->primary().ToCString());
+      "Unresolved identifier '%s'", node->primary().ToCString());
 }
 
 
@@ -2311,12 +2311,12 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
-    String& errmsg = String::Handle();
+    Error& error = Error::Handle();
     type ^= ClassFinalizer::FinalizeAndCanonicalizeType(instantiator_class,
                                                         type,
-                                                        &errmsg);
-    if (!errmsg.IsNull()) {
-      ErrorMsg(token_index, errmsg.ToCString());
+                                                        &error);
+    if (!error.IsNull()) {
+      ErrorMsg(token_index, error.ToErrorCString());
     }
     type_arguments = type.arguments();
     __ PushObject(type_arguments);
@@ -2791,17 +2791,14 @@ void CodeGenerator::AddCurrentDescriptor(PcDescriptors::Kind kind,
 
 
 void CodeGenerator::ErrorMsg(intptr_t token_index, const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
   const Class& cls = Class::Handle(parsed_function_.function().owner());
   const Script& script = Script::Handle(cls.script());
-  Parser::FormatMessage(script, token_index, "Error",
-                        message_buffer, kMessageBufferSize,
-                        format, args);
+  const Error& error = Error::Handle(
+      Parser::FormatError(script, token_index, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+  Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 

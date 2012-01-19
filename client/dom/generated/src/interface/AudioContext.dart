@@ -24,7 +24,7 @@ interface AudioContext default _AudioContextFactoryProvider {
 
   BiquadFilterNode createBiquadFilter();
 
-  AudioBuffer createBuffer();
+  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate]);
 
   AudioBufferSourceNode createBufferSource();
 

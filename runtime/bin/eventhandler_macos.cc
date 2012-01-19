@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -55,7 +55,7 @@ EventHandlerImplementation::EventHandlerImplementation() {
   socket_map_ = reinterpret_cast<SocketData*>(calloc(socket_map_size_,
                                                      sizeof(SocketData)));
   ASSERT(socket_map_ != NULL);
-  result = pipe(interrupt_fds_);
+  result = TEMP_FAILURE_RETRY(pipe(interrupt_fds_));
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
@@ -67,8 +67,8 @@ EventHandlerImplementation::EventHandlerImplementation() {
 
 EventHandlerImplementation::~EventHandlerImplementation() {
   free(socket_map_);
-  close(interrupt_fds_[0]);
-  close(interrupt_fds_[1]);
+  TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
+  TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
 
 
@@ -82,7 +82,7 @@ SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
     } while (fd >= new_socket_map_size);
     size_t new_socket_map_bytes = new_socket_map_size * sizeof(SocketData);
     socket_map_ = reinterpret_cast<SocketData*>(realloc(socket_map_,
-                                                      new_socket_map_bytes));
+                                                        new_socket_map_bytes));
     ASSERT(socket_map_ != NULL);
     size_t socket_map_bytes = socket_map_size_ * sizeof(SocketData);
     memset(socket_map_ + socket_map_size_,
@@ -147,15 +147,16 @@ struct pollfd* EventHandlerImplementation::GetPollFds(intptr_t* pollfds_size) {
 
 bool EventHandlerImplementation::GetInterruptMessage(InterruptMessage* msg) {
   int total_read = 0;
-  int bytes_read = read(interrupt_fds_[0], msg, kInterruptMessageSize);
+  int bytes_read =
+      TEMP_FAILURE_RETRY(read(interrupt_fds_[0], msg, kInterruptMessageSize));
   if (bytes_read < 0) {
     return false;
   }
   total_read = bytes_read;
   while (total_read < kInterruptMessageSize) {
-    bytes_read = read(interrupt_fds_[0],
-                  msg + total_read,
-                  kInterruptMessageSize - total_read);
+    bytes_read = TEMP_FAILURE_RETRY(read(interrupt_fds_[0],
+                                         msg + total_read,
+                                         kInterruptMessageSize - total_read));
     if (bytes_read > 0) {
       total_read = total_read + bytes_read;
     }
@@ -253,11 +254,13 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
           // recv to peek for whether the other end of the socket
           // actually closed.
           char buffer;
-          ssize_t bytesPeeked = recv(sd->fd(), &buffer, 1, MSG_PEEK);
+          ssize_t bytesPeeked =
+              TEMP_FAILURE_RETRY(recv(sd->fd(), &buffer, 1, MSG_PEEK));
+          ASSERT(EAGAIN == EWOULDBLOCK);
           if (bytesPeeked == 0) {
             event_mask = (1 << kCloseEvent);
             sd->MarkClosedRead();
-          } else if (errno != EAGAIN) {
+          } else if (errno != EWOULDBLOCK) {
             fprintf(stderr, "Error recv: %s\n", strerror(errno));
           }
         }
@@ -344,9 +347,10 @@ void* EventHandlerImplementation::Poll(void* args) {
   while (1) {
     pollfds = handler->GetPollFds(&pollfds_size);
     intptr_t millis = handler->GetTimeout();
-    intptr_t result = poll(pollfds, pollfds_size, millis);
+    intptr_t result = TEMP_FAILURE_RETRY(poll(pollfds, pollfds_size, millis));
+    ASSERT(EAGAIN == EWOULDBLOCK);
     if (result == -1) {
-      if (errno != EAGAIN && errno != EINTR) {
+      if (errno != EWOULDBLOCK) {
         perror("Poll failed");
       }
     } else {

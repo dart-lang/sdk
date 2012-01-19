@@ -18,12 +18,6 @@ class Helper {
   }
 }
 
-class TryCatch6NegativeTest {
-  static testMain() {
-    Expect.equals(1, Helper.f1(1));
-  }
-}
-
 main() {
-  TryCatch6NegativeTest.testMain();
+  Expect.equals(1, Helper.f1(1));
 }

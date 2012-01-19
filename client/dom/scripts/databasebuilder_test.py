@@ -69,7 +69,7 @@ ACTUAL:
         };
       };''')
     self._builder.import_idl_file(file_name)
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_interface_exists('I.idl')
 
@@ -82,7 +82,7 @@ ACTUAL:
         };
       };''')
     self._builder.import_idl_file(file_name)
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('I.idl', '''
       interface I {
@@ -104,7 +104,7 @@ ACTUAL:
       };''')
     options = DatabaseBuilderOptions(type_rename_map={'I': 'i', 'T': 't'})
     self._builder.import_idl_file(file_name, options)
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('i.idl', '''
       interface i {
@@ -125,7 +125,7 @@ ACTUAL:
       };''')
     options = DatabaseBuilderOptions()
     self._builder.import_idl_file(file_name, options)
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('I.idl', '''
       interface I :
@@ -154,8 +154,6 @@ ACTUAL:
           int op_both_optionals_difference(int a,
             in optional int b);
           int op_both_arg_rename(int arg);
-
-          snippet {FIRST SNIPPET};
         };
       };''')
     self._builder.import_idl_file(file_name1,
@@ -178,15 +176,13 @@ ACTUAL:
           int op_both_optionals_difference(int a,
             optional boolean b);
           int op_both_arg_rename(int betterName);
-
-          snippet {SECOND SNIPPET};
         };
       };''')
     self._builder.import_idl_file(file_name2,
       DatabaseBuilderOptions(source='2nd',
         idl_syntax=idlparser.FREMONTCUT_SYNTAX))
     self._builder.set_same_signatures({'int': 'long'})
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('I.idl', '''
       @1st(module=M) @2nd(module=M) interface I {
@@ -213,10 +209,6 @@ ACTUAL:
         @2nd int op_both_optionals_difference(in t a, in boolean b);
         @1st int op_only_first();
         @2nd int op_only_second();
-
-        /* Snippets */
-        @1st snippet {FIRST SNIPPET};
-        @2nd snippet {SECOND SNIPPET};
       };''')
 
   def test_mergeDartName(self):
@@ -238,7 +230,7 @@ ACTUAL:
     self._builder.import_idl_file(file_name2,
       DatabaseBuilderOptions(source='2nd',
         idl_syntax=idlparser.FREMONTCUT_SYNTAX))
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('I.idl', '''
       @1st(module=M) @2nd(module=M) interface I {
@@ -258,10 +250,10 @@ ACTUAL:
       };''')
     self._builder.import_idl_file(file_name,
       DatabaseBuilderOptions(source='Src'))
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('I.idl', '''
-      @Src(module=M) interface I {
+      @Src(module=M) [Supplemental] interface I {
         /* Attributes */
         @Src getter attribute int a;
         @Src getter attribute int b;
@@ -275,7 +267,7 @@ ACTUAL:
       };''')
     self._builder.import_idl_file(file_name,
       DatabaseBuilderOptions(source='Src'))
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('I.idl', '''
       @Src(module=M) interface I :
@@ -302,7 +294,7 @@ ACTUAL:
     self._builder.import_idl_file(file_name2,
       DatabaseBuilderOptions(source='src',
                    obsolete_old_declarations=True))
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('I.idl', '''
       @src(module=M) interface I {
@@ -322,7 +314,7 @@ ACTUAL:
       };''')
     self._builder.import_idl_file(file_name,
       DatabaseBuilderOptions(source='Src', source_attributes={'x': 'y'}))
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     interface = self._db.GetInterface('I')
     interface.parents[0].annotations['Src']['x'] = 'u'
     interface.constants[0].annotations['Src']['z'] = 'w'
@@ -376,7 +368,7 @@ ACTUAL:
       };''')
     self._builder.import_idl_file(file_name2,
       DatabaseBuilderOptions(source='2nd'))
-    self._builder.merge_imported_interfaces()
+    self._builder.merge_imported_interfaces([])
     self._builder.fix_displacements('2nd')
     self._db.Save()
     self._assert_content_equals('J.idl', '''

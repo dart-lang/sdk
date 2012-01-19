@@ -1,16 +1,16 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_api.h"
-
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/dart_api_impl.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)  // only ia32 can run exception tests.
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 #define FUNCTION_NAME(name) UnhandledExcp_##name
 #define REGISTER_FUNCTION(name, count)                                         \
   { ""#name, FUNCTION_NAME(name), count },
@@ -134,6 +134,6 @@ TEST_CASE(UnhandledExceptions) {
                     0,
                     NULL);
 }
-#endif  // TARGET_ARCH_IA32.
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

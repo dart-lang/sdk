@@ -12,7 +12,7 @@ interface AudioNode {
 
   int get numberOfOutputs();
 
-  void connect(AudioNode destination, [int output, int input]);
+  void connect(AudioNode destination, int output, int input);
 
-  void disconnect([int output]);
+  void disconnect(int output);
 }

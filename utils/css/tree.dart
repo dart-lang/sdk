@@ -27,18 +27,18 @@ class Wildcard extends lang.Node {
 }
 
 // /*  ....   */
-class Comment extends lang.Node {
+class CssComment extends lang.Node {
   String comment;
 
-  Comment(this.comment, lang.SourceSpan span): super(span);
+  CssComment(this.comment, lang.SourceSpan span): super(span);
 
-  visit(TreeVisitor visitor) => visitor.visitComment(this);
+  visit(TreeVisitor visitor) => visitor.visitCssComment(this);
 
   String toString() => '/* ${comment} */';
 }
 
 // CDO/CDC (Comment Definition Open <!-- and Comment Definition Close -->).
-class CommentDefinition extends Comment {
+class CommentDefinition extends CssComment {
   CommentDefinition(String comment, lang.SourceSpan span): super(comment, span);
 
   visit(TreeVisitor visitor) => visitor.visitCommentDefinition(this);
@@ -58,7 +58,7 @@ class SelectorGroup extends lang.Node {
   String toString() {
     StringBuffer buff = new StringBuffer();
     int idx = 0;
-    for (var selector in _selectors) {
+    for (final selector in _selectors) {
       if (idx++ > 0) {
         buff.add(', ');
       }
@@ -179,7 +179,7 @@ class NamespaceSelector extends SimpleSelector {
 
   visit(TreeVisitor visitor) => visitor.visitNamespaceSelector(this);
 
-  String toString() => "$namespace|$nameAsSimpleSelector";
+  String toString() => "$namespace|${nameAsSimpleSelector.name}";
 }
 
 // [attr op value]
@@ -289,7 +289,7 @@ class Stylesheet extends lang.Node {
   List<lang.Node> _topLevels;
 
   Stylesheet(this._topLevels, lang.SourceSpan span) : super(span) {
-    for (var node in _topLevels) {
+    for (final node in _topLevels) {
       assert(node is TopLevelProduction || node is Directive);
     }
   }
@@ -300,7 +300,7 @@ class Stylesheet extends lang.Node {
   
   String toString() {
     StringBuffer buff = new StringBuffer();
-    for (var topLevel in _topLevels) {
+    for (final topLevel in _topLevels) {
       buff.add(topLevel.toString());
     }
     return buff.toString();
@@ -366,7 +366,7 @@ class ImportDirective extends Directive {
     buff.add('@import url(${_import})');
 
     int idx = 0;
-    for (var medium in _media) {
+    for (final medium in _media) {
       buff.add(idx++ == 0 ? ' $medium' : ',$medium');
     }
     buff.add('\n');
@@ -443,7 +443,7 @@ class KeyFrameDirective extends Directive {
   String toString() {
     StringBuffer buff = new StringBuffer();
     buff.add('@-webkit-keyframes ${_name} {\n');
-    for (var block in _blocks) {
+    for (final block in _blocks) {
       buff.add(block.toString());
     }
     buff.add('}\n');
@@ -557,7 +557,7 @@ class DeclarationGroup extends lang.Node {
   String toString() {
     StringBuffer buff = new StringBuffer();
     int idx = 0;
-    for (var declaration in _declarations) {
+    for (final declaration in _declarations) {
       buff.add("  ${declaration.toString()};\n");
     }
     return buff.toString();
@@ -748,7 +748,7 @@ class GroupTerm extends lang.Expression {
     StringBuffer buff = new StringBuffer();
     buff.add('(');
     int idx = 0;
-    for (var term in _terms) {
+    for (final term in _terms) {
       if (idx++ > 0) {
         buff.add(' ');
       }
@@ -783,7 +783,7 @@ class Expressions extends lang.Expression {
   String toString() {
     StringBuffer buff = new StringBuffer();
     int idx = 0;
-    for (var expression in _expressions) {
+    for (final expression in _expressions) {
       // Add space seperator between terms without an operator.
       // TODO(terry): Should have a BinaryExpression to solve this problem.
       if (idx > 0 &&
@@ -817,7 +817,7 @@ class UnaryExpression extends lang.Expression {
 }
 
 interface TreeVisitor {
-  void visitComment(Comment node);
+  void visitCssComment(CssComment node);
   void visitCommentDefinition(CommentDefinition node);
   void visitStylesheet(Stylesheet node);
   void visitTopLevelProduction(TopLevelProduction node);
@@ -896,7 +896,7 @@ class TreePrinter implements TreeVisitor {
     output.heading('Directive', node.span);
   }
 
-  void visitComment(Comment node) {
+  void visitCssComment(CssComment node) {
     output.heading('Comment', node.span);
     output.depth++;
     output.writeValue('comment value', node.comment);
@@ -1077,7 +1077,7 @@ class TreePrinter implements TreeVisitor {
       output.writeln("NULL");
     }
 
-    visitSimpleSelector(node);
+    visitSimpleSelector(node.nameAsSimpleSelector);
     output.depth--;
   }
 

@@ -40,6 +40,8 @@ interface InspectorFrontendHost {
 
   void requestDetachWindow();
 
+  void requestSetDockSide(String side);
+
   void saveAs(String fileName, String content);
 
   void sendMessageToBackend(String message);

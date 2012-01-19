@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -24,19 +24,31 @@ StaticStateTest: Fail         # Bug 5401734
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
 
-[ $component == frogium ]
+[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff)) ]
 CrossIsolateMessageTest:Fail # HTMLElement should be hidden in workers
 MixedTest: Fail              # HTMLElement should be hidden in workers
 Mixed2Test: Fail             # HTMLElement should be hidden in workers
+
+[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
 Message2Test: Fail           # postMessage API currently expects String messages
 NestedSpawn2Test: Fail
 NestedSpawnTest: Fail
 
-[ $component == leg ]
-# TODO(ahe): Enable when leg matures.
+[ $component == webdriver && $browser == safari ]
+CrossIsolateMessageTest: Pass,Fail # Depends on 32/64 bit Safari. See Issue 1120
+MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
+Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
+MessageTest: Fail
+PromiseBasedTest: Fail
+
+[ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 
-[ $arch == x64 ]
+[ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
+*: Skip
+
+[ $component == leg ]
+# TODO(ahe): Enable when leg matures.
 *: Skip
 
 [ $arch == simarm ]

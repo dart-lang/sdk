@@ -5,6 +5,7 @@
 #include "vm/gc_marker.h"
 
 #include "vm/allocation.h"
+#include "vm/dart_api_state.h"
 #include "vm/isolate.h"
 #include "vm/pages.h"
 #include "vm/raw_object.h"
@@ -187,18 +188,18 @@ class MarkingVisitor : public ObjectPointerVisitor {
 };
 
 
-class MarkingWeakVisitor : public ObjectPointerVisitor {
+class MarkingWeakVisitor : public HandleVisitor {
  public:
   MarkingWeakVisitor() {
   }
 
-  void VisitPointers(RawObject** first, RawObject** last) {
-    for (RawObject** current = first; current <= last; current++) {
-      RawObject* raw_obj = *current;
-      ASSERT(raw_obj->IsHeapObject());
-      if (!raw_obj->IsMarked() && raw_obj->IsOldObject()) {
-        *current = Object::null();
-      }
+  void VisitHandle(uword addr) {
+    WeakPersistentHandle* handle =
+        reinterpret_cast<WeakPersistentHandle*>(addr);
+    RawObject* raw_obj = handle->raw();
+    ASSERT(raw_obj->IsHeapObject());
+    if (!raw_obj->IsMarked() && raw_obj->IsOldObject()) {
+      handle->Finalize();
     }
   }
 
@@ -213,16 +214,15 @@ void GCMarker::Prologue(Isolate* isolate) {
 
 
 void GCMarker::IterateRoots(Isolate* isolate, ObjectPointerVisitor* visitor) {
-  isolate->VisitStrongObjectPointers(visitor,
-                                     StackFrameIterator::kDontValidateFrames);
+  isolate->VisitObjectPointers(visitor,
+                               StackFrameIterator::kDontValidateFrames);
   heap_->IterateNewPointers(visitor);
   heap_->IterateCodePointers(visitor);
 }
 
 
-void GCMarker::IterateWeakRoots(Isolate* isolate,
-                                ObjectPointerVisitor* visitor) {
-  isolate->VisitWeakObjectPointers(visitor);
+void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
+  isolate->VisitWeakPersistentHandles(visitor);
 }
 
 

@@ -93,6 +93,10 @@ abstract class ResolverTestCase extends TestCase {
     return makeClass(name, supertype, Collections.<DartTypeNode>emptyList(), typeParameters);
   }
 
+  static DartClass makeInterface(String name, String... typeParameters) {
+    return makeInterface(name, Collections.<DartTypeNode>emptyList(), null, typeParameters);
+  }
+
   static DartClass makeClass(String name, DartTypeNode supertype, List<DartTypeNode> interfaces,
       String... typeParameters) {
     List<DartTypeParameter> parameterNodes = new ArrayList<DartTypeParameter>();
@@ -290,7 +294,7 @@ abstract class ResolverTestCase extends TestCase {
 
 
   protected static DartUnit makeUnit(DartNode... topLevelElements) {
-    DartUnit unit = new DartUnit(null);
+    DartUnit unit = new DartUnit(null, false);
     for (DartNode topLevelElement : topLevelElements) {
       unit.addTopLevelNode(topLevelElement);
     }

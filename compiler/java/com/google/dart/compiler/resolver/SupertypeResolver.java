@@ -4,7 +4,9 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.DartCompilerContext;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNodeTraverser;
@@ -13,12 +15,24 @@ import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Resolves the super class, interfaces, default implementation and
  * bounds type parameters of classes in a DartUnit.
  */
 public class SupertypeResolver {
+  private static final Set<String> BLACK_LISTED_TYPES = ImmutableSet.of(
+      "Dynamic",
+      "Function",
+      "bool",
+      "num",
+      "int",
+      "double",
+      "String");
 
   private ResolutionContext topLevelContext;
   private CoreTypeProvider typeProvider;
@@ -57,10 +71,13 @@ public class SupertypeResolver {
         supertype.getClass(); // Quick null check.
       }
       if (supertype != null) {
-        // TODO(scheglov) check for "extends/implements Dynamic"
-        /*if (supertype == typeProvider.getDynamicType()) {
-          topLevelContext.onError(superclassNode, ResolverErrorCode.EXTENDS_DYNAMIC, node.getName());
-        }*/
+        if (Elements.isTypeNode(superclassNode, BLACK_LISTED_TYPES)
+            && !isCoreLibrarySource(node.getSource())) {
+          topLevelContext.onError(
+              superclassNode,
+              ResolverErrorCode.BLACK_LISTED_EXTENDS,
+              superclassNode);
+        }
         classElement.setSupertype(supertype);
       } else {
         assert classElement.getName().equals("Object") : classElement;
@@ -75,37 +92,62 @@ public class SupertypeResolver {
       }
 
       if (node.getInterfaces() != null) {
-        for (DartTypeNode cls : node.getInterfaces()) {
-          Elements.addInterface(classElement, classContext.resolveInterface(cls, false, false));
+        for (DartTypeNode intNode : node.getInterfaces()) {
+          InterfaceType intElement = classContext.resolveInterface(intNode, false, false);
+          Elements.addInterface(classElement, intElement);
+          // Dynamic can not be used as interface.
+          if (Elements.isTypeNode(intNode, BLACK_LISTED_TYPES)
+              && !isCoreLibrarySource(node.getSource())) {
+            topLevelContext.onError(intNode, ResolverErrorCode.BLACK_LISTED_IMPLEMENTS, intNode);
+            continue;
+          }
+          // May be unresolved type, error already reported, ignore.
+          if (intElement.getKind() == TypeKind.DYNAMIC) {
+            continue;
+          }
         }
       }
-
-      for (Type typeParameter : classElement.getTypeParameters()) {
-        TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
-        DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
-        DartTypeNode boundNode = typeParameterNode.getBound();
-        Type bound;
-        if (boundNode != null) {
-          bound =
-              classContext.resolveType(
-                  boundNode,
-                  false,
-                  false,
-                  ResolverErrorCode.NO_SUCH_TYPE);
-          boundNode.setType(bound);
-        } else {
-          bound = typeProvider.getObjectType();
-        }
-        variable.setBound(bound);
-      }
-
+      setBoundsOnTypeParameters(classElement.getTypeParameters(), classContext);
       return null;
     }
 
     @Override
     public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      ResolutionContext resolutionContext = topLevelContext.extend(node.getSymbol());
       Elements.addInterface(node.getSymbol(), typeProvider.getFunctionType());
+      setBoundsOnTypeParameters(node.getSymbol().getTypeParameters(), resolutionContext);
       return null;
     }
+  }
+
+  private void setBoundsOnTypeParameters(List<? extends Type> typeParameters,
+                                         ResolutionContext resolutionContext) {
+    for (Type typeParameter : typeParameters) {
+      TypeVariableElement variable = (TypeVariableElement) typeParameter.getElement();
+      DartTypeParameter typeParameterNode = (DartTypeParameter) variable.getNode();
+      DartTypeNode boundNode = typeParameterNode.getBound();
+      Type bound;
+      if (boundNode != null) {
+        bound =
+            resolutionContext.resolveType(
+                boundNode,
+                false,
+                false,
+                ResolverErrorCode.NO_SUCH_TYPE);
+        boundNode.setType(bound);
+      } else {
+        bound = typeProvider.getObjectType();
+      }
+      variable.setBound(bound);
+    }
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Source} represents code library declaration or
+   *         implementation.
+   */
+  static boolean isCoreLibrarySource(Source source) {
+    return Elements.isLibrarySource(source, "corelib.dart")
+        || Elements.isLibrarySource(source, "corelib_impl.dart");
   }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,7 +25,7 @@ namespace dart {
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
-DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
+DEFINE_FLAG(int, optimization_invocation_threshold, -1,
     "number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_invocation_count);
@@ -908,7 +908,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
 void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
   // PrimaryNodes are temporary during parsing.
   ErrorMsg(node->token_index(),
-      "Unexpected primary node: %s", node->primary().ToCString());
+      "Unresolved identifier '%s'", node->primary().ToCString());
 }
 
 
@@ -2311,12 +2311,12 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
         Type::NewParameterizedType(instantiator_class, type_arguments));
-    String& errmsg = String::Handle();
+    Error& error = Error::Handle();
     type ^= ClassFinalizer::FinalizeAndCanonicalizeType(instantiator_class,
                                                         type,
-                                                        &errmsg);
-    if (!errmsg.IsNull()) {
-      ErrorMsg(token_index, errmsg.ToCString());
+                                                        &error);
+    if (!error.IsNull()) {
+      ErrorMsg(token_index, error.ToErrorCString());
     }
     type_arguments = type.arguments();
     __ PushObject(type_arguments);
@@ -2791,17 +2791,14 @@ void CodeGenerator::AddCurrentDescriptor(PcDescriptors::Kind kind,
 
 
 void CodeGenerator::ErrorMsg(intptr_t token_index, const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
   const Class& cls = Class::Handle(parsed_function_.function().owner());
   const Script& script = Script::Handle(cls.script());
-  Parser::FormatMessage(script, token_index, "Error",
-                        message_buffer, kMessageBufferSize,
-                        format, args);
+  const Error& error = Error::Handle(
+      Parser::FormatError(script, token_index, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+  Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 

@@ -16,12 +16,12 @@ class _DirectoryEntrySyncWrappingImplementation extends _EntrySyncWrappingImplem
   }
   static DirectoryReaderSync _createReader(receiver) native;
 
-  DirectoryEntrySync getDirectory(String path, WebKitFlags flags) {
+  DirectoryEntrySync getDirectory(String path, Object flags) {
     return _getDirectory(this, path, flags);
   }
   static DirectoryEntrySync _getDirectory(receiver, path, flags) native;
 
-  FileEntrySync getFile(String path, WebKitFlags flags) {
+  FileEntrySync getFile(String path, Object flags) {
     return _getFile(this, path, flags);
   }
   static FileEntrySync _getFile(receiver, path, flags) native;

@@ -5,7 +5,10 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
@@ -24,6 +27,7 @@ import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSuperExpression;
+import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
@@ -36,9 +40,11 @@ import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.util.Paths;
 
 import java.io.File;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility and factory methods for elements.
@@ -329,7 +335,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
    * Returns true if the class needs an implicit default constructor.
    */
   public static boolean needsImplicitDefaultConstructor(ClassElement classElement) {
-    return !classElement.isObject() && classElement.getConstructors().isEmpty()
+    return classElement.getConstructors().isEmpty()
         && (!classElement.isInterface() || classElement.getDefaultClass() != null);
   }
 
@@ -431,6 +437,7 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return node;
   }
 
+
   /**
    * @return the {@link String} which contains user-readable description of "target" {@link Element}
    *         location relative to "source".
@@ -445,13 +452,11 @@ static FieldElementImplementation fieldFromNode(DartField node,
       }
       targetInfo = targetNode.getSourceInfo();
     }
-    // Prepare relative (short) path to the target unit from source unit.
-    String relativePath;
+    // Prepare path to the target unit from source unit.
+    String targetPath;
     {
       SourceInfo sourceInfo = source.getNode().getSourceInfo();
-      String sourceName = getSourceName(sourceInfo);
-      String targetName = getSourceName(targetInfo);
-      relativePath = Paths.relativePathFor(new File(sourceName), new File(targetName));
+      targetPath = getRelativeSourcePath(sourceInfo, targetInfo);
     }
     // Prepare (may be empty) target class name.
     String targetClassName;
@@ -462,36 +467,121 @@ static FieldElementImplementation fieldFromNode(DartField node,
     // Format location string.
     return MessageFormat.format(
         "{0}:{1}:{2}:{3}",
-        relativePath,
+        targetPath,
         targetClassName,
         targetInfo.getSourceLine(),
         targetInfo.getSourceColumn());
   }
-  
+
   /**
-   * @return the result of {@link Source#getName()} safely, even if {@link Source} is
-   *         <code>null</code>.
+   * @return the relative or absolute path from "source" to "target".
    */
-  private static String getSourceName(SourceInfo sourceInfo) {
-    Source source = sourceInfo.getSource();
-    if (source != null) {
-      return source.getName();
+  private static String getRelativeSourcePath(SourceInfo source, SourceInfo target) {
+    Source sourceSource = source.getSource();
+    Source targetSource = target.getSource();
+    // If both source are from file, prepare relative path.
+    if (sourceSource != null && targetSource != null) {
+      URI sourceUri = sourceSource.getUri();
+      URI targetUri = targetSource.getUri();
+      if (Objects.equal(sourceUri.getScheme(), "file")
+          && Objects.equal(targetUri.getScheme(), "file")) {
+        return Paths.relativePathFor(new File(sourceUri.getPath()), new File(targetUri.getPath()));
+      }
     }
-    return "";
+    // Else return absolute path (including dart:// protocol).
+    if (targetSource != null) {
+      URI targetUri = targetSource.getUri();
+      return targetUri.toString();
+    }
+    // No source for target.
+    return "<unknown>";
   }
-  
+
   /**
    * @return the enclosing {@link ClassElement} (may be same if already given {@link ClassElement}),
    *         may be <code>null</code> if top level element.
    */
   public static ClassElement getEnclosingClassElement(Element element) {
     DartNode node = element.getNode();
-    while (node != null) {
-      if (node instanceof DartClass) {
-        return ((DartClass) node).getSymbol();
-      }
+    if (node != null) {
       node = node.getParent();
+      while (node != null) {
+        if (node instanceof DartClass) {
+          return ((DartClass) node).getSymbol();
+        }
+        node = node.getParent();
+      }
     }
     return null;
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link DartTypeNode} is type with one of the given
+   *         names.
+   */
+  public static boolean isTypeNode(DartTypeNode typeNode, Set<String> names) {
+    if (typeNode != null) {
+      DartNode identifier = typeNode.getIdentifier();
+      String typeName = getIdentifierName(identifier);
+      return names.contains(typeName);
+    }
+    return false;
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link DartTypeNode} is type with given name.
+   */
+  public static boolean isTypeNode(DartTypeNode typeNode, String name) {
+    return typeNode != null && isIdentifierName(typeNode.getIdentifier(), name);
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link DartNode} is type identifier with given name.
+   */
+  public static boolean isIdentifierName(DartNode identifier, String name) {
+    String identifierName = getIdentifierName(identifier);
+    return Objects.equal(identifierName, name);
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link ConstructorElement} is a synthetic default
+   *         constructor.
+   */
+  public static boolean isSyntheticConstructor(ConstructorElement element) {
+    return element != null && element.getNode() == null;
+  }
+
+  /**
+   * @return <code>true</code> if the given {@link ConstructorElement} is a default constructor.
+   */
+  public static boolean isDefaultConstructor(ConstructorElement element) {
+    return element != null && element.getParameters().isEmpty()
+        && Elements.getRawMethodName(element).equals(element.getEnclosingElement().getName());
+  }
+
+  /**
+   * @return the name of given {@link DartNode} if it is {@link DartIdentifier}, or
+   *         <code>null</code> otherwise.
+   */
+  private static String getIdentifierName(DartNode identifier) {
+    if (identifier != null && identifier instanceof DartIdentifier) {
+      return ((DartIdentifier) identifier).getTargetName();
+    }
+    return null;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Source} represents library with given name.
+   */
+  public static boolean isLibrarySource(Source source, String name) {
+    if (source instanceof DartSource) {
+      DartSource dartSource = (DartSource) source;
+      LibrarySource library = dartSource.getLibrary();
+      if (library != null) {
+        String libraryName = library.getName();
+        return libraryName.startsWith("dart://") && libraryName.endsWith("/" + name);
+      }
+    }
+    return false;
   }
 }

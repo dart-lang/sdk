@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -165,7 +165,7 @@ intptr_t RawObject::SizeFromClass() const {
   }
   ASSERT(instance_size != 0);
   intptr_t tags = ptr()->tags_;
-  ASSERT((instance_size == (SizeTag::decode(tags))) ||
+  ASSERT((instance_size == SizeTag::decode(tags)) ||
          (SizeTag::decode(tags) == 0) ||
          FreeBit::decode(tags));
   return instance_size;
@@ -392,10 +392,11 @@ intptr_t RawContextScope::VisitContextScopePointers(
 }
 
 
-intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
-    RawUnhandledException* raw_obj, ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return UnhandledException::InstanceSize();
+intptr_t RawError::VisitErrorPointers(RawError* raw_obj,
+                                      ObjectPointerVisitor* visitor) {
+  // Error is an abstract class.
+  UNREACHABLE();
+  return 0;
 }
 
 
@@ -403,6 +404,27 @@ intptr_t RawApiError::VisitApiErrorPointers(
     RawApiError* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ApiError::InstanceSize();
+}
+
+
+intptr_t RawLanguageError::VisitLanguageErrorPointers(
+    RawLanguageError* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return LanguageError::InstanceSize();
+}
+
+
+intptr_t RawUnhandledException::VisitUnhandledExceptionPointers(
+    RawUnhandledException* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UnhandledException::InstanceSize();
+}
+
+
+intptr_t RawUnwindError::VisitUnwindErrorPointers(
+    RawUnwindError* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return UnwindError::InstanceSize();
 }
 
 

@@ -17,7 +17,7 @@ class AudioContext native "*AudioContext" {
 
   BiquadFilterNode createBiquadFilter() native;
 
-  AudioBuffer createBuffer() native;
+  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
 
   AudioBufferSourceNode createBufferSource() native;
 

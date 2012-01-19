@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,7 +14,6 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/platform.h"
-
 #include "platform/globals.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
@@ -261,8 +260,10 @@ static Dart_Handle LoadScript(const char* script_name) {
 }
 
 
-static bool CreateIsolateAndSetup(void* data, char** error) {
-  Dart_Isolate isolate = Dart_CreateIsolate(snapshot_buffer, data, error);
+static bool CreateIsolateAndSetup(const char* name_prefix,
+                                  void* data, char** error) {
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(name_prefix, snapshot_buffer, data, error);
   if (isolate == NULL) {
     return false;
   }
@@ -309,7 +310,7 @@ static bool CaptureScriptSnapshot() {
   Dart_Handle result;
 
   // First create an isolate and load up the specified script in it.
-  if (!CreateIsolateAndSetup(NULL, &error)) {
+  if (!CreateIsolateAndSetup(NULL, NULL, &error)) {
     fprintf(stderr, "%s\n", error);
     free(canonical_script_name);
     free(error);
@@ -360,6 +361,58 @@ static void PrintUsage() {
 }
 
 
+static Dart_Handle SetBreakpoint(const char* breakpoint_at,
+                                 Dart_Handle library) {
+  Dart_Handle result;
+  if (strchr(breakpoint_at, ':')) {
+    char* bpt_line = strdup(breakpoint_at);
+    char* colon = strchr(bpt_line, ':');
+    ASSERT(colon != NULL);
+    *colon = '\0';
+    Dart_Handle url = Dart_NewString(bpt_line);
+    Dart_Handle line_number = Dart_NewInteger(atoi(colon + 1));
+    free(bpt_line);
+    Dart_Breakpoint bpt;
+    result = Dart_SetBreakpointAtLine(url, line_number, &bpt);
+  } else {
+    char* bpt_function = strdup(breakpoint_at);
+    Dart_Handle class_name;
+    Dart_Handle function_name;
+    char* dot = strchr(bpt_function, '.');
+    if (dot == NULL) {
+      class_name = Dart_NewString("");
+      function_name = Dart_NewString(breakpoint_at);
+    } else {
+      *dot = '\0';
+      class_name = Dart_NewString(bpt_function);
+      function_name = Dart_NewString(dot + 1);
+    }
+    free(bpt_function);
+    Dart_Breakpoint bpt;
+    result = Dart_SetBreakpointAtEntry(
+                 library, class_name, function_name, &bpt);
+  }
+  return result;
+}
+
+
+char* BuildIsolateName(const char* script_name,
+                       const char* func_name) {
+  // Skip past any slashes in the script name.
+  const char* last_slash = strrchr(script_name, '/');
+  if (last_slash != NULL) {
+    script_name = last_slash + 1;
+  }
+
+  const char* kFormat = "%s/%s";
+  intptr_t len = strlen(script_name) + strlen(func_name) + 2;
+  char* buffer = new char[len];
+  ASSERT(buffer != NULL);
+  snprintf(buffer, len, kFormat, script_name, func_name);
+  return buffer;
+}
+
+
 int main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
@@ -406,15 +459,18 @@ int main(int argc, char** argv) {
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
-  if (!CreateIsolateAndSetup(NULL, &error)) {
+  char* isolate_name = BuildIsolateName(canonical_script_name, "main");
+  if (!CreateIsolateAndSetup(isolate_name, NULL, &error)) {
     fprintf(stderr, "%s\n", error);
     free(canonical_script_name);
     free(error);
     free(script_snapshot_buffer);
+    delete [] isolate_name;
     return 255;  // Indicates we encountered an error.
   }
-
   free(script_snapshot_buffer);  // Don't need it anymore.
+  delete [] isolate_name;
+
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
   Dart_Handle result;
@@ -441,7 +497,6 @@ int main(int argc, char** argv) {
     free(canonical_script_name);
     return 255;  // Indicates we encountered an error.
   }
-
   // Lookup the library of the main script.
   Dart_Handle script_url = Dart_NewString(canonical_script_name);
   Dart_Handle library = Dart_LookupLibrary(script_url);
@@ -454,22 +509,7 @@ int main(int argc, char** argv) {
   }
   // Set debug breakpoint if specified on the command line.
   if (breakpoint_at != NULL) {
-    char* bpt_function = strdup(breakpoint_at);
-    Dart_Handle class_name;
-    Dart_Handle function_name;
-    char* dot = strchr(bpt_function, '.');
-    if (dot == NULL) {
-      class_name = Dart_NewString("");
-      function_name = Dart_NewString(breakpoint_at);
-    } else {
-      *dot = '\0';
-      class_name = Dart_NewString(bpt_function);
-      function_name = Dart_NewString(dot + 1);
-    }
-    free(bpt_function);
-    Dart_Breakpoint bpt;
-    result = Dart_SetBreakpointAtEntry(
-                 library, class_name, function_name, &bpt);
+    result = SetBreakpoint(breakpoint_at, library);
     if (Dart_IsError(result)) {
       fprintf(stderr, "Error setting breakpoint at '%s': %s\n",
           breakpoint_at,

@@ -32,6 +32,27 @@ class GrowableObjectArrayTest {
     Expect.equals(-1, array.lastIndexOf(4, 2));
 
     Expect.equals(5, array.length);
+
+    testMap(int n) => n + 2;
+
+    GrowableObjectArray mapped = array.map(testMap);
+
+    Expect.equals(5, mapped.length);
+   
+    Expect.equals(3, mapped[0]);
+    Expect.equals(4, mapped[1]);
+    Expect.equals(5, mapped[2]);
+    Expect.equals(6, mapped[3]);
+    Expect.equals(3, mapped[4]);
+
+    Expect.equals(5, array.length);
+   
+    Expect.equals(1, array[0]);
+    Expect.equals(2, array[1]);
+    Expect.equals(3, array[2]);
+    Expect.equals(4, array[3]);
+    Expect.equals(1, array[4]);
+
     bool found = false;
     array = array.filter(bool _(e) {
       return found || !(found = (e == 1));

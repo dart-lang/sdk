@@ -85,7 +85,7 @@ class HtmlDiff {
 
   final CommentMap comments;
 
-  final Library dom;
+  static Library dom;
 
   /**
    * Perform static initialization of [world]. This should be run before

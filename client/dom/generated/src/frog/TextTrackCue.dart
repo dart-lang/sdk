@@ -23,6 +23,8 @@ class TextTrackCue native "*TextTrackCue" {
 
   num startTime;
 
+  String text;
+
   int textPosition;
 
   TextTrack track;
@@ -32,8 +34,6 @@ class TextTrackCue native "*TextTrackCue" {
   bool dispatchEvent(Event evt) native;
 
   DocumentFragment getCueAsHTML() native;
-
-  String getCueAsSource() native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

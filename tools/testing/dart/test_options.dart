@@ -6,7 +6,7 @@
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'stub-generator', 'vm', 'client'];
+           'isolate', 'stub-generator', 'vm', 'client', 'dartdoc'];
 
 /**
  * Specification of a single test option.
@@ -62,7 +62,7 @@ is 'dart file.dart' and you specify special command
               'The component to test against',
               ['-c', '--component'],
               ['most', 'vm', 'dartc', 'frog', 'frogsh', 'leg',
-               'dartium', 'chromium', 'frogium'],
+               'dartium', 'chromium', 'frogium', 'webdriver'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -132,6 +132,13 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
+              'keep-generated-tests',
+              'Keep the generated files in the temporary directory',
+              ['--keep-generated-tests'],
+              [],
+              false,
+              'bool'),
+          new _TestOptionSpecification(
               'valgrind',
               'Run tests through valgrind',
               ['--valgrind'],
@@ -150,7 +157,25 @@ is 'dart file.dart' and you specify special command
               ['--time'],
               [],
               false,
-              'bool')];
+              'bool'),
+          new _TestOptionSpecification(
+              'browser',
+              'Web browser to use on webdriver tests',
+              ['-b', '--browser'],
+              ['ff', 'chrome', 'safari', 'ie'],
+              'chrome'),
+          new _TestOptionSpecification(
+              'frog',
+              'Path to frog executable',
+              ['--frog'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'froglib',
+              'Path to frog library',
+              ['--froglib'],
+              [],
+              '')];
   }
 
 
@@ -165,27 +190,25 @@ is 'dart file.dart' and you specify special command
    */
   List<Map> parse(List<String> arguments) {
     var configuration = new Map();
-    // Build configuration of default values.
-    for (var option in _options) {
-      configuration[option.name] = option.defaultValue;
-    }
-    // Overwrite with the arguments passed to the test script.
+    // Fill in configuration with arguments passed to the test script.
     var numArguments = arguments.length;
     for (var i = 0; i < numArguments; i++) {
       // Extract name and value for options.
-      var arg = arguments[i];
-      var name = '';
-      var value = '';
+      String arg = arguments[i];
+      String name = '';
+      String value = '';
+      _TestOptionSpecification spec;
       if (arg.startsWith('--')) {
         if (arg == '--help') {
           _printHelp();
           return null;
         }
-        var split = arg.lastIndexOf('=');
+        var split = arg.indexOf('=');
         if (split == -1) {
           name = arg;
+          spec = _getSpecification(name);
           // Boolean options do not have a value.
-          if (_getSpecification(name).type != 'bool') {
+          if (spec.type != 'bool') {
             if ((i + 1) >= arguments.length) {
               print('No value supplied for option $name');
               return null;
@@ -194,6 +217,7 @@ is 'dart file.dart' and you specify special command
           }
         } else {
           name = arg.substring(0, split);
+          spec = _getSpecification(name);
           value = arg.substring(split + 1, arg.length);
         }
       } else if (arg.startsWith('-')) {
@@ -203,11 +227,13 @@ is 'dart file.dart' and you specify special command
         }
         if (arg.length > 2) {
           name = arg.substring(0, 2);
+          spec = _getSpecification(name);
           value = arg.substring(2, arg.length);
         } else {
           name = arg;
+          spec = _getSpecification(name);
           // Boolean options do not have a value.
-          if (_getSpecification(name).type != 'bool') {
+          if (spec.type != 'bool') {
             if ((i + 1) >= arguments.length) {
               print('No value supplied for option $name');
               return null;
@@ -224,10 +250,12 @@ is 'dart file.dart' and you specify special command
         patterns.add(arg);
         continue;
       }
-      // Find the option specification for the name.
-      var spec = _getSpecification(name);
-      if (spec == null) {
-        print('Unknown test option $name');
+
+
+      // Multiple uses of a flag are an error, because there is no
+      // naturally correct way to handle conflicting options.
+      if (configuration.containsKey(spec.name)) {
+        print('Error: test.dart disallows multiple "--${spec.name}" flags');
         exit(1);
       }
       // Parse the value for the option.
@@ -246,16 +274,25 @@ is 'dart file.dart' and you specify special command
         }
       } else {
         assert(spec.type == 'string');
-        for (var v in value.split(',')) {
-          if (spec.values.lastIndexOf(v) == -1) {
-            print('Unknown value ($v) for option $name');
-            exit(1);
+        if (!spec.values.isEmpty()) {
+          for (var v in value.split(',')) {
+            if (spec.values.lastIndexOf(v) == -1) {
+              print('Unknown value ($v) for option $name');
+              exit(1);
+            }
           }
         }
         configuration[spec.name] = value;
       }
     }
-    
+
+    // Apply default values for unspecified options.
+    for (var option in _options) {
+      if (!configuration.containsKey(option.name)) {
+        configuration[option.name] = option.defaultValue;
+      }
+    }
+
     return _expandConfigurations(configuration);
   }
 
@@ -441,7 +478,8 @@ is 'dart file.dart' and you specify special command
         return option;
       }
     }
-    return null;
+    print('Unknown test option $name');
+    exit(1);
   }
 
 

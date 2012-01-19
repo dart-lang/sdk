@@ -22,7 +22,7 @@ public class JsFieldAccessOptTest extends ExprOptTest {
 
     // Ensure that _marker_0.x remains _marker_0.x for loads
     String findMarkerAtOccurrence = findMarkerAtOccurrence(js, "_marker_0", DELIMETERS, 2);
-    assertEquals("_marker_0.x$field", findMarkerAtOccurrence);
+    assertEquals("_marker_0.x$setter", findMarkerAtOccurrence);
 
     // Ensure that _marker_0.x remains _marker_0.x for stores
     findMarkerAtOccurrence = findMarkerAtOccurrence(js, "_marker_0", DELIMETERS, 3);

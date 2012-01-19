@@ -1,11 +1,12 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/dartutils.h"
 #include "bin/directory.h"
 
+#include "bin/dartutils.h"
 #include "include/dart_api.h"
+#include "platform/assert.h"
 
 static intptr_t GetHandlerPort(Dart_Handle handle) {
   if (Dart_IsNull(handle)) {

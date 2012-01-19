@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,7 +14,6 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/file.h"
-
 #include "platform/globals.h"
 
 // Global state that indicates whether a snapshot is to be created and
@@ -228,7 +227,7 @@ int main(int argc, char** argv) {
   Dart_Initialize(NULL, NULL);
 
   char* error;
-  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, &error);
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, &error);
   if (isolate == NULL) {
     fprintf(stderr, "%s", error);
     free(error);

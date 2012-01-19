@@ -507,7 +507,6 @@
 #source('generated/src/interface/WebKitCSSKeyframesRule.dart');
 #source('generated/src/interface/WebKitCSSMatrix.dart');
 #source('generated/src/interface/WebKitCSSTransformValue.dart');
-#source('generated/src/interface/WebKitFlags.dart');
 #source('generated/src/interface/WebKitMutationObserver.dart');
 #source('generated/src/interface/WebKitNamedFlow.dart');
 #source('generated/src/interface/WebKitPoint.dart');
@@ -1009,7 +1008,6 @@
 #source('generated/src/wrapping/_WebKitCSSKeyframesRuleWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSMatrixWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSTransformValueWrappingImplementation.dart');
-#source('generated/src/wrapping/_WebKitFlagsWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitMutationObserverWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitNamedFlowWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitPointWrappingImplementation.dart');

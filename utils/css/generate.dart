@@ -6,9 +6,9 @@ class Generate {
 
   // Build up list of all known class selectors in all CSS files.
   static List<String> computeClassSelectors(RuleSet ruleset, classes) {
-    for (var selector in ruleset.selectorGroup.selectors) {
+    for (final selector in ruleset.selectorGroup.selectors) {
       var selSeqs = selector.simpleSelectorSequences;
-      for (selSeq in selSeqs) {
+      for (final selSeq in selSeqs) {
         var simpleSelector = selSeq.simpleSelector;
         if (simpleSelector is ClassSelector) {
           String className = simpleSelector.name;
@@ -33,7 +33,7 @@ class Generate {
         '// Do not edit.\n\n');
 
     // Emit class for any @stylet directive.
-    for (var production in stylesheet._topLevels) {
+    for (final production in stylesheet._topLevels) {
       if (production is Directive) {
         if (production is StyletDirective) {
           // TODO(terry): Need safer mechanism for stylets in different files
@@ -42,15 +42,15 @@ class Generate {
           buff.add('  // selector, properties<propertyName, value>\n');
           buff.add('  static final selectors = const {\n');
 
-          for (var ruleset in production.rulesets) {
-            for (var selector in ruleset.selectorGroup.selectors) {
+          for (final ruleset in production.rulesets) {
+            for (final selector in ruleset.selectorGroup.selectors) {
               var selSeq = selector.simpleSelectorSquences;
               if (selSeq.length == 1) {
                 buff.add('    \'${selSeq.toString()}\' : const {\n');
               }
             }
 
-            for (var decl in ruleset.declarationGroup.declarations) {
+            for (final decl in ruleset.declarationGroup.declarations) {
               buff.add('      \'${decl.property}\' : ' +
                   '\'${decl.expression.toString()}\',\n');
             }
@@ -59,7 +59,7 @@ class Generate {
           buff.add('  };\n');       // End of static selectors constant.
           buff.add('}\n\n');        // End of stylet class
         } else if (production is IncludeDirective) {
-          for (var topLevel in production.styleSheet._topLevels) {
+          for (final topLevel in production.styleSheet._topLevels) {
             if (topLevel is RuleSet) {
               knownClasses = computeClassSelectors(topLevel, knownClasses);
             }
@@ -74,7 +74,7 @@ class Generate {
     StringBuffer classSelectors = new StringBuffer(
       'class CSS {\n' +
       '  // CSS class selectors:\n');
-    for (var className in knownClasses) {
+    for (final className in knownClasses) {
       String classAsDart = className.replaceAll('-', '_').toUpperCase();
       classSelectors.add('  static final String ${classAsDart} = ' +
           '\'${className}\';\n');

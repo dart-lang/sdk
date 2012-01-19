@@ -39,10 +39,24 @@ class _AudioContextWrappingImplementation extends DOMWrapperBase implements Audi
   }
   static BiquadFilterNode _createBiquadFilter(receiver) native;
 
-  AudioBuffer createBuffer() {
-    return _createBuffer(this);
+  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) {
+    if (buffer_OR_numberOfChannels is ArrayBuffer) {
+      if (mixToMono_OR_numberOfFrames is bool) {
+        if (sampleRate === null) {
+          return _createBuffer(this, buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
+        }
+      }
+    } else {
+      if (buffer_OR_numberOfChannels is int) {
+        if (mixToMono_OR_numberOfFrames is int) {
+          return _createBuffer_2(this, buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
+        }
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static AudioBuffer _createBuffer(receiver) native;
+  static AudioBuffer _createBuffer(receiver, buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native;
+  static AudioBuffer _createBuffer_2(receiver, buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native;
 
   AudioBufferSourceNode createBufferSource() {
     return _createBufferSource(this);

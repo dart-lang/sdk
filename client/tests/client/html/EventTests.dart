@@ -19,11 +19,12 @@ eventTest(String name, Event eventFn(), void validate(Event),
 }
 
 testEvents() {
-  eventTest('AnimationEvent', () => new AnimationEvent('foo', 'color', 0.5),
-      (ev) {
-    Expect.equals('color', ev.animationName);
-    Expect.equals(0.5, ev.elapsedTime);
-  });
+  // Issue 1005.
+  // eventTest('AnimationEvent', () => new AnimationEvent('foo', 'color', 0.5),
+  //     (ev) {
+  //   Expect.equals('color', ev.animationName);
+  //   Expect.equals(0.5, ev.elapsedTime);
+  // });
 
   // Issue 1005.
   // eventTest('BeforeLoadEvent',
@@ -176,11 +177,12 @@ testEvents() {
   eventTest('TextEvent', () => new TextEvent('foo', window, 'data'),
       (ev) { Expect.equals('data', ev.data); });
 
-  eventTest('TransitionEvent', () => new TransitionEvent('foo', 'color', 0.5),
-      (ev) {
-    Expect.equals('color', ev.propertyName);
-    Expect.equals(0.5, ev.elapsedTime);
-  });
+  // Issue 1005.
+  // eventTest('TransitionEvent', () => new TransitionEvent('foo', 'color', 0.5),
+  //     (ev) {
+  //   Expect.equals('color', ev.propertyName);
+  //   Expect.equals(0.5, ev.elapsedTime);
+  // });
 
   eventTest('UIEvent', () => new UIEvent('foo', window, 12),
       (ev) {

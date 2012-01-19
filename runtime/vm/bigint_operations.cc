@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,10 +6,10 @@
 
 #include <openssl/crypto.h>
 
+#include "platform/utils.h"
 #include "vm/bigint_store.h"
 #include "vm/double_internals.h"
 #include "vm/exceptions.h"
-#include "vm/utils.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -140,9 +140,7 @@ RawBigint* BigintOperations::NewFromDouble(double d, Heap::Space space) {
     GrowableArray<const Object*> exception_arguments;
     exception_arguments.Add(
         &Object::ZoneHandle(String::New("BigintOperations::NewFromDouble")));
-    exception_arguments.Add(&Object::ZoneHandle(Double::New(d)));
-    Exceptions::ThrowByType(Exceptions::kInternalError,
-                            exception_arguments);
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
   }
   uint64_t significand = internals.Significand();
   int exponent = internals.Exponent();
@@ -356,7 +354,12 @@ uint64_t BigintOperations::ToUint64(const Bigint& bigint) {
 
 RawBigint* BigintOperations::Add(const Bigint& a, const Bigint& b) {
   int status = BN_add(TmpBN(), a.BNAddr(), b.BNAddr());
-  ASSERT(status == 1);
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::Add")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   const Bigint& result = Bigint::Handle(Bigint::New(TmpBN()));
   return result.raw();
 }
@@ -364,7 +367,12 @@ RawBigint* BigintOperations::Add(const Bigint& a, const Bigint& b) {
 
 RawBigint* BigintOperations::Subtract(const Bigint& a, const Bigint& b) {
   int status = BN_sub(TmpBN(), a.BNAddr(), b.BNAddr());
-  ASSERT(status == 1);
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::Subtract")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   const Bigint& result = Bigint::Handle(Bigint::New(TmpBN()));
   return result.raw();
 }
@@ -372,7 +380,12 @@ RawBigint* BigintOperations::Subtract(const Bigint& a, const Bigint& b) {
 
 RawBigint* BigintOperations::Multiply(const Bigint& a, const Bigint& b) {
   int status = BN_mul(TmpBN(), a.BNAddr(), b.BNAddr(), TmpBNCtx());
-  ASSERT(status == 1);
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::Multiply")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   const Bigint& result = Bigint::Handle(Bigint::New(TmpBN()));
   return result.raw();
 }
@@ -380,7 +393,12 @@ RawBigint* BigintOperations::Multiply(const Bigint& a, const Bigint& b) {
 
 RawBigint* BigintOperations::Divide(const Bigint& a, const Bigint& b) {
   int status = BN_div(TmpBN(), NULL, a.BNAddr(), b.BNAddr(), TmpBNCtx());
-  ASSERT(status == 1);
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::Divide")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   const Bigint& quotient = Bigint::Handle(Bigint::New(TmpBN()));
   return quotient.raw();
 }
@@ -388,7 +406,12 @@ RawBigint* BigintOperations::Divide(const Bigint& a, const Bigint& b) {
 
 RawBigint* BigintOperations::Modulo(const Bigint& a, const Bigint& b) {
   int status = BN_nnmod(TmpBN(), a.BNAddr(), b.BNAddr(), TmpBNCtx());
-  ASSERT(status == 1);
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::Modulo")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   const Bigint& modulo = Bigint::Handle(Bigint::New(TmpBN()));
   return modulo.raw();
 }
@@ -396,7 +419,12 @@ RawBigint* BigintOperations::Modulo(const Bigint& a, const Bigint& b) {
 
 RawBigint* BigintOperations::Remainder(const Bigint& a, const Bigint& b) {
   int status = BN_div(NULL, TmpBN(), a.BNAddr(), b.BNAddr(), TmpBNCtx());
-  ASSERT(status == 1);
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::Remainder")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   const Bigint& remainder = Bigint::Handle(Bigint::New(TmpBN()));
   return remainder.raw();
 }
@@ -404,7 +432,12 @@ RawBigint* BigintOperations::Remainder(const Bigint& a, const Bigint& b) {
 
 RawBigint* BigintOperations::ShiftLeft(const Bigint& bigint, intptr_t amount) {
   int status = BN_lshift(TmpBN(), bigint.BNAddr(), amount);
-  ASSERT(status == 1);
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::ShiftLeft")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   const Bigint& result = Bigint::Handle(Bigint::New(TmpBN()));
   return result.raw();
 }
@@ -413,8 +446,12 @@ RawBigint* BigintOperations::ShiftLeft(const Bigint& bigint, intptr_t amount) {
 RawBigint* BigintOperations::ShiftRight(const Bigint& bigint, intptr_t amount) {
   ASSERT(amount >= 0);
   int status = BN_rshift(TmpBN(), bigint.BNAddr(), amount);
-  ASSERT(status == 1);
-
+  if (status == 0) {
+    GrowableArray<const Object*> exception_arguments;
+    exception_arguments.Add(
+        &Object::ZoneHandle(String::New("BigintOperations::ShiftRight")));
+    Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
+  }
   // OpenSSL doesn't take account of sign when shifting - this fixes it.
   if (bigint.IsNegative()) {
     for (intptr_t i = 0; i < amount; ++i) {

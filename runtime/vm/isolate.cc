@@ -1,12 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/isolate.h"
 
 #include "include/dart_api.h"
-
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/bigint_store.h"
 #include "vm/code_index_table.h"
 #include "vm/compiler_stats.h"
@@ -29,7 +28,9 @@
 namespace dart {
 
 DEFINE_FLAG(bool, report_invocation_count, false,
-    "Count function invocations and report.");
+            "Count function invocations and report.");
+DEFINE_FLAG(bool, trace_isolates, false,
+            "Trace isolate creation and shut down.");
 DECLARE_FLAG(bool, generate_gdb_symbols);
 
 
@@ -38,6 +39,7 @@ Isolate::Isolate()
       message_queue_(NULL),
       post_message_callback_(NULL),
       close_port_callback_(NULL),
+      name_(NULL),
       num_ports_(0),
       live_ports_(0),
       main_port_(0),
@@ -70,6 +72,7 @@ Isolate::Isolate()
 
 
 Isolate::~Isolate() {
+  delete [] name_;
   delete message_queue_;
   delete heap_;
   delete object_store_;
@@ -108,7 +111,7 @@ static void StandardClosePortCallback(Dart_Isolate dart_isolate,
 }
 
 
-Isolate* Isolate::Init() {
+Isolate* Isolate::Init(const char* name_prefix) {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
 
@@ -134,11 +137,29 @@ Isolate* Isolate::Init() {
   // main thread.
   result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort());
+  result->BuildName(name_prefix);
 
   result->debugger_ = new Debugger();
   result->debugger_->Initialize(result);
-
+  if (FLAG_trace_isolates) {
+    if (strcmp(name_prefix, "vm-isolate") != 0) {
+      OS::Print("[+] Starting isolate:\n"
+                "\tisolate:    %s\n", result->name());
+    }
+  }
   return result;
+}
+
+
+void Isolate::BuildName(const char* name_prefix) {
+  ASSERT(name_ == NULL);
+  if (name_prefix == NULL) {
+    name_prefix = "isolate";
+  }
+  const char* kFormat = "%s-%lld";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, name_prefix, main_port()) + 1;
+  name_ = new char[len];
+  OS::SNPrint(name_, len, kFormat, name_prefix, main_port());
 }
 
 
@@ -257,7 +278,10 @@ void Isolate::Shutdown() {
   if (FLAG_generate_gdb_symbols) {
     DebugInfo::UnregisterAllSections();
   }
-
+  if (FLAG_trace_isolates) {
+    OS::Print("[-] Stopping isolate:\n"
+              "\tisolate:    %s\n", name());
+  }
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   SetCurrent(NULL);
@@ -294,8 +318,7 @@ static RawInstance* DeserializeMessage(void* data) {
   ASSERT(snapshot->IsMessageSnapshot());
 
   // Read object back from the snapshot.
-  Isolate* isolate = Isolate::Current();
-  SnapshotReader reader(snapshot, isolate->heap(), isolate->object_store());
+  SnapshotReader reader(snapshot, Isolate::Current());
   Instance& instance = Instance::Handle();
   instance ^= reader.ReadObject();
   return instance.raw();
@@ -334,13 +357,6 @@ RawObject* Isolate::StandardRunLoop() {
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool validate_frames) {
-  VisitStrongObjectPointers(visitor, validate_frames);
-  VisitWeakObjectPointers(visitor);
-}
-
-
-void Isolate::VisitStrongObjectPointers(ObjectPointerVisitor* visitor,
-                                        bool validate_frames) {
   ASSERT(visitor != NULL);
 
   // Visit objects in the object store.
@@ -362,7 +378,7 @@ void Isolate::VisitStrongObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
-    api_state()->VisitStrongObjectPointers(visitor);
+    api_state()->VisitObjectPointers(visitor);
   }
 
   // Visit all objects in the code index table.
@@ -378,9 +394,9 @@ void Isolate::VisitStrongObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
-void Isolate::VisitWeakObjectPointers(ObjectPointerVisitor* visitor) {
+void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
-    api_state()->VisitWeakObjectPointers(visitor);
+    api_state()->VisitWeakHandles(visitor);
   }
 }
 

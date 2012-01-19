@@ -54,7 +54,7 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
-  const String& error = String::Handle(object_store->sticky_error());
+  const Error& error = Error::Handle(object_store->sticky_error());
   if (!error.IsNull()) {
     return false;
   }
@@ -243,8 +243,9 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   // Finalize classes that aren't pre-finalized by Object::Init().
   if (!FinalizePendingClasses()) {
     // TODO(srdjan): Exit like a real VM instead.
-    const String& err = String::Handle(object_store->sticky_error());
-    OS::PrintErr("Could not verify bootstrap classes : %s\n", err.ToCString());
+    const Error& err = Error::Handle(object_store->sticky_error());
+    OS::PrintErr("Could not verify bootstrap classes : %s\n",
+                 err.ToErrorCString());
     OS::Exit(255);
   }
   if (FLAG_trace_class_finalization) {
@@ -697,7 +698,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
 RawAbstractType* ClassFinalizer::FinalizeAndCanonicalizeType(
     const Class& cls,
     const AbstractType& type,
-    String* errmsg) {
+    Error* error) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   LongJump* base = isolate->long_jump_base();
@@ -707,12 +708,12 @@ RawAbstractType* ClassFinalizer::FinalizeAndCanonicalizeType(
     const AbstractType& finalized_type =
         AbstractType::Handle(FinalizeType(cls, type));
     isolate->set_long_jump_base(base);
-    *errmsg = String::null();
+    *error = Error::null();
     return finalized_type.raw();
   } else {
     // Error occured: Get the error message.
     isolate->set_long_jump_base(base);
-    *errmsg = isolate->object_store()->sticky_error();
+    *error = isolate->object_store()->sticky_error();
     return type.raw();
   }
   UNREACHABLE();
@@ -1263,28 +1264,22 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
 void ClassFinalizer::ReportError(const Script& script,
                                  intptr_t token_index,
                                  const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
-  Parser::FormatMessage(script, token_index, "Error",
-                        message_buffer, kMessageBufferSize,
-                        format, args);
-  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+  const Error& error = Error::Handle(
+      Parser::FormatError(script, token_index, "Error", format, args));
+  Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
 
 void ClassFinalizer::ReportError(const char* format, ...) {
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
-  Parser::FormatMessage(Script::Handle(), -1, "Error",
-                        message_buffer, kMessageBufferSize,
-                        format, args);
+  const Error& error = Error::Handle(
+      Parser::FormatError(Script::Handle(), -1, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+  Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -1293,19 +1288,16 @@ void ClassFinalizer::ReportWarning(const Script& script,
                                   intptr_t token_index,
                                   const char* format, ...) {
   if (FLAG_silent_warnings) return;
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
   va_list args;
   va_start(args, format);
-  Parser::FormatMessage(script, token_index, "Warning",
-                        message_buffer, kMessageBufferSize,
-                        format, args);
+  const Error& error = Error::Handle(
+      Parser::FormatError(script, token_index, "Warning", format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
-    Isolate::Current()->long_jump_base()->Jump(1, message_buffer);
+    Isolate::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
   } else {
-    OS::Print(message_buffer);
+    OS::Print("%s", error.ToErrorCString());
   }
 }
 

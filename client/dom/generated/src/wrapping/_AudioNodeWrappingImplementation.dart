@@ -20,38 +20,17 @@ class _AudioNodeWrappingImplementation extends DOMWrapperBase implements AudioNo
   int get numberOfOutputs() { return _get_numberOfOutputs(this); }
   static int _get_numberOfOutputs(var _this) native;
 
-  void connect(AudioNode destination, [int output = null, int input = null]) {
-    if (output === null) {
-      if (input === null) {
-        _connect(this, destination);
-        return;
-      }
-    } else {
-      if (input === null) {
-        _connect_2(this, destination, output);
-        return;
-      } else {
-        _connect_3(this, destination, output, input);
-        return;
-      }
-    }
-    throw "Incorrect number or type of arguments";
+  void connect(AudioNode destination, int output, int input) {
+    _connect(this, destination, output, input);
+    return;
   }
-  static void _connect(receiver, destination) native;
-  static void _connect_2(receiver, destination, output) native;
-  static void _connect_3(receiver, destination, output, input) native;
+  static void _connect(receiver, destination, output, input) native;
 
-  void disconnect([int output = null]) {
-    if (output === null) {
-      _disconnect(this);
-      return;
-    } else {
-      _disconnect_2(this, output);
-      return;
-    }
+  void disconnect(int output) {
+    _disconnect(this, output);
+    return;
   }
-  static void _disconnect(receiver) native;
-  static void _disconnect_2(receiver, output) native;
+  static void _disconnect(receiver, output) native;
 
   String get typeName() { return "AudioNode"; }
 }

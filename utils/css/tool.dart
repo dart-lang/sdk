@@ -4,9 +4,10 @@
 
 #library('csstool');
 
+#import('../../frog/lang.dart', prefix:'lang');
 #import('../../frog/file_system.dart');
 #import('../../frog/file_system_node.dart');
-#import('../../frog/lang.dart', prefix:'lang');
+#import('../../frog/lib/node/node.dart');
 #import('css.dart');
 
 FileSystem files;

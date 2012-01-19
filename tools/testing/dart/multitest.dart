@@ -157,14 +157,17 @@ void DoMultitest(String filename,
 
 String CreateMultitestDirectory(String outputDir, String testDir) {
   final String generatedTestDirectory = 'generated_tests';
-  Directory parentDir = new Directory(outputDir + generatedTestDirectory);
-  if (!parentDir.existsSync()) {
-    parentDir.createSync();
+  Directory generatedTestDir = new Directory('$outputDir/generated_tests');
+  if (!new Directory(outputDir).existsSync()) {
+    new Directory(outputDir).createSync();
+  }
+  if (!generatedTestDir.existsSync()) {
+    generatedTestDir.createSync();
   }
   var split = testDir.split('/');
   var lastComponent = split.removeLast();
   Expect.isTrue(lastComponent == 'src');
-  String path = '${parentDir.path}/${split.last()}';
+  String path = '${generatedTestDir.path}/${split.last()}';
   Directory dir = new Directory(path);
   if (!dir.existsSync()) {
     dir.createSync();

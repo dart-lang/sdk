@@ -5,6 +5,8 @@
 
 // TODO(ager): Get rid of this version of test.dart when we don't have
 // to worry about the special runtime checkout anymore.
+// This file is identical to test.dart with test suites in the
+// directories samples, client, compiler, frog, and utils removed.
 
 #library("test");
 
@@ -33,6 +35,7 @@ main() {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
+  var keepGeneratedTests = firstConf['keep-generated-tests'];
 
   var configurationIterator = configurations.iterator();
   bool enqueueConfiguration(ProcessQueue queue) {
@@ -72,6 +75,7 @@ main() {
                                startTime,
                                printTiming,
                                enqueueConfiguration,
-                               verbose: verbose,
-                               listTests: listTests);
+                               verbose,
+                               listTests,
+                               keepGeneratedTests);
 }

@@ -11,12 +11,14 @@
 
 namespace dart {
 
+class Error;
+
 class LongJump : public ValueObject {
  public:
   LongJump() : top_(NULL) { }
 
   jmp_buf* Set();
-  void Jump(int value, const char* msg);
+  void Jump(int value, const Error& error);
 
  private:
   jmp_buf environment_;

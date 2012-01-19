@@ -87,6 +87,13 @@ class AudioBuffer native "*AudioBuffer" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
 
@@ -131,7 +138,7 @@ class AudioContext native "*AudioContext" {
 
   BiquadFilterNode createBiquadFilter() native;
 
-  AudioBuffer createBuffer() native;
+  AudioBuffer createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
 
   AudioBufferSourceNode createBufferSource() native;
 
@@ -206,9 +213,9 @@ class AudioNode native "*AudioNode" {
 
   int numberOfOutputs;
 
-  void connect(AudioNode destination, [int output = null, int input = null]) native;
+  void connect(AudioNode destination, int output, int input) native;
 
-  void disconnect([int output = null]) native;
+  void disconnect(int output) native;
 
   var dartObjectLocalStorage;
 
@@ -892,6 +899,8 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
   AudioBuffer buffer;
+
+  bool normalize;
 }
 
 class Coordinates native "*Coordinates" {
@@ -1403,8 +1412,6 @@ class DOMWindow native "@*DOMWindow" {
 
   DOMWindow open(String url, String name, [String options = null]) native;
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
-
   void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
@@ -1533,6 +1540,13 @@ class Database native "*Database" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool DatabaseCallback(var database);
 
 class DatabaseSync native "*DatabaseSync" {
 
@@ -1585,9 +1599,9 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   DirectoryReader createReader() native;
 
-  void getDirectory(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void getFile(String path, [WebKitFlags flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
 }
@@ -1596,9 +1610,9 @@ class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
 
   DirectoryReaderSync createReader() native;
 
-  DirectoryEntrySync getDirectory(String path, WebKitFlags flags) native;
+  DirectoryEntrySync getDirectory(String path, Object flags) native;
 
-  FileEntrySync getFile(String path, WebKitFlags flags) native;
+  FileEntrySync getFile(String path, Object flags) native;
 
   void removeRecursively() native;
 }
@@ -1947,6 +1961,13 @@ class Entity extends Node native "*Entity" {
 
 class EntityReference extends Node native "*EntityReference" {
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool EntriesCallback(EntryArray entries);
 
 class Entry native "*Entry" {
 
@@ -1998,6 +2019,13 @@ class EntryArraySync native "*EntryArraySync" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool EntryCallback(Entry entry);
 
 class EntrySync native "*EntrySync" {
 
@@ -2027,6 +2055,13 @@ class EntrySync native "*EntrySync" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool ErrorCallback(FileError error);
 
 class ErrorEvent extends Event native "*ErrorEvent" {
 
@@ -2183,6 +2218,13 @@ class File extends Blob native "*File" {
 
   String webkitRelativePath;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool FileCallback(File file);
 
 class FileEntry extends Entry native "*FileEntry" {
 
@@ -2311,6 +2353,10 @@ class FileReader native "*FileReader" {
 
   void abort() native;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(Event evt) native;
+
   void readAsArrayBuffer(Blob blob) native;
 
   void readAsBinaryString(Blob blob) native;
@@ -2318,6 +2364,8 @@ class FileReader native "*FileReader" {
   void readAsDataURL(Blob blob) native;
 
   void readAsText(Blob blob, [String encoding = null]) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   var dartObjectLocalStorage;
 
@@ -2338,6 +2386,13 @@ class FileReaderSync native "*FileReaderSync" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool FileSystemCallback(DOMFileSystem fileSystem);
 
 class FileWriter native "*FileWriter" {
 
@@ -2379,6 +2434,13 @@ class FileWriter native "*FileWriter" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool FileWriterCallback(FileWriter fileWriter);
 
 class FileWriterSync native "*FileWriterSync" {
 
@@ -4069,13 +4131,11 @@ class IDBDatabaseError native "*IDBDatabaseError" {
 
 class IDBDatabaseException native "*IDBDatabaseException" {
 
-  static final int ABORT_ERR = 13;
+  static final int ABORT_ERR = 8;
 
   static final int CONSTRAINT_ERR = 4;
 
   static final int DATA_ERR = 5;
-
-  static final int DEADLOCK_ERR = 11;
 
   static final int NON_TRANSIENT_ERR = 2;
 
@@ -4085,17 +4145,17 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int NO_ERR = 0;
 
-  static final int READ_ONLY_ERR = 12;
+  static final int QUOTA_ERR = 11;
 
-  static final int RECOVERABLE_ERR = 8;
-
-  static final int SERIAL_ERR = 7;
+  static final int READ_ONLY_ERR = 9;
 
   static final int TIMEOUT_ERR = 10;
 
-  static final int TRANSIENT_ERR = 9;
+  static final int TRANSACTION_INACTIVE_ERR = 7;
 
   static final int UNKNOWN_ERR = 1;
+
+  static final int VER_ERR = 12;
 
   int code;
 
@@ -4374,6 +4434,8 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
   void requestAttachWindow() native;
 
   void requestDetachWindow() native;
+
+  void requestSetDockSide(String side) native;
 
   void saveAs(String fileName, String content) native;
 
@@ -4730,6 +4792,13 @@ class Metadata native "*Metadata" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool MetadataCallback(Metadata metadata);
 
 class MouseEvent extends UIEvent native "*MouseEvent" {
 
@@ -5309,7 +5378,7 @@ class PerformanceTiming native "*PerformanceTiming" {
 
 class PointerLock native "*PointerLock" {
 
-  bool isLocked() native;
+  bool isLocked;
 
   void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
 
@@ -5324,6 +5393,13 @@ class PopStateEvent extends Event native "*PopStateEvent" {
 
   Object state;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool PositionCallback(Geoposition position);
 
 class PositionError native "*PositionError" {
 
@@ -5341,6 +5417,13 @@ class PositionError native "*PositionError" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool PositionErrorCallback(PositionError error);
 
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
@@ -5588,6 +5671,20 @@ class SQLResultSetRowList native "*SQLResultSetRowList" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
 
 class SQLTransaction native "*SQLTransaction" {
 
@@ -5595,6 +5692,20 @@ class SQLTransaction native "*SQLTransaction" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLTransactionCallback(SQLTransaction transaction);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLTransactionErrorCallback(SQLError error);
 
 class SQLTransactionSync native "*SQLTransactionSync" {
 
@@ -5602,6 +5713,13 @@ class SQLTransactionSync native "*SQLTransactionSync" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
 
 class SVGAElement extends SVGElement native "*SVGAElement" {
 
@@ -9121,7 +9239,31 @@ class Storage native "*Storage" {
 
   void setItem(String key, String data) native;
 
-  var dartObjectLocalStorage;
+  var get dartObjectLocalStorage() native """
+
+    if (this === window.localStorage)
+      return window._dartLocalStorageLocalStorage;
+    else if (this === window.sessionStorage)
+      return window._dartSessionStorageLocalStorage;
+    else
+      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
+
+""" {
+    throw new UnsupportedOperationException('');
+  }
+
+  void set dartObjectLocalStorage(var value) native """
+
+    if (this === window.localStorage)
+      window._dartLocalStorageLocalStorage = value;
+    else if (this === window.sessionStorage)
+      window._dartSessionStorageLocalStorage = value;
+    else
+      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
+
+""" {
+    throw new UnsupportedOperationException('');
+  }
 
   String get typeName() native;
 }
@@ -9155,6 +9297,34 @@ class StorageInfo native "*StorageInfo" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoErrorCallback(DOMException error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StringCallback(String data);
 
 class StyleMedia native "*StyleMedia" {
 
@@ -9291,6 +9461,8 @@ class TextTrackCue native "*TextTrackCue" {
 
   num startTime;
 
+  String text;
+
   int textPosition;
 
   TextTrack track;
@@ -9300,8 +9472,6 @@ class TextTrackCue native "*TextTrackCue" {
   bool dispatchEvent(Event evt) native;
 
   DocumentFragment getCueAsHTML() native;
-
-  String getCueAsSource() native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -9568,6 +9738,13 @@ class ValidityState native "*ValidityState" {
 
   String get typeName() native;
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef void VoidCallback();
 
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
@@ -10634,8 +10811,6 @@ class WebKitAnimationEvent extends Event native "*WebKitAnimationEvent" {
   String animationName;
 
   num elapsedTime;
-
-  void initWebKitAnimationEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String animationNameArg, num elapsedTimeArg) native;
 }
 
 class WebKitAnimationList native "*WebKitAnimationList" {
@@ -10827,17 +11002,6 @@ class WebKitCSSTransformValue extends CSSValueList native "*WebKitCSSTransformVa
   int operationType;
 }
 
-class WebKitFlags native "*WebKitFlags" {
-
-  bool create;
-
-  bool exclusive;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
-}
-
 class WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
@@ -10872,8 +11036,6 @@ class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
   num elapsedTime;
 
   String propertyName;
-
-  void initWebKitTransitionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String propertyNameArg, num elapsedTimeArg) native;
 }
 
 class WebSocket native "*WebSocket" {
@@ -11282,153 +11444,6 @@ class XSLTProcessor native "*XSLTProcessor" {
 
   String get typeName() native;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool DatabaseCallback(var database);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool EntriesCallback(EntryArray entries);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool EntryCallback(Entry entry);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool ErrorCallback(FileError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool FileCallback(File file);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool FileSystemCallback(DOMFileSystem fileSystem);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool FileWriterCallback(FileWriter fileWriter);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool MetadataCallback(Metadata metadata);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool PositionCallback(Geoposition position);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool PositionErrorCallback(PositionError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool SQLTransactionCallback(SQLTransaction transaction);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool SQLTransactionErrorCallback(SQLError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoErrorCallback(DOMException error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef bool StringCallback(String data);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-typedef void VoidCallback();
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

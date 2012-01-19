@@ -1,15 +1,16 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32)
+// Only ia32 and x64 can run execution tests.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 TEST_CASE(OldGC) {
   const char* kScriptChars =
   "class HeapTester {\n"
@@ -58,5 +59,5 @@ TEST_CASE(LargeSweep) {
   heap->CollectGarbage(Heap::kOld);
 }
 
-#endif  // TARGET_ARCH_IA32
+#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 }

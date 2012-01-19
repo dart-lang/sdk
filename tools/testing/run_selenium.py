@@ -9,10 +9,12 @@
 the result.
 """
 
+import os
 import optparse
 import platform
 import selenium
 from selenium.webdriver.support.ui import WebDriverWait
+import shutil
 import socket
 import sys
 import time
@@ -108,6 +110,11 @@ def Main():
   elif browser == 'ie' and platform.system() == 'Windows':
     browser = selenium.webdriver.Ie()
   elif browser == 'safari' and platform.system() == 'Darwin':
+    # TODO(efortuna): Ensure our preferences (no pop-up blocking) file is the 
+    # same (Safari auto-deletes when it has too many "crashes," or in our case, 
+    # timeouts). Come up with a less hacky way to do this.
+    shutil.copy(os.path.dirname(__file__) + '/com.apple.Safari.plist', 
+        '/Library/Preferences/com.apple.Safari.plist')
     sel = selenium.selenium('localhost', 4444, "*safari", 'file://' + html_out)
     try:
       sel.start()

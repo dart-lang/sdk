@@ -395,4 +395,43 @@ public class NegativeParserTest extends CompilerTestCase {
             "}"),
         errEx(ParserErrorCode.INTERFACE_METHOD_WITH_BODY, 3, 3, 3));
   }
+
+  /**
+   * The Language Specification in the section 6.1 states: "It is a compile-time error to preface a
+   * function declaration with the built-in identifier static."
+   */
+  public void test_staticFunction_topLevel() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "static foo() {",
+            "}"),
+        errEx(ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC, 2, 1, 6));
+  }
+
+  /**
+   * The Language Specification in the section 6.1 states: "It is a compile-time error to preface a
+   * function declaration with the built-in identifier static."
+   */
+  public void test_staticFunction_local() {
+    DartParserRunner parserRunner =
+        parseExpectErrors(
+            Joiner.on("\n").join(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "topLevelMethodWithLongEnoughNameToForceWrapping() {",
+                "  static int localFunction() {",
+                "  }",
+                "}"),
+            errEx(ParserErrorCode.LOCAL_CANNOT_BE_STATIC, 3, 3, 6));
+    // Check that "static" was ignored and "int" parsed as return type.
+    assertEquals(
+        makeCode(
+            "// unit " + getName(),
+            "",
+            "topLevelMethodWithLongEnoughNameToForceWrapping() {",
+            "  int localFunction() {",
+            "  };",
+            "}"),
+        parserRunner.getDartUnit().toSource());
+  }
 }

@@ -1,8 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/assert.h"
+#include "platform/assert.h"
 #include "vm/message_queue.h"
 #include "vm/unit_test.h"
 
@@ -65,7 +65,7 @@ void MessageReceiver_start(uword unused) {
   // We only need an isolate here because the MonitorLocker in the
   // MessageQueue expects it, we don't need to initialize the isolate
   // as it does not run any dart code.
-  Dart::CreateIsolate();
+  Dart::CreateIsolate(NULL);
 
   // Create a message queue and share it.
   MessageQueue* queue = new MessageQueue();

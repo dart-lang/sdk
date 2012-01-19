@@ -3,17 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to check that catch clause specifies a type.
 
-
-class TryCatch10NegativeTest {
-  static void testMain() {
-    try {
-      throw "Hello";
-    } catch (e) {  // Need final, var or type.
-      Expec.equals(true, false);
-    }
-  }
-}
-
 main() {
-  TryCatch10NegativeTest.testMain();
+  try {
+    throw "Hello";
+  } catch (e) {  // Need final, var or type.
+    Expect.equals(true, false);
+  }
 }

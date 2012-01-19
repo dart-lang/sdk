@@ -1,10 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/assert.h"
+#include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/unit_test.h"
-#include "vm/utils.h"
 
 namespace dart {
 
@@ -130,6 +130,10 @@ UNIT_TEST_CASE(IsInt) {
   EXPECT(!Utils::IsInt(16, 65535));
   EXPECT(Utils::IsInt(16, 32767));
   EXPECT(Utils::IsInt(16, -32768));
+  EXPECT(Utils::IsInt(32, 16LL));
+  EXPECT(Utils::IsInt(32, 2147483647LL));
+  EXPECT(Utils::IsInt(32, -2147483648LL));
+  EXPECT(!Utils::IsInt(32, 4294967295LL));
 }
 
 
@@ -142,6 +146,10 @@ UNIT_TEST_CASE(IsUint) {
   EXPECT(Utils::IsUint(16, 0));
   EXPECT(Utils::IsUint(16, 65535));
   EXPECT(!Utils::IsUint(16, 65536));
+  EXPECT(Utils::IsUint(32, 16LL));
+  EXPECT(Utils::IsUint(32, 0LL));
+  EXPECT(Utils::IsUint(32, 4294967295LL));
+  EXPECT(!Utils::IsUint(32, 4294967296LL));
 }
 
 
@@ -156,6 +164,11 @@ UNIT_TEST_CASE(IsAbsoluteUint) {
   EXPECT(Utils::IsAbsoluteUint(16, 65535));
   EXPECT(Utils::IsAbsoluteUint(16, -32768));
   EXPECT(!Utils::IsAbsoluteUint(16, 65536));
+  EXPECT(Utils::IsAbsoluteUint(32, 16LL));
+  EXPECT(Utils::IsAbsoluteUint(32, 0LL));
+  EXPECT(Utils::IsAbsoluteUint(32, -2147483648LL));
+  EXPECT(Utils::IsAbsoluteUint(32, 4294967295LL));
+  EXPECT(!Utils::IsAbsoluteUint(32, 4294967296LL));
 }
 
 

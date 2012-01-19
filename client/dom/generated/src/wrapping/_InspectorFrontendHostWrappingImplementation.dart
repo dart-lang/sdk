@@ -107,6 +107,12 @@ class _InspectorFrontendHostWrappingImplementation extends DOMWrapperBase implem
   }
   static void _requestDetachWindow(receiver) native;
 
+  void requestSetDockSide(String side) {
+    _requestSetDockSide(this, side);
+    return;
+  }
+  static void _requestSetDockSide(receiver, side) native;
+
   void saveAs(String fileName, String content) {
     _saveAs(this, fileName, content);
     return;

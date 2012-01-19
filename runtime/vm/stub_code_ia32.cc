@@ -112,6 +112,46 @@ void StubCode::GenerateStubCallToRuntimeStub(Assembler* assembler) {
 }
 
 
+// Print the stop message.
+static void PrintStopMessage(const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+
+
+// Input parameters:
+//   ESP : points to return address.
+//   EAX : stop message (const char*).
+// Must preserve all registers, except EAX.
+void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
+  // Preserve caller-saved registers.
+  __ pushl(ECX);
+  __ pushl(EDX);
+
+  __ EnterFrame(0);
+
+  // Reserve space for the native argument and align frame before entering
+  // the C++ world.
+  __ AddImmediate(ESP, Immediate(-sizeof(kWordSize)));
+  if (OS::ActivationFrameAlignment() > 0) {
+    __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  }
+
+  // Pass argument and call native function.
+  __ movl(Address(ESP, 0), EAX);
+  __ movl(EAX, Immediate(reinterpret_cast<uword>(&PrintStopMessage)));
+  __ call(EAX);
+  __ popl(EAX);
+
+  __ LeaveFrame();
+
+  // Restore caller-saved registers.
+  __ popl(EDX);
+  __ popl(ECX);
+
+  __ ret();
+}
+
+
 // Input parameters:
 //   ESP : points to return address.
 //   ESP + 4 : address of return value.

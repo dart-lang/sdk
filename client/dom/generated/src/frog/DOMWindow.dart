@@ -147,8 +147,6 @@ class DOMWindow native "@*DOMWindow" {
 
   DOMWindow open(String url, String name, [String options = null]) native;
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
-
   void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;

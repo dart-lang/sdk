@@ -7,7 +7,7 @@ class Validate {
     if (selector.isCombinatorDescendant() ||
         (selector.isCombinatorNone() && matches == 0)) {
       if (matches < 0) {
-        String tooMany = selector.toString();
+        String tooMany = selector.simpleSelector.toString();
         throw new CssSelectorException(
             'Can not mix Id selector with class selector(s). Id ' +
             'selector must be singleton too many starting at $tooMany');
@@ -26,11 +26,11 @@ class Validate {
       // Perfect just one element id returns matches of -1.
       return -1;
     } else if (selector.isCombinatorDescendant()) {
-        String tooMany = selector.toString();
+        String tooMany = selector.simpleSelector.toString();
         throw new CssSelectorException(
             'Use of Id selector must be singleton starting at $tooMany');
     } else {
-      String error = selector.toString();
+      String error = selector.simpleSelector.toString();
       throw new CssSelectorException(
           'Selectors can not have combinators (>, +, or ~) before $error');
     }
@@ -42,8 +42,12 @@ class Validate {
     var errorSelector;                  // signal which selector didn't match.
     bool found = false;                 // signal if a selector is matched.
     int matches = 0;                    // < 0 IdSelectors, > 0 ClassSelector
-    for (var sels in selectors) {
-      for (var selector in sels.simpleSelectorSequences) {
+
+    // At most one selector group (any number of simple selector sequences).
+    assert(selectors.length <= 1);
+
+    for (final sels in selectors) {
+      for (final selector in sels.simpleSelectorSequences) {
         found = false;
         var simpleSelector = selector.simpleSelector;
         if (simpleSelector is ClassSelector) {
@@ -53,13 +57,13 @@ class Validate {
             // TODO(terry): For now iterate through all classes look for faster
             //              mechanism hash map, etc.
             var className;
-            for (var className in cssWorld.classes) {
+            for (final className in cssWorld.classes) {
               if (selector.simpleSelector.name == className) {
                 matches = _classNameCheck(selector, matches);
                 found = true;              // .class found.
                 break;
               }
-              for (var className2 in cssWorld.classes) {
+              for (final className2 in cssWorld.classes) {
                 print(className2);
               }
             }
@@ -75,7 +79,7 @@ class Validate {
           // Any element id starting with an underscore is a private element id
           // that doesn't have to match the world of known elemtn ids.
           if (!simpleSelector.name.startsWith('_')) {
-            for (var id in cssWorld.ids) {
+            for (final id in cssWorld.ids) {
               if (simpleSelector.name == id) {
                 matches = _elementIdCheck(selector, matches);
                 found = true;             // #id found.
@@ -84,8 +88,7 @@ class Validate {
             }
           } else {
             // Don't check any element ID that is prefixed with an underscore.
-            // However, signal as found and bump up matches; it's a valid element
-            // ID.
+            // Signal as found and bump up matches; it's a valid element ID.
             matches = _elementIdCheck(selector, matches);
             found = true;                 // #_id are always okay
           }
@@ -103,7 +106,8 @@ class Validate {
     }
 
     // Every selector must match.
-    assert((matches >= 0 ? matches : -matches) == selectors.length);
+    assert((matches >= 0 ? matches : -matches) ==
+        selectors[0].simpleSelectorSequences.length);
   }
 }
 

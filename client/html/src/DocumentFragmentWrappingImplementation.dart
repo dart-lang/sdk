@@ -90,6 +90,7 @@ class FilteredElementList implements ElementList {
     return last;
   }
 
+  Collection map(f(Element element)) => _filtered.map(f);
   Collection<Element> filter(bool f(Element element)) => _filtered.filter(f);
   bool every(bool f(Element element)) => _filtered.every(f);
   bool some(bool f(Element element)) => _filtered.some(f);

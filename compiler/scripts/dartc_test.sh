@@ -3,6 +3,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+set -e
+
 case $(uname -s) in
     *Linux*|*linux*)
         OS="linux"
@@ -29,13 +31,7 @@ fi
 # On some system, the heap dynamically sizes to > 1GB.
 # Users can specify DART_JVMARGS in the environment to override
 # these settings.
-EXTRA_JVMARGS=-Xmx196M
-if [ "$OS" == "mac" ] ; then
-  # Bump up the stack size for mac clients
-  EXTRA_JVMARGS+=" -Xss2M"
-fi
-
-
+EXTRA_JVMARGS="-Xmx196M -Xss2M"
 
 exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -Dcom.google.dart.runner.d8="$D8_EXEC" \
   -Dcom.google.dart.runner.progname="$DART_SCRIPT_NAME" \

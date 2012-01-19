@@ -7,6 +7,7 @@
 
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/handles.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -32,6 +33,23 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last);
 
   static void VerifyPointers();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(VerifyPointersVisitor);
+};
+
+class VerifyWeakPointersVisitor : public HandleVisitor {
+ public:
+  explicit VerifyWeakPointersVisitor(VerifyPointersVisitor* visitor)
+      : visitor_(visitor) {
+  }
+
+  virtual void VisitHandle(uword addr);
+
+ private:
+  ObjectPointerVisitor* visitor_;
+
+  DISALLOW_COPY_AND_ASSIGN(VerifyWeakPointersVisitor);
 };
 
 }  // namespace dart

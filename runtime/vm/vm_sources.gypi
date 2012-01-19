@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -23,8 +23,6 @@
     'assembler_x64.cc',
     'assembler_x64.h',
     'assembler_x64_test.cc',
-    'assert.cc',
-    'assert.h',
     'assert_test.cc',
     'ast.cc',
     'ast.h',
@@ -43,7 +41,6 @@
     'bootstrap.h',
     'bootstrap_natives.h',
     'bootstrap_natives.cc',
-    'c99_support_win.h',
     'class_finalizer.h',
     'class_finalizer.cc',
     'class_finalizer_test.cc',
@@ -82,7 +79,6 @@
     'dart.cc',
     'dart.h',
     'dart_api_impl.h',
-    'dart_api_state.cc',
     'dart_api_state.h',
     'dart_api_impl_test.cc',
     'dart_entry.cc',
@@ -134,7 +130,6 @@
     'ic_data.h',
     'ic_data.cc',
     'ic_data_test.cc',
-    'inttypes_support_win.h',
     'instructions.h',
     'instructions_ia32.cc',
     'instructions_ia32.h',
@@ -239,13 +234,7 @@
     'stub_code_x64.cc',
     'stub_code_x64_test.cc',
     'thread.h',
-    'thread_linux.cc',
-    'thread_linux.h',
-    'thread_macos.cc',
-    'thread_macos.h',
     'thread_test.cc',
-    'thread_win.cc',
-    'thread_win.h',
     'timer.cc',
     'timer.h',
     'token.cc',
@@ -256,8 +245,6 @@
     'unicode_test.cc',
     'unit_test.cc',
     'unit_test.h',
-    'utils.cc',
-    'utils.h',
     'utils_test.cc',
     'virtual_memory.cc',
     'virtual_memory.h',

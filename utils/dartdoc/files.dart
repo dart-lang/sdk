@@ -61,6 +61,7 @@ libraryUrl(Library library) => '${sanitize(library.name)}.html';
 
 /** Gets the URL for the documentation for [type]. */
 typeUrl(Type type) {
+  if (type.isTop) return '${sanitize(type.library.name)}.html';
   // Always get the generic type to strip off any type parameters or arguments.
   // If the type isn't generic, genericType returns `this`, so it works for
   // non-generic types too.
@@ -68,7 +69,12 @@ typeUrl(Type type) {
 }
 
 /** Gets the URL for the documentation for [member]. */
-memberUrl(Member member) => '${typeUrl(member.declaringType)}#${member.name}';
+memberUrl(Member member) {
+  final typeUrl = typeUrl(member.declaringType);
+  if (!member.isConstructor) return '$typeUrl#${member.name}';
+  if (member.constructorName == '') return '$typeUrl#new:${member.name}';
+  return '$typeUrl#new:${member.name}.${member.constructorName}';
+}
 
 /** Gets the anchor id for the document for [member]. */
 memberAnchor(Member member) => '${member.name}';

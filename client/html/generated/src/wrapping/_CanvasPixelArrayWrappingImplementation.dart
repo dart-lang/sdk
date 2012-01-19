@@ -38,12 +38,12 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
   }
 
   int indexOf(int element, [int start = 0]) {
-    return _Lists.indexOf(this, element, start, this.length);
+    return Lists.indexOf(this, element, start, this.length);
   }
 
   int lastIndexOf(int element, [int start = null]) {
     if (start === null) start = length - 1;
-    return _Lists.lastIndexOf(this, element, start);
+    return Lists.lastIndexOf(this, element, start);
   }
 
   int clear() {
@@ -60,6 +60,10 @@ class CanvasPixelArrayWrappingImplementation extends DOMWrapperBase implements C
 
   void forEach(void f(int element)) {
     _Collections.forEach(this, f);
+  }
+
+  Collection map(f(int element)) {
+    return _Collections.map(this, [], f);
   }
 
   Collection<int> filter(bool f(int element)) {

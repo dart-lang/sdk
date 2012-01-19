@@ -228,8 +228,9 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   void forEach(void f(K key, V value)) {
     int length = _keys.length;
     for (int i = 0; i < length; i++) {
-      if ((_keys[i] !== null) && (_keys[i] !== _DELETED_KEY)) {
-        f(_keys[i], _values[i]);
+      var key = _keys[i];
+      if ((key !== null) && (key !== _DELETED_KEY)) {
+        f(key, _values[i]);
       }
     }
   }
@@ -260,7 +261,8 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
   bool containsValue(V value) {
     int length = _values.length;
     for (int i = 0; i < length; i++) {
-      if ((_keys[i] !== null) && (_keys[i] !== _DELETED_KEY)) {
+      var key = _keys[i];
+      if ((key !== null) && (key !== _DELETED_KEY)) {
         if (_values[i] == value) return true;
       }
     }
@@ -334,6 +336,14 @@ class HashSetImplementation<E extends Hashable> implements HashSet<E> {
     _backingMap.forEach(void _(E key, E value) {
       f(key);
     });
+  }
+
+  Set map(f(E element)) {
+    Set result = new Set();
+    _backingMap.forEach(void _(E key, E value) {
+      result.add(f(key));
+    });
+    return result;
   }
 
   Set<E> filter(bool f(E element)) {

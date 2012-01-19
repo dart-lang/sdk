@@ -1,15 +1,15 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/handles.h"
 
-#include "vm/assert.h"
+#include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
-#include "vm/utils.h"
 #include "vm/visitor.h"
 #include "vm/zone.h"
 
@@ -32,17 +32,17 @@ void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-uword VMHandles::AllocateHandle() {
+uword VMHandles::AllocateHandle(Isolate* isolate) {
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
-                 kOffsetOfRawPtr>::AllocateHandle();
+                 kOffsetOfRawPtr>::AllocateHandle(isolate);
 }
 
 
-uword VMHandles::AllocateZoneHandle() {
+uword VMHandles::AllocateZoneHandle(Isolate* isolate) {
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
-                 kOffsetOfRawPtr>::AllocateZoneHandle();
+                 kOffsetOfRawPtr>::AllocateZoneHandle(isolate);
 }
 
 
