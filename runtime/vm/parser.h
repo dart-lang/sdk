@@ -164,6 +164,7 @@ class Parser : ValueObject {
   void SkipListLiteral();
   void SkipFunctionLiteral();
   void SkipStringLiteral();
+  void SkipQualIdent();
 
   void CheckConstructorCallTypeArguments(
     intptr_t pos,
@@ -236,7 +237,6 @@ class Parser : ValueObject {
                              ParamList* params);
   void ParseFormalParameterList(bool allow_explicit_default_values,
                                 ParamList* params);
-  void ParseNamedFormalParameters(bool are_implicitly_const, ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,

@@ -822,6 +822,9 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
         (follower == Token::kPERIOD) ||  // Qualified class name of type.
         Token::IsIdentifier(follower) ||  // Parameter name following a type.
         (follower == Token::kTHIS)) {  // Field parameter following a type.
+      // The types of formal parameters are never ignored, even in unchecked
+      // mode, because they are part of the function type of closurized
+      // functions appearing in type tests with typedefs.
       parameter.type = &AbstractType::ZoneHandle(
           ParseType(is_top_level_ ? kCanResolve : kMustResolve));
     } else {
@@ -2329,6 +2332,9 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
           ((follower == Token::kPERIOD) &&    // Qualified class name of type,
            (LookaheadToken(3) != Token::kLPAREN))) {  // but not a named constr.
         ASSERT(is_top_level_);
+        // The declared type of fields is never ignored, even in unchecked mode,
+        // because getters and setters could be closurized at some time (not
+        // supported yet).
         member.type = &AbstractType::ZoneHandle(ParseType(kCanResolve));
       }
     }
@@ -2663,7 +2669,9 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
     ConsumeToken();
     result_type = Type::VoidType();
   } else if (!IsFunctionTypeAliasName()) {
-    result_type = ParseType(kDoNotResolve);  // No owner class yet.
+    // Type annotations in typedef are never ignored, even in unchecked mode.
+    // Wait until we have an owner class before resolving the result type.
+    result_type = ParseType(kDoNotResolve);
   }
 
   const intptr_t alias_name_pos = token_index_;
@@ -6656,10 +6664,14 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   }
   QualIdent type_name;
   const intptr_t type_pos = token_index_;
-  ParseQualIdent(&type_name);
-  if (type_name.is_local_scope_ident) {
-    ErrorMsg(type_pos, "using '%s' in this context is invalid",
-             type_name.ident->ToCString());
+  if (type_resolution == kIgnore) {
+    SkipQualIdent();
+  } else {
+    ParseQualIdent(&type_name);
+    if (type_name.is_local_scope_ident) {
+      ErrorMsg(type_pos, "using '%s' in this context is invalid",
+               type_name.ident->ToCString());
+    }
   }
   Class& scope_class = Class::Handle();
   Object& type_class = Object::Handle();
@@ -7762,6 +7774,16 @@ void Parser::SkipNestedExpr() {
   const bool saved_mode = SetAllowFunctionLiterals(true);
   SkipExpr();
   SetAllowFunctionLiterals(saved_mode);
+}
+
+
+void Parser::SkipQualIdent() {
+  ASSERT(IsIdentifier());
+  ConsumeToken();
+  if (CurrentToken() == Token::kPERIOD) {
+    ConsumeToken();  // Consume the kPERIOD token.
+    ExpectIdentifier("identifier expected after '.'");
+  }
 }
 
 }  // namespace dart
