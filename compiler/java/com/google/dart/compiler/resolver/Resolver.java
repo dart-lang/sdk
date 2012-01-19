@@ -272,6 +272,7 @@ public class Resolver {
         onError(cls.getDefaultClass(), ResolverErrorCode.NO_SUCH_TYPE, cls.getDefaultClass());
       } else if (classElement.getDefaultClass() != null) {
 
+        recordElement(cls.getDefaultClass().getExpression(), classElement);
         bindDefaultTypeParameters(classElement.getDefaultClass().getElement().getTypeParameters(),
                                   cls.getDefaultClass().getTypeParameters(),
                                   context);
@@ -337,6 +338,7 @@ public class Resolver {
 
         if (type.getElement().getName().equals(node.getName().getTargetName())) {
           node.setType(type);
+          recordElement(node.getName(), type.getElement());
         } else {
           node.setType(typeProvider.getDynamicType());
         }
@@ -1047,8 +1049,9 @@ public class Resolver {
 
     @Override
     public Element visitTypeNode(DartTypeNode x) {
-      return resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
+      Element result = resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
           ResolverErrorCode.NO_SUCH_TYPE).getElement();
+     return result;
     }
 
     @Override

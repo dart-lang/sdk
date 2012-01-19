@@ -13,6 +13,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -72,6 +73,10 @@ abstract class ResolverTestCase extends TestCase {
     new MemberBuilder().exec(unit, context, scope, typeProvider);
     new CompileTimeConstantResolver().exec(unit, context, typeProvider);
     new Resolver(context, scope, typeProvider).exec(unit);
+    // TODO(zundel): One day, we want all AST nodes that are identifiers to point to
+    // elements if they are resolved.  Uncommenting this line helps track missing elements
+    // down.
+    // ResolverAuditVisitor.exec(unit);
     return scope;
   }
 
@@ -126,6 +131,39 @@ abstract class ResolverTestCase extends TestCase {
 
   private static DartTypeParameter makeTypeVariable(String name) {
     return new DartTypeParameter(new DartIdentifier(name), null);
+  }
+
+  /**
+   * Look for  DartIdentifier nodes in the tree whose symbols are null.  They should all either
+   * be resolved, or marked as an unresolved element.
+   */
+  static class ResolverAuditVisitor extends DartNodeTraverser<Void> {
+    private List<String> failures = Lists.newArrayList();
+
+    @Override
+    public Void visitIdentifier(DartIdentifier node) {
+
+      if (node.getSymbol() == null) {
+        failures.add("Identifier: " + node.getTargetName() + " has null symbol @ ("
+            + node.getSourceLine() + ":" + node.getSourceColumn() + ")");
+      }
+      return null;
+    }
+
+    public List<String> getFailures() {
+      return failures;
+    }
+
+    public static void exec(DartNode root) {
+      ResolverAuditVisitor visitor = new ResolverAuditVisitor();
+      root.accept(visitor);
+      List<String> results = visitor.getFailures();
+      if (results.size() > 0) {
+        StringBuilder out = new StringBuilder("Missing symbols found in AST\n");
+        Joiner.on("\n").appendTo(out, results);
+        fail(out.toString());
+      }
+    }
   }
 
   static class MockCoreTypeProvider implements CoreTypeProvider {

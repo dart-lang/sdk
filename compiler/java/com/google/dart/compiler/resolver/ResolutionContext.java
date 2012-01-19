@@ -176,9 +176,29 @@ public class ResolutionContext implements ResolutionErrorListener {
     if (node == null) {
       return null;
     } else {
-      return resolveType(node, node.getIdentifier(), node.getTypeArguments(), isStatic, isFactory,
+      Type type = resolveType(node, node.getIdentifier(), node.getTypeArguments(), isStatic, isFactory,
                          errorCode);
+      recordTypeIdentifier(node.getIdentifier(), type.getElement());
+      return type;
     }
+  }
+
+  protected <E extends Element> E recordTypeIdentifier(DartNode node, E element) {
+    node.getClass();
+    if (node instanceof DartPropertyAccess) {
+      recordTypeIdentifier(((DartPropertyAccess)node).getQualifier(),
+                           element.getEnclosingElement());
+      return recordTypeIdentifier(((DartPropertyAccess)node).getName(), element);
+    } else if (node instanceof DartIdentifier) {
+      if (element == null) {
+        // TypeAnalyzer will diagnose unresolved identifiers.
+        return null;
+      }
+      node.setSymbol(element);
+    } else {
+      throw internalError(node, "Unexpected node: %s", node);
+    }
+    return element;
   }
 
   Type resolveType(DartNode diagnosticNode, DartNode identifier, List<DartTypeNode> typeArguments,
@@ -247,6 +267,7 @@ public class ResolutionContext implements ResolutionErrorListener {
                                              boolean isFactory,
                                              ErrorCode errorCode) {
     List<? extends Type> typeParameters = element.getTypeParameters();
+
     Type[] typeArguments;
     if (typeArgumentNodes == null || typeArgumentNodes.size() != typeParameters.size()) {
       typeArguments = new Type[typeParameters.size()];
