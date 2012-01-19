@@ -479,7 +479,12 @@ class ProcessQueue {
           // implemented, and add Windows support.
           var deletion =
               new Process.start('/bin/rm', ['-rf', _temporaryDirectory]);
-          deletion.startHandler = (){
+          deletion.exitHandler = (int exitCode) {
+            if (exitCode == 0) {
+              print('\nTemporary directory $_temporaryDirectory deleted.');
+            } else {
+              print('\nDeletion of temp dir $_temporaryDirectory failed.');
+            }
             _progress.allDone();
           };
         }
