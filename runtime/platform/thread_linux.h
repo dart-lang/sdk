@@ -5,6 +5,10 @@
 #ifndef PLATFORM_THREAD_LINUX_H_
 #define PLATFORM_THREAD_LINUX_H_
 
+#if !defined(PLATFORM_THREAD_H_)
+#error Do not include thread_linux.h directly; use thread.h instead.
+#endif
+
 #include <pthread.h>
 
 #include "platform/assert.h"

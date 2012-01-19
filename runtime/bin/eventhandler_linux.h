@@ -5,6 +5,10 @@
 #ifndef BIN_EVENTHANDLER_LINUX_H_
 #define BIN_EVENTHANDLER_LINUX_H_
 
+#if !defined(BIN_EVENTHANDLER_H_)
+#error Do not include eventhandler_linux.h directly; use eventhandler.h instead.
+#endif
+
 #include <unistd.h>
 #include <sys/socket.h>
 
