@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -704,9 +704,6 @@ public class DartParser extends CompletionHooksParserBase {
             break;
           case SAR:   // >>
             nestingLevel -= 2;
-            break;
-          case SHR:   // >>>
-            nestingLevel -= 3;
             break;
           case COMMA:
           case IDENTIFIER:
@@ -2271,9 +2268,6 @@ public class DartParser extends CompletionHooksParserBase {
           case SHL:
             count += 2;
             break;
-          case SHR:  // >>>
-            count -= 3;
-            break;
           case SAR:  // >>
             count -= 2;
             break;
@@ -3725,9 +3719,6 @@ public class DartParser extends CompletionHooksParserBase {
       case SAR:
         setPeek(0, Token.GT);
         return true;
-      case SHR:
-        setPeek(0, Token.SAR);
-        return true;
       default:
         return false;
     }
@@ -3758,7 +3749,6 @@ public class DartParser extends CompletionHooksParserBase {
 
         case GT:
         case SAR:
-        case SHR:
           // qualified < qualified2 >
         case COMMA:
           // qualified < qualified2 ,

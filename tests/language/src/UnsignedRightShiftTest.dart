@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Shifting {
-  operator >>(other) {
-    Box<Box<prefix.Fisk>> foo = null;
-    return other >> 1;
-  }
+// The >>> operator is not supported in Dart
+
+main() {
+  var foo = -10 
+    >>> 1 /// 01: compile-time error
+  ; 
+  foo >>>= 1; /// 02: compile-time error
 }

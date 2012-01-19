@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -515,7 +515,6 @@ public class TypeHeuristicImplementation implements TypeHeuristic {
         case BIT_XOR:
         case SAR:
         case SHL:
-        case SHR:
         case ASSIGN_ADD:
         case ASSIGN_SUB:
         case ASSIGN_MUL:
@@ -525,8 +524,7 @@ public class TypeHeuristicImplementation implements TypeHeuristic {
         case ASSIGN_BIT_OR:
         case ASSIGN_BIT_XOR:
         case ASSIGN_SAR:
-        case ASSIGN_SHL:
-        case ASSIGN_SHR: {
+        case ASSIGN_SHL: {
           computeAndRecordSelectorTypes(node, receiver, getOperatorSelectorName(opToken));
           return receiver;
         }
@@ -1086,8 +1084,6 @@ public class TypeHeuristicImplementation implements TypeHeuristic {
           return getOperatorSelectorName(Token.SHL);
         case ASSIGN_SAR:
           return getOperatorSelectorName(Token.SAR);
-        case ASSIGN_SHR:
-          return getOperatorSelectorName(Token.SHR);
       }
       return ("operator " + op.getSyntax());
     }

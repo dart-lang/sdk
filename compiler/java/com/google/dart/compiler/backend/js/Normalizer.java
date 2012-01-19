@@ -1,15 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.backend.js;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.InternalCompilerException;
@@ -72,6 +65,13 @@ import com.google.dart.compiler.resolver.SyntheticDefaultConstructorElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Types;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Normalization phase of Dart compiler. Rewrites the AST to simplify later
@@ -1004,7 +1004,6 @@ public class Normalizer {
         case ASSIGN_BIT_AND: return Token.BIT_AND;
         case ASSIGN_SHL: return Token.SHL;
         case ASSIGN_SAR: return Token.SAR;
-        case ASSIGN_SHR: return Token.SHR;
         case ASSIGN_ADD: return Token.ADD;
         case ASSIGN_SUB: return Token.SUB;
         case ASSIGN_MUL: return Token.MUL;

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -243,8 +243,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return Token.SHL;
         case ASSIGN_SAR:
           return Token.SAR;
-        case ASSIGN_SHR:
-          return Token.SHR;
         case ASSIGN_ADD:
           return Token.ADD;
         case ASSIGN_SUB:
@@ -309,7 +307,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return rhs;
         }
 
-        case ASSIGN_SHR:
         case ASSIGN_ADD:
         case ASSIGN_SUB:
         case ASSIGN_MUL:
@@ -368,7 +365,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
 
-        case SHR:
         case ADD:
         case SUB:
         case MUL:
@@ -482,7 +478,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             case DYNAMIC:
               return member.getType();
             default:
-              // target.field() as Function invocation. 
+              // target.field() as Function invocation.
               if (types.isAssignable(functionType, field.getType())) {
                 return dynamicType;
               }
