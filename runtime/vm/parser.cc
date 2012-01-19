@@ -7589,6 +7589,11 @@ void Parser::SkipMapLiteral() {
 void Parser::SkipActualParameters() {
   ExpectToken(Token::kLPAREN);
   while (CurrentToken() != Token::kRPAREN) {
+    if (IsIdentifier() && (LookaheadToken(1) == Token::kCOLON)) {
+      // Named actual parameter.
+      ConsumeToken();
+      ConsumeToken();
+    }
     SkipNestedExpr();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();

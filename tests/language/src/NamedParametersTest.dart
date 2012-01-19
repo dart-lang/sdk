@@ -108,6 +108,8 @@ class C implements I {
   }
 }
 
+hello(msg, to, [from]) => '${from} sent ${msg} to ${to}';
+message() => hello("gladiolas", "possums", from: "Edna");
 
 main() {
   NamedParametersTest.testMain();
@@ -117,4 +119,5 @@ main() {
   var c = new C();
   Expect.equals(100, c.mul(10));
   Expect.equals(1000, c.mul(10, 100));
+  Expect.equals("Edna sent gladiolas to possums", message());
 }
