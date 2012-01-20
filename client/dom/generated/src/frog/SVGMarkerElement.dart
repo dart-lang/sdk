@@ -13,19 +13,19 @@ class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  SVGAnimatedLength markerHeight;
+  SVGAnimatedLength get markerHeight() native "return this.markerHeight;";
 
-  SVGAnimatedEnumeration markerUnits;
+  SVGAnimatedEnumeration get markerUnits() native "return this.markerUnits;";
 
-  SVGAnimatedLength markerWidth;
+  SVGAnimatedLength get markerWidth() native "return this.markerWidth;";
 
-  SVGAnimatedAngle orientAngle;
+  SVGAnimatedAngle get orientAngle() native "return this.orientAngle;";
 
-  SVGAnimatedEnumeration orientType;
+  SVGAnimatedEnumeration get orientType() native "return this.orientType;";
 
-  SVGAnimatedLength refX;
+  SVGAnimatedLength get refX() native "return this.refX;";
 
-  SVGAnimatedLength refY;
+  SVGAnimatedLength get refY() native "return this.refY;";
 
   void setOrientToAngle(SVGAngle angle) native;
 
@@ -33,25 +33,29 @@ class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 }

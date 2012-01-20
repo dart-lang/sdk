@@ -1,9 +1,9 @@
 
 class DatabaseSync native "*DatabaseSync" {
 
-  String lastErrorMessage;
+  String get lastErrorMessage() native "return this.lastErrorMessage;";
 
-  String version;
+  String get version() native "return this.version;";
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native;
 

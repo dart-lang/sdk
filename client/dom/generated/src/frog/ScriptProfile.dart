@@ -1,11 +1,11 @@
 
 class ScriptProfile native "*ScriptProfile" {
 
-  ScriptProfileNode head;
+  ScriptProfileNode get head() native "return this.head;";
 
-  String title;
+  String get title() native "return this.title;";
 
-  int uid;
+  int get uid() native "return this.uid;";
 
   var dartObjectLocalStorage;
 

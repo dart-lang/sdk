@@ -1,9 +1,9 @@
 
 class SpeechInputResult native "*SpeechInputResult" {
 
-  num confidence;
+  num get confidence() native "return this.confidence;";
 
-  String utterance;
+  String get utterance() native "return this.utterance;";
 
   var dartObjectLocalStorage;
 

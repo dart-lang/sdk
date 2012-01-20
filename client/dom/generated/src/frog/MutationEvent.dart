@@ -7,15 +7,15 @@ class MutationEvent extends Event native "*MutationEvent" {
 
   static final int REMOVAL = 3;
 
-  int attrChange;
+  int get attrChange() native "return this.attrChange;";
 
-  String attrName;
+  String get attrName() native "return this.attrName;";
 
-  String newValue;
+  String get newValue() native "return this.newValue;";
 
-  String prevValue;
+  String get prevValue() native "return this.prevValue;";
 
-  Node relatedNode;
+  Node get relatedNode() native "return this.relatedNode;";
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }

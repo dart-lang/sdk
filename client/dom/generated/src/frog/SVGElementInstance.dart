@@ -1,21 +1,21 @@
 
 class SVGElementInstance native "*SVGElementInstance" {
 
-  SVGElementInstanceList childNodes;
+  SVGElementInstanceList get childNodes() native "return this.childNodes;";
 
-  SVGElement correspondingElement;
+  SVGElement get correspondingElement() native "return this.correspondingElement;";
 
-  SVGUseElement correspondingUseElement;
+  SVGUseElement get correspondingUseElement() native "return this.correspondingUseElement;";
 
-  SVGElementInstance firstChild;
+  SVGElementInstance get firstChild() native "return this.firstChild;";
 
-  SVGElementInstance lastChild;
+  SVGElementInstance get lastChild() native "return this.lastChild;";
 
-  SVGElementInstance nextSibling;
+  SVGElementInstance get nextSibling() native "return this.nextSibling;";
 
-  SVGElementInstance parentNode;
+  SVGElementInstance get parentNode() native "return this.parentNode;";
 
-  SVGElementInstance previousSibling;
+  SVGElementInstance get previousSibling() native "return this.previousSibling;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

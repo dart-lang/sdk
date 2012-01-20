@@ -7,19 +7,23 @@ class TextTrack native "*TextTrack" {
 
   static final int SHOWING = 2;
 
-  TextTrackCueList activeCues;
+  TextTrackCueList get activeCues() native "return this.activeCues;";
 
-  TextTrackCueList cues;
+  TextTrackCueList get cues() native "return this.cues;";
 
-  String kind;
+  String get kind() native "return this.kind;";
 
-  String label;
+  String get label() native "return this.label;";
 
-  String language;
+  String get language() native "return this.language;";
 
-  int mode;
+  int get mode() native "return this.mode;";
 
-  EventListener oncuechange;
+  void set mode(int value) native "this.mode = value;";
+
+  EventListener get oncuechange() native "return this.oncuechange;";
+
+  void set oncuechange(EventListener value) native "this.oncuechange = value;";
 
   void addCue(TextTrackCue cue) native;
 

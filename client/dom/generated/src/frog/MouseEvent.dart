@@ -1,43 +1,43 @@
 
 class MouseEvent extends UIEvent native "*MouseEvent" {
 
-  bool altKey;
+  bool get altKey() native "return this.altKey;";
 
-  int button;
+  int get button() native "return this.button;";
 
-  int clientX;
+  int get clientX() native "return this.clientX;";
 
-  int clientY;
+  int get clientY() native "return this.clientY;";
 
-  bool ctrlKey;
+  bool get ctrlKey() native "return this.ctrlKey;";
 
-  Clipboard dataTransfer;
+  Clipboard get dataTransfer() native "return this.dataTransfer;";
 
-  Node fromElement;
+  Node get fromElement() native "return this.fromElement;";
 
-  bool metaKey;
+  bool get metaKey() native "return this.metaKey;";
 
-  int offsetX;
+  int get offsetX() native "return this.offsetX;";
 
-  int offsetY;
+  int get offsetY() native "return this.offsetY;";
 
-  EventTarget relatedTarget;
+  EventTarget get relatedTarget() native "return this.relatedTarget;";
 
-  int screenX;
+  int get screenX() native "return this.screenX;";
 
-  int screenY;
+  int get screenY() native "return this.screenY;";
 
-  bool shiftKey;
+  bool get shiftKey() native "return this.shiftKey;";
 
-  Node toElement;
+  Node get toElement() native "return this.toElement;";
 
-  int webkitMovementX;
+  int get webkitMovementX() native "return this.webkitMovementX;";
 
-  int webkitMovementY;
+  int get webkitMovementY() native "return this.webkitMovementY;";
 
-  int x;
+  int get x() native "return this.x;";
 
-  int y;
+  int get y() native "return this.y;";
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native;
 }

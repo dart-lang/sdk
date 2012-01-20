@@ -1,27 +1,49 @@
 
 class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
 
-  String behavior;
+  String get behavior() native "return this.behavior;";
 
-  String bgColor;
+  void set behavior(String value) native "this.behavior = value;";
 
-  String direction;
+  String get bgColor() native "return this.bgColor;";
 
-  String height;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  int hspace;
+  String get direction() native "return this.direction;";
 
-  int loop;
+  void set direction(String value) native "this.direction = value;";
 
-  int scrollAmount;
+  String get height() native "return this.height;";
 
-  int scrollDelay;
+  void set height(String value) native "this.height = value;";
 
-  bool trueSpeed;
+  int get hspace() native "return this.hspace;";
 
-  int vspace;
+  void set hspace(int value) native "this.hspace = value;";
 
-  String width;
+  int get loop() native "return this.loop;";
+
+  void set loop(int value) native "this.loop = value;";
+
+  int get scrollAmount() native "return this.scrollAmount;";
+
+  void set scrollAmount(int value) native "this.scrollAmount = value;";
+
+  int get scrollDelay() native "return this.scrollDelay;";
+
+  void set scrollDelay(int value) native "this.scrollDelay = value;";
+
+  bool get trueSpeed() native "return this.trueSpeed;";
+
+  void set trueSpeed(bool value) native "this.trueSpeed = value;";
+
+  int get vspace() native "return this.vspace;";
+
+  void set vspace(int value) native "this.vspace = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 
   void start() native;
 

@@ -13,7 +13,7 @@ class DOMApplicationCache native "*DOMApplicationCache" {
 
   static final int UPDATEREADY = 4;
 
-  int status;
+  int get status() native "return this.status;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

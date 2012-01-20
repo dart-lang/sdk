@@ -1,19 +1,21 @@
 
 class SVGViewElement extends SVGElement native "*SVGViewElement" {
 
-  SVGStringList viewTarget;
+  SVGStringList get viewTarget() native "return this.viewTarget;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 
   // From SVGZoomAndPan
 
-  int zoomAndPan;
+  int get zoomAndPan() native "return this.zoomAndPan;";
+
+  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
 }

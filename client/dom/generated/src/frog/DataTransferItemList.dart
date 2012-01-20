@@ -1,7 +1,7 @@
 
 class DataTransferItemList native "*DataTransferItemList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   void add(String data, String type) native;
 

@@ -9,25 +9,25 @@ class SVGGradientElement extends SVGElement native "*SVGGradientElement" {
 
   static final int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  SVGAnimatedTransformList gradientTransform;
+  SVGAnimatedTransformList get gradientTransform() native "return this.gradientTransform;";
 
-  SVGAnimatedEnumeration gradientUnits;
+  SVGAnimatedEnumeration get gradientUnits() native "return this.gradientUnits;";
 
-  SVGAnimatedEnumeration spreadMethod;
+  SVGAnimatedEnumeration get spreadMethod() native "return this.spreadMethod;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

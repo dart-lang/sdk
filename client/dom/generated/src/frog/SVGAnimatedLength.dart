@@ -1,9 +1,9 @@
 
 class SVGAnimatedLength native "*SVGAnimatedLength" {
 
-  SVGLength animVal;
+  SVGLength get animVal() native "return this.animVal;";
 
-  SVGLength baseVal;
+  SVGLength get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

@@ -1,11 +1,11 @@
 
 class SQLResultSet native "*SQLResultSet" {
 
-  int insertId;
+  int get insertId() native "return this.insertId;";
 
-  SQLResultSetRowList rows;
+  SQLResultSetRowList get rows() native "return this.rows;";
 
-  int rowsAffected;
+  int get rowsAffected() native "return this.rowsAffected;";
 
   var dartObjectLocalStorage;
 

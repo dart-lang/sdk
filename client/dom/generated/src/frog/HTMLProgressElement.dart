@@ -1,13 +1,17 @@
 
 class HTMLProgressElement extends HTMLElement native "*HTMLProgressElement" {
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  NodeList labels;
+  NodeList get labels() native "return this.labels;";
 
-  num max;
+  num get max() native "return this.max;";
 
-  num position;
+  void set max(num value) native "this.max = value;";
 
-  num value;
+  num get position() native "return this.position;";
+
+  num get value() native "return this.value;";
+
+  void set value(num value) native "this.value = value;";
 }

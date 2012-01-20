@@ -1,11 +1,11 @@
 
 class AudioNode native "*AudioNode" {
 
-  AudioContext context;
+  AudioContext get context() native "return this.context;";
 
-  int numberOfInputs;
+  int get numberOfInputs() native "return this.numberOfInputs;";
 
-  int numberOfOutputs;
+  int get numberOfOutputs() native "return this.numberOfOutputs;";
 
   void connect(AudioNode destination, int output, int input) native;
 

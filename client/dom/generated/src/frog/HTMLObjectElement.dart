@@ -1,47 +1,79 @@
 
 class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String archive;
+  void set align(String value) native "this.align = value;";
 
-  String border;
+  String get archive() native "return this.archive;";
 
-  String code;
+  void set archive(String value) native "this.archive = value;";
 
-  String codeBase;
+  String get border() native "return this.border;";
 
-  String codeType;
+  void set border(String value) native "this.border = value;";
 
-  Document contentDocument;
+  String get code() native "return this.code;";
 
-  String data;
+  void set code(String value) native "this.code = value;";
 
-  bool declare;
+  String get codeBase() native "return this.codeBase;";
 
-  HTMLFormElement form;
+  void set codeBase(String value) native "this.codeBase = value;";
 
-  String height;
+  String get codeType() native "return this.codeType;";
 
-  int hspace;
+  void set codeType(String value) native "this.codeType = value;";
 
-  String name;
+  Document get contentDocument() native "return this.contentDocument;";
 
-  String standby;
+  String get data() native "return this.data;";
 
-  String type;
+  void set data(String value) native "this.data = value;";
 
-  String useMap;
+  bool get declare() native "return this.declare;";
 
-  String validationMessage;
+  void set declare(bool value) native "this.declare = value;";
 
-  ValidityState validity;
+  HTMLFormElement get form() native "return this.form;";
 
-  int vspace;
+  String get height() native "return this.height;";
 
-  String width;
+  void set height(String value) native "this.height = value;";
 
-  bool willValidate;
+  int get hspace() native "return this.hspace;";
+
+  void set hspace(int value) native "this.hspace = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get standby() native "return this.standby;";
+
+  void set standby(String value) native "this.standby = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
+
+  String get useMap() native "return this.useMap;";
+
+  void set useMap(String value) native "this.useMap = value;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  int get vspace() native "return this.vspace;";
+
+  void set vspace(int value) native "this.vspace = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 

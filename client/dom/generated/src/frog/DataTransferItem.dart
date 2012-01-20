@@ -1,9 +1,9 @@
 
 class DataTransferItem native "*DataTransferItem" {
 
-  String kind;
+  String get kind() native "return this.kind;";
 
-  String type;
+  String get type() native "return this.type;";
 
   Blob getAsFile() native;
 

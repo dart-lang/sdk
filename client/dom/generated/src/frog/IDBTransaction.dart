@@ -7,15 +7,21 @@ class IDBTransaction native "*IDBTransaction" {
 
   static final int VERSION_CHANGE = 2;
 
-  IDBDatabase db;
+  IDBDatabase get db() native "return this.db;";
 
-  int mode;
+  int get mode() native "return this.mode;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener oncomplete;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onerror;
+  EventListener get oncomplete() native "return this.oncomplete;";
+
+  void set oncomplete(EventListener value) native "this.oncomplete = value;";
+
+  EventListener get onerror() native "return this.onerror;";
+
+  void set onerror(EventListener value) native "this.onerror = value;";
 
   void abort() native;
 

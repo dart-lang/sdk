@@ -1,27 +1,39 @@
 
 class SVGGlyphRefElement extends SVGElement native "*SVGGlyphRefElement" {
 
-  num dx;
+  num get dx() native "return this.dx;";
 
-  num dy;
+  void set dx(num value) native "this.dx = value;";
 
-  String format;
+  num get dy() native "return this.dy;";
 
-  String glyphRef;
+  void set dy(num value) native "this.dy = value;";
 
-  num x;
+  String get format() native "return this.format;";
 
-  num y;
+  void set format(String value) native "this.format = value;";
+
+  String get glyphRef() native "return this.glyphRef;";
+
+  void set glyphRef(String value) native "this.glyphRef = value;";
+
+  num get x() native "return this.x;";
+
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

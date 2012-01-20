@@ -1,9 +1,11 @@
 
 class SVGAnimatedString native "*SVGAnimatedString" {
 
-  String animVal;
+  String get animVal() native "return this.animVal;";
 
-  String baseVal;
+  String get baseVal() native "return this.baseVal;";
+
+  void set baseVal(String value) native "this.baseVal = value;";
 
   var dartObjectLocalStorage;
 

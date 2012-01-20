@@ -1,7 +1,7 @@
 
 class DOMMimeTypeArray native "*DOMMimeTypeArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   DOMMimeType item(int index) native;
 

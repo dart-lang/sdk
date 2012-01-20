@@ -1,11 +1,11 @@
 
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
-  num alpha;
+  num get alpha() native "return this.alpha;";
 
-  num beta;
+  num get beta() native "return this.beta;";
 
-  num gamma;
+  num get gamma() native "return this.gamma;";
 
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) native;
 }

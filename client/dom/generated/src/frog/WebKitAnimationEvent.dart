@@ -1,7 +1,7 @@
 
 class WebKitAnimationEvent extends Event native "*WebKitAnimationEvent" {
 
-  String animationName;
+  String get animationName() native "return this.animationName;";
 
-  num elapsedTime;
+  num get elapsedTime() native "return this.elapsedTime;";
 }

@@ -1,11 +1,11 @@
 
 class MemoryInfo native "*MemoryInfo" {
 
-  int jsHeapSizeLimit;
+  int get jsHeapSizeLimit() native "return this.jsHeapSizeLimit;";
 
-  int totalJSHeapSize;
+  int get totalJSHeapSize() native "return this.totalJSHeapSize;";
 
-  int usedJSHeapSize;
+  int get usedJSHeapSize() native "return this.usedJSHeapSize;";
 
   var dartObjectLocalStorage;
 

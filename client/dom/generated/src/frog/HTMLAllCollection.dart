@@ -1,7 +1,7 @@
 
 class HTMLAllCollection native "*HTMLAllCollection" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Node item(int index) native;
 

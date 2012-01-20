@@ -1,9 +1,11 @@
 
 class HTMLLabelElement extends HTMLElement native "*HTMLLabelElement" {
 
-  HTMLElement control;
+  HTMLElement get control() native "return this.control;";
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  String htmlFor;
+  String get htmlFor() native "return this.htmlFor;";
+
+  void set htmlFor(String value) native "this.htmlFor = value;";
 }

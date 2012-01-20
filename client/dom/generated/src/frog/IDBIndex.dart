@@ -1,15 +1,15 @@
 
 class IDBIndex native "*IDBIndex" {
 
-  String keyPath;
+  String get keyPath() native "return this.keyPath;";
 
-  bool multiEntry;
+  bool get multiEntry() native "return this.multiEntry;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  IDBObjectStore objectStore;
+  IDBObjectStore get objectStore() native "return this.objectStore;";
 
-  bool unique;
+  bool get unique() native "return this.unique;";
 
   IDBRequest count([IDBKeyRange range = null]) native;
 

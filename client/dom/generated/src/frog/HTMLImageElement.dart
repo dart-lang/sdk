@@ -1,41 +1,69 @@
 
 class HTMLImageElement extends HTMLElement native "*HTMLImageElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String alt;
+  void set align(String value) native "this.align = value;";
 
-  String border;
+  String get alt() native "return this.alt;";
 
-  bool complete;
+  void set alt(String value) native "this.alt = value;";
 
-  String crossOrigin;
+  String get border() native "return this.border;";
 
-  int height;
+  void set border(String value) native "this.border = value;";
 
-  int hspace;
+  bool get complete() native "return this.complete;";
 
-  bool isMap;
+  String get crossOrigin() native "return this.crossOrigin;";
 
-  String longDesc;
+  void set crossOrigin(String value) native "this.crossOrigin = value;";
 
-  String lowsrc;
+  int get height() native "return this.height;";
 
-  String name;
+  void set height(int value) native "this.height = value;";
 
-  int naturalHeight;
+  int get hspace() native "return this.hspace;";
 
-  int naturalWidth;
+  void set hspace(int value) native "this.hspace = value;";
 
-  String src;
+  bool get isMap() native "return this.isMap;";
 
-  String useMap;
+  void set isMap(bool value) native "this.isMap = value;";
 
-  int vspace;
+  String get longDesc() native "return this.longDesc;";
 
-  int width;
+  void set longDesc(String value) native "this.longDesc = value;";
 
-  int x;
+  String get lowsrc() native "return this.lowsrc;";
 
-  int y;
+  void set lowsrc(String value) native "this.lowsrc = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  int get naturalHeight() native "return this.naturalHeight;";
+
+  int get naturalWidth() native "return this.naturalWidth;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get useMap() native "return this.useMap;";
+
+  void set useMap(String value) native "this.useMap = value;";
+
+  int get vspace() native "return this.vspace;";
+
+  void set vspace(int value) native "this.vspace = value;";
+
+  int get width() native "return this.width;";
+
+  void set width(int value) native "this.width = value;";
+
+  int get x() native "return this.x;";
+
+  int get y() native "return this.y;";
 }

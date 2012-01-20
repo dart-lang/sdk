@@ -1,15 +1,15 @@
 
 class WorkerNavigator native "*WorkerNavigator" {
 
-  String appName;
+  String get appName() native "return this.appName;";
 
-  String appVersion;
+  String get appVersion() native "return this.appVersion;";
 
-  bool onLine;
+  bool get onLine() native "return this.onLine;";
 
-  String platform;
+  String get platform() native "return this.platform;";
 
-  String userAgent;
+  String get userAgent() native "return this.userAgent;";
 
   var dartObjectLocalStorage;
 

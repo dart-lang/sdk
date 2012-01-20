@@ -11,7 +11,7 @@ class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Ar
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 

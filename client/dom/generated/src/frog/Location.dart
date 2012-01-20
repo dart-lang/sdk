@@ -1,23 +1,39 @@
 
 class Location native "*Location" {
 
-  String hash;
+  String get hash() native "return this.hash;";
 
-  String host;
+  void set hash(String value) native "this.hash = value;";
 
-  String hostname;
+  String get host() native "return this.host;";
 
-  String href;
+  void set host(String value) native "this.host = value;";
 
-  String origin;
+  String get hostname() native "return this.hostname;";
 
-  String pathname;
+  void set hostname(String value) native "this.hostname = value;";
 
-  String port;
+  String get href() native "return this.href;";
 
-  String protocol;
+  void set href(String value) native "this.href = value;";
 
-  String search;
+  String get origin() native "return this.origin;";
+
+  String get pathname() native "return this.pathname;";
+
+  void set pathname(String value) native "this.pathname = value;";
+
+  String get port() native "return this.port;";
+
+  void set port(String value) native "this.port = value;";
+
+  String get protocol() native "return this.protocol;";
+
+  void set protocol(String value) native "this.protocol = value;";
+
+  String get search() native "return this.search;";
+
+  void set search(String value) native "this.search = value;";
 
   void assign(String url) native;
 

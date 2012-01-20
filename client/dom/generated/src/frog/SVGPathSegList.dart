@@ -1,7 +1,7 @@
 
 class SVGPathSegList native "*SVGPathSegList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGPathSeg appendItem(SVGPathSeg newItem) native;
 

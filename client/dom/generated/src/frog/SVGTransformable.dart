@@ -1,5 +1,5 @@
 
 class SVGTransformable extends SVGLocatable native "*SVGTransformable" {
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 }

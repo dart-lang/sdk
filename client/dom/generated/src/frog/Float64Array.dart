@@ -11,7 +11,7 @@ class Float64Array extends ArrayBufferView implements List<num> native "*Float64
 
   static final int BYTES_PER_ELEMENT = 8;
 
-  int length;
+  int get length() native "return this.length;";
 
   num operator[](int index) native;
 

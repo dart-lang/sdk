@@ -7,9 +7,9 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 
   static final int VERTICAL = 1;
 
-  bool horizontalOverflow;
+  bool get horizontalOverflow() native "return this.horizontalOverflow;";
 
-  int orient;
+  int get orient() native "return this.orient;";
 
-  bool verticalOverflow;
+  bool get verticalOverflow() native "return this.verticalOverflow;";
 }

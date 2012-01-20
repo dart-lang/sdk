@@ -1,7 +1,7 @@
 
 class BarInfo native "*BarInfo" {
 
-  bool visible;
+  bool get visible() native "return this.visible;";
 
   var dartObjectLocalStorage;
 

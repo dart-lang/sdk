@@ -1,7 +1,7 @@
 
 class TextMetrics native "*TextMetrics" {
 
-  num width;
+  num get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 

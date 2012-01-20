@@ -1,15 +1,21 @@
 
 class IDBDatabase native "*IDBDatabase" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener onerror;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onversionchange;
+  EventListener get onerror() native "return this.onerror;";
 
-  String version;
+  void set onerror(EventListener value) native "this.onerror = value;";
+
+  EventListener get onversionchange() native "return this.onversionchange;";
+
+  void set onversionchange(EventListener value) native "this.onversionchange = value;";
+
+  String get version() native "return this.version;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

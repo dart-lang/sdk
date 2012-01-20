@@ -1,19 +1,21 @@
 
 class StyleSheet native "*StyleSheet" {
 
-  bool disabled;
+  bool get disabled() native "return this.disabled;";
 
-  String href;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  MediaList media;
+  String get href() native "return this.href;";
 
-  Node ownerNode;
+  MediaList get media() native "return this.media;";
 
-  StyleSheet parentStyleSheet;
+  Node get ownerNode() native "return this.ownerNode;";
 
-  String title;
+  StyleSheet get parentStyleSheet() native "return this.parentStyleSheet;";
 
-  String type;
+  String get title() native "return this.title;";
+
+  String get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 

@@ -1,15 +1,15 @@
 
 class DocumentType extends Node native "*DocumentType" {
 
-  NamedNodeMap entities;
+  NamedNodeMap get entities() native "return this.entities;";
 
-  String internalSubset;
+  String get internalSubset() native "return this.internalSubset;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  NamedNodeMap notations;
+  NamedNodeMap get notations() native "return this.notations;";
 
-  String publicId;
+  String get publicId() native "return this.publicId;";
 
-  String systemId;
+  String get systemId() native "return this.systemId;";
 }

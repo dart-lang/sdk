@@ -1,7 +1,7 @@
 
 class EntryArraySync native "*EntryArraySync" {
 
-  int length;
+  int get length() native "return this.length;";
 
   EntrySync item(int index) native;
 

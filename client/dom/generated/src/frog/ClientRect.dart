@@ -1,17 +1,17 @@
 
 class ClientRect native "*ClientRect" {
 
-  num bottom;
+  num get bottom() native "return this.bottom;";
 
-  num height;
+  num get height() native "return this.height;";
 
-  num left;
+  num get left() native "return this.left;";
 
-  num right;
+  num get right() native "return this.right;";
 
-  num top;
+  num get top() native "return this.top;";
 
-  num width;
+  num get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 

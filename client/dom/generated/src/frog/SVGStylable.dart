@@ -1,9 +1,9 @@
 
 class SVGStylable native "*SVGStylable" {
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 

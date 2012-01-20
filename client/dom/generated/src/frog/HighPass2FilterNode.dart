@@ -1,7 +1,7 @@
 
 class HighPass2FilterNode extends AudioNode native "*HighPass2FilterNode" {
 
-  AudioParam cutoff;
+  AudioParam get cutoff() native "return this.cutoff;";
 
-  AudioParam resonance;
+  AudioParam get resonance() native "return this.resonance;";
 }

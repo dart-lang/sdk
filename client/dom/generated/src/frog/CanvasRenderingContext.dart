@@ -1,7 +1,7 @@
 
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  HTMLCanvasElement canvas;
+  HTMLCanvasElement get canvas() native "return this.canvas;";
 
   var dartObjectLocalStorage;
 

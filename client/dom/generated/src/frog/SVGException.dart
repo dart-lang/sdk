@@ -7,11 +7,11 @@ class SVGException native "*SVGException" {
 
   static final int SVG_WRONG_TYPE_ERR = 0;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 

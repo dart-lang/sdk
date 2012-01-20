@@ -1,7 +1,7 @@
 
 class DOMPluginArray native "*DOMPluginArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   DOMPlugin item(int index) native;
 

@@ -1,11 +1,11 @@
 
 class ArrayBufferView native "*ArrayBufferView" {
 
-  ArrayBuffer buffer;
+  ArrayBuffer get buffer() native "return this.buffer;";
 
-  int byteLength;
+  int get byteLength() native "return this.byteLength;";
 
-  int byteOffset;
+  int get byteOffset() native "return this.byteOffset;";
 
   var dartObjectLocalStorage;
 

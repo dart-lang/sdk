@@ -1,5 +1,5 @@
 
 class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 
-  int numberOfChannels;
+  int get numberOfChannels() native "return this.numberOfChannels;";
 }

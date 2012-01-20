@@ -1,11 +1,11 @@
 
 class Performance native "*Performance" {
 
-  MemoryInfo memory;
+  MemoryInfo get memory() native "return this.memory;";
 
-  PerformanceNavigation navigation;
+  PerformanceNavigation get navigation() native "return this.navigation;";
 
-  PerformanceTiming timing;
+  PerformanceTiming get timing() native "return this.timing;";
 
   var dartObjectLocalStorage;
 

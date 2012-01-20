@@ -1,19 +1,19 @@
 
 class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
 
-  SVGAnimatedNumber limitingConeAngle;
+  SVGAnimatedNumber get limitingConeAngle() native "return this.limitingConeAngle;";
 
-  SVGAnimatedNumber pointsAtX;
+  SVGAnimatedNumber get pointsAtX() native "return this.pointsAtX;";
 
-  SVGAnimatedNumber pointsAtY;
+  SVGAnimatedNumber get pointsAtY() native "return this.pointsAtY;";
 
-  SVGAnimatedNumber pointsAtZ;
+  SVGAnimatedNumber get pointsAtZ() native "return this.pointsAtZ;";
 
-  SVGAnimatedNumber specularExponent;
+  SVGAnimatedNumber get specularExponent() native "return this.specularExponent;";
 
-  SVGAnimatedNumber x;
+  SVGAnimatedNumber get x() native "return this.x;";
 
-  SVGAnimatedNumber y;
+  SVGAnimatedNumber get y() native "return this.y;";
 
-  SVGAnimatedNumber z;
+  SVGAnimatedNumber get z() native "return this.z;";
 }

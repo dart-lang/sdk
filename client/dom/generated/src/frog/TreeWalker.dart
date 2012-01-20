@@ -1,15 +1,17 @@
 
 class TreeWalker native "*TreeWalker" {
 
-  Node currentNode;
+  Node get currentNode() native "return this.currentNode;";
 
-  bool expandEntityReferences;
+  void set currentNode(Node value) native "this.currentNode = value;";
 
-  NodeFilter filter;
+  bool get expandEntityReferences() native "return this.expandEntityReferences;";
 
-  Node root;
+  NodeFilter get filter() native "return this.filter;";
 
-  int whatToShow;
+  Node get root() native "return this.root;";
+
+  int get whatToShow() native "return this.whatToShow;";
 
   Node firstChild() native;
 

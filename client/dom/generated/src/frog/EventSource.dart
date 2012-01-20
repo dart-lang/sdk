@@ -7,9 +7,9 @@ class EventSource native "*EventSource" {
 
   static final int OPEN = 1;
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  int readyState;
+  int get readyState() native "return this.readyState;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

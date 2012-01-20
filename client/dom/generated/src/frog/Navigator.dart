@@ -1,35 +1,35 @@
 
 class Navigator native "*Navigator" {
 
-  String appCodeName;
+  String get appCodeName() native "return this.appCodeName;";
 
-  String appName;
+  String get appName() native "return this.appName;";
 
-  String appVersion;
+  String get appVersion() native "return this.appVersion;";
 
-  bool cookieEnabled;
+  bool get cookieEnabled() native "return this.cookieEnabled;";
 
-  Geolocation geolocation;
+  Geolocation get geolocation() native "return this.geolocation;";
 
-  String language;
+  String get language() native "return this.language;";
 
-  DOMMimeTypeArray mimeTypes;
+  DOMMimeTypeArray get mimeTypes() native "return this.mimeTypes;";
 
-  bool onLine;
+  bool get onLine() native "return this.onLine;";
 
-  String platform;
+  String get platform() native "return this.platform;";
 
-  DOMPluginArray plugins;
+  DOMPluginArray get plugins() native "return this.plugins;";
 
-  String product;
+  String get product() native "return this.product;";
 
-  String productSub;
+  String get productSub() native "return this.productSub;";
 
-  String userAgent;
+  String get userAgent() native "return this.userAgent;";
 
-  String vendor;
+  String get vendor() native "return this.vendor;";
 
-  String vendorSub;
+  String get vendorSub() native "return this.vendorSub;";
 
   void getStorageUpdates() native;
 

@@ -1,7 +1,7 @@
 
 class StyleSheetList native "*StyleSheetList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   StyleSheet operator[](int index) native;
 

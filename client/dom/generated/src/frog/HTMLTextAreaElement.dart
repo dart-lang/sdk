@@ -1,51 +1,83 @@
 
 class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
-  bool autofocus;
+  bool get autofocus() native "return this.autofocus;";
 
-  int cols;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  String defaultValue;
+  int get cols() native "return this.cols;";
 
-  String dirName;
+  void set cols(int value) native "this.cols = value;";
 
-  bool disabled;
+  String get defaultValue() native "return this.defaultValue;";
 
-  HTMLFormElement form;
+  void set defaultValue(String value) native "this.defaultValue = value;";
 
-  NodeList labels;
+  String get dirName() native "return this.dirName;";
 
-  int maxLength;
+  void set dirName(String value) native "this.dirName = value;";
 
-  String name;
+  bool get disabled() native "return this.disabled;";
 
-  String placeholder;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  bool readOnly;
+  HTMLFormElement get form() native "return this.form;";
 
-  bool required;
+  NodeList get labels() native "return this.labels;";
 
-  int rows;
+  int get maxLength() native "return this.maxLength;";
 
-  String selectionDirection;
+  void set maxLength(int value) native "this.maxLength = value;";
 
-  int selectionEnd;
+  String get name() native "return this.name;";
 
-  int selectionStart;
+  void set name(String value) native "this.name = value;";
 
-  int textLength;
+  String get placeholder() native "return this.placeholder;";
 
-  String type;
+  void set placeholder(String value) native "this.placeholder = value;";
 
-  String validationMessage;
+  bool get readOnly() native "return this.readOnly;";
 
-  ValidityState validity;
+  void set readOnly(bool value) native "this.readOnly = value;";
 
-  String value;
+  bool get required() native "return this.required;";
 
-  bool willValidate;
+  void set required(bool value) native "this.required = value;";
 
-  String wrap;
+  int get rows() native "return this.rows;";
+
+  void set rows(int value) native "this.rows = value;";
+
+  String get selectionDirection() native "return this.selectionDirection;";
+
+  void set selectionDirection(String value) native "this.selectionDirection = value;";
+
+  int get selectionEnd() native "return this.selectionEnd;";
+
+  void set selectionEnd(int value) native "this.selectionEnd = value;";
+
+  int get selectionStart() native "return this.selectionStart;";
+
+  void set selectionStart(int value) native "this.selectionStart = value;";
+
+  int get textLength() native "return this.textLength;";
+
+  String get type() native "return this.type;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  bool get willValidate() native "return this.willValidate;";
+
+  String get wrap() native "return this.wrap;";
+
+  void set wrap(String value) native "this.wrap = value;";
 
   bool checkValidity() native;
 

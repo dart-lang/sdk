@@ -1,13 +1,13 @@
 
 class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "*SVGFilterPrimitiveStandardAttributes" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 }

@@ -1,19 +1,19 @@
 
 class Coordinates native "*Coordinates" {
 
-  num accuracy;
+  num get accuracy() native "return this.accuracy;";
 
-  num altitude;
+  num get altitude() native "return this.altitude;";
 
-  num altitudeAccuracy;
+  num get altitudeAccuracy() native "return this.altitudeAccuracy;";
 
-  num heading;
+  num get heading() native "return this.heading;";
 
-  num latitude;
+  num get latitude() native "return this.latitude;";
 
-  num longitude;
+  num get longitude() native "return this.longitude;";
 
-  num speed;
+  num get speed() native "return this.speed;";
 
   var dartObjectLocalStorage;
 

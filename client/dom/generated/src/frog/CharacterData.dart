@@ -1,9 +1,11 @@
 
 class CharacterData extends Node native "*CharacterData" {
 
-  String data;
+  String get data() native "return this.data;";
 
-  int length;
+  void set data(String value) native "this.data = value;";
+
+  int get length() native "return this.length;";
 
   void appendData(String data) native;
 

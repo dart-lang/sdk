@@ -1,7 +1,7 @@
 
 class NamedNodeMap native "*NamedNodeMap" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Node operator[](int index) native;
 

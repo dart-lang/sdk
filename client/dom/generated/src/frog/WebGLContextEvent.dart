@@ -1,5 +1,5 @@
 
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
-  String statusMessage;
+  String get statusMessage() native "return this.statusMessage;";
 }

@@ -13,29 +13,29 @@ class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
 
   static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedString in2;
+  SVGAnimatedString get in2() native "return this.in2;";
 
-  SVGAnimatedEnumeration mode;
+  SVGAnimatedEnumeration get mode() native "return this.mode;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

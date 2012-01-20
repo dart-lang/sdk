@@ -11,7 +11,7 @@ class Int16Array extends ArrayBufferView implements List<int> native "*Int16Arra
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 

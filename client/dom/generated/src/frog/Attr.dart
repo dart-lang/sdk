@@ -1,13 +1,15 @@
 
 class Attr extends Node native "*Attr" {
 
-  bool isId;
+  bool get isId() native "return this.isId;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  Element ownerElement;
+  Element get ownerElement() native "return this.ownerElement;";
 
-  bool specified;
+  bool get specified() native "return this.specified;";
 
-  String value;
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
 }

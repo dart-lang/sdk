@@ -1,7 +1,9 @@
 
 class HTMLIsIndexElement extends HTMLInputElement native "*HTMLIsIndexElement" {
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  String prompt;
+  String get prompt() native "return this.prompt;";
+
+  void set prompt(String value) native "this.prompt = value;";
 }

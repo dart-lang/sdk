@@ -1,7 +1,7 @@
 
 class SVGNumberList native "*SVGNumberList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGNumber appendItem(SVGNumber item) native;
 

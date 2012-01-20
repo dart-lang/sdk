@@ -1929,16 +1929,16 @@ class FrogInterfaceGenerator(object):
     pass
 
   def AddGetter(self, attr):
-    # Declare as a field in the native class.
-    # TODO(vsm): Mark this as native somehow.
+    # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '\n'
-        '  $TYPE $NAME;\n',
-        NAME=attr.id, TYPE=attr.type.id, INTERFACE=self._interface.id)
+        '\n  $TYPE get $NAME() native "return this.$NAME;";\n',
+        NAME=attr.id, TYPE=attr.type.id)
 
   def AddSetter(self, attr):
-    # TODO(vsm): Suppress for now.  Should emit if there is no getter.
-    pass
+    # TODO(sra): Remove native body when Issue 829 fixed.
+    self._members_emitter.Emit(
+        '\n  void set $NAME($TYPE value) native "this.$NAME = value;";\n',
+        NAME=attr.id, TYPE=attr.type.id)
 
   def AddSecondaryGetter(self, interface, attr):
     self._SecondaryContext(interface)

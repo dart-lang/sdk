@@ -1,11 +1,11 @@
 
 class IDBObjectStore native "*IDBObjectStore" {
 
-  String keyPath;
+  String get keyPath() native "return this.keyPath;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  IDBTransaction transaction;
+  IDBTransaction get transaction() native "return this.transaction;";
 
   IDBRequest add(String value, [IDBKey key = null]) native;
 

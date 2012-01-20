@@ -9,23 +9,35 @@ class FileReader native "*FileReader" {
 
   static final int LOADING = 1;
 
-  FileError error;
+  FileError get error() native "return this.error;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener onerror;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onload;
+  EventListener get onerror() native "return this.onerror;";
 
-  EventListener onloadend;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  EventListener onloadstart;
+  EventListener get onload() native "return this.onload;";
 
-  EventListener onprogress;
+  void set onload(EventListener value) native "this.onload = value;";
 
-  int readyState;
+  EventListener get onloadend() native "return this.onloadend;";
 
-  Object result;
+  void set onloadend(EventListener value) native "this.onloadend = value;";
+
+  EventListener get onloadstart() native "return this.onloadstart;";
+
+  void set onloadstart(EventListener value) native "this.onloadstart = value;";
+
+  EventListener get onprogress() native "return this.onprogress;";
+
+  void set onprogress(EventListener value) native "this.onprogress = value;";
+
+  int get readyState() native "return this.readyState;";
+
+  Object get result() native "return this.result;";
 
   void abort() native;
 

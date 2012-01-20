@@ -1,7 +1,7 @@
 
 class SVGLengthList native "*SVGLengthList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGLength appendItem(SVGLength item) native;
 

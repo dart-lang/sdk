@@ -1,9 +1,9 @@
 
 class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement" {
 
-  SVGAnimatedNumber x;
+  SVGAnimatedNumber get x() native "return this.x;";
 
-  SVGAnimatedNumber y;
+  SVGAnimatedNumber get y() native "return this.y;";
 
-  SVGAnimatedNumber z;
+  SVGAnimatedNumber get z() native "return this.z;";
 }

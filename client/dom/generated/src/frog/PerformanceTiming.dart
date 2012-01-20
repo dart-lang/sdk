@@ -1,47 +1,47 @@
 
 class PerformanceTiming native "*PerformanceTiming" {
 
-  int connectEnd;
+  int get connectEnd() native "return this.connectEnd;";
 
-  int connectStart;
+  int get connectStart() native "return this.connectStart;";
 
-  int domComplete;
+  int get domComplete() native "return this.domComplete;";
 
-  int domContentLoadedEventEnd;
+  int get domContentLoadedEventEnd() native "return this.domContentLoadedEventEnd;";
 
-  int domContentLoadedEventStart;
+  int get domContentLoadedEventStart() native "return this.domContentLoadedEventStart;";
 
-  int domInteractive;
+  int get domInteractive() native "return this.domInteractive;";
 
-  int domLoading;
+  int get domLoading() native "return this.domLoading;";
 
-  int domainLookupEnd;
+  int get domainLookupEnd() native "return this.domainLookupEnd;";
 
-  int domainLookupStart;
+  int get domainLookupStart() native "return this.domainLookupStart;";
 
-  int fetchStart;
+  int get fetchStart() native "return this.fetchStart;";
 
-  int loadEventEnd;
+  int get loadEventEnd() native "return this.loadEventEnd;";
 
-  int loadEventStart;
+  int get loadEventStart() native "return this.loadEventStart;";
 
-  int navigationStart;
+  int get navigationStart() native "return this.navigationStart;";
 
-  int redirectEnd;
+  int get redirectEnd() native "return this.redirectEnd;";
 
-  int redirectStart;
+  int get redirectStart() native "return this.redirectStart;";
 
-  int requestStart;
+  int get requestStart() native "return this.requestStart;";
 
-  int responseEnd;
+  int get responseEnd() native "return this.responseEnd;";
 
-  int responseStart;
+  int get responseStart() native "return this.responseStart;";
 
-  int secureConnectionStart;
+  int get secureConnectionStart() native "return this.secureConnectionStart;";
 
-  int unloadEventEnd;
+  int get unloadEventEnd() native "return this.unloadEventEnd;";
 
-  int unloadEventStart;
+  int get unloadEventStart() native "return this.unloadEventStart;";
 
   var dartObjectLocalStorage;
 

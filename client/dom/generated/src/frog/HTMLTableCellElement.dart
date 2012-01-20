@@ -1,33 +1,61 @@
 
 class HTMLTableCellElement extends HTMLElement native "*HTMLTableCellElement" {
 
-  String abbr;
+  String get abbr() native "return this.abbr;";
 
-  String align;
+  void set abbr(String value) native "this.abbr = value;";
 
-  String axis;
+  String get align() native "return this.align;";
 
-  String bgColor;
+  void set align(String value) native "this.align = value;";
 
-  int cellIndex;
+  String get axis() native "return this.axis;";
 
-  String ch;
+  void set axis(String value) native "this.axis = value;";
 
-  String chOff;
+  String get bgColor() native "return this.bgColor;";
 
-  int colSpan;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  String headers;
+  int get cellIndex() native "return this.cellIndex;";
 
-  String height;
+  String get ch() native "return this.ch;";
 
-  bool noWrap;
+  void set ch(String value) native "this.ch = value;";
 
-  int rowSpan;
+  String get chOff() native "return this.chOff;";
 
-  String scope;
+  void set chOff(String value) native "this.chOff = value;";
 
-  String vAlign;
+  int get colSpan() native "return this.colSpan;";
 
-  String width;
+  void set colSpan(int value) native "this.colSpan = value;";
+
+  String get headers() native "return this.headers;";
+
+  void set headers(String value) native "this.headers = value;";
+
+  String get height() native "return this.height;";
+
+  void set height(String value) native "this.height = value;";
+
+  bool get noWrap() native "return this.noWrap;";
+
+  void set noWrap(bool value) native "this.noWrap = value;";
+
+  int get rowSpan() native "return this.rowSpan;";
+
+  void set rowSpan(int value) native "this.rowSpan = value;";
+
+  String get scope() native "return this.scope;";
+
+  void set scope(String value) native "this.scope = value;";
+
+  String get vAlign() native "return this.vAlign;";
+
+  void set vAlign(String value) native "this.vAlign = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 }

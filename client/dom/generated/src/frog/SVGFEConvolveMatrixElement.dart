@@ -9,47 +9,47 @@ class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrix
 
   static final int SVG_EDGEMODE_WRAP = 2;
 
-  SVGAnimatedNumber bias;
+  SVGAnimatedNumber get bias() native "return this.bias;";
 
-  SVGAnimatedNumber divisor;
+  SVGAnimatedNumber get divisor() native "return this.divisor;";
 
-  SVGAnimatedEnumeration edgeMode;
+  SVGAnimatedEnumeration get edgeMode() native "return this.edgeMode;";
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedNumberList kernelMatrix;
+  SVGAnimatedNumberList get kernelMatrix() native "return this.kernelMatrix;";
 
-  SVGAnimatedNumber kernelUnitLengthX;
+  SVGAnimatedNumber get kernelUnitLengthX() native "return this.kernelUnitLengthX;";
 
-  SVGAnimatedNumber kernelUnitLengthY;
+  SVGAnimatedNumber get kernelUnitLengthY() native "return this.kernelUnitLengthY;";
 
-  SVGAnimatedInteger orderX;
+  SVGAnimatedInteger get orderX() native "return this.orderX;";
 
-  SVGAnimatedInteger orderY;
+  SVGAnimatedInteger get orderY() native "return this.orderY;";
 
-  SVGAnimatedBoolean preserveAlpha;
+  SVGAnimatedBoolean get preserveAlpha() native "return this.preserveAlpha;";
 
-  SVGAnimatedInteger targetX;
+  SVGAnimatedInteger get targetX() native "return this.targetX;";
 
-  SVGAnimatedInteger targetY;
+  SVGAnimatedInteger get targetY() native "return this.targetY;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

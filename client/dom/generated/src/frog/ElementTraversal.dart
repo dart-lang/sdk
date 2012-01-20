@@ -1,15 +1,15 @@
 
 class ElementTraversal native "*ElementTraversal" {
 
-  int childElementCount;
+  int get childElementCount() native "return this.childElementCount;";
 
-  Element firstElementChild;
+  Element get firstElementChild() native "return this.firstElementChild;";
 
-  Element lastElementChild;
+  Element get lastElementChild() native "return this.lastElementChild;";
 
-  Element nextElementSibling;
+  Element get nextElementSibling() native "return this.nextElementSibling;";
 
-  Element previousElementSibling;
+  Element get previousElementSibling() native "return this.previousElementSibling;";
 
   var dartObjectLocalStorage;
 

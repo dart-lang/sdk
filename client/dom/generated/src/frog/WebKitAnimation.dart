@@ -13,23 +13,25 @@ class WebKitAnimation native "*WebKitAnimation" {
 
   static final int FILL_NONE = 0;
 
-  num delay;
+  num get delay() native "return this.delay;";
 
-  int direction;
+  int get direction() native "return this.direction;";
 
-  num duration;
+  num get duration() native "return this.duration;";
 
-  num elapsedTime;
+  num get elapsedTime() native "return this.elapsedTime;";
 
-  bool ended;
+  void set elapsedTime(num value) native "this.elapsedTime = value;";
 
-  int fillMode;
+  bool get ended() native "return this.ended;";
 
-  int iterationCount;
+  int get fillMode() native "return this.fillMode;";
 
-  String name;
+  int get iterationCount() native "return this.iterationCount;";
 
-  bool paused;
+  String get name() native "return this.name;";
+
+  bool get paused() native "return this.paused;";
 
   void pause() native;
 

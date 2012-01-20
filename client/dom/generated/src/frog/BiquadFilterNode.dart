@@ -17,13 +17,15 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   static final int PEAKING = 5;
 
-  AudioParam Q;
+  AudioParam get Q() native "return this.Q;";
 
-  AudioParam frequency;
+  AudioParam get frequency() native "return this.frequency;";
 
-  AudioParam gain;
+  AudioParam get gain() native "return this.gain;";
 
-  int type;
+  int get type() native "return this.type;";
+
+  void set type(int value) native "this.type = value;";
 
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }

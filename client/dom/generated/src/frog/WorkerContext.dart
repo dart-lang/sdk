@@ -5,19 +5,27 @@ class WorkerContext native "*WorkerContext" {
 
   static final int TEMPORARY = 0;
 
-  WorkerLocation location;
+  WorkerLocation get location() native "return this.location;";
 
-  WorkerNavigator navigator;
+  void set location(WorkerLocation value) native "this.location = value;";
 
-  EventListener onerror;
+  WorkerNavigator get navigator() native "return this.navigator;";
 
-  WorkerContext self;
+  void set navigator(WorkerNavigator value) native "this.navigator = value;";
 
-  IDBFactory webkitIndexedDB;
+  EventListener get onerror() native "return this.onerror;";
 
-  NotificationCenter webkitNotifications;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  DOMURL webkitURL;
+  WorkerContext get self() native "return this.self;";
+
+  void set self(WorkerContext value) native "this.self = value;";
+
+  IDBFactory get webkitIndexedDB() native "return this.webkitIndexedDB;";
+
+  NotificationCenter get webkitNotifications() native "return this.webkitNotifications;";
+
+  DOMURL get webkitURL() native "return this.webkitURL;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

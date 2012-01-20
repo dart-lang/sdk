@@ -1,11 +1,19 @@
 
 class HTMLOListElement extends HTMLElement native "*HTMLOListElement" {
 
-  bool compact;
+  bool get compact() native "return this.compact;";
 
-  bool reversed;
+  void set compact(bool value) native "this.compact = value;";
 
-  int start;
+  bool get reversed() native "return this.reversed;";
 
-  String type;
+  void set reversed(bool value) native "this.reversed = value;";
+
+  int get start() native "return this.start;";
+
+  void set start(int value) native "this.start = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }

@@ -3,9 +3,13 @@ class WebKitPoint native "*WebKitPoint" {
   WebKitPoint(num x, num y) native;
 
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 
   var dartObjectLocalStorage;
 

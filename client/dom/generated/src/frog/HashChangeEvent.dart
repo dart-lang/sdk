@@ -1,9 +1,9 @@
 
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
-  String newURL;
+  String get newURL() native "return this.newURL;";
 
-  String oldURL;
+  String get oldURL() native "return this.oldURL;";
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }

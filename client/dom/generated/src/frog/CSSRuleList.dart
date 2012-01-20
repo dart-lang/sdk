@@ -1,7 +1,7 @@
 
 class CSSRuleList native "*CSSRuleList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   CSSRule item(int index) native;
 

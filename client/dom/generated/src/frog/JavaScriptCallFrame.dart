@@ -11,19 +11,19 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int WITH_SCOPE = 2;
 
-  JavaScriptCallFrame caller;
+  JavaScriptCallFrame get caller() native "return this.caller;";
 
-  int column;
+  int get column() native "return this.column;";
 
-  String functionName;
+  String get functionName() native "return this.functionName;";
 
-  int line;
+  int get line() native "return this.line;";
 
-  List scopeChain;
+  List get scopeChain() native "return this.scopeChain;";
 
-  int sourceID;
+  int get sourceID() native "return this.sourceID;";
 
-  String type;
+  String get type() native "return this.type;";
 
   void evaluate(String script) native;
 

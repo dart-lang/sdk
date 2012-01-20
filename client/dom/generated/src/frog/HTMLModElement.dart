@@ -1,7 +1,11 @@
 
 class HTMLModElement extends HTMLElement native "*HTMLModElement" {
 
-  String cite;
+  String get cite() native "return this.cite;";
 
-  String dateTime;
+  void set cite(String value) native "this.cite = value;";
+
+  String get dateTime() native "return this.dateTime;";
+
+  void set dateTime(String value) native "this.dateTime = value;";
 }

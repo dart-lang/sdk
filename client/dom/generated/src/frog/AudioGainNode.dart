@@ -1,5 +1,5 @@
 
 class AudioGainNode extends AudioNode native "*AudioGainNode" {
 
-  AudioGain gain;
+  AudioGain get gain() native "return this.gain;";
 }

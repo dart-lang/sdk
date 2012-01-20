@@ -1,19 +1,31 @@
 
 class HTMLOptionElement extends HTMLElement native "*HTMLOptionElement" {
 
-  bool defaultSelected;
+  bool get defaultSelected() native "return this.defaultSelected;";
 
-  bool disabled;
+  void set defaultSelected(bool value) native "this.defaultSelected = value;";
 
-  HTMLFormElement form;
+  bool get disabled() native "return this.disabled;";
 
-  int index;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  String label;
+  HTMLFormElement get form() native "return this.form;";
 
-  bool selected;
+  int get index() native "return this.index;";
 
-  String text;
+  String get label() native "return this.label;";
 
-  String value;
+  void set label(String value) native "this.label = value;";
+
+  bool get selected() native "return this.selected;";
+
+  void set selected(bool value) native "this.selected = value;";
+
+  String get text() native "return this.text;";
+
+  void set text(String value) native "this.text = value;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
 }

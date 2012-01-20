@@ -53,7 +53,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   static final int CSS_URI = 20;
 
-  int primitiveType;
+  int get primitiveType() native "return this.primitiveType;";
 
   Counter getCounterValue() native;
 

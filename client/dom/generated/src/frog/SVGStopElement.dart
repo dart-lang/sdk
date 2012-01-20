@@ -1,13 +1,13 @@
 
 class SVGStopElement extends SVGElement native "*SVGStopElement" {
 
-  SVGAnimatedNumber offset;
+  SVGAnimatedNumber get offset() native "return this.offset;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

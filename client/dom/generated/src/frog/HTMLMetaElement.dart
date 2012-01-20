@@ -1,11 +1,19 @@
 
 class HTMLMetaElement extends HTMLElement native "*HTMLMetaElement" {
 
-  String content;
+  String get content() native "return this.content;";
 
-  String httpEquiv;
+  void set content(String value) native "this.content = value;";
 
-  String name;
+  String get httpEquiv() native "return this.httpEquiv;";
 
-  String scheme;
+  void set httpEquiv(String value) native "this.httpEquiv = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get scheme() native "return this.scheme;";
+
+  void set scheme(String value) native "this.scheme = value;";
 }

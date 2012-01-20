@@ -41,9 +41,9 @@ class SVGPathSeg native "*SVGPathSeg" {
 
   static final int PATHSEG_UNKNOWN = 0;
 
-  int pathSegType;
+  int get pathSegType() native "return this.pathSegType;";
 
-  String pathSegTypeAsLetter;
+  String get pathSegTypeAsLetter() native "return this.pathSegTypeAsLetter;";
 
   var dartObjectLocalStorage;
 

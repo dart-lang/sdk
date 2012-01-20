@@ -1,33 +1,57 @@
 
 class HTMLTableElement extends HTMLElement native "*HTMLTableElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String bgColor;
+  void set align(String value) native "this.align = value;";
 
-  String border;
+  String get bgColor() native "return this.bgColor;";
 
-  HTMLTableCaptionElement caption;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  String cellPadding;
+  String get border() native "return this.border;";
 
-  String cellSpacing;
+  void set border(String value) native "this.border = value;";
 
-  String frame;
+  HTMLTableCaptionElement get caption() native "return this.caption;";
 
-  HTMLCollection rows;
+  void set caption(HTMLTableCaptionElement value) native "this.caption = value;";
 
-  String rules;
+  String get cellPadding() native "return this.cellPadding;";
 
-  String summary;
+  void set cellPadding(String value) native "this.cellPadding = value;";
 
-  HTMLCollection tBodies;
+  String get cellSpacing() native "return this.cellSpacing;";
 
-  HTMLTableSectionElement tFoot;
+  void set cellSpacing(String value) native "this.cellSpacing = value;";
 
-  HTMLTableSectionElement tHead;
+  String get frame() native "return this.frame;";
 
-  String width;
+  void set frame(String value) native "this.frame = value;";
+
+  HTMLCollection get rows() native "return this.rows;";
+
+  String get rules() native "return this.rules;";
+
+  void set rules(String value) native "this.rules = value;";
+
+  String get summary() native "return this.summary;";
+
+  void set summary(String value) native "this.summary = value;";
+
+  HTMLCollection get tBodies() native "return this.tBodies;";
+
+  HTMLTableSectionElement get tFoot() native "return this.tFoot;";
+
+  void set tFoot(HTMLTableSectionElement value) native "this.tFoot = value;";
+
+  HTMLTableSectionElement get tHead() native "return this.tHead;";
+
+  void set tHead(HTMLTableSectionElement value) native "this.tHead = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 
   HTMLElement createCaption() native;
 

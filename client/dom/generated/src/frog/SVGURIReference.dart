@@ -1,7 +1,7 @@
 
 class SVGURIReference native "*SVGURIReference" {
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   var dartObjectLocalStorage;
 

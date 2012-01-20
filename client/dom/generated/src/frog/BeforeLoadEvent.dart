@@ -1,5 +1,5 @@
 
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
-  String url;
+  String get url() native "return this.url;";
 }

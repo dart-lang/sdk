@@ -1,15 +1,23 @@
 
 class RealtimeAnalyserNode extends AudioNode native "*RealtimeAnalyserNode" {
 
-  int fftSize;
+  int get fftSize() native "return this.fftSize;";
 
-  int frequencyBinCount;
+  void set fftSize(int value) native "this.fftSize = value;";
 
-  num maxDecibels;
+  int get frequencyBinCount() native "return this.frequencyBinCount;";
 
-  num minDecibels;
+  num get maxDecibels() native "return this.maxDecibels;";
 
-  num smoothingTimeConstant;
+  void set maxDecibels(num value) native "this.maxDecibels = value;";
+
+  num get minDecibels() native "return this.minDecibels;";
+
+  void set minDecibels(num value) native "this.minDecibels = value;";
+
+  num get smoothingTimeConstant() native "return this.smoothingTimeConstant;";
+
+  void set smoothingTimeConstant(num value) native "this.smoothingTimeConstant = value;";
 
   void getByteFrequencyData(Uint8Array array) native;
 

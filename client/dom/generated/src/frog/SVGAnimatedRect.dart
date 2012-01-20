@@ -1,9 +1,9 @@
 
 class SVGAnimatedRect native "*SVGAnimatedRect" {
 
-  SVGRect animVal;
+  SVGRect get animVal() native "return this.animVal;";
 
-  SVGRect baseVal;
+  SVGRect get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

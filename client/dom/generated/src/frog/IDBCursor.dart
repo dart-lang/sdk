@@ -9,13 +9,13 @@ class IDBCursor native "*IDBCursor" {
 
   static final int PREV_NO_DUPLICATE = 3;
 
-  int direction;
+  int get direction() native "return this.direction;";
 
-  IDBKey key;
+  IDBKey get key() native "return this.key;";
 
-  IDBKey primaryKey;
+  IDBKey get primaryKey() native "return this.primaryKey;";
 
-  IDBAny source;
+  IDBAny get source() native "return this.source;";
 
   void continueFunction([IDBKey key = null]) native;
 

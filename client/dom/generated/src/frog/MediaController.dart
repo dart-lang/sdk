@@ -1,25 +1,35 @@
 
 class MediaController native "*MediaController" {
 
-  TimeRanges buffered;
+  TimeRanges get buffered() native "return this.buffered;";
 
-  num currentTime;
+  num get currentTime() native "return this.currentTime;";
 
-  num defaultPlaybackRate;
+  void set currentTime(num value) native "this.currentTime = value;";
 
-  num duration;
+  num get defaultPlaybackRate() native "return this.defaultPlaybackRate;";
 
-  bool muted;
+  void set defaultPlaybackRate(num value) native "this.defaultPlaybackRate = value;";
 
-  bool paused;
+  num get duration() native "return this.duration;";
 
-  num playbackRate;
+  bool get muted() native "return this.muted;";
 
-  TimeRanges played;
+  void set muted(bool value) native "this.muted = value;";
 
-  TimeRanges seekable;
+  bool get paused() native "return this.paused;";
 
-  num volume;
+  num get playbackRate() native "return this.playbackRate;";
+
+  void set playbackRate(num value) native "this.playbackRate = value;";
+
+  TimeRanges get played() native "return this.played;";
+
+  TimeRanges get seekable() native "return this.seekable;";
+
+  num get volume() native "return this.volume;";
+
+  void set volume(num value) native "this.volume = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

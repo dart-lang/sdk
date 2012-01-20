@@ -1,55 +1,93 @@
 
 class HTMLElement extends Element native "*HTMLElement" {
 
-  String accessKey;
+  String get accessKey() native "return this.accessKey;";
 
-  HTMLCollection children;
+  void set accessKey(String value) native "this.accessKey = value;";
 
-  DOMTokenList classList;
+  HTMLCollection get children() native "return this.children;";
 
-  String className;
+  DOMTokenList get classList() native "return this.classList;";
 
-  String contentEditable;
+  String get className() native "return this.className;";
 
-  String dir;
+  void set className(String value) native "this.className = value;";
 
-  bool draggable;
+  String get contentEditable() native "return this.contentEditable;";
 
-  bool hidden;
+  void set contentEditable(String value) native "this.contentEditable = value;";
 
-  String id;
+  String get dir() native "return this.dir;";
 
-  String innerHTML;
+  void set dir(String value) native "this.dir = value;";
 
-  String innerText;
+  bool get draggable() native "return this.draggable;";
 
-  bool isContentEditable;
+  void set draggable(bool value) native "this.draggable = value;";
 
-  String itemId;
+  bool get hidden() native "return this.hidden;";
 
-  DOMSettableTokenList itemProp;
+  void set hidden(bool value) native "this.hidden = value;";
 
-  DOMSettableTokenList itemRef;
+  String get id() native "return this.id;";
 
-  bool itemScope;
+  void set id(String value) native "this.id = value;";
 
-  DOMSettableTokenList itemType;
+  String get innerHTML() native "return this.innerHTML;";
 
-  Object itemValue;
+  void set innerHTML(String value) native "this.innerHTML = value;";
 
-  String lang;
+  String get innerText() native "return this.innerText;";
 
-  String outerHTML;
+  void set innerText(String value) native "this.innerText = value;";
 
-  String outerText;
+  bool get isContentEditable() native "return this.isContentEditable;";
 
-  bool spellcheck;
+  String get itemId() native "return this.itemId;";
 
-  int tabIndex;
+  void set itemId(String value) native "this.itemId = value;";
 
-  String title;
+  DOMSettableTokenList get itemProp() native "return this.itemProp;";
 
-  String webkitdropzone;
+  DOMSettableTokenList get itemRef() native "return this.itemRef;";
+
+  bool get itemScope() native "return this.itemScope;";
+
+  void set itemScope(bool value) native "this.itemScope = value;";
+
+  DOMSettableTokenList get itemType() native "return this.itemType;";
+
+  Object get itemValue() native "return this.itemValue;";
+
+  void set itemValue(Object value) native "this.itemValue = value;";
+
+  String get lang() native "return this.lang;";
+
+  void set lang(String value) native "this.lang = value;";
+
+  String get outerHTML() native "return this.outerHTML;";
+
+  void set outerHTML(String value) native "this.outerHTML = value;";
+
+  String get outerText() native "return this.outerText;";
+
+  void set outerText(String value) native "this.outerText = value;";
+
+  bool get spellcheck() native "return this.spellcheck;";
+
+  void set spellcheck(bool value) native "this.spellcheck = value;";
+
+  int get tabIndex() native "return this.tabIndex;";
+
+  void set tabIndex(int value) native "this.tabIndex = value;";
+
+  String get title() native "return this.title;";
+
+  void set title(String value) native "this.title = value;";
+
+  String get webkitdropzone() native "return this.webkitdropzone;";
+
+  void set webkitdropzone(String value) native "this.webkitdropzone = value;";
 
   Element insertAdjacentElement(String where, Element element) native;
 

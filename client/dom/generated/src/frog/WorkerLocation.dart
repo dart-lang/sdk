@@ -1,21 +1,21 @@
 
 class WorkerLocation native "*WorkerLocation" {
 
-  String hash;
+  String get hash() native "return this.hash;";
 
-  String host;
+  String get host() native "return this.host;";
 
-  String hostname;
+  String get hostname() native "return this.hostname;";
 
-  String href;
+  String get href() native "return this.href;";
 
-  String pathname;
+  String get pathname() native "return this.pathname;";
 
-  String port;
+  String get port() native "return this.port;";
 
-  String protocol;
+  String get protocol() native "return this.protocol;";
 
-  String search;
+  String get search() native "return this.search;";
 
   String toString() native;
 

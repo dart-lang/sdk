@@ -9,9 +9,11 @@ class CSSValue native "*CSSValue" {
 
   static final int CSS_VALUE_LIST = 2;
 
-  String cssText;
+  String get cssText() native "return this.cssText;";
 
-  int cssValueType;
+  void set cssText(String value) native "this.cssText = value;";
+
+  int get cssValueType() native "return this.cssValueType;";
 
   var dartObjectLocalStorage;
 

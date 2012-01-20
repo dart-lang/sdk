@@ -1,13 +1,13 @@
 
 class DOMMimeType native "*DOMMimeType" {
 
-  String description;
+  String get description() native "return this.description;";
 
-  DOMPlugin enabledPlugin;
+  DOMPlugin get enabledPlugin() native "return this.enabledPlugin;";
 
-  String suffixes;
+  String get suffixes() native "return this.suffixes;";
 
-  String type;
+  String get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 

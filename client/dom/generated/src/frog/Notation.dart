@@ -1,7 +1,7 @@
 
 class Notation extends Node native "*Notation" {
 
-  String publicId;
+  String get publicId() native "return this.publicId;";
 
-  String systemId;
+  String get systemId() native "return this.systemId;";
 }

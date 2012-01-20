@@ -1,9 +1,9 @@
 
 class Console native "=(typeof console == 'undefined' ? {} : console)" {
 
-  MemoryInfo memory;
+  MemoryInfo get memory() native "return this.memory;";
 
-  List profiles;
+  List get profiles() native "return this.profiles;";
 
   void assertCondition(bool condition) native;
 

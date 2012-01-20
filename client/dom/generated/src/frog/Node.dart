@@ -37,39 +37,45 @@ class Node native "*Node" {
 
   static final int TEXT_NODE = 3;
 
-  NamedNodeMap attributes;
+  NamedNodeMap get attributes() native "return this.attributes;";
 
-  String baseURI;
+  String get baseURI() native "return this.baseURI;";
 
-  NodeList childNodes;
+  NodeList get childNodes() native "return this.childNodes;";
 
-  Node firstChild;
+  Node get firstChild() native "return this.firstChild;";
 
-  Node lastChild;
+  Node get lastChild() native "return this.lastChild;";
 
-  String localName;
+  String get localName() native "return this.localName;";
 
-  String namespaceURI;
+  String get namespaceURI() native "return this.namespaceURI;";
 
-  Node nextSibling;
+  Node get nextSibling() native "return this.nextSibling;";
 
-  String nodeName;
+  String get nodeName() native "return this.nodeName;";
 
-  int nodeType;
+  int get nodeType() native "return this.nodeType;";
 
-  String nodeValue;
+  String get nodeValue() native "return this.nodeValue;";
 
-  Document ownerDocument;
+  void set nodeValue(String value) native "this.nodeValue = value;";
 
-  Element parentElement;
+  Document get ownerDocument() native "return this.ownerDocument;";
 
-  Node parentNode;
+  Element get parentElement() native "return this.parentElement;";
 
-  String prefix;
+  Node get parentNode() native "return this.parentNode;";
 
-  Node previousSibling;
+  String get prefix() native "return this.prefix;";
 
-  String textContent;
+  void set prefix(String value) native "this.prefix = value;";
+
+  Node get previousSibling() native "return this.previousSibling;";
+
+  String get textContent() native "return this.textContent;";
+
+  void set textContent(String value) native "this.textContent = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

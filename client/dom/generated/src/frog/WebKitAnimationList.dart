@@ -1,7 +1,7 @@
 
 class WebKitAnimationList native "*WebKitAnimationList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   WebKitAnimation item(int index) native;
 

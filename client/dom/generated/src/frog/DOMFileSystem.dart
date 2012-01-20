@@ -1,9 +1,9 @@
 
 class DOMFileSystem native "*DOMFileSystem" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  DirectoryEntry root;
+  DirectoryEntry get root() native "return this.root;";
 
   var dartObjectLocalStorage;
 

@@ -27,11 +27,11 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int VER_ERR = 12;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 

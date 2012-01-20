@@ -1,13 +1,13 @@
 
 class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
 
-  num newScale;
+  num get newScale() native "return this.newScale;";
 
-  SVGPoint newTranslate;
+  SVGPoint get newTranslate() native "return this.newTranslate;";
 
-  num previousScale;
+  num get previousScale() native "return this.previousScale;";
 
-  SVGPoint previousTranslate;
+  SVGPoint get previousTranslate() native "return this.previousTranslate;";
 
-  SVGRect zoomRectScreen;
+  SVGRect get zoomRectScreen() native "return this.zoomRectScreen;";
 }

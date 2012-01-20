@@ -3,45 +3,49 @@ class Element extends Node native "*Element" {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  int childElementCount;
+  int get childElementCount() native "return this.childElementCount;";
 
-  int clientHeight;
+  int get clientHeight() native "return this.clientHeight;";
 
-  int clientLeft;
+  int get clientLeft() native "return this.clientLeft;";
 
-  int clientTop;
+  int get clientTop() native "return this.clientTop;";
 
-  int clientWidth;
+  int get clientWidth() native "return this.clientWidth;";
 
-  Element firstElementChild;
+  Element get firstElementChild() native "return this.firstElementChild;";
 
-  Element lastElementChild;
+  Element get lastElementChild() native "return this.lastElementChild;";
 
-  Element nextElementSibling;
+  Element get nextElementSibling() native "return this.nextElementSibling;";
 
-  int offsetHeight;
+  int get offsetHeight() native "return this.offsetHeight;";
 
-  int offsetLeft;
+  int get offsetLeft() native "return this.offsetLeft;";
 
-  Element offsetParent;
+  Element get offsetParent() native "return this.offsetParent;";
 
-  int offsetTop;
+  int get offsetTop() native "return this.offsetTop;";
 
-  int offsetWidth;
+  int get offsetWidth() native "return this.offsetWidth;";
 
-  Element previousElementSibling;
+  Element get previousElementSibling() native "return this.previousElementSibling;";
 
-  int scrollHeight;
+  int get scrollHeight() native "return this.scrollHeight;";
 
-  int scrollLeft;
+  int get scrollLeft() native "return this.scrollLeft;";
 
-  int scrollTop;
+  void set scrollLeft(int value) native "this.scrollLeft = value;";
 
-  int scrollWidth;
+  int get scrollTop() native "return this.scrollTop;";
 
-  CSSStyleDeclaration style;
+  void set scrollTop(int value) native "this.scrollTop = value;";
 
-  String tagName;
+  int get scrollWidth() native "return this.scrollWidth;";
+
+  CSSStyleDeclaration get style() native "return this.style;";
+
+  String get tagName() native "return this.tagName;";
 
   void blur() native;
 

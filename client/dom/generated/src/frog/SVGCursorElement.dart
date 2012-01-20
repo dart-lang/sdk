@@ -1,25 +1,25 @@
 
 class SVGCursorElement extends SVGElement native "*SVGCursorElement" {
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 }

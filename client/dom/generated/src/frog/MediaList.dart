@@ -1,9 +1,11 @@
 
 class MediaList native "*MediaList" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  String mediaText;
+  String get mediaText() native "return this.mediaText;";
+
+  void set mediaText(String value) native "this.mediaText = value;";
 
   String operator[](int index) native;
 

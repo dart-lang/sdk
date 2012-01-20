@@ -3,15 +3,17 @@ class AudioContext native "*AudioContext" {
   AudioContext() native;
 
 
-  num currentTime;
+  num get currentTime() native "return this.currentTime;";
 
-  AudioDestinationNode destination;
+  AudioDestinationNode get destination() native "return this.destination;";
 
-  AudioListener listener;
+  AudioListener get listener() native "return this.listener;";
 
-  EventListener oncomplete;
+  EventListener get oncomplete() native "return this.oncomplete;";
 
-  num sampleRate;
+  void set oncomplete(EventListener value) native "this.oncomplete = value;";
+
+  num get sampleRate() native "return this.sampleRate;";
 
   RealtimeAnalyserNode createAnalyser() native;
 

@@ -1,7 +1,11 @@
 
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
-  AudioBuffer buffer;
+  AudioBuffer get buffer() native "return this.buffer;";
 
-  bool normalize;
+  void set buffer(AudioBuffer value) native "this.buffer = value;";
+
+  bool get normalize() native "return this.normalize;";
+
+  void set normalize(bool value) native "this.normalize = value;";
 }

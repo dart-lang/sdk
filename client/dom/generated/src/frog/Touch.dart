@@ -1,29 +1,29 @@
 
 class Touch native "*Touch" {
 
-  int clientX;
+  int get clientX() native "return this.clientX;";
 
-  int clientY;
+  int get clientY() native "return this.clientY;";
 
-  int identifier;
+  int get identifier() native "return this.identifier;";
 
-  int pageX;
+  int get pageX() native "return this.pageX;";
 
-  int pageY;
+  int get pageY() native "return this.pageY;";
 
-  int screenX;
+  int get screenX() native "return this.screenX;";
 
-  int screenY;
+  int get screenY() native "return this.screenY;";
 
-  EventTarget target;
+  EventTarget get target() native "return this.target;";
 
-  num webkitForce;
+  num get webkitForce() native "return this.webkitForce;";
 
-  int webkitRadiusX;
+  int get webkitRadiusX() native "return this.webkitRadiusX;";
 
-  int webkitRadiusY;
+  int get webkitRadiusY() native "return this.webkitRadiusY;";
 
-  num webkitRotationAngle;
+  num get webkitRotationAngle() native "return this.webkitRotationAngle;";
 
   var dartObjectLocalStorage;
 

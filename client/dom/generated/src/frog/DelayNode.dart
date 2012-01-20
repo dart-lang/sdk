@@ -1,5 +1,5 @@
 
 class DelayNode extends AudioNode native "*DelayNode" {
 
-  AudioParam delayTime;
+  AudioParam get delayTime() native "return this.delayTime;";
 }

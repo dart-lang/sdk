@@ -1,9 +1,9 @@
 
 class FileWriterSync native "*FileWriterSync" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  int position;
+  int get position() native "return this.position;";
 
   void seek(int position) native;
 

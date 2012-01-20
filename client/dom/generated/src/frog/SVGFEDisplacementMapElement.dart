@@ -11,33 +11,33 @@ class SVGFEDisplacementMapElement extends SVGElement native "*SVGFEDisplacementM
 
   static final int SVG_CHANNEL_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedString in2;
+  SVGAnimatedString get in2() native "return this.in2;";
 
-  SVGAnimatedNumber scale;
+  SVGAnimatedNumber get scale() native "return this.scale;";
 
-  SVGAnimatedEnumeration xChannelSelector;
+  SVGAnimatedEnumeration get xChannelSelector() native "return this.xChannelSelector;";
 
-  SVGAnimatedEnumeration yChannelSelector;
+  SVGAnimatedEnumeration get yChannelSelector() native "return this.yChannelSelector;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

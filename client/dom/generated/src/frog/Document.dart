@@ -1,77 +1,97 @@
 
 class Document extends Node native "*Document" {
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  HTMLCollection anchors;
+  HTMLCollection get anchors() native "return this.anchors;";
 
-  HTMLCollection applets;
+  HTMLCollection get applets() native "return this.applets;";
 
-  HTMLElement body;
+  HTMLElement get body() native "return this.body;";
 
-  String characterSet;
+  void set body(HTMLElement value) native "this.body = value;";
 
-  String charset;
+  String get characterSet() native "return this.characterSet;";
 
-  String compatMode;
+  String get charset() native "return this.charset;";
 
-  String cookie;
+  void set charset(String value) native "this.charset = value;";
 
-  String defaultCharset;
+  String get compatMode() native "return this.compatMode;";
 
-  DOMWindow defaultView;
+  String get cookie() native "return this.cookie;";
 
-  DocumentType doctype;
+  void set cookie(String value) native "this.cookie = value;";
 
-  Element documentElement;
+  String get defaultCharset() native "return this.defaultCharset;";
 
-  String documentURI;
+  DOMWindow get defaultView() native "return this.defaultView;";
 
-  String domain;
+  DocumentType get doctype() native "return this.doctype;";
 
-  HTMLCollection forms;
+  Element get documentElement() native "return this.documentElement;";
 
-  HTMLHeadElement head;
+  String get documentURI() native "return this.documentURI;";
 
-  HTMLCollection images;
+  void set documentURI(String value) native "this.documentURI = value;";
 
-  DOMImplementation implementation;
+  String get domain() native "return this.domain;";
 
-  String inputEncoding;
+  void set domain(String value) native "this.domain = value;";
 
-  String lastModified;
+  HTMLCollection get forms() native "return this.forms;";
 
-  HTMLCollection links;
+  HTMLHeadElement get head() native "return this.head;";
 
-  Location location;
+  HTMLCollection get images() native "return this.images;";
 
-  String preferredStylesheetSet;
+  DOMImplementation get implementation() native "return this.implementation;";
 
-  String readyState;
+  String get inputEncoding() native "return this.inputEncoding;";
 
-  String referrer;
+  String get lastModified() native "return this.lastModified;";
 
-  String selectedStylesheetSet;
+  HTMLCollection get links() native "return this.links;";
 
-  StyleSheetList styleSheets;
+  Location get location() native "return this.location;";
 
-  String title;
+  void set location(Location value) native "this.location = value;";
 
-  Element webkitCurrentFullScreenElement;
+  String get preferredStylesheetSet() native "return this.preferredStylesheetSet;";
 
-  bool webkitFullScreenKeyboardInputAllowed;
+  String get readyState() native "return this.readyState;";
 
-  bool webkitHidden;
+  String get referrer() native "return this.referrer;";
 
-  bool webkitIsFullScreen;
+  String get selectedStylesheetSet() native "return this.selectedStylesheetSet;";
 
-  String webkitVisibilityState;
+  void set selectedStylesheetSet(String value) native "this.selectedStylesheetSet = value;";
 
-  String xmlEncoding;
+  StyleSheetList get styleSheets() native "return this.styleSheets;";
 
-  bool xmlStandalone;
+  String get title() native "return this.title;";
 
-  String xmlVersion;
+  void set title(String value) native "this.title = value;";
+
+  Element get webkitCurrentFullScreenElement() native "return this.webkitCurrentFullScreenElement;";
+
+  bool get webkitFullScreenKeyboardInputAllowed() native "return this.webkitFullScreenKeyboardInputAllowed;";
+
+  bool get webkitHidden() native "return this.webkitHidden;";
+
+  bool get webkitIsFullScreen() native "return this.webkitIsFullScreen;";
+
+  String get webkitVisibilityState() native "return this.webkitVisibilityState;";
+
+  String get xmlEncoding() native "return this.xmlEncoding;";
+
+  bool get xmlStandalone() native "return this.xmlStandalone;";
+
+  void set xmlStandalone(bool value) native "this.xmlStandalone = value;";
+
+  String get xmlVersion() native "return this.xmlVersion;";
+
+  void set xmlVersion(String value) native "this.xmlVersion = value;";
 
   Node adoptNode(Node source) native;
 

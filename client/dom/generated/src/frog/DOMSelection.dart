@@ -1,27 +1,27 @@
 
 class DOMSelection native "*DOMSelection" {
 
-  Node anchorNode;
+  Node get anchorNode() native "return this.anchorNode;";
 
-  int anchorOffset;
+  int get anchorOffset() native "return this.anchorOffset;";
 
-  Node baseNode;
+  Node get baseNode() native "return this.baseNode;";
 
-  int baseOffset;
+  int get baseOffset() native "return this.baseOffset;";
 
-  Node extentNode;
+  Node get extentNode() native "return this.extentNode;";
 
-  int extentOffset;
+  int get extentOffset() native "return this.extentOffset;";
 
-  Node focusNode;
+  Node get focusNode() native "return this.focusNode;";
 
-  int focusOffset;
+  int get focusOffset() native "return this.focusOffset;";
 
-  bool isCollapsed;
+  bool get isCollapsed() native "return this.isCollapsed;";
 
-  int rangeCount;
+  int get rangeCount() native "return this.rangeCount;";
 
-  String type;
+  String get type() native "return this.type;";
 
   void addRange(Range range) native;
 

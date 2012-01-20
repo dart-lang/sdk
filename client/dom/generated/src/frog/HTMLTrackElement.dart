@@ -9,17 +9,27 @@ class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
 
   static final int NONE = 0;
 
-  bool isDefault;
+  bool get isDefault() native "return this.isDefault;";
 
-  String kind;
+  void set isDefault(bool value) native "this.isDefault = value;";
 
-  String label;
+  String get kind() native "return this.kind;";
 
-  int readyState;
+  void set kind(String value) native "this.kind = value;";
 
-  String src;
+  String get label() native "return this.label;";
 
-  String srclang;
+  void set label(String value) native "this.label = value;";
 
-  TextTrack track;
+  int get readyState() native "return this.readyState;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get srclang() native "return this.srclang;";
+
+  void set srclang(String value) native "this.srclang = value;";
+
+  TextTrack get track() native "return this.track;";
 }

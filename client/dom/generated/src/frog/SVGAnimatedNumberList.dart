@@ -1,9 +1,9 @@
 
 class SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
-  SVGNumberList animVal;
+  SVGNumberList get animVal() native "return this.animVal;";
 
-  SVGNumberList baseVal;
+  SVGNumberList get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

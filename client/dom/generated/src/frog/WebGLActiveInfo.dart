@@ -1,11 +1,11 @@
 
 class WebGLActiveInfo native "*WebGLActiveInfo" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  int size;
+  int get size() native "return this.size;";
 
-  int type;
+  int get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 

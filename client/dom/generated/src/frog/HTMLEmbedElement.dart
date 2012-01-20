@@ -1,17 +1,29 @@
 
 class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String height;
+  void set align(String value) native "this.align = value;";
 
-  String name;
+  String get height() native "return this.height;";
 
-  String src;
+  void set height(String value) native "this.height = value;";
 
-  String type;
+  String get name() native "return this.name;";
 
-  String width;
+  void set name(String value) native "this.name = value;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 
   SVGDocument getSVGDocument() native;
 }

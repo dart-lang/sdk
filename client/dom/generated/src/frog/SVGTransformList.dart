@@ -1,7 +1,7 @@
 
 class SVGTransformList native "*SVGTransformList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGTransform appendItem(SVGTransform item) native;
 

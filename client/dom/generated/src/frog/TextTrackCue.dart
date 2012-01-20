@@ -1,33 +1,59 @@
 
 class TextTrackCue native "*TextTrackCue" {
 
-  String alignment;
+  String get alignment() native "return this.alignment;";
 
-  String direction;
+  void set alignment(String value) native "this.alignment = value;";
 
-  num endTime;
+  String get direction() native "return this.direction;";
 
-  String id;
+  void set direction(String value) native "this.direction = value;";
 
-  int linePosition;
+  num get endTime() native "return this.endTime;";
 
-  EventListener onenter;
+  void set endTime(num value) native "this.endTime = value;";
 
-  EventListener onexit;
+  String get id() native "return this.id;";
 
-  bool pauseOnExit;
+  void set id(String value) native "this.id = value;";
 
-  int size;
+  int get linePosition() native "return this.linePosition;";
 
-  bool snapToLines;
+  void set linePosition(int value) native "this.linePosition = value;";
 
-  num startTime;
+  EventListener get onenter() native "return this.onenter;";
 
-  String text;
+  void set onenter(EventListener value) native "this.onenter = value;";
 
-  int textPosition;
+  EventListener get onexit() native "return this.onexit;";
 
-  TextTrack track;
+  void set onexit(EventListener value) native "this.onexit = value;";
+
+  bool get pauseOnExit() native "return this.pauseOnExit;";
+
+  void set pauseOnExit(bool value) native "this.pauseOnExit = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
+
+  bool get snapToLines() native "return this.snapToLines;";
+
+  void set snapToLines(bool value) native "this.snapToLines = value;";
+
+  num get startTime() native "return this.startTime;";
+
+  void set startTime(num value) native "this.startTime = value;";
+
+  String get text() native "return this.text;";
+
+  void set text(String value) native "this.text = value;";
+
+  int get textPosition() native "return this.textPosition;";
+
+  void set textPosition(int value) native "this.textPosition = value;";
+
+  TextTrack get track() native "return this.track;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

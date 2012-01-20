@@ -1,21 +1,21 @@
 
 class Screen native "*Screen" {
 
-  int availHeight;
+  int get availHeight() native "return this.availHeight;";
 
-  int availLeft;
+  int get availLeft() native "return this.availLeft;";
 
-  int availTop;
+  int get availTop() native "return this.availTop;";
 
-  int availWidth;
+  int get availWidth() native "return this.availWidth;";
 
-  int colorDepth;
+  int get colorDepth() native "return this.colorDepth;";
 
-  int height;
+  int get height() native "return this.height;";
 
-  int pixelDepth;
+  int get pixelDepth() native "return this.pixelDepth;";
 
-  int width;
+  int get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 

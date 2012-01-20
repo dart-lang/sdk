@@ -1,7 +1,7 @@
 
 class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
 
-  SVGAnimatedNumber azimuth;
+  SVGAnimatedNumber get azimuth() native "return this.azimuth;";
 
-  SVGAnimatedNumber elevation;
+  SVGAnimatedNumber get elevation() native "return this.elevation;";
 }

@@ -21,9 +21,9 @@ class SVGPaint extends SVGColor native "*SVGPaint" {
 
   static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
-  int paintType;
+  int get paintType() native "return this.paintType;";
 
-  String uri;
+  String get uri() native "return this.uri;";
 
   void setPaint(int paintType, String uri, String rgbColor, String iccColor) native;
 

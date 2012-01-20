@@ -1,5 +1,5 @@
 
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
-  SpeechInputResultList results;
+  SpeechInputResultList get results() native "return this.results;";
 }

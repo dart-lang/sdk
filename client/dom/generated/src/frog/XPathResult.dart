@@ -21,19 +21,19 @@ class XPathResult native "*XPathResult" {
 
   static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  bool booleanValue;
+  bool get booleanValue() native "return this.booleanValue;";
 
-  bool invalidIteratorState;
+  bool get invalidIteratorState() native "return this.invalidIteratorState;";
 
-  num numberValue;
+  num get numberValue() native "return this.numberValue;";
 
-  int resultType;
+  int get resultType() native "return this.resultType;";
 
-  Node singleNodeValue;
+  Node get singleNodeValue() native "return this.singleNodeValue;";
 
-  int snapshotLength;
+  int get snapshotLength() native "return this.snapshotLength;";
 
-  String stringValue;
+  String get stringValue() native "return this.stringValue;";
 
   Node iterateNext() native;
 

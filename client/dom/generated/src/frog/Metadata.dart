@@ -1,7 +1,7 @@
 
 class Metadata native "*Metadata" {
 
-  Date modificationTime;
+  Date get modificationTime() native "return this.modificationTime;";
 
   var dartObjectLocalStorage;
 

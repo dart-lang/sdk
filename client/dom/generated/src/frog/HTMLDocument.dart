@@ -1,31 +1,47 @@
 
 class HTMLDocument extends Document native "*HTMLDocument" {
 
-  Element activeElement;
+  Element get activeElement() native "return this.activeElement;";
 
-  String alinkColor;
+  String get alinkColor() native "return this.alinkColor;";
 
-  HTMLAllCollection all;
+  void set alinkColor(String value) native "this.alinkColor = value;";
 
-  String bgColor;
+  HTMLAllCollection get all() native "return this.all;";
 
-  String compatMode;
+  void set all(HTMLAllCollection value) native "this.all = value;";
 
-  String designMode;
+  String get bgColor() native "return this.bgColor;";
 
-  String dir;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  HTMLCollection embeds;
+  String get compatMode() native "return this.compatMode;";
 
-  String fgColor;
+  String get designMode() native "return this.designMode;";
 
-  String linkColor;
+  void set designMode(String value) native "this.designMode = value;";
 
-  HTMLCollection plugins;
+  String get dir() native "return this.dir;";
 
-  HTMLCollection scripts;
+  void set dir(String value) native "this.dir = value;";
 
-  String vlinkColor;
+  HTMLCollection get embeds() native "return this.embeds;";
+
+  String get fgColor() native "return this.fgColor;";
+
+  void set fgColor(String value) native "this.fgColor = value;";
+
+  String get linkColor() native "return this.linkColor;";
+
+  void set linkColor(String value) native "this.linkColor = value;";
+
+  HTMLCollection get plugins() native "return this.plugins;";
+
+  HTMLCollection get scripts() native "return this.scripts;";
+
+  String get vlinkColor() native "return this.vlinkColor;";
+
+  void set vlinkColor(String value) native "this.vlinkColor = value;";
 
   void captureEvents() native;
 

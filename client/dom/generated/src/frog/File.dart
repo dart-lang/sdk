@@ -1,13 +1,13 @@
 
 class File extends Blob native "*File" {
 
-  String fileName;
+  String get fileName() native "return this.fileName;";
 
-  int fileSize;
+  int get fileSize() native "return this.fileSize;";
 
-  Date lastModifiedDate;
+  Date get lastModifiedDate() native "return this.lastModifiedDate;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  String webkitRelativePath;
+  String get webkitRelativePath() native "return this.webkitRelativePath;";
 }

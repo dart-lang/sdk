@@ -1,11 +1,11 @@
 
 class Counter native "*Counter" {
 
-  String identifier;
+  String get identifier() native "return this.identifier;";
 
-  String listStyle;
+  String get listStyle() native "return this.listStyle;";
 
-  String separator;
+  String get separator() native "return this.separator;";
 
   var dartObjectLocalStorage;
 

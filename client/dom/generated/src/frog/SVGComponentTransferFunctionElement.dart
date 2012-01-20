@@ -13,17 +13,17 @@ class SVGComponentTransferFunctionElement extends SVGElement native "*SVGCompone
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber amplitude;
+  SVGAnimatedNumber get amplitude() native "return this.amplitude;";
 
-  SVGAnimatedNumber exponent;
+  SVGAnimatedNumber get exponent() native "return this.exponent;";
 
-  SVGAnimatedNumber intercept;
+  SVGAnimatedNumber get intercept() native "return this.intercept;";
 
-  SVGAnimatedNumber offset;
+  SVGAnimatedNumber get offset() native "return this.offset;";
 
-  SVGAnimatedNumber slope;
+  SVGAnimatedNumber get slope() native "return this.slope;";
 
-  SVGAnimatedNumberList tableValues;
+  SVGAnimatedNumberList get tableValues() native "return this.tableValues;";
 
-  SVGAnimatedEnumeration type;
+  SVGAnimatedEnumeration get type() native "return this.type;";
 }

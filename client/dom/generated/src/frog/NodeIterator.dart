@@ -1,17 +1,17 @@
 
 class NodeIterator native "*NodeIterator" {
 
-  bool expandEntityReferences;
+  bool get expandEntityReferences() native "return this.expandEntityReferences;";
 
-  NodeFilter filter;
+  NodeFilter get filter() native "return this.filter;";
 
-  bool pointerBeforeReferenceNode;
+  bool get pointerBeforeReferenceNode() native "return this.pointerBeforeReferenceNode;";
 
-  Node referenceNode;
+  Node get referenceNode() native "return this.referenceNode;";
 
-  Node root;
+  Node get root() native "return this.root;";
 
-  int whatToShow;
+  int get whatToShow() native "return this.whatToShow;";
 
   void detach() native;
 

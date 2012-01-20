@@ -595,9 +595,9 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   static final int ZERO = 0;
 
-  int drawingBufferHeight;
+  int get drawingBufferHeight() native "return this.drawingBufferHeight;";
 
-  int drawingBufferWidth;
+  int get drawingBufferWidth() native "return this.drawingBufferWidth;";
 
   void activeTexture(int texture) native;
 

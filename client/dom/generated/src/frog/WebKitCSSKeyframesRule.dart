@@ -1,9 +1,11 @@
 
 class WebKitCSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 
-  CSSRuleList cssRules;
+  CSSRuleList get cssRules() native "return this.cssRules;";
 
-  String name;
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
 
   void deleteRule(String key) native;
 

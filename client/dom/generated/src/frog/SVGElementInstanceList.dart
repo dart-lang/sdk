@@ -1,7 +1,7 @@
 
 class SVGElementInstanceList native "*SVGElementInstanceList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   SVGElementInstance item(int index) native;
 

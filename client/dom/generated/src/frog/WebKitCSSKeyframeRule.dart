@@ -1,7 +1,9 @@
 
 class WebKitCSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 
-  String keyText;
+  String get keyText() native "return this.keyText;";
 
-  CSSStyleDeclaration style;
+  void set keyText(String value) native "this.keyText = value;";
+
+  CSSStyleDeclaration get style() native "return this.style;";
 }

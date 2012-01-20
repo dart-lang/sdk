@@ -1,23 +1,23 @@
 
 class ValidityState native "*ValidityState" {
 
-  bool customError;
+  bool get customError() native "return this.customError;";
 
-  bool patternMismatch;
+  bool get patternMismatch() native "return this.patternMismatch;";
 
-  bool rangeOverflow;
+  bool get rangeOverflow() native "return this.rangeOverflow;";
 
-  bool rangeUnderflow;
+  bool get rangeUnderflow() native "return this.rangeUnderflow;";
 
-  bool stepMismatch;
+  bool get stepMismatch() native "return this.stepMismatch;";
 
-  bool tooLong;
+  bool get tooLong() native "return this.tooLong;";
 
-  bool typeMismatch;
+  bool get typeMismatch() native "return this.typeMismatch;";
 
-  bool valid;
+  bool get valid() native "return this.valid;";
 
-  bool valueMissing;
+  bool get valueMissing() native "return this.valueMissing;";
 
   var dartObjectLocalStorage;
 

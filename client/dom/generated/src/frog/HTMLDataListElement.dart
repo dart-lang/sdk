@@ -1,5 +1,5 @@
 
 class HTMLDataListElement extends HTMLElement native "*HTMLDataListElement" {
 
-  HTMLCollection options;
+  HTMLCollection get options() native "return this.options;";
 }

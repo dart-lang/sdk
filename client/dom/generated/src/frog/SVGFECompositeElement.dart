@@ -15,37 +15,37 @@ class SVGFECompositeElement extends SVGElement native "*SVGFECompositeElement" {
 
   static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedString in2;
+  SVGAnimatedString get in2() native "return this.in2;";
 
-  SVGAnimatedNumber k1;
+  SVGAnimatedNumber get k1() native "return this.k1;";
 
-  SVGAnimatedNumber k2;
+  SVGAnimatedNumber get k2() native "return this.k2;";
 
-  SVGAnimatedNumber k3;
+  SVGAnimatedNumber get k3() native "return this.k3;";
 
-  SVGAnimatedNumber k4;
+  SVGAnimatedNumber get k4() native "return this.k4;";
 
-  SVGAnimatedEnumeration operator;
+  SVGAnimatedEnumeration get operator() native "return this.operator;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

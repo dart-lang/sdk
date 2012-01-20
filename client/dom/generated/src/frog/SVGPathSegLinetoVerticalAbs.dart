@@ -1,5 +1,7 @@
 
 class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVerticalAbs" {
 
-  num y;
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }

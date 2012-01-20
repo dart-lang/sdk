@@ -1,101 +1,181 @@
 
 class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
 
-  String accept;
+  String get accept() native "return this.accept;";
 
-  String align;
+  void set accept(String value) native "this.accept = value;";
 
-  String alt;
+  String get align() native "return this.align;";
 
-  String autocomplete;
+  void set align(String value) native "this.align = value;";
 
-  bool autofocus;
+  String get alt() native "return this.alt;";
 
-  bool checked;
+  void set alt(String value) native "this.alt = value;";
 
-  bool defaultChecked;
+  String get autocomplete() native "return this.autocomplete;";
 
-  String defaultValue;
+  void set autocomplete(String value) native "this.autocomplete = value;";
 
-  String dirName;
+  bool get autofocus() native "return this.autofocus;";
 
-  bool disabled;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  FileList files;
+  bool get checked() native "return this.checked;";
 
-  HTMLFormElement form;
+  void set checked(bool value) native "this.checked = value;";
 
-  String formAction;
+  bool get defaultChecked() native "return this.defaultChecked;";
 
-  String formEnctype;
+  void set defaultChecked(bool value) native "this.defaultChecked = value;";
 
-  String formMethod;
+  String get defaultValue() native "return this.defaultValue;";
 
-  bool formNoValidate;
+  void set defaultValue(String value) native "this.defaultValue = value;";
 
-  String formTarget;
+  String get dirName() native "return this.dirName;";
 
-  bool incremental;
+  void set dirName(String value) native "this.dirName = value;";
 
-  bool indeterminate;
+  bool get disabled() native "return this.disabled;";
 
-  NodeList labels;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  HTMLElement list;
+  FileList get files() native "return this.files;";
 
-  String max;
+  HTMLFormElement get form() native "return this.form;";
 
-  int maxLength;
+  String get formAction() native "return this.formAction;";
 
-  String min;
+  void set formAction(String value) native "this.formAction = value;";
 
-  bool multiple;
+  String get formEnctype() native "return this.formEnctype;";
 
-  String name;
+  void set formEnctype(String value) native "this.formEnctype = value;";
 
-  String pattern;
+  String get formMethod() native "return this.formMethod;";
 
-  String placeholder;
+  void set formMethod(String value) native "this.formMethod = value;";
 
-  bool readOnly;
+  bool get formNoValidate() native "return this.formNoValidate;";
 
-  bool required;
+  void set formNoValidate(bool value) native "this.formNoValidate = value;";
 
-  HTMLOptionElement selectedOption;
+  String get formTarget() native "return this.formTarget;";
 
-  String selectionDirection;
+  void set formTarget(String value) native "this.formTarget = value;";
 
-  int selectionEnd;
+  bool get incremental() native "return this.incremental;";
 
-  int selectionStart;
+  void set incremental(bool value) native "this.incremental = value;";
 
-  int size;
+  bool get indeterminate() native "return this.indeterminate;";
 
-  String src;
+  void set indeterminate(bool value) native "this.indeterminate = value;";
 
-  String step;
+  NodeList get labels() native "return this.labels;";
 
-  String type;
+  HTMLElement get list() native "return this.list;";
 
-  String useMap;
+  String get max() native "return this.max;";
 
-  String validationMessage;
+  void set max(String value) native "this.max = value;";
 
-  ValidityState validity;
+  int get maxLength() native "return this.maxLength;";
 
-  String value;
+  void set maxLength(int value) native "this.maxLength = value;";
 
-  Date valueAsDate;
+  String get min() native "return this.min;";
 
-  num valueAsNumber;
+  void set min(String value) native "this.min = value;";
 
-  bool webkitGrammar;
+  bool get multiple() native "return this.multiple;";
 
-  bool webkitSpeech;
+  void set multiple(bool value) native "this.multiple = value;";
 
-  bool webkitdirectory;
+  String get name() native "return this.name;";
 
-  bool willValidate;
+  void set name(String value) native "this.name = value;";
+
+  String get pattern() native "return this.pattern;";
+
+  void set pattern(String value) native "this.pattern = value;";
+
+  String get placeholder() native "return this.placeholder;";
+
+  void set placeholder(String value) native "this.placeholder = value;";
+
+  bool get readOnly() native "return this.readOnly;";
+
+  void set readOnly(bool value) native "this.readOnly = value;";
+
+  bool get required() native "return this.required;";
+
+  void set required(bool value) native "this.required = value;";
+
+  HTMLOptionElement get selectedOption() native "return this.selectedOption;";
+
+  String get selectionDirection() native "return this.selectionDirection;";
+
+  void set selectionDirection(String value) native "this.selectionDirection = value;";
+
+  int get selectionEnd() native "return this.selectionEnd;";
+
+  void set selectionEnd(int value) native "this.selectionEnd = value;";
+
+  int get selectionStart() native "return this.selectionStart;";
+
+  void set selectionStart(int value) native "this.selectionStart = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get step() native "return this.step;";
+
+  void set step(String value) native "this.step = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
+
+  String get useMap() native "return this.useMap;";
+
+  void set useMap(String value) native "this.useMap = value;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  Date get valueAsDate() native "return this.valueAsDate;";
+
+  void set valueAsDate(Date value) native "this.valueAsDate = value;";
+
+  num get valueAsNumber() native "return this.valueAsNumber;";
+
+  void set valueAsNumber(num value) native "this.valueAsNumber = value;";
+
+  bool get webkitGrammar() native "return this.webkitGrammar;";
+
+  void set webkitGrammar(bool value) native "this.webkitGrammar = value;";
+
+  bool get webkitSpeech() native "return this.webkitSpeech;";
+
+  void set webkitSpeech(bool value) native "this.webkitSpeech = value;";
+
+  bool get webkitdirectory() native "return this.webkitdirectory;";
+
+  void set webkitdirectory(bool value) native "this.webkitdirectory = value;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 

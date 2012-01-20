@@ -1,23 +1,23 @@
 
 class ScriptProfileNode native "*ScriptProfileNode" {
 
-  int callUID;
+  int get callUID() native "return this.callUID;";
 
-  List children;
+  List get children() native "return this.children;";
 
-  String functionName;
+  String get functionName() native "return this.functionName;";
 
-  int lineNumber;
+  int get lineNumber() native "return this.lineNumber;";
 
-  int numberOfCalls;
+  int get numberOfCalls() native "return this.numberOfCalls;";
 
-  num selfTime;
+  num get selfTime() native "return this.selfTime;";
 
-  num totalTime;
+  num get totalTime() native "return this.totalTime;";
 
-  String url;
+  String get url() native "return this.url;";
 
-  bool visible;
+  bool get visible() native "return this.visible;";
 
   var dartObjectLocalStorage;
 

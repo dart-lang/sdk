@@ -1,7 +1,11 @@
 
 class HTMLLIElement extends HTMLElement native "*HTMLLIElement" {
 
-  String type;
+  String get type() native "return this.type;";
 
-  int value;
+  void set type(String value) native "this.type = value;";
+
+  int get value() native "return this.value;";
+
+  void set value(int value) native "this.value = value;";
 }

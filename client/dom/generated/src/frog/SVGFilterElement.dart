@@ -1,43 +1,47 @@
 
 class SVGFilterElement extends SVGElement native "*SVGFilterElement" {
 
-  SVGAnimatedInteger filterResX;
+  SVGAnimatedInteger get filterResX() native "return this.filterResX;";
 
-  SVGAnimatedInteger filterResY;
+  SVGAnimatedInteger get filterResY() native "return this.filterResY;";
 
-  SVGAnimatedEnumeration filterUnits;
+  SVGAnimatedEnumeration get filterUnits() native "return this.filterUnits;";
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedEnumeration primitiveUnits;
+  SVGAnimatedEnumeration get primitiveUnits() native "return this.primitiveUnits;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

@@ -1,15 +1,17 @@
 
 class AudioBuffer native "*AudioBuffer" {
 
-  num duration;
+  num get duration() native "return this.duration;";
 
-  num gain;
+  num get gain() native "return this.gain;";
 
-  int length;
+  void set gain(num value) native "this.gain = value;";
 
-  int numberOfChannels;
+  int get length() native "return this.length;";
 
-  num sampleRate;
+  int get numberOfChannels() native "return this.numberOfChannels;";
+
+  num get sampleRate() native "return this.sampleRate;";
 
   Float32Array getChannelData(int channelIndex) native;
 

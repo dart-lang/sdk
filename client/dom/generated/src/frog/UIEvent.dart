@@ -1,23 +1,23 @@
 
 class UIEvent extends Event native "*UIEvent" {
 
-  int charCode;
+  int get charCode() native "return this.charCode;";
 
-  int detail;
+  int get detail() native "return this.detail;";
 
-  int keyCode;
+  int get keyCode() native "return this.keyCode;";
 
-  int layerX;
+  int get layerX() native "return this.layerX;";
 
-  int layerY;
+  int get layerY() native "return this.layerY;";
 
-  int pageX;
+  int get pageX() native "return this.pageX;";
 
-  int pageY;
+  int get pageY() native "return this.pageY;";
 
-  DOMWindow view;
+  DOMWindow get view() native "return this.view;";
 
-  int which;
+  int get which() native "return this.which;";
 
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) native;
 }

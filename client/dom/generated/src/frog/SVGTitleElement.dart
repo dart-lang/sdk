@@ -3,15 +3,19 @@ class SVGTitleElement extends SVGElement native "*SVGTitleElement" {
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

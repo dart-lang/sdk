@@ -1,15 +1,19 @@
 
 class Clipboard native "*Clipboard" {
 
-  String dropEffect;
+  String get dropEffect() native "return this.dropEffect;";
 
-  String effectAllowed;
+  void set dropEffect(String value) native "this.dropEffect = value;";
 
-  FileList files;
+  String get effectAllowed() native "return this.effectAllowed;";
 
-  DataTransferItemList items;
+  void set effectAllowed(String value) native "this.effectAllowed = value;";
 
-  List types;
+  FileList get files() native "return this.files;";
+
+  DataTransferItemList get items() native "return this.items;";
+
+  List get types() native "return this.types;";
 
   void clearData([String type = null]) native;
 

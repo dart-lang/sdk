@@ -34,7 +34,7 @@ class AbstractWorker native "*AbstractWorker" {
 
 class ArrayBuffer native "*ArrayBuffer" {
 
-  int byteLength;
+  int get byteLength() native "return this.byteLength;";
 
   ArrayBuffer slice(int begin, [int end = null]) native;
 
@@ -45,11 +45,11 @@ class ArrayBuffer native "*ArrayBuffer" {
 
 class ArrayBufferView native "*ArrayBufferView" {
 
-  ArrayBuffer buffer;
+  ArrayBuffer get buffer() native "return this.buffer;";
 
-  int byteLength;
+  int get byteLength() native "return this.byteLength;";
 
-  int byteOffset;
+  int get byteOffset() native "return this.byteOffset;";
 
   var dartObjectLocalStorage;
 
@@ -58,28 +58,32 @@ class ArrayBufferView native "*ArrayBufferView" {
 
 class Attr extends Node native "*Attr" {
 
-  bool isId;
+  bool get isId() native "return this.isId;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  Element ownerElement;
+  Element get ownerElement() native "return this.ownerElement;";
 
-  bool specified;
+  bool get specified() native "return this.specified;";
 
-  String value;
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
 }
 
 class AudioBuffer native "*AudioBuffer" {
 
-  num duration;
+  num get duration() native "return this.duration;";
 
-  num gain;
+  num get gain() native "return this.gain;";
 
-  int length;
+  void set gain(num value) native "this.gain = value;";
 
-  int numberOfChannels;
+  int get length() native "return this.length;";
 
-  num sampleRate;
+  int get numberOfChannels() native "return this.numberOfChannels;";
+
+  num get sampleRate() native "return this.sampleRate;";
 
   Float32Array getChannelData(int channelIndex) native;
 
@@ -97,15 +101,21 @@ typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
 
-  AudioBuffer buffer;
+  AudioBuffer get buffer() native "return this.buffer;";
 
-  AudioGain gain;
+  void set buffer(AudioBuffer value) native "this.buffer = value;";
 
-  bool loop;
+  AudioGain get gain() native "return this.gain;";
 
-  bool looping;
+  bool get loop() native "return this.loop;";
 
-  AudioParam playbackRate;
+  void set loop(bool value) native "this.loop = value;";
+
+  bool get looping() native "return this.looping;";
+
+  void set looping(bool value) native "this.looping = value;";
+
+  AudioParam get playbackRate() native "return this.playbackRate;";
 
   void noteGrainOn(num when, num grainOffset, num grainDuration) native;
 
@@ -124,15 +134,17 @@ class AudioContext native "*AudioContext" {
   AudioContext() native;
 
 
-  num currentTime;
+  num get currentTime() native "return this.currentTime;";
 
-  AudioDestinationNode destination;
+  AudioDestinationNode get destination() native "return this.destination;";
 
-  AudioListener listener;
+  AudioListener get listener() native "return this.listener;";
 
-  EventListener oncomplete;
+  EventListener get oncomplete() native "return this.oncomplete;";
 
-  num sampleRate;
+  void set oncomplete(EventListener value) native "this.oncomplete = value;";
+
+  num get sampleRate() native "return this.sampleRate;";
 
   RealtimeAnalyserNode createAnalyser() native;
 
@@ -177,7 +189,7 @@ class AudioContext native "*AudioContext" {
 
 class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 
-  int numberOfChannels;
+  int get numberOfChannels() native "return this.numberOfChannels;";
 }
 
 class AudioGain extends AudioParam native "*AudioGain" {
@@ -185,14 +197,18 @@ class AudioGain extends AudioParam native "*AudioGain" {
 
 class AudioGainNode extends AudioNode native "*AudioGainNode" {
 
-  AudioGain gain;
+  AudioGain get gain() native "return this.gain;";
 }
 
 class AudioListener native "*AudioListener" {
 
-  num dopplerFactor;
+  num get dopplerFactor() native "return this.dopplerFactor;";
 
-  num speedOfSound;
+  void set dopplerFactor(num value) native "this.dopplerFactor = value;";
+
+  num get speedOfSound() native "return this.speedOfSound;";
+
+  void set speedOfSound(num value) native "this.speedOfSound = value;";
 
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
 
@@ -207,11 +223,11 @@ class AudioListener native "*AudioListener" {
 
 class AudioNode native "*AudioNode" {
 
-  AudioContext context;
+  AudioContext get context() native "return this.context;";
 
-  int numberOfInputs;
+  int get numberOfInputs() native "return this.numberOfInputs;";
 
-  int numberOfOutputs;
+  int get numberOfOutputs() native "return this.numberOfOutputs;";
 
   void connect(AudioNode destination, int output, int input) native;
 
@@ -230,25 +246,41 @@ class AudioPannerNode extends AudioNode native "*AudioPannerNode" {
 
   static final int SOUNDFIELD = 2;
 
-  AudioGain coneGain;
+  AudioGain get coneGain() native "return this.coneGain;";
 
-  num coneInnerAngle;
+  num get coneInnerAngle() native "return this.coneInnerAngle;";
 
-  num coneOuterAngle;
+  void set coneInnerAngle(num value) native "this.coneInnerAngle = value;";
 
-  num coneOuterGain;
+  num get coneOuterAngle() native "return this.coneOuterAngle;";
 
-  AudioGain distanceGain;
+  void set coneOuterAngle(num value) native "this.coneOuterAngle = value;";
 
-  int distanceModel;
+  num get coneOuterGain() native "return this.coneOuterGain;";
 
-  num maxDistance;
+  void set coneOuterGain(num value) native "this.coneOuterGain = value;";
 
-  int panningModel;
+  AudioGain get distanceGain() native "return this.distanceGain;";
 
-  num refDistance;
+  int get distanceModel() native "return this.distanceModel;";
 
-  num rolloffFactor;
+  void set distanceModel(int value) native "this.distanceModel = value;";
+
+  num get maxDistance() native "return this.maxDistance;";
+
+  void set maxDistance(num value) native "this.maxDistance = value;";
+
+  int get panningModel() native "return this.panningModel;";
+
+  void set panningModel(int value) native "this.panningModel = value;";
+
+  num get refDistance() native "return this.refDistance;";
+
+  void set refDistance(num value) native "this.refDistance = value;";
+
+  num get rolloffFactor() native "return this.rolloffFactor;";
+
+  void set rolloffFactor(num value) native "this.rolloffFactor = value;";
 
   void setOrientation(num x, num y, num z) native;
 
@@ -259,17 +291,19 @@ class AudioPannerNode extends AudioNode native "*AudioPannerNode" {
 
 class AudioParam native "*AudioParam" {
 
-  num defaultValue;
+  num get defaultValue() native "return this.defaultValue;";
 
-  num maxValue;
+  num get maxValue() native "return this.maxValue;";
 
-  num minValue;
+  num get minValue() native "return this.minValue;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  int units;
+  int get units() native "return this.units;";
 
-  num value;
+  num get value() native "return this.value;";
+
+  void set value(num value) native "this.value = value;";
 
   void cancelScheduledValues(num startTime) native;
 
@@ -290,9 +324,9 @@ class AudioParam native "*AudioParam" {
 
 class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
 
-  AudioBuffer inputBuffer;
+  AudioBuffer get inputBuffer() native "return this.inputBuffer;";
 
-  AudioBuffer outputBuffer;
+  AudioBuffer get outputBuffer() native "return this.outputBuffer;";
 }
 
 class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
@@ -300,7 +334,7 @@ class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 
 class BarInfo native "*BarInfo" {
 
-  bool visible;
+  bool get visible() native "return this.visible;";
 
   var dartObjectLocalStorage;
 
@@ -309,7 +343,7 @@ class BarInfo native "*BarInfo" {
 
 class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
-  String url;
+  String get url() native "return this.url;";
 }
 
 class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
@@ -330,22 +364,24 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   static final int PEAKING = 5;
 
-  AudioParam Q;
+  AudioParam get Q() native "return this.Q;";
 
-  AudioParam frequency;
+  AudioParam get frequency() native "return this.frequency;";
 
-  AudioParam gain;
+  AudioParam get gain() native "return this.gain;";
 
-  int type;
+  int get type() native "return this.type;";
+
+  void set type(int value) native "this.type = value;";
 
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
 }
 
 class Blob native "*Blob" {
 
-  int size;
+  int get size() native "return this.size;";
 
-  String type;
+  String get type() native "return this.type;";
 
   Blob webkitSlice([int start = null, int end = null, String contentType = null]) native;
 
@@ -359,28 +395,30 @@ class CDATASection extends Text native "*CDATASection" {
 
 class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
 
-  String encoding;
+  String get encoding() native "return this.encoding;";
+
+  void set encoding(String value) native "this.encoding = value;";
 }
 
 class CSSFontFaceRule extends CSSRule native "*CSSFontFaceRule" {
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 }
 
 class CSSImportRule extends CSSRule native "*CSSImportRule" {
 
-  String href;
+  String get href() native "return this.href;";
 
-  MediaList media;
+  MediaList get media() native "return this.media;";
 
-  CSSStyleSheet styleSheet;
+  CSSStyleSheet get styleSheet() native "return this.styleSheet;";
 }
 
 class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
-  CSSRuleList cssRules;
+  CSSRuleList get cssRules() native "return this.cssRules;";
 
-  MediaList media;
+  MediaList get media() native "return this.media;";
 
   void deleteRule(int index) native;
 
@@ -389,9 +427,11 @@ class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
 class CSSPageRule extends CSSRule native "*CSSPageRule" {
 
-  String selectorText;
+  String get selectorText() native "return this.selectorText;";
 
-  CSSStyleDeclaration style;
+  void set selectorText(String value) native "this.selectorText = value;";
+
+  CSSStyleDeclaration get style() native "return this.style;";
 }
 
 class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
@@ -448,7 +488,7 @@ class CSSPrimitiveValue extends CSSValue native "*CSSPrimitiveValue" {
 
   static final int CSS_URI = 20;
 
-  int primitiveType;
+  int get primitiveType() native "return this.primitiveType;";
 
   Counter getCounterValue() native;
 
@@ -487,13 +527,15 @@ class CSSRule native "*CSSRule" {
 
   static final int WEBKIT_REGION_RULE = 10;
 
-  String cssText;
+  String get cssText() native "return this.cssText;";
 
-  CSSRule parentRule;
+  void set cssText(String value) native "this.cssText = value;";
 
-  CSSStyleSheet parentStyleSheet;
+  CSSRule get parentRule() native "return this.parentRule;";
 
-  int type;
+  CSSStyleSheet get parentStyleSheet() native "return this.parentStyleSheet;";
+
+  int get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 
@@ -502,7 +544,7 @@ class CSSRule native "*CSSRule" {
 
 class CSSRuleList native "*CSSRuleList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   CSSRule item(int index) native;
 
@@ -513,11 +555,13 @@ class CSSRuleList native "*CSSRuleList" {
 
 class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
-  String cssText;
+  String get cssText() native "return this.cssText;";
 
-  int length;
+  void set cssText(String value) native "this.cssText = value;";
 
-  CSSRule parentRule;
+  int get length() native "return this.length;";
+
+  CSSRule get parentRule() native "return this.parentRule;";
 
   CSSValue getPropertyCSSValue(String propertyName) native;
 
@@ -542,18 +586,20 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
 class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
 
-  String selectorText;
+  String get selectorText() native "return this.selectorText;";
 
-  CSSStyleDeclaration style;
+  void set selectorText(String value) native "this.selectorText = value;";
+
+  CSSStyleDeclaration get style() native "return this.style;";
 }
 
 class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
-  CSSRuleList cssRules;
+  CSSRuleList get cssRules() native "return this.cssRules;";
 
-  CSSRule ownerRule;
+  CSSRule get ownerRule() native "return this.ownerRule;";
 
-  CSSRuleList rules;
+  CSSRuleList get rules() native "return this.rules;";
 
   int addRule(String selector, String style, [int index = null]) native;
 
@@ -577,9 +623,11 @@ class CSSValue native "*CSSValue" {
 
   static final int CSS_VALUE_LIST = 2;
 
-  String cssText;
+  String get cssText() native "return this.cssText;";
 
-  int cssValueType;
+  void set cssText(String value) native "this.cssText = value;";
+
+  int get cssValueType() native "return this.cssValueType;";
 
   var dartObjectLocalStorage;
 
@@ -588,7 +636,7 @@ class CSSValue native "*CSSValue" {
 
 class CSSValueList extends CSSValue native "*CSSValueList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   CSSValue item(int index) native;
 }
@@ -611,7 +659,7 @@ class CanvasPattern native "*CanvasPattern" {
 
 class CanvasPixelArray native "*CanvasPixelArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
@@ -624,7 +672,7 @@ class CanvasPixelArray native "*CanvasPixelArray" {
 
 class CanvasRenderingContext native "*CanvasRenderingContext" {
 
-  HTMLCanvasElement canvas;
+  HTMLCanvasElement get canvas() native "return this.canvas;";
 
   var dartObjectLocalStorage;
 
@@ -633,39 +681,73 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
 
-  Dynamic fillStyle;
+  Dynamic get fillStyle() native "return this.fillStyle;";
 
-  String font;
+  void set fillStyle(Dynamic value) native "this.fillStyle = value;";
 
-  num globalAlpha;
+  String get font() native "return this.font;";
 
-  String globalCompositeOperation;
+  void set font(String value) native "this.font = value;";
 
-  String lineCap;
+  num get globalAlpha() native "return this.globalAlpha;";
 
-  String lineJoin;
+  void set globalAlpha(num value) native "this.globalAlpha = value;";
 
-  num lineWidth;
+  String get globalCompositeOperation() native "return this.globalCompositeOperation;";
 
-  num miterLimit;
+  void set globalCompositeOperation(String value) native "this.globalCompositeOperation = value;";
 
-  num shadowBlur;
+  String get lineCap() native "return this.lineCap;";
 
-  String shadowColor;
+  void set lineCap(String value) native "this.lineCap = value;";
 
-  num shadowOffsetX;
+  String get lineJoin() native "return this.lineJoin;";
 
-  num shadowOffsetY;
+  void set lineJoin(String value) native "this.lineJoin = value;";
 
-  Dynamic strokeStyle;
+  num get lineWidth() native "return this.lineWidth;";
 
-  String textAlign;
+  void set lineWidth(num value) native "this.lineWidth = value;";
 
-  String textBaseline;
+  num get miterLimit() native "return this.miterLimit;";
 
-  List webkitLineDash;
+  void set miterLimit(num value) native "this.miterLimit = value;";
 
-  num webkitLineDashOffset;
+  num get shadowBlur() native "return this.shadowBlur;";
+
+  void set shadowBlur(num value) native "this.shadowBlur = value;";
+
+  String get shadowColor() native "return this.shadowColor;";
+
+  void set shadowColor(String value) native "this.shadowColor = value;";
+
+  num get shadowOffsetX() native "return this.shadowOffsetX;";
+
+  void set shadowOffsetX(num value) native "this.shadowOffsetX = value;";
+
+  num get shadowOffsetY() native "return this.shadowOffsetY;";
+
+  void set shadowOffsetY(num value) native "this.shadowOffsetY = value;";
+
+  Dynamic get strokeStyle() native "return this.strokeStyle;";
+
+  void set strokeStyle(Dynamic value) native "this.strokeStyle = value;";
+
+  String get textAlign() native "return this.textAlign;";
+
+  void set textAlign(String value) native "this.textAlign = value;";
+
+  String get textBaseline() native "return this.textBaseline;";
+
+  void set textBaseline(String value) native "this.textBaseline = value;";
+
+  List get webkitLineDash() native "return this.webkitLineDash;";
+
+  void set webkitLineDash(List value) native "this.webkitLineDash = value;";
+
+  num get webkitLineDashOffset() native "return this.webkitLineDashOffset;";
+
+  void set webkitLineDashOffset(num value) native "this.webkitLineDashOffset = value;";
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
@@ -758,9 +840,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
 class CharacterData extends Node native "*CharacterData" {
 
-  String data;
+  String get data() native "return this.data;";
 
-  int length;
+  void set data(String value) native "this.data = value;";
+
+  int get length() native "return this.length;";
 
   void appendData(String data) native;
 
@@ -775,17 +859,17 @@ class CharacterData extends Node native "*CharacterData" {
 
 class ClientRect native "*ClientRect" {
 
-  num bottom;
+  num get bottom() native "return this.bottom;";
 
-  num height;
+  num get height() native "return this.height;";
 
-  num left;
+  num get left() native "return this.left;";
 
-  num right;
+  num get right() native "return this.right;";
 
-  num top;
+  num get top() native "return this.top;";
 
-  num width;
+  num get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 
@@ -794,7 +878,7 @@ class ClientRect native "*ClientRect" {
 
 class ClientRectList native "*ClientRectList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   ClientRect item(int index) native;
 
@@ -805,15 +889,19 @@ class ClientRectList native "*ClientRectList" {
 
 class Clipboard native "*Clipboard" {
 
-  String dropEffect;
+  String get dropEffect() native "return this.dropEffect;";
 
-  String effectAllowed;
+  void set dropEffect(String value) native "this.dropEffect = value;";
 
-  FileList files;
+  String get effectAllowed() native "return this.effectAllowed;";
 
-  DataTransferItemList items;
+  void set effectAllowed(String value) native "this.effectAllowed = value;";
 
-  List types;
+  FileList get files() native "return this.files;";
+
+  DataTransferItemList get items() native "return this.items;";
+
+  List get types() native "return this.types;";
 
   void clearData([String type = null]) native;
 
@@ -830,11 +918,11 @@ class Clipboard native "*Clipboard" {
 
 class CloseEvent extends Event native "*CloseEvent" {
 
-  int code;
+  int get code() native "return this.code;";
 
-  String reason;
+  String get reason() native "return this.reason;";
 
-  bool wasClean;
+  bool get wasClean() native "return this.wasClean;";
 }
 
 class Comment extends CharacterData native "*Comment" {
@@ -842,18 +930,18 @@ class Comment extends CharacterData native "*Comment" {
 
 class CompositionEvent extends UIEvent native "*CompositionEvent" {
 
-  String data;
+  String get data() native "return this.data;";
 
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg) native;
 }
 
 class Console native "=(typeof console == 'undefined' ? {} : console)" {
 
-  MemoryInfo memory;
+  MemoryInfo get memory() native "return this.memory;";
 
-  List profiles;
+  List get profiles() native "return this.profiles;";
 
-  void assert_(bool condition) native;
+  void assertCondition(bool condition) native;
 
   void count() native;
 
@@ -898,26 +986,30 @@ class Console native "=(typeof console == 'undefined' ? {} : console)" {
 
 class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
-  AudioBuffer buffer;
+  AudioBuffer get buffer() native "return this.buffer;";
 
-  bool normalize;
+  void set buffer(AudioBuffer value) native "this.buffer = value;";
+
+  bool get normalize() native "return this.normalize;";
+
+  void set normalize(bool value) native "this.normalize = value;";
 }
 
 class Coordinates native "*Coordinates" {
 
-  num accuracy;
+  num get accuracy() native "return this.accuracy;";
 
-  num altitude;
+  num get altitude() native "return this.altitude;";
 
-  num altitudeAccuracy;
+  num get altitudeAccuracy() native "return this.altitudeAccuracy;";
 
-  num heading;
+  num get heading() native "return this.heading;";
 
-  num latitude;
+  num get latitude() native "return this.latitude;";
 
-  num longitude;
+  num get longitude() native "return this.longitude;";
 
-  num speed;
+  num get speed() native "return this.speed;";
 
   var dartObjectLocalStorage;
 
@@ -926,11 +1018,11 @@ class Coordinates native "*Coordinates" {
 
 class Counter native "*Counter" {
 
-  String identifier;
+  String get identifier() native "return this.identifier;";
 
-  String listStyle;
+  String get listStyle() native "return this.listStyle;";
 
-  String separator;
+  String get separator() native "return this.separator;";
 
   var dartObjectLocalStorage;
 
@@ -948,7 +1040,7 @@ class Crypto native "*Crypto" {
 
 class CustomEvent extends Event native "*CustomEvent" {
 
-  Object detail;
+  Object get detail() native "return this.detail;";
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 }
@@ -967,7 +1059,7 @@ class DOMApplicationCache native "*DOMApplicationCache" {
 
   static final int UPDATEREADY = 4;
 
-  int status;
+  int get status() native "return this.status;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -1036,11 +1128,11 @@ class DOMException native "*DOMException" {
 
   static final int WRONG_DOCUMENT_ERR = 4;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -1051,9 +1143,9 @@ class DOMException native "*DOMException" {
 
 class DOMFileSystem native "*DOMFileSystem" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  DirectoryEntry root;
+  DirectoryEntry get root() native "return this.root;";
 
   var dartObjectLocalStorage;
 
@@ -1062,9 +1154,9 @@ class DOMFileSystem native "*DOMFileSystem" {
 
 class DOMFileSystemSync native "*DOMFileSystemSync" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  DirectoryEntrySync root;
+  DirectoryEntrySync get root() native "return this.root;";
 
   var dartObjectLocalStorage;
 
@@ -1099,13 +1191,13 @@ class DOMImplementation native "*DOMImplementation" {
 
 class DOMMimeType native "*DOMMimeType" {
 
-  String description;
+  String get description() native "return this.description;";
 
-  DOMPlugin enabledPlugin;
+  DOMPlugin get enabledPlugin() native "return this.enabledPlugin;";
 
-  String suffixes;
+  String get suffixes() native "return this.suffixes;";
 
-  String type;
+  String get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 
@@ -1114,7 +1206,7 @@ class DOMMimeType native "*DOMMimeType" {
 
 class DOMMimeTypeArray native "*DOMMimeTypeArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   DOMMimeType item(int index) native;
 
@@ -1136,13 +1228,13 @@ class DOMParser native "*DOMParser" {
 
 class DOMPlugin native "*DOMPlugin" {
 
-  String description;
+  String get description() native "return this.description;";
 
-  String filename;
+  String get filename() native "return this.filename;";
 
-  int length;
+  int get length() native "return this.length;";
 
-  String name;
+  String get name() native "return this.name;";
 
   DOMMimeType item(int index) native;
 
@@ -1155,7 +1247,7 @@ class DOMPlugin native "*DOMPlugin" {
 
 class DOMPluginArray native "*DOMPluginArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   DOMPlugin item(int index) native;
 
@@ -1170,27 +1262,27 @@ class DOMPluginArray native "*DOMPluginArray" {
 
 class DOMSelection native "*DOMSelection" {
 
-  Node anchorNode;
+  Node get anchorNode() native "return this.anchorNode;";
 
-  int anchorOffset;
+  int get anchorOffset() native "return this.anchorOffset;";
 
-  Node baseNode;
+  Node get baseNode() native "return this.baseNode;";
 
-  int baseOffset;
+  int get baseOffset() native "return this.baseOffset;";
 
-  Node extentNode;
+  Node get extentNode() native "return this.extentNode;";
 
-  int extentOffset;
+  int get extentOffset() native "return this.extentOffset;";
 
-  Node focusNode;
+  Node get focusNode() native "return this.focusNode;";
 
-  int focusOffset;
+  int get focusOffset() native "return this.focusOffset;";
 
-  bool isCollapsed;
+  bool get isCollapsed() native "return this.isCollapsed;";
 
-  int rangeCount;
+  int get rangeCount() native "return this.rangeCount;";
 
-  String type;
+  String get type() native "return this.type;";
 
   void addRange(Range range) native;
 
@@ -1229,12 +1321,14 @@ class DOMSelection native "*DOMSelection" {
 
 class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
 
-  String value;
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
 }
 
 class DOMTokenList native "*DOMTokenList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   void add(String token) native;
 
@@ -1270,107 +1364,179 @@ class DOMWindow native "@*DOMWindow" {
 
   static final int TEMPORARY = 0;
 
-  DOMApplicationCache applicationCache;
+  DOMApplicationCache get applicationCache() native "return this.applicationCache;";
 
-  Navigator clientInformation;
+  Navigator get clientInformation() native "return this.clientInformation;";
 
-  bool closed;
+  void set clientInformation(Navigator value) native "this.clientInformation = value;";
 
-  Console console;
+  bool get closed() native "return this.closed;";
 
-  Crypto crypto;
+  Console get console() native "return this.console;";
 
-  String defaultStatus;
+  void set console(Console value) native "this.console = value;";
 
-  String defaultstatus;
+  Crypto get crypto() native "return this.crypto;";
 
-  num devicePixelRatio;
+  String get defaultStatus() native "return this.defaultStatus;";
 
-  Document document;
+  void set defaultStatus(String value) native "this.defaultStatus = value;";
 
-  Event event;
+  String get defaultstatus() native "return this.defaultstatus;";
 
-  Element frameElement;
+  void set defaultstatus(String value) native "this.defaultstatus = value;";
 
-  DOMWindow frames;
+  num get devicePixelRatio() native "return this.devicePixelRatio;";
 
-  History history;
+  void set devicePixelRatio(num value) native "this.devicePixelRatio = value;";
 
-  int innerHeight;
+  Document get document() native "return this.document;";
 
-  int innerWidth;
+  Event get event() native "return this.event;";
 
-  int length;
+  void set event(Event value) native "this.event = value;";
 
-  Storage localStorage;
+  Element get frameElement() native "return this.frameElement;";
 
-  Location location;
+  DOMWindow get frames() native "return this.frames;";
 
-  BarInfo locationbar;
+  void set frames(DOMWindow value) native "this.frames = value;";
 
-  BarInfo menubar;
+  History get history() native "return this.history;";
 
-  String name;
+  void set history(History value) native "this.history = value;";
 
-  Navigator navigator;
+  int get innerHeight() native "return this.innerHeight;";
 
-  bool offscreenBuffering;
+  void set innerHeight(int value) native "this.innerHeight = value;";
 
-  DOMWindow opener;
+  int get innerWidth() native "return this.innerWidth;";
 
-  int outerHeight;
+  void set innerWidth(int value) native "this.innerWidth = value;";
 
-  int outerWidth;
+  int get length() native "return this.length;";
 
-  int pageXOffset;
+  void set length(int value) native "this.length = value;";
 
-  int pageYOffset;
+  Storage get localStorage() native "return this.localStorage;";
 
-  DOMWindow parent;
+  Location get location() native "return this.location;";
 
-  Performance performance;
+  void set location(Location value) native "this.location = value;";
 
-  BarInfo personalbar;
+  BarInfo get locationbar() native "return this.locationbar;";
 
-  Screen screen;
+  void set locationbar(BarInfo value) native "this.locationbar = value;";
 
-  int screenLeft;
+  BarInfo get menubar() native "return this.menubar;";
 
-  int screenTop;
+  void set menubar(BarInfo value) native "this.menubar = value;";
 
-  int screenX;
+  String get name() native "return this.name;";
 
-  int screenY;
+  void set name(String value) native "this.name = value;";
 
-  int scrollX;
+  Navigator get navigator() native "return this.navigator;";
 
-  int scrollY;
+  void set navigator(Navigator value) native "this.navigator = value;";
 
-  BarInfo scrollbars;
+  bool get offscreenBuffering() native "return this.offscreenBuffering;";
 
-  DOMWindow self;
+  void set offscreenBuffering(bool value) native "this.offscreenBuffering = value;";
 
-  Storage sessionStorage;
+  DOMWindow get opener() native "return this.opener;";
 
-  String status;
+  void set opener(DOMWindow value) native "this.opener = value;";
 
-  BarInfo statusbar;
+  int get outerHeight() native "return this.outerHeight;";
 
-  StyleMedia styleMedia;
+  void set outerHeight(int value) native "this.outerHeight = value;";
 
-  BarInfo toolbar;
+  int get outerWidth() native "return this.outerWidth;";
 
-  DOMWindow top;
+  void set outerWidth(int value) native "this.outerWidth = value;";
 
-  IDBFactory webkitIndexedDB;
+  int get pageXOffset() native "return this.pageXOffset;";
 
-  NotificationCenter webkitNotifications;
+  int get pageYOffset() native "return this.pageYOffset;";
 
-  StorageInfo webkitStorageInfo;
+  DOMWindow get parent() native "return this.parent;";
 
-  DOMURL webkitURL;
+  void set parent(DOMWindow value) native "this.parent = value;";
 
-  DOMWindow window;
+  Performance get performance() native "return this.performance;";
+
+  void set performance(Performance value) native "this.performance = value;";
+
+  BarInfo get personalbar() native "return this.personalbar;";
+
+  void set personalbar(BarInfo value) native "this.personalbar = value;";
+
+  Screen get screen() native "return this.screen;";
+
+  void set screen(Screen value) native "this.screen = value;";
+
+  int get screenLeft() native "return this.screenLeft;";
+
+  void set screenLeft(int value) native "this.screenLeft = value;";
+
+  int get screenTop() native "return this.screenTop;";
+
+  void set screenTop(int value) native "this.screenTop = value;";
+
+  int get screenX() native "return this.screenX;";
+
+  void set screenX(int value) native "this.screenX = value;";
+
+  int get screenY() native "return this.screenY;";
+
+  void set screenY(int value) native "this.screenY = value;";
+
+  int get scrollX() native "return this.scrollX;";
+
+  void set scrollX(int value) native "this.scrollX = value;";
+
+  int get scrollY() native "return this.scrollY;";
+
+  void set scrollY(int value) native "this.scrollY = value;";
+
+  BarInfo get scrollbars() native "return this.scrollbars;";
+
+  void set scrollbars(BarInfo value) native "this.scrollbars = value;";
+
+  DOMWindow get self() native "return this.self;";
+
+  void set self(DOMWindow value) native "this.self = value;";
+
+  Storage get sessionStorage() native "return this.sessionStorage;";
+
+  String get status() native "return this.status;";
+
+  void set status(String value) native "this.status = value;";
+
+  BarInfo get statusbar() native "return this.statusbar;";
+
+  void set statusbar(BarInfo value) native "this.statusbar = value;";
+
+  StyleMedia get styleMedia() native "return this.styleMedia;";
+
+  BarInfo get toolbar() native "return this.toolbar;";
+
+  void set toolbar(BarInfo value) native "this.toolbar = value;";
+
+  DOMWindow get top() native "return this.top;";
+
+  void set top(DOMWindow value) native "this.top = value;";
+
+  IDBFactory get webkitIndexedDB() native "return this.webkitIndexedDB;";
+
+  NotificationCenter get webkitNotifications() native "return this.webkitNotifications;";
+
+  StorageInfo get webkitStorageInfo() native "return this.webkitStorageInfo;";
+
+  DOMURL get webkitURL() native "return this.webkitURL;";
+
+  DOMWindow get window() native "return this.window;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -1463,9 +1629,9 @@ class DOMWindow native "@*DOMWindow" {
 
 class DataTransferItem native "*DataTransferItem" {
 
-  String kind;
+  String get kind() native "return this.kind;";
 
-  String type;
+  String get type() native "return this.type;";
 
   Blob getAsFile() native;
 
@@ -1478,7 +1644,7 @@ class DataTransferItem native "*DataTransferItem" {
 
 class DataTransferItemList native "*DataTransferItemList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   void add(String data, String type) native;
 
@@ -1528,7 +1694,7 @@ class DataView extends ArrayBufferView native "*DataView" {
 
 class Database native "*Database" {
 
-  String version;
+  String get version() native "return this.version;";
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
 
@@ -1550,9 +1716,9 @@ typedef bool DatabaseCallback(var database);
 
 class DatabaseSync native "*DatabaseSync" {
 
-  String lastErrorMessage;
+  String get lastErrorMessage() native "return this.lastErrorMessage;";
 
-  String version;
+  String get version() native "return this.version;";
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native;
 
@@ -1567,7 +1733,9 @@ class DatabaseSync native "*DatabaseSync" {
 
 class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
 
-  EventListener onmessage;
+  EventListener get onmessage() native "return this.onmessage;";
+
+  void set onmessage(EventListener value) native "this.onmessage = value;";
 
   void postMessage(Object message, [List messagePorts = null]) native;
 
@@ -1576,21 +1744,21 @@ class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerConte
 
 class DelayNode extends AudioNode native "*DelayNode" {
 
-  AudioParam delayTime;
+  AudioParam get delayTime() native "return this.delayTime;";
 }
 
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
-  num interval;
+  num get interval() native "return this.interval;";
 }
 
 class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
-  num alpha;
+  num get alpha() native "return this.alpha;";
 
-  num beta;
+  num get beta() native "return this.beta;";
 
-  num gamma;
+  num get gamma() native "return this.gamma;";
 
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) native;
 }
@@ -1637,77 +1805,97 @@ class DirectoryReaderSync native "*DirectoryReaderSync" {
 
 class Document extends Node native "*Document" {
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  HTMLCollection anchors;
+  HTMLCollection get anchors() native "return this.anchors;";
 
-  HTMLCollection applets;
+  HTMLCollection get applets() native "return this.applets;";
 
-  HTMLElement body;
+  HTMLElement get body() native "return this.body;";
 
-  String characterSet;
+  void set body(HTMLElement value) native "this.body = value;";
 
-  String charset;
+  String get characterSet() native "return this.characterSet;";
 
-  String compatMode;
+  String get charset() native "return this.charset;";
 
-  String cookie;
+  void set charset(String value) native "this.charset = value;";
 
-  String defaultCharset;
+  String get compatMode() native "return this.compatMode;";
 
-  DOMWindow defaultView;
+  String get cookie() native "return this.cookie;";
 
-  DocumentType doctype;
+  void set cookie(String value) native "this.cookie = value;";
 
-  Element documentElement;
+  String get defaultCharset() native "return this.defaultCharset;";
 
-  String documentURI;
+  DOMWindow get defaultView() native "return this.defaultView;";
 
-  String domain;
+  DocumentType get doctype() native "return this.doctype;";
 
-  HTMLCollection forms;
+  Element get documentElement() native "return this.documentElement;";
 
-  HTMLHeadElement head;
+  String get documentURI() native "return this.documentURI;";
 
-  HTMLCollection images;
+  void set documentURI(String value) native "this.documentURI = value;";
 
-  DOMImplementation implementation;
+  String get domain() native "return this.domain;";
 
-  String inputEncoding;
+  void set domain(String value) native "this.domain = value;";
 
-  String lastModified;
+  HTMLCollection get forms() native "return this.forms;";
 
-  HTMLCollection links;
+  HTMLHeadElement get head() native "return this.head;";
 
-  Location location;
+  HTMLCollection get images() native "return this.images;";
 
-  String preferredStylesheetSet;
+  DOMImplementation get implementation() native "return this.implementation;";
 
-  String readyState;
+  String get inputEncoding() native "return this.inputEncoding;";
 
-  String referrer;
+  String get lastModified() native "return this.lastModified;";
 
-  String selectedStylesheetSet;
+  HTMLCollection get links() native "return this.links;";
 
-  StyleSheetList styleSheets;
+  Location get location() native "return this.location;";
 
-  String title;
+  void set location(Location value) native "this.location = value;";
 
-  Element webkitCurrentFullScreenElement;
+  String get preferredStylesheetSet() native "return this.preferredStylesheetSet;";
 
-  bool webkitFullScreenKeyboardInputAllowed;
+  String get readyState() native "return this.readyState;";
 
-  bool webkitHidden;
+  String get referrer() native "return this.referrer;";
 
-  bool webkitIsFullScreen;
+  String get selectedStylesheetSet() native "return this.selectedStylesheetSet;";
 
-  String webkitVisibilityState;
+  void set selectedStylesheetSet(String value) native "this.selectedStylesheetSet = value;";
 
-  String xmlEncoding;
+  StyleSheetList get styleSheets() native "return this.styleSheets;";
 
-  bool xmlStandalone;
+  String get title() native "return this.title;";
 
-  String xmlVersion;
+  void set title(String value) native "this.title = value;";
+
+  Element get webkitCurrentFullScreenElement() native "return this.webkitCurrentFullScreenElement;";
+
+  bool get webkitFullScreenKeyboardInputAllowed() native "return this.webkitFullScreenKeyboardInputAllowed;";
+
+  bool get webkitHidden() native "return this.webkitHidden;";
+
+  bool get webkitIsFullScreen() native "return this.webkitIsFullScreen;";
+
+  String get webkitVisibilityState() native "return this.webkitVisibilityState;";
+
+  String get xmlEncoding() native "return this.xmlEncoding;";
+
+  bool get xmlStandalone() native "return this.xmlStandalone;";
+
+  void set xmlStandalone(bool value) native "this.xmlStandalone = value;";
+
+  String get xmlVersion() native "return this.xmlVersion;";
+
+  void set xmlVersion(String value) native "this.xmlVersion = value;";
 
   Node adoptNode(Node source) native;
 
@@ -1801,17 +1989,17 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 
 class DocumentType extends Node native "*DocumentType" {
 
-  NamedNodeMap entities;
+  NamedNodeMap get entities() native "return this.entities;";
 
-  String internalSubset;
+  String get internalSubset() native "return this.internalSubset;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  NamedNodeMap notations;
+  NamedNodeMap get notations() native "return this.notations;";
 
-  String publicId;
+  String get publicId() native "return this.publicId;";
 
-  String systemId;
+  String get systemId() native "return this.systemId;";
 }
 
 class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
@@ -1821,45 +2009,49 @@ class Element extends Node native "*Element" {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  int childElementCount;
+  int get childElementCount() native "return this.childElementCount;";
 
-  int clientHeight;
+  int get clientHeight() native "return this.clientHeight;";
 
-  int clientLeft;
+  int get clientLeft() native "return this.clientLeft;";
 
-  int clientTop;
+  int get clientTop() native "return this.clientTop;";
 
-  int clientWidth;
+  int get clientWidth() native "return this.clientWidth;";
 
-  Element firstElementChild;
+  Element get firstElementChild() native "return this.firstElementChild;";
 
-  Element lastElementChild;
+  Element get lastElementChild() native "return this.lastElementChild;";
 
-  Element nextElementSibling;
+  Element get nextElementSibling() native "return this.nextElementSibling;";
 
-  int offsetHeight;
+  int get offsetHeight() native "return this.offsetHeight;";
 
-  int offsetLeft;
+  int get offsetLeft() native "return this.offsetLeft;";
 
-  Element offsetParent;
+  Element get offsetParent() native "return this.offsetParent;";
 
-  int offsetTop;
+  int get offsetTop() native "return this.offsetTop;";
 
-  int offsetWidth;
+  int get offsetWidth() native "return this.offsetWidth;";
 
-  Element previousElementSibling;
+  Element get previousElementSibling() native "return this.previousElementSibling;";
 
-  int scrollHeight;
+  int get scrollHeight() native "return this.scrollHeight;";
 
-  int scrollLeft;
+  int get scrollLeft() native "return this.scrollLeft;";
 
-  int scrollTop;
+  void set scrollLeft(int value) native "this.scrollLeft = value;";
 
-  int scrollWidth;
+  int get scrollTop() native "return this.scrollTop;";
 
-  CSSStyleDeclaration style;
+  void set scrollTop(int value) native "this.scrollTop = value;";
 
-  String tagName;
+  int get scrollWidth() native "return this.scrollWidth;";
+
+  CSSStyleDeclaration get style() native "return this.style;";
+
+  String get tagName() native "return this.tagName;";
 
   void blur() native;
 
@@ -1935,15 +2127,15 @@ class ElementTimeControl native "*ElementTimeControl" {
 
 class ElementTraversal native "*ElementTraversal" {
 
-  int childElementCount;
+  int get childElementCount() native "return this.childElementCount;";
 
-  Element firstElementChild;
+  Element get firstElementChild() native "return this.firstElementChild;";
 
-  Element lastElementChild;
+  Element get lastElementChild() native "return this.lastElementChild;";
 
-  Element nextElementSibling;
+  Element get nextElementSibling() native "return this.nextElementSibling;";
 
-  Element previousElementSibling;
+  Element get previousElementSibling() native "return this.previousElementSibling;";
 
   var dartObjectLocalStorage;
 
@@ -1952,11 +2144,11 @@ class ElementTraversal native "*ElementTraversal" {
 
 class Entity extends Node native "*Entity" {
 
-  String notationName;
+  String get notationName() native "return this.notationName;";
 
-  String publicId;
+  String get publicId() native "return this.publicId;";
 
-  String systemId;
+  String get systemId() native "return this.systemId;";
 }
 
 class EntityReference extends Node native "*EntityReference" {
@@ -1971,15 +2163,15 @@ typedef bool EntriesCallback(EntryArray entries);
 
 class Entry native "*Entry" {
 
-  DOMFileSystem filesystem;
+  DOMFileSystem get filesystem() native "return this.filesystem;";
 
-  String fullPath;
+  String get fullPath() native "return this.fullPath;";
 
-  bool isDirectory;
+  bool get isDirectory() native "return this.isDirectory;";
 
-  bool isFile;
+  bool get isFile() native "return this.isFile;";
 
-  String name;
+  String get name() native "return this.name;";
 
   void copyTo(DirectoryEntry parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
@@ -2000,7 +2192,7 @@ class Entry native "*Entry" {
 
 class EntryArray native "*EntryArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Entry item(int index) native;
 
@@ -2011,7 +2203,7 @@ class EntryArray native "*EntryArray" {
 
 class EntryArraySync native "*EntryArraySync" {
 
-  int length;
+  int get length() native "return this.length;";
 
   EntrySync item(int index) native;
 
@@ -2029,15 +2221,15 @@ typedef bool EntryCallback(Entry entry);
 
 class EntrySync native "*EntrySync" {
 
-  DOMFileSystemSync filesystem;
+  DOMFileSystemSync get filesystem() native "return this.filesystem;";
 
-  String fullPath;
+  String get fullPath() native "return this.fullPath;";
 
-  bool isDirectory;
+  bool get isDirectory() native "return this.isDirectory;";
 
-  bool isFile;
+  bool get isFile() native "return this.isFile;";
 
-  String name;
+  String get name() native "return this.name;";
 
   EntrySync copyTo(DirectoryEntrySync parent, String name) native;
 
@@ -2065,11 +2257,11 @@ typedef bool ErrorCallback(FileError error);
 
 class ErrorEvent extends Event native "*ErrorEvent" {
 
-  String filename;
+  String get filename() native "return this.filename;";
 
-  int lineno;
+  int get lineno() native "return this.lineno;";
 
-  String message;
+  String get message() native "return this.message;";
 }
 
 class Event native "*Event" {
@@ -2112,29 +2304,33 @@ class Event native "*Event" {
 
   static final int SELECT = 16384;
 
-  bool bubbles;
+  bool get bubbles() native "return this.bubbles;";
 
-  bool cancelBubble;
+  bool get cancelBubble() native "return this.cancelBubble;";
 
-  bool cancelable;
+  void set cancelBubble(bool value) native "this.cancelBubble = value;";
 
-  Clipboard clipboardData;
+  bool get cancelable() native "return this.cancelable;";
 
-  EventTarget currentTarget;
+  Clipboard get clipboardData() native "return this.clipboardData;";
 
-  bool defaultPrevented;
+  EventTarget get currentTarget() native "return this.currentTarget;";
 
-  int eventPhase;
+  bool get defaultPrevented() native "return this.defaultPrevented;";
 
-  bool returnValue;
+  int get eventPhase() native "return this.eventPhase;";
 
-  EventTarget srcElement;
+  bool get returnValue() native "return this.returnValue;";
 
-  EventTarget target;
+  void set returnValue(bool value) native "this.returnValue = value;";
 
-  int timeStamp;
+  EventTarget get srcElement() native "return this.srcElement;";
 
-  String type;
+  EventTarget get target() native "return this.target;";
+
+  int get timeStamp() native "return this.timeStamp;";
+
+  String get type() native "return this.type;";
 
   void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native;
 
@@ -2155,11 +2351,11 @@ class EventException native "*EventException" {
 
   static final int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -2176,9 +2372,9 @@ class EventSource native "*EventSource" {
 
   static final int OPEN = 1;
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  int readyState;
+  int get readyState() native "return this.readyState;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -2208,15 +2404,15 @@ class EventTarget native "*EventTarget" {
 
 class File extends Blob native "*File" {
 
-  String fileName;
+  String get fileName() native "return this.fileName;";
 
-  int fileSize;
+  int get fileSize() native "return this.fileSize;";
 
-  Date lastModifiedDate;
+  Date get lastModifiedDate() native "return this.lastModifiedDate;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  String webkitRelativePath;
+  String get webkitRelativePath() native "return this.webkitRelativePath;";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2266,7 +2462,7 @@ class FileError native "*FileError" {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int code;
+  int get code() native "return this.code;";
 
   var dartObjectLocalStorage;
 
@@ -2299,11 +2495,11 @@ class FileException native "*FileException" {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -2314,7 +2510,7 @@ class FileException native "*FileException" {
 
 class FileList native "*FileList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   File item(int index) native;
 
@@ -2333,23 +2529,35 @@ class FileReader native "*FileReader" {
 
   static final int LOADING = 1;
 
-  FileError error;
+  FileError get error() native "return this.error;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener onerror;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onload;
+  EventListener get onerror() native "return this.onerror;";
 
-  EventListener onloadend;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  EventListener onloadstart;
+  EventListener get onload() native "return this.onload;";
 
-  EventListener onprogress;
+  void set onload(EventListener value) native "this.onload = value;";
 
-  int readyState;
+  EventListener get onloadend() native "return this.onloadend;";
 
-  Object result;
+  void set onloadend(EventListener value) native "this.onloadend = value;";
+
+  EventListener get onloadstart() native "return this.onloadstart;";
+
+  void set onloadstart(EventListener value) native "this.onloadstart = value;";
+
+  EventListener get onprogress() native "return this.onprogress;";
+
+  void set onprogress(EventListener value) native "this.onprogress = value;";
+
+  int get readyState() native "return this.readyState;";
+
+  Object get result() native "return this.result;";
 
   void abort() native;
 
@@ -2402,25 +2610,37 @@ class FileWriter native "*FileWriter" {
 
   static final int WRITING = 1;
 
-  FileError error;
+  FileError get error() native "return this.error;";
 
-  int length;
+  int get length() native "return this.length;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener onerror;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onprogress;
+  EventListener get onerror() native "return this.onerror;";
 
-  EventListener onwrite;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  EventListener onwriteend;
+  EventListener get onprogress() native "return this.onprogress;";
 
-  EventListener onwritestart;
+  void set onprogress(EventListener value) native "this.onprogress = value;";
 
-  int position;
+  EventListener get onwrite() native "return this.onwrite;";
 
-  int readyState;
+  void set onwrite(EventListener value) native "this.onwrite = value;";
+
+  EventListener get onwriteend() native "return this.onwriteend;";
+
+  void set onwriteend(EventListener value) native "this.onwriteend = value;";
+
+  EventListener get onwritestart() native "return this.onwritestart;";
+
+  void set onwritestart(EventListener value) native "this.onwritestart = value;";
+
+  int get position() native "return this.position;";
+
+  int get readyState() native "return this.readyState;";
 
   void abort() native;
 
@@ -2444,9 +2664,9 @@ typedef bool FileWriterCallback(FileWriter fileWriter);
 
 class FileWriterSync native "*FileWriterSync" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  int position;
+  int get position() native "return this.position;";
 
   void seek(int position) native;
 
@@ -2471,7 +2691,7 @@ class Float32Array extends ArrayBufferView implements List<num> native "*Float32
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int length;
+  int get length() native "return this.length;";
 
   num operator[](int index) native;
 
@@ -2492,7 +2712,7 @@ class Float64Array extends ArrayBufferView implements List<num> native "*Float64
 
   static final int BYTES_PER_ELEMENT = 8;
 
-  int length;
+  int get length() native "return this.length;";
 
   num operator[](int index) native;
 
@@ -2516,9 +2736,9 @@ class Geolocation native "*Geolocation" {
 
 class Geoposition native "*Geoposition" {
 
-  Coordinates coords;
+  Coordinates get coords() native "return this.coords;";
 
-  int timestamp;
+  int get timestamp() native "return this.timestamp;";
 
   var dartObjectLocalStorage;
 
@@ -2527,7 +2747,7 @@ class Geoposition native "*Geoposition" {
 
 class HTMLAllCollection native "*HTMLAllCollection" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Node item(int index) native;
 
@@ -2542,105 +2762,179 @@ class HTMLAllCollection native "*HTMLAllCollection" {
 
 class HTMLAnchorElement extends HTMLElement native "*HTMLAnchorElement" {
 
-  String charset;
+  String get charset() native "return this.charset;";
 
-  String coords;
+  void set charset(String value) native "this.charset = value;";
 
-  String download;
+  String get coords() native "return this.coords;";
 
-  String hash;
+  void set coords(String value) native "this.coords = value;";
 
-  String host;
+  String get download() native "return this.download;";
 
-  String hostname;
+  void set download(String value) native "this.download = value;";
 
-  String href;
+  String get hash() native "return this.hash;";
 
-  String hreflang;
+  void set hash(String value) native "this.hash = value;";
 
-  String name;
+  String get host() native "return this.host;";
 
-  String origin;
+  void set host(String value) native "this.host = value;";
 
-  String pathname;
+  String get hostname() native "return this.hostname;";
 
-  String ping;
+  void set hostname(String value) native "this.hostname = value;";
 
-  String port;
+  String get href() native "return this.href;";
 
-  String protocol;
+  void set href(String value) native "this.href = value;";
 
-  String rel;
+  String get hreflang() native "return this.hreflang;";
 
-  String rev;
+  void set hreflang(String value) native "this.hreflang = value;";
 
-  String search;
+  String get name() native "return this.name;";
 
-  String shape;
+  void set name(String value) native "this.name = value;";
 
-  String target;
+  String get origin() native "return this.origin;";
 
-  String text;
+  String get pathname() native "return this.pathname;";
 
-  String type;
+  void set pathname(String value) native "this.pathname = value;";
+
+  String get ping() native "return this.ping;";
+
+  void set ping(String value) native "this.ping = value;";
+
+  String get port() native "return this.port;";
+
+  void set port(String value) native "this.port = value;";
+
+  String get protocol() native "return this.protocol;";
+
+  void set protocol(String value) native "this.protocol = value;";
+
+  String get rel() native "return this.rel;";
+
+  void set rel(String value) native "this.rel = value;";
+
+  String get rev() native "return this.rev;";
+
+  void set rev(String value) native "this.rev = value;";
+
+  String get search() native "return this.search;";
+
+  void set search(String value) native "this.search = value;";
+
+  String get shape() native "return this.shape;";
+
+  void set shape(String value) native "this.shape = value;";
+
+  String get target() native "return this.target;";
+
+  void set target(String value) native "this.target = value;";
+
+  String get text() native "return this.text;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 
   String toString() native;
 }
 
 class HTMLAppletElement extends HTMLElement native "*HTMLAppletElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String alt;
+  void set align(String value) native "this.align = value;";
 
-  String archive;
+  String get alt() native "return this.alt;";
 
-  String code;
+  void set alt(String value) native "this.alt = value;";
 
-  String codeBase;
+  String get archive() native "return this.archive;";
 
-  String height;
+  void set archive(String value) native "this.archive = value;";
 
-  String hspace;
+  String get code() native "return this.code;";
 
-  String name;
+  void set code(String value) native "this.code = value;";
 
-  String object;
+  String get codeBase() native "return this.codeBase;";
 
-  String vspace;
+  void set codeBase(String value) native "this.codeBase = value;";
 
-  String width;
+  String get height() native "return this.height;";
+
+  void set height(String value) native "this.height = value;";
+
+  String get hspace() native "return this.hspace;";
+
+  void set hspace(String value) native "this.hspace = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get object() native "return this.object;";
+
+  void set object(String value) native "this.object = value;";
+
+  String get vspace() native "return this.vspace;";
+
+  void set vspace(String value) native "this.vspace = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 }
 
 class HTMLAreaElement extends HTMLElement native "*HTMLAreaElement" {
 
-  String alt;
+  String get alt() native "return this.alt;";
 
-  String coords;
+  void set alt(String value) native "this.alt = value;";
 
-  String hash;
+  String get coords() native "return this.coords;";
 
-  String host;
+  void set coords(String value) native "this.coords = value;";
 
-  String hostname;
+  String get hash() native "return this.hash;";
 
-  String href;
+  String get host() native "return this.host;";
 
-  bool noHref;
+  String get hostname() native "return this.hostname;";
 
-  String pathname;
+  String get href() native "return this.href;";
 
-  String ping;
+  void set href(String value) native "this.href = value;";
 
-  String port;
+  bool get noHref() native "return this.noHref;";
 
-  String protocol;
+  void set noHref(bool value) native "this.noHref = value;";
 
-  String search;
+  String get pathname() native "return this.pathname;";
 
-  String shape;
+  String get ping() native "return this.ping;";
 
-  String target;
+  void set ping(String value) native "this.ping = value;";
+
+  String get port() native "return this.port;";
+
+  String get protocol() native "return this.protocol;";
+
+  String get search() native "return this.search;";
+
+  String get shape() native "return this.shape;";
+
+  void set shape(String value) native "this.shape = value;";
+
+  String get target() native "return this.target;";
+
+  void set target(String value) native "this.target = value;";
 }
 
 class HTMLAudioElement extends HTMLMediaElement native "*HTMLAudioElement" {
@@ -2648,71 +2942,113 @@ class HTMLAudioElement extends HTMLMediaElement native "*HTMLAudioElement" {
 
 class HTMLBRElement extends HTMLElement native "*HTMLBRElement" {
 
-  String clear;
+  String get clear() native "return this.clear;";
+
+  void set clear(String value) native "this.clear = value;";
 }
 
 class HTMLBaseElement extends HTMLElement native "*HTMLBaseElement" {
 
-  String href;
+  String get href() native "return this.href;";
 
-  String target;
+  void set href(String value) native "this.href = value;";
+
+  String get target() native "return this.target;";
+
+  void set target(String value) native "this.target = value;";
 }
 
 class HTMLBaseFontElement extends HTMLElement native "*HTMLBaseFontElement" {
 
-  String color;
+  String get color() native "return this.color;";
 
-  String face;
+  void set color(String value) native "this.color = value;";
 
-  int size;
+  String get face() native "return this.face;";
+
+  void set face(String value) native "this.face = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
 }
 
 class HTMLBodyElement extends HTMLElement native "*HTMLBodyElement" {
 
-  String aLink;
+  String get aLink() native "return this.aLink;";
 
-  String background;
+  void set aLink(String value) native "this.aLink = value;";
 
-  String bgColor;
+  String get background() native "return this.background;";
 
-  String link;
+  void set background(String value) native "this.background = value;";
 
-  String text;
+  String get bgColor() native "return this.bgColor;";
 
-  String vLink;
+  void set bgColor(String value) native "this.bgColor = value;";
+
+  String get link() native "return this.link;";
+
+  void set link(String value) native "this.link = value;";
+
+  String get text() native "return this.text;";
+
+  void set text(String value) native "this.text = value;";
+
+  String get vLink() native "return this.vLink;";
+
+  void set vLink(String value) native "this.vLink = value;";
 }
 
 class HTMLButtonElement extends HTMLElement native "*HTMLButtonElement" {
 
-  bool autofocus;
+  bool get autofocus() native "return this.autofocus;";
 
-  bool disabled;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  HTMLFormElement form;
+  bool get disabled() native "return this.disabled;";
 
-  String formAction;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  String formEnctype;
+  HTMLFormElement get form() native "return this.form;";
 
-  String formMethod;
+  String get formAction() native "return this.formAction;";
 
-  bool formNoValidate;
+  void set formAction(String value) native "this.formAction = value;";
 
-  String formTarget;
+  String get formEnctype() native "return this.formEnctype;";
 
-  NodeList labels;
+  void set formEnctype(String value) native "this.formEnctype = value;";
 
-  String name;
+  String get formMethod() native "return this.formMethod;";
 
-  String type;
+  void set formMethod(String value) native "this.formMethod = value;";
 
-  String validationMessage;
+  bool get formNoValidate() native "return this.formNoValidate;";
 
-  ValidityState validity;
+  void set formNoValidate(bool value) native "this.formNoValidate = value;";
 
-  String value;
+  String get formTarget() native "return this.formTarget;";
 
-  bool willValidate;
+  void set formTarget(String value) native "this.formTarget = value;";
+
+  NodeList get labels() native "return this.labels;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get type() native "return this.type;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 
@@ -2723,9 +3059,13 @@ class HTMLButtonElement extends HTMLElement native "*HTMLButtonElement" {
 
 class HTMLCanvasElement extends HTMLElement native "*HTMLCanvasElement" {
 
-  int height;
+  int get height() native "return this.height;";
 
-  int width;
+  void set height(int value) native "this.height = value;";
+
+  int get width() native "return this.width;";
+
+  void set width(int value) native "this.width = value;";
 
   Object getContext(String contextId) native;
 
@@ -2734,7 +3074,7 @@ class HTMLCanvasElement extends HTMLElement native "*HTMLCanvasElement" {
 
 class HTMLCollection native "*HTMLCollection" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Node operator[](int index) native;
 
@@ -2753,56 +3093,80 @@ class HTMLCollection native "*HTMLCollection" {
 
 class HTMLDListElement extends HTMLElement native "*HTMLDListElement" {
 
-  bool compact;
+  bool get compact() native "return this.compact;";
+
+  void set compact(bool value) native "this.compact = value;";
 }
 
 class HTMLDataListElement extends HTMLElement native "*HTMLDataListElement" {
 
-  HTMLCollection options;
+  HTMLCollection get options() native "return this.options;";
 }
 
 class HTMLDetailsElement extends HTMLElement native "*HTMLDetailsElement" {
 
-  bool open;
+  bool get open() native "return this.open;";
+
+  void set open(bool value) native "this.open = value;";
 }
 
 class HTMLDirectoryElement extends HTMLElement native "*HTMLDirectoryElement" {
 
-  bool compact;
+  bool get compact() native "return this.compact;";
+
+  void set compact(bool value) native "this.compact = value;";
 }
 
 class HTMLDivElement extends HTMLElement native "*HTMLDivElement" {
 
-  String align;
+  String get align() native "return this.align;";
+
+  void set align(String value) native "this.align = value;";
 }
 
 class HTMLDocument extends Document native "*HTMLDocument" {
 
-  Element activeElement;
+  Element get activeElement() native "return this.activeElement;";
 
-  String alinkColor;
+  String get alinkColor() native "return this.alinkColor;";
 
-  HTMLAllCollection all;
+  void set alinkColor(String value) native "this.alinkColor = value;";
 
-  String bgColor;
+  HTMLAllCollection get all() native "return this.all;";
 
-  String compatMode;
+  void set all(HTMLAllCollection value) native "this.all = value;";
 
-  String designMode;
+  String get bgColor() native "return this.bgColor;";
 
-  String dir;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  HTMLCollection embeds;
+  String get compatMode() native "return this.compatMode;";
 
-  String fgColor;
+  String get designMode() native "return this.designMode;";
 
-  String linkColor;
+  void set designMode(String value) native "this.designMode = value;";
 
-  HTMLCollection plugins;
+  String get dir() native "return this.dir;";
 
-  HTMLCollection scripts;
+  void set dir(String value) native "this.dir = value;";
 
-  String vlinkColor;
+  HTMLCollection get embeds() native "return this.embeds;";
+
+  String get fgColor() native "return this.fgColor;";
+
+  void set fgColor(String value) native "this.fgColor = value;";
+
+  String get linkColor() native "return this.linkColor;";
+
+  void set linkColor(String value) native "this.linkColor = value;";
+
+  HTMLCollection get plugins() native "return this.plugins;";
+
+  HTMLCollection get scripts() native "return this.scripts;";
+
+  String get vlinkColor() native "return this.vlinkColor;";
+
+  void set vlinkColor(String value) native "this.vlinkColor = value;";
 
   void captureEvents() native;
 
@@ -2823,55 +3187,93 @@ class HTMLDocument extends Document native "*HTMLDocument" {
 
 class HTMLElement extends Element native "*HTMLElement" {
 
-  String accessKey;
+  String get accessKey() native "return this.accessKey;";
 
-  HTMLCollection children;
+  void set accessKey(String value) native "this.accessKey = value;";
 
-  DOMTokenList classList;
+  HTMLCollection get children() native "return this.children;";
 
-  String className;
+  DOMTokenList get classList() native "return this.classList;";
 
-  String contentEditable;
+  String get className() native "return this.className;";
 
-  String dir;
+  void set className(String value) native "this.className = value;";
 
-  bool draggable;
+  String get contentEditable() native "return this.contentEditable;";
 
-  bool hidden;
+  void set contentEditable(String value) native "this.contentEditable = value;";
 
-  String id;
+  String get dir() native "return this.dir;";
 
-  String innerHTML;
+  void set dir(String value) native "this.dir = value;";
 
-  String innerText;
+  bool get draggable() native "return this.draggable;";
 
-  bool isContentEditable;
+  void set draggable(bool value) native "this.draggable = value;";
 
-  String itemId;
+  bool get hidden() native "return this.hidden;";
 
-  DOMSettableTokenList itemProp;
+  void set hidden(bool value) native "this.hidden = value;";
 
-  DOMSettableTokenList itemRef;
+  String get id() native "return this.id;";
 
-  bool itemScope;
+  void set id(String value) native "this.id = value;";
 
-  DOMSettableTokenList itemType;
+  String get innerHTML() native "return this.innerHTML;";
 
-  Object itemValue;
+  void set innerHTML(String value) native "this.innerHTML = value;";
 
-  String lang;
+  String get innerText() native "return this.innerText;";
 
-  String outerHTML;
+  void set innerText(String value) native "this.innerText = value;";
 
-  String outerText;
+  bool get isContentEditable() native "return this.isContentEditable;";
 
-  bool spellcheck;
+  String get itemId() native "return this.itemId;";
 
-  int tabIndex;
+  void set itemId(String value) native "this.itemId = value;";
 
-  String title;
+  DOMSettableTokenList get itemProp() native "return this.itemProp;";
 
-  String webkitdropzone;
+  DOMSettableTokenList get itemRef() native "return this.itemRef;";
+
+  bool get itemScope() native "return this.itemScope;";
+
+  void set itemScope(bool value) native "this.itemScope = value;";
+
+  DOMSettableTokenList get itemType() native "return this.itemType;";
+
+  Object get itemValue() native "return this.itemValue;";
+
+  void set itemValue(Object value) native "this.itemValue = value;";
+
+  String get lang() native "return this.lang;";
+
+  void set lang(String value) native "this.lang = value;";
+
+  String get outerHTML() native "return this.outerHTML;";
+
+  void set outerHTML(String value) native "this.outerHTML = value;";
+
+  String get outerText() native "return this.outerText;";
+
+  void set outerText(String value) native "this.outerText = value;";
+
+  bool get spellcheck() native "return this.spellcheck;";
+
+  void set spellcheck(bool value) native "this.spellcheck = value;";
+
+  int get tabIndex() native "return this.tabIndex;";
+
+  void set tabIndex(int value) native "this.tabIndex = value;";
+
+  String get title() native "return this.title;";
+
+  void set title(String value) native "this.title = value;";
+
+  String get webkitdropzone() native "return this.webkitdropzone;";
+
+  void set webkitdropzone(String value) native "this.webkitdropzone = value;";
 
   Element insertAdjacentElement(String where, Element element) native;
 
@@ -2882,30 +3284,42 @@ class HTMLElement extends Element native "*HTMLElement" {
 
 class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String height;
+  void set align(String value) native "this.align = value;";
 
-  String name;
+  String get height() native "return this.height;";
 
-  String src;
+  void set height(String value) native "this.height = value;";
 
-  String type;
+  String get name() native "return this.name;";
 
-  String width;
+  void set name(String value) native "this.name = value;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 
   SVGDocument getSVGDocument() native;
 }
 
 class HTMLFieldSetElement extends HTMLElement native "*HTMLFieldSetElement" {
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  String validationMessage;
+  String get validationMessage() native "return this.validationMessage;";
 
-  ValidityState validity;
+  ValidityState get validity() native "return this.validity;";
 
-  bool willValidate;
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 
@@ -2914,36 +3328,60 @@ class HTMLFieldSetElement extends HTMLElement native "*HTMLFieldSetElement" {
 
 class HTMLFontElement extends HTMLElement native "*HTMLFontElement" {
 
-  String color;
+  String get color() native "return this.color;";
 
-  String face;
+  void set color(String value) native "this.color = value;";
 
-  String size;
+  String get face() native "return this.face;";
+
+  void set face(String value) native "this.face = value;";
+
+  String get size() native "return this.size;";
+
+  void set size(String value) native "this.size = value;";
 }
 
 class HTMLFormElement extends HTMLElement native "*HTMLFormElement" {
 
-  String acceptCharset;
+  String get acceptCharset() native "return this.acceptCharset;";
 
-  String action;
+  void set acceptCharset(String value) native "this.acceptCharset = value;";
 
-  String autocomplete;
+  String get action() native "return this.action;";
 
-  HTMLCollection elements;
+  void set action(String value) native "this.action = value;";
 
-  String encoding;
+  String get autocomplete() native "return this.autocomplete;";
 
-  String enctype;
+  void set autocomplete(String value) native "this.autocomplete = value;";
 
-  int length;
+  HTMLCollection get elements() native "return this.elements;";
 
-  String method;
+  String get encoding() native "return this.encoding;";
 
-  String name;
+  void set encoding(String value) native "this.encoding = value;";
 
-  bool noValidate;
+  String get enctype() native "return this.enctype;";
 
-  String target;
+  void set enctype(String value) native "this.enctype = value;";
+
+  int get length() native "return this.length;";
+
+  String get method() native "return this.method;";
+
+  void set method(String value) native "this.method = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  bool get noValidate() native "return this.noValidate;";
+
+  void set noValidate(bool value) native "this.noValidate = value;";
+
+  String get target() native "return this.target;";
+
+  void set target(String value) native "this.target = value;";
 
   bool checkValidity() native;
 
@@ -2954,239 +3392,407 @@ class HTMLFormElement extends HTMLElement native "*HTMLFormElement" {
 
 class HTMLFrameElement extends HTMLElement native "*HTMLFrameElement" {
 
-  Document contentDocument;
+  Document get contentDocument() native "return this.contentDocument;";
 
-  DOMWindow contentWindow;
+  DOMWindow get contentWindow() native "return this.contentWindow;";
 
-  String frameBorder;
+  String get frameBorder() native "return this.frameBorder;";
 
-  int height;
+  void set frameBorder(String value) native "this.frameBorder = value;";
 
-  String location;
+  int get height() native "return this.height;";
 
-  String longDesc;
+  String get location() native "return this.location;";
 
-  String marginHeight;
+  void set location(String value) native "this.location = value;";
 
-  String marginWidth;
+  String get longDesc() native "return this.longDesc;";
 
-  String name;
+  void set longDesc(String value) native "this.longDesc = value;";
 
-  bool noResize;
+  String get marginHeight() native "return this.marginHeight;";
 
-  String scrolling;
+  void set marginHeight(String value) native "this.marginHeight = value;";
 
-  String src;
+  String get marginWidth() native "return this.marginWidth;";
 
-  int width;
+  void set marginWidth(String value) native "this.marginWidth = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  bool get noResize() native "return this.noResize;";
+
+  void set noResize(bool value) native "this.noResize = value;";
+
+  String get scrolling() native "return this.scrolling;";
+
+  void set scrolling(String value) native "this.scrolling = value;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  int get width() native "return this.width;";
 
   SVGDocument getSVGDocument() native;
 }
 
 class HTMLFrameSetElement extends HTMLElement native "*HTMLFrameSetElement" {
 
-  String cols;
+  String get cols() native "return this.cols;";
 
-  String rows;
+  void set cols(String value) native "this.cols = value;";
+
+  String get rows() native "return this.rows;";
+
+  void set rows(String value) native "this.rows = value;";
 }
 
 class HTMLHRElement extends HTMLElement native "*HTMLHRElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  bool noShade;
+  void set align(String value) native "this.align = value;";
 
-  String size;
+  bool get noShade() native "return this.noShade;";
 
-  String width;
+  void set noShade(bool value) native "this.noShade = value;";
+
+  String get size() native "return this.size;";
+
+  void set size(String value) native "this.size = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 }
 
 class HTMLHeadElement extends HTMLElement native "*HTMLHeadElement" {
 
-  String profile;
+  String get profile() native "return this.profile;";
+
+  void set profile(String value) native "this.profile = value;";
 }
 
 class HTMLHeadingElement extends HTMLElement native "*HTMLHeadingElement" {
 
-  String align;
+  String get align() native "return this.align;";
+
+  void set align(String value) native "this.align = value;";
 }
 
 class HTMLHtmlElement extends HTMLElement native "*HTMLHtmlElement" {
 
-  String manifest;
+  String get manifest() native "return this.manifest;";
 
-  String version;
+  void set manifest(String value) native "this.manifest = value;";
+
+  String get version() native "return this.version;";
+
+  void set version(String value) native "this.version = value;";
 }
 
 class HTMLIFrameElement extends HTMLElement native "*HTMLIFrameElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  Document contentDocument;
+  void set align(String value) native "this.align = value;";
 
-  DOMWindow contentWindow;
+  Document get contentDocument() native "return this.contentDocument;";
 
-  String frameBorder;
+  DOMWindow get contentWindow() native "return this.contentWindow;";
 
-  String height;
+  String get frameBorder() native "return this.frameBorder;";
 
-  String longDesc;
+  void set frameBorder(String value) native "this.frameBorder = value;";
 
-  String marginHeight;
+  String get height() native "return this.height;";
 
-  String marginWidth;
+  void set height(String value) native "this.height = value;";
 
-  String name;
+  String get longDesc() native "return this.longDesc;";
 
-  String sandbox;
+  void set longDesc(String value) native "this.longDesc = value;";
 
-  String scrolling;
+  String get marginHeight() native "return this.marginHeight;";
 
-  String src;
+  void set marginHeight(String value) native "this.marginHeight = value;";
 
-  String width;
+  String get marginWidth() native "return this.marginWidth;";
+
+  void set marginWidth(String value) native "this.marginWidth = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get sandbox() native "return this.sandbox;";
+
+  void set sandbox(String value) native "this.sandbox = value;";
+
+  String get scrolling() native "return this.scrolling;";
+
+  void set scrolling(String value) native "this.scrolling = value;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 
   SVGDocument getSVGDocument() native;
 }
 
 class HTMLImageElement extends HTMLElement native "*HTMLImageElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String alt;
+  void set align(String value) native "this.align = value;";
 
-  String border;
+  String get alt() native "return this.alt;";
 
-  bool complete;
+  void set alt(String value) native "this.alt = value;";
 
-  String crossOrigin;
+  String get border() native "return this.border;";
 
-  int height;
+  void set border(String value) native "this.border = value;";
 
-  int hspace;
+  bool get complete() native "return this.complete;";
 
-  bool isMap;
+  String get crossOrigin() native "return this.crossOrigin;";
 
-  String longDesc;
+  void set crossOrigin(String value) native "this.crossOrigin = value;";
 
-  String lowsrc;
+  int get height() native "return this.height;";
 
-  String name;
+  void set height(int value) native "this.height = value;";
 
-  int naturalHeight;
+  int get hspace() native "return this.hspace;";
 
-  int naturalWidth;
+  void set hspace(int value) native "this.hspace = value;";
 
-  String src;
+  bool get isMap() native "return this.isMap;";
 
-  String useMap;
+  void set isMap(bool value) native "this.isMap = value;";
 
-  int vspace;
+  String get longDesc() native "return this.longDesc;";
 
-  int width;
+  void set longDesc(String value) native "this.longDesc = value;";
 
-  int x;
+  String get lowsrc() native "return this.lowsrc;";
 
-  int y;
+  void set lowsrc(String value) native "this.lowsrc = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  int get naturalHeight() native "return this.naturalHeight;";
+
+  int get naturalWidth() native "return this.naturalWidth;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get useMap() native "return this.useMap;";
+
+  void set useMap(String value) native "this.useMap = value;";
+
+  int get vspace() native "return this.vspace;";
+
+  void set vspace(int value) native "this.vspace = value;";
+
+  int get width() native "return this.width;";
+
+  void set width(int value) native "this.width = value;";
+
+  int get x() native "return this.x;";
+
+  int get y() native "return this.y;";
 }
 
 class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
 
-  String accept;
+  String get accept() native "return this.accept;";
 
-  String align;
+  void set accept(String value) native "this.accept = value;";
 
-  String alt;
+  String get align() native "return this.align;";
 
-  String autocomplete;
+  void set align(String value) native "this.align = value;";
 
-  bool autofocus;
+  String get alt() native "return this.alt;";
 
-  bool checked;
+  void set alt(String value) native "this.alt = value;";
 
-  bool defaultChecked;
+  String get autocomplete() native "return this.autocomplete;";
 
-  String defaultValue;
+  void set autocomplete(String value) native "this.autocomplete = value;";
 
-  String dirName;
+  bool get autofocus() native "return this.autofocus;";
 
-  bool disabled;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  FileList files;
+  bool get checked() native "return this.checked;";
 
-  HTMLFormElement form;
+  void set checked(bool value) native "this.checked = value;";
 
-  String formAction;
+  bool get defaultChecked() native "return this.defaultChecked;";
 
-  String formEnctype;
+  void set defaultChecked(bool value) native "this.defaultChecked = value;";
 
-  String formMethod;
+  String get defaultValue() native "return this.defaultValue;";
 
-  bool formNoValidate;
+  void set defaultValue(String value) native "this.defaultValue = value;";
 
-  String formTarget;
+  String get dirName() native "return this.dirName;";
 
-  bool incremental;
+  void set dirName(String value) native "this.dirName = value;";
 
-  bool indeterminate;
+  bool get disabled() native "return this.disabled;";
 
-  NodeList labels;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  HTMLElement list;
+  FileList get files() native "return this.files;";
 
-  String max;
+  HTMLFormElement get form() native "return this.form;";
 
-  int maxLength;
+  String get formAction() native "return this.formAction;";
 
-  String min;
+  void set formAction(String value) native "this.formAction = value;";
 
-  bool multiple;
+  String get formEnctype() native "return this.formEnctype;";
 
-  String name;
+  void set formEnctype(String value) native "this.formEnctype = value;";
 
-  String pattern;
+  String get formMethod() native "return this.formMethod;";
 
-  String placeholder;
+  void set formMethod(String value) native "this.formMethod = value;";
 
-  bool readOnly;
+  bool get formNoValidate() native "return this.formNoValidate;";
 
-  bool required;
+  void set formNoValidate(bool value) native "this.formNoValidate = value;";
 
-  HTMLOptionElement selectedOption;
+  String get formTarget() native "return this.formTarget;";
 
-  String selectionDirection;
+  void set formTarget(String value) native "this.formTarget = value;";
 
-  int selectionEnd;
+  bool get incremental() native "return this.incremental;";
 
-  int selectionStart;
+  void set incremental(bool value) native "this.incremental = value;";
 
-  int size;
+  bool get indeterminate() native "return this.indeterminate;";
 
-  String src;
+  void set indeterminate(bool value) native "this.indeterminate = value;";
 
-  String step;
+  NodeList get labels() native "return this.labels;";
 
-  String type;
+  HTMLElement get list() native "return this.list;";
 
-  String useMap;
+  String get max() native "return this.max;";
 
-  String validationMessage;
+  void set max(String value) native "this.max = value;";
 
-  ValidityState validity;
+  int get maxLength() native "return this.maxLength;";
 
-  String value;
+  void set maxLength(int value) native "this.maxLength = value;";
 
-  Date valueAsDate;
+  String get min() native "return this.min;";
 
-  num valueAsNumber;
+  void set min(String value) native "this.min = value;";
 
-  bool webkitGrammar;
+  bool get multiple() native "return this.multiple;";
 
-  bool webkitSpeech;
+  void set multiple(bool value) native "this.multiple = value;";
 
-  bool webkitdirectory;
+  String get name() native "return this.name;";
 
-  bool willValidate;
+  void set name(String value) native "this.name = value;";
+
+  String get pattern() native "return this.pattern;";
+
+  void set pattern(String value) native "this.pattern = value;";
+
+  String get placeholder() native "return this.placeholder;";
+
+  void set placeholder(String value) native "this.placeholder = value;";
+
+  bool get readOnly() native "return this.readOnly;";
+
+  void set readOnly(bool value) native "this.readOnly = value;";
+
+  bool get required() native "return this.required;";
+
+  void set required(bool value) native "this.required = value;";
+
+  HTMLOptionElement get selectedOption() native "return this.selectedOption;";
+
+  String get selectionDirection() native "return this.selectionDirection;";
+
+  void set selectionDirection(String value) native "this.selectionDirection = value;";
+
+  int get selectionEnd() native "return this.selectionEnd;";
+
+  void set selectionEnd(int value) native "this.selectionEnd = value;";
+
+  int get selectionStart() native "return this.selectionStart;";
+
+  void set selectionStart(int value) native "this.selectionStart = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get step() native "return this.step;";
+
+  void set step(String value) native "this.step = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
+
+  String get useMap() native "return this.useMap;";
+
+  void set useMap(String value) native "this.useMap = value;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  Date get valueAsDate() native "return this.valueAsDate;";
+
+  void set valueAsDate(Date value) native "this.valueAsDate = value;";
+
+  num get valueAsNumber() native "return this.valueAsNumber;";
+
+  void set valueAsNumber(num value) native "this.valueAsNumber = value;";
+
+  bool get webkitGrammar() native "return this.webkitGrammar;";
+
+  void set webkitGrammar(bool value) native "this.webkitGrammar = value;";
+
+  bool get webkitSpeech() native "return this.webkitSpeech;";
+
+  void set webkitSpeech(bool value) native "this.webkitSpeech = value;";
+
+  bool get webkitdirectory() native "return this.webkitdirectory;";
+
+  void set webkitdirectory(bool value) native "this.webkitdirectory = value;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 
@@ -3205,34 +3811,46 @@ class HTMLInputElement extends HTMLElement native "*HTMLInputElement" {
 
 class HTMLIsIndexElement extends HTMLInputElement native "*HTMLIsIndexElement" {
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  String prompt;
+  String get prompt() native "return this.prompt;";
+
+  void set prompt(String value) native "this.prompt = value;";
 }
 
 class HTMLKeygenElement extends HTMLElement native "*HTMLKeygenElement" {
 
-  bool autofocus;
+  bool get autofocus() native "return this.autofocus;";
 
-  String challenge;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  bool disabled;
+  String get challenge() native "return this.challenge;";
 
-  HTMLFormElement form;
+  void set challenge(String value) native "this.challenge = value;";
 
-  String keytype;
+  bool get disabled() native "return this.disabled;";
 
-  NodeList labels;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  String name;
+  HTMLFormElement get form() native "return this.form;";
 
-  String type;
+  String get keytype() native "return this.keytype;";
 
-  String validationMessage;
+  void set keytype(String value) native "this.keytype = value;";
 
-  ValidityState validity;
+  NodeList get labels() native "return this.labels;";
 
-  bool willValidate;
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get type() native "return this.type;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 
@@ -3241,82 +3859,134 @@ class HTMLKeygenElement extends HTMLElement native "*HTMLKeygenElement" {
 
 class HTMLLIElement extends HTMLElement native "*HTMLLIElement" {
 
-  String type;
+  String get type() native "return this.type;";
 
-  int value;
+  void set type(String value) native "this.type = value;";
+
+  int get value() native "return this.value;";
+
+  void set value(int value) native "this.value = value;";
 }
 
 class HTMLLabelElement extends HTMLElement native "*HTMLLabelElement" {
 
-  HTMLElement control;
+  HTMLElement get control() native "return this.control;";
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  String htmlFor;
+  String get htmlFor() native "return this.htmlFor;";
+
+  void set htmlFor(String value) native "this.htmlFor = value;";
 }
 
 class HTMLLegendElement extends HTMLElement native "*HTMLLegendElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  HTMLFormElement form;
+  void set align(String value) native "this.align = value;";
+
+  HTMLFormElement get form() native "return this.form;";
 }
 
 class HTMLLinkElement extends HTMLElement native "*HTMLLinkElement" {
 
-  String charset;
+  String get charset() native "return this.charset;";
 
-  bool disabled;
+  void set charset(String value) native "this.charset = value;";
 
-  String href;
+  bool get disabled() native "return this.disabled;";
 
-  String hreflang;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  String media;
+  String get href() native "return this.href;";
 
-  String rel;
+  void set href(String value) native "this.href = value;";
 
-  String rev;
+  String get hreflang() native "return this.hreflang;";
 
-  StyleSheet sheet;
+  void set hreflang(String value) native "this.hreflang = value;";
 
-  DOMSettableTokenList sizes;
+  String get media() native "return this.media;";
 
-  String target;
+  void set media(String value) native "this.media = value;";
 
-  String type;
+  String get rel() native "return this.rel;";
+
+  void set rel(String value) native "this.rel = value;";
+
+  String get rev() native "return this.rev;";
+
+  void set rev(String value) native "this.rev = value;";
+
+  StyleSheet get sheet() native "return this.sheet;";
+
+  DOMSettableTokenList get sizes() native "return this.sizes;";
+
+  void set sizes(DOMSettableTokenList value) native "this.sizes = value;";
+
+  String get target() native "return this.target;";
+
+  void set target(String value) native "this.target = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }
 
 class HTMLMapElement extends HTMLElement native "*HTMLMapElement" {
 
-  HTMLCollection areas;
+  HTMLCollection get areas() native "return this.areas;";
 
-  String name;
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
 }
 
 class HTMLMarqueeElement extends HTMLElement native "*HTMLMarqueeElement" {
 
-  String behavior;
+  String get behavior() native "return this.behavior;";
 
-  String bgColor;
+  void set behavior(String value) native "this.behavior = value;";
 
-  String direction;
+  String get bgColor() native "return this.bgColor;";
 
-  String height;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  int hspace;
+  String get direction() native "return this.direction;";
 
-  int loop;
+  void set direction(String value) native "this.direction = value;";
 
-  int scrollAmount;
+  String get height() native "return this.height;";
 
-  int scrollDelay;
+  void set height(String value) native "this.height = value;";
 
-  bool trueSpeed;
+  int get hspace() native "return this.hspace;";
 
-  int vspace;
+  void set hspace(int value) native "this.hspace = value;";
 
-  String width;
+  int get loop() native "return this.loop;";
+
+  void set loop(int value) native "this.loop = value;";
+
+  int get scrollAmount() native "return this.scrollAmount;";
+
+  void set scrollAmount(int value) native "this.scrollAmount = value;";
+
+  int get scrollDelay() native "return this.scrollDelay;";
+
+  void set scrollDelay(int value) native "this.scrollDelay = value;";
+
+  bool get trueSpeed() native "return this.trueSpeed;";
+
+  void set trueSpeed(bool value) native "this.trueSpeed = value;";
+
+  int get vspace() native "return this.vspace;";
+
+  void set vspace(int value) native "this.vspace = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 
   void start() native;
 
@@ -3355,73 +4025,103 @@ class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
 
   static final int SOURCE_OPEN = 1;
 
-  bool autoplay;
+  bool get autoplay() native "return this.autoplay;";
 
-  TimeRanges buffered;
+  void set autoplay(bool value) native "this.autoplay = value;";
 
-  MediaController controller;
+  TimeRanges get buffered() native "return this.buffered;";
 
-  bool controls;
+  MediaController get controller() native "return this.controller;";
 
-  String currentSrc;
+  void set controller(MediaController value) native "this.controller = value;";
 
-  num currentTime;
+  bool get controls() native "return this.controls;";
 
-  bool defaultMuted;
+  void set controls(bool value) native "this.controls = value;";
 
-  num defaultPlaybackRate;
+  String get currentSrc() native "return this.currentSrc;";
 
-  num duration;
+  num get currentTime() native "return this.currentTime;";
 
-  bool ended;
+  void set currentTime(num value) native "this.currentTime = value;";
 
-  MediaError error;
+  bool get defaultMuted() native "return this.defaultMuted;";
 
-  num initialTime;
+  void set defaultMuted(bool value) native "this.defaultMuted = value;";
 
-  bool loop;
+  num get defaultPlaybackRate() native "return this.defaultPlaybackRate;";
 
-  String mediaGroup;
+  void set defaultPlaybackRate(num value) native "this.defaultPlaybackRate = value;";
 
-  bool muted;
+  num get duration() native "return this.duration;";
 
-  int networkState;
+  bool get ended() native "return this.ended;";
 
-  bool paused;
+  MediaError get error() native "return this.error;";
 
-  num playbackRate;
+  num get initialTime() native "return this.initialTime;";
 
-  TimeRanges played;
+  bool get loop() native "return this.loop;";
 
-  String preload;
+  void set loop(bool value) native "this.loop = value;";
 
-  int readyState;
+  String get mediaGroup() native "return this.mediaGroup;";
 
-  TimeRanges seekable;
+  void set mediaGroup(String value) native "this.mediaGroup = value;";
 
-  bool seeking;
+  bool get muted() native "return this.muted;";
 
-  String src;
+  void set muted(bool value) native "this.muted = value;";
 
-  num startTime;
+  int get networkState() native "return this.networkState;";
 
-  TextTrackList textTracks;
+  bool get paused() native "return this.paused;";
 
-  num volume;
+  num get playbackRate() native "return this.playbackRate;";
 
-  int webkitAudioDecodedByteCount;
+  void set playbackRate(num value) native "this.playbackRate = value;";
 
-  bool webkitClosedCaptionsVisible;
+  TimeRanges get played() native "return this.played;";
 
-  bool webkitHasClosedCaptions;
+  String get preload() native "return this.preload;";
 
-  String webkitMediaSourceURL;
+  void set preload(String value) native "this.preload = value;";
 
-  bool webkitPreservesPitch;
+  int get readyState() native "return this.readyState;";
 
-  int webkitSourceState;
+  TimeRanges get seekable() native "return this.seekable;";
 
-  int webkitVideoDecodedByteCount;
+  bool get seeking() native "return this.seeking;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  num get startTime() native "return this.startTime;";
+
+  TextTrackList get textTracks() native "return this.textTracks;";
+
+  num get volume() native "return this.volume;";
+
+  void set volume(num value) native "this.volume = value;";
+
+  int get webkitAudioDecodedByteCount() native "return this.webkitAudioDecodedByteCount;";
+
+  bool get webkitClosedCaptionsVisible() native "return this.webkitClosedCaptionsVisible;";
+
+  void set webkitClosedCaptionsVisible(bool value) native "this.webkitClosedCaptionsVisible = value;";
+
+  bool get webkitHasClosedCaptions() native "return this.webkitHasClosedCaptions;";
+
+  String get webkitMediaSourceURL() native "return this.webkitMediaSourceURL;";
+
+  bool get webkitPreservesPitch() native "return this.webkitPreservesPitch;";
+
+  void set webkitPreservesPitch(bool value) native "this.webkitPreservesPitch = value;";
+
+  int get webkitSourceState() native "return this.webkitSourceState;";
+
+  int get webkitVideoDecodedByteCount() native "return this.webkitVideoDecodedByteCount;";
 
   TextTrack addTrack(String kind, [String label = null, String language = null]) native;
 
@@ -3440,100 +4140,166 @@ class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
 
 class HTMLMenuElement extends HTMLElement native "*HTMLMenuElement" {
 
-  bool compact;
+  bool get compact() native "return this.compact;";
+
+  void set compact(bool value) native "this.compact = value;";
 }
 
 class HTMLMetaElement extends HTMLElement native "*HTMLMetaElement" {
 
-  String content;
+  String get content() native "return this.content;";
 
-  String httpEquiv;
+  void set content(String value) native "this.content = value;";
 
-  String name;
+  String get httpEquiv() native "return this.httpEquiv;";
 
-  String scheme;
+  void set httpEquiv(String value) native "this.httpEquiv = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get scheme() native "return this.scheme;";
+
+  void set scheme(String value) native "this.scheme = value;";
 }
 
 class HTMLMeterElement extends HTMLElement native "*HTMLMeterElement" {
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  num high;
+  num get high() native "return this.high;";
 
-  NodeList labels;
+  void set high(num value) native "this.high = value;";
 
-  num low;
+  NodeList get labels() native "return this.labels;";
 
-  num max;
+  num get low() native "return this.low;";
 
-  num min;
+  void set low(num value) native "this.low = value;";
 
-  num optimum;
+  num get max() native "return this.max;";
 
-  num value;
+  void set max(num value) native "this.max = value;";
+
+  num get min() native "return this.min;";
+
+  void set min(num value) native "this.min = value;";
+
+  num get optimum() native "return this.optimum;";
+
+  void set optimum(num value) native "this.optimum = value;";
+
+  num get value() native "return this.value;";
+
+  void set value(num value) native "this.value = value;";
 }
 
 class HTMLModElement extends HTMLElement native "*HTMLModElement" {
 
-  String cite;
+  String get cite() native "return this.cite;";
 
-  String dateTime;
+  void set cite(String value) native "this.cite = value;";
+
+  String get dateTime() native "return this.dateTime;";
+
+  void set dateTime(String value) native "this.dateTime = value;";
 }
 
 class HTMLOListElement extends HTMLElement native "*HTMLOListElement" {
 
-  bool compact;
+  bool get compact() native "return this.compact;";
 
-  bool reversed;
+  void set compact(bool value) native "this.compact = value;";
 
-  int start;
+  bool get reversed() native "return this.reversed;";
 
-  String type;
+  void set reversed(bool value) native "this.reversed = value;";
+
+  int get start() native "return this.start;";
+
+  void set start(int value) native "this.start = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }
 
 class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String archive;
+  void set align(String value) native "this.align = value;";
 
-  String border;
+  String get archive() native "return this.archive;";
 
-  String code;
+  void set archive(String value) native "this.archive = value;";
 
-  String codeBase;
+  String get border() native "return this.border;";
 
-  String codeType;
+  void set border(String value) native "this.border = value;";
 
-  Document contentDocument;
+  String get code() native "return this.code;";
 
-  String data;
+  void set code(String value) native "this.code = value;";
 
-  bool declare;
+  String get codeBase() native "return this.codeBase;";
 
-  HTMLFormElement form;
+  void set codeBase(String value) native "this.codeBase = value;";
 
-  String height;
+  String get codeType() native "return this.codeType;";
 
-  int hspace;
+  void set codeType(String value) native "this.codeType = value;";
 
-  String name;
+  Document get contentDocument() native "return this.contentDocument;";
 
-  String standby;
+  String get data() native "return this.data;";
 
-  String type;
+  void set data(String value) native "this.data = value;";
 
-  String useMap;
+  bool get declare() native "return this.declare;";
 
-  String validationMessage;
+  void set declare(bool value) native "this.declare = value;";
 
-  ValidityState validity;
+  HTMLFormElement get form() native "return this.form;";
 
-  int vspace;
+  String get height() native "return this.height;";
 
-  String width;
+  void set height(String value) native "this.height = value;";
 
-  bool willValidate;
+  int get hspace() native "return this.hspace;";
+
+  void set hspace(int value) native "this.hspace = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get standby() native "return this.standby;";
+
+  void set standby(String value) native "this.standby = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
+
+  String get useMap() native "return this.useMap;";
+
+  void set useMap(String value) native "this.useMap = value;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  int get vspace() native "return this.vspace;";
+
+  void set vspace(int value) native "this.vspace = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 
@@ -3544,60 +4310,88 @@ class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
 class HTMLOptGroupElement extends HTMLElement native "*HTMLOptGroupElement" {
 
-  bool disabled;
+  bool get disabled() native "return this.disabled;";
 
-  String label;
+  void set disabled(bool value) native "this.disabled = value;";
+
+  String get label() native "return this.label;";
+
+  void set label(String value) native "this.label = value;";
 }
 
 class HTMLOptionElement extends HTMLElement native "*HTMLOptionElement" {
 
-  bool defaultSelected;
+  bool get defaultSelected() native "return this.defaultSelected;";
 
-  bool disabled;
+  void set defaultSelected(bool value) native "this.defaultSelected = value;";
 
-  HTMLFormElement form;
+  bool get disabled() native "return this.disabled;";
 
-  int index;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  String label;
+  HTMLFormElement get form() native "return this.form;";
 
-  bool selected;
+  int get index() native "return this.index;";
 
-  String text;
+  String get label() native "return this.label;";
 
-  String value;
+  void set label(String value) native "this.label = value;";
+
+  bool get selected() native "return this.selected;";
+
+  void set selected(bool value) native "this.selected = value;";
+
+  String get text() native "return this.text;";
+
+  void set text(String value) native "this.text = value;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
 }
 
 class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  int selectedIndex;
+  void set length(int value) native "this.length = value;";
+
+  int get selectedIndex() native "return this.selectedIndex;";
+
+  void set selectedIndex(int value) native "this.selectedIndex = value;";
 
   void remove(int index) native;
 }
 
 class HTMLOutputElement extends HTMLElement native "*HTMLOutputElement" {
 
-  String defaultValue;
+  String get defaultValue() native "return this.defaultValue;";
 
-  HTMLFormElement form;
+  void set defaultValue(String value) native "this.defaultValue = value;";
 
-  DOMSettableTokenList htmlFor;
+  HTMLFormElement get form() native "return this.form;";
 
-  NodeList labels;
+  DOMSettableTokenList get htmlFor() native "return this.htmlFor;";
 
-  String name;
+  void set htmlFor(DOMSettableTokenList value) native "this.htmlFor = value;";
 
-  String type;
+  NodeList get labels() native "return this.labels;";
 
-  String validationMessage;
+  String get name() native "return this.name;";
 
-  ValidityState validity;
+  void set name(String value) native "this.name = value;";
 
-  String value;
+  String get type() native "return this.type;";
 
-  bool willValidate;
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 
@@ -3606,104 +4400,158 @@ class HTMLOutputElement extends HTMLElement native "*HTMLOutputElement" {
 
 class HTMLParagraphElement extends HTMLElement native "*HTMLParagraphElement" {
 
-  String align;
+  String get align() native "return this.align;";
+
+  void set align(String value) native "this.align = value;";
 }
 
 class HTMLParamElement extends HTMLElement native "*HTMLParamElement" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  String type;
+  void set name(String value) native "this.name = value;";
 
-  String value;
+  String get type() native "return this.type;";
 
-  String valueType;
+  void set type(String value) native "this.type = value;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  String get valueType() native "return this.valueType;";
+
+  void set valueType(String value) native "this.valueType = value;";
 }
 
 class HTMLPreElement extends HTMLElement native "*HTMLPreElement" {
 
-  int width;
+  int get width() native "return this.width;";
 
-  bool wrap;
+  void set width(int value) native "this.width = value;";
+
+  bool get wrap() native "return this.wrap;";
+
+  void set wrap(bool value) native "this.wrap = value;";
 }
 
 class HTMLProgressElement extends HTMLElement native "*HTMLProgressElement" {
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  NodeList labels;
+  NodeList get labels() native "return this.labels;";
 
-  num max;
+  num get max() native "return this.max;";
 
-  num position;
+  void set max(num value) native "this.max = value;";
 
-  num value;
+  num get position() native "return this.position;";
+
+  num get value() native "return this.value;";
+
+  void set value(num value) native "this.value = value;";
 }
 
 class HTMLPropertiesCollection extends HTMLCollection native "*HTMLPropertiesCollection" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Node item(int index) native;
 }
 
 class HTMLQuoteElement extends HTMLElement native "*HTMLQuoteElement" {
 
-  String cite;
+  String get cite() native "return this.cite;";
+
+  void set cite(String value) native "this.cite = value;";
 }
 
 class HTMLScriptElement extends HTMLElement native "*HTMLScriptElement" {
 
-  bool async;
+  bool get async() native "return this.async;";
 
-  String charset;
+  void set async(bool value) native "this.async = value;";
 
-  bool defer;
+  String get charset() native "return this.charset;";
 
-  String event;
+  void set charset(String value) native "this.charset = value;";
 
-  String htmlFor;
+  bool get defer() native "return this.defer;";
 
-  String src;
+  void set defer(bool value) native "this.defer = value;";
 
-  String text;
+  String get event() native "return this.event;";
 
-  String type;
+  void set event(String value) native "this.event = value;";
+
+  String get htmlFor() native "return this.htmlFor;";
+
+  void set htmlFor(String value) native "this.htmlFor = value;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get text() native "return this.text;";
+
+  void set text(String value) native "this.text = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }
 
 class HTMLSelectElement extends HTMLElement native "*HTMLSelectElement" {
 
-  bool autofocus;
+  bool get autofocus() native "return this.autofocus;";
 
-  bool disabled;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  HTMLFormElement form;
+  bool get disabled() native "return this.disabled;";
 
-  NodeList labels;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  int length;
+  HTMLFormElement get form() native "return this.form;";
 
-  bool multiple;
+  NodeList get labels() native "return this.labels;";
 
-  String name;
+  int get length() native "return this.length;";
 
-  HTMLOptionsCollection options;
+  void set length(int value) native "this.length = value;";
 
-  bool required;
+  bool get multiple() native "return this.multiple;";
 
-  int selectedIndex;
+  void set multiple(bool value) native "this.multiple = value;";
 
-  int size;
+  String get name() native "return this.name;";
 
-  String type;
+  void set name(String value) native "this.name = value;";
 
-  String validationMessage;
+  HTMLOptionsCollection get options() native "return this.options;";
 
-  ValidityState validity;
+  bool get required() native "return this.required;";
 
-  String value;
+  void set required(bool value) native "this.required = value;";
 
-  bool willValidate;
+  int get selectedIndex() native "return this.selectedIndex;";
+
+  void set selectedIndex(int value) native "this.selectedIndex = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
+
+  String get type() native "return this.type;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   void add(HTMLElement element, HTMLElement before) native;
 
@@ -3720,11 +4568,17 @@ class HTMLSelectElement extends HTMLElement native "*HTMLSelectElement" {
 
 class HTMLSourceElement extends HTMLElement native "*HTMLSourceElement" {
 
-  String media;
+  String get media() native "return this.media;";
 
-  String src;
+  void set media(String value) native "this.media = value;";
 
-  String type;
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }
 
 class HTMLSpanElement extends HTMLElement native "*HTMLSpanElement" {
@@ -3732,99 +4586,173 @@ class HTMLSpanElement extends HTMLElement native "*HTMLSpanElement" {
 
 class HTMLStyleElement extends HTMLElement native "*HTMLStyleElement" {
 
-  bool disabled;
+  bool get disabled() native "return this.disabled;";
 
-  String media;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  bool scoped;
+  String get media() native "return this.media;";
 
-  StyleSheet sheet;
+  void set media(String value) native "this.media = value;";
 
-  String type;
+  bool get scoped() native "return this.scoped;";
+
+  void set scoped(bool value) native "this.scoped = value;";
+
+  StyleSheet get sheet() native "return this.sheet;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }
 
 class HTMLTableCaptionElement extends HTMLElement native "*HTMLTableCaptionElement" {
 
-  String align;
+  String get align() native "return this.align;";
+
+  void set align(String value) native "this.align = value;";
 }
 
 class HTMLTableCellElement extends HTMLElement native "*HTMLTableCellElement" {
 
-  String abbr;
+  String get abbr() native "return this.abbr;";
 
-  String align;
+  void set abbr(String value) native "this.abbr = value;";
 
-  String axis;
+  String get align() native "return this.align;";
 
-  String bgColor;
+  void set align(String value) native "this.align = value;";
 
-  int cellIndex;
+  String get axis() native "return this.axis;";
 
-  String ch;
+  void set axis(String value) native "this.axis = value;";
 
-  String chOff;
+  String get bgColor() native "return this.bgColor;";
 
-  int colSpan;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  String headers;
+  int get cellIndex() native "return this.cellIndex;";
 
-  String height;
+  String get ch() native "return this.ch;";
 
-  bool noWrap;
+  void set ch(String value) native "this.ch = value;";
 
-  int rowSpan;
+  String get chOff() native "return this.chOff;";
 
-  String scope;
+  void set chOff(String value) native "this.chOff = value;";
 
-  String vAlign;
+  int get colSpan() native "return this.colSpan;";
 
-  String width;
+  void set colSpan(int value) native "this.colSpan = value;";
+
+  String get headers() native "return this.headers;";
+
+  void set headers(String value) native "this.headers = value;";
+
+  String get height() native "return this.height;";
+
+  void set height(String value) native "this.height = value;";
+
+  bool get noWrap() native "return this.noWrap;";
+
+  void set noWrap(bool value) native "this.noWrap = value;";
+
+  int get rowSpan() native "return this.rowSpan;";
+
+  void set rowSpan(int value) native "this.rowSpan = value;";
+
+  String get scope() native "return this.scope;";
+
+  void set scope(String value) native "this.scope = value;";
+
+  String get vAlign() native "return this.vAlign;";
+
+  void set vAlign(String value) native "this.vAlign = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 }
 
 class HTMLTableColElement extends HTMLElement native "*HTMLTableColElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String ch;
+  void set align(String value) native "this.align = value;";
 
-  String chOff;
+  String get ch() native "return this.ch;";
 
-  int span;
+  void set ch(String value) native "this.ch = value;";
 
-  String vAlign;
+  String get chOff() native "return this.chOff;";
 
-  String width;
+  void set chOff(String value) native "this.chOff = value;";
+
+  int get span() native "return this.span;";
+
+  void set span(int value) native "this.span = value;";
+
+  String get vAlign() native "return this.vAlign;";
+
+  void set vAlign(String value) native "this.vAlign = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 }
 
 class HTMLTableElement extends HTMLElement native "*HTMLTableElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String bgColor;
+  void set align(String value) native "this.align = value;";
 
-  String border;
+  String get bgColor() native "return this.bgColor;";
 
-  HTMLTableCaptionElement caption;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  String cellPadding;
+  String get border() native "return this.border;";
 
-  String cellSpacing;
+  void set border(String value) native "this.border = value;";
 
-  String frame;
+  HTMLTableCaptionElement get caption() native "return this.caption;";
 
-  HTMLCollection rows;
+  void set caption(HTMLTableCaptionElement value) native "this.caption = value;";
 
-  String rules;
+  String get cellPadding() native "return this.cellPadding;";
 
-  String summary;
+  void set cellPadding(String value) native "this.cellPadding = value;";
 
-  HTMLCollection tBodies;
+  String get cellSpacing() native "return this.cellSpacing;";
 
-  HTMLTableSectionElement tFoot;
+  void set cellSpacing(String value) native "this.cellSpacing = value;";
 
-  HTMLTableSectionElement tHead;
+  String get frame() native "return this.frame;";
 
-  String width;
+  void set frame(String value) native "this.frame = value;";
+
+  HTMLCollection get rows() native "return this.rows;";
+
+  String get rules() native "return this.rules;";
+
+  void set rules(String value) native "this.rules = value;";
+
+  String get summary() native "return this.summary;";
+
+  void set summary(String value) native "this.summary = value;";
+
+  HTMLCollection get tBodies() native "return this.tBodies;";
+
+  HTMLTableSectionElement get tFoot() native "return this.tFoot;";
+
+  void set tFoot(HTMLTableSectionElement value) native "this.tFoot = value;";
+
+  HTMLTableSectionElement get tHead() native "return this.tHead;";
+
+  void set tHead(HTMLTableSectionElement value) native "this.tHead = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
 
   HTMLElement createCaption() native;
 
@@ -3845,21 +4773,31 @@ class HTMLTableElement extends HTMLElement native "*HTMLTableElement" {
 
 class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String bgColor;
+  void set align(String value) native "this.align = value;";
 
-  HTMLCollection cells;
+  String get bgColor() native "return this.bgColor;";
 
-  String ch;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  String chOff;
+  HTMLCollection get cells() native "return this.cells;";
 
-  int rowIndex;
+  String get ch() native "return this.ch;";
 
-  int sectionRowIndex;
+  void set ch(String value) native "this.ch = value;";
 
-  String vAlign;
+  String get chOff() native "return this.chOff;";
+
+  void set chOff(String value) native "this.chOff = value;";
+
+  int get rowIndex() native "return this.rowIndex;";
+
+  int get sectionRowIndex() native "return this.sectionRowIndex;";
+
+  String get vAlign() native "return this.vAlign;";
+
+  void set vAlign(String value) native "this.vAlign = value;";
 
   void deleteCell(int index) native;
 
@@ -3868,15 +4806,23 @@ class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
 
 class HTMLTableSectionElement extends HTMLElement native "*HTMLTableSectionElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String ch;
+  void set align(String value) native "this.align = value;";
 
-  String chOff;
+  String get ch() native "return this.ch;";
 
-  HTMLCollection rows;
+  void set ch(String value) native "this.ch = value;";
 
-  String vAlign;
+  String get chOff() native "return this.chOff;";
+
+  void set chOff(String value) native "this.chOff = value;";
+
+  HTMLCollection get rows() native "return this.rows;";
+
+  String get vAlign() native "return this.vAlign;";
+
+  void set vAlign(String value) native "this.vAlign = value;";
 
   void deleteRow(int index) native;
 
@@ -3885,51 +4831,83 @@ class HTMLTableSectionElement extends HTMLElement native "*HTMLTableSectionEleme
 
 class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
-  bool autofocus;
+  bool get autofocus() native "return this.autofocus;";
 
-  int cols;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  String defaultValue;
+  int get cols() native "return this.cols;";
 
-  String dirName;
+  void set cols(int value) native "this.cols = value;";
 
-  bool disabled;
+  String get defaultValue() native "return this.defaultValue;";
 
-  HTMLFormElement form;
+  void set defaultValue(String value) native "this.defaultValue = value;";
 
-  NodeList labels;
+  String get dirName() native "return this.dirName;";
 
-  int maxLength;
+  void set dirName(String value) native "this.dirName = value;";
 
-  String name;
+  bool get disabled() native "return this.disabled;";
 
-  String placeholder;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  bool readOnly;
+  HTMLFormElement get form() native "return this.form;";
 
-  bool required;
+  NodeList get labels() native "return this.labels;";
 
-  int rows;
+  int get maxLength() native "return this.maxLength;";
 
-  String selectionDirection;
+  void set maxLength(int value) native "this.maxLength = value;";
 
-  int selectionEnd;
+  String get name() native "return this.name;";
 
-  int selectionStart;
+  void set name(String value) native "this.name = value;";
 
-  int textLength;
+  String get placeholder() native "return this.placeholder;";
 
-  String type;
+  void set placeholder(String value) native "this.placeholder = value;";
 
-  String validationMessage;
+  bool get readOnly() native "return this.readOnly;";
 
-  ValidityState validity;
+  void set readOnly(bool value) native "this.readOnly = value;";
 
-  String value;
+  bool get required() native "return this.required;";
 
-  bool willValidate;
+  void set required(bool value) native "this.required = value;";
 
-  String wrap;
+  int get rows() native "return this.rows;";
+
+  void set rows(int value) native "this.rows = value;";
+
+  String get selectionDirection() native "return this.selectionDirection;";
+
+  void set selectionDirection(String value) native "this.selectionDirection = value;";
+
+  int get selectionEnd() native "return this.selectionEnd;";
+
+  void set selectionEnd(int value) native "this.selectionEnd = value;";
+
+  int get selectionStart() native "return this.selectionStart;";
+
+  void set selectionStart(int value) native "this.selectionStart = value;";
+
+  int get textLength() native "return this.textLength;";
+
+  String get type() native "return this.type;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  bool get willValidate() native "return this.willValidate;";
+
+  String get wrap() native "return this.wrap;";
+
+  void set wrap(String value) native "this.wrap = value;";
 
   bool checkValidity() native;
 
@@ -3942,7 +4920,9 @@ class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
 class HTMLTitleElement extends HTMLElement native "*HTMLTitleElement" {
 
-  String text;
+  String get text() native "return this.text;";
+
+  void set text(String value) native "this.text = value;";
 }
 
 class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
@@ -3955,26 +4935,40 @@ class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
 
   static final int NONE = 0;
 
-  bool isDefault;
+  bool get isDefault() native "return this.isDefault;";
 
-  String kind;
+  void set isDefault(bool value) native "this.isDefault = value;";
 
-  String label;
+  String get kind() native "return this.kind;";
 
-  int readyState;
+  void set kind(String value) native "this.kind = value;";
 
-  String src;
+  String get label() native "return this.label;";
 
-  String srclang;
+  void set label(String value) native "this.label = value;";
 
-  TextTrack track;
+  int get readyState() native "return this.readyState;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  String get srclang() native "return this.srclang;";
+
+  void set srclang(String value) native "this.srclang = value;";
+
+  TextTrack get track() native "return this.track;";
 }
 
 class HTMLUListElement extends HTMLElement native "*HTMLUListElement" {
 
-  bool compact;
+  bool get compact() native "return this.compact;";
 
-  String type;
+  void set compact(bool value) native "this.compact = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }
 
 class HTMLUnknownElement extends HTMLElement native "*HTMLUnknownElement" {
@@ -3982,23 +4976,29 @@ class HTMLUnknownElement extends HTMLElement native "*HTMLUnknownElement" {
 
 class HTMLVideoElement extends HTMLMediaElement native "*HTMLVideoElement" {
 
-  int height;
+  int get height() native "return this.height;";
 
-  String poster;
+  void set height(int value) native "this.height = value;";
 
-  int videoHeight;
+  String get poster() native "return this.poster;";
 
-  int videoWidth;
+  void set poster(String value) native "this.poster = value;";
 
-  int webkitDecodedFrameCount;
+  int get videoHeight() native "return this.videoHeight;";
 
-  bool webkitDisplayingFullscreen;
+  int get videoWidth() native "return this.videoWidth;";
 
-  int webkitDroppedFrameCount;
+  int get webkitDecodedFrameCount() native "return this.webkitDecodedFrameCount;";
 
-  bool webkitSupportsFullscreen;
+  bool get webkitDisplayingFullscreen() native "return this.webkitDisplayingFullscreen;";
 
-  int width;
+  int get webkitDroppedFrameCount() native "return this.webkitDroppedFrameCount;";
+
+  bool get webkitSupportsFullscreen() native "return this.webkitSupportsFullscreen;";
+
+  int get width() native "return this.width;";
+
+  void set width(int value) native "this.width = value;";
 
   void webkitEnterFullScreen() native;
 
@@ -4011,23 +5011,23 @@ class HTMLVideoElement extends HTMLMediaElement native "*HTMLVideoElement" {
 
 class HashChangeEvent extends Event native "*HashChangeEvent" {
 
-  String newURL;
+  String get newURL() native "return this.newURL;";
 
-  String oldURL;
+  String get oldURL() native "return this.oldURL;";
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }
 
 class HighPass2FilterNode extends AudioNode native "*HighPass2FilterNode" {
 
-  AudioParam cutoff;
+  AudioParam get cutoff() native "return this.cutoff;";
 
-  AudioParam resonance;
+  AudioParam get resonance() native "return this.resonance;";
 }
 
 class History native "*History" {
 
-  int length;
+  int get length() native "return this.length;";
 
   void back() native;
 
@@ -4061,13 +5061,13 @@ class IDBCursor native "*IDBCursor" {
 
   static final int PREV_NO_DUPLICATE = 3;
 
-  int direction;
+  int get direction() native "return this.direction;";
 
-  IDBKey key;
+  IDBKey get key() native "return this.key;";
 
-  IDBKey primaryKey;
+  IDBKey get primaryKey() native "return this.primaryKey;";
 
-  IDBAny source;
+  IDBAny get source() native "return this.source;";
 
   void continueFunction([IDBKey key = null]) native;
 
@@ -4082,20 +5082,26 @@ class IDBCursor native "*IDBCursor" {
 
 class IDBCursorWithValue extends IDBCursor native "*IDBCursorWithValue" {
 
-  IDBAny value;
+  IDBAny get value() native "return this.value;";
 }
 
 class IDBDatabase native "*IDBDatabase" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener onerror;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onversionchange;
+  EventListener get onerror() native "return this.onerror;";
 
-  String version;
+  void set onerror(EventListener value) native "this.onerror = value;";
+
+  EventListener get onversionchange() native "return this.onversionchange;";
+
+  void set onversionchange(EventListener value) native "this.onversionchange = value;";
+
+  String get version() native "return this.version;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -4120,9 +5126,13 @@ class IDBDatabase native "*IDBDatabase" {
 
 class IDBDatabaseError native "*IDBDatabaseError" {
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  void set code(int value) native "this.code = value;";
+
+  String get message() native "return this.message;";
+
+  void set message(String value) native "this.message = value;";
 
   var dartObjectLocalStorage;
 
@@ -4157,11 +5167,11 @@ class IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int VER_ERR = 12;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -4187,15 +5197,15 @@ class IDBFactory native "*IDBFactory" {
 
 class IDBIndex native "*IDBIndex" {
 
-  String keyPath;
+  String get keyPath() native "return this.keyPath;";
 
-  bool multiEntry;
+  bool get multiEntry() native "return this.multiEntry;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  IDBObjectStore objectStore;
+  IDBObjectStore get objectStore() native "return this.objectStore;";
 
-  bool unique;
+  bool get unique() native "return this.unique;";
 
   IDBRequest count([IDBKeyRange range = null]) native;
 
@@ -4221,13 +5231,13 @@ class IDBKey native "*IDBKey" {
 
 class IDBKeyRange native "*IDBKeyRange" {
 
-  IDBKey lower;
+  IDBKey get lower() native "return this.lower;";
 
-  bool lowerOpen;
+  bool get lowerOpen() native "return this.lowerOpen;";
 
-  IDBKey upper;
+  IDBKey get upper() native "return this.upper;";
 
-  bool upperOpen;
+  bool get upperOpen() native "return this.upperOpen;";
 
   IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen = null, bool upperOpen = null]) native;
 
@@ -4244,11 +5254,11 @@ class IDBKeyRange native "*IDBKeyRange" {
 
 class IDBObjectStore native "*IDBObjectStore" {
 
-  String keyPath;
+  String get keyPath() native "return this.keyPath;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  IDBTransaction transaction;
+  IDBTransaction get transaction() native "return this.transaction;";
 
   IDBRequest add(String value, [IDBKey key = null]) native;
 
@@ -4281,21 +5291,25 @@ class IDBRequest native "*IDBRequest" {
 
   static final int LOADING = 1;
 
-  int errorCode;
+  int get errorCode() native "return this.errorCode;";
 
-  EventListener onerror;
+  EventListener get onerror() native "return this.onerror;";
 
-  EventListener onsuccess;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  int readyState;
+  EventListener get onsuccess() native "return this.onsuccess;";
 
-  IDBAny result;
+  void set onsuccess(EventListener value) native "this.onsuccess = value;";
 
-  IDBAny source;
+  int get readyState() native "return this.readyState;";
 
-  IDBTransaction transaction;
+  IDBAny get result() native "return this.result;";
 
-  String webkitErrorMessage;
+  IDBAny get source() native "return this.source;";
+
+  IDBTransaction get transaction() native "return this.transaction;";
+
+  String get webkitErrorMessage() native "return this.webkitErrorMessage;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -4316,15 +5330,21 @@ class IDBTransaction native "*IDBTransaction" {
 
   static final int VERSION_CHANGE = 2;
 
-  IDBDatabase db;
+  IDBDatabase get db() native "return this.db;";
 
-  int mode;
+  int get mode() native "return this.mode;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener oncomplete;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onerror;
+  EventListener get oncomplete() native "return this.oncomplete;";
+
+  void set oncomplete(EventListener value) native "this.oncomplete = value;";
+
+  EventListener get onerror() native "return this.onerror;";
+
+  void set onerror(EventListener value) native "this.onerror = value;";
 
   void abort() native;
 
@@ -4343,21 +5363,23 @@ class IDBTransaction native "*IDBTransaction" {
 
 class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
-  String version;
+  String get version() native "return this.version;";
 }
 
 class IDBVersionChangeRequest extends IDBRequest native "*IDBVersionChangeRequest" {
 
-  EventListener onblocked;
+  EventListener get onblocked() native "return this.onblocked;";
+
+  void set onblocked(EventListener value) native "this.onblocked = value;";
 }
 
 class ImageData native "*ImageData" {
 
-  CanvasPixelArray data;
+  CanvasPixelArray get data() native "return this.data;";
 
-  int height;
+  int get height() native "return this.height;";
 
-  int width;
+  int get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 
@@ -4464,7 +5486,7 @@ class Int16Array extends ArrayBufferView implements List<int> native "*Int16Arra
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
@@ -4485,7 +5507,7 @@ class Int32Array extends ArrayBufferView implements List<int> native "*Int32Arra
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
@@ -4506,7 +5528,7 @@ class Int8Array extends ArrayBufferView implements List<int> native "*Int8Array"
 
   static final int BYTES_PER_ELEMENT = 1;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
@@ -4517,9 +5539,11 @@ class Int8Array extends ArrayBufferView implements List<int> native "*Int8Array"
 
 class JavaScriptAudioNode extends AudioNode native "*JavaScriptAudioNode" {
 
-  int bufferSize;
+  int get bufferSize() native "return this.bufferSize;";
 
-  EventListener onaudioprocess;
+  EventListener get onaudioprocess() native "return this.onaudioprocess;";
+
+  void set onaudioprocess(EventListener value) native "this.onaudioprocess = value;";
 }
 
 class JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -4534,19 +5558,19 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int WITH_SCOPE = 2;
 
-  JavaScriptCallFrame caller;
+  JavaScriptCallFrame get caller() native "return this.caller;";
 
-  int column;
+  int get column() native "return this.column;";
 
-  String functionName;
+  String get functionName() native "return this.functionName;";
 
-  int line;
+  int get line() native "return this.line;";
 
-  List scopeChain;
+  List get scopeChain() native "return this.scopeChain;";
 
-  int sourceID;
+  int get sourceID() native "return this.sourceID;";
 
-  String type;
+  String get type() native "return this.type;";
 
   void evaluate(String script) native;
 
@@ -4559,42 +5583,58 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
-  bool altGraphKey;
+  bool get altGraphKey() native "return this.altGraphKey;";
 
-  bool altKey;
+  bool get altKey() native "return this.altKey;";
 
-  bool ctrlKey;
+  bool get ctrlKey() native "return this.ctrlKey;";
 
-  String keyIdentifier;
+  String get keyIdentifier() native "return this.keyIdentifier;";
 
-  int keyLocation;
+  int get keyLocation() native "return this.keyLocation;";
 
-  bool metaKey;
+  bool get metaKey() native "return this.metaKey;";
 
-  bool shiftKey;
+  bool get shiftKey() native "return this.shiftKey;";
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 
 class Location native "*Location" {
 
-  String hash;
+  String get hash() native "return this.hash;";
 
-  String host;
+  void set hash(String value) native "this.hash = value;";
 
-  String hostname;
+  String get host() native "return this.host;";
 
-  String href;
+  void set host(String value) native "this.host = value;";
 
-  String origin;
+  String get hostname() native "return this.hostname;";
 
-  String pathname;
+  void set hostname(String value) native "this.hostname = value;";
 
-  String port;
+  String get href() native "return this.href;";
 
-  String protocol;
+  void set href(String value) native "this.href = value;";
 
-  String search;
+  String get origin() native "return this.origin;";
+
+  String get pathname() native "return this.pathname;";
+
+  void set pathname(String value) native "this.pathname = value;";
+
+  String get port() native "return this.port;";
+
+  void set port(String value) native "this.port = value;";
+
+  String get protocol() native "return this.protocol;";
+
+  void set protocol(String value) native "this.protocol = value;";
+
+  String get search() native "return this.search;";
+
+  void set search(String value) native "this.search = value;";
 
   void assign(String url) native;
 
@@ -4611,32 +5651,42 @@ class Location native "*Location" {
 
 class LowPass2FilterNode extends AudioNode native "*LowPass2FilterNode" {
 
-  AudioParam cutoff;
+  AudioParam get cutoff() native "return this.cutoff;";
 
-  AudioParam resonance;
+  AudioParam get resonance() native "return this.resonance;";
 }
 
 class MediaController native "*MediaController" {
 
-  TimeRanges buffered;
+  TimeRanges get buffered() native "return this.buffered;";
 
-  num currentTime;
+  num get currentTime() native "return this.currentTime;";
 
-  num defaultPlaybackRate;
+  void set currentTime(num value) native "this.currentTime = value;";
 
-  num duration;
+  num get defaultPlaybackRate() native "return this.defaultPlaybackRate;";
 
-  bool muted;
+  void set defaultPlaybackRate(num value) native "this.defaultPlaybackRate = value;";
 
-  bool paused;
+  num get duration() native "return this.duration;";
 
-  num playbackRate;
+  bool get muted() native "return this.muted;";
 
-  TimeRanges played;
+  void set muted(bool value) native "this.muted = value;";
 
-  TimeRanges seekable;
+  bool get paused() native "return this.paused;";
 
-  num volume;
+  num get playbackRate() native "return this.playbackRate;";
+
+  void set playbackRate(num value) native "this.playbackRate = value;";
+
+  TimeRanges get played() native "return this.played;";
+
+  TimeRanges get seekable() native "return this.seekable;";
+
+  num get volume() native "return this.volume;";
+
+  void set volume(num value) native "this.volume = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -4655,7 +5705,7 @@ class MediaController native "*MediaController" {
 
 class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  HTMLMediaElement mediaElement;
+  HTMLMediaElement get mediaElement() native "return this.mediaElement;";
 }
 
 class MediaError native "*MediaError" {
@@ -4668,7 +5718,7 @@ class MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  int code;
+  int get code() native "return this.code;";
 
   var dartObjectLocalStorage;
 
@@ -4677,9 +5727,11 @@ class MediaError native "*MediaError" {
 
 class MediaList native "*MediaList" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  String mediaText;
+  String get mediaText() native "return this.mediaText;";
+
+  void set mediaText(String value) native "this.mediaText = value;";
 
   String operator[](int index) native;
 
@@ -4700,9 +5752,9 @@ class MediaList native "*MediaList" {
 
 class MediaQueryList native "*MediaQueryList" {
 
-  bool matches;
+  bool get matches() native "return this.matches;";
 
-  String media;
+  String get media() native "return this.media;";
 
   void addListener(MediaQueryListListener listener) native;
 
@@ -4724,11 +5776,11 @@ class MediaQueryListListener native "*MediaQueryListListener" {
 
 class MemoryInfo native "*MemoryInfo" {
 
-  int jsHeapSizeLimit;
+  int get jsHeapSizeLimit() native "return this.jsHeapSizeLimit;";
 
-  int totalJSHeapSize;
+  int get totalJSHeapSize() native "return this.totalJSHeapSize;";
 
-  int usedJSHeapSize;
+  int get usedJSHeapSize() native "return this.usedJSHeapSize;";
 
   var dartObjectLocalStorage;
 
@@ -4737,9 +5789,9 @@ class MemoryInfo native "*MemoryInfo" {
 
 class MessageChannel native "*MessageChannel" {
 
-  MessagePort port1;
+  MessagePort get port1() native "return this.port1;";
 
-  MessagePort port2;
+  MessagePort get port2() native "return this.port2;";
 
   var dartObjectLocalStorage;
 
@@ -4748,15 +5800,15 @@ class MessageChannel native "*MessageChannel" {
 
 class MessageEvent extends Event native "*MessageEvent" {
 
-  Object data;
+  Object get data() native "return this.data;";
 
-  String lastEventId;
+  String get lastEventId() native "return this.lastEventId;";
 
-  String origin;
+  String get origin() native "return this.origin;";
 
-  List ports;
+  List get ports() native "return this.ports;";
 
-  DOMWindow source;
+  DOMWindow get source() native "return this.source;";
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List messagePorts) native;
 
@@ -4786,7 +5838,7 @@ class MessagePort native "*MessagePort" {
 
 class Metadata native "*Metadata" {
 
-  Date modificationTime;
+  Date get modificationTime() native "return this.modificationTime;";
 
   var dartObjectLocalStorage;
 
@@ -4802,43 +5854,43 @@ typedef bool MetadataCallback(Metadata metadata);
 
 class MouseEvent extends UIEvent native "*MouseEvent" {
 
-  bool altKey;
+  bool get altKey() native "return this.altKey;";
 
-  int button;
+  int get button() native "return this.button;";
 
-  int clientX;
+  int get clientX() native "return this.clientX;";
 
-  int clientY;
+  int get clientY() native "return this.clientY;";
 
-  bool ctrlKey;
+  bool get ctrlKey() native "return this.ctrlKey;";
 
-  Clipboard dataTransfer;
+  Clipboard get dataTransfer() native "return this.dataTransfer;";
 
-  Node fromElement;
+  Node get fromElement() native "return this.fromElement;";
 
-  bool metaKey;
+  bool get metaKey() native "return this.metaKey;";
 
-  int offsetX;
+  int get offsetX() native "return this.offsetX;";
 
-  int offsetY;
+  int get offsetY() native "return this.offsetY;";
 
-  EventTarget relatedTarget;
+  EventTarget get relatedTarget() native "return this.relatedTarget;";
 
-  int screenX;
+  int get screenX() native "return this.screenX;";
 
-  int screenY;
+  int get screenY() native "return this.screenY;";
 
-  bool shiftKey;
+  bool get shiftKey() native "return this.shiftKey;";
 
-  Node toElement;
+  Node get toElement() native "return this.toElement;";
 
-  int webkitMovementX;
+  int get webkitMovementX() native "return this.webkitMovementX;";
 
-  int webkitMovementY;
+  int get webkitMovementY() native "return this.webkitMovementY;";
 
-  int x;
+  int get x() native "return this.x;";
 
-  int y;
+  int get y() native "return this.y;";
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native;
 }
@@ -4858,38 +5910,38 @@ class MutationEvent extends Event native "*MutationEvent" {
 
   static final int REMOVAL = 3;
 
-  int attrChange;
+  int get attrChange() native "return this.attrChange;";
 
-  String attrName;
+  String get attrName() native "return this.attrName;";
 
-  String newValue;
+  String get newValue() native "return this.newValue;";
 
-  String prevValue;
+  String get prevValue() native "return this.prevValue;";
 
-  Node relatedNode;
+  Node get relatedNode() native "return this.relatedNode;";
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 
 class MutationRecord native "*MutationRecord" {
 
-  NodeList addedNodes;
+  NodeList get addedNodes() native "return this.addedNodes;";
 
-  String attributeName;
+  String get attributeName() native "return this.attributeName;";
 
-  String attributeNamespace;
+  String get attributeNamespace() native "return this.attributeNamespace;";
 
-  Node nextSibling;
+  Node get nextSibling() native "return this.nextSibling;";
 
-  String oldValue;
+  String get oldValue() native "return this.oldValue;";
 
-  Node previousSibling;
+  Node get previousSibling() native "return this.previousSibling;";
 
-  NodeList removedNodes;
+  NodeList get removedNodes() native "return this.removedNodes;";
 
-  Node target;
+  Node get target() native "return this.target;";
 
-  String type;
+  String get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 
@@ -4898,7 +5950,7 @@ class MutationRecord native "*MutationRecord" {
 
 class NamedNodeMap native "*NamedNodeMap" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Node operator[](int index) native;
 
@@ -4927,35 +5979,35 @@ class NamedNodeMap native "*NamedNodeMap" {
 
 class Navigator native "*Navigator" {
 
-  String appCodeName;
+  String get appCodeName() native "return this.appCodeName;";
 
-  String appName;
+  String get appName() native "return this.appName;";
 
-  String appVersion;
+  String get appVersion() native "return this.appVersion;";
 
-  bool cookieEnabled;
+  bool get cookieEnabled() native "return this.cookieEnabled;";
 
-  Geolocation geolocation;
+  Geolocation get geolocation() native "return this.geolocation;";
 
-  String language;
+  String get language() native "return this.language;";
 
-  DOMMimeTypeArray mimeTypes;
+  DOMMimeTypeArray get mimeTypes() native "return this.mimeTypes;";
 
-  bool onLine;
+  bool get onLine() native "return this.onLine;";
 
-  String platform;
+  String get platform() native "return this.platform;";
 
-  DOMPluginArray plugins;
+  DOMPluginArray get plugins() native "return this.plugins;";
 
-  String product;
+  String get product() native "return this.product;";
 
-  String productSub;
+  String get productSub() native "return this.productSub;";
 
-  String userAgent;
+  String get userAgent() native "return this.userAgent;";
 
-  String vendor;
+  String get vendor() native "return this.vendor;";
 
-  String vendorSub;
+  String get vendorSub() native "return this.vendorSub;";
 
   void getStorageUpdates() native;
 
@@ -5006,39 +6058,45 @@ class Node native "*Node" {
 
   static final int TEXT_NODE = 3;
 
-  NamedNodeMap attributes;
+  NamedNodeMap get attributes() native "return this.attributes;";
 
-  String baseURI;
+  String get baseURI() native "return this.baseURI;";
 
-  NodeList childNodes;
+  NodeList get childNodes() native "return this.childNodes;";
 
-  Node firstChild;
+  Node get firstChild() native "return this.firstChild;";
 
-  Node lastChild;
+  Node get lastChild() native "return this.lastChild;";
 
-  String localName;
+  String get localName() native "return this.localName;";
 
-  String namespaceURI;
+  String get namespaceURI() native "return this.namespaceURI;";
 
-  Node nextSibling;
+  Node get nextSibling() native "return this.nextSibling;";
 
-  String nodeName;
+  String get nodeName() native "return this.nodeName;";
 
-  int nodeType;
+  int get nodeType() native "return this.nodeType;";
 
-  String nodeValue;
+  String get nodeValue() native "return this.nodeValue;";
 
-  Document ownerDocument;
+  void set nodeValue(String value) native "this.nodeValue = value;";
 
-  Element parentElement;
+  Document get ownerDocument() native "return this.ownerDocument;";
 
-  Node parentNode;
+  Element get parentElement() native "return this.parentElement;";
 
-  String prefix;
+  Node get parentNode() native "return this.parentNode;";
 
-  Node previousSibling;
+  String get prefix() native "return this.prefix;";
 
-  String textContent;
+  void set prefix(String value) native "this.prefix = value;";
+
+  Node get previousSibling() native "return this.previousSibling;";
+
+  String get textContent() native "return this.textContent;";
+
+  void set textContent(String value) native "this.textContent = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -5126,17 +6184,17 @@ class NodeFilter native "*NodeFilter" {
 
 class NodeIterator native "*NodeIterator" {
 
-  bool expandEntityReferences;
+  bool get expandEntityReferences() native "return this.expandEntityReferences;";
 
-  NodeFilter filter;
+  NodeFilter get filter() native "return this.filter;";
 
-  bool pointerBeforeReferenceNode;
+  bool get pointerBeforeReferenceNode() native "return this.pointerBeforeReferenceNode;";
 
-  Node referenceNode;
+  Node get referenceNode() native "return this.referenceNode;";
 
-  Node root;
+  Node get root() native "return this.root;";
 
-  int whatToShow;
+  int get whatToShow() native "return this.whatToShow;";
 
   void detach() native;
 
@@ -5151,7 +6209,7 @@ class NodeIterator native "*NodeIterator" {
 
 class NodeList native "*NodeList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Node operator[](int index) native;
 
@@ -5179,16 +6237,20 @@ class NodeSelector native "*NodeSelector" {
 
 class Notation extends Node native "*Notation" {
 
-  String publicId;
+  String get publicId() native "return this.publicId;";
 
-  String systemId;
+  String get systemId() native "return this.systemId;";
 }
 
 class Notification native "*Notification" {
 
-  String dir;
+  String get dir() native "return this.dir;";
 
-  String replaceId;
+  void set dir(String value) native "this.dir = value;";
+
+  String get replaceId() native "return this.replaceId;";
+
+  void set replaceId(String value) native "this.replaceId = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -5255,18 +6317,18 @@ class OESVertexArrayObject native "*OESVertexArrayObject" {
 
 class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
 
-  AudioBuffer renderedBuffer;
+  AudioBuffer get renderedBuffer() native "return this.renderedBuffer;";
 }
 
 class OperationNotAllowedException native "*OperationNotAllowedException" {
 
   static final int NOT_ALLOWED_ERR = 1;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -5283,25 +6345,25 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 
   static final int VERTICAL = 1;
 
-  bool horizontalOverflow;
+  bool get horizontalOverflow() native "return this.horizontalOverflow;";
 
-  int orient;
+  int get orient() native "return this.orient;";
 
-  bool verticalOverflow;
+  bool get verticalOverflow() native "return this.verticalOverflow;";
 }
 
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
-  bool persisted;
+  bool get persisted() native "return this.persisted;";
 }
 
 class Performance native "*Performance" {
 
-  MemoryInfo memory;
+  MemoryInfo get memory() native "return this.memory;";
 
-  PerformanceNavigation navigation;
+  PerformanceNavigation get navigation() native "return this.navigation;";
 
-  PerformanceTiming timing;
+  PerformanceTiming get timing() native "return this.timing;";
 
   var dartObjectLocalStorage;
 
@@ -5318,9 +6380,9 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 
   static final int TYPE_RESERVED = 255;
 
-  int redirectCount;
+  int get redirectCount() native "return this.redirectCount;";
 
-  int type;
+  int get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 
@@ -5329,47 +6391,47 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 
 class PerformanceTiming native "*PerformanceTiming" {
 
-  int connectEnd;
+  int get connectEnd() native "return this.connectEnd;";
 
-  int connectStart;
+  int get connectStart() native "return this.connectStart;";
 
-  int domComplete;
+  int get domComplete() native "return this.domComplete;";
 
-  int domContentLoadedEventEnd;
+  int get domContentLoadedEventEnd() native "return this.domContentLoadedEventEnd;";
 
-  int domContentLoadedEventStart;
+  int get domContentLoadedEventStart() native "return this.domContentLoadedEventStart;";
 
-  int domInteractive;
+  int get domInteractive() native "return this.domInteractive;";
 
-  int domLoading;
+  int get domLoading() native "return this.domLoading;";
 
-  int domainLookupEnd;
+  int get domainLookupEnd() native "return this.domainLookupEnd;";
 
-  int domainLookupStart;
+  int get domainLookupStart() native "return this.domainLookupStart;";
 
-  int fetchStart;
+  int get fetchStart() native "return this.fetchStart;";
 
-  int loadEventEnd;
+  int get loadEventEnd() native "return this.loadEventEnd;";
 
-  int loadEventStart;
+  int get loadEventStart() native "return this.loadEventStart;";
 
-  int navigationStart;
+  int get navigationStart() native "return this.navigationStart;";
 
-  int redirectEnd;
+  int get redirectEnd() native "return this.redirectEnd;";
 
-  int redirectStart;
+  int get redirectStart() native "return this.redirectStart;";
 
-  int requestStart;
+  int get requestStart() native "return this.requestStart;";
 
-  int responseEnd;
+  int get responseEnd() native "return this.responseEnd;";
 
-  int responseStart;
+  int get responseStart() native "return this.responseStart;";
 
-  int secureConnectionStart;
+  int get secureConnectionStart() native "return this.secureConnectionStart;";
 
-  int unloadEventEnd;
+  int get unloadEventEnd() native "return this.unloadEventEnd;";
 
-  int unloadEventStart;
+  int get unloadEventStart() native "return this.unloadEventStart;";
 
   var dartObjectLocalStorage;
 
@@ -5378,7 +6440,7 @@ class PerformanceTiming native "*PerformanceTiming" {
 
 class PointerLock native "*PointerLock" {
 
-  bool isLocked;
+  bool get isLocked() native "return this.isLocked;";
 
   void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
 
@@ -5391,7 +6453,7 @@ class PointerLock native "*PointerLock" {
 
 class PopStateEvent extends Event native "*PopStateEvent" {
 
-  Object state;
+  Object get state() native "return this.state;";
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5409,9 +6471,9 @@ class PositionError native "*PositionError" {
 
   static final int TIMEOUT = 3;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
   var dartObjectLocalStorage;
 
@@ -5427,29 +6489,31 @@ typedef bool PositionErrorCallback(PositionError error);
 
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
-  String data;
+  String get data() native "return this.data;";
 
-  StyleSheet sheet;
+  void set data(String value) native "this.data = value;";
 
-  String target;
+  StyleSheet get sheet() native "return this.sheet;";
+
+  String get target() native "return this.target;";
 }
 
 class ProgressEvent extends Event native "*ProgressEvent" {
 
-  bool lengthComputable;
+  bool get lengthComputable() native "return this.lengthComputable;";
 
-  int loaded;
+  int get loaded() native "return this.loaded;";
 
-  int total;
+  int get total() native "return this.total;";
 }
 
 class RGBColor native "*RGBColor" {
 
-  CSSPrimitiveValue blue;
+  CSSPrimitiveValue get blue() native "return this.blue;";
 
-  CSSPrimitiveValue green;
+  CSSPrimitiveValue get green() native "return this.green;";
 
-  CSSPrimitiveValue red;
+  CSSPrimitiveValue get red() native "return this.red;";
 
   var dartObjectLocalStorage;
 
@@ -5474,17 +6538,17 @@ class Range native "*Range" {
 
   static final int START_TO_START = 0;
 
-  bool collapsed;
+  bool get collapsed() native "return this.collapsed;";
 
-  Node commonAncestorContainer;
+  Node get commonAncestorContainer() native "return this.commonAncestorContainer;";
 
-  Node endContainer;
+  Node get endContainer() native "return this.endContainer;";
 
-  int endOffset;
+  int get endOffset() native "return this.endOffset;";
 
-  Node startContainer;
+  Node get startContainer() native "return this.startContainer;";
 
-  int startOffset;
+  int get startOffset() native "return this.startOffset;";
 
   DocumentFragment cloneContents() native;
 
@@ -5547,11 +6611,11 @@ class RangeException native "*RangeException" {
 
   static final int INVALID_NODE_TYPE_ERR = 2;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -5562,15 +6626,23 @@ class RangeException native "*RangeException" {
 
 class RealtimeAnalyserNode extends AudioNode native "*RealtimeAnalyserNode" {
 
-  int fftSize;
+  int get fftSize() native "return this.fftSize;";
 
-  int frequencyBinCount;
+  void set fftSize(int value) native "this.fftSize = value;";
 
-  num maxDecibels;
+  int get frequencyBinCount() native "return this.frequencyBinCount;";
 
-  num minDecibels;
+  num get maxDecibels() native "return this.maxDecibels;";
 
-  num smoothingTimeConstant;
+  void set maxDecibels(num value) native "this.maxDecibels = value;";
+
+  num get minDecibels() native "return this.minDecibels;";
+
+  void set minDecibels(num value) native "this.minDecibels = value;";
+
+  num get smoothingTimeConstant() native "return this.smoothingTimeConstant;";
+
+  void set smoothingTimeConstant(num value) native "this.smoothingTimeConstant = value;";
 
   void getByteFrequencyData(Uint8Array array) native;
 
@@ -5581,13 +6653,13 @@ class RealtimeAnalyserNode extends AudioNode native "*RealtimeAnalyserNode" {
 
 class Rect native "*Rect" {
 
-  CSSPrimitiveValue bottom;
+  CSSPrimitiveValue get bottom() native "return this.bottom;";
 
-  CSSPrimitiveValue left;
+  CSSPrimitiveValue get left() native "return this.left;";
 
-  CSSPrimitiveValue right;
+  CSSPrimitiveValue get right() native "return this.right;";
 
-  CSSPrimitiveValue top;
+  CSSPrimitiveValue get top() native "return this.top;";
 
   var dartObjectLocalStorage;
 
@@ -5612,9 +6684,9 @@ class SQLError native "*SQLError" {
 
   static final int VERSION_ERR = 2;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
   var dartObjectLocalStorage;
 
@@ -5639,9 +6711,9 @@ class SQLException native "*SQLException" {
 
   static final int VERSION_ERR = 2;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
   var dartObjectLocalStorage;
 
@@ -5650,11 +6722,11 @@ class SQLException native "*SQLException" {
 
 class SQLResultSet native "*SQLResultSet" {
 
-  int insertId;
+  int get insertId() native "return this.insertId;";
 
-  SQLResultSetRowList rows;
+  SQLResultSetRowList get rows() native "return this.rows;";
 
-  int rowsAffected;
+  int get rowsAffected() native "return this.rowsAffected;";
 
   var dartObjectLocalStorage;
 
@@ -5663,7 +6735,7 @@ class SQLResultSet native "*SQLResultSet" {
 
 class SQLResultSetRowList native "*SQLResultSetRowList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Object item(int index) native;
 
@@ -5723,49 +6795,53 @@ typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
 
 class SVGAElement extends SVGElement native "*SVGAElement" {
 
-  SVGAnimatedString target;
+  SVGAnimatedString get target() native "return this.target;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -5781,13 +6857,17 @@ class SVGAltGlyphDefElement extends SVGElement native "*SVGAltGlyphDefElement" {
 
 class SVGAltGlyphElement extends SVGTextPositioningElement native "*SVGAltGlyphElement" {
 
-  String format;
+  String get format() native "return this.format;";
 
-  String glyphRef;
+  void set format(String value) native "this.format = value;";
+
+  String get glyphRef() native "return this.glyphRef;";
+
+  void set glyphRef(String value) native "this.glyphRef = value;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 }
 
 class SVGAltGlyphItemElement extends SVGElement native "*SVGAltGlyphItemElement" {
@@ -5805,13 +6885,19 @@ class SVGAngle native "*SVGAngle" {
 
   static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
-  int unitType;
+  int get unitType() native "return this.unitType;";
 
-  num value;
+  num get value() native "return this.value;";
 
-  String valueAsString;
+  void set value(num value) native "this.value = value;";
 
-  num valueInSpecifiedUnits;
+  String get valueAsString() native "return this.valueAsString;";
+
+  void set valueAsString(String value) native "this.valueAsString = value;";
+
+  num get valueInSpecifiedUnits() native "return this.valueInSpecifiedUnits;";
+
+  void set valueInSpecifiedUnits(num value) native "this.valueInSpecifiedUnits = value;";
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -5836,9 +6922,9 @@ class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimate
 
 class SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
-  SVGAngle animVal;
+  SVGAngle get animVal() native "return this.animVal;";
 
-  SVGAngle baseVal;
+  SVGAngle get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 
@@ -5847,9 +6933,11 @@ class SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
 class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
-  bool animVal;
+  bool get animVal() native "return this.animVal;";
 
-  bool baseVal;
+  bool get baseVal() native "return this.baseVal;";
+
+  void set baseVal(bool value) native "this.baseVal = value;";
 
   var dartObjectLocalStorage;
 
@@ -5858,9 +6946,11 @@ class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
 class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
-  int animVal;
+  int get animVal() native "return this.animVal;";
 
-  int baseVal;
+  int get baseVal() native "return this.baseVal;";
+
+  void set baseVal(int value) native "this.baseVal = value;";
 
   var dartObjectLocalStorage;
 
@@ -5869,9 +6959,11 @@ class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
 class SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
-  int animVal;
+  int get animVal() native "return this.animVal;";
 
-  int baseVal;
+  int get baseVal() native "return this.baseVal;";
+
+  void set baseVal(int value) native "this.baseVal = value;";
 
   var dartObjectLocalStorage;
 
@@ -5880,9 +6972,9 @@ class SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
 class SVGAnimatedLength native "*SVGAnimatedLength" {
 
-  SVGLength animVal;
+  SVGLength get animVal() native "return this.animVal;";
 
-  SVGLength baseVal;
+  SVGLength get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 
@@ -5891,9 +6983,9 @@ class SVGAnimatedLength native "*SVGAnimatedLength" {
 
 class SVGAnimatedLengthList native "*SVGAnimatedLengthList" {
 
-  SVGLengthList animVal;
+  SVGLengthList get animVal() native "return this.animVal;";
 
-  SVGLengthList baseVal;
+  SVGLengthList get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 
@@ -5902,9 +6994,11 @@ class SVGAnimatedLengthList native "*SVGAnimatedLengthList" {
 
 class SVGAnimatedNumber native "*SVGAnimatedNumber" {
 
-  num animVal;
+  num get animVal() native "return this.animVal;";
 
-  num baseVal;
+  num get baseVal() native "return this.baseVal;";
+
+  void set baseVal(num value) native "this.baseVal = value;";
 
   var dartObjectLocalStorage;
 
@@ -5913,9 +7007,9 @@ class SVGAnimatedNumber native "*SVGAnimatedNumber" {
 
 class SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
-  SVGNumberList animVal;
+  SVGNumberList get animVal() native "return this.animVal;";
 
-  SVGNumberList baseVal;
+  SVGNumberList get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 
@@ -5924,9 +7018,9 @@ class SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
 class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
-  SVGPreserveAspectRatio animVal;
+  SVGPreserveAspectRatio get animVal() native "return this.animVal;";
 
-  SVGPreserveAspectRatio baseVal;
+  SVGPreserveAspectRatio get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 
@@ -5935,9 +7029,9 @@ class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
 class SVGAnimatedRect native "*SVGAnimatedRect" {
 
-  SVGRect animVal;
+  SVGRect get animVal() native "return this.animVal;";
 
-  SVGRect baseVal;
+  SVGRect get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 
@@ -5946,9 +7040,11 @@ class SVGAnimatedRect native "*SVGAnimatedRect" {
 
 class SVGAnimatedString native "*SVGAnimatedString" {
 
-  String animVal;
+  String get animVal() native "return this.animVal;";
 
-  String baseVal;
+  String get baseVal() native "return this.baseVal;";
+
+  void set baseVal(String value) native "this.baseVal = value;";
 
   var dartObjectLocalStorage;
 
@@ -5957,9 +7053,9 @@ class SVGAnimatedString native "*SVGAnimatedString" {
 
 class SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
-  SVGTransformList animVal;
+  SVGTransformList get animVal() native "return this.animVal;";
 
-  SVGTransformList baseVal;
+  SVGTransformList get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 
@@ -5968,7 +7064,7 @@ class SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
 class SVGAnimationElement extends SVGElement native "*SVGAnimationElement" {
 
-  SVGElement targetElement;
+  SVGElement get targetElement() native "return this.targetElement;";
 
   num getCurrentTime() native;
 
@@ -5978,17 +7074,17 @@ class SVGAnimationElement extends SVGElement native "*SVGAnimationElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From ElementTimeControl
 
@@ -6003,49 +7099,53 @@ class SVGAnimationElement extends SVGElement native "*SVGAnimationElement" {
 
 class SVGCircleElement extends SVGElement native "*SVGCircleElement" {
 
-  SVGAnimatedLength cx;
+  SVGAnimatedLength get cx() native "return this.cx;";
 
-  SVGAnimatedLength cy;
+  SVGAnimatedLength get cy() native "return this.cy;";
 
-  SVGAnimatedLength r;
+  SVGAnimatedLength get r() native "return this.r;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -6058,45 +7158,49 @@ class SVGCircleElement extends SVGElement native "*SVGCircleElement" {
 
 class SVGClipPathElement extends SVGElement native "*SVGClipPathElement" {
 
-  SVGAnimatedEnumeration clipPathUnits;
+  SVGAnimatedEnumeration get clipPathUnits() native "return this.clipPathUnits;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -6117,9 +7221,9 @@ class SVGColor extends CSSValue native "*SVGColor" {
 
   static final int SVG_COLORTYPE_UNKNOWN = 0;
 
-  int colorType;
+  int get colorType() native "return this.colorType;";
 
-  RGBColor rgbColor;
+  RGBColor get rgbColor() native "return this.rgbColor;";
 
   void setColor(int colorType, String rgbColor, String iccColor) native;
 
@@ -6142,85 +7246,89 @@ class SVGComponentTransferFunctionElement extends SVGElement native "*SVGCompone
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber amplitude;
+  SVGAnimatedNumber get amplitude() native "return this.amplitude;";
 
-  SVGAnimatedNumber exponent;
+  SVGAnimatedNumber get exponent() native "return this.exponent;";
 
-  SVGAnimatedNumber intercept;
+  SVGAnimatedNumber get intercept() native "return this.intercept;";
 
-  SVGAnimatedNumber offset;
+  SVGAnimatedNumber get offset() native "return this.offset;";
 
-  SVGAnimatedNumber slope;
+  SVGAnimatedNumber get slope() native "return this.slope;";
 
-  SVGAnimatedNumberList tableValues;
+  SVGAnimatedNumberList get tableValues() native "return this.tableValues;";
 
-  SVGAnimatedEnumeration type;
+  SVGAnimatedEnumeration get type() native "return this.type;";
 }
 
 class SVGCursorElement extends SVGElement native "*SVGCursorElement" {
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 }
 
 class SVGDefsElement extends SVGElement native "*SVGDefsElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -6235,54 +7343,62 @@ class SVGDescElement extends SVGElement native "*SVGDescElement" {
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGDocument extends Document native "*SVGDocument" {
 
-  SVGSVGElement rootElement;
+  SVGSVGElement get rootElement() native "return this.rootElement;";
 
   Event createEvent(String eventType) native;
 }
 
 class SVGElement extends Element native "*SVGElement" {
 
-  String id;
+  String get id() native "return this.id;";
 
-  SVGSVGElement ownerSVGElement;
+  void set id(String value) native "this.id = value;";
 
-  SVGElement viewportElement;
+  SVGSVGElement get ownerSVGElement() native "return this.ownerSVGElement;";
 
-  String xmlbase;
+  SVGElement get viewportElement() native "return this.viewportElement;";
+
+  String get xmlbase() native "return this.xmlbase;";
+
+  void set xmlbase(String value) native "this.xmlbase = value;";
 }
 
 class SVGElementInstance native "*SVGElementInstance" {
 
-  SVGElementInstanceList childNodes;
+  SVGElementInstanceList get childNodes() native "return this.childNodes;";
 
-  SVGElement correspondingElement;
+  SVGElement get correspondingElement() native "return this.correspondingElement;";
 
-  SVGUseElement correspondingUseElement;
+  SVGUseElement get correspondingUseElement() native "return this.correspondingUseElement;";
 
-  SVGElementInstance firstChild;
+  SVGElementInstance get firstChild() native "return this.firstChild;";
 
-  SVGElementInstance lastChild;
+  SVGElementInstance get lastChild() native "return this.lastChild;";
 
-  SVGElementInstance nextSibling;
+  SVGElementInstance get nextSibling() native "return this.nextSibling;";
 
-  SVGElementInstance parentNode;
+  SVGElementInstance get parentNode() native "return this.parentNode;";
 
-  SVGElementInstance previousSibling;
+  SVGElementInstance get previousSibling() native "return this.previousSibling;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -6297,7 +7413,7 @@ class SVGElementInstance native "*SVGElementInstance" {
 
 class SVGElementInstanceList native "*SVGElementInstanceList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   SVGElementInstance item(int index) native;
 
@@ -6308,51 +7424,55 @@ class SVGElementInstanceList native "*SVGElementInstanceList" {
 
 class SVGEllipseElement extends SVGElement native "*SVGEllipseElement" {
 
-  SVGAnimatedLength cx;
+  SVGAnimatedLength get cx() native "return this.cx;";
 
-  SVGAnimatedLength cy;
+  SVGAnimatedLength get cy() native "return this.cy;";
 
-  SVGAnimatedLength rx;
+  SVGAnimatedLength get rx() native "return this.rx;";
 
-  SVGAnimatedLength ry;
+  SVGAnimatedLength get ry() native "return this.ry;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -6371,11 +7491,11 @@ class SVGException native "*SVGException" {
 
   static final int SVG_WRONG_TYPE_ERR = 0;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -6386,7 +7506,7 @@ class SVGException native "*SVGException" {
 
 class SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   var dartObjectLocalStorage;
 
@@ -6407,29 +7527,29 @@ class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
 
   static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedString in2;
+  SVGAnimatedString get in2() native "return this.in2;";
 
-  SVGAnimatedEnumeration mode;
+  SVGAnimatedEnumeration get mode() native "return this.mode;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -6446,54 +7566,54 @@ class SVGFEColorMatrixElement extends SVGElement native "*SVGFEColorMatrixElemen
 
   static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedEnumeration type;
+  SVGAnimatedEnumeration get type() native "return this.type;";
 
-  SVGAnimatedNumberList values;
+  SVGAnimatedNumberList get values() native "return this.values;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFEComponentTransferElement extends SVGElement native "*SVGFEComponentTransferElement" {
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -6514,37 +7634,37 @@ class SVGFECompositeElement extends SVGElement native "*SVGFECompositeElement" {
 
   static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedString in2;
+  SVGAnimatedString get in2() native "return this.in2;";
 
-  SVGAnimatedNumber k1;
+  SVGAnimatedNumber get k1() native "return this.k1;";
 
-  SVGAnimatedNumber k2;
+  SVGAnimatedNumber get k2() native "return this.k2;";
 
-  SVGAnimatedNumber k3;
+  SVGAnimatedNumber get k3() native "return this.k3;";
 
-  SVGAnimatedNumber k4;
+  SVGAnimatedNumber get k4() native "return this.k4;";
 
-  SVGAnimatedEnumeration operator;
+  SVGAnimatedEnumeration get operator() native "return this.operator;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -6559,80 +7679,80 @@ class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrix
 
   static final int SVG_EDGEMODE_WRAP = 2;
 
-  SVGAnimatedNumber bias;
+  SVGAnimatedNumber get bias() native "return this.bias;";
 
-  SVGAnimatedNumber divisor;
+  SVGAnimatedNumber get divisor() native "return this.divisor;";
 
-  SVGAnimatedEnumeration edgeMode;
+  SVGAnimatedEnumeration get edgeMode() native "return this.edgeMode;";
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedNumberList kernelMatrix;
+  SVGAnimatedNumberList get kernelMatrix() native "return this.kernelMatrix;";
 
-  SVGAnimatedNumber kernelUnitLengthX;
+  SVGAnimatedNumber get kernelUnitLengthX() native "return this.kernelUnitLengthX;";
 
-  SVGAnimatedNumber kernelUnitLengthY;
+  SVGAnimatedNumber get kernelUnitLengthY() native "return this.kernelUnitLengthY;";
 
-  SVGAnimatedInteger orderX;
+  SVGAnimatedInteger get orderX() native "return this.orderX;";
 
-  SVGAnimatedInteger orderY;
+  SVGAnimatedInteger get orderY() native "return this.orderY;";
 
-  SVGAnimatedBoolean preserveAlpha;
+  SVGAnimatedBoolean get preserveAlpha() native "return this.preserveAlpha;";
 
-  SVGAnimatedInteger targetX;
+  SVGAnimatedInteger get targetX() native "return this.targetX;";
 
-  SVGAnimatedInteger targetY;
+  SVGAnimatedInteger get targetY() native "return this.targetY;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFEDiffuseLightingElement extends SVGElement native "*SVGFEDiffuseLightingElement" {
 
-  SVGAnimatedNumber diffuseConstant;
+  SVGAnimatedNumber get diffuseConstant() native "return this.diffuseConstant;";
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedNumber kernelUnitLengthX;
+  SVGAnimatedNumber get kernelUnitLengthX() native "return this.kernelUnitLengthX;";
 
-  SVGAnimatedNumber kernelUnitLengthY;
+  SVGAnimatedNumber get kernelUnitLengthY() native "return this.kernelUnitLengthY;";
 
-  SVGAnimatedNumber surfaceScale;
+  SVGAnimatedNumber get surfaceScale() native "return this.surfaceScale;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -6649,75 +7769,75 @@ class SVGFEDisplacementMapElement extends SVGElement native "*SVGFEDisplacementM
 
   static final int SVG_CHANNEL_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedString in2;
+  SVGAnimatedString get in2() native "return this.in2;";
 
-  SVGAnimatedNumber scale;
+  SVGAnimatedNumber get scale() native "return this.scale;";
 
-  SVGAnimatedEnumeration xChannelSelector;
+  SVGAnimatedEnumeration get xChannelSelector() native "return this.xChannelSelector;";
 
-  SVGAnimatedEnumeration yChannelSelector;
+  SVGAnimatedEnumeration get yChannelSelector() native "return this.yChannelSelector;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
 
-  SVGAnimatedNumber azimuth;
+  SVGAnimatedNumber get azimuth() native "return this.azimuth;";
 
-  SVGAnimatedNumber elevation;
+  SVGAnimatedNumber get elevation() native "return this.elevation;";
 }
 
 class SVGFEDropShadowElement extends SVGElement native "*SVGFEDropShadowElement" {
 
-  SVGAnimatedNumber dx;
+  SVGAnimatedNumber get dx() native "return this.dx;";
 
-  SVGAnimatedNumber dy;
+  SVGAnimatedNumber get dy() native "return this.dy;";
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedNumber stdDeviationX;
+  SVGAnimatedNumber get stdDeviationX() native "return this.stdDeviationX;";
 
-  SVGAnimatedNumber stdDeviationY;
+  SVGAnimatedNumber get stdDeviationY() native "return this.stdDeviationY;";
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -6726,21 +7846,21 @@ class SVGFEFloodElement extends SVGElement native "*SVGFEFloodElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -6759,70 +7879,74 @@ class SVGFEFuncRElement extends SVGComponentTransferFunctionElement native "*SVG
 
 class SVGFEGaussianBlurElement extends SVGElement native "*SVGFEGaussianBlurElement" {
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedNumber stdDeviationX;
+  SVGAnimatedNumber get stdDeviationX() native "return this.stdDeviationX;";
 
-  SVGAnimatedNumber stdDeviationY;
+  SVGAnimatedNumber get stdDeviationY() native "return this.stdDeviationY;";
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFEImageElement extends SVGElement native "*SVGFEImageElement" {
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -6831,28 +7955,28 @@ class SVGFEMergeElement extends SVGElement native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFEMergeNodeElement extends SVGElement native "*SVGFEMergeNodeElement" {
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 }
 
 class SVGFEMorphologyElement extends SVGElement native "*SVGFEMorphologyElement" {
@@ -6863,146 +7987,146 @@ class SVGFEMorphologyElement extends SVGElement native "*SVGFEMorphologyElement"
 
   static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedEnumeration operator;
+  SVGAnimatedEnumeration get operator() native "return this.operator;";
 
-  SVGAnimatedNumber radiusX;
+  SVGAnimatedNumber get radiusX() native "return this.radiusX;";
 
-  SVGAnimatedNumber radiusY;
+  SVGAnimatedNumber get radiusY() native "return this.radiusY;";
 
   void setRadius(num radiusX, num radiusY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFEOffsetElement extends SVGElement native "*SVGFEOffsetElement" {
 
-  SVGAnimatedNumber dx;
+  SVGAnimatedNumber get dx() native "return this.dx;";
 
-  SVGAnimatedNumber dy;
+  SVGAnimatedNumber get dy() native "return this.dy;";
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFEPointLightElement extends SVGElement native "*SVGFEPointLightElement" {
 
-  SVGAnimatedNumber x;
+  SVGAnimatedNumber get x() native "return this.x;";
 
-  SVGAnimatedNumber y;
+  SVGAnimatedNumber get y() native "return this.y;";
 
-  SVGAnimatedNumber z;
+  SVGAnimatedNumber get z() native "return this.z;";
 }
 
 class SVGFESpecularLightingElement extends SVGElement native "*SVGFESpecularLightingElement" {
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
-  SVGAnimatedNumber specularConstant;
+  SVGAnimatedNumber get specularConstant() native "return this.specularConstant;";
 
-  SVGAnimatedNumber specularExponent;
+  SVGAnimatedNumber get specularExponent() native "return this.specularExponent;";
 
-  SVGAnimatedNumber surfaceScale;
+  SVGAnimatedNumber get surfaceScale() native "return this.surfaceScale;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFESpotLightElement extends SVGElement native "*SVGFESpotLightElement" {
 
-  SVGAnimatedNumber limitingConeAngle;
+  SVGAnimatedNumber get limitingConeAngle() native "return this.limitingConeAngle;";
 
-  SVGAnimatedNumber pointsAtX;
+  SVGAnimatedNumber get pointsAtX() native "return this.pointsAtX;";
 
-  SVGAnimatedNumber pointsAtY;
+  SVGAnimatedNumber get pointsAtY() native "return this.pointsAtY;";
 
-  SVGAnimatedNumber pointsAtZ;
+  SVGAnimatedNumber get pointsAtZ() native "return this.pointsAtZ;";
 
-  SVGAnimatedNumber specularExponent;
+  SVGAnimatedNumber get specularExponent() native "return this.specularExponent;";
 
-  SVGAnimatedNumber x;
+  SVGAnimatedNumber get x() native "return this.x;";
 
-  SVGAnimatedNumber y;
+  SVGAnimatedNumber get y() native "return this.y;";
 
-  SVGAnimatedNumber z;
+  SVGAnimatedNumber get z() native "return this.z;";
 }
 
 class SVGFETileElement extends SVGElement native "*SVGFETileElement" {
 
-  SVGAnimatedString in1;
+  SVGAnimatedString get in1() native "return this.in1;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -7021,100 +8145,104 @@ class SVGFETurbulenceElement extends SVGElement native "*SVGFETurbulenceElement"
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber baseFrequencyX;
+  SVGAnimatedNumber get baseFrequencyX() native "return this.baseFrequencyX;";
 
-  SVGAnimatedNumber baseFrequencyY;
+  SVGAnimatedNumber get baseFrequencyY() native "return this.baseFrequencyY;";
 
-  SVGAnimatedInteger numOctaves;
+  SVGAnimatedInteger get numOctaves() native "return this.numOctaves;";
 
-  SVGAnimatedNumber seed;
+  SVGAnimatedNumber get seed() native "return this.seed;";
 
-  SVGAnimatedEnumeration stitchTiles;
+  SVGAnimatedEnumeration get stitchTiles() native "return this.stitchTiles;";
 
-  SVGAnimatedEnumeration type;
+  SVGAnimatedEnumeration get type() native "return this.type;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFilterElement extends SVGElement native "*SVGFilterElement" {
 
-  SVGAnimatedInteger filterResX;
+  SVGAnimatedInteger get filterResX() native "return this.filterResX;";
 
-  SVGAnimatedInteger filterResY;
+  SVGAnimatedInteger get filterResY() native "return this.filterResY;";
 
-  SVGAnimatedEnumeration filterUnits;
+  SVGAnimatedEnumeration get filterUnits() native "return this.filterUnits;";
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedEnumeration primitiveUnits;
+  SVGAnimatedEnumeration get primitiveUnits() native "return this.primitiveUnits;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGFilterPrimitiveStandardAttributes extends SVGStylable native "*SVGFilterPrimitiveStandardAttributes" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 }
 
 class SVGFitToViewBox native "*SVGFitToViewBox" {
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 
   var dartObjectLocalStorage;
 
@@ -7141,51 +8269,55 @@ class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
 
 class SVGForeignObjectElement extends SVGElement native "*SVGForeignObjectElement" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -7200,41 +8332,45 @@ class SVGGElement extends SVGElement native "*SVGGElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -7250,27 +8386,39 @@ class SVGGlyphElement extends SVGElement native "*SVGGlyphElement" {
 
 class SVGGlyphRefElement extends SVGElement native "*SVGGlyphRefElement" {
 
-  num dx;
+  num get dx() native "return this.dx;";
 
-  num dy;
+  void set dx(num value) native "this.dx = value;";
 
-  String format;
+  num get dy() native "return this.dy;";
 
-  String glyphRef;
+  void set dy(num value) native "this.dy = value;";
 
-  num x;
+  String get format() native "return this.format;";
 
-  num y;
+  void set format(String value) native "this.format = value;";
+
+  String get glyphRef() native "return this.glyphRef;";
+
+  void set glyphRef(String value) native "this.glyphRef = value;";
+
+  num get x() native "return this.x;";
+
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -7285,25 +8433,25 @@ class SVGGradientElement extends SVGElement native "*SVGGradientElement" {
 
   static final int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  SVGAnimatedTransformList gradientTransform;
+  SVGAnimatedTransformList get gradientTransform() native "return this.gradientTransform;";
 
-  SVGAnimatedEnumeration gradientUnits;
+  SVGAnimatedEnumeration get gradientUnits() native "return this.gradientUnits;";
 
-  SVGAnimatedEnumeration spreadMethod;
+  SVGAnimatedEnumeration get spreadMethod() native "return this.spreadMethod;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -7313,57 +8461,61 @@ class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
 
 class SVGImageElement extends SVGElement native "*SVGImageElement" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -7376,9 +8528,13 @@ class SVGImageElement extends SVGElement native "*SVGImageElement" {
 
 class SVGLangSpace native "*SVGLangSpace" {
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   var dartObjectLocalStorage;
 
@@ -7409,13 +8565,19 @@ class SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_UNKNOWN = 0;
 
-  int unitType;
+  int get unitType() native "return this.unitType;";
 
-  num value;
+  num get value() native "return this.value;";
 
-  String valueAsString;
+  void set value(num value) native "this.value = value;";
 
-  num valueInSpecifiedUnits;
+  String get valueAsString() native "return this.valueAsString;";
+
+  void set valueAsString(String value) native "this.valueAsString = value;";
+
+  num get valueInSpecifiedUnits() native "return this.valueInSpecifiedUnits;";
+
+  void set valueInSpecifiedUnits(num value) native "this.valueInSpecifiedUnits = value;";
 
   void convertToSpecifiedUnits(int unitType) native;
 
@@ -7428,7 +8590,7 @@ class SVGLength native "*SVGLength" {
 
 class SVGLengthList native "*SVGLengthList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGLength appendItem(SVGLength item) native;
 
@@ -7451,51 +8613,55 @@ class SVGLengthList native "*SVGLengthList" {
 
 class SVGLineElement extends SVGElement native "*SVGLineElement" {
 
-  SVGAnimatedLength x1;
+  SVGAnimatedLength get x1() native "return this.x1;";
 
-  SVGAnimatedLength x2;
+  SVGAnimatedLength get x2() native "return this.x2;";
 
-  SVGAnimatedLength y1;
+  SVGAnimatedLength get y1() native "return this.y1;";
 
-  SVGAnimatedLength y2;
+  SVGAnimatedLength get y2() native "return this.y2;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -7508,20 +8674,20 @@ class SVGLineElement extends SVGElement native "*SVGLineElement" {
 
 class SVGLinearGradientElement extends SVGGradientElement native "*SVGLinearGradientElement" {
 
-  SVGAnimatedLength x1;
+  SVGAnimatedLength get x1() native "return this.x1;";
 
-  SVGAnimatedLength x2;
+  SVGAnimatedLength get x2() native "return this.x2;";
 
-  SVGAnimatedLength y1;
+  SVGAnimatedLength get y1() native "return this.y1;";
 
-  SVGAnimatedLength y2;
+  SVGAnimatedLength get y2() native "return this.y2;";
 }
 
 class SVGLocatable native "*SVGLocatable" {
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -7540,11 +8706,11 @@ class SVGMPathElement extends SVGElement native "*SVGMPathElement" {
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 }
 
 class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
@@ -7561,19 +8727,19 @@ class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  SVGAnimatedLength markerHeight;
+  SVGAnimatedLength get markerHeight() native "return this.markerHeight;";
 
-  SVGAnimatedEnumeration markerUnits;
+  SVGAnimatedEnumeration get markerUnits() native "return this.markerUnits;";
 
-  SVGAnimatedLength markerWidth;
+  SVGAnimatedLength get markerWidth() native "return this.markerWidth;";
 
-  SVGAnimatedAngle orientAngle;
+  SVGAnimatedAngle get orientAngle() native "return this.orientAngle;";
 
-  SVGAnimatedEnumeration orientType;
+  SVGAnimatedEnumeration get orientType() native "return this.orientType;";
 
-  SVGAnimatedLength refX;
+  SVGAnimatedLength get refX() native "return this.refX;";
 
-  SVGAnimatedLength refY;
+  SVGAnimatedLength get refY() native "return this.refY;";
 
   void setOrientToAngle(SVGAngle angle) native;
 
@@ -7581,85 +8747,105 @@ class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 }
 
 class SVGMaskElement extends SVGElement native "*SVGMaskElement" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedEnumeration maskContentUnits;
+  SVGAnimatedEnumeration get maskContentUnits() native "return this.maskContentUnits;";
 
-  SVGAnimatedEnumeration maskUnits;
+  SVGAnimatedEnumeration get maskUnits() native "return this.maskUnits;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGMatrix native "*SVGMatrix" {
 
-  num a;
+  num get a() native "return this.a;";
 
-  num b;
+  void set a(num value) native "this.a = value;";
 
-  num c;
+  num get b() native "return this.b;";
 
-  num d;
+  void set b(num value) native "this.b = value;";
 
-  num e;
+  num get c() native "return this.c;";
 
-  num f;
+  void set c(num value) native "this.c = value;";
+
+  num get d() native "return this.d;";
+
+  void set d(num value) native "this.d = value;";
+
+  num get e() native "return this.e;";
+
+  void set e(num value) native "this.e = value;";
+
+  num get f() native "return this.f;";
+
+  void set f(num value) native "this.f = value;";
 
   SVGMatrix flipX() native;
 
@@ -7696,7 +8882,9 @@ class SVGMissingGlyphElement extends SVGElement native "*SVGMissingGlyphElement"
 
 class SVGNumber native "*SVGNumber" {
 
-  num value;
+  num get value() native "return this.value;";
+
+  void set value(num value) native "this.value = value;";
 
   var dartObjectLocalStorage;
 
@@ -7705,7 +8893,7 @@ class SVGNumber native "*SVGNumber" {
 
 class SVGNumberList native "*SVGNumberList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGNumber appendItem(SVGNumber item) native;
 
@@ -7748,9 +8936,9 @@ class SVGPaint extends SVGColor native "*SVGPaint" {
 
   static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
-  int paintType;
+  int get paintType() native "return this.paintType;";
 
-  String uri;
+  String get uri() native "return this.uri;";
 
   void setPaint(int paintType, String uri, String rgbColor, String iccColor) native;
 
@@ -7759,15 +8947,15 @@ class SVGPaint extends SVGColor native "*SVGPaint" {
 
 class SVGPathElement extends SVGElement native "*SVGPathElement" {
 
-  SVGPathSegList animatedNormalizedPathSegList;
+  SVGPathSegList get animatedNormalizedPathSegList() native "return this.animatedNormalizedPathSegList;";
 
-  SVGPathSegList animatedPathSegList;
+  SVGPathSegList get animatedPathSegList() native "return this.animatedPathSegList;";
 
-  SVGPathSegList normalizedPathSegList;
+  SVGPathSegList get normalizedPathSegList() native "return this.normalizedPathSegList;";
 
-  SVGAnimatedNumber pathLength;
+  SVGAnimatedNumber get pathLength() native "return this.pathLength;";
 
-  SVGPathSegList pathSegList;
+  SVGPathSegList get pathSegList() native "return this.pathSegList;";
 
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
@@ -7815,41 +9003,45 @@ class SVGPathElement extends SVGElement native "*SVGPathElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -7902,9 +9094,9 @@ class SVGPathSeg native "*SVGPathSeg" {
 
   static final int PATHSEG_UNKNOWN = 0;
 
-  int pathSegType;
+  int get pathSegType() native "return this.pathSegType;";
 
-  String pathSegTypeAsLetter;
+  String get pathSegTypeAsLetter() native "return this.pathSegTypeAsLetter;";
 
   var dartObjectLocalStorage;
 
@@ -7913,36 +9105,64 @@ class SVGPathSeg native "*SVGPathSeg" {
 
 class SVGPathSegArcAbs extends SVGPathSeg native "*SVGPathSegArcAbs" {
 
-  num angle;
+  num get angle() native "return this.angle;";
 
-  bool largeArcFlag;
+  void set angle(num value) native "this.angle = value;";
 
-  num r1;
+  bool get largeArcFlag() native "return this.largeArcFlag;";
 
-  num r2;
+  void set largeArcFlag(bool value) native "this.largeArcFlag = value;";
 
-  bool sweepFlag;
+  num get r1() native "return this.r1;";
 
-  num x;
+  void set r1(num value) native "this.r1 = value;";
 
-  num y;
+  num get r2() native "return this.r2;";
+
+  void set r2(num value) native "this.r2 = value;";
+
+  bool get sweepFlag() native "return this.sweepFlag;";
+
+  void set sweepFlag(bool value) native "this.sweepFlag = value;";
+
+  num get x() native "return this.x;";
+
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegArcRel extends SVGPathSeg native "*SVGPathSegArcRel" {
 
-  num angle;
+  num get angle() native "return this.angle;";
 
-  bool largeArcFlag;
+  void set angle(num value) native "this.angle = value;";
 
-  num r1;
+  bool get largeArcFlag() native "return this.largeArcFlag;";
 
-  num r2;
+  void set largeArcFlag(bool value) native "this.largeArcFlag = value;";
 
-  bool sweepFlag;
+  num get r1() native "return this.r1;";
 
-  num x;
+  void set r1(num value) native "this.r1 = value;";
 
-  num y;
+  num get r2() native "return this.r2;";
+
+  void set r2(num value) native "this.r2 = value;";
+
+  bool get sweepFlag() native "return this.sweepFlag;";
+
+  void set sweepFlag(bool value) native "this.sweepFlag = value;";
+
+  num get x() native "return this.x;";
+
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
@@ -7950,129 +9170,209 @@ class SVGPathSegClosePath extends SVGPathSeg native "*SVGPathSegClosePath" {
 
 class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicAbs" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num x1;
+  void set x(num value) native "this.x = value;";
 
-  num x2;
+  num get x1() native "return this.x1;";
 
-  num y;
+  void set x1(num value) native "this.x1 = value;";
 
-  num y1;
+  num get x2() native "return this.x2;";
 
-  num y2;
+  void set x2(num value) native "this.x2 = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
+
+  num get y1() native "return this.y1;";
+
+  void set y1(num value) native "this.y1 = value;";
+
+  num get y2() native "return this.y2;";
+
+  void set y2(num value) native "this.y2 = value;";
 }
 
 class SVGPathSegCurvetoCubicRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicRel" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num x1;
+  void set x(num value) native "this.x = value;";
 
-  num x2;
+  num get x1() native "return this.x1;";
 
-  num y;
+  void set x1(num value) native "this.x1 = value;";
 
-  num y1;
+  num get x2() native "return this.x2;";
 
-  num y2;
+  void set x2(num value) native "this.x2 = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
+
+  num get y1() native "return this.y1;";
+
+  void set y1(num value) native "this.y1 = value;";
+
+  num get y2() native "return this.y2;";
+
+  void set y2(num value) native "this.y2 = value;";
 }
 
 class SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothAbs" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num x2;
+  void set x(num value) native "this.x = value;";
 
-  num y;
+  num get x2() native "return this.x2;";
 
-  num y2;
+  void set x2(num value) native "this.x2 = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
+
+  num get y2() native "return this.y2;";
+
+  void set y2(num value) native "this.y2 = value;";
 }
 
 class SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoCubicSmoothRel" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num x2;
+  void set x(num value) native "this.x = value;";
 
-  num y;
+  num get x2() native "return this.x2;";
 
-  num y2;
+  void set x2(num value) native "this.x2 = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
+
+  num get y2() native "return this.y2;";
+
+  void set y2(num value) native "this.y2 = value;";
 }
 
 class SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticAbs" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num x1;
+  void set x(num value) native "this.x = value;";
 
-  num y;
+  num get x1() native "return this.x1;";
 
-  num y1;
+  void set x1(num value) native "this.x1 = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
+
+  num get y1() native "return this.y1;";
+
+  void set y1(num value) native "this.y1 = value;";
 }
 
 class SVGPathSegCurvetoQuadraticRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticRel" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num x1;
+  void set x(num value) native "this.x = value;";
 
-  num y;
+  num get x1() native "return this.x1;";
 
-  num y1;
+  void set x1(num value) native "this.x1 = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
+
+  num get y1() native "return this.y1;";
+
+  void set y1(num value) native "this.y1 = value;";
 }
 
 class SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothAbs" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg native "*SVGPathSegCurvetoQuadraticSmoothRel" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegLinetoAbs extends SVGPathSeg native "*SVGPathSegLinetoAbs" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegLinetoHorizontalAbs extends SVGPathSeg native "*SVGPathSegLinetoHorizontalAbs" {
 
-  num x;
+  num get x() native "return this.x;";
+
+  void set x(num value) native "this.x = value;";
 }
 
 class SVGPathSegLinetoHorizontalRel extends SVGPathSeg native "*SVGPathSegLinetoHorizontalRel" {
 
-  num x;
+  num get x() native "return this.x;";
+
+  void set x(num value) native "this.x = value;";
 }
 
 class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegLinetoVerticalAbs extends SVGPathSeg native "*SVGPathSegLinetoVerticalAbs" {
 
-  num y;
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVerticalRel" {
 
-  num y;
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegList native "*SVGPathSegList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGPathSeg appendItem(SVGPathSeg newItem) native;
 
@@ -8095,78 +9395,94 @@ class SVGPathSegList native "*SVGPathSegList" {
 
 class SVGPathSegMovetoAbs extends SVGPathSeg native "*SVGPathSegMovetoAbs" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPathSegMovetoRel extends SVGPathSeg native "*SVGPathSegMovetoRel" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 }
 
 class SVGPatternElement extends SVGElement native "*SVGPatternElement" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedEnumeration patternContentUnits;
+  SVGAnimatedEnumeration get patternContentUnits() native "return this.patternContentUnits;";
 
-  SVGAnimatedTransformList patternTransform;
+  SVGAnimatedTransformList get patternTransform() native "return this.patternTransform;";
 
-  SVGAnimatedEnumeration patternUnits;
+  SVGAnimatedEnumeration get patternUnits() native "return this.patternUnits;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 }
 
 class SVGPoint native "*SVGPoint" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 
   SVGPoint matrixTransform(SVGMatrix matrix) native;
 
@@ -8177,7 +9493,7 @@ class SVGPoint native "*SVGPoint" {
 
 class SVGPointList native "*SVGPointList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGPoint appendItem(SVGPoint item) native;
 
@@ -8200,47 +9516,51 @@ class SVGPointList native "*SVGPointList" {
 
 class SVGPolygonElement extends SVGElement native "*SVGPolygonElement" {
 
-  SVGPointList animatedPoints;
+  SVGPointList get animatedPoints() native "return this.animatedPoints;";
 
-  SVGPointList points;
+  SVGPointList get points() native "return this.points;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -8253,47 +9573,51 @@ class SVGPolygonElement extends SVGElement native "*SVGPolygonElement" {
 
 class SVGPolylineElement extends SVGElement native "*SVGPolylineElement" {
 
-  SVGPointList animatedPoints;
+  SVGPointList get animatedPoints() native "return this.animatedPoints;";
 
-  SVGPointList points;
+  SVGPointList get points() native "return this.points;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -8334,9 +9658,13 @@ class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  int align;
+  int get align() native "return this.align;";
 
-  int meetOrSlice;
+  void set align(int value) native "this.align = value;";
+
+  int get meetOrSlice() native "return this.meetOrSlice;";
+
+  void set meetOrSlice(int value) native "this.meetOrSlice = value;";
 
   var dartObjectLocalStorage;
 
@@ -8345,26 +9673,34 @@ class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
 class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
 
-  SVGAnimatedLength cx;
+  SVGAnimatedLength get cx() native "return this.cx;";
 
-  SVGAnimatedLength cy;
+  SVGAnimatedLength get cy() native "return this.cy;";
 
-  SVGAnimatedLength fx;
+  SVGAnimatedLength get fx() native "return this.fx;";
 
-  SVGAnimatedLength fy;
+  SVGAnimatedLength get fy() native "return this.fy;";
 
-  SVGAnimatedLength r;
+  SVGAnimatedLength get r() native "return this.r;";
 }
 
 class SVGRect native "*SVGRect" {
 
-  num height;
+  num get height() native "return this.height;";
 
-  num width;
+  void set height(num value) native "this.height = value;";
 
-  num x;
+  num get width() native "return this.width;";
 
-  num y;
+  void set width(num value) native "this.width = value;";
+
+  num get x() native "return this.x;";
+
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 
   var dartObjectLocalStorage;
 
@@ -8373,55 +9709,59 @@ class SVGRect native "*SVGRect" {
 
 class SVGRectElement extends SVGElement native "*SVGRectElement" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedLength rx;
+  SVGAnimatedLength get rx() native "return this.rx;";
 
-  SVGAnimatedLength ry;
+  SVGAnimatedLength get ry() native "return this.ry;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -8453,33 +9793,41 @@ class SVGRenderingIntent native "*SVGRenderingIntent" {
 
 class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
-  String contentScriptType;
+  String get contentScriptType() native "return this.contentScriptType;";
 
-  String contentStyleType;
+  void set contentScriptType(String value) native "this.contentScriptType = value;";
 
-  num currentScale;
+  String get contentStyleType() native "return this.contentStyleType;";
 
-  SVGPoint currentTranslate;
+  void set contentStyleType(String value) native "this.contentStyleType = value;";
 
-  SVGAnimatedLength height;
+  num get currentScale() native "return this.currentScale;";
 
-  num pixelUnitToMillimeterX;
+  void set currentScale(num value) native "this.currentScale = value;";
 
-  num pixelUnitToMillimeterY;
+  SVGPoint get currentTranslate() native "return this.currentTranslate;";
 
-  num screenPixelToMillimeterX;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  num screenPixelToMillimeterY;
+  num get pixelUnitToMillimeterX() native "return this.pixelUnitToMillimeterX;";
 
-  bool useCurrentView;
+  num get pixelUnitToMillimeterY() native "return this.pixelUnitToMillimeterY;";
 
-  SVGRect viewport;
+  num get screenPixelToMillimeterX() native "return this.screenPixelToMillimeterX;";
 
-  SVGAnimatedLength width;
+  num get screenPixelToMillimeterY() native "return this.screenPixelToMillimeterY;";
 
-  SVGAnimatedLength x;
+  bool get useCurrentView() native "return this.useCurrentView;";
 
-  SVGAnimatedLength y;
+  void set useCurrentView(bool value) native "this.useCurrentView = value;";
+
+  SVGRect get viewport() native "return this.viewport;";
+
+  SVGAnimatedLength get width() native "return this.width;";
+
+  SVGAnimatedLength get x() native "return this.x;";
+
+  SVGAnimatedLength get y() native "return this.y;";
 
   bool animationsPaused() native;
 
@@ -8529,37 +9877,41 @@ class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -8571,26 +9923,30 @@ class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 
   // From SVGZoomAndPan
 
-  int zoomAndPan;
+  int get zoomAndPan() native "return this.zoomAndPan;";
+
+  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
 }
 
 class SVGScriptElement extends SVGElement native "*SVGScriptElement" {
 
-  String type;
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 }
 
 class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
@@ -8598,20 +9954,20 @@ class SVGSetElement extends SVGAnimationElement native "*SVGSetElement" {
 
 class SVGStopElement extends SVGElement native "*SVGStopElement" {
 
-  SVGAnimatedNumber offset;
+  SVGAnimatedNumber get offset() native "return this.offset;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
 
 class SVGStringList native "*SVGStringList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   String appendItem(String item) native;
 
@@ -8634,9 +9990,9 @@ class SVGStringList native "*SVGStringList" {
 
 class SVGStylable native "*SVGStylable" {
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
@@ -8647,58 +10003,72 @@ class SVGStylable native "*SVGStylable" {
 
 class SVGStyleElement extends SVGElement native "*SVGStyleElement" {
 
-  String media;
+  String get media() native "return this.media;";
 
-  String title;
+  void set media(String value) native "this.media = value;";
 
-  String type;
+  String get title() native "return this.title;";
+
+  void set title(String value) native "this.title = value;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 }
 
 class SVGSwitchElement extends SVGElement native "*SVGSwitchElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -8713,34 +10083,38 @@ class SVGSymbolElement extends SVGElement native "*SVGSymbolElement" {
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 }
 
 class SVGTRefElement extends SVGTextPositioningElement native "*SVGTRefElement" {
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 }
 
 class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement" {
@@ -8748,11 +10122,11 @@ class SVGTSpanElement extends SVGTextPositioningElement native "*SVGTSpanElement
 
 class SVGTests native "*SVGTests" {
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -8769,9 +10143,9 @@ class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration lengthAdjust;
+  SVGAnimatedEnumeration get lengthAdjust() native "return this.lengthAdjust;";
 
-  SVGAnimatedLength textLength;
+  SVGAnimatedLength get textLength() native "return this.textLength;";
 
   int getCharNumAtPosition(SVGPoint point) native;
 
@@ -8793,29 +10167,33 @@ class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -8824,13 +10202,13 @@ class SVGTextElement extends SVGTextPositioningElement native "*SVGTextElement" 
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -8855,43 +10233,47 @@ class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathEleme
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration method;
+  SVGAnimatedEnumeration get method() native "return this.method;";
 
-  SVGAnimatedEnumeration spacing;
+  SVGAnimatedEnumeration get spacing() native "return this.spacing;";
 
-  SVGAnimatedLength startOffset;
+  SVGAnimatedLength get startOffset() native "return this.startOffset;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 }
 
 class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
 
-  SVGAnimatedLengthList dx;
+  SVGAnimatedLengthList get dx() native "return this.dx;";
 
-  SVGAnimatedLengthList dy;
+  SVGAnimatedLengthList get dy() native "return this.dy;";
 
-  SVGAnimatedNumberList rotate;
+  SVGAnimatedNumberList get rotate() native "return this.rotate;";
 
-  SVGAnimatedLengthList x;
+  SVGAnimatedLengthList get x() native "return this.x;";
 
-  SVGAnimatedLengthList y;
+  SVGAnimatedLengthList get y() native "return this.y;";
 }
 
 class SVGTitleElement extends SVGElement native "*SVGTitleElement" {
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }
@@ -8912,11 +10294,11 @@ class SVGTransform native "*SVGTransform" {
 
   static final int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num angle;
+  num get angle() native "return this.angle;";
 
-  SVGMatrix matrix;
+  SVGMatrix get matrix() native "return this.matrix;";
 
-  int type;
+  int get type() native "return this.type;";
 
   void setMatrix(SVGMatrix matrix) native;
 
@@ -8937,7 +10319,7 @@ class SVGTransform native "*SVGTransform" {
 
 class SVGTransformList native "*SVGTransformList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGTransform appendItem(SVGTransform item) native;
 
@@ -8964,12 +10346,12 @@ class SVGTransformList native "*SVGTransformList" {
 
 class SVGTransformable extends SVGLocatable native "*SVGTransformable" {
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 }
 
 class SVGURIReference native "*SVGURIReference" {
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   var dartObjectLocalStorage;
 
@@ -8991,59 +10373,63 @@ class SVGUnitTypes native "*SVGUnitTypes" {
 
 class SVGUseElement extends SVGElement native "*SVGUseElement" {
 
-  SVGElementInstance animatedInstanceRoot;
+  SVGElementInstance get animatedInstanceRoot() native "return this.animatedInstanceRoot;";
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGElementInstance instanceRoot;
+  SVGElementInstance get instanceRoot() native "return this.instanceRoot;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -9059,42 +10445,44 @@ class SVGVKernElement extends SVGElement native "*SVGVKernElement" {
 
 class SVGViewElement extends SVGElement native "*SVGViewElement" {
 
-  SVGStringList viewTarget;
+  SVGStringList get viewTarget() native "return this.viewTarget;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 
   // From SVGZoomAndPan
 
-  int zoomAndPan;
+  int get zoomAndPan() native "return this.zoomAndPan;";
+
+  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
 }
 
 class SVGViewSpec extends SVGZoomAndPan native "*SVGViewSpec" {
 
-  String preserveAspectRatioString;
+  String get preserveAspectRatioString() native "return this.preserveAspectRatioString;";
 
-  SVGTransformList transform;
+  SVGTransformList get transform() native "return this.transform;";
 
-  String transformString;
+  String get transformString() native "return this.transformString;";
 
-  String viewBoxString;
+  String get viewBoxString() native "return this.viewBoxString;";
 
-  SVGElement viewTarget;
+  SVGElement get viewTarget() native "return this.viewTarget;";
 
-  String viewTargetString;
+  String get viewTargetString() native "return this.viewTargetString;";
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 }
 
 class SVGZoomAndPan native "*SVGZoomAndPan" {
@@ -9105,7 +10493,9 @@ class SVGZoomAndPan native "*SVGZoomAndPan" {
 
   static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-  int zoomAndPan;
+  int get zoomAndPan() native "return this.zoomAndPan;";
+
+  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
 
   var dartObjectLocalStorage;
 
@@ -9114,34 +10504,34 @@ class SVGZoomAndPan native "*SVGZoomAndPan" {
 
 class SVGZoomEvent extends UIEvent native "*SVGZoomEvent" {
 
-  num newScale;
+  num get newScale() native "return this.newScale;";
 
-  SVGPoint newTranslate;
+  SVGPoint get newTranslate() native "return this.newTranslate;";
 
-  num previousScale;
+  num get previousScale() native "return this.previousScale;";
 
-  SVGPoint previousTranslate;
+  SVGPoint get previousTranslate() native "return this.previousTranslate;";
 
-  SVGRect zoomRectScreen;
+  SVGRect get zoomRectScreen() native "return this.zoomRectScreen;";
 }
 
 class Screen native "*Screen" {
 
-  int availHeight;
+  int get availHeight() native "return this.availHeight;";
 
-  int availLeft;
+  int get availLeft() native "return this.availLeft;";
 
-  int availTop;
+  int get availTop() native "return this.availTop;";
 
-  int availWidth;
+  int get availWidth() native "return this.availWidth;";
 
-  int colorDepth;
+  int get colorDepth() native "return this.colorDepth;";
 
-  int height;
+  int get height() native "return this.height;";
 
-  int pixelDepth;
+  int get pixelDepth() native "return this.pixelDepth;";
 
-  int width;
+  int get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 
@@ -9150,11 +10540,11 @@ class Screen native "*Screen" {
 
 class ScriptProfile native "*ScriptProfile" {
 
-  ScriptProfileNode head;
+  ScriptProfileNode get head() native "return this.head;";
 
-  String title;
+  String get title() native "return this.title;";
 
-  int uid;
+  int get uid() native "return this.uid;";
 
   var dartObjectLocalStorage;
 
@@ -9163,23 +10553,23 @@ class ScriptProfile native "*ScriptProfile" {
 
 class ScriptProfileNode native "*ScriptProfileNode" {
 
-  int callUID;
+  int get callUID() native "return this.callUID;";
 
-  List children;
+  List get children() native "return this.children;";
 
-  String functionName;
+  String get functionName() native "return this.functionName;";
 
-  int lineNumber;
+  int get lineNumber() native "return this.lineNumber;";
 
-  int numberOfCalls;
+  int get numberOfCalls() native "return this.numberOfCalls;";
 
-  num selfTime;
+  num get selfTime() native "return this.selfTime;";
 
-  num totalTime;
+  num get totalTime() native "return this.totalTime;";
 
-  String url;
+  String get url() native "return this.url;";
 
-  bool visible;
+  bool get visible() native "return this.visible;";
 
   var dartObjectLocalStorage;
 
@@ -9188,26 +10578,28 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 
 class SharedWorker extends AbstractWorker native "*SharedWorker" {
 
-  MessagePort port;
+  MessagePort get port() native "return this.port;";
 }
 
-class SharedWorkercontext extends WorkerContext native "*SharedWorkercontext" {
+class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  EventListener onconnect;
+  EventListener get onconnect() native "return this.onconnect;";
+
+  void set onconnect(EventListener value) native "this.onconnect = value;";
 }
 
 class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
-  SpeechInputResultList results;
+  SpeechInputResultList get results() native "return this.results;";
 }
 
 class SpeechInputResult native "*SpeechInputResult" {
 
-  num confidence;
+  num get confidence() native "return this.confidence;";
 
-  String utterance;
+  String get utterance() native "return this.utterance;";
 
   var dartObjectLocalStorage;
 
@@ -9216,7 +10608,7 @@ class SpeechInputResult native "*SpeechInputResult" {
 
 class SpeechInputResultList native "*SpeechInputResultList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   SpeechInputResult item(int index) native;
 
@@ -9227,7 +10619,7 @@ class SpeechInputResultList native "*SpeechInputResultList" {
 
 class Storage native "*Storage" {
 
-  int length;
+  int get length() native "return this.length;";
 
   void clear() native;
 
@@ -9270,15 +10662,15 @@ class Storage native "*Storage" {
 
 class StorageEvent extends Event native "*StorageEvent" {
 
-  String key;
+  String get key() native "return this.key;";
 
-  String newValue;
+  String get newValue() native "return this.newValue;";
 
-  String oldValue;
+  String get oldValue() native "return this.oldValue;";
 
-  Storage storageArea;
+  Storage get storageArea() native "return this.storageArea;";
 
-  String url;
+  String get url() native "return this.url;";
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }
@@ -9328,7 +10720,7 @@ typedef bool StringCallback(String data);
 
 class StyleMedia native "*StyleMedia" {
 
-  String type;
+  String get type() native "return this.type;";
 
   bool matchMedium(String mediaquery) native;
 
@@ -9339,19 +10731,21 @@ class StyleMedia native "*StyleMedia" {
 
 class StyleSheet native "*StyleSheet" {
 
-  bool disabled;
+  bool get disabled() native "return this.disabled;";
 
-  String href;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  MediaList media;
+  String get href() native "return this.href;";
 
-  Node ownerNode;
+  MediaList get media() native "return this.media;";
 
-  StyleSheet parentStyleSheet;
+  Node get ownerNode() native "return this.ownerNode;";
 
-  String title;
+  StyleSheet get parentStyleSheet() native "return this.parentStyleSheet;";
 
-  String type;
+  String get title() native "return this.title;";
+
+  String get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 
@@ -9360,7 +10754,7 @@ class StyleSheet native "*StyleSheet" {
 
 class StyleSheetList native "*StyleSheetList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   StyleSheet operator[](int index) native;
 
@@ -9377,7 +10771,7 @@ class StyleSheetList native "*StyleSheetList" {
 
 class Text extends CharacterData native "*Text" {
 
-  String wholeText;
+  String get wholeText() native "return this.wholeText;";
 
   Text replaceWholeText(String content) native;
 
@@ -9386,14 +10780,14 @@ class Text extends CharacterData native "*Text" {
 
 class TextEvent extends UIEvent native "*TextEvent" {
 
-  String data;
+  String get data() native "return this.data;";
 
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg) native;
 }
 
 class TextMetrics native "*TextMetrics" {
 
-  num width;
+  num get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 
@@ -9408,19 +10802,23 @@ class TextTrack native "*TextTrack" {
 
   static final int SHOWING = 2;
 
-  TextTrackCueList activeCues;
+  TextTrackCueList get activeCues() native "return this.activeCues;";
 
-  TextTrackCueList cues;
+  TextTrackCueList get cues() native "return this.cues;";
 
-  String kind;
+  String get kind() native "return this.kind;";
 
-  String label;
+  String get label() native "return this.label;";
 
-  String language;
+  String get language() native "return this.language;";
 
-  int mode;
+  int get mode() native "return this.mode;";
 
-  EventListener oncuechange;
+  void set mode(int value) native "this.mode = value;";
+
+  EventListener get oncuechange() native "return this.oncuechange;";
+
+  void set oncuechange(EventListener value) native "this.oncuechange = value;";
 
   void addCue(TextTrackCue cue) native;
 
@@ -9439,33 +10837,59 @@ class TextTrack native "*TextTrack" {
 
 class TextTrackCue native "*TextTrackCue" {
 
-  String alignment;
+  String get alignment() native "return this.alignment;";
 
-  String direction;
+  void set alignment(String value) native "this.alignment = value;";
 
-  num endTime;
+  String get direction() native "return this.direction;";
 
-  String id;
+  void set direction(String value) native "this.direction = value;";
 
-  int linePosition;
+  num get endTime() native "return this.endTime;";
 
-  EventListener onenter;
+  void set endTime(num value) native "this.endTime = value;";
 
-  EventListener onexit;
+  String get id() native "return this.id;";
 
-  bool pauseOnExit;
+  void set id(String value) native "this.id = value;";
 
-  int size;
+  int get linePosition() native "return this.linePosition;";
 
-  bool snapToLines;
+  void set linePosition(int value) native "this.linePosition = value;";
 
-  num startTime;
+  EventListener get onenter() native "return this.onenter;";
 
-  String text;
+  void set onenter(EventListener value) native "this.onenter = value;";
 
-  int textPosition;
+  EventListener get onexit() native "return this.onexit;";
 
-  TextTrack track;
+  void set onexit(EventListener value) native "this.onexit = value;";
+
+  bool get pauseOnExit() native "return this.pauseOnExit;";
+
+  void set pauseOnExit(bool value) native "this.pauseOnExit = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
+
+  bool get snapToLines() native "return this.snapToLines;";
+
+  void set snapToLines(bool value) native "this.snapToLines = value;";
+
+  num get startTime() native "return this.startTime;";
+
+  void set startTime(num value) native "this.startTime = value;";
+
+  String get text() native "return this.text;";
+
+  void set text(String value) native "this.text = value;";
+
+  int get textPosition() native "return this.textPosition;";
+
+  void set textPosition(int value) native "this.textPosition = value;";
+
+  TextTrack get track() native "return this.track;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -9482,7 +10906,7 @@ class TextTrackCue native "*TextTrackCue" {
 
 class TextTrackCueList native "*TextTrackCueList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   TextTrackCue getCueById(String id) native;
 
@@ -9495,9 +10919,11 @@ class TextTrackCueList native "*TextTrackCueList" {
 
 class TextTrackList native "*TextTrackList" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  EventListener onaddtrack;
+  EventListener get onaddtrack() native "return this.onaddtrack;";
+
+  void set onaddtrack(EventListener value) native "this.onaddtrack = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -9514,7 +10940,7 @@ class TextTrackList native "*TextTrackList" {
 
 class TimeRanges native "*TimeRanges" {
 
-  int length;
+  int get length() native "return this.length;";
 
   num end(int index) native;
 
@@ -9527,29 +10953,29 @@ class TimeRanges native "*TimeRanges" {
 
 class Touch native "*Touch" {
 
-  int clientX;
+  int get clientX() native "return this.clientX;";
 
-  int clientY;
+  int get clientY() native "return this.clientY;";
 
-  int identifier;
+  int get identifier() native "return this.identifier;";
 
-  int pageX;
+  int get pageX() native "return this.pageX;";
 
-  int pageY;
+  int get pageY() native "return this.pageY;";
 
-  int screenX;
+  int get screenX() native "return this.screenX;";
 
-  int screenY;
+  int get screenY() native "return this.screenY;";
 
-  EventTarget target;
+  EventTarget get target() native "return this.target;";
 
-  num webkitForce;
+  num get webkitForce() native "return this.webkitForce;";
 
-  int webkitRadiusX;
+  int get webkitRadiusX() native "return this.webkitRadiusX;";
 
-  int webkitRadiusY;
+  int get webkitRadiusY() native "return this.webkitRadiusY;";
 
-  num webkitRotationAngle;
+  num get webkitRotationAngle() native "return this.webkitRotationAngle;";
 
   var dartObjectLocalStorage;
 
@@ -9558,26 +10984,26 @@ class Touch native "*Touch" {
 
 class TouchEvent extends UIEvent native "*TouchEvent" {
 
-  bool altKey;
+  bool get altKey() native "return this.altKey;";
 
-  TouchList changedTouches;
+  TouchList get changedTouches() native "return this.changedTouches;";
 
-  bool ctrlKey;
+  bool get ctrlKey() native "return this.ctrlKey;";
 
-  bool metaKey;
+  bool get metaKey() native "return this.metaKey;";
 
-  bool shiftKey;
+  bool get shiftKey() native "return this.shiftKey;";
 
-  TouchList targetTouches;
+  TouchList get targetTouches() native "return this.targetTouches;";
 
-  TouchList touches;
+  TouchList get touches() native "return this.touches;";
 
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
 class TouchList native "*TouchList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Touch operator[](int index) native;
 
@@ -9594,20 +11020,22 @@ class TouchList native "*TouchList" {
 
 class TrackEvent extends Event native "*TrackEvent" {
 
-  Object track;
+  Object get track() native "return this.track;";
 }
 
 class TreeWalker native "*TreeWalker" {
 
-  Node currentNode;
+  Node get currentNode() native "return this.currentNode;";
 
-  bool expandEntityReferences;
+  void set currentNode(Node value) native "this.currentNode = value;";
 
-  NodeFilter filter;
+  bool get expandEntityReferences() native "return this.expandEntityReferences;";
 
-  Node root;
+  NodeFilter get filter() native "return this.filter;";
 
-  int whatToShow;
+  Node get root() native "return this.root;";
+
+  int get whatToShow() native "return this.whatToShow;";
 
   Node firstChild() native;
 
@@ -9630,23 +11058,23 @@ class TreeWalker native "*TreeWalker" {
 
 class UIEvent extends Event native "*UIEvent" {
 
-  int charCode;
+  int get charCode() native "return this.charCode;";
 
-  int detail;
+  int get detail() native "return this.detail;";
 
-  int keyCode;
+  int get keyCode() native "return this.keyCode;";
 
-  int layerX;
+  int get layerX() native "return this.layerX;";
 
-  int layerY;
+  int get layerY() native "return this.layerY;";
 
-  int pageX;
+  int get pageX() native "return this.pageX;";
 
-  int pageY;
+  int get pageY() native "return this.pageY;";
 
-  DOMWindow view;
+  DOMWindow get view() native "return this.view;";
 
-  int which;
+  int get which() native "return this.which;";
 
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) native;
 }
@@ -9663,7 +11091,7 @@ class Uint16Array extends ArrayBufferView implements List<int> native "*Uint16Ar
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
@@ -9684,7 +11112,7 @@ class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Ar
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
@@ -9705,7 +11133,7 @@ class Uint8Array extends ArrayBufferView implements List<int> native "*Uint8Arra
 
   static final int BYTES_PER_ELEMENT = 1;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
@@ -9716,23 +11144,23 @@ class Uint8Array extends ArrayBufferView implements List<int> native "*Uint8Arra
 
 class ValidityState native "*ValidityState" {
 
-  bool customError;
+  bool get customError() native "return this.customError;";
 
-  bool patternMismatch;
+  bool get patternMismatch() native "return this.patternMismatch;";
 
-  bool rangeOverflow;
+  bool get rangeOverflow() native "return this.rangeOverflow;";
 
-  bool rangeUnderflow;
+  bool get rangeUnderflow() native "return this.rangeUnderflow;";
 
-  bool stepMismatch;
+  bool get stepMismatch() native "return this.stepMismatch;";
 
-  bool tooLong;
+  bool get tooLong() native "return this.tooLong;";
 
-  bool typeMismatch;
+  bool get typeMismatch() native "return this.typeMismatch;";
 
-  bool valid;
+  bool get valid() native "return this.valid;";
 
-  bool valueMissing;
+  bool get valueMissing() native "return this.valueMissing;";
 
   var dartObjectLocalStorage;
 
@@ -9748,16 +11176,18 @@ typedef void VoidCallback();
 
 class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
-  Float32Array curve;
+  Float32Array get curve() native "return this.curve;";
+
+  void set curve(Float32Array value) native "this.curve = value;";
 }
 
 class WebGLActiveInfo native "*WebGLActiveInfo" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  int size;
+  int get size() native "return this.size;";
 
-  int type;
+  int get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 
@@ -9796,17 +11226,29 @@ class WebGLCompressedTextures native "*WebGLCompressedTextures" {
 
 class WebGLContextAttributes native "*WebGLContextAttributes" {
 
-  bool alpha;
+  bool get alpha() native "return this.alpha;";
 
-  bool antialias;
+  void set alpha(bool value) native "this.alpha = value;";
 
-  bool depth;
+  bool get antialias() native "return this.antialias;";
 
-  bool premultipliedAlpha;
+  void set antialias(bool value) native "this.antialias = value;";
 
-  bool preserveDrawingBuffer;
+  bool get depth() native "return this.depth;";
 
-  bool stencil;
+  void set depth(bool value) native "this.depth = value;";
+
+  bool get premultipliedAlpha() native "return this.premultipliedAlpha;";
+
+  void set premultipliedAlpha(bool value) native "this.premultipliedAlpha = value;";
+
+  bool get preserveDrawingBuffer() native "return this.preserveDrawingBuffer;";
+
+  void set preserveDrawingBuffer(bool value) native "this.preserveDrawingBuffer = value;";
+
+  bool get stencil() native "return this.stencil;";
+
+  void set stencil(bool value) native "this.stencil = value;";
 
   var dartObjectLocalStorage;
 
@@ -9815,7 +11257,7 @@ class WebGLContextAttributes native "*WebGLContextAttributes" {
 
 class WebGLContextEvent extends Event native "*WebGLContextEvent" {
 
-  String statusMessage;
+  String get statusMessage() native "return this.statusMessage;";
 }
 
 class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
@@ -10466,9 +11908,9 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   static final int ZERO = 0;
 
-  int drawingBufferHeight;
+  int get drawingBufferHeight() native "return this.drawingBufferHeight;";
 
-  int drawingBufferWidth;
+  int get drawingBufferWidth() native "return this.drawingBufferWidth;";
 
   void activeTexture(int texture) native;
 
@@ -10779,23 +12221,25 @@ class WebKitAnimation native "*WebKitAnimation" {
 
   static final int FILL_NONE = 0;
 
-  num delay;
+  num get delay() native "return this.delay;";
 
-  int direction;
+  int get direction() native "return this.direction;";
 
-  num duration;
+  num get duration() native "return this.duration;";
 
-  num elapsedTime;
+  num get elapsedTime() native "return this.elapsedTime;";
 
-  bool ended;
+  void set elapsedTime(num value) native "this.elapsedTime = value;";
 
-  int fillMode;
+  bool get ended() native "return this.ended;";
 
-  int iterationCount;
+  int get fillMode() native "return this.fillMode;";
 
-  String name;
+  int get iterationCount() native "return this.iterationCount;";
 
-  bool paused;
+  String get name() native "return this.name;";
+
+  bool get paused() native "return this.paused;";
 
   void pause() native;
 
@@ -10808,14 +12252,14 @@ class WebKitAnimation native "*WebKitAnimation" {
 
 class WebKitAnimationEvent extends Event native "*WebKitAnimationEvent" {
 
-  String animationName;
+  String get animationName() native "return this.animationName;";
 
-  num elapsedTime;
+  num get elapsedTime() native "return this.elapsedTime;";
 }
 
 class WebKitAnimationList native "*WebKitAnimationList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   WebKitAnimation item(int index) native;
 
@@ -10859,21 +12303,25 @@ class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
 
   static final int CSS_FILTER_SEPIA = 3;
 
-  int operationType;
+  int get operationType() native "return this.operationType;";
 }
 
 class WebKitCSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
 
-  String keyText;
+  String get keyText() native "return this.keyText;";
 
-  CSSStyleDeclaration style;
+  void set keyText(String value) native "this.keyText = value;";
+
+  CSSStyleDeclaration get style() native "return this.style;";
 }
 
 class WebKitCSSKeyframesRule extends CSSRule native "*WebKitCSSKeyframesRule" {
 
-  CSSRuleList cssRules;
+  CSSRuleList get cssRules() native "return this.cssRules;";
 
-  String name;
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
 
   void deleteRule(String key) native;
 
@@ -10886,49 +12334,93 @@ class WebKitCSSMatrix native "*WebKitCSSMatrix" {
   WebKitCSSMatrix([String spec]) native;
 
 
-  num a;
+  num get a() native "return this.a;";
 
-  num b;
+  void set a(num value) native "this.a = value;";
 
-  num c;
+  num get b() native "return this.b;";
 
-  num d;
+  void set b(num value) native "this.b = value;";
 
-  num e;
+  num get c() native "return this.c;";
 
-  num f;
+  void set c(num value) native "this.c = value;";
 
-  num m11;
+  num get d() native "return this.d;";
 
-  num m12;
+  void set d(num value) native "this.d = value;";
 
-  num m13;
+  num get e() native "return this.e;";
 
-  num m14;
+  void set e(num value) native "this.e = value;";
 
-  num m21;
+  num get f() native "return this.f;";
 
-  num m22;
+  void set f(num value) native "this.f = value;";
 
-  num m23;
+  num get m11() native "return this.m11;";
 
-  num m24;
+  void set m11(num value) native "this.m11 = value;";
 
-  num m31;
+  num get m12() native "return this.m12;";
 
-  num m32;
+  void set m12(num value) native "this.m12 = value;";
 
-  num m33;
+  num get m13() native "return this.m13;";
 
-  num m34;
+  void set m13(num value) native "this.m13 = value;";
 
-  num m41;
+  num get m14() native "return this.m14;";
 
-  num m42;
+  void set m14(num value) native "this.m14 = value;";
 
-  num m43;
+  num get m21() native "return this.m21;";
 
-  num m44;
+  void set m21(num value) native "this.m21 = value;";
+
+  num get m22() native "return this.m22;";
+
+  void set m22(num value) native "this.m22 = value;";
+
+  num get m23() native "return this.m23;";
+
+  void set m23(num value) native "this.m23 = value;";
+
+  num get m24() native "return this.m24;";
+
+  void set m24(num value) native "this.m24 = value;";
+
+  num get m31() native "return this.m31;";
+
+  void set m31(num value) native "this.m31 = value;";
+
+  num get m32() native "return this.m32;";
+
+  void set m32(num value) native "this.m32 = value;";
+
+  num get m33() native "return this.m33;";
+
+  void set m33(num value) native "this.m33 = value;";
+
+  num get m34() native "return this.m34;";
+
+  void set m34(num value) native "this.m34 = value;";
+
+  num get m41() native "return this.m41;";
+
+  void set m41(num value) native "this.m41 = value;";
+
+  num get m42() native "return this.m42;";
+
+  void set m42(num value) native "this.m42 = value;";
+
+  num get m43() native "return this.m43;";
+
+  void set m43(num value) native "this.m43 = value;";
+
+  num get m44() native "return this.m44;";
+
+  void set m44(num value) native "this.m44 = value;";
 
   WebKitCSSMatrix inverse() native;
 
@@ -10999,7 +12491,7 @@ class WebKitCSSTransformValue extends CSSValueList native "*WebKitCSSTransformVa
 
   static final int CSS_TRANSLATEZ = 12;
 
-  int operationType;
+  int get operationType() native "return this.operationType;";
 }
 
 class WebKitMutationObserver native "*WebKitMutationObserver" {
@@ -11022,9 +12514,13 @@ class WebKitPoint native "*WebKitPoint" {
   WebKitPoint(num x, num y) native;
 
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
+
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
 
   var dartObjectLocalStorage;
 
@@ -11033,9 +12529,9 @@ class WebKitPoint native "*WebKitPoint" {
 
 class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
 
-  num elapsedTime;
+  num get elapsedTime() native "return this.elapsedTime;";
 
-  String propertyName;
+  String get propertyName() native "return this.propertyName;";
 }
 
 class WebSocket native "*WebSocket" {
@@ -11050,17 +12546,19 @@ class WebSocket native "*WebSocket" {
 
   static final int OPEN = 1;
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  String binaryType;
+  String get binaryType() native "return this.binaryType;";
 
-  int bufferedAmount;
+  void set binaryType(String value) native "this.binaryType = value;";
 
-  String extensions;
+  int get bufferedAmount() native "return this.bufferedAmount;";
 
-  String protocol;
+  String get extensions() native "return this.extensions;";
 
-  int readyState;
+  String get protocol() native "return this.protocol;";
+
+  int get readyState() native "return this.readyState;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -11079,37 +12577,37 @@ class WebSocket native "*WebSocket" {
 
 class WheelEvent extends UIEvent native "*WheelEvent" {
 
-  bool altKey;
+  bool get altKey() native "return this.altKey;";
 
-  int clientX;
+  int get clientX() native "return this.clientX;";
 
-  int clientY;
+  int get clientY() native "return this.clientY;";
 
-  bool ctrlKey;
+  bool get ctrlKey() native "return this.ctrlKey;";
 
-  bool metaKey;
+  bool get metaKey() native "return this.metaKey;";
 
-  int offsetX;
+  int get offsetX() native "return this.offsetX;";
 
-  int offsetY;
+  int get offsetY() native "return this.offsetY;";
 
-  int screenX;
+  int get screenX() native "return this.screenX;";
 
-  int screenY;
+  int get screenY() native "return this.screenY;";
 
-  bool shiftKey;
+  bool get shiftKey() native "return this.shiftKey;";
 
-  bool webkitDirectionInvertedFromDevice;
+  bool get webkitDirectionInvertedFromDevice() native "return this.webkitDirectionInvertedFromDevice;";
 
-  int wheelDelta;
+  int get wheelDelta() native "return this.wheelDelta;";
 
-  int wheelDeltaX;
+  int get wheelDeltaX() native "return this.wheelDeltaX;";
 
-  int wheelDeltaY;
+  int get wheelDeltaY() native "return this.wheelDeltaY;";
 
-  int x;
+  int get x() native "return this.x;";
 
-  int y;
+  int get y() native "return this.y;";
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
@@ -11129,19 +12627,27 @@ class WorkerContext native "*WorkerContext" {
 
   static final int TEMPORARY = 0;
 
-  WorkerLocation location;
+  WorkerLocation get location() native "return this.location;";
 
-  WorkerNavigator navigator;
+  void set location(WorkerLocation value) native "this.location = value;";
 
-  EventListener onerror;
+  WorkerNavigator get navigator() native "return this.navigator;";
 
-  WorkerContext self;
+  void set navigator(WorkerNavigator value) native "this.navigator = value;";
 
-  IDBFactory webkitIndexedDB;
+  EventListener get onerror() native "return this.onerror;";
 
-  NotificationCenter webkitNotifications;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  DOMURL webkitURL;
+  WorkerContext get self() native "return this.self;";
+
+  void set self(WorkerContext value) native "this.self = value;";
+
+  IDBFactory get webkitIndexedDB() native "return this.webkitIndexedDB;";
+
+  NotificationCenter get webkitNotifications() native "return this.webkitNotifications;";
+
+  DOMURL get webkitURL() native "return this.webkitURL;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -11180,21 +12686,21 @@ class WorkerContext native "*WorkerContext" {
 
 class WorkerLocation native "*WorkerLocation" {
 
-  String hash;
+  String get hash() native "return this.hash;";
 
-  String host;
+  String get host() native "return this.host;";
 
-  String hostname;
+  String get hostname() native "return this.hostname;";
 
-  String href;
+  String get href() native "return this.href;";
 
-  String pathname;
+  String get pathname() native "return this.pathname;";
 
-  String port;
+  String get port() native "return this.port;";
 
-  String protocol;
+  String get protocol() native "return this.protocol;";
 
-  String search;
+  String get search() native "return this.search;";
 
   String toString() native;
 
@@ -11205,15 +12711,15 @@ class WorkerLocation native "*WorkerLocation" {
 
 class WorkerNavigator native "*WorkerNavigator" {
 
-  String appName;
+  String get appName() native "return this.appName;";
 
-  String appVersion;
+  String get appVersion() native "return this.appVersion;";
 
-  bool onLine;
+  bool get onLine() native "return this.onLine;";
 
-  String platform;
+  String get platform() native "return this.platform;";
 
-  String userAgent;
+  String get userAgent() native "return this.userAgent;";
 
   var dartObjectLocalStorage;
 
@@ -11234,25 +12740,31 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 
   static final int UNSENT = 0;
 
-  bool asBlob;
+  bool get asBlob() native "return this.asBlob;";
 
-  int readyState;
+  void set asBlob(bool value) native "this.asBlob = value;";
 
-  Blob responseBlob;
+  int get readyState() native "return this.readyState;";
 
-  String responseText;
+  Blob get responseBlob() native "return this.responseBlob;";
 
-  String responseType;
+  String get responseText() native "return this.responseText;";
 
-  Document responseXML;
+  String get responseType() native "return this.responseType;";
 
-  int status;
+  void set responseType(String value) native "this.responseType = value;";
 
-  String statusText;
+  Document get responseXML() native "return this.responseXML;";
 
-  XMLHttpRequestUpload upload;
+  int get status() native "return this.status;";
 
-  bool withCredentials;
+  String get statusText() native "return this.statusText;";
+
+  XMLHttpRequestUpload get upload() native "return this.upload;";
+
+  bool get withCredentials() native "return this.withCredentials;";
+
+  void set withCredentials(bool value) native "this.withCredentials = value;";
 
   void abort() native;
 
@@ -11285,11 +12797,11 @@ class XMLHttpRequestException native "*XMLHttpRequestException" {
 
   static final int NETWORK_ERR = 101;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -11300,9 +12812,9 @@ class XMLHttpRequestException native "*XMLHttpRequestException" {
 
 class XMLHttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
 
-  int position;
+  int get position() native "return this.position;";
 
-  int totalSize;
+  int get totalSize() native "return this.totalSize;";
 }
 
 class XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
@@ -11346,11 +12858,11 @@ class XPathException native "*XPathException" {
 
   static final int TYPE_ERR = 52;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 
@@ -11399,19 +12911,19 @@ class XPathResult native "*XPathResult" {
 
   static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  bool booleanValue;
+  bool get booleanValue() native "return this.booleanValue;";
 
-  bool invalidIteratorState;
+  bool get invalidIteratorState() native "return this.invalidIteratorState;";
 
-  num numberValue;
+  num get numberValue() native "return this.numberValue;";
 
-  int resultType;
+  int get resultType() native "return this.resultType;";
 
-  Node singleNodeValue;
+  Node get singleNodeValue() native "return this.singleNodeValue;";
 
-  int snapshotLength;
+  int get snapshotLength() native "return this.snapshotLength;";
 
-  String stringValue;
+  String get stringValue() native "return this.stringValue;";
 
   Node iterateNext() native;
 

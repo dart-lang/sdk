@@ -1,7 +1,7 @@
 
 class CanvasPixelArray native "*CanvasPixelArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 

@@ -1,13 +1,21 @@
 
 class HTMLStyleElement extends HTMLElement native "*HTMLStyleElement" {
 
-  bool disabled;
+  bool get disabled() native "return this.disabled;";
 
-  String media;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  bool scoped;
+  String get media() native "return this.media;";
 
-  StyleSheet sheet;
+  void set media(String value) native "this.media = value;";
 
-  String type;
+  bool get scoped() native "return this.scoped;";
+
+  void set scoped(bool value) native "this.scoped = value;";
+
+  StyleSheet get sheet() native "return this.sheet;";
+
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 }

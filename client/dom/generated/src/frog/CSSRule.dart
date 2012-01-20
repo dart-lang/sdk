@@ -21,13 +21,15 @@ class CSSRule native "*CSSRule" {
 
   static final int WEBKIT_REGION_RULE = 10;
 
-  String cssText;
+  String get cssText() native "return this.cssText;";
 
-  CSSRule parentRule;
+  void set cssText(String value) native "this.cssText = value;";
 
-  CSSStyleSheet parentStyleSheet;
+  CSSRule get parentRule() native "return this.parentRule;";
 
-  int type;
+  CSSStyleSheet get parentStyleSheet() native "return this.parentStyleSheet;";
+
+  int get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 

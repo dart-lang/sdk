@@ -25,7 +25,7 @@ class FileError native "*FileError" {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int code;
+  int get code() native "return this.code;";
 
   var dartObjectLocalStorage;
 

@@ -1,19 +1,19 @@
 
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
-  bool altGraphKey;
+  bool get altGraphKey() native "return this.altGraphKey;";
 
-  bool altKey;
+  bool get altKey() native "return this.altKey;";
 
-  bool ctrlKey;
+  bool get ctrlKey() native "return this.ctrlKey;";
 
-  String keyIdentifier;
+  String get keyIdentifier() native "return this.keyIdentifier;";
 
-  int keyLocation;
+  int get keyLocation() native "return this.keyLocation;";
 
-  bool metaKey;
+  bool get metaKey() native "return this.metaKey;";
 
-  bool shiftKey;
+  bool get shiftKey() native "return this.shiftKey;";
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }

@@ -17,9 +17,9 @@ class SQLError native "*SQLError" {
 
   static final int VERSION_ERR = 2;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
   var dartObjectLocalStorage;
 

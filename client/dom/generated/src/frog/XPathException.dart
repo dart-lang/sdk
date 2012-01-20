@@ -5,11 +5,11 @@ class XPathException native "*XPathException" {
 
   static final int TYPE_ERR = 52;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 

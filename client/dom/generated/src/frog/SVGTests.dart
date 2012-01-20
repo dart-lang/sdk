@@ -1,11 +1,11 @@
 
 class SVGTests native "*SVGTests" {
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 

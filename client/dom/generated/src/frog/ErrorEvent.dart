@@ -1,9 +1,9 @@
 
 class ErrorEvent extends Event native "*ErrorEvent" {
 
-  String filename;
+  String get filename() native "return this.filename;";
 
-  int lineno;
+  int get lineno() native "return this.lineno;";
 
-  String message;
+  String get message() native "return this.message;";
 }

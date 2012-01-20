@@ -1,5 +1,5 @@
 
 class IDBVersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
-  String version;
+  String get version() native "return this.version;";
 }

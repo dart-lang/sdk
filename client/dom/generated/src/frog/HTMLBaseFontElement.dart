@@ -1,9 +1,15 @@
 
 class HTMLBaseFontElement extends HTMLElement native "*HTMLBaseFontElement" {
 
-  String color;
+  String get color() native "return this.color;";
 
-  String face;
+  void set color(String value) native "this.color = value;";
 
-  int size;
+  String get face() native "return this.face;";
+
+  void set face(String value) native "this.face = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
 }

@@ -1,9 +1,9 @@
 
 class CloseEvent extends Event native "*CloseEvent" {
 
-  int code;
+  int get code() native "return this.code;";
 
-  String reason;
+  String get reason() native "return this.reason;";
 
-  bool wasClean;
+  bool get wasClean() native "return this.wasClean;";
 }

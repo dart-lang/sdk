@@ -3,5 +3,5 @@ class SVGTRefElement extends SVGTextPositioningElement native "*SVGTRefElement" 
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 }

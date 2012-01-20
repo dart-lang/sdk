@@ -1,15 +1,15 @@
 
 class EntrySync native "*EntrySync" {
 
-  DOMFileSystemSync filesystem;
+  DOMFileSystemSync get filesystem() native "return this.filesystem;";
 
-  String fullPath;
+  String get fullPath() native "return this.fullPath;";
 
-  bool isDirectory;
+  bool get isDirectory() native "return this.isDirectory;";
 
-  bool isFile;
+  bool get isFile() native "return this.isFile;";
 
-  String name;
+  String get name() native "return this.name;";
 
   EntrySync copyTo(DirectoryEntrySync parent, String name) native;
 

@@ -1,7 +1,7 @@
 
 class SVGPointList native "*SVGPointList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   SVGPoint appendItem(SVGPoint item) native;
 

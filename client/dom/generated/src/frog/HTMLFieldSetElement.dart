@@ -1,13 +1,13 @@
 
 class HTMLFieldSetElement extends HTMLElement native "*HTMLFieldSetElement" {
 
-  HTMLFormElement form;
+  HTMLFormElement get form() native "return this.form;";
 
-  String validationMessage;
+  String get validationMessage() native "return this.validationMessage;";
 
-  ValidityState validity;
+  ValidityState get validity() native "return this.validity;";
 
-  bool willValidate;
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 

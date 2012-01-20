@@ -9,9 +9,9 @@ class SVGColor extends CSSValue native "*SVGColor" {
 
   static final int SVG_COLORTYPE_UNKNOWN = 0;
 
-  int colorType;
+  int get colorType() native "return this.colorType;";
 
-  RGBColor rgbColor;
+  RGBColor get rgbColor() native "return this.rgbColor;";
 
   void setColor(int colorType, String rgbColor, String iccColor) native;
 

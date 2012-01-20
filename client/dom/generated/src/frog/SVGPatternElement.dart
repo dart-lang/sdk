@@ -1,55 +1,59 @@
 
 class SVGPatternElement extends SVGElement native "*SVGPatternElement" {
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedEnumeration patternContentUnits;
+  SVGAnimatedEnumeration get patternContentUnits() native "return this.patternContentUnits;";
 
-  SVGAnimatedTransformList patternTransform;
+  SVGAnimatedTransformList get patternTransform() native "return this.patternTransform;";
 
-  SVGAnimatedEnumeration patternUnits;
+  SVGAnimatedEnumeration get patternUnits() native "return this.patternUnits;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 }

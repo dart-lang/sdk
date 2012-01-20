@@ -1,7 +1,7 @@
 
 class EntryArray native "*EntryArray" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Entry item(int index) native;
 

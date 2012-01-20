@@ -1,9 +1,13 @@
 
 class HTMLOptionsCollection extends HTMLCollection native "*HTMLOptionsCollection" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  int selectedIndex;
+  void set length(int value) native "this.length = value;";
+
+  int get selectedIndex() native "return this.selectedIndex;";
+
+  void set selectedIndex(int value) native "this.selectedIndex = value;";
 
   void remove(int index) native;
 }

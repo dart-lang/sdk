@@ -1,9 +1,9 @@
 
 class MediaQueryList native "*MediaQueryList" {
 
-  bool matches;
+  bool get matches() native "return this.matches;";
 
-  String media;
+  String get media() native "return this.media;";
 
   void addListener(MediaQueryListListener listener) native;
 

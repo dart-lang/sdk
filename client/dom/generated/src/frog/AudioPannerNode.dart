@@ -7,25 +7,41 @@ class AudioPannerNode extends AudioNode native "*AudioPannerNode" {
 
   static final int SOUNDFIELD = 2;
 
-  AudioGain coneGain;
+  AudioGain get coneGain() native "return this.coneGain;";
 
-  num coneInnerAngle;
+  num get coneInnerAngle() native "return this.coneInnerAngle;";
 
-  num coneOuterAngle;
+  void set coneInnerAngle(num value) native "this.coneInnerAngle = value;";
 
-  num coneOuterGain;
+  num get coneOuterAngle() native "return this.coneOuterAngle;";
 
-  AudioGain distanceGain;
+  void set coneOuterAngle(num value) native "this.coneOuterAngle = value;";
 
-  int distanceModel;
+  num get coneOuterGain() native "return this.coneOuterGain;";
 
-  num maxDistance;
+  void set coneOuterGain(num value) native "this.coneOuterGain = value;";
 
-  int panningModel;
+  AudioGain get distanceGain() native "return this.distanceGain;";
 
-  num refDistance;
+  int get distanceModel() native "return this.distanceModel;";
 
-  num rolloffFactor;
+  void set distanceModel(int value) native "this.distanceModel = value;";
+
+  num get maxDistance() native "return this.maxDistance;";
+
+  void set maxDistance(num value) native "this.maxDistance = value;";
+
+  int get panningModel() native "return this.panningModel;";
+
+  void set panningModel(int value) native "this.panningModel = value;";
+
+  num get refDistance() native "return this.refDistance;";
+
+  void set refDistance(num value) native "this.refDistance = value;";
+
+  num get rolloffFactor() native "return this.rolloffFactor;";
+
+  void set rolloffFactor(num value) native "this.rolloffFactor = value;";
 
   void setOrientation(num x, num y, num z) native;
 

@@ -1,9 +1,11 @@
 
 class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 
-  String data;
+  String get data() native "return this.data;";
 
-  StyleSheet sheet;
+  void set data(String value) native "this.data = value;";
 
-  String target;
+  StyleSheet get sheet() native "return this.sheet;";
+
+  String get target() native "return this.target;";
 }

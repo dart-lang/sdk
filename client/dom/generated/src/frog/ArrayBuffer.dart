@@ -1,7 +1,7 @@
 
 class ArrayBuffer native "*ArrayBuffer" {
 
-  int byteLength;
+  int get byteLength() native "return this.byteLength;";
 
   ArrayBuffer slice(int begin, [int end = null]) native;
 

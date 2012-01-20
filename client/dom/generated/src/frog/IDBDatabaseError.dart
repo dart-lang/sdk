@@ -1,9 +1,13 @@
 
 class IDBDatabaseError native "*IDBDatabaseError" {
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  void set code(int value) native "this.code = value;";
+
+  String get message() native "return this.message;";
+
+  void set message(String value) native "this.message = value;";
 
   var dartObjectLocalStorage;
 

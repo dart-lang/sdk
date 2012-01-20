@@ -1,7 +1,7 @@
 
 class Text extends CharacterData native "*Text" {
 
-  String wholeText;
+  String get wholeText() native "return this.wholeText;";
 
   Text replaceWholeText(String content) native;
 

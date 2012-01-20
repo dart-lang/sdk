@@ -1,9 +1,9 @@
 
 class Entity extends Node native "*Entity" {
 
-  String notationName;
+  String get notationName() native "return this.notationName;";
 
-  String publicId;
+  String get publicId() native "return this.publicId;";
 
-  String systemId;
+  String get systemId() native "return this.systemId;";
 }

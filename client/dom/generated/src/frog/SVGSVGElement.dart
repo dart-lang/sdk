@@ -1,33 +1,41 @@
 
 class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
-  String contentScriptType;
+  String get contentScriptType() native "return this.contentScriptType;";
 
-  String contentStyleType;
+  void set contentScriptType(String value) native "this.contentScriptType = value;";
 
-  num currentScale;
+  String get contentStyleType() native "return this.contentStyleType;";
 
-  SVGPoint currentTranslate;
+  void set contentStyleType(String value) native "this.contentStyleType = value;";
 
-  SVGAnimatedLength height;
+  num get currentScale() native "return this.currentScale;";
 
-  num pixelUnitToMillimeterX;
+  void set currentScale(num value) native "this.currentScale = value;";
 
-  num pixelUnitToMillimeterY;
+  SVGPoint get currentTranslate() native "return this.currentTranslate;";
 
-  num screenPixelToMillimeterX;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  num screenPixelToMillimeterY;
+  num get pixelUnitToMillimeterX() native "return this.pixelUnitToMillimeterX;";
 
-  bool useCurrentView;
+  num get pixelUnitToMillimeterY() native "return this.pixelUnitToMillimeterY;";
 
-  SVGRect viewport;
+  num get screenPixelToMillimeterX() native "return this.screenPixelToMillimeterX;";
 
-  SVGAnimatedLength width;
+  num get screenPixelToMillimeterY() native "return this.screenPixelToMillimeterY;";
 
-  SVGAnimatedLength x;
+  bool get useCurrentView() native "return this.useCurrentView;";
 
-  SVGAnimatedLength y;
+  void set useCurrentView(bool value) native "this.useCurrentView = value;";
+
+  SVGRect get viewport() native "return this.viewport;";
+
+  SVGAnimatedLength get width() native "return this.width;";
+
+  SVGAnimatedLength get x() native "return this.x;";
+
+  SVGAnimatedLength get y() native "return this.y;";
 
   bool animationsPaused() native;
 
@@ -77,37 +85,41 @@ class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringList get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 
@@ -119,11 +131,13 @@ class SVGSVGElement extends SVGElement native "*SVGSVGElement" {
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 
   // From SVGZoomAndPan
 
-  int zoomAndPan;
+  int get zoomAndPan() native "return this.zoomAndPan;";
+
+  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
 }

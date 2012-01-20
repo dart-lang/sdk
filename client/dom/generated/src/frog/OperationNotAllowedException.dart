@@ -3,11 +3,11 @@ class OperationNotAllowedException native "*OperationNotAllowedException" {
 
   static final int NOT_ALLOWED_ERR = 1;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 

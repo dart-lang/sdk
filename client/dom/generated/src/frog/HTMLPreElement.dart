@@ -1,7 +1,11 @@
 
 class HTMLPreElement extends HTMLElement native "*HTMLPreElement" {
 
-  int width;
+  int get width() native "return this.width;";
 
-  bool wrap;
+  void set width(int value) native "this.width = value;";
+
+  bool get wrap() native "return this.wrap;";
+
+  void set wrap(bool value) native "this.wrap = value;";
 }

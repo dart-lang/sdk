@@ -13,35 +13,35 @@ class SVGFETurbulenceElement extends SVGElement native "*SVGFETurbulenceElement"
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber baseFrequencyX;
+  SVGAnimatedNumber get baseFrequencyX() native "return this.baseFrequencyX;";
 
-  SVGAnimatedNumber baseFrequencyY;
+  SVGAnimatedNumber get baseFrequencyY() native "return this.baseFrequencyY;";
 
-  SVGAnimatedInteger numOctaves;
+  SVGAnimatedInteger get numOctaves() native "return this.numOctaves;";
 
-  SVGAnimatedNumber seed;
+  SVGAnimatedNumber get seed() native "return this.seed;";
 
-  SVGAnimatedEnumeration stitchTiles;
+  SVGAnimatedEnumeration get stitchTiles() native "return this.stitchTiles;";
 
-  SVGAnimatedEnumeration type;
+  SVGAnimatedEnumeration get type() native "return this.type;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLength get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedString get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLength get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLength get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLength get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedString get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclaration get style() native "return this.style;";
 
   CSSValue getPresentationAttribute(String name) native;
 }

@@ -1,7 +1,7 @@
 
 class WebKitTransitionEvent extends Event native "*WebKitTransitionEvent" {
 
-  num elapsedTime;
+  num get elapsedTime() native "return this.elapsedTime;";
 
-  String propertyName;
+  String get propertyName() native "return this.propertyName;";
 }

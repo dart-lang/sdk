@@ -1,15 +1,15 @@
 
 class StorageEvent extends Event native "*StorageEvent" {
 
-  String key;
+  String get key() native "return this.key;";
 
-  String newValue;
+  String get newValue() native "return this.newValue;";
 
-  String oldValue;
+  String get oldValue() native "return this.oldValue;";
 
-  Storage storageArea;
+  Storage get storageArea() native "return this.storageArea;";
 
-  String url;
+  String get url() native "return this.url;";
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 }

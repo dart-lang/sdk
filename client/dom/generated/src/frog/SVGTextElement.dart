@@ -3,13 +3,13 @@ class SVGTextElement extends SVGTextPositioningElement native "*SVGTextElement" 
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformList get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 

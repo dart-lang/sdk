@@ -1,7 +1,7 @@
 
 class TimeRanges native "*TimeRanges" {
 
-  int length;
+  int get length() native "return this.length;";
 
   num end(int index) native;
 

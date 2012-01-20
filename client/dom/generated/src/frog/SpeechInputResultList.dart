@@ -1,7 +1,7 @@
 
 class SpeechInputResultList native "*SpeechInputResultList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   SpeechInputResult item(int index) native;
 

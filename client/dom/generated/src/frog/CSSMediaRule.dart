@@ -1,9 +1,9 @@
 
 class CSSMediaRule extends CSSRule native "*CSSMediaRule" {
 
-  CSSRuleList cssRules;
+  CSSRuleList get cssRules() native "return this.cssRules;";
 
-  MediaList media;
+  MediaList get media() native "return this.media;";
 
   void deleteRule(int index) native;
 

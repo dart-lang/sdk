@@ -1,21 +1,21 @@
 
 class SVGViewSpec extends SVGZoomAndPan native "*SVGViewSpec" {
 
-  String preserveAspectRatioString;
+  String get preserveAspectRatioString() native "return this.preserveAspectRatioString;";
 
-  SVGTransformList transform;
+  SVGTransformList get transform() native "return this.transform;";
 
-  String transformString;
+  String get transformString() native "return this.transformString;";
 
-  String viewBoxString;
+  String get viewBoxString() native "return this.viewBoxString;";
 
-  SVGElement viewTarget;
+  SVGElement get viewTarget() native "return this.viewTarget;";
 
-  String viewTargetString;
+  String get viewTargetString() native "return this.viewTargetString;";
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRect get viewBox() native "return this.viewBox;";
 }

@@ -1,5 +1,7 @@
 
 class DOMSettableTokenList extends DOMTokenList native "*DOMSettableTokenList" {
 
-  String value;
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
 }

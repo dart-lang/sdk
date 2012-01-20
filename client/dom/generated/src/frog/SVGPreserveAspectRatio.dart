@@ -29,9 +29,13 @@ class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  int align;
+  int get align() native "return this.align;";
 
-  int meetOrSlice;
+  void set align(int value) native "this.align = value;";
+
+  int get meetOrSlice() native "return this.meetOrSlice;";
+
+  void set meetOrSlice(int value) native "this.meetOrSlice = value;";
 
   var dartObjectLocalStorage;
 

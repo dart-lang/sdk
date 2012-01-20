@@ -1,7 +1,7 @@
 
 class SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   var dartObjectLocalStorage;
 

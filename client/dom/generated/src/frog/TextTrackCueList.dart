@@ -1,7 +1,7 @@
 
 class TextTrackCueList native "*TextTrackCueList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   TextTrackCue getCueById(String id) native;
 

@@ -1,7 +1,7 @@
 
 class History native "*History" {
 
-  int length;
+  int get length() native "return this.length;";
 
   void back() native;
 

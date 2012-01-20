@@ -1,11 +1,13 @@
 
 class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
-  String cssText;
+  String get cssText() native "return this.cssText;";
 
-  int length;
+  void set cssText(String value) native "this.cssText = value;";
 
-  CSSRule parentRule;
+  int get length() native "return this.length;";
+
+  CSSRule get parentRule() native "return this.parentRule;";
 
   CSSValue getPropertyCSSValue(String propertyName) native;
 

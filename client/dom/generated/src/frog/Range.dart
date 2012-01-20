@@ -17,17 +17,17 @@ class Range native "*Range" {
 
   static final int START_TO_START = 0;
 
-  bool collapsed;
+  bool get collapsed() native "return this.collapsed;";
 
-  Node commonAncestorContainer;
+  Node get commonAncestorContainer() native "return this.commonAncestorContainer;";
 
-  Node endContainer;
+  Node get endContainer() native "return this.endContainer;";
 
-  int endOffset;
+  int get endOffset() native "return this.endOffset;";
 
-  Node startContainer;
+  Node get startContainer() native "return this.startContainer;";
 
-  int startOffset;
+  int get startOffset() native "return this.startOffset;";
 
   DocumentFragment cloneContents() native;
 

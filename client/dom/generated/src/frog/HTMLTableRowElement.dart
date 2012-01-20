@@ -1,21 +1,31 @@
 
 class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String bgColor;
+  void set align(String value) native "this.align = value;";
 
-  HTMLCollection cells;
+  String get bgColor() native "return this.bgColor;";
 
-  String ch;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  String chOff;
+  HTMLCollection get cells() native "return this.cells;";
 
-  int rowIndex;
+  String get ch() native "return this.ch;";
 
-  int sectionRowIndex;
+  void set ch(String value) native "this.ch = value;";
 
-  String vAlign;
+  String get chOff() native "return this.chOff;";
+
+  void set chOff(String value) native "this.chOff = value;";
+
+  int get rowIndex() native "return this.rowIndex;";
+
+  int get sectionRowIndex() native "return this.sectionRowIndex;";
+
+  String get vAlign() native "return this.vAlign;";
+
+  void set vAlign(String value) native "this.vAlign = value;";
 
   void deleteCell(int index) native;
 

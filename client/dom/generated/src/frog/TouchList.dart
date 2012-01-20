@@ -1,7 +1,7 @@
 
 class TouchList native "*TouchList" {
 
-  int length;
+  int get length() native "return this.length;";
 
   Touch operator[](int index) native;
 

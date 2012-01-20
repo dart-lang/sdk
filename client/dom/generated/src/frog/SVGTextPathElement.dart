@@ -13,13 +13,13 @@ class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathEleme
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration method;
+  SVGAnimatedEnumeration get method() native "return this.method;";
 
-  SVGAnimatedEnumeration spacing;
+  SVGAnimatedEnumeration get spacing() native "return this.spacing;";
 
-  SVGAnimatedLength startOffset;
+  SVGAnimatedLength get startOffset() native "return this.startOffset;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedString get href() native "return this.href;";
 }

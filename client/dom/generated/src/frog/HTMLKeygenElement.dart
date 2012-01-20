@@ -1,27 +1,37 @@
 
 class HTMLKeygenElement extends HTMLElement native "*HTMLKeygenElement" {
 
-  bool autofocus;
+  bool get autofocus() native "return this.autofocus;";
 
-  String challenge;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  bool disabled;
+  String get challenge() native "return this.challenge;";
 
-  HTMLFormElement form;
+  void set challenge(String value) native "this.challenge = value;";
 
-  String keytype;
+  bool get disabled() native "return this.disabled;";
 
-  NodeList labels;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  String name;
+  HTMLFormElement get form() native "return this.form;";
 
-  String type;
+  String get keytype() native "return this.keytype;";
 
-  String validationMessage;
+  void set keytype(String value) native "this.keytype = value;";
 
-  ValidityState validity;
+  NodeList get labels() native "return this.labels;";
 
-  bool willValidate;
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  String get type() native "return this.type;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityState get validity() native "return this.validity;";
+
+  bool get willValidate() native "return this.willValidate;";
 
   bool checkValidity() native;
 

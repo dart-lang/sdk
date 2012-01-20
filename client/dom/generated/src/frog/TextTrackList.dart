@@ -1,9 +1,11 @@
 
 class TextTrackList native "*TextTrackList" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  EventListener onaddtrack;
+  EventListener get onaddtrack() native "return this.onaddtrack;";
+
+  void set onaddtrack(EventListener value) native "this.onaddtrack = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

@@ -1,7 +1,9 @@
 
 class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  EventListener onconnect;
+  EventListener get onconnect() native "return this.onconnect;";
+
+  void set onconnect(EventListener value) native "this.onconnect = value;";
 }

@@ -1,13 +1,13 @@
 
 class IDBKeyRange native "*IDBKeyRange" {
 
-  IDBKey lower;
+  IDBKey get lower() native "return this.lower;";
 
-  bool lowerOpen;
+  bool get lowerOpen() native "return this.lowerOpen;";
 
-  IDBKey upper;
+  IDBKey get upper() native "return this.upper;";
 
-  bool upperOpen;
+  bool get upperOpen() native "return this.upperOpen;";
 
   IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen = null, bool upperOpen = null]) native;
 

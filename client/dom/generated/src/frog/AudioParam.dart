@@ -1,17 +1,19 @@
 
 class AudioParam native "*AudioParam" {
 
-  num defaultValue;
+  num get defaultValue() native "return this.defaultValue;";
 
-  num maxValue;
+  num get maxValue() native "return this.maxValue;";
 
-  num minValue;
+  num get minValue() native "return this.minValue;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  int units;
+  int get units() native "return this.units;";
 
-  num value;
+  num get value() native "return this.value;";
+
+  void set value(num value) native "this.value = value;";
 
   void cancelScheduledValues(num startTime) native;
 

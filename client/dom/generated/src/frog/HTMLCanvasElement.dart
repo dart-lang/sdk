@@ -1,9 +1,13 @@
 
 class HTMLCanvasElement extends HTMLElement native "*HTMLCanvasElement" {
 
-  int height;
+  int get height() native "return this.height;";
 
-  int width;
+  void set height(int value) native "this.height = value;";
+
+  int get width() native "return this.width;";
+
+  void set width(int value) native "this.width = value;";
 
   Object getContext(String contextId) native;
 

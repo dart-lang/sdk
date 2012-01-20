@@ -31,73 +31,103 @@ class HTMLMediaElement extends HTMLElement native "*HTMLMediaElement" {
 
   static final int SOURCE_OPEN = 1;
 
-  bool autoplay;
+  bool get autoplay() native "return this.autoplay;";
 
-  TimeRanges buffered;
+  void set autoplay(bool value) native "this.autoplay = value;";
 
-  MediaController controller;
+  TimeRanges get buffered() native "return this.buffered;";
 
-  bool controls;
+  MediaController get controller() native "return this.controller;";
 
-  String currentSrc;
+  void set controller(MediaController value) native "this.controller = value;";
 
-  num currentTime;
+  bool get controls() native "return this.controls;";
 
-  bool defaultMuted;
+  void set controls(bool value) native "this.controls = value;";
 
-  num defaultPlaybackRate;
+  String get currentSrc() native "return this.currentSrc;";
 
-  num duration;
+  num get currentTime() native "return this.currentTime;";
 
-  bool ended;
+  void set currentTime(num value) native "this.currentTime = value;";
 
-  MediaError error;
+  bool get defaultMuted() native "return this.defaultMuted;";
 
-  num initialTime;
+  void set defaultMuted(bool value) native "this.defaultMuted = value;";
 
-  bool loop;
+  num get defaultPlaybackRate() native "return this.defaultPlaybackRate;";
 
-  String mediaGroup;
+  void set defaultPlaybackRate(num value) native "this.defaultPlaybackRate = value;";
 
-  bool muted;
+  num get duration() native "return this.duration;";
 
-  int networkState;
+  bool get ended() native "return this.ended;";
 
-  bool paused;
+  MediaError get error() native "return this.error;";
 
-  num playbackRate;
+  num get initialTime() native "return this.initialTime;";
 
-  TimeRanges played;
+  bool get loop() native "return this.loop;";
 
-  String preload;
+  void set loop(bool value) native "this.loop = value;";
 
-  int readyState;
+  String get mediaGroup() native "return this.mediaGroup;";
 
-  TimeRanges seekable;
+  void set mediaGroup(String value) native "this.mediaGroup = value;";
 
-  bool seeking;
+  bool get muted() native "return this.muted;";
 
-  String src;
+  void set muted(bool value) native "this.muted = value;";
 
-  num startTime;
+  int get networkState() native "return this.networkState;";
 
-  TextTrackList textTracks;
+  bool get paused() native "return this.paused;";
 
-  num volume;
+  num get playbackRate() native "return this.playbackRate;";
 
-  int webkitAudioDecodedByteCount;
+  void set playbackRate(num value) native "this.playbackRate = value;";
 
-  bool webkitClosedCaptionsVisible;
+  TimeRanges get played() native "return this.played;";
 
-  bool webkitHasClosedCaptions;
+  String get preload() native "return this.preload;";
 
-  String webkitMediaSourceURL;
+  void set preload(String value) native "this.preload = value;";
 
-  bool webkitPreservesPitch;
+  int get readyState() native "return this.readyState;";
 
-  int webkitSourceState;
+  TimeRanges get seekable() native "return this.seekable;";
 
-  int webkitVideoDecodedByteCount;
+  bool get seeking() native "return this.seeking;";
+
+  String get src() native "return this.src;";
+
+  void set src(String value) native "this.src = value;";
+
+  num get startTime() native "return this.startTime;";
+
+  TextTrackList get textTracks() native "return this.textTracks;";
+
+  num get volume() native "return this.volume;";
+
+  void set volume(num value) native "this.volume = value;";
+
+  int get webkitAudioDecodedByteCount() native "return this.webkitAudioDecodedByteCount;";
+
+  bool get webkitClosedCaptionsVisible() native "return this.webkitClosedCaptionsVisible;";
+
+  void set webkitClosedCaptionsVisible(bool value) native "this.webkitClosedCaptionsVisible = value;";
+
+  bool get webkitHasClosedCaptions() native "return this.webkitHasClosedCaptions;";
+
+  String get webkitMediaSourceURL() native "return this.webkitMediaSourceURL;";
+
+  bool get webkitPreservesPitch() native "return this.webkitPreservesPitch;";
+
+  void set webkitPreservesPitch(bool value) native "this.webkitPreservesPitch = value;";
+
+  int get webkitSourceState() native "return this.webkitSourceState;";
+
+  int get webkitVideoDecodedByteCount() native "return this.webkitVideoDecodedByteCount;";
 
   TextTrack addTrack(String kind, [String label = null, String language = null]) native;
 

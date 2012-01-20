@@ -1,7 +1,7 @@
 
 class SVGStringList native "*SVGStringList" {
 
-  int numberOfItems;
+  int get numberOfItems() native "return this.numberOfItems;";
 
   String appendItem(String item) native;
 

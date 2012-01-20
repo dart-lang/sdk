@@ -1,9 +1,13 @@
 
 class Notification native "*Notification" {
 
-  String dir;
+  String get dir() native "return this.dir;";
 
-  String replaceId;
+  void set dir(String value) native "this.dir = value;";
+
+  String get replaceId() native "return this.replaceId;";
+
+  void set replaceId(String value) native "this.replaceId = value;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

@@ -1,5 +1,5 @@
 
 class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
-  bool persisted;
+  bool get persisted() native "return this.persisted;";
 }

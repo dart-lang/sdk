@@ -1,9 +1,9 @@
 
 class SVGLocatable native "*SVGLocatable" {
 
-  SVGElement farthestViewportElement;
+  SVGElement get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElement get nearestViewportElement() native "return this.nearestViewportElement;";
 
   SVGRect getBBox() native;
 

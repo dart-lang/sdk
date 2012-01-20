@@ -1,7 +1,11 @@
 
 class HTMLBaseElement extends HTMLElement native "*HTMLBaseElement" {
 
-  String href;
+  String get href() native "return this.href;";
 
-  String target;
+  void set href(String value) native "this.href = value;";
+
+  String get target() native "return this.target;";
+
+  void set target(String value) native "this.target = value;";
 }

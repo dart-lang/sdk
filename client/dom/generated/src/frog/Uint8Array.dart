@@ -11,7 +11,7 @@ class Uint8Array extends ArrayBufferView implements List<int> native "*Uint8Arra
 
   static final int BYTES_PER_ELEMENT = 1;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 

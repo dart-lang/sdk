@@ -1,27 +1,45 @@
 
 class HTMLFormElement extends HTMLElement native "*HTMLFormElement" {
 
-  String acceptCharset;
+  String get acceptCharset() native "return this.acceptCharset;";
 
-  String action;
+  void set acceptCharset(String value) native "this.acceptCharset = value;";
 
-  String autocomplete;
+  String get action() native "return this.action;";
 
-  HTMLCollection elements;
+  void set action(String value) native "this.action = value;";
 
-  String encoding;
+  String get autocomplete() native "return this.autocomplete;";
 
-  String enctype;
+  void set autocomplete(String value) native "this.autocomplete = value;";
 
-  int length;
+  HTMLCollection get elements() native "return this.elements;";
 
-  String method;
+  String get encoding() native "return this.encoding;";
 
-  String name;
+  void set encoding(String value) native "this.encoding = value;";
 
-  bool noValidate;
+  String get enctype() native "return this.enctype;";
 
-  String target;
+  void set enctype(String value) native "this.enctype = value;";
+
+  int get length() native "return this.length;";
+
+  String get method() native "return this.method;";
+
+  void set method(String value) native "this.method = value;";
+
+  String get name() native "return this.name;";
+
+  void set name(String value) native "this.name = value;";
+
+  bool get noValidate() native "return this.noValidate;";
+
+  void set noValidate(bool value) native "this.noValidate = value;";
+
+  String get target() native "return this.target;";
+
+  void set target(String value) native "this.target = value;";
 
   bool checkValidity() native;
 

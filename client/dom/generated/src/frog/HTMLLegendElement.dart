@@ -1,7 +1,9 @@
 
 class HTMLLegendElement extends HTMLElement native "*HTMLLegendElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  HTMLFormElement form;
+  void set align(String value) native "this.align = value;";
+
+  HTMLFormElement get form() native "return this.form;";
 }

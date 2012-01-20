@@ -1,7 +1,7 @@
 
 class Storage native "*Storage" {
 
-  int length;
+  int get length() native "return this.length;";
 
   void clear() native;
 

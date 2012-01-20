@@ -1,9 +1,9 @@
 
 class SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
-  SVGTransformList animVal;
+  SVGTransformList get animVal() native "return this.animVal;";
 
-  SVGTransformList baseVal;
+  SVGTransformList get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

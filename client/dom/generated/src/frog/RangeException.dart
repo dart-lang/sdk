@@ -5,11 +5,11 @@ class RangeException native "*RangeException" {
 
   static final int INVALID_NODE_TYPE_ERR = 2;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 

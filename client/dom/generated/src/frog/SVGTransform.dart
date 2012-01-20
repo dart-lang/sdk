@@ -15,11 +15,11 @@ class SVGTransform native "*SVGTransform" {
 
   static final int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num angle;
+  num get angle() native "return this.angle;";
 
-  SVGMatrix matrix;
+  SVGMatrix get matrix() native "return this.matrix;";
 
-  int type;
+  int get type() native "return this.type;";
 
   void setMatrix(SVGMatrix matrix) native;
 

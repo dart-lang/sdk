@@ -1,11 +1,11 @@
 
 class RGBColor native "*RGBColor" {
 
-  CSSPrimitiveValue blue;
+  CSSPrimitiveValue get blue() native "return this.blue;";
 
-  CSSPrimitiveValue green;
+  CSSPrimitiveValue get green() native "return this.green;";
 
-  CSSPrimitiveValue red;
+  CSSPrimitiveValue get red() native "return this.red;";
 
   var dartObjectLocalStorage;
 

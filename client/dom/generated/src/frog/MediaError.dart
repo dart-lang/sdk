@@ -9,7 +9,7 @@ class MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  int code;
+  int get code() native "return this.code;";
 
   var dartObjectLocalStorage;
 
