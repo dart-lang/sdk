@@ -448,7 +448,7 @@
 #source('generated/src/interface/ScriptProfile.dart');
 #source('generated/src/interface/ScriptProfileNode.dart');
 #source('generated/src/interface/SharedWorker.dart');
-#source('generated/src/interface/SharedWorkercontext.dart');
+#source('generated/src/interface/SharedWorkerContext.dart');
 #source('generated/src/interface/SpeechInputEvent.dart');
 #source('generated/src/interface/SpeechInputResult.dart');
 #source('generated/src/interface/SpeechInputResultList.dart');
@@ -953,8 +953,8 @@
 #source('generated/src/wrapping/_ScreenWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileWrappingImplementation.dart');
+#source('generated/src/wrapping/_SharedWorkerContextWrappingImplementation.dart');
 #source('generated/src/wrapping/_SharedWorkerWrappingImplementation.dart');
-#source('generated/src/wrapping/_SharedWorkercontextWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputResultListWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputResultWrappingImplementation.dart');

@@ -449,7 +449,7 @@
 #source('generated/src/frog/ScriptProfile.dart');
 #source('generated/src/frog/ScriptProfileNode.dart');
 #source('generated/src/frog/SharedWorker.dart');
-#source('generated/src/frog/SharedWorkercontext.dart');
+#source('generated/src/frog/SharedWorkerContext.dart');
 #source('generated/src/frog/SpeechInputEvent.dart');
 #source('generated/src/frog/SpeechInputResult.dart');
 #source('generated/src/frog/SpeechInputResultList.dart');

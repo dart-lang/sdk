@@ -193,14 +193,16 @@ def _IsDartCollectionType(type):
 class DartGenerator(object):
   """Utilities to generate Dart APIs and corresponding JavaScript."""
 
-  def __init__(self, auxiliary_dir, base_package):
+  def __init__(self, auxiliary_dir, template_dir, base_package):
     """Constructor for the DartGenerator.
 
     Args:
       auxiliary_dir -- location of auxiliary handwritten classes
+      template_dir -- location of template files
       base_package -- the base package name for the generated code.
     """
     self._auxiliary_dir = auxiliary_dir
+    self._template_dir = template_dir
     self._base_package = base_package
     self._auxiliary_files = {}
     self._dart_templates_re = re.compile(r'[\w.:]+<([\w\.<>:]+)>')
@@ -424,11 +426,11 @@ class DartGenerator(object):
     self._ComputeInheritanceClosure()
 
     interface_system = WrappingInterfacesSystem(
-        TemplateLoader('../templates', ['dom/interface', 'dom', '']),
+        TemplateLoader(self._template_dir, ['dom/interface', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
     wrapping_system = WrappingImplementationSystem(
-        TemplateLoader('../templates', ['dom/wrapping', 'dom', '']),
+        TemplateLoader(self._template_dir, ['dom/wrapping', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
     # Makes interface files available for listing in the library for the
@@ -436,7 +438,7 @@ class DartGenerator(object):
     wrapping_system._interface_system = interface_system
 
     frog_system = FrogSystem(
-        TemplateLoader('../templates', ['dom/frog', 'dom', '']),
+        TemplateLoader(self._template_dir, ['dom/frog', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
     self._systems = [interface_system,

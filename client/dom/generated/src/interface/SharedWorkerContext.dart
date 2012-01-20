@@ -13,5 +13,5 @@ interface SharedWorkerGlobalScope extends WorkerContext {
   void set onconnect(EventListener value);
 }
 
-interface SharedWorkercontext extends SharedWorkerGlobalScope {
+interface SharedWorkerContext extends SharedWorkerGlobalScope {
 }

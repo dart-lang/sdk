@@ -17,11 +17,11 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
   List get profiles() { return _get_profiles(this); }
   static List _get_profiles(var _this) native;
 
-  void assert_(bool condition) {
-    _assert_(this, condition);
+  void assertCondition(bool condition) {
+    _assertCondition(this, condition);
     return;
   }
-  static void _assert_(receiver, condition) native;
+  static void _assertCondition(receiver, condition) native;
 
   void count() {
     _count(this);

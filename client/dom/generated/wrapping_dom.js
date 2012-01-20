@@ -2718,7 +2718,7 @@ function native__ConsoleWrappingImplementation__get_profiles(_this) {
   }
 }
 
-function native__ConsoleWrappingImplementation__assert_(_this, condition) {
+function native__ConsoleWrappingImplementation__assertCondition(_this, condition) {
   try {
     return __dom_wrap(_this.$dom.assert(__dom_unwrap(condition)));
   } catch (e) {
@@ -30206,7 +30206,7 @@ function native__SharedWorkerWrappingImplementation__get_port(_this) {
   }
 }
 
-function native__SharedWorkercontextWrappingImplementation__get_name(_this) {
+function native__SharedWorkerContextWrappingImplementation__get_name(_this) {
   try {
     return __dom_wrap(_this.$dom.name);
   } catch (e) {
@@ -30214,7 +30214,7 @@ function native__SharedWorkercontextWrappingImplementation__get_name(_this) {
   }
 }
 
-function native__SharedWorkercontextWrappingImplementation__get_onconnect(_this) {
+function native__SharedWorkerContextWrappingImplementation__get_onconnect(_this) {
   try {
     return __dom_wrap(_this.$dom.onconnect);
   } catch (e) {
@@ -30222,7 +30222,7 @@ function native__SharedWorkercontextWrappingImplementation__get_onconnect(_this)
   }
 }
 
-function native__SharedWorkercontextWrappingImplementation__set_onconnect(_this, value) {
+function native__SharedWorkerContextWrappingImplementation__set_onconnect(_this, value) {
   try {
     _this.$dom.onconnect = __dom_unwrap(value);
   } catch (e) {
@@ -35574,7 +35574,7 @@ var __dom_type_map = {
   "ScriptProfile": native__ScriptProfileWrappingImplementation_create__ScriptProfileWrappingImplementation,
   "ScriptProfileNode": native__ScriptProfileNodeWrappingImplementation_create__ScriptProfileNodeWrappingImplementation,
   "SharedWorker": native__SharedWorkerWrappingImplementation_create__SharedWorkerWrappingImplementation,
-  "SharedWorkercontext": native__SharedWorkercontextWrappingImplementation_create__SharedWorkercontextWrappingImplementation,
+  "SharedWorkerContext": native__SharedWorkerContextWrappingImplementation_create__SharedWorkerContextWrappingImplementation,
   "SpeechInputEvent": native__SpeechInputEventWrappingImplementation_create__SpeechInputEventWrappingImplementation,
   "SpeechInputResult": native__SpeechInputResultWrappingImplementation_create__SpeechInputResultWrappingImplementation,
   "SpeechInputResultList": native__SpeechInputResultListWrappingImplementation_create__SpeechInputResultListWrappingImplementation,
