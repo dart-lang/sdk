@@ -209,4 +209,14 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
 }
 
 
+DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
+                            Dart_Breakpoint breakpoint_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  CHECK_AND_CAST(Breakpoint, breakpoint, breakpoint_in);
+  isolate->debugger()->RemoveBreakpoint(breakpoint);
+  return Api::True();
+}
+
 }  // namespace dart

@@ -25,6 +25,7 @@ Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
     : function_(func.raw()),
       pc_desc_index_(pc_desc_index),
       pc_(0),
+      saved_bytes_(0),
       line_number_(-1),
       next_(NULL) {
   Code& code = Code::Handle(func.code());
@@ -230,6 +231,21 @@ Debugger::Debugger()
 }
 
 
+Debugger::~Debugger() {
+  ASSERT(breakpoints_ == NULL);
+}
+
+
+void Debugger::Shutdown() {
+  while (breakpoints_ != NULL) {
+    Breakpoint* bpt = breakpoints_;
+    breakpoints_ = breakpoints_->next();
+    UnsetBreakpoint(bpt);
+    delete bpt;
+  }
+}
+
+
 bool Debugger::IsActive() {
   // TODO(hausner): The code generator uses this function to prevent
   // generation of optimized code when Dart code is being debugged.
@@ -274,9 +290,8 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 }
 
 
-// TODO(hausner): Need to check whether a breakpoint for the
-// location already exists and either return the existing breakpoint
-// or return an error.
+// TODO(hausner): Distinguish between newly created breakpoints and
+// returning a breakpoint that already exists?
 Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
                                     intptr_t token_index) {
   if ((token_index < target_function.token_index()) ||
@@ -297,14 +312,32 @@ Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
     PcDescriptors::Kind kind = desc.DescriptorKind(i);
     Breakpoint* bpt = NULL;
     if (kind == PcDescriptors::kIcCall) {
+      bpt = GetBreakpoint(desc.PC(i));
+      if (bpt != NULL) {
+        // There is an existing breakpoint at this token position.
+        break;
+      }
+      bpt = new Breakpoint(target_function, i);
+      String& func_name = String::Handle();
+      int num_args, num_named_args;
+      CodePatcher::GetInstanceCallAt(desc.PC(i),
+          &func_name, &num_args, &num_named_args, &bpt->saved_bytes_);
       CodePatcher::PatchInstanceCallAt(
           desc.PC(i), StubCode::BreakpointDynamicEntryPoint());
-      bpt = new Breakpoint(target_function, i);
+      RegisterBreakpoint(bpt);
     } else if (kind == PcDescriptors::kOther) {
       if ((desc.TokenIndex(i) > 0) && CodePatcher::IsDartCall(desc.PC(i))) {
+        bpt = GetBreakpoint(desc.PC(i));
+        if (bpt != NULL) {
+          // There is an existing breakpoint at this token position.
+          break;
+        }
+        bpt = new Breakpoint(target_function, i);
+        Function& func = Function::Handle();
+        CodePatcher::GetStaticCallAt(desc.PC(i), &func, &bpt->saved_bytes_);
         CodePatcher::PatchStaticCallAt(
           desc.PC(i), StubCode::BreakpointStaticEntryPoint());
-        bpt = new Breakpoint(target_function, i);
+        RegisterBreakpoint(bpt);
       }
     }
     if (bpt != NULL) {
@@ -314,11 +347,26 @@ Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
                   bpt->LineNumber(),
                   bpt->pc());
       }
-      AddBreakpoint(bpt);
       return bpt;
     }
   }
   return NULL;
+}
+
+
+void Debugger::UnsetBreakpoint(Breakpoint* bpt) {
+  const Function& func = Function::Handle(bpt->function());
+  const Code& code = Code::Handle(func.code());
+  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  intptr_t desc_index = bpt->pc_desc_index();
+  ASSERT(desc_index < desc.Length());
+  ASSERT(bpt->pc() == desc.PC(desc_index));
+  PcDescriptors::Kind kind = desc.DescriptorKind(desc_index);
+  if (kind == PcDescriptors::kIcCall) {
+    CodePatcher::PatchInstanceCallAt(desc.PC(desc_index), bpt->saved_bytes_);
+  } else {
+    CodePatcher::PatchStaticCallAt(desc.PC(desc_index), bpt->saved_bytes_);
+  }
 }
 
 
@@ -445,7 +493,43 @@ Breakpoint* Debugger::GetBreakpoint(uword breakpoint_address) {
 }
 
 
-void Debugger::AddBreakpoint(Breakpoint* bpt) {
+void Debugger::RemoveBreakpoint(Breakpoint* bpt) {
+  ASSERT(breakpoints_ != NULL);
+  Breakpoint* prev_bpt = NULL;
+  Breakpoint* curr_bpt = breakpoints_;
+  while (curr_bpt != NULL) {
+    if (bpt == curr_bpt) {
+      if (prev_bpt == NULL) {
+        breakpoints_ = breakpoints_->next();
+      } else {
+        prev_bpt->set_next(curr_bpt->next());
+      }
+      UnsetBreakpoint(bpt);
+      delete bpt;
+      return;
+    }
+    prev_bpt = curr_bpt;
+    curr_bpt = curr_bpt->next();
+  }
+  // bpt is not a registered breakpoint, nothing to do.
+}
+
+
+Breakpoint* Debugger::GetBreakpointByFunction(const Function& func,
+                                              intptr_t token_index) {
+  Breakpoint* bpt = this->breakpoints_;
+  while (bpt != NULL) {
+    if ((bpt->function() == func.raw()) &&
+        (bpt->token_index() == token_index)) {
+      return bpt;
+    }
+    bpt = bpt->next();
+  }
+  return NULL;
+}
+
+
+void Debugger::RegisterBreakpoint(Breakpoint* bpt) {
   ASSERT(bpt->next() == NULL);
   bpt->set_next(this->breakpoints_);
   this->breakpoints_ = bpt;

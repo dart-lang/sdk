@@ -264,6 +264,15 @@ void Isolate::Shutdown() {
   ASSERT(top_resource_ == NULL);
   ASSERT((heap_ == NULL) || heap_->Verify());
 
+  // Clean up debugger resources. Shutting down the debugger
+  // requires a handle zone. We must set up a temporary zone because
+  // Isolate::Shutdown is called without a zone.
+  {
+    Zone zone(this);
+    HandleScope handle_scope(this);
+    debugger_->Shutdown();
+  }
+
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts();
 

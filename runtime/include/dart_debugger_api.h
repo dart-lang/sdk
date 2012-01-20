@@ -55,6 +55,17 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
 
 
 /**
+ * Deletes the given \breakpoint.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
+                            Dart_Breakpoint breakpoint);
+
+
+/**
  * Installs a handler callback function that gets called by the VM
  * when a breakpoint has been reached.
  *
