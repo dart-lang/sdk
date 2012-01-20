@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
@@ -9,9 +9,12 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartTypeNode;
+import com.google.dart.compiler.ast.DartTypeParameter;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.type.FunctionAliasType;
 import com.google.dart.compiler.type.Type;
@@ -51,6 +54,137 @@ public class ResolverCompilerTest extends CompilerTestCase {
   }
 
   /**
+   * This test checks the class declarations to make sure that symbols are set for
+   * all identifiers.  This is useful to the editor and other consumers of the AST.
+   */
+  public void test_resolution_on_class_decls() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            "Test.dart",
+            Joiner.on("\n").join(
+                "class A {}",
+                "interface B<T> default C {}",
+                "class C<T> extends A implements B<T> {}",
+                "class D extends C<int> {}",
+                "class E implements C<int> {}",
+                "class F<T extends A> {}",
+                "class G extends F<C<int>> {}",
+                "interface H<T> default C<T> {}"));
+    assertErrors(libraryResult.getCompilationErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
+    List<DartNode> nodes = unit.getTopLevelNodes();
+    DartClass A = (DartClass)nodes.get(0);
+    assertEquals("A", A.getClassName());
+    DartClass B = (DartClass)nodes.get(1);
+    assertEquals("B", B.getClassName());
+    DartClass C = (DartClass)nodes.get(2);
+    assertEquals("C", C.getClassName());
+    DartClass D = (DartClass)nodes.get(3);
+    assertEquals("D", D.getClassName());
+    DartClass E = (DartClass)nodes.get(4);
+    assertEquals("E", E.getClassName());
+    DartClass F = (DartClass)nodes.get(5);
+    assertEquals("F", F.getClassName());
+    DartClass G = (DartClass)nodes.get(6);
+    assertEquals("G", G.getClassName());
+    DartClass H = (DartClass)nodes.get(7);
+    assertEquals("H", H.getClassName());
+
+    // class A
+    assertNotNull(A.getName().getSymbol());
+    assertSame(A.getSymbol(), A.getName().getSymbol());
+
+    // interface B<T> default C
+    assertNotNull(B.getName().getSymbol());
+    assertSame(B.getName().getSymbol(), B.getSymbol());
+    assertEquals(1, B.getTypeParameters().size());
+    DartTypeParameter T;
+    T = B.getTypeParameters().get(0);
+    assertNotNull(T);
+    assertNotNull(T.getName().getSymbol());
+    assertTrue(T.getName().getSymbol() instanceof TypeVariableElement);
+    assertEquals("T", T.getName().getTargetName());
+    assertNotNull(B.getDefaultClass().getExpression().getSymbol());
+    assertSame(C.getSymbol(), B.getDefaultClass().getExpression().getSymbol());
+
+    // class C<T> extends A implements B<T> {}
+    assertNotNull(C.getName().getSymbol());
+    assertSame(C.getSymbol(), C.getName().getSymbol());
+    assertEquals(1, C.getTypeParameters().size());
+    T = C.getTypeParameters().get(0);
+    assertNotNull(T);
+    assertNotNull(T.getName().getSymbol());
+    assertTrue(T.getName().getSymbol() instanceof TypeVariableElement);
+    assertEquals("T", T.getName().getTargetName());
+    assertSame(A.getSymbol(), C.getSuperclass().getIdentifier().getSymbol());
+    assertEquals(1, C.getInterfaces().size());
+    DartTypeNode iface = C.getInterfaces().get(0);
+    assertNotNull(iface);
+    assertSame(B.getSymbol(), iface.getIdentifier().getSymbol());
+    assertSame(T.getName().getSymbol(),
+        iface.getTypeArguments().get(0).getIdentifier().getSymbol());
+
+    // class D extends C<int> {}
+    assertNotNull(D.getName().getSymbol());
+    assertSame(D.getSymbol(), D.getName().getSymbol());
+    assertEquals(0, D.getTypeParameters().size());
+    assertSame(C.getSymbol(), D.getSuperclass().getIdentifier().getSymbol());
+    DartTypeNode typeArg;
+    typeArg = D.getSuperclass().getTypeArguments().get(0);
+    assertNotNull(typeArg.getIdentifier());
+    assertEquals("int", typeArg.getIdentifier().getSymbol().getOriginalSymbolName());
+
+    // class E implements C<int> {}
+    assertNotNull(E.getName().getSymbol());
+    assertSame(E.getSymbol(), E.getName().getSymbol());
+    assertEquals(0, E.getTypeParameters().size());
+    assertSame(C.getSymbol(), E.getInterfaces().get(0).getIdentifier().getSymbol());
+    typeArg = E.getInterfaces().get(0).getTypeArguments().get(0);
+    assertNotNull(typeArg.getIdentifier());
+    assertEquals("int", typeArg.getIdentifier().getSymbol().getOriginalSymbolName());
+
+    // class F<T extends A> {}",
+    assertNotNull(F.getName().getSymbol());
+    assertSame(F.getSymbol(), F.getName().getSymbol());
+    assertEquals(1, F.getTypeParameters().size());
+    T = F.getTypeParameters().get(0);
+    assertNotNull(T);
+    assertNotNull(T.getName().getSymbol());
+    assertTrue(T.getName().getSymbol() instanceof TypeVariableElement);
+    assertEquals("T", T.getName().getTargetName());
+    assertSame(A.getSymbol(), T.getBound().getIdentifier().getSymbol());
+
+    // class G extends F<C<int>> {}
+    assertNotNull(G.getName().getSymbol());
+    assertSame(G.getSymbol(), G.getName().getSymbol());
+    assertEquals(0, G.getTypeParameters().size());
+    assertNotNull(G.getSuperclass());
+    assertSame(F.getSymbol(), G.getSuperclass().getIdentifier().getSymbol());
+    typeArg = G.getSuperclass().getTypeArguments().get(0);
+    assertSame(C.getSymbol(), typeArg.getIdentifier().getSymbol());
+    assertEquals("int",
+        typeArg.getTypeArguments().get(0).getIdentifier().getSymbol().getOriginalSymbolName());
+
+    // class H<T> extends C<T> {}",
+    assertNotNull(H.getName().getSymbol());
+    assertSame(H.getSymbol(), H.getName().getSymbol());
+    assertEquals(1, H.getTypeParameters().size());
+    T = H.getTypeParameters().get(0);
+    assertNotNull(T);
+    assertNotNull(T.getName().getSymbol());
+    assertTrue(T.getName().getSymbol() instanceof TypeVariableElement);
+    assertNotNull(H.getDefaultClass().getExpression().getSymbol());
+    assertSame(C.getSymbol(), H.getDefaultClass().getExpression().getSymbol());
+    // This type parameter T resolves to the Type variable on the default class, so it
+    // isn't the same type variable instance specified in this interface declaration,
+    // though it must have the same name.
+    DartTypeParameter defaultT = H.getDefaultClass().getTypeParameters().get(0);
+    assertNotNull(defaultT.getName().getSymbol());
+    assertTrue(defaultT.getName().getSymbol() instanceof TypeVariableElement);
+    assertEquals(T.getName().getSymbol().getName(), defaultT.getName().getSymbol().getName());
+  }
+
+  /**
    * We should be able to resolve implicit default constructor.
    */
   public void test_resolveConstructor_implicit() throws Exception {
@@ -86,7 +220,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
                 "  }",
                 "}"));
     assertErrors(
-        libraryResult.getCompilationErrors(),
+                 libraryResult.getCompilationErrors(),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 5));
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findNewExpression(unit, "new A.foo()");

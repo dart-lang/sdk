@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -189,6 +189,10 @@ public abstract class CompilerTestCase extends TestCase {
     DartArtifactProvider provider = new MockArtifactProvider();
     result.setLibraryUnitResult(DartCompiler.analyzeLibrary(lib, testUnits, config, provider,
         result));
+    // TODO(zundel): One day, we want all AST nodes that are identifiers to point to
+    // elements if they are resolved.  Uncommenting this line helps track missing elements
+    // down.
+    // ResolverAuditVisitor.exec(unit);
     return result;
   }
 
