@@ -2209,7 +2209,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
       }
     }
-    return builder.buildInterpolation();
+    return done(builder.buildInterpolation());
   }
 
   /**
