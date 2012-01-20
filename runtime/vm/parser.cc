@@ -2014,11 +2014,11 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     int expected_num_parameters = 0;
     if (method->IsGetter()) {
       expected_num_parameters = (method->has_static) ? 0 : 1;
-      method->name = &String::ZoneHandle(Field::GetterName(*method->name));
+      method->name = &String::ZoneHandle(Field::GetterSymbol(*method->name));
     } else {
       ASSERT(method->IsSetter());
       expected_num_parameters = (method->has_static) ? 1 : 2;
-      method->name = &String::ZoneHandle(Field::SetterName(*method->name));
+      method->name = &String::ZoneHandle(Field::SetterSymbol(*method->name));
     }
     if ((method->params.num_fixed_parameters != expected_num_parameters) ||
         (method->params.num_optional_parameters != 0)) {
@@ -2213,7 +2213,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     // create a kConstImplicitGetter getter method.
     if (field->has_static && has_initializer) {
       class_field.set_value(Instance::Handle(Object::sentinel()));
-      String& getter_name = String::ZoneHandle(Field::GetterName(*field->name));
+      String& getter_name =
+          String::ZoneHandle(Field::GetterSymbol(*field->name));
       Function& getter = Function::ZoneHandle(
           Function::New(getter_name, RawFunction::kConstImplicitGetter,
                         field->has_static, field->has_final,
@@ -2225,7 +2226,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     // For instance fields, we create implicit getter and setter methods.
     if (!field->has_static) {
       String& getter_name =
-          String::ZoneHandle(Field::GetterName(*field->name));
+          String::ZoneHandle(Field::GetterSymbol(*field->name));
       Function& getter = Function::ZoneHandle(
           Function::New(getter_name, RawFunction::kImplicitGetter,
                         field->has_static, field->has_final,
@@ -2238,7 +2239,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       if (!field->has_final) {
         // Build a setter accessor for non-const fields.
         String& setter_name = String::ZoneHandle(
-            Field::SetterName(*field->name));
+            Field::SetterSymbol(*field->name));
         Function& setter = Function::ZoneHandle(
             Function::New(setter_name, RawFunction::kImplicitSetter,
                          field->has_static, field->has_final,
@@ -3088,7 +3089,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
       SkipExpr();
       field.set_value(Instance::Handle(Object::sentinel()));
       // Create a static const getter.
-      String& getter_name = String::ZoneHandle(Field::GetterName(var_name));
+      String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
       Function& getter = Function::ZoneHandle(
           Function::New(getter_name, RawFunction::kConstImplicitGetter,
                         is_static, is_final, name_pos));
@@ -3209,10 +3210,10 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   int expected_num_parameters = -1;
   if (is_getter) {
     expected_num_parameters = 0;
-    accessor_name = Field::GetterName(*field_name);
+    accessor_name = Field::GetterSymbol(*field_name);
   } else {
     expected_num_parameters = 1;
-    accessor_name = Field::SetterName(*field_name);
+    accessor_name = Field::SetterSymbol(*field_name);
   }
   if ((params.num_fixed_parameters != expected_num_parameters) ||
       (params.num_optional_parameters != 0)) {
@@ -6450,7 +6451,6 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   Class& cls = Class::Handle(isolate, current_class().raw());
   Function& func = Function::Handle(isolate, Function::null());
   Field& field = Field::Handle(isolate, Field::null());
-  String& accessor_name = String::Handle(isolate, String::null());
   while (!cls.IsNull()) {
     // First check if a field exists.
     field = cls.LookupField(ident);
@@ -6475,8 +6475,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 
     // Now check if a getter/setter method exists for it in which case
     // it is still a field.
-    accessor_name = Field::GetterName(ident);
-    func = cls.LookupFunction(accessor_name);
+    func = cls.LookupGetterFunction(ident);
     if (!func.IsNull()) {
       if (func.IsDynamicFunction()) {
         CheckInstanceFieldAccess(ident_pos, ident);
@@ -6491,8 +6490,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         return true;
       }
     }
-    accessor_name = Field::SetterName(ident);
-    func = cls.LookupFunction(accessor_name);
+    func = cls.LookupSetterFunction(ident);
     if (!func.IsNull()) {
       if (func.IsDynamicFunction()) {
         // We create a getter node even though a getter doesn't exist as

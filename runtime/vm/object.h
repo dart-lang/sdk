@@ -601,6 +601,8 @@ class Class : public Object {
   RawFunction* LookupConstructor(const String& name) const;
   RawFunction* LookupFactory(const String& name) const;
   RawFunction* LookupFunction(const String& name) const;
+  RawFunction* LookupGetterFunction(const String& name) const;
+  RawFunction* LookupSetterFunction(const String& name) const;
   RawFunction* LookupFunctionAtToken(intptr_t token_index) const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
@@ -703,6 +705,10 @@ class Class : public Object {
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
+
+  RawFunction* LookupAccessorFunction(const char* prefix,
+                                      intptr_t prefix_length,
+                                      const String& name) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class Object;
@@ -1503,7 +1509,9 @@ class Field : public Object {
 
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
+  static RawString* GetterSymbol(const String& field_name);
   static RawString* SetterName(const String& field_name);
+  static RawString* SetterSymbol(const String& field_name);
   static RawString* NameFromGetter(const String& getter_name);
   static RawString* NameFromSetter(const String& setter_name);
 

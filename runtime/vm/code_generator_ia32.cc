@@ -2490,7 +2490,8 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
 void CodeGenerator::GenerateInstanceGetterCall(intptr_t node_id,
                                                intptr_t token_index,
                                                const String& field_name) {
-  const String& getter_name = String::ZoneHandle(Field::GetterName(field_name));
+  const String& getter_name =
+      String::ZoneHandle(Field::GetterSymbol(field_name));
   const int kNumberOfArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
@@ -2520,7 +2521,8 @@ void CodeGenerator::VisitInstanceGetterNode(InstanceGetterNode* node) {
 void CodeGenerator::GenerateInstanceSetterCall(intptr_t node_id,
                                                intptr_t token_index,
                                                const String& field_name) {
-  const String& setter_name = String::ZoneHandle(Field::SetterName(field_name));
+  const String& setter_name =
+      String::ZoneHandle(Field::SetterSymbol(field_name));
   const int kNumberOfArguments = 2;  // receiver + value.
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
