@@ -535,4 +535,119 @@ void testElement() {
       Expect.equals(1, el.elements.length);
     });
   });
+
+  group('queryAll', () {
+    Element getQueryAll() {
+      return new Element.html("""
+<div>
+  <hr/>
+  <a class='q' href='http://dartlang.org'>Dart!</a>
+  <p>
+    <span class='q'>Hello</span>,
+    <em>world</em>!
+  </p>
+  <hr class='q'/>
+</div>
+""").queryAll('.q');
+    }
+
+    Element getEmptyQueryAll() => new Element.tag('div').queryAll('img');
+
+    void testUnsupported(String name, void f()) {
+      test(name, () {
+        Expect.throws(f, (e) => e is UnsupportedOperationException);
+      });
+    }
+
+    test('first', () {
+      Expect.isTrue(getQueryAll().first is AnchorElement);
+    });
+
+    test('last', () {
+      Expect.isTrue(getQueryAll().last() is HRElement);
+    });
+
+    test('forEach', () {
+      var els = [];
+      getQueryAll().forEach((el) => els.add(el));
+      Expect.isTrue(els[0] is AnchorElement);
+      Expect.isTrue(els[1] is SpanElement);
+      Expect.isTrue(els[2] is HRElement);
+    });
+
+    test('map', () {
+      var texts = getQueryAll().map((el) => el.text);
+      Expect.listEquals(['Dart!', 'Hello', ''], texts);
+    });
+
+    test('filter', () {
+      var filtered = getQueryAll().filter((n) => n is SpanElement);
+      Expect.equals(1, filtered.length);
+      Expect.isTrue(filtered[0] is SpanElement);
+    });
+
+    test('every', () {
+      var el = getQueryAll();
+      Expect.isTrue(el.every((n) => n is Element));
+      Expect.isFalse(el.every((n) => n is SpanElement));
+    });
+
+    test('some', () {
+      var el = getQueryAll();
+      Expect.isTrue(el.some((n) => n is SpanElement));
+      Expect.isFalse(el.some((n) => n is SVGElement));
+    });
+
+    test('isEmpty', () {
+      Expect.isTrue(getEmptyQueryAll().isEmpty());
+      Expect.isFalse(getQueryAll().isEmpty());
+    });
+
+    test('length', () {
+      Expect.equals(0, getEmptyQueryAll().length);
+      Expect.equals(3, getQueryAll().length);
+    });
+
+    test('[]', () {
+      var els = getQueryAll();
+      Expect.isTrue(els[0] is AnchorElement);
+      Expect.isTrue(els[1] is SpanElement);
+      Expect.isTrue(els[2] is HRElement);
+    });
+
+    test('iterator', () {
+      var els = [];
+      for (var subel in getQueryAll()) {
+        els.add(subel);
+      }
+      Expect.isTrue(els[0] is AnchorElement);
+      Expect.isTrue(els[1] is SpanElement);
+      Expect.isTrue(els[2] is HRElement);
+    });
+
+    testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
+    testUnsupported('add', () => getQueryAll().add(new Element.tag('br')));
+    testUnsupported('addLast', () =>
+        getQueryAll().addLast(new Element.tag('br')));
+
+    testUnsupported('addAll', () {
+      getQueryAll().addAll([
+        new Element.tag('span'),
+        new Element.tag('a'),
+        new Element.tag('h1')
+      ]);
+    });
+
+    testUnsupported('sort', () => getQueryAll().sort((_) => true));
+
+    testUnsupported('setRange', () => getQueryAll().setRange(0, 0, []));
+
+    testUnsupported('removeRange', () => getQueryAll().removeRange(0, 1));
+
+    testUnsupported('insertangeRange', () => getQueryAll().insertRange(0, 1));
+
+    testUnsupported('clear', () => getQueryAll().clear());
+
+    testUnsupported('removeLast', () => getQueryAll().removeLast());
+  });
 }

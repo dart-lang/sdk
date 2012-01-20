@@ -133,37 +133,46 @@ class _ChildrenElementList implements ElementList {
 
 class FrozenElementList implements ElementList {
   final _ptr;
+  List<Element> _list;
 
   FrozenElementList._wrap(this._ptr);
+
+  List<Element> _toList() {
+    if (_list == null) {
+      _list = new List(_ptr.length);
+      for (int i = 0, len = _ptr.length; i < len; i++) {
+        _list[i] = LevelDom.wrapElement(_ptr[i]);
+      }
+    }
+    return _list;
+  }
 
   Element get first() {
     return this[0];
   }
 
-  void forEach(void f(Element element)) {
-    final length = _ptr.length;
-    for (var i = 0; i < length; i++) {
-      f(LevelDom.wrapElement(_ptr[i]));
-    }
-  }
+  void forEach(void f(Element element)) => _toList().forEach(f);
 
-  Collection map(f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
-  }
+  Collection map(f(Element element)) => _toList().map(f);
 
-  Collection<Element> filter(bool f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
-  }
+  Collection<Element> filter(bool f(Element element)) => _toList().filter(f);
 
   bool every(bool f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
+    for(Element element in this) {
+      if (!f(element)) {
+        return false;
+      }
+    };
+    return true;
   }
 
   bool some(bool f(Element element)) {
-    throw 'Not impl yet. todo(jacobr)';
+    for(Element element in this) {
+      if (f(element)) {
+        return true;
+      }
+    };
+    return false;
   }
 
   bool isEmpty() {
@@ -210,35 +219,33 @@ class FrozenElementList implements ElementList {
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
   void insertRange(int start, int length, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  List getRange(int start, int length) => Lists.getRange(this, start, length);
 
-  int indexOf(Element element, [int start = 0]) {
-    throw 'Not impl yet. todo(jacobr)';
-  }
+  int indexOf(Element element, [int start = 0]) =>
+    Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Element element, [int start = null]) {
-    throw 'Not impl yet. todo(jacobr)';
+    if (start === null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
-    throw 'Not impl yet. todo(jacobr)';
+    throw const UnsupportedOperationException('');
   }
 
   Element removeLast() {
-    throw 'Not impl yet. todo(jacobr)';
+    throw const UnsupportedOperationException('');
   }
 
   Element last() {
