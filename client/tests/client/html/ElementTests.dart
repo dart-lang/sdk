@@ -537,7 +537,7 @@ void testElement() {
   });
 
   group('queryAll', () {
-    Element getQueryAll() {
+    ElementList getQueryAll() {
       return new Element.html("""
 <div>
   <hr/>
@@ -551,7 +551,7 @@ void testElement() {
 """).queryAll('.q');
     }
 
-    Element getEmptyQueryAll() => new Element.tag('div').queryAll('img');
+    ElementList getEmptyQueryAll() => new Element.tag('div').queryAll('img');
 
     void testUnsupported(String name, void f()) {
       test(name, () {
@@ -638,7 +638,7 @@ void testElement() {
       ]);
     });
 
-    testUnsupported('sort', () => getQueryAll().sort((_) => true));
+    testUnsupported('sort', () => getQueryAll().sort((a1, a2) => true));
 
     testUnsupported('setRange', () => getQueryAll().setRange(0, 0, []));
 
