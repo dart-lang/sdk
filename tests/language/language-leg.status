@@ -49,13 +49,11 @@ ConstObjectsAreImmutableTest: Fail
 ConstTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
-Constructor3NegativeTest: Fail
 Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
 ConstructorBodyTest: Fail
-ConstructorCallWrongArgumentCountNegativeTest: Fail
 ConstructorDefaultTest: Fail
 ConstructorDuplicateInitializersTest/none: Fail
 ConstructorNegativeTest: Pass # For the wrong reason.
@@ -99,7 +97,6 @@ ExecuteFinally9Test: Fail
 ExpectTest: Fail
 Factory2Test: Fail
 Factory3Test: Fail
-FactoryArrowTest: Fail
 FactoryImplementationTest: Fail
 FactoryTest: Fail
 FannkuchTest: Fail
@@ -146,7 +143,6 @@ GettersSettersTest: Fail
 HelloScriptTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail
-ImplicitClosureTest: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
 ImplicitThisTest/01: Fail
@@ -240,6 +236,7 @@ NullToStringTest: Fail
 NumberSyntaxTest: Fail
 NumbersTest: Fail
 ObjectDynamicMethodTest: Fail
+Operator1NegativeTest: Fail
 Operator2Test: Fail
 OperatorTest: Fail
 OptimizationTest: Fail
