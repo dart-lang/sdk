@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,10 +6,6 @@ interface ElementList extends List<Element> {
   // TODO(jacobr): add element batch manipulation methods.
   Element get first();
   // TODO(jacobr): add insertAt
-}
-
-class DeferredElementRect {
-  // TODO(jacobr)
 }
 
 interface ElementEvents extends Events {
@@ -185,11 +181,14 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   bool matchesSelector([String selectors]);
 
-  Future<ElementRect> get rect();
+  /** Only access members when [window.inMeasurementFrame] is true. */
+  ElementRect get rect();
 
-  Future<CSSStyleDeclaration> get computedStyle();
+  /** Only call when [window.inMeasurementFrame] is true. */
+  CSSStyleDeclaration get computedStyle();
 
-  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
+  /** Only call when [window.inMeasurementFrame] is true. */
+  CSSStyleDeclaration getComputedStyle(String pseudoElement);
 
   ElementEvents get on();
 

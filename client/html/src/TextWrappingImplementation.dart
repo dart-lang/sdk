@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,6 +14,7 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
   String get wholeText() => _ptr.wholeText;
 
   Text replaceWholeText([String content = null]) {
+    assert(!_inMeasurementFrame || !_inDocument);
     if (content === null) {
       return LevelDom.wrapText(_ptr.replaceWholeText());
     } else {
@@ -22,6 +23,7 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
   }
 
   Text splitText([int offset = null]) {
+    assert(!_inMeasurementFrame || !_inDocument);
     if (offset === null) {
       return LevelDom.wrapText(_ptr.splitText());
     } else {

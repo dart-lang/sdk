@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -168,11 +168,16 @@ class View implements Positionable {
    */
   void exitDocument() {}
 
-  /** Override this to perform behavior after the window is resized. */
+  /**
+   * Override this to perform behavior after the window is resized.
+   * This method is guaranteed to be called within a measurement frame.  To
+   * manipulate the DOM, return a LayoutCallback which will be execututed
+   * in the normal context.
+   */
   // TODO(jmesserly): this isn't really the event we want. Ideally we want to
   // fire the event only if this particular View changed size. Also we should
   // give a view the ability to measure itself when added to the document.
-  void windowResized() {}
+  LayoutCallback windowResized() => null;
 
   /**
    * Registers the given listener callback to the given observable. Also
@@ -317,43 +322,41 @@ class View implements Positionable {
   }
 
   void doLayout() {
-    _measureLayout().then((bool changed) {
-      if (changed) {
-        _applyLayoutToChildren();
+    // Callbacks to execute after all layouts are complete.
+    final callbacks = <LayoutCallback>[];
+    bool changed = false;
+    void _measureLayout(View v) {
+      assert(window.inMeasurementFrame);
+      LayoutCallback callback = v.windowResized();
+      if (callback != null) {
+        callbacks.add(callback);
       }
-    });
-  }
-
-  Future<bool> _measureLayout() {
-    final changed = new Completer<bool>();
-    _measureLayoutHelper(changed);
-
-    window.requestLayoutFrame(() {
-      if (!changed.future.isComplete) {
-        changed.complete(false);
-      }
-    });
-    return changed.future;
-  }
-
-  void _measureLayoutHelper(Completer<bool> changed) {
-    windowResized();
-
-    // TODO(jmesserly): this logic is more complex than it needs to be because
-    // we're taking pains to not initialize _layout if it's not needed. Is that
-    // a good tradeoff?
-    if (ViewLayout.hasCustomLayout(this)) {
-      Completer sizeCompleter = new Completer<Size>();
-      _node.rect.then((ElementRect rect) {
-        sizeCompleter.complete(
-            new Size(rect.client.width, rect.client.height));
-      });
-      layout.measureLayout(sizeCompleter.future, changed);
-    } else {
-      for (final child in childViews) {
-        child._measureLayoutHelper(changed);
+      // TODO(jmesserly): this logic is more complex than it needs to be
+      // because we're taking pains to not initialize _layout if it's not
+      // needed. Is that a good tradeoff?
+      if (ViewLayout.hasCustomLayout(v)) {
+        final rect = v._node.rect.client;
+        if (v.layout.measureLayout(rect.width, rect.height)) {
+          changed = true;
+        }
+      } else {
+        for (final child in v.childViews) {
+          _measureLayout(child);
+        }
       }
     }
+
+    window.requestMeasurementFrame(() {
+      _measureLayout(this);
+      return () {
+        if (changed) {
+          _applyLayoutToChildren();
+        }
+        for (LayoutCallback callback in callbacks) {
+          callback();
+        }
+      };
+    });
   }
 
   void _applyLayoutToChildren() {

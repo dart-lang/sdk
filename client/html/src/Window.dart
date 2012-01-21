@@ -1,6 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+typedef void LayoutCallback();
+typedef LayoutCallback MeasurementCallback(); 
 
 interface WindowEvents extends Events {
   EventListenerList get abort();
@@ -301,19 +304,28 @@ interface Window extends EventTarget {
 
   void webkitCancelRequestAnimationFrame(int id);
 
-  // TODO(jacobr): make these return Future<Point>.
   Point webkitConvertPointFromNodeToPage([Node node, Point p]);
-
   Point webkitConvertPointFromPageToNode([Node node, Point p]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element]);
 
   /**
-   * Executes a [callback] after the next batch of browser layout measurements
-   * has completed or would have completed if any browser layout measurements
-   * had been scheduled.
+   * Executes [callback] after the event loop unwinds but before the page is
+   * rendered.  Inside the callback, synchronous element measurement is
+   * allowed and dom manipulation that could trigger a layout is disallowed.
+   * The [callback] may return a closure that is run in the normal
+   * context where dom manipulation is allowed but sync measurement is
+   * disallowed.
    */
-  void requestLayoutFrame(TimeoutHandler callback);
+  void requestMeasurementFrame(MeasurementCallback callback);
+
+  /**
+   * True iff within a call to [:requestMeasurementFrame:]
+   * When inside a measurement frame, any DOM manipulation that could trigger
+   * a layout is prohibited to avoid accidentally triggering large numbers of
+   * layouts.
+   */
+  bool get inMeasurementFrame();
 
   // Window open(String url, String target, WindowSpec features);
 

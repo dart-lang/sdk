@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,21 +31,6 @@
  * scrolling with momentum when a touch gesture flicks with enough velocity.
  */
 typedef void Callback();
-
-// Helper method to await the completion of 2 futures.
-void joinFutures(List<Future> futures, Callback callback) {
-  int count = 0;
-  int len = futures.length;
-  void helper(value) {
-    count++;
-    if (count == len) {
-      callback();
-    }
-  }
-  for (Future p in futures) {
-    p.then(helper);
-  }
-}
 
 class Scroller implements Draggable, MomentumDelegate {
 
@@ -231,8 +216,8 @@ class Scroller implements Draggable, MomentumDelegate {
     // The scrollable element must be relatively positioned.
     // TODO(jacobr): this assert fires asynchronously which could be confusing.
     if (_scrollTechnique == ScrollerScrollTechnique.RELATIVE_POSITIONING) {
-      _element.computedStyle.then((CSSStyleDeclaration style) {
-        assert(style.position != "static");
+      window.requestMeasurementFrame(() {
+        assert(_element.computedStyle.position != "static");
       });
     }
 
@@ -503,6 +488,8 @@ class Scroller implements Draggable, MomentumDelegate {
     reconfigure(() {
       final touch = e.touches[0];
       if (_momentum.decelerating) {
+        // TODO(jacobr): this won't do any good as it is called too late due
+        // to async measurement.
         e.preventDefault();
         e.stopPropagation();
         stop();
@@ -541,24 +528,18 @@ class Scroller implements Draggable, MomentumDelegate {
    * and maxPoint allowed for scrolling.
    */
   void _resize(Callback callback) {
-    final frameRect = _frame.rect;
-    Future contentSizeFuture;
+    window.requestMeasurementFrame(() {
+      final offset = _frame.rect.offset;
 
-    if (_lookupContentSizeDelegate !== null) {
-      contentSizeFuture = _lookupContentSizeDelegate();
-      contentSizeFuture.then((Size size) {
-        _contentSize = size;
-      });
-    } else {
-      contentSizeFuture = _element.rect;
-      contentSizeFuture.then((ElementRect rect) {
-        _contentSize = new Size(rect.scroll.width, rect.scroll.height);
-      });
-    }
+      if (_lookupContentSizeDelegate !== null) {
+        // Guaranteed to be called within a measurement frame
+        _contentSize = _lookupContentSizeDelegate();
+      } else {
+        final scroll = _element.rect.scroll;
+        _contentSize = new Size(scroll.width, scroll.height);
+      }
 
-    joinFutures(<Future>[frameRect, contentSizeFuture], () {
-      _scrollSize = new Size(frameRect.value.offset.width,
-                             frameRect.value.offset.height);
+      _scrollSize = new Size(offset.width, offset.height);
       Size adjusted = _getAdjustedContentSize();
       _maxPoint = new Coordinate(-_maxOffset.x, -_maxOffset.y);
       _minPoint = new Coordinate(
@@ -566,7 +547,7 @@ class Scroller implements Draggable, MomentumDelegate {
               _scrollSize.width - adjusted.width + _minOffset.x, _maxPoint.x),
           Math.min(
               _scrollSize.height - adjusted.height + _minOffset.y, _maxPoint.y));
-      callback();
+      return callback;
     });
   }
 

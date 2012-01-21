@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -44,7 +44,10 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   String get id() { return _ptr.id; }
 
-  void set id(String value) { _ptr.id = value; }
+  void set id(String value) {
+    assert(!_inMeasurementFrame || !_inDocument);
+    _ptr.id = value;
+  }
 
   SVGSVGElement get ownerSVGElement() { return LevelDom.wrapSVGSVGElement(_ptr.ownerSVGElement); }
 
@@ -52,7 +55,10 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   String get xmlbase() { return _ptr.xmlbase; }
 
-  void set xmlbase(String value) { _ptr.xmlbase = value; }
+  void set xmlbase(String value) {
+    assert(!_inMeasurementFrame || !_inDocument);
+    _ptr.xmlbase = value;
+  }
 
   ElementList get elements() {
     if (_elements == null) {
@@ -63,6 +69,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value) {
+    assert(!_inMeasurementFrame || !_inDocument);
     final elements = this.elements;
     elements.clear();
     elements.addAll(value);
@@ -81,6 +88,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
   }
 
   void set innerHTML(String svg) {
+    assert(!_inMeasurementFrame || !_inDocument);
     var container = new Element.tag("div");
     // Wrap the SVG string in <svg> so that SVGElements are created, rather than
     // HTMLElements.

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,8 +12,18 @@
 
 class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implements CSSStyleDeclaration {
   static String _cachedBrowserPrefix;
+  /**
+   * The element this style declaration is associated with if any.  This
+   * should only be set to a non-null value if modifying this object
+   * will change the associated element.  Thus this should not be set for
+   * computed styles.
+   */    
+  final ElementWrappingImplementation _element;
 
-  CSSStyleDeclarationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+  CSSStyleDeclarationWrappingImplementation._wrap(ptr)
+      : super._wrap(ptr), _element = null;
+  CSSStyleDeclarationWrappingImplementation._wrapWithElement(
+      ptr, this._element) : super._wrap(ptr);
 
   factory CSSStyleDeclarationWrappingImplementation.css(String css) {
     var style = new Element.tag('div').style;
@@ -32,14 +42,21 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
       } else {
         _cachedBrowserPrefix = '-webkit-';
       }
-      // TODO(jacobr): support IE 9.0 and Opera as well.
+      // TODO(jacobr): support IE and Opera as well.
     }
     return _cachedBrowserPrefix;
   }
 
-  String get cssText() { return _ptr.cssText; }
+  String get cssText() => _ptr.cssText;
 
-  void set cssText(String value) { _ptr.cssText = value; }
+  bool get _inDocument() {
+    return _element !== null && _element._inDocument;
+  }
+
+  void set cssText(String value) {
+    assert(!_inMeasurementFrame || !_inDocument);
+    _ptr.cssText = value;
+  }
 
   int get length() { return _ptr.length; }
 
@@ -70,15 +87,14 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
   }
 
   String removeProperty(String propertyName) {
+    assert(!_inMeasurementFrame || !_inDocument);
     return _ptr.removeProperty(propertyName);
   }
 
   void setProperty(String propertyName, var value, [String priority = '']) {
+    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.setProperty(propertyName, '$value', priority);
   }
-
-  String get typeName() { return "CSSStyleDeclaration"; }
-
 
   /** Gets the value of "animation" */
   String get animation() =>

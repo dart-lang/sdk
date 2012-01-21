@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -106,15 +106,9 @@ void printMetrics(String example) {
   final sb = new StringBuffer();
   sb.add("test('Spec Example $exampleId', () {\n");
   sb.add("  verifyExample('$example', {\n");
-  final rects = new List();
-  final elements = node.elements;
-  for (Element child in elements) {
-    rects.add(child.rect);
-  }
-
-  window.requestLayoutFrame(() {
-    for (int i = 0; i < elements.length; i++) {
-      _appendMetrics(sb, elements[i], rects[i].value, '    ');
+  window.requestMeasurementFrame(() {
+    for (Element element in node.elements) {
+      _appendMetrics(sb, element, '    ');
     }
     sb.add('  });\n');
     sb.add('});\n\n');
@@ -122,10 +116,9 @@ void printMetrics(String example) {
   });
 }
 
-void _appendMetrics(StringBuffer sb, Element node, ElementRect rect,
-    [String indent = '']) {
+void _appendMetrics(StringBuffer sb, Element node, [String indent = '']) {
   String id = node.id;
-  final offset = rect.offset;
+  final offset = node.rect.offset;
   num left = offset.left, top = offset.top;
   num width = offset.width, height = offset.height;
   sb.add("${indent}'$id': [$left, $top, $width, $height],\n");

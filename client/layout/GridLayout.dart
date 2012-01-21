@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -94,23 +94,19 @@ class GridLayout extends ViewLayout {
     // when the grid layout is used.
   }
 
-  // TODO(jacobr): cleanup this method so that it returns a Future
-  // rather than taking a Completer as an argument.
   /** The main entry point for layout computation. */
-  void measureLayout(Future<Size> size, Completer<bool> changed) {
+  bool measureLayout(int width, int height) {
+    assert(window.inMeasurementFrame);
     _ensureAllTracks();
-    window.requestLayoutFrame(() {
-      _gridWidth = size.value.width;
-      _gridHeight = size.value.height;
+    _gridWidth = width;
+    _gridHeight = height;
 
-      if (_rowTracks.length > 0 && _columnTracks.length > 0) {
-        _measureTracks();
-        _setBoundsOfChildren();
-        if (changed != null) {
-          changed.complete(true);
-        }
-      }
-    });
+    if (_rowTracks.length > 0 && _columnTracks.length > 0) {
+      _measureTracks();
+      _setBoundsOfChildren();
+      return true;
+    }
+    return false;
   }
 
   /**

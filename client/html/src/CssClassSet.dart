@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -105,6 +105,7 @@ class _CssClassSet implements Set<String> {
    *       className property of this element.
    */
   void _modify( f(Set<String> s)) {
+    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     Set<String> s = _read();
     f(s);
     _write(s);
@@ -137,6 +138,7 @@ class _CssClassSet implements Set<String> {
    * back to the element.
    */
   void _write(Set s) {
+    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     _element.className = _formatSet(s);
   }
 
