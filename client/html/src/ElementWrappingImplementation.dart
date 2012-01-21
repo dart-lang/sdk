@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12,7 +12,6 @@ class _ChildrenElementList implements ElementList {
     : _childElements = element.children,
       _element = element;
 
-  bool get _inDocument() => _nodeInDocument(_element);
   List<Element> _toList() {
     final output = new List(_childElements.length);
     for (int i = 0, len = _childElements.length; i < len; i++) {
@@ -62,7 +61,6 @@ class _ChildrenElementList implements ElementList {
   }
 
   void operator []=(int index, Element value) {
-    assert(!_inMeasurementFrame || (!_inDocument && !value._inDocument));
     _element.replaceChild(LevelDom.unwrap(value), _childElements.item(index));
   }
 
@@ -72,7 +70,6 @@ class _ChildrenElementList implements ElementList {
    }
 
   Element add(Element value) {
-    assert(!_inMeasurementFrame || (!_inDocument && !value._inDocument));
     _element.appendChild(LevelDom.unwrap(value));
     return value;
   }
@@ -82,9 +79,7 @@ class _ChildrenElementList implements ElementList {
   Iterator<Element> iterator() => _toList().iterator();
 
   void addAll(Collection<Element> collection) {
-    assert(!_inMeasurementFrame || !_inDocument);
     for (Element element in collection) {
-      assert(!_inMeasurementFrame || !element._inDocument);
       _element.appendChild(LevelDom.unwrap(element));
     }
   }
@@ -119,13 +114,11 @@ class _ChildrenElementList implements ElementList {
   }
 
   void clear() {
-    assert(!_inMeasurementFrame || !_inDocument);
     // It is unclear if we want to keep non element nodes?
     _element.textContent = '';
   }
 
   Element removeLast() {
-    assert(!_inMeasurementFrame || !_inDocument);
     final last = this.last();
     if (last != null) {
       _element.removeChild(LevelDom.unwrap(last));
@@ -319,12 +312,10 @@ class ElementAttributeMap implements Map<String, String> {
   }
 
   String remove(String key) {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     _element.removeAttribute(key);
   }
 
   void clear() {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     final attributes = _element.attributes;
     for (int i = attributes.length - 1; i >= 0; i--) {
       _element.removeAttribute(attributes.item(i).name);
@@ -443,52 +434,48 @@ class SimpleClientRect implements ClientRect {
   String toString() => "($left, $top, $width, $height)";
 }
 
+// TODO(jacobr): we cannot currently be lazy about calculating the client
+// rects as we must perform all measurement queries at a safe point to avoid
+// triggering unneeded layouts.
 /**
- * All your element measurement needs in one place.
- * All members of this class can only be cassed when inside a measurement
- * frame or when the element is not attached to the DOM.
+ * All your element measurement needs in one place
  * @domName none
  */
 class ElementRectWrappingImplementation implements ElementRect {
-  final dom.HTMLElement _element;
+  final ClientRect client;
+  final ClientRect offset;
+  final ClientRect scroll;
 
-  ElementRectWrappingImplementation(this._element);
+  // TODO(jacobr): should we move these outside of ElementRect to avoid the
+  // overhead of computing them every time even though they are rarely used.
+  // This should be type dom.ClientRect but that fails on dartium. b/5522629
+  final _boundingClientRect; 
+  // an exception due to a dartium bug.
+  final _clientRects; // TODO(jacobr): should be dom.ClientRectList
 
-  ClientRect get client() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return new SimpleClientRect(_element.clientLeft,
-                                _element.clientTop,
-                                _element.clientWidth, 
-                                _element.clientHeight);
-  }
-  
-  ClientRect get offset() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return new SimpleClientRect(_element.offsetLeft,
-                                _element.offsetTop,
-                                _element.offsetWidth,
-                                _element.offsetHeight);
-  }
+  ElementRectWrappingImplementation(dom.HTMLElement element) :
+    client = new SimpleClientRect(element.clientLeft,
+                                  element.clientTop,
+                                  element.clientWidth, 
+                                  element.clientHeight), 
+    offset = new SimpleClientRect(element.offsetLeft,
+                                  element.offsetTop,
+                                  element.offsetWidth,
+                                  element.offsetHeight),
+    scroll = new SimpleClientRect(element.scrollLeft,
+                                  element.scrollTop,
+                                  element.scrollWidth,
+                                  element.scrollHeight),
+    _boundingClientRect = element.getBoundingClientRect(),
+    _clientRects = element.getClientRects();
 
-  ClientRect get scroll() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return new SimpleClientRect(_element.scrollLeft,
-                                _element.scrollTop,
-                                _element.scrollWidth,
-                                _element.scrollHeight);
-  }
-
-  ClientRect get bounding() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return LevelDom.wrapClientRect(_element.getBoundingClientRect());
-  }
+  ClientRect get bounding() =>
+      LevelDom.wrapClientRect(_boundingClientRect);
 
   List<ClientRect> get clientRects() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    final clientRects = _element.getClientRects();
-    final out = new List(clientRects.length);
-    for (num i = 0, len = clientRects.length; i < len; i++) {
-      out[i] = LevelDom.wrapClientRect(clientRects.item(i));
+    final out = new List(_clientRects.length);
+    for (num i = 0; i < _clientRects.length; i++) {
+      out[i] = LevelDom.wrapClientRect(_clientRects.item(i));
     }
     return out;
   }
@@ -572,7 +559,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set attributes(Map<String, String> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.getKeys()) {
@@ -581,7 +567,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set elements(Collection<Element> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     final elements = this.elements;
     elements.clear();
     elements.addAll(value);
@@ -607,7 +592,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set classes(Collection<String> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     _CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
@@ -621,7 +605,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set dataAttributes(Map<String, String> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     Map<String, String> dataAttributes = this.dataAttributes;
     dataAttributes.clear();
     for (String key in value.getKeys()) {
@@ -631,17 +614,11 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   String get contentEditable() => _ptr.contentEditable;
 
-  void set contentEditable(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.contentEditable = value;
-  }
+  void set contentEditable(String value) { _ptr.contentEditable = value; }
 
   String get dir() => _ptr.dir;
 
-  void set dir(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.dir = value;
-  }
+  void set dir(String value) { _ptr.dir = value; }
 
   bool get draggable() => _ptr.draggable;
 
@@ -651,33 +628,21 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   bool get hidden() => _ptr.hidden;
 
-  void set hidden(bool value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.hidden = value;
-  }
+  void set hidden(bool value) { _ptr.hidden = value; }
 
   String get id() => _ptr.id;
 
-  void set id(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.id = value;
-  }
+  void set id(String value) { _ptr.id = value; }
 
   String get innerHTML() => _ptr.innerHTML;
 
-  void set innerHTML(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.innerHTML = value;
-  }
+  void set innerHTML(String value) { _ptr.innerHTML = value; }
 
   bool get isContentEditable() => _ptr.isContentEditable;
 
   String get lang() => _ptr.lang;
 
-  void set lang(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.lang = value;
-  }
+  void set lang(String value) { _ptr.lang = value; }
 
   Element get lastElementChild() => LevelDom.wrapElement(_ptr.lastElementChild);
 
@@ -691,46 +656,25 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   bool get spellcheck() => _ptr.spellcheck;
 
-  void set spellcheck(bool value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.spellcheck = value;
-  }
+  void set spellcheck(bool value) { _ptr.spellcheck = value; }
 
-  CSSStyleDeclaration get style() {
-    // Changes to this CSSStyleDeclaration dirty the layout so we must pass
-    // the associated Element to the CSSStyleDeclaration constructor so that
-    // we can compute whether the current element is attached to the document
-    // which is required to decide whether modification inside a measurement
-    // frame is allowed.
-    final raw = _ptr.style;
-    return raw.dartObjectLocalStorage !== null ?
-        raw.dartObjectLocalStorage :
-        new CSSStyleDeclarationWrappingImplementation._wrapWithElement(
-            raw, this);
-  }
+  CSSStyleDeclaration get style() => LevelDom.wrapCSSStyleDeclaration(_ptr.style);
 
   int get tabIndex() => _ptr.tabIndex;
 
-  void set tabIndex(int value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.tabIndex = value;
-  }
+  void set tabIndex(int value) { _ptr.tabIndex = value; }
 
   String get tagName() => _ptr.tagName;
 
   String get title() => _ptr.title;
 
-  void set title(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.title = value;
-  }
+  void set title(String value) { _ptr.title = value; }
 
   String get webkitdropzone() => _ptr.webkitdropzone;
 
   void set webkitdropzone(String value) { _ptr.webkitdropzone = value; }
 
   void blur() {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.blur();
   }
 
@@ -739,22 +683,18 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void focus() {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.focus();
   }
 
   Element insertAdjacentElement([String where = null, Element element = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     return LevelDom.wrapElement(_ptr.insertAdjacentElement(where, LevelDom.unwrap(element)));
   }
 
   void insertAdjacentHTML([String position_OR_where = null, String text = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.insertAdjacentHTML(position_OR_where, text);
   }
 
   void insertAdjacentText([String where = null, String text = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.insertAdjacentText(where, text);
   }
 
@@ -799,21 +739,24 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
    * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
    * scrollHeight, scrollWidth, scrollTop, scrollLeft
    */
-  ElementRect get rect() {
-    return new ElementRectWrappingImplementation(_ptr);
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(
+        () => new ElementRectWrappingImplementation(_ptr),
+        new Completer<ElementRect>());
   }
 
   /** @domName Window.getComputedStyle */
-  CSSStyleDeclaration get computedStyle() {
+  Future<CSSStyleDeclaration> get computedStyle() {
      // TODO(jacobr): last param should be null, see b/5045788
-    return getComputedStyle('');
+     return getComputedStyle('');
   }
 
   /** @domName Window.getComputedStyle */
-  CSSStyleDeclaration getComputedStyle(String pseudoElement) {
-    assert(window.inMeasurementFrame || !_inDocument);
-    return LevelDom.wrapCSSStyleDeclaration(
-            dom.window.getComputedStyle(_ptr, pseudoElement));
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
+    return _createMeasurementFuture(() =>
+        LevelDom.wrapCSSStyleDeclaration(
+            dom.window.getComputedStyle(_ptr, pseudoElement)),
+        new Completer<CSSStyleDeclaration>());
   }
 
   ElementEvents get on() {

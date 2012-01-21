@@ -1,4 +1,4 @@
-// Copyright (c) 2012 the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -82,9 +82,10 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
   /** @domName caretRangeFromPoint */
-  Range caretRangeFromPoint([int x = null, int y = null]) {
-    assert(_inMeasurementFrame);
-    return LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y));
+  Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y)),
+        new Completer<Range>());
   }
 
   /** @domName createEvent */
@@ -93,14 +94,14 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   }
 
   /** @domName elementFromPoint */
-  Element elementFromPoint([int x = null, int y = null]) {
-    assert(_inMeasurementFrame);
-    return LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y));
+  Future<Element> elementFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y)),
+        new Completer<Element>());
   }
 
   /** @domName execCommand */
   bool execCommand([String command = null, bool userInterface = null, String value = null]) {
-    assert(!_inMeasurementFrame);
     return _documentPtr.execCommand(command, userInterface, value);
   }
 
@@ -139,10 +140,7 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   String get manifest() => _ptr.manifest;
 
   /** @domName HTMLHtmlElement.manifest */
-  void set manifest(String value) {
-    assert(!_inMeasurementFrame);
-    _ptr.manifest = value;
-  }
+  void set manifest(String value) { _ptr.manifest = value; }
 
   DocumentEvents get on() {
     if (_on === null) {

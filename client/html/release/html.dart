@@ -11294,7 +11294,7 @@ interface DeviceOrientationEvent extends Event default DeviceOrientationEventWra
 
   num get gamma();
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11355,11 +11355,9 @@ interface Document extends Element /*, common.NodeSelector */ {
 
   String get webkitVisibilityState();
 
-  /** Only call when [window.inMeasurementFrame] is true. */
-  Range caretRangeFromPoint([int x, int y]);
+  Future<Range> caretRangeFromPoint([int x, int y]);
 
-  /** Only call when [window.inMeasurementFrame] is true. */
-  Element elementFromPoint([int x, int y]);
+  Future<Element> elementFromPoint([int x, int y]);
 
   bool execCommand([String command, bool userInterface, String value]);
 
@@ -11382,6 +11380,8 @@ interface Document extends Element /*, common.NodeSelector */ {
   void set manifest(String value);
 
   DocumentEvents get on();
+
+  Future<ElementRect> get rect();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11432,7 +11432,7 @@ interface DOMApplicationCache extends EventTarget {
 
   DOMApplicationCacheEvents get on();
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11440,6 +11440,10 @@ interface ElementList extends List<Element> {
   // TODO(jacobr): add element batch manipulation methods.
   Element get first();
   // TODO(jacobr): add insertAt
+}
+
+class DeferredElementRect {
+  // TODO(jacobr)
 }
 
 interface ElementEvents extends Events {
@@ -11615,14 +11619,11 @@ interface Element extends Node /*, common.NodeSelector, common.ElementTraversal 
 
   bool matchesSelector([String selectors]);
 
-  /** Only access members when [window.inMeasurementFrame] is true. */
-  ElementRect get rect();
+  Future<ElementRect> get rect();
 
-  /** Only call when [window.inMeasurementFrame] is true. */
-  CSSStyleDeclaration get computedStyle();
+  Future<CSSStyleDeclaration> get computedStyle();
 
-  /** Only call when [window.inMeasurementFrame] is true. */
-  CSSStyleDeclaration getComputedStyle(String pseudoElement);
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement);
 
   ElementEvents get on();
 
@@ -12485,7 +12486,7 @@ interface MutationEvent extends Event default MutationEventWrappingImplementatio
 
   Node get relatedNode();
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12521,8 +12522,6 @@ interface Node extends EventTarget {
   Node insertBefore(Node newChild, Node refChild);
 
   Node clone(bool deep);
-
-  bool get _inDocument();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13067,12 +13066,9 @@ interface WheelEvent extends UIEvent default WheelEventWrappingImplementation {
 
   int get y();
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-typedef void LayoutCallback();
-typedef LayoutCallback MeasurementCallback(); 
 
 interface WindowEvents extends Events {
   EventListenerList get abort();
@@ -13373,28 +13369,19 @@ interface Window extends EventTarget {
 
   void webkitCancelRequestAnimationFrame(int id);
 
+  // TODO(jacobr): make these return Future<Point>.
   Point webkitConvertPointFromNodeToPage([Node node, Point p]);
+
   Point webkitConvertPointFromPageToNode([Node node, Point p]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, [Element element]);
 
   /**
-   * Executes [callback] after the event loop unwinds but before the page is
-   * rendered.  Inside the callback, synchronous element measurement is
-   * allowed and dom manipulation that could trigger a layout is disallowed.
-   * The [callback] may return a closure that is run in the normal
-   * context where dom manipulation is allowed but sync measurement is
-   * disallowed.
+   * Executes a [callback] after the next batch of browser layout measurements
+   * has completed or would have completed if any browser layout measurements
+   * had been scheduled.
    */
-  void requestMeasurementFrame(MeasurementCallback callback);
-
-  /**
-   * True iff within a call to [:requestMeasurementFrame:]
-   * When inside a measurement frame, any DOM manipulation that could trigger
-   * a layout is prohibited to avoid accidentally triggering large numbers of
-   * layouts.
-   */
-  bool get inMeasurementFrame();
+  void requestLayoutFrame(TimeoutHandler callback);
 
   // Window open(String url, String target, WindowSpec features);
 

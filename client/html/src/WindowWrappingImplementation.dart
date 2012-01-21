@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -803,7 +803,6 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
   }
 
   Point webkitConvertPointFromNodeToPage([Node node = null, Point p = null]) {
-    assert(_inMeasurementFrame);
     if (node === null) {
       if (p === null) {
         return LevelDom.wrapPoint(_ptr.webkitConvertPointFromNodeToPage());
@@ -819,7 +818,6 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
   }
 
   Point webkitConvertPointFromPageToNode([Node node = null, Point p = null]) {
-    assert(_inMeasurementFrame);
     if (node === null) {
       if (p === null) {
         return LevelDom.wrapPoint(_ptr.webkitConvertPointFromPageToNode());
@@ -838,11 +836,9 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     return _ptr.webkitRequestAnimationFrame(callback, LevelDom.unwrap(element));
   }
 
-  void requestMeasurementFrame(MeasurementCallback callback) {
+  void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
   }
-
-  bool get inMeasurementFrame() => _inMeasurementFrame;
 
   WindowEvents get on() {
     if (_on === null) {

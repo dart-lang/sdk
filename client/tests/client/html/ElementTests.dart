@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -48,8 +48,9 @@ Element makeElementWithChildren() =>
 
 void testElement() { 
   asyncTest('computedStyle', 1, () {
-    window.requestMeasurementFrame(() {
-      Expect.equals(document.body.computedStyle.left, 'auto');
+    final element = document.body;
+    element.computedStyle.then((style) {
+      Expect.equals(style.getPropertyValue('left'), 'auto');
       callbackDone();
     });
   });
@@ -65,8 +66,7 @@ void testElement() {
     container.elements.add(element);
     document.body.elements.add(container);
 
-    window.requestMeasurementFrame(() {
-      final rect = element.rect;
+    element.rect.then((rect) {
       expectLargeRect(rect.client);
       expectLargeRect(rect.offset);
       expectLargeRect(rect.scroll);
@@ -266,7 +266,7 @@ void testElement() {
   });
 
   test('eventListeners', () {
-    ElementWrappingImplementation element = new Element.tag('div');
+    final element = new Element.tag('div');
     final on = element.on;
     final rawElement = unwrapDomObject(element);
 

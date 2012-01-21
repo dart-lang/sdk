@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,7 +27,7 @@ interface Positionable {
 class LayoutParams {
   // TODO(jmesserly): should be const, but there's a bug in DartC preventing us
   // from calling "window." in an initializer. See b/5332777
-  CSSStyleDeclaration style;
+  Future<CSSStyleDeclaration> style;
 
   int get layer() => 0;
 
@@ -71,8 +71,7 @@ class ViewLayout {
    * to determine how this view should be laid out.
    */
   LayoutParams layoutParams;
-  int _currentWidth;
-  int _currentHeight;
+  Future<ElementRect> _cachedViewRect;
 
   /** The view that this layout belongs to. */
   final Positionable view;
@@ -103,17 +102,19 @@ class ViewLayout {
     return view.customStyle['display'] == "-dart-grid";
   }
 
-  CSSStyleDeclaration get _style() => layoutParams.style;
+  CSSStyleDeclaration get _style() => layoutParams.style.value;
 
   void cacheExistingBrowserLayout() {
-    assert(window.inMeasurementFrame);
-    final rect = view.node.rect.offset;
-    _currentWidth = rect.width;
-    _currentHeight = rect.height;
+    _cachedViewRect = view.node.rect;
   }
 
-  int get currentWidth() => _currentWidth;
-  int get currentHeight() => _currentHeight;
+  int get currentWidth() {
+    return _cachedViewRect.value.offset.width;
+  }
+
+  int get currentHeight() {
+    return _cachedViewRect.value.offset.height;
+  }
 
   int get borderLeftWidth() => _toPixels(_style.borderLeftWidth);
   int get borderTopWidth() => _toPixels(_style.borderTopWidth);
@@ -123,7 +124,7 @@ class ViewLayout {
   int get borderHeight() => borderTopWidth + borderBottomWidth;
 
   /** Implements the custom layout computation. */
-  bool measureLayout(int width, int height) {
+  void measureLayout(Future<Size> size, Completer<bool> changed) {
   }
 
   /**
@@ -139,12 +140,13 @@ class ViewLayout {
     // Note: we need to save the client height
     _measuredWidth = width - borderWidth;
     _measuredHeight = height - borderHeight;
-    measureLayout(_measuredWidth, _measuredHeight);
+    final completer = new Completer<Size>();
+    completer.complete(new Size(_measuredWidth, _measuredHeight));
+    measureLayout(completer.future, null);
   }
 
   /** Applies the layout to the node. */
   void applyLayout() {
-    assert(!window.inMeasurementFrame);
     if (_measuredLeft != null) {
       // TODO(jmesserly): benchmark the performance of this DOM interaction
       final style = view.node.style;
@@ -186,7 +188,7 @@ class ViewLayout {
   }
 
   int measureWidth(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style;
+    final style = layoutParams.style.value;
     switch (mode) {
       case ContentSizeMode.MIN:
         return _styleToPixels(
@@ -199,7 +201,7 @@ class ViewLayout {
   }
 
   int measureHeight(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style;
+    final style = layoutParams.style.value;
     switch (mode) {
       case ContentSizeMode.MIN:
         return _styleToPixels(

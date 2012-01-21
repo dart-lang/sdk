@@ -57,8 +57,8 @@ totalTests() {
     body.nodes.add(div);
 
     HtmlUtils.setIntegerProperty(div, "left", 100, "px");
-    window.requestMeasurementFrame(() {
-      String valueAsString = div.computedStyle.left;
+    div.computedStyle.then((CSSStyleDeclaration computedStyle) { 
+      String valueAsString = computedStyle.getPropertyValue("left");
       // FIXME: Test fails, with valueAsString == "auto". However,
       // setIntegerProperty works when tested in practice, so there is
       // something wrong with recovering the value.

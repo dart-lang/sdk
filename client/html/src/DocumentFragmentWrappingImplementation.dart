@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -132,6 +132,11 @@ class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
   }
 }
 
+Future<CSSStyleDeclaration> _emptyStyleFuture() {
+  return _createMeasurementFuture(() => new EmptyStyleDeclaration(),
+                                  new Completer<CSSStyleDeclaration>());
+}
+
 class EmptyElementRect implements ElementRect {
   final ClientRect client = const SimpleClientRect(0, 0, 0, 0);
   final ClientRect offset = const SimpleClientRect(0, 0, 0, 0);
@@ -229,10 +234,9 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return _on;
   }
 
-  ElementRect get rect() {
-    // A document fragment can never be attached to a Document so it always
-    // safe to measure.
-    return const EmptyElementRect();
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(() => const EmptyElementRect(),
+                                    new Completer<ElementRect>());
   }
 
   Element query(String selectors) =>
@@ -265,9 +269,10 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   Set<String> get classes() => new Set<String>();
   Map<String, String> get dataAttributes() => const {};
   CSSStyleDeclaration get style() => new EmptyStyleDeclaration();
-  CSSStyleDeclaration get computedStyle() => new EmptyStyleDeclaration();
-  CSSStyleDeclaration getComputedStyle(String pseudoElement) =>
-      new EmptyStyleDeclaration();
+  Future<CSSStyleDeclaration> get computedStyle() =>
+      _emptyStyleFuture();
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+      _emptyStyleFuture();
   bool matchesSelector([String selectors]) => false;
 
   // Imperative Element methods are made into no-ops, as they are on parentless

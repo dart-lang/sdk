@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -59,11 +59,9 @@ interface Document extends Element /*, common.NodeSelector */ {
 
   String get webkitVisibilityState();
 
-  /** Only call when [window.inMeasurementFrame] is true. */
-  Range caretRangeFromPoint([int x, int y]);
+  Future<Range> caretRangeFromPoint([int x, int y]);
 
-  /** Only call when [window.inMeasurementFrame] is true. */
-  Element elementFromPoint([int x, int y]);
+  Future<Element> elementFromPoint([int x, int y]);
 
   bool execCommand([String command, bool userInterface, String value]);
 
@@ -86,4 +84,6 @@ interface Document extends Element /*, common.NodeSelector */ {
   void set manifest(String value);
 
   DocumentEvents get on();
+
+  Future<ElementRect> get rect();
 }

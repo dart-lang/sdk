@@ -18601,7 +18601,7 @@ class CompositionEventWrappingImplementation extends UIEventWrappingImplementati
 
   String get data() => _ptr.data;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18708,7 +18708,6 @@ class _CssClassSet implements Set<String> {
    *       className property of this element.
    */
   void _modify( f(Set<String> s)) {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     Set<String> s = _read();
     f(s);
     _write(s);
@@ -18741,7 +18740,6 @@ class _CssClassSet implements Set<String> {
    * back to the element.
    */
   void _write(Set s) {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     _element.className = _formatSet(s);
   }
 
@@ -18753,7 +18751,7 @@ class _CssClassSet implements Set<String> {
 
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18767,18 +18765,8 @@ class _CssClassSet implements Set<String> {
 
 class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implements CSSStyleDeclaration {
   static String _cachedBrowserPrefix;
-  /**
-   * The element this style declaration is associated with if any.  This
-   * should only be set to a non-null value if modifying this object
-   * will change the associated element.  Thus this should not be set for
-   * computed styles.
-   */    
-  final ElementWrappingImplementation _element;
 
-  CSSStyleDeclarationWrappingImplementation._wrap(ptr)
-      : super._wrap(ptr), _element = null;
-  CSSStyleDeclarationWrappingImplementation._wrapWithElement(
-      ptr, this._element) : super._wrap(ptr);
+  CSSStyleDeclarationWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
   factory CSSStyleDeclarationWrappingImplementation.css(String css) {
     var style = new Element.tag('div').style;
@@ -18797,21 +18785,14 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
       } else {
         _cachedBrowserPrefix = '-webkit-';
       }
-      // TODO(jacobr): support IE and Opera as well.
+      // TODO(jacobr): support IE 9.0 and Opera as well.
     }
     return _cachedBrowserPrefix;
   }
 
-  String get cssText() => _ptr.cssText;
+  String get cssText() { return _ptr.cssText; }
 
-  bool get _inDocument() {
-    return _element !== null && _element._inDocument;
-  }
-
-  void set cssText(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.cssText = value;
-  }
+  void set cssText(String value) { _ptr.cssText = value; }
 
   int get length() { return _ptr.length; }
 
@@ -18842,14 +18823,15 @@ class CSSStyleDeclarationWrappingImplementation extends DOMWrapperBase implement
   }
 
   String removeProperty(String propertyName) {
-    assert(!_inMeasurementFrame || !_inDocument);
     return _ptr.removeProperty(propertyName);
   }
 
   void setProperty(String propertyName, var value, [String priority = '']) {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.setProperty(propertyName, '$value', priority);
   }
+
+  String get typeName() { return "CSSStyleDeclaration"; }
+
 
   /** Gets the value of "animation" */
   String get animation() =>
@@ -21770,7 +21752,7 @@ class DeviceOrientationEventWrappingImplementation extends EventWrappingImplemen
 
   num get gamma() => _ptr.gamma;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21904,6 +21886,11 @@ class EmptyStyleDeclaration extends CSSStyleDeclarationWrappingImplementation {
   }
 }
 
+Future<CSSStyleDeclaration> _emptyStyleFuture() {
+  return _createMeasurementFuture(() => new EmptyStyleDeclaration(),
+                                  new Completer<CSSStyleDeclaration>());
+}
+
 class EmptyElementRect implements ElementRect {
   final ClientRect client = const SimpleClientRect(0, 0, 0, 0);
   final ClientRect offset = const SimpleClientRect(0, 0, 0, 0);
@@ -22001,10 +21988,9 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
     return _on;
   }
 
-  ElementRect get rect() {
-    // A document fragment can never be attached to a Document so it always
-    // safe to measure.
-    return const EmptyElementRect();
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(() => const EmptyElementRect(),
+                                    new Completer<ElementRect>());
   }
 
   Element query(String selectors) =>
@@ -22037,9 +22023,10 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
   Set<String> get classes() => new Set<String>();
   Map<String, String> get dataAttributes() => const {};
   CSSStyleDeclaration get style() => new EmptyStyleDeclaration();
-  CSSStyleDeclaration get computedStyle() => new EmptyStyleDeclaration();
-  CSSStyleDeclaration getComputedStyle(String pseudoElement) =>
-      new EmptyStyleDeclaration();
+  Future<CSSStyleDeclaration> get computedStyle() =>
+      _emptyStyleFuture();
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) =>
+      _emptyStyleFuture();
   bool matchesSelector([String selectors]) => false;
 
   // Imperative Element methods are made into no-ops, as they are on parentless
@@ -22139,7 +22126,7 @@ class DocumentFragmentWrappingImplementation extends NodeWrappingImplementation 
 
   DocumentFragment clone(bool deep) => super.clone(deep);
 }
-// Copyright (c) 2012 the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22223,9 +22210,10 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   String get webkitVisibilityState() => _documentPtr.webkitVisibilityState;
 
   /** @domName caretRangeFromPoint */
-  Range caretRangeFromPoint([int x = null, int y = null]) {
-    assert(_inMeasurementFrame);
-    return LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y));
+  Future<Range> caretRangeFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapRange(_documentPtr.caretRangeFromPoint(x, y)),
+        new Completer<Range>());
   }
 
   /** @domName createEvent */
@@ -22234,14 +22222,14 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   }
 
   /** @domName elementFromPoint */
-  Element elementFromPoint([int x = null, int y = null]) {
-    assert(_inMeasurementFrame);
-    return LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y));
+  Future<Element> elementFromPoint([int x = null, int y = null]) {
+    return _createMeasurementFuture(
+        () => LevelDom.wrapElement(_documentPtr.elementFromPoint(x, y)),
+        new Completer<Element>());
   }
 
   /** @domName execCommand */
   bool execCommand([String command = null, bool userInterface = null, String value = null]) {
-    assert(!_inMeasurementFrame);
     return _documentPtr.execCommand(command, userInterface, value);
   }
 
@@ -22280,10 +22268,7 @@ class DocumentWrappingImplementation extends ElementWrappingImplementation imple
   String get manifest() => _ptr.manifest;
 
   /** @domName HTMLHtmlElement.manifest */
-  void set manifest(String value) {
-    assert(!_inMeasurementFrame);
-    _ptr.manifest = value;
-  }
+  void set manifest(String value) { _ptr.manifest = value; }
 
   DocumentEvents get on() {
     if (_on === null) {
@@ -22347,7 +22332,7 @@ class DOMWrapperBase {
 /** This function is provided for unittest purposes only. */
 unwrapDomObject(DOMWrapperBase wrapper) {
   return wrapper._ptr;
-}// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22361,7 +22346,6 @@ class _ChildrenElementList implements ElementList {
     : _childElements = element.children,
       _element = element;
 
-  bool get _inDocument() => _nodeInDocument(_element);
   List<Element> _toList() {
     final output = new List(_childElements.length);
     for (int i = 0, len = _childElements.length; i < len; i++) {
@@ -22411,7 +22395,6 @@ class _ChildrenElementList implements ElementList {
   }
 
   void operator []=(int index, Element value) {
-    assert(!_inMeasurementFrame || (!_inDocument && !value._inDocument));
     _element.replaceChild(LevelDom.unwrap(value), _childElements.item(index));
   }
 
@@ -22421,7 +22404,6 @@ class _ChildrenElementList implements ElementList {
    }
 
   Element add(Element value) {
-    assert(!_inMeasurementFrame || (!_inDocument && !value._inDocument));
     _element.appendChild(LevelDom.unwrap(value));
     return value;
   }
@@ -22431,9 +22413,7 @@ class _ChildrenElementList implements ElementList {
   Iterator<Element> iterator() => _toList().iterator();
 
   void addAll(Collection<Element> collection) {
-    assert(!_inMeasurementFrame || !_inDocument);
     for (Element element in collection) {
-      assert(!_inMeasurementFrame || !element._inDocument);
       _element.appendChild(LevelDom.unwrap(element));
     }
   }
@@ -22468,13 +22448,11 @@ class _ChildrenElementList implements ElementList {
   }
 
   void clear() {
-    assert(!_inMeasurementFrame || !_inDocument);
     // It is unclear if we want to keep non element nodes?
     _element.textContent = '';
   }
 
   Element removeLast() {
-    assert(!_inMeasurementFrame || !_inDocument);
     final last = this.last();
     if (last != null) {
       _element.removeChild(LevelDom.unwrap(last));
@@ -22668,12 +22646,10 @@ class ElementAttributeMap implements Map<String, String> {
   }
 
   String remove(String key) {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     _element.removeAttribute(key);
   }
 
   void clear() {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_element));
     final attributes = _element.attributes;
     for (int i = attributes.length - 1; i >= 0; i--) {
       _element.removeAttribute(attributes.item(i).name);
@@ -22792,52 +22768,48 @@ class SimpleClientRect implements ClientRect {
   String toString() => "($left, $top, $width, $height)";
 }
 
+// TODO(jacobr): we cannot currently be lazy about calculating the client
+// rects as we must perform all measurement queries at a safe point to avoid
+// triggering unneeded layouts.
 /**
- * All your element measurement needs in one place.
- * All members of this class can only be cassed when inside a measurement
- * frame or when the element is not attached to the DOM.
+ * All your element measurement needs in one place
  * @domName none
  */
 class ElementRectWrappingImplementation implements ElementRect {
-  final dom.HTMLElement _element;
+  final ClientRect client;
+  final ClientRect offset;
+  final ClientRect scroll;
 
-  ElementRectWrappingImplementation(this._element);
+  // TODO(jacobr): should we move these outside of ElementRect to avoid the
+  // overhead of computing them every time even though they are rarely used.
+  // This should be type dom.ClientRect but that fails on dartium. b/5522629
+  final _boundingClientRect; 
+  // an exception due to a dartium bug.
+  final _clientRects; // TODO(jacobr): should be dom.ClientRectList
 
-  ClientRect get client() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return new SimpleClientRect(_element.clientLeft,
-                                _element.clientTop,
-                                _element.clientWidth, 
-                                _element.clientHeight);
-  }
-  
-  ClientRect get offset() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return new SimpleClientRect(_element.offsetLeft,
-                                _element.offsetTop,
-                                _element.offsetWidth,
-                                _element.offsetHeight);
-  }
+  ElementRectWrappingImplementation(dom.HTMLElement element) :
+    client = new SimpleClientRect(element.clientLeft,
+                                  element.clientTop,
+                                  element.clientWidth, 
+                                  element.clientHeight), 
+    offset = new SimpleClientRect(element.offsetLeft,
+                                  element.offsetTop,
+                                  element.offsetWidth,
+                                  element.offsetHeight),
+    scroll = new SimpleClientRect(element.scrollLeft,
+                                  element.scrollTop,
+                                  element.scrollWidth,
+                                  element.scrollHeight),
+    _boundingClientRect = element.getBoundingClientRect(),
+    _clientRects = element.getClientRects();
 
-  ClientRect get scroll() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return new SimpleClientRect(_element.scrollLeft,
-                                _element.scrollTop,
-                                _element.scrollWidth,
-                                _element.scrollHeight);
-  }
-
-  ClientRect get bounding() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    return LevelDom.wrapClientRect(_element.getBoundingClientRect());
-  }
+  ClientRect get bounding() =>
+      LevelDom.wrapClientRect(_boundingClientRect);
 
   List<ClientRect> get clientRects() {
-    assert(window.inMeasurementFrame || !_nodeInDocument(_element));
-    final clientRects = _element.getClientRects();
-    final out = new List(clientRects.length);
-    for (num i = 0, len = clientRects.length; i < len; i++) {
-      out[i] = LevelDom.wrapClientRect(clientRects.item(i));
+    final out = new List(_clientRects.length);
+    for (num i = 0; i < _clientRects.length; i++) {
+      out[i] = LevelDom.wrapClientRect(_clientRects.item(i));
     }
     return out;
   }
@@ -22921,7 +22893,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set attributes(Map<String, String> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.getKeys()) {
@@ -22930,7 +22901,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set elements(Collection<Element> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     final elements = this.elements;
     elements.clear();
     elements.addAll(value);
@@ -22956,7 +22926,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set classes(Collection<String> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     _CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
@@ -22970,7 +22939,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void set dataAttributes(Map<String, String> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     Map<String, String> dataAttributes = this.dataAttributes;
     dataAttributes.clear();
     for (String key in value.getKeys()) {
@@ -22980,17 +22948,11 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   String get contentEditable() => _ptr.contentEditable;
 
-  void set contentEditable(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.contentEditable = value;
-  }
+  void set contentEditable(String value) { _ptr.contentEditable = value; }
 
   String get dir() => _ptr.dir;
 
-  void set dir(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.dir = value;
-  }
+  void set dir(String value) { _ptr.dir = value; }
 
   bool get draggable() => _ptr.draggable;
 
@@ -23000,33 +22962,21 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   bool get hidden() => _ptr.hidden;
 
-  void set hidden(bool value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.hidden = value;
-  }
+  void set hidden(bool value) { _ptr.hidden = value; }
 
   String get id() => _ptr.id;
 
-  void set id(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.id = value;
-  }
+  void set id(String value) { _ptr.id = value; }
 
   String get innerHTML() => _ptr.innerHTML;
 
-  void set innerHTML(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.innerHTML = value;
-  }
+  void set innerHTML(String value) { _ptr.innerHTML = value; }
 
   bool get isContentEditable() => _ptr.isContentEditable;
 
   String get lang() => _ptr.lang;
 
-  void set lang(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.lang = value;
-  }
+  void set lang(String value) { _ptr.lang = value; }
 
   Element get lastElementChild() => LevelDom.wrapElement(_ptr.lastElementChild);
 
@@ -23040,46 +22990,25 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
 
   bool get spellcheck() => _ptr.spellcheck;
 
-  void set spellcheck(bool value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.spellcheck = value;
-  }
+  void set spellcheck(bool value) { _ptr.spellcheck = value; }
 
-  CSSStyleDeclaration get style() {
-    // Changes to this CSSStyleDeclaration dirty the layout so we must pass
-    // the associated Element to the CSSStyleDeclaration constructor so that
-    // we can compute whether the current element is attached to the document
-    // which is required to decide whether modification inside a measurement
-    // frame is allowed.
-    final raw = _ptr.style;
-    return raw.dartObjectLocalStorage !== null ?
-        raw.dartObjectLocalStorage :
-        new CSSStyleDeclarationWrappingImplementation._wrapWithElement(
-            raw, this);
-  }
+  CSSStyleDeclaration get style() => LevelDom.wrapCSSStyleDeclaration(_ptr.style);
 
   int get tabIndex() => _ptr.tabIndex;
 
-  void set tabIndex(int value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.tabIndex = value;
-  }
+  void set tabIndex(int value) { _ptr.tabIndex = value; }
 
   String get tagName() => _ptr.tagName;
 
   String get title() => _ptr.title;
 
-  void set title(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.title = value;
-  }
+  void set title(String value) { _ptr.title = value; }
 
   String get webkitdropzone() => _ptr.webkitdropzone;
 
   void set webkitdropzone(String value) { _ptr.webkitdropzone = value; }
 
   void blur() {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.blur();
   }
 
@@ -23088,22 +23017,18 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
   }
 
   void focus() {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.focus();
   }
 
   Element insertAdjacentElement([String where = null, Element element = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     return LevelDom.wrapElement(_ptr.insertAdjacentElement(where, LevelDom.unwrap(element)));
   }
 
   void insertAdjacentHTML([String position_OR_where = null, String text = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.insertAdjacentHTML(position_OR_where, text);
   }
 
   void insertAdjacentText([String where = null, String text = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     _ptr.insertAdjacentText(where, text);
   }
 
@@ -23148,21 +23073,24 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
    * clientTop, clientLeft, offsetHeight, offsetWidth, offsetTop, offsetLeft,
    * scrollHeight, scrollWidth, scrollTop, scrollLeft
    */
-  ElementRect get rect() {
-    return new ElementRectWrappingImplementation(_ptr);
+  Future<ElementRect> get rect() {
+    return _createMeasurementFuture(
+        () => new ElementRectWrappingImplementation(_ptr),
+        new Completer<ElementRect>());
   }
 
   /** @domName Window.getComputedStyle */
-  CSSStyleDeclaration get computedStyle() {
+  Future<CSSStyleDeclaration> get computedStyle() {
      // TODO(jacobr): last param should be null, see b/5045788
-    return getComputedStyle('');
+     return getComputedStyle('');
   }
 
   /** @domName Window.getComputedStyle */
-  CSSStyleDeclaration getComputedStyle(String pseudoElement) {
-    assert(window.inMeasurementFrame || !_inDocument);
-    return LevelDom.wrapCSSStyleDeclaration(
-            dom.window.getComputedStyle(_ptr, pseudoElement));
+  Future<CSSStyleDeclaration> getComputedStyle(String pseudoElement) {
+    return _createMeasurementFuture(() =>
+        LevelDom.wrapCSSStyleDeclaration(
+            dom.window.getComputedStyle(_ptr, pseudoElement)),
+        new Completer<CSSStyleDeclaration>());
   }
 
   ElementEvents get on() {
@@ -23225,7 +23153,7 @@ class EventSourceWrappingImplementation extends EventTargetWrappingImplementatio
     return _on;
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23238,7 +23166,7 @@ class EventsImplementation implements Events {
   EventsImplementation._wrap(this._ptr) {
     // TODO(sigmund): the key type (String) yields a warning in frog and the vm,
     // but it is currently necessary to compile with dartc.
-    _listenerMap = new Map<String, EventListenerList>();
+    _listenerMap = <String, EventListenerList>{};
   }
 
   EventListenerList operator [](String type) {
@@ -23472,15 +23400,23 @@ class LoseContextWrappingImplementation extends DOMWrapperBase implements LoseCo
     return;
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-bool _inMeasurementFrame = false;
+typedef Object ComputeValue();
+
+class _MeasurementRequest<T> {
+  final ComputeValue computeValue;
+  final Completer<T> completer;
+  Object value;
+  bool exception = false;
+  _MeasurementRequest(this.computeValue, this.completer);
+}
 
 final _MEASUREMENT_MESSAGE = "DART-MEASURE";
-
-Queue<MeasurementCallback> _pendingMeasurementFrameCallbacks;
+List<_MeasurementRequest> _pendingRequests;
+List<TimeoutHandler> _pendingMeasurementFrameCallbacks;
 bool _nextMeasurementFrameScheduled = false;
 bool _firstMeasurementRequest = true;
 
@@ -23493,9 +23429,9 @@ void _maybeScheduleMeasurementFrame() {
   if (_firstMeasurementRequest) {
     // Messages from other windows do not cause a security risk as
     // all we care about is that _onCompleteMeasurementRequests is called
-    // after the current event loop is unwound and calling
-    // _runMeasurementFrames is a noop when zero requests are pending.
-    window.on.message.add((e) => _runMeasurementFrames());
+    // after the current event loop is unwound and calling the function is
+    // a noop when zero requests are pending.
+    window.on.message.add((e) => _completeMeasurementFutures());
     _firstMeasurementRequest = false;
   }
 
@@ -23512,52 +23448,75 @@ void _maybeScheduleMeasurementFrame() {
  * when they would have completed to avoid confusing bugs if it happened that
  * no measurements were actually requested.
  */
-void _addMeasurementFrameCallback(MeasurementCallback callback) {
-  assert(callback != null);
+void _addMeasurementFrameCallback(TimeoutHandler callback) {
   if (_pendingMeasurementFrameCallbacks === null) {
-    _pendingMeasurementFrameCallbacks = new Queue<MeasurementCallback>();
+    _pendingMeasurementFrameCallbacks = <TimeoutHandler>[];
+    _maybeScheduleMeasurementFrame();
   }
-  _maybeScheduleMeasurementFrame();
   _pendingMeasurementFrameCallbacks.add(callback);
 }
 
 /**
- * Run all pending measurement frames evaluating them in a single batch
+ * Returns a [Future] whose value will be the result of evaluating
+ * [computeValue] during the next safe measurement interval.
+ * The next safe measurement interval is after the current event loop has
+ * unwound but before the browser has rendered the page.
+ * It is important that the [computeValue] function only queries the html
+ * layout and html in any way.
+ */
+Future _createMeasurementFuture(ComputeValue computeValue,
+                                Completer completer) {
+  if (_pendingRequests === null) {
+    _pendingRequests = <_MeasurementRequest>[];
+    _maybeScheduleMeasurementFrame();
+  }
+  _pendingRequests.add(new _MeasurementRequest(computeValue, completer));
+  return completer.future;
+}
+
+/**
+ * Complete all pending measurement futures evaluating them in a single batch
  * so that the the browser is guaranteed to avoid multiple layouts.
  */
-void _runMeasurementFrames() {
-  if (_nextMeasurementFrameScheduled == false || _inMeasurementFrame) {
+void _completeMeasurementFutures() {
+  if (_nextMeasurementFrameScheduled == false) {
     // Ignore spurious call to this function.
     return;
   }
 
-  _inMeasurementFrame = true;
-
-  final layoutCallbacks = <LayoutCallback>[];
-  while (!_pendingMeasurementFrameCallbacks.isEmpty()) {
-    MeasurementCallback measurementCallback =
-        _pendingMeasurementFrameCallbacks.removeFirst();
-    try {
-      final layoutCallback = measurementCallback();
-      if (layoutCallback != null) {
-        layoutCallbacks.add(layoutCallback);
+  _nextMeasurementFrameScheduled = false;
+  // We must compute all new values before fulfilling the futures as
+  // the onComplete callbacks for the futures could modify the DOM making
+  // subsequent measurement calculations expensive to compute.
+  if (_pendingRequests !== null) {
+    for (_MeasurementRequest request in _pendingRequests) {
+      try {
+        request.value = request.computeValue();
+      } catch(var e) {
+        request.value = e;
+        request.exception = true;
       }
-    } catch (Object e) {
-      window.console.error(
-          'Caught exception in measurement frame callback: ${e}');
-      // TODO(jacobr): throw this exception again in the correct way.
     }
   }
 
-  _inMeasurementFrame = false;
-  _nextMeasurementFrameScheduled = false;
+  final completedRequests = _pendingRequests;
+  final readyMeasurementFrameCallbacks = _pendingMeasurementFrameCallbacks;
+  _pendingRequests = null;
+  _pendingMeasurementFrameCallbacks = null;
+  if (completedRequests !== null) {
+    for (_MeasurementRequest request in completedRequests) {
+      if (request.exception) {
+        request.completer.completeException(request.value);
+      } else {
+        request.completer.complete(request.value);
+      }
+    }
+  }
 
-  for (LayoutCallback layoutCallback in layoutCallbacks) {
-    try {
-      layoutCallback();
-    } catch (Object e) {
-      window.console.error('Caught exception in layout callback: ${e}');
-      // TODO(jacobr): throw this exception again in the correct way.
+  if (readyMeasurementFrameCallbacks !== null) {
+    for (TimeoutHandler handler in readyMeasurementFrameCallbacks) {
+      // TODO(jacobr): wrap each call to a handler in a try-catch block.
+      handler();
     }
   }
 }
@@ -23672,18 +23631,9 @@ class MutationEventWrappingImplementation extends EventWrappingImplementation im
 
   Node get relatedNode() => LevelDom.wrapNode(_ptr.relatedNode);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// TODO(jacobr): we could write this method more efficiently if we wanted to
-// however performance isn't crucial as it is only called when a method is
-// called from an atypical context (e.g. measurement method called outside of
-// requestMeasurementFrame or dom manipulation called within
-// requestMeasurementFrame).
-bool _nodeInDocument(dom.Node node) {
-  return LevelDom.wrapNode(node)._inDocument;
-}
 
 class _ChildrenNodeList implements NodeList {
   // Raw node.
@@ -23753,16 +23703,12 @@ class _ChildrenNodeList implements NodeList {
 
   /** @domName Node.appendChild */
   Node add(Node value) {
-    assert(!_inMeasurementFrame
-        || (!_nodeInDocument(_node) && !value._inDocument));
     _node.appendChild(LevelDom.unwrap(value));
     return value;
   }
 
   Node addLast(Node value) {
-     assert(!_inMeasurementFrame
-        || (!_nodeInDocument(_node) && !value._inDocument));
-   _node.appendChild(LevelDom.unwrap(value));
+    _node.appendChild(LevelDom.unwrap(value));
     return value;
   }
 
@@ -23771,9 +23717,7 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void addAll(Collection<Node> collection) {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_node));
     for (Node node in collection) {
-      assert(!_inMeasurementFrame || !node._inDocument);
       _node.appendChild(LevelDom.unwrap(node));
     }
   }
@@ -23808,12 +23752,10 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void clear() {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_node));
     _node.textContent = '';
   }
 
   Node removeLast() {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_node));
     final last = this.last();
     if (last != null) {
       _node.removeChild(LevelDom.unwrap(last));
@@ -23832,7 +23774,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   NodeWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
   void set nodes(Collection<Node> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     nodes.clear();
@@ -23856,14 +23797,10 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
 
   String get text() => _ptr.textContent;
 
-  void set text(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.textContent = value;
-  }
+  void set text(String value) { _ptr.textContent = value; }
 
   // New methods implemented.
   Node replaceWith(Node otherNode) {
-    assert(!_inMeasurementFrame || !_inDocument);
     try {
       _ptr.parentNode.replaceChild(LevelDom.unwrap(otherNode), _ptr);
     } catch(var e) {
@@ -23873,7 +23810,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   }
 
   Node remove() {
-    assert(!_inMeasurementFrame || !_inDocument);
     // TODO(jacobr): should we throw an exception if parent is already null?
     if (_ptr.parentNode !== null) {
       _ptr.parentNode.removeChild(_ptr);
@@ -23894,7 +23830,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   // insertBefore or we switch NodeList to implement LinkedList rather than
   // array.
   Node insertBefore(Node newChild, Node refChild) {
-    assert(!_inMeasurementFrame || !_inDocument);
     return LevelDom.wrapNode(_ptr.insertBefore(
         LevelDom.unwrap(newChild), LevelDom.unwrap(refChild)));
   }
@@ -23902,8 +23837,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   Node clone(bool deep) {
     return LevelDom.wrapNode(_ptr.cloneNode(deep));
   }
-
-  bool get _inDocument() => document.contains(this);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24160,7 +24093,7 @@ class StorageEventWrappingImplementation extends EventWrappingImplementation imp
 class SVGDocumentWrappingImplementation extends DocumentWrappingImplementation implements SVGDocument {
   SVGDocumentWrappingImplementation._wrap(dom.SVGDocument ptr) : super._wrap(ptr, ptr.rootElement);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24206,10 +24139,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   String get id() { return _ptr.id; }
 
-  void set id(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.id = value;
-  }
+  void set id(String value) { _ptr.id = value; }
 
   SVGSVGElement get ownerSVGElement() { return LevelDom.wrapSVGSVGElement(_ptr.ownerSVGElement); }
 
@@ -24217,10 +24147,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   String get xmlbase() { return _ptr.xmlbase; }
 
-  void set xmlbase(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.xmlbase = value;
-  }
+  void set xmlbase(String value) { _ptr.xmlbase = value; }
 
   ElementList get elements() {
     if (_elements == null) {
@@ -24231,7 +24158,6 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
 
   // TODO: The type of value should be Collection<Element>. See http://b/5392897
   void set elements(value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     final elements = this.elements;
     elements.clear();
     elements.addAll(value);
@@ -24250,7 +24176,6 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
   }
 
   void set innerHTML(String svg) {
-    assert(!_inMeasurementFrame || !_inDocument);
     var container = new Element.tag("div");
     // Wrap the SVG string in <svg> so that SVGElements are created, rather than
     // HTMLElements.
@@ -24521,7 +24446,7 @@ class TextEventWrappingImplementation extends UIEventWrappingImplementation impl
 
   String get data() => _ptr.data;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24537,7 +24462,6 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
   String get wholeText() => _ptr.wholeText;
 
   Text replaceWholeText([String content = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     if (content === null) {
       return LevelDom.wrapText(_ptr.replaceWholeText());
     } else {
@@ -24546,7 +24470,6 @@ class TextWrappingImplementation extends CharacterDataWrappingImplementation imp
   }
 
   Text splitText([int offset = null]) {
-    assert(!_inMeasurementFrame || !_inDocument);
     if (offset === null) {
       return LevelDom.wrapText(_ptr.splitText());
     } else {
@@ -24745,7 +24668,7 @@ class WheelEventWrappingImplementation extends UIEventWrappingImplementation imp
 
   int get y() => _ptr.y;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25550,7 +25473,6 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
   }
 
   Point webkitConvertPointFromNodeToPage([Node node = null, Point p = null]) {
-    assert(_inMeasurementFrame);
     if (node === null) {
       if (p === null) {
         return LevelDom.wrapPoint(_ptr.webkitConvertPointFromNodeToPage());
@@ -25566,7 +25488,6 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
   }
 
   Point webkitConvertPointFromPageToNode([Node node = null, Point p = null]) {
-    assert(_inMeasurementFrame);
     if (node === null) {
       if (p === null) {
         return LevelDom.wrapPoint(_ptr.webkitConvertPointFromPageToNode());
@@ -25585,11 +25506,9 @@ class WindowWrappingImplementation extends EventTargetWrappingImplementation imp
     return _ptr.webkitRequestAnimationFrame(callback, LevelDom.unwrap(element));
   }
 
-  void requestMeasurementFrame(MeasurementCallback callback) {
+  void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
   }
-
-  bool get inMeasurementFrame() => _inMeasurementFrame;
 
   WindowEvents get on() {
     if (_on === null) {

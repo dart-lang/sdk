@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -155,10 +155,10 @@ class SliderMenu extends View {
   void updateIndicator(bool animate) {
     if (selectedItem != null) {
       // calculate where we want to put the triangle
-      window.requestMeasurementFrame(() {
-        final offsetRect = selectedItem.rect.offset;
-        num x = offsetRect.left + offsetRect.width / 2 - TRIANGLE_WIDTH / 2;
-        return () { _moveIndicator(x, animate); };
+      selectedItem.rect.then((ElementRect rect) {
+        num x = rect.offset.left +
+            rect.offset.width / 2 - TRIANGLE_WIDTH / 2;
+        _moveIndicator(x, animate);
       });
     } else {
       _moveIndicator(0, animate);

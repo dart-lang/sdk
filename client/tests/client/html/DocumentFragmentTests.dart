@@ -1,10 +1,10 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 testDocumentFragment() {
   Collection<String> _nodeStrings(Collection<Node> input) {
-    final out = new List<String>();
+    var out = new List<String>();
     for (Node n in input) {
       if (n is Element) {
         Element e = n;
@@ -28,7 +28,7 @@ testDocumentFragment() {
   assertConstError(void fn()) {
     try {
       fn();
-    } catch (final e) {
+    } catch (var e) {
       if (e is IllegalAccessException || e is UnsupportedOperationException) {
         return;
       }
@@ -61,7 +61,7 @@ testDocumentFragment() {
   }
 
   test('Unsupported operations throw errors', () {
-    final emptyFragment = new DocumentFragment();
+    var emptyFragment = new DocumentFragment();
     assertUnsupported(() => emptyFragment.attributes = {});
     assertUnsupported(() => emptyFragment.classes = []);
     assertUnsupported(() => emptyFragment.dataAttributes = {});
@@ -157,14 +157,14 @@ testDocumentFragment() {
   });
 
   test('setting innerHTML works', () {
-    final fragment = new DocumentFragment();
+    var fragment = new DocumentFragment();
     fragment.nodes.add(new Text("foo"));
     fragment.innerHTML = "<a>bar</a>baz";
     Expect.listEquals(["A", "baz"], _nodeStrings(fragment.nodes));
   });
 
   test('getting innerHTML works', () {
-    final fragment = new DocumentFragment();
+    var fragment = new DocumentFragment();
     fragment.nodes.addAll([new Text("foo"), new Element.html("<A>bar</A>")]);
     Expect.equals("foo<a>bar</a>", fragment.innerHTML);
     Expect.equals("foo<a>bar</a>", fragment.outerHTML);
@@ -174,29 +174,29 @@ testDocumentFragment() {
     getFragment() => new DocumentFragment.html("<a>foo</a>");
 
     test('beforeBegin does nothing', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       Expect.isNull(
         fragment.insertAdjacentElement("beforeBegin", new Element.tag("b")));
       Expect.equals("<a>foo</a>", fragment.innerHTML);
     });
 
     test('afterEnd does nothing', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       Expect.isNull(
         fragment.insertAdjacentElement("afterEnd", new Element.tag("b")));
       Expect.equals("<a>foo</a>", fragment.innerHTML);
     });
 
     test('afterBegin inserts the element', () {
-      final fragment = getFragment();
-      final el = new Element.tag("b");
+      var fragment = getFragment();
+      var el = new Element.tag("b");
       Expect.equals(el, fragment.insertAdjacentElement("afterBegin", el));
       Expect.equals("<b></b><a>foo</a>", fragment.innerHTML);
     });
 
     test('beforeEnd inserts the element', () {
-      final fragment = getFragment();
-      final el = new Element.tag("b");
+      var fragment = getFragment();
+      var el = new Element.tag("b");
       Expect.equals(el, fragment.insertAdjacentElement("beforeEnd", el));
       Expect.equals("<a>foo</a><b></b>", fragment.innerHTML);
     });
@@ -206,25 +206,25 @@ testDocumentFragment() {
     getFragment() => new DocumentFragment.html("<a>foo</a>");
 
     test('beforeBegin does nothing', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentText("beforeBegin", "foo");
       Expect.equals("<a>foo</a>", fragment.innerHTML);
     });
 
     test('afterEnd does nothing', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentText("afterEnd", "foo");
       Expect.equals("<a>foo</a>", fragment.innerHTML);
     });
 
     test('afterBegin inserts the text', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentText("afterBegin", "foo");
       Expect.equals("foo<a>foo</a>", fragment.innerHTML);
     });
 
     test('beforeEnd inserts the text', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentText("beforeEnd", "foo");
       Expect.equals("<a>foo</a>foo", fragment.innerHTML);
     });
@@ -234,25 +234,25 @@ testDocumentFragment() {
     getFragment() => new DocumentFragment.html("<a>foo</a>");
 
     test('beforeBegin does nothing', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentHTML("beforeBegin", "foo<br>");
       Expect.equals("<a>foo</a>", fragment.innerHTML);
     });
 
     test('afterEnd does nothing', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentHTML("afterEnd", "<br>foo");
       Expect.equals("<a>foo</a>", fragment.innerHTML);
     });
 
     test('afterBegin inserts the HTML', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentHTML("afterBegin", "foo<br>");
       Expect.equals("foo<br><a>foo</a>", fragment.innerHTML);
     });
 
     test('beforeEnd inserts the HTML', () {
-      final fragment = getFragment();
+      var fragment = getFragment();
       fragment.insertAdjacentHTML("beforeEnd", "<br>foo");
       Expect.equals("<a>foo</a><br>foo", fragment.innerHTML);
     });
@@ -260,7 +260,7 @@ testDocumentFragment() {
 
   // Just test that these methods don't throw errors
   test("no-op methods don't throw errors", () {
-    final fragment = new DocumentFragment();
+    var fragment = new DocumentFragment();
     fragment.on.click.add((e) => null);
     fragment.blur();
     fragment.focus();
@@ -269,16 +269,16 @@ testDocumentFragment() {
     fragment.scrollIntoView();
   });
 
-  test('default values', () {
-    final fragment = new DocumentFragment();
-    // You don't need to be in a measurement frame to get the rect for a
-    // document fragment because it is not attached to the document.
-    final rect = fragment.rect;
-    expectEmptyRect(rect.client);
-    expectEmptyRect(rect.offset);
-    expectEmptyRect(rect.scroll);
-    expectEmptyRect(rect.bounding);
-    Expect.isTrue(rect.clientRects.isEmpty());
+  asyncTest('default values', 1, () {
+    var fragment = new DocumentFragment();
+    fragment.rect.then((ElementRect rect) {
+       expectEmptyRect(rect.client);
+       expectEmptyRect(rect.offset);
+       expectEmptyRect(rect.scroll);
+       expectEmptyRect(rect.bounding);
+       Expect.isTrue(rect.clientRects.isEmpty());
+       callbackDone();
+    });
     Expect.equals("false", fragment.contentEditable);
     Expect.equals(-1, fragment.tabIndex);
     Expect.equals("", fragment.id);
@@ -300,15 +300,18 @@ testDocumentFragment() {
     Expect.isFalse(fragment.matchesSelector("*"));
   });
 
-  test('style', () {
-    final fragment = new DocumentFragment();
-    final style = fragment.style;
+  asyncTest('style', 1, () {
+    var fragment = new DocumentFragment();
+    var style = fragment.style;
     expectEmptyStyleDeclaration(style);
-    expectEmptyStyleDeclaration(fragment.computedStyle);
+    fragment.computedStyle.then((computedStyle) {
+      expectEmptyStyleDeclaration(computedStyle);
+      callbackDone();
+    });
   });
 
   test('setters throw errors', () {
-    final style = new DocumentFragment().style;
+    var style = new DocumentFragment().style;
     assertUnsupported(() => style.cssText = '* {color: blue}');
     assertUnsupported(() => style.removeProperty('color'));
     assertUnsupported(() => style.setProperty('color', 'blue'));
@@ -316,7 +319,7 @@ testDocumentFragment() {
 
   // TODO(nweiz): re-enable when const is better supported in dartc and/or frog
   // test('const fields are immutable', () {
-  //   final fragment = new DocumentFragment();
+  //   var fragment = new DocumentFragment();
   //   assertConstError(() => fragment.attributes['title'] = 'foo');
   //   assertConstError(() => fragment.dataAttributes['title'] = 'foo');
   //   fragment.rect.then((ElementRect rect) {
@@ -328,7 +331,7 @@ testDocumentFragment() {
   // });
 
   test('query searches the fragment', () {
-    final fragment = new DocumentFragment.html(
+    var fragment = new DocumentFragment.html(
       "<div class='foo'><a>foo</a><b>bar</b></div>");
     Expect.equals("A", fragment.query(".foo a").tagName);
     Expect.listEquals(["A", "B"], _nodeStrings(fragment.queryAll(".foo *")));

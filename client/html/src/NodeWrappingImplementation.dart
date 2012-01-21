@@ -1,15 +1,6 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// TODO(jacobr): we could write this method more efficiently if we wanted to
-// however performance isn't crucial as it is only called when a method is
-// called from an atypical context (e.g. measurement method called outside of
-// requestMeasurementFrame or dom manipulation called within
-// requestMeasurementFrame).
-bool _nodeInDocument(dom.Node node) {
-  return LevelDom.wrapNode(node)._inDocument;
-}
 
 class _ChildrenNodeList implements NodeList {
   // Raw node.
@@ -79,16 +70,12 @@ class _ChildrenNodeList implements NodeList {
 
   /** @domName Node.appendChild */
   Node add(Node value) {
-    assert(!_inMeasurementFrame
-        || (!_nodeInDocument(_node) && !value._inDocument));
     _node.appendChild(LevelDom.unwrap(value));
     return value;
   }
 
   Node addLast(Node value) {
-     assert(!_inMeasurementFrame
-        || (!_nodeInDocument(_node) && !value._inDocument));
-   _node.appendChild(LevelDom.unwrap(value));
+    _node.appendChild(LevelDom.unwrap(value));
     return value;
   }
 
@@ -97,9 +84,7 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void addAll(Collection<Node> collection) {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_node));
     for (Node node in collection) {
-      assert(!_inMeasurementFrame || !node._inDocument);
       _node.appendChild(LevelDom.unwrap(node));
     }
   }
@@ -134,12 +119,10 @@ class _ChildrenNodeList implements NodeList {
   }
 
   void clear() {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_node));
     _node.textContent = '';
   }
 
   Node removeLast() {
-    assert(!_inMeasurementFrame || !_nodeInDocument(_node));
     final last = this.last();
     if (last != null) {
       _node.removeChild(LevelDom.unwrap(last));
@@ -158,7 +141,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   NodeWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
   void set nodes(Collection<Node> value) {
-    assert(!_inMeasurementFrame || !_inDocument);
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     nodes.clear();
@@ -182,14 +164,10 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
 
   String get text() => _ptr.textContent;
 
-  void set text(String value) {
-    assert(!_inMeasurementFrame || !_inDocument);
-    _ptr.textContent = value;
-  }
+  void set text(String value) { _ptr.textContent = value; }
 
   // New methods implemented.
   Node replaceWith(Node otherNode) {
-    assert(!_inMeasurementFrame || !_inDocument);
     try {
       _ptr.parentNode.replaceChild(LevelDom.unwrap(otherNode), _ptr);
     } catch(var e) {
@@ -199,7 +177,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   }
 
   Node remove() {
-    assert(!_inMeasurementFrame || !_inDocument);
     // TODO(jacobr): should we throw an exception if parent is already null?
     if (_ptr.parentNode !== null) {
       _ptr.parentNode.removeChild(_ptr);
@@ -220,7 +197,6 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   // insertBefore or we switch NodeList to implement LinkedList rather than
   // array.
   Node insertBefore(Node newChild, Node refChild) {
-    assert(!_inMeasurementFrame || !_inDocument);
     return LevelDom.wrapNode(_ptr.insertBefore(
         LevelDom.unwrap(newChild), LevelDom.unwrap(refChild)));
   }
@@ -228,6 +204,4 @@ class NodeWrappingImplementation extends EventTargetWrappingImplementation imple
   Node clone(bool deep) {
     return LevelDom.wrapNode(_ptr.cloneNode(deep));
   }
-
-  bool get _inDocument() => document.contains(this);
 }
