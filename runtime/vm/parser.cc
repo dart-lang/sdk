@@ -269,13 +269,11 @@ struct QualIdent {
     Clear();
   }
   void Clear() {
-    is_local_scope_ident = false;
     lib_prefix = NULL;
     qualifier = NULL;
     ident_pos = 0;
     ident = NULL;
   }
-  bool is_local_scope_ident;
   LibraryPrefix* lib_prefix;
   String* qualifier;
   intptr_t ident_pos;
@@ -1909,26 +1907,25 @@ void Parser::SkipInitializers() {
 void Parser::ParseQualIdent(QualIdent* qual_ident) {
   ASSERT(IsIdentifier());
   if (!is_top_level_) {
-    AstNode* var_or_field = NULL;
-    bool is_local_ident = ResolveIdentInLocalScope(token_index_,
-                                                   *CurrentLiteral(),
-                                                   &var_or_field);
     qual_ident->ident_pos = token_index_;
     qual_ident->ident = CurrentLiteral();
     qual_ident->lib_prefix = NULL;
     qual_ident->qualifier = NULL;
-    qual_ident->is_local_scope_ident = is_local_ident;
     ConsumeToken();
-    if (!is_local_ident && (CurrentToken() == Token::kPERIOD)) {
-      LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
-      lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
-      if (!lib_prefix.IsNull()) {
-        // We have a library prefix qualified identifier.
-        ConsumeToken();  // Consume the kPERIOD token.
-        qual_ident->lib_prefix = &lib_prefix;
-        qual_ident->qualifier = qual_ident->ident;
-        qual_ident->ident_pos = token_index_;
-        qual_ident->ident = ExpectIdentifier("identifier expected after '.'");
+    if (CurrentToken() == Token::kPERIOD) {
+      if (!ResolveIdentInLocalScope(qual_ident->ident_pos,
+                                    *(qual_ident->ident),
+                                    NULL)) {
+        LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
+        lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
+        if (!lib_prefix.IsNull()) {
+          // We have a library prefix qualified identifier.
+          ConsumeToken();  // Consume the kPERIOD token.
+          qual_ident->lib_prefix = &lib_prefix;
+          qual_ident->qualifier = qual_ident->ident;
+          qual_ident->ident_pos = token_index_;
+          qual_ident->ident = ExpectIdentifier("identifier expected after '.'");
+        }
       }
     }
   } else {
@@ -1936,7 +1933,6 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
     qual_ident->ident = CurrentLiteral();
     qual_ident->lib_prefix = NULL;
     qual_ident->qualifier = NULL;
-    qual_ident->is_local_scope_ident = false;
     ConsumeToken();
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();  // Consume the kPERIOD token.
@@ -2356,7 +2352,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
                                                        qualifier,
-                                                       *(member.name)));
+                                                       *member.name));
       const Class& signature_class = Class::Handle(
           Class::New(String::Handle(String::NewSymbol(":factory_signature")),
                      script_));
@@ -2643,7 +2639,7 @@ bool Parser::IsFunctionTypeAliasName() {
   bool is_alias_name = false;
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLT)) {
     ConsumeToken();
-    if (IsTypeParameter() && (CurrentToken() == Token::kLPAREN)) {
+    if (TryParseTypeParameter() && (CurrentToken() == Token::kLPAREN)) {
       is_alias_name = true;
     }
   }
@@ -2796,17 +2792,12 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     const intptr_t factory_pos = token_index_;
     QualIdent factory_name;
     ParseQualIdent(&factory_name);
-    if (factory_name.is_local_scope_ident) {
-      ErrorMsg(factory_pos,
-               "using '%s' in this context is invalid",
-               factory_name.ident->ToCString());
-    }
     String& qualifier = String::Handle();
     if (factory_name.qualifier != NULL) {
       qualifier ^= factory_name.qualifier->raw();
     }
     const UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle(
-        UnresolvedClass::New(factory_pos, qualifier, *(factory_name.ident)));
+        UnresolvedClass::New(factory_pos, qualifier, *factory_name.ident));
     const Class& factory_class = Class::Handle(
         Class::New(String::Handle(String::NewSymbol(":factory_signature")),
                    script_));
@@ -3916,7 +3907,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
 // Returns true if the current and next tokens can be parsed as type
 // parameters. Current token position is not saved and restored.
-bool Parser::IsTypeParameter() {
+bool Parser::TryParseTypeParameter() {
   if (CurrentToken() == Token::kLT) {
     // We are possibly looking at type parameters. Find closing ">".
     int nesting_level = 0;
@@ -3956,16 +3947,11 @@ bool Parser::IsIdentifier() {
 
 // Returns true if the next tokens can be parsed as a type with optional
 // type parameters. Current token position is not restored.
-bool Parser::IsOptionalType() {
+bool Parser::TryParseOptionalType() {
   if (CurrentToken() == Token::kIDENT) {
     QualIdent type_name;
     ParseQualIdent(&type_name);
-    // Check if the type_name has been defined as a variable in a local scope,
-    // hiding the type.
-    if (type_name.is_local_scope_ident) {
-      return false;
-    }
-    if (CurrentToken() == Token::kLT && !IsTypeParameter()) {
+    if ((CurrentToken() == Token::kLT) && !TryParseTypeParameter()) {
       return false;
     }
   }
@@ -3976,12 +3962,12 @@ bool Parser::IsOptionalType() {
 // Returns true if the next tokens can be parsed as a type with optional
 // type parameters, or keyword "void".
 // Current token position is not restored.
-bool Parser::IsReturnType() {
+bool Parser::TryParseReturnType() {
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
     return true;
   } else if (CurrentToken() == Token::kIDENT) {
-    return IsOptionalType();
+    return TryParseOptionalType();
   }
   return false;
 }
@@ -4002,7 +3988,7 @@ bool Parser::IsVariableDeclaration() {
   }
   const intptr_t saved_pos = token_index_;
   bool is_var_decl = false;
-  if (IsOptionalType()) {
+  if (TryParseOptionalType()) {
     if (IsIdentifier()) {
       ConsumeToken();
       if ((CurrentToken() == Token::kSEMICOLON) ||
@@ -4037,7 +4023,7 @@ bool Parser::IsTopLevelAccessor() {
     return true;
   }
   const intptr_t saved_pos = token_index_;
-  if (IsReturnType()) {
+  if (TryParseReturnType()) {
     if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
       if (Token::IsIdentifier(LookaheadToken(1))) {  // Accessor name.
         SetPosition(saved_pos);
@@ -4058,7 +4044,7 @@ bool Parser::IsFunctionLiteral() {
   bool is_function_literal = false;
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
     ConsumeToken();  // Consume function identifier.
-  } else if (IsReturnType()) {
+  } else if (TryParseReturnType()) {
     if (!IsIdentifier()) {
       SetPosition(saved_pos);
       return false;
@@ -4089,7 +4075,7 @@ bool Parser::IsForInStatement() {
   if (IsIdentifier()) {
     if (LookaheadToken(1) == Token::kIN) {
       result = true;
-    } else if (IsOptionalType()) {
+    } else if (TryParseOptionalType()) {
       if (IsIdentifier()) {
         ConsumeToken();
       }
@@ -4686,8 +4672,8 @@ void Parser::AddCatchParamsToScope(const CatchParamDesc& exception_param,
                                    LocalScope* scope) {
   ASSERT(exception_param.var != NULL);
   LocalVariable* var = new LocalVariable(exception_param.token_index,
-                                         *(exception_param.var),
-                                         *(exception_param.type));
+                                         *exception_param.var,
+                                         *exception_param.type);
   if (exception_param.is_final) {
     var->set_is_final();
   }
@@ -4695,8 +4681,8 @@ void Parser::AddCatchParamsToScope(const CatchParamDesc& exception_param,
   ASSERT(added_to_scope);
   if (stack_trace_param.var != NULL) {
     var = new LocalVariable(token_index_,
-                            *(stack_trace_param.var),
-                            *(stack_trace_param.type));
+                            *stack_trace_param.var,
+                            *stack_trace_param.type);
     if (stack_trace_param.is_final) {
       var->set_is_final();
     }
@@ -5068,8 +5054,7 @@ AstNode* Parser::ParseJump(String* label_name) {
 
 
 bool Parser::IsDefinedInLexicalScope(const String& ident) {
-  AstNode* var_or_field = NULL;
-  if (ResolveIdentInLocalScope(token_index_, ident, &var_or_field)) {
+  if (ResolveIdentInLocalScope(token_index_, ident, NULL)) {
     return true;
   }
   Object& obj = Object::Handle();
@@ -6229,9 +6214,9 @@ RawObject* Parser::LookupTypeClass(const QualIdent& type_name,
   Class& type_class = Class::Handle();
   if (type_name.lib_prefix != NULL) {
     Library& lib = Library::Handle(type_name.lib_prefix->library());
-    type_class ^= lib.LookupLocalClass(*(type_name.ident));
+    type_class ^= lib.LookupLocalClass(*type_name.ident);
   } else {
-    type_class ^= LookupClass(*(type_name.ident));
+    type_class ^= LookupClass(*type_name.ident);
   }
   if (!type_class.IsNull()) {
     return type_class.raw();
@@ -6248,9 +6233,7 @@ RawObject* Parser::LookupTypeClass(const QualIdent& type_name,
   if (type_name.qualifier != NULL) {
     qualifier ^= type_name.qualifier->raw();
   }
-  return UnresolvedClass::New(type_name.ident_pos,
-                              qualifier,
-                              *(type_name.ident));
+  return UnresolvedClass::New(type_name.ident_pos, qualifier, *type_name.ident);
 }
 
 
@@ -6437,13 +6420,14 @@ RawInstance* Parser::EvaluateConstConstructorCall(
 bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
                                       const String &ident,
                                       AstNode** node) {
-  ASSERT(node != NULL);
   TRACE_PARSER("ResolveIdentInLocalScope");
   Isolate* isolate = Isolate::Current();
   // First try to find the identifier in the nested local scopes.
   LocalVariable* local = LookupLocalScope(ident);
   if (local != NULL) {
-    *node = new LoadLocalNode(ident_pos, *local);
+    if (node != NULL) {
+      *node = new LoadLocalNode(ident_pos, *local);
+    }
     return true;
   }
 
@@ -6455,11 +6439,13 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     // First check if a field exists.
     field = cls.LookupField(ident);
     if (!field.IsNull()) {
-      if (!field.is_static()) {
-        CheckInstanceFieldAccess(ident_pos, ident);
-        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
-      } else {
-        *node = GenerateStaticFieldLookup(field, ident_pos);
+      if (node != NULL) {
+        if (!field.is_static()) {
+          CheckInstanceFieldAccess(ident_pos, ident);
+          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        } else {
+          *node = GenerateStaticFieldLookup(field, ident_pos);
+        }
       }
       return true;
     }
@@ -6468,8 +6454,10 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     func = cls.LookupFunction(ident);
     if (!func.IsNull() &&
         (func.IsDynamicFunction() || func.IsStaticFunction())) {
-      *node = new PrimaryNode(ident_pos,
-                              Function::ZoneHandle(isolate, func.raw()));
+      if (node != NULL) {
+        *node = new PrimaryNode(ident_pos,
+                                Function::ZoneHandle(isolate, func.raw()));
+      }
       return true;
     }
 
@@ -6478,44 +6466,54 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     func = cls.LookupGetterFunction(ident);
     if (!func.IsNull()) {
       if (func.IsDynamicFunction()) {
-        CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        if (node != NULL) {
+          CheckInstanceFieldAccess(ident_pos, ident);
+          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        }
         return true;
       } else if (func.IsStaticFunction()) {
-        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        *node = new StaticGetterNode(ident_pos,
-                                     Class::ZoneHandle(isolate, cls.raw()),
-                                     ident);
+        if (node != NULL) {
+          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+          *node = new StaticGetterNode(ident_pos,
+                                       Class::ZoneHandle(isolate, cls.raw()),
+                                       ident);
+        }
         return true;
       }
     }
     func = cls.LookupSetterFunction(ident);
     if (!func.IsNull()) {
       if (func.IsDynamicFunction()) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
-        CheckInstanceFieldAccess(ident_pos, ident);
-        ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        if (node != NULL) {
+          // We create a getter node even though a getter doesn't exist as
+          // it could be followed by an assignment which will convert it to
+          // a setter node. If there is no assignment we will get an error
+          // when we try to invoke the getter.
+          CheckInstanceFieldAccess(ident_pos, ident);
+          ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+          *node = CallGetter(ident_pos, LoadReceiver(ident_pos), ident);
+        }
         return true;
       } else if (func.IsStaticFunction()) {
-        // We create a getter node even though a getter doesn't exist as
-        // it could be followed by an assignment which will convert it to
-        // a setter node. If there is no assignment we will get an error
-        // when we try to invoke the getter.
-        *node = new StaticGetterNode(ident_pos,
-                                     Class::ZoneHandle(isolate, cls.raw()),
-                                     ident);
+        if (node != NULL) {
+          // We create a getter node even though a getter doesn't exist as
+          // it could be followed by an assignment which will convert it to
+          // a setter node. If there is no assignment we will get an error
+          // when we try to invoke the getter.
+          *node = new StaticGetterNode(ident_pos,
+                                       Class::ZoneHandle(isolate, cls.raw()),
+                                       ident);
+        }
         return true;
       }
     }
 
     cls = cls.SuperClass();
   }
-  *node = NULL;
+  if (node != NULL) {
+    *node = NULL;
+  }
   return false;  // Not an unqualified identifier.
 }
 
@@ -6658,7 +6656,8 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     SkipQualIdent();
   } else {
     ParseQualIdent(&type_name);
-    if (type_name.is_local_scope_ident) {
+    if (!is_top_level_ && (type_name.qualifier == NULL) &&
+        ResolveIdentInLocalScope(type_pos, *type_name.ident, NULL)) {
       ErrorMsg(type_pos, "using '%s' in this context is invalid",
                type_name.ident->ToCString());
     }
@@ -6672,7 +6671,7 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     if (type_name.qualifier != NULL) {
       qualifier ^= type_name.qualifier->raw();
     }
-    type_class = UnresolvedClass::New(type_pos, qualifier, *(type_name.ident));
+    type_class = UnresolvedClass::New(type_pos, qualifier, *type_name.ident);
   } else {
     scope_class = TypeParametersScopeClass();
     if (!scope_class.IsNull()) {
@@ -7139,7 +7138,9 @@ AstNode* Parser::ParseNewOperator() {
   const intptr_t  type_pos = token_index_;
   QualIdent type_name;
   ParseQualIdent(&type_name);
-  if (type_name.is_local_scope_ident) {
+  ASSERT(!is_top_level_);
+  if ((type_name.qualifier == NULL) &&
+      ResolveIdentInLocalScope(type_pos, *type_name.ident, NULL)) {
     ErrorMsg(type_pos, "using '%s' in this context is invalid",
              type_name.ident->ToCString());
   }
@@ -7380,6 +7381,7 @@ AstNode* Parser::ParseStringLiteral() {
 
 AstNode* Parser::ParsePrimary() {
   TRACE_PARSER("ParsePrimary");
+  ASSERT(!is_top_level_);
   AstNode* primary = NULL;
   if (IsFunctionLiteral()) {
     // The name of a literal function is visible from inside the function, but
@@ -7390,26 +7392,24 @@ AstNode* Parser::ParsePrimary() {
   } else if (IsIdentifier()) {
     QualIdent qual_ident;
     ParseQualIdent(&qual_ident);
-    if (qual_ident.is_local_scope_ident) {
-      ResolveIdentInLocalScope(qual_ident.ident_pos,
-                               *qual_ident.ident,
-                               &primary);
-    } else {
-      if (qual_ident.qualifier == NULL) {
-        // This is an unqualified identifier so resolve the identifier
+    if (qual_ident.qualifier == NULL) {
+      if (!ResolveIdentInLocalScope(qual_ident.ident_pos,
+                                    *qual_ident.ident,
+                                    &primary)) {
+        // This is a non-local unqualified identifier so resolve the identifier
         // locally in the main app library and all libraries imported by it.
         primary = ResolveIdentInLibraryScope(library_,
                                              qual_ident,
                                              kResolveIncludingImports);
-      } else {
-        // This is a qualified identifier with a library prefix so resolve
-        // the identifier locally in that library (we do not include the
-        // libraries imported by that library).
-        const Library& lib = Library::Handle(qual_ident.lib_prefix->library());
-        primary = ResolveIdentInLibraryScope(lib,
-                                             qual_ident,
-                                             kResolveLocally);
       }
+    } else {
+      // This is a qualified identifier with a library prefix so resolve
+      // the identifier locally in that library (we do not include the
+      // libraries imported by that library).
+      const Library& lib = Library::Handle(qual_ident.lib_prefix->library());
+      primary = ResolveIdentInLibraryScope(lib,
+                                           qual_ident,
+                                           kResolveLocally);
     }
     ASSERT(primary != NULL);
   } else if (CurrentToken() == Token::kTHIS) {

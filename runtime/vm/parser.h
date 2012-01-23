@@ -329,9 +329,9 @@ class Parser : ValueObject {
   void ParseStatementSequence();
   bool IsIdentifier();
   bool IsFunctionTypeAliasName();
-  bool IsTypeParameter();
-  bool IsOptionalType();
-  bool IsReturnType();
+  bool TryParseTypeParameter();
+  bool TryParseOptionalType();
+  bool TryParseReturnType();
   bool IsVariableDeclaration();
   bool IsFunctionDeclaration();
   bool IsFunctionLiteral();
