@@ -88,6 +88,8 @@ static void SetChildOsErrorMessage(char* os_error_message,
 void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
   int pid = 0;
   int status = 0;
+  // Save errno so it can be restored at the end.
+  int entry_errno = errno;
   while ((pid = TEMP_FAILURE_RETRY(waitpid(-1, &status, WNOHANG))) > 0) {
     int exit_code = 0;
     int negative = 0;
@@ -109,6 +111,7 @@ void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
       TEMP_FAILURE_RETRY(close(process->fd()));
     }
   }
+  errno = entry_errno;
 }
 
 
