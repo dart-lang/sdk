@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -215,7 +215,7 @@ class DartDocumentationVisitor extends DartNodeTraverser<Void> {
   }
 
   private void printClassTypeParameters(ClassElement classElement) {
-    List<? extends Type> typeParameters = classElement.getTypeParameters();
+    List<Type> typeParameters = classElement.getTypeParameters();
     if (typeParameters.size() > 0) {
       stream.print("&lt;");
       boolean first = true;
@@ -330,7 +330,7 @@ class DartDocumentationVisitor extends DartNodeTraverser<Void> {
     // For classes search type parameters, superclass and interfaces.
     if (enclosing.getKind() == ElementKind.CLASS) {
       ClassElement classElement = (ClassElement) enclosing;
-      List<? extends Type> typeParameters = classElement.getTypeParameters();
+      List<Type> typeParameters = classElement.getTypeParameters();
       for (Type type : typeParameters) {
         if (type.getElement().getName().equals(name)) {
           String className = classElement.getName();
@@ -429,7 +429,7 @@ class DartDocumentationVisitor extends DartNodeTraverser<Void> {
   }
 
   private void printFunctionTypeParameterList(FunctionType type, Element element) {
-    List<? extends Type> paramTypes = type.getParameterTypes();
+    List<Type> paramTypes = type.getParameterTypes();
     stream.print("(");
     boolean first = true;
     for (Type paramType : paramTypes) {

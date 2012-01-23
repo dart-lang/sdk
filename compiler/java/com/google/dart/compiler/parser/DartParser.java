@@ -1754,6 +1754,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartExpression> arguments = new ArrayList<DartExpression>();
     expect(Token.LPAREN);
     // SEMICOLON is for error recovery
+    boolean namedArgumentParsed = false;
     while (!match(Token.RPAREN) && !match(Token.EOS) && !match(Token.SEMICOLON)) {
       beginParameter();
       DartExpression expression;
@@ -1761,8 +1762,12 @@ public class DartParser extends CompletionHooksParserBase {
         DartIdentifier name = parseIdentifier();
         expect(Token.COLON);
         expression = new DartNamedExpression(name, parseExpression());
+        namedArgumentParsed = true;
       } else {
         expression = parseExpression();
+        if (namedArgumentParsed) {
+          reportError(expression, ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
+        }
       }
       arguments.add(done(expression));
       switch(peek(0)) {

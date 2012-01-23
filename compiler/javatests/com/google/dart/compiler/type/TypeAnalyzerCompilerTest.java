@@ -1,7 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
@@ -17,14 +20,13 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.EnclosingElement;
 import com.google.dart.compiler.resolver.MethodElement;
+import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.util.List;
@@ -423,8 +425,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * Factory constructor can instantiate any class and return it non-abstract class instance, but
-   * spec requires warnings, so we provide it, but using different constant.
+   * Spec 7.3 It is a static warning if a setter declares a return type other than void.
    */
   public void testWarnOnNonVoidSetter() throws Exception {
     AnalyzeLibraryResult libraryResult =
@@ -460,5 +461,57 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  e.run();",
                 "}"));
     assertErrors(libraryResult.getTypeErrors());
+  }
+
+  /**
+   * Test for errors and warnings related to positional and named arguments for required and
+   * optional parameters.
+   */
+  public void test_invocationArguments() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "/* 01 */ foo() {",
+                "/* 02 */   f_0_0();",
+                "/* 03 */   f_0_0(-1);",
+                "/* 04 */",
+                "/* 05 */   f_1_0();",
+                "/* 06 */   f_1_0(-1);",
+                "/* 07 */   f_1_0(-1, -2, -3);",
+                "/* 08 */",
+                "/* 09 */   f_2_0();",
+                "/* 10 */",
+                "/* 11 */   f_0_1();",
+                "/* 12 */   f_0_1(1);",
+                "/* 13 */   f_0_1(0, 0);",
+                "/* 14 */   f_0_1(n1: 1);",
+                "/* 15 */   f_0_1(x: 1);",
+                "/* 16 */   f_0_1(n1: 1, n1: 2);",
+                "/* 17 */",
+                "/* 18 */   f_1_3(-1, 1, n3: 2);",
+                "/* 19 */   f_1_3(-1, 1, n1: 1);",
+                "}",
+                "",
+                "f_0_0() {}",
+                "f_1_0(r1) {}",
+                "f_2_0(r1, r2) {}",
+                "f_0_1([n1]) {}",
+                "f_0_2([n1, n2]) {}",
+                "f_1_3(r1, [n1, n2, n3]) {}",
+                ""));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.EXTRA_ARGUMENT, 3, 18, 2),
+        errEx(TypeErrorCode.MISSING_ARGUMENT, 5, 12, 7),
+        errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 22, 2),
+        errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 26, 2),
+        errEx(TypeErrorCode.MISSING_ARGUMENT, 9, 12, 7),
+        errEx(TypeErrorCode.EXTRA_ARGUMENT, 13, 21, 1),
+        errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 15, 18, 4),
+        errEx(TypeErrorCode.DUPLICATE_NAMED_ARGUMENT, 19, 25, 5));
+    assertErrors(
+        libraryResult.getCompilationErrors(),
+        errEx(ResolverErrorCode.DUPLICATE_NAMED_ARGUMENT, 16, 25, 5));
   }
 }

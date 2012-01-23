@@ -9,6 +9,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
@@ -112,8 +113,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -446,7 +449,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private Type analyzeMethodInvocation(Type receiver, Member member, String name,
                                          DartNode diagnosticNode,
                                          List<Type> argumentTypes,
-                                         List<? extends DartExpression> argumentNodes) {
+                                         List<DartExpression> argumentNodes) {
       if (member == null) {
         return dynamicType;
       }
@@ -518,33 +521,80 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private Type checkArguments(DartNode diagnosticNode,
-                                List<? extends DartExpression> argumentNodes,
+                                List<DartExpression> argumentNodes,
                                 Iterator<Type> argumentTypes, FunctionType ftype) {
-      int argumentCount = 0;
-      List<? extends Type> parameterTypes = ftype.getParameterTypes();
+      int argumentIndex = 0;
+      // Check positional parameters.
+      List<Type> parameterTypes = ftype.getParameterTypes();
       for (Type parameterType : parameterTypes) {
         if (argumentTypes.hasNext()) {
-          checkAssignable(argumentNodes.get(argumentCount), parameterType, argumentTypes.next());
-          argumentCount++;
+          checkAssignable(argumentNodes.get(argumentIndex), parameterType, argumentTypes.next());
+          argumentIndex++;
         } else {
-          typeError(diagnosticNode, TypeErrorCode.MISSING_ARGUMENT, parameterType);
+          onError(diagnosticNode, TypeErrorCode.MISSING_ARGUMENT, parameterType);
+          return ftype.getReturnType();
         }
       }
-      Map<String, Type> namedParameterTypes = ftype.getNamedParameterTypes();
-      Iterator<Type> named = namedParameterTypes.values().iterator();
-      while (named.hasNext() && argumentTypes.hasNext()) {
-        checkAssignable(argumentNodes.get(argumentCount), named.next(), argumentTypes.next());
-        argumentCount++;
+      // Check named parameters.
+      {
+        Set<String> usedNamedParametersPositional = Sets.newHashSet();
+        Set<String> usedNamedParametersNamed = Sets.newHashSet();
+        // Prepare named parameters.
+        Map<String, Type> namedParameterTypes = ftype.getNamedParameterTypes();
+        assert namedParameterTypes.isEmpty() || namedParameterTypes instanceof LinkedHashMap;
+        Iterator<Entry<String, Type>> namedParameterTypesIterator =
+            namedParameterTypes.entrySet().iterator();
+        // Check positional arguments for named parameters.
+        while (namedParameterTypesIterator.hasNext()
+            && argumentTypes.hasNext()
+            && !(argumentNodes.get(argumentIndex) instanceof DartNamedExpression)) {
+          Entry<String, Type> namedEntry = namedParameterTypesIterator.next();
+          String parameterName = namedEntry.getKey();
+          usedNamedParametersPositional.add(parameterName);
+          Type argumentType = argumentTypes.next();
+          checkAssignable(argumentNodes.get(argumentIndex), namedEntry.getValue(), argumentType);
+          argumentIndex++;
+        }
+        // Check named arguments for named parameters.
+        while (argumentTypes.hasNext()
+            && argumentNodes.get(argumentIndex) instanceof DartNamedExpression) {
+          DartNamedExpression namedExpression =
+              (DartNamedExpression) argumentNodes.get(argumentIndex);
+          DartExpression argumentNode = argumentNodes.get(argumentIndex);
+          // Prepare parameter name.
+          String parameterName = namedExpression.getName().getTargetName();
+          if (usedNamedParametersPositional.contains(parameterName)) {
+            onError(argumentNode, TypeErrorCode.DUPLICATE_NAMED_ARGUMENT);
+          } else if (usedNamedParametersNamed.contains(parameterName)) {
+            onError(argumentNode, ResolverErrorCode.DUPLICATE_NAMED_ARGUMENT);
+          } else {
+            usedNamedParametersNamed.add(parameterName);
+          }
+          // Check parameter type.
+          Type namedParameterType = namedParameterTypes.get(parameterName);
+          Type argumentType = argumentTypes.next();
+          if (namedParameterType != null) {
+            checkAssignable(argumentNode, namedParameterType, argumentType);
+          } else {
+            onError(argumentNode, TypeErrorCode.NO_SUCH_NAMED_PARAMETER, parameterName);
+          }
+          argumentIndex++;
+        }
       }
-      while (ftype.hasRest() && argumentTypes.hasNext()) {
-        checkAssignable(argumentNodes.get(argumentCount), ftype.getRest(), argumentTypes.next());
-        argumentCount++;
+      // Check rest (currently removed from specification).
+      if (ftype.hasRest()) {
+        while (argumentTypes.hasNext()) {
+          checkAssignable(argumentNodes.get(argumentIndex), ftype.getRest(), argumentTypes.next());
+          argumentIndex++;
+        }
       }
+      // Report extra arguments.
       while (argumentTypes.hasNext()) {
         argumentTypes.next();
-        typeError(argumentNodes.get(argumentCount), TypeErrorCode.EXTRA_ARGUMENT);
-        argumentCount++;
+        onError(argumentNodes.get(argumentIndex), TypeErrorCode.EXTRA_ARGUMENT);
+        argumentIndex++;
       }
+      // Return type.
       return ftype.getReturnType();
     }
 
@@ -575,8 +625,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private void validateBounds(List<? extends DartNode> diagnosticNodes,
-                                List<? extends Type> arguments,
-                                List<? extends Type> parameters,
+                                List<Type> arguments,
+                                List<Type> parameters,
                                 boolean badBoundIsError) {
       if (arguments.size() == parameters.size() && arguments.size() == diagnosticNodes.size()) {
         List<Type> bounds = new ArrayList<Type>(parameters.size());
@@ -1088,7 +1138,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (ftype != null && TypeKind.of(type).equals(TypeKind.INTERFACE)) {
           InterfaceType ifaceType = (InterfaceType) type;
 
-          List<? extends Type> substParams;
+          List<Type> substParams;
           if (ifaceType.getElement().isInterface()) {
             // The constructor in the interface is resolved to the type parameters declared in
             // the interface, but the constructor body has type parameters resolved to the type
@@ -1098,7 +1148,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           } else {
             substParams = ifaceType.getElement().getTypeParameters();
           }
-          List<? extends Type> arguments = ifaceType.getArguments();
+          List<Type> arguments = ifaceType.getArguments();
           ftype = (FunctionType) ftype.subst(arguments, substParams);
           checkInvocation(node, node, null, ftype);
         }
@@ -1371,7 +1421,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private Type checkInvocation(DartInvocation node, DartNode diagnosticNode, String name,
                                  Type type) {
-      List<? extends DartExpression> argumentNodes = node.getArgs();
+      List<DartExpression> argumentNodes = node.getArgs();
       List<Type> argumentTypes = new ArrayList<Type>(argumentNodes.size());
       for (DartExpression argumentNode : argumentNodes) {
         argumentTypes.add(nonVoidTypeOf(argumentNode));

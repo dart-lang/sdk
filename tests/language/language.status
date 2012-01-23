@@ -54,6 +54,11 @@ TypeVariableBoundsTest/06: Fail
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 
+#Issue 1307.
+NamedParameters2Test: Fail
+NamedParameters3Test: Fail
+NamedParameters4Test: Fail
+
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
@@ -129,11 +134,6 @@ LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 MapLiteral3Test: Fail # Issue 221
 MapLiteral4Test: Fail # Issue 221
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-NamedParameters10NegativeTest: Fail  # Implementation in progress.
-NamedParameters2NegativeTest: Fail   # Implementation in progress.
-NamedParameters3NegativeTest: Fail   # Implementation in progress.
-NamedParameters4NegativeTest: Fail   # Implementation in progress.
-NamedParametersNegativeTest: Fail    # Implementation in progress.
 NamedParametersTypeTest: Fail            # Implementation in progress.
 NoSuchMethodTest: Fail       # Bug 4202974.
 NullToStringTest: Fail       # Bug 5421978
@@ -317,6 +317,12 @@ ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
+
+#Issue 1308
+NamedParameters2Test: Fail
+NamedParameters3Test: Fail
+NamedParameters4Test: Fail
+
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
 MethodInvocationTest: Fail

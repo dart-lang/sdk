@@ -209,11 +209,12 @@ abstract class ResolverTestCase extends TestCase {
       functionElement.setType(functionType);
 
       ClassElement mapElement = Elements.classNamed("Map");
-      defaultMapLiteralType = Types.interfaceType(mapElement, Lists.newArrayList(stringType, dynamicType));
+      defaultMapLiteralType =
+          Types.interfaceType(mapElement, Lists.<Type>newArrayList(stringType, dynamicType));
       mapElement.setType(defaultMapLiteralType);
 
       ClassElement listElement = Elements.classNamed("List");
-      defaultListType = Types.interfaceType(listElement, Lists.newArrayList(dynamicType));
+      defaultListType = Types.interfaceType(listElement, Lists.<Type>newArrayList(dynamicType));
       listElement.setType(defaultListType);
     }
 

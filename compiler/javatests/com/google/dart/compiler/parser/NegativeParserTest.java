@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.parser;
@@ -433,5 +433,16 @@ public class NegativeParserTest extends CompilerTestCase {
             "  };",
             "}"),
         parserRunner.getDartUnit().toSource());
+  }
+
+  public void test_positionalArgument_afterNamed() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "f(r1, [n1, n2]) {}",
+            "foo() {",
+            "  f(-1, n1: 1, 2);",
+            "}"),
+        errEx(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, 4, 16, 1));
   }
 }

@@ -1,3 +1,7 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.ErrorCode;
@@ -66,6 +70,7 @@ public enum ParserErrorCode implements ErrorCode {
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
+  POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
   REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor can not have initializers"),
   REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor can not have initializers"),
   REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,8 +18,8 @@ import java.util.Map;
 class DynamicTypeImplementation extends AbstractType implements DynamicType {
 
   @Override
-  public DynamicTypeImplementation subst(List<? extends Type> arguments,
-                                         List<? extends Type> parameters) {
+  public DynamicTypeImplementation subst(List<Type> arguments,
+                                         List<Type> parameters) {
     return this;
   }
 
@@ -49,7 +49,7 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
   }
 
   @Override
-  public List<? extends Type> getArguments() {
+  public List<Type> getArguments() {
     return Collections.<Type>emptyList();
   }
 
@@ -79,8 +79,8 @@ class DynamicTypeImplementation extends AbstractType implements DynamicType {
   }
 
   @Override
-  public List<? extends Type> getParameterTypes() {
-    return Collections.<Type>emptyList();
+  public List<Type> getParameterTypes() {
+    return Collections.emptyList();
   }
 
   @Override

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
@@ -69,6 +69,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_LOCAL_VARIABLE_WARNING(ErrorSeverity.WARNING,
       "Local variable '%s' is hiding '%s' at %s"),
   DUPLICATE_MEMBER("Duplicate member '%s'"),
+  DUPLICATE_NAMED_ARGUMENT("Duplicate named parameter argument"),
   DUPLICATE_PARAMETER(ErrorSeverity.ERROR, "Duplicate parameter '%s'"),
   DUPLICATE_PARAMETER_WARNING(ErrorSeverity.WARNING, "Parameter '%s' is hiding '%s' at %s"),
   DUPLICATE_TOP_LEVEL_DEFINITION("duplicate top-level definition '%s'"),

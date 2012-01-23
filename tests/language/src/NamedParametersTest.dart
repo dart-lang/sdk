@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing named parameters.
@@ -91,6 +91,7 @@ class NamedParametersTest {
     Expect.equals(10203540, F41(10, c:35));
     Expect.equals(10203540, np.f52(10, c:35));
     Expect.equals(10250045, F41(10, d:45, b:25));
+    Expect.equals(10250045, F41(10, 25, d:45));
     Expect.equals(10250045, np.f52(10, d:45, b:25));
     Expect.equals(10253545, F41(10, d:45, c:35, b:25));
     Expect.equals(10253545, np.f52(10, d:45, c:35, b:25));

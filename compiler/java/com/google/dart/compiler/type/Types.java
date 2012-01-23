@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,6 +18,7 @@ import com.google.dart.compiler.resolver.TypeVariableElement;
 import com.google.dart.compiler.resolver.VariableElement;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -308,12 +309,12 @@ public class Types {
     if (type.isRaw()) {
       return supertype.asRawType();
     }
-    List<? extends Type> arguments = type.getArguments();
-    List<? extends Type> parameters = type.getElement().getTypeParameters();
+    List<Type> arguments = type.getArguments();
+    List<Type> parameters = type.getElement().getTypeParameters();
     return supertype.subst(arguments, parameters);
   }
 
-  static void printTypesOn(StringBuilder sb, List<? extends Type> types,
+  static void printTypesOn(StringBuilder sb, List<Type> types,
                            String start, String end) {
     sb.append(start);
     boolean first = true;
@@ -327,8 +328,8 @@ public class Types {
     sb.append(end);
   }
 
-  public static List<Type> subst(List<? extends Type> types,
-                                 List<? extends Type> arguments, List<? extends Type> parameters) {
+  public static List<Type> subst(List<Type> types,
+                                 List<Type> arguments, List<Type> parameters) {
     ArrayList<Type> result = new ArrayList<Type>(types.size());
     for (Type type : types) {
       result.add(type.subst(arguments, parameters));
@@ -362,13 +363,14 @@ public class Types {
     return new Types(typeProvider);
   }
 
-  public static InterfaceType interfaceType(ClassElement element, List<? extends Type> arguments) {
+  public static InterfaceType interfaceType(ClassElement element, List<Type> arguments) {
     return new InterfaceTypeImplementation(element, arguments);
   }
 
   public static FunctionAliasType functionAliasType(FunctionAliasElement element,
-                                                    List<TypeVariable> typeVariables) {
-    return new FunctionAliasTypeImplementation(element, typeVariables);
+      List<TypeVariable> typeVariables) {
+    return new FunctionAliasTypeImplementation(element,
+        Collections.<Type>unmodifiableList(typeVariables));
   }
 
   public static TypeVariable typeVariable(TypeVariableElement element) {

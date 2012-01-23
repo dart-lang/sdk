@@ -266,8 +266,7 @@ public class ResolutionContext implements ResolutionErrorListener {
                                              boolean isStatic,
                                              boolean isFactory,
                                              ErrorCode errorCode) {
-    List<? extends Type> typeParameters = element.getTypeParameters();
-
+    List<Type> typeParameters = element.getTypeParameters();
     Type[] typeArguments;
     if (typeArgumentNodes == null || typeArgumentNodes.size() != typeParameters.size()) {
       typeArguments = new Type[typeParameters.size()];

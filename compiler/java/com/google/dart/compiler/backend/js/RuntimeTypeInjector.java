@@ -1,4 +1,4 @@
-// Copyright 2011, the Dart project authors. All rights reserved.
+// Copyright 2012, the Dart project authors. All rights reserved.
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -384,7 +384,7 @@ public class RuntimeTypeInjector {
           getRTTAddToMethodName(interfaceElement), targetType.makeRef());
       if (hasTypeParameters(interfaceElement) && !superType.hasDynamicTypeArgs()) {
         JsArrayLiteral superTypeArgs = new JsArrayLiteral();
-        List<? extends Type> typeParams = classElement.getTypeParameters();
+        List<Type> typeParams = classElement.getTypeParameters();
         for (Type arg : superType.getArguments()) {
           superTypeArgs.getExpressions().add(
               buildTypeLookupExpression(arg, typeParams,
@@ -409,7 +409,7 @@ public class RuntimeTypeInjector {
           getRTTAddToMethodName(interfaceElement), targetType.makeRef());
       if (hasTypeParameters(interfaceElement) && !interfaceType.hasDynamicTypeArgs()) {
         JsArrayLiteral interfaceTypeArgs = new JsArrayLiteral();
-        List<? extends Type> typeParams = classElement.getTypeParameters();
+        List<Type> typeParams = classElement.getTypeParameters();
         for (Type arg : interfaceType.getArguments()) {
           interfaceTypeArgs.getExpressions().add(
               buildTypeLookupExpression(arg, typeParams,
@@ -547,7 +547,7 @@ public class RuntimeTypeInjector {
     return callLookup;
   }
 
-  private JsArrayLiteral generateTypeArrayFromTypes(List<? extends Type> parameterTypes,
+  private JsArrayLiteral generateTypeArrayFromTypes(List<Type> parameterTypes,
       ClassElement classElement, JsExpression typeArgContextExpr) {
     JsArrayLiteral jsTypeArray = new JsArrayLiteral();
     for (Type param : parameterTypes) {
@@ -761,7 +761,7 @@ public class RuntimeTypeInjector {
    */
   private JsExpression buildTypeArgs(
       InterfaceType instanceType,
-      List<? extends Type> listTypeVars,
+      List<Type> listTypeVars,
       JsExpression contextTypeArgs) {
     ClassElement classElement = instanceType.getElement();
     if (!hasTypeParameters(classElement)) {
@@ -790,7 +790,7 @@ public class RuntimeTypeInjector {
   private JsExpression buildTypeArgsForFactory(
       FunctionType functionType,
       InterfaceType instanceType,
-      List<? extends Type> listTypeVars,
+      List<Type> listTypeVars,
       JsExpression contextTypeArgs) {
     if (instanceType.getElement().getTypeParameters().size() == 0) {
       return null;
@@ -895,7 +895,7 @@ public class RuntimeTypeInjector {
    * @return js The expression used to lookup the RTT for the given type.
    */
   private JsInvocation buildTypeLookupExpression(
-      Type type, List<? extends Type> list, JsExpression contextTypeArgs) {
+      Type type, List<Type> list, JsExpression contextTypeArgs) {
     switch (TypeKind.of(type)) {
       case INTERFACE:
       case FUNCTION_ALIAS:
@@ -1004,7 +1004,7 @@ public class RuntimeTypeInjector {
     // TODO(johnlenz):in optimized mode, only add this where it is needed.
 
     // Fixup the type for map literal type to be the implementing type.
-    List<? extends Type> typeArgs = x.getType().getArguments();
+    List<Type> typeArgs = x.getType().getArguments();
     InterfaceType instanceType = typeProvider.getMapLiteralType(
         typeArgs.get(0), typeArgs.get(1));
     JsExpression rtt = generateRTTLookup(instanceType, enclosingClass);

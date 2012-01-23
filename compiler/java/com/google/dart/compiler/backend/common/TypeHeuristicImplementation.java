@@ -646,8 +646,8 @@ public class TypeHeuristicImplementation implements TypeHeuristic {
     }
 
     private InterfaceType substSubType(InterfaceType subType, InterfaceType baseType) {
-      List<? extends Type> typeArgs = baseType.getArguments();
-      List<? extends Type> typeParams = asInstanceOf(subType, baseType.getElement()).getArguments();
+      List<Type> typeArgs = baseType.getArguments();
+      List<Type> typeParams = asInstanceOf(subType, baseType.getElement()).getArguments();
       if (typeArgs != null && !typeArgs.isEmpty()) {
         return subType.subst(typeArgs, typeParams);
       }
@@ -660,8 +660,8 @@ public class TypeHeuristicImplementation implements TypeHeuristic {
 
     private boolean canInstantiateParametrizedType(Member member) {
       InterfaceType iface = member.getHolder();
-      List<? extends Type> typeArgs = iface.getArguments();
-      List<? extends Type> typeParams = iface.getElement().getTypeParameters();
+      List<Type> typeArgs = iface.getArguments();
+      List<Type> typeParams = iface.getElement().getTypeParameters();
       return typeArgs.size() == typeParams.size();
     }
 

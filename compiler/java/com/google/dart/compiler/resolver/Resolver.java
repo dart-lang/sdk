@@ -325,7 +325,7 @@ public class Resolver {
      * Sets the type in the AST of the default clause of an inteterface so that the type
      * parameters to resolve back to the default class.
      */
-    private void bindDefaultTypeParameters(List<? extends Type> parameterTypes,
+    private void bindDefaultTypeParameters(List<Type> parameterTypes,
                                            List<DartTypeParameter> parameterNodes,
                                            ResolutionContext classContext) {
       Iterator<? extends Type> typeIterator = parameterTypes.iterator();
@@ -399,9 +399,9 @@ public class Resolver {
     private void checkInterfaceTypeParamsToDefault(ClassElement interfaceElement,
                                                    ClassElement defaultClassElement) {
 
-      List<? extends Type> interfaceTypeParams = interfaceElement.getTypeParameters();
+      List<Type> interfaceTypeParams = interfaceElement.getTypeParameters();
 
-      List<? extends Type> defaultTypeParams = defaultClassElement.getTypeParameters();
+      List<Type> defaultTypeParams = defaultClassElement.getTypeParameters();
 
 
       if (defaultTypeParams.size() != interfaceTypeParams.size()) {

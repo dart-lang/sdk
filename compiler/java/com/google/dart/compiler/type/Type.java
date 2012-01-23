@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,7 +18,7 @@ public interface Type {
    * (lambda x.e0)e1 -> [e1/x]e0.
    * <p>See {@link TypeVariable} for a motivation for this method.
    */
-  Type subst(List<? extends Type> arguments, List<? extends Type> parameters);
+  Type subst(List<Type> arguments, List<Type> parameters);
 
   Element getElement();
 

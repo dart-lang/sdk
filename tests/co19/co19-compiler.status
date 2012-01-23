@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors. Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -68,9 +68,6 @@ LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t02: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/A01/t03: Fail
 LangGuideTest/07_Overriding/A03/t01: skip # Invalid test, Issue 1148
 LangGuideTest/07_Overriding/A03/t02: skip # Invalid test, Issue 1147
-LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A02/t01: Fail # Bug 5371670.
-LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A02/t02: Fail # Bug 5371670.
-LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/A04/t01: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A01/t01: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Instance-Field_Compound_Assignment/A02/t06: Fail
 LangGuideTest/08_Expressions/08_3_Compound_Assigment_Operators/Static-Field_Compound_Assignment/A01/t01: Fail

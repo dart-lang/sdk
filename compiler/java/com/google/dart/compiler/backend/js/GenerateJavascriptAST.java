@@ -2766,7 +2766,7 @@ public class GenerateJavascriptAST {
 
       if (method != null) {
         if (!generateDirectCallArgs(x, method, jsInvoke)) {
-          // Call cannot succeed. Return false to generate $nsme() in its place.
+          // Call cannot succeed. Generate $nsme() invocation.
           return AstUtil.newInvocation(new JsNameRef("$nsme"));
         }
       } else {
@@ -2818,7 +2818,7 @@ public class GenerateJavascriptAST {
       for (VariableElement param : target.getParameters()) {
         String name = param.getName();
         if (name != null) {
-          DartExpression namedArg = namedArgs.get(param.getName());
+          DartExpression namedArg = namedArgs.remove(name);
           if (namedArg != null) {
             if (!param.getModifiers().isNamed()) {
               // Provided a named argument to a positional parameter.
@@ -2840,6 +2840,11 @@ public class GenerateJavascriptAST {
           }
         }
         ++idx;
+      }
+
+      // Caller specified a named argument that wasn't declared in the method definition.
+      if (!namedArgs.isEmpty()) {
+        return false;
       }
 
       if (posUsed != posArgs.size()) {
@@ -2989,7 +2994,7 @@ public class GenerateJavascriptAST {
 
     // Compile time constants expressions must be canonicalized.
     // We do this with the javascript native "$intern" method.
-    private JsExpression maybeInternConst(JsExpression newExpr, List<? extends Type> typeParams) {
+    private JsExpression maybeInternConst(JsExpression newExpr, List<Type> typeParams) {
       JsInvocation intern = AstUtil.newInvocation(new JsNameRef(INTERN_CONST_FUNCTION), newExpr);
       if (typeParams != null && typeParams.size() != 0) {
         JsArrayLiteral arr = new JsArrayLiteral();

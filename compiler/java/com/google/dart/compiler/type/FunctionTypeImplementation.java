@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -33,8 +33,8 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
   }
 
   @Override
-  public Type subst(List<? extends Type> arguments,
-                    List<? extends Type> parameters) {
+  public Type subst(List<Type> arguments,
+                    List<Type> parameters) {
     List<Type> substitutedParameterTypes = Types.subst(getParameterTypes(), arguments, parameters);
     Map<String, Type> substitutedNamedParameterTypes = null;
     if (!getNamedParameterTypes().isEmpty()) {
@@ -65,7 +65,7 @@ class FunctionTypeImplementation extends AbstractType implements FunctionType {
   }
 
   @Override
-  public List<? extends Type> getParameterTypes() {
+  public List<Type> getParameterTypes() {
     return parameterTypes;
   }
 

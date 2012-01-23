@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -83,7 +83,7 @@ abstract class TypeTestCase extends TestCase {
         Modifiers.NONE,
         Collections.<DartInitializer>emptyList());
     MethodElement iteratorMethodElement = Elements.methodFromMethodNode(iteratorMethod, element);
-    Type returnType = Types.interfaceType(iterElement, Arrays.asList(typeVar));
+    Type returnType = Types.interfaceType(iterElement, Arrays.<Type>asList(typeVar));
     FunctionType functionType = ftype(function, returnType, Collections.<String,Type>emptyMap(),
          null);
     Elements.setType(iteratorMethodElement, functionType);

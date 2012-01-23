@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,9 +16,9 @@ import java.util.List;
  */
 class InterfaceTypeImplementation extends AbstractType implements InterfaceType {
   private final ClassElement element;
-  private final List<? extends Type> arguments;
+  private final List<Type> arguments;
 
-  InterfaceTypeImplementation(ClassElement element, List<? extends Type> arguments) {
+  InterfaceTypeImplementation(ClassElement element, List<Type> arguments) {
     this.element = element;
     this.arguments = arguments;
   }
@@ -29,7 +29,7 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
   }
 
   @Override
-  public List<? extends Type> getArguments() {
+  public List<Type> getArguments() {
     return arguments;
   }
 
@@ -61,7 +61,7 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
   }
 
   @Override
-  public InterfaceType subst(List<? extends Type> arguments, List<? extends Type> parameters) {
+  public InterfaceType subst(List<Type> arguments, List<Type> parameters) {
     if (arguments.isEmpty() && parameters.isEmpty()) {
       return this;
     }
@@ -130,8 +130,8 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
   private List<InterfaceType> getInterfaces() {
     List<InterfaceType> interfaces = getElement().getInterfaces();
     List<InterfaceType> result = new ArrayList<InterfaceType>(interfaces.size());
-    List<? extends Type> typeArguments = getArguments();
-    List<? extends Type> typeParameters = getElement().getTypeParameters();
+    List<Type> typeArguments = getArguments();
+    List<Type> typeParameters = getElement().getTypeParameters();
     for (InterfaceType type : interfaces) {
       result.add(type.subst(typeArguments, typeParameters));
     }
@@ -159,8 +159,8 @@ class InterfaceTypeImplementation extends AbstractType implements InterfaceType 
 
     @Override
     public Type getType() {
-      List<? extends Type> typeArguments = getHolder().getArguments();
-      List<? extends Type> typeParameters = getHolder().getElement().getTypeParameters();
+      List<Type> typeArguments = getHolder().getArguments();
+      List<Type> typeParameters = getHolder().getElement().getTypeParameters();
       return getElement().getType().subst(typeArguments, typeParameters);
     }
   }
