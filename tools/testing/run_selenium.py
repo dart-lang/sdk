@@ -49,6 +49,8 @@ def run_test_in_browser(browser, html_out, timeout, is_perf):
           lambda driver : ('PASS' in driver.page_source) or
           ('FAIL' in driver.page_source))
     source = browser.page_source
+  except selenium.common.exceptions.TimeoutException:
+    source = 'FAIL (timeout)'
   finally: 
     # A timeout exception is thrown if nothing happens within the time limit.
     if browser != 'chrome':
