@@ -22,9 +22,6 @@ samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 json/json_tests: Pass
 samples/total/total_tests: Skip # Issue 867.
 
-[ $component == frogium && $checked ]
-html/html_tests: Fail  # HTMLDivElement not assignable to EventTarget
-
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
 samples/swarm/swarm_tests: Fail
 
