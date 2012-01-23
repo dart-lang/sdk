@@ -376,23 +376,30 @@ class Dartdoc {
 
     if ((types.length == 0) && (exceptions.length == 0)) return;
 
-    writeType(String icon, Type type) {
-      write('<li>');
-      if (_currentType == type) {
-        write(
-            '<div class="icon-$icon"></div><strong>${typeName(type)}</strong>');
-      } else {
-        write(a(typeUrl(type),
-            '<div class="icon-$icon"></div>${typeName(type)}'));
-      }
-      writeln('</li>');
+    writeln('<ul class="icon">');
+    types.forEach(docTypeNavigation);
+    exceptions.forEach(docTypeNavigation);
+    writeln('</ul>');
+  }
+
+  /** Writes a linked navigation list item for the given type. */
+  docTypeNavigation(Type type) {
+    var icon = 'interface';
+    if (type.name.endsWith('Exception')) {
+      icon = 'exception';
+    } else if (type.isClass) {
+      icon = 'class';
     }
 
-    writeln('<ul>');
-    types.forEach((type) => writeType(type.isClass ? 'class' : 'interface',
-        type));
-    exceptions.forEach((type) => writeType('exception', type));
-    writeln('</ul>');
+    write('<li>');
+    if (_currentType == type) {
+      write(
+          '<div class="icon-$icon"></div><strong>${typeName(type)}</strong>');
+    } else {
+      write(a(typeUrl(type),
+          '<div class="icon-$icon"></div>${typeName(type)}'));
+    }
+    writeln('</li>');
   }
 
   docLibrary(Library library) {
@@ -478,9 +485,8 @@ class Dartdoc {
             <strong>${typeName(type, showBounds: true)}</strong></h2>
         ''');
 
-    docInheritance(type);
-
     docCode(type.span, getTypeComment(type));
+    docInheritance(type);
     docConstructors(type);
     docMembers(type);
 
@@ -488,35 +494,121 @@ class Dartdoc {
     endFile();
   }
 
-  /** Document the superclass, superinterfaces and default class of [Type]. */
-  docInheritance(Type type) {
-    final isSubclass = (type.parent != null) && !type.parent.isObject;
-
-    Type defaultType;
-    if (type.definition is TypeDefinition) {
-      TypeDefinition definition = type.definition;
-      if (definition.defaultType != null) {
-        defaultType = definition.defaultType.type;
-      }
+  /**
+   * Writes an inline type span for the given type. This is a little box with
+   * an icon and the type's name. It's similar to how types appear in the
+   * navigation, but is suitable for inline (as opposed to in a `<ul>`) use.
+   */
+  typeSpan(Type type) {
+    var icon = 'interface';
+    if (type.name.endsWith('Exception')) {
+      icon = 'exception';
+    } else if (type.isClass) {
+      icon = 'class';
     }
 
-    if (isSubclass ||
-        (type.interfaces != null && type.interfaces.length > 0) ||
-        (defaultType != null)) {
+    write('<span class="type-box"><span class="icon-$icon"></span>');
+    if (_currentType == type) {
+      write('<strong>${typeName(type)}</strong>');
+    } else {
+      write(a(typeUrl(type), typeName(type)));
+    }
+    write('</span>');
+  }
+
+  /**
+   * Document the other types that touch [Type] in the inheritance hierarchy:
+   * subclasses, superclasses, subinterfaces, superinferfaces, and default
+   * class.
+   */
+  docInheritance(Type type) {
+    // Don't show the inheritance details for Object. It doesn't have any base
+    // class (obviously) and it has too many subclasses to be useful.
+    if (type.isObject) return;
+
+    // Writes an unordered list of references to types with an optional header.
+    listTypes(types, header) {
+      if (types == null) return;
+
+      // Skip private types.
+      final publicTypes = types.filter((type) => !type.name.startsWith('_'));
+      if (publicTypes.length == 0) return;
+
+      writeln('<h3>$header</h3>');
       writeln('<p>');
+      bool first = true;
+      for (final type in publicTypes) {
+        if (!first) write(', ');
+        typeSpan(type);
+        first = false;
+      }
+      writeln('</p>');
+    }
 
-      if (isSubclass) {
-        write('Extends ${typeReference(type.parent)}. ');
+    if (type.isClass) {
+      // Show the chain of superclasses.
+      if (!type.parent.isObject) {
+        final supertypes = [];
+        var thisType = type.parent;
+        // As a sanity check, only show up to five levels of nesting, otherwise
+        // the box starts to get hideous.
+        do {
+          supertypes.add(thisType);
+          thisType = thisType.parent;
+        } while (!thisType.isObject);
+
+        writeln('<h3>Extends</h3>');
+        writeln('<p>');
+        for (var i = supertypes.length - 1; i >= 0; i--) {
+          typeSpan(supertypes[i]);
+          write('&nbsp;&gt;&nbsp;');
+        }
+
+        // Write this class.
+        typeSpan(type);
+        writeln('</p>');
       }
 
-      if (type.interfaces != null && type.interfaces.length > 0) {
-        var interfaceStr = joinWithCommas(map(type.interfaces, typeReference));
-        write('Implements ${interfaceStr}. ');
+      // Find the immediate declared subclasses (Type.subtypes includes many
+      // transitive subtypes).
+      final subtypes = [];
+      for (final subtype in type.subtypes) {
+        if (subtype.parent == type) subtypes.add(subtype);
+      }
+      subtypes.sort((a, b) => a.name.compareTo(b.name));
+
+      listTypes(subtypes, 'Subclasses');
+      listTypes(type.interfaces, 'Implements');
+    } else {
+      // Show the default class.
+      if (type.genericType.defaultType != null) {
+        listTypes([type.genericType.defaultType], 'Default class');
       }
 
-      if (defaultType != null) {
-        write('Has default class ${typeReference(defaultType)}.');
+      // List extended interfaces.
+      listTypes(type.interfaces, 'Extends');
+
+      // List subinterfaces and implementing classes.
+      final subinterfaces = [];
+      final implementing = [];
+
+      for (final subtype in type.subtypes) {
+        // We only want explicitly declared subinterfaces, so check that this
+        // type is a superinterface.
+        for (final supertype in subtype.interfaces) {
+          if (supertype == type) {
+            if (subtype.isClass) {
+              implementing.add(subtype);
+            } else {
+              subinterfaces.add(subtype);
+            }
+            break;
+          }
+        }
       }
+
+      listTypes(subinterfaces, 'Subinterfaces');
+      listTypes(implementing, 'Implemented by');
     }
   }
 
@@ -796,7 +888,7 @@ class Dartdoc {
 
     // See if it's an instantiation of a generic type.
     final typeArgs = type.typeArgsInOrder;
-    if (typeArgs != null) {
+    if (typeArgs.length > 0) {
       write('&lt;');
       bool first = true;
       for (final arg in typeArgs) {
@@ -837,7 +929,7 @@ class Dartdoc {
 
     // See if it's an instantiation of a generic type.
     final typeArgs = type.typeArgsInOrder;
-    if (typeArgs != null) {
+    if (typeArgs.length > 0) {
       final args = Strings.join(map(typeArgs, (arg) => typeName(arg)), ', ');
       return '${type.genericType.name}&lt;$args&gt;';
     }

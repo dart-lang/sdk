@@ -36,6 +36,11 @@ p {
   margin: 22px 0;
 }
 
+h3 + p {
+  /* Text immediately following a subheader should be snug with it. */
+  margin-top: 0;
+}
+
 strong {
   font-weight: 700;
 }
@@ -141,19 +146,23 @@ hr + h2 {
   background: -o-linear-gradient(top, hsla(0,0%,0%,0.05) 0%,hsla(0,0%,0%,0) 100%);
   background: -ms-linear-gradient(top, hsla(0,0%,0%,0.05) 0%,hsla(0,0%,0%,0) 100%);
   background: linear-gradient(top, hsla(0,0%,0%,0.05) 0%,hsla(0,0%,0%,0) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#0d000000', endColorstr='#00000000',GradientType=0);
 }
 
-.nav li {
+ul.icon {
+  margin: 0 0 22px 0;
+  padding: 0;
+}
+
+ul.icon li {
   font: 600 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
   list-style-type: none;
   white-space: nowrap;
 }
 
-.nav ul {
-  margin: 0 0 22px 0;
-  padding: 0;
+/* Indent nested lists. */
+ul.icon ul {
+  margin-left: 22px;
 }
 
 .icon-class,
@@ -177,6 +186,22 @@ hr + h2 {
   display: inline-block;
   margin: 4px 8px 0 0;
   vertical-align: top;
+}
+
+.type-box {
+  display: inline-block;
+  font: 600 13px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+      sans-serif;
+  background: #f4f4f4;
+  padding: 0 6px 0 3px;
+  border-radius: 4px;
+}
+
+.type-box .icon-class,
+.type-box .icon-exception,
+.type-box .icon-interface {
+  /* Make a little snugger with the text. */
+  margin-right: 5px;
 }
 
 .content {
@@ -206,12 +231,12 @@ hr + h2 {
 }
 
 .param {
-  font: 600 14px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+  font: 600 14px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
 }
 
 .crossref {
-  font: 600 15px/22px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
+  font: 600 15px 'Open Sans', 'Lucida Sans Unicode', 'Lucida Grande',
       sans-serif;
 }
 

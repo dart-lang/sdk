@@ -104,7 +104,7 @@ buildLibraryNavigation(StringBuffer html, library) {
     html.add('</li>');
   }
 
-  html.add('<ul>');
+  html.add('<ul class="icon">');
   types.forEach((type) => writeType(type['kind'], type));
   exceptions.forEach((type) => writeType('exception', type));
   html.add('</ul>');
