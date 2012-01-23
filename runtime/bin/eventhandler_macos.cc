@@ -13,7 +13,7 @@
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
 #include "bin/hashmap.h"
-#include "bin/utils.h"
+#include "platform/utils.h"
 
 
 int64_t GetCurrentTimeMilliseconds() {
