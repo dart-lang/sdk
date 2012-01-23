@@ -12,6 +12,8 @@
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
+#include "bin/hashmap.h"
+#include "bin/utils.h"
 
 
 int64_t GetCurrentTimeMilliseconds() {
@@ -24,8 +26,6 @@ int64_t GetCurrentTimeMilliseconds() {
 }
 
 
-static const int kInitialPortMapSize = 16;
-static const int kPortMapGrowingFactor = 2;
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
 static const int kInfinityTimeout = -1;
 static const int kTimerId = -1;
@@ -49,12 +49,9 @@ intptr_t SocketData::GetPollEvents() {
 }
 
 
-EventHandlerImplementation::EventHandlerImplementation() {
+EventHandlerImplementation::EventHandlerImplementation()
+    : socket_map_(&HashMap::SamePointerValue, 16) {
   intptr_t result;
-  socket_map_size_ = kInitialPortMapSize;
-  socket_map_ = reinterpret_cast<SocketData*>(calloc(socket_map_size_,
-                                                     sizeof(SocketData)));
-  ASSERT(socket_map_ != NULL);
   result = TEMP_FAILURE_RETRY(pipe(interrupt_fds_));
   if (result != 0) {
     FATAL("Pipe creation failed");
@@ -66,33 +63,24 @@ EventHandlerImplementation::EventHandlerImplementation() {
 
 
 EventHandlerImplementation::~EventHandlerImplementation() {
-  free(socket_map_);
   TEMP_FAILURE_RETRY(close(interrupt_fds_[0]));
   TEMP_FAILURE_RETRY(close(interrupt_fds_[1]));
 }
 
 
-// TODO(hpayer): Use hash table instead of array.
 SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
   ASSERT(fd >= 0);
-  if (fd >= socket_map_size_) {
-    intptr_t new_socket_map_size = socket_map_size_;
-    do {
-      new_socket_map_size = new_socket_map_size * kPortMapGrowingFactor;
-    } while (fd >= new_socket_map_size);
-    size_t new_socket_map_bytes = new_socket_map_size * sizeof(SocketData);
-    socket_map_ = reinterpret_cast<SocketData*>(realloc(socket_map_,
-                                                        new_socket_map_bytes));
-    ASSERT(socket_map_ != NULL);
-    size_t socket_map_bytes = socket_map_size_ * sizeof(SocketData);
-    memset(socket_map_ + socket_map_size_,
-           0,
-           new_socket_map_bytes - socket_map_bytes);
-    socket_map_size_ = new_socket_map_size;
+  HashMap::Entry* entry = socket_map_.Lookup(
+      GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
+  ASSERT(entry != NULL);
+  SocketData* sd = reinterpret_cast<SocketData*>(entry->value);
+  if (sd == NULL) {
+    // If there is no data in the hash map for this file descriptor
+    // then this is inserting a new SocketData for the file descriptor.
+    sd = new SocketData(fd);
+    entry->value = sd;
   }
-
-  SocketData* sd = socket_map_ + fd;
-  sd->set_fd(fd);  // For now just make sure the fd is set.
+  ASSERT(fd == sd->fd());
   return sd;
 }
 
@@ -117,8 +105,10 @@ struct pollfd* EventHandlerImplementation::GetPollFds(intptr_t* pollfds_size) {
 
   // Calculate the number of file descriptors to poll on.
   intptr_t numPollfds = 1;
-  for (int i = 0; i < socket_map_size_; i++) {
-    SocketData* sd = &socket_map_[i];
+  for (HashMap::Entry* entry = socket_map_.Start();
+       entry != NULL;
+       entry = socket_map_.Next(entry)) {
+    SocketData* sd = reinterpret_cast<SocketData*>(entry->value);
     if (sd->port() > 0 && sd->GetPollEvents() != 0) numPollfds++;
   }
 
@@ -127,20 +117,22 @@ struct pollfd* EventHandlerImplementation::GetPollFds(intptr_t* pollfds_size) {
   pollfds[0].fd = interrupt_fds_[0];
   pollfds[0].events |= POLLIN;
 
-  // TODO(hpayer): optimize the following iteration over the hash map
-  int j = 1;
-  for (int i = 0; i < socket_map_size_; i++) {
-    SocketData* sd = &socket_map_[i];
+  int i = 1;
+  for (HashMap::Entry* entry = socket_map_.Start();
+       entry != NULL;
+       entry = socket_map_.Next(entry)) {
+    SocketData* sd = reinterpret_cast<SocketData*>(entry->value);
     intptr_t events = sd->GetPollEvents();
     if (sd->port() > 0 && events != 0) {
       // Fd is added to the poll set.
-      pollfds[j].fd = sd->fd();
-      pollfds[j].events = events;
-      j++;
+      pollfds[i].fd = sd->fd();
+      pollfds[i].events = events;
+      i++;
     }
   }
-  ASSERT(numPollfds == j);
-  *pollfds_size = j;
+  ASSERT(numPollfds == i);
+  *pollfds_size = i;
+
   return pollfds;
 }
 
@@ -183,7 +175,10 @@ void EventHandlerImplementation::HandleInterruptFd() {
       } else if ((msg.data & (1 << kCloseCommand)) != 0) {
         ASSERT(msg.data == (1 << kCloseCommand));
         // Close the socket and free system resources.
+        intptr_t fd = sd->fd();
         sd->Close();
+        socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+        delete sd;
       } else {
         // Setup events to wait for.
         sd->SetPortAndMask(msg.dart_port, msg.data);
@@ -379,4 +374,16 @@ void EventHandlerImplementation::SendData(intptr_t id,
                                           Dart_Port dart_port,
                                           intptr_t data) {
   WakeupHandler(id, dart_port, data);
+}
+
+
+void* EventHandlerImplementation::GetHashmapKeyFromFd(intptr_t fd) {
+  // The hashmap does not support keys with value 0.
+  return reinterpret_cast<void*>(fd + 1);
+}
+
+
+uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
+  // The hashmap does not support keys with value 0.
+  return dart::Utils::WordHash(fd + 1);
 }

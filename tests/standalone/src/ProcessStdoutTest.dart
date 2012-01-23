@@ -12,7 +12,7 @@
 #library("ProcessStdoutTest");
 #source("ProcessTestUtil.dart");
 
-void test(Process process) {
+void test(Process process, int expectedExitCode) {
   // Wait for the process to start and then interact with it.
   process.startHandler = () {
     List<int> data = "ABCDEFGHI\n".charCodes();
@@ -49,12 +49,16 @@ void test(Process process) {
     output.close();
     input.dataHandler = readData;
   };
+
+  process.exitHandler = (exitCode) {
+    Expect.equals(expectedExitCode, exitCode);
+  };
 }
 
 main() {
   // Run the test using the process_test binary.
   test(new Process.start(getProcessTestFileName(),
-                         const ["0", "1", "99", "0"]));
+                         const ["0", "1", "99", "0"]), 99);
 
   // Run the test using the dart binary with an echo script.
   // The test runner can be run from either the root or from runtime.
@@ -63,5 +67,5 @@ main() {
     scriptFile = new File("../tests/standalone/src/ProcessStdIOScript.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(new Process.start(getDartFileName(), [scriptFile.name, "0"]));
+  test(new Process.start(getDartFileName(), [scriptFile.name, "0"]), 0);
 }
