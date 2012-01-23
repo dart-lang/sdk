@@ -9,6 +9,10 @@ Node makeNodeWithChildren() =>
 
 void testNode() {
   group('nodes', () {
+    test('is a NodeList', () {
+      Expect.isTrue(makeNodeWithChildren().nodes is NodeList);
+    });
+
     test('first', () {
       var node = makeNodeWithChildren();
       Expect.isTrue(node.nodes.first is Text);
@@ -32,6 +36,7 @@ void testNode() {
       var filtered = makeNodeWithChildren().nodes.filter((n) => n is BRElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is BRElement);
+      Expect.isTrue(filtered is NodeList);
     });
 
     test('every', () {
@@ -121,6 +126,35 @@ void testNode() {
       Expect.equals(2, node.nodes.length);
       Expect.isTrue(node.nodes.removeLast() is BRElement);
       Expect.equals(1, node.nodes.length);
+    });
+
+    test('getRange', () {
+      var node = makeNodeWithChildren();
+      Expect.isTrue(node.nodes.getRange(1, 2) is NodeList);
+    });
+  });
+
+  group('_NodeList', () {
+    NodeList makeNodeList() =>
+      makeNodeWithChildren().nodes.filter((_) => true);
+
+    test('first', () {
+      var nodes = makeNodeList();
+      Expect.isTrue(nodes.first is Text);
+    });
+
+    test('filter', () {
+      var filtered = makeNodeList().filter((n) => n is BRElement);
+      Expect.equals(1, filtered.length);
+      Expect.isTrue(filtered[0] is BRElement);
+      Expect.isTrue(filtered is NodeList);
+    });
+
+    test('getRange', () {
+      var range = makeNodeList().getRange(1, 2);
+      Expect.isTrue(range is NodeList);
+      Expect.isTrue(range[0] is BRElement);
+      Expect.isTrue(range[1] is Comment);
     });
   });
 }

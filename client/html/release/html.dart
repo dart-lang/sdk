@@ -12528,6 +12528,10 @@ interface Node extends EventTarget {
 // BSD-style license that can be found in the LICENSE file.
 
 interface NodeList extends List<Node> {
+  NodeList filter(bool f(Node element));
+
+  NodeList getRange(int start, int length);
+
   Node get first();
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file

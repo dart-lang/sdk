@@ -27,7 +27,7 @@ class _ChildrenNodeList implements NodeList {
 
   Collection map(f(Node element)) => _toList().map(f);
 
-  Collection<Node> filter(bool f(Node element)) => _toList().filter(f);
+  NodeList filter(bool f(Node element)) => new _NodeList(_toList().filter(f));
 
   bool every(bool f(Node element)) {
     for(Node element in this) {
@@ -107,7 +107,8 @@ class _ChildrenNodeList implements NodeList {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  NodeList getRange(int start, int length) =>
+    new _NodeList(Lists.getRange(this, start, length));
 
   int indexOf(Node element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -133,6 +134,68 @@ class _ChildrenNodeList implements NodeList {
   Node last() {
     return LevelDom.wrapNode(_node.lastChild);
   }
+}
+
+// TODO(nweiz): when all implementations we target have the same name for the
+// coreimpl implementation of List<Node>, extend that rather than wrapping.
+class _NodeList implements NodeList {
+  List<Node> _list;
+
+  _NodeList(List<Node> this._list);
+
+  Iterator<Node> iterator() => _list.iterator();
+
+  void forEach(void f(Node element)) => _list.forEach(f);
+
+  Collection map(f(Node element)) => _list.map(f);
+
+  NodeList filter(bool f(Node element)) => new _NodeList(_list.filter(f));
+
+  bool every(bool f(Node element)) => _list.every(f);
+
+  bool some(bool f(Node element)) => _list.some(f);
+
+  bool isEmpty() => _list.isEmpty();
+
+  int get length() => _list.length;
+
+  Node operator [](int index) => _list[index];
+
+  void operator []=(int index, Node value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void add(Node value) => _list.add(value);
+
+  void addLast(Node value) => _list.addLast(value);
+
+  void addAll(Collection<Node> collection) => _list.addAll(collection);
+
+  void sort(int compare(Node a, Node b)) => _list.sort(compare);
+
+  int indexOf(Node element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(Node element, [int start = 0]) =>
+    _list.lastIndexOf(element, start);
+
+  void clear() => _list.clear();
+
+  Node removeLast() => _list.removeLast();
+
+  Node last() => _list.last();
+
+  NodeList getRange(int start, int length) =>
+    new _NodeList(_list.getRange(start, length));
+
+  void setRange(int start, int length, List<Node> from, [int startFrom = 0]) =>
+    _list.setRange(start, length, from, startFrom);
+
+  void removeRange(int start, int length) => _list.removeRange(start, length);
+
+  void insertRange(int start, int length, [Node initialValue = null]) =>
+    _list.insertRange(start, length, initialValue);
+
+  Node get first() => _list[0];
 }
 
 class NodeWrappingImplementation extends EventTargetWrappingImplementation implements Node {
