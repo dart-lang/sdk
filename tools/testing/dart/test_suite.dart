@@ -409,7 +409,15 @@ class StandardTestSuite implements TestSuite {
         // the client/samples/dartcombat test to its css file, remove the
         // "../../" from this path, and move this out of the isWebTest guard.
         // Also remove getHtmlName, and just use test.html.
-        htmlPath = '${tempDir.path}/../../${getHtmlName(filename)}';
+        // TODO(efortuna): this shortening of htmlFilename is a band-aid until 
+        // the above TODO gets fixed. Windows cannot have paths that are longer
+        // than 260 characters, and without this hack, we were running past the
+        // the limit.
+        String htmlFilename = getHtmlName(filename);
+        while ('${tempDir.path}/../../$htmlFilename'.length >= 260) {
+          htmlFilename = htmlFilename.substring(htmlFilename.length~/2);
+        }
+        htmlPath = '${tempDir.path}/../../$htmlFilename';
       }
       final String scriptPath = (component == 'dartium') ?
           dartWrapperFilename : compiledDartWrapperFilename;
@@ -461,9 +469,14 @@ class StandardTestSuite implements TestSuite {
       String executable = getFilename(dumpRenderTreeFilename);
       List<String> args;
       if (component == 'webdriver') {
-        // TODO(efortuna): These paths are not OS independent! 
         executable = '$dartDir/tools/testing/run_selenium.py';
-        args = ['--out', htmlPath, '--browser', configuration['browser']];
+        if (new Platform().operatingSystem() == 'windows') {
+          // For Windows, the first command, must have the Windows 
+          // slash direction.
+          // TODO(efortuna): Get rid of this hack when issue 1306 is fixed.
+          executable = executable.replaceAll('/', '\\');
+        }
+        args = ['--out=$htmlPath', '--browser=${configuration["browser"]}'];
       } else {
         args = ['--no-timeout'];
         if (component == 'dartium') {
@@ -899,22 +912,21 @@ class TestUtils {
       case 'leg':
           return 'frog/bin/frog$postfix';
       case 'frogsh':
-        return 'frog/bin/frogsh$postfix';
+        return 'frog/bin/frogsh';
       default:
         throw "Unknown executable for: ${configuration['component']}";
     }
   }
 
   static String compilerName(Map configuration) {
-    String postfix =
-        (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
+    String postfix = executableSuffix;
     switch (configuration['component']) {
       case 'chromium':
       case 'dartc':
         return 'compiler/bin/dartc$postfix';
       case 'frogium':
       case 'webdriver':
-        return 'frog/bin/frogsh$postfix';
+        return 'frog/bin/frogsh';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
     }

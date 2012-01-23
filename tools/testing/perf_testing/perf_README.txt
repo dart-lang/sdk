@@ -92,17 +92,16 @@ If you just want smoketests, you're done! Run them by typing:
 $> tools/testing/bin/$YOUR_OS_DIR/dart tools/test.dart --component=webdriver
 --report --timeout=20 --mode=release --browser=[ff | safari | chrome | ie]
 [--frog=path/to/frog/executable/like/Release_ia32/dart-sdk/frogc
---froglib=path/to/frog/lib/like/dart/frog/lib]
+--froglib=path/to/frog/lib/like/dart/frog/lib] test_to_run(like "language" or
+"corelib")
 
 (If you don't specify frog and froglib arguments, we default to using the frogsh
 living in your frog directory.)
 
 ========= Proceed further only if you also want to run performance tests.======
 
-10)Add the following to your DEPS file in all.deps in the "deps = {" section:
-  # Copy of Python appengine latest release version
-  "dart/third_party/appengine-python/1.5.4":
-    "http://googleappengine.googlecode.com/svn/trunk/python@199",
+10)Download appengine for Python and place it in third_party (http://code.google.com/appengine/downloads.html#Google_App_Engine_SDK_for_Python):
+  "dart/third_party/appengine-python/"
 
 11)Install matplotlib http://matplotlib.sourceforge.net/
 
