@@ -30,7 +30,20 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     File stubs = new File(stubsFile);
     Expect.isTrue(filename.endsWith(".dart"));
     String baseName = filename.substring(0, filename.length - 5);
-    String resultPath = '${baseName}-generatedTest.dart';
+    // Find place in the buildDir at the same relative level as the test.
+    String resultPath = TestUtils.buildDir(configuration);
+    String relativeImportPath = '../../../tests/isolate/src/TestFramework.dart';
+    if (!new File('$resultPath/$relativeImportPath').existsSync()) {
+      resultPath = '$resultPath/generated_tests';
+      if (!new Directory(resultPath).existsSync()) {
+        new Directory(resultPath).createSync();
+      }
+      if (!new File('$resultPath/$relativeImportPath').existsSync()) {
+        throw new Exception('Cannot find $relativeImportPath from $resultPath');
+      }
+    }
+    int testNamePos = filename.lastIndexOf('/');
+    resultPath = '$resultPath/${filename.substring(testNamePos + 1)}';
     File result = new File(resultPath);
     StringInputStream origStream =
         new StringInputStream(orig.openInputStream());
