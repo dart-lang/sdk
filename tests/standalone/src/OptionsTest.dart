@@ -12,6 +12,8 @@ main() {
   Expect.equals(10, Math.parseInt(opts.arguments[0]));
   Expect.equals("OptionsTest", opts.arguments[1]);
   Expect.equals(20, Math.parseInt(opts.arguments[2]));
+  Expect.isTrue(opts.script.replaceAll('\\', '/').
+                endsWith('tests/standalone/src/OptionsTest.dart'));
 
   // Now add an additional argument.
   opts.arguments.add("Fourth");

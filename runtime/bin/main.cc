@@ -151,8 +151,13 @@ static int ParseArguments(int argc,
 }
 
 
-static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
+static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
+                                       char* script_name) {
   int options_count = options->count();
+  Dart_Handle dart_script = Dart_NewString(script_name);
+  if (Dart_IsError(dart_script)) {
+    return dart_script;
+  }
   Dart_Handle dart_arguments = Dart_NewList(options_count);
   if (Dart_IsError(dart_arguments)) {
     return dart_arguments;
@@ -183,6 +188,15 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options) {
       core_lib, runtime_options_class_name);
   if (Dart_IsError(runtime_options_class)) {
     return runtime_options_class;
+  }
+  Dart_Handle script_name_name = Dart_NewString("_nativeScript");
+  if (Dart_IsError(script_name_name)) {
+    return script_name_name;
+  }
+  Dart_Handle set_script_name =
+      Dart_SetStaticField(runtime_options_class, script_name_name, dart_script);
+  if (Dart_IsError(set_script_name)) {
+    return set_script_name;
   }
   Dart_Handle native_name = Dart_NewString("_nativeArguments");
   if (Dart_IsError(native_name)) {
@@ -489,7 +503,8 @@ int main(int argc, char** argv) {
   }
 
   // Create a dart options object that can be accessed from dart code.
-  Dart_Handle options_result = SetupRuntimeOptions(&dart_options);
+  Dart_Handle options_result =
+      SetupRuntimeOptions(&dart_options, canonical_script_name);
   if (Dart_IsError(options_result)) {
     fprintf(stderr, "%s\n", Dart_GetError(options_result));
     Dart_ExitScope();
