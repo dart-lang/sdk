@@ -133,29 +133,34 @@ class _ChildrenElementList implements ElementList {
 
 class FrozenElementList implements ElementList {
   final _ptr;
-  List<Element> _list;
 
   FrozenElementList._wrap(this._ptr);
-
-  List<Element> _toList() {
-    if (_list == null) {
-      _list = new List(_ptr.length);
-      for (int i = 0, len = _ptr.length; i < len; i++) {
-        _list[i] = LevelDom.wrapElement(_ptr[i]);
-      }
-    }
-    return _list;
-  }
 
   Element get first() {
     return this[0];
   }
 
-  void forEach(void f(Element element)) => _toList().forEach(f);
+  void forEach(void f(Element element)) {
+    for (Element el in this) {
+      f(el);
+    }
+  }
 
-  Collection map(f(Element element)) => _toList().map(f);
+  Collection map(f(Element element)) {
+    var out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
+  }
 
-  Collection<Element> filter(bool f(Element element)) => _toList().filter(f);
+  Collection<Element> filter(bool f(Element element)) {
+    var out = [];
+    for (Element el in this) {
+      if (f(el)) out.add(el);
+    }
+    return out;
+  }
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
