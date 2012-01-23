@@ -64,8 +64,7 @@ def GetBuildInfo():
     name = socket.gethostname().split('.')[0]
   if not version:
     pipe = subprocess.Popen(
-        ['svnversion', '-n'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        shell=True)
+        ['svnversion', '-n'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output = pipe.communicate()
     if pipe.returncode == 0:
       version = output[0]
@@ -175,18 +174,14 @@ def ProcessTools(mode, name, version):
 
   return subprocess.call(cmds, env=local_env)
 
-def ProcessFrog(name):
+def ProcessFrog():
   '''
   build and test experimental frog build
   '''
   print 'ProcessFrog'
-  if 'windows' in name:
-    os.environ['PATH'] = (os.path.join('C:', 'Program Files (x86)', 'nodejs') +
-                         os.pathsep + os.environ['PATH'])
 
   return subprocess.call([sys.executable,
-      os.path.join('frog', 'scripts', 'buildbot_annotated_steps.py')],
-      env=os.environ, shell=True)
+      os.path.join('frog', 'scripts', 'buildbot_annotated_steps.py')])
 
 def main():
   print 'main'
@@ -203,7 +198,7 @@ def main():
     status = ProcessTools(mode, name, version)
   #TODO(sigmund): remove this indirection once we update our bots
   elif name.startswith('frog'):
-    status = ProcessFrog(name)
+    status = ProcessFrog()
   else:
     status = ProcessDartClientTests(component, mode, platform, name)
 

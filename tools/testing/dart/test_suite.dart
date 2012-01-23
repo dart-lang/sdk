@@ -409,15 +409,7 @@ class StandardTestSuite implements TestSuite {
         // the client/samples/dartcombat test to its css file, remove the
         // "../../" from this path, and move this out of the isWebTest guard.
         // Also remove getHtmlName, and just use test.html.
-        // TODO(efortuna): this shortening of htmlFilename is a band-aid until 
-        // the above gets fixed. Windows cannot have paths that are longer than
-        // 260 characters, and without this hack, we were running past the
-        // limit.
-        String htmlFilename = getHtmlName(filename);
-        while ('${tempDir.path}/../../$htmlFilename'.length >= 260) {
-          htmlFilename = htmlFilename.substring(htmlFilename.length~/2);
-        }
-        htmlPath = '${tempDir.path}/../../$htmlFilename';
+        htmlPath = '${tempDir.path}/../../${getHtmlName(filename)}';
       }
       final String scriptPath = (component == 'dartium') ?
           dartWrapperFilename : compiledDartWrapperFilename;
@@ -451,9 +443,9 @@ class StandardTestSuite implements TestSuite {
           if (libdir == '') {
             libdir = '$dartDir/frog/lib';
           }
-          compilerArgs.addAll(['--compile-only',
-                               '--out=$compiledDartWrapperFilename',
-                               '--libdir=$libdir']);
+          compilerArgs.addAll(['--libdir=$libdir',
+                               '--compile-only',
+                               '--out=$compiledDartWrapperFilename']);
           compilerArgs.addAll(vmOptions);
           compilerArgs.add(dartWrapperFilename);
           break;
@@ -469,14 +461,9 @@ class StandardTestSuite implements TestSuite {
       String executable = getFilename(dumpRenderTreeFilename);
       List<String> args;
       if (component == 'webdriver') {
+        // TODO(efortuna): These paths are not OS independent! 
         executable = '$dartDir/tools/testing/run_selenium.py';
-        if (new Platform().operatingSystem() == 'windows') {
-          // For Windows, the first command, must have the Windows 
-          // slash direction.
-          // TODO(efortuna): Get rid of this hack when issue 1306 is fixed.
-          executable = executable.replaceAll('/', '\\');
-        }
-        args = ['--out=$htmlPath', '--browser=${configuration["browser"]}'];
+        args = ['--out', htmlPath, '--browser', configuration['browser']];
       } else {
         args = ['--no-timeout'];
         if (component == 'dartium') {
@@ -920,16 +907,14 @@ class TestUtils {
 
   static String compilerName(Map configuration) {
     String postfix =
-        ((new Platform().operatingSystem() == 'windows') && 
-        (configuration['component'] != 'frogium' &&
-        configuration['component'] != 'webdriver')) ? '.exe' : '';
+        (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
     switch (configuration['component']) {
       case 'chromium':
       case 'dartc':
         return 'compiler/bin/dartc$postfix';
       case 'frogium':
       case 'webdriver':
-        return 'frog/bin/frogsh';
+        return 'frog/bin/frogsh$postfix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
     }
