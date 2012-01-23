@@ -47,8 +47,10 @@ ConstListTest: Fail
 ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstTest: Fail
+ConstructorCallWrongArgumentCountNegativeTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
+Constructor3NegativeTest: Fail
 Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
