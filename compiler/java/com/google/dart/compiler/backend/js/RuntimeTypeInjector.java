@@ -289,11 +289,6 @@ public class RuntimeTypeInjector {
     //   // interfaces
     //   FooInterface1$addTo(rtt, interface1TypeArg1, ...);
     //
-    //   // fill in derived types
-    //   rtt.derivedTypes = [
-    //      FirstRef$lookupOrCreateRTT(typearg1, ...),
-    //      ...
-    //      ]
     // }
 
     boolean hasTypeParams = classElement.getTypeParameters().size() > 0;
@@ -318,18 +313,6 @@ public class RuntimeTypeInjector {
       callAddTo.getArguments().add(typeArgs.makeRef());
     }
     body.add(callAddTo.makeStmt());
-
-    // Add the derived types
-
-    if (hasTypeParams) {
-      // Populated the list of derived types
-      JsArrayLiteral derivedTypesArray = new JsArrayLiteral();
-      // TODO(johnlenz): Add needed types here.
-      JsExpression addDerivedTypes = assign(null,
-          nameref(null, rtt.makeRef(), "derivedTypes"),
-          derivedTypesArray);
-      body.add(addDerivedTypes.makeStmt());
-    }
 
     // Finally, Add the function
     JsExpression fnDecl = assign(null,

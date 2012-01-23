@@ -33,9 +33,6 @@ function RTT(classkey, typekey, typeargs, returnType, functionType, named) {
 /** @type {Object.<string, Object>} */
 RTT.types = {};
 
-/** @type {Array.<RTT>} */
-RTT.prototype.derivedTypes = [];
-
 /** @return {string} */
 RTT.prototype.toString = function() { return this.typeKey; }
 
