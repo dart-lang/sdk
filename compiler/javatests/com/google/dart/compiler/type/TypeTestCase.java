@@ -68,6 +68,7 @@ abstract class TypeTestCase extends TestCase {
   final FunctionType stringAndIntToMap = ftype(function, stringIntMap,
                                                null, null, itype(string), itype(intElement));
   private int expectedTypeErrors = 0;
+  private int foundTypeErrors = 0;
 
   abstract Types getTypes();
 
@@ -94,10 +95,11 @@ abstract class TypeTestCase extends TestCase {
   protected void setExpectedTypeErrorCount(int count) {
     checkExpectedTypeErrorCount();
     expectedTypeErrors = count;
+    foundTypeErrors  = 0;
   }
 
   protected void checkExpectedTypeErrorCount(String message) {
-    assertEquals(message, 0, expectedTypeErrors);
+    assertEquals(message, expectedTypeErrors, foundTypeErrors);
   }
 
   protected void checkExpectedTypeErrorCount() {
@@ -174,8 +176,8 @@ abstract class TypeTestCase extends TestCase {
     public void onError(DartCompilationError event) {
       if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
         getErrorCodes().add(event.getErrorCode());
-        expectedTypeErrors--;
-        if (expectedTypeErrors < 0) {
+        foundTypeErrors++;
+        if (expectedTypeErrors - foundTypeErrors < 0) {
           throw new TestTypeError(event);
         }
       }

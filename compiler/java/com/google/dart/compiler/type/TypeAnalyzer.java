@@ -227,7 +227,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     }
 
     private Type typeOfLiteral(DartLiteral node) {
-      return node.getType();
+      Type type = node.getType();
+      return type == null ? voidType : type;
     }
 
     private Token getBasicOperator(DartNode diagnosticNode, Token op) {
@@ -527,8 +528,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // Check positional parameters.
       List<Type> parameterTypes = ftype.getParameterTypes();
       for (Type parameterType : parameterTypes) {
+        parameterType.getClass(); // quick null check
         if (argumentTypes.hasNext()) {
-          checkAssignable(argumentNodes.get(argumentIndex), parameterType, argumentTypes.next());
+          Type argumentType = argumentTypes.next();
+          argumentType.getClass(); // quick null check
+          checkAssignable(argumentNodes.get(argumentIndex), parameterType, argumentType);
           argumentIndex++;
         } else {
           onError(diagnosticNode, TypeErrorCode.MISSING_ARGUMENT, parameterType);
@@ -551,8 +555,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Entry<String, Type> namedEntry = namedParameterTypesIterator.next();
           String parameterName = namedEntry.getKey();
           usedNamedParametersPositional.add(parameterName);
+          Type namedType = namedEntry.getValue();
+          namedType.getClass(); // quick null check
           Type argumentType = argumentTypes.next();
-          checkAssignable(argumentNodes.get(argumentIndex), namedEntry.getValue(), argumentType);
+          argumentType.getClass(); // quick null check
+          checkAssignable(argumentNodes.get(argumentIndex), namedType, argumentType);
           argumentIndex++;
         }
         // Check named arguments for named parameters.
@@ -574,6 +581,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type namedParameterType = namedParameterTypes.get(parameterName);
           Type argumentType = argumentTypes.next();
           if (namedParameterType != null) {
+            argumentType.getClass(); // quick null check
             checkAssignable(argumentNode, namedParameterType, argumentType);
           } else {
             onError(argumentNode, TypeErrorCode.NO_SUCH_NAMED_PARAMETER, parameterName);
@@ -594,8 +602,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
         onError(argumentNodes.get(argumentIndex), TypeErrorCode.EXTRA_ARGUMENT);
         argumentIndex++;
       }
+
       // Return type.
-      return ftype.getReturnType();
+      Type type = ftype.getReturnType();
+      type.getClass(); // quick null check
+      return type;
     }
 
     @Override
@@ -609,7 +620,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case NONE:
           return typeError(node, TypeErrorCode.INTERNAL_ERROR,
                            String.format("type \"%s\" is null", node));
-
         case INTERFACE: {
           InterfaceType itype = (InterfaceType) type;
           validateBounds(node.getTypeArguments(),
@@ -618,7 +628,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
                          badBoundIsError);
           return itype;
         }
-
         default:
           return type;
       }
@@ -655,19 +664,38 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
+    /**
+     * Returns the type of a node.  If a type of an expression can't be resolved,
+     * returns the dynamic type.
+     *
+     * @return a non-null type
+     */
     Type typeOf(DartNode node) {
       if (node == null) {
         return dynamicType;
       }
-      return node.accept(this);
+      Type result = node.accept(this);
+      if (result == null) {
+         return dynamicType;
+      }
+      return result;
     }
 
+    /**
+     * Returns the type of a node, registering an error if the type is unresolved or
+     * void.
+     *
+     * @return a non-null type
+     */
     private Type nonVoidTypeOf(DartNode node) {
       Type type = typeOf(node);
-      if (type.getKind().equals(TypeKind.VOID)) {
-        return typeError(node, TypeErrorCode.VOID);
+      switch (TypeKind.of(type)) {
+        case VOID:
+        case NONE:
+          return typeError(node, TypeErrorCode.VOID);
+        default:
+          return type;
       }
-      return type;
     }
 
     @Override
@@ -960,7 +988,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitFunctionExpression(DartFunctionExpression node) {
       node.visitChildren(this);
-      return ((Element) node.getSymbol()).getType();
+      Type result = ((Element) node.getSymbol()).getType();
+      result.getClass(); // quick null check
+      return result;
     }
 
     @Override
@@ -977,11 +1007,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case PARAMETER:
         case FUNCTION_OBJECT:
           type = element.getType();
+          type.getClass(); // quick null check
+
           break;
 
         case FIELD:
         case METHOD:
           type = typeAsMemberOf(element, currentClass);
+          type.getClass(); // quick null check
           break;
 
         case NONE:
@@ -1153,6 +1186,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           checkInvocation(node, node, null, ftype);
         }
       }
+      type.getClass(); // quick null check
       return type;
     }
 
@@ -1218,7 +1252,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitParenthesizedExpression(DartParenthesizedExpression node) {
-      return node.getExpression().accept(this);
+      Type type = node.getExpression().accept(this);
+      type.getClass(); // quick null check
+      return type;
     }
 
     @Override
@@ -1280,9 +1316,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitSuperExpression(DartSuperExpression node) {
       if (currentClass == null) {
         return dynamicType;
-      } else {
-        return currentClass.getElement().getSupertype();
       }
+      Type type = currentClass.getElement().getSupertype();
+      type.getClass(); // quick null check
+      return type;
     }
 
     @Override
@@ -1302,7 +1339,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitThisExpression(DartThisExpression node) {
-      return getCurrentClass();
+      Type type = getCurrentClass();
+      if (type == null) {
+        // this was used in a static context, so it should have already generated a fatal error
+        return voidType;
+      }
+      return type;
     }
 
     @Override
@@ -1468,6 +1510,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       InterfaceType supertype = types.asInstanceOf(subtype, superclass);
       Type type = member.getType().subst(supertype.getArguments(),
                                          supertype.getElement().getTypeParameters());
+      type.getClass(); // quick null check
       return type;
     }
 
@@ -1489,7 +1532,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       // Intentionally skip the expression's name -- it's stored as an identifier, but doesn't need
       // to be resolved or type-checked.
-      return node.getExpression().accept(this);
+      Type type =  node.getExpression().accept(this);
+      type.getClass(); // quick null check
+      return type;
     }
 
     @Override
@@ -1576,7 +1621,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitParameterizedTypeNode(DartParameterizedTypeNode node) {
       visit(node.getTypeParameters());
-      return node.getType();
+      Type type = node.getType();
+      type.getClass(); // quick null check
+      return type;
     }
 
     @Override

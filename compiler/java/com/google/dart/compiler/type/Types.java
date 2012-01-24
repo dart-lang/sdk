@@ -53,7 +53,7 @@ public class Types {
    *         function or variable type.
    */
   public InterfaceType getInterfaceType(Type type) {
-    switch (type.getKind()) {
+    switch (TypeKind.of(type)) {
       case VARIABLE: {
         TypeVariableElement element = ((TypeVariable) type).getTypeVariableElement();
         if (element.getBound() == null) {
