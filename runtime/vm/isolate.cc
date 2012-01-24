@@ -100,9 +100,13 @@ void Isolate::PostMessage(Message* message) {
               "\tdest_port:  %lld\n",
               source_name, message->reply_port(), name(), message->dest_port());
   }
+
+  Message::Priority priority = message->priority();
   message_queue()->Enqueue(message);
-  ASSERT(message->priority() < Message::kOOBPriority);
-  if (message->priority() >= Message::kOOBPriority) {
+  message = NULL;  // Do not access message.  May have been deleted.
+
+  ASSERT(priority < Message::kOOBPriority);
+  if (priority >= Message::kOOBPriority) {
     // Handle out of band messages even if the isolate is busy.
     ScheduleInterrupts(Isolate::kMessageInterrupt);
   }
