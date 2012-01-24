@@ -192,6 +192,39 @@ TEST_CASE(Debug_LookupSourceLine) {
   EXPECT(func.IsNull());
   func = test_lib.LookupFunctionInSource(script_url, 10);
   EXPECT(func.IsNull());
+
+  Dart_Handle libs = Dart_GetLibraryURLs();
+  EXPECT(Dart_IsList(libs));
+  intptr_t num_libs;
+  Dart_ListLength(libs, &num_libs);
+  EXPECT(num_libs > 0);
+  for (intptr_t i = 0; i < num_libs; i++) {
+    Dart_Handle lib_url = Dart_ListGetAt(libs, i);
+    EXPECT(Dart_IsString(lib_url));
+    char const* chars;
+    Dart_StringToCString(lib_url, &chars);
+    printf("Lib %d: %s\n", i, chars);
+
+    Dart_Handle scripts = Dart_GetScriptURLs(lib_url);
+    EXPECT(Dart_IsList(scripts));
+    intptr_t num_scripts;
+    Dart_ListLength(scripts, &num_scripts);
+    EXPECT(num_scripts >= 0);
+    for (intptr_t i = 0; i < num_scripts; i++) {
+      Dart_Handle script_url = Dart_ListGetAt(scripts, i);
+      char const* chars;
+      Dart_StringToCString(script_url, &chars);
+      printf("  script %d: '%s'\n", i + 1, chars);
+    }
+  }
+
+  Dart_Handle lib_url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_GetScriptSource(lib_url, lib_url);
+  EXPECT(Dart_IsString(source));
+  char const* source_chars;
+  Dart_StringToCString(source, &source_chars);
+  printf("\n=== source: ===\n%s", source_chars);
+  EXPECT_STREQ(kScriptChars, source_chars);
 }
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).

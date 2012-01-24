@@ -1692,6 +1692,7 @@ class Library : public Object {
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
   RawScript* LookupScript(const String& url) const;
+  RawArray* LoadedScripts() const;
 
   void AddAnonymousClass(const Class& cls) const;
 
@@ -1746,6 +1747,7 @@ class Library : public Object {
   }
   RawArray* imports() const { return raw_ptr()->imports_; }
   RawArray* imported_into() const { return raw_ptr()->imported_into_; }
+  RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
   void InitImportList() const;

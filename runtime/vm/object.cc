@@ -4044,6 +4044,11 @@ void Library::AddObject(const Object& obj, const String& name) const {
   if (used_elements > ((dict_size / 4) * 3)) {
     GrowDictionary(dict, dict_size);
   }
+
+  // Invalidate the cache of loaded scripts.
+  if (loaded_scripts() != Array::null()) {
+    StorePointer(&raw_ptr()->loaded_scripts_, Array::null());
+  }
 }
 
 
@@ -4054,37 +4059,74 @@ void Library::AddClass(const Class& cls) const {
 }
 
 
-// TODO(hausner): we might want to add a script dictionary to the
-// library class to make this lookup less cumbersome.
-RawScript* Library::LookupScript(const String& url) const {
-  Object& entry = Object::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
-  Script& owner_script = Script::Handle();
-  String& owner_url = String::Handle();
+RawArray* Library::LoadedScripts() const {
+  // We compute the list of loaded scripts lazily. The result is
+  // cached in loaded_scripts_.
+  if (loaded_scripts() == Array::null()) {
+    // Iterate over the library dictionary and collect all scripts.
+    GrowableArray<Script*> scripts(8);
+    Object& entry = Object::Handle();
+    Function& func = Function::Handle();
+    Field& field = Field::Handle();
+    Class& cls = Class::Handle();
+    Script& owner_script = Script::Handle();
+    DictionaryIterator it(*this);
+    while (it.HasNext()) {
+      entry = it.GetNext();
+      if (entry.IsClass()) {
+        cls ^= entry.raw();
+      } else if (entry.IsFunction()) {
+        func ^= entry.raw();
+        cls = func.owner();
+      } else if (entry.IsField()) {
+        field ^= entry.raw();
+        cls = field.owner();
+      } else {
+        continue;
+      }
+      owner_script = cls.script();
+      if (owner_script.IsNull()) {
+        continue;
+      }
+      bool is_unique = true;
+      for (int i = 0; i < scripts.length(); i++) {
+        if (scripts[i]->raw() == owner_script.raw()) {
+          // We already have a reference to this script.
+          is_unique = false;
+          break;
+        }
+      }
+      if (is_unique) {
+        // Create a unique script handle and add it to the list of scripts.
+        Script& unique_script = Script::Handle(owner_script.raw());
+        scripts.Add(&unique_script);
+      }
+    }
 
-  DictionaryIterator it(*this);
-  while (it.HasNext()) {
-    entry = it.GetNext();
-    if (entry.IsClass()) {
-      cls ^= entry.raw();
-    } else if (entry.IsFunction()) {
-      func ^= entry.raw();
-      cls = func.owner();
-    } else if (entry.IsField()) {
-      field ^= entry.raw();
-      cls = field.owner();
-    } else {
-      continue;
+    // Create the array of scripts and cache it in loaded_scripts_.
+    const Array& loaded_scripts =
+        Array::Handle(Array::New(scripts.length(), Heap::kOld));
+    for (int i = 0; i < scripts.length(); i++) {
+      loaded_scripts.SetAt(i, *scripts[i]);
     }
-    owner_script = cls.script();
-    if (owner_script.IsNull()) {
-      continue;
-    }
-    owner_url = owner_script.url();
-    if (owner_url.Equals(url)) {
-      return owner_script.raw();
+    StorePointer(&raw_ptr()->loaded_scripts_, loaded_scripts.raw());
+  }
+  return loaded_scripts();
+}
+
+
+// TODO(hausner): we might want to add a script dictionary to the
+// library class to make this lookup faster.
+RawScript* Library::LookupScript(const String& url) const {
+  const Array& scripts = Array::Handle(LoadedScripts());
+  Script& script = Script::Handle();
+  String& script_url = String::Handle();
+  intptr_t num_scripts = scripts.Length();
+  for (int i = 0; i < num_scripts; i++) {
+    script ^= scripts.At(i);
+    script_url = script.url();
+    if (script_url.Equals(url)) {
+      return script.raw();
     }
   }
   return Script::null();
@@ -4435,6 +4477,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->num_anonymous_ = 0;
   result.raw_ptr()->imports_ = Array::Empty();
   result.raw_ptr()->next_registered_ = Library::null();
+  result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;

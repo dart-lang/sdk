@@ -9,6 +9,7 @@
 #include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/longjump.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -217,6 +218,88 @@ DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
   CHECK_AND_CAST(Breakpoint, breakpoint, breakpoint_in);
   isolate->debugger()->RemoveBreakpoint(breakpoint);
   return Api::True();
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetScriptSource(
+                            Dart_Handle library_url_in,
+                            Dart_Handle script_url_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  String& library_url = String::Handle();
+  UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
+  String& script_url = String::Handle();
+  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+
+  const Library& library = Library::Handle(Library::LookupLibrary(library_url));
+  if (library.IsNull()) {
+    return Api::NewError("%s: library '%s' not found",
+                         CURRENT_FUNC, library_url.ToCString());
+  }
+
+  const Script& script = Script::Handle(library.LookupScript(script_url));
+  if (script.IsNull()) {
+    return Api::NewError("%s: script '%s' not found in library '%s'",
+                         CURRENT_FUNC, script_url.ToCString(),
+                         library_url.ToCString());
+  }
+
+  const String& source = String::Handle(script.source());
+  return Api::NewLocalHandle(source);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  String& library_url = String::Handle();
+  UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
+
+  const Library& library = Library::Handle(Library::LookupLibrary(library_url));
+  if (library.IsNull()) {
+    return Api::NewError("%s: library '%s' not found",
+                         CURRENT_FUNC, library_url.ToCString());
+  }
+  const Array& loaded_scripts = Array::Handle(library.LoadedScripts());
+  ASSERT(!loaded_scripts.IsNull());
+  intptr_t num_scripts = loaded_scripts.Length();
+  const Array& script_list = Array::Handle(Array::New(num_scripts));
+  Script& script = Script::Handle();
+  String& url = String::Handle();
+  for (int i = 0; i < num_scripts; i++) {
+    script ^= loaded_scripts.At(i);
+    url = script.url();
+    script_list.SetAt(i, url);
+  }
+  return Api::NewLocalHandle(script_list);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+
+  // Find out how many libraries are loaded in this isolate.
+  int num_libs = 0;
+  Library &lib = Library::Handle();
+  lib = isolate->object_store()->registered_libraries();
+  while (!lib.IsNull()) {
+    num_libs++;
+    lib = lib.next_registered();
+  }
+
+  // Create new list and populate with the url of loaded libraries.
+  const Array& library_list = Array::Handle(Array::New(num_libs));
+  lib = isolate->object_store()->registered_libraries();
+  String& lib_url = String::Handle();
+  for (int i = 0; i < num_libs; i++) {
+    ASSERT(!lib.IsNull());
+    lib_url = lib.url();
+    library_list.SetAt(i, lib_url);
+    lib = lib.next_registered();
+  }
+  return Api::NewLocalHandle(library_list);
 }
 
 }  // namespace dart

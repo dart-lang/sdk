@@ -19,6 +19,41 @@ typedef void Dart_BreakpointHandler(
 
 
 /**
+ * Returns a list of urls (strings) of all the libraries loaded in the
+ * current isolate.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to a list of string handles.
+ */
+DART_EXPORT Dart_Handle Dart_GetLibraryURLs();
+
+
+/**
+ * Returns a list of urls (strings) of all the scripts loaded in the
+ * given library.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to a list of string handles.
+ */
+DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url);
+
+
+/**
+ * Returns a string containing the source code of the given script
+ * in the given library.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to string containing the source text if no error
+ * occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GetScriptSource(
+                            Dart_Handle library_url_in,
+                            Dart_Handle script_url_in);
+
+/**
  * Sets a breakpoint at line \line_number in \script_url, or the closest
  * following line (within the same function) where a breakpoint can be set.
  *
