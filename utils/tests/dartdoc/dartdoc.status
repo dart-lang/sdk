@@ -4,6 +4,8 @@
 
 prefix dartdoc
 
+dartdoc_tests: Skip # TODO(jimhug): Conflicts with array bounds checking
+
 [ $component == leg ]
 *: Skip # library tags are not implemented: Bug 1126
 
