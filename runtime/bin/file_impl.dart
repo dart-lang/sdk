@@ -953,7 +953,7 @@ class _RandomAccessFile implements RandomAccessFile {
       throw new FileIOException("setPosition failed");
     }
   }
-  
+
   void truncate(int length) {
     _asyncUsed = true;
     var handler = (_truncateHandler != null) ? _truncateHandler : () => null;

@@ -20,7 +20,6 @@ class EventHandler extends NativeFieldWrapperClass1 {
     }
   }
 
-
   void _doSendData(int id, ReceivePort receivePort, int data)
       native "EventHandler_SendData";
 

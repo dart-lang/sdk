@@ -10,8 +10,8 @@ class _ProcessStartStatus {
 
 class _Process implements Process {
 
-  _Process.start(String path, 
-                 List<String> arguments, 
+  _Process.start(String path,
+                 List<String> arguments,
                  [String workingDirectory]) {
     if (path is !String) {
       throw new ProcessException("Path is not a String: $path");
@@ -59,13 +59,13 @@ class _Process implements Process {
 
   void start() {
     var status = new _ProcessStartStatus();
-    bool success = _start(_path, 
-                          _arguments, 
-                          _workingDirectory, 
-                          _in, 
-                          _out, 
-                          _err, 
-                          _exitHandler, 
+    bool success = _start(_path,
+                          _arguments,
+                          _workingDirectory,
+                          _in,
+                          _out,
+                          _err,
+                          _exitHandler,
                           status);
     if (!success) {
       close();

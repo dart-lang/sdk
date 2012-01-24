@@ -61,7 +61,7 @@ interface OutputStream {
    */
   void set noPendingWriteHandler(void callback());
 
-  /*
+  /**
    * Sets the handler that gets called when the underlying
    * communication channel has been closed and no more data can be
    * send.
