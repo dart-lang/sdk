@@ -203,7 +203,7 @@ TEST_CASE(Debug_LookupSourceLine) {
     EXPECT(Dart_IsString(lib_url));
     char const* chars;
     Dart_StringToCString(lib_url, &chars);
-    printf("Lib %d: %s\n", i, chars);
+    printf("Lib %ld: %s\n", i, chars);
 
     Dart_Handle scripts = Dart_GetScriptURLs(lib_url);
     EXPECT(Dart_IsList(scripts));
@@ -214,7 +214,7 @@ TEST_CASE(Debug_LookupSourceLine) {
       Dart_Handle script_url = Dart_ListGetAt(scripts, i);
       char const* chars;
       Dart_StringToCString(script_url, &chars);
-      printf("  script %d: '%s'\n", i + 1, chars);
+      printf("  script %ld: '%s'\n", i + 1, chars);
     }
   }
 
