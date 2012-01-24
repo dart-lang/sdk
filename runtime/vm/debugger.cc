@@ -195,9 +195,9 @@ void ActivationFrame::VariableAt(intptr_t i,
   intptr_t desc_index = desc_indices_[i];
   *name ^= var_descriptors_->GetName(desc_index);
   intptr_t scope_id;
-  var_descriptors_->GetScopeInfo(i, &scope_id, token_pos, end_pos);
+  var_descriptors_->GetScopeInfo(desc_index, &scope_id, token_pos, end_pos);
   ASSERT(value != NULL);
-  *value = GetLocalVarValue(var_descriptors_->GetSlotIndex(i));
+  *value = GetLocalVarValue(var_descriptors_->GetSlotIndex(desc_index));
 }
 
 
