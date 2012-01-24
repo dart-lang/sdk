@@ -1,7 +1,3 @@
 
-class WebGLTextureJS implements WebGLTexture native "*WebGLTexture" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebGLTextureJs extends DOMTypeJs implements WebGLTexture native "*WebGLTexture" {
 }

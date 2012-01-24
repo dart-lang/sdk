@@ -1,5 +1,5 @@
 
-class HTMLBRElementJS extends HTMLElementJS implements HTMLBRElement native "*HTMLBRElement" {
+class HTMLBRElementJs extends HTMLElementJs implements HTMLBRElement native "*HTMLBRElement" {
 
   String get clear() native "return this.clear;";
 

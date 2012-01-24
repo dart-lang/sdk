@@ -1,7 +1,3 @@
 
-class WebGLProgramJS implements WebGLProgram native "*WebGLProgram" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebGLProgramJs extends DOMTypeJs implements WebGLProgram native "*WebGLProgram" {
 }

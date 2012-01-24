@@ -1,5 +1,5 @@
 
-class ScriptProfileNodeJS implements ScriptProfileNode native "*ScriptProfileNode" {
+class ScriptProfileNodeJs extends DOMTypeJs implements ScriptProfileNode native "*ScriptProfileNode" {
 
   int get callUID() native "return this.callUID;";
 
@@ -18,8 +18,4 @@ class ScriptProfileNodeJS implements ScriptProfileNode native "*ScriptProfileNod
   String get url() native "return this.url;";
 
   bool get visible() native "return this.visible;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

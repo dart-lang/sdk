@@ -1,9 +1,5 @@
 
-class CanvasGradientJS implements CanvasGradient native "*CanvasGradient" {
+class CanvasGradientJs extends DOMTypeJs implements CanvasGradient native "*CanvasGradient" {
 
   void addColorStop(num offset, String color) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

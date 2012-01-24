@@ -1,5 +1,5 @@
 
-class TextTrackListJS implements TextTrackList native "*TextTrackList" {
+class TextTrackListJs extends DOMTypeJs implements TextTrackList native "*TextTrackList" {
 
   int get length() native "return this.length;";
 
@@ -9,13 +9,9 @@ class TextTrackListJS implements TextTrackList native "*TextTrackList" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
-  TextTrackJS item(int index) native;
+  TextTrackJs item(int index) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

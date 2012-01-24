@@ -1,5 +1,5 @@
 
-class ValidityStateJS implements ValidityState native "*ValidityState" {
+class ValidityStateJs extends DOMTypeJs implements ValidityState native "*ValidityState" {
 
   bool get customError() native "return this.customError;";
 
@@ -18,8 +18,4 @@ class ValidityStateJS implements ValidityState native "*ValidityState" {
   bool get valid() native "return this.valid;";
 
   bool get valueMissing() native "return this.valueMissing;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

@@ -1,17 +1,13 @@
 
-class TouchListJS implements TouchList native "*TouchList" {
+class TouchListJs extends DOMTypeJs implements TouchList native "*TouchList" {
 
   int get length() native "return this.length;";
 
-  TouchJS operator[](int index) native;
+  TouchJs operator[](int index) native;
 
-  void operator[]=(int index, TouchJS value) {
+  void operator[]=(int index, TouchJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
-  TouchJS item(int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  TouchJs item(int index) native;
 }

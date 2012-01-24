@@ -1,5 +1,5 @@
 
-class HTMLTableSectionElementJS extends HTMLElementJS implements HTMLTableSectionElement native "*HTMLTableSectionElement" {
+class HTMLTableSectionElementJs extends HTMLElementJs implements HTMLTableSectionElement native "*HTMLTableSectionElement" {
 
   String get align() native "return this.align;";
 
@@ -13,7 +13,7 @@ class HTMLTableSectionElementJS extends HTMLElementJS implements HTMLTableSectio
 
   void set chOff(String value) native "this.chOff = value;";
 
-  HTMLCollectionJS get rows() native "return this.rows;";
+  HTMLCollectionJs get rows() native "return this.rows;";
 
   String get vAlign() native "return this.vAlign;";
 
@@ -21,5 +21,5 @@ class HTMLTableSectionElementJS extends HTMLElementJS implements HTMLTableSectio
 
   void deleteRow(int index) native;
 
-  HTMLElementJS insertRow(int index) native;
+  HTMLElementJs insertRow(int index) native;
 }

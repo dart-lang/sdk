@@ -1,5 +1,5 @@
 
-class IDBDatabaseExceptionJS implements IDBDatabaseException native "*IDBDatabaseException" {
+class IDBDatabaseExceptionJs extends DOMTypeJs implements IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int ABORT_ERR = 8;
 
@@ -34,8 +34,4 @@ class IDBDatabaseExceptionJS implements IDBDatabaseException native "*IDBDatabas
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

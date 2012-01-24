@@ -1,13 +1,9 @@
 
-class RGBColorJS implements RGBColor native "*RGBColor" {
+class RGBColorJs extends DOMTypeJs implements RGBColor native "*RGBColor" {
 
-  CSSPrimitiveValueJS get blue() native "return this.blue;";
+  CSSPrimitiveValueJs get blue() native "return this.blue;";
 
-  CSSPrimitiveValueJS get green() native "return this.green;";
+  CSSPrimitiveValueJs get green() native "return this.green;";
 
-  CSSPrimitiveValueJS get red() native "return this.red;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  CSSPrimitiveValueJs get red() native "return this.red;";
 }

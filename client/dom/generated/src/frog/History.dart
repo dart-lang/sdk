@@ -1,5 +1,5 @@
 
-class HistoryJS implements History native "*History" {
+class HistoryJs extends DOMTypeJs implements History native "*History" {
 
   int get length() native "return this.length;";
 
@@ -12,8 +12,4 @@ class HistoryJS implements History native "*History" {
   void pushState(Object data, String title, [String url = null]) native;
 
   void replaceState(Object data, String title, [String url = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

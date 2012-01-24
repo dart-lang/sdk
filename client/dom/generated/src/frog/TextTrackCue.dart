@@ -1,5 +1,5 @@
 
-class TextTrackCueJS implements TextTrackCue native "*TextTrackCue" {
+class TextTrackCueJs extends DOMTypeJs implements TextTrackCue native "*TextTrackCue" {
 
   String get alignment() native "return this.alignment;";
 
@@ -53,17 +53,13 @@ class TextTrackCueJS implements TextTrackCue native "*TextTrackCue" {
 
   void set textPosition(int value) native "this.textPosition = value;";
 
-  TextTrackJS get track() native "return this.track;";
+  TextTrackJs get track() native "return this.track;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
-  DocumentFragmentJS getCueAsHTML() native;
+  DocumentFragmentJs getCueAsHTML() native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

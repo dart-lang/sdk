@@ -1,5 +1,5 @@
 
-class EventJS implements Event native "*Event" {
+class EventJs extends DOMTypeJs implements Event native "*Event" {
 
   static final int AT_TARGET = 2;
 
@@ -47,9 +47,9 @@ class EventJS implements Event native "*Event" {
 
   bool get cancelable() native "return this.cancelable;";
 
-  ClipboardJS get clipboardData() native "return this.clipboardData;";
+  ClipboardJs get clipboardData() native "return this.clipboardData;";
 
-  EventTargetJS get currentTarget() native "return this.currentTarget;";
+  EventTargetJs get currentTarget() native "return this.currentTarget;";
 
   bool get defaultPrevented() native "return this.defaultPrevented;";
 
@@ -59,9 +59,9 @@ class EventJS implements Event native "*Event" {
 
   void set returnValue(bool value) native "this.returnValue = value;";
 
-  EventTargetJS get srcElement() native "return this.srcElement;";
+  EventTargetJs get srcElement() native "return this.srcElement;";
 
-  EventTargetJS get target() native "return this.target;";
+  EventTargetJs get target() native "return this.target;";
 
   int get timeStamp() native "return this.timeStamp;";
 
@@ -74,8 +74,4 @@ class EventJS implements Event native "*Event" {
   void stopImmediatePropagation() native;
 
   void stopPropagation() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

@@ -1,19 +1,19 @@
 
-class DOMSelectionJS implements DOMSelection native "*DOMSelection" {
+class DOMSelectionJs extends DOMTypeJs implements DOMSelection native "*DOMSelection" {
 
-  NodeJS get anchorNode() native "return this.anchorNode;";
+  NodeJs get anchorNode() native "return this.anchorNode;";
 
   int get anchorOffset() native "return this.anchorOffset;";
 
-  NodeJS get baseNode() native "return this.baseNode;";
+  NodeJs get baseNode() native "return this.baseNode;";
 
   int get baseOffset() native "return this.baseOffset;";
 
-  NodeJS get extentNode() native "return this.extentNode;";
+  NodeJs get extentNode() native "return this.extentNode;";
 
   int get extentOffset() native "return this.extentOffset;";
 
-  NodeJS get focusNode() native "return this.focusNode;";
+  NodeJs get focusNode() native "return this.focusNode;";
 
   int get focusOffset() native "return this.focusOffset;";
 
@@ -23,37 +23,33 @@ class DOMSelectionJS implements DOMSelection native "*DOMSelection" {
 
   String get type() native "return this.type;";
 
-  void addRange(RangeJS range) native;
+  void addRange(RangeJs range) native;
 
-  void collapse(NodeJS node, int index) native;
+  void collapse(NodeJs node, int index) native;
 
   void collapseToEnd() native;
 
   void collapseToStart() native;
 
-  bool containsNode(NodeJS node, bool allowPartial) native;
+  bool containsNode(NodeJs node, bool allowPartial) native;
 
   void deleteFromDocument() native;
 
   void empty() native;
 
-  void extend(NodeJS node, int offset) native;
+  void extend(NodeJs node, int offset) native;
 
-  RangeJS getRangeAt(int index) native;
+  RangeJs getRangeAt(int index) native;
 
   void modify(String alter, String direction, String granularity) native;
 
   void removeAllRanges() native;
 
-  void selectAllChildren(NodeJS node) native;
+  void selectAllChildren(NodeJs node) native;
 
-  void setBaseAndExtent(NodeJS baseNode, int baseOffset, NodeJS extentNode, int extentOffset) native;
+  void setBaseAndExtent(NodeJs baseNode, int baseOffset, NodeJs extentNode, int extentOffset) native;
 
-  void setPosition(NodeJS node, int offset) native;
+  void setPosition(NodeJs node, int offset) native;
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

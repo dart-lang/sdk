@@ -1,5 +1,5 @@
 
-class SQLErrorJS implements SQLError native "*SQLError" {
+class SQLErrorJs extends DOMTypeJs implements SQLError native "*SQLError" {
 
   static final int CONSTRAINT_ERR = 6;
 
@@ -20,8 +20,4 @@ class SQLErrorJS implements SQLError native "*SQLError" {
   int get code() native "return this.code;";
 
   String get message() native "return this.message;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

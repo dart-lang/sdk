@@ -1,11 +1,7 @@
 
-class SVGElementInstanceListJS implements SVGElementInstanceList native "*SVGElementInstanceList" {
+class SVGElementInstanceListJs extends DOMTypeJs implements SVGElementInstanceList native "*SVGElementInstanceList" {
 
   int get length() native "return this.length;";
 
-  SVGElementInstanceJS item(int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGElementInstanceJs item(int index) native;
 }

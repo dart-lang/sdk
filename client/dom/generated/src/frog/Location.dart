@@ -1,5 +1,5 @@
 
-class LocationJS implements Location native "*Location" {
+class LocationJs extends DOMTypeJs implements Location native "*Location" {
 
   String get hash() native "return this.hash;";
 
@@ -42,8 +42,4 @@ class LocationJS implements Location native "*Location" {
   void replace(String url) native;
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

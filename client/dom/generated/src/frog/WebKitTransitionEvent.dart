@@ -1,5 +1,5 @@
 
-class WebKitTransitionEventJS extends EventJS implements WebKitTransitionEvent native "*WebKitTransitionEvent" {
+class WebKitTransitionEventJs extends EventJs implements WebKitTransitionEvent native "*WebKitTransitionEvent" {
 
   num get elapsedTime() native "return this.elapsedTime;";
 

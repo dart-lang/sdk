@@ -1,5 +1,5 @@
 
-class SVGAltGlyphElementJS extends SVGTextPositioningElementJS implements SVGAltGlyphElement native "*SVGAltGlyphElement" {
+class SVGAltGlyphElementJs extends SVGTextPositioningElementJs implements SVGAltGlyphElement native "*SVGAltGlyphElement" {
 
   String get format() native "return this.format;";
 
@@ -11,5 +11,5 @@ class SVGAltGlyphElementJS extends SVGTextPositioningElementJS implements SVGAlt
 
   // From SVGURIReference
 
-  SVGAnimatedStringJS get href() native "return this.href;";
+  SVGAnimatedStringJs get href() native "return this.href;";
 }

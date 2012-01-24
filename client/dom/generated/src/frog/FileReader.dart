@@ -1,5 +1,5 @@
 
-class FileReaderJS implements FileReader native "*FileReader" {
+class FileReaderJs extends DOMTypeJs implements FileReader native "*FileReader" {
   FileReader() native;
 
 
@@ -9,7 +9,7 @@ class FileReaderJS implements FileReader native "*FileReader" {
 
   static final int LOADING = 1;
 
-  FileErrorJS get error() native "return this.error;";
+  FileErrorJs get error() native "return this.error;";
 
   EventListener get onabort() native "return this.onabort;";
 
@@ -43,19 +43,15 @@ class FileReaderJS implements FileReader native "*FileReader" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
-  void readAsArrayBuffer(BlobJS blob) native;
+  void readAsArrayBuffer(BlobJs blob) native;
 
-  void readAsBinaryString(BlobJS blob) native;
+  void readAsBinaryString(BlobJs blob) native;
 
-  void readAsDataURL(BlobJS blob) native;
+  void readAsDataURL(BlobJs blob) native;
 
-  void readAsText(BlobJS blob, [String encoding = null]) native;
+  void readAsText(BlobJs blob, [String encoding = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

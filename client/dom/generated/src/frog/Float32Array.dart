@@ -1,5 +1,5 @@
 
-class Float32ArrayJS extends ArrayBufferViewJS implements Float32Array, List<num> native "*Float32Array" {
+class Float32ArrayJs extends ArrayBufferViewJs implements Float32Array, List<num> native "*Float32Array" {
 
   factory Float32Array(int length) =>  _construct(length);
 
@@ -19,5 +19,5 @@ class Float32ArrayJS extends ArrayBufferViewJS implements Float32Array, List<num
 
   void setElements(Object array, [int offset = null]) native;
 
-  Float32ArrayJS subarray(int start, [int end = null]) native;
+  Float32ArrayJs subarray(int start, [int end = null]) native;
 }

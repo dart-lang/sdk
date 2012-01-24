@@ -1,5 +1,5 @@
 
-class Uint16ArrayJS extends ArrayBufferViewJS implements Uint16Array, List<int> native "*Uint16Array" {
+class Uint16ArrayJs extends ArrayBufferViewJs implements Uint16Array, List<int> native "*Uint16Array" {
 
   factory Uint16Array(int length) =>  _construct(length);
 
@@ -19,5 +19,5 @@ class Uint16ArrayJS extends ArrayBufferViewJS implements Uint16Array, List<int> 
 
   void setElements(Object array, [int offset = null]) native;
 
-  Uint16ArrayJS subarray(int start, [int end = null]) native;
+  Uint16ArrayJs subarray(int start, [int end = null]) native;
 }

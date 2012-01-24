@@ -1,9 +1,9 @@
 
-class SVGFEPointLightElementJS extends SVGElementJS implements SVGFEPointLightElement native "*SVGFEPointLightElement" {
+class SVGFEPointLightElementJs extends SVGElementJs implements SVGFEPointLightElement native "*SVGFEPointLightElement" {
 
-  SVGAnimatedNumberJS get x() native "return this.x;";
+  SVGAnimatedNumberJs get x() native "return this.x;";
 
-  SVGAnimatedNumberJS get y() native "return this.y;";
+  SVGAnimatedNumberJs get y() native "return this.y;";
 
-  SVGAnimatedNumberJS get z() native "return this.z;";
+  SVGAnimatedNumberJs get z() native "return this.z;";
 }

@@ -1,5 +1,5 @@
 
-class SVGStyleElementJS extends SVGElementJS implements SVGStyleElement native "*SVGStyleElement" {
+class SVGStyleElementJs extends SVGElementJs implements SVGStyleElement native "*SVGStyleElement" {
 
   String get media() native "return this.media;";
 

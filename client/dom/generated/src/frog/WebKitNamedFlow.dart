@@ -1,7 +1,3 @@
 
-class WebKitNamedFlowJS implements WebKitNamedFlow native "*WebKitNamedFlow" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebKitNamedFlowJs extends DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
 }

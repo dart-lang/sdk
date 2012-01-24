@@ -1,5 +1,5 @@
 
-class ElementTimeControlJS implements ElementTimeControl native "*ElementTimeControl" {
+class ElementTimeControlJs extends DOMTypeJs implements ElementTimeControl native "*ElementTimeControl" {
 
   void beginElement() native;
 
@@ -8,8 +8,4 @@ class ElementTimeControlJS implements ElementTimeControl native "*ElementTimeCon
   void endElement() native;
 
   void endElementAt(num offset) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

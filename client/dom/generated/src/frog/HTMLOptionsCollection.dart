@@ -1,5 +1,5 @@
 
-class HTMLOptionsCollectionJS extends HTMLCollectionJS implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
+class HTMLOptionsCollectionJs extends HTMLCollectionJs implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
   int get length() native "return this.length;";
 

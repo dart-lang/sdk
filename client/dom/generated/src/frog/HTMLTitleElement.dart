@@ -1,5 +1,5 @@
 
-class HTMLTitleElementJS extends HTMLElementJS implements HTMLTitleElement native "*HTMLTitleElement" {
+class HTMLTitleElementJs extends HTMLElementJs implements HTMLTitleElement native "*HTMLTitleElement" {
 
   String get text() native "return this.text;";
 

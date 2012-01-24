@@ -1,5 +1,5 @@
 
-class WebSocketJS implements WebSocket native "*WebSocket" {
+class WebSocketJs extends DOMTypeJs implements WebSocket native "*WebSocket" {
   WebSocket(String url) native;
 
 
@@ -29,13 +29,9 @@ class WebSocketJS implements WebSocket native "*WebSocket" {
 
   void close([int code = null, String reason = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   bool send(String data) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

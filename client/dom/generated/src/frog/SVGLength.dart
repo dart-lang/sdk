@@ -1,5 +1,5 @@
 
-class SVGLengthJS implements SVGLength native "*SVGLength" {
+class SVGLengthJs extends DOMTypeJs implements SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_CM = 6;
 
@@ -40,8 +40,4 @@ class SVGLengthJS implements SVGLength native "*SVGLength" {
   void convertToSpecifiedUnits(int unitType) native;
 
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

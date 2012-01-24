@@ -1,5 +1,5 @@
 
-class DatabaseJS implements Database native "*Database" {
+class DatabaseJs extends DOMTypeJs implements Database native "*Database" {
 
   String get version() native "return this.version;";
 
@@ -8,8 +8,4 @@ class DatabaseJS implements Database native "*Database" {
   void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
 
   void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

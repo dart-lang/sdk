@@ -1,67 +1,67 @@
 
-class SVGPathElementJS extends SVGElementJS implements SVGPathElement native "*SVGPathElement" {
+class SVGPathElementJs extends SVGElementJs implements SVGPathElement native "*SVGPathElement" {
 
-  SVGPathSegListJS get animatedNormalizedPathSegList() native "return this.animatedNormalizedPathSegList;";
+  SVGPathSegListJs get animatedNormalizedPathSegList() native "return this.animatedNormalizedPathSegList;";
 
-  SVGPathSegListJS get animatedPathSegList() native "return this.animatedPathSegList;";
+  SVGPathSegListJs get animatedPathSegList() native "return this.animatedPathSegList;";
 
-  SVGPathSegListJS get normalizedPathSegList() native "return this.normalizedPathSegList;";
+  SVGPathSegListJs get normalizedPathSegList() native "return this.normalizedPathSegList;";
 
-  SVGAnimatedNumberJS get pathLength() native "return this.pathLength;";
+  SVGAnimatedNumberJs get pathLength() native "return this.pathLength;";
 
-  SVGPathSegListJS get pathSegList() native "return this.pathSegList;";
+  SVGPathSegListJs get pathSegList() native "return this.pathSegList;";
 
-  SVGPathSegArcAbsJS createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  SVGPathSegArcAbsJs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
-  SVGPathSegArcRelJS createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
+  SVGPathSegArcRelJs createSVGPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) native;
 
-  SVGPathSegClosePathJS createSVGPathSegClosePath() native;
+  SVGPathSegClosePathJs createSVGPathSegClosePath() native;
 
-  SVGPathSegCurvetoCubicAbsJS createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
+  SVGPathSegCurvetoCubicAbsJs createSVGPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) native;
 
-  SVGPathSegCurvetoCubicRelJS createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
+  SVGPathSegCurvetoCubicRelJs createSVGPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) native;
 
-  SVGPathSegCurvetoCubicSmoothAbsJS createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
+  SVGPathSegCurvetoCubicSmoothAbsJs createSVGPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) native;
 
-  SVGPathSegCurvetoCubicSmoothRelJS createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
+  SVGPathSegCurvetoCubicSmoothRelJs createSVGPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) native;
 
-  SVGPathSegCurvetoQuadraticAbsJS createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
+  SVGPathSegCurvetoQuadraticAbsJs createSVGPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) native;
 
-  SVGPathSegCurvetoQuadraticRelJS createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
+  SVGPathSegCurvetoQuadraticRelJs createSVGPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) native;
 
-  SVGPathSegCurvetoQuadraticSmoothAbsJS createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
+  SVGPathSegCurvetoQuadraticSmoothAbsJs createSVGPathSegCurvetoQuadraticSmoothAbs(num x, num y) native;
 
-  SVGPathSegCurvetoQuadraticSmoothRelJS createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
+  SVGPathSegCurvetoQuadraticSmoothRelJs createSVGPathSegCurvetoQuadraticSmoothRel(num x, num y) native;
 
-  SVGPathSegLinetoAbsJS createSVGPathSegLinetoAbs(num x, num y) native;
+  SVGPathSegLinetoAbsJs createSVGPathSegLinetoAbs(num x, num y) native;
 
-  SVGPathSegLinetoHorizontalAbsJS createSVGPathSegLinetoHorizontalAbs(num x) native;
+  SVGPathSegLinetoHorizontalAbsJs createSVGPathSegLinetoHorizontalAbs(num x) native;
 
-  SVGPathSegLinetoHorizontalRelJS createSVGPathSegLinetoHorizontalRel(num x) native;
+  SVGPathSegLinetoHorizontalRelJs createSVGPathSegLinetoHorizontalRel(num x) native;
 
-  SVGPathSegLinetoRelJS createSVGPathSegLinetoRel(num x, num y) native;
+  SVGPathSegLinetoRelJs createSVGPathSegLinetoRel(num x, num y) native;
 
-  SVGPathSegLinetoVerticalAbsJS createSVGPathSegLinetoVerticalAbs(num y) native;
+  SVGPathSegLinetoVerticalAbsJs createSVGPathSegLinetoVerticalAbs(num y) native;
 
-  SVGPathSegLinetoVerticalRelJS createSVGPathSegLinetoVerticalRel(num y) native;
+  SVGPathSegLinetoVerticalRelJs createSVGPathSegLinetoVerticalRel(num y) native;
 
-  SVGPathSegMovetoAbsJS createSVGPathSegMovetoAbs(num x, num y) native;
+  SVGPathSegMovetoAbsJs createSVGPathSegMovetoAbs(num x, num y) native;
 
-  SVGPathSegMovetoRelJS createSVGPathSegMovetoRel(num x, num y) native;
+  SVGPathSegMovetoRelJs createSVGPathSegMovetoRel(num x, num y) native;
 
   int getPathSegAtLength(num distance) native;
 
-  SVGPointJS getPointAtLength(num distance) native;
+  SVGPointJs getPointAtLength(num distance) native;
 
   num getTotalLength() native;
 
   // From SVGTests
 
-  SVGStringListJS get requiredExtensions() native "return this.requiredExtensions;";
+  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJS get requiredFeatures() native "return this.requiredFeatures;";
+  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJS get systemLanguage() native "return this.systemLanguage;";
+  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -77,31 +77,31 @@ class SVGPathElementJS extends SVGElementJS implements SVGPathElement native "*S
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJS get className() native "return this.className;";
+  SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJS get style() native "return this.style;";
+  CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJS getPresentationAttribute(String name) native;
+  CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformListJS get transform() native "return this.transform;";
+  SVGAnimatedTransformListJs get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElementJS get farthestViewportElement() native "return this.farthestViewportElement;";
+  SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElementJS get nearestViewportElement() native "return this.nearestViewportElement;";
+  SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
 
-  SVGRectJS getBBox() native;
+  SVGRectJs getBBox() native;
 
-  SVGMatrixJS getCTM() native;
+  SVGMatrixJs getCTM() native;
 
-  SVGMatrixJS getScreenCTM() native;
+  SVGMatrixJs getScreenCTM() native;
 
-  SVGMatrixJS getTransformToElement(SVGElementJS element) native;
+  SVGMatrixJs getTransformToElement(SVGElementJs element) native;
 }

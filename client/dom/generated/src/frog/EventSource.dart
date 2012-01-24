@@ -1,5 +1,5 @@
 
-class EventSourceJS implements EventSource native "*EventSource" {
+class EventSourceJs extends DOMTypeJs implements EventSource native "*EventSource" {
 
   static final int CLOSED = 2;
 
@@ -15,11 +15,7 @@ class EventSourceJS implements EventSource native "*EventSource" {
 
   void close() native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

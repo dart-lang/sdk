@@ -1,5 +1,5 @@
 
-class SVGSymbolElementJS extends SVGElementJS implements SVGSymbolElement native "*SVGSymbolElement" {
+class SVGSymbolElementJs extends SVGElementJs implements SVGSymbolElement native "*SVGSymbolElement" {
 
   // From SVGLangSpace
 
@@ -13,19 +13,19 @@ class SVGSymbolElementJS extends SVGElementJS implements SVGSymbolElement native
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJS get className() native "return this.className;";
+  SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJS get style() native "return this.style;";
+  CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJS getPresentationAttribute(String name) native;
+  CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatioJS get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRectJS get viewBox() native "return this.viewBox;";
+  SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
 }

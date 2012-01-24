@@ -1,5 +1,5 @@
 
-class RangeJS implements Range native "*Range" {
+class RangeJs extends DOMTypeJs implements Range native "*Range" {
 
   static final int END_TO_END = 2;
 
@@ -19,27 +19,27 @@ class RangeJS implements Range native "*Range" {
 
   bool get collapsed() native "return this.collapsed;";
 
-  NodeJS get commonAncestorContainer() native "return this.commonAncestorContainer;";
+  NodeJs get commonAncestorContainer() native "return this.commonAncestorContainer;";
 
-  NodeJS get endContainer() native "return this.endContainer;";
+  NodeJs get endContainer() native "return this.endContainer;";
 
   int get endOffset() native "return this.endOffset;";
 
-  NodeJS get startContainer() native "return this.startContainer;";
+  NodeJs get startContainer() native "return this.startContainer;";
 
   int get startOffset() native "return this.startOffset;";
 
-  DocumentFragmentJS cloneContents() native;
+  DocumentFragmentJs cloneContents() native;
 
-  RangeJS cloneRange() native;
+  RangeJs cloneRange() native;
 
   void collapse(bool toStart) native;
 
-  int compareNode(NodeJS refNode) native;
+  int compareNode(NodeJs refNode) native;
 
-  int comparePoint(NodeJS refNode, int offset) native;
+  int comparePoint(NodeJs refNode, int offset) native;
 
-  DocumentFragmentJS createContextualFragment(String html) native;
+  DocumentFragmentJs createContextualFragment(String html) native;
 
   void deleteContents() native;
 
@@ -47,39 +47,35 @@ class RangeJS implements Range native "*Range" {
 
   void expand(String unit) native;
 
-  DocumentFragmentJS extractContents() native;
+  DocumentFragmentJs extractContents() native;
 
-  ClientRectJS getBoundingClientRect() native;
+  ClientRectJs getBoundingClientRect() native;
 
-  ClientRectListJS getClientRects() native;
+  ClientRectListJs getClientRects() native;
 
-  void insertNode(NodeJS newNode) native;
+  void insertNode(NodeJs newNode) native;
 
-  bool intersectsNode(NodeJS refNode) native;
+  bool intersectsNode(NodeJs refNode) native;
 
-  bool isPointInRange(NodeJS refNode, int offset) native;
+  bool isPointInRange(NodeJs refNode, int offset) native;
 
-  void selectNode(NodeJS refNode) native;
+  void selectNode(NodeJs refNode) native;
 
-  void selectNodeContents(NodeJS refNode) native;
+  void selectNodeContents(NodeJs refNode) native;
 
-  void setEnd(NodeJS refNode, int offset) native;
+  void setEnd(NodeJs refNode, int offset) native;
 
-  void setEndAfter(NodeJS refNode) native;
+  void setEndAfter(NodeJs refNode) native;
 
-  void setEndBefore(NodeJS refNode) native;
+  void setEndBefore(NodeJs refNode) native;
 
-  void setStart(NodeJS refNode, int offset) native;
+  void setStart(NodeJs refNode, int offset) native;
 
-  void setStartAfter(NodeJS refNode) native;
+  void setStartAfter(NodeJs refNode) native;
 
-  void setStartBefore(NodeJS refNode) native;
+  void setStartBefore(NodeJs refNode) native;
 
-  void surroundContents(NodeJS newParent) native;
+  void surroundContents(NodeJs newParent) native;
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

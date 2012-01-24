@@ -1,9 +1,5 @@
 
-class SVGURIReferenceJS implements SVGURIReference native "*SVGURIReference" {
+class SVGURIReferenceJs extends DOMTypeJs implements SVGURIReference native "*SVGURIReference" {
 
-  SVGAnimatedStringJS get href() native "return this.href;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGAnimatedStringJs get href() native "return this.href;";
 }

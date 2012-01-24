@@ -1,5 +1,5 @@
 
-class HTMLQuoteElementJS extends HTMLElementJS implements HTMLQuoteElement native "*HTMLQuoteElement" {
+class HTMLQuoteElementJs extends HTMLElementJs implements HTMLQuoteElement native "*HTMLQuoteElement" {
 
   String get cite() native "return this.cite;";
 

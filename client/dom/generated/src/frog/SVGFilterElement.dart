@@ -1,27 +1,27 @@
 
-class SVGFilterElementJS extends SVGElementJS implements SVGFilterElement native "*SVGFilterElement" {
+class SVGFilterElementJs extends SVGElementJs implements SVGFilterElement native "*SVGFilterElement" {
 
-  SVGAnimatedIntegerJS get filterResX() native "return this.filterResX;";
+  SVGAnimatedIntegerJs get filterResX() native "return this.filterResX;";
 
-  SVGAnimatedIntegerJS get filterResY() native "return this.filterResY;";
+  SVGAnimatedIntegerJs get filterResY() native "return this.filterResY;";
 
-  SVGAnimatedEnumerationJS get filterUnits() native "return this.filterUnits;";
+  SVGAnimatedEnumerationJs get filterUnits() native "return this.filterUnits;";
 
-  SVGAnimatedLengthJS get height() native "return this.height;";
+  SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGAnimatedEnumerationJS get primitiveUnits() native "return this.primitiveUnits;";
+  SVGAnimatedEnumerationJs get primitiveUnits() native "return this.primitiveUnits;";
 
-  SVGAnimatedLengthJS get width() native "return this.width;";
+  SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJS get x() native "return this.x;";
+  SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJS get y() native "return this.y;";
+  SVGAnimatedLengthJs get y() native "return this.y;";
 
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGURIReference
 
-  SVGAnimatedStringJS get href() native "return this.href;";
+  SVGAnimatedStringJs get href() native "return this.href;";
 
   // From SVGLangSpace
 
@@ -35,13 +35,13 @@ class SVGFilterElementJS extends SVGElementJS implements SVGFilterElement native
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJS get className() native "return this.className;";
+  SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJS get style() native "return this.style;";
+  CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJS getPresentationAttribute(String name) native;
+  CSSValueJs getPresentationAttribute(String name) native;
 }

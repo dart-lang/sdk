@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -141,42 +141,6 @@ _alternate_methods = {
     ('WheelEvent', 'initWheelEvent'): ['initWebKitWheelEvent', 'initWheelEvent']
 }
 
-#
-# Unexpandable types require special support for
-# dartObjectLocalStorage.  Normally, in the overlay dom, it is
-# implemented as an expando field.  For these types, we cannot use an
-# expando.  Instead, we define a specialized getter and setter.
-#
-_frog_unexpandable_types = {
-    # (type name, field name) -> Replacement text
-    ('Storage', 'dartObjectLocalStorage'): '''
-  var get dartObjectLocalStorage() native """
-
-    if (this === window.localStorage)
-      return window._dartLocalStorageLocalStorage;
-    else if (this === window.sessionStorage)
-      return window._dartSessionStorageLocalStorage;
-    else
-      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
-
-""" {
-    throw new UnsupportedOperationException('');
-  }
-
-  void set dartObjectLocalStorage(var value) native """
-
-    if (this === window.localStorage)
-      window._dartLocalStorageLocalStorage = value;
-    else if (this === window.sessionStorage)
-      window._dartSessionStorageLocalStorage = value;
-    else
-      throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
-
-""" {
-    throw new UnsupportedOperationException('');
-  }
-''',
-}
 
 def _MatchSourceFilter(filter, thing):
   if not filter:
@@ -1111,13 +1075,17 @@ class FrogSystem(System):
                          source_filter):
     """."""
     dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
-
     self._dart_frog_file_paths.append(dart_frog_file_path)
 
+    template_file = 'impl_%s.darttemplate' % interface.id
+    template = self._templates.TryLoad(template_file)
+    if not template:
+      template = self._templates.Load('frog_impl.darttemplate')
+
     dart_code = self._emitters.FileEmitter(dart_frog_file_path)
-    dart_code.Emit(self._templates.Load('frog_impl.darttemplate'))
-    return FrogInterfaceGenerator(self, interface, super_interface_name,
-                                  dart_code)
+    # dart_code.Emit(self._templates.Load('frog_impl.darttemplate'))
+    return FrogInterfaceGenerator(self, interface, template,
+                                  super_interface_name, dart_code)
 
   #def ProcessCallback(self, interface, info):
   #  """Generates a typedef for the callback interface."""
@@ -1826,7 +1794,7 @@ class WrappingInterfaceGenerator(object):
 class FrogInterfaceGenerator(object):
   """Generates a Frog class for a DOM IDL interface."""
 
-  def __init__(self, system, interface, super_interface, dart_code):
+  def __init__(self, system, interface, template, super_interface, dart_code):
     """Generates Dart code for the given interface.
 
     Args:
@@ -1834,6 +1802,7 @@ class FrogInterfaceGenerator(object):
       interface: an IDLInterface instance. It is assumed that all types have
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
+      template: A string template.
       super_interface: A string or None, the name of the common interface that
           this interface implements, if any.
       dart_code: an Emitter for the file containing the Dart implementation
@@ -1841,6 +1810,7 @@ class FrogInterfaceGenerator(object):
     """
     self._system = system
     self._interface = interface
+    self._template = template
     self._super_interface = super_interface
     self._dart_code = dart_code
     self._current_secondary_parent = None
@@ -1876,11 +1846,6 @@ class FrogInterfaceGenerator(object):
       else:
         base = self._ImplClassName(supertype)
 
-    if base:
-      extends = " extends " + base
-    else:
-      extends = ""
-
     if interface_name in _frog_dom_custom_native_specs:
       native_spec = _frog_dom_custom_native_specs[interface_name]
     else:
@@ -1889,23 +1854,28 @@ class FrogInterfaceGenerator(object):
       # against dart:dom to load in a worker isolate.
       native_spec = '*' + interface_name
 
+    if base:
+      extends = ' extends ' + base
+    elif native_spec[0] == '=':
+      extends = ''
+    else:
+      extends = ' extends DOMTypeJs'
+
     # TODO: Include all implemented interfaces, including other Lists.
     implements = [interface_name]
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
       implements.append('List<' + element_type + '>')
 
-    (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
-        '\n'
-        'class $CLASS$BASE implements $IMPLEMENTS native "$NATIVE" {\n'
-        '$!MEMBERS'
-        '$!ADDITIONS'
-        '}\n',
-        CLASS=self._class_name,
-        BASE=extends,
-        INTERFACE=interface_name,
-        IMPLEMENTS=', '.join(implements),
-        NATIVE=native_spec)
+    self._members_emitter = self._dart_code.Emit(
+        self._template,
+        #class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+        #$!MEMBERS
+        #}
+        CLASSNAME=self._class_name,
+        EXTENDS=extends,
+        IMPLEMENTS=' implements ' + ', '.join(implements),
+        NATIVESPEC=' native "' + native_spec + '"')
 
     if interface_name in _constructable_types:
       self._members_emitter.Emit(
@@ -1917,22 +1887,13 @@ class FrogInterfaceGenerator(object):
     if element_type:
       self.AddTypedArrayConstructors(element_type)
 
-    if not base:
-      # Emit shared base functionality here as we have no common base type.
-      if (interface_name, 'dartObjectLocalStorage') in _frog_unexpandable_types:
-        ols_code = _frog_unexpandable_types[(interface_name,
-                                        'dartObjectLocalStorage')]
-        self._base_emitter.Emit(ols_code)
-      else:
-        self._base_emitter.Emit(
-            '\n'
-            '  var dartObjectLocalStorage;\n')
-      self._base_emitter.Emit(
-          '\n'
-          '  String get typeName() native;\n')
+
+  def FinishInterface(self):
+    """."""
+    pass
 
   def _ImplClassName(self, type_name):
-    return type_name + 'JS'
+    return type_name + 'Js'
 
   def _NarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.
@@ -1953,10 +1914,6 @@ class FrogInterfaceGenerator(object):
 
   def _NarrowOutputType(self, type_name):
     return self._NarrowToImplementationType(type_name)
-
-  def FinishInterface(self):
-    """."""
-    pass
 
   def AddConstant(self, constant):
     # Since we are currently generating native classes without interfaces,

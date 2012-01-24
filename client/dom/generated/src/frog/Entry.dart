@@ -1,7 +1,7 @@
 
-class EntryJS implements Entry native "*Entry" {
+class EntryJs extends DOMTypeJs implements Entry native "*Entry" {
 
-  DOMFileSystemJS get filesystem() native "return this.filesystem;";
+  DOMFileSystemJs get filesystem() native "return this.filesystem;";
 
   String get fullPath() native "return this.fullPath;";
 
@@ -11,19 +11,15 @@ class EntryJS implements Entry native "*Entry" {
 
   String get name() native "return this.name;";
 
-  void copyTo(DirectoryEntryJS parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void copyTo(DirectoryEntryJs parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  void moveTo(DirectoryEntryJS parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void moveTo(DirectoryEntryJs parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
 
   String toURL() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

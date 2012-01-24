@@ -1,7 +1,3 @@
 
-class WebGLFramebufferJS implements WebGLFramebuffer native "*WebGLFramebuffer" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebGLFramebufferJs extends DOMTypeJs implements WebGLFramebuffer native "*WebGLFramebuffer" {
 }

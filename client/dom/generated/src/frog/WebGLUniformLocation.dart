@@ -1,7 +1,3 @@
 
-class WebGLUniformLocationJS implements WebGLUniformLocation native "*WebGLUniformLocation" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebGLUniformLocationJs extends DOMTypeJs implements WebGLUniformLocation native "*WebGLUniformLocation" {
 }

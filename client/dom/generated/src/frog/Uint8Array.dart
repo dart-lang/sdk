@@ -1,5 +1,5 @@
 
-class Uint8ArrayJS extends ArrayBufferViewJS implements Uint8Array, List<int> native "*Uint8Array" {
+class Uint8ArrayJs extends ArrayBufferViewJs implements Uint8Array, List<int> native "*Uint8Array" {
 
   factory Uint8Array(int length) =>  _construct(length);
 
@@ -19,5 +19,5 @@ class Uint8ArrayJS extends ArrayBufferViewJS implements Uint8Array, List<int> na
 
   void setElements(Object array, [int offset = null]) native;
 
-  Uint8ArrayJS subarray(int start, [int end = null]) native;
+  Uint8ArrayJs subarray(int start, [int end = null]) native;
 }

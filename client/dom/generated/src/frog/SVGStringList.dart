@@ -1,5 +1,5 @@
 
-class SVGStringListJS implements SVGStringList native "*SVGStringList" {
+class SVGStringListJs extends DOMTypeJs implements SVGStringList native "*SVGStringList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
@@ -16,8 +16,4 @@ class SVGStringListJS implements SVGStringList native "*SVGStringList" {
   String removeItem(int index) native;
 
   String replaceItem(String item, int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

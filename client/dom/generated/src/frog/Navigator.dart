@@ -1,5 +1,5 @@
 
-class NavigatorJS implements Navigator native "*Navigator" {
+class NavigatorJs extends DOMTypeJs implements Navigator native "*Navigator" {
 
   String get appCodeName() native "return this.appCodeName;";
 
@@ -9,17 +9,17 @@ class NavigatorJS implements Navigator native "*Navigator" {
 
   bool get cookieEnabled() native "return this.cookieEnabled;";
 
-  GeolocationJS get geolocation() native "return this.geolocation;";
+  GeolocationJs get geolocation() native "return this.geolocation;";
 
   String get language() native "return this.language;";
 
-  DOMMimeTypeArrayJS get mimeTypes() native "return this.mimeTypes;";
+  DOMMimeTypeArrayJs get mimeTypes() native "return this.mimeTypes;";
 
   bool get onLine() native "return this.onLine;";
 
   String get platform() native "return this.platform;";
 
-  DOMPluginArrayJS get plugins() native "return this.plugins;";
+  DOMPluginArrayJs get plugins() native "return this.plugins;";
 
   String get product() native "return this.product;";
 
@@ -36,8 +36,4 @@ class NavigatorJS implements Navigator native "*Navigator" {
   bool javaEnabled() native;
 
   void registerProtocolHandler(String scheme, String url, String title) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

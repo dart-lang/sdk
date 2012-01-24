@@ -1,5 +1,5 @@
 
-class WebKitPointJS implements WebKitPoint native "*WebKitPoint" {
+class WebKitPointJs extends DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
   WebKitPoint(num x, num y) native;
 
 
@@ -10,8 +10,4 @@ class WebKitPointJS implements WebKitPoint native "*WebKitPoint" {
   num get y() native "return this.y;";
 
   void set y(num value) native "this.y = value;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

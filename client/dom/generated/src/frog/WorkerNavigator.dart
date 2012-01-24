@@ -1,5 +1,5 @@
 
-class WorkerNavigatorJS implements WorkerNavigator native "*WorkerNavigator" {
+class WorkerNavigatorJs extends DOMTypeJs implements WorkerNavigator native "*WorkerNavigator" {
 
   String get appName() native "return this.appName;";
 
@@ -10,8 +10,4 @@ class WorkerNavigatorJS implements WorkerNavigator native "*WorkerNavigator" {
   String get platform() native "return this.platform;";
 
   String get userAgent() native "return this.userAgent;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

@@ -1,3 +1,3 @@
 
-class SVGAnimateColorElementJS extends SVGAnimationElementJS implements SVGAnimateColorElement native "*SVGAnimateColorElement" {
+class SVGAnimateColorElementJs extends SVGAnimationElementJs implements SVGAnimateColorElement native "*SVGAnimateColorElement" {
 }

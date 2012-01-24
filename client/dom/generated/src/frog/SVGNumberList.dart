@@ -1,23 +1,19 @@
 
-class SVGNumberListJS implements SVGNumberList native "*SVGNumberList" {
+class SVGNumberListJs extends DOMTypeJs implements SVGNumberList native "*SVGNumberList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGNumberJS appendItem(SVGNumberJS item) native;
+  SVGNumberJs appendItem(SVGNumberJs item) native;
 
   void clear() native;
 
-  SVGNumberJS getItem(int index) native;
+  SVGNumberJs getItem(int index) native;
 
-  SVGNumberJS initialize(SVGNumberJS item) native;
+  SVGNumberJs initialize(SVGNumberJs item) native;
 
-  SVGNumberJS insertItemBefore(SVGNumberJS item, int index) native;
+  SVGNumberJs insertItemBefore(SVGNumberJs item, int index) native;
 
-  SVGNumberJS removeItem(int index) native;
+  SVGNumberJs removeItem(int index) native;
 
-  SVGNumberJS replaceItem(SVGNumberJS item, int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGNumberJs replaceItem(SVGNumberJs item, int index) native;
 }

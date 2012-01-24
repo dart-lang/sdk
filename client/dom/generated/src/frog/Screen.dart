@@ -1,5 +1,5 @@
 
-class ScreenJS implements Screen native "*Screen" {
+class ScreenJs extends DOMTypeJs implements Screen native "*Screen" {
 
   int get availHeight() native "return this.availHeight;";
 
@@ -16,8 +16,4 @@ class ScreenJS implements Screen native "*Screen" {
   int get pixelDepth() native "return this.pixelDepth;";
 
   int get width() native "return this.width;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

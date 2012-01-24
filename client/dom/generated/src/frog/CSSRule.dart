@@ -1,5 +1,5 @@
 
-class CSSRuleJS implements CSSRule native "*CSSRule" {
+class CSSRuleJs extends DOMTypeJs implements CSSRule native "*CSSRule" {
 
   static final int CHARSET_RULE = 2;
 
@@ -25,13 +25,9 @@ class CSSRuleJS implements CSSRule native "*CSSRule" {
 
   void set cssText(String value) native "this.cssText = value;";
 
-  CSSRuleJS get parentRule() native "return this.parentRule;";
+  CSSRuleJs get parentRule() native "return this.parentRule;";
 
-  CSSStyleSheetJS get parentStyleSheet() native "return this.parentStyleSheet;";
+  CSSStyleSheetJs get parentStyleSheet() native "return this.parentStyleSheet;";
 
   int get type() native "return this.type;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

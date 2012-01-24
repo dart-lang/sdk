@@ -1,11 +1,7 @@
 
-class DOMURLJS implements DOMURL native "*DOMURL" {
+class DOMURLJs extends DOMTypeJs implements DOMURL native "*DOMURL" {
 
-  String createObjectURL(BlobJS blob) native;
+  String createObjectURL(BlobJs blob) native;
 
   void revokeObjectURL(String url) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

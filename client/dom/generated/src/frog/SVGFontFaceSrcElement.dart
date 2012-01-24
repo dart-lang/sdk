@@ -1,3 +1,3 @@
 
-class SVGFontFaceSrcElementJS extends SVGElementJS implements SVGFontFaceSrcElement native "*SVGFontFaceSrcElement" {
+class SVGFontFaceSrcElementJs extends SVGElementJs implements SVGFontFaceSrcElement native "*SVGFontFaceSrcElement" {
 }

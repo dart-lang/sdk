@@ -1,5 +1,5 @@
 
-class MediaErrorJS implements MediaError native "*MediaError" {
+class MediaErrorJs extends DOMTypeJs implements MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_ABORTED = 1;
 
@@ -10,8 +10,4 @@ class MediaErrorJS implements MediaError native "*MediaError" {
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   int get code() native "return this.code;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

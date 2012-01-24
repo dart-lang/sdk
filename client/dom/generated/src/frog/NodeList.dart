@@ -1,17 +1,13 @@
 
-class NodeListJS implements NodeList native "*NodeList" {
+class NodeListJs extends DOMTypeJs implements NodeList native "*NodeList" {
 
   int get length() native "return this.length;";
 
-  NodeJS operator[](int index) native;
+  NodeJs operator[](int index) native;
 
-  void operator[]=(int index, NodeJS value) {
+  void operator[]=(int index, NodeJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
-  NodeJS item(int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  NodeJs item(int index) native;
 }

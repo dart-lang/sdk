@@ -1,5 +1,5 @@
 
-class JavaScriptAudioNodeJS extends AudioNodeJS implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
+class JavaScriptAudioNodeJs extends AudioNodeJs implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
 
   int get bufferSize() native "return this.bufferSize;";
 

@@ -1,11 +1,11 @@
 
-class XSLTProcessorJS implements XSLTProcessor native "*XSLTProcessor" {
+class XSLTProcessorJs extends DOMTypeJs implements XSLTProcessor native "*XSLTProcessor" {
 
   void clearParameters() native;
 
   String getParameter(String namespaceURI, String localName) native;
 
-  void importStylesheet(NodeJS stylesheet) native;
+  void importStylesheet(NodeJs stylesheet) native;
 
   void removeParameter(String namespaceURI, String localName) native;
 
@@ -13,11 +13,7 @@ class XSLTProcessorJS implements XSLTProcessor native "*XSLTProcessor" {
 
   void setParameter(String namespaceURI, String localName, String value) native;
 
-  DocumentJS transformToDocument(NodeJS source) native;
+  DocumentJs transformToDocument(NodeJs source) native;
 
-  DocumentFragmentJS transformToFragment(NodeJS source, DocumentJS docVal) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  DocumentFragmentJs transformToFragment(NodeJs source, DocumentJs docVal) native;
 }

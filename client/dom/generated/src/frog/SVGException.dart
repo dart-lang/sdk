@@ -1,5 +1,5 @@
 
-class SVGExceptionJS implements SVGException native "*SVGException" {
+class SVGExceptionJs extends DOMTypeJs implements SVGException native "*SVGException" {
 
   static final int SVG_INVALID_VALUE_ERR = 1;
 
@@ -14,8 +14,4 @@ class SVGExceptionJS implements SVGException native "*SVGException" {
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

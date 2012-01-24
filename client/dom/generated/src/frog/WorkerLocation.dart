@@ -1,5 +1,5 @@
 
-class WorkerLocationJS implements WorkerLocation native "*WorkerLocation" {
+class WorkerLocationJs extends DOMTypeJs implements WorkerLocation native "*WorkerLocation" {
 
   String get hash() native "return this.hash;";
 
@@ -18,8 +18,4 @@ class WorkerLocationJS implements WorkerLocation native "*WorkerLocation" {
   String get search() native "return this.search;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

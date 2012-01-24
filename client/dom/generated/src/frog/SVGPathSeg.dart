@@ -1,5 +1,5 @@
 
-class SVGPathSegJS implements SVGPathSeg native "*SVGPathSeg" {
+class SVGPathSegJs extends DOMTypeJs implements SVGPathSeg native "*SVGPathSeg" {
 
   static final int PATHSEG_ARC_ABS = 10;
 
@@ -44,8 +44,4 @@ class SVGPathSegJS implements SVGPathSeg native "*SVGPathSeg" {
   int get pathSegType() native "return this.pathSegType;";
 
   String get pathSegTypeAsLetter() native "return this.pathSegTypeAsLetter;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

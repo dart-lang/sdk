@@ -1,5 +1,5 @@
 
-class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement native "*HTMLMediaElement" {
+class HTMLMediaElementJs extends HTMLElementJs implements HTMLMediaElement native "*HTMLMediaElement" {
 
   static final int EOS_DECODE_ERR = 2;
 
@@ -35,11 +35,11 @@ class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement nativ
 
   void set autoplay(bool value) native "this.autoplay = value;";
 
-  TimeRangesJS get buffered() native "return this.buffered;";
+  TimeRangesJs get buffered() native "return this.buffered;";
 
-  MediaControllerJS get controller() native "return this.controller;";
+  MediaControllerJs get controller() native "return this.controller;";
 
-  void set controller(MediaControllerJS value) native "this.controller = value;";
+  void set controller(MediaControllerJs value) native "this.controller = value;";
 
   bool get controls() native "return this.controls;";
 
@@ -63,7 +63,7 @@ class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement nativ
 
   bool get ended() native "return this.ended;";
 
-  MediaErrorJS get error() native "return this.error;";
+  MediaErrorJs get error() native "return this.error;";
 
   num get initialTime() native "return this.initialTime;";
 
@@ -87,7 +87,7 @@ class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement nativ
 
   void set playbackRate(num value) native "this.playbackRate = value;";
 
-  TimeRangesJS get played() native "return this.played;";
+  TimeRangesJs get played() native "return this.played;";
 
   String get preload() native "return this.preload;";
 
@@ -95,7 +95,7 @@ class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement nativ
 
   int get readyState() native "return this.readyState;";
 
-  TimeRangesJS get seekable() native "return this.seekable;";
+  TimeRangesJs get seekable() native "return this.seekable;";
 
   bool get seeking() native "return this.seeking;";
 
@@ -105,7 +105,7 @@ class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement nativ
 
   num get startTime() native "return this.startTime;";
 
-  TextTrackListJS get textTracks() native "return this.textTracks;";
+  TextTrackListJs get textTracks() native "return this.textTracks;";
 
   num get volume() native "return this.volume;";
 
@@ -129,7 +129,7 @@ class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement nativ
 
   int get webkitVideoDecodedByteCount() native "return this.webkitVideoDecodedByteCount;";
 
-  TextTrackJS addTrack(String kind, [String label = null, String language = null]) native;
+  TextTrackJs addTrack(String kind, [String label = null, String language = null]) native;
 
   String canPlayType(String type) native;
 
@@ -139,7 +139,7 @@ class HTMLMediaElementJS extends HTMLElementJS implements HTMLMediaElement nativ
 
   void play() native;
 
-  void webkitSourceAppend(Uint8ArrayJS data) native;
+  void webkitSourceAppend(Uint8ArrayJs data) native;
 
   void webkitSourceEndOfStream(int status) native;
 }

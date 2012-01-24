@@ -1,13 +1,13 @@
 
-class SVGZoomEventJS extends UIEventJS implements SVGZoomEvent native "*SVGZoomEvent" {
+class SVGZoomEventJs extends UIEventJs implements SVGZoomEvent native "*SVGZoomEvent" {
 
   num get newScale() native "return this.newScale;";
 
-  SVGPointJS get newTranslate() native "return this.newTranslate;";
+  SVGPointJs get newTranslate() native "return this.newTranslate;";
 
   num get previousScale() native "return this.previousScale;";
 
-  SVGPointJS get previousTranslate() native "return this.previousTranslate;";
+  SVGPointJs get previousTranslate() native "return this.previousTranslate;";
 
-  SVGRectJS get zoomRectScreen() native "return this.zoomRectScreen;";
+  SVGRectJs get zoomRectScreen() native "return this.zoomRectScreen;";
 }

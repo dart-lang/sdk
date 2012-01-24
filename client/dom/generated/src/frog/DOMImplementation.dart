@@ -1,17 +1,13 @@
 
-class DOMImplementationJS implements DOMImplementation native "*DOMImplementation" {
+class DOMImplementationJs extends DOMTypeJs implements DOMImplementation native "*DOMImplementation" {
 
-  CSSStyleSheetJS createCSSStyleSheet(String title, String media) native;
+  CSSStyleSheetJs createCSSStyleSheet(String title, String media) native;
 
-  DocumentJS createDocument(String namespaceURI, String qualifiedName, DocumentTypeJS doctype) native;
+  DocumentJs createDocument(String namespaceURI, String qualifiedName, DocumentTypeJs doctype) native;
 
-  DocumentTypeJS createDocumentType(String qualifiedName, String publicId, String systemId) native;
+  DocumentTypeJs createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
-  HTMLDocumentJS createHTMLDocument(String title) native;
+  HTMLDocumentJs createHTMLDocument(String title) native;
 
   bool hasFeature(String feature, String version) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

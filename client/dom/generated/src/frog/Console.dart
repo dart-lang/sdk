@@ -1,7 +1,15 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-class ConsoleJS implements Console native "=(typeof console == 'undefined' ? {} : console)" {
+class ConsoleJs
+    // Implement DOMType directly.  Console is sometimes a singleton
+    // bag-of-properties without a prototype, so it can't inherit from
+    // DOMTypeJs.
+    implements Console, DOMType
+    native "=(typeof console == 'undefined' ? {} : console)" {
 
-  MemoryInfoJS get memory() native "return this.memory;";
+  MemoryInfoJs get memory() native "return this.memory;";
 
   List get profiles() native "return this.profiles;";
 
@@ -43,7 +51,8 @@ class ConsoleJS implements Console native "=(typeof console == 'undefined' ? {} 
 
   void warn(Object arg) native;
 
-  var dartObjectLocalStorage;
 
+  // Keep these in sync with frog_DOMTypeJs.dart.
+  var dartObjectLocalStorage;
   String get typeName() native;
 }

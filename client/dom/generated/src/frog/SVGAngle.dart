@@ -1,5 +1,5 @@
 
-class SVGAngleJS implements SVGAngle native "*SVGAngle" {
+class SVGAngleJs extends DOMTypeJs implements SVGAngle native "*SVGAngle" {
 
   static final int SVG_ANGLETYPE_DEG = 2;
 
@@ -28,8 +28,4 @@ class SVGAngleJS implements SVGAngle native "*SVGAngle" {
   void convertToSpecifiedUnits(int unitType) native;
 
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

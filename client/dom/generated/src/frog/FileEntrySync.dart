@@ -1,7 +1,7 @@
 
-class FileEntrySyncJS extends EntrySyncJS implements FileEntrySync native "*FileEntrySync" {
+class FileEntrySyncJs extends EntrySyncJs implements FileEntrySync native "*FileEntrySync" {
 
-  FileWriterSyncJS createWriter() native;
+  FileWriterSyncJs createWriter() native;
 
-  FileJS file() native;
+  FileJs file() native;
 }

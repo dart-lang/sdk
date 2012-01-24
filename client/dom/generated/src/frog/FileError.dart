@@ -1,5 +1,5 @@
 
-class FileErrorJS implements FileError native "*FileError" {
+class FileErrorJs extends DOMTypeJs implements FileError native "*FileError" {
 
   static final int ABORT_ERR = 3;
 
@@ -26,8 +26,4 @@ class FileErrorJS implements FileError native "*FileError" {
   static final int TYPE_MISMATCH_ERR = 11;
 
   int get code() native "return this.code;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

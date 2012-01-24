@@ -1,7 +1,3 @@
 
-class IDBKeyJS implements IDBKey native "*IDBKey" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class IDBKeyJs extends DOMTypeJs implements IDBKey native "*IDBKey" {
 }

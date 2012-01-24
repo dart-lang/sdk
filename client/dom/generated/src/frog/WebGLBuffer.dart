@@ -1,7 +1,3 @@
 
-class WebGLBufferJS implements WebGLBuffer native "*WebGLBuffer" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebGLBufferJs extends DOMTypeJs implements WebGLBuffer native "*WebGLBuffer" {
 }

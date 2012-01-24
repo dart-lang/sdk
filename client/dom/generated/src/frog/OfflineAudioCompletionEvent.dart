@@ -1,5 +1,5 @@
 
-class OfflineAudioCompletionEventJS extends EventJS implements OfflineAudioCompletionEvent native "*OfflineAudioCompletionEvent" {
+class OfflineAudioCompletionEventJs extends EventJs implements OfflineAudioCompletionEvent native "*OfflineAudioCompletionEvent" {
 
-  AudioBufferJS get renderedBuffer() native "return this.renderedBuffer;";
+  AudioBufferJs get renderedBuffer() native "return this.renderedBuffer;";
 }

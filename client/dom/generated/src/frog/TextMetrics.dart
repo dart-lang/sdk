@@ -1,9 +1,5 @@
 
-class TextMetricsJS implements TextMetrics native "*TextMetrics" {
+class TextMetricsJs extends DOMTypeJs implements TextMetrics native "*TextMetrics" {
 
   num get width() native "return this.width;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

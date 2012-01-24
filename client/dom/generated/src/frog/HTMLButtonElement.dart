@@ -1,5 +1,5 @@
 
-class HTMLButtonElementJS extends HTMLElementJS implements HTMLButtonElement native "*HTMLButtonElement" {
+class HTMLButtonElementJs extends HTMLElementJs implements HTMLButtonElement native "*HTMLButtonElement" {
 
   bool get autofocus() native "return this.autofocus;";
 
@@ -9,7 +9,7 @@ class HTMLButtonElementJS extends HTMLElementJS implements HTMLButtonElement nat
 
   void set disabled(bool value) native "this.disabled = value;";
 
-  HTMLFormElementJS get form() native "return this.form;";
+  HTMLFormElementJs get form() native "return this.form;";
 
   String get formAction() native "return this.formAction;";
 
@@ -31,7 +31,7 @@ class HTMLButtonElementJS extends HTMLElementJS implements HTMLButtonElement nat
 
   void set formTarget(String value) native "this.formTarget = value;";
 
-  NodeListJS get labels() native "return this.labels;";
+  NodeListJs get labels() native "return this.labels;";
 
   String get name() native "return this.name;";
 
@@ -41,7 +41,7 @@ class HTMLButtonElementJS extends HTMLElementJS implements HTMLButtonElement nat
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityStateJS get validity() native "return this.validity;";
+  ValidityStateJs get validity() native "return this.validity;";
 
   String get value() native "return this.value;";
 

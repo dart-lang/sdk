@@ -1,7 +1,3 @@
 
-class MutationCallbackJS implements MutationCallback native "*MutationCallback" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class MutationCallbackJs extends DOMTypeJs implements MutationCallback native "*MutationCallback" {
 }

@@ -1,5 +1,5 @@
 
-class BeforeLoadEventJS extends EventJS implements BeforeLoadEvent native "*BeforeLoadEvent" {
+class BeforeLoadEventJs extends EventJs implements BeforeLoadEvent native "*BeforeLoadEvent" {
 
   String get url() native "return this.url;";
 }

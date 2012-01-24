@@ -1,11 +1,7 @@
 
-class SVGAnimatedNumberListJS implements SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
+class SVGAnimatedNumberListJs extends DOMTypeJs implements SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
-  SVGNumberListJS get animVal() native "return this.animVal;";
+  SVGNumberListJs get animVal() native "return this.animVal;";
 
-  SVGNumberListJS get baseVal() native "return this.baseVal;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGNumberListJs get baseVal() native "return this.baseVal;";
 }

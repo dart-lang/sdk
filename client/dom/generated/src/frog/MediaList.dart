@@ -1,5 +1,5 @@
 
-class MediaListJS implements MediaList native "*MediaList" {
+class MediaListJs extends DOMTypeJs implements MediaList native "*MediaList" {
 
   int get length() native "return this.length;";
 
@@ -18,8 +18,4 @@ class MediaListJS implements MediaList native "*MediaList" {
   void deleteMedium(String oldMedium) native;
 
   String item(int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

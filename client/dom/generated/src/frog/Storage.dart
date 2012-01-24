@@ -1,5 +1,8 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-class StorageJS implements Storage native "*Storage" {
+class StorageJs extends DOMTypeJs implements Storage native "*Storage" {
 
   int get length() native "return this.length;";
 
@@ -13,31 +16,26 @@ class StorageJS implements Storage native "*Storage" {
 
   void setItem(String key, String data) native;
 
-  var get dartObjectLocalStorage() native """
 
+  // Storage needs a special implementation of dartObjectLocalStorage since it
+  // captures what would normally be an expando and places property in the
+  // storage, stringifying the assigned value.
+
+  var get dartObjectLocalStorage() native """
     if (this === window.localStorage)
       return window._dartLocalStorageLocalStorage;
     else if (this === window.sessionStorage)
       return window._dartSessionStorageLocalStorage;
     else
       throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
-
-""" {
-    throw new UnsupportedOperationException('');
-  }
+""" { throw new UnsupportedOperationException(''); }
 
   void set dartObjectLocalStorage(var value) native """
-
     if (this === window.localStorage)
       window._dartLocalStorageLocalStorage = value;
     else if (this === window.sessionStorage)
       window._dartSessionStorageLocalStorage = value;
     else
       throw new UnsupportedOperationException('Cannot dartObjectLocalStorage for unknown Storage object.');
-
-""" {
-    throw new UnsupportedOperationException('');
-  }
-
-  String get typeName() native;
+""" { throw new UnsupportedOperationException(''); }
 }

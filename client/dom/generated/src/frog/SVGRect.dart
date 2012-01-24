@@ -1,5 +1,5 @@
 
-class SVGRectJS implements SVGRect native "*SVGRect" {
+class SVGRectJs extends DOMTypeJs implements SVGRect native "*SVGRect" {
 
   num get height() native "return this.height;";
 
@@ -16,8 +16,4 @@ class SVGRectJS implements SVGRect native "*SVGRect" {
   num get y() native "return this.y;";
 
   void set y(num value) native "this.y = value;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

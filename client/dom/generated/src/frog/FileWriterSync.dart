@@ -1,5 +1,5 @@
 
-class FileWriterSyncJS implements FileWriterSync native "*FileWriterSync" {
+class FileWriterSyncJs extends DOMTypeJs implements FileWriterSync native "*FileWriterSync" {
 
   int get length() native "return this.length;";
 
@@ -9,9 +9,5 @@ class FileWriterSyncJS implements FileWriterSync native "*FileWriterSync" {
 
   void truncate(int size) native;
 
-  void write(BlobJS data) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  void write(BlobJs data) native;
 }

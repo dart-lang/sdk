@@ -1,5 +1,5 @@
 
-class SVGPathSegMovetoRelJS extends SVGPathSegJS implements SVGPathSegMovetoRel native "*SVGPathSegMovetoRel" {
+class SVGPathSegMovetoRelJs extends SVGPathSegJs implements SVGPathSegMovetoRel native "*SVGPathSegMovetoRel" {
 
   num get x() native "return this.x;";
 

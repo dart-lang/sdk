@@ -1,19 +1,15 @@
 
-class SVGLocatableJS implements SVGLocatable native "*SVGLocatable" {
+class SVGLocatableJs extends DOMTypeJs implements SVGLocatable native "*SVGLocatable" {
 
-  SVGElementJS get farthestViewportElement() native "return this.farthestViewportElement;";
+  SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElementJS get nearestViewportElement() native "return this.nearestViewportElement;";
+  SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
 
-  SVGRectJS getBBox() native;
+  SVGRectJs getBBox() native;
 
-  SVGMatrixJS getCTM() native;
+  SVGMatrixJs getCTM() native;
 
-  SVGMatrixJS getScreenCTM() native;
+  SVGMatrixJs getScreenCTM() native;
 
-  SVGMatrixJS getTransformToElement(SVGElementJS element) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGMatrixJs getTransformToElement(SVGElementJs element) native;
 }

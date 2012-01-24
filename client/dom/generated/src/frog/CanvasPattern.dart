@@ -1,7 +1,3 @@
 
-class CanvasPatternJS implements CanvasPattern native "*CanvasPattern" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class CanvasPatternJs extends DOMTypeJs implements CanvasPattern native "*CanvasPattern" {
 }

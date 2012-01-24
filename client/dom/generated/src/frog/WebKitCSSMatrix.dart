@@ -1,5 +1,5 @@
 
-class WebKitCSSMatrixJS implements WebKitCSSMatrix native "*WebKitCSSMatrix" {
+class WebKitCSSMatrixJs extends DOMTypeJs implements WebKitCSSMatrix native "*WebKitCSSMatrix" {
   WebKitCSSMatrix([String spec]) native;
 
 
@@ -91,27 +91,23 @@ class WebKitCSSMatrixJS implements WebKitCSSMatrix native "*WebKitCSSMatrix" {
 
   void set m44(num value) native "this.m44 = value;";
 
-  WebKitCSSMatrixJS inverse() native;
+  WebKitCSSMatrixJs inverse() native;
 
-  WebKitCSSMatrixJS multiply(WebKitCSSMatrixJS secondMatrix) native;
+  WebKitCSSMatrixJs multiply(WebKitCSSMatrixJs secondMatrix) native;
 
-  WebKitCSSMatrixJS rotate(num rotX, num rotY, num rotZ) native;
+  WebKitCSSMatrixJs rotate(num rotX, num rotY, num rotZ) native;
 
-  WebKitCSSMatrixJS rotateAxisAngle(num x, num y, num z, num angle) native;
+  WebKitCSSMatrixJs rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  WebKitCSSMatrixJS scale(num scaleX, num scaleY, num scaleZ) native;
+  WebKitCSSMatrixJs scale(num scaleX, num scaleY, num scaleZ) native;
 
   void setMatrixValue(String string) native;
 
-  WebKitCSSMatrixJS skewX(num angle) native;
+  WebKitCSSMatrixJs skewX(num angle) native;
 
-  WebKitCSSMatrixJS skewY(num angle) native;
+  WebKitCSSMatrixJs skewY(num angle) native;
 
   String toString() native;
 
-  WebKitCSSMatrixJS translate(num x, num y, num z) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  WebKitCSSMatrixJs translate(num x, num y, num z) native;
 }

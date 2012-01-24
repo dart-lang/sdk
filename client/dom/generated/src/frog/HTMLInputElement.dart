@@ -1,5 +1,5 @@
 
-class HTMLInputElementJS extends HTMLElementJS implements HTMLInputElement native "*HTMLInputElement" {
+class HTMLInputElementJs extends HTMLElementJs implements HTMLInputElement native "*HTMLInputElement" {
 
   String get accept() native "return this.accept;";
 
@@ -41,9 +41,9 @@ class HTMLInputElementJS extends HTMLElementJS implements HTMLInputElement nativ
 
   void set disabled(bool value) native "this.disabled = value;";
 
-  FileListJS get files() native "return this.files;";
+  FileListJs get files() native "return this.files;";
 
-  HTMLFormElementJS get form() native "return this.form;";
+  HTMLFormElementJs get form() native "return this.form;";
 
   String get formAction() native "return this.formAction;";
 
@@ -73,9 +73,9 @@ class HTMLInputElementJS extends HTMLElementJS implements HTMLInputElement nativ
 
   void set indeterminate(bool value) native "this.indeterminate = value;";
 
-  NodeListJS get labels() native "return this.labels;";
+  NodeListJs get labels() native "return this.labels;";
 
-  HTMLElementJS get list() native "return this.list;";
+  HTMLElementJs get list() native "return this.list;";
 
   String get max() native "return this.max;";
 
@@ -113,7 +113,7 @@ class HTMLInputElementJS extends HTMLElementJS implements HTMLInputElement nativ
 
   void set required(bool value) native "this.required = value;";
 
-  HTMLOptionElementJS get selectedOption() native "return this.selectedOption;";
+  HTMLOptionElementJs get selectedOption() native "return this.selectedOption;";
 
   String get selectionDirection() native "return this.selectionDirection;";
 
@@ -149,7 +149,7 @@ class HTMLInputElementJS extends HTMLElementJS implements HTMLInputElement nativ
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityStateJS get validity() native "return this.validity;";
+  ValidityStateJs get validity() native "return this.validity;";
 
   String get value() native "return this.value;";
 

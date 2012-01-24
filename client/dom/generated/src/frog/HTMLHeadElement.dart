@@ -1,5 +1,5 @@
 
-class HTMLHeadElementJS extends HTMLElementJS implements HTMLHeadElement native "*HTMLHeadElement" {
+class HTMLHeadElementJs extends HTMLElementJs implements HTMLHeadElement native "*HTMLHeadElement" {
 
   String get profile() native "return this.profile;";
 

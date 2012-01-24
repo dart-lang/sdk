@@ -1,5 +1,5 @@
 
-class OperationNotAllowedExceptionJS implements OperationNotAllowedException native "*OperationNotAllowedException" {
+class OperationNotAllowedExceptionJs extends DOMTypeJs implements OperationNotAllowedException native "*OperationNotAllowedException" {
 
   static final int NOT_ALLOWED_ERR = 1;
 
@@ -10,8 +10,4 @@ class OperationNotAllowedExceptionJS implements OperationNotAllowedException nat
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

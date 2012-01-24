@@ -1,5 +1,5 @@
 
-class HashChangeEventJS extends EventJS implements HashChangeEvent native "*HashChangeEvent" {
+class HashChangeEventJs extends EventJs implements HashChangeEvent native "*HashChangeEvent" {
 
   String get newURL() native "return this.newURL;";
 

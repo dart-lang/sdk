@@ -1,7 +1,7 @@
 
-class AudioProcessingEventJS extends EventJS implements AudioProcessingEvent native "*AudioProcessingEvent" {
+class AudioProcessingEventJs extends EventJs implements AudioProcessingEvent native "*AudioProcessingEvent" {
 
-  AudioBufferJS get inputBuffer() native "return this.inputBuffer;";
+  AudioBufferJs get inputBuffer() native "return this.inputBuffer;";
 
-  AudioBufferJS get outputBuffer() native "return this.outputBuffer;";
+  AudioBufferJs get outputBuffer() native "return this.outputBuffer;";
 }

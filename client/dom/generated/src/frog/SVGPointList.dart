@@ -1,23 +1,19 @@
 
-class SVGPointListJS implements SVGPointList native "*SVGPointList" {
+class SVGPointListJs extends DOMTypeJs implements SVGPointList native "*SVGPointList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGPointJS appendItem(SVGPointJS item) native;
+  SVGPointJs appendItem(SVGPointJs item) native;
 
   void clear() native;
 
-  SVGPointJS getItem(int index) native;
+  SVGPointJs getItem(int index) native;
 
-  SVGPointJS initialize(SVGPointJS item) native;
+  SVGPointJs initialize(SVGPointJs item) native;
 
-  SVGPointJS insertItemBefore(SVGPointJS item, int index) native;
+  SVGPointJs insertItemBefore(SVGPointJs item, int index) native;
 
-  SVGPointJS removeItem(int index) native;
+  SVGPointJs removeItem(int index) native;
 
-  SVGPointJS replaceItem(SVGPointJS item, int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGPointJs replaceItem(SVGPointJs item, int index) native;
 }

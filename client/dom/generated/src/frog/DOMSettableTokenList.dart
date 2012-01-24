@@ -1,5 +1,5 @@
 
-class DOMSettableTokenListJS extends DOMTokenListJS implements DOMSettableTokenList native "*DOMSettableTokenList" {
+class DOMSettableTokenListJs extends DOMTokenListJs implements DOMSettableTokenList native "*DOMSettableTokenList" {
 
   String get value() native "return this.value;";
 

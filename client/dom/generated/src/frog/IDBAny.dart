@@ -1,7 +1,3 @@
 
-class IDBAnyJS implements IDBAny native "*IDBAny" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class IDBAnyJs extends DOMTypeJs implements IDBAny native "*IDBAny" {
 }

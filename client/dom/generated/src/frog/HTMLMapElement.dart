@@ -1,7 +1,7 @@
 
-class HTMLMapElementJS extends HTMLElementJS implements HTMLMapElement native "*HTMLMapElement" {
+class HTMLMapElementJs extends HTMLElementJs implements HTMLMapElement native "*HTMLMapElement" {
 
-  HTMLCollectionJS get areas() native "return this.areas;";
+  HTMLCollectionJs get areas() native "return this.areas;";
 
   String get name() native "return this.name;";
 

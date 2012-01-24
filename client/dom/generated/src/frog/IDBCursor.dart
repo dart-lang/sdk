@@ -1,5 +1,5 @@
 
-class IDBCursorJS implements IDBCursor native "*IDBCursor" {
+class IDBCursorJs extends DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   static final int NEXT = 0;
 
@@ -11,19 +11,15 @@ class IDBCursorJS implements IDBCursor native "*IDBCursor" {
 
   int get direction() native "return this.direction;";
 
-  IDBKeyJS get key() native "return this.key;";
+  IDBKeyJs get key() native "return this.key;";
 
-  IDBKeyJS get primaryKey() native "return this.primaryKey;";
+  IDBKeyJs get primaryKey() native "return this.primaryKey;";
 
-  IDBAnyJS get source() native "return this.source;";
+  IDBAnyJs get source() native "return this.source;";
 
-  void continueFunction([IDBKeyJS key = null]) native;
+  void continueFunction([IDBKeyJs key = null]) native;
 
-  IDBRequestJS delete() native;
+  IDBRequestJs delete() native;
 
-  IDBRequestJS update(String value) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  IDBRequestJs update(String value) native;
 }
