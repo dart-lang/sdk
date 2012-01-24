@@ -11438,6 +11438,10 @@ interface DOMApplicationCache extends EventTarget {
 
 interface ElementList extends List<Element> {
   // TODO(jacobr): add element batch manipulation methods.
+  ElementList filter(bool f(Element element));
+
+  ElementList getRange(int start, int length);
+
   Element get first();
   // TODO(jacobr): add insertAt
 }

@@ -28,7 +28,8 @@ class _ChildrenElementList implements ElementList {
 
   Collection map(f(Element element)) => _toList().map(f);
 
-  Collection<Element> filter(bool f(Element element)) => _toList().filter(f);
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(_toList().filter(f));
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -102,7 +103,8 @@ class _ChildrenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  ElementList getRange(int start, int length) =>
+    new _ElementList(Lists.getRange(this, start, length));
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -154,8 +156,8 @@ class FrozenElementList implements ElementList {
     return out;
   }
 
-  Collection<Element> filter(bool f(Element element)) {
-    var out = [];
+  ElementList filter(bool f(Element element)) {
+    var out = new _ElementList([]);
     for (Element el in this) {
       if (f(el)) out.add(el);
     }
@@ -235,7 +237,8 @@ class FrozenElementList implements ElementList {
     throw const UnsupportedOperationException('');
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  ElementList getRange(int start, int length) =>
+    new _ElementList(Lists.getRange(this, start, length));
 
   int indexOf(Element element, [int start = 0]) =>
     Lists.indexOf(this, element, start, this.length);
@@ -280,6 +283,16 @@ class FrozenElementListIterator implements Iterator<Element> {
    * Returns whether the [Iterator] has elements left.
    */
   bool hasNext() => _index < _list.length;
+}
+
+class _ElementList extends _ListWrapper<Element> implements ElementList {
+  _ElementList(List<Element> list) : super(list);
+
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(super.filter(f));
+
+  ElementList getRange(int start, int length) =>
+    new _ElementList(super.getRange(start, length));
 }
 
 class ElementAttributeMap implements Map<String, String> {

@@ -444,6 +444,7 @@ void testElement() {
         filter((n) => n is ImageElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is ImageElement);
+      Expect.isTrue(filtered is ElementList);
     });
 
     test('every', () {
@@ -534,6 +535,11 @@ void testElement() {
       Expect.isTrue(el.elements.removeLast() is ImageElement);
       Expect.equals(1, el.elements.length);
     });
+
+    test('getRange', () {
+      var el = makeElementWithChildren();
+      Expect.isTrue(el.elements.getRange(1, 1) is ElementList);
+    });
   });
 
   group('queryAll', () {
@@ -584,6 +590,7 @@ void testElement() {
       var filtered = getQueryAll().filter((n) => n is SpanElement);
       Expect.equals(1, filtered.length);
       Expect.isTrue(filtered[0] is SpanElement);
+      Expect.isTrue(filtered is ElementList);
     });
 
     test('every', () {
@@ -625,6 +632,10 @@ void testElement() {
       Expect.isTrue(els[2] is HRElement);
     });
 
+    test('getRange', () {
+      Expect.isTrue(getQueryAll().getRange(1, 1) is ElementList);
+    });
+
     testUnsupported('[]=', () => getQueryAll()[1] = new Element.tag('br'));
     testUnsupported('add', () => getQueryAll().add(new Element.tag('br')));
     testUnsupported('addLast', () =>
@@ -649,5 +660,29 @@ void testElement() {
     testUnsupported('clear', () => getQueryAll().clear());
 
     testUnsupported('removeLast', () => getQueryAll().removeLast());
+  });
+
+  group('_ElementList', () {
+    NodeList makeElList() =>
+      makeElementWithChildren().elements.filter((_) => true);
+
+    test('first', () {
+      var els = makeElList();
+      Expect.isTrue(els.first is BRElement);
+    });
+
+    test('filter', () {
+      var filtered = makeElList().filter((n) => n is ImageElement);
+      Expect.equals(1, filtered.length);
+      Expect.isTrue(filtered[0] is ImageElement);
+      Expect.isTrue(filtered is ElementList);
+    });
+
+    test('getRange', () {
+      var range = makeElList().getRange(1, 2);
+      Expect.isTrue(range is ElementList);
+      Expect.isTrue(range[0] is ImageElement);
+      Expect.isTrue(range[1] is InputElement);
+    });
   });
 }
