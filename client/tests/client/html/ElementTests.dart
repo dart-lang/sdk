@@ -663,7 +663,7 @@ void testElement() {
   });
 
   group('_ElementList', () {
-    NodeList makeElList() =>
+    ElementList makeElList() =>
       makeElementWithChildren().elements.filter((_) => true);
 
     test('first', () {
