@@ -39,12 +39,6 @@ CoreRuntimeTypesTest: Fail
 DateTimeTest: Fail
 DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
 ForInTest: Fail
-IndexedListAccessTest: Fail
-IndexOutOfRangeExceptionTest: Fail
-ListGetRangeTest: Fail
-ListFromListTest: Fail
-ListInsertRangeTest: Fail
-ListRemoveRangeTest: Fail
 ListTest: Fail
 MapsTest: Fail
 MathTest: Fail
