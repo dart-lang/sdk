@@ -210,7 +210,7 @@ TEST_CASE(Debug_LookupSourceLine) {
     intptr_t num_scripts;
     Dart_ListLength(scripts, &num_scripts);
     EXPECT(num_scripts >= 0);
-    for (intptr_t i = 0; i < num_scripts; i++) {
+    for (int i = 0; i < num_scripts; i++) {
       Dart_Handle script_url = Dart_ListGetAt(scripts, i);
       char const* chars;
       Dart_StringToCString(script_url, &chars);
