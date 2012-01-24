@@ -18,6 +18,7 @@ _logger = logging.getLogger('dartgenerator')
 # IDL->Dart primitive types conversion.
 _idl_to_dart_type_conversions = {
     'any': 'Object',
+    'any[]': 'List',
     'custom': 'Dynamic',
     'boolean': 'bool',
     'DOMObject': 'Object',
@@ -1726,7 +1727,8 @@ class WrappingInterfaceGenerator(object):
       return '%s is %s' % (name, type)
 
     if position == len(info.arg_infos):
-      assert len(overloads) == 1
+      if len(overloads) > 1:
+        raise Exception('Duplicate operations ' + str(overloads))
       operation = overloads[0]
       self.GenerateSingleOperation(emitter, info, indent, operation)
       return False

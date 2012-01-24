@@ -16,5 +16,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   int get length();
 
+  void setElements(Object array, [int offset]);
+
   Uint8Array subarray(int start, [int end]);
 }

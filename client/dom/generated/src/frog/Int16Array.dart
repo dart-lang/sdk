@@ -17,5 +17,7 @@ class Int16Array extends ArrayBufferView implements List<int> native "*Int16Arra
 
   void operator[]=(int index, int value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Int16Array subarray(int start, [int end = null]) native;
 }

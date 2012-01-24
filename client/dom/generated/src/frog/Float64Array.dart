@@ -17,5 +17,7 @@ class Float64Array extends ArrayBufferView implements List<num> native "*Float64
 
   void operator[]=(int index, num value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Float64Array subarray(int start, [int end = null]) native;
 }

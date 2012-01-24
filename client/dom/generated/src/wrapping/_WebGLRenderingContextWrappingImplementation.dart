@@ -356,11 +356,10 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static WebGLActiveInfo _getActiveUniform(receiver, program, index) native;
 
-  void getAttachedShaders(WebGLProgram program) {
-    _getAttachedShaders(this, program);
-    return;
+  List getAttachedShaders(WebGLProgram program) {
+    return _getAttachedShaders(this, program);
   }
-  static void _getAttachedShaders(receiver, program) native;
+  static List _getAttachedShaders(receiver, program) native;
 
   int getAttribLocation(WebGLProgram program, String name) {
     return _getAttribLocation(this, program, name);

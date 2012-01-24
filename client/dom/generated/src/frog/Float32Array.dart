@@ -17,5 +17,7 @@ class Float32Array extends ArrayBufferView implements List<num> native "*Float32
 
   void operator[]=(int index, num value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Float32Array subarray(int start, [int end = null]) native;
 }

@@ -2697,6 +2697,8 @@ class Float32Array extends ArrayBufferView implements List<num> native "*Float32
 
   void operator[]=(int index, num value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Float32Array subarray(int start, [int end = null]) native;
 }
 
@@ -2717,6 +2719,8 @@ class Float64Array extends ArrayBufferView implements List<num> native "*Float64
   num operator[](int index) native;
 
   void operator[]=(int index, num value) native;
+
+  void setElements(Object array, [int offset = null]) native;
 
   Float64Array subarray(int start, [int end = null]) native;
 }
@@ -5492,6 +5496,8 @@ class Int16Array extends ArrayBufferView implements List<int> native "*Int16Arra
 
   void operator[]=(int index, int value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Int16Array subarray(int start, [int end = null]) native;
 }
 
@@ -5513,6 +5519,8 @@ class Int32Array extends ArrayBufferView implements List<int> native "*Int32Arra
 
   void operator[]=(int index, int value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Int32Array subarray(int start, [int end = null]) native;
 }
 
@@ -5533,6 +5541,8 @@ class Int8Array extends ArrayBufferView implements List<int> native "*Int8Array"
   int operator[](int index) native;
 
   void operator[]=(int index, int value) native;
+
+  void setElements(Object array, [int offset = null]) native;
 
   Int8Array subarray(int start, [int end = null]) native;
 }
@@ -11097,6 +11107,8 @@ class Uint16Array extends ArrayBufferView implements List<int> native "*Uint16Ar
 
   void operator[]=(int index, int value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Uint16Array subarray(int start, [int end = null]) native;
 }
 
@@ -11118,6 +11130,8 @@ class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Ar
 
   void operator[]=(int index, int value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Uint32Array subarray(int start, [int end = null]) native;
 }
 
@@ -11138,6 +11152,8 @@ class Uint8Array extends ArrayBufferView implements List<int> native "*Uint8Arra
   int operator[](int index) native;
 
   void operator[]=(int index, int value) native;
+
+  void setElements(Object array, [int offset = null]) native;
 
   Uint8Array subarray(int start, [int end = null]) native;
 }
@@ -12020,7 +12036,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native;
 
-  void getAttachedShaders(WebGLProgram program) native;
+  List getAttachedShaders(WebGLProgram program) native;
 
   int getAttribLocation(WebGLProgram program, String name) native;
 

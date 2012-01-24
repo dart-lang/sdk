@@ -16,5 +16,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   int get length();
 
+  void setElements(Object array, [int offset]);
+
   Uint16Array subarray(int start, [int end]);
 }

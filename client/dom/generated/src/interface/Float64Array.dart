@@ -16,5 +16,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   int get length();
 
+  void setElements(Object array, [int offset]);
+
   Float64Array subarray(int start, [int end]);
 }

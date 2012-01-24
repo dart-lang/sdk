@@ -17,5 +17,7 @@ class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Ar
 
   void operator[]=(int index, int value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Uint32Array subarray(int start, [int end = null]) native;
 }

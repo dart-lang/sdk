@@ -17,5 +17,7 @@ class Int8Array extends ArrayBufferView implements List<int> native "*Int8Array"
 
   void operator[]=(int index, int value) native;
 
+  void setElements(Object array, [int offset = null]) native;
+
   Int8Array subarray(int start, [int end = null]) native;
 }

@@ -7862,6 +7862,22 @@ function native__Float32ArrayWrappingImplementation__set_index(_this, index, val
   }
 }
 
+function native__Float32ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float32ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Float32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -7897,6 +7913,22 @@ function native__Float64ArrayWrappingImplementation__index(_this, index) {
 function native__Float64ArrayWrappingImplementation__set_index(_this, index, value) {
   try {
     return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float64ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Float64ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17382,6 +17414,22 @@ function native__Int16ArrayWrappingImplementation__set_index(_this, index, value
   }
 }
 
+function native__Int16ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int16ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Int16ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -17422,6 +17470,22 @@ function native__Int32ArrayWrappingImplementation__set_index(_this, index, value
   }
 }
 
+function native__Int32ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int32ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Int32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -17457,6 +17521,22 @@ function native__Int8ArrayWrappingImplementation__index(_this, index) {
 function native__Int8ArrayWrappingImplementation__set_index(_this, index, value) {
   try {
     return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int8ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Int8ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -31478,6 +31558,22 @@ function native__Uint16ArrayWrappingImplementation__set_index(_this, index, valu
   }
 }
 
+function native__Uint16ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint16ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Uint16ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -31518,6 +31614,22 @@ function native__Uint32ArrayWrappingImplementation__set_index(_this, index, valu
   }
 }
 
+function native__Uint32ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint32ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__Uint32ArrayWrappingImplementation__subarray(_this, start) {
   try {
     return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
@@ -31553,6 +31665,22 @@ function native__Uint8ArrayWrappingImplementation__index(_this, index) {
 function native__Uint8ArrayWrappingImplementation__set_index(_this, index, value) {
   try {
     return _this.$dom[index] = __dom_unwrap(value);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ArrayWrappingImplementation__setElements(_this, array) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ArrayWrappingImplementation__setElements_2(_this, array, offset) {
+  try {
+    return __dom_wrap(_this.$dom.set(__dom_unwrap(array), __dom_unwrap(offset)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

@@ -707,7 +707,7 @@ class WebGLRenderingContext extends CanvasRenderingContext native "*WebGLRenderi
 
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native;
 
-  void getAttachedShaders(WebGLProgram program) native;
+  List getAttachedShaders(WebGLProgram program) native;
 
   int getAttribLocation(WebGLProgram program, String name) native;
 

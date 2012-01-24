@@ -1327,6 +1327,7 @@ dom_externs.sendMessageToBackend;       // operation InspectorFrontendHost.sendM
 dom_externs.separator;                  // attribute Counter.separator
 dom_externs.serializeToString;          // operation XMLSerializer.serializeToString
 dom_externs.sessionStorage;             // attribute DOMWindow.sessionStorage
+dom_externs.set;                        // operation Float32Array.set, operation Float64Array.set, operation Int16Array.set, operation Int32Array.set, operation Int8Array.set, operation Uint16Array.set, operation Uint32Array.set, operation Uint8Array.set
 dom_externs.setAlpha;                   // operation CanvasRenderingContext2D.setAlpha
 dom_externs.setAttachedWindowHeight;    // operation InspectorFrontendHost.setAttachedWindowHeight
 dom_externs.setAttribute;               // operation Element.setAttribute
