@@ -68,6 +68,7 @@ public enum ParserErrorCode implements ErrorCode {
   LOCAL_CANNOT_BE_STATIC("Local function can not be static"),
   MISSING_FUNCTION_NAME("a function name is required for a declaration"),
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
+  NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),

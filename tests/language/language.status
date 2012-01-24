@@ -59,6 +59,8 @@ NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
 
+UnaryPlusNegativeTest: Fail # Issue 1229
+
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip

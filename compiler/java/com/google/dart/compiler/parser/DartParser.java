@@ -3637,8 +3637,14 @@ public class DartParser extends CompletionHooksParserBase {
    *  </pre>
    */
   private DartExpression parseUnaryExpression() {
-    // A '+' prefix does not have any effect.
-    optional(Token.ADD);
+    // There is no unary plus operator in Dart.
+    // However, we allow a leading plus in decimal numeric literals.
+    if (optional(Token.ADD)) {
+      if (peek(0) != Token.INTEGER_LITERAL && peek(0) != Token.DOUBLE_LITERAL) {
+        reportError(position(), ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
+      }
+    }
+    // Check for unary minus operator.
     Token token = peek(0);
     if (token.isUnaryOperator() || token == Token.SUB) {
       beginUnaryExpression();

@@ -445,4 +445,17 @@ public class NegativeParserTest extends CompilerTestCase {
             "}"),
         errEx(ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT, 4, 16, 1));
   }
+
+  public void test_unaryPlus() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var a = 1;",
+            "var b = -1;",
+            "var c = +1;",
+            "var d = -a;",
+            "var e = +a;",
+            ""),
+        errEx(ParserErrorCode.NO_UNARY_PLUS_OPERATOR, 6, 9, 1));
+  }
 }
