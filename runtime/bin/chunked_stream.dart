@@ -48,6 +48,10 @@ class _ChunkedInputStream implements ChunkedInputStream {
     _clientCloseHandler = callback;
   }
 
+  void set errorHandler(void callback()) {
+    _input.errorHandler = callback;
+  }
+
   void _dataHandler() {
     _readData();
     if (_bufferList.length >= _chunkSize && _clientDataHandler !== null) {
