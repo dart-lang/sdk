@@ -275,6 +275,10 @@ class _StringInputStream implements StringInputStream {
     _clientCloseHandler = callback;
   }
 
+  void set errorHandler(void callback()) {
+    _input.errorHandler = callback;
+  }
+
   void _dataHandler() {
     _readData();
     if (!_decoder.isEmpty() && _clientDataHandler !== null) {
