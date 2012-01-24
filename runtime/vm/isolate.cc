@@ -101,6 +101,7 @@ void Isolate::PostMessage(Message* message) {
               source_name, message->reply_port(), name(), message->dest_port());
   }
   message_queue()->Enqueue(message);
+  ASSERT(message->priority() < Message::kOOBPriority);
   if (message->priority() >= Message::kOOBPriority) {
     // Handle out of band messages even if the isolate is busy.
     ScheduleInterrupts(Isolate::kMessageInterrupt);
@@ -203,7 +204,7 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
   mutex_->Lock();
   ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
   if (stack_limit_ == saved_stack_limit_) {
-    stack_limit_ = ~static_cast<uword>(0) & ~kInterruptsMask;
+    stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
   }
   stack_limit_ |= interrupt_bits;
   mutex_->Unlock();

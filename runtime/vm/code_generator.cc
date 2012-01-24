@@ -885,7 +885,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 
   uword interrupt_bits = isolate->GetAndClearInterrupts();
   if (interrupt_bits & Isolate::kMessageInterrupt) {
-    UNIMPLEMENTED();
+    // UNIMPLEMENTED();
   }
   if (interrupt_bits & Isolate::kApiInterrupt) {
     Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
