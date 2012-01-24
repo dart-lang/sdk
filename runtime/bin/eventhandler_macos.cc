@@ -95,7 +95,10 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   intptr_t result =
       FDUtils::WriteToBlocking(interrupt_fds_[1], &msg, kInterruptMessageSize);
   if (result != kInterruptMessageSize) {
-    FATAL("Interrupt message failure");
+    if (result == -1) {
+      perror("Interrupt message failure:");
+    }
+    FATAL1("Interrupt message failure. Wrote %d bytes.", result);
   }
 }
 
