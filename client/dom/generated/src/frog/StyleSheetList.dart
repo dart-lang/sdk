@@ -1,15 +1,15 @@
 
-class StyleSheetList native "*StyleSheetList" {
+class StyleSheetListJS implements StyleSheetList native "*StyleSheetList" {
 
   int get length() native "return this.length;";
 
-  StyleSheet operator[](int index) native;
+  StyleSheetJS operator[](int index) native;
 
-  void operator[]=(int index, StyleSheet value) {
+  void operator[]=(int index, StyleSheetJS value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
-  StyleSheet item(int index) native;
+  StyleSheetJS item(int index) native;
 
   var dartObjectLocalStorage;
 

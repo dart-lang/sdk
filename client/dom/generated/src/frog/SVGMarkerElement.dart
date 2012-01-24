@@ -1,5 +1,5 @@
 
-class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
+class SVGMarkerElementJS extends SVGElementJS implements SVGMarkerElement native "*SVGMarkerElement" {
 
   static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -13,21 +13,21 @@ class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  SVGAnimatedLength get markerHeight() native "return this.markerHeight;";
+  SVGAnimatedLengthJS get markerHeight() native "return this.markerHeight;";
 
-  SVGAnimatedEnumeration get markerUnits() native "return this.markerUnits;";
+  SVGAnimatedEnumerationJS get markerUnits() native "return this.markerUnits;";
 
-  SVGAnimatedLength get markerWidth() native "return this.markerWidth;";
+  SVGAnimatedLengthJS get markerWidth() native "return this.markerWidth;";
 
-  SVGAnimatedAngle get orientAngle() native "return this.orientAngle;";
+  SVGAnimatedAngleJS get orientAngle() native "return this.orientAngle;";
 
-  SVGAnimatedEnumeration get orientType() native "return this.orientType;";
+  SVGAnimatedEnumerationJS get orientType() native "return this.orientType;";
 
-  SVGAnimatedLength get refX() native "return this.refX;";
+  SVGAnimatedLengthJS get refX() native "return this.refX;";
 
-  SVGAnimatedLength get refY() native "return this.refY;";
+  SVGAnimatedLengthJS get refY() native "return this.refY;";
 
-  void setOrientToAngle(SVGAngle angle) native;
+  void setOrientToAngle(SVGAngleJS angle) native;
 
   void setOrientToAuto() native;
 
@@ -43,19 +43,19 @@ class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString get className() native "return this.className;";
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration get style() native "return this.style;";
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  SVGAnimatedPreserveAspectRatioJS get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect get viewBox() native "return this.viewBox;";
+  SVGAnimatedRectJS get viewBox() native "return this.viewBox;";
 }

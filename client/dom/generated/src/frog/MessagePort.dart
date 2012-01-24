@@ -1,11 +1,11 @@
 
-class MessagePort native "*MessagePort" {
+class MessagePortJS implements MessagePort native "*MessagePort" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close() native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void postMessage(String message, [List messagePorts = null]) native;
 

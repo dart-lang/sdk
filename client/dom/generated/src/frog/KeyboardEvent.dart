@@ -1,5 +1,5 @@
 
-class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
+class KeyboardEventJS extends UIEventJS implements KeyboardEvent native "*KeyboardEvent" {
 
   bool get altGraphKey() native "return this.altGraphKey;";
 
@@ -15,5 +15,5 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
   bool get shiftKey() native "return this.shiftKey;";
 
-  void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
+  void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindowJS view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }

@@ -1,5 +1,5 @@
 
-class HTMLDetailsElement extends HTMLElement native "*HTMLDetailsElement" {
+class HTMLDetailsElementJS extends HTMLElementJS implements HTMLDetailsElement native "*HTMLDetailsElement" {
 
   bool get open() native "return this.open;";
 

@@ -1,11 +1,11 @@
 
-class SVGMPathElement extends SVGElement native "*SVGMPathElement" {
+class SVGMPathElementJS extends SVGElementJS implements SVGMPathElement native "*SVGMPathElement" {
 
   // From SVGURIReference
 
-  SVGAnimatedString get href() native "return this.href;";
+  SVGAnimatedStringJS get href() native "return this.href;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 }

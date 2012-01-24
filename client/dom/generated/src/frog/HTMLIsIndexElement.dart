@@ -1,7 +1,7 @@
 
-class HTMLIsIndexElement extends HTMLInputElement native "*HTMLIsIndexElement" {
+class HTMLIsIndexElementJS extends HTMLInputElementJS implements HTMLIsIndexElement native "*HTMLIsIndexElement" {
 
-  HTMLFormElement get form() native "return this.form;";
+  HTMLFormElementJS get form() native "return this.form;";
 
   String get prompt() native "return this.prompt;";
 

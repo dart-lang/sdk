@@ -1,5 +1,5 @@
 
-class OperationNotAllowedException native "*OperationNotAllowedException" {
+class OperationNotAllowedExceptionJS implements OperationNotAllowedException native "*OperationNotAllowedException" {
 
   static final int NOT_ALLOWED_ERR = 1;
 

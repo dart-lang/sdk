@@ -1,5 +1,5 @@
 
-class SVGLangSpace native "*SVGLangSpace" {
+class SVGLangSpaceJS implements SVGLangSpace native "*SVGLangSpace" {
 
   String get xmllang() native "return this.xmllang;";
 

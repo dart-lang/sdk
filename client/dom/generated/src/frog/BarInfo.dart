@@ -1,5 +1,5 @@
 
-class BarInfo native "*BarInfo" {
+class BarInfoJS implements BarInfo native "*BarInfo" {
 
   bool get visible() native "return this.visible;";
 

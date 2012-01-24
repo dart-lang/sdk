@@ -1,5 +1,5 @@
 
-class SVGMatrix native "*SVGMatrix" {
+class SVGMatrixJS implements SVGMatrix native "*SVGMatrix" {
 
   num get a() native "return this.a;";
 
@@ -25,27 +25,27 @@ class SVGMatrix native "*SVGMatrix" {
 
   void set f(num value) native "this.f = value;";
 
-  SVGMatrix flipX() native;
+  SVGMatrixJS flipX() native;
 
-  SVGMatrix flipY() native;
+  SVGMatrixJS flipY() native;
 
-  SVGMatrix inverse() native;
+  SVGMatrixJS inverse() native;
 
-  SVGMatrix multiply(SVGMatrix secondMatrix) native;
+  SVGMatrixJS multiply(SVGMatrixJS secondMatrix) native;
 
-  SVGMatrix rotate(num angle) native;
+  SVGMatrixJS rotate(num angle) native;
 
-  SVGMatrix rotateFromVector(num x, num y) native;
+  SVGMatrixJS rotateFromVector(num x, num y) native;
 
-  SVGMatrix scale(num scaleFactor) native;
+  SVGMatrixJS scale(num scaleFactor) native;
 
-  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
+  SVGMatrixJS scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
 
-  SVGMatrix skewX(num angle) native;
+  SVGMatrixJS skewX(num angle) native;
 
-  SVGMatrix skewY(num angle) native;
+  SVGMatrixJS skewY(num angle) native;
 
-  SVGMatrix translate(num x, num y) native;
+  SVGMatrixJS translate(num x, num y) native;
 
   var dartObjectLocalStorage;
 

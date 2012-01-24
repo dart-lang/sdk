@@ -1,5 +1,5 @@
 
-class DataTransferItemList native "*DataTransferItemList" {
+class DataTransferItemListJS implements DataTransferItemList native "*DataTransferItemList" {
 
   int get length() native "return this.length;";
 
@@ -7,7 +7,7 @@ class DataTransferItemList native "*DataTransferItemList" {
 
   void clear() native;
 
-  DataTransferItem item(int index) native;
+  DataTransferItemJS item(int index) native;
 
   var dartObjectLocalStorage;
 

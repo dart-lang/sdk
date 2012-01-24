@@ -1,11 +1,11 @@
 
-class DOMPluginArray native "*DOMPluginArray" {
+class DOMPluginArrayJS implements DOMPluginArray native "*DOMPluginArray" {
 
   int get length() native "return this.length;";
 
-  DOMPlugin item(int index) native;
+  DOMPluginJS item(int index) native;
 
-  DOMPlugin namedItem(String name) native;
+  DOMPluginJS namedItem(String name) native;
 
   void refresh(bool reload) native;
 

@@ -1,5 +1,5 @@
 
-class FileReader native "*FileReader" {
+class FileReaderJS implements FileReader native "*FileReader" {
   FileReader() native;
 
 
@@ -9,7 +9,7 @@ class FileReader native "*FileReader" {
 
   static final int LOADING = 1;
 
-  FileError get error() native "return this.error;";
+  FileErrorJS get error() native "return this.error;";
 
   EventListener get onabort() native "return this.onabort;";
 
@@ -43,15 +43,15 @@ class FileReader native "*FileReader" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
-  void readAsArrayBuffer(Blob blob) native;
+  void readAsArrayBuffer(BlobJS blob) native;
 
-  void readAsBinaryString(Blob blob) native;
+  void readAsBinaryString(BlobJS blob) native;
 
-  void readAsDataURL(Blob blob) native;
+  void readAsDataURL(BlobJS blob) native;
 
-  void readAsText(Blob blob, [String encoding = null]) native;
+  void readAsText(BlobJS blob, [String encoding = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

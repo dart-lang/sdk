@@ -1,5 +1,5 @@
 
-class SVGPathSegCurvetoCubicAbs extends SVGPathSeg native "*SVGPathSegCurvetoCubicAbs" {
+class SVGPathSegCurvetoCubicAbsJS extends SVGPathSegJS implements SVGPathSegCurvetoCubicAbs native "*SVGPathSegCurvetoCubicAbs" {
 
   num get x() native "return this.x;";
 

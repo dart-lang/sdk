@@ -1,5 +1,5 @@
 
-class HTMLSourceElement extends HTMLElement native "*HTMLSourceElement" {
+class HTMLSourceElementJS extends HTMLElementJS implements HTMLSourceElement native "*HTMLSourceElement" {
 
   String get media() native "return this.media;";
 

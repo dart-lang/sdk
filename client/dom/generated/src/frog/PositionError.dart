@@ -1,5 +1,5 @@
 
-class PositionError native "*PositionError" {
+class PositionErrorJS implements PositionError native "*PositionError" {
 
   static final int PERMISSION_DENIED = 1;
 

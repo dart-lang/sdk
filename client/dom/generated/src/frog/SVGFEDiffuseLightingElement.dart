@@ -1,33 +1,33 @@
 
-class SVGFEDiffuseLightingElement extends SVGElement native "*SVGFEDiffuseLightingElement" {
+class SVGFEDiffuseLightingElementJS extends SVGElementJS implements SVGFEDiffuseLightingElement native "*SVGFEDiffuseLightingElement" {
 
-  SVGAnimatedNumber get diffuseConstant() native "return this.diffuseConstant;";
+  SVGAnimatedNumberJS get diffuseConstant() native "return this.diffuseConstant;";
 
-  SVGAnimatedString get in1() native "return this.in1;";
+  SVGAnimatedStringJS get in1() native "return this.in1;";
 
-  SVGAnimatedNumber get kernelUnitLengthX() native "return this.kernelUnitLengthX;";
+  SVGAnimatedNumberJS get kernelUnitLengthX() native "return this.kernelUnitLengthX;";
 
-  SVGAnimatedNumber get kernelUnitLengthY() native "return this.kernelUnitLengthY;";
+  SVGAnimatedNumberJS get kernelUnitLengthY() native "return this.kernelUnitLengthY;";
 
-  SVGAnimatedNumber get surfaceScale() native "return this.surfaceScale;";
+  SVGAnimatedNumberJS get surfaceScale() native "return this.surfaceScale;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength get height() native "return this.height;";
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedString get result() native "return this.result;";
+  SVGAnimatedStringJS get result() native "return this.result;";
 
-  SVGAnimatedLength get width() native "return this.width;";
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength get x() native "return this.x;";
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength get y() native "return this.y;";
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString get className() native "return this.className;";
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration get style() native "return this.style;";
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

@@ -1,13 +1,13 @@
 
-class IDBFactory native "*IDBFactory" {
+class IDBFactoryJS implements IDBFactory native "*IDBFactory" {
 
-  int cmp(IDBKey first, IDBKey second) native;
+  int cmp(IDBKeyJS first, IDBKeyJS second) native;
 
-  IDBVersionChangeRequest deleteDatabase(String name) native;
+  IDBVersionChangeRequestJS deleteDatabase(String name) native;
 
-  IDBRequest getDatabaseNames() native;
+  IDBRequestJS getDatabaseNames() native;
 
-  IDBRequest open(String name) native;
+  IDBRequestJS open(String name) native;
 
   var dartObjectLocalStorage;
 

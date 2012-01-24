@@ -1,5 +1,5 @@
 
-class CSSRule native "*CSSRule" {
+class CSSRuleJS implements CSSRule native "*CSSRule" {
 
   static final int CHARSET_RULE = 2;
 
@@ -25,9 +25,9 @@ class CSSRule native "*CSSRule" {
 
   void set cssText(String value) native "this.cssText = value;";
 
-  CSSRule get parentRule() native "return this.parentRule;";
+  CSSRuleJS get parentRule() native "return this.parentRule;";
 
-  CSSStyleSheet get parentStyleSheet() native "return this.parentStyleSheet;";
+  CSSStyleSheetJS get parentStyleSheet() native "return this.parentStyleSheet;";
 
   int get type() native "return this.type;";
 

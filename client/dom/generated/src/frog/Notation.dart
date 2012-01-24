@@ -1,5 +1,5 @@
 
-class Notation extends Node native "*Notation" {
+class NotationJS extends NodeJS implements Notation native "*Notation" {
 
   String get publicId() native "return this.publicId;";
 

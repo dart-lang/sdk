@@ -1,5 +1,5 @@
 
-class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
+class BiquadFilterNodeJS extends AudioNodeJS implements BiquadFilterNode native "*BiquadFilterNode" {
 
   static final int ALLPASS = 7;
 
@@ -17,15 +17,15 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   static final int PEAKING = 5;
 
-  AudioParam get Q() native "return this.Q;";
+  AudioParamJS get Q() native "return this.Q;";
 
-  AudioParam get frequency() native "return this.frequency;";
+  AudioParamJS get frequency() native "return this.frequency;";
 
-  AudioParam get gain() native "return this.gain;";
+  AudioParamJS get gain() native "return this.gain;";
 
   int get type() native "return this.type;";
 
   void set type(int value) native "this.type = value;";
 
-  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
+  void getFrequencyResponse(Float32ArrayJS frequencyHz, Float32ArrayJS magResponse, Float32ArrayJS phaseResponse) native;
 }

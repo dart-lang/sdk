@@ -1,5 +1,5 @@
 
-class CloseEvent extends Event native "*CloseEvent" {
+class CloseEventJS extends EventJS implements CloseEvent native "*CloseEvent" {
 
   int get code() native "return this.code;";
 

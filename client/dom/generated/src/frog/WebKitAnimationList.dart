@@ -1,9 +1,9 @@
 
-class WebKitAnimationList native "*WebKitAnimationList" {
+class WebKitAnimationListJS implements WebKitAnimationList native "*WebKitAnimationList" {
 
   int get length() native "return this.length;";
 
-  WebKitAnimation item(int index) native;
+  WebKitAnimationJS item(int index) native;
 
   var dartObjectLocalStorage;
 

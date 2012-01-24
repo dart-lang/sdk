@@ -1,7 +1,7 @@
 
-class ScriptProfile native "*ScriptProfile" {
+class ScriptProfileJS implements ScriptProfile native "*ScriptProfile" {
 
-  ScriptProfileNode get head() native "return this.head;";
+  ScriptProfileNodeJS get head() native "return this.head;";
 
   String get title() native "return this.title;";
 

@@ -1,5 +1,5 @@
 
-class WebGLContextAttributes native "*WebGLContextAttributes" {
+class WebGLContextAttributesJS implements WebGLContextAttributes native "*WebGLContextAttributes" {
 
   bool get alpha() native "return this.alpha;";
 

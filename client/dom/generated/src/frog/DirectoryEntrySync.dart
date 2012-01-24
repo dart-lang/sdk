@@ -1,11 +1,11 @@
 
-class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
+class DirectoryEntrySyncJS extends EntrySyncJS implements DirectoryEntrySync native "*DirectoryEntrySync" {
 
-  DirectoryReaderSync createReader() native;
+  DirectoryReaderSyncJS createReader() native;
 
-  DirectoryEntrySync getDirectory(String path, Object flags) native;
+  DirectoryEntrySyncJS getDirectory(String path, Object flags) native;
 
-  FileEntrySync getFile(String path, Object flags) native;
+  FileEntrySyncJS getFile(String path, Object flags) native;
 
   void removeRecursively() native;
 }

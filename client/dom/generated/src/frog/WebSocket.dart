@@ -1,5 +1,5 @@
 
-class WebSocket native "*WebSocket" {
+class WebSocketJS implements WebSocket native "*WebSocket" {
   WebSocket(String url) native;
 
 
@@ -29,7 +29,7 @@ class WebSocket native "*WebSocket" {
 
   void close([int code = null, String reason = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

@@ -1,5 +1,5 @@
 
-class FileEntry extends Entry native "*FileEntry" {
+class FileEntryJS extends EntryJS implements FileEntry native "*FileEntry" {
 
   void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native;
 

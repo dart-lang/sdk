@@ -1,5 +1,5 @@
 
-class SVGColor extends CSSValue native "*SVGColor" {
+class SVGColorJS extends CSSValueJS implements SVGColor native "*SVGColor" {
 
   static final int SVG_COLORTYPE_CURRENTCOLOR = 3;
 
@@ -11,7 +11,7 @@ class SVGColor extends CSSValue native "*SVGColor" {
 
   int get colorType() native "return this.colorType;";
 
-  RGBColor get rgbColor() native "return this.rgbColor;";
+  RGBColorJS get rgbColor() native "return this.rgbColor;";
 
   void setColor(int colorType, String rgbColor, String iccColor) native;
 

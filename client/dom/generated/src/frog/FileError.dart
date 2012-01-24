@@ -1,5 +1,5 @@
 
-class FileError native "*FileError" {
+class FileErrorJS implements FileError native "*FileError" {
 
   static final int ABORT_ERR = 3;
 

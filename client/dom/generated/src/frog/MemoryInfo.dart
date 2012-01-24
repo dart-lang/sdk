@@ -1,5 +1,5 @@
 
-class MemoryInfo native "*MemoryInfo" {
+class MemoryInfoJS implements MemoryInfo native "*MemoryInfo" {
 
   int get jsHeapSizeLimit() native "return this.jsHeapSizeLimit;";
 

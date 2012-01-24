@@ -1,5 +1,5 @@
 
-class RealtimeAnalyserNode extends AudioNode native "*RealtimeAnalyserNode" {
+class RealtimeAnalyserNodeJS extends AudioNodeJS implements RealtimeAnalyserNode native "*RealtimeAnalyserNode" {
 
   int get fftSize() native "return this.fftSize;";
 
@@ -19,9 +19,9 @@ class RealtimeAnalyserNode extends AudioNode native "*RealtimeAnalyserNode" {
 
   void set smoothingTimeConstant(num value) native "this.smoothingTimeConstant = value;";
 
-  void getByteFrequencyData(Uint8Array array) native;
+  void getByteFrequencyData(Uint8ArrayJS array) native;
 
-  void getByteTimeDomainData(Uint8Array array) native;
+  void getByteTimeDomainData(Uint8ArrayJS array) native;
 
-  void getFloatFrequencyData(Float32Array array) native;
+  void getFloatFrequencyData(Float32ArrayJS array) native;
 }

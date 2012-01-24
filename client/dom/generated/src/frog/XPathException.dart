@@ -1,5 +1,5 @@
 
-class XPathException native "*XPathException" {
+class XPathExceptionJS implements XPathException native "*XPathException" {
 
   static final int INVALID_EXPRESSION_ERR = 51;
 

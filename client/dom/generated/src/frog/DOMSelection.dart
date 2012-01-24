@@ -1,19 +1,19 @@
 
-class DOMSelection native "*DOMSelection" {
+class DOMSelectionJS implements DOMSelection native "*DOMSelection" {
 
-  Node get anchorNode() native "return this.anchorNode;";
+  NodeJS get anchorNode() native "return this.anchorNode;";
 
   int get anchorOffset() native "return this.anchorOffset;";
 
-  Node get baseNode() native "return this.baseNode;";
+  NodeJS get baseNode() native "return this.baseNode;";
 
   int get baseOffset() native "return this.baseOffset;";
 
-  Node get extentNode() native "return this.extentNode;";
+  NodeJS get extentNode() native "return this.extentNode;";
 
   int get extentOffset() native "return this.extentOffset;";
 
-  Node get focusNode() native "return this.focusNode;";
+  NodeJS get focusNode() native "return this.focusNode;";
 
   int get focusOffset() native "return this.focusOffset;";
 
@@ -23,33 +23,33 @@ class DOMSelection native "*DOMSelection" {
 
   String get type() native "return this.type;";
 
-  void addRange(Range range) native;
+  void addRange(RangeJS range) native;
 
-  void collapse(Node node, int index) native;
+  void collapse(NodeJS node, int index) native;
 
   void collapseToEnd() native;
 
   void collapseToStart() native;
 
-  bool containsNode(Node node, bool allowPartial) native;
+  bool containsNode(NodeJS node, bool allowPartial) native;
 
   void deleteFromDocument() native;
 
   void empty() native;
 
-  void extend(Node node, int offset) native;
+  void extend(NodeJS node, int offset) native;
 
-  Range getRangeAt(int index) native;
+  RangeJS getRangeAt(int index) native;
 
   void modify(String alter, String direction, String granularity) native;
 
   void removeAllRanges() native;
 
-  void selectAllChildren(Node node) native;
+  void selectAllChildren(NodeJS node) native;
 
-  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
+  void setBaseAndExtent(NodeJS baseNode, int baseOffset, NodeJS extentNode, int extentOffset) native;
 
-  void setPosition(Node node, int offset) native;
+  void setPosition(NodeJS node, int offset) native;
 
   String toString() native;
 

@@ -1,13 +1,13 @@
 
-class HTMLAllCollection native "*HTMLAllCollection" {
+class HTMLAllCollectionJS implements HTMLAllCollection native "*HTMLAllCollection" {
 
   int get length() native "return this.length;";
 
-  Node item(int index) native;
+  NodeJS item(int index) native;
 
-  Node namedItem(String name) native;
+  NodeJS namedItem(String name) native;
 
-  NodeList tags(String name) native;
+  NodeListJS tags(String name) native;
 
   var dartObjectLocalStorage;
 

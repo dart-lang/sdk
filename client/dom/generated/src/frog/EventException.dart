@@ -1,5 +1,5 @@
 
-class EventException native "*EventException" {
+class EventExceptionJS implements EventException native "*EventException" {
 
   static final int DISPATCH_REQUEST_ERR = 1;
 

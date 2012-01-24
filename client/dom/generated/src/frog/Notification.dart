@@ -1,5 +1,5 @@
 
-class Notification native "*Notification" {
+class NotificationJS implements Notification native "*Notification" {
 
   String get dir() native "return this.dir;";
 
@@ -13,7 +13,7 @@ class Notification native "*Notification" {
 
   void cancel() native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

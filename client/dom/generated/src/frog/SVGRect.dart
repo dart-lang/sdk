@@ -1,5 +1,5 @@
 
-class SVGRect native "*SVGRect" {
+class SVGRectJS implements SVGRect native "*SVGRect" {
 
   num get height() native "return this.height;";
 

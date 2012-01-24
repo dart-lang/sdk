@@ -1,5 +1,5 @@
 
-class HTMLOptionElement extends HTMLElement native "*HTMLOptionElement" {
+class HTMLOptionElementJS extends HTMLElementJS implements HTMLOptionElement native "*HTMLOptionElement" {
 
   bool get defaultSelected() native "return this.defaultSelected;";
 
@@ -9,7 +9,7 @@ class HTMLOptionElement extends HTMLElement native "*HTMLOptionElement" {
 
   void set disabled(bool value) native "this.disabled = value;";
 
-  HTMLFormElement get form() native "return this.form;";
+  HTMLFormElementJS get form() native "return this.form;";
 
   int get index() native "return this.index;";
 

@@ -1,7 +1,7 @@
 
-class MediaQueryListListener native "*MediaQueryListListener" {
+class MediaQueryListListenerJS implements MediaQueryListListener native "*MediaQueryListListener" {
 
-  void queryChanged(MediaQueryList list) native;
+  void queryChanged(MediaQueryListJS list) native;
 
   var dartObjectLocalStorage;
 

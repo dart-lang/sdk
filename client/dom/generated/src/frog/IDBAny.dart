@@ -1,5 +1,5 @@
 
-class IDBAny native "*IDBAny" {
+class IDBAnyJS implements IDBAny native "*IDBAny" {
 
   var dartObjectLocalStorage;
 

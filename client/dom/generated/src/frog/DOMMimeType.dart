@@ -1,9 +1,9 @@
 
-class DOMMimeType native "*DOMMimeType" {
+class DOMMimeTypeJS implements DOMMimeType native "*DOMMimeType" {
 
   String get description() native "return this.description;";
 
-  DOMPlugin get enabledPlugin() native "return this.enabledPlugin;";
+  DOMPluginJS get enabledPlugin() native "return this.enabledPlugin;";
 
   String get suffixes() native "return this.suffixes;";
 

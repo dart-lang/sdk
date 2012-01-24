@@ -1,5 +1,5 @@
 
-class SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
+class SVGPreserveAspectRatioJS implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static final int SVG_MEETORSLICE_MEET = 1;
 

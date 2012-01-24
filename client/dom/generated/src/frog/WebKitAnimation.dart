@@ -1,5 +1,5 @@
 
-class WebKitAnimation native "*WebKitAnimation" {
+class WebKitAnimationJS implements WebKitAnimation native "*WebKitAnimation" {
 
   static final int DIRECTION_ALTERNATE = 1;
 

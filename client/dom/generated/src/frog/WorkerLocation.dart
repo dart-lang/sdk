@@ -1,5 +1,5 @@
 
-class WorkerLocation native "*WorkerLocation" {
+class WorkerLocationJS implements WorkerLocation native "*WorkerLocation" {
 
   String get hash() native "return this.hash;";
 

@@ -1,5 +1,5 @@
 
-class SQLResultSetRowList native "*SQLResultSetRowList" {
+class SQLResultSetRowListJS implements SQLResultSetRowList native "*SQLResultSetRowList" {
 
   int get length() native "return this.length;";
 

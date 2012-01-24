@@ -1,5 +1,5 @@
 
-class JavaScriptCallFrame native "*JavaScriptCallFrame" {
+class JavaScriptCallFrameJS implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int CATCH_SCOPE = 4;
 
@@ -11,7 +11,7 @@ class JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int WITH_SCOPE = 2;
 
-  JavaScriptCallFrame get caller() native "return this.caller;";
+  JavaScriptCallFrameJS get caller() native "return this.caller;";
 
   int get column() native "return this.column;";
 

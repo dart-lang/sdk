@@ -1,5 +1,5 @@
 
-class SVGPathSegLinetoRel extends SVGPathSeg native "*SVGPathSegLinetoRel" {
+class SVGPathSegLinetoRelJS extends SVGPathSegJS implements SVGPathSegLinetoRel native "*SVGPathSegLinetoRel" {
 
   num get x() native "return this.x;";
 

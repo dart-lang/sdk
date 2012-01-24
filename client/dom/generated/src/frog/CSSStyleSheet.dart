@@ -1,11 +1,11 @@
 
-class CSSStyleSheet extends StyleSheet native "*CSSStyleSheet" {
+class CSSStyleSheetJS extends StyleSheetJS implements CSSStyleSheet native "*CSSStyleSheet" {
 
-  CSSRuleList get cssRules() native "return this.cssRules;";
+  CSSRuleListJS get cssRules() native "return this.cssRules;";
 
-  CSSRule get ownerRule() native "return this.ownerRule;";
+  CSSRuleJS get ownerRule() native "return this.ownerRule;";
 
-  CSSRuleList get rules() native "return this.rules;";
+  CSSRuleListJS get rules() native "return this.rules;";
 
   int addRule(String selector, String style, [int index = null]) native;
 

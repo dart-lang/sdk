@@ -1,5 +1,5 @@
 
-class UIEvent extends Event native "*UIEvent" {
+class UIEventJS extends EventJS implements UIEvent native "*UIEvent" {
 
   int get charCode() native "return this.charCode;";
 
@@ -15,9 +15,9 @@ class UIEvent extends Event native "*UIEvent" {
 
   int get pageY() native "return this.pageY;";
 
-  DOMWindow get view() native "return this.view;";
+  DOMWindowJS get view() native "return this.view;";
 
   int get which() native "return this.which;";
 
-  void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail) native;
+  void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindowJS view, int detail) native;
 }

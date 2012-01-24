@@ -1,5 +1,5 @@
 
-class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
+class HTMLTrackElementJS extends HTMLElementJS implements HTMLTrackElement native "*HTMLTrackElement" {
 
   static final int ERROR = 3;
 
@@ -31,5 +31,5 @@ class HTMLTrackElement extends HTMLElement native "*HTMLTrackElement" {
 
   void set srclang(String value) native "this.srclang = value;";
 
-  TextTrack get track() native "return this.track;";
+  TextTrackJS get track() native "return this.track;";
 }

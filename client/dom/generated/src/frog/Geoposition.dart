@@ -1,7 +1,7 @@
 
-class Geoposition native "*Geoposition" {
+class GeopositionJS implements Geoposition native "*Geoposition" {
 
-  Coordinates get coords() native "return this.coords;";
+  CoordinatesJS get coords() native "return this.coords;";
 
   int get timestamp() native "return this.timestamp;";
 

@@ -1,5 +1,5 @@
 
-class IDBDatabaseError native "*IDBDatabaseError" {
+class IDBDatabaseErrorJS implements IDBDatabaseError native "*IDBDatabaseError" {
 
   int get code() native "return this.code;";
 

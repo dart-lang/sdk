@@ -1,9 +1,9 @@
 
-class HTMLLabelElement extends HTMLElement native "*HTMLLabelElement" {
+class HTMLLabelElementJS extends HTMLElementJS implements HTMLLabelElement native "*HTMLLabelElement" {
 
-  HTMLElement get control() native "return this.control;";
+  HTMLElementJS get control() native "return this.control;";
 
-  HTMLFormElement get form() native "return this.form;";
+  HTMLFormElementJS get form() native "return this.form;";
 
   String get htmlFor() native "return this.htmlFor;";
 

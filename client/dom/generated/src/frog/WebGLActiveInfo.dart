@@ -1,5 +1,5 @@
 
-class WebGLActiveInfo native "*WebGLActiveInfo" {
+class WebGLActiveInfoJS implements WebGLActiveInfo native "*WebGLActiveInfo" {
 
   String get name() native "return this.name;";
 

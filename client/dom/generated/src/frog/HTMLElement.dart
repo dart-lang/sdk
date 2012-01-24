@@ -1,13 +1,13 @@
 
-class HTMLElement extends Element native "*HTMLElement" {
+class HTMLElementJS extends ElementJS implements HTMLElement native "*HTMLElement" {
 
   String get accessKey() native "return this.accessKey;";
 
   void set accessKey(String value) native "this.accessKey = value;";
 
-  HTMLCollection get children() native "return this.children;";
+  HTMLCollectionJS get children() native "return this.children;";
 
-  DOMTokenList get classList() native "return this.classList;";
+  DOMTokenListJS get classList() native "return this.classList;";
 
   String get className() native "return this.className;";
 
@@ -47,15 +47,15 @@ class HTMLElement extends Element native "*HTMLElement" {
 
   void set itemId(String value) native "this.itemId = value;";
 
-  DOMSettableTokenList get itemProp() native "return this.itemProp;";
+  DOMSettableTokenListJS get itemProp() native "return this.itemProp;";
 
-  DOMSettableTokenList get itemRef() native "return this.itemRef;";
+  DOMSettableTokenListJS get itemRef() native "return this.itemRef;";
 
   bool get itemScope() native "return this.itemScope;";
 
   void set itemScope(bool value) native "this.itemScope = value;";
 
-  DOMSettableTokenList get itemType() native "return this.itemType;";
+  DOMSettableTokenListJS get itemType() native "return this.itemType;";
 
   Object get itemValue() native "return this.itemValue;";
 
@@ -89,7 +89,7 @@ class HTMLElement extends Element native "*HTMLElement" {
 
   void set webkitdropzone(String value) native "this.webkitdropzone = value;";
 
-  Element insertAdjacentElement(String where, Element element) native;
+  ElementJS insertAdjacentElement(String where, ElementJS element) native;
 
   void insertAdjacentHTML(String where, String html) native;
 

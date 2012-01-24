@@ -1,5 +1,5 @@
 
-class SVGException native "*SVGException" {
+class SVGExceptionJS implements SVGException native "*SVGException" {
 
   static final int SVG_INVALID_VALUE_ERR = 1;
 

@@ -1,5 +1,5 @@
 
-class InspectorFrontendHost native "*InspectorFrontendHost" {
+class InspectorFrontendHostJS implements InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void bringToFront() native;
 
@@ -45,7 +45,7 @@ class InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void setInjectedScriptForOrigin(String origin, String script) native;
 
-  void showContextMenu(MouseEvent event, Object items) native;
+  void showContextMenu(MouseEventJS event, Object items) native;
 
   var dartObjectLocalStorage;
 

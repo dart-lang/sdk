@@ -1,5 +1,5 @@
 
-class Counter native "*Counter" {
+class CounterJS implements Counter native "*Counter" {
 
   String get identifier() native "return this.identifier;";
 

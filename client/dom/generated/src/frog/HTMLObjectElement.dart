@@ -1,5 +1,5 @@
 
-class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
+class HTMLObjectElementJS extends HTMLElementJS implements HTMLObjectElement native "*HTMLObjectElement" {
 
   String get align() native "return this.align;";
 
@@ -25,7 +25,7 @@ class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
   void set codeType(String value) native "this.codeType = value;";
 
-  Document get contentDocument() native "return this.contentDocument;";
+  DocumentJS get contentDocument() native "return this.contentDocument;";
 
   String get data() native "return this.data;";
 
@@ -35,7 +35,7 @@ class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
   void set declare(bool value) native "this.declare = value;";
 
-  HTMLFormElement get form() native "return this.form;";
+  HTMLFormElementJS get form() native "return this.form;";
 
   String get height() native "return this.height;";
 
@@ -63,7 +63,7 @@ class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityState get validity() native "return this.validity;";
+  ValidityStateJS get validity() native "return this.validity;";
 
   int get vspace() native "return this.vspace;";
 
@@ -77,7 +77,7 @@ class HTMLObjectElement extends HTMLElement native "*HTMLObjectElement" {
 
   bool checkValidity() native;
 
-  SVGDocument getSVGDocument() native;
+  SVGDocumentJS getSVGDocument() native;
 
   void setCustomValidity(String error) native;
 }

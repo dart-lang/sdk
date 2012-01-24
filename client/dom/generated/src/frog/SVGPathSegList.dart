@@ -1,21 +1,21 @@
 
-class SVGPathSegList native "*SVGPathSegList" {
+class SVGPathSegListJS implements SVGPathSegList native "*SVGPathSegList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGPathSeg appendItem(SVGPathSeg newItem) native;
+  SVGPathSegJS appendItem(SVGPathSegJS newItem) native;
 
   void clear() native;
 
-  SVGPathSeg getItem(int index) native;
+  SVGPathSegJS getItem(int index) native;
 
-  SVGPathSeg initialize(SVGPathSeg newItem) native;
+  SVGPathSegJS initialize(SVGPathSegJS newItem) native;
 
-  SVGPathSeg insertItemBefore(SVGPathSeg newItem, int index) native;
+  SVGPathSegJS insertItemBefore(SVGPathSegJS newItem, int index) native;
 
-  SVGPathSeg removeItem(int index) native;
+  SVGPathSegJS removeItem(int index) native;
 
-  SVGPathSeg replaceItem(SVGPathSeg newItem, int index) native;
+  SVGPathSegJS replaceItem(SVGPathSegJS newItem, int index) native;
 
   var dartObjectLocalStorage;
 

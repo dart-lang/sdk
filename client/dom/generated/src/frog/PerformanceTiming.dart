@@ -1,5 +1,5 @@
 
-class PerformanceTiming native "*PerformanceTiming" {
+class PerformanceTimingJS implements PerformanceTiming native "*PerformanceTiming" {
 
   int get connectEnd() native "return this.connectEnd;";
 

@@ -1,5 +1,5 @@
 
-class TextMetrics native "*TextMetrics" {
+class TextMetricsJS implements TextMetrics native "*TextMetrics" {
 
   num get width() native "return this.width;";
 

@@ -1,13 +1,13 @@
 
-class HTMLMeterElement extends HTMLElement native "*HTMLMeterElement" {
+class HTMLMeterElementJS extends HTMLElementJS implements HTMLMeterElement native "*HTMLMeterElement" {
 
-  HTMLFormElement get form() native "return this.form;";
+  HTMLFormElementJS get form() native "return this.form;";
 
   num get high() native "return this.high;";
 
   void set high(num value) native "this.high = value;";
 
-  NodeList get labels() native "return this.labels;";
+  NodeListJS get labels() native "return this.labels;";
 
   num get low() native "return this.low;";
 

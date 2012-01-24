@@ -1,5 +1,5 @@
 
-class HTMLMenuElement extends HTMLElement native "*HTMLMenuElement" {
+class HTMLMenuElementJS extends HTMLElementJS implements HTMLMenuElement native "*HTMLMenuElement" {
 
   bool get compact() native "return this.compact;";
 

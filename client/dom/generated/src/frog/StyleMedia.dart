@@ -1,5 +1,5 @@
 
-class StyleMedia native "*StyleMedia" {
+class StyleMediaJS implements StyleMedia native "*StyleMedia" {
 
   String get type() native "return this.type;";
 

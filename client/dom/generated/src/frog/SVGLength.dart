@@ -1,5 +1,5 @@
 
-class SVGLength native "*SVGLength" {
+class SVGLengthJS implements SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_CM = 6;
 

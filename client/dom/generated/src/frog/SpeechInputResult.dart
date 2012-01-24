@@ -1,5 +1,5 @@
 
-class SpeechInputResult native "*SpeechInputResult" {
+class SpeechInputResultJS implements SpeechInputResult native "*SpeechInputResult" {
 
   num get confidence() native "return this.confidence;";
 

@@ -1,7 +1,7 @@
 
-class Console native "=(typeof console == 'undefined' ? {} : console)" {
+class ConsoleJS implements Console native "=(typeof console == 'undefined' ? {} : console)" {
 
-  MemoryInfo get memory() native "return this.memory;";
+  MemoryInfoJS get memory() native "return this.memory;";
 
   List get profiles() native "return this.profiles;";
 

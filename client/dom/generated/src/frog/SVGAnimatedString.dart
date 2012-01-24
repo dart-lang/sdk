@@ -1,5 +1,5 @@
 
-class SVGAnimatedString native "*SVGAnimatedString" {
+class SVGAnimatedStringJS implements SVGAnimatedString native "*SVGAnimatedString" {
 
   String get animVal() native "return this.animVal;";
 

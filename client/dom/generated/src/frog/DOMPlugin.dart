@@ -1,5 +1,5 @@
 
-class DOMPlugin native "*DOMPlugin" {
+class DOMPluginJS implements DOMPlugin native "*DOMPlugin" {
 
   String get description() native "return this.description;";
 
@@ -9,9 +9,9 @@ class DOMPlugin native "*DOMPlugin" {
 
   String get name() native "return this.name;";
 
-  DOMMimeType item(int index) native;
+  DOMMimeTypeJS item(int index) native;
 
-  DOMMimeType namedItem(String name) native;
+  DOMMimeTypeJS namedItem(String name) native;
 
   var dartObjectLocalStorage;
 

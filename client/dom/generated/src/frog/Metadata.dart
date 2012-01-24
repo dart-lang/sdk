@@ -1,5 +1,5 @@
 
-class Metadata native "*Metadata" {
+class MetadataJS implements Metadata native "*Metadata" {
 
   Date get modificationTime() native "return this.modificationTime;";
 

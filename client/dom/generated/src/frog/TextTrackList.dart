@@ -1,5 +1,5 @@
 
-class TextTrackList native "*TextTrackList" {
+class TextTrackListJS implements TextTrackList native "*TextTrackList" {
 
   int get length() native "return this.length;";
 
@@ -9,9 +9,9 @@ class TextTrackList native "*TextTrackList" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
-  TextTrack item(int index) native;
+  TextTrackJS item(int index) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

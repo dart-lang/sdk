@@ -1,9 +1,9 @@
 
-class CSSImportRule extends CSSRule native "*CSSImportRule" {
+class CSSImportRuleJS extends CSSRuleJS implements CSSImportRule native "*CSSImportRule" {
 
   String get href() native "return this.href;";
 
-  MediaList get media() native "return this.media;";
+  MediaListJS get media() native "return this.media;";
 
-  CSSStyleSheet get styleSheet() native "return this.styleSheet;";
+  CSSStyleSheetJS get styleSheet() native "return this.styleSheet;";
 }

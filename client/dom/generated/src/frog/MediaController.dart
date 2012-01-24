@@ -1,7 +1,7 @@
 
-class MediaController native "*MediaController" {
+class MediaControllerJS implements MediaController native "*MediaController" {
 
-  TimeRanges get buffered() native "return this.buffered;";
+  TimeRangesJS get buffered() native "return this.buffered;";
 
   num get currentTime() native "return this.currentTime;";
 
@@ -23,9 +23,9 @@ class MediaController native "*MediaController" {
 
   void set playbackRate(num value) native "this.playbackRate = value;";
 
-  TimeRanges get played() native "return this.played;";
+  TimeRangesJS get played() native "return this.played;";
 
-  TimeRanges get seekable() native "return this.seekable;";
+  TimeRangesJS get seekable() native "return this.seekable;";
 
   num get volume() native "return this.volume;";
 
@@ -33,7 +33,7 @@ class MediaController native "*MediaController" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void pause() native;
 

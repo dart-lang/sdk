@@ -1,9 +1,9 @@
 
-class SVGElementInstanceList native "*SVGElementInstanceList" {
+class SVGElementInstanceListJS implements SVGElementInstanceList native "*SVGElementInstanceList" {
 
   int get length() native "return this.length;";
 
-  SVGElementInstance item(int index) native;
+  SVGElementInstanceJS item(int index) native;
 
   var dartObjectLocalStorage;
 

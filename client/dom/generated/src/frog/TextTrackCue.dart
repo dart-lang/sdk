@@ -1,5 +1,5 @@
 
-class TextTrackCue native "*TextTrackCue" {
+class TextTrackCueJS implements TextTrackCue native "*TextTrackCue" {
 
   String get alignment() native "return this.alignment;";
 
@@ -53,13 +53,13 @@ class TextTrackCue native "*TextTrackCue" {
 
   void set textPosition(int value) native "this.textPosition = value;";
 
-  TextTrack get track() native "return this.track;";
+  TextTrackJS get track() native "return this.track;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
-  DocumentFragment getCueAsHTML() native;
+  DocumentFragmentJS getCueAsHTML() native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

@@ -1,5 +1,5 @@
 
-class SQLException native "*SQLException" {
+class SQLExceptionJS implements SQLException native "*SQLException" {
 
   static final int CONSTRAINT_ERR = 6;
 

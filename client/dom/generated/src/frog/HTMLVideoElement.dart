@@ -1,5 +1,5 @@
 
-class HTMLVideoElement extends HTMLMediaElement native "*HTMLVideoElement" {
+class HTMLVideoElementJS extends HTMLMediaElementJS implements HTMLVideoElement native "*HTMLVideoElement" {
 
   int get height() native "return this.height;";
 

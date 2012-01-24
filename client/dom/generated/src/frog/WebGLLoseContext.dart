@@ -1,5 +1,5 @@
 
-class WebGLLoseContext native "*WebGLLoseContext" {
+class WebGLLoseContextJS implements WebGLLoseContext native "*WebGLLoseContext" {
 
   void loseContext() native;
 

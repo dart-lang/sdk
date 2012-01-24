@@ -1,5 +1,5 @@
 
-class FileException native "*FileException" {
+class FileExceptionJS implements FileException native "*FileException" {
 
   static final int ABORT_ERR = 3;
 

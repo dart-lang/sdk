@@ -1,11 +1,11 @@
 
-class Attr extends Node native "*Attr" {
+class AttrJS extends NodeJS implements Attr native "*Attr" {
 
   bool get isId() native "return this.isId;";
 
   String get name() native "return this.name;";
 
-  Element get ownerElement() native "return this.ownerElement;";
+  ElementJS get ownerElement() native "return this.ownerElement;";
 
   bool get specified() native "return this.specified;";
 

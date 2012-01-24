@@ -1,3 +1,3 @@
 
-class SVGMetadataElement extends SVGElement native "*SVGMetadataElement" {
+class SVGMetadataElementJS extends SVGElementJS implements SVGMetadataElement native "*SVGMetadataElement" {
 }

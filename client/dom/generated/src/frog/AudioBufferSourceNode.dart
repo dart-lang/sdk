@@ -1,11 +1,11 @@
 
-class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
+class AudioBufferSourceNodeJS extends AudioSourceNodeJS implements AudioBufferSourceNode native "*AudioBufferSourceNode" {
 
-  AudioBuffer get buffer() native "return this.buffer;";
+  AudioBufferJS get buffer() native "return this.buffer;";
 
-  void set buffer(AudioBuffer value) native "this.buffer = value;";
+  void set buffer(AudioBufferJS value) native "this.buffer = value;";
 
-  AudioGain get gain() native "return this.gain;";
+  AudioGainJS get gain() native "return this.gain;";
 
   bool get loop() native "return this.loop;";
 
@@ -15,7 +15,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 
   void set looping(bool value) native "this.looping = value;";
 
-  AudioParam get playbackRate() native "return this.playbackRate;";
+  AudioParamJS get playbackRate() native "return this.playbackRate;";
 
   void noteGrainOn(num when, num grainOffset, num grainDuration) native;
 

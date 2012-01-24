@@ -1,11 +1,11 @@
 
-class HTMLFieldSetElement extends HTMLElement native "*HTMLFieldSetElement" {
+class HTMLFieldSetElementJS extends HTMLElementJS implements HTMLFieldSetElement native "*HTMLFieldSetElement" {
 
-  HTMLFormElement get form() native "return this.form;";
+  HTMLFormElementJS get form() native "return this.form;";
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityState get validity() native "return this.validity;";
+  ValidityStateJS get validity() native "return this.validity;";
 
   bool get willValidate() native "return this.willValidate;";
 

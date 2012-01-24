@@ -1,5 +1,5 @@
 
-class Location native "*Location" {
+class LocationJS implements Location native "*Location" {
 
   String get hash() native "return this.hash;";
 

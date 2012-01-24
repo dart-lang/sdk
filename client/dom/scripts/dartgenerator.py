@@ -426,7 +426,7 @@ class DartGenerator(object):
 
     self._ComputeInheritanceClosure()
 
-    interface_system = WrappingInterfacesSystem(
+    interface_system = InterfacesSystem(
         TemplateLoader(self._template_dir, ['dom/interface', 'dom', '']),
         self._database, self._emitters, self._output_dir)
 
@@ -436,11 +436,14 @@ class DartGenerator(object):
 
     # Makes interface files available for listing in the library for the
     # wrapping implementation.
+
     wrapping_system._interface_system = interface_system
 
     frog_system = FrogSystem(
         TemplateLoader(self._template_dir, ['dom/frog', 'dom', '']),
         self._database, self._emitters, self._output_dir)
+
+    frog_system._interface_system = interface_system
 
     self._systems = [interface_system,
                      wrapping_system,
@@ -472,7 +475,7 @@ class DartGenerator(object):
         continue
 
 
-      info = self._RecognizeCallback(interface)
+      info = _RecognizeCallback(interface)
       if info:
         for system in self._systems:
           system.ProcessCallback(interface, info)
@@ -489,17 +492,6 @@ class DartGenerator(object):
 
     for system in self._systems:
       system.Finish()
-
-
-  def _RecognizeCallback(self, interface):
-    """Returns the info for the callback method if the interface smells like a
-    callback.
-    """
-    if 'Callback' not in interface.ext_attrs: return None
-    handlers = [op for op in interface.operations if op.id == 'handleEvent']
-    if not handlers: return None
-    if not (handlers == interface.operations): return None
-    return self._AnalyzeOperation(interface, handlers)
 
 
   def _ProcessInterface(self, interface, super_interface_name,
@@ -523,7 +515,8 @@ class DartGenerator(object):
 
     for attr in sorted(interface.attributes, AttributeOutputOrder):
       if attr.type.id == 'EventListener':
-        # Remove EventListener attributes when addEventListener is available.
+        # Remove EventListener attributes like 'onclick' when addEventListener
+        # is available.
         if 'EventTarget' in self._AllImplementedInterfaces(interface):
           continue
       if attr.is_fc_getter:
@@ -550,7 +543,7 @@ class DartGenerator(object):
     # Generate operations
     for id in sorted(operationsById.keys()):
       operations = operationsById[id]
-      info = self._AnalyzeOperation(interface, operations)
+      info = _AnalyzeOperation(interface, operations)
       for generator in generators:
         generator.AddOperation(info)
 
@@ -584,7 +577,7 @@ class DartGenerator(object):
       for id in sorted(operationsById.keys()):
         if not any(op.id == id for op in interface.operations):
           operations = operationsById[id]
-          info = self._AnalyzeOperation(interface, operations)
+          info = _AnalyzeOperation(interface, operations)
           for generator in generators:
             generator.AddSecondaryOperation(parent_interface, info)
 
@@ -617,79 +610,6 @@ class DartGenerator(object):
     result = []
     walk(interface.parents[1:])
     return result;
-
-  def _AnalyzeOperation(self, interface, operations):
-    """Makes operation calling convention decision for a set of overloads.
-
-    Returns: An OperationInfo object.
-    """
-
-    # Zip together arguments from each overload by position, then convert
-    # to a dart argument.
-
-    # Given a list of overloaded arguments, choose a suitable name.
-    def OverloadedName(args):
-      return '_OR_'.join(sorted(set(arg.id for arg in args)))
-
-    # Given a list of overloaded arguments, choose a suitable type.
-    def OverloadedType(args):
-      typeIds = sorted(set(arg.type.id for arg in args))
-      if len(typeIds) == 1:
-        return typeIds[0]
-      else:
-        return TypeName(typeIds, interface)
-
-    # Given a list of overloaded arguments, render a dart argument.
-    def DartArg(args):
-      filtered = filter(None, args)
-      optional = any(not arg or arg.is_optional for arg in args)
-      type = OverloadedType(filtered)
-      name = OverloadedName(filtered)
-      if optional:
-        return (name, type, 'null')
-      else:
-        return (name, type, None)
-
-    def FormatArg(arg_info):
-      """Returns an argument declaration fragment for an argument info tuple."""
-      (name, type, default) = arg_info
-      if default:
-        return '%s %s = %s' % (type, name, default)
-      else:
-        return '%s %s' % (type, name)
-
-    def FormatArgs(args, is_interface):
-      required = []
-      optional = []
-      for (name, type, default) in args:
-        if default:
-          if is_interface:
-            optional.append((name, type, None))
-          else:
-            optional.append((name, type, default))
-        else:
-          if optional:
-            raise Exception('Optional arguments cannot precede required ones: '
-                            + str(args))
-          required.append((name, type, None))
-      argtexts = map(FormatArg, required)
-      if optional:
-        argtexts.append('[' + ', '.join(map(FormatArg, optional)) + ']')
-      return ', '.join(argtexts)
-
-    args = map(lambda *args: DartArg(args),
-               *(op.arguments for op in operations))
-
-    info = OperationInfo()
-    info.overloads = operations
-    info.declared_name = operations[0].id
-    info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
-    info.js_name = info.declared_name
-    info.type_name = operations[0].type.id   # TODO: widen.
-    info.arg_interface_declaration = FormatArgs(args, True)
-    info.arg_implementation_declaration = FormatArgs(args, False)
-    info.arg_infos = args
-    return info
 
 
   def Flush(self):
@@ -728,6 +648,62 @@ class DartGenerator(object):
     return self._inheritance_closure[interface.id]
 
 
+def _RecognizeCallback(interface):
+  """Returns the info for the callback method if the interface smells like a
+  callback.
+  """
+  if 'Callback' not in interface.ext_attrs: return None
+  handlers = [op for op in interface.operations if op.id == 'handleEvent']
+  if not handlers: return None
+  if not (handlers == interface.operations): return None
+  return _AnalyzeOperation(interface, handlers)
+
+
+def _AnalyzeOperation(interface, operations):
+  """Makes operation calling convention decision for a set of overloads.
+
+  Returns: An OperationInfo object.
+  """
+
+  # Zip together arguments from each overload by position, then convert
+  # to a dart argument.
+
+  # Given a list of overloaded arguments, choose a suitable name.
+  def OverloadedName(args):
+    return '_OR_'.join(sorted(set(arg.id for arg in args)))
+
+  # Given a list of overloaded arguments, choose a suitable type.
+  def OverloadedType(args):
+    typeIds = sorted(set(arg.type.id for arg in args))
+    if len(typeIds) == 1:
+      return typeIds[0]
+    else:
+      return TypeName(typeIds, interface)
+
+  # Given a list of overloaded arguments, render a dart argument.
+  def DartArg(args):
+    filtered = filter(None, args)
+    optional = any(not arg or arg.is_optional for arg in args)
+    type = OverloadedType(filtered)
+    name = OverloadedName(filtered)
+    if optional:
+      return (name, type, 'null')
+    else:
+      return (name, type, None)
+
+  args = map(lambda *args: DartArg(args),
+             *(op.arguments for op in operations))
+
+  info = OperationInfo()
+  info.overloads = operations
+  info.declared_name = operations[0].id
+  info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
+  info.js_name = info.declared_name
+  info.type_name = operations[0].type.id   # TODO: widen.
+  info.arg_infos = args
+  return info
+
+
 class OperationInfo(object):
   """Holder for various derived information from a set of overloaded operations.
 
@@ -735,13 +711,54 @@ class OperationInfo(object):
     overloads: A list of IDL operation overloads with the same name.
     name: A string, the simple name of the operation.
     type_name: A string, the name of the return type of the operation.
-    arg_declarations: A list of strings, Dart argument declarations for the
-        member that implements the set of overloads.  Each string is of the form
-        "T arg" or "T arg = null".
     arg_infos: A list of (name, type, default_value) tuples.
         default_value is None for mandatory arguments.
   """
-  pass
+
+  def ParametersInterfaceDeclaration(self):
+    """Returns a formatted string declaring the parameters for the interface."""
+    return self._FormatArgs(self.arg_infos, True)
+
+  def ParametersImplementationDeclaration(self, rename_type=None):
+    """Returns a formatted string declaring the parameters for the
+    implementation.
+
+    Args:
+      rename_type: A function that allows the types to be renamed.
+    """
+    args = self.arg_infos
+    if rename_type:
+      args = [(name, rename_type(type), default)
+              for (name, type, default) in args]
+    return self._FormatArgs(args, False)
+
+
+  def _FormatArgs(self, args, is_interface):
+    def FormatArg(arg_info):
+      """Returns an argument declaration fragment for an argument info tuple."""
+      (name, type, default) = arg_info
+      if default:
+        return '%s %s = %s' % (type, name, default)
+      else:
+        return '%s %s' % (type, name)
+
+    required = []
+    optional = []
+    for (name, type, default) in args:
+      if default:
+        if is_interface:
+          optional.append((name, type, None))  # Default values illegal.
+        else:
+          optional.append((name, type, default))
+      else:
+        if optional:
+          raise Exception('Optional arguments cannot precede required ones: '
+                          + str(args))
+        required.append((name, type, None))
+    argtexts = map(FormatArg, required)
+    if optional:
+      argtexts.append('[' + ', '.join(map(FormatArg, optional)) + ']')
+    return ', '.join(argtexts)
 
 
 def MaybeListElementType(interface):
@@ -876,10 +893,10 @@ class System(object):
     code = self._emitters.FileEmitter(file_path)
 
     code.Emit(self._templates.Load('callback.darttemplate'))
-    code.Emit('typedef $TYPE $NAME($ARGS);\n',
+    code.Emit('typedef $TYPE $NAME($PARAMS);\n',
               NAME=interface.id,
               TYPE=info.type_name,
-              ARGS=info.arg_implementation_declaration)
+              PARAMS=info.ParametersImplementationDeclaration())
 
   def _GenerateLibFile(self, lib_template, lib_file_path, file_paths):
     """Generates a lib file from a template and a list of files."""
@@ -921,10 +938,10 @@ class System(object):
 
 # ------------------------------------------------------------------------------
 
-class WrappingInterfacesSystem(System):
+class InterfacesSystem(System):
 
   def __init__(self, templates, database, emitters, output_dir):
-    super(WrappingInterfacesSystem, self).__init__(
+    super(InterfacesSystem, self).__init__(
         templates, database, emitters, output_dir)
     self._dart_interface_file_paths = []
 
@@ -1099,20 +1116,21 @@ class FrogSystem(System):
 
     dart_code = self._emitters.FileEmitter(dart_frog_file_path)
     dart_code.Emit(self._templates.Load('frog_impl.darttemplate'))
-    return FrogInterfaceGenerator(interface, super_interface_name,
+    return FrogInterfaceGenerator(self, interface, super_interface_name,
                                   dart_code)
 
-  def ProcessCallback(self, interface, info):
-    """Generates a typedef for the callback interface."""
-    file_path = self._FilePathForFrogImpl(interface.id)
-    self._ProcessCallback(interface, info, file_path)
+  #def ProcessCallback(self, interface, info):
+  #  """Generates a typedef for the callback interface."""
+  #  file_path = self._FilePathForFrogImpl(interface.id)
+  #  self._ProcessCallback(interface, info, file_path)
 
   def GenerateLibraries(self, lib_dir):
     self._GenerateLibFile(
         'frog_dom.darttemplate',
         os.path.join(lib_dir, 'dom_frog.dart'),
-        self._dart_frog_file_paths +
-        self._dart_callback_file_paths)
+        (self._interface_system._dart_interface_file_paths +
+         self._interface_system._dart_callback_file_paths +
+         self._dart_frog_file_paths))
 
   def Finish(self):
     pass
@@ -1121,7 +1139,6 @@ class FrogSystem(System):
     """Returns the file path of the Frog implementation."""
     return os.path.join(self._output_dir, 'src', 'frog',
                         '%s.dart' % interface_name)
-
 
 # ------------------------------------------------------------------------------
 
@@ -1249,10 +1266,10 @@ class DartInterfaceGenerator(object):
         name.
     """
     self._members_emitter.Emit('\n'
-                               '  $TYPE $NAME($ARGS);\n',
+                               '  $TYPE $NAME($PARAMS);\n',
                                TYPE=info.type_name,
                                NAME=info.name,
-                               ARGS=info.arg_interface_declaration)
+                               PARAMS=info.ParametersInterfaceDeclaration())
 
   # Interfaces get secondary members directly via the superinterfaces.
   def AddSecondaryGetter(self, interface, attr):
@@ -1599,12 +1616,12 @@ class WrappingInterfaceGenerator(object):
     """
     body = self._members_emitter.Emit(
         '\n'
-        '  $TYPE $NAME($ARGS) {\n'
+        '  $TYPE $NAME($PARAMS) {\n'
         '$!BODY'
         '  }\n',
         TYPE=info.type_name,
         NAME=info.name,
-        ARGS=info.arg_implementation_declaration)
+        PARAMS=info.ParametersImplementationDeclaration())
 
     # Process in order of ascending number of arguments to ensure missing
     # optional arguments are processed early.
@@ -1809,7 +1826,7 @@ class WrappingInterfaceGenerator(object):
 class FrogInterfaceGenerator(object):
   """Generates a Frog class for a DOM IDL interface."""
 
-  def __init__(self, interface, super_interface, dart_code):
+  def __init__(self, system, interface, super_interface, dart_code):
     """Generates Dart code for the given interface.
 
     Args:
@@ -1822,6 +1839,7 @@ class FrogInterfaceGenerator(object):
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
+    self._system = system
     self._interface = interface
     self._super_interface = super_interface
     self._dart_code = dart_code
@@ -1872,20 +1890,21 @@ class FrogInterfaceGenerator(object):
       native_spec = '*' + interface_name
 
     # TODO: Include all implemented interfaces, including other Lists.
-    implements = ''
+    implements = [interface_name]
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
-      implements = ' implements List<' + element_type + '>'
+      implements.append('List<' + element_type + '>')
 
     (self._members_emitter, self._base_emitter) = self._dart_code.Emit(
         '\n'
-        'class $CLASS$BASE$IMPLEMENTS native "$NATIVE" {\n'
+        'class $CLASS$BASE implements $IMPLEMENTS native "$NATIVE" {\n'
         '$!MEMBERS'
         '$!ADDITIONS'
         '}\n',
-        CLASS=self._class_name, BASE=extends,
+        CLASS=self._class_name,
+        BASE=extends,
         INTERFACE=interface_name,
-        IMPLEMENTS=implements,
+        IMPLEMENTS=', '.join(implements),
         NATIVE=native_spec)
 
     if interface_name in _constructable_types:
@@ -1913,7 +1932,27 @@ class FrogInterfaceGenerator(object):
           '  String get typeName() native;\n')
 
   def _ImplClassName(self, type_name):
+    return type_name + 'JS'
+
+  def _NarrowToImplementationType(self, type_name):
+    # TODO(sra): Move into the 'system' and cache the result.
+    if type_name == 'EventListener':
+      # Callbacks are typedef functions so don't have a class.
+      return type_name
+    if self._system._database.HasInterface(type_name):
+      interface = self._system._database.GetInterface(type_name)
+      if _RecognizeCallback(interface):
+        # Callbacks are typedef functions so don't have a class.
+        return type_name
+      else:
+        return self._ImplClassName(type_name)
     return type_name
+
+  def _NarrowInputType(self, type_name):
+    return self._NarrowToImplementationType(type_name)
+
+  def _NarrowOutputType(self, type_name):
+    return self._NarrowToImplementationType(type_name)
 
   def FinishInterface(self):
     """."""
@@ -1934,13 +1973,13 @@ class FrogInterfaceGenerator(object):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
         '\n  $TYPE get $NAME() native "return this.$NAME;";\n',
-        NAME=attr.id, TYPE=attr.type.id)
+        NAME=attr.id, TYPE=self._NarrowOutputType(attr.type.id))
 
   def AddSetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
         '\n  void set $NAME($TYPE value) native "this.$NAME = value;";\n',
-        NAME=attr.id, TYPE=attr.type.id)
+        NAME=attr.id, TYPE=self._NarrowInputType(attr.type.id))
 
   def AddSecondaryGetter(self, interface, attr):
     self._SecondaryContext(interface)
@@ -1981,20 +2020,20 @@ class FrogInterfaceGenerator(object):
     self._members_emitter.Emit(
         '\n'
         '  $TYPE operator[](int index) native;\n',
-        TYPE=element_type)
+        TYPE=self._NarrowOutputType(element_type))
 
     if 'HasCustomIndexSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
           '\n'
           '  void operator[]=(int index, $TYPE value) native;\n',
-          TYPE=element_type)
+          TYPE=self._NarrowInputType(element_type))
     else:
       self._members_emitter.Emit(
           '\n'
           '  void operator[]=(int index, $TYPE value) {\n'
           '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
           '  }\n',
-          TYPE=element_type)
+          TYPE=self._NarrowInputType(element_type))
 
 
   def AddTypedArrayConstructors(self, element_type):
@@ -2019,7 +2058,8 @@ class FrogInterfaceGenerator(object):
     # TODO(vsm): Handle overloads.
     self._members_emitter.Emit(
         '\n'
-        '  $TYPE $NAME($ARGS) native;\n',
-        TYPE=info.type_name,
+        '  $TYPE $NAME($PARAMS) native;\n',
+        TYPE=self._NarrowOutputType(info.type_name),
         NAME=info.name,
-        ARGS=info.arg_implementation_declaration)
+        PARAMS=info.ParametersImplementationDeclaration(
+            lambda type_name: self._NarrowInputType(type_name)))

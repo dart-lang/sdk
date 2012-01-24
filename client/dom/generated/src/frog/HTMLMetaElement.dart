@@ -1,5 +1,5 @@
 
-class HTMLMetaElement extends HTMLElement native "*HTMLMetaElement" {
+class HTMLMetaElementJS extends HTMLElementJS implements HTMLMetaElement native "*HTMLMetaElement" {
 
   String get content() native "return this.content;";
 

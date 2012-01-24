@@ -1,5 +1,5 @@
 
-class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
+class HTMLEmbedElementJS extends HTMLElementJS implements HTMLEmbedElement native "*HTMLEmbedElement" {
 
   String get align() native "return this.align;";
 
@@ -25,5 +25,5 @@ class HTMLEmbedElement extends HTMLElement native "*HTMLEmbedElement" {
 
   void set width(String value) native "this.width = value;";
 
-  SVGDocument getSVGDocument() native;
+  SVGDocumentJS getSVGDocument() native;
 }

@@ -1,5 +1,5 @@
 
-class ProgressEvent extends Event native "*ProgressEvent" {
+class ProgressEventJS extends EventJS implements ProgressEvent native "*ProgressEvent" {
 
   bool get lengthComputable() native "return this.lengthComputable;";
 

@@ -1,31 +1,31 @@
 
-class SVGPatternElement extends SVGElement native "*SVGPatternElement" {
+class SVGPatternElementJS extends SVGElementJS implements SVGPatternElement native "*SVGPatternElement" {
 
-  SVGAnimatedLength get height() native "return this.height;";
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedEnumeration get patternContentUnits() native "return this.patternContentUnits;";
+  SVGAnimatedEnumerationJS get patternContentUnits() native "return this.patternContentUnits;";
 
-  SVGAnimatedTransformList get patternTransform() native "return this.patternTransform;";
+  SVGAnimatedTransformListJS get patternTransform() native "return this.patternTransform;";
 
-  SVGAnimatedEnumeration get patternUnits() native "return this.patternUnits;";
+  SVGAnimatedEnumerationJS get patternUnits() native "return this.patternUnits;";
 
-  SVGAnimatedLength get width() native "return this.width;";
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength get x() native "return this.x;";
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength get y() native "return this.y;";
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedString get href() native "return this.href;";
+  SVGAnimatedStringJS get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringList get requiredExtensions() native "return this.requiredExtensions;";
+  SVGStringListJS get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList get requiredFeatures() native "return this.requiredFeatures;";
+  SVGStringListJS get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList get systemLanguage() native "return this.systemLanguage;";
+  SVGStringListJS get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -41,19 +41,19 @@ class SVGPatternElement extends SVGElement native "*SVGPatternElement" {
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString get className() native "return this.className;";
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration get style() native "return this.style;";
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  SVGAnimatedPreserveAspectRatioJS get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect get viewBox() native "return this.viewBox;";
+  SVGAnimatedRectJS get viewBox() native "return this.viewBox;";
 }

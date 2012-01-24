@@ -1,5 +1,5 @@
 
-class SVGPathSeg native "*SVGPathSeg" {
+class SVGPathSegJS implements SVGPathSeg native "*SVGPathSeg" {
 
   static final int PATHSEG_ARC_ABS = 10;
 

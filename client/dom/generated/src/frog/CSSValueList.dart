@@ -1,7 +1,7 @@
 
-class CSSValueList extends CSSValue native "*CSSValueList" {
+class CSSValueListJS extends CSSValueJS implements CSSValueList native "*CSSValueList" {
 
   int get length() native "return this.length;";
 
-  CSSValue item(int index) native;
+  CSSValueJS item(int index) native;
 }

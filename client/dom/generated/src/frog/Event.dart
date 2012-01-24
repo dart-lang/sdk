@@ -1,5 +1,5 @@
 
-class Event native "*Event" {
+class EventJS implements Event native "*Event" {
 
   static final int AT_TARGET = 2;
 
@@ -47,9 +47,9 @@ class Event native "*Event" {
 
   bool get cancelable() native "return this.cancelable;";
 
-  Clipboard get clipboardData() native "return this.clipboardData;";
+  ClipboardJS get clipboardData() native "return this.clipboardData;";
 
-  EventTarget get currentTarget() native "return this.currentTarget;";
+  EventTargetJS get currentTarget() native "return this.currentTarget;";
 
   bool get defaultPrevented() native "return this.defaultPrevented;";
 
@@ -59,9 +59,9 @@ class Event native "*Event" {
 
   void set returnValue(bool value) native "this.returnValue = value;";
 
-  EventTarget get srcElement() native "return this.srcElement;";
+  EventTargetJS get srcElement() native "return this.srcElement;";
 
-  EventTarget get target() native "return this.target;";
+  EventTargetJS get target() native "return this.target;";
 
   int get timeStamp() native "return this.timeStamp;";
 

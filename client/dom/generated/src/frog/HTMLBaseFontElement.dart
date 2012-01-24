@@ -1,5 +1,5 @@
 
-class HTMLBaseFontElement extends HTMLElement native "*HTMLBaseFontElement" {
+class HTMLBaseFontElementJS extends HTMLElementJS implements HTMLBaseFontElement native "*HTMLBaseFontElement" {
 
   String get color() native "return this.color;";
 

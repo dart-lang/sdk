@@ -1,9 +1,9 @@
 
-class PointerLock native "*PointerLock" {
+class PointerLockJS implements PointerLock native "*PointerLock" {
 
   bool get isLocked() native "return this.isLocked;";
 
-  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
+  void lock(ElementJS target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
 
   void unlock() native;
 

@@ -1,25 +1,25 @@
 
-class SVGElementInstance native "*SVGElementInstance" {
+class SVGElementInstanceJS implements SVGElementInstance native "*SVGElementInstance" {
 
-  SVGElementInstanceList get childNodes() native "return this.childNodes;";
+  SVGElementInstanceListJS get childNodes() native "return this.childNodes;";
 
-  SVGElement get correspondingElement() native "return this.correspondingElement;";
+  SVGElementJS get correspondingElement() native "return this.correspondingElement;";
 
-  SVGUseElement get correspondingUseElement() native "return this.correspondingUseElement;";
+  SVGUseElementJS get correspondingUseElement() native "return this.correspondingUseElement;";
 
-  SVGElementInstance get firstChild() native "return this.firstChild;";
+  SVGElementInstanceJS get firstChild() native "return this.firstChild;";
 
-  SVGElementInstance get lastChild() native "return this.lastChild;";
+  SVGElementInstanceJS get lastChild() native "return this.lastChild;";
 
-  SVGElementInstance get nextSibling() native "return this.nextSibling;";
+  SVGElementInstanceJS get nextSibling() native "return this.nextSibling;";
 
-  SVGElementInstance get parentNode() native "return this.parentNode;";
+  SVGElementInstanceJS get parentNode() native "return this.parentNode;";
 
-  SVGElementInstance get previousSibling() native "return this.previousSibling;";
+  SVGElementInstanceJS get previousSibling() native "return this.previousSibling;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event event) native;
+  bool dispatchEvent(EventJS event) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

@@ -1,5 +1,5 @@
 
-class PerformanceNavigation native "*PerformanceNavigation" {
+class PerformanceNavigationJS implements PerformanceNavigation native "*PerformanceNavigation" {
 
   static final int TYPE_BACK_FORWARD = 2;
 

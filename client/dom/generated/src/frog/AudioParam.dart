@@ -1,5 +1,5 @@
 
-class AudioParam native "*AudioParam" {
+class AudioParamJS implements AudioParam native "*AudioParam" {
 
   num get defaultValue() native "return this.defaultValue;";
 
@@ -25,7 +25,7 @@ class AudioParam native "*AudioParam" {
 
   void setValueAtTime(num value, num time) native;
 
-  void setValueCurveAtTime(Float32Array values, num time, num duration) native;
+  void setValueCurveAtTime(Float32ArrayJS values, num time, num duration) native;
 
   var dartObjectLocalStorage;
 

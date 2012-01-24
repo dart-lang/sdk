@@ -1,5 +1,5 @@
 
-class Coordinates native "*Coordinates" {
+class CoordinatesJS implements Coordinates native "*Coordinates" {
 
   num get accuracy() native "return this.accuracy;";
 

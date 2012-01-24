@@ -1,5 +1,5 @@
 
-class ElementTimeControl native "*ElementTimeControl" {
+class ElementTimeControlJS implements ElementTimeControl native "*ElementTimeControl" {
 
   void beginElement() native;
 

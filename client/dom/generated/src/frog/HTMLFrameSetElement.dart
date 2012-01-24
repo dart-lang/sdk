@@ -1,5 +1,5 @@
 
-class HTMLFrameSetElement extends HTMLElement native "*HTMLFrameSetElement" {
+class HTMLFrameSetElementJS extends HTMLElementJS implements HTMLFrameSetElement native "*HTMLFrameSetElement" {
 
   String get cols() native "return this.cols;";
 

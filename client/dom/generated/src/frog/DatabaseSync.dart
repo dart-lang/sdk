@@ -1,5 +1,5 @@
 
-class DatabaseSync native "*DatabaseSync" {
+class DatabaseSyncJS implements DatabaseSync native "*DatabaseSync" {
 
   String get lastErrorMessage() native "return this.lastErrorMessage;";
 

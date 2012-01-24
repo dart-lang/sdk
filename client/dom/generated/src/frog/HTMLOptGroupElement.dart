@@ -1,5 +1,5 @@
 
-class HTMLOptGroupElement extends HTMLElement native "*HTMLOptGroupElement" {
+class HTMLOptGroupElementJS extends HTMLElementJS implements HTMLOptGroupElement native "*HTMLOptGroupElement" {
 
   bool get disabled() native "return this.disabled;";
 

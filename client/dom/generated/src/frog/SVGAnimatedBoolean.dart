@@ -1,5 +1,5 @@
 
-class SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
+class SVGAnimatedBooleanJS implements SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
   bool get animVal() native "return this.animVal;";
 

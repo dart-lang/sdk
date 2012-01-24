@@ -1,23 +1,23 @@
 
-class DOMWindow native "@*DOMWindow" {
+class DOMWindowJS implements DOMWindow native "@*DOMWindow" {
 
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
 
-  DOMApplicationCache get applicationCache() native "return this.applicationCache;";
+  DOMApplicationCacheJS get applicationCache() native "return this.applicationCache;";
 
-  Navigator get clientInformation() native "return this.clientInformation;";
+  NavigatorJS get clientInformation() native "return this.clientInformation;";
 
-  void set clientInformation(Navigator value) native "this.clientInformation = value;";
+  void set clientInformation(NavigatorJS value) native "this.clientInformation = value;";
 
   bool get closed() native "return this.closed;";
 
-  Console get console() native "return this.console;";
+  ConsoleJS get console() native "return this.console;";
 
-  void set console(Console value) native "this.console = value;";
+  void set console(ConsoleJS value) native "this.console = value;";
 
-  Crypto get crypto() native "return this.crypto;";
+  CryptoJS get crypto() native "return this.crypto;";
 
   String get defaultStatus() native "return this.defaultStatus;";
 
@@ -31,21 +31,21 @@ class DOMWindow native "@*DOMWindow" {
 
   void set devicePixelRatio(num value) native "this.devicePixelRatio = value;";
 
-  Document get document() native "return this.document;";
+  DocumentJS get document() native "return this.document;";
 
-  Event get event() native "return this.event;";
+  EventJS get event() native "return this.event;";
 
-  void set event(Event value) native "this.event = value;";
+  void set event(EventJS value) native "this.event = value;";
 
-  Element get frameElement() native "return this.frameElement;";
+  ElementJS get frameElement() native "return this.frameElement;";
 
-  DOMWindow get frames() native "return this.frames;";
+  DOMWindowJS get frames() native "return this.frames;";
 
-  void set frames(DOMWindow value) native "this.frames = value;";
+  void set frames(DOMWindowJS value) native "this.frames = value;";
 
-  History get history() native "return this.history;";
+  HistoryJS get history() native "return this.history;";
 
-  void set history(History value) native "this.history = value;";
+  void set history(HistoryJS value) native "this.history = value;";
 
   int get innerHeight() native "return this.innerHeight;";
 
@@ -59,35 +59,35 @@ class DOMWindow native "@*DOMWindow" {
 
   void set length(int value) native "this.length = value;";
 
-  Storage get localStorage() native "return this.localStorage;";
+  StorageJS get localStorage() native "return this.localStorage;";
 
-  Location get location() native "return this.location;";
+  LocationJS get location() native "return this.location;";
 
-  void set location(Location value) native "this.location = value;";
+  void set location(LocationJS value) native "this.location = value;";
 
-  BarInfo get locationbar() native "return this.locationbar;";
+  BarInfoJS get locationbar() native "return this.locationbar;";
 
-  void set locationbar(BarInfo value) native "this.locationbar = value;";
+  void set locationbar(BarInfoJS value) native "this.locationbar = value;";
 
-  BarInfo get menubar() native "return this.menubar;";
+  BarInfoJS get menubar() native "return this.menubar;";
 
-  void set menubar(BarInfo value) native "this.menubar = value;";
+  void set menubar(BarInfoJS value) native "this.menubar = value;";
 
   String get name() native "return this.name;";
 
   void set name(String value) native "this.name = value;";
 
-  Navigator get navigator() native "return this.navigator;";
+  NavigatorJS get navigator() native "return this.navigator;";
 
-  void set navigator(Navigator value) native "this.navigator = value;";
+  void set navigator(NavigatorJS value) native "this.navigator = value;";
 
   bool get offscreenBuffering() native "return this.offscreenBuffering;";
 
   void set offscreenBuffering(bool value) native "this.offscreenBuffering = value;";
 
-  DOMWindow get opener() native "return this.opener;";
+  DOMWindowJS get opener() native "return this.opener;";
 
-  void set opener(DOMWindow value) native "this.opener = value;";
+  void set opener(DOMWindowJS value) native "this.opener = value;";
 
   int get outerHeight() native "return this.outerHeight;";
 
@@ -101,21 +101,21 @@ class DOMWindow native "@*DOMWindow" {
 
   int get pageYOffset() native "return this.pageYOffset;";
 
-  DOMWindow get parent() native "return this.parent;";
+  DOMWindowJS get parent() native "return this.parent;";
 
-  void set parent(DOMWindow value) native "this.parent = value;";
+  void set parent(DOMWindowJS value) native "this.parent = value;";
 
-  Performance get performance() native "return this.performance;";
+  PerformanceJS get performance() native "return this.performance;";
 
-  void set performance(Performance value) native "this.performance = value;";
+  void set performance(PerformanceJS value) native "this.performance = value;";
 
-  BarInfo get personalbar() native "return this.personalbar;";
+  BarInfoJS get personalbar() native "return this.personalbar;";
 
-  void set personalbar(BarInfo value) native "this.personalbar = value;";
+  void set personalbar(BarInfoJS value) native "this.personalbar = value;";
 
-  Screen get screen() native "return this.screen;";
+  ScreenJS get screen() native "return this.screen;";
 
-  void set screen(Screen value) native "this.screen = value;";
+  void set screen(ScreenJS value) native "this.screen = value;";
 
   int get screenLeft() native "return this.screenLeft;";
 
@@ -141,43 +141,43 @@ class DOMWindow native "@*DOMWindow" {
 
   void set scrollY(int value) native "this.scrollY = value;";
 
-  BarInfo get scrollbars() native "return this.scrollbars;";
+  BarInfoJS get scrollbars() native "return this.scrollbars;";
 
-  void set scrollbars(BarInfo value) native "this.scrollbars = value;";
+  void set scrollbars(BarInfoJS value) native "this.scrollbars = value;";
 
-  DOMWindow get self() native "return this.self;";
+  DOMWindowJS get self() native "return this.self;";
 
-  void set self(DOMWindow value) native "this.self = value;";
+  void set self(DOMWindowJS value) native "this.self = value;";
 
-  Storage get sessionStorage() native "return this.sessionStorage;";
+  StorageJS get sessionStorage() native "return this.sessionStorage;";
 
   String get status() native "return this.status;";
 
   void set status(String value) native "this.status = value;";
 
-  BarInfo get statusbar() native "return this.statusbar;";
+  BarInfoJS get statusbar() native "return this.statusbar;";
 
-  void set statusbar(BarInfo value) native "this.statusbar = value;";
+  void set statusbar(BarInfoJS value) native "this.statusbar = value;";
 
-  StyleMedia get styleMedia() native "return this.styleMedia;";
+  StyleMediaJS get styleMedia() native "return this.styleMedia;";
 
-  BarInfo get toolbar() native "return this.toolbar;";
+  BarInfoJS get toolbar() native "return this.toolbar;";
 
-  void set toolbar(BarInfo value) native "this.toolbar = value;";
+  void set toolbar(BarInfoJS value) native "this.toolbar = value;";
 
-  DOMWindow get top() native "return this.top;";
+  DOMWindowJS get top() native "return this.top;";
 
-  void set top(DOMWindow value) native "this.top = value;";
+  void set top(DOMWindowJS value) native "this.top = value;";
 
-  IDBFactory get webkitIndexedDB() native "return this.webkitIndexedDB;";
+  IDBFactoryJS get webkitIndexedDB() native "return this.webkitIndexedDB;";
 
-  NotificationCenter get webkitNotifications() native "return this.webkitNotifications;";
+  NotificationCenterJS get webkitNotifications() native "return this.webkitNotifications;";
 
-  StorageInfo get webkitStorageInfo() native "return this.webkitStorageInfo;";
+  StorageInfoJS get webkitStorageInfo() native "return this.webkitStorageInfo;";
 
-  DOMURL get webkitURL() native "return this.webkitURL;";
+  DOMURLJS get webkitURL() native "return this.webkitURL;";
 
-  DOMWindow get window() native "return this.window;";
+  DOMWindowJS get window() native "return this.window;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -199,25 +199,25 @@ class DOMWindow native "@*DOMWindow" {
 
   bool confirm(String message) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   void focus() native;
 
-  CSSStyleDeclaration getComputedStyle(Element element, String pseudoElement) native;
+  CSSStyleDeclarationJS getComputedStyle(ElementJS element, String pseudoElement) native;
 
-  CSSRuleList getMatchedCSSRules(Element element, String pseudoElement) native;
+  CSSRuleListJS getMatchedCSSRules(ElementJS element, String pseudoElement) native;
 
-  DOMSelection getSelection() native;
+  DOMSelectionJS getSelection() native;
 
-  MediaQueryList matchMedia(String query) native;
+  MediaQueryListJS matchMedia(String query) native;
 
   void moveBy(num x, num y) native;
 
   void moveTo(num x, num y) native;
 
-  DOMWindow open(String url, String name, [String options = null]) native;
+  DOMWindowJS open(String url, String name, [String options = null]) native;
 
   void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
 
@@ -251,13 +251,13 @@ class DOMWindow native "@*DOMWindow" {
 
   void webkitCancelRequestAnimationFrame(int id) native;
 
-  WebKitPoint webkitConvertPointFromNodeToPage(Node node, WebKitPoint p) native;
+  WebKitPointJS webkitConvertPointFromNodeToPage(NodeJS node, WebKitPointJS p) native;
 
-  WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p) native;
+  WebKitPointJS webkitConvertPointFromPageToNode(NodeJS node, WebKitPointJS p) native;
 
   void webkitPostMessage(String message, String targetOrigin, [List transferList = null]) native;
 
-  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element) native;
+  int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, ElementJS element) native;
 
   void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
 

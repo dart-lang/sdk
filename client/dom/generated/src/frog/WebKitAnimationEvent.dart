@@ -1,5 +1,5 @@
 
-class WebKitAnimationEvent extends Event native "*WebKitAnimationEvent" {
+class WebKitAnimationEventJS extends EventJS implements WebKitAnimationEvent native "*WebKitAnimationEvent" {
 
   String get animationName() native "return this.animationName;";
 

@@ -1,5 +1,5 @@
 
-class SVGRenderingIntent native "*SVGRenderingIntent" {
+class SVGRenderingIntentJS implements SVGRenderingIntent native "*SVGRenderingIntent" {
 
   static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 

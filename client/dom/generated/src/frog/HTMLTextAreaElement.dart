@@ -1,5 +1,5 @@
 
-class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
+class HTMLTextAreaElementJS extends HTMLElementJS implements HTMLTextAreaElement native "*HTMLTextAreaElement" {
 
   bool get autofocus() native "return this.autofocus;";
 
@@ -21,9 +21,9 @@ class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
   void set disabled(bool value) native "this.disabled = value;";
 
-  HTMLFormElement get form() native "return this.form;";
+  HTMLFormElementJS get form() native "return this.form;";
 
-  NodeList get labels() native "return this.labels;";
+  NodeListJS get labels() native "return this.labels;";
 
   int get maxLength() native "return this.maxLength;";
 
@@ -67,7 +67,7 @@ class HTMLTextAreaElement extends HTMLElement native "*HTMLTextAreaElement" {
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityState get validity() native "return this.validity;";
+  ValidityStateJS get validity() native "return this.validity;";
 
   String get value() native "return this.value;";
 

@@ -1,5 +1,5 @@
 
-class SVGZoomAndPan native "*SVGZoomAndPan" {
+class SVGZoomAndPanJS implements SVGZoomAndPan native "*SVGZoomAndPan" {
 
   static final int SVG_ZOOMANDPAN_DISABLE = 1;
 

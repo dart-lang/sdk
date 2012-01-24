@@ -1,11 +1,11 @@
 
-class DataTransferItem native "*DataTransferItem" {
+class DataTransferItemJS implements DataTransferItem native "*DataTransferItem" {
 
   String get kind() native "return this.kind;";
 
   String get type() native "return this.type;";
 
-  Blob getAsFile() native;
+  BlobJS getAsFile() native;
 
   void getAsString(StringCallback callback) native;
 

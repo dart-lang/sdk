@@ -1,9 +1,9 @@
 
-class CSSRuleList native "*CSSRuleList" {
+class CSSRuleListJS implements CSSRuleList native "*CSSRuleList" {
 
   int get length() native "return this.length;";
 
-  CSSRule item(int index) native;
+  CSSRuleJS item(int index) native;
 
   var dartObjectLocalStorage;
 

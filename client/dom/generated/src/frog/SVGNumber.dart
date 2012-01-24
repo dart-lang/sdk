@@ -1,5 +1,5 @@
 
-class SVGNumber native "*SVGNumber" {
+class SVGNumberJS implements SVGNumber native "*SVGNumber" {
 
   num get value() native "return this.value;";
 

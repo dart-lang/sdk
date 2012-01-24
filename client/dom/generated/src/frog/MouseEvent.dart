@@ -1,5 +1,5 @@
 
-class MouseEvent extends UIEvent native "*MouseEvent" {
+class MouseEventJS extends UIEventJS implements MouseEvent native "*MouseEvent" {
 
   bool get altKey() native "return this.altKey;";
 
@@ -11,9 +11,9 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   bool get ctrlKey() native "return this.ctrlKey;";
 
-  Clipboard get dataTransfer() native "return this.dataTransfer;";
+  ClipboardJS get dataTransfer() native "return this.dataTransfer;";
 
-  Node get fromElement() native "return this.fromElement;";
+  NodeJS get fromElement() native "return this.fromElement;";
 
   bool get metaKey() native "return this.metaKey;";
 
@@ -21,7 +21,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   int get offsetY() native "return this.offsetY;";
 
-  EventTarget get relatedTarget() native "return this.relatedTarget;";
+  EventTargetJS get relatedTarget() native "return this.relatedTarget;";
 
   int get screenX() native "return this.screenX;";
 
@@ -29,7 +29,7 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   bool get shiftKey() native "return this.shiftKey;";
 
-  Node get toElement() native "return this.toElement;";
+  NodeJS get toElement() native "return this.toElement;";
 
   int get webkitMovementX() native "return this.webkitMovementX;";
 
@@ -39,5 +39,5 @@ class MouseEvent extends UIEvent native "*MouseEvent" {
 
   int get y() native "return this.y;";
 
-  void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) native;
+  void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindowJS view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTargetJS relatedTarget) native;
 }

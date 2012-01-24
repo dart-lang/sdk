@@ -1,9 +1,9 @@
 
-class SVGFitToViewBox native "*SVGFitToViewBox" {
+class SVGFitToViewBoxJS implements SVGFitToViewBox native "*SVGFitToViewBox" {
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  SVGAnimatedPreserveAspectRatioJS get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect get viewBox() native "return this.viewBox;";
+  SVGAnimatedRectJS get viewBox() native "return this.viewBox;";
 
   var dartObjectLocalStorage;
 

@@ -1,5 +1,5 @@
 
-class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
+class AudioDestinationNodeJS extends AudioNodeJS implements AudioDestinationNode native "*AudioDestinationNode" {
 
   int get numberOfChannels() native "return this.numberOfChannels;";
 }

@@ -1,5 +1,5 @@
 
-class SQLTransactionSync native "*SQLTransactionSync" {
+class SQLTransactionSyncJS implements SQLTransactionSync native "*SQLTransactionSync" {
 
   var dartObjectLocalStorage;
 

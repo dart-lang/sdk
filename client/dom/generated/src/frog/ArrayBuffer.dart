@@ -1,9 +1,9 @@
 
-class ArrayBuffer native "*ArrayBuffer" {
+class ArrayBufferJS implements ArrayBuffer native "*ArrayBuffer" {
 
   int get byteLength() native "return this.byteLength;";
 
-  ArrayBuffer slice(int begin, [int end = null]) native;
+  ArrayBufferJS slice(int begin, [int end = null]) native;
 
   var dartObjectLocalStorage;
 

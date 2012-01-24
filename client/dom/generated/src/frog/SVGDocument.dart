@@ -1,7 +1,7 @@
 
-class SVGDocument extends Document native "*SVGDocument" {
+class SVGDocumentJS extends DocumentJS implements SVGDocument native "*SVGDocument" {
 
-  SVGSVGElement get rootElement() native "return this.rootElement;";
+  SVGSVGElementJS get rootElement() native "return this.rootElement;";
 
-  Event createEvent(String eventType) native;
+  EventJS createEvent(String eventType) native;
 }

@@ -1,5 +1,5 @@
 
-class XMLHttpRequestException native "*XMLHttpRequestException" {
+class XMLHttpRequestExceptionJS implements XMLHttpRequestException native "*XMLHttpRequestException" {
 
   static final int ABORT_ERR = 102;
 

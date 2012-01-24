@@ -1,9 +1,9 @@
 
-class Text extends CharacterData native "*Text" {
+class TextJS extends CharacterDataJS implements Text native "*Text" {
 
   String get wholeText() native "return this.wholeText;";
 
-  Text replaceWholeText(String content) native;
+  TextJS replaceWholeText(String content) native;
 
-  Text splitText(int offset) native;
+  TextJS splitText(int offset) native;
 }

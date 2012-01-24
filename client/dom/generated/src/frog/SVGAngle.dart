@@ -1,5 +1,5 @@
 
-class SVGAngle native "*SVGAngle" {
+class SVGAngleJS implements SVGAngle native "*SVGAngle" {
 
   static final int SVG_ANGLETYPE_DEG = 2;
 

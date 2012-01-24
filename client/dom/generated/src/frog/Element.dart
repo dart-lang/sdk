@@ -1,5 +1,5 @@
 
-class Element extends Node native "*Element" {
+class ElementJS extends NodeJS implements Element native "*Element" {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
@@ -13,23 +13,23 @@ class Element extends Node native "*Element" {
 
   int get clientWidth() native "return this.clientWidth;";
 
-  Element get firstElementChild() native "return this.firstElementChild;";
+  ElementJS get firstElementChild() native "return this.firstElementChild;";
 
-  Element get lastElementChild() native "return this.lastElementChild;";
+  ElementJS get lastElementChild() native "return this.lastElementChild;";
 
-  Element get nextElementSibling() native "return this.nextElementSibling;";
+  ElementJS get nextElementSibling() native "return this.nextElementSibling;";
 
   int get offsetHeight() native "return this.offsetHeight;";
 
   int get offsetLeft() native "return this.offsetLeft;";
 
-  Element get offsetParent() native "return this.offsetParent;";
+  ElementJS get offsetParent() native "return this.offsetParent;";
 
   int get offsetTop() native "return this.offsetTop;";
 
   int get offsetWidth() native "return this.offsetWidth;";
 
-  Element get previousElementSibling() native "return this.previousElementSibling;";
+  ElementJS get previousElementSibling() native "return this.previousElementSibling;";
 
   int get scrollHeight() native "return this.scrollHeight;";
 
@@ -43,7 +43,7 @@ class Element extends Node native "*Element" {
 
   int get scrollWidth() native "return this.scrollWidth;";
 
-  CSSStyleDeclaration get style() native "return this.style;";
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
   String get tagName() native "return this.tagName;";
 
@@ -55,33 +55,33 @@ class Element extends Node native "*Element" {
 
   String getAttributeNS(String namespaceURI, String localName) native;
 
-  Attr getAttributeNode(String name) native;
+  AttrJS getAttributeNode(String name) native;
 
-  Attr getAttributeNodeNS(String namespaceURI, String localName) native;
+  AttrJS getAttributeNodeNS(String namespaceURI, String localName) native;
 
-  ClientRect getBoundingClientRect() native;
+  ClientRectJS getBoundingClientRect() native;
 
-  ClientRectList getClientRects() native;
+  ClientRectListJS getClientRects() native;
 
-  NodeList getElementsByClassName(String name) native;
+  NodeListJS getElementsByClassName(String name) native;
 
-  NodeList getElementsByTagName(String name) native;
+  NodeListJS getElementsByTagName(String name) native;
 
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName) native;
+  NodeListJS getElementsByTagNameNS(String namespaceURI, String localName) native;
 
   bool hasAttribute(String name) native;
 
   bool hasAttributeNS(String namespaceURI, String localName) native;
 
-  Element querySelector(String selectors) native;
+  ElementJS querySelector(String selectors) native;
 
-  NodeList querySelectorAll(String selectors) native;
+  NodeListJS querySelectorAll(String selectors) native;
 
   void removeAttribute(String name) native;
 
   void removeAttributeNS(String namespaceURI, String localName) native;
 
-  Attr removeAttributeNode(Attr oldAttr) native;
+  AttrJS removeAttributeNode(AttrJS oldAttr) native;
 
   void scrollByLines(int lines) native;
 
@@ -95,9 +95,9 @@ class Element extends Node native "*Element" {
 
   void setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
-  Attr setAttributeNode(Attr newAttr) native;
+  AttrJS setAttributeNode(AttrJS newAttr) native;
 
-  Attr setAttributeNodeNS(Attr newAttr) native;
+  AttrJS setAttributeNodeNS(AttrJS newAttr) native;
 
   bool webkitMatchesSelector(String selectors) native;
 

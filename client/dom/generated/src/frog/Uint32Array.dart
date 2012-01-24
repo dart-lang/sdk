@@ -1,5 +1,5 @@
 
-class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Array" {
+class Uint32ArrayJS extends ArrayBufferViewJS implements Uint32Array, List<int> native "*Uint32Array" {
 
   factory Uint32Array(int length) =>  _construct(length);
 
@@ -19,5 +19,5 @@ class Uint32Array extends ArrayBufferView implements List<int> native "*Uint32Ar
 
   void setElements(Object array, [int offset = null]) native;
 
-  Uint32Array subarray(int start, [int end = null]) native;
+  Uint32ArrayJS subarray(int start, [int end = null]) native;
 }

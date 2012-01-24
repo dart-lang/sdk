@@ -1,13 +1,13 @@
 
-class MediaQueryList native "*MediaQueryList" {
+class MediaQueryListJS implements MediaQueryList native "*MediaQueryList" {
 
   bool get matches() native "return this.matches;";
 
   String get media() native "return this.media;";
 
-  void addListener(MediaQueryListListener listener) native;
+  void addListener(MediaQueryListListenerJS listener) native;
 
-  void removeListener(MediaQueryListListener listener) native;
+  void removeListener(MediaQueryListListenerJS listener) native;
 
   var dartObjectLocalStorage;
 

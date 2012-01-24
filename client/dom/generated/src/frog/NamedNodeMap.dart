@@ -1,27 +1,27 @@
 
-class NamedNodeMap native "*NamedNodeMap" {
+class NamedNodeMapJS implements NamedNodeMap native "*NamedNodeMap" {
 
   int get length() native "return this.length;";
 
-  Node operator[](int index) native;
+  NodeJS operator[](int index) native;
 
-  void operator[]=(int index, Node value) {
+  void operator[]=(int index, NodeJS value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
-  Node getNamedItem(String name) native;
+  NodeJS getNamedItem(String name) native;
 
-  Node getNamedItemNS(String namespaceURI, String localName) native;
+  NodeJS getNamedItemNS(String namespaceURI, String localName) native;
 
-  Node item(int index) native;
+  NodeJS item(int index) native;
 
-  Node removeNamedItem(String name) native;
+  NodeJS removeNamedItem(String name) native;
 
-  Node removeNamedItemNS(String namespaceURI, String localName) native;
+  NodeJS removeNamedItemNS(String namespaceURI, String localName) native;
 
-  Node setNamedItem(Node node) native;
+  NodeJS setNamedItem(NodeJS node) native;
 
-  Node setNamedItemNS(Node node) native;
+  NodeJS setNamedItemNS(NodeJS node) native;
 
   var dartObjectLocalStorage;
 

@@ -1,5 +1,5 @@
 
-class Clipboard native "*Clipboard" {
+class ClipboardJS implements Clipboard native "*Clipboard" {
 
   String get dropEffect() native "return this.dropEffect;";
 
@@ -9,9 +9,9 @@ class Clipboard native "*Clipboard" {
 
   void set effectAllowed(String value) native "this.effectAllowed = value;";
 
-  FileList get files() native "return this.files;";
+  FileListJS get files() native "return this.files;";
 
-  DataTransferItemList get items() native "return this.items;";
+  DataTransferItemListJS get items() native "return this.items;";
 
   List get types() native "return this.types;";
 
@@ -21,7 +21,7 @@ class Clipboard native "*Clipboard" {
 
   bool setData(String type, String data) native;
 
-  void setDragImage(HTMLImageElement image, int x, int y) native;
+  void setDragImage(HTMLImageElementJS image, int x, int y) native;
 
   var dartObjectLocalStorage;
 

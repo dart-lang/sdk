@@ -1,5 +1,5 @@
 
-class HTMLAreaElement extends HTMLElement native "*HTMLAreaElement" {
+class HTMLAreaElementJS extends HTMLElementJS implements HTMLAreaElement native "*HTMLAreaElement" {
 
   String get alt() native "return this.alt;";
 

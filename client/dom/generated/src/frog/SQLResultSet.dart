@@ -1,9 +1,9 @@
 
-class SQLResultSet native "*SQLResultSet" {
+class SQLResultSetJS implements SQLResultSet native "*SQLResultSet" {
 
   int get insertId() native "return this.insertId;";
 
-  SQLResultSetRowList get rows() native "return this.rows;";
+  SQLResultSetRowListJS get rows() native "return this.rows;";
 
   int get rowsAffected() native "return this.rowsAffected;";
 

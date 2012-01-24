@@ -1,5 +1,5 @@
 
-class CharacterData extends Node native "*CharacterData" {
+class CharacterDataJS extends NodeJS implements CharacterData native "*CharacterData" {
 
   String get data() native "return this.data;";
 

@@ -1,5 +1,5 @@
 
-class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
+class MediaElementAudioSourceNodeJS extends AudioSourceNodeJS implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
 
-  HTMLMediaElement get mediaElement() native "return this.mediaElement;";
+  HTMLMediaElementJS get mediaElement() native "return this.mediaElement;";
 }

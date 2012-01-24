@@ -1,5 +1,5 @@
 
-class AudioBuffer native "*AudioBuffer" {
+class AudioBufferJS implements AudioBuffer native "*AudioBuffer" {
 
   num get duration() native "return this.duration;";
 
@@ -13,7 +13,7 @@ class AudioBuffer native "*AudioBuffer" {
 
   num get sampleRate() native "return this.sampleRate;";
 
-  Float32Array getChannelData(int channelIndex) native;
+  Float32ArrayJS getChannelData(int channelIndex) native;
 
   var dartObjectLocalStorage;
 

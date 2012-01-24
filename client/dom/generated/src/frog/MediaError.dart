@@ -1,5 +1,5 @@
 
-class MediaError native "*MediaError" {
+class MediaErrorJS implements MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_ABORTED = 1;
 

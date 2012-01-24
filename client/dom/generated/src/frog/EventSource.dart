@@ -1,5 +1,5 @@
 
-class EventSource native "*EventSource" {
+class EventSourceJS implements EventSource native "*EventSource" {
 
   static final int CLOSED = 2;
 
@@ -15,7 +15,7 @@ class EventSource native "*EventSource" {
 
   void close() native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

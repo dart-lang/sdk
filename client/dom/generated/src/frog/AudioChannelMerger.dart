@@ -1,3 +1,3 @@
 
-class AudioChannelMerger extends AudioNode native "*AudioChannelMerger" {
+class AudioChannelMergerJS extends AudioNodeJS implements AudioChannelMerger native "*AudioChannelMerger" {
 }

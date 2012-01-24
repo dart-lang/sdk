@@ -1,5 +1,5 @@
 
-class AudioListener native "*AudioListener" {
+class AudioListenerJS implements AudioListener native "*AudioListener" {
 
   num get dopplerFactor() native "return this.dopplerFactor;";
 

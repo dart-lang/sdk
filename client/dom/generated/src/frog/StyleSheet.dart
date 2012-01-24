@@ -1,5 +1,5 @@
 
-class StyleSheet native "*StyleSheet" {
+class StyleSheetJS implements StyleSheet native "*StyleSheet" {
 
   bool get disabled() native "return this.disabled;";
 
@@ -7,11 +7,11 @@ class StyleSheet native "*StyleSheet" {
 
   String get href() native "return this.href;";
 
-  MediaList get media() native "return this.media;";
+  MediaListJS get media() native "return this.media;";
 
-  Node get ownerNode() native "return this.ownerNode;";
+  NodeJS get ownerNode() native "return this.ownerNode;";
 
-  StyleSheet get parentStyleSheet() native "return this.parentStyleSheet;";
+  StyleSheetJS get parentStyleSheet() native "return this.parentStyleSheet;";
 
   String get title() native "return this.title;";
 

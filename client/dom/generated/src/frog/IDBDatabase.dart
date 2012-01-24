@@ -1,5 +1,5 @@
 
-class IDBDatabase native "*IDBDatabase" {
+class IDBDatabaseJS implements IDBDatabase native "*IDBDatabase" {
 
   String get name() native "return this.name;";
 
@@ -21,17 +21,17 @@ class IDBDatabase native "*IDBDatabase" {
 
   void close() native;
 
-  IDBObjectStore createObjectStore(String name) native;
+  IDBObjectStoreJS createObjectStore(String name) native;
 
   void deleteObjectStore(String name) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  IDBVersionChangeRequest setVersion(String version) native;
+  IDBVersionChangeRequestJS setVersion(String version) native;
 
-  IDBTransaction transaction(String storeName, int mode) native;
+  IDBTransactionJS transaction(String storeName, int mode) native;
 
   var dartObjectLocalStorage;
 

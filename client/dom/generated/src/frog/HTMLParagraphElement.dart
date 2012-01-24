@@ -1,5 +1,5 @@
 
-class HTMLParagraphElement extends HTMLElement native "*HTMLParagraphElement" {
+class HTMLParagraphElementJS extends HTMLElementJS implements HTMLParagraphElement native "*HTMLParagraphElement" {
 
   String get align() native "return this.align;";
 

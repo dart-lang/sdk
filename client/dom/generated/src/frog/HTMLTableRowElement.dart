@@ -1,5 +1,5 @@
 
-class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
+class HTMLTableRowElementJS extends HTMLElementJS implements HTMLTableRowElement native "*HTMLTableRowElement" {
 
   String get align() native "return this.align;";
 
@@ -9,7 +9,7 @@ class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
 
   void set bgColor(String value) native "this.bgColor = value;";
 
-  HTMLCollection get cells() native "return this.cells;";
+  HTMLCollectionJS get cells() native "return this.cells;";
 
   String get ch() native "return this.ch;";
 
@@ -29,5 +29,5 @@ class HTMLTableRowElement extends HTMLElement native "*HTMLTableRowElement" {
 
   void deleteCell(int index) native;
 
-  HTMLElement insertCell(int index) native;
+  HTMLElementJS insertCell(int index) native;
 }

@@ -1,9 +1,9 @@
 
-class SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
+class SVGAnimatedPreserveAspectRatioJS implements SVGAnimatedPreserveAspectRatio native "*SVGAnimatedPreserveAspectRatio" {
 
-  SVGPreserveAspectRatio get animVal() native "return this.animVal;";
+  SVGPreserveAspectRatioJS get animVal() native "return this.animVal;";
 
-  SVGPreserveAspectRatio get baseVal() native "return this.baseVal;";
+  SVGPreserveAspectRatioJS get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

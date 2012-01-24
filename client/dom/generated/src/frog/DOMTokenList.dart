@@ -1,5 +1,5 @@
 
-class DOMTokenList native "*DOMTokenList" {
+class DOMTokenListJS implements DOMTokenList native "*DOMTokenList" {
 
   int get length() native "return this.length;";
 

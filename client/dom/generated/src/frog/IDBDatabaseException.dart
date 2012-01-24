@@ -1,5 +1,5 @@
 
-class IDBDatabaseException native "*IDBDatabaseException" {
+class IDBDatabaseExceptionJS implements IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int ABORT_ERR = 8;
 

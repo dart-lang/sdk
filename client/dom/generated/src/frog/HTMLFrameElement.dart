@@ -1,9 +1,9 @@
 
-class HTMLFrameElement extends HTMLElement native "*HTMLFrameElement" {
+class HTMLFrameElementJS extends HTMLElementJS implements HTMLFrameElement native "*HTMLFrameElement" {
 
-  Document get contentDocument() native "return this.contentDocument;";
+  DocumentJS get contentDocument() native "return this.contentDocument;";
 
-  DOMWindow get contentWindow() native "return this.contentWindow;";
+  DOMWindowJS get contentWindow() native "return this.contentWindow;";
 
   String get frameBorder() native "return this.frameBorder;";
 
@@ -45,5 +45,5 @@ class HTMLFrameElement extends HTMLElement native "*HTMLFrameElement" {
 
   int get width() native "return this.width;";
 
-  SVGDocument getSVGDocument() native;
+  SVGDocumentJS getSVGDocument() native;
 }

@@ -1,5 +1,5 @@
 
-class CanvasGradient native "*CanvasGradient" {
+class CanvasGradientJS implements CanvasGradient native "*CanvasGradient" {
 
   void addColorStop(num offset, String color) native;
 

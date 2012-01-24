@@ -1,5 +1,5 @@
 
-class WebKitCSSFilterValue extends CSSValueList native "*WebKitCSSFilterValue" {
+class WebKitCSSFilterValueJS extends CSSValueListJS implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
 
   static final int CSS_FILTER_BLUR = 10;
 

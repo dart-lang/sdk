@@ -1,5 +1,5 @@
 
-class WorkerNavigator native "*WorkerNavigator" {
+class WorkerNavigatorJS implements WorkerNavigator native "*WorkerNavigator" {
 
   String get appName() native "return this.appName;";
 

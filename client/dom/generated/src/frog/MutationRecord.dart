@@ -1,21 +1,21 @@
 
-class MutationRecord native "*MutationRecord" {
+class MutationRecordJS implements MutationRecord native "*MutationRecord" {
 
-  NodeList get addedNodes() native "return this.addedNodes;";
+  NodeListJS get addedNodes() native "return this.addedNodes;";
 
   String get attributeName() native "return this.attributeName;";
 
   String get attributeNamespace() native "return this.attributeNamespace;";
 
-  Node get nextSibling() native "return this.nextSibling;";
+  NodeJS get nextSibling() native "return this.nextSibling;";
 
   String get oldValue() native "return this.oldValue;";
 
-  Node get previousSibling() native "return this.previousSibling;";
+  NodeJS get previousSibling() native "return this.previousSibling;";
 
-  NodeList get removedNodes() native "return this.removedNodes;";
+  NodeListJS get removedNodes() native "return this.removedNodes;";
 
-  Node get target() native "return this.target;";
+  NodeJS get target() native "return this.target;";
 
   String get type() native "return this.type;";
 

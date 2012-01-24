@@ -1,5 +1,5 @@
 
-class CSSStyleDeclaration native "*CSSStyleDeclaration" {
+class CSSStyleDeclarationJS implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
   String get cssText() native "return this.cssText;";
 
@@ -7,9 +7,9 @@ class CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
   int get length() native "return this.length;";
 
-  CSSRule get parentRule() native "return this.parentRule;";
+  CSSRuleJS get parentRule() native "return this.parentRule;";
 
-  CSSValue getPropertyCSSValue(String propertyName) native;
+  CSSValueJS getPropertyCSSValue(String propertyName) native;
 
   String getPropertyPriority(String propertyName) native;
 

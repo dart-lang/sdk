@@ -1,11 +1,11 @@
 
-class SVGStylable native "*SVGStylable" {
+class SVGStylableJS implements SVGStylable native "*SVGStylable" {
 
-  SVGAnimatedString get className() native "return this.className;";
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration get style() native "return this.style;";
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 
   var dartObjectLocalStorage;
 

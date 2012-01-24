@@ -1,5 +1,5 @@
 
-class CSSCharsetRule extends CSSRule native "*CSSCharsetRule" {
+class CSSCharsetRuleJS extends CSSRuleJS implements CSSCharsetRule native "*CSSCharsetRule" {
 
   String get encoding() native "return this.encoding;";
 

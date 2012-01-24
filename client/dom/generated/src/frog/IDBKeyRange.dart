@@ -1,21 +1,21 @@
 
-class IDBKeyRange native "*IDBKeyRange" {
+class IDBKeyRangeJS implements IDBKeyRange native "*IDBKeyRange" {
 
-  IDBKey get lower() native "return this.lower;";
+  IDBKeyJS get lower() native "return this.lower;";
 
   bool get lowerOpen() native "return this.lowerOpen;";
 
-  IDBKey get upper() native "return this.upper;";
+  IDBKeyJS get upper() native "return this.upper;";
 
   bool get upperOpen() native "return this.upperOpen;";
 
-  IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen = null, bool upperOpen = null]) native;
+  IDBKeyRangeJS bound(IDBKeyJS lower, IDBKeyJS upper, [bool lowerOpen = null, bool upperOpen = null]) native;
 
-  IDBKeyRange lowerBound(IDBKey bound, [bool open = null]) native;
+  IDBKeyRangeJS lowerBound(IDBKeyJS bound, [bool open = null]) native;
 
-  IDBKeyRange only(IDBKey value) native;
+  IDBKeyRangeJS only(IDBKeyJS value) native;
 
-  IDBKeyRange upperBound(IDBKey bound, [bool open = null]) native;
+  IDBKeyRangeJS upperBound(IDBKeyJS bound, [bool open = null]) native;
 
   var dartObjectLocalStorage;
 

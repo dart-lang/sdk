@@ -1,5 +1,5 @@
 
-class SVGStringList native "*SVGStringList" {
+class SVGStringListJS implements SVGStringList native "*SVGStringList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 

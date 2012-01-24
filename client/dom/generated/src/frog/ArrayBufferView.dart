@@ -1,7 +1,7 @@
 
-class ArrayBufferView native "*ArrayBufferView" {
+class ArrayBufferViewJS implements ArrayBufferView native "*ArrayBufferView" {
 
-  ArrayBuffer get buffer() native "return this.buffer;";
+  ArrayBufferJS get buffer() native "return this.buffer;";
 
   int get byteLength() native "return this.byteLength;";
 

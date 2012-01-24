@@ -1,5 +1,5 @@
 
-class SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
+class SVGAnimatedEnumerationJS implements SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
   int get animVal() native "return this.animVal;";
 

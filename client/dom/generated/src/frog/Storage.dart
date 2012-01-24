@@ -1,5 +1,5 @@
 
-class Storage native "*Storage" {
+class StorageJS implements Storage native "*Storage" {
 
   int get length() native "return this.length;";
 

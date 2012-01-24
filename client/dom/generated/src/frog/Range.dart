@@ -1,5 +1,5 @@
 
-class Range native "*Range" {
+class RangeJS implements Range native "*Range" {
 
   static final int END_TO_END = 2;
 
@@ -19,27 +19,27 @@ class Range native "*Range" {
 
   bool get collapsed() native "return this.collapsed;";
 
-  Node get commonAncestorContainer() native "return this.commonAncestorContainer;";
+  NodeJS get commonAncestorContainer() native "return this.commonAncestorContainer;";
 
-  Node get endContainer() native "return this.endContainer;";
+  NodeJS get endContainer() native "return this.endContainer;";
 
   int get endOffset() native "return this.endOffset;";
 
-  Node get startContainer() native "return this.startContainer;";
+  NodeJS get startContainer() native "return this.startContainer;";
 
   int get startOffset() native "return this.startOffset;";
 
-  DocumentFragment cloneContents() native;
+  DocumentFragmentJS cloneContents() native;
 
-  Range cloneRange() native;
+  RangeJS cloneRange() native;
 
   void collapse(bool toStart) native;
 
-  int compareNode(Node refNode) native;
+  int compareNode(NodeJS refNode) native;
 
-  int comparePoint(Node refNode, int offset) native;
+  int comparePoint(NodeJS refNode, int offset) native;
 
-  DocumentFragment createContextualFragment(String html) native;
+  DocumentFragmentJS createContextualFragment(String html) native;
 
   void deleteContents() native;
 
@@ -47,35 +47,35 @@ class Range native "*Range" {
 
   void expand(String unit) native;
 
-  DocumentFragment extractContents() native;
+  DocumentFragmentJS extractContents() native;
 
-  ClientRect getBoundingClientRect() native;
+  ClientRectJS getBoundingClientRect() native;
 
-  ClientRectList getClientRects() native;
+  ClientRectListJS getClientRects() native;
 
-  void insertNode(Node newNode) native;
+  void insertNode(NodeJS newNode) native;
 
-  bool intersectsNode(Node refNode) native;
+  bool intersectsNode(NodeJS refNode) native;
 
-  bool isPointInRange(Node refNode, int offset) native;
+  bool isPointInRange(NodeJS refNode, int offset) native;
 
-  void selectNode(Node refNode) native;
+  void selectNode(NodeJS refNode) native;
 
-  void selectNodeContents(Node refNode) native;
+  void selectNodeContents(NodeJS refNode) native;
 
-  void setEnd(Node refNode, int offset) native;
+  void setEnd(NodeJS refNode, int offset) native;
 
-  void setEndAfter(Node refNode) native;
+  void setEndAfter(NodeJS refNode) native;
 
-  void setEndBefore(Node refNode) native;
+  void setEndBefore(NodeJS refNode) native;
 
-  void setStart(Node refNode, int offset) native;
+  void setStart(NodeJS refNode, int offset) native;
 
-  void setStartAfter(Node refNode) native;
+  void setStartAfter(NodeJS refNode) native;
 
-  void setStartBefore(Node refNode) native;
+  void setStartBefore(NodeJS refNode) native;
 
-  void surroundContents(Node newParent) native;
+  void surroundContents(NodeJS newParent) native;
 
   String toString() native;
 

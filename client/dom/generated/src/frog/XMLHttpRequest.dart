@@ -1,5 +1,5 @@
 
-class XMLHttpRequest native "*XMLHttpRequest" {
+class XMLHttpRequestJS implements XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 
@@ -19,7 +19,7 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 
   int get readyState() native "return this.readyState;";
 
-  Blob get responseBlob() native "return this.responseBlob;";
+  BlobJS get responseBlob() native "return this.responseBlob;";
 
   String get responseText() native "return this.responseText;";
 
@@ -27,13 +27,13 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 
   void set responseType(String value) native "this.responseType = value;";
 
-  Document get responseXML() native "return this.responseXML;";
+  DocumentJS get responseXML() native "return this.responseXML;";
 
   int get status() native "return this.status;";
 
   String get statusText() native "return this.statusText;";
 
-  XMLHttpRequestUpload get upload() native "return this.upload;";
+  XMLHttpRequestUploadJS get upload() native "return this.upload;";
 
   bool get withCredentials() native "return this.withCredentials;";
 
@@ -43,7 +43,7 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   String getAllResponseHeaders() native;
 

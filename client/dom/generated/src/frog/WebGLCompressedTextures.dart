@@ -1,5 +1,5 @@
 
-class WebGLCompressedTextures native "*WebGLCompressedTextures" {
+class WebGLCompressedTexturesJS implements WebGLCompressedTextures native "*WebGLCompressedTextures" {
 
   static final int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
 
@@ -13,9 +13,9 @@ class WebGLCompressedTextures native "*WebGLCompressedTextures" {
 
   static final int ETC1_RGB8_OES = 0x8D64;
 
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) native;
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferViewJS data) native;
 
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) native;
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferViewJS data) native;
 
   var dartObjectLocalStorage;
 

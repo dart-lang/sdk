@@ -1,5 +1,5 @@
 
-class NodeFilter native "*NodeFilter" {
+class NodeFilterJS implements NodeFilter native "*NodeFilter" {
 
   static final int FILTER_ACCEPT = 1;
 
@@ -33,7 +33,7 @@ class NodeFilter native "*NodeFilter" {
 
   static final int SHOW_TEXT = 0x00000004;
 
-  int acceptNode(Node n) native;
+  int acceptNode(NodeJS n) native;
 
   var dartObjectLocalStorage;
 

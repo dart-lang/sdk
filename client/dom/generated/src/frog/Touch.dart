@@ -1,5 +1,5 @@
 
-class Touch native "*Touch" {
+class TouchJS implements Touch native "*Touch" {
 
   int get clientX() native "return this.clientX;";
 
@@ -15,7 +15,7 @@ class Touch native "*Touch" {
 
   int get screenY() native "return this.screenY;";
 
-  EventTarget get target() native "return this.target;";
+  EventTargetJS get target() native "return this.target;";
 
   num get webkitForce() native "return this.webkitForce;";
 

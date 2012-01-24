@@ -1,5 +1,5 @@
 
-class Navigator native "*Navigator" {
+class NavigatorJS implements Navigator native "*Navigator" {
 
   String get appCodeName() native "return this.appCodeName;";
 
@@ -9,17 +9,17 @@ class Navigator native "*Navigator" {
 
   bool get cookieEnabled() native "return this.cookieEnabled;";
 
-  Geolocation get geolocation() native "return this.geolocation;";
+  GeolocationJS get geolocation() native "return this.geolocation;";
 
   String get language() native "return this.language;";
 
-  DOMMimeTypeArray get mimeTypes() native "return this.mimeTypes;";
+  DOMMimeTypeArrayJS get mimeTypes() native "return this.mimeTypes;";
 
   bool get onLine() native "return this.onLine;";
 
   String get platform() native "return this.platform;";
 
-  DOMPluginArray get plugins() native "return this.plugins;";
+  DOMPluginArrayJS get plugins() native "return this.plugins;";
 
   String get product() native "return this.product;";
 

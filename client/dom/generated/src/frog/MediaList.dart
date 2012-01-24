@@ -1,5 +1,5 @@
 
-class MediaList native "*MediaList" {
+class MediaListJS implements MediaList native "*MediaList" {
 
   int get length() native "return this.length;";
 

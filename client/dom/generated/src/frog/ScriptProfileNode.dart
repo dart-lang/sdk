@@ -1,5 +1,5 @@
 
-class ScriptProfileNode native "*ScriptProfileNode" {
+class ScriptProfileNodeJS implements ScriptProfileNode native "*ScriptProfileNode" {
 
   int get callUID() native "return this.callUID;";
 

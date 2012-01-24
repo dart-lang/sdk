@@ -1,5 +1,5 @@
 
-class SpeechInputEvent extends Event native "*SpeechInputEvent" {
+class SpeechInputEventJS extends EventJS implements SpeechInputEvent native "*SpeechInputEvent" {
 
-  SpeechInputResultList get results() native "return this.results;";
+  SpeechInputResultListJS get results() native "return this.results;";
 }

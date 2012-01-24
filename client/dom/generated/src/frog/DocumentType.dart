@@ -1,13 +1,13 @@
 
-class DocumentType extends Node native "*DocumentType" {
+class DocumentTypeJS extends NodeJS implements DocumentType native "*DocumentType" {
 
-  NamedNodeMap get entities() native "return this.entities;";
+  NamedNodeMapJS get entities() native "return this.entities;";
 
   String get internalSubset() native "return this.internalSubset;";
 
   String get name() native "return this.name;";
 
-  NamedNodeMap get notations() native "return this.notations;";
+  NamedNodeMapJS get notations() native "return this.notations;";
 
   String get publicId() native "return this.publicId;";
 

@@ -1,21 +1,21 @@
 
-class SVGLengthList native "*SVGLengthList" {
+class SVGLengthListJS implements SVGLengthList native "*SVGLengthList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGLength appendItem(SVGLength item) native;
+  SVGLengthJS appendItem(SVGLengthJS item) native;
 
   void clear() native;
 
-  SVGLength getItem(int index) native;
+  SVGLengthJS getItem(int index) native;
 
-  SVGLength initialize(SVGLength item) native;
+  SVGLengthJS initialize(SVGLengthJS item) native;
 
-  SVGLength insertItemBefore(SVGLength item, int index) native;
+  SVGLengthJS insertItemBefore(SVGLengthJS item, int index) native;
 
-  SVGLength removeItem(int index) native;
+  SVGLengthJS removeItem(int index) native;
 
-  SVGLength replaceItem(SVGLength item, int index) native;
+  SVGLengthJS replaceItem(SVGLengthJS item, int index) native;
 
   var dartObjectLocalStorage;
 

@@ -1,5 +1,5 @@
 
-class CSSValue native "*CSSValue" {
+class CSSValueJS implements CSSValue native "*CSSValue" {
 
   static final int CSS_CUSTOM = 3;
 

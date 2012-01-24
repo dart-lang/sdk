@@ -1,15 +1,15 @@
 
-class HTMLDocument extends Document native "*HTMLDocument" {
+class HTMLDocumentJS extends DocumentJS implements HTMLDocument native "*HTMLDocument" {
 
-  Element get activeElement() native "return this.activeElement;";
+  ElementJS get activeElement() native "return this.activeElement;";
 
   String get alinkColor() native "return this.alinkColor;";
 
   void set alinkColor(String value) native "this.alinkColor = value;";
 
-  HTMLAllCollection get all() native "return this.all;";
+  HTMLAllCollectionJS get all() native "return this.all;";
 
-  void set all(HTMLAllCollection value) native "this.all = value;";
+  void set all(HTMLAllCollectionJS value) native "this.all = value;";
 
   String get bgColor() native "return this.bgColor;";
 
@@ -25,7 +25,7 @@ class HTMLDocument extends Document native "*HTMLDocument" {
 
   void set dir(String value) native "this.dir = value;";
 
-  HTMLCollection get embeds() native "return this.embeds;";
+  HTMLCollectionJS get embeds() native "return this.embeds;";
 
   String get fgColor() native "return this.fgColor;";
 
@@ -35,9 +35,9 @@ class HTMLDocument extends Document native "*HTMLDocument" {
 
   void set linkColor(String value) native "this.linkColor = value;";
 
-  HTMLCollection get plugins() native "return this.plugins;";
+  HTMLCollectionJS get plugins() native "return this.plugins;";
 
-  HTMLCollection get scripts() native "return this.scripts;";
+  HTMLCollectionJS get scripts() native "return this.scripts;";
 
   String get vlinkColor() native "return this.vlinkColor;";
 

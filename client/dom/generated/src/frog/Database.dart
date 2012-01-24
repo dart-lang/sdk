@@ -1,5 +1,5 @@
 
-class Database native "*Database" {
+class DatabaseJS implements Database native "*Database" {
 
   String get version() native "return this.version;";
 

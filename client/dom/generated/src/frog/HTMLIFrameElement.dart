@@ -1,13 +1,13 @@
 
-class HTMLIFrameElement extends HTMLElement native "*HTMLIFrameElement" {
+class HTMLIFrameElementJS extends HTMLElementJS implements HTMLIFrameElement native "*HTMLIFrameElement" {
 
   String get align() native "return this.align;";
 
   void set align(String value) native "this.align = value;";
 
-  Document get contentDocument() native "return this.contentDocument;";
+  DocumentJS get contentDocument() native "return this.contentDocument;";
 
-  DOMWindow get contentWindow() native "return this.contentWindow;";
+  DOMWindowJS get contentWindow() native "return this.contentWindow;";
 
   String get frameBorder() native "return this.frameBorder;";
 
@@ -49,5 +49,5 @@ class HTMLIFrameElement extends HTMLElement native "*HTMLIFrameElement" {
 
   void set width(String value) native "this.width = value;";
 
-  SVGDocument getSVGDocument() native;
+  SVGDocumentJS getSVGDocument() native;
 }

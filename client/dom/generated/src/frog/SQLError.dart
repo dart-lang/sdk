@@ -1,5 +1,5 @@
 
-class SQLError native "*SQLError" {
+class SQLErrorJS implements SQLError native "*SQLError" {
 
   static final int CONSTRAINT_ERR = 6;
 

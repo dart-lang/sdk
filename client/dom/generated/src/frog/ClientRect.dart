@@ -1,5 +1,5 @@
 
-class ClientRect native "*ClientRect" {
+class ClientRectJS implements ClientRect native "*ClientRect" {
 
   num get bottom() native "return this.bottom;";
 

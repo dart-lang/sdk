@@ -1,9 +1,9 @@
 
-class FileList native "*FileList" {
+class FileListJS implements FileList native "*FileList" {
 
   int get length() native "return this.length;";
 
-  File item(int index) native;
+  FileJS item(int index) native;
 
   var dartObjectLocalStorage;
 

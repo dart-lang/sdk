@@ -1,5 +1,5 @@
 
-class ValidityState native "*ValidityState" {
+class ValidityStateJS implements ValidityState native "*ValidityState" {
 
   bool get customError() native "return this.customError;";
 

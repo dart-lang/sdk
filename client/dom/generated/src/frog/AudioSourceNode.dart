@@ -1,3 +1,3 @@
 
-class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
+class AudioSourceNodeJS extends AudioNodeJS implements AudioSourceNode native "*AudioSourceNode" {
 }

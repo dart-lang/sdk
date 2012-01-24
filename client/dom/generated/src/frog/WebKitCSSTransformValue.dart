@@ -1,5 +1,5 @@
 
-class WebKitCSSTransformValue extends CSSValueList native "*WebKitCSSTransformValue" {
+class WebKitCSSTransformValueJS extends CSSValueListJS implements WebKitCSSTransformValue native "*WebKitCSSTransformValue" {
 
   static final int CSS_MATRIX = 11;
 

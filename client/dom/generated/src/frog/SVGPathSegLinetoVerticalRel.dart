@@ -1,5 +1,5 @@
 
-class SVGPathSegLinetoVerticalRel extends SVGPathSeg native "*SVGPathSegLinetoVerticalRel" {
+class SVGPathSegLinetoVerticalRelJS extends SVGPathSegJS implements SVGPathSegLinetoVerticalRel native "*SVGPathSegLinetoVerticalRel" {
 
   num get y() native "return this.y;";
 

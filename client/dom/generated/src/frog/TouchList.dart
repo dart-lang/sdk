@@ -1,15 +1,15 @@
 
-class TouchList native "*TouchList" {
+class TouchListJS implements TouchList native "*TouchList" {
 
   int get length() native "return this.length;";
 
-  Touch operator[](int index) native;
+  TouchJS operator[](int index) native;
 
-  void operator[]=(int index, Touch value) {
+  void operator[]=(int index, TouchJS value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
 
-  Touch item(int index) native;
+  TouchJS item(int index) native;
 
   var dartObjectLocalStorage;
 

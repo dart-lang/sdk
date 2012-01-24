@@ -1,7 +1,7 @@
 
-class ImageData native "*ImageData" {
+class ImageDataJS implements ImageData native "*ImageData" {
 
-  CanvasPixelArray get data() native "return this.data;";
+  CanvasPixelArrayJS get data() native "return this.data;";
 
   int get height() native "return this.height;";
 

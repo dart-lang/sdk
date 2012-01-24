@@ -1,5 +1,5 @@
 
-class HTMLUListElement extends HTMLElement native "*HTMLUListElement" {
+class HTMLUListElementJS extends HTMLElementJS implements HTMLUListElement native "*HTMLUListElement" {
 
   bool get compact() native "return this.compact;";
 

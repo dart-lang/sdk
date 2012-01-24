@@ -1,7 +1,7 @@
 
-class Crypto native "*Crypto" {
+class CryptoJS implements Crypto native "*Crypto" {
 
-  void getRandomValues(ArrayBufferView array) native;
+  void getRandomValues(ArrayBufferViewJS array) native;
 
   var dartObjectLocalStorage;
 

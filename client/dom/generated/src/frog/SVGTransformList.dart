@@ -1,25 +1,25 @@
 
-class SVGTransformList native "*SVGTransformList" {
+class SVGTransformListJS implements SVGTransformList native "*SVGTransformList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGTransform appendItem(SVGTransform item) native;
+  SVGTransformJS appendItem(SVGTransformJS item) native;
 
   void clear() native;
 
-  SVGTransform consolidate() native;
+  SVGTransformJS consolidate() native;
 
-  SVGTransform createSVGTransformFromMatrix(SVGMatrix matrix) native;
+  SVGTransformJS createSVGTransformFromMatrix(SVGMatrixJS matrix) native;
 
-  SVGTransform getItem(int index) native;
+  SVGTransformJS getItem(int index) native;
 
-  SVGTransform initialize(SVGTransform item) native;
+  SVGTransformJS initialize(SVGTransformJS item) native;
 
-  SVGTransform insertItemBefore(SVGTransform item, int index) native;
+  SVGTransformJS insertItemBefore(SVGTransformJS item, int index) native;
 
-  SVGTransform removeItem(int index) native;
+  SVGTransformJS removeItem(int index) native;
 
-  SVGTransform replaceItem(SVGTransform item, int index) native;
+  SVGTransformJS replaceItem(SVGTransformJS item, int index) native;
 
   var dartObjectLocalStorage;
 

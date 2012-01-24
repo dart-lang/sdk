@@ -1,5 +1,5 @@
 
-class TimeRanges native "*TimeRanges" {
+class TimeRangesJS implements TimeRanges native "*TimeRanges" {
 
   int get length() native "return this.length;";
 

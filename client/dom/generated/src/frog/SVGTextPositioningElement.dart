@@ -1,13 +1,13 @@
 
-class SVGTextPositioningElement extends SVGTextContentElement native "*SVGTextPositioningElement" {
+class SVGTextPositioningElementJS extends SVGTextContentElementJS implements SVGTextPositioningElement native "*SVGTextPositioningElement" {
 
-  SVGAnimatedLengthList get dx() native "return this.dx;";
+  SVGAnimatedLengthListJS get dx() native "return this.dx;";
 
-  SVGAnimatedLengthList get dy() native "return this.dy;";
+  SVGAnimatedLengthListJS get dy() native "return this.dy;";
 
-  SVGAnimatedNumberList get rotate() native "return this.rotate;";
+  SVGAnimatedNumberListJS get rotate() native "return this.rotate;";
 
-  SVGAnimatedLengthList get x() native "return this.x;";
+  SVGAnimatedLengthListJS get x() native "return this.x;";
 
-  SVGAnimatedLengthList get y() native "return this.y;";
+  SVGAnimatedLengthListJS get y() native "return this.y;";
 }

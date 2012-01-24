@@ -1,11 +1,11 @@
 
-class DOMMimeTypeArray native "*DOMMimeTypeArray" {
+class DOMMimeTypeArrayJS implements DOMMimeTypeArray native "*DOMMimeTypeArray" {
 
   int get length() native "return this.length;";
 
-  DOMMimeType item(int index) native;
+  DOMMimeTypeJS item(int index) native;
 
-  DOMMimeType namedItem(String name) native;
+  DOMMimeTypeJS namedItem(String name) native;
 
   var dartObjectLocalStorage;
 

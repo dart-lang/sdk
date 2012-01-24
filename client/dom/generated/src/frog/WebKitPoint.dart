@@ -1,5 +1,5 @@
 
-class WebKitPoint native "*WebKitPoint" {
+class WebKitPointJS implements WebKitPoint native "*WebKitPoint" {
   WebKitPoint(num x, num y) native;
 
 

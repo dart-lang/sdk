@@ -1,9 +1,9 @@
 
-class EntryArray native "*EntryArray" {
+class EntryArrayJS implements EntryArray native "*EntryArray" {
 
   int get length() native "return this.length;";
 
-  Entry item(int index) native;
+  EntryJS item(int index) native;
 
   var dartObjectLocalStorage;
 

@@ -1,5 +1,5 @@
 
-class RangeException native "*RangeException" {
+class RangeExceptionJS implements RangeException native "*RangeException" {
 
   static final int BAD_BOUNDARYPOINTS_ERR = 1;
 

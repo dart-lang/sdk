@@ -1,5 +1,5 @@
 
-class History native "*History" {
+class HistoryJS implements History native "*History" {
 
   int get length() native "return this.length;";
 

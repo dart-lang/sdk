@@ -1,5 +1,5 @@
 
-class Screen native "*Screen" {
+class ScreenJS implements Screen native "*Screen" {
 
   int get availHeight() native "return this.availHeight;";
 

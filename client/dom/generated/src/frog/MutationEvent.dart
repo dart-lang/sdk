@@ -1,5 +1,5 @@
 
-class MutationEvent extends Event native "*MutationEvent" {
+class MutationEventJS extends EventJS implements MutationEvent native "*MutationEvent" {
 
   static final int ADDITION = 2;
 
@@ -15,7 +15,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 
   String get prevValue() native "return this.prevValue;";
 
-  Node get relatedNode() native "return this.relatedNode;";
+  NodeJS get relatedNode() native "return this.relatedNode;";
 
-  void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
+  void initMutationEvent(String type, bool canBubble, bool cancelable, NodeJS relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
