@@ -4,6 +4,8 @@
 
 #library("test_options_parser");
 
+#import("dart:io");
+
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'stub-generator', 'vm', 'client', 'dartdoc'];

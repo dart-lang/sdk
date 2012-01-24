@@ -4,6 +4,8 @@
 //
 // Tests socket exceptions.
 
+#import("dart:io");
+
 class SocketExceptionTest {
 
   static final PORT = 0;

@@ -4,6 +4,8 @@
 
 #library("multitest");
 
+#import("dart:io");
+
 // Multitests are Dart test scripts containing lines of the form
 // " [some dart code] /// [key]: [error type]"
 //

@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 #library("StreamPipeTest");
+#import("dart:io");
 #source("TestingServer.dart");
 
 // Helper method to be able to run the test from the runtime

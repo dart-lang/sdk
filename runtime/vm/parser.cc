@@ -3320,11 +3320,15 @@ void Parser::ParseLibraryImport() {
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
     if (library.IsNull()) {
-      // Create a new library object and call the library tag handler.
-      library = Library::New(canon_url);
-      library.Register();
-      // The tag handler expects the importing library as a parameter.
+      // Call the library tag handler to load the library.
       CallLibraryTagHandler(kImportTag, import_pos, canon_url);
+      // If the library tag handler succeded without registering the
+      // library we create an empty library to import.
+      library = Library::LookupLibrary(canon_url);
+      if (library.IsNull()) {
+        library = Library::New(canon_url);
+        library.Register();
+      }
     }
     // Add the import to the library.
     if (prefix.IsNull() || (prefix.Length() == 0)) {

@@ -4,6 +4,8 @@
 
 {
   'variables': {
+    'io_in_cc_file': 'io_in.cc',
+    'io_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_gen.cc',
     'builtin_in_cc_file': 'builtin_in.cc',
     'builtin_cc_file': '<(SHARED_INTERMEDIATE_DIR)/builtin_gen.cc',
     'snapshot_in_cc_file': 'snapshot_in.cc',
@@ -22,10 +24,6 @@
       ],
       'includes': [
         'builtin_sources.gypi',
-        '../platform/platform_headers.gypi',
-      ],
-      'sources/': [
-        ['exclude', '\\.(cc|h)$'],
       ],
       'actions': [
         {
@@ -50,10 +48,44 @@
       ]
     },
     {
+      'target_name': 'generate_io_cc_file',
+      'type': 'none',
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
+      ],
+      'includes': [
+        'io_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_io_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(io_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(io_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(io_cc_file)',
+            '--input_cc', '<(io_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(io_cc_file)'' file.'
+        },
+      ]
+    },
+    {
       'target_name': 'libdart_builtin',
       'type': 'static_library',
       'dependencies': [
         'generate_builtin_cc_file',
+        'generate_io_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -63,7 +95,7 @@
         'builtin.h',
       ],
       'includes': [
-        'builtin_sources.gypi',
+        'builtin_impl_sources.gypi',
         '../platform/platform_sources.gypi',
       ],
       'sources/': [
@@ -110,6 +142,7 @@
         'builtin.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
+        '<(io_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -193,6 +226,7 @@
         'builtin.cc',
         # Include generated source files.
         '<(builtin_cc_file)',
+        '<(io_cc_file)',
         'snapshot_empty.cc',
       ],
       'conditions': [
@@ -225,7 +259,7 @@
         'run_vm_tests.cc',
       ],
       'includes': [
-        'builtin_sources.gypi',
+        'builtin_impl_sources.gypi',
         '../platform/platform_sources.gypi',
         '../vm/vm_sources.gypi',
       ],

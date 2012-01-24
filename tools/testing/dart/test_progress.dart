@@ -4,6 +4,7 @@
 
 #library("test_progress");
 
+#import("dart:io");
 #import("test_runner.dart");
 #import("test_suite.dart");
 

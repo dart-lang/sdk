@@ -4,6 +4,7 @@
 
 #library("test_suite");
 
+#import("dart:io");
 #import("status_file_parser.dart");
 #import("test_runner.dart");
 #import("multitest.dart");

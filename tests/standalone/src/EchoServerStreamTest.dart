@@ -10,6 +10,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 #library("EchoServerStreamTest");
+#import("dart:io");
 #source("TestingServer.dart");
 
 class EchoServerGame {

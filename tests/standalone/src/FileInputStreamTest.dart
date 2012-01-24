@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
+#import("dart:io");
+
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getFilename(String path) =>

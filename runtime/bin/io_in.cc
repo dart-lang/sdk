@@ -7,10 +7,8 @@
 
 #include "bin/builtin.h"
 
-// The string on the next line will be filled in with the contents of the
-// builtin.dart file.
-// This string forms the content of builtin functionality which is injected
-// into standalone dart to provide some test/debug functionality.
-const char Builtin::builtin_source_[] = {
+// The string on the next line will be filled in with the contents of
+// the dart files of the dart:io library.
+const char Builtin::io_source_[] = {
   {{DART_SOURCE}}
 };

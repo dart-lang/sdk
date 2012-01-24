@@ -10,6 +10,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 #library("ProcessStderrTest");
+#import("dart:io");
 #source("ProcessTestUtil.dart");
 
 void test(Process process, int expectedExitCode) {

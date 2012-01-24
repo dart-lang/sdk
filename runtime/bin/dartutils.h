@@ -68,6 +68,7 @@ class DartUtils {
                                      const char* name,
                                      const char* val);
   static bool IsDartSchemeURL(const char* url_name);
+  static bool IsDartIOLibURL(const char* url_name);
   static Dart_Handle CanonicalizeURL(CommandLineOptions* url_mapping,
                                      Dart_Handle library,
                                      const char* url_str);
@@ -82,7 +83,7 @@ class DartUtils {
   static const char* kBuiltinLibURL;
   static const char* kCoreLibURL;
   static const char* kCoreImplLibURL;
-  static const char* kCoreNativeWrappersLibURL;
+  static const char* kIOLibURL;
 
   static const char* kIdFieldName;
 

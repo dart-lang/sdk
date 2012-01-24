@@ -253,11 +253,16 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return DartUtils::CanonicalizeURL(NULL, library, url_string);
   }
   if (is_dart_scheme_url) {
-    return Dart_Error("Do not know how to load '%s'", url_string);
+    // Handle imports of dart:io.
+    if (DartUtils::IsDartIOLibURL(url_string) && (tag == kImportTag)) {
+      return Builtin::LoadLibrary(Builtin::kIOLibrary);
+    } else {
+      return Dart_Error("Do not know how to load '%s'", url_string);
+    }
   }
   result = DartUtils::LoadSource(NULL, library, url, tag, url_string);
   if (!Dart_IsError(result) && (tag == kImportTag)) {
-    Builtin::ImportLibrary(result);
+    Builtin::ImportLibrary(result, Builtin::kBuiltinLibrary);
   }
   return result;
 }
@@ -308,11 +313,13 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
     return false;
   }
   if (script_snapshot_buffer == NULL) {
-    Builtin::ImportLibrary(library);  // Implicitly import builtin into app.
+    // Implicitly import builtin into app.
+    Builtin::ImportLibrary(library, Builtin::kBuiltinLibrary);
   }
   if (snapshot_buffer != NULL) {
     // Setup the native resolver as the snapshot does not carry it.
-    Builtin::SetNativeResolver();
+    Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
+    Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
   Dart_ExitScope();
   return true;

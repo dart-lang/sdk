@@ -5,6 +5,7 @@
 // Process working directory test.
 
 #library("ProcessWorkingDirectoryTest");
+#import("dart:io");
 #source("ProcessTestUtil.dart");
 
 class ProcessWorkingDirectoryTest {

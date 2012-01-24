@@ -4,7 +4,7 @@
 
 #library("status_file_parser");
 
-
+#import("dart:io");
 #import("status_expression.dart");
 
 // Possible outcomes of running a test.
