@@ -2346,31 +2346,17 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
           member.name = ExpectIdentifier("identifier expected");
         }
       }
-      // TODO(regis): Remove support for type parameters on factories.
-      // Once done, stop postponing resolution of the factory result type until
-      // class finalization.
+      // TODO(regis): Stop postponing resolution of the factory result type
+      // until class finalization. Use TryResolveTypeFromClass.
+      // Factory result type is the same as the type name of the factory.
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
                                                        qualifier,
                                                        *member.name));
-      const Class& signature_class = Class::Handle(
-          Class::New(String::Handle(String::NewSymbol(":factory_signature")),
-                     script_));
-      signature_class.set_is_finalized();
-      signature_class.set_library(library_);
-      unresolved_factory_class.set_factory_signature_class(signature_class);
       // The type arguments of the result type are set during finalization.
-      const TypeArguments& args = TypeArguments::Handle();
       member.type = &Type::ZoneHandle(
-          Type::NewParameterizedType(unresolved_factory_class, args));
-      ParseTypeParameters(signature_class);
-      if (signature_class.NumTypeParameters() > 0) {
-        Warning("factory method '%s' should not declare type parameters.\n",
-                member.name->ToCString());
-      } else {
-        // Remove factory signature class, since no type parameters declared.
-        unresolved_factory_class.set_factory_signature_class(Class::Handle());
-      }
+          Type::NewParameterizedType(unresolved_factory_class,
+                                     TypeArguments::Handle()));
     }
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
@@ -2779,12 +2765,7 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     AddInterfaces(interfaces_pos, interface, interfaces);
   }
 
-  // TODO(regis): Remove support for "factory" keyword.
-  if ((CurrentToken() == Token::kDEFAULT) ||
-      (CurrentToken() == Token::kFACTORY)) {
-    if (CurrentToken() == Token::kFACTORY) {
-      Warning("'factory' is obsolete, use 'default' instead.");
-    }
+  if (CurrentToken() == Token::kDEFAULT) {
     ConsumeToken();
     if (CurrentToken() != Token::kIDENT) {
       ErrorMsg("class name expected");
@@ -2808,42 +2789,29 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     interface.set_factory_class(unresolved_factory_class);
     // Verify that the type parameters of the factory class and of the interface
     // have identical names.
+    String& interface_type_param_name = String::Handle();
+    String& factory_type_param_name = String::Handle();
+    const Array& interface_type_param_names =
+        Array::Handle(interface.type_parameters());
+    const Array& factory_type_param_names =
+        Array::Handle(factory_class.type_parameters());
     const intptr_t num_type_params = factory_class.NumTypeParameters();
     bool mismatch = interface.NumTypeParameters() != num_type_params;
-    if (mismatch && (num_type_params == 0)) {
-      // TODO(regis): For now, and until the core lib is fixed, we accept a
-      // factory clause with a class missing its list of type parameters.
-      // See bug 5408808.
+    for (intptr_t i = 0; !mismatch && (i < num_type_params); i++) {
+      interface_type_param_name ^= interface_type_param_names.At(i);
+      factory_type_param_name ^= factory_type_param_names.At(i);
+      if (!interface_type_param_name.Equals(factory_type_param_name)) {
+        mismatch = true;
+      }
+    }
+    if (mismatch) {
       const String& interface_name = String::Handle(interface.Name());
       const String& factory_name = String::Handle(factory_class.Name());
-      Warning(factory_pos,
-              "class '%s' in default clause of interface '%s' is "
-              "missing its type parameter list.\n",
-              factory_name.ToCString(),
-              interface_name.ToCString());
-    } else {
-      String& interface_type_param_name = String::Handle();
-      String& factory_type_param_name = String::Handle();
-      const Array& interface_type_param_names =
-          Array::Handle(interface.type_parameters());
-      const Array& factory_type_param_names =
-          Array::Handle(factory_class.type_parameters());
-      for (intptr_t i = 0; !mismatch && (i < num_type_params); i++) {
-        interface_type_param_name ^= interface_type_param_names.At(i);
-        factory_type_param_name ^= factory_type_param_names.At(i);
-        if (!interface_type_param_name.Equals(factory_type_param_name)) {
-          mismatch = true;
-        }
-      }
-      if (mismatch) {
-        const String& interface_name = String::Handle(interface.Name());
-        const String& factory_name = String::Handle(factory_class.Name());
-        ErrorMsg(factory_pos,
-                 "mismatch in number or names of type parameters between "
-                 "interface '%s' and default factory class '%s'.\n",
-                 interface_name.ToCString(),
-                 factory_name.ToCString());
-      }
+      ErrorMsg(factory_pos,
+               "mismatch in number or names of type parameters between "
+               "interface '%s' and default factory class '%s'.\n",
+               interface_name.ToCString(),
+               factory_name.ToCString());
     }
   }
 
@@ -6270,19 +6238,8 @@ RawClass* Parser::TypeParametersScopeClass() {
   // a constructor or from a factory.
   // A constructor is considered as non-static by the compiler.
   if (is_top_level_) {
-    if ((current_member_ != NULL) && current_member_->has_factory) {
-      const AbstractType& factory_result_type = *current_member_->type;
-      ASSERT(!factory_result_type.IsNull());
-      const UnresolvedClass& unresolved_factory_class =
-          UnresolvedClass::Handle(factory_result_type.unresolved_class());
-      // TODO(regis): Remove support for type parameters declared by factory
-      // methods.
-      if (unresolved_factory_class.factory_signature_class() != Class::null()) {
-        return unresolved_factory_class.factory_signature_class();
-      }
-      return current_class().raw();
-    }
-    if ((current_member_ == NULL) || !current_member_->has_static) {
+    if ((current_member_ == NULL) ||
+        (current_member_->has_factory || !current_member_->has_static)) {
       return current_class().raw();
     }
   } else {
@@ -6291,15 +6248,7 @@ RawClass* Parser::TypeParametersScopeClass() {
       while (outer_function.IsLocalFunction()) {
         outer_function = outer_function.parent_function();
       }
-      if (outer_function.IsFactory()) {
-        // TODO(regis): Remove support for type parameters declared by factory
-        // methods.
-        if (outer_function.signature_class() != Class::null()) {
-          return outer_function.signature_class();
-        }
-        return current_class().raw();
-      }
-      if (!outer_function.is_static()) {
+      if (outer_function.IsFactory() || !outer_function.is_static()) {
         return current_class().raw();
       }
     }
@@ -6314,15 +6263,7 @@ bool Parser::IsInstantiatorRequired() const {
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
-  if (outer_function.IsFactory()) {
-    // TODO(regis): Remove support for type parameters on factories.
-    Class& signature_class = Class::Handle(outer_function.signature_class());
-    if (signature_class.IsNull()) {
-      return current_class().NumTypeParameters() > 0;
-    }
-    return signature_class.NumTypeParameters() > 0;
-  }
-  if (!outer_function.is_static()) {
+  if (outer_function.IsFactory() || !outer_function.is_static()) {
     return current_class().NumTypeParameters() > 0;
   }
   return false;
@@ -6738,19 +6679,12 @@ void Parser::CheckConstructorCallTypeArguments(
     intptr_t pos, Function& constructor,
     const AbstractTypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
-    // TODO(regis): Remove support for type parameters on factories.
-    Class& signature_class = Class::Handle();
-    if (constructor.IsFactory() &&
-        (constructor.signature_class() != Class::null())) {
-      signature_class = constructor.signature_class();
-    } else {
-      signature_class = constructor.owner();
-    }
-    ASSERT(!signature_class.IsNull());
-    ASSERT(signature_class.is_finalized());
+    const Class& constructor_class = Class::Handle(constructor.owner());
+    ASSERT(!constructor_class.IsNull());
+    ASSERT(constructor_class.is_finalized());
     // Do not report the expected vs. actual number of type arguments, because
     // the type argument vector is flattened and raw types are allowed.
-    if (type_arguments.Length() != signature_class.NumTypeArguments()) {
+    if (type_arguments.Length() != constructor_class.NumTypeArguments()) {
       ErrorMsg(pos, "wrong number of type arguments passed to constructor");
     }
   }
@@ -7269,20 +7203,12 @@ AstNode* Parser::ParseNewOperator() {
   // Now that the constructor to be called is identified, finalize the type
   // argument vector to be passed.
   {
-    // TODO(regis): Remove support for type parameters on factories.
-    Class& signature_class = Class::Handle();
-    if (constructor.IsFactory() &&
-        (constructor.signature_class() != Class::null())) {
-      signature_class = constructor.signature_class();
-    } else {
-      signature_class = constructor.owner();
-      ASSERT(signature_class.raw() == type_class.raw());
-    }
+    ASSERT(constructor.owner() == type_class.raw());
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
-        Type::NewParameterizedType(signature_class, type_arguments));
+        Type::NewParameterizedType(type_class, type_arguments));
     Error& error = Error::Handle();
-    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
+    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(type_class,
                                                         type,
                                                         &error);
     if (!error.IsNull()) {

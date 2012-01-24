@@ -2292,19 +2292,8 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 
 // Pushes the type arguments of the instantiator on the stack.
 void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
-  Class& instantiator_class = Class::Handle();
-  Function& outer_function =
-      Function::Handle(parsed_function().function().raw());
-  while (outer_function.IsLocalFunction()) {
-    outer_function = outer_function.parent_function();
-  }
-  // TODO(regis): Remove support for type parameters on factories.
-  if (outer_function.IsFactory() &&
-      (outer_function.signature_class() != Class::null())) {
-    instantiator_class = outer_function.signature_class();
-  } else {
-    instantiator_class = outer_function.owner();
-  }
+  const Class& instantiator_class = Class::Handle(
+      parsed_function().function().owner());
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
@@ -2323,6 +2312,11 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
   } else {
     ASSERT(parsed_function().instantiator() != NULL);
     parsed_function().instantiator()->Visit(this);
+    Function& outer_function =
+        Function::Handle(parsed_function().function().raw());
+    while (outer_function.IsLocalFunction()) {
+      outer_function = outer_function.parent_function();
+    }
     if (!outer_function.IsFactory()) {
       __ popl(EAX);  // Pop instantiator.
       // The instantiator is the receiver of the caller, which is not a factory.

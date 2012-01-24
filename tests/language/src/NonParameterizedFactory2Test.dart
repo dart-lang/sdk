@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Interface<T> default Factory {
+interface Interface<T> default Factory<T> {
   Interface();
   Interface.withArg(T value);
 }
