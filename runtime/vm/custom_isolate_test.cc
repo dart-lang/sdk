@@ -80,41 +80,96 @@ static const char* kCustomIsolateScriptChars =
 // An entry in our event queue.
 class Event {
  protected:
-  Event() : next_(NULL) {}
+  explicit Event(Dart_Isolate isolate) : isolate_(isolate), next_(NULL) {}
 
  public:
   virtual ~Event() {}
   virtual void Process() = 0;
 
-  virtual bool IsShutdownEvent(Dart_Isolate isolate) {
-    return false;
-  }
-  virtual bool IsMessageEvent(Dart_Isolate isolate, Dart_Port port) {
-    return false;
-  }
+  Dart_Isolate isolate() const { return isolate_; }
 
  private:
   friend class EventQueue;
+  Dart_Isolate isolate_;
   Event* next_;
 };
+
+
+// A simple event queue for our test.
+class EventQueue {
+ public:
+  EventQueue() {
+    head_ = NULL;
+  }
+
+  void Add(Event* event) {
+    if (head_ == NULL) {
+      head_ = event;
+      tail_ = event;
+    } else {
+      tail_->next_ = event;
+      tail_ = event;
+    }
+  }
+
+  Event* Get() {
+    if (head_ == NULL) {
+      return NULL;
+    }
+    Event* tmp = head_;
+    head_ = head_->next_;
+    if (head_ == NULL) {
+      // Not necessary, but why not.
+      tail_ = NULL;
+    }
+
+    return tmp;
+  }
+
+  void RemoveEventsForIsolate(Dart_Isolate isolate) {
+    Event* cur = head_;
+    Event* prev = NULL;
+    while (cur != NULL) {
+      Event* next = cur->next_;
+      if (cur->isolate() == isolate) {
+        // Remove matching event.
+        if (prev != NULL) {
+          prev->next_ = next;
+        } else {
+          head_ = next;
+        }
+        delete cur;
+      } else {
+        // Advance.
+        prev = cur;
+      }
+      cur = next;
+    }
+    tail_ = prev;
+  }
+
+ private:
+  Event* head_;
+  Event* tail_;
+};
+EventQueue* event_queue;
 
 
 // Start an isolate.
 class StartEvent : public Event {
  public:
   StartEvent(Dart_Isolate isolate, const char* main)
-      : isolate_(isolate), main_(main) {}
+      : Event(isolate), main_(main) {}
 
   virtual void Process();
  private:
-  Dart_Isolate isolate_;
   const char* main_;
 };
 
 
 void StartEvent::Process() {
-  OS::Print(">> StartEvent with isolate(%p)--\n", isolate_);
-  Dart_EnterIsolate(isolate_);
+  OS::Print(">> StartEvent with isolate(%p)--\n", isolate());
+  Dart_EnterIsolate(isolate());
   Dart_EnterScope();
   Dart_Handle result;
 
@@ -151,160 +206,42 @@ void StartEvent::Process() {
 }
 
 
-// Shutdown an isolate.
-class ShutdownEvent : public Event {
- public:
-  explicit ShutdownEvent(Dart_Isolate isolate) : isolate_(isolate) {}
-
-  virtual bool IsShutdownEvent(Dart_Isolate isolate) {
-    return isolate == isolate_;
-  }
-
-  virtual void Process();
- private:
-  Dart_Isolate isolate_;
-};
-
-
-void ShutdownEvent::Process() {
-  OS::Print("<< ShutdownEvent with isolate(%p)--\n", isolate_);
-  Dart_EnterIsolate(isolate_);
-  Dart_ShutdownIsolate();
-}
-
-
-// Deliver a message to an isolate.
+// Notify an isolate of a pending message.
 class MessageEvent : public Event {
  public:
-  MessageEvent(Dart_Isolate isolate, Dart_Port dest, Dart_Port reply,
-               Dart_Message msg)
-      : isolate_(isolate), dest_(dest), reply_(reply), msg_(msg) {}
+  explicit MessageEvent(Dart_Isolate isolate) : Event(isolate) {}
 
   ~MessageEvent() {
-    free(msg_);
-    msg_ = NULL;
-  }
-
-  virtual bool IsMessageEvent(Dart_Isolate isolate, Dart_Port port) {
-    return isolate == isolate_ && (port == kCloseAllPorts || port == dest_);
   }
 
   virtual void Process();
- private:
-  Dart_Isolate isolate_;
-  Dart_Port dest_;
-  Dart_Port reply_;
-  Dart_Message msg_;
 };
 
 
 void MessageEvent::Process() {
-  OS::Print("$$ MessageEvent with dest port %lld--\n", dest_);
-  Dart_EnterIsolate(isolate_);
+  OS::Print("$$ MessageEvent with isolate(%p)\n", isolate());
+  Dart_EnterIsolate(isolate());
   Dart_EnterScope();
 
-  Dart_Handle result = Dart_HandleMessage(dest_, reply_, msg_);
+  Dart_Handle result = Dart_HandleMessage();
   EXPECT_VALID(result);
 
-  Dart_ExitScope();
-  Dart_ExitIsolate();
-}
-
-
-// A simple event queue for our test.
-class EventQueue {
- public:
-  EventQueue() {
-    head_ = NULL;
-  }
-
-  void Add(Event* event) {
-    if (head_ == NULL) {
-      head_ = event;
-      tail_ = event;
-    } else {
-      tail_->next_ = event;
-      tail_ = event;
-    }
-  }
-
-  Event* Get() {
-    if (head_ == NULL) {
-      return NULL;
-    }
-    Event* tmp = head_;
-    head_ = head_->next_;
-    if (head_ == NULL) {
-      tail_ = NULL;
-    }
-
-    return tmp;
-  }
-
-  void ClosePort(Dart_Isolate isolate, Dart_Port port) {
-    Event* cur = head_;
-    Event* prev = NULL;
-    while (cur != NULL) {
-      Event* next = cur->next_;
-      if (cur->IsMessageEvent(isolate, port)) {
-        // Remove matching event.
-        if (prev != NULL) {
-          prev->next_ = next;
-        } else {
-          head_ = next;
-        }
-        delete cur;
-      } else {
-        // Advance.
-        prev = cur;
-      }
-      cur = next;
-    }
-    tail_ = prev;
-  }
-
- private:
-  Event* head_;
-  Event* tail_;
-};
-EventQueue* event_queue;
-Event* current_event;
-
-static bool PostMessage(Dart_Isolate dest_isolate,
-                        Dart_Port dest_port,
-                        Dart_Port reply_port,
-                        Dart_Message message) {
-  OS::Print("-- Posting message dest(%d) reply(%d) --\n",
-            dest_port, reply_port);
-  OS::Print("-- Adding MessageEvent to queue --\n");
-  event_queue->Add(
-      new MessageEvent(dest_isolate, dest_port, reply_port, message));
-  return true;
-}
-
-
-static void ClosePort(Dart_Isolate isolate,
-                      Dart_Port port) {
-  OS::Print("-- Closing port (%lld) for isolate(%p) --\n",
-            port, isolate);
-
-  // Remove any pending events for the isolate/port.
-  event_queue->ClosePort(isolate, port);
-
-  Dart_Isolate current = Dart_CurrentIsolate();
-  if (current) {
+  if (!Dart_HasLivePorts()) {
+    OS::Print("<< Shutting down isolate(%p)\n", isolate());
+    event_queue->RemoveEventsForIsolate(isolate());
+    Dart_ShutdownIsolate();
+  } else {
+    Dart_ExitScope();
     Dart_ExitIsolate();
   }
-  Dart_EnterIsolate(isolate);
-  if (!Dart_HasLivePorts() &&
-      (current_event == NULL || !current_event->IsShutdownEvent(isolate))) {
-    OS::Print("-- Adding ShutdownEvent to queue --\n");
-    event_queue->Add(new ShutdownEvent(isolate));
-  }
-  Dart_ExitIsolate();
-  if (current) {
-    Dart_EnterIsolate(current);
-  }
+  ASSERT(Dart_CurrentIsolate() == NULL);
+}
+
+
+static void NotifyMessage(Dart_Isolate dest_isolate) {
+  OS::Print("-- Notify isolate(%p) of pending message --\n", dest_isolate);
+  OS::Print("-- Adding MessageEvent to queue --\n");
+  event_queue->Add(new MessageEvent(dest_isolate));
 }
 
 
@@ -359,7 +296,7 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   // Create a new Dart_Isolate.
   Dart_Isolate new_isolate = TestCase::CreateTestIsolate();
   EXPECT(new_isolate != NULL);
-  Dart_SetMessageCallbacks(&PostMessage, &ClosePort);
+  Dart_SetMessageNotifyCallback(&NotifyMessage);
   Dart_Port new_port = Dart_GetMainPortId();
 
   OS::Print("-- Adding StartEvent to queue --\n");
@@ -381,11 +318,10 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
 
 UNIT_TEST_CASE(CustomIsolates) {
   event_queue = new EventQueue();
-  current_event = NULL;
 
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
   EXPECT(dart_isolate != NULL);
-  Dart_SetMessageCallbacks(&PostMessage, &ClosePort);
+  Dart_SetMessageNotifyCallback(&NotifyMessage);
   Dart_EnterScope();
   Dart_Handle result;
 
@@ -412,9 +348,7 @@ UNIT_TEST_CASE(CustomIsolates) {
   OS::Print("-- Starting event loop --\n");
   Event* event = event_queue->Get();
   while (event) {
-    current_event = event;
     event->Process();
-    current_event = NULL;
     delete event;
     event = event_queue->Get();
   }

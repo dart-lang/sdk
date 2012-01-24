@@ -1010,25 +1010,15 @@ UNIT_TEST_CASE(Isolates) {
 }
 
 
-static bool MyPostMessageCallback(Dart_Isolate dest_isolate,
-                                  Dart_Port send_port,
-                                  Dart_Port reply_port,
-                                  Dart_Message message) {
-  return true;
-}
-
-
-static void MyClosePortCallback(Dart_Isolate dest_isolate,
-                                Dart_Port port) {
+static void MyMessageNotifyCallback(Dart_Isolate dest_isolate) {
 }
 
 
 UNIT_TEST_CASE(SetMessageCallbacks) {
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
-  Dart_SetMessageCallbacks(&MyPostMessageCallback, &MyClosePortCallback);
+  Dart_SetMessageNotifyCallback(&MyMessageNotifyCallback);
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
-  EXPECT_EQ(&MyPostMessageCallback, isolate->post_message_callback());
-  EXPECT_EQ(&MyClosePortCallback, isolate->close_port_callback());
+  EXPECT_EQ(&MyMessageNotifyCallback, isolate->message_notify_callback());
   Dart_ShutdownIsolate();
 }
 

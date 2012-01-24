@@ -10,6 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/longjump.h"
+#include "vm/message_queue.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -362,7 +363,8 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 3) {
   uint8_t* data = SerializeObject(Instance::CheckedHandle(arguments->At(2)));
 
   // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(send_id, reply_id, Api::CastMessage(data));
+  PortMap::PostMessage(new Message(
+      send_id, reply_id, data, Message::kNormalPriority));
 }
 
 }  // namespace dart

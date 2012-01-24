@@ -7,6 +7,7 @@
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/isolate.h"
+#include "vm/message_queue.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -165,12 +166,7 @@ void PortMap::ClosePort(Dart_Port port) {
     deleted_++;
     MaintainInvariants();
   }
-
-  // Notify the embedder that this port is closed.
-  Dart_ClosePortCallback callback = isolate->close_port_callback();
-  ASSERT(callback);
-  ASSERT(port != kCloseAllPorts);
-  (*callback)(Api::CastIsolate(isolate), port);
+  isolate->ClosePort(port);
 }
 
 
@@ -191,19 +187,16 @@ void PortMap::ClosePorts() {
     }
     MaintainInvariants();
   }
-
-  // Notify the embedder that all ports are closed.
-  Dart_ClosePortCallback callback = isolate->close_port_callback();
-  ASSERT(callback);
-  (*callback)(Api::CastIsolate(isolate), kCloseAllPorts);
+  isolate->CloseAllPorts();
 }
 
 
-bool PortMap::PostMessage(Dart_Port dest_port,
-                          Dart_Port reply_port,
-                          Dart_Message message) {
+bool PortMap::PostMessage(Message* message) {
+  // TODO(turnidge): Add a scoped locker for mutexes which is not a
+  // stack resource.  This would probably be useful in the platform
+  // headers.
   mutex_->Lock();
-  intptr_t index = FindPort(dest_port);
+  intptr_t index = FindPort(message->dest_port());
   if (index < 0) {
     free(message);
     mutex_->Unlock();
@@ -214,27 +207,9 @@ bool PortMap::PostMessage(Dart_Port dest_port,
   Isolate* isolate = map_[index].isolate;
   ASSERT(map_[index].port != 0);
   ASSERT((isolate != NULL) && (isolate != deleted_entry_));
-
-  // Delegate message delivery to the embedder.
-  Dart_PostMessageCallback callback = isolate->post_message_callback();
-  ASSERT(callback);
-  bool result =
-      (*callback)(Api::CastIsolate(isolate), dest_port, reply_port, message);
-  if (FLAG_trace_isolates) {
-    const char* source_name = "<native code>";
-    Isolate* source_isolate = Isolate::Current();
-    if (source_isolate) {
-      source_name = source_isolate->name();
-    }
-    OS::Print("[>] Posting message:\n"
-              "\tsource:     %s\n"
-              "\treply_port: %lld\n"
-              "\tdest:       %s\n"
-              "\tdest_port:  %lld\n",
-              source_name, reply_port, isolate->name(), dest_port);
-  }
+  isolate->PostMessage(message);
   mutex_->Unlock();
-  return result;
+  return true;
 }
 
 

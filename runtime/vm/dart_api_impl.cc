@@ -15,6 +15,7 @@
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/longjump.h"
+#include "vm/message_queue.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -198,11 +199,6 @@ WeakPersistentHandle* Api::UnwrapAsWeakPersistentHandle(const ApiState& state,
 
 Dart_Isolate Api::CastIsolate(Isolate* isolate) {
   return reinterpret_cast<Dart_Isolate>(isolate);
-}
-
-
-Dart_Message Api::CastMessage(uint8_t* message) {
-  return reinterpret_cast<Dart_Message>(message);
 }
 
 
@@ -628,15 +624,11 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
 // --- Messages and Ports ---
 
 
-DART_EXPORT void Dart_SetMessageCallbacks(
-    Dart_PostMessageCallback post_message_callback,
-    Dart_ClosePortCallback close_port_callback) {
+DART_EXPORT void Dart_SetMessageNotifyCallback(
+    Dart_MessageNotifyCallback message_notify_callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  ASSERT(post_message_callback != NULL);
-  ASSERT(close_port_callback != NULL);
-  isolate->set_post_message_callback(post_message_callback);
-  isolate->set_close_port_callback(close_port_callback);
+  isolate->set_message_notify_callback(message_notify_callback);
 }
 
 
@@ -677,20 +669,35 @@ static RawInstance* DeserializeMessage(void* data) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_HandleMessage(Dart_Port dest_port_id,
-                                           Dart_Port reply_port_id,
-                                           Dart_Message dart_message) {
-  DARTSCOPE(Isolate::Current());
-  const Instance& msg = Instance::Handle(DeserializeMessage(dart_message));
-  // TODO(turnidge): Should this call be wrapped in a longjmp?
-  const Object& result =
-      Object::Handle(DartLibraryCalls::HandleMessage(dest_port_id,
-                                                     reply_port_id,
-                                                     msg));
-  if (result.IsError()) {
-    return Api::NewLocalHandle(result);
-  }
-  ASSERT(result.IsNull());
+DART_EXPORT Dart_Handle Dart_HandleMessage() {
+  Isolate* isolate = Isolate::Current();
+  // Process all OOB messages and at most one normal message.
+  Message* message = NULL;
+  Message::Priority priority = Message::kNormalPriority;
+  do {
+    DARTSCOPE(isolate);
+    message = isolate->message_queue()->DequeueNoWait();
+    if (message == NULL) {
+      break;
+    }
+    priority = message->priority();
+    if (priority == Message::kOOBPriority) {
+      // TODO(turnidge): Out of band messages will not go through the
+      // regular message handler.  Instead they will be dispatched to
+      // special vm code.  Implement.
+      UNIMPLEMENTED();
+    }
+    const Instance& msg =
+        Instance::Handle(DeserializeMessage(message->data()));
+    const Object& result = Object::Handle(
+        DartLibraryCalls::HandleMessage(
+            message->dest_port(), message->reply_port(), msg));
+    delete message;
+    if (result.IsError()) {
+      return Api::NewLocalHandle(result);
+    }
+    ASSERT(result.IsNull());
+  } while (priority >= Message::kOOBPriority);
   return Api::Success();
 }
 
@@ -717,7 +724,8 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
   writer.WriteMessage(len, data);
 
   // Post the message at the given port.
-  return PortMap::PostMessage(port_id, kNoReplyPort, Api::CastMessage(buffer));
+  return PortMap::PostMessage(new Message(
+      port_id, Message::kIllegalPort, buffer, Message::kNormalPriority));
 }
 
 
@@ -730,7 +738,8 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   SnapshotWriter writer(Snapshot::kMessage, &data, &allocator);
   writer.WriteObject(object.raw());
   writer.FinalizeBuffer();
-  return PortMap::PostMessage(port_id, kNoReplyPort, Api::CastMessage(data));
+  return PortMap::PostMessage(new Message(
+      port_id, Message::kIllegalPort, data, Message::kNormalPriority));
 }
 
 

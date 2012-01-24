@@ -30,32 +30,15 @@ class PortMapTestPeer {
 
 
 // Intercept the post message callback and just store a copy of the message.
-static const int kMaxSavedMsg = 80;
-static char saved_msg[kMaxSavedMsg];
-static bool MyPostMessageCallback(Dart_Isolate dest_isolate,
-                                  Dart_Port dest_port,
-                                  Dart_Port reply_port,
-                                  Dart_Message dart_message) {
-  const char* msg = reinterpret_cast<char*>(dart_message);
-  OS::SNPrint(saved_msg, kMaxSavedMsg, "%s", msg);
-  bool result = (strcmp(msg, "fail") != 0);
-  free(dart_message);
-  return result;
-}
-
-
-// Intercept the close port callback and remember which port was closed.
-static Dart_Port saved_port = 0;
-static void MyClosePortCallback(Dart_Isolate dart_isolate,
-                                Dart_Port port) {
-  saved_port = port;
+static int notify_count = 0;
+static void MyMessageNotifyCallback(Dart_Isolate dest_isolate) {
+  notify_count++;
 }
 
 
 static void InitPortMapTest() {
-  Dart_SetMessageCallbacks(&MyPostMessageCallback, &MyClosePortCallback);
-  saved_port = 0;
-  saved_msg[0] = '\0';
+  Dart_SetMessageNotifyCallback(&MyMessageNotifyCallback);
+  notify_count = 0;
 }
 
 
@@ -67,9 +50,6 @@ TEST_CASE(PortMap_CreateAndCloseOnePort) {
 
   PortMap::ClosePort(port);
   EXPECT(!PortMapTestPeer::IsActivePort(port));
-
-  // Embedder was notified of port closure.
-  EXPECT_EQ(port, saved_port);
 }
 
 
@@ -86,12 +66,10 @@ TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
   PortMap::ClosePort(port1);
   EXPECT(!PortMapTestPeer::IsActivePort(port1));
   EXPECT(PortMapTestPeer::IsActivePort(port2));
-  EXPECT_EQ(port1, saved_port);
 
   PortMap::ClosePort(port2);
   EXPECT(!PortMapTestPeer::IsActivePort(port1));
   EXPECT(!PortMapTestPeer::IsActivePort(port2));
-  EXPECT_EQ(port2, saved_port);
 }
 
 
@@ -106,9 +84,6 @@ TEST_CASE(PortMap_ClosePorts) {
   PortMap::ClosePorts();
   EXPECT(!PortMapTestPeer::IsActivePort(port1));
   EXPECT(!PortMapTestPeer::IsActivePort(port2));
-
-  // Embedder is notified to close all ports as well.
-  EXPECT_EQ(kCloseAllPorts, saved_port);
 }
 
 
@@ -137,67 +112,52 @@ TEST_CASE(PortMap_SetLive) {
   PortMap::ClosePort(port);
   EXPECT(!PortMapTestPeer::IsActivePort(port));
   EXPECT(!PortMapTestPeer::IsLivePort(port));
-
-  // Embedder was notified of port closure.
-  EXPECT_EQ(port, saved_port);
 }
 
 
 TEST_CASE(PortMap_PostMessage) {
   InitPortMapTest();
   Dart_Port port = PortMap::CreatePort();
-  EXPECT(PortMap::PostMessage(
-      port, 0, reinterpret_cast<Dart_Message>(strdup("msg"))));
+  EXPECT(PortMap::PostMessage(new Message(
+      port, 0, reinterpret_cast<uint8_t*>(strdup("msg")),
+      Message::kNormalPriority)));
 
-  // Check that the post message callback was called.
-  EXPECT_STREQ("msg", saved_msg);
+  // Check that the message notify callback was called.
+  EXPECT_EQ(1, notify_count);
   PortMap::ClosePorts();
 }
 
 
 TEST_CASE(PortMap_PostMessageInvalidPort) {
   InitPortMapTest();
-  EXPECT(!PortMap::PostMessage(
-      0, 0, reinterpret_cast<Dart_Message>(strdup("msg"))));
+  EXPECT(!PortMap::PostMessage(new Message(
+      0, 0, reinterpret_cast<uint8_t*>(strdup("msg")),
+      Message::kNormalPriority)));
 
-  // Check that the post message callback was not called.
-  EXPECT_STREQ("", saved_msg);
-}
-
-
-TEST_CASE(PortMap_PostMessageFailureInCallback) {
-  InitPortMapTest();
-  Dart_Port port = PortMap::CreatePort();
-
-  // Our callback is rigged to return false when it sees the message
-  // "fail".  This return value is propagated out of PostMessage.
-  EXPECT(!PortMap::PostMessage(
-      port, 0, reinterpret_cast<Dart_Message>(strdup("fail"))));
-
-  // Check that the post message callback was called.
-  EXPECT_STREQ("fail", saved_msg);
-  PortMap::ClosePorts();
+  // Check that the message notifycallback was not called.
+  EXPECT_STREQ(0, notify_count);
 }
 
 
 // End-of-test marker.
 static const intptr_t kEOT = 0xFFFF;
 
-Dart_Message AllocIntData(intptr_t payload) {
+
+uint8_t* AllocIntData(intptr_t payload) {
   intptr_t* result = reinterpret_cast<intptr_t*>(malloc(sizeof(payload)));
   *result = payload;
-  return reinterpret_cast<Dart_Message>(result);
+  return reinterpret_cast<uint8_t*>(result);
 }
 
 
-intptr_t GetIntData(Dart_Message data) {
+intptr_t GetIntData(uint8_t* data) {
   return *reinterpret_cast<intptr_t*>(data);
 }
 
 
-static PortMessage* NextMessage() {
+static Message* NextMessage() {
   Isolate* isolate = Isolate::Current();
-  PortMessage* result = isolate->message_queue()->Dequeue(0);
+  Message* result = isolate->message_queue()->Dequeue(0);
   return result;
 }
 
@@ -211,11 +171,11 @@ void ThreadedPort_start(uword parameter) {
   intptr_t remote = parameter;
   intptr_t local = PortMap::CreatePort();
 
-  PortMap::PostMessage(remote, 0, AllocIntData(local));
-
+  PortMap::PostMessage(new Message(
+      remote, 0, AllocIntData(local), Message::kNormalPriority));
   intptr_t count = 0;
   while (true) {
-    PortMessage* msg = NextMessage();
+    Message* msg = NextMessage();
     EXPECT_EQ(local, msg->dest_port());
     EXPECT(msg != NULL);
     if (GetIntData(msg->data()) == kEOT) {
@@ -223,11 +183,12 @@ void ThreadedPort_start(uword parameter) {
     }
     EXPECT(GetIntData(msg->data()) == count);
     delete msg;
-    PortMap::PostMessage(remote, 0, AllocIntData(count * 2));
+    PortMap::PostMessage(new Message(
+        remote, 0, AllocIntData(count * 2), Message::kNormalPriority));
     count++;
   }
-  PortMap::PostMessage(remote, 0, AllocIntData(kEOT));
-
+  PortMap::PostMessage(new Message(
+      remote, 0, AllocIntData(kEOT), Message::kNormalPriority));
   Dart::ShutdownIsolate();
 }
 
@@ -238,22 +199,24 @@ TEST_CASE(ThreadedPort) {
   Thread* thr = new Thread(ThreadedPort_start, local);
   EXPECT(thr != NULL);
 
-  PortMessage* msg = NextMessage();
+  Message* msg = NextMessage();
   EXPECT_EQ(local, msg->dest_port());
   EXPECT(msg != NULL);
   intptr_t remote = GetIntData(msg->data());  // Get the remote port.
   delete msg;
 
   for (intptr_t i = 0; i < 10; i++) {
-    PortMap::PostMessage(remote, 0, AllocIntData(i));
-    PortMessage* msg = NextMessage();
+    PortMap::PostMessage(
+        new Message(remote, 0, AllocIntData(i), Message::kNormalPriority));
+    Message* msg = NextMessage();
     EXPECT_EQ(local, msg->dest_port());
     EXPECT(msg != NULL);
     EXPECT_EQ(i * 2, GetIntData(msg->data()));
     delete msg;
   }
 
-  PortMap::PostMessage(remote, 0, AllocIntData(kEOT));
+  PortMap::PostMessage(
+      new Message(remote, 0, AllocIntData(kEOT), Message::kNormalPriority));
   msg = NextMessage();
   EXPECT_EQ(local, msg->dest_port());
   EXPECT(msg != NULL);
