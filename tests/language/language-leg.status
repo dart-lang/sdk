@@ -55,13 +55,11 @@ Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
-ConstructorBodyTest: Fail
 ConstructorDefaultTest: Fail
-ConstructorDuplicateInitializersTest/none: Fail
+ConstructorDuplicateInitializersTest/02: Fail
 ConstructorNegativeTest: Pass # For the wrong reason.
 ConstructorRedirectTest: Fail
 ConstructorReturnNegativeTest: Fail
-ConstructorReturnTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
@@ -138,7 +136,6 @@ GenericInstanceofTest: Fail
 GenericParameterizedExtendsTest: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
-Generics2Test: Fail
 GenericsTest: Fail
 GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
@@ -253,7 +250,6 @@ OverrideFieldTest/03: Fail
 OverrideFieldTest/none: Fail
 OverrideMethodWithFieldTest/none: Fail
 Param2Test: Fail
-ParameterInitializer2Test: Fail
 ParameterInitializerTest: Fail
 Prefix10Test: Fail
 Prefix11Test: Fail
