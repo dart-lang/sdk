@@ -159,7 +159,6 @@ IncrOpTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
-InstanceCallWrongArgumentCountNegativeTest: Fail
 InstanceCompoundAssignmentOperatorTest: Fail
 InstanceFieldInitializerTest: Fail
 Instanceof2Test: Fail
@@ -245,6 +244,7 @@ OptimizationTest: Fail
 OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
 OverriddenNoSuchMethodTest: Fail
+OverrideFieldMethod1NegativeTest: Fail
 OverrideFieldMethod2NegativeTest: Fail
 OverrideFieldMethod3NegativeTest: Fail
 OverrideFieldMethod4NegativeTest: Fail
