@@ -33,6 +33,7 @@ LibTest/core/Set/add/Set/add/A01/t05: Fail                        # Bug 5392511
 LibTest/core/Set/addAll/Set/addAll/A01/t05: Fail                  # Bug 5392511
 LibTest/core/Set/contains/Set/contains/A01/t04: Fail              # Bug 5392511
 LibTest/core/Set/containsAll/Set/containsAll/A01/t04: Fail        # Bug 5392511
+LibTest/core/String/contains/String/contains/A03/t01: Fail # Issue 1317
 LibTest/core/int/operator-/int/operator-/A01/t01: Fail
 LibTest/core/int/operator_div/int/operator/div/A01/t01: Fail
 LibTest/core/int/operator_~div/int/operator/~div/A01/t01: Fail
