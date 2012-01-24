@@ -1,9 +1,9 @@
 
-class ClientRectList native "*ClientRectList" {
+class ClientRectListJS implements ClientRectList native "*ClientRectList" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  ClientRect item(int index) native;
+  ClientRectJS item(int index) native;
 
   var dartObjectLocalStorage;
 

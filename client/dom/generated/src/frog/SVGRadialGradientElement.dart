@@ -1,13 +1,13 @@
 
-class SVGRadialGradientElement extends SVGGradientElement native "*SVGRadialGradientElement" {
+class SVGRadialGradientElementJS extends SVGGradientElementJS implements SVGRadialGradientElement native "*SVGRadialGradientElement" {
 
-  SVGAnimatedLength cx;
+  SVGAnimatedLengthJS get cx() native "return this.cx;";
 
-  SVGAnimatedLength cy;
+  SVGAnimatedLengthJS get cy() native "return this.cy;";
 
-  SVGAnimatedLength fx;
+  SVGAnimatedLengthJS get fx() native "return this.fx;";
 
-  SVGAnimatedLength fy;
+  SVGAnimatedLengthJS get fy() native "return this.fy;";
 
-  SVGAnimatedLength r;
+  SVGAnimatedLengthJS get r() native "return this.r;";
 }

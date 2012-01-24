@@ -1,5 +1,5 @@
 
-class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
+class SVGFEBlendElementJS extends SVGElementJS implements SVGFEBlendElement native "*SVGFEBlendElement" {
 
   static final int SVG_FEBLEND_MODE_DARKEN = 4;
 
@@ -13,29 +13,29 @@ class SVGFEBlendElement extends SVGElement native "*SVGFEBlendElement" {
 
   static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedStringJS get in1() native "return this.in1;";
 
-  SVGAnimatedString in2;
+  SVGAnimatedStringJS get in2() native "return this.in2;";
 
-  SVGAnimatedEnumeration mode;
+  SVGAnimatedEnumerationJS get mode() native "return this.mode;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedStringJS get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

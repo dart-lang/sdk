@@ -1,5 +1,5 @@
 
-class Float64Array extends ArrayBufferView implements List<num> native "*Float64Array" {
+class Float64ArrayJS extends ArrayBufferViewJS implements Float64Array, List<num> native "*Float64Array" {
 
   factory Float64Array(int length) =>  _construct(length);
 
@@ -11,11 +11,13 @@ class Float64Array extends ArrayBufferView implements List<num> native "*Float64
 
   static final int BYTES_PER_ELEMENT = 8;
 
-  int length;
+  int get length() native "return this.length;";
 
   num operator[](int index) native;
 
   void operator[]=(int index, num value) native;
 
-  Float64Array subarray(int start, [int end = null]) native;
+  void setElements(Object array, [int offset = null]) native;
+
+  Float64ArrayJS subarray(int start, [int end = null]) native;
 }

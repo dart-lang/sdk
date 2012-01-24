@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -321,8 +321,10 @@ static FieldElementImplementation fieldFromNode(DartField node,
     TypeVariable[] typeVariables = new TypeVariable[parameterNodes.size()];
     int i = 0;
     for (DartTypeParameter parameterNode : parameterNodes) {
-      typeVariables[i++] =
+      TypeVariable typeVariable =
           Elements.typeVariableFromNode(parameterNode, element).getTypeVariable();
+      typeVariables[i++] = typeVariable;
+      parameterNode.getName().setSymbol(typeVariable.getElement());
     }
     return Arrays.asList(typeVariables);
   }

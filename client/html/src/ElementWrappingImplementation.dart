@@ -28,7 +28,8 @@ class _ChildrenElementList implements ElementList {
 
   Collection map(f(Element element)) => _toList().map(f);
 
-  Collection<Element> filter(bool f(Element element)) => _toList().filter(f);
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(_toList().filter(f));
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -102,7 +103,8 @@ class _ChildrenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  ElementList getRange(int start, int length) =>
+    new _ElementList(Lists.getRange(this, start, length));
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -141,29 +143,43 @@ class FrozenElementList implements ElementList {
   }
 
   void forEach(void f(Element element)) {
-    final length = _ptr.length;
-    for (var i = 0; i < length; i++) {
-      f(LevelDom.wrapElement(_ptr[i]));
+    for (Element el in this) {
+      f(el);
     }
   }
 
   Collection map(f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
+    var out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
   }
 
-  Collection<Element> filter(bool f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
+  ElementList filter(bool f(Element element)) {
+    var out = new _ElementList([]);
+    for (Element el in this) {
+      if (f(el)) out.add(el);
+    }
+    return out;
   }
 
   bool every(bool f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
+    for(Element element in this) {
+      if (!f(element)) {
+        return false;
+      }
+    };
+    return true;
   }
 
   bool some(bool f(Element element)) {
-    throw 'Not impl yet. todo(jacobr)';
+    for(Element element in this) {
+      if (f(element)) {
+        return true;
+      }
+    };
+    return false;
   }
 
   bool isEmpty() {
@@ -210,35 +226,34 @@ class FrozenElementList implements ElementList {
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
   void insertRange(int start, int length, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  ElementList getRange(int start, int length) =>
+    new _ElementList(Lists.getRange(this, start, length));
 
-  int indexOf(Element element, [int start = 0]) {
-    throw 'Not impl yet. todo(jacobr)';
-  }
+  int indexOf(Element element, [int start = 0]) =>
+    Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Element element, [int start = null]) {
-    throw 'Not impl yet. todo(jacobr)';
+    if (start === null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
-    throw 'Not impl yet. todo(jacobr)';
+    throw const UnsupportedOperationException('');
   }
 
   Element removeLast() {
-    throw 'Not impl yet. todo(jacobr)';
+    throw const UnsupportedOperationException('');
   }
 
   Element last() {
@@ -268,6 +283,16 @@ class FrozenElementListIterator implements Iterator<Element> {
    * Returns whether the [Iterator] has elements left.
    */
   bool hasNext() => _index < _list.length;
+}
+
+class _ElementList extends _ListWrapper<Element> implements ElementList {
+  _ElementList(List<Element> list) : super(list);
+
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(super.filter(f));
+
+  ElementList getRange(int start, int length) =>
+    new _ElementList(super.getRange(start, length));
 }
 
 class ElementAttributeMap implements Map<String, String> {

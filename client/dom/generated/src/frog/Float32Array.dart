@@ -1,5 +1,5 @@
 
-class Float32Array extends ArrayBufferView implements List<num> native "*Float32Array" {
+class Float32ArrayJS extends ArrayBufferViewJS implements Float32Array, List<num> native "*Float32Array" {
 
   factory Float32Array(int length) =>  _construct(length);
 
@@ -11,11 +11,13 @@ class Float32Array extends ArrayBufferView implements List<num> native "*Float32
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int length;
+  int get length() native "return this.length;";
 
   num operator[](int index) native;
 
   void operator[]=(int index, num value) native;
 
-  Float32Array subarray(int start, [int end = null]) native;
+  void setElements(Object array, [int offset = null]) native;
+
+  Float32ArrayJS subarray(int start, [int end = null]) native;
 }

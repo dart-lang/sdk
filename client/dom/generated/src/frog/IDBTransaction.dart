@@ -1,5 +1,5 @@
 
-class IDBTransaction native "*IDBTransaction" {
+class IDBTransactionJS implements IDBTransaction native "*IDBTransaction" {
 
   static final int READ_ONLY = 0;
 
@@ -7,23 +7,29 @@ class IDBTransaction native "*IDBTransaction" {
 
   static final int VERSION_CHANGE = 2;
 
-  IDBDatabase db;
+  IDBDatabaseJS get db() native "return this.db;";
 
-  int mode;
+  int get mode() native "return this.mode;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener oncomplete;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onerror;
+  EventListener get oncomplete() native "return this.oncomplete;";
+
+  void set oncomplete(EventListener value) native "this.oncomplete = value;";
+
+  EventListener get onerror() native "return this.onerror;";
+
+  void set onerror(EventListener value) native "this.onerror = value;";
 
   void abort() native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
-  IDBObjectStore objectStore(String name) native;
+  IDBObjectStoreJS objectStore(String name) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

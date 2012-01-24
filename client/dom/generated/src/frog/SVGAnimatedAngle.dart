@@ -1,9 +1,9 @@
 
-class SVGAnimatedAngle native "*SVGAnimatedAngle" {
+class SVGAnimatedAngleJS implements SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
-  SVGAngle animVal;
+  SVGAngleJS get animVal() native "return this.animVal;";
 
-  SVGAngle baseVal;
+  SVGAngleJS get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

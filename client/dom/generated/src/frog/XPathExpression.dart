@@ -1,7 +1,7 @@
 
-class XPathExpression native "*XPathExpression" {
+class XPathExpressionJS implements XPathExpression native "*XPathExpression" {
 
-  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
+  XPathResultJS evaluate(NodeJS contextNode, int type, XPathResultJS inResult) native;
 
   var dartObjectLocalStorage;
 

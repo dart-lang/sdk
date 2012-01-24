@@ -1,7 +1,7 @@
 
-class XMLHttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
+class XMLHttpRequestProgressEventJS extends ProgressEventJS implements XMLHttpRequestProgressEvent native "*XMLHttpRequestProgressEvent" {
 
-  int position;
+  int get position() native "return this.position;";
 
-  int totalSize;
+  int get totalSize() native "return this.totalSize;";
 }

@@ -1,25 +1,25 @@
 
-class SVGElementInstance native "*SVGElementInstance" {
+class SVGElementInstanceJS implements SVGElementInstance native "*SVGElementInstance" {
 
-  SVGElementInstanceList childNodes;
+  SVGElementInstanceListJS get childNodes() native "return this.childNodes;";
 
-  SVGElement correspondingElement;
+  SVGElementJS get correspondingElement() native "return this.correspondingElement;";
 
-  SVGUseElement correspondingUseElement;
+  SVGUseElementJS get correspondingUseElement() native "return this.correspondingUseElement;";
 
-  SVGElementInstance firstChild;
+  SVGElementInstanceJS get firstChild() native "return this.firstChild;";
 
-  SVGElementInstance lastChild;
+  SVGElementInstanceJS get lastChild() native "return this.lastChild;";
 
-  SVGElementInstance nextSibling;
+  SVGElementInstanceJS get nextSibling() native "return this.nextSibling;";
 
-  SVGElementInstance parentNode;
+  SVGElementInstanceJS get parentNode() native "return this.parentNode;";
 
-  SVGElementInstance previousSibling;
+  SVGElementInstanceJS get previousSibling() native "return this.previousSibling;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event event) native;
+  bool dispatchEvent(EventJS event) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

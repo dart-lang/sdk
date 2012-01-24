@@ -1,5 +1,5 @@
 
-class Int16Array extends ArrayBufferView implements List<int> native "*Int16Array" {
+class Int16ArrayJS extends ArrayBufferViewJS implements Int16Array, List<int> native "*Int16Array" {
 
   factory Int16Array(int length) =>  _construct(length);
 
@@ -11,11 +11,13 @@ class Int16Array extends ArrayBufferView implements List<int> native "*Int16Arra
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int length;
+  int get length() native "return this.length;";
 
   int operator[](int index) native;
 
   void operator[]=(int index, int value) native;
 
-  Int16Array subarray(int start, [int end = null]) native;
+  void setElements(Object array, [int offset = null]) native;
+
+  Int16ArrayJS subarray(int start, [int end = null]) native;
 }

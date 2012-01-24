@@ -381,22 +381,6 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
   ASSERT(!factory_signature_class.IsNull());
   ResolveAndFinalizeUpperBounds(factory_class);
   ResolveAndFinalizeUpperBounds(factory_signature_class);
-  const intptr_t num_type_params = factory_signature_class.NumTypeParameters();
-  bool mismatch = factory_class.NumTypeParameters() != num_type_params;
-  if (mismatch && (num_type_params == 0)) {
-    // TODO(regis): For now, and until the core lib is fixed, we accept a
-    // factory clause with a class missing its list of type parameters.
-    // See bug 5408808.
-    const String& interface_name = String::Handle(interface.Name());
-    const String& factory_name = String::Handle(factory_class.Name());
-    const Script& script = Script::Handle(interface.script());
-    ReportWarning(script, unresolved_factory_class.token_index(),
-                  "class '%s' in default clause of interface '%s' is "
-                  "missing its type parameter list.\n",
-                  factory_name.ToCString(),
-                  interface_name.ToCString());
-    return;
-  }
   String& expected_type_name = String::Handle();
   String& actual_type_name = String::Handle();
   AbstractType& expected_type_extends = AbstractType::Handle();
@@ -409,6 +393,8 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
       TypeArguments::Handle(factory_signature_class.type_parameter_extends());
   const TypeArguments& actual_extends_array =
       TypeArguments::Handle(factory_class.type_parameter_extends());
+  const intptr_t num_type_params = factory_signature_class.NumTypeParameters();
+  bool mismatch = factory_class.NumTypeParameters() != num_type_params;
   for (intptr_t i = 0; !mismatch && (i < num_type_params); i++) {
     expected_type_name ^= expected_type_names.At(i);
     actual_type_name ^= actual_type_names.At(i);
@@ -725,45 +711,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
                                                  const Function& function) {
   // Resolve result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
-  if (!type.IsResolved()) {
-    if (function.IsFactory()) {
-      // TODO(regis): Factory functions should not declare type parameters
-      // anymore. Remove this code once all libraries are fixed.
-
-      // The signature class of the factory for a generic class used to hold the
-      // type parameters and their upper bounds. Copy the signature class from
-      // the result before it gets resolved.
-      const UnresolvedClass& unresolved_type_class =
-          UnresolvedClass::Handle(type.unresolved_class());
-      const Class& factory_signature_class =
-          Class::Handle(unresolved_type_class.factory_signature_class());
-
-      if (!factory_signature_class.IsNull()) {
-        // TODO(regis): Remove support for obsolete syntax in the parser.
-        ASSERT(factory_signature_class.NumTypeParameters() > 0);
-        function.set_signature_class(factory_signature_class);
-        ResolveType(cls, type);
-        const Class& type_class = Class::Handle(type.type_class());
-        // Verify that the factory signature declares the same number of type
-        // parameters as the return type class or interface.
-        ResolveAndFinalizeUpperBounds(factory_signature_class);
-        if (factory_signature_class.NumTypeParameters() !=
-            type_class.NumTypeParameters()) {
-          const String& function_name = String::Handle(function.name());
-          const Class& enclosing_class = Class::Handle(function.owner());
-          const Script& script = Script::Handle(enclosing_class.script());
-          ReportError(script, unresolved_type_class.token_index(),
-                      "factory method '%s' declares wrong number of type "
-                      "parameters (obsolete syntax).\n",
-                      function_name.ToCString());
-        }
-      } else {
-        ResolveType(cls, type);
-      }
-    } else {
-      ResolveType(cls, type);
-    }
-  }
+  ResolveType(cls, type);
   type = FinalizeType(cls, type);
   function.set_result_type(type);
   // Resolve formal parameter types.

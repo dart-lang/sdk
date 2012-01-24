@@ -1,39 +1,51 @@
 
-class SVGMatrix native "*SVGMatrix" {
+class SVGMatrixJS implements SVGMatrix native "*SVGMatrix" {
 
-  num a;
+  num get a() native "return this.a;";
 
-  num b;
+  void set a(num value) native "this.a = value;";
 
-  num c;
+  num get b() native "return this.b;";
 
-  num d;
+  void set b(num value) native "this.b = value;";
 
-  num e;
+  num get c() native "return this.c;";
 
-  num f;
+  void set c(num value) native "this.c = value;";
 
-  SVGMatrix flipX() native;
+  num get d() native "return this.d;";
 
-  SVGMatrix flipY() native;
+  void set d(num value) native "this.d = value;";
 
-  SVGMatrix inverse() native;
+  num get e() native "return this.e;";
 
-  SVGMatrix multiply(SVGMatrix secondMatrix) native;
+  void set e(num value) native "this.e = value;";
 
-  SVGMatrix rotate(num angle) native;
+  num get f() native "return this.f;";
 
-  SVGMatrix rotateFromVector(num x, num y) native;
+  void set f(num value) native "this.f = value;";
 
-  SVGMatrix scale(num scaleFactor) native;
+  SVGMatrixJS flipX() native;
 
-  SVGMatrix scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
+  SVGMatrixJS flipY() native;
 
-  SVGMatrix skewX(num angle) native;
+  SVGMatrixJS inverse() native;
 
-  SVGMatrix skewY(num angle) native;
+  SVGMatrixJS multiply(SVGMatrixJS secondMatrix) native;
 
-  SVGMatrix translate(num x, num y) native;
+  SVGMatrixJS rotate(num angle) native;
+
+  SVGMatrixJS rotateFromVector(num x, num y) native;
+
+  SVGMatrixJS scale(num scaleFactor) native;
+
+  SVGMatrixJS scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
+
+  SVGMatrixJS skewX(num angle) native;
+
+  SVGMatrixJS skewY(num angle) native;
+
+  SVGMatrixJS translate(num x, num y) native;
 
   var dartObjectLocalStorage;
 

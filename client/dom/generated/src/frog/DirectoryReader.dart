@@ -1,5 +1,5 @@
 
-class DirectoryReader native "*DirectoryReader" {
+class DirectoryReaderJS implements DirectoryReader native "*DirectoryReader" {
 
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native;
 

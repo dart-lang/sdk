@@ -37,8 +37,7 @@ DECLARE_FLAG(bool, generate_gdb_symbols);
 Isolate::Isolate()
     : store_buffer_(),
       message_queue_(NULL),
-      post_message_callback_(NULL),
-      close_port_callback_(NULL),
+      message_notify_callback_(NULL),
       name_(NULL),
       num_ports_(0),
       live_ports_(0),
@@ -81,33 +80,51 @@ Isolate::~Isolate() {
   delete api_state_;
   delete stub_code_;
   delete code_index_table_;
+  delete debugger_;
   delete mutex_;
   mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
 }
 
 
-static bool StandardPostMessageCallback(Dart_Isolate dart_isolate,
-                                        Dart_Port dest_port,
-                                        Dart_Port reply_port,
-                                        Dart_Message dart_message) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
-  ASSERT(isolate != NULL);
-  PortMessage* message = new PortMessage(dest_port, reply_port, dart_message);
-  isolate->message_queue()->Enqueue(message);
-  return true;
+void Isolate::PostMessage(Message* message) {
+  if (FLAG_trace_isolates) {
+    const char* source_name = "<native code>";
+    Isolate* source_isolate = Isolate::Current();
+    if (source_isolate) {
+      source_name = source_isolate->name();
+    }
+    OS::Print("[>] Posting message:\n"
+              "\tsource:     %s\n"
+              "\treply_port: %lld\n"
+              "\tdest:       %s\n"
+              "\tdest_port:  %lld\n",
+              source_name, message->reply_port(), name(), message->dest_port());
+  }
+
+  Message::Priority priority = message->priority();
+  message_queue()->Enqueue(message);
+  message = NULL;  // Do not access message.  May have been deleted.
+
+  ASSERT(priority < Message::kOOBPriority);
+  if (priority >= Message::kOOBPriority) {
+    // Handle out of band messages even if the isolate is busy.
+    ScheduleInterrupts(Isolate::kMessageInterrupt);
+  }
+  Dart_MessageNotifyCallback callback = message_notify_callback();
+  if (callback) {
+    // Allow the embedder to handle message notification.
+    (*callback)(Api::CastIsolate(this));
+  }
 }
 
 
-static void StandardClosePortCallback(Dart_Isolate dart_isolate,
-                                      Dart_Port port) {
-  // Remove the pending messages for this port.
-  Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
-  ASSERT(isolate != NULL);
-  if (port == kCloseAllPorts) {
-    isolate->message_queue()->FlushAll();
-  } else {
-    isolate->message_queue()->Flush(port);
-  }
+void Isolate::ClosePort(Dart_Port port) {
+  message_queue()->Flush(port);
+}
+
+
+void Isolate::CloseAllPorts() {
+  message_queue()->FlushAll();
 }
 
 
@@ -123,8 +140,6 @@ Isolate* Isolate::Init(const char* name_prefix) {
   MessageQueue* queue = new MessageQueue();
   ASSERT(queue != NULL);
   result->set_message_queue(queue);
-  result->set_post_message_callback(&StandardPostMessageCallback);
-  result->set_close_port_callback(&StandardClosePortCallback);
 
   // Setup the Dart API state.
   ApiState* state = new ApiState();
@@ -193,7 +208,7 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
   mutex_->Lock();
   ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
   if (stack_limit_ == saved_stack_limit_) {
-    stack_limit_ = ~static_cast<uword>(0) & ~kInterruptsMask;
+    stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
   }
   stack_limit_ |= interrupt_bits;
   mutex_->Unlock();
@@ -263,6 +278,15 @@ void Isolate::Shutdown() {
   ASSERT(top_resource_ == NULL);
   ASSERT((heap_ == NULL) || heap_->Verify());
 
+  // Clean up debugger resources. Shutting down the debugger
+  // requires a handle zone. We must set up a temporary zone because
+  // Isolate::Shutdown is called without a zone.
+  {
+    Zone zone(this);
+    HandleScope handle_scope(this);
+    debugger_->Shutdown();
+  }
+
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts();
 
@@ -328,25 +352,31 @@ static RawInstance* DeserializeMessage(void* data) {
 
 RawObject* Isolate::StandardRunLoop() {
   ASSERT(long_jump_base() != NULL);
-  ASSERT(post_message_callback() == &StandardPostMessageCallback);
-  ASSERT(close_port_callback() == &StandardClosePortCallback);
+  ASSERT(message_notify_callback() == NULL);
 
   while (live_ports() > 0) {
     ASSERT(this == Isolate::Current());
     Zone zone(this);
     HandleScope handle_scope(this);
 
-    PortMessage* message = message_queue()->Dequeue(0);
+    Message* message = message_queue()->Dequeue(0);
     if (message != NULL) {
+      if (message->priority() >= Message::kOOBPriority) {
+        // TODO(turnidge): Out of band messages will not go through the
+        // regular message handler.  Instead they will be dispatched to
+        // special vm code.  Implement.
+        UNIMPLEMENTED();
+      }
       const Instance& msg =
           Instance::Handle(DeserializeMessage(message->data()));
       const Object& result = Object::Handle(
           DartLibraryCalls::HandleMessage(
               message->dest_port(), message->reply_port(), msg));
       delete message;
-      if (result.IsUnhandledException()) {
+      if (result.IsError()) {
         return result.raw();
       }
+      ASSERT(result.IsNull());
     }
   }
 

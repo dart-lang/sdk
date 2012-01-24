@@ -1,11 +1,15 @@
 
-class SVGElement extends Element native "*SVGElement" {
+class SVGElementJS extends ElementJS implements SVGElement native "*SVGElement" {
 
-  String id;
+  String get id() native "return this.id;";
 
-  SVGSVGElement ownerSVGElement;
+  void set id(String value) native "this.id = value;";
 
-  SVGElement viewportElement;
+  SVGSVGElementJS get ownerSVGElement() native "return this.ownerSVGElement;";
 
-  String xmlbase;
+  SVGElementJS get viewportElement() native "return this.viewportElement;";
+
+  String get xmlbase() native "return this.xmlbase;";
+
+  void set xmlbase(String value) native "this.xmlbase = value;";
 }

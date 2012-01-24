@@ -16,5 +16,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   int get length();
 
+  void setElements(Object array, [int offset]);
+
   Int32Array subarray(int start, [int end]);
 }

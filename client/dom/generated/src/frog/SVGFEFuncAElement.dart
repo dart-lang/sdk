@@ -1,3 +1,3 @@
 
-class SVGFEFuncAElement extends SVGComponentTransferFunctionElement native "*SVGFEFuncAElement" {
+class SVGFEFuncAElementJS extends SVGComponentTransferFunctionElementJS implements SVGFEFuncAElement native "*SVGFEFuncAElement" {
 }

@@ -1,7 +1,9 @@
 
-class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
+class DedicatedWorkerContextJS extends WorkerContextJS implements DedicatedWorkerContext native "*DedicatedWorkerContext" {
 
-  EventListener onmessage;
+  EventListener get onmessage() native "return this.onmessage;";
+
+  void set onmessage(EventListener value) native "this.onmessage = value;";
 
   void postMessage(Object message, [List messagePorts = null]) native;
 

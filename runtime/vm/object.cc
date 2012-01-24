@@ -33,6 +33,11 @@ namespace dart {
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 
+static const char* kGetterPrefix = "get:";
+static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
+static const char* kSetterPrefix = "set:";
+static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
+
 cpp_vtable Object::handle_vtable_ = 0;
 cpp_vtable Smi::handle_vtable_ = 0;
 
@@ -1516,6 +1521,30 @@ RawFunction* Class::LookupFactory(const String& name) const {
 }
 
 
+static bool MatchesAccessorName(const String& name,
+                                const char* prefix,
+                                intptr_t prefix_length,
+                                const String& accessor_name) {
+  intptr_t name_len = name.Length();
+  intptr_t accessor_name_len = accessor_name.Length();
+
+  if (name_len != (accessor_name_len + prefix_length)) {
+    return false;
+  }
+  for (intptr_t i = 0; i < prefix_length; i++) {
+    if (name.CharAt(i) != prefix[i]) {
+      return false;
+    }
+  }
+  for (intptr_t i = 0, j = prefix_length; i < accessor_name_len; i++, j++) {
+    if (name.CharAt(j) != accessor_name.CharAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 static bool MatchesPrivateName(const String& name, const String& private_name) {
   intptr_t name_len = name.Length();
   intptr_t private_len = private_name.Length();
@@ -1549,6 +1578,37 @@ RawFunction* Class::LookupFunction(const String& name) const {
     function ^= funcs.At(i);
     function_name ^= function.name();
     if (function_name.Equals(name) || MatchesPrivateName(function_name, name)) {
+      return function.raw();
+    }
+  }
+
+  // No function found.
+  return Function::null();
+}
+
+
+RawFunction* Class::LookupGetterFunction(const String& name) const {
+  return LookupAccessorFunction(kGetterPrefix, kGetterPrefixLength, name);
+}
+
+
+RawFunction* Class::LookupSetterFunction(const String& name) const {
+  return LookupAccessorFunction(kSetterPrefix, kSetterPrefixLength, name);
+}
+
+
+RawFunction* Class::LookupAccessorFunction(const char* prefix,
+                                           intptr_t prefix_length,
+                                           const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  Array& funcs = Array::Handle(isolate, functions());
+  Function& function = Function::Handle(isolate, Function::null());
+  String& function_name = String::Handle(isolate, String::null());
+  intptr_t len = funcs.Length();
+  for (intptr_t i = 0; i < len; i++) {
+    function ^= funcs.At(i);
+    function_name ^= function.name();
+    if (MatchesAccessorName(function_name, prefix, prefix_length, name)) {
       return function.raw();
     }
   }
@@ -3494,33 +3554,47 @@ const char* Function::ToCString() const {
 
 RawString* Field::GetterName(const String& field_name) {
   String& str = String::Handle();
-  str = String::New("get:");
+  str = String::New(kGetterPrefix);
   str = String::Concat(str, field_name);
+  return str.raw();
+}
+
+
+RawString* Field::GetterSymbol(const String& field_name) {
+  String& str = String::Handle();
+  str = Field::GetterName(field_name);
   return String::NewSymbol(str);
 }
 
 
 RawString* Field::SetterName(const String& field_name) {
   String& str = String::Handle();
-  str = String::New("set:");
+  str = String::New(kSetterPrefix);
   str = String::Concat(str, field_name);
+  return str.raw();
+}
+
+
+RawString* Field::SetterSymbol(const String& field_name) {
+  String& str = String::Handle();
+  str = Field::SetterName(field_name);
   return String::NewSymbol(str);
 }
 
 
 RawString* Field::NameFromGetter(const String& getter_name) {
   String& str = String::Handle();
-  str = String::New("get:");
+  str = String::New(kGetterPrefix);
   str = String::SubString(getter_name, str.Length());
-  return String::NewSymbol(str);
+  return str.raw();
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
   String& str = String::Handle();
-  str = String::New("set:");
+  str = String::New(kSetterPrefix);
   str = String::SubString(setter_name, str.Length());
-  return String::NewSymbol(str);
+  return str.raw();
 }
 
 
@@ -3671,14 +3745,11 @@ void Script::Tokenize(const String& private_key) const {
   }
 
   // Get the source, scan and allocate the token stream.
-  if (FLAG_compiler_stats) {
-    CompilerStats::scanner_timer.Start();
-  }
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
   const String& src = String::Handle(source());
   Scanner scanner(src, private_key);
   set_tokens(TokenStream::Handle(TokenStream::New(scanner.GetStream())));
   if (FLAG_compiler_stats) {
-    CompilerStats::scanner_timer.Stop();
     CompilerStats::src_length += src.Length();
   }
 }
@@ -3973,6 +4044,11 @@ void Library::AddObject(const Object& obj, const String& name) const {
   if (used_elements > ((dict_size / 4) * 3)) {
     GrowDictionary(dict, dict_size);
   }
+
+  // Invalidate the cache of loaded scripts.
+  if (loaded_scripts() != Array::null()) {
+    StorePointer(&raw_ptr()->loaded_scripts_, Array::null());
+  }
 }
 
 
@@ -3983,37 +4059,74 @@ void Library::AddClass(const Class& cls) const {
 }
 
 
-// TODO(hausner): we might want to add a script dictionary to the
-// library class to make this lookup less cumbersome.
-RawScript* Library::LookupScript(const String& url) const {
-  Object& entry = Object::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  Field& field = Field::Handle();
-  Script& owner_script = Script::Handle();
-  String& owner_url = String::Handle();
+RawArray* Library::LoadedScripts() const {
+  // We compute the list of loaded scripts lazily. The result is
+  // cached in loaded_scripts_.
+  if (loaded_scripts() == Array::null()) {
+    // Iterate over the library dictionary and collect all scripts.
+    GrowableArray<Script*> scripts(8);
+    Object& entry = Object::Handle();
+    Function& func = Function::Handle();
+    Field& field = Field::Handle();
+    Class& cls = Class::Handle();
+    Script& owner_script = Script::Handle();
+    DictionaryIterator it(*this);
+    while (it.HasNext()) {
+      entry = it.GetNext();
+      if (entry.IsClass()) {
+        cls ^= entry.raw();
+      } else if (entry.IsFunction()) {
+        func ^= entry.raw();
+        cls = func.owner();
+      } else if (entry.IsField()) {
+        field ^= entry.raw();
+        cls = field.owner();
+      } else {
+        continue;
+      }
+      owner_script = cls.script();
+      if (owner_script.IsNull()) {
+        continue;
+      }
+      bool is_unique = true;
+      for (int i = 0; i < scripts.length(); i++) {
+        if (scripts[i]->raw() == owner_script.raw()) {
+          // We already have a reference to this script.
+          is_unique = false;
+          break;
+        }
+      }
+      if (is_unique) {
+        // Create a unique script handle and add it to the list of scripts.
+        Script& unique_script = Script::Handle(owner_script.raw());
+        scripts.Add(&unique_script);
+      }
+    }
 
-  DictionaryIterator it(*this);
-  while (it.HasNext()) {
-    entry = it.GetNext();
-    if (entry.IsClass()) {
-      cls ^= entry.raw();
-    } else if (entry.IsFunction()) {
-      func ^= entry.raw();
-      cls = func.owner();
-    } else if (entry.IsField()) {
-      field ^= entry.raw();
-      cls = field.owner();
-    } else {
-      continue;
+    // Create the array of scripts and cache it in loaded_scripts_.
+    const Array& loaded_scripts =
+        Array::Handle(Array::New(scripts.length(), Heap::kOld));
+    for (int i = 0; i < scripts.length(); i++) {
+      loaded_scripts.SetAt(i, *scripts[i]);
     }
-    owner_script = cls.script();
-    if (owner_script.IsNull()) {
-      continue;
-    }
-    owner_url = owner_script.url();
-    if (owner_url.Equals(url)) {
-      return owner_script.raw();
+    StorePointer(&raw_ptr()->loaded_scripts_, loaded_scripts.raw());
+  }
+  return loaded_scripts();
+}
+
+
+// TODO(hausner): we might want to add a script dictionary to the
+// library class to make this lookup faster.
+RawScript* Library::LookupScript(const String& url) const {
+  const Array& scripts = Array::Handle(LoadedScripts());
+  Script& script = Script::Handle();
+  String& script_url = String::Handle();
+  intptr_t num_scripts = scripts.Length();
+  for (int i = 0; i < num_scripts; i++) {
+    script ^= scripts.At(i);
+    script_url = script.url();
+    if (script_url.Equals(url)) {
+      return script.raw();
     }
   }
   return Script::null();
@@ -4364,6 +4477,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->num_anonymous_ = 0;
   result.raw_ptr()->imports_ = Array::Empty();
   result.raw_ptr()->next_registered_ = Library::null();
+  result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
   result.raw_ptr()->load_state_ = RawLibrary::kAllocated;
@@ -6606,12 +6720,12 @@ RawString* String::NewSymbol(const T* characters, intptr_t len) {
   intptr_t hash = Hash(characters, len);
 
   const Array& symbol_table =
-      Array::Handle(isolate->object_store()->symbol_table());
+      Array::Handle(isolate, isolate->object_store()->symbol_table());
   // Last element of the array is the number of used elements.
   intptr_t table_size = symbol_table.Length() - 1;
   intptr_t index = hash % table_size;
 
-  String& symbol = String::Handle();
+  String& symbol = String::Handle(isolate, String::null());
   symbol ^= symbol_table.At(index);
   while (!symbol.IsNull() && !symbol.Equals(characters, len)) {
     index = (index + 1) % table_size;  // Move to next element.

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,7 +20,10 @@ import java.util.Map;
 public interface FunctionType extends Type {
   Type getReturnType();
 
-  List<? extends Type> getParameterTypes();
+  /**
+   * @return "normal" parameter types, i.e. required, does not include "named".
+   */
+  List<Type> getParameterTypes();
 
   /**
    * Return the class element corresponding to the interface Function.
@@ -32,5 +35,8 @@ public interface FunctionType extends Type {
 
   boolean hasRest();
 
+  /**
+   * @return "named" parameter types.
+   */
   Map<String, Type> getNamedParameterTypes();
 }

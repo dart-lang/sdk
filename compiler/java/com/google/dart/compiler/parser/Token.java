@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -39,7 +39,6 @@ public enum Token {
   ASSIGN_BIT_AND("&=", 2),
   ASSIGN_SHL("<<=", 2),
   ASSIGN_SAR(">>=", 2),
-  ASSIGN_SHR(">>>=", 2),
   ASSIGN_ADD("+=", 2),
   ASSIGN_SUB("-=", 2),
   ASSIGN_MUL("*=", 2),
@@ -55,7 +54,6 @@ public enum Token {
   BIT_AND("&", 8),
   SHL("<<", 11),
   SAR(">>", 11),
-  SHR(">>>", 11),
   ADD("+", 12),
   SUB("-", 12),
   MUL("*", 13),
@@ -133,7 +131,7 @@ public enum Token {
   // Note: STRING_EMBED_EXP_END uses the same symbol as RBRACE, but it is
   // recognized by the scanner when closing embedded expressions in string
   // interpolation and string templates.
-  
+
   /* Directives */
   LIBRARY("#library", 0),
   IMPORT("#import", 0),

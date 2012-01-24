@@ -1,5 +1,5 @@
 
-class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathElement" {
+class SVGTextPathElementJS extends SVGTextContentElementJS implements SVGTextPathElement native "*SVGTextPathElement" {
 
   static final int TEXTPATH_METHODTYPE_ALIGN = 1;
 
@@ -13,13 +13,13 @@ class SVGTextPathElement extends SVGTextContentElement native "*SVGTextPathEleme
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration method;
+  SVGAnimatedEnumerationJS get method() native "return this.method;";
 
-  SVGAnimatedEnumeration spacing;
+  SVGAnimatedEnumerationJS get spacing() native "return this.spacing;";
 
-  SVGAnimatedLength startOffset;
+  SVGAnimatedLengthJS get startOffset() native "return this.startOffset;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedStringJS get href() native "return this.href;";
 }

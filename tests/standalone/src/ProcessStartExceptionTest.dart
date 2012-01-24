@@ -4,6 +4,8 @@
 //
 // Process test program to test process communication.
 
+#import("dart:io");
+
 class ProcessStartExceptionTest {
 
   static void testStartError() {

@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('classify');
+
+#import('../../frog/lang.dart');
+#import('markdown.dart', prefix: 'md');
+
 /**
  * Kinds of tokens that we care to highlight differently. The values of the
  * fields here will be used as CSS class names for the generated spans.

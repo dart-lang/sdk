@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -68,6 +68,7 @@ abstract class TypeTestCase extends TestCase {
   final FunctionType stringAndIntToMap = ftype(function, stringIntMap,
                                                null, null, itype(string), itype(intElement));
   private int expectedTypeErrors = 0;
+  private int foundTypeErrors = 0;
 
   abstract Types getTypes();
 
@@ -83,7 +84,7 @@ abstract class TypeTestCase extends TestCase {
         Modifiers.NONE,
         Collections.<DartInitializer>emptyList());
     MethodElement iteratorMethodElement = Elements.methodFromMethodNode(iteratorMethod, element);
-    Type returnType = Types.interfaceType(iterElement, Arrays.asList(typeVar));
+    Type returnType = Types.interfaceType(iterElement, Arrays.<Type>asList(typeVar));
     FunctionType functionType = ftype(function, returnType, Collections.<String,Type>emptyMap(),
          null);
     Elements.setType(iteratorMethodElement, functionType);
@@ -94,10 +95,11 @@ abstract class TypeTestCase extends TestCase {
   protected void setExpectedTypeErrorCount(int count) {
     checkExpectedTypeErrorCount();
     expectedTypeErrors = count;
+    foundTypeErrors  = 0;
   }
 
   protected void checkExpectedTypeErrorCount(String message) {
-    assertEquals(message, 0, expectedTypeErrors);
+    assertEquals(message, expectedTypeErrors, foundTypeErrors);
   }
 
   protected void checkExpectedTypeErrorCount() {
@@ -174,8 +176,8 @@ abstract class TypeTestCase extends TestCase {
     public void onError(DartCompilationError event) {
       if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
         getErrorCodes().add(event.getErrorCode());
-        expectedTypeErrors--;
-        if (expectedTypeErrors < 0) {
+        foundTypeErrors++;
+        if (expectedTypeErrors - foundTypeErrors < 0) {
           throw new TestTypeError(event);
         }
       }

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
@@ -26,7 +26,6 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_INIT_FIELD_FROM_SUPERCLASS("Cannot initialize a field from a super class"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
-  CANNOT_OVERRIDE_STATIC_MEMBER("cannot override static member %s of %s"),
   CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS("cannot override method %s, wrong number of parameters"),
   CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS(
       "cannot override method %s, number of named parameters doesn't match"),
@@ -70,6 +69,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_LOCAL_VARIABLE_WARNING(ErrorSeverity.WARNING,
       "Local variable '%s' is hiding '%s' at %s"),
   DUPLICATE_MEMBER("Duplicate member '%s'"),
+  DUPLICATE_NAMED_ARGUMENT("Duplicate named parameter argument"),
   DUPLICATE_PARAMETER(ErrorSeverity.ERROR, "Duplicate parameter '%s'"),
   DUPLICATE_PARAMETER_WARNING(ErrorSeverity.WARNING, "Parameter '%s' is hiding '%s' at %s"),
   DUPLICATE_TOP_LEVEL_DEFINITION("duplicate top-level definition '%s'"),

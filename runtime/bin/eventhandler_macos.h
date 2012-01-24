@@ -1,13 +1,18 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #ifndef BIN_EVENTHANDLER_MACOS_H_
 #define BIN_EVENTHANDLER_MACOS_H_
 
+#if !defined(BIN_EVENTHANDLER_H_)
+#error Do not include eventhandler_macos.h directly; use eventhandler.h instead.
+#endif
+
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include "bin/hashmap.h"
 
 class InterruptMessage {
  public:
@@ -25,6 +30,10 @@ enum PortDataFlags {
 
 class SocketData {
  public:
+  explicit SocketData(intptr_t fd) : fd_(fd), port_(0), mask_(0), flags_(0) {
+    ASSERT(fd_ != -1);
+  }
+
   intptr_t GetPollEvents();
 
   void Unregister() {
@@ -46,7 +55,7 @@ class SocketData {
     Unregister();
     flags_ = 0;
     close(fd_);
-    fd_ = 0;
+    fd_ = -1;
   }
 
   bool IsListeningSocket() { return (mask_ & (1 << kListeningSocket)) != 0; }
@@ -60,12 +69,12 @@ class SocketData {
   bool HasPollEvents() { return mask_ != 0; }
 
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
+    ASSERT(fd_ != -1);
     port_ = port;
     mask_ = mask;
   }
 
   intptr_t fd() { return fd_; }
-  void set_fd(intptr_t fd) { fd_ = fd; }
   Dart_Port port() { return port_; }
   intptr_t mask() { return mask_; }
 
@@ -82,6 +91,8 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   ~EventHandlerImplementation();
 
+  // Gets the socket data structure for a given file
+  // descriptor. Creates a new one of one is not found.
   SocketData* GetSocketData(intptr_t fd);
   void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
   void StartEventHandler();
@@ -97,9 +108,10 @@ class EventHandlerImplementation {
   void HandleInterruptFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
   intptr_t GetPollEvents(struct pollfd* pollfd);
+  static void* GetHashmapKeyFromFd(intptr_t fd);
+  static uint32_t GetHashmapHashFromFd(intptr_t fd);
 
-  SocketData* socket_map_;
-  intptr_t socket_map_size_;
+  HashMap socket_map_;
   int64_t timeout_;  // Time for next timeout.
   Dart_Port timeout_port_;
   int interrupt_fds_[2];

@@ -54,6 +54,13 @@ TypeVariableBoundsTest/06: Fail
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 
+#Issue 1307.
+NamedParameters2Test: Fail
+NamedParameters3Test: Fail
+NamedParameters4Test: Fail
+
+UnaryPlusNegativeTest: Fail # Issue 1229
+
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
@@ -81,7 +88,6 @@ WrongNumberTypeArgumentsTest: Fail # This test should be negative
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]
-BadNamedParametersTest: Fail             # Bug 4202974 - release mode is not throwing NSME
 CTConst2Test: Fail                       # Codesite issue 124
 CallThroughNullGetterTest: Fail          # Bug 5391976
 Label2NegativeTest: Crash                # Bug 5318228
@@ -129,11 +135,6 @@ LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 MapLiteral3Test: Fail # Issue 221
 MapLiteral4Test: Fail # Issue 221
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-NamedParameters10NegativeTest: Fail  # Implementation in progress.
-NamedParameters2NegativeTest: Fail   # Implementation in progress.
-NamedParameters3NegativeTest: Fail   # Implementation in progress.
-NamedParameters4NegativeTest: Fail   # Implementation in progress.
-NamedParametersNegativeTest: Fail    # Implementation in progress.
 NamedParametersTypeTest: Fail            # Implementation in progress.
 NoSuchMethodTest: Fail       # Bug 4202974.
 NullToStringTest: Fail       # Bug 5421978
@@ -213,6 +214,8 @@ PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
 
+SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
+
 # VM or DartC specific tests not to be run by Frog. See language.status
 *VMTest: Skip
 *VMNegativeTest: Skip
@@ -278,8 +281,6 @@ NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NonConstSuperNegativeTest: Fail
-NonParameterizedFactoryTest: Fail
-NonParameterizedFactory2Test: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
@@ -309,14 +310,20 @@ SwitchLabelTest: Fail
 TryCatch9NegativeTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
-TypeVariableBoundsTest/01: Fail
 TypeVariableBoundsTest/10: Fail
+TypeVariableShadowsClass: Fail # Issue 643
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
 ImplicitThisTest/02: Fail # Issue 376
 ImplicitThisTest/03: Fail # Issue 376
 ImplicitThisTest/04: Fail # Issue 376
 ImplicitThisTest/none: Fail # Issue 376
+
+#Issue 1308
+NamedParameters2Test: Fail
+NamedParameters3Test: Fail
+NamedParameters4Test: Fail
+
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
 MethodInvocationTest: Fail

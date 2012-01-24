@@ -1,5 +1,5 @@
 
-class PositionError native "*PositionError" {
+class PositionErrorJS implements PositionError native "*PositionError" {
 
   static final int PERMISSION_DENIED = 1;
 
@@ -7,9 +7,9 @@ class PositionError native "*PositionError" {
 
   static final int TIMEOUT = 3;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
   var dartObjectLocalStorage;
 

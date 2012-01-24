@@ -1,5 +1,5 @@
 
-class SVGZoomAndPan native "*SVGZoomAndPan" {
+class SVGZoomAndPanJS implements SVGZoomAndPan native "*SVGZoomAndPan" {
 
   static final int SVG_ZOOMANDPAN_DISABLE = 1;
 
@@ -7,7 +7,9 @@ class SVGZoomAndPan native "*SVGZoomAndPan" {
 
   static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-  int zoomAndPan;
+  int get zoomAndPan() native "return this.zoomAndPan;";
+
+  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
 
   var dartObjectLocalStorage;
 

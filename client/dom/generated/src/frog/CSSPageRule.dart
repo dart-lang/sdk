@@ -1,7 +1,9 @@
 
-class CSSPageRule extends CSSRule native "*CSSPageRule" {
+class CSSPageRuleJS extends CSSRuleJS implements CSSPageRule native "*CSSPageRule" {
 
-  String selectorText;
+  String get selectorText() native "return this.selectorText;";
 
-  CSSStyleDeclaration style;
+  void set selectorText(String value) native "this.selectorText = value;";
+
+  CSSStyleDeclarationJS get style() native "return this.style;";
 }

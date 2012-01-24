@@ -1,13 +1,15 @@
 
-class SVGScriptElement extends SVGElement native "*SVGScriptElement" {
+class SVGScriptElementJS extends SVGElementJS implements SVGScriptElement native "*SVGScriptElement" {
 
-  String type;
+  String get type() native "return this.type;";
+
+  void set type(String value) native "this.type = value;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedStringJS get href() native "return this.href;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 }

@@ -1,5 +1,5 @@
 
-class EventSource native "*EventSource" {
+class EventSourceJS implements EventSource native "*EventSource" {
 
   static final int CLOSED = 2;
 
@@ -7,15 +7,15 @@ class EventSource native "*EventSource" {
 
   static final int OPEN = 1;
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  int readyState;
+  int get readyState() native "return this.readyState;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close() native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

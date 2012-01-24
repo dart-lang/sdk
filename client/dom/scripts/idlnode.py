@@ -318,6 +318,9 @@ class IDLType(IDLNode):
       if label == 'longLong':
         # Special case for LongLongType:
         label = 'long long'
+      if label == 'anyArray':
+        label = 'any[]'
+
     # Add unsigned qualifier.
     if self._has(ast, 'Unsigned'):
       label = 'unsigned %s' % label

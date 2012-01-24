@@ -1,29 +1,33 @@
 
-class IDBRequest native "*IDBRequest" {
+class IDBRequestJS implements IDBRequest native "*IDBRequest" {
 
   static final int DONE = 2;
 
   static final int LOADING = 1;
 
-  int errorCode;
+  int get errorCode() native "return this.errorCode;";
 
-  EventListener onerror;
+  EventListener get onerror() native "return this.onerror;";
 
-  EventListener onsuccess;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  int readyState;
+  EventListener get onsuccess() native "return this.onsuccess;";
 
-  IDBAny result;
+  void set onsuccess(EventListener value) native "this.onsuccess = value;";
 
-  IDBAny source;
+  int get readyState() native "return this.readyState;";
 
-  IDBTransaction transaction;
+  IDBAnyJS get result() native "return this.result;";
 
-  String webkitErrorMessage;
+  IDBAnyJS get source() native "return this.source;";
+
+  IDBTransactionJS get transaction() native "return this.transaction;";
+
+  String get webkitErrorMessage() native "return this.webkitErrorMessage;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

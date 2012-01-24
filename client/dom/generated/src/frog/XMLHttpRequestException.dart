@@ -1,15 +1,15 @@
 
-class XMLHttpRequestException native "*XMLHttpRequestException" {
+class XMLHttpRequestExceptionJS implements XMLHttpRequestException native "*XMLHttpRequestException" {
 
   static final int ABORT_ERR = 102;
 
   static final int NETWORK_ERR = 101;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 

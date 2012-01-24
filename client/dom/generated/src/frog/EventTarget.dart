@@ -1,9 +1,9 @@
 
-class EventTarget native "*EventTarget" {
+class EventTargetJS implements EventTarget native "*EventTarget" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event event) native;
+  bool dispatchEvent(EventJS event) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

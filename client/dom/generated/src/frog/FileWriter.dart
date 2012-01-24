@@ -1,5 +1,5 @@
 
-class FileWriter native "*FileWriter" {
+class FileWriterJS implements FileWriter native "*FileWriter" {
 
   static final int DONE = 2;
 
@@ -7,25 +7,37 @@ class FileWriter native "*FileWriter" {
 
   static final int WRITING = 1;
 
-  FileError error;
+  FileErrorJS get error() native "return this.error;";
 
-  int length;
+  int get length() native "return this.length;";
 
-  EventListener onabort;
+  EventListener get onabort() native "return this.onabort;";
 
-  EventListener onerror;
+  void set onabort(EventListener value) native "this.onabort = value;";
 
-  EventListener onprogress;
+  EventListener get onerror() native "return this.onerror;";
 
-  EventListener onwrite;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  EventListener onwriteend;
+  EventListener get onprogress() native "return this.onprogress;";
 
-  EventListener onwritestart;
+  void set onprogress(EventListener value) native "this.onprogress = value;";
 
-  int position;
+  EventListener get onwrite() native "return this.onwrite;";
 
-  int readyState;
+  void set onwrite(EventListener value) native "this.onwrite = value;";
+
+  EventListener get onwriteend() native "return this.onwriteend;";
+
+  void set onwriteend(EventListener value) native "this.onwriteend = value;";
+
+  EventListener get onwritestart() native "return this.onwritestart;";
+
+  void set onwritestart(EventListener value) native "this.onwritestart = value;";
+
+  int get position() native "return this.position;";
+
+  int get readyState() native "return this.readyState;";
 
   void abort() native;
 
@@ -33,7 +45,7 @@ class FileWriter native "*FileWriter" {
 
   void truncate(int size) native;
 
-  void write(Blob data) native;
+  void write(BlobJS data) native;
 
   var dartObjectLocalStorage;
 

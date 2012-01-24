@@ -1,5 +1,5 @@
 
-class WebKitNamedFlow native "*WebKitNamedFlow" {
+class WebKitNamedFlowJS implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
   var dartObjectLocalStorage;
 

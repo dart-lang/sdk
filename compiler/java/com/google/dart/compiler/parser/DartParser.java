@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -704,9 +704,6 @@ public class DartParser extends CompletionHooksParserBase {
             break;
           case SAR:   // >>
             nestingLevel -= 2;
-            break;
-          case SHR:   // >>>
-            nestingLevel -= 3;
             break;
           case COMMA:
           case IDENTIFIER:
@@ -1757,6 +1754,7 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartExpression> arguments = new ArrayList<DartExpression>();
     expect(Token.LPAREN);
     // SEMICOLON is for error recovery
+    boolean namedArgumentParsed = false;
     while (!match(Token.RPAREN) && !match(Token.EOS) && !match(Token.SEMICOLON)) {
       beginParameter();
       DartExpression expression;
@@ -1764,8 +1762,12 @@ public class DartParser extends CompletionHooksParserBase {
         DartIdentifier name = parseIdentifier();
         expect(Token.COLON);
         expression = new DartNamedExpression(name, parseExpression());
+        namedArgumentParsed = true;
       } else {
         expression = parseExpression();
+        if (namedArgumentParsed) {
+          reportError(expression, ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
+        }
       }
       arguments.add(done(expression));
       switch(peek(0)) {
@@ -2212,7 +2214,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
       }
     }
-    return builder.buildInterpolation();
+    return done(builder.buildInterpolation());
   }
 
   /**
@@ -2270,9 +2272,6 @@ public class DartParser extends CompletionHooksParserBase {
             break;
           case SHL:
             count += 2;
-            break;
-          case SHR:  // >>>
-            count -= 3;
             break;
           case SAR:  // >>
             count -= 2;
@@ -3638,8 +3637,14 @@ public class DartParser extends CompletionHooksParserBase {
    *  </pre>
    */
   private DartExpression parseUnaryExpression() {
-    // A '+' prefix does not have any effect.
-    optional(Token.ADD);
+    // There is no unary plus operator in Dart.
+    // However, we allow a leading plus in decimal numeric literals.
+    if (optional(Token.ADD)) {
+      if (peek(0) != Token.INTEGER_LITERAL && peek(0) != Token.DOUBLE_LITERAL) {
+        reportError(position(), ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
+      }
+    }
+    // Check for unary minus operator.
     Token token = peek(0);
     if (token.isUnaryOperator() || token == Token.SUB) {
       beginUnaryExpression();
@@ -3725,9 +3730,6 @@ public class DartParser extends CompletionHooksParserBase {
       case SAR:
         setPeek(0, Token.GT);
         return true;
-      case SHR:
-        setPeek(0, Token.SAR);
-        return true;
       default:
         return false;
     }
@@ -3758,7 +3760,6 @@ public class DartParser extends CompletionHooksParserBase {
 
         case GT:
         case SAR:
-        case SHR:
           // qualified < qualified2 >
         case COMMA:
           // qualified < qualified2 ,

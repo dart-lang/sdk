@@ -1,5 +1,5 @@
 
-class FileException native "*FileException" {
+class FileExceptionJS implements FileException native "*FileException" {
 
   static final int ABORT_ERR = 3;
 
@@ -25,11 +25,11 @@ class FileException native "*FileException" {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int code;
+  int get code() native "return this.code;";
 
-  String message;
+  String get message() native "return this.message;";
 
-  String name;
+  String get name() native "return this.name;";
 
   String toString() native;
 

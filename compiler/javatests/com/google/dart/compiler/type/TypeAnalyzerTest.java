@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -87,8 +87,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeIn(cls, "i || b", 1);
     analyzeIn(cls, "b || b", 0);
 
-    EnumSet<Token> userOperators = EnumSet.of(Token.SHR,
-                                              Token.ADD,
+    EnumSet<Token> userOperators = EnumSet.of(Token.ADD,
                                               Token.SUB,
                                               Token.MUL,
                                               Token.DIV,
@@ -170,8 +169,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
                    Token.ASSIGN_MUL,
                    Token.ASSIGN_DIV,
                    Token.ASSIGN_MOD,
-                   Token.ASSIGN_TRUNC,
-                   Token.ASSIGN_SHR);
+                   Token.ASSIGN_TRUNC);
 
     for (Token op : compoundAssignmentOperators) {
       String expression;
@@ -220,7 +218,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  int operator &(int arg) { return arg; }",
         "  int operator ^(int arg) { return arg; }",
         "  int operator >>(int arg) { return arg; }",
-        "  int operator >>>(int arg) { return arg; }",
         "  int operator <<(int arg) { return arg; }",
         "  int operator ~() { return 1; }",
         "}");

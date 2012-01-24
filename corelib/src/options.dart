@@ -21,4 +21,9 @@ interface Options default RuntimeOptions {
    * this list.
    */
   List<String> get arguments();
+
+  /**
+   * Returns the path of the script being run in this isolate.
+   */
+  String get script();
 }

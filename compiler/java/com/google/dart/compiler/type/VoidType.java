@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15,7 +15,7 @@ import java.util.List;
  */
 class VoidType extends AbstractType {
   @Override
-  public Type subst(List<? extends Type> arguments, List<? extends Type> parameters) {
+  public Type subst(List<Type> arguments, List<Type> parameters) {
     return this;
   }
 

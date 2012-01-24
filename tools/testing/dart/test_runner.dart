@@ -4,6 +4,7 @@
 
 #library("test_runner");
 
+#import("dart:io");
 #import("status_file_parser.dart");
 #import("test_progress.dart");
 #import("test_suite.dart");
@@ -75,6 +76,9 @@ class TestCase {
   }
 
   int get timeout() => configuration['timeout'];
+
+  String get configurationString() =>
+      "${configuration['mode']}_${configuration['arch']}";
 
   void completed() { completedHandler(this); }
 }
@@ -240,6 +244,12 @@ class RunningProcess {
   void runCommand(String executable,
                   List<String> arguments,
                   void exitHandler(int exitCode)) {
+    if (new Platform().operatingSystem() == 'windows') {
+      // Windows can't handle the first command if it is a .bat file or the like
+      // with the slashes going the other direction.
+      // TODO(efortuna): Remove this when fixed (Issue 1306).
+      executable = executable.replaceAll('/', '\\');
+    }
     process = new Process.start(executable, arguments);
     process.exitHandler = exitHandler;
     startTime = new Date.now();
@@ -479,7 +489,12 @@ class ProcessQueue {
           // implemented, and add Windows support.
           var deletion =
               new Process.start('/bin/rm', ['-rf', _temporaryDirectory]);
-          deletion.startHandler = (){
+          deletion.exitHandler = (int exitCode) {
+            if (exitCode == 0) {
+              print('\nTemporary directory $_temporaryDirectory deleted.');
+            } else {
+              print('\nDeletion of temp dir $_temporaryDirectory failed.');
+            }
             _progress.allDone();
           };
         }

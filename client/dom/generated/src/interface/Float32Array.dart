@@ -16,5 +16,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   int get length();
 
+  void setElements(Object array, [int offset]);
+
   Float32Array subarray(int start, [int end]);
 }

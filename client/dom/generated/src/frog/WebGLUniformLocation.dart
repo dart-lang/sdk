@@ -1,5 +1,5 @@
 
-class WebGLUniformLocation native "*WebGLUniformLocation" {
+class WebGLUniformLocationJS implements WebGLUniformLocation native "*WebGLUniformLocation" {
 
   var dartObjectLocalStorage;
 

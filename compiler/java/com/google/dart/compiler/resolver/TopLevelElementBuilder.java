@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -23,8 +23,11 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -151,9 +154,12 @@ public class TopLevelElementBuilder {
     public Void visitClass(DartClass node) {
       ClassElement element = Elements.classFromNode(node, library);
       List<DartTypeParameter> parameterNodes = node.getTypeParameters();
-      element.setType(Types.interfaceType(element,
-                                          Elements.makeTypeVariables(parameterNodes, element)));
+      List<TypeVariable> typeVariables = Elements.makeTypeVariables(parameterNodes, element);
+      element.setType(Types.interfaceType(
+          element,
+          Collections.<Type>unmodifiableList(typeVariables)));
       node.setSymbol(element);
+      node.getName().setSymbol(element);
       return null;
     }
 

@@ -1,5 +1,5 @@
 
-class SVGComponentTransferFunctionElement extends SVGElement native "*SVGComponentTransferFunctionElement" {
+class SVGComponentTransferFunctionElementJS extends SVGElementJS implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
@@ -13,17 +13,17 @@ class SVGComponentTransferFunctionElement extends SVGElement native "*SVGCompone
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber amplitude;
+  SVGAnimatedNumberJS get amplitude() native "return this.amplitude;";
 
-  SVGAnimatedNumber exponent;
+  SVGAnimatedNumberJS get exponent() native "return this.exponent;";
 
-  SVGAnimatedNumber intercept;
+  SVGAnimatedNumberJS get intercept() native "return this.intercept;";
 
-  SVGAnimatedNumber offset;
+  SVGAnimatedNumberJS get offset() native "return this.offset;";
 
-  SVGAnimatedNumber slope;
+  SVGAnimatedNumberJS get slope() native "return this.slope;";
 
-  SVGAnimatedNumberList tableValues;
+  SVGAnimatedNumberListJS get tableValues() native "return this.tableValues;";
 
-  SVGAnimatedEnumeration type;
+  SVGAnimatedEnumerationJS get type() native "return this.type;";
 }

@@ -8,46 +8,11 @@
  */
 #library('html_diff');
 
+#import('dart:coreimpl');
 #import('../../frog/lang.dart');
 #import('../../frog/file_system_node.dart');
 #import('../../frog/file_system.dart');
 #import('../dartdoc/dartdoc.dart');
-
-void main() {
-  var files = new NodeFileSystem();
-  parseOptions('../../frog', [] /* args */, files);
-  initializeWorld(files);
-  initializeDartDoc();
-  HtmlDiff.initialize();
-
-  var diff = new HtmlDiff();
-  diff.run();
-
-  diff.domToHtml.forEach((domMember, htmlMembers) {
-    for (var htmlMember in htmlMembers) {
-      if (diff.sameName(domMember, htmlMember)) continue;
-      var htmlTypeName = htmlMember.declaringType.name;
-      var htmlName = '$htmlTypeName.${htmlMember.name}';
-      if (htmlMember.isConstructor || htmlMember.isFactory) {
-        final separator = htmlMember.constructorName == '' ? '' : '.';
-        htmlName = 'new $htmlTypeName$separator${htmlMember.constructorName}';
-      }
-      print('${domMember.declaringType.name}.${domMember.name} -> ${htmlName}');
-    }
-  });
-
-  for (var type in diff.dom.types.getValues()) {
-    if (type.name == null) continue;
-    if (type.definition is FunctionTypeDefinition) continue;
-    for (var member in type.members.getValues()) {
-      if (!member.isPrivate && member.name != 'typeName' &&
-          !diff.domToHtml.containsKey(member) &&
-          (member is MethodMember || member is PropertyMember)) {
-        print('No dart:html wrapper for ${type.name}.${member.name}');
-      }
-    }
-  }
-}
 
 /**
  * A class for computing a many-to-many mapping between the types and members in

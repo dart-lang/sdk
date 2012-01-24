@@ -1,45 +1,63 @@
 
-class HTMLSelectElement extends HTMLElement native "*HTMLSelectElement" {
+class HTMLSelectElementJS extends HTMLElementJS implements HTMLSelectElement native "*HTMLSelectElement" {
 
-  bool autofocus;
+  bool get autofocus() native "return this.autofocus;";
 
-  bool disabled;
+  void set autofocus(bool value) native "this.autofocus = value;";
 
-  HTMLFormElement form;
+  bool get disabled() native "return this.disabled;";
 
-  NodeList labels;
+  void set disabled(bool value) native "this.disabled = value;";
 
-  int length;
+  HTMLFormElementJS get form() native "return this.form;";
 
-  bool multiple;
+  NodeListJS get labels() native "return this.labels;";
 
-  String name;
+  int get length() native "return this.length;";
 
-  HTMLOptionsCollection options;
+  void set length(int value) native "this.length = value;";
 
-  bool required;
+  bool get multiple() native "return this.multiple;";
 
-  int selectedIndex;
+  void set multiple(bool value) native "this.multiple = value;";
 
-  int size;
+  String get name() native "return this.name;";
 
-  String type;
+  void set name(String value) native "this.name = value;";
 
-  String validationMessage;
+  HTMLOptionsCollectionJS get options() native "return this.options;";
 
-  ValidityState validity;
+  bool get required() native "return this.required;";
 
-  String value;
+  void set required(bool value) native "this.required = value;";
 
-  bool willValidate;
+  int get selectedIndex() native "return this.selectedIndex;";
 
-  void add(HTMLElement element, HTMLElement before) native;
+  void set selectedIndex(int value) native "this.selectedIndex = value;";
+
+  int get size() native "return this.size;";
+
+  void set size(int value) native "this.size = value;";
+
+  String get type() native "return this.type;";
+
+  String get validationMessage() native "return this.validationMessage;";
+
+  ValidityStateJS get validity() native "return this.validity;";
+
+  String get value() native "return this.value;";
+
+  void set value(String value) native "this.value = value;";
+
+  bool get willValidate() native "return this.willValidate;";
+
+  void add(HTMLElementJS element, HTMLElementJS before) native;
 
   bool checkValidity() native;
 
-  Node item(int index) native;
+  NodeJS item(int index) native;
 
-  Node namedItem(String name) native;
+  NodeJS namedItem(String name) native;
 
   void remove(var index_OR_option) native;
 

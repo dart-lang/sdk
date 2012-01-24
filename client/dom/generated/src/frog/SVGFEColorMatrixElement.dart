@@ -1,5 +1,5 @@
 
-class SVGFEColorMatrixElement extends SVGElement native "*SVGFEColorMatrixElement" {
+class SVGFEColorMatrixElementJS extends SVGElementJS implements SVGFEColorMatrixElement native "*SVGFEColorMatrixElement" {
 
   static final int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
@@ -11,29 +11,29 @@ class SVGFEColorMatrixElement extends SVGElement native "*SVGFEColorMatrixElemen
 
   static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedStringJS get in1() native "return this.in1;";
 
-  SVGAnimatedEnumeration type;
+  SVGAnimatedEnumerationJS get type() native "return this.type;";
 
-  SVGAnimatedNumberList values;
+  SVGAnimatedNumberListJS get values() native "return this.values;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedStringJS get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

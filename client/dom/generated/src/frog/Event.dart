@@ -1,5 +1,5 @@
 
-class Event native "*Event" {
+class EventJS implements Event native "*Event" {
 
   static final int AT_TARGET = 2;
 
@@ -39,29 +39,33 @@ class Event native "*Event" {
 
   static final int SELECT = 16384;
 
-  bool bubbles;
+  bool get bubbles() native "return this.bubbles;";
 
-  bool cancelBubble;
+  bool get cancelBubble() native "return this.cancelBubble;";
 
-  bool cancelable;
+  void set cancelBubble(bool value) native "this.cancelBubble = value;";
 
-  Clipboard clipboardData;
+  bool get cancelable() native "return this.cancelable;";
 
-  EventTarget currentTarget;
+  ClipboardJS get clipboardData() native "return this.clipboardData;";
 
-  bool defaultPrevented;
+  EventTargetJS get currentTarget() native "return this.currentTarget;";
 
-  int eventPhase;
+  bool get defaultPrevented() native "return this.defaultPrevented;";
 
-  bool returnValue;
+  int get eventPhase() native "return this.eventPhase;";
 
-  EventTarget srcElement;
+  bool get returnValue() native "return this.returnValue;";
 
-  EventTarget target;
+  void set returnValue(bool value) native "this.returnValue = value;";
 
-  int timeStamp;
+  EventTargetJS get srcElement() native "return this.srcElement;";
 
-  String type;
+  EventTargetJS get target() native "return this.target;";
+
+  int get timeStamp() native "return this.timeStamp;";
+
+  String get type() native "return this.type;";
 
   void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native;
 

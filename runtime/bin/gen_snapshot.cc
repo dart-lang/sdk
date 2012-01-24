@@ -177,15 +177,25 @@ static Dart_Handle BuiltinLibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-static Dart_Handle LoadGenericSnapshotCreationScript() {
-  Dart_Handle source = Builtin::Source();
+static Dart_Handle LoadGenericSnapshotCreationScript(
+    Builtin::BuiltinLibraryId id) {
+  Dart_Handle source = Builtin::Source(id);
   if (Dart_IsError(source)) {
     return source;  // source contains the error string.
   }
-  Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
-  Dart_Handle lib = Dart_LoadScript(url, source, BuiltinLibraryTagHandler);
+  Dart_Handle lib;
+  if (id == Builtin::kBuiltinLibrary) {
+    // Load the dart:builtin library as the script.
+    Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
+    lib = Dart_LoadScript(url, source, BuiltinLibraryTagHandler);
+  } else {
+    ASSERT(id == Builtin::kIOLibrary);
+    // Load the dart:io library to make it available in the snapshot
+    // for importing.
+    lib = Builtin::LoadLibrary(Builtin::kIOLibrary);
+  }
   if (!Dart_IsError(lib)) {
-    Builtin::SetupLibrary(lib);
+    Builtin::SetupLibrary(lib, id);
   }
   return lib;
 }
@@ -195,6 +205,18 @@ static void PrintUsage() {
   fprintf(stderr,
           "dart [<vm-flags>] "
           "[<dart-script-file>]\n");
+}
+
+
+static void VerifyLoaded(Dart_Handle library) {
+  if (Dart_IsError(library)) {
+    const char* err_msg = Dart_GetError(library);
+    fprintf(stderr, "Errors encountered while loading: %s\n", err_msg);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(255);
+  }
+  ASSERT(Dart_IsLibrary(library));
 }
 
 
@@ -243,18 +265,15 @@ int main(int argc, char** argv) {
   if (app_script_name != NULL) {
     // Load the specified script.
     library = LoadSnapshotCreationScript(app_script_name);
+    VerifyLoaded(library);
   } else {
     // This is a generic dart snapshot which needs builtin library setup.
-    library = LoadGenericSnapshotCreationScript();
+    library = LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
+    VerifyLoaded(library);
+    library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
+    VerifyLoaded(library);
   }
-  if (Dart_IsError(library)) {
-    const char* err_msg = Dart_GetError(library);
-    fprintf(stderr, "Errors encountered while loading script: %s\n", err_msg);
-    Dart_ExitScope();
-    Dart_ShutdownIsolate();
-    exit(255);
-  }
-  ASSERT(Dart_IsLibrary(library));
+
   uint8_t* buffer = NULL;
   intptr_t size = 0;
   // First create the snapshot.

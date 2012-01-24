@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
@@ -18,6 +18,7 @@ public enum TypeErrorCode implements ErrorCode {
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
   DEFAULT_CONSTRUCTOR_TYPES(
       "Constructor '%s' in '%s' has parameters types (%s), doesn't match '%s' in '%s' with (%s)"),
+  DUPLICATE_NAMED_ARGUMENT("Named parameter argument already provided as positional argument"),
   EXTRA_ARGUMENT("extra argument"),
   FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
   FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
@@ -33,12 +34,14 @@ public enum TypeErrorCode implements ErrorCode {
   MEMBER_IS_A_CONSTRUCTOR("%s is a constructor in %s"),
   MISSING_ARGUMENT("missing argument of type %s"),
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
+  NO_SUCH_NAMED_PARAMETER("no such named parameter \"%s\" defined"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NOT_A_FUNCTION("\"%s\" is not a function"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
+  OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
   SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),
   STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE(
       "static member %s of %s cannot be accessed through an instance"),

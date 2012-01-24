@@ -1,11 +1,11 @@
 
-class ImageData native "*ImageData" {
+class ImageDataJS implements ImageData native "*ImageData" {
 
-  CanvasPixelArray data;
+  CanvasPixelArrayJS get data() native "return this.data;";
 
-  int height;
+  int get height() native "return this.height;";
 
-  int width;
+  int get width() native "return this.width;";
 
   var dartObjectLocalStorage;
 

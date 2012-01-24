@@ -1,23 +1,23 @@
 
-class EntrySync native "*EntrySync" {
+class EntrySyncJS implements EntrySync native "*EntrySync" {
 
-  DOMFileSystemSync filesystem;
+  DOMFileSystemSyncJS get filesystem() native "return this.filesystem;";
 
-  String fullPath;
+  String get fullPath() native "return this.fullPath;";
 
-  bool isDirectory;
+  bool get isDirectory() native "return this.isDirectory;";
 
-  bool isFile;
+  bool get isFile() native "return this.isFile;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  EntrySync copyTo(DirectoryEntrySync parent, String name) native;
+  EntrySyncJS copyTo(DirectoryEntrySyncJS parent, String name) native;
 
-  Metadata getMetadata() native;
+  MetadataJS getMetadata() native;
 
-  DirectoryEntrySync getParent() native;
+  DirectoryEntrySyncJS getParent() native;
 
-  EntrySync moveTo(DirectoryEntrySync parent, String name) native;
+  EntrySyncJS moveTo(DirectoryEntrySyncJS parent, String name) native;
 
   void remove() native;
 

@@ -5,6 +5,10 @@
 #ifndef BIN_THREAD_POOL_MACOS_H_
 #define BIN_THREAD_POOL_MACOS_H_
 
+#if !defined(BIN_THREAD_POOL_H_)
+#error Do not include thread_pool_macos.h directly; use thread_pool.h instead.
+#endif
+
 #include <pthread.h>
 
 #include "platform/globals.h"

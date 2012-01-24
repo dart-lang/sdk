@@ -1,11 +1,15 @@
 
-class SVGPoint native "*SVGPoint" {
+class SVGPointJS implements SVGPoint native "*SVGPoint" {
 
-  num x;
+  num get x() native "return this.x;";
 
-  num y;
+  void set x(num value) native "this.x = value;";
 
-  SVGPoint matrixTransform(SVGMatrix matrix) native;
+  num get y() native "return this.y;";
+
+  void set y(num value) native "this.y = value;";
+
+  SVGPointJS matrixTransform(SVGMatrixJS matrix) native;
 
   var dartObjectLocalStorage;
 

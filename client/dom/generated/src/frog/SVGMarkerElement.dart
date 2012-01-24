@@ -1,5 +1,5 @@
 
-class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
+class SVGMarkerElementJS extends SVGElementJS implements SVGMarkerElement native "*SVGMarkerElement" {
 
   static final int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
@@ -13,45 +13,49 @@ class SVGMarkerElement extends SVGElement native "*SVGMarkerElement" {
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  SVGAnimatedLength markerHeight;
+  SVGAnimatedLengthJS get markerHeight() native "return this.markerHeight;";
 
-  SVGAnimatedEnumeration markerUnits;
+  SVGAnimatedEnumerationJS get markerUnits() native "return this.markerUnits;";
 
-  SVGAnimatedLength markerWidth;
+  SVGAnimatedLengthJS get markerWidth() native "return this.markerWidth;";
 
-  SVGAnimatedAngle orientAngle;
+  SVGAnimatedAngleJS get orientAngle() native "return this.orientAngle;";
 
-  SVGAnimatedEnumeration orientType;
+  SVGAnimatedEnumerationJS get orientType() native "return this.orientType;";
 
-  SVGAnimatedLength refX;
+  SVGAnimatedLengthJS get refX() native "return this.refX;";
 
-  SVGAnimatedLength refY;
+  SVGAnimatedLengthJS get refY() native "return this.refY;";
 
-  void setOrientToAngle(SVGAngle angle) native;
+  void setOrientToAngle(SVGAngleJS angle) native;
 
   void setOrientToAuto() native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatioJS get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRect viewBox;
+  SVGAnimatedRectJS get viewBox() native "return this.viewBox;";
 }

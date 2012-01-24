@@ -1,141 +1,161 @@
 
-class Document extends Node native "*Document" {
+class DocumentJS extends NodeJS implements Document native "*Document" {
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  HTMLCollection anchors;
+  HTMLCollectionJS get anchors() native "return this.anchors;";
 
-  HTMLCollection applets;
+  HTMLCollectionJS get applets() native "return this.applets;";
 
-  HTMLElement body;
+  HTMLElementJS get body() native "return this.body;";
 
-  String characterSet;
+  void set body(HTMLElementJS value) native "this.body = value;";
 
-  String charset;
+  String get characterSet() native "return this.characterSet;";
 
-  String compatMode;
+  String get charset() native "return this.charset;";
 
-  String cookie;
+  void set charset(String value) native "this.charset = value;";
 
-  String defaultCharset;
+  String get compatMode() native "return this.compatMode;";
 
-  DOMWindow defaultView;
+  String get cookie() native "return this.cookie;";
 
-  DocumentType doctype;
+  void set cookie(String value) native "this.cookie = value;";
 
-  Element documentElement;
+  String get defaultCharset() native "return this.defaultCharset;";
 
-  String documentURI;
+  DOMWindowJS get defaultView() native "return this.defaultView;";
 
-  String domain;
+  DocumentTypeJS get doctype() native "return this.doctype;";
 
-  HTMLCollection forms;
+  ElementJS get documentElement() native "return this.documentElement;";
 
-  HTMLHeadElement head;
+  String get documentURI() native "return this.documentURI;";
 
-  HTMLCollection images;
+  void set documentURI(String value) native "this.documentURI = value;";
 
-  DOMImplementation implementation;
+  String get domain() native "return this.domain;";
 
-  String inputEncoding;
+  void set domain(String value) native "this.domain = value;";
 
-  String lastModified;
+  HTMLCollectionJS get forms() native "return this.forms;";
 
-  HTMLCollection links;
+  HTMLHeadElementJS get head() native "return this.head;";
 
-  Location location;
+  HTMLCollectionJS get images() native "return this.images;";
 
-  String preferredStylesheetSet;
+  DOMImplementationJS get implementation() native "return this.implementation;";
 
-  String readyState;
+  String get inputEncoding() native "return this.inputEncoding;";
 
-  String referrer;
+  String get lastModified() native "return this.lastModified;";
 
-  String selectedStylesheetSet;
+  HTMLCollectionJS get links() native "return this.links;";
 
-  StyleSheetList styleSheets;
+  LocationJS get location() native "return this.location;";
 
-  String title;
+  void set location(LocationJS value) native "this.location = value;";
 
-  Element webkitCurrentFullScreenElement;
+  String get preferredStylesheetSet() native "return this.preferredStylesheetSet;";
 
-  bool webkitFullScreenKeyboardInputAllowed;
+  String get readyState() native "return this.readyState;";
 
-  bool webkitHidden;
+  String get referrer() native "return this.referrer;";
 
-  bool webkitIsFullScreen;
+  String get selectedStylesheetSet() native "return this.selectedStylesheetSet;";
 
-  String webkitVisibilityState;
+  void set selectedStylesheetSet(String value) native "this.selectedStylesheetSet = value;";
 
-  String xmlEncoding;
+  StyleSheetListJS get styleSheets() native "return this.styleSheets;";
 
-  bool xmlStandalone;
+  String get title() native "return this.title;";
 
-  String xmlVersion;
+  void set title(String value) native "this.title = value;";
 
-  Node adoptNode(Node source) native;
+  ElementJS get webkitCurrentFullScreenElement() native "return this.webkitCurrentFullScreenElement;";
 
-  Range caretRangeFromPoint(int x, int y) native;
+  bool get webkitFullScreenKeyboardInputAllowed() native "return this.webkitFullScreenKeyboardInputAllowed;";
 
-  Attr createAttribute(String name) native;
+  bool get webkitHidden() native "return this.webkitHidden;";
 
-  Attr createAttributeNS(String namespaceURI, String qualifiedName) native;
+  bool get webkitIsFullScreen() native "return this.webkitIsFullScreen;";
 
-  CDATASection createCDATASection(String data) native;
+  String get webkitVisibilityState() native "return this.webkitVisibilityState;";
 
-  Comment createComment(String data) native;
+  String get xmlEncoding() native "return this.xmlEncoding;";
 
-  DocumentFragment createDocumentFragment() native;
+  bool get xmlStandalone() native "return this.xmlStandalone;";
 
-  Element createElement(String tagName) native;
+  void set xmlStandalone(bool value) native "this.xmlStandalone = value;";
 
-  Element createElementNS(String namespaceURI, String qualifiedName) native;
+  String get xmlVersion() native "return this.xmlVersion;";
 
-  EntityReference createEntityReference(String name) native;
+  void set xmlVersion(String value) native "this.xmlVersion = value;";
 
-  Event createEvent(String eventType) native;
+  NodeJS adoptNode(NodeJS source) native;
 
-  XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
+  RangeJS caretRangeFromPoint(int x, int y) native;
 
-  XPathNSResolver createNSResolver(Node nodeResolver) native;
+  AttrJS createAttribute(String name) native;
 
-  NodeIterator createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
+  AttrJS createAttributeNS(String namespaceURI, String qualifiedName) native;
 
-  ProcessingInstruction createProcessingInstruction(String target, String data) native;
+  CDATASectionJS createCDATASection(String data) native;
 
-  Range createRange() native;
+  CommentJS createComment(String data) native;
 
-  Text createTextNode(String data) native;
+  DocumentFragmentJS createDocumentFragment() native;
 
-  Touch createTouch(DOMWindow window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
+  ElementJS createElement(String tagName) native;
 
-  TouchList createTouchList() native;
+  ElementJS createElementNS(String namespaceURI, String qualifiedName) native;
 
-  TreeWalker createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
+  EntityReferenceJS createEntityReference(String name) native;
 
-  Element elementFromPoint(int x, int y) native;
+  EventJS createEvent(String eventType) native;
 
-  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
+  XPathExpressionJS createExpression(String expression, XPathNSResolverJS resolver) native;
+
+  XPathNSResolverJS createNSResolver(NodeJS nodeResolver) native;
+
+  NodeIteratorJS createNodeIterator(NodeJS root, int whatToShow, NodeFilterJS filter, bool expandEntityReferences) native;
+
+  ProcessingInstructionJS createProcessingInstruction(String target, String data) native;
+
+  RangeJS createRange() native;
+
+  TextJS createTextNode(String data) native;
+
+  TouchJS createTouch(DOMWindowJS window, EventTargetJS target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
+
+  TouchListJS createTouchList() native;
+
+  TreeWalkerJS createTreeWalker(NodeJS root, int whatToShow, NodeFilterJS filter, bool expandEntityReferences) native;
+
+  ElementJS elementFromPoint(int x, int y) native;
+
+  XPathResultJS evaluate(String expression, NodeJS contextNode, XPathNSResolverJS resolver, int type, XPathResultJS inResult) native;
 
   bool execCommand(String command, bool userInterface, String value) native;
 
   Object getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
-  Element getElementById(String elementId) native;
+  ElementJS getElementById(String elementId) native;
 
-  NodeList getElementsByClassName(String tagname) native;
+  NodeListJS getElementsByClassName(String tagname) native;
 
-  NodeList getElementsByName(String elementName) native;
+  NodeListJS getElementsByName(String elementName) native;
 
-  NodeList getElementsByTagName(String tagname) native;
+  NodeListJS getElementsByTagName(String tagname) native;
 
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName) native;
+  NodeListJS getElementsByTagNameNS(String namespaceURI, String localName) native;
 
-  CSSStyleDeclaration getOverrideStyle(Element element, String pseudoElement) native;
+  CSSStyleDeclarationJS getOverrideStyle(ElementJS element, String pseudoElement) native;
 
-  DOMSelection getSelection() native;
+  DOMSelectionJS getSelection() native;
 
-  Node importNode(Node importedNode, [bool deep = null]) native;
+  NodeJS importNode(NodeJS importedNode, [bool deep = null]) native;
 
   bool queryCommandEnabled(String command) native;
 
@@ -147,11 +167,11 @@ class Document extends Node native "*Document" {
 
   String queryCommandValue(String command) native;
 
-  Element querySelector(String selectors) native;
+  ElementJS querySelector(String selectors) native;
 
-  NodeList querySelectorAll(String selectors) native;
+  NodeListJS querySelectorAll(String selectors) native;
 
   void webkitCancelFullScreen() native;
 
-  WebKitNamedFlow webkitGetFlowByName(String name) native;
+  WebKitNamedFlowJS webkitGetFlowByName(String name) native;
 }

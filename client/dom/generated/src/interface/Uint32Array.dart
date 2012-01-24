@@ -16,5 +16,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   int get length();
 
+  void setElements(Object array, [int offset]);
+
   Uint32Array subarray(int start, [int end]);
 }

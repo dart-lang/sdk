@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1062,7 +1062,7 @@ public class GenerateJavascriptAST {
         JsNew jsNew = new JsNew(curClassJsName.makeRef());
         if (classElement.getNativeName() != null && x.getFunction().getBody() == null) {
           /*
-           * For native classes with bodyless constructors, we pass the user-declared arguments of 
+           * For native classes with bodyless constructors, we pass the user-declared arguments of
            * the factory method to the native "new" expression.
            */
           List<JsExpression> newArguments = jsNew.getArguments();
@@ -2766,7 +2766,7 @@ public class GenerateJavascriptAST {
 
       if (method != null) {
         if (!generateDirectCallArgs(x, method, jsInvoke)) {
-          // Call cannot succeed. Return false to generate $nsme() in its place.
+          // Call cannot succeed. Generate $nsme() invocation.
           return AstUtil.newInvocation(new JsNameRef("$nsme"));
         }
       } else {
@@ -2818,7 +2818,7 @@ public class GenerateJavascriptAST {
       for (VariableElement param : target.getParameters()) {
         String name = param.getName();
         if (name != null) {
-          DartExpression namedArg = namedArgs.get(param.getName());
+          DartExpression namedArg = namedArgs.remove(name);
           if (namedArg != null) {
             if (!param.getModifiers().isNamed()) {
               // Provided a named argument to a positional parameter.
@@ -2840,6 +2840,11 @@ public class GenerateJavascriptAST {
           }
         }
         ++idx;
+      }
+
+      // Caller specified a named argument that wasn't declared in the method definition.
+      if (!namedArgs.isEmpty()) {
+        return false;
       }
 
       if (posUsed != posArgs.size()) {
@@ -2989,7 +2994,7 @@ public class GenerateJavascriptAST {
 
     // Compile time constants expressions must be canonicalized.
     // We do this with the javascript native "$intern" method.
-    private JsExpression maybeInternConst(JsExpression newExpr, List<? extends Type> typeParams) {
+    private JsExpression maybeInternConst(JsExpression newExpr, List<Type> typeParams) {
       JsInvocation intern = AstUtil.newInvocation(new JsNameRef(INTERN_CONST_FUNCTION), newExpr);
       if (typeParams != null && typeParams.size() != 0) {
         JsArrayLiteral arr = new JsArrayLiteral();
@@ -3402,7 +3407,6 @@ public class GenerateJavascriptAST {
         case ASSIGN_BIT_AND: return JsBinaryOperator.ASG_BIT_AND;
         case ASSIGN_SHL: return JsBinaryOperator.ASG_SHL;
         case ASSIGN_SAR: return JsBinaryOperator.ASG_SHR;
-        case ASSIGN_SHR: return JsBinaryOperator.ASG_SHRU;
         case ASSIGN_ADD: return JsBinaryOperator.ASG_ADD;
         case ASSIGN_SUB: return JsBinaryOperator.ASG_SUB;
         case ASSIGN_MUL: return JsBinaryOperator.ASG_MUL;
@@ -3417,7 +3421,6 @@ public class GenerateJavascriptAST {
         case BIT_AND: return JsBinaryOperator.BIT_AND;
         case SHL: return JsBinaryOperator.SHL;
         case SAR: return JsBinaryOperator.SHR;
-        case SHR: return JsBinaryOperator.SHRU;
         case ADD: return JsBinaryOperator.ADD;
         case SUB: return JsBinaryOperator.SUB;
         case MUL: return JsBinaryOperator.MUL;

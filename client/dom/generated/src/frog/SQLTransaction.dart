@@ -1,5 +1,5 @@
 
-class SQLTransaction native "*SQLTransaction" {
+class SQLTransactionJS implements SQLTransaction native "*SQLTransaction" {
 
   var dartObjectLocalStorage;
 

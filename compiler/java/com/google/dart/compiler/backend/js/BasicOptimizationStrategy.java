@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17,10 +17,10 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNullLiteral;
+import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartStatement;
-import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartThisExpression;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
@@ -62,7 +62,6 @@ class BasicOptimizationStrategy implements OptimizationStrategy {
     switch (operator) {
       case SHL:
       case SAR:
-      case SHR:
       case BIT_AND:
       case BIT_OR:
       case BIT_XOR:
@@ -289,7 +288,6 @@ class BasicOptimizationStrategy implements OptimizationStrategy {
       case ASSIGN_SUB:
       case ASSIGN_MUL:
       case ASSIGN_DIV:
-      case ASSIGN_SHR:
       case ASSIGN_SAR:
       case ASSIGN_SHL:
       case ASSIGN_BIT_AND:

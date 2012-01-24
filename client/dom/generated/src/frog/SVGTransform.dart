@@ -1,5 +1,5 @@
 
-class SVGTransform native "*SVGTransform" {
+class SVGTransformJS implements SVGTransform native "*SVGTransform" {
 
   static final int SVG_TRANSFORM_MATRIX = 1;
 
@@ -15,13 +15,13 @@ class SVGTransform native "*SVGTransform" {
 
   static final int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num angle;
+  num get angle() native "return this.angle;";
 
-  SVGMatrix matrix;
+  SVGMatrixJS get matrix() native "return this.matrix;";
 
-  int type;
+  int get type() native "return this.type;";
 
-  void setMatrix(SVGMatrix matrix) native;
+  void setMatrix(SVGMatrixJS matrix) native;
 
   void setRotate(num angle, num cx, num cy) native;
 

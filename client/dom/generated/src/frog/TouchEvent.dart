@@ -1,19 +1,19 @@
 
-class TouchEvent extends UIEvent native "*TouchEvent" {
+class TouchEventJS extends UIEventJS implements TouchEvent native "*TouchEvent" {
 
-  bool altKey;
+  bool get altKey() native "return this.altKey;";
 
-  TouchList changedTouches;
+  TouchListJS get changedTouches() native "return this.changedTouches;";
 
-  bool ctrlKey;
+  bool get ctrlKey() native "return this.ctrlKey;";
 
-  bool metaKey;
+  bool get metaKey() native "return this.metaKey;";
 
-  bool shiftKey;
+  bool get shiftKey() native "return this.shiftKey;";
 
-  TouchList targetTouches;
+  TouchListJS get targetTouches() native "return this.targetTouches;";
 
-  TouchList touches;
+  TouchListJS get touches() native "return this.touches;";
 
-  void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initTouchEvent(TouchListJS touches, TouchListJS targetTouches, TouchListJS changedTouches, String type, DOMWindowJS view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }

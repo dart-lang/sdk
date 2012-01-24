@@ -1,5 +1,5 @@
 
-class WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
+class WebGLDebugRendererInfoJS implements WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static final int UNMASKED_RENDERER_WEBGL = 0x9246;
 

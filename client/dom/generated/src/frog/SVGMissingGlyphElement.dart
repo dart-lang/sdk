@@ -1,3 +1,3 @@
 
-class SVGMissingGlyphElement extends SVGElement native "*SVGMissingGlyphElement" {
+class SVGMissingGlyphElementJS extends SVGElementJS implements SVGMissingGlyphElement native "*SVGMissingGlyphElement" {
 }

@@ -3,15 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _Timer implements Timer {
-
-  /*
-   * Set jitter to wake up timer events that would happen in _TIMER_JITTER ms.
-   */
+  // Set jitter to wake up timer events that would happen in _TIMER_JITTER ms.
   static final int _TIMER_JITTER = 0;
 
-  /*
-   * Disables the timer.
-   */
+  // Disables the timer.
   static final int _NO_TIMER = -1;
 
   static Timer _createTimer(void callback(Timer timer),
@@ -48,10 +43,9 @@ class _Timer implements Timer {
     _repeating = false;
   }
 
-  /*
-   * Cancels a set timer. The timer is removed from the timer list and if
-   * the given timer is the earliest timer the native timer is reset.
-   */
+
+  // Cancels a set timer. The timer is removed from the timer list and if
+  // the given timer is the earliest timer the native timer is reset.
   void cancel() {
     _clear();
     DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
@@ -74,11 +68,9 @@ class _Timer implements Timer {
     _wakeupTime += _milliSeconds;
   }
 
-  /*
-   * Adds a timer to the timer list and resets the native timer if it is the
-   * earliest timer in the list.  Timers with the same wakeup time are enqueued
-   * in order and notified in FIFO order.
-   */
+  // Adds a timer to the timer list and resets the native timer if it is the
+  // earliest timer in the list.  Timers with the same wakeup time are enqueued
+  // in order and notified in FIFO order.
   void _addTimerToList() {
     if (_callback !== null) {
 
@@ -123,10 +115,8 @@ class _Timer implements Timer {
   }
 
 
-  /*
-   * Creates a receive port and registers the timer handler on that receive
-   * port.
-   */
+  // Creates a receive port and registers the timer handler on that
+  // receive port.
   void _createTimerHandler() {
 
     void _handleTimeout() {
@@ -178,9 +168,7 @@ class _Timer implements Timer {
   }
 
 
-  /*
-   * Timers are ordered by wakeup time.
-   */
+  // Timers are ordered by wakeup time.
   static DoubleLinkedQueue<_Timer> _timers;
 
   static ReceivePort _receivePort;

@@ -1,47 +1,51 @@
 
-class Element extends Node native "*Element" {
+class ElementJS extends NodeJS implements Element native "*Element" {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  int childElementCount;
+  int get childElementCount() native "return this.childElementCount;";
 
-  int clientHeight;
+  int get clientHeight() native "return this.clientHeight;";
 
-  int clientLeft;
+  int get clientLeft() native "return this.clientLeft;";
 
-  int clientTop;
+  int get clientTop() native "return this.clientTop;";
 
-  int clientWidth;
+  int get clientWidth() native "return this.clientWidth;";
 
-  Element firstElementChild;
+  ElementJS get firstElementChild() native "return this.firstElementChild;";
 
-  Element lastElementChild;
+  ElementJS get lastElementChild() native "return this.lastElementChild;";
 
-  Element nextElementSibling;
+  ElementJS get nextElementSibling() native "return this.nextElementSibling;";
 
-  int offsetHeight;
+  int get offsetHeight() native "return this.offsetHeight;";
 
-  int offsetLeft;
+  int get offsetLeft() native "return this.offsetLeft;";
 
-  Element offsetParent;
+  ElementJS get offsetParent() native "return this.offsetParent;";
 
-  int offsetTop;
+  int get offsetTop() native "return this.offsetTop;";
 
-  int offsetWidth;
+  int get offsetWidth() native "return this.offsetWidth;";
 
-  Element previousElementSibling;
+  ElementJS get previousElementSibling() native "return this.previousElementSibling;";
 
-  int scrollHeight;
+  int get scrollHeight() native "return this.scrollHeight;";
 
-  int scrollLeft;
+  int get scrollLeft() native "return this.scrollLeft;";
 
-  int scrollTop;
+  void set scrollLeft(int value) native "this.scrollLeft = value;";
 
-  int scrollWidth;
+  int get scrollTop() native "return this.scrollTop;";
 
-  CSSStyleDeclaration style;
+  void set scrollTop(int value) native "this.scrollTop = value;";
 
-  String tagName;
+  int get scrollWidth() native "return this.scrollWidth;";
+
+  CSSStyleDeclarationJS get style() native "return this.style;";
+
+  String get tagName() native "return this.tagName;";
 
   void blur() native;
 
@@ -51,33 +55,33 @@ class Element extends Node native "*Element" {
 
   String getAttributeNS(String namespaceURI, String localName) native;
 
-  Attr getAttributeNode(String name) native;
+  AttrJS getAttributeNode(String name) native;
 
-  Attr getAttributeNodeNS(String namespaceURI, String localName) native;
+  AttrJS getAttributeNodeNS(String namespaceURI, String localName) native;
 
-  ClientRect getBoundingClientRect() native;
+  ClientRectJS getBoundingClientRect() native;
 
-  ClientRectList getClientRects() native;
+  ClientRectListJS getClientRects() native;
 
-  NodeList getElementsByClassName(String name) native;
+  NodeListJS getElementsByClassName(String name) native;
 
-  NodeList getElementsByTagName(String name) native;
+  NodeListJS getElementsByTagName(String name) native;
 
-  NodeList getElementsByTagNameNS(String namespaceURI, String localName) native;
+  NodeListJS getElementsByTagNameNS(String namespaceURI, String localName) native;
 
   bool hasAttribute(String name) native;
 
   bool hasAttributeNS(String namespaceURI, String localName) native;
 
-  Element querySelector(String selectors) native;
+  ElementJS querySelector(String selectors) native;
 
-  NodeList querySelectorAll(String selectors) native;
+  NodeListJS querySelectorAll(String selectors) native;
 
   void removeAttribute(String name) native;
 
   void removeAttributeNS(String namespaceURI, String localName) native;
 
-  Attr removeAttributeNode(Attr oldAttr) native;
+  AttrJS removeAttributeNode(AttrJS oldAttr) native;
 
   void scrollByLines(int lines) native;
 
@@ -91,9 +95,9 @@ class Element extends Node native "*Element" {
 
   void setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
 
-  Attr setAttributeNode(Attr newAttr) native;
+  AttrJS setAttributeNode(AttrJS newAttr) native;
 
-  Attr setAttributeNodeNS(Attr newAttr) native;
+  AttrJS setAttributeNodeNS(AttrJS newAttr) native;
 
   bool webkitMatchesSelector(String selectors) native;
 

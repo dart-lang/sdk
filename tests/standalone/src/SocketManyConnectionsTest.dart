@@ -5,6 +5,7 @@
 // Test creating a large number of socket connections.
 
 #library("SocketManyConnectionsTest");
+#import("dart:io");
 #source("TestingServer.dart");
 
 final CONNECTIONS = 200;

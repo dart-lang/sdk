@@ -1,7 +1,7 @@
 
-class SVGFEDistantLightElement extends SVGElement native "*SVGFEDistantLightElement" {
+class SVGFEDistantLightElementJS extends SVGElementJS implements SVGFEDistantLightElement native "*SVGFEDistantLightElement" {
 
-  SVGAnimatedNumber azimuth;
+  SVGAnimatedNumberJS get azimuth() native "return this.azimuth;";
 
-  SVGAnimatedNumber elevation;
+  SVGAnimatedNumberJS get elevation() native "return this.elevation;";
 }

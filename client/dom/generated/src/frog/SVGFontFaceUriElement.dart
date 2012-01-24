@@ -1,3 +1,3 @@
 
-class SVGFontFaceUriElement extends SVGElement native "*SVGFontFaceUriElement" {
+class SVGFontFaceUriElementJS extends SVGElementJS implements SVGFontFaceUriElement native "*SVGFontFaceUriElement" {
 }

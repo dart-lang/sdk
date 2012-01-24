@@ -1,5 +1,5 @@
 
-class Geolocation native "*Geolocation" {
+class GeolocationJS implements Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -271,7 +271,8 @@ public class Resolver {
       if (cls.getDefaultClass() != null && classElement.getDefaultClass() == null) {
         onError(cls.getDefaultClass(), ResolverErrorCode.NO_SUCH_TYPE, cls.getDefaultClass());
       } else if (classElement.getDefaultClass() != null) {
-
+        recordElement(cls.getDefaultClass().getExpression(),
+                      classElement.getDefaultClass().getElement());
         bindDefaultTypeParameters(classElement.getDefaultClass().getElement().getTypeParameters(),
                                   cls.getDefaultClass().getTypeParameters(),
                                   context);
@@ -324,7 +325,7 @@ public class Resolver {
      * Sets the type in the AST of the default clause of an inteterface so that the type
      * parameters to resolve back to the default class.
      */
-    private void bindDefaultTypeParameters(List<? extends Type> parameterTypes,
+    private void bindDefaultTypeParameters(List<Type> parameterTypes,
                                            List<DartTypeParameter> parameterNodes,
                                            ResolutionContext classContext) {
       Iterator<? extends Type> typeIterator = parameterTypes.iterator();
@@ -337,6 +338,7 @@ public class Resolver {
 
         if (type.getElement().getName().equals(node.getName().getTargetName())) {
           node.setType(type);
+          recordElement(node.getName(), type.getElement());
         } else {
           node.setType(typeProvider.getDynamicType());
         }
@@ -397,9 +399,9 @@ public class Resolver {
     private void checkInterfaceTypeParamsToDefault(ClassElement interfaceElement,
                                                    ClassElement defaultClassElement) {
 
-      List<? extends Type> interfaceTypeParams = interfaceElement.getTypeParameters();
+      List<Type> interfaceTypeParams = interfaceElement.getTypeParameters();
 
-      List<? extends Type> defaultTypeParams = defaultClassElement.getTypeParameters();
+      List<Type> defaultTypeParams = defaultClassElement.getTypeParameters();
 
 
       if (defaultTypeParams.size() != interfaceTypeParams.size()) {
@@ -1047,8 +1049,9 @@ public class Resolver {
 
     @Override
     public Element visitTypeNode(DartTypeNode x) {
-      return resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
+      Element result = resolveType(x, inStaticContext(currentMethod), inFactoryContext(currentMethod),
           ResolverErrorCode.NO_SUCH_TYPE).getElement();
+     return result;
     }
 
     @Override

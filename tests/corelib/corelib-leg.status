@@ -58,10 +58,13 @@ SplayTreeTest: Fail
 StopwatchTest: Fail
 StringBaseVMTest: Fail
 StringBufferTest: Fail
+StringCaseTest: Fail
 StringFromListTest: Fail
 StringPatternTest: Fail
 StringReplaceTest: Fail
+StringSplitTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail
+StringTrimTest: Fail
 StringsTest: Fail
 UnicodeTest: Fail

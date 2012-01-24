@@ -1,3 +1,3 @@
 
-class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
+class DynamicsCompressorNodeJS extends AudioNodeJS implements DynamicsCompressorNode native "*DynamicsCompressorNode" {
 }

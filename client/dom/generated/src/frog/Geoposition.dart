@@ -1,9 +1,9 @@
 
-class Geoposition native "*Geoposition" {
+class GeopositionJS implements Geoposition native "*Geoposition" {
 
-  Coordinates coords;
+  CoordinatesJS get coords() native "return this.coords;";
 
-  int timestamp;
+  int get timestamp() native "return this.timestamp;";
 
   var dartObjectLocalStorage;
 

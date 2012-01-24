@@ -1,39 +1,63 @@
 
-class HTMLTableElement extends HTMLElement native "*HTMLTableElement" {
+class HTMLTableElementJS extends HTMLElementJS implements HTMLTableElement native "*HTMLTableElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  String bgColor;
+  void set align(String value) native "this.align = value;";
 
-  String border;
+  String get bgColor() native "return this.bgColor;";
 
-  HTMLTableCaptionElement caption;
+  void set bgColor(String value) native "this.bgColor = value;";
 
-  String cellPadding;
+  String get border() native "return this.border;";
 
-  String cellSpacing;
+  void set border(String value) native "this.border = value;";
 
-  String frame;
+  HTMLTableCaptionElementJS get caption() native "return this.caption;";
 
-  HTMLCollection rows;
+  void set caption(HTMLTableCaptionElementJS value) native "this.caption = value;";
 
-  String rules;
+  String get cellPadding() native "return this.cellPadding;";
 
-  String summary;
+  void set cellPadding(String value) native "this.cellPadding = value;";
 
-  HTMLCollection tBodies;
+  String get cellSpacing() native "return this.cellSpacing;";
 
-  HTMLTableSectionElement tFoot;
+  void set cellSpacing(String value) native "this.cellSpacing = value;";
 
-  HTMLTableSectionElement tHead;
+  String get frame() native "return this.frame;";
 
-  String width;
+  void set frame(String value) native "this.frame = value;";
 
-  HTMLElement createCaption() native;
+  HTMLCollectionJS get rows() native "return this.rows;";
 
-  HTMLElement createTFoot() native;
+  String get rules() native "return this.rules;";
 
-  HTMLElement createTHead() native;
+  void set rules(String value) native "this.rules = value;";
+
+  String get summary() native "return this.summary;";
+
+  void set summary(String value) native "this.summary = value;";
+
+  HTMLCollectionJS get tBodies() native "return this.tBodies;";
+
+  HTMLTableSectionElementJS get tFoot() native "return this.tFoot;";
+
+  void set tFoot(HTMLTableSectionElementJS value) native "this.tFoot = value;";
+
+  HTMLTableSectionElementJS get tHead() native "return this.tHead;";
+
+  void set tHead(HTMLTableSectionElementJS value) native "this.tHead = value;";
+
+  String get width() native "return this.width;";
+
+  void set width(String value) native "this.width = value;";
+
+  HTMLElementJS createCaption() native;
+
+  HTMLElementJS createTFoot() native;
+
+  HTMLElementJS createTHead() native;
 
   void deleteCaption() native;
 
@@ -43,5 +67,5 @@ class HTMLTableElement extends HTMLElement native "*HTMLTableElement" {
 
   void deleteTHead() native;
 
-  HTMLElement insertRow(int index) native;
+  HTMLElementJS insertRow(int index) native;
 }

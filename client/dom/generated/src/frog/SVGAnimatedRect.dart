@@ -1,9 +1,9 @@
 
-class SVGAnimatedRect native "*SVGAnimatedRect" {
+class SVGAnimatedRectJS implements SVGAnimatedRect native "*SVGAnimatedRect" {
 
-  SVGRect animVal;
+  SVGRectJS get animVal() native "return this.animVal;";
 
-  SVGRect baseVal;
+  SVGRectJS get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

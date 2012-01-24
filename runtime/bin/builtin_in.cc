@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,6 +11,6 @@
 // builtin.dart file.
 // This string forms the content of builtin functionality which is injected
 // into standalone dart to provide some test/debug functionality.
-const char Builtin::Builtin_source_[] = {
+const char Builtin::builtin_source_[] = {
   {{DART_SOURCE}}
 };

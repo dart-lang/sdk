@@ -12,6 +12,7 @@
 namespace dart {
 
 class Isolate;
+class Message;
 class Mutex;
 class PortMapTestPeer;
 
@@ -33,11 +34,8 @@ class PortMap: public AllStatic {
   // Enqueues the message in the port with id. Returns false if the port is not
   // active any longer.
   //
-  // Claims ownership of the memory pointed to by 'message' and will
-  // ensure that free(message) is called.
-  static bool PostMessage(Dart_Port dest_port,
-                          Dart_Port reply_port,
-                          Dart_Message message);
+  // Claims ownership of 'message'.
+  static bool PostMessage(Message* message);
 
   static void InitOnce();
 

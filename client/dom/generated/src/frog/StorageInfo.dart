@@ -1,5 +1,5 @@
 
-class StorageInfo native "*StorageInfo" {
+class StorageInfoJS implements StorageInfo native "*StorageInfo" {
 
   static final int PERSISTENT = 1;
 

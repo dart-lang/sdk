@@ -107,6 +107,18 @@ class _Float32ArrayWrappingImplementation extends _ArrayBufferViewWrappingImplem
     return new _FixedSizeListIterator<num>(this);
   }
 
+  void setElements(Object array, [int offset = null]) {
+    if (offset === null) {
+      _setElements(this, array);
+      return;
+    } else {
+      _setElements_2(this, array, offset);
+      return;
+    }
+  }
+  static void _setElements(receiver, array) native;
+  static void _setElements_2(receiver, array, offset) native;
+
   Float32Array subarray(int start, [int end = null]) {
     if (end === null) {
       return _subarray(this, start);

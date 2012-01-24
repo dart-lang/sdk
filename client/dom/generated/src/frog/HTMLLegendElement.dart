@@ -1,7 +1,9 @@
 
-class HTMLLegendElement extends HTMLElement native "*HTMLLegendElement" {
+class HTMLLegendElementJS extends HTMLElementJS implements HTMLLegendElement native "*HTMLLegendElement" {
 
-  String align;
+  String get align() native "return this.align;";
 
-  HTMLFormElement form;
+  void set align(String value) native "this.align = value;";
+
+  HTMLFormElementJS get form() native "return this.form;";
 }

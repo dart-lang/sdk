@@ -5,6 +5,10 @@
 #ifndef BIN_THREAD_POOL_LINUX_H_
 #define BIN_THREAD_POOL_LINUX_H_
 
+#if !defined(BIN_THREAD_POOL_H_)
+#error Do not include thread_pool_linux.h directly; use thread_pool.h instead.
+#endif
+
 #include <pthread.h>
 
 #include "platform/globals.h"

@@ -1,5 +1,5 @@
 
-class InjectedScriptHost native "*InjectedScriptHost" {
+class InjectedScriptHostJS implements InjectedScriptHost native "*InjectedScriptHost" {
 
   void clearConsoleMessages() native;
 

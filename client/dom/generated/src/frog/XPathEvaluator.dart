@@ -1,11 +1,11 @@
 
-class XPathEvaluator native "*XPathEvaluator" {
+class XPathEvaluatorJS implements XPathEvaluator native "*XPathEvaluator" {
 
-  XPathExpression createExpression(String expression, XPathNSResolver resolver) native;
+  XPathExpressionJS createExpression(String expression, XPathNSResolverJS resolver) native;
 
-  XPathNSResolver createNSResolver(Node nodeResolver) native;
+  XPathNSResolverJS createNSResolver(NodeJS nodeResolver) native;
 
-  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
+  XPathResultJS evaluate(String expression, NodeJS contextNode, XPathNSResolverJS resolver, int type, XPathResultJS inResult) native;
 
   var dartObjectLocalStorage;
 

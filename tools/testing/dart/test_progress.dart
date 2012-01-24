@@ -4,6 +4,7 @@
 
 #library("test_progress");
 
+#import("dart:io");
 #import("test_runner.dart");
 #import("test_suite.dart");
 
@@ -69,7 +70,8 @@ class ProgressIndicator {
       for (int i = 0; i < 20 && i < _tests.length; i++) {
         var name = _tests[i].displayName;
         var duration = _tests[i].output.time;
-        print('${duration} - $name');
+        var configuration = _tests[i].configurationString;
+        print('${duration} - $configuration $name');
       }
     }
   }
@@ -112,7 +114,7 @@ class ProgressIndicator {
   void _printFailureOutput(TestCase test) {
     List<String> output = new List<String>();
     output.add('');
-    output.add('FAILED: ${test.displayName}');
+    output.add('FAILED: ${test.configurationString} ${test.displayName}');
     StringBuffer expected = new StringBuffer();
     expected.add('Expected: ');
     for (var expectation in test.expectedOutcomes) {
@@ -279,7 +281,7 @@ class LineProgressIndicator extends ProgressIndicator {
     if (test.output.unexpectedOutput) {
       status = 'fail';
     }
-    print('Done ${test.displayName}: $status');
+    print('Done ${test.configurationString} ${test.displayName}: $status');
   }
 }
 
@@ -289,7 +291,7 @@ class VerboseProgressIndicator extends ProgressIndicator {
       : super(startTime, printTiming);
 
   void _printStartProgress(TestCase test) {
-    print('Starting ${test.displayName}...');
+    print('Starting ${test.configurationString} ${test.displayName}...');
   }
 
   void _printDoneProgress(TestCase test) {
@@ -297,7 +299,7 @@ class VerboseProgressIndicator extends ProgressIndicator {
     if (test.output.unexpectedOutput) {
       status = 'fail';
     }
-    print('Done ${test.displayName}: $status');
+    print('Done ${test.configurationString} ${test.displayName}: $status');
   }
 }
 
@@ -327,7 +329,7 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       status = 'fail';
     }
     var percent = ((_completedTests() / _foundTests) * 100).toInt().toString();
-    print('Done ${test.displayName}: $status');
+    print('Done ${test.configurationString} ${test.displayName}: $status');
     print('@@@STEP_CLEAR@@@');
     print('@@@STEP_TEXT@ $percent% +$_passedTests -$_failedTests @@@');
   }

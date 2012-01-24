@@ -22362,7 +22362,8 @@ class _ChildrenElementList implements ElementList {
 
   Collection map(f(Element element)) => _toList().map(f);
 
-  Collection<Element> filter(bool f(Element element)) => _toList().filter(f);
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(_toList().filter(f));
 
   bool every(bool f(Element element)) {
     for(Element element in this) {
@@ -22436,7 +22437,8 @@ class _ChildrenElementList implements ElementList {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  ElementList getRange(int start, int length) =>
+    new _ElementList(Lists.getRange(this, start, length));
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -22475,29 +22477,43 @@ class FrozenElementList implements ElementList {
   }
 
   void forEach(void f(Element element)) {
-    final length = _ptr.length;
-    for (var i = 0; i < length; i++) {
-      f(LevelDom.wrapElement(_ptr[i]));
+    for (Element el in this) {
+      f(el);
     }
   }
 
   Collection map(f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
+    var out = [];
+    for (Element el in this) {
+      out.add(f(el));
+    }
+    return out;
   }
 
-  Collection<Element> filter(bool f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
+  ElementList filter(bool f(Element element)) {
+    var out = new _ElementList([]);
+    for (Element el in this) {
+      if (f(el)) out.add(el);
+    }
+    return out;
   }
 
   bool every(bool f(Element element)) {
-    //TODO(jacobr): Implement this.
-    throw 'Not implemented yet.';
+    for(Element element in this) {
+      if (!f(element)) {
+        return false;
+      }
+    };
+    return true;
   }
 
   bool some(bool f(Element element)) {
-    throw 'Not impl yet. todo(jacobr)';
+    for(Element element in this) {
+      if (f(element)) {
+        return true;
+      }
+    };
+    return false;
   }
 
   bool isEmpty() {
@@ -22544,35 +22560,34 @@ class FrozenElementList implements ElementList {
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
   void removeRange(int start, int length) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
   void insertRange(int start, int length, [initialValue = null]) {
-    throw const NotImplementedException();
+    throw const UnsupportedOperationException('');
   }
 
-  List getRange(int start, int length) {
-    throw const NotImplementedException();
-  }
+  ElementList getRange(int start, int length) =>
+    new _ElementList(Lists.getRange(this, start, length));
 
-  int indexOf(Element element, [int start = 0]) {
-    throw 'Not impl yet. todo(jacobr)';
-  }
+  int indexOf(Element element, [int start = 0]) =>
+    Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(Element element, [int start = null]) {
-    throw 'Not impl yet. todo(jacobr)';
+    if (start === null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
   }
 
   void clear() {
-    throw 'Not impl yet. todo(jacobr)';
+    throw const UnsupportedOperationException('');
   }
 
   Element removeLast() {
-    throw 'Not impl yet. todo(jacobr)';
+    throw const UnsupportedOperationException('');
   }
 
   Element last() {
@@ -22602,6 +22617,16 @@ class FrozenElementListIterator implements Iterator<Element> {
    * Returns whether the [Iterator] has elements left.
    */
   bool hasNext() => _index < _list.length;
+}
+
+class _ElementList extends _ListWrapper<Element> implements ElementList {
+  _ElementList(List<Element> list) : super(list);
+
+  ElementList filter(bool f(Element element)) =>
+    new _ElementList(super.filter(f));
+
+  ElementList getRange(int start, int length) =>
+    new _ElementList(super.getRange(start, length));
 }
 
 class ElementAttributeMap implements Map<String, String> {
@@ -23653,7 +23678,7 @@ class _ChildrenNodeList implements NodeList {
 
   Collection map(f(Node element)) => _toList().map(f);
 
-  Collection<Node> filter(bool f(Node element)) => _toList().filter(f);
+  NodeList filter(bool f(Node element)) => new _NodeList(_toList().filter(f));
 
   bool every(bool f(Node element)) {
     for(Node element in this) {
@@ -23733,7 +23758,8 @@ class _ChildrenNodeList implements NodeList {
     throw const NotImplementedException();
   }
 
-  List getRange(int start, int length) => Lists.getRange(this, start, length);
+  NodeList getRange(int start, int length) =>
+    new _NodeList(Lists.getRange(this, start, length));
 
   int indexOf(Node element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -23759,6 +23785,76 @@ class _ChildrenNodeList implements NodeList {
   Node last() {
     return LevelDom.wrapNode(_node.lastChild);
   }
+}
+
+// TODO(nweiz): when all implementations we target have the same name for the
+// coreimpl implementation of List<E>, extend that rather than wrapping.
+class _ListWrapper<E> implements List<E> {
+  List<E> _list;
+
+  _ListWrapper(List<E> this._list);
+
+  Iterator<E> iterator() => _list.iterator();
+
+  void forEach(void f(E element)) => _list.forEach(f);
+
+  Collection map(f(E element)) => _list.map(f);
+
+  List<E> filter(bool f(E element)) => _list.filter(f);
+
+  bool every(bool f(E element)) => _list.every(f);
+
+  bool some(bool f(E element)) => _list.some(f);
+
+  bool isEmpty() => _list.isEmpty();
+
+  int get length() => _list.length;
+
+  E operator [](int index) => _list[index];
+
+  void operator []=(int index, E value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void add(E value) => _list.add(value);
+
+  void addLast(E value) => _list.addLast(value);
+
+  void addAll(Collection<E> collection) => _list.addAll(collection);
+
+  void sort(int compare(E a, E b)) => _list.sort(compare);
+
+  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(E element, [int start = 0]) =>
+    _list.lastIndexOf(element, start);
+
+  void clear() => _list.clear();
+
+  E removeLast() => _list.removeLast();
+
+  E last() => _list.last();
+
+  List<E> getRange(int start, int length) => _list.getRange(start, length);
+
+  void setRange(int start, int length, List<E> from, [int startFrom = 0]) =>
+    _list.setRange(start, length, from, startFrom);
+
+  void removeRange(int start, int length) => _list.removeRange(start, length);
+
+  void insertRange(int start, int length, [E initialValue = null]) =>
+    _list.insertRange(start, length, initialValue);
+
+  E get first() => _list[0];
+}
+
+class _NodeList extends _ListWrapper<Node> implements NodeList {
+  _NodeList(List<Node> list) : super(list);
+
+  NodeList filter(bool f(Node element)) => new _NodeList(super.filter(f));
+
+  NodeList getRange(int start, int length) =>
+    new _NodeList(super.getRange(start, length));
 }
 
 class NodeWrappingImplementation extends EventTargetWrappingImplementation implements Node {

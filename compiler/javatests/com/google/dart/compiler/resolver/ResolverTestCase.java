@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,6 +13,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -63,21 +64,26 @@ abstract class ResolverTestCase extends TestCase {
 
   static Scope resolve(DartUnit unit, TestCompilerContext context) {
     LibraryUnit libraryUnit = MockLibraryUnit.create(unit);
+
     // Prepare for running phases.
-    Scope scope = new Scope("library", libraryUnit.getElement());
+    Scope scope = libraryUnit.getElement().getScope();
     CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
     // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
     new MemberBuilder().exec(unit, context, scope, typeProvider);
     new CompileTimeConstantResolver().exec(unit, context, typeProvider);
     new Resolver(context, scope, typeProvider).exec(unit);
+    // TODO(zundel): One day, we want all AST nodes that are identifiers to point to
+    // elements if they are resolved.  Uncommenting this line helps track missing elements
+    // down.
+    // ResolverAuditVisitor.exec(unit);
     return scope;
   }
 
   static Scope resolveCompileTimeConst(DartUnit unit, TestCompilerContext context) {
     LibraryUnit libraryUnit = MockLibraryUnit.create(unit);
     // Prepare for running phases.
-    Scope scope = new Scope("library", libraryUnit.getElement());
+    Scope scope = libraryUnit.getElement().getScope();
     CoreTypeProvider typeProvider = setupTypeProvider(unit, context, scope);
     // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
@@ -127,6 +133,39 @@ abstract class ResolverTestCase extends TestCase {
     return new DartTypeParameter(new DartIdentifier(name), null);
   }
 
+  /**
+   * Look for  DartIdentifier nodes in the tree whose symbols are null.  They should all either
+   * be resolved, or marked as an unresolved element.
+   */
+  static class ResolverAuditVisitor extends DartNodeTraverser<Void> {
+    private List<String> failures = Lists.newArrayList();
+
+    @Override
+    public Void visitIdentifier(DartIdentifier node) {
+
+      if (node.getSymbol() == null) {
+        failures.add("Identifier: " + node.getTargetName() + " has null symbol @ ("
+            + node.getSourceLine() + ":" + node.getSourceColumn() + ")");
+      }
+      return null;
+    }
+
+    public List<String> getFailures() {
+      return failures;
+    }
+
+    public static void exec(DartNode root) {
+      ResolverAuditVisitor visitor = new ResolverAuditVisitor();
+      root.accept(visitor);
+      List<String> results = visitor.getFailures();
+      if (results.size() > 0) {
+        StringBuilder out = new StringBuilder("Missing symbols found in AST\n");
+        Joiner.on("\n").appendTo(out, results);
+        fail(out.toString());
+      }
+    }
+  }
+
   static class MockCoreTypeProvider implements CoreTypeProvider {
 
     private final InterfaceType boolType;
@@ -139,7 +178,6 @@ abstract class ResolverTestCase extends TestCase {
     private final InterfaceType defaultMapLiteralType;
     private final InterfaceType defaultListType;
     private final ClassElement objectElement;
-
 
     {
       ClassElement dynamicElement = Elements.classNamed("Dynamic");
@@ -171,11 +209,12 @@ abstract class ResolverTestCase extends TestCase {
       functionElement.setType(functionType);
 
       ClassElement mapElement = Elements.classNamed("Map");
-      defaultMapLiteralType = Types.interfaceType(mapElement, Lists.newArrayList(stringType, dynamicType));
+      defaultMapLiteralType =
+          Types.interfaceType(mapElement, Lists.<Type>newArrayList(stringType, dynamicType));
       mapElement.setType(defaultMapLiteralType);
 
       ClassElement listElement = Elements.classNamed("List");
-      defaultListType = Types.interfaceType(listElement, Lists.newArrayList(dynamicType));
+      defaultListType = Types.interfaceType(listElement, Lists.<Type>newArrayList(dynamicType));
       listElement.setType(defaultListType);
     }
 

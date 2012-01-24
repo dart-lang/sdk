@@ -1,57 +1,61 @@
 
-class SVGLineElement extends SVGElement native "*SVGLineElement" {
+class SVGLineElementJS extends SVGElementJS implements SVGLineElement native "*SVGLineElement" {
 
-  SVGAnimatedLength x1;
+  SVGAnimatedLengthJS get x1() native "return this.x1;";
 
-  SVGAnimatedLength x2;
+  SVGAnimatedLengthJS get x2() native "return this.x2;";
 
-  SVGAnimatedLength y1;
+  SVGAnimatedLengthJS get y1() native "return this.y1;";
 
-  SVGAnimatedLength y2;
+  SVGAnimatedLengthJS get y2() native "return this.y2;";
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringListJS get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringListJS get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringListJS get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformListJS get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElement farthestViewportElement;
+  SVGElementJS get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElement nearestViewportElement;
+  SVGElementJS get nearestViewportElement() native "return this.nearestViewportElement;";
 
-  SVGRect getBBox() native;
+  SVGRectJS getBBox() native;
 
-  SVGMatrix getCTM() native;
+  SVGMatrixJS getCTM() native;
 
-  SVGMatrix getScreenCTM() native;
+  SVGMatrixJS getScreenCTM() native;
 
-  SVGMatrix getTransformToElement(SVGElement element) native;
+  SVGMatrixJS getTransformToElement(SVGElementJS element) native;
 }

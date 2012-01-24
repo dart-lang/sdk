@@ -1,5 +1,5 @@
 
-class XMLHttpRequest native "*XMLHttpRequest" {
+class XMLHttpRequestJS implements XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 
@@ -13,31 +13,37 @@ class XMLHttpRequest native "*XMLHttpRequest" {
 
   static final int UNSENT = 0;
 
-  bool asBlob;
+  bool get asBlob() native "return this.asBlob;";
 
-  int readyState;
+  void set asBlob(bool value) native "this.asBlob = value;";
 
-  Blob responseBlob;
+  int get readyState() native "return this.readyState;";
 
-  String responseText;
+  BlobJS get responseBlob() native "return this.responseBlob;";
 
-  String responseType;
+  String get responseText() native "return this.responseText;";
 
-  Document responseXML;
+  String get responseType() native "return this.responseType;";
 
-  int status;
+  void set responseType(String value) native "this.responseType = value;";
 
-  String statusText;
+  DocumentJS get responseXML() native "return this.responseXML;";
 
-  XMLHttpRequestUpload upload;
+  int get status() native "return this.status;";
 
-  bool withCredentials;
+  String get statusText() native "return this.statusText;";
+
+  XMLHttpRequestUploadJS get upload() native "return this.upload;";
+
+  bool get withCredentials() native "return this.withCredentials;";
+
+  void set withCredentials(bool value) native "this.withCredentials = value;";
 
   void abort() native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   String getAllResponseHeaders() native;
 

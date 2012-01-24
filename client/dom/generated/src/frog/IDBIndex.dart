@@ -1,25 +1,25 @@
 
-class IDBIndex native "*IDBIndex" {
+class IDBIndexJS implements IDBIndex native "*IDBIndex" {
 
-  String keyPath;
+  String get keyPath() native "return this.keyPath;";
 
-  bool multiEntry;
+  bool get multiEntry() native "return this.multiEntry;";
 
-  String name;
+  String get name() native "return this.name;";
 
-  IDBObjectStore objectStore;
+  IDBObjectStoreJS get objectStore() native "return this.objectStore;";
 
-  bool unique;
+  bool get unique() native "return this.unique;";
 
-  IDBRequest count([IDBKeyRange range = null]) native;
+  IDBRequestJS count([IDBKeyRangeJS range = null]) native;
 
-  IDBRequest getObject(IDBKey key) native;
+  IDBRequestJS getObject(IDBKeyJS key) native;
 
-  IDBRequest getKey(IDBKey key) native;
+  IDBRequestJS getKey(IDBKeyJS key) native;
 
-  IDBRequest openCursor([IDBKeyRange range = null, int direction = null]) native;
+  IDBRequestJS openCursor([IDBKeyRangeJS range = null, int direction = null]) native;
 
-  IDBRequest openKeyCursor([IDBKeyRange range = null, int direction = null]) native;
+  IDBRequestJS openKeyCursor([IDBKeyRangeJS range = null, int direction = null]) native;
 
   var dartObjectLocalStorage;
 

@@ -1,7 +1,7 @@
 
-class CustomEvent extends Event native "*CustomEvent" {
+class CustomEventJS extends EventJS implements CustomEvent native "*CustomEvent" {
 
-  Object detail;
+  Object get detail() native "return this.detail;";
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 }

@@ -1,39 +1,73 @@
 
-class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
+class CanvasRenderingContext2DJS extends CanvasRenderingContextJS implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
-  Dynamic fillStyle;
+  Dynamic get fillStyle() native "return this.fillStyle;";
 
-  String font;
+  void set fillStyle(Dynamic value) native "this.fillStyle = value;";
 
-  num globalAlpha;
+  String get font() native "return this.font;";
 
-  String globalCompositeOperation;
+  void set font(String value) native "this.font = value;";
 
-  String lineCap;
+  num get globalAlpha() native "return this.globalAlpha;";
 
-  String lineJoin;
+  void set globalAlpha(num value) native "this.globalAlpha = value;";
 
-  num lineWidth;
+  String get globalCompositeOperation() native "return this.globalCompositeOperation;";
 
-  num miterLimit;
+  void set globalCompositeOperation(String value) native "this.globalCompositeOperation = value;";
 
-  num shadowBlur;
+  String get lineCap() native "return this.lineCap;";
 
-  String shadowColor;
+  void set lineCap(String value) native "this.lineCap = value;";
 
-  num shadowOffsetX;
+  String get lineJoin() native "return this.lineJoin;";
 
-  num shadowOffsetY;
+  void set lineJoin(String value) native "this.lineJoin = value;";
 
-  Dynamic strokeStyle;
+  num get lineWidth() native "return this.lineWidth;";
 
-  String textAlign;
+  void set lineWidth(num value) native "this.lineWidth = value;";
 
-  String textBaseline;
+  num get miterLimit() native "return this.miterLimit;";
 
-  List webkitLineDash;
+  void set miterLimit(num value) native "this.miterLimit = value;";
 
-  num webkitLineDashOffset;
+  num get shadowBlur() native "return this.shadowBlur;";
+
+  void set shadowBlur(num value) native "this.shadowBlur = value;";
+
+  String get shadowColor() native "return this.shadowColor;";
+
+  void set shadowColor(String value) native "this.shadowColor = value;";
+
+  num get shadowOffsetX() native "return this.shadowOffsetX;";
+
+  void set shadowOffsetX(num value) native "this.shadowOffsetX = value;";
+
+  num get shadowOffsetY() native "return this.shadowOffsetY;";
+
+  void set shadowOffsetY(num value) native "this.shadowOffsetY = value;";
+
+  Dynamic get strokeStyle() native "return this.strokeStyle;";
+
+  void set strokeStyle(Dynamic value) native "this.strokeStyle = value;";
+
+  String get textAlign() native "return this.textAlign;";
+
+  void set textAlign(String value) native "this.textAlign = value;";
+
+  String get textBaseline() native "return this.textBaseline;";
+
+  void set textBaseline(String value) native "this.textBaseline = value;";
+
+  List get webkitLineDash() native "return this.webkitLineDash;";
+
+  void set webkitLineDash(List value) native "this.webkitLineDash = value;";
+
+  num get webkitLineDashOffset() native "return this.webkitLineDashOffset;";
+
+  void set webkitLineDashOffset(num value) native "this.webkitLineDashOffset = value;";
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
@@ -51,17 +85,17 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   void closePath() native;
 
-  ImageData createImageData(var imagedata_OR_sw, [num sh = null]) native;
+  ImageDataJS createImageData(var imagedata_OR_sw, [num sh = null]) native;
 
-  CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
+  CanvasGradientJS createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  CanvasPattern createPattern(var canvas_OR_image, String repetitionType) native;
+  CanvasPatternJS createPattern(var canvas_OR_image, String repetitionType) native;
 
-  CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
+  CanvasGradientJS createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
   void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
 
-  void drawImageFromRect(HTMLImageElement image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
+  void drawImageFromRect(HTMLImageElementJS image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
 
   void fill() native;
 
@@ -69,17 +103,17 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
   void fillText(String text, num x, num y, [num maxWidth = null]) native;
 
-  ImageData getImageData(num sx, num sy, num sw, num sh) native;
+  ImageDataJS getImageData(num sx, num sy, num sw, num sh) native;
 
   bool isPointInPath(num x, num y) native;
 
   void lineTo(num x, num y) native;
 
-  TextMetrics measureText(String text) native;
+  TextMetricsJS measureText(String text) native;
 
   void moveTo(num x, num y) native;
 
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
+  void putImageData(ImageDataJS imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 

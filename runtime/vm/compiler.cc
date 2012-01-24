@@ -186,11 +186,11 @@ static void CompileFunctionHelper(const Function& function, bool optimized) {
     String& var_name = String::Handle();
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);
-      intptr_t scope_id, ignore;
-      var_descriptors.GetScopeInfo(i, &scope_id, &ignore, &ignore);
+      intptr_t scope_id, begin_pos, end_pos;
+      var_descriptors.GetScopeInfo(i, &scope_id, &begin_pos, &end_pos);
       intptr_t slot = var_descriptors.GetSlotIndex(i);
-      OS::Print("  var %s scope %ld offset %ld\n",
-                var_name.ToCString(), scope_id, slot);
+      OS::Print("  var %s scope %ld (valid %d-%d) offset %ld\n",
+                var_name.ToCString(), scope_id, begin_pos, end_pos, slot);
     }
     OS::Print("}\n");
     OS::Print("Exception Handlers for function '%s' {\n", function_fullname);

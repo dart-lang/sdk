@@ -1,5 +1,5 @@
 
-class WebKitMutationObserver native "*WebKitMutationObserver" {
+class WebKitMutationObserverJS implements WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
 

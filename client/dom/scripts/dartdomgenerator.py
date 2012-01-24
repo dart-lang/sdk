@@ -25,18 +25,19 @@ _webkit_renames = {
     'DedicatedWorkerGlobalScope': 'DedicatedWorkerContext',
     'FormData': 'DOMFormData',
     'Selection': 'DOMSelection',
-    'SharedWorkerGlobalScope': 'SharedWorkercontext',
+    'SharedWorkerGlobalScope': 'SharedWorkerContext',
     'Window': 'DOMWindow',
     'WorkerGlobalScope': 'WorkerContext'}
 
 _webkit_renames_inverse = dict((v,k) for k, v in _webkit_renames.iteritems())
 
-def GenerateDOM():
+def GenerateDOM(output_dir):
   # TODO(sra): Make this entry point also generate HTML.
   current_dir = os.path.dirname(__file__)
 
   generator = dartgenerator.DartGenerator(
       auxiliary_dir=os.path.join(current_dir, '..', 'src'),
+      template_dir=os.path.join(current_dir, '..', 'templates'),
       base_package='')
   generator.LoadAuxiliary()
 
@@ -57,15 +58,14 @@ def GenerateDOM():
   generator.ConvertToDartTypes(common_database)
   webkit_database = common_database.Clone()
 
-  output_dir = os.path.join(current_dir, '..', 'generated')
-  lib_dir = os.path.join(current_dir, '..')
-  if os.path.exists(output_dir):
-    _logger.info('Cleaning output directory %s' % output_dir)
-    shutil.rmtree(output_dir)
+  generated_output_dir = os.path.join(output_dir, 'generated')
+  if os.path.exists(generated_output_dir):
+    _logger.info('Cleaning output directory %s' % generated_output_dir)
+    shutil.rmtree(generated_output_dir)
 
 
   # Generate Dart interfaces for the WebKit DOM.
-  webkit_output_dir = output_dir
+  webkit_output_dir = generated_output_dir
   generator.FilterInterfaces(database = webkit_database,
                              or_annotations = ['WebKit', 'Dart'],
                              exclude_displaced = ['WebKit'],
@@ -74,7 +74,7 @@ def GenerateDOM():
 
   generator.Generate(database = webkit_database,
                      output_dir = webkit_output_dir,
-                     lib_dir = lib_dir,
+                     lib_dir = output_dir,
                      module_source_preference = ['WebKit', 'Dart'],
                      source_filter = ['WebKit', 'Dart'],
                      super_database = common_database,
@@ -84,14 +84,14 @@ def GenerateDOM():
   generator.Flush()
 
   # Install default DOM library.
-  default = os.path.join(lib_dir, DOM_DEFAULT_LIBRARY)
-  target = os.path.join(lib_dir, DOM_LIBRARY)
+  default = os.path.join(output_dir, DOM_DEFAULT_LIBRARY)
+  target = os.path.join(output_dir, DOM_LIBRARY)
   shutil.copyfile(default, target)
 
 def main():
   current_dir = os.path.dirname(__file__)
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
-  GenerateDOM()
+  GenerateDOM(os.path.join(current_dir, '..'))
 
 if __name__ == '__main__':
   sys.exit(main())

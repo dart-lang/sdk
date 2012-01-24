@@ -1,15 +1,15 @@
 
-class FileWriterSync native "*FileWriterSync" {
+class FileWriterSyncJS implements FileWriterSync native "*FileWriterSync" {
 
-  int length;
+  int get length() native "return this.length;";
 
-  int position;
+  int get position() native "return this.position;";
 
   void seek(int position) native;
 
   void truncate(int size) native;
 
-  void write(Blob data) native;
+  void write(BlobJS data) native;
 
   var dartObjectLocalStorage;
 

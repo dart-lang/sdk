@@ -1,11 +1,11 @@
 
-class RGBColor native "*RGBColor" {
+class RGBColorJS implements RGBColor native "*RGBColor" {
 
-  CSSPrimitiveValue blue;
+  CSSPrimitiveValueJS get blue() native "return this.blue;";
 
-  CSSPrimitiveValue green;
+  CSSPrimitiveValueJS get green() native "return this.green;";
 
-  CSSPrimitiveValue red;
+  CSSPrimitiveValueJS get red() native "return this.red;";
 
   var dartObjectLocalStorage;
 

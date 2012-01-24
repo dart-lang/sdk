@@ -4,6 +4,8 @@
 //
 // Directory listing test.
 
+#import("dart:io");
+
 class DirectoryTest {
   static void testListing() {
     bool listedDir = false;

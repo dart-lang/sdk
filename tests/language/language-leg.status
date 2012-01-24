@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -47,6 +47,7 @@ ConstListTest: Fail
 ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstTest: Fail
+ConstructorCallWrongArgumentCountNegativeTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
 Constructor3NegativeTest: Fail
@@ -54,14 +55,11 @@ Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
-ConstructorBodyTest: Fail
-ConstructorCallWrongArgumentCountNegativeTest: Fail
 ConstructorDefaultTest: Fail
-ConstructorDuplicateInitializersTest/none: Fail
+ConstructorDuplicateInitializersTest/02: Fail
 ConstructorNegativeTest: Pass # For the wrong reason.
 ConstructorRedirectTest: Fail
 ConstructorReturnNegativeTest: Fail
-ConstructorReturnTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
@@ -99,7 +97,6 @@ ExecuteFinally9Test: Fail
 ExpectTest: Fail
 Factory2Test: Fail
 Factory3Test: Fail
-FactoryArrowTest: Fail
 FactoryImplementationTest: Fail
 FactoryTest: Fail
 FannkuchTest: Fail
@@ -139,14 +136,12 @@ GenericInstanceofTest: Fail
 GenericParameterizedExtendsTest: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
-Generics2Test: Fail
 GenericsTest: Fail
 GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
 HelloScriptTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail
-ImplicitClosureTest: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
 ImplicitThisTest/01: Fail
@@ -161,7 +156,6 @@ IncrOpTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
-InstanceCallWrongArgumentCountNegativeTest: Fail
 InstanceCompoundAssignmentOperatorTest: Fail
 InstanceFieldInitializerTest: Fail
 Instanceof2Test: Fail
@@ -240,12 +234,14 @@ NullToStringTest: Fail
 NumberSyntaxTest: Fail
 NumbersTest: Fail
 ObjectDynamicMethodTest: Fail
+Operator1NegativeTest: Fail
 Operator2Test: Fail
 OperatorTest: Fail
 OptimizationTest: Fail
 OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
 OverriddenNoSuchMethodTest: Fail
+OverrideFieldMethod1NegativeTest: Fail
 OverrideFieldMethod2NegativeTest: Fail
 OverrideFieldMethod3NegativeTest: Fail
 OverrideFieldMethod4NegativeTest: Fail
@@ -254,7 +250,6 @@ OverrideFieldTest/03: Fail
 OverrideFieldTest/none: Fail
 OverrideMethodWithFieldTest/none: Fail
 Param2Test: Fail
-ParameterInitializer2Test: Fail
 ParameterInitializerTest: Fail
 Prefix10Test: Fail
 Prefix11Test: Fail
@@ -378,3 +373,8 @@ Unary2Test: Fail
 UnaryTest: Fail
 UnboundGetterTest: Fail
 WhileTest: Fail
+
+#Issue 1308
+NamedParameters2Test: Fail
+NamedParameters3Test: Fail
+NamedParameters4Test: Fail

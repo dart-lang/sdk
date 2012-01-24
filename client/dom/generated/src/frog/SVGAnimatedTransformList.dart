@@ -1,9 +1,9 @@
 
-class SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
+class SVGAnimatedTransformListJS implements SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
-  SVGTransformList animVal;
+  SVGTransformListJS get animVal() native "return this.animVal;";
 
-  SVGTransformList baseVal;
+  SVGTransformListJS get baseVal() native "return this.baseVal;";
 
   var dartObjectLocalStorage;
 

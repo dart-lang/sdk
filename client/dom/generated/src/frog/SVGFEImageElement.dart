@@ -1,39 +1,43 @@
 
-class SVGFEImageElement extends SVGElement native "*SVGFEImageElement" {
+class SVGFEImageElementJS extends SVGElementJS implements SVGFEImageElement native "*SVGFEImageElement" {
 
-  SVGAnimatedPreserveAspectRatio preserveAspectRatio;
+  SVGAnimatedPreserveAspectRatioJS get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedStringJS get href() native "return this.href;";
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedStringJS get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

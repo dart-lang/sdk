@@ -4,11 +4,11 @@
 
 // WARNING: Do not edit - generated code.
 
-class _SharedWorkercontextWrappingImplementation extends _WorkerContextWrappingImplementation implements SharedWorkercontext {
-  _SharedWorkercontextWrappingImplementation() : super() {}
+class _SharedWorkerContextWrappingImplementation extends _WorkerContextWrappingImplementation implements SharedWorkerContext {
+  _SharedWorkerContextWrappingImplementation() : super() {}
 
-  static create__SharedWorkercontextWrappingImplementation() native {
-    return new _SharedWorkercontextWrappingImplementation();
+  static create__SharedWorkerContextWrappingImplementation() native {
+    return new _SharedWorkerContextWrappingImplementation();
   }
 
   String get name() { return _get_name(this); }
@@ -20,5 +20,5 @@ class _SharedWorkercontextWrappingImplementation extends _WorkerContextWrappingI
   void set onconnect(EventListener value) { _set_onconnect(this, value); }
   static void _set_onconnect(var _this, EventListener value) native;
 
-  String get typeName() { return "SharedWorkercontext"; }
+  String get typeName() { return "SharedWorkerContext"; }
 }

@@ -1,9 +1,11 @@
 
-class SVGAnimatedNumber native "*SVGAnimatedNumber" {
+class SVGAnimatedNumberJS implements SVGAnimatedNumber native "*SVGAnimatedNumber" {
 
-  num animVal;
+  num get animVal() native "return this.animVal;";
 
-  num baseVal;
+  num get baseVal() native "return this.baseVal;";
+
+  void set baseVal(num value) native "this.baseVal = value;";
 
   var dartObjectLocalStorage;
 

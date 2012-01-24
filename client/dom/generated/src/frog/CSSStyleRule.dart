@@ -1,7 +1,9 @@
 
-class CSSStyleRule extends CSSRule native "*CSSStyleRule" {
+class CSSStyleRuleJS extends CSSRuleJS implements CSSStyleRule native "*CSSStyleRule" {
 
-  String selectorText;
+  String get selectorText() native "return this.selectorText;";
 
-  CSSStyleDeclaration style;
+  void set selectorText(String value) native "this.selectorText = value;";
+
+  CSSStyleDeclarationJS get style() native "return this.style;";
 }

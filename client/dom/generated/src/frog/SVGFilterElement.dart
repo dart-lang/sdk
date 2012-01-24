@@ -1,43 +1,47 @@
 
-class SVGFilterElement extends SVGElement native "*SVGFilterElement" {
+class SVGFilterElementJS extends SVGElementJS implements SVGFilterElement native "*SVGFilterElement" {
 
-  SVGAnimatedInteger filterResX;
+  SVGAnimatedIntegerJS get filterResX() native "return this.filterResX;";
 
-  SVGAnimatedInteger filterResY;
+  SVGAnimatedIntegerJS get filterResY() native "return this.filterResY;";
 
-  SVGAnimatedEnumeration filterUnits;
+  SVGAnimatedEnumerationJS get filterUnits() native "return this.filterUnits;";
 
-  SVGAnimatedLength height;
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedEnumeration primitiveUnits;
+  SVGAnimatedEnumerationJS get primitiveUnits() native "return this.primitiveUnits;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGURIReference
 
-  SVGAnimatedString href;
+  SVGAnimatedStringJS get href() native "return this.href;";
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

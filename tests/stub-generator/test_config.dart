@@ -1,8 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #library("stub_generator_test_config");
+
+#import("dart:io");
 
 #import("../../tools/testing/dart/test_suite.dart");
 
@@ -30,7 +32,20 @@ class StubGeneratorTestSuite extends StandardTestSuite {
     File stubs = new File(stubsFile);
     Expect.isTrue(filename.endsWith(".dart"));
     String baseName = filename.substring(0, filename.length - 5);
-    String resultPath = '${baseName}-generatedTest.dart';
+    // Find place in the buildDir at the same relative level as the test.
+    String resultPath = TestUtils.buildDir(configuration);
+    String relativeImportPath = '../../../tests/isolate/src/TestFramework.dart';
+    if (!new File('$resultPath/$relativeImportPath').existsSync()) {
+      resultPath = '$resultPath/generated_tests';
+      if (!new Directory(resultPath).existsSync()) {
+        new Directory(resultPath).createSync();
+      }
+      if (!new File('$resultPath/$relativeImportPath').existsSync()) {
+        throw new Exception('Cannot find $relativeImportPath from $resultPath');
+      }
+    }
+    int testNamePos = filename.lastIndexOf('/');
+    resultPath = '$resultPath/${filename.substring(testNamePos + 1)}';
     File result = new File(resultPath);
     StringInputStream origStream =
         new StringInputStream(orig.openInputStream());

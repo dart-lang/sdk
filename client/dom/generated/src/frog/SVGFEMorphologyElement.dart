@@ -1,5 +1,5 @@
 
-class SVGFEMorphologyElement extends SVGElement native "*SVGFEMorphologyElement" {
+class SVGFEMorphologyElementJS extends SVGElementJS implements SVGFEMorphologyElement native "*SVGFEMorphologyElement" {
 
   static final int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
@@ -7,33 +7,33 @@ class SVGFEMorphologyElement extends SVGElement native "*SVGFEMorphologyElement"
 
   static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  SVGAnimatedString in1;
+  SVGAnimatedStringJS get in1() native "return this.in1;";
 
-  SVGAnimatedEnumeration operator;
+  SVGAnimatedEnumerationJS get operator() native "return this.operator;";
 
-  SVGAnimatedNumber radiusX;
+  SVGAnimatedNumberJS get radiusX() native "return this.radiusX;";
 
-  SVGAnimatedNumber radiusY;
+  SVGAnimatedNumberJS get radiusY() native "return this.radiusY;";
 
   void setRadius(num radiusX, num radiusY) native;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedStringJS get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

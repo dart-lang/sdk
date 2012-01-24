@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14,13 +14,13 @@ import java.util.List;
  */
 public interface InterfaceType extends Type {
   @Override
-  InterfaceType subst(List<? extends Type> arguments,
-                      List<? extends Type> parameters);
+  InterfaceType subst(List<Type> arguments,
+                      List<Type> parameters);
 
   @Override
   ClassElement getElement();
 
-  List<? extends Type> getArguments();
+  List<Type> getArguments();
 
   boolean isRaw();
 

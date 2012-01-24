@@ -4,7 +4,7 @@
 
 // IsolateStubs=MintMakerFullyIsolatedTest.dart:Mint,Purse,PowerfulPurse
 #library("MintMakerFullyIsolatedTest-generatedTest");
-#import("../../isolate/src/TestFramework.dart");
+#import("../../../tests/isolate/src/TestFramework.dart");
 
 interface Purse default PurseImpl{
   Purse();

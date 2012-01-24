@@ -39,7 +39,7 @@ class _DirectoryListingIsolate extends Isolate {
 class _DirectoryOperation {
   abstract void execute(ReceivePort port);
 
-  SendPort set replyPort(SendPort port) {
+  void set replyPort(SendPort port) {
     _replyPort = port;
   }
 

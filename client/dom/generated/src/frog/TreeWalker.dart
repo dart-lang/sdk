@@ -1,29 +1,31 @@
 
-class TreeWalker native "*TreeWalker" {
+class TreeWalkerJS implements TreeWalker native "*TreeWalker" {
 
-  Node currentNode;
+  NodeJS get currentNode() native "return this.currentNode;";
 
-  bool expandEntityReferences;
+  void set currentNode(NodeJS value) native "this.currentNode = value;";
 
-  NodeFilter filter;
+  bool get expandEntityReferences() native "return this.expandEntityReferences;";
 
-  Node root;
+  NodeFilterJS get filter() native "return this.filter;";
 
-  int whatToShow;
+  NodeJS get root() native "return this.root;";
 
-  Node firstChild() native;
+  int get whatToShow() native "return this.whatToShow;";
 
-  Node lastChild() native;
+  NodeJS firstChild() native;
 
-  Node nextNode() native;
+  NodeJS lastChild() native;
 
-  Node nextSibling() native;
+  NodeJS nextNode() native;
 
-  Node parentNode() native;
+  NodeJS nextSibling() native;
 
-  Node previousNode() native;
+  NodeJS parentNode() native;
 
-  Node previousSibling() native;
+  NodeJS previousNode() native;
+
+  NodeJS previousSibling() native;
 
   var dartObjectLocalStorage;
 

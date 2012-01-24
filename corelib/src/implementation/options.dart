@@ -11,8 +11,15 @@ class RuntimeOptions implements Options {
     return _arguments;
   }
 
+  String get script() {
+    return _nativeScript;
+  }
+
   List<String> _arguments = null;
 
-  // This arguments singleton is overriden by the embedder if applicable.
+  // This arguments singleton is written to by the embedder if applicable.
   static List<String> _nativeArguments = const [];
+
+  // This script singleton is written to by the embedder if applicable.
+  static String _nativeScript = null;
 }

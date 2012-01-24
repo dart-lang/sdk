@@ -1,7 +1,7 @@
 
-class XMLSerializer native "*XMLSerializer" {
+class XMLSerializerJS implements XMLSerializer native "*XMLSerializer" {
 
-  String serializeToString(Node node) native;
+  String serializeToString(NodeJS node) native;
 
   var dartObjectLocalStorage;
 

@@ -1,3 +1,3 @@
 
-class SVGHKernElement extends SVGElement native "*SVGHKernElement" {
+class SVGHKernElementJS extends SVGElementJS implements SVGHKernElement native "*SVGHKernElement" {
 }

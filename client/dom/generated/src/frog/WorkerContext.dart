@@ -1,23 +1,31 @@
 
-class WorkerContext native "*WorkerContext" {
+class WorkerContextJS implements WorkerContext native "*WorkerContext" {
 
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
 
-  WorkerLocation location;
+  WorkerLocationJS get location() native "return this.location;";
 
-  WorkerNavigator navigator;
+  void set location(WorkerLocationJS value) native "this.location = value;";
 
-  EventListener onerror;
+  WorkerNavigatorJS get navigator() native "return this.navigator;";
 
-  WorkerContext self;
+  void set navigator(WorkerNavigatorJS value) native "this.navigator = value;";
 
-  IDBFactory webkitIndexedDB;
+  EventListener get onerror() native "return this.onerror;";
 
-  NotificationCenter webkitNotifications;
+  void set onerror(EventListener value) native "this.onerror = value;";
 
-  DOMURL webkitURL;
+  WorkerContextJS get self() native "return this.self;";
+
+  void set self(WorkerContextJS value) native "this.self = value;";
+
+  IDBFactoryJS get webkitIndexedDB() native "return this.webkitIndexedDB;";
+
+  NotificationCenterJS get webkitNotifications() native "return this.webkitNotifications;";
+
+  DOMURLJS get webkitURL() native "return this.webkitURL;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -27,13 +35,13 @@ class WorkerContext native "*WorkerContext" {
 
   void close() native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void importScripts() native;
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  DatabaseJS openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  DatabaseSyncJS openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -43,9 +51,9 @@ class WorkerContext native "*WorkerContext" {
 
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native;
+  DOMFileSystemSyncJS webkitRequestFileSystemSync(int type, int size) native;
 
-  EntrySync webkitResolveLocalFileSystemSyncURL(String url) native;
+  EntrySyncJS webkitResolveLocalFileSystemSyncURL(String url) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 

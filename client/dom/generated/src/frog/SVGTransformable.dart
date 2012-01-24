@@ -1,5 +1,5 @@
 
-class SVGTransformable extends SVGLocatable native "*SVGTransformable" {
+class SVGTransformableJS extends SVGLocatableJS implements SVGTransformable native "*SVGTransformable" {
 
-  SVGAnimatedTransformList transform;
+  SVGAnimatedTransformListJS get transform() native "return this.transform;";
 }

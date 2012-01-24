@@ -4,6 +4,7 @@
 //
 // Dart test program for testing file I/O.
 
+#import("dart:io");
 
 class FileTest {
   static Directory tempDirectory;

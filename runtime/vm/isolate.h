@@ -21,6 +21,7 @@ class HandleScope;
 class HandleVisitor;
 class Heap;
 class LongJump;
+class Message;
 class MessageQueue;
 class Mutex;
 class ObjectPointerVisitor;
@@ -49,18 +50,11 @@ class Isolate {
 
   StoreBufferBlock* store_buffer() { return &store_buffer_; }
 
-  Dart_PostMessageCallback post_message_callback() const {
-    return post_message_callback_;
+  Dart_MessageNotifyCallback message_notify_callback() const {
+    return message_notify_callback_;
   }
-  void set_post_message_callback(Dart_PostMessageCallback value) {
-    post_message_callback_ = value;
-  }
-
-  Dart_ClosePortCallback close_port_callback() const {
-    return close_port_callback_;
-  }
-  void set_close_port_callback(Dart_ClosePortCallback value) {
-    close_port_callback_ = value;
+  void set_message_notify_callback(Dart_MessageNotifyCallback value) {
+    message_notify_callback_ = value;
   }
 
   MessageQueue* message_queue() const { return message_queue_; }
@@ -238,13 +232,18 @@ class Isolate {
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
   enum {
-    kInterruptsMask = 0x1,
-    kApiInterrupt = 0x1,  // An interrupt from Dart_InterruptIsolate.
-    // More interrupt types will go here.
+    kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
+    kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
+
+    kInterruptsMask = kApiInterrupt | kMessageInterrupt,
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
   uword GetAndClearInterrupts();
+
+  void PostMessage(Message* message);
+  void ClosePort(Dart_Port port);
+  void CloseAllPorts();
 
   // Returns null on success, unhandled exception on failure.
   RawObject* StandardRunLoop();
@@ -273,8 +272,7 @@ class Isolate {
 
   StoreBufferBlock store_buffer_;
   MessageQueue* message_queue_;
-  Dart_PostMessageCallback post_message_callback_;
-  Dart_ClosePortCallback close_port_callback_;
+  Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   intptr_t num_ports_;
   intptr_t live_ports_;

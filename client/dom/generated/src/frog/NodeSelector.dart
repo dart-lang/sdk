@@ -1,9 +1,9 @@
 
-class NodeSelector native "*NodeSelector" {
+class NodeSelectorJS implements NodeSelector native "*NodeSelector" {
 
-  Element querySelector(String selectors) native;
+  ElementJS querySelector(String selectors) native;
 
-  NodeList querySelectorAll(String selectors) native;
+  NodeListJS querySelectorAll(String selectors) native;
 
   var dartObjectLocalStorage;
 

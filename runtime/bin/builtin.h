@@ -21,17 +21,24 @@
 
 class Builtin {
  public:
-  static Dart_Handle Source();
-  static void SetupLibrary(Dart_Handle builtin_lib);
-  static void ImportLibrary(Dart_Handle library);
-  static void SetNativeResolver();
+  enum BuiltinLibraryId {
+    kBuiltinLibrary,
+    kIOLibrary
+  };
+
+  static Dart_Handle Source(BuiltinLibraryId id);
+  static void SetupLibrary(Dart_Handle library, BuiltinLibraryId id);
+  static Dart_Handle LoadLibrary(BuiltinLibraryId id);
+  static void ImportLibrary(Dart_Handle library, BuiltinLibraryId id);
+  static void SetNativeResolver(BuiltinLibraryId id);
   static void PrintString(FILE* out, Dart_Handle object);
 
  private:
   static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                           int argument_count);
 
-  static const char Builtin_source_[];
+  static const char builtin_source_[];
+  static const char io_source_[];
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Builtin);

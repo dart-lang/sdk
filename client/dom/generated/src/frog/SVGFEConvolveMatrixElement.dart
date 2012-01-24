@@ -1,5 +1,5 @@
 
-class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrixElement" {
+class SVGFEConvolveMatrixElementJS extends SVGElementJS implements SVGFEConvolveMatrixElement native "*SVGFEConvolveMatrixElement" {
 
   static final int SVG_EDGEMODE_DUPLICATE = 1;
 
@@ -9,47 +9,47 @@ class SVGFEConvolveMatrixElement extends SVGElement native "*SVGFEConvolveMatrix
 
   static final int SVG_EDGEMODE_WRAP = 2;
 
-  SVGAnimatedNumber bias;
+  SVGAnimatedNumberJS get bias() native "return this.bias;";
 
-  SVGAnimatedNumber divisor;
+  SVGAnimatedNumberJS get divisor() native "return this.divisor;";
 
-  SVGAnimatedEnumeration edgeMode;
+  SVGAnimatedEnumerationJS get edgeMode() native "return this.edgeMode;";
 
-  SVGAnimatedString in1;
+  SVGAnimatedStringJS get in1() native "return this.in1;";
 
-  SVGAnimatedNumberList kernelMatrix;
+  SVGAnimatedNumberListJS get kernelMatrix() native "return this.kernelMatrix;";
 
-  SVGAnimatedNumber kernelUnitLengthX;
+  SVGAnimatedNumberJS get kernelUnitLengthX() native "return this.kernelUnitLengthX;";
 
-  SVGAnimatedNumber kernelUnitLengthY;
+  SVGAnimatedNumberJS get kernelUnitLengthY() native "return this.kernelUnitLengthY;";
 
-  SVGAnimatedInteger orderX;
+  SVGAnimatedIntegerJS get orderX() native "return this.orderX;";
 
-  SVGAnimatedInteger orderY;
+  SVGAnimatedIntegerJS get orderY() native "return this.orderY;";
 
-  SVGAnimatedBoolean preserveAlpha;
+  SVGAnimatedBooleanJS get preserveAlpha() native "return this.preserveAlpha;";
 
-  SVGAnimatedInteger targetX;
+  SVGAnimatedIntegerJS get targetX() native "return this.targetX;";
 
-  SVGAnimatedInteger targetY;
+  SVGAnimatedIntegerJS get targetY() native "return this.targetY;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLength height;
+  SVGAnimatedLengthJS get height() native "return this.height;";
 
-  SVGAnimatedString result;
+  SVGAnimatedStringJS get result() native "return this.result;";
 
-  SVGAnimatedLength width;
+  SVGAnimatedLengthJS get width() native "return this.width;";
 
-  SVGAnimatedLength x;
+  SVGAnimatedLengthJS get x() native "return this.x;";
 
-  SVGAnimatedLength y;
+  SVGAnimatedLengthJS get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

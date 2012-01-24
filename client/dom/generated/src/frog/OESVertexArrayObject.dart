@@ -1,15 +1,15 @@
 
-class OESVertexArrayObject native "*OESVertexArrayObject" {
+class OESVertexArrayObjectJS implements OESVertexArrayObject native "*OESVertexArrayObject" {
 
   static final int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
-  void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
+  void bindVertexArrayOES(WebGLVertexArrayObjectOESJS arrayObject) native;
 
-  WebGLVertexArrayObjectOES createVertexArrayOES() native;
+  WebGLVertexArrayObjectOESJS createVertexArrayOES() native;
 
-  void deleteVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
+  void deleteVertexArrayOES(WebGLVertexArrayObjectOESJS arrayObject) native;
 
-  bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native;
+  bool isVertexArrayOES(WebGLVertexArrayObjectOESJS arrayObject) native;
 
   var dartObjectLocalStorage;
 

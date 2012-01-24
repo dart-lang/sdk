@@ -1,5 +1,5 @@
 
-class TextTrack native "*TextTrack" {
+class TextTrackJS implements TextTrack native "*TextTrack" {
 
   static final int DISABLED = 0;
 
@@ -7,27 +7,31 @@ class TextTrack native "*TextTrack" {
 
   static final int SHOWING = 2;
 
-  TextTrackCueList activeCues;
+  TextTrackCueListJS get activeCues() native "return this.activeCues;";
 
-  TextTrackCueList cues;
+  TextTrackCueListJS get cues() native "return this.cues;";
 
-  String kind;
+  String get kind() native "return this.kind;";
 
-  String label;
+  String get label() native "return this.label;";
 
-  String language;
+  String get language() native "return this.language;";
 
-  int mode;
+  int get mode() native "return this.mode;";
 
-  EventListener oncuechange;
+  void set mode(int value) native "this.mode = value;";
 
-  void addCue(TextTrackCue cue) native;
+  EventListener get oncuechange() native "return this.oncuechange;";
+
+  void set oncuechange(EventListener value) native "this.oncuechange = value;";
+
+  void addCue(TextTrackCueJS cue) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
-  void removeCue(TextTrackCue cue) native;
+  void removeCue(TextTrackCueJS cue) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

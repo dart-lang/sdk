@@ -1,3 +1,3 @@
 
-class CDATASection extends Text native "*CDATASection" {
+class CDATASectionJS extends TextJS implements CDATASection native "*CDATASection" {
 }

@@ -56,8 +56,7 @@ module html {
     void warn(DOMObject arg);
     [Suppressed] void trace();
     void trace(DOMObject arg);
-
-    [DartName=assert_] void assert(in boolean condition);
+    [DartName=assertCondition] void assert(in boolean condition);
   };
 
   [Supplemental]
@@ -83,9 +82,6 @@ module html {
     
     any getBufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
-
-    object getExtension(in DOMString name);
-    [Suppressed, StrictTypeChecking, Custom] void getExtension(in DOMString name);
 
     any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
@@ -125,35 +121,35 @@ module canvas {
   // TODO(dstockwell): Define these manually.
   [Supplemental]
   interface Float32Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Float64Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Int16Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Int32Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Int8Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Uint16Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Uint32Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
   [Supplemental]
   interface Uint8Array {
-    [Suppressed] void set();
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
 };
 
@@ -178,4 +174,3 @@ module html {
   interface VoidCallback {
   };
 };
-

@@ -12,7 +12,9 @@ const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
-const char* DartUtils::kCoreNativeWrappersLibURL = "dart:nativewrappers";
+const char* DartUtils::kIOLibURL = "dart:io";
+
+
 const char* DartUtils::kIdFieldName = "_id";
 
 
@@ -96,6 +98,12 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   // library URL which is handled differently from other URLs.
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
 }
+
+
+bool DartUtils::IsDartIOLibURL(const char* url_name) {
+  return (strcmp(url_name, kIOLibURL) == 0);
+}
+
 
 
 Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,

@@ -1,7 +1,9 @@
 
-class WebKitCSSKeyframeRule extends CSSRule native "*WebKitCSSKeyframeRule" {
+class WebKitCSSKeyframeRuleJS extends CSSRuleJS implements WebKitCSSKeyframeRule native "*WebKitCSSKeyframeRule" {
 
-  String keyText;
+  String get keyText() native "return this.keyText;";
 
-  CSSStyleDeclaration style;
+  void set keyText(String value) native "this.keyText = value;";
+
+  CSSStyleDeclarationJS get style() native "return this.style;";
 }

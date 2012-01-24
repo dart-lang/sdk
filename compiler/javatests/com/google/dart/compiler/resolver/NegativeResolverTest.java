@@ -325,7 +325,11 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 4, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 5, 3),
-        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 5, 7, 3));
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 5, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 4, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 2, 5, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 5, 7, 3),
+        errEx(ResolverErrorCode.DUPLICATE_MEMBER, 3, 5, 3));
   }
 
   public void test_nameShadow_topLevel_class_getterSetter() {

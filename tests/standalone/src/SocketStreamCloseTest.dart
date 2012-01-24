@@ -4,6 +4,7 @@
 //
 // Test socket close events.
 
+#import("dart:io");
 
 final SERVERSHUTDOWN = -1;
 final ITERATIONS = 10;

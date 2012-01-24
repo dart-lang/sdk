@@ -1,23 +1,23 @@
 
-class NodeIterator native "*NodeIterator" {
+class NodeIteratorJS implements NodeIterator native "*NodeIterator" {
 
-  bool expandEntityReferences;
+  bool get expandEntityReferences() native "return this.expandEntityReferences;";
 
-  NodeFilter filter;
+  NodeFilterJS get filter() native "return this.filter;";
 
-  bool pointerBeforeReferenceNode;
+  bool get pointerBeforeReferenceNode() native "return this.pointerBeforeReferenceNode;";
 
-  Node referenceNode;
+  NodeJS get referenceNode() native "return this.referenceNode;";
 
-  Node root;
+  NodeJS get root() native "return this.root;";
 
-  int whatToShow;
+  int get whatToShow() native "return this.whatToShow;";
 
   void detach() native;
 
-  Node nextNode() native;
+  NodeJS nextNode() native;
 
-  Node previousNode() native;
+  NodeJS previousNode() native;
 
   var dartObjectLocalStorage;
 

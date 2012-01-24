@@ -1,13 +1,13 @@
 
-class Rect native "*Rect" {
+class RectJS implements Rect native "*Rect" {
 
-  CSSPrimitiveValue bottom;
+  CSSPrimitiveValueJS get bottom() native "return this.bottom;";
 
-  CSSPrimitiveValue left;
+  CSSPrimitiveValueJS get left() native "return this.left;";
 
-  CSSPrimitiveValue right;
+  CSSPrimitiveValueJS get right() native "return this.right;";
 
-  CSSPrimitiveValue top;
+  CSSPrimitiveValueJS get top() native "return this.top;";
 
   var dartObjectLocalStorage;
 

@@ -1,5 +1,5 @@
 
-class WebGLProgram native "*WebGLProgram" {
+class WebGLProgramJS implements WebGLProgram native "*WebGLProgram" {
 
   var dartObjectLocalStorage;
 

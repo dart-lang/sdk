@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 function native_BoolImplementation_EQ(other) {
-  return typeof other == 'boolean' && this == other;
+  throw Error('UNREACHABLE');
 }
 
 function native_BoolImplementation_toString() {

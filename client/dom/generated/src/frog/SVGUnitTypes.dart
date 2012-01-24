@@ -1,5 +1,5 @@
 
-class SVGUnitTypes native "*SVGUnitTypes" {
+class SVGUnitTypesJS implements SVGUnitTypes native "*SVGUnitTypes" {
 
   static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 

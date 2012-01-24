@@ -1,7 +1,7 @@
 
-class DOMURL native "*DOMURL" {
+class DOMURLJS implements DOMURL native "*DOMURL" {
 
-  String createObjectURL(Blob blob) native;
+  String createObjectURL(BlobJS blob) native;
 
   void revokeObjectURL(String url) native;
 

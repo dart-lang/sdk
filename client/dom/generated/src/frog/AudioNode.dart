@@ -1,13 +1,13 @@
 
-class AudioNode native "*AudioNode" {
+class AudioNodeJS implements AudioNode native "*AudioNode" {
 
-  AudioContext context;
+  AudioContextJS get context() native "return this.context;";
 
-  int numberOfInputs;
+  int get numberOfInputs() native "return this.numberOfInputs;";
 
-  int numberOfOutputs;
+  int get numberOfOutputs() native "return this.numberOfOutputs;";
 
-  void connect(AudioNode destination, int output, int input) native;
+  void connect(AudioNodeJS destination, int output, int input) native;
 
   void disconnect(int output) native;
 

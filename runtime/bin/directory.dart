@@ -117,7 +117,7 @@ interface Directory default _Directory {
    * Set the handler that is called when a temporary directory is
    * successfully created.
    */
-  void set createTempHandler(void doneHandler(bool completed));
+  void set createTempHandler(void createTempHandler());
 
   /**
    * Set the handler that is called when a directory is successfully

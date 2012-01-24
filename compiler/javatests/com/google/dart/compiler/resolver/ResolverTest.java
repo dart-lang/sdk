@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1111,5 +1111,25 @@ public class ResolverTest extends ResolverTestCase {
         "  foo([x,y]) {}", // error
         "}"),
         ResolverErrorCode.CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS);
+  }
+
+  public void testTypeVariableInStatic() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A<T> {",
+        "  static foo() { new T(); }", // can't ref type variable in method
+        "}"),
+        ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
+        ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
+  }
+
+  public void testTypeVariableShadowsClass() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class T {}",
+        "class A<T> {",  // type var T shadows class T
+        "  static foo() { new T(); }", // should resolve to class T
+        "}"),
+        ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING);
   }
 }

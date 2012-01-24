@@ -1,7 +1,7 @@
 
-class DirectoryReaderSync native "*DirectoryReaderSync" {
+class DirectoryReaderSyncJS implements DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  EntryArraySync readEntries() native;
+  EntryArraySyncJS readEntries() native;
 
   var dartObjectLocalStorage;
 

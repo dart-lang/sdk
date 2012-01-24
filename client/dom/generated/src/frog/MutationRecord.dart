@@ -1,23 +1,23 @@
 
-class MutationRecord native "*MutationRecord" {
+class MutationRecordJS implements MutationRecord native "*MutationRecord" {
 
-  NodeList addedNodes;
+  NodeListJS get addedNodes() native "return this.addedNodes;";
 
-  String attributeName;
+  String get attributeName() native "return this.attributeName;";
 
-  String attributeNamespace;
+  String get attributeNamespace() native "return this.attributeNamespace;";
 
-  Node nextSibling;
+  NodeJS get nextSibling() native "return this.nextSibling;";
 
-  String oldValue;
+  String get oldValue() native "return this.oldValue;";
 
-  Node previousSibling;
+  NodeJS get previousSibling() native "return this.previousSibling;";
 
-  NodeList removedNodes;
+  NodeListJS get removedNodes() native "return this.removedNodes;";
 
-  Node target;
+  NodeJS get target() native "return this.target;";
 
-  String type;
+  String get type() native "return this.type;";
 
   var dartObjectLocalStorage;
 

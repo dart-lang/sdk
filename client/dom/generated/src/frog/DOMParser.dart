@@ -1,7 +1,7 @@
 
-class DOMParser native "*DOMParser" {
+class DOMParserJS implements DOMParser native "*DOMParser" {
 
-  Document parseFromString(String str, String contentType) native;
+  DocumentJS parseFromString(String str, String contentType) native;
 
   var dartObjectLocalStorage;
 

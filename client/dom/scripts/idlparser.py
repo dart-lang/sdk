@@ -284,7 +284,7 @@ class IDLParser(object):
       return ScopedName
 
     def _Type():
-      return OR(AnyType, ObjectType, _NullableType)
+      return OR(AnyArrayType, AnyType, ObjectType, _NullableType)
 
     def _NullableType():
       return [OR(_IntegerType, BooleanType, OctetType, FloatType,
@@ -299,6 +299,10 @@ class IDLParser(object):
 
     def AnyType():
       return 'any'
+
+    def AnyArrayType():
+      # TODO(sra): Do more general handling of array types.
+      return 'any[]'
 
     def ObjectType():
       return 'object'

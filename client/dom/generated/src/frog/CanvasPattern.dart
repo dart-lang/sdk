@@ -1,5 +1,5 @@
 
-class CanvasPattern native "*CanvasPattern" {
+class CanvasPatternJS implements CanvasPattern native "*CanvasPattern" {
 
   var dartObjectLocalStorage;
 

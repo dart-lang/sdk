@@ -1,3 +1,3 @@
 
-class SVGAnimateTransformElement extends SVGAnimationElement native "*SVGAnimateTransformElement" {
+class SVGAnimateTransformElementJS extends SVGAnimationElementJS implements SVGAnimateTransformElement native "*SVGAnimateTransformElement" {
 }

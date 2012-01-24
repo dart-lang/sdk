@@ -118,8 +118,14 @@ void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
 }
 
 
-void Builtin::SetNativeResolver() {
-  Dart_Handle url = Dart_NewString(DartUtils::kBuiltinLibURL);
+void Builtin::SetNativeResolver(Builtin::BuiltinLibraryId id) {
+  Dart_Handle url;
+  if (id == Builtin::kBuiltinLibrary) {
+    url = Dart_NewString(DartUtils::kBuiltinLibURL);
+  } else {
+    ASSERT(id == Builtin::kIOLibrary);
+    url = Dart_NewString(DartUtils::kIOLibURL);
+  }
   Dart_Handle builtin_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(builtin_lib);
   // Setup the native resolver for built in library functions.

@@ -5,6 +5,10 @@
 #ifndef BIN_THREAD_POOL_WIN_H_
 #define BIN_THREAD_POOL_WIN_H_
 
+#if !defined(BIN_THREAD_POOL_H_)
+#error Do not include thread_pool_win.h directly; use thread_pool.h instead.
+#endif
+
 #include "platform/globals.h"
 
 class ThreadPoolData {

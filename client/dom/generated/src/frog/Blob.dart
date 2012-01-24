@@ -1,11 +1,11 @@
 
-class Blob native "*Blob" {
+class BlobJS implements Blob native "*Blob" {
 
-  int size;
+  int get size() native "return this.size;";
 
-  String type;
+  String get type() native "return this.type;";
 
-  Blob webkitSlice([int start = null, int end = null, String contentType = null]) native;
+  BlobJS webkitSlice([int start = null, int end = null, String contentType = null]) native;
 
   var dartObjectLocalStorage;
 

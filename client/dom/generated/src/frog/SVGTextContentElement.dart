@@ -1,5 +1,5 @@
 
-class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
+class SVGTextContentElementJS extends SVGElementJS implements SVGTextContentElement native "*SVGTextContentElement" {
 
   static final int LENGTHADJUST_SPACING = 1;
 
@@ -7,23 +7,23 @@ class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration lengthAdjust;
+  SVGAnimatedEnumerationJS get lengthAdjust() native "return this.lengthAdjust;";
 
-  SVGAnimatedLength textLength;
+  SVGAnimatedLengthJS get textLength() native "return this.textLength;";
 
-  int getCharNumAtPosition(SVGPoint point) native;
+  int getCharNumAtPosition(SVGPointJS point) native;
 
   num getComputedTextLength() native;
 
-  SVGPoint getEndPositionOfChar(int offset) native;
+  SVGPointJS getEndPositionOfChar(int offset) native;
 
-  SVGRect getExtentOfChar(int offset) native;
+  SVGRectJS getExtentOfChar(int offset) native;
 
   int getNumberOfChars() native;
 
   num getRotationOfChar(int offset) native;
 
-  SVGPoint getStartPositionOfChar(int offset) native;
+  SVGPointJS getStartPositionOfChar(int offset) native;
 
   num getSubStringLength(int offset, int length) native;
 
@@ -31,29 +31,33 @@ class SVGTextContentElement extends SVGElement native "*SVGTextContentElement" {
 
   // From SVGTests
 
-  SVGStringList requiredExtensions;
+  SVGStringListJS get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringList requiredFeatures;
+  SVGStringListJS get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringList systemLanguage;
+  SVGStringListJS get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String xmllang;
+  String get xmllang() native "return this.xmllang;";
 
-  String xmlspace;
+  void set xmllang(String value) native "this.xmllang = value;";
+
+  String get xmlspace() native "return this.xmlspace;";
+
+  void set xmlspace(String value) native "this.xmlspace = value;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBoolean externalResourcesRequired;
+  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedString className;
+  SVGAnimatedStringJS get className() native "return this.className;";
 
-  CSSStyleDeclaration style;
+  CSSStyleDeclarationJS get style() native "return this.style;";
 
-  CSSValue getPresentationAttribute(String name) native;
+  CSSValueJS getPresentationAttribute(String name) native;
 }

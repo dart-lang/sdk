@@ -1,11 +1,11 @@
 
-class Performance native "*Performance" {
+class PerformanceJS implements Performance native "*Performance" {
 
-  MemoryInfo memory;
+  MemoryInfoJS get memory() native "return this.memory;";
 
-  PerformanceNavigation navigation;
+  PerformanceNavigationJS get navigation() native "return this.navigation;";
 
-  PerformanceTiming timing;
+  PerformanceTimingJS get timing() native "return this.timing;";
 
   var dartObjectLocalStorage;
 

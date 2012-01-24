@@ -712,7 +712,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
-  void getAttachedShaders(WebGLProgram program);
+  List getAttachedShaders(WebGLProgram program);
 
   int getAttribLocation(WebGLProgram program, String name);
 

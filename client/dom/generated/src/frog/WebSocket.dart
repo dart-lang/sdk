@@ -1,5 +1,5 @@
 
-class WebSocket native "*WebSocket" {
+class WebSocketJS implements WebSocket native "*WebSocket" {
   WebSocket(String url) native;
 
 
@@ -11,23 +11,25 @@ class WebSocket native "*WebSocket" {
 
   static final int OPEN = 1;
 
-  String URL;
+  String get URL() native "return this.URL;";
 
-  String binaryType;
+  String get binaryType() native "return this.binaryType;";
 
-  int bufferedAmount;
+  void set binaryType(String value) native "this.binaryType = value;";
 
-  String extensions;
+  int get bufferedAmount() native "return this.bufferedAmount;";
 
-  String protocol;
+  String get extensions() native "return this.extensions;";
 
-  int readyState;
+  String get protocol() native "return this.protocol;";
+
+  int get readyState() native "return this.readyState;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close([int code = null, String reason = null]) native;
 
-  bool dispatchEvent(Event evt) native;
+  bool dispatchEvent(EventJS evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

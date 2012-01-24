@@ -4,4 +4,14 @@
 
 // WARNING: Do not edit - generated code.
 
-typedef bool FileWriterCallback(FileWriter fileWriter);
+interface SharedWorkerGlobalScope extends WorkerContext {
+
+  String get name();
+
+  EventListener get onconnect();
+
+  void set onconnect(EventListener value);
+}
+
+interface SharedWorkerContext extends SharedWorkerGlobalScope {
+}

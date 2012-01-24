@@ -1,5 +1,5 @@
 
-class MediaError native "*MediaError" {
+class MediaErrorJS implements MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_ABORTED = 1;
 
@@ -9,7 +9,7 @@ class MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  int code;
+  int get code() native "return this.code;";
 
   var dartObjectLocalStorage;
 

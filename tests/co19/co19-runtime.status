@@ -74,6 +74,14 @@ LibTest/core/String/split/String/split/A01/t01: Fail # Issue 429
 LibTest/core/String/split/String/split/A01/t02: Fail # Issue 429
 LibTest/core/String/operator\+/String/operator\+/A01/t03: Fail  # Issue co19 - 20
 
+# Obsolete use of 'factory' keyword fixed in newer co19 revisions.
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A16/t02: Fail
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/A19/t01: Fail
+LangGuideTest/02_Language_Constructs/02_2_Interface/A02/t02: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A04/t02: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A04/t01: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A02/t01: Fail
+LangSpecTest/13_Types/13_4_Interface_Types/A01/t01: Fail
 
 # New failures
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/A08/t05: Fail # Issue 430

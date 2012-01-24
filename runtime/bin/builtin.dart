@@ -17,36 +17,7 @@ void exit(int status) {
   _exit(status);
 }
 
-Socket _stdin;
-InputStream get stdin() {
-  if (_stdin == null) {
-    _stdin = new _Socket._internalReadOnly();
-    _getStdioHandle(_stdin, 0);
-  }
-  return _stdin.inputStream;
-}
-
-Socket _stdout;
-OutputStream get stdout() {
-  if (_stdout == null) {
-    _stdout = new _Socket._internalWriteOnly();
-    _getStdioHandle(_stdout, 1);
-  }
-  return _stdout.outputStream;
-}
-
-Socket _stderr;
-OutputStream get stderr() {
-  if (_stderr == null) {
-    _stderr = new _Socket._internalWriteOnly();
-    _getStdioHandle(_stderr, 2);
-  }
-  return _stderr.outputStream;
-}
-
 _exit(int status) native "Exit";
-
-_getStdioHandle(Socket socket, int num) native "Socket_GetStdioHandle";
 
 class _Logger {
   static void _printString(String s) native "Logger_PrintString";

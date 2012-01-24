@@ -1,9 +1,9 @@
 
-class DOMFileSystemSync native "*DOMFileSystemSync" {
+class DOMFileSystemSyncJS implements DOMFileSystemSync native "*DOMFileSystemSync" {
 
-  String name;
+  String get name() native "return this.name;";
 
-  DirectoryEntrySync root;
+  DirectoryEntrySyncJS get root() native "return this.root;";
 
   var dartObjectLocalStorage;
 

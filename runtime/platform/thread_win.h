@@ -5,6 +5,10 @@
 #ifndef PLATFORM_THREAD_WIN_H_
 #define PLATFORM_THREAD_WIN_H_
 
+#if !defined(PLATFORM_THREAD_H_)
+#error Do not include thread_win.h directly; use thread.h instead.
+#endif
+
 #include "platform/globals.h"
 
 namespace dart {
