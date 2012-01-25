@@ -5,6 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
@@ -1606,7 +1607,34 @@ public class Resolver {
 
     @Override
     public Element visitMapLiteral(DartMapLiteral node) {
-      List<DartTypeNode> typeArgs = node.getTypeArguments();
+      List<DartTypeNode> originalTypeArgs = node.getTypeArguments();
+      List<DartTypeNode> typeArgs = Lists.newArrayList();
+      DartTypeNode implicitKey = new DartTypeNode(
+          new DartIdentifier("String"));
+      switch (originalTypeArgs.size()) {
+        case 1:
+          typeArgs.add(implicitKey);
+          typeArgs.addAll(originalTypeArgs);
+          break;
+        case 2:
+          // Old (pre spec 0.6) map specification
+          // TODO(zundel): remove this case after a while (added on 24 Jan 2012)
+          typeArgs.add(implicitKey);
+          typeArgs.add(originalTypeArgs.get(1));
+          topLevelContext.onError(originalTypeArgs.get(0), ResolverErrorCode.DEPRECATED_MAP_LITERAL_SYNTAX);
+          break;
+        default:
+          topLevelContext.onError(node, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+                                  defaultLiteralMapType,
+                                  originalTypeArgs.size(), 1);
+          // fall through
+        case 0:
+          typeArgs.add(implicitKey);
+          DartTypeNode implicitValue = new DartTypeNode(new DartIdentifier("Dynamic"));
+          typeArgs.add(implicitValue);
+          break;
+      }
+
       InterfaceType type =
           topLevelContext.instantiateParameterizedType(
               defaultLiteralMapType.getElement(),

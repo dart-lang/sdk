@@ -132,7 +132,7 @@ ListLiteral4Test: Fail # Issue 220
 ListTest: Fail              # Bug 5146975.
 LocalFunction3Test: Fail     # Bug 4202974.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
-MapLiteral3Test: Fail # Issue 221
+MapLiteral1NegativeTest: Fail # Issue 221
 MapLiteral4Test: Fail # Issue 221
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
 NamedParametersTypeTest: Fail            # Implementation in progress.

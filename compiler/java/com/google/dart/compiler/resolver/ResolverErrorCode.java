@@ -59,6 +59,8 @@ public enum ResolverErrorCode implements ErrorCode {
   DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS(
       "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
+  DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
+      "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
   DUPLICATE_INITIALIZATION(ErrorSeverity.ERROR, "Duplicate initialization of '%s'"),
@@ -145,7 +147,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
      "Type parameters in default declaration must match referenced class exactly"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
-  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments.  Expected %d");
+  WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
   private final ErrorSeverity severity;
   private final String message;
 

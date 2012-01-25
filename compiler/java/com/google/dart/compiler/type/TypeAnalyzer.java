@@ -1059,8 +1059,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       visit(node.getTypeArguments());
       InterfaceType type = node.getType();
 
-      // This ensures that the declared type is assignable to Map<String, dynamic>.
-      // For example, the user should not write Map<int,int>.
+      // The Map literal has an implicit key type of String, so only one parameter is
+      // specified <V> where V is the type of the value.
       checkAssignable(node, type, defaultLiteralMapType);
 
       Type valueType = type.getArguments().get(1);
