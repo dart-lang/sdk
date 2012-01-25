@@ -47,7 +47,6 @@ ConstListTest: Fail
 ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstTest: Fail
-ConstructorCallWrongArgumentCountNegativeTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
 Constructor3NegativeTest: Fail
@@ -55,6 +54,7 @@ Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
+ConstructorCallWrongArgumentCountNegativeTest: Fail
 ConstructorDefaultTest: Fail
 ConstructorDuplicateInitializersTest/02: Fail
 ConstructorNegativeTest: Pass # For the wrong reason.
@@ -79,6 +79,7 @@ DeoptimizationTest: Fail
 DivByZeroTest: Fail
 DoWhileTest: Fail
 DuplicateConstructorTest/01: Fail
+DuplicateImplementsTest: Skip
 DynamicTest: Fail
 EmptyBlockCaseTest: Fail
 EmptyBodyMemberNegativeTest: Fail
@@ -202,6 +203,9 @@ MethodOverrideTest: Fail
 MultiPass2Test: Fail
 MultiPassTest: Fail
 NamedConstructorTest: Fail
+NamedParameters2Test: Fail
+NamedParameters3Test: Fail
+NamedParameters4Test: Fail
 NamedParametersNamedCountTest: Fail
 NamedParametersPassingFalseTest: Fail
 NamedParametersPassingFalsyTest: Fail
@@ -242,8 +246,6 @@ OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
 OverriddenNoSuchMethodTest: Fail
 OverrideFieldMethod1NegativeTest: Fail
-OverrideFieldMethod2NegativeTest: Fail
-OverrideFieldMethod3NegativeTest: Fail
 OverrideFieldMethod4NegativeTest: Fail
 OverrideFieldTest/02: Fail
 OverrideFieldTest/03: Fail
@@ -283,7 +285,6 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
-DuplicateImplementsTest: Skip
 RawStringTest: Fail
 RegEx2Test: Fail
 RegExp2Test: Fail
@@ -294,14 +295,17 @@ SavannahTest: Fail
 ScopeNegativeTest: Fail
 Setter0Test: Fail
 Setter1Test: Fail
+Setter3Test/01: Fail
+Setter3Test/02: Fail
+Setter3Test/none: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
 StaticCallWrongArgumentCountNegativeTest: Fail
 StaticFieldTest: Fail
+StaticFinalField2NegativeTest: Fail
 StaticFinalFieldNegativeTest: Fail
 StaticFinalFieldTest: Fail
-StaticFinalField2NegativeTest: Fail
 StaticImplicitClosureTest: Fail
 StaticImplicitClosureTest: Fail
 StaticTopLevelTest/00: Fail
@@ -373,8 +377,3 @@ Unary2Test: Fail
 UnaryTest: Fail
 UnboundGetterTest: Fail
 WhileTest: Fail
-
-#Issue 1308
-NamedParameters2Test: Fail
-NamedParameters3Test: Fail
-NamedParameters4Test: Fail
