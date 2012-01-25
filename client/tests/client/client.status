@@ -21,7 +21,6 @@ touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 samples/total/total_tests: Skip # Issue 867.
-dom/dom_tests: Skip # Issue 1329.
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
 samples/swarm/swarm_tests: Fail
