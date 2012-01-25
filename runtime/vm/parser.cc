@@ -2804,7 +2804,8 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
         mismatch = true;
       }
     }
-    if (mismatch) {
+    // The list of type parameters in the default factory clause can be omitted.
+    if (mismatch && (num_type_params > 0)) {
       const String& interface_name = String::Handle(interface.Name());
       const String& factory_name = String::Handle(factory_class.Name());
       ErrorMsg(factory_pos,
