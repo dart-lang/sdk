@@ -588,9 +588,76 @@ class CanvasPixelArrayJs extends DOMTypeJs implements CanvasPixelArray native "*
 
   int get length() native "return this.length;";
 
-  int operator[](int index) native;
+  int operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, int value) native;
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  int last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<int> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <int>[]);
+
+  // -- end List<int> mixins.
 }
 
 class CanvasRenderingContextJs extends DOMTypeJs implements CanvasRenderingContext native "*CanvasRenderingContext" {
@@ -2396,9 +2463,76 @@ class Float32ArrayJs extends ArrayBufferViewJs implements Float32Array, List<num
 
   int get length() native "return this.length;";
 
-  num operator[](int index) native;
+  num operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, num value) native;
+  void operator[]=(int index, num value) native "this[index] = value";
+  // -- start List<num> mixins.
+  // num is the element type.
+
+  // From Iterable<num>:
+
+  Iterator<num> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<num>(this);
+  }
+
+  // From Collection<num>:
+
+  void add(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<num> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(num element)) => _Collections.forEach(this, f);
+
+  Collection map(f(num element)) => _Collections.map(this, [], f);
+
+  Collection<num> filter(bool f(num element)) =>
+     _Collections.filter(this, <num>[], f);
+
+  bool every(bool f(num element)) => _Collections.every(this, f);
+
+  bool some(bool f(num element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<num>:
+
+  void sort(int compare(num a, num b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(num element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(num element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  num last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<num> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [num initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<num> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <num>[]);
+
+  // -- end List<num> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -2419,9 +2553,76 @@ class Float64ArrayJs extends ArrayBufferViewJs implements Float64Array, List<num
 
   int get length() native "return this.length;";
 
-  num operator[](int index) native;
+  num operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, num value) native;
+  void operator[]=(int index, num value) native "this[index] = value";
+  // -- start List<num> mixins.
+  // num is the element type.
+
+  // From Iterable<num>:
+
+  Iterator<num> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<num>(this);
+  }
+
+  // From Collection<num>:
+
+  void add(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(num value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<num> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(num element)) => _Collections.forEach(this, f);
+
+  Collection map(f(num element)) => _Collections.map(this, [], f);
+
+  Collection<num> filter(bool f(num element)) =>
+     _Collections.filter(this, <num>[], f);
+
+  bool every(bool f(num element)) => _Collections.every(this, f);
+
+  bool some(bool f(num element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<num>:
+
+  void sort(int compare(num a, num b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(num element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(num element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  num last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<num> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [num initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<num> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <num>[]);
+
+  // -- end List<num> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -2771,11 +2972,78 @@ class HTMLCollectionJs extends DOMTypeJs implements HTMLCollection native "*HTML
 
   int get length() native "return this.length;";
 
-  NodeJs operator[](int index) native;
+  NodeJs operator[](int index) native "return this[index];";
 
   void operator[]=(int index, NodeJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  Node last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<Node> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <Node>[]);
+
+  // -- end List<Node> mixins.
 
   NodeJs item(int index) native;
 
@@ -5115,9 +5383,76 @@ class Int16ArrayJs extends ArrayBufferViewJs implements Int16Array, List<int> na
 
   int get length() native "return this.length;";
 
-  int operator[](int index) native;
+  int operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, int value) native;
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  int last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<int> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <int>[]);
+
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -5138,9 +5473,76 @@ class Int32ArrayJs extends ArrayBufferViewJs implements Int32Array, List<int> na
 
   int get length() native "return this.length;";
 
-  int operator[](int index) native;
+  int operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, int value) native;
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  int last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<int> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <int>[]);
+
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -5161,9 +5563,76 @@ class Int8ArrayJs extends ArrayBufferViewJs implements Int8Array, List<int> nati
 
   int get length() native "return this.length;";
 
-  int operator[](int index) native;
+  int operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, int value) native;
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  int last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<int> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <int>[]);
+
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -5350,11 +5819,78 @@ class MediaListJs extends DOMTypeJs implements MediaList native "*MediaList" {
 
   void set mediaText(String value) native "this.mediaText = value;";
 
-  String operator[](int index) native;
+  String operator[](int index) native "return this[index];";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<String> mixins.
+  // String is the element type.
+
+  // From Iterable<String>:
+
+  Iterator<String> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<String>(this);
+  }
+
+  // From Collection<String>:
+
+  void add(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(String value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<String> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(String element)) => _Collections.forEach(this, f);
+
+  Collection map(f(String element)) => _Collections.map(this, [], f);
+
+  Collection<String> filter(bool f(String element)) =>
+     _Collections.filter(this, <String>[], f);
+
+  bool every(bool f(String element)) => _Collections.every(this, f);
+
+  bool some(bool f(String element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<String>:
+
+  void sort(int compare(String a, String b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(String element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(String element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  String last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<String> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [String initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<String> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <String>[]);
+
+  // -- end List<String> mixins.
 
   void appendMedium(String newMedium) native;
 
@@ -5526,11 +6062,78 @@ class NamedNodeMapJs extends DOMTypeJs implements NamedNodeMap native "*NamedNod
 
   int get length() native "return this.length;";
 
-  NodeJs operator[](int index) native;
+  NodeJs operator[](int index) native "return this[index];";
 
   void operator[]=(int index, NodeJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  Node last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<Node> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <Node>[]);
+
+  // -- end List<Node> mixins.
 
   NodeJs getNamedItem(String name) native;
 
@@ -5765,11 +6368,78 @@ class NodeListJs extends DOMTypeJs implements NodeList native "*NodeList" {
 
   int get length() native "return this.length;";
 
-  NodeJs operator[](int index) native;
+  NodeJs operator[](int index) native "return this[index];";
 
   void operator[]=(int index, NodeJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Node value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Node> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  Node last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<Node> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <Node>[]);
+
+  // -- end List<Node> mixins.
 
   NodeJs item(int index) native;
 }
@@ -9947,11 +10617,78 @@ class StyleSheetListJs extends DOMTypeJs implements StyleSheetList native "*Styl
 
   int get length() native "return this.length;";
 
-  StyleSheetJs operator[](int index) native;
+  StyleSheetJs operator[](int index) native "return this[index];";
 
   void operator[]=(int index, StyleSheetJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<StyleSheet> mixins.
+  // StyleSheet is the element type.
+
+  // From Iterable<StyleSheet>:
+
+  Iterator<StyleSheet> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<StyleSheet>(this);
+  }
+
+  // From Collection<StyleSheet>:
+
+  void add(StyleSheet value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(StyleSheet value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<StyleSheet> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(StyleSheet element)) => _Collections.forEach(this, f);
+
+  Collection map(f(StyleSheet element)) => _Collections.map(this, [], f);
+
+  Collection<StyleSheet> filter(bool f(StyleSheet element)) =>
+     _Collections.filter(this, <StyleSheet>[], f);
+
+  bool every(bool f(StyleSheet element)) => _Collections.every(this, f);
+
+  bool some(bool f(StyleSheet element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<StyleSheet>:
+
+  void sort(int compare(StyleSheet a, StyleSheet b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(StyleSheet element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(StyleSheet element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  StyleSheet last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<StyleSheet> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [StyleSheet initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<StyleSheet> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <StyleSheet>[]);
+
+  // -- end List<StyleSheet> mixins.
 
   StyleSheetJs item(int index) native;
 }
@@ -10164,11 +10901,78 @@ class TouchListJs extends DOMTypeJs implements TouchList native "*TouchList" {
 
   int get length() native "return this.length;";
 
-  TouchJs operator[](int index) native;
+  TouchJs operator[](int index) native "return this[index];";
 
   void operator[]=(int index, TouchJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
+  // -- start List<Touch> mixins.
+  // Touch is the element type.
+
+  // From Iterable<Touch>:
+
+  Iterator<Touch> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Touch>(this);
+  }
+
+  // From Collection<Touch>:
+
+  void add(Touch value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(Touch value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<Touch> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(Touch element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Touch element)) => _Collections.map(this, [], f);
+
+  Collection<Touch> filter(bool f(Touch element)) =>
+     _Collections.filter(this, <Touch>[], f);
+
+  bool every(bool f(Touch element)) => _Collections.every(this, f);
+
+  bool some(bool f(Touch element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Touch>:
+
+  void sort(int compare(Touch a, Touch b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Touch element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Touch element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  Touch last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<Touch> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [Touch initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<Touch> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <Touch>[]);
+
+  // -- end List<Touch> mixins.
 
   TouchJs item(int index) native;
 }
@@ -10244,9 +11048,76 @@ class Uint16ArrayJs extends ArrayBufferViewJs implements Uint16Array, List<int> 
 
   int get length() native "return this.length;";
 
-  int operator[](int index) native;
+  int operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, int value) native;
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  int last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<int> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <int>[]);
+
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -10267,9 +11138,76 @@ class Uint32ArrayJs extends ArrayBufferViewJs implements Uint32Array, List<int> 
 
   int get length() native "return this.length;";
 
-  int operator[](int index) native;
+  int operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, int value) native;
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  int last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<int> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <int>[]);
+
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -10290,9 +11228,76 @@ class Uint8ArrayJs extends ArrayBufferViewJs implements Uint8Array, List<int> na
 
   int get length() native "return this.length;";
 
-  int operator[](int index) native;
+  int operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, int value) native;
+  void operator[]=(int index, int value) native "this[index] = value";
+  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<int>(this);
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast(int value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<int> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f(int element)) => _Collections.forEach(this, f);
+
+  Collection map(f(int element)) => _Collections.map(this, [], f);
+
+  Collection<int> filter(bool f(int element)) =>
+     _Collections.filter(this, <int>[], f);
+
+  bool every(bool f(int element)) => _Collections.every(this, f);
+
+  bool some(bool f(int element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<int>:
+
+  void sort(int compare(int a, int b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  int last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<int> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [int initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<int> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <int>[]);
+
+  // -- end List<int> mixins.
 
   void setElements(Object array, [int offset = null]) native;
 
@@ -25717,5 +26722,24 @@ class _Lists {
       }
     }
     return -1;
+  }
+
+  /**
+   * Returns a sub list copy of this list, from [start] to
+   * [:start + length:].
+   * Returns an empty list if [length] is 0.
+   * Throws an [IllegalArgumentException] if [length] is negative.
+   * Throws an [IndexOutOfRangeException] if [start] or
+   * [:start + length:] are out of range.
+   */
+  static List getRange(List a, int start, int length, List accumulator) {
+    if (length < 0) throw new IllegalArgumentException('length');
+    if (start < 0) throw new IndexOutOfRangeException(start);
+    int end = start + length;
+    if (end > a.length) throw new IndexOutOfRangeException(end);
+    for (int i = start; i < end; i++) {
+      accumulator.add(a[i]);
+    }
+    return accumulator;
   }
 }
