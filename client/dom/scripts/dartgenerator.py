@@ -725,21 +725,14 @@ class OperationInfo(object):
     return ', '.join(argtexts)
 
 
-def MaybeListElementTypeName(type_name):
-  """Returns the List element type T from string of form "List<T>", or None."""
-  match = re.match(r'List<(\w*)>$', type_name)
-  if match:
-    return match.group(1)
-  return None
-
 def MaybeListElementType(interface):
   """Returns the List element type T, or None in interface does not implement
   List<T>.
   """
   for parent in interface.parents:
-    element_type = MaybeListElementTypeName(parent.type.id)
-    if element_type:
-      return element_type
+    match = re.match(r'List<(\w*)>$', parent.type.id)
+    if match:
+      return match.group(1)
   return None
 
 def MaybeTypedArrayElementType(interface):
@@ -1864,7 +1857,6 @@ class FrogInterfaceGenerator(object):
     if base:
       extends = ' extends ' + base
     elif native_spec[0] == '=':
-      # The implementation is a singleton with no prototype.
       extends = ''
     else:
       extends = ' extends DOMTypeJs'
@@ -1984,13 +1976,13 @@ class FrogInterfaceGenerator(object):
     #
     self._members_emitter.Emit(
         '\n'
-        '  $TYPE operator[](int index) native "return this[index];";\n',
+        '  $TYPE operator[](int index) native;\n',
         TYPE=self._NarrowOutputType(element_type))
 
     if 'HasCustomIndexSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
           '\n'
-          '  void operator[]=(int index, $TYPE value) native "this[index] = value";\n',
+          '  void operator[]=(int index, $TYPE value) native;\n',
           TYPE=self._NarrowInputType(element_type))
     else:
       self._members_emitter.Emit(
@@ -1999,12 +1991,6 @@ class FrogInterfaceGenerator(object):
           '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
           '  }\n',
           TYPE=self._NarrowInputType(element_type))
-
-    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
-    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    template_file = 'immutable_list_mixin.darttemplate'
-    template = self._system._templates.Load(template_file)
-    self._members_emitter.Emit(template, E=element_type)
 
 
   def AddTypedArrayConstructors(self, element_type):
