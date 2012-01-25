@@ -8,7 +8,10 @@
 
 class _AudioContextFactoryProvider {
 
-  factory AudioContext() native '''return new AudioContext();''';
+  factory AudioContext() native '''
+    var constructor = window.AudioContext || window.webkitAudioContext;
+    return new constructor();
+''';
 }
 
 class _FileReaderFactoryProvider {
