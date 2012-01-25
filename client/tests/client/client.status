@@ -8,6 +8,7 @@ prefix client
 samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
+dom/dom_tests: Skip
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
@@ -19,8 +20,8 @@ samples/dartcombat/dartcombat_tests: Skip # Issue 1218
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
-json/json_tests: Pass
 samples/total/total_tests: Skip # Issue 867.
+dom/dom_tests: Skip # Issue 1329.
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
 samples/swarm/swarm_tests: Fail
