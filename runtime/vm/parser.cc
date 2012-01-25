@@ -1349,7 +1349,7 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
       }
     }
     if (!found) {
-      ErrorMsg("const field '%s' not initialized",
+      ErrorMsg("final field '%s' not initialized",
                String::Handle(field.name()).ToCString());
     }
   }
