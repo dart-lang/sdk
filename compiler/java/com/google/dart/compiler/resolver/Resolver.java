@@ -1237,6 +1237,8 @@ public class Resolver {
         @Override public Element visitPropertyAccess(DartPropertyAccess node) {
           Element element = node.getQualifier().accept(this);
           if (ElementKind.of(element).equals(ElementKind.CLASS)) {
+            assert node.getQualifier() instanceof DartTypeNode;
+            recordType(node, node.getQualifier().getType());
             return Elements.lookupConstructor(((ClassElement) element), node.getPropertyName());
           } else {
             return null;

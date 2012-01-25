@@ -6,6 +6,8 @@ package com.google.dart.compiler.ast;
 
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.Types;
 
 /**
  * Represents a Dart property access expression (a.b).
@@ -16,6 +18,7 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
   private DartIdentifier name;
   private DartExpression normalizedNode = this;
   private Element referencedElement;
+  private Type type;
 
   public DartPropertyAccess(DartNode qualifier, DartIdentifier name) {
     this.qualifier = becomeParentOf(qualifier);
@@ -60,6 +63,16 @@ public class DartPropertyAccess extends DartExpression implements ElementReferen
   @Override
   public DartExpression getNormalizedNode() {
     return normalizedNode;
+  }
+
+  @Override
+  public void setType(Type type) {
+    this.type = type;
+  }
+
+  @Override
+  public Type getType() {
+    return type;
   }
 
   @Override
