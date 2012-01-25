@@ -126,8 +126,6 @@
 #source('generated/src/interface/FileWriterCallback.dart');
 #source('generated/src/interface/FileWriterSync.dart');
 #source('generated/src/interface/Flags.dart');
-#source('generated/src/interface/Float32Array.dart');
-#source('generated/src/interface/Float64Array.dart');
 #source('generated/src/interface/FontElement.dart');
 #source('generated/src/interface/FormElement.dart');
 #source('generated/src/interface/Geolocation.dart');
@@ -157,9 +155,6 @@
 #source('generated/src/interface/ImageData.dart');
 #source('generated/src/interface/ImageElement.dart');
 #source('generated/src/interface/InputElement.dart');
-#source('generated/src/interface/Int16Array.dart');
-#source('generated/src/interface/Int32Array.dart');
-#source('generated/src/interface/Int8Array.dart');
 #source('generated/src/interface/JavaScriptAudioNode.dart');
 #source('generated/src/interface/KeygenElement.dart');
 #source('generated/src/interface/LIElement.dart');
@@ -396,9 +391,6 @@
 #source('generated/src/interface/TouchList.dart');
 #source('generated/src/interface/TrackElement.dart');
 #source('generated/src/interface/UListElement.dart');
-#source('generated/src/interface/Uint16Array.dart');
-#source('generated/src/interface/Uint32Array.dart');
-#source('generated/src/interface/Uint8Array.dart');
 #source('generated/src/interface/UnknownElement.dart');
 #source('generated/src/interface/ValidityState.dart');
 #source('generated/src/interface/VideoElement.dart');
@@ -442,8 +434,13 @@
 #source('src/EventListener.dart');
 #source('src/EventSource.dart');
 #source('src/EventTarget.dart');
+#source('src/Float32Array.dart');
+#source('src/Float64Array.dart');
 #source('src/GlobalProperties.dart');
 #source('src/HashChangeEvent.dart');
+#source('src/Int16Array.dart');
+#source('src/Int32Array.dart');
+#source('src/Int8Array.dart');
 #source('src/KeyboardEvent.dart');
 #source('src/LoseContext.dart');
 #source('src/MessageEvent.dart');
@@ -471,6 +468,9 @@
 #source('src/TouchEvent.dart');
 #source('src/TransitionEvent.dart');
 #source('src/UIEvent.dart');
+#source('src/Uint16Array.dart');
+#source('src/Uint32Array.dart');
+#source('src/Uint8Array.dart');
 #source('src/WebSocket.dart');
 #source('src/WheelEvent.dart');
 #source('src/Window.dart');

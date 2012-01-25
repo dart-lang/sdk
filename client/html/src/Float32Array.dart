@@ -2,11 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-interface Float32Array extends ArrayBufferView {
+interface Float32Array extends ArrayBufferView
+    default Float32ArrayWrappingImplementation {
 
   static final int BYTES_PER_ELEMENT = 4;
+
+  Float32Array(int length);
+
+  Float32Array.from(List<num> list);
+
+  Float32Array.fromBuffer(ArrayBuffer buffer);
 
   int get length();
 

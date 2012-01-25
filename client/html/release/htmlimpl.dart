@@ -3775,44 +3775,6 @@ class FlagsWrappingImplementation extends DOMWrapperBase implements Flags {
 
 // WARNING: Do not edit - generated code.
 
-class Float32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Float32Array {
-  Float32ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Float32Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapFloat32Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapFloat32Array(_ptr.subarray(start, end));
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class Float64ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Float64Array {
-  Float64ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Float64Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapFloat64Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapFloat64Array(_ptr.subarray(start, end));
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class FontElementWrappingImplementation extends ElementWrappingImplementation implements FontElement {
   FontElementWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
 
@@ -4918,63 +4880,6 @@ class InputElementWrappingImplementation extends ElementWrappingImplementation i
     } else {
       _ptr.stepUp(n);
       return;
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class Int16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Int16Array {
-  Int16ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Int16Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapInt16Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapInt16Array(_ptr.subarray(start, end));
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class Int32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Int32Array {
-  Int32ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Int32Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapInt32Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapInt32Array(_ptr.subarray(start, end));
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Int8Array {
-  Int8ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Int8Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapInt8Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapInt8Array(_ptr.subarray(start, end));
     }
   }
 }
@@ -12019,63 +11924,6 @@ class UListElementWrappingImplementation extends ElementWrappingImplementation i
   String get type() { return _ptr.type; }
 
   void set type(String value) { _ptr.type = value; }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class Uint16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Uint16Array {
-  Uint16ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Uint16Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapUint16Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapUint16Array(_ptr.subarray(start, end));
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class Uint32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Uint32Array {
-  Uint32ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Uint32Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapUint32Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapUint32Array(_ptr.subarray(start, end));
-    }
-  }
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class Uint8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Uint8Array {
-  Uint8ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
-
-  int get length() { return _ptr.length; }
-
-  Uint8Array subarray(int start, [int end]) {
-    if (end === null) {
-      return LevelDom.wrapUint8Array(_ptr.subarray(start));
-    } else {
-      return LevelDom.wrapUint8Array(_ptr.subarray(start, end));
-    }
-  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23350,6 +23198,64 @@ class EventWrappingImplementation extends DOMWrapperBase implements Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class Float32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Float32Array {
+  Float32ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Float32ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapFloat32Array(new dom.Float32Array(length));
+
+  factory Float32ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapFloat32Array(new dom.Float32Array.fromList(list));
+
+  factory Float32ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapFloat32Array(new dom.Float32Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Float32Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapFloat32Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapFloat32Array(_ptr.subarray(start, end));
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class Float64ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Float64Array {
+  Float64ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Float64ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapFloat64Array(new dom.Float64Array(length));
+
+  factory Float64ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapFloat64Array(new dom.Float64Array.fromList(list));
+
+  factory Float64ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapFloat64Array(new dom.Float64Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Float64Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapFloat64Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapFloat64Array(_ptr.subarray(start, end));
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class HashChangeEventWrappingImplementation extends EventWrappingImplementation implements HashChangeEvent {
   HashChangeEventWrappingImplementation._wrap(ptr) : super._wrap(ptr);
 
@@ -23363,6 +23269,93 @@ class HashChangeEventWrappingImplementation extends EventWrappingImplementation 
   String get newURL() => _ptr.newURL;
 
   String get oldURL() => _ptr.oldURL;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class Int16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Int16Array {
+  Int16ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Int16ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapInt16Array(new dom.Int16Array(length));
+
+  factory Int16ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapInt16Array(new dom.Int16Array.fromList(list));
+
+  factory Int16ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapInt16Array(new dom.Int16Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Int16Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapInt16Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt16Array(_ptr.subarray(start, end));
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class Int32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Int32Array {
+  Int32ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Int32ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapInt32Array(new dom.Int32Array(length));
+
+  factory Int32ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapInt32Array(new dom.Int32Array.fromList(list));
+
+  factory Int32ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapInt32Array(new dom.Int32Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Int32Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapInt32Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt32Array(_ptr.subarray(start, end));
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class Int8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Int8Array {
+  Int8ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Int8ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapInt8Array(new dom.Int8Array(length));
+
+  factory Int8ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapInt8Array(new dom.Int8Array.fromList(list));
+
+  factory Int8ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapInt8Array(new dom.Int8Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Int8Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapInt8Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapInt8Array(_ptr.subarray(start, end));
+    }
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24663,6 +24656,93 @@ class UIEventWrappingImplementation extends EventWrappingImplementation implemen
   Window get view() => LevelDom.wrapWindow(_ptr.view);
 
   int get which() => _ptr.which;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class Uint16ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Uint16Array {
+  Uint16ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Uint16ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapUint16Array(new dom.Uint16Array(length));
+
+  factory Uint16ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapUint16Array(new dom.Uint16Array.fromList(list));
+
+  factory Uint16ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapUint16Array(new dom.Uint16Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Uint16Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapUint16Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapUint16Array(_ptr.subarray(start, end));
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class Uint32ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Uint32Array {
+  Uint32ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Uint32ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapUint32Array(new dom.Uint32Array(length));
+
+  factory Uint32ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapUint32Array(new dom.Uint32Array.fromList(list));
+
+  factory Uint32ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapUint32Array(new dom.Uint32Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Uint32Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapUint32Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapUint32Array(_ptr.subarray(start, end));
+    }
+  }
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class Uint8ArrayWrappingImplementation extends ArrayBufferViewWrappingImplementation implements Uint8Array {
+  Uint8ArrayWrappingImplementation._wrap(ptr) : super._wrap(ptr) {}
+
+  factory Uint8ArrayWrappingImplementation(int length) =>
+    LevelDom.wrapUint8Array(new dom.Uint8Array(length));
+
+  factory Uint8ArrayWrappingImplementation.from(List<num> list) =>
+    // TODO(nweiz): when there's a cross-platform name for the native
+    // implementation of List, check if [list] is native and if not convert it
+    // to a native list before sending it to the JS constructor.
+    LevelDom.wrapUint8Array(new dom.Uint8Array.fromList(list));
+
+  factory Uint8ArrayWrappingImplementation.fromBuffer(ArrayBuffer buffer) =>
+    LevelDom.wrapUint8Array(new dom.Uint8Array.fromBuffer(LevelDom.unwrap(buffer)));
+
+  int get length() { return _ptr.length; }
+
+  Uint8Array subarray(int start, [int end]) {
+    if (end === null) {
+      return LevelDom.wrapUint8Array(_ptr.subarray(start));
+    } else {
+      return LevelDom.wrapUint8Array(_ptr.subarray(start, end));
+    }
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

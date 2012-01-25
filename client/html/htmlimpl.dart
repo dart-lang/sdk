@@ -119,8 +119,6 @@
 #source('generated/src/wrapping/_FileWriterSyncWrappingImplementation.dart');
 #source('generated/src/wrapping/_FileWriterWrappingImplementation.dart');
 #source('generated/src/wrapping/_FlagsWrappingImplementation.dart');
-#source('generated/src/wrapping/_Float32ArrayWrappingImplementation.dart');
-#source('generated/src/wrapping/_Float64ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_FontElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_FormElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_GeolocationWrappingImplementation.dart');
@@ -150,9 +148,6 @@
 #source('generated/src/wrapping/_ImageDataWrappingImplementation.dart');
 #source('generated/src/wrapping/_ImageElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_InputElementWrappingImplementation.dart');
-#source('generated/src/wrapping/_Int16ArrayWrappingImplementation.dart');
-#source('generated/src/wrapping/_Int32ArrayWrappingImplementation.dart');
-#source('generated/src/wrapping/_Int8ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_JavaScriptAudioNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_KeygenElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_LIElementWrappingImplementation.dart');
@@ -381,9 +376,6 @@
 #source('generated/src/wrapping/_TouchWrappingImplementation.dart');
 #source('generated/src/wrapping/_TrackElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_UListElementWrappingImplementation.dart');
-#source('generated/src/wrapping/_Uint16ArrayWrappingImplementation.dart');
-#source('generated/src/wrapping/_Uint32ArrayWrappingImplementation.dart');
-#source('generated/src/wrapping/_Uint8ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_UnknownElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_ValidityStateWrappingImplementation.dart');
 #source('generated/src/wrapping/_VideoElementWrappingImplementation.dart');
@@ -436,7 +428,12 @@
 #source('src/EventSourceWrappingImplementation.dart');
 #source('src/EventTargetWrappingImplementation.dart');
 #source('src/EventWrappingImplementation.dart');
+#source('src/Float32ArrayWrappingImplementation.dart');
+#source('src/Float64ArrayWrappingImplementation.dart');
 #source('src/HashChangeEventWrappingImplementation.dart');
+#source('src/Int16ArrayWrappingImplementation.dart');
+#source('src/Int32ArrayWrappingImplementation.dart');
+#source('src/Int8ArrayWrappingImplementation.dart');
 #source('src/KeyboardEventWrappingImplementation.dart');
 #source('src/LoseContextWrappingImplementation.dart');
 #source('src/Measurement.dart');
@@ -462,6 +459,9 @@
 #source('src/TouchEventWrappingImplementation.dart');
 #source('src/TransitionEventWrappingImplementation.dart');
 #source('src/UIEventWrappingImplementation.dart');
+#source('src/Uint16ArrayWrappingImplementation.dart');
+#source('src/Uint32ArrayWrappingImplementation.dart');
+#source('src/Uint8ArrayWrappingImplementation.dart');
 #source('src/WebSocketWrappingImplementation.dart');
 #source('src/WheelEventWrappingImplementation.dart');
 #source('src/WindowWrappingImplementation.dart');
