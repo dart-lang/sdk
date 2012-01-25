@@ -152,7 +152,6 @@ ImplicitThisTest/04: Fail
 ImplicitThisTest/none: Fail
 ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
-ImportCoreNoPrefixTest: Fail
 IncrOpTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
@@ -177,6 +176,8 @@ Issue4295001Test: Fail
 Issue4515170Test: Fail
 LabelTest: Fail
 Library1Test: Fail
+Library4NegativeTest: Fail
+Library5NegativeTest: Fail
 Library5Test: Fail
 LibraryPrefixesTest: Fail
 LibrarySameNameUsedTest: Fail
@@ -259,9 +260,13 @@ Prefix12Test: Fail
 Prefix14Test: Fail
 Prefix15Test: Fail
 Prefix17Test: Fail
+Prefix18NegativeTest: Fail
+Prefix20NegativeTest: Fail
 Prefix21Test: Fail
-Prefix22Test: Fail               # Issue 575
-Prefix23Test: Fail               # Issue 575
+Prefix22Test: Fail
+Prefix23NegativeTest: Fail
+Prefix3NegativeTest: Fail
+Prefix7NegativeTest: Fail
 PrefixTest: Fail
 Private2Test: Fail
 Private3Test: Fail
@@ -293,11 +298,15 @@ RegExpTest: Fail
 RethrowTest: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
+Script1NegativeTest: Fail
+Script2NegativeTest: Fail
+ScriptNegativeTest: Fail
 Setter0Test: Fail
 Setter1Test: Fail
 Setter3Test/01: Fail
 Setter3Test/02: Fail
 Setter3Test/none: Fail
+SourceSelfNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
