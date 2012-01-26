@@ -61,6 +61,10 @@ NamedParameters4Test: Fail
 
 UnaryPlusNegativeTest: Fail # Issue 1229
 
+# Issue 1350.
+StringEscape1NegativeTest: Fail
+StringEscape4NegativeTest: Fail
+
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
@@ -184,6 +188,11 @@ PseudoKWIllegalTest/14: Fail # Issue 356
 PseudoKWIllegalTest/15: Fail # Issue 356
 PseudoKWIllegalTest/16: Fail # Issue 356
 DuplicateImplementsTest: Skip # Issue 976
+
+# Issue 1351.
+StringEscape1NegativeTest: Fail
+StringEscape4NegativeTest: Fail
+
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
@@ -321,6 +330,10 @@ ImplicitThisTest/none: Fail # Issue 376
 NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
+
+# Issue 1352
+StringEscape3NegativeTest: Fail
+StringEscape4NegativeTest: Fail
 
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
