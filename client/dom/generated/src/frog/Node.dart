@@ -1,5 +1,5 @@
 
-class NodeJS implements Node native "*Node" {
+class NodeJs extends DOMTypeJs implements Node native "*Node" {
 
   static final int ATTRIBUTE_NODE = 2;
 
@@ -37,21 +37,21 @@ class NodeJS implements Node native "*Node" {
 
   static final int TEXT_NODE = 3;
 
-  NamedNodeMapJS get attributes() native "return this.attributes;";
+  NamedNodeMapJs get attributes() native "return this.attributes;";
 
   String get baseURI() native "return this.baseURI;";
 
-  NodeListJS get childNodes() native "return this.childNodes;";
+  NodeListJs get childNodes() native "return this.childNodes;";
 
-  NodeJS get firstChild() native "return this.firstChild;";
+  NodeJs get firstChild() native "return this.firstChild;";
 
-  NodeJS get lastChild() native "return this.lastChild;";
+  NodeJs get lastChild() native "return this.lastChild;";
 
   String get localName() native "return this.localName;";
 
   String get namespaceURI() native "return this.namespaceURI;";
 
-  NodeJS get nextSibling() native "return this.nextSibling;";
+  NodeJs get nextSibling() native "return this.nextSibling;";
 
   String get nodeName() native "return this.nodeName;";
 
@@ -61,17 +61,17 @@ class NodeJS implements Node native "*Node" {
 
   void set nodeValue(String value) native "this.nodeValue = value;";
 
-  DocumentJS get ownerDocument() native "return this.ownerDocument;";
+  DocumentJs get ownerDocument() native "return this.ownerDocument;";
 
-  ElementJS get parentElement() native "return this.parentElement;";
+  ElementJs get parentElement() native "return this.parentElement;";
 
-  NodeJS get parentNode() native "return this.parentNode;";
+  NodeJs get parentNode() native "return this.parentNode;";
 
   String get prefix() native "return this.prefix;";
 
   void set prefix(String value) native "this.prefix = value;";
 
-  NodeJS get previousSibling() native "return this.previousSibling;";
+  NodeJs get previousSibling() native "return this.previousSibling;";
 
   String get textContent() native "return this.textContent;";
 
@@ -79,27 +79,27 @@ class NodeJS implements Node native "*Node" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  NodeJS appendChild(NodeJS newChild) native;
+  NodeJs appendChild(NodeJs newChild) native;
 
-  NodeJS cloneNode(bool deep) native;
+  NodeJs cloneNode(bool deep) native;
 
-  int compareDocumentPosition(NodeJS other) native;
+  int compareDocumentPosition(NodeJs other) native;
 
-  bool contains(NodeJS other) native;
+  bool contains(NodeJs other) native;
 
-  bool dispatchEvent(EventJS event) native;
+  bool dispatchEvent(EventJs event) native;
 
   bool hasAttributes() native;
 
   bool hasChildNodes() native;
 
-  NodeJS insertBefore(NodeJS newChild, NodeJS refChild) native;
+  NodeJs insertBefore(NodeJs newChild, NodeJs refChild) native;
 
   bool isDefaultNamespace(String namespaceURI) native;
 
-  bool isEqualNode(NodeJS other) native;
+  bool isEqualNode(NodeJs other) native;
 
-  bool isSameNode(NodeJS other) native;
+  bool isSameNode(NodeJs other) native;
 
   bool isSupported(String feature, String version) native;
 
@@ -109,13 +109,9 @@ class NodeJS implements Node native "*Node" {
 
   void normalize() native;
 
-  NodeJS removeChild(NodeJS oldChild) native;
+  NodeJs removeChild(NodeJs oldChild) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  NodeJS replaceChild(NodeJS newChild, NodeJS oldChild) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  NodeJs replaceChild(NodeJs newChild, NodeJs oldChild) native;
 }

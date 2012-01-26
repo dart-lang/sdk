@@ -1,9 +1,5 @@
 
-class WebGLDebugShadersJS implements WebGLDebugShaders native "*WebGLDebugShaders" {
+class WebGLDebugShadersJs extends DOMTypeJs implements WebGLDebugShaders native "*WebGLDebugShaders" {
 
-  String getTranslatedShaderSource(WebGLShaderJS shader) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  String getTranslatedShaderSource(WebGLShaderJs shader) native;
 }

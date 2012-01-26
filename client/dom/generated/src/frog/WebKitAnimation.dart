@@ -1,5 +1,5 @@
 
-class WebKitAnimationJS implements WebKitAnimation native "*WebKitAnimation" {
+class WebKitAnimationJs extends DOMTypeJs implements WebKitAnimation native "*WebKitAnimation" {
 
   static final int DIRECTION_ALTERNATE = 1;
 
@@ -36,8 +36,4 @@ class WebKitAnimationJS implements WebKitAnimation native "*WebKitAnimation" {
   void pause() native;
 
   void play() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

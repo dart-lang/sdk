@@ -1,3 +1,3 @@
 
-class HTMLSpanElementJS extends HTMLElementJS implements HTMLSpanElement native "*HTMLSpanElement" {
+class HTMLSpanElementJs extends HTMLElementJs implements HTMLSpanElement native "*HTMLSpanElement" {
 }

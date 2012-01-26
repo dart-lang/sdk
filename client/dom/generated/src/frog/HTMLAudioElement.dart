@@ -1,3 +1,3 @@
 
-class HTMLAudioElementJS extends HTMLMediaElementJS implements HTMLAudioElement native "*HTMLAudioElement" {
+class HTMLAudioElementJs extends HTMLMediaElementJs implements HTMLAudioElement native "*HTMLAudioElement" {
 }

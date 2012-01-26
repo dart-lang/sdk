@@ -1,3 +1,3 @@
 
-class EntityReferenceJS extends NodeJS implements EntityReference native "*EntityReference" {
+class EntityReferenceJs extends NodeJs implements EntityReference native "*EntityReference" {
 }

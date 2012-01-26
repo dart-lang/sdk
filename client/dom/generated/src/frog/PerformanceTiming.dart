@@ -1,5 +1,5 @@
 
-class PerformanceTimingJS implements PerformanceTiming native "*PerformanceTiming" {
+class PerformanceTimingJs extends DOMTypeJs implements PerformanceTiming native "*PerformanceTiming" {
 
   int get connectEnd() native "return this.connectEnd;";
 
@@ -42,8 +42,4 @@ class PerformanceTimingJS implements PerformanceTiming native "*PerformanceTimin
   int get unloadEventEnd() native "return this.unloadEventEnd;";
 
   int get unloadEventStart() native "return this.unloadEventStart;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

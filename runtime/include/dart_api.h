@@ -1055,6 +1055,15 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             uint8_t* native_array,
                                             intptr_t length);
 
+// --- Byte Arrays ---
+
+DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
+
+/**
+ * Is this object a ByteArray?
+ */
+DART_EXPORT bool Dart_IsByteArray(Dart_Handle object);
+
 // --- Closures ---
 
 /**

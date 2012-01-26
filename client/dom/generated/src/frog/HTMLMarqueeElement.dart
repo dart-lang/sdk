@@ -1,5 +1,5 @@
 
-class HTMLMarqueeElementJS extends HTMLElementJS implements HTMLMarqueeElement native "*HTMLMarqueeElement" {
+class HTMLMarqueeElementJs extends HTMLElementJs implements HTMLMarqueeElement native "*HTMLMarqueeElement" {
 
   String get behavior() native "return this.behavior;";
 

@@ -1,7 +1,7 @@
 
-class WaveShaperNodeJS extends AudioNodeJS implements WaveShaperNode native "*WaveShaperNode" {
+class WaveShaperNodeJs extends AudioNodeJs implements WaveShaperNode native "*WaveShaperNode" {
 
-  Float32ArrayJS get curve() native "return this.curve;";
+  Float32ArrayJs get curve() native "return this.curve;";
 
-  void set curve(Float32ArrayJS value) native "this.curve = value;";
+  void set curve(Float32ArrayJs value) native "this.curve = value;";
 }

@@ -1,5 +1,5 @@
 
-class DeviceMotionEventJS extends EventJS implements DeviceMotionEvent native "*DeviceMotionEvent" {
+class DeviceMotionEventJs extends EventJs implements DeviceMotionEvent native "*DeviceMotionEvent" {
 
   num get interval() native "return this.interval;";
 }

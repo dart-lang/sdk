@@ -1,5 +1,5 @@
 
-class WheelEventJS extends UIEventJS implements WheelEvent native "*WheelEvent" {
+class WheelEventJs extends UIEventJs implements WheelEvent native "*WheelEvent" {
 
   bool get altKey() native "return this.altKey;";
 
@@ -33,5 +33,5 @@ class WheelEventJS extends UIEventJS implements WheelEvent native "*WheelEvent" 
 
   int get y() native "return this.y;";
 
-  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindowJS view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
+  void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindowJs view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }

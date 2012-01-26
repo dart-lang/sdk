@@ -1,5 +1,5 @@
 
-class HTMLBaseElementJS extends HTMLElementJS implements HTMLBaseElement native "*HTMLBaseElement" {
+class HTMLBaseElementJs extends HTMLElementJs implements HTMLBaseElement native "*HTMLBaseElement" {
 
   String get href() native "return this.href;";
 

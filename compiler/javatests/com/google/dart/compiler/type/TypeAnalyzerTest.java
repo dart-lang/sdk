@@ -715,25 +715,25 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testMapLiteral() {
     analyze("{ var x = {\"key\": 42}; }");
     analyze("{ var x = {'key': 42}; }");
-    analyze("{ var x = <String, num>{'key': 42}; }");
-    analyze("{ var x = <String, int>{'key': 42}; }");
-    analyze("{ var x = <String, num>{'key': 0.42}; }");
-    analyze("{ var x = <Object, num>{'key': 42}; }");
-    analyzeFail("{ var x = <String, int>{'key': 0.42}; }",
+    analyze("{ var x = <num>{'key': 42}; }");
+    analyze("{ var x = <int>{'key': 42}; }");
+    analyze("{ var x = <num>{'key': 0.42}; }");
+    analyze("{ var x = <num>{'key': 42}; }");
+    analyzeFail("{ var x = <int>{'key': 0.42}; }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i; var x = {'key': i = 0.42}; }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyze("{ var x = const {\"key\": 42}; }");
     analyze("{ var x = const {'key': 42}; }");
-    analyze("{ var x = const <String, num>{'key': 42}; }");
-    analyze("{ var x = const <String, int>{'key': 42}; }");
-    analyze("{ var x = const <String, num>{'key': 0.42}; }");
-    analyze("{ var x = const <Object, num>{'key': 42}; }");
-    analyzeFail("{ var x = const <String, int>{'key': 0.42}; }",
+    analyze("{ var x = const <num>{'key': 42}; }");
+    analyze("{ var x = const <int>{'key': 42}; }");
+    analyze("{ var x = const <num>{'key': 0.42}; }");
+    analyze("{ var x = const <num>{'key': 42}; }");
+    analyzeFail("{ var x = const <int>{'key': 0.42}; }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
     analyzeFail("{ int i; var x = const {'key': i = 0.42}; }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
-    analyzeFail("{var x = const <num, num>{}; }",
+    analyzeFail("{Map<num, num> x = const <num>{}; }",
       TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 

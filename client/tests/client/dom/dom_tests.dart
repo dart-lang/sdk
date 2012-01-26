@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+#library('dom_tests');
 
-interface Int32Array extends ArrayBufferView {
+#import('../../../testing/unittest/unittest.dart');
+#import('dart:dom');
 
-  static final int BYTES_PER_ELEMENT = 4;
+#import('IsolateLight.dart', prefix: 'IsolateLight');
 
-  int get length();
-
-  Int32Array subarray(int start, [int end]);
+main() {
+  group('IsolateLight', IsolateLight.main);
 }

@@ -1,11 +1,7 @@
 
-class SVGAnimatedLengthListJS implements SVGAnimatedLengthList native "*SVGAnimatedLengthList" {
+class SVGAnimatedLengthListJs extends DOMTypeJs implements SVGAnimatedLengthList native "*SVGAnimatedLengthList" {
 
-  SVGLengthListJS get animVal() native "return this.animVal;";
+  SVGLengthListJs get animVal() native "return this.animVal;";
 
-  SVGLengthListJS get baseVal() native "return this.baseVal;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGLengthListJs get baseVal() native "return this.baseVal;";
 }

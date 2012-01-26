@@ -1,9 +1,5 @@
 
-class DOMFormDataJS implements DOMFormData native "*DOMFormData" {
+class DOMFormDataJs extends DOMTypeJs implements DOMFormData native "*DOMFormData" {
 
   void append(String name, String value, String filename) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

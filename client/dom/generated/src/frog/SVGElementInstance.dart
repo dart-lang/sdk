@@ -1,29 +1,25 @@
 
-class SVGElementInstanceJS implements SVGElementInstance native "*SVGElementInstance" {
+class SVGElementInstanceJs extends DOMTypeJs implements SVGElementInstance native "*SVGElementInstance" {
 
-  SVGElementInstanceListJS get childNodes() native "return this.childNodes;";
+  SVGElementInstanceListJs get childNodes() native "return this.childNodes;";
 
-  SVGElementJS get correspondingElement() native "return this.correspondingElement;";
+  SVGElementJs get correspondingElement() native "return this.correspondingElement;";
 
-  SVGUseElementJS get correspondingUseElement() native "return this.correspondingUseElement;";
+  SVGUseElementJs get correspondingUseElement() native "return this.correspondingUseElement;";
 
-  SVGElementInstanceJS get firstChild() native "return this.firstChild;";
+  SVGElementInstanceJs get firstChild() native "return this.firstChild;";
 
-  SVGElementInstanceJS get lastChild() native "return this.lastChild;";
+  SVGElementInstanceJs get lastChild() native "return this.lastChild;";
 
-  SVGElementInstanceJS get nextSibling() native "return this.nextSibling;";
+  SVGElementInstanceJs get nextSibling() native "return this.nextSibling;";
 
-  SVGElementInstanceJS get parentNode() native "return this.parentNode;";
+  SVGElementInstanceJs get parentNode() native "return this.parentNode;";
 
-  SVGElementInstanceJS get previousSibling() native "return this.previousSibling;";
+  SVGElementInstanceJs get previousSibling() native "return this.previousSibling;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS event) native;
+  bool dispatchEvent(EventJs event) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

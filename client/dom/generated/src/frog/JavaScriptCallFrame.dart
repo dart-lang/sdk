@@ -1,5 +1,5 @@
 
-class JavaScriptCallFrameJS implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
+class JavaScriptCallFrameJs extends DOMTypeJs implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int CATCH_SCOPE = 4;
 
@@ -11,7 +11,7 @@ class JavaScriptCallFrameJS implements JavaScriptCallFrame native "*JavaScriptCa
 
   static final int WITH_SCOPE = 2;
 
-  JavaScriptCallFrameJS get caller() native "return this.caller;";
+  JavaScriptCallFrameJs get caller() native "return this.caller;";
 
   int get column() native "return this.column;";
 
@@ -28,8 +28,4 @@ class JavaScriptCallFrameJS implements JavaScriptCallFrame native "*JavaScriptCa
   void evaluate(String script) native;
 
   int scopeType(int scopeIndex) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

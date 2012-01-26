@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-interface Interface<T> default Factory<T> {
+// The list of type parameters in the default factory clause can be omitted.
+
+interface Interface<T> default Factory {
   Interface();
   Interface.withArg(T value);
 }

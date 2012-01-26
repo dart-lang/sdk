@@ -1,5 +1,5 @@
 
-class SharedWorkerJS extends AbstractWorkerJS implements SharedWorker native "*SharedWorker" {
+class SharedWorkerJs extends AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
 
-  MessagePortJS get port() native "return this.port;";
+  MessagePortJs get port() native "return this.port;";
 }

@@ -1,5 +1,5 @@
 
-class HTMLSelectElementJS extends HTMLElementJS implements HTMLSelectElement native "*HTMLSelectElement" {
+class HTMLSelectElementJs extends HTMLElementJs implements HTMLSelectElement native "*HTMLSelectElement" {
 
   bool get autofocus() native "return this.autofocus;";
 
@@ -9,9 +9,9 @@ class HTMLSelectElementJS extends HTMLElementJS implements HTMLSelectElement nat
 
   void set disabled(bool value) native "this.disabled = value;";
 
-  HTMLFormElementJS get form() native "return this.form;";
+  HTMLFormElementJs get form() native "return this.form;";
 
-  NodeListJS get labels() native "return this.labels;";
+  NodeListJs get labels() native "return this.labels;";
 
   int get length() native "return this.length;";
 
@@ -25,7 +25,7 @@ class HTMLSelectElementJS extends HTMLElementJS implements HTMLSelectElement nat
 
   void set name(String value) native "this.name = value;";
 
-  HTMLOptionsCollectionJS get options() native "return this.options;";
+  HTMLOptionsCollectionJs get options() native "return this.options;";
 
   bool get required() native "return this.required;";
 
@@ -43,7 +43,7 @@ class HTMLSelectElementJS extends HTMLElementJS implements HTMLSelectElement nat
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityStateJS get validity() native "return this.validity;";
+  ValidityStateJs get validity() native "return this.validity;";
 
   String get value() native "return this.value;";
 
@@ -51,13 +51,13 @@ class HTMLSelectElementJS extends HTMLElementJS implements HTMLSelectElement nat
 
   bool get willValidate() native "return this.willValidate;";
 
-  void add(HTMLElementJS element, HTMLElementJS before) native;
+  void add(HTMLElementJs element, HTMLElementJs before) native;
 
   bool checkValidity() native;
 
-  NodeJS item(int index) native;
+  NodeJs item(int index) native;
 
-  NodeJS namedItem(String name) native;
+  NodeJs namedItem(String name) native;
 
   void remove(var index_OR_option) native;
 

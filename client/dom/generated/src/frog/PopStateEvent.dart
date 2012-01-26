@@ -1,5 +1,5 @@
 
-class PopStateEventJS extends EventJS implements PopStateEvent native "*PopStateEvent" {
+class PopStateEventJs extends EventJs implements PopStateEvent native "*PopStateEvent" {
 
   Object get state() native "return this.state;";
 }

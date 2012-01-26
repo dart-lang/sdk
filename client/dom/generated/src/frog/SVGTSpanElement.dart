@@ -1,3 +1,3 @@
 
-class SVGTSpanElementJS extends SVGTextPositioningElementJS implements SVGTSpanElement native "*SVGTSpanElement" {
+class SVGTSpanElementJs extends SVGTextPositioningElementJs implements SVGTSpanElement native "*SVGTSpanElement" {
 }

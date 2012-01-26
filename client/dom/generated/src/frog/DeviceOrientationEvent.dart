@@ -1,5 +1,5 @@
 
-class DeviceOrientationEventJS extends EventJS implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
+class DeviceOrientationEventJs extends EventJs implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
 
   num get alpha() native "return this.alpha;";
 

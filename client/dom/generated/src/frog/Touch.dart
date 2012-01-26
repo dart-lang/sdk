@@ -1,5 +1,5 @@
 
-class TouchJS implements Touch native "*Touch" {
+class TouchJs extends DOMTypeJs implements Touch native "*Touch" {
 
   int get clientX() native "return this.clientX;";
 
@@ -15,7 +15,7 @@ class TouchJS implements Touch native "*Touch" {
 
   int get screenY() native "return this.screenY;";
 
-  EventTargetJS get target() native "return this.target;";
+  EventTargetJs get target() native "return this.target;";
 
   num get webkitForce() native "return this.webkitForce;";
 
@@ -24,8 +24,4 @@ class TouchJS implements Touch native "*Touch" {
   int get webkitRadiusY() native "return this.webkitRadiusY;";
 
   num get webkitRotationAngle() native "return this.webkitRotationAngle;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

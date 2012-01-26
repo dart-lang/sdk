@@ -1,7 +1,7 @@
 
-class MediaControllerJS implements MediaController native "*MediaController" {
+class MediaControllerJs extends DOMTypeJs implements MediaController native "*MediaController" {
 
-  TimeRangesJS get buffered() native "return this.buffered;";
+  TimeRangesJs get buffered() native "return this.buffered;";
 
   num get currentTime() native "return this.currentTime;";
 
@@ -23,9 +23,9 @@ class MediaControllerJS implements MediaController native "*MediaController" {
 
   void set playbackRate(num value) native "this.playbackRate = value;";
 
-  TimeRangesJS get played() native "return this.played;";
+  TimeRangesJs get played() native "return this.played;";
 
-  TimeRangesJS get seekable() native "return this.seekable;";
+  TimeRangesJs get seekable() native "return this.seekable;";
 
   num get volume() native "return this.volume;";
 
@@ -33,15 +33,11 @@ class MediaControllerJS implements MediaController native "*MediaController" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
   void pause() native;
 
   void play() native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

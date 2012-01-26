@@ -1,5 +1,5 @@
 
-class DatabaseSyncJS implements DatabaseSync native "*DatabaseSync" {
+class DatabaseSyncJs extends DOMTypeJs implements DatabaseSync native "*DatabaseSync" {
 
   String get lastErrorMessage() native "return this.lastErrorMessage;";
 
@@ -10,8 +10,4 @@ class DatabaseSyncJS implements DatabaseSync native "*DatabaseSync" {
   void readTransaction(SQLTransactionSyncCallback callback) native;
 
   void transaction(SQLTransactionSyncCallback callback) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

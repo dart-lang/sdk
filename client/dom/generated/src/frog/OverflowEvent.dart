@@ -1,5 +1,5 @@
 
-class OverflowEventJS extends EventJS implements OverflowEvent native "*OverflowEvent" {
+class OverflowEventJs extends EventJs implements OverflowEvent native "*OverflowEvent" {
 
   static final int BOTH = 2;
 

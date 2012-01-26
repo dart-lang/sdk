@@ -1,33 +1,29 @@
 
-class IDBObjectStoreJS implements IDBObjectStore native "*IDBObjectStore" {
+class IDBObjectStoreJs extends DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
 
   String get keyPath() native "return this.keyPath;";
 
   String get name() native "return this.name;";
 
-  IDBTransactionJS get transaction() native "return this.transaction;";
+  IDBTransactionJs get transaction() native "return this.transaction;";
 
-  IDBRequestJS add(String value, [IDBKeyJS key = null]) native;
+  IDBRequestJs add(String value, [IDBKeyJs key = null]) native;
 
-  IDBRequestJS clear() native;
+  IDBRequestJs clear() native;
 
-  IDBRequestJS count([IDBKeyRangeJS range = null]) native;
+  IDBRequestJs count([IDBKeyRangeJs range = null]) native;
 
-  IDBIndexJS createIndex(String name, String keyPath) native;
+  IDBIndexJs createIndex(String name, String keyPath) native;
 
-  IDBRequestJS delete(IDBKeyJS key) native;
+  IDBRequestJs delete(IDBKeyJs key) native;
 
   void deleteIndex(String name) native;
 
-  IDBRequestJS getObject(IDBKeyJS key) native;
+  IDBRequestJs getObject(IDBKeyJs key) native;
 
-  IDBIndexJS index(String name) native;
+  IDBIndexJs index(String name) native;
 
-  IDBRequestJS openCursor([IDBKeyRangeJS range = null, int direction = null]) native;
+  IDBRequestJs openCursor([IDBKeyRangeJs range = null, int direction = null]) native;
 
-  IDBRequestJS put(String value, [IDBKeyJS key = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  IDBRequestJs put(String value, [IDBKeyJs key = null]) native;
 }

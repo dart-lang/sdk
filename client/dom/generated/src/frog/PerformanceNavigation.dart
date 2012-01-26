@@ -1,5 +1,5 @@
 
-class PerformanceNavigationJS implements PerformanceNavigation native "*PerformanceNavigation" {
+class PerformanceNavigationJs extends DOMTypeJs implements PerformanceNavigation native "*PerformanceNavigation" {
 
   static final int TYPE_BACK_FORWARD = 2;
 
@@ -12,8 +12,4 @@ class PerformanceNavigationJS implements PerformanceNavigation native "*Performa
   int get redirectCount() native "return this.redirectCount;";
 
   int get type() native "return this.type;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

@@ -1,15 +1,11 @@
 
-class SVGTestsJS implements SVGTests native "*SVGTests" {
+class SVGTestsJs extends DOMTypeJs implements SVGTests native "*SVGTests" {
 
-  SVGStringListJS get requiredExtensions() native "return this.requiredExtensions;";
+  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJS get requiredFeatures() native "return this.requiredFeatures;";
+  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJS get systemLanguage() native "return this.systemLanguage;";
+  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

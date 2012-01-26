@@ -1,5 +1,5 @@
 
-class XMLHttpRequestExceptionJS implements XMLHttpRequestException native "*XMLHttpRequestException" {
+class XMLHttpRequestExceptionJs extends DOMTypeJs implements XMLHttpRequestException native "*XMLHttpRequestException" {
 
   static final int ABORT_ERR = 102;
 
@@ -12,8 +12,4 @@ class XMLHttpRequestExceptionJS implements XMLHttpRequestException native "*XMLH
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

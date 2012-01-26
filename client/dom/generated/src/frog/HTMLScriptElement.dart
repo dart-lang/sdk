@@ -1,5 +1,5 @@
 
-class HTMLScriptElementJS extends HTMLElementJS implements HTMLScriptElement native "*HTMLScriptElement" {
+class HTMLScriptElementJs extends HTMLElementJs implements HTMLScriptElement native "*HTMLScriptElement" {
 
   bool get async() native "return this.async;";
 

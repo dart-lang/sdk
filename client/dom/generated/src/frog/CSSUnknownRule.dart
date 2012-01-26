@@ -1,3 +1,3 @@
 
-class CSSUnknownRuleJS extends CSSRuleJS implements CSSUnknownRule native "*CSSUnknownRule" {
+class CSSUnknownRuleJs extends CSSRuleJs implements CSSUnknownRule native "*CSSUnknownRule" {
 }

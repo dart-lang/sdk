@@ -1,11 +1,11 @@
 
-class SVGFEImageElementJS extends SVGElementJS implements SVGFEImageElement native "*SVGFEImageElement" {
+class SVGFEImageElementJs extends SVGElementJs implements SVGFEImageElement native "*SVGFEImageElement" {
 
-  SVGAnimatedPreserveAspectRatioJS get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
   // From SVGURIReference
 
-  SVGAnimatedStringJS get href() native "return this.href;";
+  SVGAnimatedStringJs get href() native "return this.href;";
 
   // From SVGLangSpace
 
@@ -19,25 +19,25 @@ class SVGFEImageElementJS extends SVGElementJS implements SVGFEImageElement nati
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLengthJS get height() native "return this.height;";
+  SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGAnimatedStringJS get result() native "return this.result;";
+  SVGAnimatedStringJs get result() native "return this.result;";
 
-  SVGAnimatedLengthJS get width() native "return this.width;";
+  SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJS get x() native "return this.x;";
+  SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJS get y() native "return this.y;";
+  SVGAnimatedLengthJs get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJS get className() native "return this.className;";
+  SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJS get style() native "return this.style;";
+  CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJS getPresentationAttribute(String name) native;
+  CSSValueJs getPresentationAttribute(String name) native;
 }

@@ -1,3 +1,3 @@
 
-class SVGAltGlyphItemElementJS extends SVGElementJS implements SVGAltGlyphItemElement native "*SVGAltGlyphItemElement" {
+class SVGAltGlyphItemElementJs extends SVGElementJs implements SVGAltGlyphItemElement native "*SVGAltGlyphItemElement" {
 }

@@ -1,7 +1,7 @@
 
-class WebKitCSSKeyframesRuleJS extends CSSRuleJS implements WebKitCSSKeyframesRule native "*WebKitCSSKeyframesRule" {
+class WebKitCSSKeyframesRuleJs extends CSSRuleJs implements WebKitCSSKeyframesRule native "*WebKitCSSKeyframesRule" {
 
-  CSSRuleListJS get cssRules() native "return this.cssRules;";
+  CSSRuleListJs get cssRules() native "return this.cssRules;";
 
   String get name() native "return this.name;";
 
@@ -9,7 +9,7 @@ class WebKitCSSKeyframesRuleJS extends CSSRuleJS implements WebKitCSSKeyframesRu
 
   void deleteRule(String key) native;
 
-  WebKitCSSKeyframeRuleJS findRule(String key) native;
+  WebKitCSSKeyframeRuleJs findRule(String key) native;
 
   void insertRule(String rule) native;
 }

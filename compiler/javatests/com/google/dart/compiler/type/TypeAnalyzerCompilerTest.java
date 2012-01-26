@@ -11,6 +11,9 @@ import com.google.common.collect.Iterables;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartField;
+import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -513,5 +516,49 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getCompilationErrors(),
         errEx(ResolverErrorCode.DUPLICATE_NAMED_ARGUMENT, 16, 25, 5));
+  }
+
+  /**
+   * We should return correct {@link Type} for {@link DartNewExpression}.
+   */
+  public void test_DartNewExpression_getType() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "class A {",
+                "  A() {}",
+                "  A.foo() {}",
+                "}",
+                "var a1 = new A();",
+                "var a2 = new A.foo();",
+                ""));
+    assertErrors(libraryResult.getCompilationErrors());
+    assertErrors(libraryResult.getCompilationWarnings());
+    assertErrors(libraryResult.getTypeErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    // new A()
+    {
+      DartNewExpression newExpression = (DartNewExpression) getTopLevelFieldInitializer(unit, 1);
+      Type newType = newExpression.getType();
+      assertEquals("A", newType.getElement().getName());
+    }
+    // new A.foo()
+    {
+      DartNewExpression newExpression = (DartNewExpression) getTopLevelFieldInitializer(unit, 2);
+      Type newType = newExpression.getType();
+      assertEquals("A", newType.getElement().getName());
+    }
+  }
+
+  /**
+   * Expects that given {@link DartUnit} has {@link DartFieldDefinition} as <code>index</code> top
+   * level node and return initializer of first {@link DartField}.
+   */
+  private static DartExpression getTopLevelFieldInitializer(DartUnit unit, int index) {
+    DartFieldDefinition fieldDefinition = (DartFieldDefinition) unit.getTopLevelNodes().get(index);
+    DartField field = fieldDefinition.getFields().get(0);
+    return field.getValue();
   }
 }

@@ -1,3 +1,3 @@
 
-class SVGAnimateElementJS extends SVGAnimationElementJS implements SVGAnimateElement native "*SVGAnimateElement" {
+class SVGAnimateElementJs extends SVGAnimationElementJs implements SVGAnimateElement native "*SVGAnimateElement" {
 }

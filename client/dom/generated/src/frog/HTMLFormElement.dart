@@ -1,5 +1,5 @@
 
-class HTMLFormElementJS extends HTMLElementJS implements HTMLFormElement native "*HTMLFormElement" {
+class HTMLFormElementJs extends HTMLElementJs implements HTMLFormElement native "*HTMLFormElement" {
 
   String get acceptCharset() native "return this.acceptCharset;";
 
@@ -13,7 +13,7 @@ class HTMLFormElementJS extends HTMLElementJS implements HTMLFormElement native 
 
   void set autocomplete(String value) native "this.autocomplete = value;";
 
-  HTMLCollectionJS get elements() native "return this.elements;";
+  HTMLCollectionJs get elements() native "return this.elements;";
 
   String get encoding() native "return this.encoding;";
 

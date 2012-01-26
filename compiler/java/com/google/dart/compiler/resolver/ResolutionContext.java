@@ -278,7 +278,7 @@ public class ResolutionContext implements ResolutionErrorListener {
             errorCode instanceof ResolverErrorCode
                 ? ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS
                 : TypeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
-        onError(node, wrongNumberErrorCode, element.getType(), typeParameters.size());
+        onError(node, wrongNumberErrorCode, element.getType(), typeArgumentNodes.size(), typeParameters.size());
       }
       int index = 0;
       if (typeArgumentNodes != null) {

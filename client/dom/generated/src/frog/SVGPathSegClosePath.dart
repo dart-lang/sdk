@@ -1,3 +1,3 @@
 
-class SVGPathSegClosePathJS extends SVGPathSegJS implements SVGPathSegClosePath native "*SVGPathSegClosePath" {
+class SVGPathSegClosePathJs extends SVGPathSegJs implements SVGPathSegClosePath native "*SVGPathSegClosePath" {
 }

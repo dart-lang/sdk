@@ -1,5 +1,5 @@
 
-class DelayNodeJS extends AudioNodeJS implements DelayNode native "*DelayNode" {
+class DelayNodeJs extends AudioNodeJs implements DelayNode native "*DelayNode" {
 
-  AudioParamJS get delayTime() native "return this.delayTime;";
+  AudioParamJs get delayTime() native "return this.delayTime;";
 }

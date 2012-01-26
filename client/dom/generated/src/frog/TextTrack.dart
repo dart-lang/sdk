@@ -1,5 +1,5 @@
 
-class TextTrackJS implements TextTrack native "*TextTrack" {
+class TextTrackJs extends DOMTypeJs implements TextTrack native "*TextTrack" {
 
   static final int DISABLED = 0;
 
@@ -7,9 +7,9 @@ class TextTrackJS implements TextTrack native "*TextTrack" {
 
   static final int SHOWING = 2;
 
-  TextTrackCueListJS get activeCues() native "return this.activeCues;";
+  TextTrackCueListJs get activeCues() native "return this.activeCues;";
 
-  TextTrackCueListJS get cues() native "return this.cues;";
+  TextTrackCueListJs get cues() native "return this.cues;";
 
   String get kind() native "return this.kind;";
 
@@ -25,17 +25,13 @@ class TextTrackJS implements TextTrack native "*TextTrack" {
 
   void set oncuechange(EventListener value) native "this.oncuechange = value;";
 
-  void addCue(TextTrackCueJS cue) native;
+  void addCue(TextTrackCueJs cue) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
-  void removeCue(TextTrackCueJS cue) native;
+  void removeCue(TextTrackCueJs cue) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

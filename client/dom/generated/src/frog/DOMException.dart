@@ -1,5 +1,5 @@
 
-class DOMExceptionJS implements DOMException native "*DOMException" {
+class DOMExceptionJs extends DOMTypeJs implements DOMException native "*DOMException" {
 
   static final int ABORT_ERR = 20;
 
@@ -58,8 +58,4 @@ class DOMExceptionJS implements DOMException native "*DOMException" {
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

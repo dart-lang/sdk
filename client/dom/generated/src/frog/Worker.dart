@@ -1,5 +1,5 @@
 
-class WorkerJS extends AbstractWorkerJS implements Worker native "*Worker" {
+class WorkerJs extends AbstractWorkerJs implements Worker native "*Worker" {
 
   void postMessage(String message, [List messagePorts = null]) native;
 

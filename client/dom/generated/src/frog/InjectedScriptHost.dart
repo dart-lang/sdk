@@ -1,5 +1,5 @@
 
-class InjectedScriptHostJS implements InjectedScriptHost native "*InjectedScriptHost" {
+class InjectedScriptHostJs extends DOMTypeJs implements InjectedScriptHost native "*InjectedScriptHost" {
 
   void clearConsoleMessages() native;
 
@@ -28,8 +28,4 @@ class InjectedScriptHostJS implements InjectedScriptHost native "*InjectedScript
   int storageId(Object storage) native;
 
   String type(Object object) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

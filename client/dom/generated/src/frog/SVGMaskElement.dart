@@ -1,25 +1,25 @@
 
-class SVGMaskElementJS extends SVGElementJS implements SVGMaskElement native "*SVGMaskElement" {
+class SVGMaskElementJs extends SVGElementJs implements SVGMaskElement native "*SVGMaskElement" {
 
-  SVGAnimatedLengthJS get height() native "return this.height;";
+  SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGAnimatedEnumerationJS get maskContentUnits() native "return this.maskContentUnits;";
+  SVGAnimatedEnumerationJs get maskContentUnits() native "return this.maskContentUnits;";
 
-  SVGAnimatedEnumerationJS get maskUnits() native "return this.maskUnits;";
+  SVGAnimatedEnumerationJs get maskUnits() native "return this.maskUnits;";
 
-  SVGAnimatedLengthJS get width() native "return this.width;";
+  SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJS get x() native "return this.x;";
+  SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJS get y() native "return this.y;";
+  SVGAnimatedLengthJs get y() native "return this.y;";
 
   // From SVGTests
 
-  SVGStringListJS get requiredExtensions() native "return this.requiredExtensions;";
+  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJS get requiredFeatures() native "return this.requiredFeatures;";
+  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJS get systemLanguage() native "return this.systemLanguage;";
+  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -35,13 +35,13 @@ class SVGMaskElementJS extends SVGElementJS implements SVGMaskElement native "*S
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJS get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJS get className() native "return this.className;";
+  SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJS get style() native "return this.style;";
+  CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJS getPresentationAttribute(String name) native;
+  CSSValueJs getPresentationAttribute(String name) native;
 }

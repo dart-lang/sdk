@@ -1,5 +1,5 @@
 
-class AudioPannerNodeJS extends AudioNodeJS implements AudioPannerNode native "*AudioPannerNode" {
+class AudioPannerNodeJs extends AudioNodeJs implements AudioPannerNode native "*AudioPannerNode" {
 
   static final int EQUALPOWER = 0;
 
@@ -7,7 +7,7 @@ class AudioPannerNodeJS extends AudioNodeJS implements AudioPannerNode native "*
 
   static final int SOUNDFIELD = 2;
 
-  AudioGainJS get coneGain() native "return this.coneGain;";
+  AudioGainJs get coneGain() native "return this.coneGain;";
 
   num get coneInnerAngle() native "return this.coneInnerAngle;";
 
@@ -21,7 +21,7 @@ class AudioPannerNodeJS extends AudioNodeJS implements AudioPannerNode native "*
 
   void set coneOuterGain(num value) native "this.coneOuterGain = value;";
 
-  AudioGainJS get distanceGain() native "return this.distanceGain;";
+  AudioGainJs get distanceGain() native "return this.distanceGain;";
 
   int get distanceModel() native "return this.distanceModel;";
 

@@ -1,21 +1,21 @@
 
-class SVGTextElementJS extends SVGTextPositioningElementJS implements SVGTextElement native "*SVGTextElement" {
+class SVGTextElementJs extends SVGTextPositioningElementJs implements SVGTextElement native "*SVGTextElement" {
 
   // From SVGTransformable
 
-  SVGAnimatedTransformListJS get transform() native "return this.transform;";
+  SVGAnimatedTransformListJs get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElementJS get farthestViewportElement() native "return this.farthestViewportElement;";
+  SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElementJS get nearestViewportElement() native "return this.nearestViewportElement;";
+  SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
 
-  SVGRectJS getBBox() native;
+  SVGRectJs getBBox() native;
 
-  SVGMatrixJS getCTM() native;
+  SVGMatrixJs getCTM() native;
 
-  SVGMatrixJS getScreenCTM() native;
+  SVGMatrixJs getScreenCTM() native;
 
-  SVGMatrixJS getTransformToElement(SVGElementJS element) native;
+  SVGMatrixJs getTransformToElement(SVGElementJs element) native;
 }

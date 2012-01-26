@@ -1,5 +1,5 @@
 
-class WebGLContextAttributesJS implements WebGLContextAttributes native "*WebGLContextAttributes" {
+class WebGLContextAttributesJs extends DOMTypeJs implements WebGLContextAttributes native "*WebGLContextAttributes" {
 
   bool get alpha() native "return this.alpha;";
 
@@ -24,8 +24,4 @@ class WebGLContextAttributesJS implements WebGLContextAttributes native "*WebGLC
   bool get stencil() native "return this.stencil;";
 
   void set stencil(bool value) native "this.stencil = value;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

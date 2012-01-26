@@ -1,5 +1,5 @@
 
-class XPathResultJS implements XPathResult native "*XPathResult" {
+class XPathResultJs extends DOMTypeJs implements XPathResult native "*XPathResult" {
 
   static final int ANY_TYPE = 0;
 
@@ -29,17 +29,13 @@ class XPathResultJS implements XPathResult native "*XPathResult" {
 
   int get resultType() native "return this.resultType;";
 
-  NodeJS get singleNodeValue() native "return this.singleNodeValue;";
+  NodeJs get singleNodeValue() native "return this.singleNodeValue;";
 
   int get snapshotLength() native "return this.snapshotLength;";
 
   String get stringValue() native "return this.stringValue;";
 
-  NodeJS iterateNext() native;
+  NodeJs iterateNext() native;
 
-  NodeJS snapshotItem(int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  NodeJs snapshotItem(int index) native;
 }

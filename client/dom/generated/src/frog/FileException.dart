@@ -1,5 +1,5 @@
 
-class FileExceptionJS implements FileException native "*FileException" {
+class FileExceptionJs extends DOMTypeJs implements FileException native "*FileException" {
 
   static final int ABORT_ERR = 3;
 
@@ -32,8 +32,4 @@ class FileExceptionJS implements FileException native "*FileException" {
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

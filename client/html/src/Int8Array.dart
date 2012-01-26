@@ -2,13 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-interface Uint8Array extends ArrayBufferView {
+interface Int8Array extends ArrayBufferView
+    default Int8ArrayWrappingImplementation {
 
   static final int BYTES_PER_ELEMENT = 1;
 
+  Int8Array(int length);
+
+  Int8Array.from(List<num> list);
+
+  Int8Array.fromBuffer(ArrayBuffer buffer);
+
   int get length();
 
-  Uint8Array subarray(int start, [int end]);
+  Int8Array subarray(int start, [int end]);
 }

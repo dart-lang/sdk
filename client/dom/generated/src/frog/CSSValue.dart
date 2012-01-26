@@ -1,5 +1,5 @@
 
-class CSSValueJS implements CSSValue native "*CSSValue" {
+class CSSValueJs extends DOMTypeJs implements CSSValue native "*CSSValue" {
 
   static final int CSS_CUSTOM = 3;
 
@@ -14,8 +14,4 @@ class CSSValueJS implements CSSValue native "*CSSValue" {
   void set cssText(String value) native "this.cssText = value;";
 
   int get cssValueType() native "return this.cssValueType;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

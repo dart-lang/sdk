@@ -1,5 +1,5 @@
 
-class NodeFilterJS implements NodeFilter native "*NodeFilter" {
+class NodeFilterJs extends DOMTypeJs implements NodeFilter native "*NodeFilter" {
 
   static final int FILTER_ACCEPT = 1;
 
@@ -33,9 +33,5 @@ class NodeFilterJS implements NodeFilter native "*NodeFilter" {
 
   static final int SHOW_TEXT = 0x00000004;
 
-  int acceptNode(NodeJS n) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  int acceptNode(NodeJs n) native;
 }

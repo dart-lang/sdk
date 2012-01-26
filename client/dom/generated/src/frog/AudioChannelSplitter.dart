@@ -1,3 +1,3 @@
 
-class AudioChannelSplitterJS extends AudioNodeJS implements AudioChannelSplitter native "*AudioChannelSplitter" {
+class AudioChannelSplitterJs extends AudioNodeJs implements AudioChannelSplitter native "*AudioChannelSplitter" {
 }

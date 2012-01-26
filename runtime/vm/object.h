@@ -1713,6 +1713,8 @@ class Library : public Object {
     raw_ptr()->native_entry_resolver_ = value;
   }
 
+  RawString* PrivateName(const char* name);
+
   void Register() const;
 
   RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
@@ -3244,11 +3246,29 @@ class ImmutableArray : public Array {
 };
 
 
-class ByteBuffer : public Instance {
+class ByteArray : public Instance {
+ public:
+  virtual intptr_t Length() const;
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(ByteArray, Instance);
+  friend class Class;
+};
+
+
+class InternalByteArray : public ByteArray {
  public:
   intptr_t Length() const {
     ASSERT(!IsNull());
     return Smi::Value(raw_ptr()->length_);
+  }
+
+  static intptr_t length_offset() {
+    return OFFSET_OF(RawInternalByteArray, length_);
+  }
+
+  static intptr_t data_offset() {
+    return length_offset() + kWordSize;
   }
 
   template<typename T>
@@ -3257,6 +3277,7 @@ class ByteBuffer : public Instance {
     ASSERT(Utils::IsAligned(reinterpret_cast<intptr_t>(addr), sizeof(T)));
     return *addr;
   }
+
   template<typename T>
   void SetAt(intptr_t byte_offset, T value) const {
     T* addr = Addr<T>(byte_offset);
@@ -3270,20 +3291,87 @@ class ByteBuffer : public Instance {
     memmove(&result, Addr<T>(byte_offset), sizeof(T));
     return result;
   }
+
   template<typename T>
   void SetUnalignedAt(intptr_t byte_offset, T value) const {
     memmove(Addr<T>(byte_offset), &value, sizeof(T));
   }
 
-  virtual bool Equals(const Instance& other) const;
-
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawByteBuffer));
+    ASSERT(sizeof(RawInternalByteArray) ==
+           OFFSET_OF_RETURNED_VALUE(RawInternalByteArray, data));
+    return 0;
   }
 
-  static RawByteBuffer* New(uint8_t* data,
-                            intptr_t len,
-                            Heap::Space space = Heap::kNew);
+  static intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(sizeof(RawInternalByteArray) + len);
+  }
+
+  static RawInternalByteArray* New(intptr_t len,
+                                   Heap::Space space = Heap::kNew);
+  static RawInternalByteArray* New(const uint8_t* data,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
+
+ private:
+  template<typename T>
+  T* Addr(intptr_t byte_offset) const {
+    intptr_t limit = byte_offset + sizeof(T);
+    // TODO(iposva): Determine if we should throw an exception here.
+    ASSERT((byte_offset >= 0) && (limit <= Length()));
+    uint8_t* addr = &raw_ptr()->data()[byte_offset];
+    return reinterpret_cast<T*>(addr);
+  }
+
+  void SetLength(intptr_t value) {
+    raw_ptr()->length_ = Smi::New(value);
+  }
+
+  HEAP_OBJECT_IMPLEMENTATION(InternalByteArray, ByteArray);
+  friend class Class;
+};
+
+
+class ExternalByteArray : public ByteArray {
+ public:
+  intptr_t Length() const {
+    ASSERT(!IsNull());
+    return Smi::Value(raw_ptr()->length_);
+  }
+
+  template<typename T>
+  T At(intptr_t byte_offset) const {
+    T* addr = Addr<T>(byte_offset);
+    ASSERT(Utils::IsAligned(reinterpret_cast<intptr_t>(addr), sizeof(T)));
+    return *addr;
+  }
+
+  template<typename T>
+  void SetAt(intptr_t byte_offset, T value) const {
+    T* addr = Addr<T>(byte_offset);
+    ASSERT(Utils::IsAligned(reinterpret_cast<intptr_t>(addr), sizeof(T)));
+    *addr = value;
+  }
+
+  template<typename T>
+  T UnalignedAt(intptr_t byte_offset) const {
+    T result;
+    memmove(&result, Addr<T>(byte_offset), sizeof(T));
+    return result;
+  }
+
+  template<typename T>
+  void SetUnalignedAt(intptr_t byte_offset, T value) const {
+    memmove(Addr<T>(byte_offset), &value, sizeof(T));
+  }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawExternalByteArray));
+  }
+
+  static RawExternalByteArray* New(uint8_t* data,
+                                   intptr_t len,
+                                   Heap::Space space = Heap::kNew);
 
  private:
   template<typename T>
@@ -3303,7 +3391,7 @@ class ByteBuffer : public Instance {
     raw_ptr()->data_ = data;
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(ByteBuffer, Instance);
+  HEAP_OBJECT_IMPLEMENTATION(ExternalByteArray, ByteArray);
   friend class Class;
 };
 

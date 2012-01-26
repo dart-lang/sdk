@@ -1,5 +1,5 @@
 
-class SVGLangSpaceJS implements SVGLangSpace native "*SVGLangSpace" {
+class SVGLangSpaceJs extends DOMTypeJs implements SVGLangSpace native "*SVGLangSpace" {
 
   String get xmllang() native "return this.xmllang;";
 
@@ -8,8 +8,4 @@ class SVGLangSpaceJS implements SVGLangSpace native "*SVGLangSpace" {
   String get xmlspace() native "return this.xmlspace;";
 
   void set xmlspace(String value) native "this.xmlspace = value;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

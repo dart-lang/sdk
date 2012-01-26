@@ -1,5 +1,5 @@
 
-class HTMLDirectoryElementJS extends HTMLElementJS implements HTMLDirectoryElement native "*HTMLDirectoryElement" {
+class HTMLDirectoryElementJs extends HTMLElementJs implements HTMLDirectoryElement native "*HTMLDirectoryElement" {
 
   bool get compact() native "return this.compact;";
 

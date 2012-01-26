@@ -1,5 +1,5 @@
 
-class CSSStyleDeclarationJS implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
+class CSSStyleDeclarationJs extends DOMTypeJs implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
   String get cssText() native "return this.cssText;";
 
@@ -7,9 +7,9 @@ class CSSStyleDeclarationJS implements CSSStyleDeclaration native "*CSSStyleDecl
 
   int get length() native "return this.length;";
 
-  CSSRuleJS get parentRule() native "return this.parentRule;";
+  CSSRuleJs get parentRule() native "return this.parentRule;";
 
-  CSSValueJS getPropertyCSSValue(String propertyName) native;
+  CSSValueJs getPropertyCSSValue(String propertyName) native;
 
   String getPropertyPriority(String propertyName) native;
 
@@ -24,8 +24,4 @@ class CSSStyleDeclarationJS implements CSSStyleDeclaration native "*CSSStyleDecl
   String removeProperty(String propertyName) native;
 
   void setProperty(String propertyName, String value, [String priority = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

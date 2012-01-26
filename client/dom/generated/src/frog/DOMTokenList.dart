@@ -1,5 +1,5 @@
 
-class DOMTokenListJS implements DOMTokenList native "*DOMTokenList" {
+class DOMTokenListJs extends DOMTypeJs implements DOMTokenList native "*DOMTokenList" {
 
   int get length() native "return this.length;";
 
@@ -14,8 +14,4 @@ class DOMTokenListJS implements DOMTokenList native "*DOMTokenList" {
   String toString() native;
 
   bool toggle(String token) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

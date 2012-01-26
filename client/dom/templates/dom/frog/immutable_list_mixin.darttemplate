@@ -1,0 +1,67 @@
+  // -- start List<$E> mixins.
+  // $E is the element type.
+
+  // From Iterable<$E>:
+
+  Iterator<$E> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<$E>(this);
+  }
+
+  // From Collection<$E>:
+
+  void add($E value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addLast($E value) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void addAll(Collection<$E> collection) {
+    throw new UnsupportedOperationException("Cannot add to immutable List.");
+  }
+
+  void forEach(void f($E element)) => _Collections.forEach(this, f);
+
+  Collection map(f($E element)) => _Collections.map(this, [], f);
+
+  Collection<$E> filter(bool f($E element)) =>
+     _Collections.filter(this, <$E>[], f);
+
+  bool every(bool f($E element)) => _Collections.every(this, f);
+
+  bool some(bool f($E element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<$E>:
+
+  void sort(int compare($E a, $E b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf($E element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf($E element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  $E last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<$E> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [$E initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<$E> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <$E>[]);
+
+  // -- end List<$E> mixins.

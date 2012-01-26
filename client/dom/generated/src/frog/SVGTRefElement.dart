@@ -1,7 +1,7 @@
 
-class SVGTRefElementJS extends SVGTextPositioningElementJS implements SVGTRefElement native "*SVGTRefElement" {
+class SVGTRefElementJs extends SVGTextPositioningElementJs implements SVGTRefElement native "*SVGTRefElement" {
 
   // From SVGURIReference
 
-  SVGAnimatedStringJS get href() native "return this.href;";
+  SVGAnimatedStringJs get href() native "return this.href;";
 }

@@ -1,5 +1,5 @@
 
-class PositionErrorJS implements PositionError native "*PositionError" {
+class PositionErrorJs extends DOMTypeJs implements PositionError native "*PositionError" {
 
   static final int PERMISSION_DENIED = 1;
 
@@ -10,8 +10,4 @@ class PositionErrorJS implements PositionError native "*PositionError" {
   int get code() native "return this.code;";
 
   String get message() native "return this.message;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

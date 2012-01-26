@@ -1,5 +1,5 @@
 
-class AudioListenerJS implements AudioListener native "*AudioListener" {
+class AudioListenerJs extends DOMTypeJs implements AudioListener native "*AudioListener" {
 
   num get dopplerFactor() native "return this.dopplerFactor;";
 
@@ -14,8 +14,4 @@ class AudioListenerJS implements AudioListener native "*AudioListener" {
   void setPosition(num x, num y, num z) native;
 
   void setVelocity(num x, num y, num z) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

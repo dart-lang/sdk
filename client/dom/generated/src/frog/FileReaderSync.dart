@@ -1,15 +1,11 @@
 
-class FileReaderSyncJS implements FileReaderSync native "*FileReaderSync" {
+class FileReaderSyncJs extends DOMTypeJs implements FileReaderSync native "*FileReaderSync" {
 
-  ArrayBufferJS readAsArrayBuffer(BlobJS blob) native;
+  ArrayBufferJs readAsArrayBuffer(BlobJs blob) native;
 
-  String readAsBinaryString(BlobJS blob) native;
+  String readAsBinaryString(BlobJs blob) native;
 
-  String readAsDataURL(BlobJS blob) native;
+  String readAsDataURL(BlobJs blob) native;
 
-  String readAsText(BlobJS blob, [String encoding = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  String readAsText(BlobJs blob, [String encoding = null]) native;
 }

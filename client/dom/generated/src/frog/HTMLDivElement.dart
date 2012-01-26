@@ -1,5 +1,5 @@
 
-class HTMLDivElementJS extends HTMLElementJS implements HTMLDivElement native "*HTMLDivElement" {
+class HTMLDivElementJs extends HTMLElementJs implements HTMLDivElement native "*HTMLDivElement" {
 
   String get align() native "return this.align;";
 

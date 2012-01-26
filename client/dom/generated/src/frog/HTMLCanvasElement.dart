@@ -1,5 +1,5 @@
 
-class HTMLCanvasElementJS extends HTMLElementJS implements HTMLCanvasElement native "*HTMLCanvasElement" {
+class HTMLCanvasElementJs extends HTMLElementJs implements HTMLCanvasElement native "*HTMLCanvasElement" {
 
   int get height() native "return this.height;";
 

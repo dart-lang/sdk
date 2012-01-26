@@ -2510,34 +2510,6 @@ interface Flags {
 
 // WARNING: Do not edit - generated code.
 
-interface Float32Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 4;
-
-  int get length();
-
-  Float32Array subarray(int start, [int end]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Float64Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 8;
-
-  int get length();
-
-  Float64Array subarray(int start, [int end]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface FontElement extends Element {
 
   String get color();
@@ -3383,48 +3355,6 @@ interface InputElement extends Element {
   void stepDown([int n]);
 
   void stepUp([int n]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Int16Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 2;
-
-  int get length();
-
-  Int16Array subarray(int start, [int end]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Int32Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 4;
-
-  int get length();
-
-  Int32Array subarray(int start, [int end]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Int8Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 1;
-
-  int get length();
-
-  Int8Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8084,48 +8014,6 @@ interface UListElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface Uint16Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 2;
-
-  int get length();
-
-  Uint16Array subarray(int start, [int end]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Uint32Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 4;
-
-  int get length();
-
-  Uint32Array subarray(int start, [int end]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface Uint8Array extends ArrayBufferView {
-
-  static final int BYTES_PER_ELEMENT = 1;
-
-  int get length();
-
-  Uint8Array subarray(int start, [int end]);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface UnknownElement extends Element {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -11787,6 +11675,44 @@ interface EventTarget {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+interface Float32Array extends ArrayBufferView
+    default Float32ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 4;
+
+  Float32Array(int length);
+
+  Float32Array.from(List<num> list);
+
+  Float32Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Float32Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE fil default-styleWrappingImplementatione.
+
+interface Float64Array extends ArrayBufferView
+    default Float64ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 8;
+
+  Float64Array(int length);
+
+  Float64Array.from(List<num> list);
+
+  Float64Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Float64Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 Window secretWindow;
 Document secretDocument;
 
@@ -11815,6 +11741,63 @@ interface HashChangeEvent extends Event default HashChangeEventWrappingImplement
   String get newURL();
 
   String get oldURL();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Int16Array extends ArrayBufferView
+    default Int16ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 2;
+
+  Int16Array(int length);
+
+  Int16Array.from(List<num> list);
+
+  Int16Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Int16Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Int32Array extends ArrayBufferView
+    default Int32ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 4;
+
+  Int32Array(int length);
+
+  Int32Array.from(List<num> list);
+
+  Int32Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Int32Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Int8Array extends ArrayBufferView
+    default Int8ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 1;
+
+  Int8Array(int length);
+
+  Int8Array.from(List<num> list);
+
+  Int8Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Int8Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12987,6 +12970,63 @@ interface UIEvent extends Event default UIEventWrappingImplementation {
   Window get view();
 
   int get which();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Uint16Array extends ArrayBufferView
+    default Uint16ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 2;
+
+  Uint16Array(int length);
+
+  Uint16Array.from(List<num> list);
+
+  Uint16Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Uint16Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Uint32Array extends ArrayBufferView
+    default Uint32ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 4;
+
+  Uint32Array(int length);
+
+  Uint32Array.from(List<num> list);
+
+  Uint32Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Uint32Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Uint8Array extends ArrayBufferView
+    default Uint8ArrayWrappingImplementation {
+
+  static final int BYTES_PER_ELEMENT = 1;
+
+  Uint8Array(int length);
+
+  Uint8Array.from(List<num> list);
+
+  Uint8Array.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Uint8Array subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

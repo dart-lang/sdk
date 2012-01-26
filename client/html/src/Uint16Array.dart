@@ -2,13 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-interface Int16Array extends ArrayBufferView {
+interface Uint16Array extends ArrayBufferView
+    default Uint16ArrayWrappingImplementation {
 
   static final int BYTES_PER_ELEMENT = 2;
 
+  Uint16Array(int length);
+
+  Uint16Array.from(List<num> list);
+
+  Uint16Array.fromBuffer(ArrayBuffer buffer);
+
   int get length();
 
-  Int16Array subarray(int start, [int end]);
+  Uint16Array subarray(int start, [int end]);
 }

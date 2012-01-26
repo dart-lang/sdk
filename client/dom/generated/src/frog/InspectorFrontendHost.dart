@@ -1,5 +1,5 @@
 
-class InspectorFrontendHostJS implements InspectorFrontendHost native "*InspectorFrontendHost" {
+class InspectorFrontendHostJs extends DOMTypeJs implements InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void bringToFront() native;
 
@@ -45,9 +45,5 @@ class InspectorFrontendHostJS implements InspectorFrontendHost native "*Inspecto
 
   void setInjectedScriptForOrigin(String origin, String script) native;
 
-  void showContextMenu(MouseEventJS event, Object items) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  void showContextMenu(MouseEventJs event, Object items) native;
 }

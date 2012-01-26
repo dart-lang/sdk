@@ -1,5 +1,5 @@
 
-class HTMLHeadingElementJS extends HTMLElementJS implements HTMLHeadingElement native "*HTMLHeadingElement" {
+class HTMLHeadingElementJs extends HTMLElementJs implements HTMLHeadingElement native "*HTMLHeadingElement" {
 
   String get align() native "return this.align;";
 

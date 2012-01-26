@@ -1,7 +1,3 @@
 
-class WebGLRenderbufferJS implements WebGLRenderbuffer native "*WebGLRenderbuffer" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebGLRenderbufferJs extends DOMTypeJs implements WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }

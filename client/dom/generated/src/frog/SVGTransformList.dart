@@ -1,27 +1,23 @@
 
-class SVGTransformListJS implements SVGTransformList native "*SVGTransformList" {
+class SVGTransformListJs extends DOMTypeJs implements SVGTransformList native "*SVGTransformList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGTransformJS appendItem(SVGTransformJS item) native;
+  SVGTransformJs appendItem(SVGTransformJs item) native;
 
   void clear() native;
 
-  SVGTransformJS consolidate() native;
+  SVGTransformJs consolidate() native;
 
-  SVGTransformJS createSVGTransformFromMatrix(SVGMatrixJS matrix) native;
+  SVGTransformJs createSVGTransformFromMatrix(SVGMatrixJs matrix) native;
 
-  SVGTransformJS getItem(int index) native;
+  SVGTransformJs getItem(int index) native;
 
-  SVGTransformJS initialize(SVGTransformJS item) native;
+  SVGTransformJs initialize(SVGTransformJs item) native;
 
-  SVGTransformJS insertItemBefore(SVGTransformJS item, int index) native;
+  SVGTransformJs insertItemBefore(SVGTransformJs item, int index) native;
 
-  SVGTransformJS removeItem(int index) native;
+  SVGTransformJs removeItem(int index) native;
 
-  SVGTransformJS replaceItem(SVGTransformJS item, int index) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  SVGTransformJs replaceItem(SVGTransformJs item, int index) native;
 }

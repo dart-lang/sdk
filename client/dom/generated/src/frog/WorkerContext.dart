@@ -1,31 +1,31 @@
 
-class WorkerContextJS implements WorkerContext native "*WorkerContext" {
+class WorkerContextJs extends DOMTypeJs implements WorkerContext native "*WorkerContext" {
 
   static final int PERSISTENT = 1;
 
   static final int TEMPORARY = 0;
 
-  WorkerLocationJS get location() native "return this.location;";
+  WorkerLocationJs get location() native "return this.location;";
 
-  void set location(WorkerLocationJS value) native "this.location = value;";
+  void set location(WorkerLocationJs value) native "this.location = value;";
 
-  WorkerNavigatorJS get navigator() native "return this.navigator;";
+  WorkerNavigatorJs get navigator() native "return this.navigator;";
 
-  void set navigator(WorkerNavigatorJS value) native "this.navigator = value;";
+  void set navigator(WorkerNavigatorJs value) native "this.navigator = value;";
 
   EventListener get onerror() native "return this.onerror;";
 
   void set onerror(EventListener value) native "this.onerror = value;";
 
-  WorkerContextJS get self() native "return this.self;";
+  WorkerContextJs get self() native "return this.self;";
 
-  void set self(WorkerContextJS value) native "this.self = value;";
+  void set self(WorkerContextJs value) native "this.self = value;";
 
-  IDBFactoryJS get webkitIndexedDB() native "return this.webkitIndexedDB;";
+  IDBFactoryJs get webkitIndexedDB() native "return this.webkitIndexedDB;";
 
-  NotificationCenterJS get webkitNotifications() native "return this.webkitNotifications;";
+  NotificationCenterJs get webkitNotifications() native "return this.webkitNotifications;";
 
-  DOMURLJS get webkitURL() native "return this.webkitURL;";
+  DOMURLJs get webkitURL() native "return this.webkitURL;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -35,13 +35,13 @@ class WorkerContextJS implements WorkerContext native "*WorkerContext" {
 
   void close() native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
   void importScripts() native;
 
-  DatabaseJS openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  DatabaseSyncJS openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  DatabaseSyncJs openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -51,13 +51,9 @@ class WorkerContextJS implements WorkerContext native "*WorkerContext" {
 
   void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 
-  DOMFileSystemSyncJS webkitRequestFileSystemSync(int type, int size) native;
+  DOMFileSystemSyncJs webkitRequestFileSystemSync(int type, int size) native;
 
-  EntrySyncJS webkitResolveLocalFileSystemSyncURL(String url) native;
+  EntrySyncJs webkitResolveLocalFileSystemSyncURL(String url) native;
 
   void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

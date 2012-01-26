@@ -1,5 +1,5 @@
 
-class FileWriterJS implements FileWriter native "*FileWriter" {
+class FileWriterJs extends DOMTypeJs implements FileWriter native "*FileWriter" {
 
   static final int DONE = 2;
 
@@ -7,7 +7,7 @@ class FileWriterJS implements FileWriter native "*FileWriter" {
 
   static final int WRITING = 1;
 
-  FileErrorJS get error() native "return this.error;";
+  FileErrorJs get error() native "return this.error;";
 
   int get length() native "return this.length;";
 
@@ -45,9 +45,5 @@ class FileWriterJS implements FileWriter native "*FileWriter" {
 
   void truncate(int size) native;
 
-  void write(BlobJS data) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+  void write(BlobJs data) native;
 }

@@ -1,9 +1,5 @@
 
-class MetadataJS implements Metadata native "*Metadata" {
+class MetadataJs extends DOMTypeJs implements Metadata native "*Metadata" {
 
   Date get modificationTime() native "return this.modificationTime;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

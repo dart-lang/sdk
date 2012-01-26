@@ -104,28 +104,48 @@ namespace dart {
   V(FallThroughError_throwNew, 1)                                              \
   V(Clock_now, 0)                                                              \
   V(Clock_frequency, 0)                                                        \
-  V(ByteBuffer_allocate, 1)                                                    \
-  V(ByteBuffer_getLength, 1)                                                   \
-  V(ByteBuffer_getInt8, 2)                                                     \
-  V(ByteBuffer_setInt8, 3)                                                     \
-  V(ByteBuffer_getUint8, 2)                                                    \
-  V(ByteBuffer_setUint8, 3)                                                    \
-  V(ByteBuffer_getInt16, 2)                                                    \
-  V(ByteBuffer_setInt16, 3)                                                    \
-  V(ByteBuffer_getUint16, 2)                                                   \
-  V(ByteBuffer_setUint16, 3)                                                   \
-  V(ByteBuffer_getInt32, 2)                                                    \
-  V(ByteBuffer_setInt32, 3)                                                    \
-  V(ByteBuffer_getUint32, 2)                                                   \
-  V(ByteBuffer_setUint32, 3)                                                   \
-  V(ByteBuffer_getInt64, 2)                                                    \
-  V(ByteBuffer_setInt64, 3)                                                    \
-  V(ByteBuffer_getUint64, 2)                                                   \
-  V(ByteBuffer_setUint64, 3)                                                   \
-  V(ByteBuffer_getFloat32, 2)                                                  \
-  V(ByteBuffer_setFloat32, 3)                                                  \
-  V(ByteBuffer_getFloat64, 2)                                                  \
-  V(ByteBuffer_setFloat64, 3)                                                  \
+  V(ByteArray_getLength, 1)                                                    \
+  V(InternalByteArray_allocate, 1)                                             \
+  V(InternalByteArray_getInt8, 2)                                              \
+  V(InternalByteArray_setInt8, 3)                                              \
+  V(InternalByteArray_getUint8, 2)                                             \
+  V(InternalByteArray_setUint8, 3)                                             \
+  V(InternalByteArray_getInt16, 2)                                             \
+  V(InternalByteArray_setInt16, 3)                                             \
+  V(InternalByteArray_getUint16, 2)                                            \
+  V(InternalByteArray_setUint16, 3)                                            \
+  V(InternalByteArray_getInt32, 2)                                             \
+  V(InternalByteArray_setInt32, 3)                                             \
+  V(InternalByteArray_getUint32, 2)                                            \
+  V(InternalByteArray_setUint32, 3)                                            \
+  V(InternalByteArray_getInt64, 2)                                             \
+  V(InternalByteArray_setInt64, 3)                                             \
+  V(InternalByteArray_getUint64, 2)                                            \
+  V(InternalByteArray_setUint64, 3)                                            \
+  V(InternalByteArray_getFloat32, 2)                                           \
+  V(InternalByteArray_setFloat32, 3)                                           \
+  V(InternalByteArray_getFloat64, 2)                                           \
+  V(InternalByteArray_setFloat64, 3)                                           \
+  V(ExternalByteArray_getInt8, 2)                                              \
+  V(ExternalByteArray_setInt8, 3)                                              \
+  V(ExternalByteArray_getUint8, 2)                                             \
+  V(ExternalByteArray_setUint8, 3)                                             \
+  V(ExternalByteArray_getInt16, 2)                                             \
+  V(ExternalByteArray_setInt16, 3)                                             \
+  V(ExternalByteArray_getUint16, 2)                                            \
+  V(ExternalByteArray_setUint16, 3)                                            \
+  V(ExternalByteArray_getInt32, 2)                                             \
+  V(ExternalByteArray_setInt32, 3)                                             \
+  V(ExternalByteArray_getUint32, 2)                                            \
+  V(ExternalByteArray_setUint32, 3)                                            \
+  V(ExternalByteArray_getInt64, 2)                                             \
+  V(ExternalByteArray_setInt64, 3)                                             \
+  V(ExternalByteArray_getUint64, 2)                                            \
+  V(ExternalByteArray_setUint64, 3)                                            \
+  V(ExternalByteArray_getFloat32, 2)                                           \
+  V(ExternalByteArray_setFloat32, 3)                                           \
+  V(ExternalByteArray_getFloat64, 2)                                           \
+  V(ExternalByteArray_setFloat64, 3)                                           \
 
 
 BOOTSTRAP_NATIVE_LIST(DECLARE_NATIVE_ENTRY)

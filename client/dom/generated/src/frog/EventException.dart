@@ -1,5 +1,5 @@
 
-class EventExceptionJS implements EventException native "*EventException" {
+class EventExceptionJs extends DOMTypeJs implements EventException native "*EventException" {
 
   static final int DISPATCH_REQUEST_ERR = 1;
 
@@ -12,8 +12,4 @@ class EventExceptionJS implements EventException native "*EventException" {
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

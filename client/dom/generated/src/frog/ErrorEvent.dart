@@ -1,5 +1,5 @@
 
-class ErrorEventJS extends EventJS implements ErrorEvent native "*ErrorEvent" {
+class ErrorEventJs extends EventJs implements ErrorEvent native "*ErrorEvent" {
 
   String get filename() native "return this.filename;";
 

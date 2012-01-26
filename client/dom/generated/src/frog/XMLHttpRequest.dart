@@ -1,5 +1,5 @@
 
-class XMLHttpRequestJS implements XMLHttpRequest native "*XMLHttpRequest" {
+class XMLHttpRequestJs extends DOMTypeJs implements XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 
@@ -19,7 +19,7 @@ class XMLHttpRequestJS implements XMLHttpRequest native "*XMLHttpRequest" {
 
   int get readyState() native "return this.readyState;";
 
-  BlobJS get responseBlob() native "return this.responseBlob;";
+  BlobJs get responseBlob() native "return this.responseBlob;";
 
   String get responseText() native "return this.responseText;";
 
@@ -27,13 +27,13 @@ class XMLHttpRequestJS implements XMLHttpRequest native "*XMLHttpRequest" {
 
   void set responseType(String value) native "this.responseType = value;";
 
-  DocumentJS get responseXML() native "return this.responseXML;";
+  DocumentJs get responseXML() native "return this.responseXML;";
 
   int get status() native "return this.status;";
 
   String get statusText() native "return this.statusText;";
 
-  XMLHttpRequestUploadJS get upload() native "return this.upload;";
+  XMLHttpRequestUploadJs get upload() native "return this.upload;";
 
   bool get withCredentials() native "return this.withCredentials;";
 
@@ -43,7 +43,7 @@ class XMLHttpRequestJS implements XMLHttpRequest native "*XMLHttpRequest" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
   String getAllResponseHeaders() native;
 
@@ -58,8 +58,4 @@ class XMLHttpRequestJS implements XMLHttpRequest native "*XMLHttpRequest" {
   void send([var data = null]) native;
 
   void setRequestHeader(String header, String value) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

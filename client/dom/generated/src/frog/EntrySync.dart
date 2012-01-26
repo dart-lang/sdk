@@ -1,7 +1,7 @@
 
-class EntrySyncJS implements EntrySync native "*EntrySync" {
+class EntrySyncJs extends DOMTypeJs implements EntrySync native "*EntrySync" {
 
-  DOMFileSystemSyncJS get filesystem() native "return this.filesystem;";
+  DOMFileSystemSyncJs get filesystem() native "return this.filesystem;";
 
   String get fullPath() native "return this.fullPath;";
 
@@ -11,19 +11,15 @@ class EntrySyncJS implements EntrySync native "*EntrySync" {
 
   String get name() native "return this.name;";
 
-  EntrySyncJS copyTo(DirectoryEntrySyncJS parent, String name) native;
+  EntrySyncJs copyTo(DirectoryEntrySyncJs parent, String name) native;
 
-  MetadataJS getMetadata() native;
+  MetadataJs getMetadata() native;
 
-  DirectoryEntrySyncJS getParent() native;
+  DirectoryEntrySyncJs getParent() native;
 
-  EntrySyncJS moveTo(DirectoryEntrySyncJS parent, String name) native;
+  EntrySyncJs moveTo(DirectoryEntrySyncJs parent, String name) native;
 
   void remove() native;
 
   String toURL() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

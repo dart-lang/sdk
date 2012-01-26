@@ -1,5 +1,5 @@
 
-class ClientRectJS implements ClientRect native "*ClientRect" {
+class ClientRectJs extends DOMTypeJs implements ClientRect native "*ClientRect" {
 
   num get bottom() native "return this.bottom;";
 
@@ -12,8 +12,4 @@ class ClientRectJS implements ClientRect native "*ClientRect" {
   num get top() native "return this.top;";
 
   num get width() native "return this.width;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

@@ -1,5 +1,5 @@
 
-class SVGPreserveAspectRatioJS implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
+class SVGPreserveAspectRatioJs extends DOMTypeJs implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static final int SVG_MEETORSLICE_MEET = 1;
 
@@ -36,8 +36,4 @@ class SVGPreserveAspectRatioJS implements SVGPreserveAspectRatio native "*SVGPre
   int get meetOrSlice() native "return this.meetOrSlice;";
 
   void set meetOrSlice(int value) native "this.meetOrSlice = value;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

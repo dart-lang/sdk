@@ -1,5 +1,5 @@
 
-class SVGTransformJS implements SVGTransform native "*SVGTransform" {
+class SVGTransformJs extends DOMTypeJs implements SVGTransform native "*SVGTransform" {
 
   static final int SVG_TRANSFORM_MATRIX = 1;
 
@@ -17,11 +17,11 @@ class SVGTransformJS implements SVGTransform native "*SVGTransform" {
 
   num get angle() native "return this.angle;";
 
-  SVGMatrixJS get matrix() native "return this.matrix;";
+  SVGMatrixJs get matrix() native "return this.matrix;";
 
   int get type() native "return this.type;";
 
-  void setMatrix(SVGMatrixJS matrix) native;
+  void setMatrix(SVGMatrixJs matrix) native;
 
   void setRotate(num angle, num cx, num cy) native;
 
@@ -32,8 +32,4 @@ class SVGTransformJS implements SVGTransform native "*SVGTransform" {
   void setSkewY(num angle) native;
 
   void setTranslate(num tx, num ty) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

@@ -1,5 +1,5 @@
 
-class IDBTransactionJS implements IDBTransaction native "*IDBTransaction" {
+class IDBTransactionJs extends DOMTypeJs implements IDBTransaction native "*IDBTransaction" {
 
   static final int READ_ONLY = 0;
 
@@ -7,7 +7,7 @@ class IDBTransactionJS implements IDBTransaction native "*IDBTransaction" {
 
   static final int VERSION_CHANGE = 2;
 
-  IDBDatabaseJS get db() native "return this.db;";
+  IDBDatabaseJs get db() native "return this.db;";
 
   int get mode() native "return this.mode;";
 
@@ -27,13 +27,9 @@ class IDBTransactionJS implements IDBTransaction native "*IDBTransaction" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
-  IDBObjectStoreJS objectStore(String name) native;
+  IDBObjectStoreJs objectStore(String name) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

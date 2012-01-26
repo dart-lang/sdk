@@ -116,6 +116,13 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = Array::InstanceSize(array_length);
         break;
       }
+      case kInternalByteArray: {
+        const RawInternalByteArray* raw_byte_array =
+            reinterpret_cast<const RawInternalByteArray*>(this);
+        intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
+        instance_size = InternalByteArray::InstanceSize(byte_array_length);
+        break;
+      }
       case kTypeArguments: {
         const RawTypeArguments* raw_array =
             reinterpret_cast<const RawTypeArguments*>(this);
@@ -576,12 +583,30 @@ intptr_t RawImmutableArray::VisitImmutableArrayPointers(
 }
 
 
-intptr_t RawByteBuffer::VisitByteBufferPointers(
-    RawByteBuffer* raw_obj, ObjectPointerVisitor* visitor) {
+intptr_t RawByteArray::VisitByteArrayPointers(RawByteArray* raw_obj,
+                                              ObjectPointerVisitor* visitor) {
+  // ByteArray is an abstract class.
+  UNREACHABLE();
+  return 0;
+}
+
+
+intptr_t RawInternalByteArray::VisitInternalByteArrayPointers(
+    RawInternalByteArray* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  intptr_t length = Smi::Value(raw_obj->ptr()->length_);
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return InternalByteArray::InstanceSize(length);
+}
+
+
+intptr_t RawExternalByteArray::VisitExternalByteArrayPointers(
+    RawExternalByteArray* raw_obj, ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return ByteBuffer::InstanceSize();
+  return ExternalByteArray::InstanceSize();
 }
 
 

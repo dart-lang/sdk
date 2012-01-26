@@ -1,5 +1,5 @@
 
-class XPathExceptionJS implements XPathException native "*XPathException" {
+class XPathExceptionJs extends DOMTypeJs implements XPathException native "*XPathException" {
 
   static final int INVALID_EXPRESSION_ERR = 51;
 
@@ -12,8 +12,4 @@ class XPathExceptionJS implements XPathException native "*XPathException" {
   String get name() native "return this.name;";
 
   String toString() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

@@ -1,9 +1,5 @@
 
-class WebKitMutationObserverJS implements WebKitMutationObserver native "*WebKitMutationObserver" {
+class WebKitMutationObserverJs extends DOMTypeJs implements WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

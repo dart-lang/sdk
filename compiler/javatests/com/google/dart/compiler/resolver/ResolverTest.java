@@ -971,13 +971,30 @@ public class ResolverTest extends ResolverTestCase {
   public void test_noSuchType_mapLiteral_typeArgument() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
+        "class String {}",
         "class MyClass {",
         "  foo() {",
         "    var map = <T>{};",
         "  }",
         "}"),
-        ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
         ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_noSuchType_mapLiteral_num_type_args() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "interface String {}",
+        "class MyClass {",
+        "  foo() {",
+        "    var map0 = {};",
+        "    var map1 = <int>{'foo': 1};",
+        "    var map2 = <String, int>{'foo' : 1};",
+        "    var map3 = <String, int, int>{'foo' : 1};",
+        "  }",
+        "}"),
+        ResolverErrorCode.DEPRECATED_MAP_LITERAL_SYNTAX,
+        ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
   }
 
   public void test_noSuchType_arrayLiteral_typeArgument() throws Exception {

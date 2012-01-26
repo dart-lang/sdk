@@ -1038,6 +1038,8 @@
 #source('src/RequestAnimationFrameCallback.dart');
 #source('src/TimeoutHandler.dart');
 #source('src/_Collections.dart');
+#source('src/frog_DOMType.dart');
+#source('src/frog_DOMTypeJs.dart');
 #source('src/frog_FactoryProviders.dart');
 #source('src/_ListIterators.dart');
 #source('src/_Lists.dart');

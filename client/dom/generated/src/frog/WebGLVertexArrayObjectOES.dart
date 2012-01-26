@@ -1,7 +1,3 @@
 
-class WebGLVertexArrayObjectOESJS implements WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
+class WebGLVertexArrayObjectOESJs extends DOMTypeJs implements WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 }

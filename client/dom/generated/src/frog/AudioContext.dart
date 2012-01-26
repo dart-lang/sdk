@@ -1,13 +1,13 @@
 
-class AudioContextJS implements AudioContext native "*AudioContext" {
+class AudioContextJs extends DOMTypeJs implements AudioContext native "*AudioContext" {
   AudioContext() native;
 
 
   num get currentTime() native "return this.currentTime;";
 
-  AudioDestinationNodeJS get destination() native "return this.destination;";
+  AudioDestinationNodeJs get destination() native "return this.destination;";
 
-  AudioListenerJS get listener() native "return this.listener;";
+  AudioListenerJs get listener() native "return this.listener;";
 
   EventListener get oncomplete() native "return this.oncomplete;";
 
@@ -15,43 +15,39 @@ class AudioContextJS implements AudioContext native "*AudioContext" {
 
   num get sampleRate() native "return this.sampleRate;";
 
-  RealtimeAnalyserNodeJS createAnalyser() native;
+  RealtimeAnalyserNodeJs createAnalyser() native;
 
-  BiquadFilterNodeJS createBiquadFilter() native;
+  BiquadFilterNodeJs createBiquadFilter() native;
 
-  AudioBufferJS createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
+  AudioBufferJs createBuffer(var buffer_OR_numberOfChannels, var mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
 
-  AudioBufferSourceNodeJS createBufferSource() native;
+  AudioBufferSourceNodeJs createBufferSource() native;
 
-  AudioChannelMergerJS createChannelMerger() native;
+  AudioChannelMergerJs createChannelMerger() native;
 
-  AudioChannelSplitterJS createChannelSplitter() native;
+  AudioChannelSplitterJs createChannelSplitter() native;
 
-  ConvolverNodeJS createConvolver() native;
+  ConvolverNodeJs createConvolver() native;
 
-  DelayNodeJS createDelayNode() native;
+  DelayNodeJs createDelayNode() native;
 
-  DynamicsCompressorNodeJS createDynamicsCompressor() native;
+  DynamicsCompressorNodeJs createDynamicsCompressor() native;
 
-  AudioGainNodeJS createGainNode() native;
+  AudioGainNodeJs createGainNode() native;
 
-  HighPass2FilterNodeJS createHighPass2Filter() native;
+  HighPass2FilterNodeJs createHighPass2Filter() native;
 
-  JavaScriptAudioNodeJS createJavaScriptNode(int bufferSize) native;
+  JavaScriptAudioNodeJs createJavaScriptNode(int bufferSize) native;
 
-  LowPass2FilterNodeJS createLowPass2Filter() native;
+  LowPass2FilterNodeJs createLowPass2Filter() native;
 
-  MediaElementAudioSourceNodeJS createMediaElementSource(HTMLMediaElementJS mediaElement) native;
+  MediaElementAudioSourceNodeJs createMediaElementSource(HTMLMediaElementJs mediaElement) native;
 
-  AudioPannerNodeJS createPanner() native;
+  AudioPannerNodeJs createPanner() native;
 
-  WaveShaperNodeJS createWaveShaper() native;
+  WaveShaperNodeJs createWaveShaper() native;
 
-  void decodeAudioData(ArrayBufferJS audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
+  void decodeAudioData(ArrayBufferJs audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
 
   void startRendering() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

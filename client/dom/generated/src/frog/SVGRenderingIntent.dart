@@ -1,5 +1,5 @@
 
-class SVGRenderingIntentJS implements SVGRenderingIntent native "*SVGRenderingIntent" {
+class SVGRenderingIntentJs extends DOMTypeJs implements SVGRenderingIntent native "*SVGRenderingIntent" {
 
   static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
@@ -12,8 +12,4 @@ class SVGRenderingIntentJS implements SVGRenderingIntent native "*SVGRenderingIn
   static final int RENDERING_INTENT_SATURATION = 4;
 
   static final int RENDERING_INTENT_UNKNOWN = 0;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

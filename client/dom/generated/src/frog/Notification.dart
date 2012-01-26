@@ -1,5 +1,5 @@
 
-class NotificationJS implements Notification native "*Notification" {
+class NotificationJs extends DOMTypeJs implements Notification native "*Notification" {
 
   String get dir() native "return this.dir;";
 
@@ -13,13 +13,9 @@ class NotificationJS implements Notification native "*Notification" {
 
   void cancel() native;
 
-  bool dispatchEvent(EventJS evt) native;
+  bool dispatchEvent(EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void show() native;
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }

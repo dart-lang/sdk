@@ -7,6 +7,7 @@ package com.google.dart.compiler.ast;
 import com.google.dart.compiler.common.HasSymbol;
 import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.resolver.ConstructorElement;
+import com.google.dart.compiler.type.Type;
 
 import java.util.List;
 
@@ -27,6 +28,11 @@ public class DartNewExpression extends DartInvocation implements HasSymbol {
 
   public DartNode getConstructor() {
     return constructor;
+  }
+
+  @Override
+  public Type getType() {
+    return constructor.getType();
   }
 
   public boolean isConst() {

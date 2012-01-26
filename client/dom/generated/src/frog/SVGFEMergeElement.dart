@@ -1,23 +1,23 @@
 
-class SVGFEMergeElementJS extends SVGElementJS implements SVGFEMergeElement native "*SVGFEMergeElement" {
+class SVGFEMergeElementJs extends SVGElementJs implements SVGFEMergeElement native "*SVGFEMergeElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLengthJS get height() native "return this.height;";
+  SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGAnimatedStringJS get result() native "return this.result;";
+  SVGAnimatedStringJs get result() native "return this.result;";
 
-  SVGAnimatedLengthJS get width() native "return this.width;";
+  SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJS get x() native "return this.x;";
+  SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJS get y() native "return this.y;";
+  SVGAnimatedLengthJs get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJS get className() native "return this.className;";
+  SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJS get style() native "return this.style;";
+  CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJS getPresentationAttribute(String name) native;
+  CSSValueJs getPresentationAttribute(String name) native;
 }

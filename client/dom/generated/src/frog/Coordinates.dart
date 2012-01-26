@@ -1,5 +1,5 @@
 
-class CoordinatesJS implements Coordinates native "*Coordinates" {
+class CoordinatesJs extends DOMTypeJs implements Coordinates native "*Coordinates" {
 
   num get accuracy() native "return this.accuracy;";
 
@@ -14,8 +14,4 @@ class CoordinatesJS implements Coordinates native "*Coordinates" {
   num get longitude() native "return this.longitude;";
 
   num get speed() native "return this.speed;";
-
-  var dartObjectLocalStorage;
-
-  String get typeName() native;
 }
