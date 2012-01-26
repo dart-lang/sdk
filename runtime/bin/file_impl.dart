@@ -94,7 +94,7 @@ class _FileOutputStream implements OutputStream {
 class _FileOperation {
   abstract void execute(ReceivePort port);
 
-  SendPort set replyPort(SendPort port) {
+  void set replyPort(SendPort port) {
     _replyPort = port;
   }
 
@@ -589,7 +589,7 @@ class _File implements File {
         _errorHandler("Cannot open file: $_name");
       }
     };
-    var operation = new _OpenOperation(_name, mode.mode);
+    var operation = new _OpenOperation(_name, mode._mode);
     _scheduler.enqueue(operation, handleOpenResult);
   }
 
@@ -604,7 +604,7 @@ class _File implements File {
       throw new FileIOException("Unknown file mode. Use FileMode.READ, " +
                                 "FileMode.WRITE or FileMode.APPEND.");
     }
-    var id = _FileUtils.checkedOpen(_name, mode.mode);
+    var id = _FileUtils.checkedOpen(_name, mode._mode);
     if (id == 0) {
       throw new FileIOException("Cannot open file: $_name");
     }

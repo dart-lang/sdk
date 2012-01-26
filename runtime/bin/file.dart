@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,10 +10,18 @@ class FileMode {
   static final READ = const FileMode(0);
   static final WRITE = const FileMode(1);
   static final APPEND = const FileMode(2);
-  const FileMode(int this.mode);
-  final int mode;
+  const FileMode(int this._mode);
+  final int _mode;
 }
 
+
+/**
+ * [File] objects are references to files.
+ *
+ * To operate on the underlying file data you need to either get
+ * streams using [openInputStream] and [openOutputStream] or open the
+ * file for random access operations using [open].
+ */
 interface File default _File {
   /**
    * Create a File object.
@@ -33,7 +41,7 @@ interface File default _File {
 
   /**
    * Create the file. The [createHandler] is called when the file has
-   * been created. The errorHandler is called if the file cannot be
+   * been created. The [errorHandler] is called if the file cannot be
    * created. Existing files are left untouched by create. Calling
    * create on an existing file might fail if there are restrictive
    * permissions on the file.
@@ -135,19 +143,52 @@ interface File default _File {
    */
   String get name();
 
-  // Event handlers.
+  /**
+   * Sets the handler that gets called when an [exists] operation
+   * completes.
+   */
   void set existsHandler(void handler(bool exists));
+
+  /**
+   * Sets the handler that gets called when a [create] operation
+   * completes.
+   */
   void set createHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [delete] operation
+   * completes.
+   */
   void set deleteHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when an [open] operation
+   * completes.
+   */
   void set openHandler(void handler(RandomAccessFile openedFile));
+
+  /**
+   * Sets the handler that gets called when a [fullPath] operation
+   * completes.
+   */
   void set fullPathHandler(void handler(String path));
+
+  /**
+   * Sets the handler that gets called when errors occur during
+   * operations on this file.
+   */
   void set errorHandler(void handler(String error));
 }
 
 
+/**
+ * [RandomAccessFile] provides random access to the data in a
+ * file. [RandomAccessFile] objects are obtained by calling the
+ * [:open:] method on a [File] object.
+ */
 interface RandomAccessFile {
   /**
-   * Close the file. When the file is closed the closeHandler is
+   * Close the file. When the file is closed the [closeHandler] is
    * called.
    */
   void close();
@@ -282,15 +323,64 @@ interface RandomAccessFile {
    */
   String get name();
 
+  /**
+   * Sets the handler that gets called when a [close] operation
+   * completes.
+   */
   void set closeHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [readByte] operation
+   * completes.
+   */
   void set readByteHandler(void handler(int byte));
+
+  /**
+   * Sets the handler that gets called when a [readList] operation
+   * completes.
+   */
   void set readListHandler(void handler(int read));
+
+  /**
+   * Sets the handler that gets called when there are no more write
+   * operations pending for this file.
+   */
   void set noPendingWriteHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [position] operation
+   * completes.
+   */
   void set positionHandler(void handler(int position));
+
+  /**
+   * Sets the handler that gets called when a [setPosition] operation
+   * completes.
+   */
   void set setPositionHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [truncate] operation
+   * completes.
+   */
   void set truncateHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [length] operation
+   * completes.
+   */
   void set lengthHandler(void handler(int length));
+
+  /**
+   * Sets the handler that gets called when a [flush] operation
+   * completes.
+   */
   void set flushHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when errors occur when
+   * operating on this file.
+   */
   void set errorHandler(void handler(String error));
 }
 

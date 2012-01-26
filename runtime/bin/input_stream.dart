@@ -1,8 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /**
+ * Basic input stream which supplies binary data.
+ *
  * Input streams are used to read data sequentially from some data
  * source. All input streams are non-blocking. They each have a number
  * of read calls which will always return without any IO related
@@ -29,10 +31,7 @@
  * will be used to avoid buffering more data than needed.
  *
  * Always set up appropriate handlers when using input streams.
- */
-
-/**
- * Basic input stream which supplies binary data.
+ *
  */
 interface InputStream {
   /**

@@ -12,7 +12,7 @@ class _Timer implements Timer {
   static Timer _createTimer(void callback(Timer timer),
                            int milliSeconds,
                            bool repeating) {
-    EventHandler._start();
+    _EventHandler._start();
     if (_timers === null) {
       _timers = new DoubleLinkedQueue<_Timer>();
     }
@@ -99,7 +99,7 @@ class _Timer implements Timer {
       // No pending timers: Close the receive port and let the event handler
       // know.
       if (_receivePort !== null) {
-        EventHandler._sendData(-1, _receivePort, _NO_TIMER);
+        _EventHandler._sendData(-1, _receivePort, _NO_TIMER);
         _shutdownTimerHandler();
       }
     } else {
@@ -108,9 +108,9 @@ class _Timer implements Timer {
         // events.
         _createTimerHandler();
       }
-      EventHandler._sendData(-1,
-                             _receivePort,
-                             _timers.firstEntry().element._wakeupTime);
+      _EventHandler._sendData(-1,
+                              _receivePort,
+                              _timers.firstEntry().element._wakeupTime);
     }
   }
 

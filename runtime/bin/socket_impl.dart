@@ -38,7 +38,7 @@ class _SocketBase {
     _handlerMask = 0;
     _canActivateHandlers = true;
     _id = -1;
-    EventHandler._start();
+    _EventHandler._start();
   }
 
   // Multiplexes socket events to the socket handlers.
@@ -163,7 +163,7 @@ class _SocketBase {
       _handler = new ReceivePort();
       _handler.receive((var message, ignored) { _multiplex(message); });
     }
-    EventHandler._sendData(_id, _handler, data);
+    _EventHandler._sendData(_id, _handler, data);
   }
 
   abstract bool _isListenSocket();
