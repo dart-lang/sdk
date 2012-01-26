@@ -612,8 +612,6 @@ TEST_CASE(ListAccess) {
   EXPECT(Dart_IsError(result));
 }
 
-#endif
-
 
 TEST_CASE(ByteArray) {
   Dart_Handle obj1 = Dart_NewByteArray(10);
@@ -666,6 +664,8 @@ TEST_CASE(ByteArray) {
     EXPECT(is_equal);
   }
 }
+
+#endif
 
 
 // Unit test for entering a scope, creating a local handle and exiting
