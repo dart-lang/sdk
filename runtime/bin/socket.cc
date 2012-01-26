@@ -91,7 +91,8 @@ void FUNCTION_NAME(Socket_WriteList)(Dart_NativeArguments args) {
   }
 
   // Send data in chunks of maximum 16KB.
-  const intptr_t max_chunk_length = dart::Utils::Minimum(length, 16 * KB);
+  const intptr_t max_chunk_length =
+      dart::Utils::Minimum(length, static_cast<intptr_t>(16 * KB));
   uint8_t* buffer = new uint8_t[max_chunk_length];
   intptr_t total_bytes_written = 0;
   intptr_t bytes_written = 0;
