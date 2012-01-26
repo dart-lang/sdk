@@ -1355,8 +1355,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  factory A() {}",
         "}");
     analyzeClasses(source);
-   // analyze("{ var val1 = new IA<Foo>(); }");
-   // analyze("{ var val1 = new IA<Bar>(); }");
+    analyze("{ var val1 = new IA<Foo>(); }");
+    analyze("{ var val1 = new IA<Bar>(); }");
     analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 }

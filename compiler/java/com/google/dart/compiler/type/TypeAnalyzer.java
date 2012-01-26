@@ -175,6 +175,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final Type nullType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
+    private final boolean developerModeChecks;
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -182,11 +183,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
      */
     private int catchDepth = 0;
 
-
     Analyzer(DartCompilerContext context, CoreTypeProvider typeProvider,
              ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements,
              Set<ClassElement> diagnosedAbstractClasses) {
       this.context = context;
+      this.developerModeChecks = context.getCompilerConfiguration().developerModeChecks();
       this.unimplementedElements = unimplementedElements;
       this.types = Types.getInstance(typeProvider);
       this.dynamicType = typeProvider.getDynamicType();
@@ -435,16 +436,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return member;
     }
 
-    private void checkAssignable(DartNode node, Type t, Type s) {
+    private boolean checkAssignable(DartNode node, Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       if (!types.isAssignable(t, s)) {
         typeError(node, TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+        return false;
       }
+      return true;
     }
 
-    private void checkAssignable(Type targetType, DartExpression node) {
-      checkAssignable(node, targetType, nonVoidTypeOf(node));
+    private boolean checkAssignable(Type targetType, DartExpression node) {
+      return checkAssignable(node, targetType, nonVoidTypeOf(node));
     }
 
     private Type analyzeMethodInvocation(Type receiver, Member member, String name,
@@ -1066,7 +1069,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type valueType = type.getArguments().get(1);
       // Check the map literal entries against the return type.
       for (DartMapLiteralEntry literalEntry : node.getEntries()) {
-        checkAssignable(literalEntry, typeOf(literalEntry), valueType);
+        boolean result = checkAssignable(literalEntry, typeOf(literalEntry), valueType);
+        if (developerModeChecks == true && result == false) {
+          typeError(literalEntry, ResolverErrorCode.MAP_LITERAL_ELEMENT_TYPE,
+                    valueType.toString());
+        }
       }
       return type;
     }
@@ -1570,7 +1577,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       InterfaceType type = node.getType();
       Type elementType = type.getArguments().get(0);
       for (DartExpression expression : node.getExpressions()) {
-        checkAssignable(elementType, expression);
+        boolean result = checkAssignable(elementType, expression);
+        if (developerModeChecks == true && result == false) {
+          typeError(expression, ResolverErrorCode.LIST_LITERAL_ELEMENT_TYPE,
+                    elementType.toString());
+        }
       }
       return type;
     }

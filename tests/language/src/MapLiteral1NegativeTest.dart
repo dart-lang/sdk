@@ -3,20 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks
 //
-// Dart test program testing type checks in map literals.
+// When type checks are enabled, a type mismatch in a map literal is a compile-time error
 
-class MapLiteral1NegativeTest {
-  test() {
-    try {
-      var m = const <String>{"a": 0};  // 0 is not a String.
-    } catch (TypeError error) {
-    }
+main() {
+  try {
+    var m = const <String>{"a": 0};  // 0 is not a String.
+  } catch (TypeError error) {
+    // not a catchable error
   }
 }
 
-main() {
-  var t = new MapLiteral1NegativeTest();
-  t.test();
-}
 
 

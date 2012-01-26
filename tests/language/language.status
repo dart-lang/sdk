@@ -126,14 +126,12 @@ GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
 GetterClosureExecutionOrderTest: Fail # Bug 5481595
 IsObjectTest: Skip # Hasn't be tested on DartC yet
 Library4NegativeTest: Fail               # Bug 5406175
-ListLiteral1NegativeTest: Skip # Issue 220
-ListLiteral3Test: Fail # Issue 220
-ListLiteral4Test: Fail # Issue 220
+ListLiteral3Test: Fail # Issue 176
+ListLiteral4Test: Fail # Issue 1343
 ListTest: Fail              # Bug 5146975.
 LocalFunction3Test: Fail     # Bug 4202974.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
-MapLiteral1NegativeTest: Fail # Issue 221
-MapLiteral4Test: Fail # Issue 221
+MapLiteral4Test: Fail # Issue 1343
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
 NamedParametersTypeTest: Fail            # Implementation in progress.
 NoSuchMethodTest: Fail       # Bug 4202974.

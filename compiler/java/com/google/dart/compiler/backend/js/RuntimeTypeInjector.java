@@ -1150,7 +1150,8 @@ public class RuntimeTypeInjector {
    *
    * @param enclosingClass enclosing class element
    * @param expr expression to check
-   * @param type {@link Type} to check against, null is unknown
+   * @param type {@link Type} expected type to check against, null is unknown
+   * @param exprType {@link Type} statically determined type from analyzing expr
    * @param src source info to use for the generated code
    * @return an expression wrapping the type check call
    */

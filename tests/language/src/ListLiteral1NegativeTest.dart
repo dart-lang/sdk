@@ -3,20 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_type_checks
 //
-// Dart test program testing type checks in list literals.
+// When type checks are enabled, a type mismatch in a list literal is a compile-time error
 
-class ListLiteral1NegativeTest {
-  test() {
-    try {
-      var m = const <String>[0, 1];  // 0 is not a String.
-    } catch (TypeError error) {
-    }
+main() {
+  try {
+    var m = const <String>[0, 1];  // 0 is not a String.
+  } catch (TypeError error) {
+    // not a catchable error
   }
 }
 
-main() {
-  var t = new ListLiteral1NegativeTest();
-  t.test();
-}
+
 
 

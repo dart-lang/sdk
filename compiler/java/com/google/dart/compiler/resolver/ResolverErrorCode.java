@@ -109,6 +109,10 @@ public enum ResolverErrorCode implements ErrorCode {
   IS_A_CLASS("%s is a class and cannot be used as an expression"),
   IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),
   IS_AN_INSTANCE_METHOD("%s.%s is an instance method, not a static method"),
+  LIST_LITERAL_ELEMENT_TYPE(
+      "List literal element type must match declaration '%s' when type checks are on."),
+  MAP_LITERAL_ELEMENT_TYPE(
+      "Map literal element type must match declaration '%s' when type checks are on."),
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
   NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
