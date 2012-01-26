@@ -149,7 +149,7 @@ class FrozenElementList implements ElementList {
   }
 
   Collection map(f(Element element)) {
-    var out = [];
+    final out = [];
     for (Element el in this) {
       out.add(f(el));
     }
@@ -157,7 +157,7 @@ class FrozenElementList implements ElementList {
   }
 
   ElementList filter(bool f(Element element)) {
-    var out = new _ElementList([]);
+    final out = new _ElementList([]);
     for (Element el in this) {
       if (f(el)) out.add(el);
     }
