@@ -15,5 +15,5 @@ class LinkFactory {   // Compile time error: should be LinkFactory<T> to match i
 }
 
 main() {
-  var a = new Link<int>.create();
+  var a = new Link.create();  // Equivalent to new Link<Dynamic>.create().
 }

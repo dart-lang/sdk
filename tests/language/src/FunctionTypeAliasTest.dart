@@ -19,9 +19,9 @@ typedef int CompareString(String a, String b, [bool swap]);
 
 typedef void Test();
 
-typedef ParametrizedFun1<T, U extends bool, V>(T t, U u);
+typedef ParameterizedFun1<T, U extends bool, V>(T t, U u);
 
-typedef List<T> ParametrizedFun2<T, U, V extends Map<T, int>>(
+typedef List<T> ParameterizedFun2<T, U, V extends Map<T, int>>(
     Map<T, int> t, U u);
 
 typedef void BoundsCheck<T extends num>(T arg);

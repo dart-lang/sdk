@@ -8,7 +8,10 @@ interface Link<T> default LinkFactory {
   Link.create();
 }
 
-class LinkFactory {   // Compile time error: should be LinkFactory<T> to match interface above
+class A<T> { }
+
+// Compile time error: should be LinkFactory<T> to match interface above
+class LinkFactory extends A<int> {
   factory Link.create() {
     return null;
   }

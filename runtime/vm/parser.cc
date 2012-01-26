@@ -1919,12 +1919,19 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
         LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
         lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
         if (!lib_prefix.IsNull()) {
-          // We have a library prefix qualified identifier.
-          ConsumeToken();  // Consume the kPERIOD token.
-          qual_ident->lib_prefix = &lib_prefix;
-          qual_ident->qualifier = qual_ident->ident;
-          qual_ident->ident_pos = token_index_;
-          qual_ident->ident = ExpectIdentifier("identifier expected after '.'");
+          // We have a library prefix qualified identifier, unless the prefix is
+          // shadowed by a type parameter in scope.
+          const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+          if (scope_class.IsNull() ||
+              (scope_class.LookupTypeParameter(*(qual_ident->ident)) ==
+               TypeParameter::null())) {
+            ConsumeToken();  // Consume the kPERIOD token.
+            qual_ident->lib_prefix = &lib_prefix;
+            qual_ident->qualifier = qual_ident->ident;
+            qual_ident->ident_pos = token_index_;
+            qual_ident->ident =
+                ExpectIdentifier("identifier expected after '.'");
+          }
         }
       }
     }
@@ -2333,6 +2340,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       (CurrentLiteral()->Equals(members->class_name()) || member.has_factory)) {
     member.name = CurrentLiteral();
     member.name_pos = this->token_index_;
+    // TODO(regis): Simplify the following code by calling ParseQualIdent().
     ConsumeToken();
     if (member.has_factory) {
       String& qualifier = String::Handle();
@@ -2347,7 +2355,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
         }
       }
       // TODO(regis): Stop postponing resolution of the factory result type
-      // until class finalization. Use TryResolveTypeFromClass.
+      // until class finalization. Use ResolveTypeFromClass instead.
       // Factory result type is the same as the type name of the factory.
       const UnresolvedClass& unresolved_factory_class =
           UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
@@ -2668,7 +2676,10 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   // At this point, the type parameters have been parsed, so we can resolve the
   // result type.
   if (!result_type.IsNull()) {
-    TryResolveTypeFromClass(result_type_pos, alias_owner, &result_type);
+    ResolveTypeFromClass(result_type_pos,
+                         alias_owner,
+                         kCanResolve,
+                         &result_type);
   }
   ParamList func_params;
   const bool no_explicit_default_values = false;
@@ -2787,32 +2798,34 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     ParseTypeParameters(factory_class);
     unresolved_factory_class.set_factory_signature_class(factory_class);
     interface.set_factory_class(unresolved_factory_class);
-    // Verify that the type parameters of the factory class and of the interface
-    // have identical names.
-    String& interface_type_param_name = String::Handle();
-    String& factory_type_param_name = String::Handle();
-    const Array& interface_type_param_names =
-        Array::Handle(interface.type_parameters());
-    const Array& factory_type_param_names =
-        Array::Handle(factory_class.type_parameters());
-    const intptr_t num_type_params = factory_class.NumTypeParameters();
-    bool mismatch = interface.NumTypeParameters() != num_type_params;
-    for (intptr_t i = 0; !mismatch && (i < num_type_params); i++) {
-      interface_type_param_name ^= interface_type_param_names.At(i);
-      factory_type_param_name ^= factory_type_param_names.At(i);
-      if (!interface_type_param_name.Equals(factory_type_param_name)) {
-        mismatch = true;
+    // If a type parameter list is included in the default factory clause (it
+    // can be omitted), verify that it matches the list of type parameters of
+    // the interface in number and names.
+    const intptr_t num_default_type_params = factory_class.NumTypeParameters();
+    if (num_default_type_params > 0) {
+      String& interface_type_param_name = String::Handle();
+      String& factory_type_param_name = String::Handle();
+      const Array& interface_type_param_names =
+          Array::Handle(interface.type_parameters());
+      const Array& factory_type_param_names =
+          Array::Handle(factory_class.type_parameters());
+      bool mismatch = interface.NumTypeParameters() != num_default_type_params;
+      for (intptr_t i = 0; !mismatch && (i < num_default_type_params); i++) {
+        interface_type_param_name ^= interface_type_param_names.At(i);
+        factory_type_param_name ^= factory_type_param_names.At(i);
+        if (!interface_type_param_name.Equals(factory_type_param_name)) {
+          mismatch = true;
+        }
       }
-    }
-    // The list of type parameters in the default factory clause can be omitted.
-    if (mismatch && (num_type_params > 0)) {
-      const String& interface_name = String::Handle(interface.Name());
-      const String& factory_name = String::Handle(factory_class.Name());
-      ErrorMsg(factory_pos,
-               "mismatch in number or names of type parameters between "
-               "interface '%s' and default factory class '%s'.\n",
-               interface_name.ToCString(),
-               factory_name.ToCString());
+      if (mismatch) {
+        const String& interface_name = String::Handle(interface.Name());
+        const String& factory_name = String::Handle(factory_class.Name());
+        ErrorMsg(factory_pos,
+                 "mismatch in number or names of type parameters between "
+                 "interface '%s' and default factory class '%s'.\n",
+                 interface_name.ToCString(),
+                 factory_name.ToCString());
+      }
     }
   }
 
@@ -2916,7 +2929,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
     const intptr_t num_types = extends_array.Length();
     for (intptr_t i = 0; i < num_types; i++) {
       type_extends = extends_array.TypeAt(i);
-      TryResolveTypeFromClass(type_pos, cls, &type_extends);
+      ResolveTypeFromClass(type_pos, cls, kCanResolve, &type_extends);
       extends_array.SetTypeAt(i, type_extends);
     }
   }
@@ -6127,13 +6140,18 @@ AstNode* Parser::ParsePostfixExpr() {
 }
 
 
-// Try to resolve the given type and its type arguments from the given class.
+// Resolve the given type and its type arguments from the given class according
+// to the given type_resolution.
 // Not all involved type classes may get resolved yet, but at least the type
 // parameters of the given class will get resolved, thereby relieving the class
 // finalizer from resolving type parameters out of context.
-void Parser::TryResolveTypeFromClass(intptr_t type_pos,
-                                     const Class& cls,
-                                     AbstractType* type) {
+void Parser::ResolveTypeFromClass(intptr_t type_pos,
+                                  const Class& cls,
+                                  TypeResolution type_resolution,
+                                  AbstractType* type) {
+  // TODO(regis): Implement kMustResolve functionality and consolidate with
+  // other resolution code. For now, only support kCanResolve functionality.
+  ASSERT(type_resolution == kCanResolve);
   ASSERT(type != NULL);
   // Resolve class.
   if (!type->HasResolvedTypeClass()) {
@@ -6172,7 +6190,7 @@ void Parser::TryResolveTypeFromClass(intptr_t type_pos,
     const intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
       AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
-      TryResolveTypeFromClass(type_pos, cls, &type_argument);
+      ResolveTypeFromClass(type_pos, cls, type_resolution, &type_argument);
       arguments.SetTypeAt(i, type_argument);
     }
   }
@@ -6184,12 +6202,13 @@ void Parser::TryResolveTypeFromClass(intptr_t type_pos,
 RawObject* Parser::LookupTypeClass(const QualIdent& type_name,
                                    TypeResolution type_resolution) {
   ASSERT(type_name.ident != NULL);
+  ASSERT((type_resolution == kCanResolve) || (type_resolution == kMustResolve));
   Class& type_class = Class::Handle();
   if (type_name.lib_prefix != NULL) {
     Library& lib = Library::Handle(type_name.lib_prefix->library());
-    type_class ^= lib.LookupLocalClass(*type_name.ident);
+    type_class = lib.LookupLocalClass(*type_name.ident);
   } else {
-    type_class ^= LookupClass(*type_name.ident);
+    type_class = LookupClass(*type_name.ident);
   }
   if (!type_class.IsNull()) {
     return type_class.raw();
@@ -6619,19 +6638,26 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     }
     type_class = UnresolvedClass::New(type_pos, qualifier, *type_name.ident);
   } else {
+    ASSERT((type_resolution == kCanResolve) ||
+           (type_resolution == kMustResolve));
     scope_class = TypeParametersScopeClass();
     if (!scope_class.IsNull()) {
-      TypeParameter& type_parameter = TypeParameter::Handle();
-      // Check if qualifier is a type parameter in scope.
       if (type_name.qualifier != NULL) {
-        type_parameter = scope_class.LookupTypeParameter(*type_name.qualifier);
-        if (!type_parameter.IsNull()) {
-          ErrorMsg(type_pos, "type Parameter '%s' cannot be used as qualifier",
-                   type_name.qualifier->ToCString());
+        // Check if qualifier is a type parameter in scope, unless it was
+        // already checked by ParseQualIdent when !is_top_level_.
+        if (is_top_level_) {
+          const TypeParameter& type_parameter = TypeParameter::Handle(
+              scope_class.LookupTypeParameter(*type_name.qualifier));
+          if (!type_parameter.IsNull()) {
+            ErrorMsg(type_pos,
+                     "type Parameter '%s' cannot be used as qualifier",
+                     type_name.qualifier->ToCString());
+          }
         }
       } else {
         // Check if ident is a type parameter in scope.
-        type_parameter = scope_class.LookupTypeParameter(*type_name.ident);
+        TypeParameter& type_parameter = TypeParameter::Handle(
+            scope_class.LookupTypeParameter(*type_name.ident));
         if (!type_parameter.IsNull()) {
           if (CurrentToken() == Token::kLT) {
             // A type parameter cannot be parameterized.
@@ -7068,54 +7094,29 @@ AstNode* Parser::ParseNewOperator() {
     ErrorMsg("type name expected");
   }
 
-  // The grammar allows for an optional ('.' identifier)?, which is a named
-  // constructor. For that reason, we cannot unconditionally call
-  // ParseType(kMustResolve) after we see an identifier, because the named
-  // constructor would be misinterpreted as a qualified type name.
-  // TODO(regis): Revisit once we correctly support qualified identifiers.
-  // For now, we inline a customized version of ParseType(kMustResolve).
-  const intptr_t  type_pos = token_index_;
-  QualIdent type_name;
-  ParseQualIdent(&type_name);
-  ASSERT(!is_top_level_);
-  if ((type_name.qualifier == NULL) &&
-      ResolveIdentInLocalScope(type_pos, *type_name.ident, NULL)) {
-    ErrorMsg(type_pos, "using '%s' in this context is invalid",
-             type_name.ident->ToCString());
+  const AbstractType& type = AbstractType::Handle(ParseType(kMustResolve));
+  if (type.IsTypeParameter()) {
+    // TODO(regis): Use type position once supported.
+    ErrorMsg(new_pos, "type parameter '%s' cannot be instantiated",
+             String::Handle(type.Name()).ToCString());
   }
+  Class& type_class = Class::Handle(type.type_class());
+  String& type_class_name = String::Handle(type_class.Name());
+  AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::ZoneHandle(type.arguments());
+
+  // The constructor class and its name are those of the parsed type, unless the
+  // parsed type is an interface and a default factory class is specified, in
+  // which case constructor_class and constructor_class_name are modified below.
+  Class& constructor_class = Class::ZoneHandle(type_class.raw());
+  String& constructor_class_name = String::Handle(type_class_name.raw());
+
+  // The grammar allows for an optional ('.' identifier)? after the type, which
+  // is a named constructor. Note that ParseType(kMustResolve) above will not
+  // consume it as part of a misinterpreted qualified identifier, because only a
+  // valid library prefix is accepted as qualifier.
   String* named_constructor = NULL;
   if (CurrentToken() == Token::kPERIOD) {
-    ConsumeToken();
-    named_constructor = ExpectIdentifier("identifier expected after '.'");
-  }
-  const Class& scope_class = Class::Handle(TypeParametersScopeClass());
-  if (!scope_class.IsNull()) {
-    TypeParameter& type_parameter = TypeParameter::Handle();
-    if (type_name.lib_prefix != NULL) {
-      // Check if qualifier is a type parameter in scope.
-      type_parameter ^= scope_class.LookupTypeParameter(*type_name.qualifier);
-      if (!type_parameter.IsNull()) {
-        ErrorMsg(type_pos, "type parameter '%s' cannot be used as qualifier",
-                 String::Handle(type_parameter.Name()).ToCString());
-      }
-    }
-    // Check if ident is a type parameter in scope.
-    type_parameter = scope_class.LookupTypeParameter(*type_name.ident);
-    if (!type_parameter.IsNull()) {
-      ErrorMsg(type_pos, "type parameter '%s' cannot be instantiated",
-               String::Handle(type_parameter.Name()).ToCString());
-    }
-  }
-  Class& type_class = Class::ZoneHandle();
-  type_class ^= LookupTypeClass(type_name, kMustResolve);
-  String& type_class_name = String::Handle();
-  type_class_name = type_class.Name();
-  AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
-  // Type arguments are not allowed after the optional constructor name.
-  if (named_constructor == NULL) {
-    type_arguments = ParseTypeArguments(kMustResolve);
-  }
-  if ((named_constructor == NULL) && (CurrentToken() == Token::kPERIOD)) {
     ConsumeToken();
     named_constructor = ExpectIdentifier("name of constructor expected");
   }
@@ -7170,54 +7171,81 @@ AstNode* Parser::ParseNewOperator() {
                                   TypeArguments::Handle())) {
       // Class finalization verifies that the factory class has identical type
       // parameters as the interface.
-      type_class_name = factory_class.Name();
+      constructor_class_name = factory_class.Name();
     }
     // Always change the result type of the constructor to the factory type.
-    type_class = factory_class.raw();
-    ASSERT(!type_class.is_interface());
+    constructor_class = factory_class.raw();
+    // The finalized type_arguments are still those of the interface type.
+    ASSERT(!constructor_class.is_interface());
   }
 
   // Make sure that an appropriate constructor exists.
   const String& constructor_name =
-      BuildConstructorName(type_class_name, named_constructor);
-  const String& external_constructor_name =
-      (named_constructor ? constructor_name : type_class_name);
+      BuildConstructorName(constructor_class_name, named_constructor);
   Function& constructor = Function::ZoneHandle(
-      type_class.LookupConstructor(constructor_name));
+      constructor_class.LookupConstructor(constructor_name));
   if (constructor.IsNull()) {
-    constructor = type_class.LookupFactory(constructor_name);
+    constructor = constructor_class.LookupFactory(constructor_name);
     // A factory does not have the implicit 'phase' parameter.
     arguments_length -= 1;
   }
   if (constructor.IsNull()) {
+    const String& external_constructor_name =
+        (named_constructor ? constructor_name : constructor_class_name);
     ErrorMsg(new_pos, "class '%s' has no constructor or factory named '%s'",
-             String::Handle(type_class.Name()).ToCString(),
+             String::Handle(constructor_class.Name()).ToCString(),
              external_constructor_name.ToCString());
   }
   if (!constructor.AreValidArguments(arguments_length, arguments->names())) {
+    const String& external_constructor_name =
+        (named_constructor ? constructor_name : constructor_class_name);
     ErrorMsg(new_pos, "invalid arguments passed to constructor '%s' "
              "for class '%s'",
              external_constructor_name.ToCString(),
-             String::Handle(type_class.Name()).ToCString());
+             String::Handle(constructor_class.Name()).ToCString());
   }
 
   // Now that the constructor to be called is identified, finalize the type
   // argument vector to be passed.
-  {
-    ASSERT(constructor.owner() == type_class.raw());
+  // The type argument vector of the parsed type was finalized in ParseType.
+  // If the constructor class was changed from the interface class to the
+  // factory class, we need to finalize the type argument vector again, because
+  // it may be longer due to the factory class extending a class, or/and because
+  // the bounds on the factory class may be tighter than on the interface.
+  if (constructor_class.raw() != type_class.raw()) {
+    const intptr_t num_type_parameters = constructor_class.NumTypeParameters();
+    // TODO(regis): Temporary type args should be allocated in new gen heap.
+    TypeArguments& temp_type_arguments = TypeArguments::Handle();
+    if (!type_arguments.IsNull()) {
+      // Copy the parsed type arguments starting at offset 0, because interfaces
+      // have no super types.
+      ASSERT(type_class.NumTypeArguments() == type_class.NumTypeParameters());
+      const intptr_t num_type_arguments = type_arguments.Length();
+      temp_type_arguments = TypeArguments::New(num_type_parameters);
+      AbstractType& type_argument = AbstractType::Handle();
+      for (intptr_t i = 0; i < num_type_parameters; i++) {
+        if (i < num_type_arguments) {
+          type_argument = type_arguments.TypeAt(i);
+        } else {
+          type_argument = Type::DynamicType();
+        }
+        temp_type_arguments.SetTypeAt(i, type_argument);
+      }
+    }
     // TODO(regis): Temporary type should be allocated in new gen heap.
-    Type& type = Type::Handle(
-        Type::NewParameterizedType(type_class, type_arguments));
+    Type& temp_type = Type::Handle(
+        Type::NewParameterizedType(constructor_class, temp_type_arguments));
     Error& error = Error::Handle();
-    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(type_class,
-                                                        type,
-                                                        &error);
+    const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+    temp_type ^= ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
+                                                             temp_type,
+                                                             &error);
     if (!error.IsNull()) {
       ErrorMsg(error.ToErrorCString());
     }
     // The type argument vector may have been expanded with the type arguments
-    // of the super type when finalizing the type.
-    type_arguments = type.arguments();
+    // of the super type when finalizing the temporary type.
+    type_arguments = temp_type.arguments();
   }
 
   type_arguments ^= type_arguments.Canonicalize();
@@ -7229,7 +7257,7 @@ AstNode* Parser::ParseNewOperator() {
           String::Handle(constructor.name()).ToCString());
     }
     const Instance& const_instance = Instance::ZoneHandle(
-        EvaluateConstConstructorCall(type_class,
+        EvaluateConstConstructorCall(constructor_class,
                                      type_arguments,
                                      constructor,
                                      arguments));

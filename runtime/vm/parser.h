@@ -215,15 +215,16 @@ class Parser : ValueObject {
   void ParseLibraryImport();
   void ParseLibraryInclude();
 
-  void TryResolveTypeFromClass(intptr_t type_pos,
-                               const Class& cls,
-                               AbstractType* type);
   enum TypeResolution {
     kIgnore,  // Parsed type is ignored and replaced by Dynamic.
     kDoNotResolve,  // Type resolution is postponed.
     kCanResolve,  // Type resolution is optional.
     kMustResolve  // Type resolution is required.
   };
+  void ResolveTypeFromClass(intptr_t type_pos,
+                            const Class& cls,
+                            TypeResolution type_resolution,
+                            AbstractType* type);
   RawAbstractType* ParseType(TypeResolution type_resolution);
   void ParseTypeParameters(const Class& cls);
   RawAbstractTypeArguments* ParseTypeArguments(TypeResolution type_resolution);
