@@ -458,4 +458,87 @@ public class NegativeParserTest extends CompilerTestCase {
             ""),
         errEx(ParserErrorCode.NO_UNARY_PLUS_OPERATOR, 6, 9, 1));
   }
+
+  public void test_functionDeclaration_name() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {",
+            "  f1(p){};", // function declaration as statement, has name
+            "  (p){}", // function declaration as statement, should have name
+            "  var f2 = (p){};", // variable declaration, name of function literal is not required
+            "}",
+            ""),
+        errEx(ParserErrorCode.MISSING_FUNCTION_NAME, 4, 3, 5));
+  }
+
+  /**
+   * Separate test for invocation of function literal which has both return type and name.
+   */
+  public void test_invokeFunctionLiteral_returnType_name() {
+    DartParserRunner parserRunner =
+        parseExpectErrors(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "topLevelFunctionWithVeryLongNameToForceLineWrapping() {",
+            "  int f(p){}(0);", // invocation of function literal in statement, has type and name
+            "}",
+            ""));
+    assertEquals(
+        makeCode(
+            "// unit " + getName(),
+            "",
+            "topLevelFunctionWithVeryLongNameToForceLineWrapping() {",
+            "  int f(p) {",
+            "  }(0);",
+            "}"),
+        parserRunner.getDartUnit().toSource());
+  }
+
+  /**
+   * Test with variants of function declarations and function literal invocations.
+   */
+  public void test_functionDeclaration_functionLiteral() {
+    DartParserRunner parserRunner =
+        parseExpectErrors(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {",
+            "  f0(p){}", // declaration of function as statement
+            "  int f1(p){}", // declaration of function as statement, has type
+            "  var res = (p){}(1);", // invocation of function literal in assignment
+            "  (p){}(2);", // invocation of function literal in statement, no name
+            "  f2(p){}(3);", // invocation of function literal in statement, has name
+            "  f3(p) => 4;", // function with => arrow ends with ';'
+            "  (5);", // this is separate statement, not invocation of previous function
+            "  join(promises, (p) => 6);", // function with => arrow as argument
+            "  join(promises, (p) {return 7;});", // function with block as argument
+            "}",
+            ""));
+    assertEquals(
+        makeCode(
+            "// unit " + getName(),
+            "",
+            "foo() {",
+            "  f0(p) {",
+            "  };",
+            "  int f1(p) {",
+            "  };",
+            "  var res = (p) {",
+            "  }(1);",
+            "  (p) {",
+            "  }(2);",
+            "  f2(p) {",
+            "  }(3);",
+            "  f3(p) {",
+            "    return 4;",
+            "  };",
+            "  (5);",
+            "  join(promises, (p) {",
+            "    return 6;",
+            "  });",
+            "  join(promises, (p) {",
+            "    return 7;",
+            "  });",
+            "}"),
+        parserRunner.getDartUnit().toSource());
+  }
 }

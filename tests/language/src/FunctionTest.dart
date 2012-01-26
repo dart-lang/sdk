@@ -304,7 +304,7 @@ class FunctionTest {
   }
 
   void testEscapingFunctions() {
-    f() { return 42; }
+    f() { return 42; };
     (() { Expect.equals(42, f()); })();
     var o = new Bug4089219(42);
     Expect.equals(42, (o.f)());

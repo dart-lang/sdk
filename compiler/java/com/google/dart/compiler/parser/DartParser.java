@@ -63,6 +63,7 @@ import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartResourceDirective;
+import com.google.dart.compiler.ast.DartReturnBlock;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
@@ -2372,7 +2373,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     if the next tokens cannot be parsed as a function declaration or expression
    */
   private DartFunction parseFunctionDeclarationOrExpression(DartIdentifier[] namePtr,
-        boolean isDeclaration) {
+      boolean isDeclaration) {
     DartTypeNode returnType = null;
     namePtr[0] = null;
     if (optionalPseudoKeyword(STATIC_KEYWORD)) {
@@ -2402,9 +2403,6 @@ public class DartParser extends CompletionHooksParserBase {
     DartBlock body = parseFunctionStatementBody(isDeclaration);
     DartFunction function = new DartFunction(params, body, returnType);
     doneWithoutConsuming(function);
-    if (isDeclaration && namePtr[0] == null) {
-      reportError(function, ParserErrorCode.MISSING_FUNCTION_NAME);
-    }
     return function;
   }
 
@@ -2754,10 +2752,7 @@ public class DartParser extends CompletionHooksParserBase {
    * @return block containing a single return statement
    */
   private DartBlock makeReturnBlock(DartExpression returnVal) {
-    // TODO(jat): consider making a different AST node to represent this
-    List<DartStatement> statements = new ArrayList<DartStatement>();
-    statements.add(new DartReturnStatement(returnVal));
-    return new DartBlock(statements);
+    return new DartReturnBlock(returnVal);
   }
 
   /**
@@ -2895,9 +2890,16 @@ public class DartParser extends CompletionHooksParserBase {
    * </pre>
    */
   private DartStatement parseNonLabelledStatement() {
+    // Try to parse as function declaration.
     if (looksLikeFunctionDeclarationOrExpression()) {
-      return parseFunctionDeclaration();
+      DartStatement functionDeclaration = parseFunctionDeclaration();
+      // If "null", then we tried to parse, but found that this is not function declaration.
+      // So, parsing was rolled back and we can try to parse it as expression.
+      if (functionDeclaration != null) {
+        return functionDeclaration;
+      }
     }
+    // Check possible statement kind.
     switch (peek(0)) {
       case IF:
         return parseIfStatement();
@@ -2966,16 +2968,20 @@ public class DartParser extends CompletionHooksParserBase {
         return done(parseErrorStatement());
 
       case IDENTIFIER:
-        // we have already eliminated function declarations earlier, so just need to check for
-        // variable declarations here.
+        // We have already eliminated function declarations earlier, so check for:
+        // a) variable declarations;
+        // b) beginning of function literal invocation.
         if (peek(1) == Token.LT || peek(1) == Token.IDENTIFIER
             || (peek(1) == Token.PERIOD && peek(2) == Token.IDENTIFIER)) {
           beginTypeFunctionOrVariable();
           DartTypeNode type = tryTypeAnnotation();
           if (type != null && peek(0) == Token.IDENTIFIER) {
             List<DartVariable> vars = parseInitializedVariableList();
-            expect(Token.SEMICOLON);
-            return done(new DartVariableStatement(vars, type));
+            if (optional(Token.SEMICOLON)) {
+              return done(new DartVariableStatement(vars, type));
+            } else {
+              rollback();
+            }
           } else {
             rollback();
           }
@@ -3034,7 +3040,7 @@ public class DartParser extends CompletionHooksParserBase {
 
   /**
    * Parse a function declaration.
-   *
+   * 
    * <pre>
    * nonLabelledStatement : ...
    *     | functionDeclaration functionBody
@@ -3047,15 +3053,25 @@ public class DartParser extends CompletionHooksParserBase {
    *    | returnType? identifier formalParameterList
    *    ;
    * </pre>
-   *
-   * @return a {@link DartStatement} representing the function declaration
+   * 
+   * @return a {@link DartStatement} representing the function declaration or <code>null</code> if
+   *         code ends with function invocation, so this is not function declaration.
    */
   private DartStatement parseFunctionDeclaration() {
     beginFunctionDeclaration();
     DartIdentifier[] namePtr = new DartIdentifier[1];
     DartFunction function = parseFunctionDeclarationOrExpression(namePtr, true);
-    return done(new DartExprStmt(doneWithoutConsuming(new DartFunctionExpression(namePtr[0],
-        doneWithoutConsuming(function), true))));
+    if (function.getBody() instanceof DartReturnBlock || peek(0) != Token.LPAREN) {
+      if (namePtr[0] == null) {
+        reportError(function, ParserErrorCode.MISSING_FUNCTION_NAME);
+      }
+      return done(new DartExprStmt(doneWithoutConsuming(new DartFunctionExpression(namePtr[0],
+          doneWithoutConsuming(function),
+          true))));
+    } else {
+      rollback();
+      return null;
+    }
   }
 
   private DartStatement parseExpressionStatement() {
