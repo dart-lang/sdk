@@ -168,10 +168,10 @@ class HtmlDiff {
     } else if ((getter = implMember.name.startsWith('get:')) ||
         (setter = implMember.name.startsWith('set:'))) {
       // Use getMember to follow interface inheritance chains. If it's a
-      // ConcreteMember, though, it's an implementation of some data structure
+      // Member, though, it's an implementation of some data structure
       // and we don't care about it.
       var htmlProperty = htmlType.getMember(implMember.name.substring(4));
-      if (htmlProperty != null && htmlProperty is! ConcreteMember) {
+      if (htmlProperty != null && htmlProperty is! Member) {
         return getter ? htmlProperty.getter : htmlProperty.setter;
       } else {
         return null;

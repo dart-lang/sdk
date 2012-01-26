@@ -160,17 +160,19 @@ String getMemberDoc(Member member) {
  * `dart:html` or `dart:dom`, returns no additional documentation.
  */
 String getTypeDoc(Type type) {
-  if (_diff.domTypesToHtml.containsKey(type)) {
-    var htmlTypes = doc.joinWithCommas(
-        map(_diff.domTypesToHtml[type], _linkType));
-    return "_This corresponds to $htmlTypes in the [dart:html](../html.html) " +
-      "library._";
-  } else if (_diff.htmlTypesToDom.containsKey(type)) {
-    var domTypes = doc.joinWithCommas(
-        map(_diff.htmlTypesToDom[type], _linkType));
-    return "_This corresponds to $domTypes in the [dart:dom](../dom.html) " +
-      "library._";
-  } else {
-    return "";
+  var types = _diff.domTypesToHtml[type];
+  if (types != null && types.length > 0) {
+    final text = doc.joinWithCommas(map(types, _linkType));
+    return '_This corresponds to $text in the [dart:html](../html.html) ' +
+      'library._';
   }
+
+  types = _diff.htmlTypesToDom[type];
+  if (types != null && types.length > 0) {
+    final text = doc.joinWithCommas(map(types, _linkType));
+    return '_This corresponds to $text in the [dart:dom](../dom.html) ' +
+      'library._';
+  }
+
+  return '';
 }
