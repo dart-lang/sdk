@@ -1637,19 +1637,106 @@ void RawImmutableArray::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawByteBuffer* ByteBuffer::ReadFrom(SnapshotReader* reader,
-                                    intptr_t object_id,
-                                    intptr_t tags,
-                                    Snapshot::Kind kind) {
-  UNIMPLEMENTED();
-  return ByteBuffer::null();
+RawByteArray* ByteArray::ReadFrom(SnapshotReader* reader,
+                                  intptr_t object_id,
+                                  intptr_t tags,
+                                  Snapshot::Kind kind) {
+  UNREACHABLE();  // ByteArray is an abstract class.
+  return ByteArray::null();
 }
 
 
-void RawByteBuffer::WriteTo(SnapshotWriter* writer,
-                            intptr_t object_id,
-                            Snapshot::Kind kind) {
-  UNIMPLEMENTED();
+RawInternalByteArray* InternalByteArray::ReadFrom(SnapshotReader* reader,
+                                                  intptr_t object_id,
+                                                  intptr_t tags,
+                                                  Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  // Read the length so that we can determine instance size to allocate.
+  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  Heap::Space space = (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew;
+  InternalByteArray& result =
+      InternalByteArray::ZoneHandle(reader->isolate(),
+                                    InternalByteArray::New(len, space));
+  reader->AddBackwardReference(object_id, &result);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  // Setup the array elements.
+  for (intptr_t i = 0; i < len; i++) {
+    result.SetAt<uint8_t>(i, reader->Read<uint8_t>());
+  }
+  return result.raw();
+}
+
+
+RawExternalByteArray* ExternalByteArray::ReadFrom(SnapshotReader* reader,
+                                                  intptr_t object_id,
+                                                  intptr_t tags,
+                                                  Snapshot::Kind kind) {
+  UNREACHABLE();
+  return ExternalByteArray::null();
+}
+
+
+static void ByteArrayWriteTo(SnapshotWriter* writer,
+                             intptr_t object_id,
+                             Snapshot::Kind kind,
+                             intptr_t byte_array_kind,
+                             intptr_t tags,
+                             RawSmi* length,
+                             uint8_t* data) {
+  ASSERT(writer != NULL);
+  intptr_t len = Smi::Value(length);
+
+  // Write out the serialization header value for this object.
+  writer->WriteSerializationMarker(kInlined, object_id);
+
+  // Write out the class and tags information.
+  writer->WriteObjectHeader(byte_array_kind, tags);
+
+  // Write out the length field.
+  writer->Write<RawObject*>(length);
+
+  // Write out the array elements.
+  for (intptr_t i = 0; i < len; i++) {
+    writer->Write(data[i]);
+  }
+}
+
+
+void RawByteArray::WriteTo(SnapshotWriter* writer,
+                           intptr_t object_id,
+                           Snapshot::Kind kind) {
+  UNREACHABLE();  // ByteArray is an abstract class
+}
+
+
+void RawInternalByteArray::WriteTo(SnapshotWriter* writer,
+                                   intptr_t object_id,
+                                   Snapshot::Kind kind) {
+  ByteArrayWriteTo(writer,
+                   object_id,
+                   kind,
+                   ObjectStore::kInternalByteArrayClass,
+                   ptr()->tags_,
+                   ptr()->length_,
+                   ptr()->data());
+}
+
+
+void RawExternalByteArray::WriteTo(SnapshotWriter* writer,
+                                   intptr_t object_id,
+                                   Snapshot::Kind kind) {
+  // Serialize as an internal byte array.
+  ByteArrayWriteTo(writer,
+                   object_id,
+                   kind,
+                   ObjectStore::kInternalByteArrayClass,
+                   ptr()->tags_,
+                   ptr()->length_,
+                   ptr()->data_);
 }
 
 

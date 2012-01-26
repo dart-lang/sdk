@@ -539,7 +539,7 @@ void Object::Init(Isolate* isolate) {
   const Script& script = Script::Handle(Bootstrap::LoadScript());
 
   // Allocate and initialize the Object class and type.
-  // The Object and ByteBuffer classes are the only pre-allocated
+  // The Object and ExternalByteArray classes are the only pre-allocated
   // non-interface classes in the core library.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
@@ -550,9 +550,15 @@ void Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_object_type(type);
 
-  cls = Class::New<ByteBuffer>();
-  object_store->set_byte_buffer_class(cls);
-  cls.set_name(String::Handle(String::NewSymbol("ByteBuffer")));
+  cls = Class::New<InternalByteArray>();
+  object_store->set_internal_byte_array_class(cls);
+  cls.set_name(String::Handle(core_lib.PrivateName("_InternalByteArray")));
+  cls.set_script(script);
+  core_lib.AddClass(cls);
+
+  cls = Class::New<ExternalByteArray>();
+  object_store->set_external_byte_array_class(cls);
+  cls.set_name(String::Handle(core_lib.PrivateName("_ExternalByteArray")));
   cls.set_script(script);
   core_lib.AddClass(cls);
 
@@ -595,6 +601,11 @@ void Object::Init(Isolate* isolate) {
   pending_classes.Add(&Class::ZoneHandle(cls.raw()));
   type = Type::NewNonParameterizedType(cls);
   object_store->set_list_interface(type);
+
+  cls = CreateAndRegisterInterface("ByteArray", script, core_lib);
+  pending_classes.Add(&Class::ZoneHandle(cls.raw()));
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_byte_array_interface(type);
 
   // The classes 'Null' and 'void' are not registered in the class dictionary,
   // because their names are reserved keywords. Their names are not heap
@@ -667,8 +678,11 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
 
-  cls = Class::New<ByteBuffer>();
-  object_store->set_byte_buffer_class(cls);
+  cls = Class::New<InternalByteArray>();
+  object_store->set_internal_byte_array_class(cls);
+
+  cls = Class::New<ExternalByteArray>();
+  object_store->set_external_byte_array_class(cls);
 
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
@@ -1226,9 +1240,12 @@ RawClass* Class::GetClass(ObjectKind kind) {
     case kImmutableArray:
       ASSERT(object_store->immutable_array_class() != Class::null());
       return object_store->immutable_array_class();
-    case kByteBuffer:
-      ASSERT(object_store->byte_buffer_class() != Class::null());
-      return object_store->byte_buffer_class();
+    case kInternalByteArray:
+      ASSERT(object_store->internal_byte_array_class() != Class::null());
+      return object_store->internal_byte_array_class();
+    case kExternalByteArray:
+      ASSERT(object_store->external_byte_array_class() != Class::null());
+      return object_store->external_byte_array_class();
     case kStacktrace:
       ASSERT(object_store->stacktrace_class() != Class::null());
       return object_store->stacktrace_class();
@@ -4595,6 +4612,17 @@ bool Library::IsKeyUsed(intptr_t key) {
 }
 
 
+RawString* Library::PrivateName(const char* name) {
+  ASSERT(name[0] == '_');
+  ASSERT(strchr(name, '@') == NULL);
+  String& str = String::Handle();
+  str = String::New(name);
+  str = String::Concat(str, String::Handle(this->private_key()));
+  str = String::NewSymbol(str);
+  return str.raw();
+}
+
+
 void Library::Register() const {
   ASSERT(Library::LookupLibrary(String::Handle(url())) == Library::null());
   raw_ptr()->next_registered_ =
@@ -7476,16 +7504,67 @@ const char* ImmutableArray::ToCString() const {
 }
 
 
-RawByteBuffer* ByteBuffer::New(uint8_t* data,
-                               intptr_t len,
-                               Heap::Space space) {
+intptr_t ByteArray::Length() const {
+  // ByteArray is an abstract class.
+  UNREACHABLE();
+  return 0;
+}
+
+
+const char* ByteArray::ToCString() const {
+  // ByteArray is an abstract class.
+  UNREACHABLE();
+  return "ByteArray";
+}
+
+
+RawInternalByteArray* InternalByteArray::New(intptr_t len,
+                                             Heap::Space space) {
   Isolate* isolate = Isolate::Current();
-  const Class& byte_buffer_class =
-      Class::Handle(isolate->object_store()->byte_buffer_class());
-  ByteBuffer& result = ByteBuffer::Handle();
+  const Class& internal_byte_array_class =
+      Class::Handle(isolate->object_store()->internal_byte_array_class());
+  InternalByteArray& result = InternalByteArray::Handle();
   {
-    RawObject* raw = Object::Allocate(byte_buffer_class,
-                                      ByteBuffer::InstanceSize(),
+    RawObject* raw = Object::Allocate(internal_byte_array_class,
+                                      InternalByteArray::InstanceSize(len),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+    memset(result.Addr<uint8_t>(0), 0, len);
+  }
+  return result.raw();
+}
+
+
+RawInternalByteArray* InternalByteArray::New(const uint8_t* data,
+                                             intptr_t len,
+                                             Heap::Space space) {
+  InternalByteArray& result =
+      InternalByteArray::Handle(InternalByteArray::New(len, space));
+  {
+    NoGCScope no_gc;
+    memmove(result.Addr<uint8_t>(0), data, len);
+  }
+  return result.raw();
+}
+
+
+const char* InternalByteArray::ToCString() const {
+  return "_InternalByteArray";
+}
+
+
+RawExternalByteArray* ExternalByteArray::New(uint8_t* data,
+                                             intptr_t len,
+                                             Heap::Space space) {
+  Isolate* isolate = Isolate::Current();
+  const Class& external_byte_array_class =
+      Class::Handle(isolate->object_store()->external_byte_array_class());
+  ExternalByteArray& result = ExternalByteArray::Handle();
+  {
+    RawObject* raw = Object::Allocate(external_byte_array_class,
+                                      ExternalByteArray::InstanceSize(),
                                       space);
     NoGCScope no_gc;
     result ^= raw;
@@ -7496,30 +7575,8 @@ RawByteBuffer* ByteBuffer::New(uint8_t* data,
 }
 
 
-bool ByteBuffer::Equals(const Instance& other) const {
-  if (this->raw() == other.raw()) {
-    // Both handles point to the same raw instance.
-    return true;
-  }
-
-  if (!other.IsByteBuffer() || other.IsNull()) {
-    return false;
-  }
-
-  ByteBuffer& other_array = ByteBuffer::Handle();
-  other_array ^= other.raw();
-
-  intptr_t len = this->Length();
-  if (len != other_array.Length()) {
-    return false;
-  }
-
-  return memcmp(this->Addr<uint8_t>(0), other_array.Addr<uint8_t>(0), len) == 0;
-}
-
-
-const char* ByteBuffer::ToCString() const {
-  return "ByteBuffer";
+const char* ExternalByteArray::ToCString() const {
+  return "_ExternalByteArray";
 }
 
 

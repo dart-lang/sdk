@@ -615,6 +615,59 @@ TEST_CASE(ListAccess) {
 #endif
 
 
+TEST_CASE(ByteArray) {
+  Dart_Handle obj1 = Dart_NewByteArray(10);
+  EXPECT_VALID(obj1);
+  EXPECT(Dart_IsByteArray(obj1));
+  EXPECT(Dart_IsList(obj1));
+
+  intptr_t length = 0;
+  Dart_Handle result = Dart_ListLength(obj1, &length);
+  EXPECT_VALID(result);
+  EXPECT_EQ(10, length);
+
+  result = Dart_ListSetAt(obj1, -1, Dart_NewInteger(1));
+  EXPECT(Dart_IsError(result));
+  result = Dart_ListSetAt(obj1, 10, Dart_NewInteger(1));
+  EXPECT(Dart_IsError(result));
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    result = Dart_ListSetAt(obj1, i, Dart_NewInteger(i + 1));
+    EXPECT_VALID(result);
+  }
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    result = Dart_ListGetAt(obj1, i);
+    EXPECT_VALID(result);
+    int64_t value = 0;
+    result = Dart_IntegerToInt64(result, &value);
+    EXPECT_VALID(result);
+    EXPECT_EQ(i + 1, value);
+  }
+
+  Dart_Handle obj2 = Dart_NewByteArray(10);
+  bool is_equal = false;
+  Dart_ObjectEquals(obj1, obj2, &is_equal);
+  EXPECT(!is_equal);
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    result = Dart_ListSetAt(obj2, i, Dart_NewInteger(i + 1));
+    EXPECT_VALID(result);
+  }
+  is_equal = false;
+  Dart_ObjectEquals(obj1, obj2, &is_equal);
+  EXPECT(!is_equal);
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    Dart_Handle e1 = Dart_ListGetAt(obj1, i);
+    Dart_Handle e2 = Dart_ListGetAt(obj2, i);
+    is_equal = false;
+    Dart_ObjectEquals(e1, e2, &is_equal);
+    EXPECT(is_equal);
+  }
+}
+
+
 // Unit test for entering a scope, creating a local handle and exiting
 // the scope.
 UNIT_TEST_CASE(EnterExitScope) {

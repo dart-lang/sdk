@@ -35,7 +35,9 @@ ObjectStore::ObjectStore()
     list_interface_(Type::null()),
     array_class_(Class::null()),
     immutable_array_class_(Class::null()),
-    byte_buffer_class_(Class::null()),
+    byte_array_interface_(Type::null()),
+    internal_byte_array_class_(Class::null()),
+    external_byte_array_class_(Class::null()),
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     true_value_(Bool::null()),
@@ -116,7 +118,8 @@ RawClass* ObjectStore::GetClass(int index) {
     case kBoolClass: return bool_class_;
     case kArrayClass: return array_class_;
     case kImmutableArrayClass: return immutable_array_class_;
-    case kByteBufferClass: return byte_buffer_class_;
+    case kInternalByteArrayClass: return internal_byte_array_class_;
+    case kExternalByteArrayClass: return external_byte_array_class_;
     case kStacktraceClass: return stacktrace_class_;
     case kJSRegExpClass: return jsregexp_class_;
     default: break;
@@ -156,8 +159,10 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
     return kArrayClass;
   } else if (raw_class == immutable_array_class_) {
     return kImmutableArrayClass;
-  } else if (raw_class == byte_buffer_class_) {
-    return kByteBufferClass;
+  } else if (raw_class == internal_byte_array_class_) {
+    return kInternalByteArrayClass;
+  } else if (raw_class == external_byte_array_class_) {
+    return kExternalByteArrayClass;
   } else if (raw_class == stacktrace_class_) {
     return kStacktraceClass;
   } else if (raw_class == jsregexp_class_) {
@@ -180,6 +185,7 @@ RawType* ObjectStore::GetType(int index) {
     case kBoolInterface: return bool_interface();
     case kStringInterface: return string_interface();
     case kListInterface: return list_interface();
+    case kByteArrayInterface: return byte_array_interface();
     default: break;
   }
   UNREACHABLE();
@@ -211,6 +217,8 @@ int ObjectStore::GetTypeIndex(const RawType* raw_type) {
     return kStringInterface;
   } else if (raw_type == list_interface()) {
     return kListInterface;
+  } else if (raw_type == byte_array_interface()) {
+    return kByteArrayInterface;
   }
   return kInvalidIndex;
 }

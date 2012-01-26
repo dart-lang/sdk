@@ -1735,12 +1735,12 @@ TEST_CASE(Array) {
 }
 
 
-TEST_CASE(ByteBuffer) {
+TEST_CASE(ExternalByteArray) {
   uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
   intptr_t data_length = ARRAY_SIZE(data);
 
-  const ByteBuffer& array1 =
-      ByteBuffer::Handle(ByteBuffer::New(data, data_length));
+  const ExternalByteArray& array1 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data, data_length));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(data_length, array1.Length());
   EXPECT_EQ(-3, array1.At<int8_t>(0));
@@ -1756,31 +1756,33 @@ TEST_CASE(ByteBuffer) {
   EXPECT_EQ(2, array1.At<int8_t>(5));
   EXPECT_EQ(2, array1.At<uint8_t>(5));
 
-  const ByteBuffer& array2 =
-      ByteBuffer::Handle(ByteBuffer::New(data, data_length));
+  const ExternalByteArray& array2 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data, data_length));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(data_length, array2.Length());
-  EXPECT(array1.Equals(array2));
-  EXPECT(array2.Equals(array1));
+  for (intptr_t i = 0 ; i < array1.Length(); ++i) {
+    EXPECT_EQ(array1.At<uint8_t>(i), array2.At<uint8_t>(i));
+  }
 
   array1.SetAt<uint8_t>(0, 123);
   array2.SetAt<int8_t>(2, -123);
-  EXPECT(array1.Equals(array2));
-  EXPECT(array2.Equals(array1));
+  for (intptr_t i = 0 ; i < array1.Length(); ++i) {
+    EXPECT_EQ(array1.At<uint8_t>(i), array2.At<uint8_t>(i));
+  }
 }
 
 
-TEST_CASE(ByteBufferAlignedAccess) {
+TEST_CASE(ExternalByteArrayAlignedAccess) {
   intptr_t length = 16;
   uint8_t* data = new uint8_t[length];
 
-  const ByteBuffer& array1 =
-      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  const ExternalByteArray& array1 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(length, array1.Length());
 
-  const ByteBuffer& array2 =
-      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  const ExternalByteArray& array2 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
   EXPECT(!array2.IsNull());
   EXPECT_EQ(length, array2.Length());
 
@@ -1812,17 +1814,17 @@ TEST_CASE(ByteBufferAlignedAccess) {
 }
 
 
-TEST_CASE(ByteBufferUnlignedAccess) {
+TEST_CASE(ExternalByteArrayUnlignedAccess) {
   intptr_t length = 24;
   uint8_t* data = new uint8_t[length];
 
-  const ByteBuffer& array1 =
-      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  const ExternalByteArray& array1 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(length, array1.Length());
 
-  const ByteBuffer& array2 =
-      ByteBuffer::Handle(ByteBuffer::New(data, length));
+  const ExternalByteArray& array2 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
   EXPECT(!array2.IsNull());
   EXPECT_EQ(length, array2.Length());
 
@@ -1857,19 +1859,19 @@ TEST_CASE(ByteBufferUnlignedAccess) {
 }
 
 
-TEST_CASE(ByteBufferSkewedUnalignedBaseAccess) {
+TEST_CASE(ExternalByteArraySkewedUnalignedBaseAccess) {
   intptr_t length = 24;
   uint8_t* data = new uint8_t[length];
 
   int skew = 2;
 
-  const ByteBuffer& array1 =
-      ByteBuffer::Handle(ByteBuffer::New(data + 3, length));
+  const ExternalByteArray& array1 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data + 3, length));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(length, array1.Length());
 
-  const ByteBuffer& array2 =
-      ByteBuffer::Handle(ByteBuffer::New(data + 1, length));
+  const ExternalByteArray& array2 =
+      ExternalByteArray::Handle(ExternalByteArray::New(data + 1, length));
   EXPECT(!array2.IsNull());
   EXPECT_EQ(length, array2.Length());
 
@@ -1898,6 +1900,108 @@ TEST_CASE(ByteBufferSkewedUnalignedBaseAccess) {
   EXPECT_EQ(1.0, array1.UnalignedAt<double>(8));
 
   delete[] data;
+}
+
+
+TEST_CASE(InternalByteArray) {
+  uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
+  intptr_t data_length = ARRAY_SIZE(data);
+
+  const InternalByteArray& array1 =
+      InternalByteArray::Handle(InternalByteArray::New(data, data_length));
+  EXPECT(!array1.IsNull());
+  EXPECT_EQ(data_length, array1.Length());
+  EXPECT_EQ(-3, array1.At<int8_t>(0));
+  EXPECT_EQ(253, array1.At<uint8_t>(0));
+  EXPECT_EQ(-2, array1.At<int8_t>(1));
+  EXPECT_EQ(254, array1.At<uint8_t>(1));
+  EXPECT_EQ(-1, array1.At<int8_t>(2));
+  EXPECT_EQ(255, array1.At<uint8_t>(2));
+  EXPECT_EQ(0, array1.At<int8_t>(3));
+  EXPECT_EQ(0, array1.At<uint8_t>(3));
+  EXPECT_EQ(1, array1.At<int8_t>(4));
+  EXPECT_EQ(1, array1.At<uint8_t>(4));
+  EXPECT_EQ(2, array1.At<int8_t>(5));
+  EXPECT_EQ(2, array1.At<uint8_t>(5));
+
+  const InternalByteArray& array2 =
+      InternalByteArray::Handle(InternalByteArray::New(data, data_length));
+  EXPECT(!array1.IsNull());
+  EXPECT_EQ(data_length, array2.Length());
+  for (intptr_t i = 0; i < array1.Length(); ++i) {
+    EXPECT_EQ(array1.At<uint8_t>(i), array2.At<uint8_t>(i));
+  }
+
+  array1.SetAt<uint8_t>(0, 123);
+  array2.SetAt<int8_t>(2, -123);
+
+  EXPECT(array1.At<uint8_t>(0) != array2.At<uint8_t>(0));
+  EXPECT(array1.At<uint8_t>(1) == array2.At<uint8_t>(1));
+  EXPECT(array1.At<uint8_t>(2) != array2.At<uint8_t>(2));
+  for (intptr_t i = 3; i < array1.Length(); ++i) {
+    EXPECT(array1.At<uint8_t>(i) == array2.At<uint8_t>(i));
+  }
+}
+
+
+TEST_CASE(InternalByteArrayAlignedAccess) {
+  const intptr_t length = 16;
+  const InternalByteArray& byte_array =
+      InternalByteArray::Handle(InternalByteArray::New(length));
+  EXPECT(!byte_array.IsNull());
+  EXPECT_EQ(length, byte_array.Length());
+
+  byte_array.SetAt<float>(0, FLT_MIN);
+  byte_array.SetAt<float>(4, FLT_MAX);
+  EXPECT_EQ(FLT_MIN, byte_array.At<float>(0));
+  EXPECT_EQ(FLT_MAX, byte_array.At<float>(4));
+
+  byte_array.SetAt<float>(0, 0.0f);
+  EXPECT_EQ(0.0f, byte_array.At<float>(0));
+  byte_array.SetAt<float>(4, 1.0f);
+  EXPECT_EQ(1.0f, byte_array.At<float>(4));
+
+  byte_array.SetAt<double>(0, DBL_MIN);
+  EXPECT_EQ(DBL_MIN, byte_array.At<double>(0));
+  byte_array.SetAt<double>(8, DBL_MAX);
+  EXPECT_EQ(DBL_MAX, byte_array.At<double>(8));
+
+  byte_array.SetAt<double>(0, 0.0);
+  EXPECT_EQ(0.0, byte_array.At<double>(0));
+  byte_array.SetAt<double>(8, 1.0);
+  EXPECT_EQ(1.0, byte_array.At<double>(8));
+}
+
+
+TEST_CASE(InternalByteArrayUnlignedAccess) {
+  const intptr_t length = 24;
+  const InternalByteArray& byte_array =
+      InternalByteArray::Handle(InternalByteArray::New(length));
+  EXPECT(!byte_array.IsNull());
+  EXPECT_EQ(length, byte_array.Length());
+
+  int float_misalign = 3;
+  byte_array.SetUnalignedAt<float>(float_misalign, FLT_MIN);
+  byte_array.SetUnalignedAt<float>(4 + float_misalign, FLT_MAX);
+  EXPECT_EQ(FLT_MIN, byte_array.UnalignedAt<float>(float_misalign));
+  EXPECT_EQ(FLT_MAX, byte_array.UnalignedAt<float>(4 + float_misalign));
+
+  byte_array.SetUnalignedAt<float>(float_misalign, 0.0f);
+  EXPECT_EQ(0.0f, byte_array.UnalignedAt<float>(float_misalign));
+  byte_array.SetUnalignedAt<float>(4 + float_misalign, 1.0f);
+  EXPECT_EQ(1.0f, byte_array.UnalignedAt<float>(4 + float_misalign));
+
+  int double_misalign = 5;
+  byte_array.SetUnalignedAt<double>(double_misalign, DBL_MIN);
+  EXPECT_EQ(DBL_MIN, byte_array.UnalignedAt<double>(double_misalign));
+  byte_array.SetUnalignedAt<double>(8 + double_misalign, DBL_MAX);
+  EXPECT_EQ(DBL_MAX,
+            byte_array.UnalignedAt<double>(8 + double_misalign));
+
+  byte_array.SetUnalignedAt<double>(double_misalign, 0.0);
+  EXPECT_EQ(0.0, byte_array.UnalignedAt<double>(double_misalign));
+  byte_array.SetUnalignedAt<double>(8 + double_misalign, 1.0);
+  EXPECT_EQ(1.0, byte_array.UnalignedAt<double>(8 + double_misalign));
 }
 
 

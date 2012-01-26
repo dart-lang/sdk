@@ -59,7 +59,9 @@ namespace dart {
     V(Bool)                                                                    \
     V(Array)                                                                   \
       V(ImmutableArray)                                                        \
-    V(ByteBuffer)                                                              \
+    V(ByteArray)                                                               \
+      V(InternalByteArray)                                                     \
+      V(ExternalByteArray)                                                     \
     V(Closure)                                                                 \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
@@ -957,12 +959,30 @@ class RawImmutableArray : public RawArray {
 };
 
 
-class RawByteBuffer : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ByteBuffer);
+class RawByteArray : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ByteArray);
 
+ protected:
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
   RawSmi* length_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
+};
+
+
+class RawInternalByteArray : public RawByteArray {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(InternalByteArray);
+
+  // Variable length data follows here.
+  uint8_t* data() {
+    uword address_of_length = reinterpret_cast<uword>(&length_);
+    return reinterpret_cast<uint8_t*>(address_of_length + kWordSize);
+  }
+};
+
+
+class RawExternalByteArray : public RawByteArray {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalByteArray);
+
   uint8_t* data_;
 };
 

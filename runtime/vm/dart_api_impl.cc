@@ -1413,7 +1413,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
       return result;
     }
   }
-  return Api::NewError("Object does not implement the list inteface");
+  return Api::NewError("Object does not implement the 'List' inteface");
 }
 
 
@@ -1666,6 +1666,24 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     }
   }
   return Api::NewError("Object does not implement the 'List' interface");
+}
+
+
+// --- Byte Arrays ---
+
+
+DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
+  DARTSCOPE(Isolate::Current());
+  const Object& obj = Object::Handle(Api::UnwrapHandle(object));
+  return obj.IsByteArray();
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
+  DARTSCOPE(Isolate::Current());
+  const InternalByteArray& obj =
+      InternalByteArray::Handle(InternalByteArray::New(length));
+  return Api::NewLocalHandle(obj);
 }
 
 
