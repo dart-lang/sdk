@@ -98,6 +98,7 @@ ExecuteFinally9Test: Fail
 ExpectTest: Fail
 Factory2Test: Fail
 Factory3Test: Fail
+Factory4Test: Fail
 FactoryImplementationTest: Fail
 FactoryTest: Fail
 FannkuchTest: Fail

@@ -212,6 +212,7 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 [ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) || $component == frogium ]
 Factory3Test: Fail # Issue 417
+Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
