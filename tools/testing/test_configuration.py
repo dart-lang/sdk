@@ -256,7 +256,7 @@ class BrowserTestConfiguration(StandardTestConfiguration):
     return tests
 
   def IsTest(self, name):
-    return name.endswith('_tests.dart')
+    return name.endswith('_tests.dart') or name.endswith('Test.dart')
 
 
 class CompilationTestConfiguration(test.TestConfiguration):

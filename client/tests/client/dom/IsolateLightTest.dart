@@ -1,4 +1,3 @@
-#library('IsolateLight');
 #import('../../../testing/unittest/unittest.dart');
 #import('dart:dom');
 #import('dart:json');
@@ -27,7 +26,6 @@ class TestIsolate extends Isolate {
 
 main() {
   _isolateId = 0;
-
   asyncTest('IsolatedStatic', 1, () {
     final div = document.createElement('div');
     div.id = 'testid';
