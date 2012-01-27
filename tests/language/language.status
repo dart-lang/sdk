@@ -62,7 +62,7 @@ NamedParameters4Test: Fail
 UnaryPlusNegativeTest: Fail # Issue 1229
 
 # Issue 1350.
-StringEscape1NegativeTest: Fail
+StringEscape1NegativeTest: Skip
 StringEscape4NegativeTest: Fail
 
 
