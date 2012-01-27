@@ -175,9 +175,6 @@ TEST_CASE(Debug_InspectObject) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_NOT_ERROR(lib);
 
-  Dart_Handle script_url = Dart_NewString(TestCase::url());
-  Dart_Handle line_no = Dart_NewInteger(4);  // In function 'foo'.
-
   Dart_Handle object_b = Invoke(lib, "get_b");
 
   EXPECT_NOT_ERROR(object_b);
