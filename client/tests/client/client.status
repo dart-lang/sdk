@@ -9,6 +9,7 @@ samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
 dom/dom_tests: Skip
+samples/total/total_tests: Skip # Cannot find due to recent migrations.
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
