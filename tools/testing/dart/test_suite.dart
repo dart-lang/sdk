@@ -858,7 +858,7 @@ class JUnitTestSuite implements TestSuite {
 
   void createTest(successIgnored) {
     String d8 =
-        "$buildDir/d8${TestUtils.executableSuffix(configuration['component']}";
+        "$buildDir/d8${TestUtils.executableSuffix(configuration['component'])}";
     List<String> args = <String>[
         '-ea',
         '-classpath', classPath,
