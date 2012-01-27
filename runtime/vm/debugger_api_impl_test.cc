@@ -158,7 +158,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
 TEST_CASE(Debug_InspectObject) {
   const char* kScriptChars =
     " class A { \n"
-    "   int a_field = 'a'; \n"
+    "   var a_field = 'a'; \n"
     "   static var bla = 'yada yada yada';\n"
     "   var d = 42.1; \n"
     " } \n"
