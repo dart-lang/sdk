@@ -707,6 +707,8 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
         reader->Read<Dart_NativeEntryResolver>();
     ASSERT(resolver == NULL);
     library.set_native_entry_resolver(resolver);
+    // The cache of loaded scripts is not serialized.
+    library.raw_ptr()->loaded_scripts_ = Array::null();
 
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
@@ -746,6 +748,9 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     // We do not serialize the native resolver over, this needs to be explicitly
     // set after deserialization.
     writer->Write<Dart_NativeEntryResolver>(NULL);
+    // We do not write the loaded_scripts_ cache to the snapshot. It gets
+    // set to NULL when reading the library from the snapshot, and will
+    // be rebuilt lazily.
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer);
