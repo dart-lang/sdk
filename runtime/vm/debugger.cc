@@ -473,7 +473,6 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
   Field& field = Field::Handle();
   GrowableArray<Object*> field_list(8);
   // Iterate over fields in class hierarchy to count all instance fields.
-  int num_fields = 0;
   while (!cls.IsNull()) {
     fields = cls.fields();
     for (int i = 0; i < fields.Length(); i++) {
