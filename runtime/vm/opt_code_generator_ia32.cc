@@ -585,32 +585,13 @@ void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
     return;
   }
   CodeGenInfo value_info(node->value());
-  value_info.set_allow_temp(true);
+  value_info.set_allow_temp(false);
   value_info.set_request_result_in_eax(true);
   node->value()->Visit(this);
-  if (value_info.is_temp()) {
-    if (value_info.IsClass(double_class_)) {
-      if (value_info.result_returned_in_eax()) {
-        __ pushl(EAX);
-      }
-      const Code& stub =
-          Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
-      const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
-      GenerateCall(node->token_index(), &label);
-      // New allocated object is in EAX; copy value from temporary object.
-      __ popl(EDX);  // temporary object from value.
-      __ movsd(XMM0, FieldAddress(EDX, Double::value_offset()));
-      __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
-      CodeGenerator::GenerateStoreVariable(node->local(), EAX, EDX);
-    } else {
-      UNIMPLEMENTED();  // Cannot handle other temporary types yet.
-    }
-  } else {
-    if (!value_info.result_returned_in_eax()) {
-      __ popl(EAX);
-    }
-    CodeGenerator::GenerateStoreVariable(node->local(), EAX, EDX);
+  if (!value_info.result_returned_in_eax()) {
+    __ popl(EAX);
   }
+  CodeGenerator::GenerateStoreVariable(node->local(), EAX, EDX);
   HandleResult(node, EAX);
   classes_for_locals_->SetLocalType(node->local(), *value_info.is_class());
 }
@@ -855,6 +836,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
   DeoptimizationBlob* deopt_blob =
       AddDeoptimizationBlob(node, kOperandRegister, deopt_reason_id);
   CodeGenInfo info(node->operand());
+  info.set_allow_temp(true);
   VisitLoadOne(node->operand(), kOperandRegister);
   if (ic_data.NumberOfChecks() == 0) {
     // No type feedback.
@@ -862,28 +844,39 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
     return;
   }
   ASSERT(ic_data.NumberOfChecks() == 1);
-  CheckIfDoubleOrSmi(kOperandRegister,
-                     kTempRegister,
-                     deopt_blob->label(),
-                     deopt_blob->label());
-  PropagateBackLocalClass(node->operand(), double_class_);
-  // TODO(srdjan): check if we could reuse a temporary object instead of
-  // allocating a new one.
-  const Code& stub =
-      Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
-  const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
-  __ pushl(kOperandRegister);
-  GenerateCall(node->token_index(), &label);
-  ASSERT(kResultRegister == EAX);
-  __ popl(kOperandRegister);
+  if (!info.IsClass(double_class_)) {
+    // Deoptimize if not double.
+    CheckIfDoubleOrSmi(kOperandRegister,
+                       kTempRegister,
+                       deopt_blob->label(),
+                       deopt_blob->label());
+    PropagateBackLocalClass(node->operand(), double_class_);
+  }
+  const bool using_temp =
+      (node->info() != NULL) && node->info()->allow_temp();
+  if (!using_temp) {
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
+    const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
+    __ pushl(kOperandRegister);
+    GenerateCall(node->token_index(), &label);
+    ASSERT(kResultRegister == EAX);
+    __ popl(kOperandRegister);
+  } else if (info.is_temp()) {
+    __ movl(kResultRegister, kOperandRegister);
+  } else {
+    const Double& double_object =
+        Double::ZoneHandle(Double::New(0.0, Heap::kOld));
+    __ LoadObject(kResultRegister, double_object);
+  }
   __ movsd(XMM0, FieldAddress(kOperandRegister, Double::value_offset()));
   __ xorps(XMM1, XMM1);  // 0.0 -> XMM1.
+  ASSERT(node->kind() == Token::kSUB);
   __ subsd(XMM1, XMM0);
   __ movsd(FieldAddress(kResultRegister, Double::value_offset()), XMM1);
   if (CodeGenerator::IsResultNeeded(node)) {
     if (node->info() != NULL) {
-      // TODO(srdjan): Enable once we use a temporary object.
-      // node->info()->set_is_temp(true);
+      node->info()->set_is_temp(using_temp);
       node->info()->set_is_class(&double_class_);
     }
     HandleResult(node, kResultRegister);
@@ -1091,7 +1084,8 @@ static bool AreNodesOfSameType(AstNode* a, AstNode* b) {
 }
 
 
-// If possible propagate node type back to the local.
+// If possible propagate node type back to the local, therefore next load
+// of local can use that class and eliminate type checks.
 void OptimizingCodeGenerator::PropagateBackLocalClass(AstNode* node,
                                                       const Class& cls) {
   if (node->IsLoadLocalNode()) {

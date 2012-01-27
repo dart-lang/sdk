@@ -182,7 +182,8 @@ static void CompileFunctionHelper(const Function& function, bool optimized) {
     OS::Print("Variable Descriptors for function '%s' {\n", function_fullname);
     const LocalVarDescriptors& var_descriptors =
         LocalVarDescriptors::Handle(code.var_descriptors());
-    intptr_t var_desc_length = var_descriptors.Length();
+    intptr_t var_desc_length =
+        var_descriptors.IsNull() ? 0 : var_descriptors.Length();
     String& var_name = String::Handle();
     for (intptr_t i = 0; i < var_desc_length; i++) {
       var_name = var_descriptors.GetName(i);

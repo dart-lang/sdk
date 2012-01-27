@@ -182,6 +182,17 @@ class DeoptimizationTest {
     Expect.equals(1 << 3, ShiftRight(mint, 60));
   }
 
+  static doubleUnary() {
+    num unary(num a) { return -a; }
+
+    for (int i = 0; i < 2000; i++) {
+      var r = unary(2.0);
+      Expect.equals(-2.0, r);
+    }
+    var r = unary(5);
+    Expect.equals(-5, r);
+  }
+
   static void testMain() {
     test1();
     test2();
@@ -192,6 +203,7 @@ class DeoptimizationTest {
     SmiBinop.smiBinopOverflowTest();
     ObjectsEquality.objectsEqualityTest();
     smiRightShift();
+    doubleUnary();
   }
 }
 
