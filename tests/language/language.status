@@ -79,6 +79,9 @@ ConstructorDuplicateInitializersTest/02: Fail
 # Issue 1360
 OperatorIndexEvaluationOrderTest: Fail
 
+# Issue 1355
+CallOperatorTest: Fail 
+
 [ ($component == vm || $component == dartium) && $unchecked ]
 
 Prefix16NegativeTest: Fail    # Bug 5532534
@@ -113,6 +116,7 @@ AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
 CTConstTest: Fail            # Bug 4510015.
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+CallOperatorTest: Fail # Issue 1355
 CharEscapeTest: Fail
 ConstInit6NegativeTest: Fail       # Issue 811
 ConstObjectsAreImmutableTest: Fail  # Bug 5202940
@@ -240,6 +244,7 @@ SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 # TypeDartcTest - should pass, need refactoring to get frog safe version
 
 BitOperationsTest: Fail  # relies on big integers not available in JS
+CallOperatorTest: Fail # Issue 1355
 CallThroughGetterTest: Fail
 CharEscapeTest: Fail # relies on 4 byte unicode not available in JS
 ClassOverrideNegativeTest: Fail

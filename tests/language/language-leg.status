@@ -19,6 +19,7 @@ BlackListedTest/07: Fail
 BlackListedTest/09: Fail
 BlockScopeTest: Fail
 BreakTest: Fail
+CallOperatorTest: Fail
 CTConst3Test: Fail
 CTConst4Test: Fail
 CTConstTest: Fail

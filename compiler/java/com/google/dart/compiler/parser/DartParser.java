@@ -127,6 +127,7 @@ public class DartParser extends CompletionHooksParserBase {
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
   private static final String ASSERT_KEYWORD = "assert";
+  private static final String CALL_KEYWORD = "call";
   private static final String EXTENDS_KEYWORD = "extends";
   private static final String FACTORY_KEYWORD = "factory"; // TODO(zundel): remove
   private static final String GETTER_KEYWORD = "get";
@@ -140,9 +141,11 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String STATIC_KEYWORD = "static";
   private static final String TYPEDEF_KEYWORD = "typedef";
 
+
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
     ASSERT_KEYWORD,
+    CALL_KEYWORD,
     EXTENDS_KEYWORD,
     FACTORY_KEYWORD,
     GETTER_KEYWORD,
@@ -843,6 +846,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     | '[' ']' { "[]".equals($text) }?
    *     | '[' ']' '=' { "[]=".equals($text) }?
    *     | NEGATE
+   *     | CALL
    *     ;
    * </pre>
    *
@@ -1097,6 +1101,9 @@ public class DartParser extends CompletionHooksParserBase {
                  && ctx.getTokenString().equals(NEGATE_KEYWORD)) {
         name = done(new DartIdentifier(NEGATE_KEYWORD));
         arity = 0;
+      } else if (operation == Token.IDENTIFIER
+          && ctx.getTokenString().equals(CALL_KEYWORD)) {
+        name = done(new DartIdentifier(CALL_KEYWORD));
       } else {
         reportUnexpectedToken(position(), Token.COMMENT, operation);
         done(null);
