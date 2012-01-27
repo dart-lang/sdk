@@ -326,6 +326,7 @@ StringInterpolationTest/01: Fail
 StringInterpolationTest/none: Fail
 StringJoinTest: Fail
 StringTest: Fail
+SuperAllNamedConstructorTest: Fail
 SuperCallTest: Fail
 SuperFieldTest: Fail
 SuperImplicitClosureTest: Fail

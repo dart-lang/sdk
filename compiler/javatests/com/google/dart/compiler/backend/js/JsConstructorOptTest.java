@@ -12,6 +12,33 @@ import java.io.IOException;
 public class JsConstructorOptTest extends ExprOptTest {
 
   /**
+   * When we call implicit "super" constructor we should be able to use non-default constructor with
+   * all named (i.e. optional) parameters.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=801
+   */
+  public void test_implicitConstructor_defaultValue() throws Exception {
+    String js =
+        compileSingleUnitSource(
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "class SuperClass {",
+                "  SuperClass([name = 'John']) {",
+                "    print(name);",
+                "  }",
+                "}",
+                "class SubClass extends SuperClass {",
+                "  SubClass([name = 'Maria']) {",
+                "    print(name);",
+                "  }",
+                "}",
+                ""),
+            "SubClass");
+    assertTrue(js.contains("Test_app4a54ba$SuperClass$Dart.$Initializer.call(this, 'John');"));
+    assertTrue(js.contains("Test_app4a54ba$SuperClass$Dart.$Constructor.call(this, 'John');"));
+  }
+
+  /**
    * Test javascript object creation and inlining of field in the factory body.
    */
   public void testConstructorOptTest() throws IOException {
