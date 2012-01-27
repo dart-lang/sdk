@@ -185,8 +185,9 @@ TEST_CASE(Debug_InspectObject) {
   intptr_t list_length = 0;
   Dart_Handle retval = Dart_ListLength(fields, &list_length);
   EXPECT_NOT_ERROR(retval);
-  EXPECT_EQ(2 * kNumObjectFields, list_length);
-  printf("Object has %d fields:\n", list_length / 2);
+  int num_fields = list_length / 2;
+  EXPECT_EQ(kNumObjectFields, num_fields);
+  printf("Object has %d fields:\n", num_fields);
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle name_handle = Dart_ListGetAt(fields, i);
     EXPECT_NOT_ERROR(name_handle);
