@@ -1,9 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.ast;
 
+import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 
 /**
@@ -74,6 +75,28 @@ public class DartToSourceVisitorTest extends CompilerTestCase {
           "class c native \"C\" {\n" +
           "}\n" +
           "\n");
+   }
+
+   public void testArrayLiteral() {
+     same(Joiner.on("\n").join(
+         "// unit testcode",
+         "var m = [1, 2, 3];",
+         ""));
+     same(Joiner.on("\n").join(
+         "// unit testcode",
+         "var m = <int>[1, 2, 3];",
+         ""));
+   }
+
+   public void testMapLiteral() {
+     same(Joiner.on("\n").join(
+         "// unit testcode",
+         "var m = {\"a\" : 1, \"b\" : 2, \"c\" : 3};",
+         ""));
+     same(Joiner.on("\n").join(
+         "// unit testcode",
+         "var m = <int>{\"a\" : 1, \"b\" : 2, \"c\" : 3};",
+         ""));
    }
 
    private void same(String sourceCode) {
