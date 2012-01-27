@@ -2277,6 +2277,8 @@ bool OptimizingCodeGenerator::GenerateDoubleComparison(ComparisonNode* node) {
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   CodeGenInfo left_info(node->left());
   CodeGenInfo right_info(node->right());
+  left_info.set_allow_temp(true);
+  right_info.set_allow_temp(true);
   VisitLoadTwo(node->left(), node->right(), EAX, EDX);
   DeoptimizationBlob* deopt_blob = NULL;
   if (!left_info.IsClass(double_class_) || !right_info.IsClass(double_class_)) {
@@ -2370,7 +2372,7 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     }
     // Fall through if condition is not supported.
   } else if (AtIdNodeHasClassAt(node, node->id(), double_class_, 0)) {
-    // Double comparison
+    // Double comparison.
     if (GenerateDoubleComparison(node)) {
       return;
     }
