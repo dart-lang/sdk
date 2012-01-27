@@ -326,10 +326,6 @@ StringInterpolationTest/01: Fail
 StringInterpolationTest/none: Fail
 StringJoinTest: Fail
 StringTest: Fail
-StringUnicode1NegativeTest: Fail
-StringUnicode2NegativeTest: Fail
-StringUnicode3NegativeTest: Fail
-StringUnicode4NegativeTest: Fail
 SuperCallTest: Fail
 SuperFieldTest: Fail
 SuperImplicitClosureTest: Fail
