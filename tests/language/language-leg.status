@@ -146,11 +146,6 @@ IfTest: Fail
 ImplicitClosure1Test: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
-ImplicitThisTest/01: Fail
-ImplicitThisTest/02: Fail
-ImplicitThisTest/03: Fail
-ImplicitThisTest/04: Fail
-ImplicitThisTest/none: Fail
 ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
 IncrOpTest: Fail
@@ -248,7 +243,11 @@ OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
 OverriddenNoSuchMethodTest: Fail
 OverrideFieldMethod1NegativeTest: Fail
+OverrideFieldMethod2NegativeTest: Fail
+OverrideFieldMethod3NegativeTest: Fail
 OverrideFieldMethod4NegativeTest: Fail
+OverrideFieldMethod5NegativeTest: Fail
+OverrideFieldMethod6NegativeTest: Fail
 OverrideFieldTest/02: Fail
 OverrideFieldTest/03: Fail
 OverrideFieldTest/none: Fail
@@ -304,9 +303,6 @@ Script2NegativeTest: Fail
 ScriptNegativeTest: Fail
 Setter0Test: Fail
 Setter1Test: Fail
-Setter3Test/01: Fail
-Setter3Test/02: Fail
-Setter3Test/none: Fail
 SourceSelfNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
