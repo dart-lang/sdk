@@ -30,6 +30,7 @@ DECLARE_FLAG(bool, trace_functions);
 // (name, type, default)
 #define PROPERTY_LIST(V)                                                       \
   V(is_temp, bool, false)                                                      \
+  V(allow_temp, bool, false)                                                   \
   V(true_label, Label*, NULL)                                                  \
   V(false_label, Label*, NULL)                                                 \
   V(labels_used, bool, false)                                                  \
@@ -584,6 +585,7 @@ void OptimizingCodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
     return;
   }
   CodeGenInfo value_info(node->value());
+  value_info.set_allow_temp(true);
   value_info.set_request_result_in_eax(true);
   node->value()->Visit(this);
   if (value_info.is_temp()) {
@@ -880,7 +882,8 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
   __ movsd(FieldAddress(kResultRegister, Double::value_offset()), XMM1);
   if (CodeGenerator::IsResultNeeded(node)) {
     if (node->info() != NULL) {
-      node->info()->set_is_temp(true);
+      // TODO(srdjan): Enable once we use a temporary object.
+      // node->info()->set_is_temp(true);
       node->info()->set_is_class(&double_class_);
     }
     HandleResult(node, kResultRegister);
@@ -1137,10 +1140,14 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
     const Register kTempRegister = EBX;
     CodeGenInfo left_info(node->left());  // Receiver.
     CodeGenInfo right_info(node->right());
+    left_info.set_allow_temp(true);
+    right_info.set_allow_temp(true);
     VisitLoadTwo(node->left(), node->right(), kLeftRegister, kRightRegister);
     // First allocate result object or specify an existing object as result.
     Register result_register = kNoRegister;
-    if (node->info() == NULL) {
+    const bool using_temp =
+        (node->info() != NULL) && node->info()->allow_temp();
+    if (!using_temp) {
       // Parent node cannot handle a temporary double object, allocate one
       // each time.
       result_register = kAllocatedRegister;
@@ -1246,7 +1253,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
     __ movsd(FieldAddress(result_register, Double::value_offset()), XMM0);
     if (CodeGenerator::IsResultNeeded(node)) {
       if (node->info() != NULL) {
-        node->info()->set_is_temp(true);
+        node->info()->set_is_temp(using_temp);
         node->info()->set_is_class(&double_class_);
       }
       HandleResult(node, result_register);
