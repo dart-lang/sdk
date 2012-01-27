@@ -221,6 +221,48 @@ DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Instance& obj = Instance::Handle();
+  UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
+  Array& fields = Array::Handle();
+  fields = isolate->debugger()->GetInstanceFields(obj);
+  return Api::NewLocalHandle(fields);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Class& cls = Class::Handle();
+  UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
+  Array& fields = Array::Handle();
+  fields = isolate->debugger()->GetStaticFields(cls);
+  return Api::NewLocalHandle(fields);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Instance& obj = Instance::Handle();
+  UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
+  const Class& cls = Class::Handle(obj.clazz());
+  return Api::NewLocalHandle(cls);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Class& cls = Class::Handle();
+  UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
+  cls = cls.SuperClass();
+  return Api::NewLocalHandle(cls);
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetScriptSource(
                             Dart_Handle library_url_in,
                             Dart_Handle script_url_in) {

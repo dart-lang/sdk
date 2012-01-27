@@ -144,8 +144,17 @@ class Debugger {
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
 
+  RawArray* GetInstanceFields(const Instance& obj);
+  RawArray* GetStaticFields(const Class& cls);
+
   // Utility functions.
   static const char* QualifiedFunctionName(const Function& func);
+
+  RawObject* GetInstanceField(const Class& cls,
+                              const String& field_name,
+                              const Instance& object);
+  RawObject* GetStaticField(const Class& cls,
+                            const String& field_name);
 
  private:
   Breakpoint* SetBreakpoint(const Function& target_function,
@@ -156,6 +165,7 @@ class Debugger {
   Breakpoint* GetBreakpointByFunction(const Function& func,
                                       intptr_t token_index);
 
+  Isolate* isolate_;
   bool initialized_;
   BreakpointHandler* bp_handler_;
   Breakpoint* breakpoints_;

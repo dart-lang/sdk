@@ -24,6 +24,15 @@ static const bool verbose = false;
   EXPECT(!Dart_IsError(handle));
 
 
+static Dart_Handle Invoke(Dart_Handle lib, const char* func_name) {
+  return  Dart_InvokeStatic(lib,
+                            Dart_NewString(""),
+                            Dart_NewString(func_name),
+                            0,
+                            NULL);
+}
+
+
 void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const char* expected_trace[] = {"A.foo", "main"};
   const intptr_t expected_trace_length = 2;
@@ -73,11 +82,7 @@ TEST_CASE(Debug_Breakpoint) {
   EXPECT_NOT_ERROR(res);
 
   breakpoint_hit = false;
-  Dart_Handle retval = Dart_InvokeStatic(lib,
-                           Dart_NewString(""),
-                           Dart_NewString("main"),
-                           0,
-                           NULL);
+  Dart_Handle retval = Invoke(lib, "main");
   EXPECT(!Dart_IsError(retval));
   EXPECT(breakpoint_hit == true);
 }
@@ -144,13 +149,125 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   // breakpoint is removed by the handler, so we expect the breakpoint
   // to fire twice only.
   breakpoint_hit_counter = 0;
-  Dart_Handle retval = Dart_InvokeStatic(lib,
-                                         Dart_NewString(""),
-                                         Dart_NewString("main"),
-                                         0,
-                                         NULL);
+  Dart_Handle retval = Invoke(lib, "main");
   EXPECT(!Dart_IsError(retval));
   EXPECT(breakpoint_hit_counter == 2);
+}
+
+
+TEST_CASE(Debug_InspectObject) {
+  const char* kScriptChars =
+    " class A { \n"
+    "   int a_field = 'a'; \n"
+    "   static var bla = 'yada yada yada';\n"
+    "   var d = 42.1; \n"
+    " } \n"
+    " class B extends A { \n"
+    "   var oneDay = const Duration(hours: 24); \n"
+    "   static var bla = 'blah blah'; \n"
+    " } \n"
+    " get_b() { return new B(); } \n"
+    " get_int() { return 666; } \n";
+
+  // Number of instance fields in an object of class B.
+  const intptr_t kNumObjectFields = 3;
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_NOT_ERROR(lib);
+
+  Dart_Handle script_url = Dart_NewString(TestCase::url());
+  Dart_Handle line_no = Dart_NewInteger(4);  // In function 'foo'.
+
+  Dart_Handle object_b = Invoke(lib, "get_b");
+
+  EXPECT_NOT_ERROR(object_b);
+
+  Dart_Handle fields = Dart_GetInstanceFields(object_b);
+  EXPECT_NOT_ERROR(fields);
+  EXPECT(Dart_IsList(fields));
+  intptr_t list_length = 0;
+  Dart_Handle retval = Dart_ListLength(fields, &list_length);
+  EXPECT_NOT_ERROR(retval);
+  EXPECT_EQ(2 * kNumObjectFields, list_length);
+  printf("Object has %d fields:\n", list_length / 2);
+  for (int i = 0; i + 1 < list_length; i += 2) {
+    Dart_Handle name_handle = Dart_ListGetAt(fields, i);
+    EXPECT_NOT_ERROR(name_handle);
+    EXPECT(Dart_IsString(name_handle));
+    char const* name;
+    Dart_StringToCString(name_handle, &name);
+    Dart_Handle value_handle = Dart_ListGetAt(fields, i + 1);
+    EXPECT_NOT_ERROR(value_handle);
+    value_handle = Dart_ToString(value_handle);
+    EXPECT_NOT_ERROR(value_handle);
+    EXPECT(Dart_IsString(value_handle));
+    char const* value;
+    Dart_StringToCString(value_handle, &value);
+    printf("  %s: %s\n", name, value);
+  }
+
+  // Check that an integer value returns an empty list of fields.
+  Dart_Handle triple_six = Invoke(lib, "get_int");
+  EXPECT_NOT_ERROR(triple_six);
+  EXPECT(Dart_IsInteger(triple_six));
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(triple_six, &int_value);
+  EXPECT_EQ(666, int_value);
+  fields = Dart_GetInstanceFields(triple_six);
+  EXPECT_NOT_ERROR(fields);
+  EXPECT(Dart_IsList(fields));
+  retval = Dart_ListLength(fields, &list_length);
+  EXPECT_EQ(0, list_length);
+
+  // Check static field of class B (one field named 'bla')
+  Dart_Handle class_B = Dart_GetObjClass(object_b);
+  EXPECT_NOT_ERROR(class_B);
+  EXPECT(!Dart_IsNull(class_B));
+  fields = Dart_GetStaticFields(class_B);
+  EXPECT_NOT_ERROR(fields);
+  EXPECT(Dart_IsList(fields));
+  list_length = 0;
+  retval = Dart_ListLength(fields, &list_length);
+  EXPECT_NOT_ERROR(retval);
+  EXPECT_EQ(2, list_length);
+  Dart_Handle name_handle = Dart_ListGetAt(fields, 0);
+  EXPECT_NOT_ERROR(name_handle);
+  EXPECT(Dart_IsString(name_handle));
+  char const* name;
+  Dart_StringToCString(name_handle, &name);
+  EXPECT_STREQ("bla", name);
+  Dart_Handle value_handle = Dart_ListGetAt(fields, 1);
+  EXPECT_NOT_ERROR(value_handle);
+  value_handle = Dart_ToString(value_handle);
+  EXPECT_NOT_ERROR(value_handle);
+  EXPECT(Dart_IsString(value_handle));
+  char const* value;
+  Dart_StringToCString(value_handle, &value);
+  EXPECT_STREQ("blah blah", value);
+
+  // Check static field of B's superclass (one field named 'bla')
+  Dart_Handle class_A = Dart_GetSuperclass(class_B);
+  EXPECT_NOT_ERROR(class_A);
+  EXPECT(!Dart_IsNull(class_A));
+  fields = Dart_GetStaticFields(class_A);
+  EXPECT_NOT_ERROR(fields);
+  EXPECT(Dart_IsList(fields));
+  list_length = 0;
+  retval = Dart_ListLength(fields, &list_length);
+  EXPECT_NOT_ERROR(retval);
+  EXPECT_EQ(2, list_length);
+  name_handle = Dart_ListGetAt(fields, 0);
+  EXPECT_NOT_ERROR(name_handle);
+  EXPECT(Dart_IsString(name_handle));
+  Dart_StringToCString(name_handle, &name);
+  EXPECT_STREQ("bla", name);
+  value_handle = Dart_ListGetAt(fields, 1);
+  EXPECT_NOT_ERROR(value_handle);
+  value_handle = Dart_ToString(value_handle);
+  EXPECT_NOT_ERROR(value_handle);
+  EXPECT(Dart_IsString(value_handle));
+  Dart_StringToCString(value_handle, &value);
+  EXPECT_STREQ("yada yada yada", value);
 }
 
 

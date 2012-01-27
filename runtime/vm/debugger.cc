@@ -7,8 +7,10 @@
 #include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -225,7 +227,8 @@ void StackTrace::AddActivation(ActivationFrame* frame) {
 
 
 Debugger::Debugger()
-    : initialized_(false),
+    : isolate_(NULL),
+      initialized_(false),
       bp_handler_(NULL),
       breakpoints_(NULL) {
 }
@@ -380,9 +383,7 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
                                           intptr_t line_number) {
   Library& lib = Library::Handle();
   Script& script = Script::Handle();
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  lib = isolate->object_store()->registered_libraries();
+  lib = isolate_->object_store()->registered_libraries();
   while (!lib.IsNull()) {
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
@@ -404,6 +405,107 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     return NULL;
   }
   return SetBreakpoint(func, token_index_at_line);
+}
+
+
+static RawArray* MakeNameValueList(const GrowableArray<Object*>& pairs) {
+  int pairs_len = pairs.length();
+  ASSERT(pairs_len % 2 == 0);
+  const Array& list = Array::Handle(Array::New(pairs_len));
+  for (int i = 0; i < pairs_len; i++) {
+    list.SetAt(i, *pairs[i]);
+  }
+  return list.raw();
+}
+
+
+// TODO(hausner): Merge some of this functionality with the code in
+// dart_api_impl.cc.
+RawObject* Debugger::GetInstanceField(const Class& cls,
+                                      const String& field_name,
+                                      const Instance& object) {
+  const Function& getter_func =
+      Function::Handle(cls.LookupGetterFunction(field_name));
+  ASSERT(!getter_func.IsNull());
+
+  Object& result = Object::Handle();
+  LongJump* base = isolate_->long_jump_base();
+  LongJump jump;
+  isolate_->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    GrowableArray<const Object*> noArguments;
+    const Array& noArgumentNames = Array::Handle();
+    result = DartEntry::InvokeDynamic(object, getter_func,
+                                      noArguments, noArgumentNames);
+  } else {
+    result = isolate_->object_store()->sticky_error();
+  }
+  isolate_->set_long_jump_base(base);
+  return result.raw();
+}
+
+
+RawObject* Debugger::GetStaticField(const Class& cls,
+                                    const String& field_name) {
+  const Function& getter_func =
+      Function::Handle(cls.LookupGetterFunction(field_name));
+  ASSERT(!getter_func.IsNull());
+
+  Object& result = Object::Handle();
+  LongJump* base = isolate_->long_jump_base();
+  LongJump jump;
+  isolate_->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    GrowableArray<const Object*> noArguments;
+    const Array& noArgumentNames = Array::Handle();
+    result = DartEntry::InvokeStatic(getter_func, noArguments, noArgumentNames);
+  } else {
+    result = isolate_->object_store()->sticky_error();
+  }
+  isolate_->set_long_jump_base(base);
+  return result.raw();
+}
+
+
+RawArray* Debugger::GetInstanceFields(const Instance& obj) {
+  Class& cls = Class::Handle(obj.clazz());
+  Array& fields = Array::Handle();
+  Field& field = Field::Handle();
+  GrowableArray<Object*> field_list(8);
+  // Iterate over fields in class hierarchy to count all instance fields.
+  int num_fields = 0;
+  while (!cls.IsNull()) {
+    fields = cls.fields();
+    for (int i = 0; i < fields.Length(); i++) {
+      field ^= fields.At(i);
+      if (!field.is_static()) {
+        String& field_name = String::Handle(field.name());
+        field_list.Add(&field_name);
+        Object& field_value = Object::Handle();
+        field_value = GetInstanceField(cls, field_name, obj);
+        field_list.Add(&field_value);
+      }
+    }
+    cls = cls.SuperClass();
+  }
+  return MakeNameValueList(field_list);
+}
+
+
+RawArray* Debugger::GetStaticFields(const Class& cls) {
+  GrowableArray<Object*> field_list(8);
+  Array& fields = Array::Handle(cls.fields());
+  Field& field = Field::Handle();
+  for (int i = 0; i < fields.Length(); i++) {
+    field ^= fields.At(i);
+    if (field.is_static()) {
+      String& field_name = String::Handle(field.name());
+      Object& field_value = Object::Handle(GetStaticField(cls, field_name));
+      field_list.Add(&field_name);
+      field_list.Add(&field_value);
+    }
+  }
+  return MakeNameValueList(field_list);
 }
 
 
@@ -476,6 +578,7 @@ void Debugger::Initialize(Isolate* isolate) {
   if (initialized_) {
     return;
   }
+  isolate_ = isolate;
   initialized_ = true;
   SetBreakpointHandler(DefaultBreakpointHandler);
 }

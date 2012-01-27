@@ -158,4 +158,54 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
                             intptr_t* line_number);
 
 
+/**
+ * Returns the class of the given \object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the class object.
+ */
+DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object);
+
+
+/**
+ * Returns the superclass of the given class \cls.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the class object.
+ */
+DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls);
+
+
+/**
+ * Returns an array containing all instance field names and values of
+ * the given \object.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to an array containing field names and
+ * corresponding field values. The array is empty if the object has
+ * no fields. If non-empty, field names are at array offsets 2*n,
+ * values at offset 2*n+1. Field values may also be a handle to an
+ * error object if an error was encountered evaluating the field.
+ */
+DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object);
+
+
+/**
+ * Returns an array containing all static field names and values of
+ * the given class \cls.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to an array containing field names and
+ * corresponding field values. The array is empty if the class has
+ * no static fields. If non-empty, field names are at array offsets 2*n,
+ * values at offset 2*n+1. Field values may also be a handle to an
+ * error object if an error was encountered evaluating the field.
+ */
+DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls);
+
+
 #endif  // INCLUDE_DART_DEBUGGER_API_H_
