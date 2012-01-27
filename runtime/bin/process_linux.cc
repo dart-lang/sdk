@@ -100,15 +100,21 @@ void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
       exit_code = WTERMSIG(status);
       negative = 1;
     }
+    // Lookup the process and extract all needed information from
+    // it. The WriteToBlocking call below can cause the deletion of
+    // the process object (because this signal handler can be running
+    // on an arbitrary thread, not just the main thread) so we cannot
+    // touch it after that call.
     ProcessInfo* process = LookupProcess(pid);
+    intptr_t exit_code_fd = process->fd();
     if (process != NULL) {
       int message[3] = { pid, exit_code, negative };
       intptr_t result =
-          FDUtils::WriteToBlocking(process->fd(), &message, sizeof(message));
+          FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
       if (result != sizeof(message) && errno != EPIPE) {
         perror("ExitHandler notification failed");
       }
-      TEMP_FAILURE_RETRY(close(process->fd()));
+      TEMP_FAILURE_RETRY(close(exit_code_fd));
     }
   }
   errno = entry_errno;

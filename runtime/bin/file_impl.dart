@@ -690,7 +690,7 @@ class _RandomAccessFile implements RandomAccessFile {
   void close() {
     _asyncUsed = true;
     var handler = (_closeHandler != null) ? _closeHandler : () => null;
-    var handleOpenResult = (result, ignored) {
+    var handleCloseResult = (result, ignored) {
       if (result != -1) {
         _id = result;
         handler();
@@ -699,7 +699,7 @@ class _RandomAccessFile implements RandomAccessFile {
       }
     };
     var operation = new _CloseOperation(_id);
-    _scheduler.enqueue(operation, handleOpenResult);
+    _scheduler.enqueue(operation, handleCloseResult);
   }
 
   void closeSync() {
