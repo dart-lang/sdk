@@ -336,9 +336,7 @@ NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
 
-# Issue 1352
-StringEscape3NegativeTest: Fail
-StringEscape4NegativeTest: Fail
+StringEscape4NegativeTest: Fail # Issue 1352
 
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
@@ -391,6 +389,7 @@ SyntaxTest/29: Fail # Issue 1109
 SyntaxTest/31: Fail # Issue 1109
 SyntaxTest/32: Fail # Issue 1109
 SyntaxTest/33: Fail # Issue 1109
+StringEscape3NegativeTest: Fail # Issue 1352
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
