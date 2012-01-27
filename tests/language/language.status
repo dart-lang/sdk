@@ -62,7 +62,7 @@ NamedParameters4Test: Fail
 UnaryPlusNegativeTest: Fail # Issue 1229
 
 # Issue 1350.
-StringEscape1NegativeTest: Skip
+StringEscape1NegativeTest: Fail
 StringEscape4NegativeTest: Fail
 
 
@@ -208,6 +208,7 @@ StringEscape4NegativeTest: Fail
 # TODO: These need to be retriaged.
 RichardsTest: Fail
 TypedMessageTest: Fail # Bug 5246195
+StringEscape1NegativeTest: Skip
 
 
 [ $component == frog ]
