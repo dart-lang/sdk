@@ -470,14 +470,15 @@ class StandardTestSuite implements TestSuite {
       String executable = getFilename(dumpRenderTreeFilename);
       List<String> args;
       if (component == 'webdriver') {
-        executable = '$dartDir/tools/testing/run_selenium.py';
+        executable = 'python';
         if (new Platform().operatingSystem() == 'windows') {
           // For Windows, the first command, must have the Windows 
           // slash direction.
           // TODO(efortuna): Get rid of this hack when issue 1306 is fixed.
           executable = executable.replaceAll('/', '\\');
         }
-        args = ['--out=$htmlPath', '--browser=${configuration["browser"]}'];
+        args = ['$dartDir/tools/testing/run_selenium.py', '--out=$htmlPath', 
+            '--browser=${configuration["browser"]}'];
       } else {
         args = ['--no-timeout'];
         if (component == 'dartium') {
@@ -899,35 +900,43 @@ class JUnitTestSuite implements TestSuite {
 
 
 class TestUtils {
-  static String get executableSuffix() =>
-      (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
+  static String executableSuffix(String component) {
+    if (new Platform().operatingSystem() == 'windows') {
+      if (component != 'frogium' && component != 'webdriver') {
+        return '.exe';
+      } else {
+        return '.bat';
+      }
+    }
+    return '';
+  }
 
   static String executableName(Map configuration) {
-    String postfix = executableSuffix;
+    String suffix = executableSuffix(configuration['component']);
     switch (configuration['component']) {
       case 'vm':
-        return 'dart$postfix';
+        return 'dart$suffix';
       case 'dartc':
-        return 'compiler/bin/dartc_test$postfix';
+        return 'compiler/bin/dartc_test$suffix';
       case 'frog':
       case 'leg':
-          return 'frog/bin/frog$postfix';
+          return 'frog/bin/frog$suffix';
       case 'frogsh':
-        return 'frog/bin/frogsh';
+        return 'frog/bin/frogsh$suffix';
       default:
         throw "Unknown executable for: ${configuration['component']}";
     }
   }
 
   static String compilerName(Map configuration) {
-    String postfix = executableSuffix;
+    String suffix = executableSuffix(configuration['component']);
     switch (configuration['component']) {
       case 'chromium':
       case 'dartc':
-        return 'compiler/bin/dartc$postfix';
+        return 'compiler/bin/dartc$suffix';
       case 'frogium':
       case 'webdriver':
-        return 'frog/bin/frogsh';
+        return 'frog/bin/frogsh$suffix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
     }
