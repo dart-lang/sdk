@@ -76,6 +76,9 @@ StringEscape4NegativeTest: Fail
 ConstructorDuplicateInitializersTest/01: Fail
 ConstructorDuplicateInitializersTest/02: Fail
 
+# Issue 1360
+OperatorIndexEvaluationOrderTest: Fail
+
 [ ($component == vm || $component == dartium) && $unchecked ]
 
 Prefix16NegativeTest: Fail    # Bug 5532534

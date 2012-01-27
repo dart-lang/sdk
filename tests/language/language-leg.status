@@ -37,7 +37,6 @@ ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
 ClosuresWithComplexParamsTest: Fail
-CompoundAssignmentOperatorTest: Fail
 ConstEscapeFrogTest: Fail
 ConstFieldNegativeTest: Fail
 ConstInit4NegativeTest: Fail
@@ -236,8 +235,6 @@ NumberSyntaxTest: Fail
 NumbersTest: Fail
 ObjectDynamicMethodTest: Fail
 Operator1NegativeTest: Fail
-Operator2Test: Fail
-OperatorTest: Fail
 OptimizationTest: Fail
 OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
