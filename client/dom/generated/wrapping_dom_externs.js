@@ -1035,7 +1035,7 @@ dom_externs.onwriteend;                 // attribute FileWriter.onwriteend
 dom_externs.onwritestart;               // attribute FileWriter.onwritestart
 dom_externs.open;                       // operation DOMWindow.open, attribute HTMLDetailsElement.open, operation HTMLDocument.open, operation IDBFactory.open, operation XMLHttpRequest.open
 dom_externs.openCursor;                 // operation IDBIndex.openCursor, operation IDBObjectStore.openCursor
-dom_externs.openDatabase;               // operation WorkerContext.openDatabase
+dom_externs.openDatabase;               // operation DOMWindow.openDatabase, operation WorkerContext.openDatabase
 dom_externs.openDatabaseSync;           // operation WorkerContext.openDatabaseSync
 dom_externs.openKeyCursor;              // operation IDBIndex.openKeyCursor
 dom_externs.opener;                     // attribute DOMWindow.opener

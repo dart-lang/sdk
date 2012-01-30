@@ -1493,6 +1493,8 @@ class DOMWindowJs extends DOMTypeJs implements DOMWindow native "@*DOMWindow" {
 
   DOMWindowJs open(String url, String name, [String options = null]) native;
 
+  DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+
   void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
@@ -14730,6 +14732,8 @@ interface Window extends EventTarget {
   void moveTo(num x, num y);
 
   DOMWindow open(String url, String name, [String options]);
+
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
   void postMessage(String message, String targetOrigin, [List messagePorts]);
 

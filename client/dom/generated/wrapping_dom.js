@@ -4486,6 +4486,22 @@ function native__DOMWindowWrappingImplementation__open_2(_this, url, name, optio
   }
 }
 
+function native__DOMWindowWrappingImplementation__openDatabase(_this, name, version, displayName, estimatedSize) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DOMWindowWrappingImplementation__openDatabase_2(_this, name, version, displayName, estimatedSize, creationCallback) {
+  try {
+    return __dom_wrap(_this.$dom.openDatabase(__dom_unwrap(name), __dom_unwrap(version), __dom_unwrap(displayName), __dom_unwrap(estimatedSize), __dom_unwrap(creationCallback)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMWindowWrappingImplementation__postMessage(_this, message, targetOrigin) {
   try {
     return __dom_wrap(_this.$dom.postMessage(__dom_unwrap(message), __dom_unwrap(targetOrigin)));
