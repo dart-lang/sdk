@@ -9,7 +9,6 @@ samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
 dom/IsolateLightTest: Skip
-samples/total/total_tests: Skip # Cannot find due to recent migrations.
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
@@ -21,7 +20,6 @@ samples/dartcombat/dartcombat_tests: Skip # Issue 1218
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
-samples/total/total_tests: Skip # Issue 867.
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]
 samples/swarm/swarm_tests: Fail
