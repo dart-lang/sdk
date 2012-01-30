@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1359,5 +1359,42 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 // dynamically generated code.
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
+
+// --- Message encoding/decoding ----
+
+/**
+ * A Dart_CObject is used for representing Dart objects as native C
+ * data outside the Dart heap. These objects are totally detached from
+ * the Dart heap. Only a subset of the Dart objects have a
+ * representation as a Dart_CObject.
+ */
+struct Dart_CObject {
+  enum Type {
+    kNull,
+    kBool,
+    kInt32,
+    kDouble,
+    kString,
+    kArray
+  };
+  Type type;
+  union {
+    bool as_bool;
+    int32_t as_int32;
+    double as_double;
+    char* as_string;
+    struct {
+      int length;
+      Dart_CObject** values;
+    } as_array;
+  } value;
+};
+
+/**
+ * A Dart_CMessage is used for encoding and decoding messages from native code.
+ */
+struct Dart_CMessage {
+  Dart_CObject** message;
+};
 
 #endif  // INCLUDE_DART_API_H_

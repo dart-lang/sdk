@@ -17,17 +17,6 @@ namespace dart {
   ((kind == Snapshot::kFull) ? reader->New##type(len) : type::New(len))
 
 
-static RawSmi* AsSmi(intptr_t value) {
-  ASSERT((value & kSmiTagMask) == 0);
-  return reinterpret_cast<RawSmi*>(value);
-}
-
-
-static intptr_t GetSmiValue(intptr_t value) {
-  return Smi::Value(AsSmi(value));
-}
-
-
 static uword ZoneAllocator(intptr_t size) {
   Zone* zone = Isolate::Current()->current_zone();
   return zone->Allocate(size);
@@ -357,7 +346,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
 
   TypeArguments& type_arguments = TypeArguments::ZoneHandle(
       reader->isolate(), NEW_OBJECT_WITH_LEN(TypeArguments, len));
@@ -585,7 +574,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
 
   // Read the length so that we can determine number of tokens to read.
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
 
   // Create the token stream object.
   TokenStream& token_stream = TokenStream::ZoneHandle(
@@ -597,8 +586,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
 
   // Read the token stream into the TokenStream.
   for (intptr_t i = 0; i < len; i++) {
-    Token::Kind kind = static_cast<Token::Kind>(
-        GetSmiValue(reader->ReadIntptrValue()));
+    Token::Kind kind = static_cast<Token::Kind>(reader->ReadSmiValue());
     *reader->StringHandle() ^= reader->ReadObject();
     token_stream.SetTokenAt(i, kind, *reader->StringHandle());
   }
@@ -1280,8 +1268,8 @@ RawOneByteString* OneByteString::ReadFrom(SnapshotReader* reader,
                                           Snapshot::Kind kind) {
   // Read the length so that we can determine instance size to allocate.
   ASSERT(reader != NULL);
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
-  intptr_t hash = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
+  intptr_t hash = reader->ReadSmiValue();
   OneByteString& str_obj = OneByteString::ZoneHandle(reader->isolate(),
                                                      OneByteString::null());
 
@@ -1312,8 +1300,8 @@ RawTwoByteString* TwoByteString::ReadFrom(SnapshotReader* reader,
                                           Snapshot::Kind kind) {
   // Read the length so that we can determine instance size to allocate.
   ASSERT(reader != NULL);
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
-  intptr_t hash = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
+  intptr_t hash = reader->ReadSmiValue();
   TwoByteString& str_obj = TwoByteString::ZoneHandle(reader->isolate(),
                                                      TwoByteString::null());
 
@@ -1343,8 +1331,8 @@ RawFourByteString* FourByteString::ReadFrom(SnapshotReader* reader,
                                             Snapshot::Kind kind) {
   // Read the length so that we can determine instance size to allocate.
   ASSERT(reader != NULL);
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
-  intptr_t hash = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
+  intptr_t hash = reader->ReadSmiValue();
   FourByteString& str_obj = FourByteString::ZoneHandle(reader->isolate(),
                                                        FourByteString::null());
 
@@ -1559,7 +1547,7 @@ RawArray* Array::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
   Array& array = Array::ZoneHandle(reader->isolate(),
                                    NEW_OBJECT_WITH_LEN(Array, len));
   reader->AddBackwardReference(object_id, &array);
@@ -1575,7 +1563,7 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
   ImmutableArray& array = ImmutableArray::ZoneHandle(
       reader->isolate(), NEW_OBJECT_WITH_LEN(ImmutableArray, len));
   reader->AddBackwardReference(object_id, &array);
@@ -1658,7 +1646,7 @@ RawInternalByteArray* InternalByteArray::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   // Read the length so that we can determine instance size to allocate.
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
   Heap::Space space = (kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew;
   InternalByteArray& result =
       InternalByteArray::ZoneHandle(reader->isolate(),
@@ -1785,7 +1773,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   ASSERT(kind == Snapshot::kMessage);
 
   // Read the length so that we can determine instance size to allocate.
-  intptr_t len = GetSmiValue(reader->ReadIntptrValue());
+  intptr_t len = reader->ReadSmiValue();
 
   // Allocate JSRegExp object.
   JSRegExp& regex = JSRegExp::ZoneHandle(
@@ -1797,7 +1785,7 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
   regex.set_tags(tags);
 
   // Read and Set all the other fields.
-  regex.raw_ptr()->num_bracket_expressions_ = AsSmi(reader->ReadIntptrValue());
+  regex.raw_ptr()->num_bracket_expressions_ = reader->ReadAsSmi();
   *reader->StringHandle() ^= reader->ReadObject();
   regex.raw_ptr()->pattern_ = (*reader->StringHandle()).raw();
   regex.raw_ptr()->type_ = reader->ReadIntptrValue();

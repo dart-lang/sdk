@@ -55,8 +55,20 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
 }
 
 
+RawSmi* BaseReader::ReadAsSmi() {
+  intptr_t value = ReadIntptrValue();
+  ASSERT((value & kSmiTagMask) == 0);
+  return reinterpret_cast<RawSmi*>(value);
+}
+
+
+intptr_t BaseReader::ReadSmiValue() {
+  return  Smi::Value(ReadAsSmi());
+}
+
+
 SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
-    : stream_(snapshot->content(), snapshot->length()),
+    : BaseReader(snapshot->content(), snapshot->length()),
       kind_(snapshot->kind()),
       isolate_(isolate),
       cls_(Class::Handle()),
@@ -422,6 +434,192 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     obj_.SetCreatedFromSnapshot();
   }
   return obj_.raw();
+}
+
+
+CMessageReader::CMessageReader(const uint8_t* buffer,
+                               intptr_t length,
+                               ReAlloc alloc)
+    : BaseReader(buffer, length), alloc_(alloc) {
+}
+
+
+intptr_t CMessageReader::LookupInternalClass(intptr_t class_header) {
+  SerializedHeaderType header_type = SerializedHeaderTag::decode(class_header);
+  ASSERT(header_type == kObjectId);
+  intptr_t header_value = SerializedHeaderData::decode(class_header);
+  return header_value;
+}
+
+
+Dart_CObject* CMessageReader::AllocateDartValue(Dart_CObject::Type type) {
+  Dart_CObject* value =
+      reinterpret_cast<Dart_CObject*>(
+          alloc_(NULL, 0, sizeof(Dart_CObject)));
+  value->type = type;
+  return value;
+}
+
+
+Dart_CObject* CMessageReader::AllocateDartValueNull() {
+  return AllocateDartValue(Dart_CObject::kNull);
+}
+
+
+Dart_CObject* CMessageReader::AllocateDartValueBool(bool val) {
+  Dart_CObject* value = AllocateDartValue(Dart_CObject::kBool);
+  value->value.as_bool = val;
+  return value;
+}
+
+
+Dart_CObject* CMessageReader::AllocateDartValueInt32(int32_t val) {
+  Dart_CObject* value = AllocateDartValue(Dart_CObject::kInt32);
+  value->value.as_int32 = val;
+  return value;
+}
+
+
+Dart_CObject* CMessageReader::AllocateDartValueDouble(double val) {
+  Dart_CObject* value = AllocateDartValue(Dart_CObject::kDouble);
+  value->value.as_double = val;
+  return value;
+}
+
+
+Dart_CObject* CMessageReader::AllocateDartValueString(intptr_t length) {
+  // Allocate a Dart_CObject structure followed by an array of chars
+  // for the string content. The pointer to the string content is set
+  // up to this area.
+  Dart_CObject* value =
+      reinterpret_cast<Dart_CObject*>(
+          alloc_(NULL, 0, sizeof(Dart_CObject) + length + 1));
+  value->value.as_string = reinterpret_cast<char*>(value) + sizeof(*value);
+  value->type = Dart_CObject::kString;
+  return value;
+}
+
+
+Dart_CObject* CMessageReader::AllocateDartValueArray(intptr_t length) {
+  // Allocate a Dart_CObject structure followed by an array of
+  // pointers to Dart_CObject structures. The pointer to the array
+  // content is set up to this area.
+  Dart_CObject* value =
+      reinterpret_cast<Dart_CObject*>(
+          alloc_(NULL, 0, sizeof(Dart_CObject) + length * sizeof(value)));
+  value->type = Dart_CObject::kArray;
+  value->value.as_array.length = length;
+  if (length > 0) {
+    value->value.as_array.values = reinterpret_cast<Dart_CObject**>(value + 1);
+  } else {
+    value->value.as_array.values = NULL;
+  }
+  return value;
+}
+
+
+Dart_CObject* CMessageReader::ReadInlinedObject(intptr_t object_id) {
+  // Read the class header information and lookup the class.
+  intptr_t class_header = ReadIntptrValue();
+  intptr_t tags = ReadIntptrValue();
+  USE(tags);
+  intptr_t class_id;
+
+  // Reading of regular dart instances is not supported.
+  if (SerializedHeaderData::decode(class_header) == kInstanceId) {
+    return NULL;
+  }
+
+  ASSERT((class_header & kSmiTagMask) != 0);
+  class_id = LookupInternalClass(class_header);
+  switch (class_id) {
+    case Object::kClassClass: {
+      return NULL;
+    }
+    case ObjectStore::kArrayClass: {
+      intptr_t len = ReadSmiValue();
+      // Skip type arguments.
+      Dart_CObject* type_arguments = ReadObject();
+      if (type_arguments == NULL ||
+          type_arguments->type != Dart_CObject::kNull) {
+        return NULL;
+      }
+      Dart_CObject* value = AllocateDartValueArray(len);
+      for (int i = 0; i < len; i++) {
+        value->value.as_array.values[i] = ReadObject();
+      }
+      return value;
+      break;
+    }
+    case ObjectStore::kDoubleClass: {
+      // Read the double value for the object.
+      return AllocateDartValueDouble(Read<double>());
+      break;
+    }
+    case ObjectStore::kOneByteStringClass: {
+      intptr_t len = ReadSmiValue();
+      intptr_t hash = ReadSmiValue();
+      USE(hash);
+      Dart_CObject* value = AllocateDartValueString(len);
+      char* p = value->value.as_string;
+      for (intptr_t i = 0; i < len; i++) {
+        *p = Read<uint8_t>();
+        p++;
+      }
+      *p = '\0';
+      return value;
+      break;
+    }
+    case ObjectStore::kTwoByteStringClass:
+      // Two byte strings not supported.
+      return NULL;
+      break;
+    case ObjectStore::kFourByteStringClass:
+      // Four byte strings not supported.
+      return NULL;
+      break;
+    default:
+      // Everything else not supported.
+      return NULL;
+  }
+}
+
+
+Dart_CObject* CMessageReader::ReadIndexedObject(intptr_t object_id) {
+  if (object_id == Object::kNullObject) {
+    return AllocateDartValueNull();
+  } else if (object_id == ObjectStore::kTrueValue) {
+    return AllocateDartValueBool(true);
+  } else if (object_id == ObjectStore::kFalseValue) {
+    return AllocateDartValueBool(false);
+  } else {
+    // TODO(sgjesse): Handle back-references.
+    UNREACHABLE();
+  }
+  return NULL;
+}
+
+
+Dart_CObject* CMessageReader::ReadObjectImpl(intptr_t header) {
+  SerializedHeaderType header_type = SerializedHeaderTag::decode(header);
+  intptr_t header_value = SerializedHeaderData::decode(header);
+
+  if (header_type == kObjectId) {
+    return ReadIndexedObject(header_value);
+  }
+  ASSERT(header_type == kInlined);
+  return ReadInlinedObject(header_value);
+}
+
+
+Dart_CObject* CMessageReader::ReadObject() {
+  int64_t value = Read<int64_t>();
+  if ((value & kSmiTagMask) == 0) {
+    Dart_CObject* dart_value = AllocateDartValueInt32(value >> kSmiTagShift);
+    return dart_value;
+  }
+  ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
+  return ReadObjectImpl(value);
 }
 
 

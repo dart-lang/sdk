@@ -5,6 +5,8 @@
 #include "platform/assert.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
+#include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"
 #include "vm/snapshot.h"
 #include "vm/unit_test.h"
 
@@ -55,6 +57,14 @@ TEST_CASE(SerializeNull) {
   SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(null_object, serialized_object));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                        writer.BytesWritten(),
+                        &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kNull, cobject->type);
+  free(cobject);
 }
 
 
@@ -73,6 +83,15 @@ TEST_CASE(SerializeSmi1) {
   SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kInt32, cobject->type);
+  EXPECT_EQ(smi.Value(), cobject->value.as_int32);
+  free(cobject);
 }
 
 
@@ -91,6 +110,15 @@ TEST_CASE(SerializeSmi2) {
   SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(smi, serialized_object));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kInt32, cobject->type);
+  EXPECT_EQ(smi.Value(), cobject->value.as_int32);
+  free(cobject);
 }
 
 
@@ -109,6 +137,15 @@ TEST_CASE(SerializeDouble) {
   SnapshotReader reader(snapshot, Isolate::Current());
   const Object& serialized_object = Object::Handle(reader.ReadObject());
   EXPECT(Equals(dbl, serialized_object));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kDouble, cobject->type);
+  EXPECT_EQ(dbl.value(), cobject->value.as_double);
+  free(cobject);
 }
 
 
@@ -129,6 +166,19 @@ TEST_CASE(SerializeBool) {
   SnapshotReader reader(snapshot, Isolate::Current());
   EXPECT(Bool::True() == reader.ReadObject());
   EXPECT(Bool::False() == reader.ReadObject());
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject1 = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kBool, cobject1->type);
+  EXPECT_EQ(true, cobject1->value.as_bool);
+  Dart_CObject* cobject2 = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kBool, cobject2->type);
+  EXPECT_EQ(false, cobject2->value.as_bool);
+  free(cobject1);
+  free(cobject2);
 }
 
 
@@ -149,6 +199,14 @@ TEST_CASE(SerializeBigint) {
   obj ^= reader.ReadObject();
   OS::Print("%lld", BigintOperations::ToInt64(obj));
   EXPECT_EQ(BigintOperations::ToInt64(bigint), BigintOperations::ToInt64(obj));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  // Bigint not supported.
+  EXPECT(cobject == NULL);
 }
 
 
@@ -208,7 +266,8 @@ TEST_CASE(SerializeString) {
   // Write snapshot with object content.
   uint8_t* buffer;
   SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
-  String& str = String::Handle(String::New("This string shall be serialized"));
+  static const char* cstr = "This string shall be serialized";
+  String& str = String::Handle(String::New(cstr));
   writer.WriteObject(str.raw());
   writer.FinalizeBuffer();
 
@@ -220,6 +279,15 @@ TEST_CASE(SerializeString) {
   String& serialized_str = String::Handle();
   serialized_str ^= reader.ReadObject();
   EXPECT(str.Equals(serialized_str));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kString, cobject->type);
+  EXPECT_STREQ(cstr, cobject->value.as_string);
+  free(cobject);
 }
 
 
@@ -245,6 +313,51 @@ TEST_CASE(SerializeArray) {
   Array& serialized_array = Array::Handle();
   serialized_array ^= reader.ReadObject();
   EXPECT(array.Equals(serialized_array));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kArray, cobject->type);
+  EXPECT_EQ(kArrayLength, cobject->value.as_array.length);
+  for (int i = 0; i < kArrayLength; i++) {
+    Dart_CObject* element = cobject->value.as_array.values[i];
+    EXPECT_EQ(Dart_CObject::kInt32, element->type);
+    EXPECT_EQ(i, element->value.as_int32);
+    free(element);
+  }
+  free(cobject);
+}
+
+
+TEST_CASE(SerializeEmptyArray) {
+  // Write snapshot with object content.
+  uint8_t* buffer;
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
+  const int kArrayLength = 0;
+  Array& array = Array::Handle(Array::New(kArrayLength));
+  writer.WriteObject(array.raw());
+  writer.FinalizeBuffer();
+
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  Array& serialized_array = Array::Handle();
+  serialized_array ^= reader.ReadObject();
+  EXPECT(array.Equals(serialized_array));
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kArray, cobject->type);
+  EXPECT_EQ(kArrayLength, cobject->value.as_array.length);
+  EXPECT(cobject->value.as_array.values == NULL);
+  free(cobject);
 }
 
 
@@ -522,6 +635,133 @@ UNIT_TEST_CASE(ScriptSnapshot) {
   Dart_ShutdownIsolate();
   free(full_snapshot);
   free(script_snapshot);
+}
+
+
+TEST_CASE(IntArrayMessage) {
+  uint8_t* buffer = NULL;
+  MessageWriter writer(&buffer, &allocator);
+
+  static const int kArrayLength = 2;
+  intptr_t data[kArrayLength] = {1, 2};
+  int len = kArrayLength;
+  writer.WriteMessage(len, data);
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                         writer.BytesWritten(),
+                         &allocator);
+  Dart_CObject* value = mreader.ReadObject();
+  EXPECT_EQ(Dart_CObject::kArray, value->type);
+  EXPECT_EQ(kArrayLength, value->value.as_array.length);
+  for (int i = 0; i < kArrayLength; i++) {
+    Dart_CObject* element = value->value.as_array.values[i];
+    EXPECT_EQ(Dart_CObject::kInt32, element->type);
+    EXPECT_EQ(i + 1, element->value.as_int32);
+    free(element);
+  }
+  free(value);
+}
+
+
+UNIT_TEST_CASE(DartGeneratedMessages) {
+  const int kArrayLength = 10;
+  static const char* kCustomIsolateScriptChars =
+    "getSmi() {\n"
+    "  return 42;\n"
+    "}\n"
+    "getString() {\n"
+      "  return \"Hello, world!\";\n"
+    "}\n"
+    "getList() {\n"
+    "  return [1,2,3,4,5,6,7,8,9,10];\n"
+    "}\n";
+
+  TestCase::CreateTestIsolate();
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  Dart_EnterScope();
+
+  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars,
+                                             NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle smi_result;
+  smi_result = Dart_InvokeStatic(lib,
+                                 Dart_NewString(""),
+                                 Dart_NewString("getSmi"),
+                                 0,
+                                 NULL);
+  EXPECT_VALID(smi_result);
+  Dart_Handle string_result;
+  string_result = Dart_InvokeStatic(lib,
+                                    Dart_NewString(""),
+                                    Dart_NewString("getString"),
+                                    0,
+                                    NULL);
+  EXPECT_VALID(string_result);
+  EXPECT(Dart_IsString(string_result));
+  Dart_Handle list_result;
+  list_result = Dart_InvokeStatic(lib,
+                                  Dart_NewString(""),
+                                  Dart_NewString("getList"),
+                                  0,
+                                  NULL);
+  EXPECT_VALID(list_result);
+  EXPECT(Dart_IsList(list_result));
+  intptr_t result_len = 0;
+  EXPECT_VALID(Dart_ListLength(list_result, &result_len));
+  EXPECT_EQ(kArrayLength, result_len);
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+
+    {
+      uint8_t* buffer;
+      SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
+      Smi& smi = Smi::Handle();
+      smi ^= Api::UnwrapHandle(smi_result);
+      writer.WriteObject(smi.raw());
+      writer.FinalizeBuffer();
+
+      // Read object back from the snapshot into a C structure.
+      CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                             writer.BytesWritten(),
+                             &allocator);
+      Dart_CObject* value = mreader.ReadObject();
+      EXPECT_EQ(Dart_CObject::kInt32, value->type);
+      EXPECT_EQ(42, value->value.as_int32);
+      free(value);
+      free(buffer);
+    }
+    {
+      uint8_t* buffer;
+      SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
+      String& str = String::Handle();
+      str ^= Api::UnwrapHandle(string_result);
+      writer.WriteObject(str.raw());
+      writer.FinalizeBuffer();
+
+      // Read object back from the snapshot into a C structure.
+      CMessageReader mreader(buffer + Snapshot::kHeaderSize,
+                             writer.BytesWritten(),
+                             &allocator);
+      Dart_CObject* value = mreader.ReadObject();
+      EXPECT_EQ(Dart_CObject::kString, value->type);
+      EXPECT_STREQ("Hello, world!", value->value.as_string);
+      free(value);
+      free(buffer);
+    }
+    {
+      uint8_t* buffer;
+      SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
+      const Object& list = Object::Handle(Api::UnwrapHandle(list_result));
+      writer.WriteObject(list.raw());
+      writer.FinalizeBuffer();
+      // TODO(sgjesse): Make this work!
+      free(buffer);
+    }
+  }
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
 }
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
