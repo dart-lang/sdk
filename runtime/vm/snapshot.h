@@ -194,7 +194,7 @@ class ReadStream : public ValueObject {
 
   // SnapshotReader needs access to the private Raw classes.
   friend class SnapshotReader;
-  friend class CMessageReader;
+  friend class BaseReader;
   DISALLOW_COPY_AND_ASSIGN(ReadStream);
 };
 
