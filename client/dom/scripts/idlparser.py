@@ -355,7 +355,7 @@ class IDLParser(object):
 
     # Extended Attributes:
     def ExtAttrs():
-      return ['[', MANY(ExtAttr, ','), ']']
+      return ['[', MAYBE(MANY(ExtAttr, ',')), ']']
 
     def ExtAttr():
       return [Id, MAYBE(OR(['=', ExtAttrValue], ExtAttrArgList))]
