@@ -561,4 +561,171 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     DartField field = fieldDefinition.getFields().get(0);
     return field.getValue();
   }
+
+  /**
+   * If property has only setter, no getter, then attempt to use getter should cause static type
+   * warning.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1251
+   */
+  public void test_setterOnlyProperty_noGetter() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class SetOnly {",
+                "  set foo(arg) {}",
+                "}",
+                "class SetOnlyWrapper {",
+                "  SetOnly setOnly;",
+                "}",
+                "",
+                "main() {",
+                "  SetOnly setOnly = new SetOnly();",
+                "  setOnly.foo = 1;", // 10: OK, use setter
+                "  setOnly.foo += 2;", // 11: ERR, no getter
+                "  print(setOnly.foo);", // 12: ERR, no getter
+                "  var bar;",
+                "  bar = setOnly.foo;", // 14: ERR, assignment, but we are not LHS
+                "  bar = new SetOnlyWrapper().setOnly.foo;", // 15: ERR, even in chained expression
+                "  new SetOnlyWrapper().setOnly.foo = 3;", // 16: OK
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.FIELD_HAS_NO_GETTER, 11, 11, 3),
+        errEx(TypeErrorCode.FIELD_HAS_NO_GETTER, 12, 17, 3),
+        errEx(TypeErrorCode.FIELD_HAS_NO_GETTER, 14, 17, 3),
+        errEx(TypeErrorCode.FIELD_HAS_NO_GETTER, 15, 38, 3));
+  }
+
+  public void test_setterOnlyProperty_normalField() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class A {",
+                "  var foo;",
+                "}",
+                "",
+                "main() {",
+                "  A a = new A();",
+                "  a.foo = 1;",
+                "  a.foo += 2;",
+                "  print(a.foo);",
+                "}"));
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  public void test_setterOnlyProperty_getterInSuper() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class A {",
+                "  get foo() {}",
+                "}",
+                "class B extends A {",
+                "  set foo(arg) {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  public void test_setterOnlyProperty_getterInInterface() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "interface A {",
+                "  get foo() {}",
+                "}",
+                "class B implements A {",
+                "  set foo(arg) {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  public void test_getterOnlyProperty_noSetter() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class GetOnly {",
+                "  get foo() {}",
+                "}",
+                "class GetOnlyWrapper {",
+                "  GetOnly getOnly;",
+                "}",
+                "",
+                "main() {",
+                "  GetOnly getOnly = new GetOnly();",
+                "  print(getOnly.foo);", // 10: OK, use getter
+                "  getOnly.foo = 1;", // 11: ERR, no setter
+                "  getOnly.foo += 2;", // 12: ERR, no setter
+                "  var bar;",
+                "  bar = getOnly.foo;", // 14: OK, use getter
+                "  new GetOnlyWrapper().getOnly.foo = 3;", // 15: ERR, no setter
+                "  bar = new GetOnlyWrapper().getOnly.foo;", // 16: OK, use getter
+                "}"));
+    assertErrors(
+        libraryResult.getTypeErrors(),
+        errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 11, 11, 3),
+        errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 12, 11, 3),
+        errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 15, 32, 3));
+  }
+
+  public void test_getterOnlyProperty_setterInSuper() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "class A {",
+                "  set foo(arg) {}",
+                "}",
+                "class B extends A {",
+                "  get foo() {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
+    assertErrors(libraryResult.getTypeErrors());
+  }
+
+  public void test_getterOnlyProperty_setterInInterface() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "interface A {",
+                "  set foo(arg) {}",
+                "}",
+                "class B implements A {",
+                "  get foo() {}",
+                "}",
+                "",
+                "main() {",
+                "  B b = new B();",
+                "  b.foo = 1;",
+                "  b.foo += 2;",
+                "  print(b.foo);",
+                "}"));
+    assertErrors(libraryResult.getTypeErrors());
+  }
 }

@@ -7,6 +7,7 @@ package com.google.dart.compiler.type;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -124,6 +125,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * Analyzer of static type information.
  */
 public class TypeAnalyzer implements DartCompilationPhase {
+  private static final ImmutableSet<Token> ASSIGN_OPERATORS =
+      Sets.immutableEnumSet(
+          Token.ASSIGN,
+          Token.ASSIGN_BIT_OR,
+          Token.ASSIGN_BIT_XOR,
+          Token.ASSIGN_BIT_AND,
+          Token.ASSIGN_SHL,
+          Token.ASSIGN_SAR,
+          Token.ASSIGN_ADD,
+          Token.ASSIGN_SUB,
+          Token.ASSIGN_MUL,
+          Token.ASSIGN_DIV,
+          Token.ASSIGN_MOD,
+          Token.ASSIGN_TRUNC);
   private final ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements =
       new ConcurrentHashMap<ClassElement, List<Element>>();
   private final Set<ClassElement> diagnosedAbstractClasses =
@@ -1298,12 +1313,87 @@ public class TypeAnalyzer implements DartCompilationPhase {
                            name, element.getName());
 
         case METHOD:
+          return member.getType();
+
         case FIELD:
+          FieldElement fieldElement = (FieldElement) element;
+          // Check for cases when property has no setter or getter.
+          if (fieldElement.getModifiers().isAbstractField()
+              && fieldElement.getEnclosingElement() instanceof ClassElement) {
+            ClassElement enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
+            // Check for using field without getter in other operation that assignment.
+            if (fieldElement.getGetter() == null && !hasFieldElementGetter(enclosingClass, name)) {
+              if (!(node.getParent() instanceof DartBinaryExpression)
+                  || ((DartBinaryExpression) node.getParent()).getOperator() != Token.ASSIGN
+                  || ((DartBinaryExpression) node.getParent()).getArg1() != node) {
+                return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
+              }
+            }
+            // Check for using field without setter in some assignment variant.
+            if (fieldElement.getSetter() == null && !hasFieldElementSetter(enclosingClass, name)) {
+              if (node.getParent() instanceof DartBinaryExpression) {
+                DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+                if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
+                  return typeError(
+                      node.getName(),
+                      TypeErrorCode.FIELD_HAS_NO_SETTER,
+                      node.getName());
+                }
+              }
+            }
+          }
+          // Return field type.
           return member.getType();
 
         default:
           throw internalError(node.getName(), "unexpected kind %s", element.getKind());
       }
+    }
+
+    /**
+     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
+     *         {@link FieldElement} with getter.
+     */
+    private static boolean hasFieldElementGetter(ClassElement holder, String name) {
+      Element element = holder.lookupLocalElement(name);
+      if (element instanceof FieldElement) {
+        FieldElement fieldElement = (FieldElement) element;
+        if (fieldElement.getGetter() != null) {
+          return true;
+        }
+      }
+      for (InterfaceType interfaceType : holder.getInterfaces()) {
+        if (hasFieldElementGetter(interfaceType.getElement(), name)) {
+          return true;
+        }
+      }
+      if (holder.getSupertype() != null) {
+        return hasFieldElementGetter(holder.getSupertype().getElement(), name);
+      }
+      return false;
+    }
+
+    /**
+     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
+     *         {@link FieldElement} with setter.
+     */
+    private static boolean hasFieldElementSetter(ClassElement holder, String name) {
+      Element element = holder.lookupLocalElement(name);
+      if (element instanceof FieldElement) {
+        FieldElement fieldElement = (FieldElement) element;
+        if (fieldElement.getSetter() != null) {
+          return true;
+        }
+      }
+      for (InterfaceType interfaceType : holder.getInterfaces()) {
+        if (hasFieldElementSetter(interfaceType.getElement(), name)) {
+          return true;
+        }
+      }
+      if (holder.getSupertype() != null) {
+        return hasFieldElementSetter(holder.getSupertype().getElement(), name);
+      }
+      return false;
     }
 
     @Override
