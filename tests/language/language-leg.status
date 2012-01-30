@@ -330,6 +330,7 @@ StringTest: Fail
 SuperAllNamedConstructorTest: Fail
 SuperCallTest: Fail
 SuperFieldTest: Fail
+SuperFirstConstructorTest: Fail
 SuperImplicitClosureTest: Fail
 SuperOperatorTest: Fail
 SuperSetterTest: Fail

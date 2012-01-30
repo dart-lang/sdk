@@ -65,6 +65,7 @@ UnaryPlusNegativeTest: Fail # Issue 1229
 StringEscape1NegativeTest: Fail
 StringEscape4NegativeTest: Fail
 
+SuperFirstConstructorTest: Fail # Issue 1372.
 
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
