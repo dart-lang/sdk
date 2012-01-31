@@ -5,7 +5,6 @@
 prefix client
 
 [ $component == dartium ]
-samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
 dom/IsolateLightTest: Skip
@@ -14,12 +13,10 @@ dom/IsolateLightTest: Skip
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 html/html_tests: Skip  # Doesn't recognize SVGElement constructors
-samples/dartcombat/dartcombat_tests: Skip # Issue 1218
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
-samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 
 [ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
 html/html_tests: Fail
