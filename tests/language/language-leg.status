@@ -66,6 +66,7 @@ ContextArgsWithDefaultsTest: Fail
 ContextTest: Crash # NPE in Types.isSubtype.
 ContinueTest: Fail
 CyclicImportTest: Fail
+CyclicTypeVariableTest: Fail
 DefaultClassImplicitConstructorTest: Fail
 DefaultFactory2Test: Fail
 DefaultFactoryLibraryTest: Fail

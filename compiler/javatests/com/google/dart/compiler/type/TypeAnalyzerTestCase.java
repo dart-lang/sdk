@@ -174,8 +174,8 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     return node;
   }
 
-  protected ClassElement analyzeClass(ClassElement cls, int count) {
-    setExpectedTypeErrorCount(count);
+  protected ClassElement analyzeClass(ClassElement cls, int expectedErrorCount) {
+    setExpectedTypeErrorCount(expectedErrorCount);
     analyzeToplevel(cls.getNode());
     checkExpectedTypeErrorCount(cls.getName());
     return cls;

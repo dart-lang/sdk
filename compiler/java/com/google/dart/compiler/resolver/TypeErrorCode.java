@@ -16,6 +16,8 @@ public enum TypeErrorCode implements ErrorCode {
   CANNOT_BE_RESOLVED("cannot resolve %s"),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
+  CYCLIC_REFERENCE_TO_TYPE_VARIABLE(
+      "Invalid type expression, cyclic reference to type variable '%s'"),
   DEFAULT_CONSTRUCTOR_TYPES(
       "Constructor '%s' in '%s' has parameters types (%s), doesn't match '%s' in '%s' with (%s)"),
   DUPLICATE_NAMED_ARGUMENT("Named parameter argument already provided as positional argument"),

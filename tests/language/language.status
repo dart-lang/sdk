@@ -63,6 +63,14 @@ StringEscape4NegativeTest: Fail
 
 SuperFirstConstructorTest: Fail # Issue 1372.
 
+# Issue 1427
+CyclicTypeVariableTest: Fail
+CyclicTypeVariableTest/01: Fail
+CyclicTypeVariableTest/02: Fail
+CyclicTypeVariableTest/03: Fail
+CyclicTypeVariableTest/04: Fail
+CyclicTypeVariableTest/05: Fail
+
 # DartC or Frog specific tests that should not be run by the VM
 *DartcTest: Skip
 *DartcNegativeTest: Skip
@@ -79,6 +87,7 @@ OperatorIndexEvaluationOrderTest: Fail
 # Issue 1355
 CallOperatorTest: Fail
 
+# Issue 
 [ ($component == vm || $component == dartium) && $unchecked ]
 
 Prefix16NegativeTest: Fail    # Bug 5532534

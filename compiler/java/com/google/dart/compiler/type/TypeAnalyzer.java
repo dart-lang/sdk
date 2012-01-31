@@ -682,6 +682,34 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
+    /* Check for a type variable is repeated in its own bounds:
+     * e.g. Foo<T extends T>
+     */
+    private void checkCyclicBounds(List<? extends Type> arguments) {
+      for (Type argument : arguments) {
+        if (TypeKind.of(argument).equals(TypeKind.VARIABLE)) {
+          TypeVariable typeVar = (TypeVariable) argument;
+          checkCyclicBound(typeVar, typeVar.getTypeVariableElement().getBound());
+        }
+      }
+    }
+
+    private void checkCyclicBound(TypeVariable variable, Type bound) {
+      switch(TypeKind.of(bound)) {
+        case VARIABLE: {
+          TypeVariable boundType = (TypeVariable)bound;
+          if (boundType.equals(variable)) {
+            onError(boundType.getElement().getNode(),
+                    TypeErrorCode.CYCLIC_REFERENCE_TO_TYPE_VARIABLE,
+                    boundType.getElement().getOriginalSymbolName());
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
     /**
      * Returns the type of a node.  If a type of an expression can't be resolved,
      * returns the dynamic type.
@@ -810,6 +838,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitClass(DartClass node) {
       ClassElement element = node.getSymbol();
       InterfaceType type = element.getType();
+      checkCyclicBounds(type.getArguments());
       findUnimplementedMembers(element);
       setCurrentClass(type);
       visit(node.getTypeParameters());
@@ -980,7 +1009,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           typeError(iterableExpression, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
         }
       }
-
       return typeAsVoid(node);
     }
 
@@ -1013,6 +1041,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      if (TypeKind.of(node.getSymbol().getType()).equals(TypeKind.FUNCTION_ALIAS)) {
+        FunctionAliasType type = node.getSymbol().getType();
+        checkCyclicBounds(type.getElement().getTypeParameters());
+      }
       return typeAsVoid(node);
     }
 
