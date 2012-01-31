@@ -325,6 +325,7 @@ StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
+TopLevelPrefixedDeclarationTest: Fail
 TryCatch9NegativeTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
@@ -371,7 +372,7 @@ ExecuteFinally6Test: Skip
 NamingTest: Fail
 StackOverflowTest: Fail
 ToStringAsFixedTest: Fail
-ExecuteFinally7Test: Skip 
+ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
 
 [ $component == webdriver && ($browser == ff || $browser == safari) ]

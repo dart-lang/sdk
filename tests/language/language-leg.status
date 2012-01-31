@@ -355,6 +355,7 @@ TopLevelGetterArrowSyntaxTest: Fail
 TopLevelInInitializerTest: Fail
 TopLevelMultipleFilesTest: Fail
 TopLevelNonPrefixedLibraryTest: Fail
+TopLevelPrefixedDeclarationTest: Fail
 TopLevelVarTest: Fail
 ToplevelCollision2Test/none: Fail
 TryCatch2Test: Fail
