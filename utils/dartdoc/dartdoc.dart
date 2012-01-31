@@ -24,8 +24,10 @@
 #import('markdown.dart', prefix: 'md');
 
 #source('comment_map.dart');
-#source('files.dart');
 #source('utils.dart');
+
+/** Path to generate HTML files into. */
+final _outdir = 'docs';
 
 /**
  * Generates completely static HTML containing everything you need to browse
@@ -133,6 +135,12 @@ class Dartdoc {
   /** The member that we're currently generating docs for. */
   Member _currentMember;
 
+  /** The path to the file currently being written to, relative to [outdir]. */
+  String _filePath;
+
+  /** The file currently being written to. */
+  StringBuffer _file;
+
   int _totalLibraries = 0;
   int _totalTypes = 0;
   int _totalMembers = 0;
@@ -197,6 +205,29 @@ class Dartdoc {
     } finally {
       options.dietParse = oldDietParse;
     }
+  }
+
+  startFile(String path) {
+    _filePath = path;
+    _file = new StringBuffer();
+  }
+
+  endFile() {
+    String outPath = '$_outdir/$_filePath';
+    world.files.createDirectory(dirname(outPath), recursive: true);
+
+    world.files.writeString(outPath, _file.toString());
+    _filePath = null;
+    _file = null;
+  }
+
+  write(String s) {
+    _file.add(s);
+  }
+
+  writeln(String s) {
+    write(s);
+    write('\n');
   }
 
   /**
@@ -490,8 +521,14 @@ class Dartdoc {
     docConstructors(type);
     docMembers(type);
 
+    writeTypeFooter();
     writeFooter();
     endFile();
+  }
+
+  /** Override this to write additional content at the end of a type's page. */
+  void writeTypeFooter() {
+    // Do nothing.
   }
 
   /**
@@ -706,6 +743,8 @@ class Dartdoc {
     } else if (name == ':negate') {
       // Dart uses 'negate' for prefix negate operators, not '!'.
       name = 'operator negate';
+    } else if (name == ':call') {
+      name = 'operator call';
     } else {
       // See if it's an operator.
       name = TokenKind.rawOperatorFromMethod(name);
@@ -805,7 +844,7 @@ class Dartdoc {
   docCode(SourceSpan span, String comment, [bool showCode = false]) {
     writeln('<div class="doc">');
     if (comment != null) {
-      writeln(md.markdownToHtml(comment));
+      writeln(comment);
     }
 
     if (includeSource && showCode) {
@@ -818,21 +857,79 @@ class Dartdoc {
   }
 
   /** Get the doc comment associated with the given type. */
-  String getTypeComment(Type type) => _comments.find(type.span);
+  String getTypeComment(Type type) {
+    String comment = _comments.find(type.span);
+    if (comment == null) return null;
+    return md.markdownToHtml(comment);
+  }
 
   /** Get the doc comment associated with the given method. */
-  String getMethodComment(MethodMember method) => _comments.find(method.span);
+  String getMethodComment(MethodMember method) {
+    String comment = _comments.find(method.span);
+    if (comment == null) return null;
+    return md.markdownToHtml(comment);
+  }
 
   /** Get the doc comment associated with the given field. */
-  String getFieldComment(FieldMember field) => _comments.find(field.span);
+  String getFieldComment(FieldMember field) {
+    String comment = _comments.find(field.span);
+    if (comment == null) return null;
+    return md.markdownToHtml(comment);
+  }
+
+  /**
+   * Converts [fullPath] which is understood to be a full path from the root of
+   * the generated docs to one relative to the current file.
+   */
+  String relativePath(String fullPath) {
+    // Don't make it relative if it's an absolute path.
+    if (isAbsolute(fullPath)) return fullPath;
+
+    // TODO(rnystrom): Walks all the way up to root each time. Shouldn't do
+    // this if the paths overlap.
+    return repeat('../', countOccurrences(_filePath, '/')) + fullPath;
+  }
+
+  /** Gets whether or not the given URL is absolute or relative. */
+  bool isAbsolute(String url) {
+    // TODO(rnystrom): Why don't we have a nice type in the platform for this?
+    // TODO(rnystrom): This is a bit hackish. We consider any URL that lacks
+    // a scheme to be relative.
+    return const RegExp(@'^\w+:').hasMatch(url);
+  }
+
+  /** Gets the URL to the documentation for [library]. */
+  String libraryUrl(Library library) {
+    return '${sanitize(library.name)}.html';
+  }
+
+  /** Gets the URL for the documentation for [type]. */
+  String typeUrl(Type type) {
+    // Always get the generic type to strip off any type parameters or
+    // arguments. If the type isn't generic, genericType returns `this`, so it
+    // works for non-generic types too.
+    return '${sanitize(type.library.name)}/${type.genericType.name}.html';
+  }
+
+  /** Gets the URL for the documentation for [member]. */
+  String memberUrl(Member member) {
+    return '${typeUrl(member.declaringType)}#${member.name}';
+  }
+
+  /** Gets the anchor id for the document for [member]. */
+  String memberAnchor(Member member) {
+    return '${member.name}';
+  }
 
   /**
    * Creates a hyperlink. Handles turning the [href] into an appropriate
    * relative path from the current file.
    */
   String a(String href, String contents, [String css]) {
+    // Mark outgoing external links, mainly so we can style them.
+    final rel = isAbsolute(href) ? ' ref="external"' : '';
     final cssClass = css == null ? '' : ' class="$css"';
-    return '<a href="${relativePath(href)}"$cssClass>$contents</a>';
+    return '<a href="${relativePath(href)}"$cssClass$rel>$contents</a>';
   }
 
   /**

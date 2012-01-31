@@ -228,6 +228,8 @@ ul.icon ul {
 .method .doc,
 .field .doc {
   padding-left: 44px;
+  /* Ensure there is some space between members with no documentation. */
+  min-height: 22px;
 }
 
 .param {
@@ -250,6 +252,12 @@ ul.icon ul {
   font: 600 16px/22px 'Open Sans', 'Lucida Sans Unicode',
       'Lucida Grande', sans-serif;
   color: #666;
+}
+
+/* Style external links in docs differently. */
+.doc a[href^="http:"]:after,
+.doc a[href^="https:"]:after {
+  content: url('external-link.png');
 }
 
 /* Highlight members on hover so you can see which docs are for which member. */

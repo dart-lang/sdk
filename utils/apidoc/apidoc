@@ -16,14 +16,14 @@
 # gross. Ideally, we'd write the whole thing in Dart an ditch the shell
 # but right now we can't even copy binary files using Dart.
 
-# Run from dartdoc directory to get correct relative paths.
+# Run from apidoc directory to get correct relative paths.
 pushd `dirname "$0"` >>/dev/null
 
 compileToJs() {
-  if [ "$1.dart" -nt "static/$1.js" ]
+  if [ "../dartdoc/$1.dart" -nt "../dartdoc/static/$1.js" ]
     then
     ../../frog/minfrog --libdir=../../frog/lib \
-      --out=static/$1.js --compile-only $1.dart
+      --out=../dartdoc/static/$1.js --compile-only ../dartdoc/$1.dart
     echo "Compiled $1.dart."
   fi
 }
@@ -40,6 +40,8 @@ mkdir docs
 
 # Copy the static files over.
 cp ../dartdoc/static/* docs
+# Overlay any apidoc-specific ones.
+cp static/* docs
 
 # Ditch the first arg so we can pass any extra arguments to dartdoc.
 shift
