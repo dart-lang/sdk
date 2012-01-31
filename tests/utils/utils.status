@@ -5,5 +5,5 @@
 [ $component == leg ]
 UriTest: Fail
 
-[ $component == frog || $component == frogium || $component == frogsh ]
-UriTest: Fail
+[ $arch == simarm ]
+UriTest: Crash # Issue 1409.
