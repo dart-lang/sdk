@@ -608,7 +608,7 @@ class CompileTimeAndSizeTest(TestRunner):
         self.trace_file, append=True)
 
     run_cmd([os.path.join('.', 'minfrog'), '--out=swarm-result',
-        '--compile-only', os.path.join('..', 'client', 'samples', 'swarm',
+        '--compile-only', os.path.join('..', 'samples', 'swarm',
         'swarm.dart')])
     swarm_size = 0
     try:
