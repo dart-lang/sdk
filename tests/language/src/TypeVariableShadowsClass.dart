@@ -7,6 +7,7 @@
 
 class T {
   String toString() => "Class T";
+  static String staticToString() => "Class T (static)";
 }
 
 class A<T> {
@@ -14,8 +15,13 @@ class A<T> {
     var foo = new T();
     Expect.equals("Class T", foo.toString());
   }
+  instMethod() {
+    var foo = T.staticToString();
+    Expect.equals("Class T (static)", foo);
+  }
 }
 
 main() {
   A.method();
+  new A<String>().instMethod();
 }

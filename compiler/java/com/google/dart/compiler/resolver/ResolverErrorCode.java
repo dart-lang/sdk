@@ -152,6 +152,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
      "Type parameters in default declaration must match referenced class exactly"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
+  TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER("type variables are not allowed in identifier expressions"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
   private final ErrorSeverity severity;
   private final String message;

@@ -1012,28 +1012,7 @@ public class Resolver {
           }
         }
       } else {
-        switch (element.getKind()) {
-          case FIELD:
-            if (inStaticContext(currentMethod) && !inStaticContext(element)) {
-              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
-                  name);
-            }
-            break;
-          case METHOD:
-            if (inStaticContext(currentMethod) && !inStaticContext(element)) {
-              onError(x, ResolverErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC,
-                  name);
-            }
-            break;
-          case CLASS:
-            if (!isQualifier) {
-              onError(x, ResolverErrorCode.IS_A_CLASS, name);
-            }
-            break;
-
-          default:
-            break;
-        }
+        element = checkResolvedIdentifier(x, isQualifier, scope, name, element);
       }
 
       if (inInitializer && (element != null && element.getKind().equals(ElementKind.FIELD))) {
@@ -1046,6 +1025,48 @@ public class Resolver {
       // this.<identifier>.
 
       return recordElement(x, element);
+    }
+
+    /**
+     * Possibly recursive check on the resolved identifier.
+     */
+    private Element checkResolvedIdentifier(DartIdentifier x, boolean isQualifier, Scope scope,
+                                            String name, Element element) {
+      switch (element.getKind()) {
+        case FIELD:
+          if (inStaticContext(currentMethod) && !inStaticContext(element)) {
+            onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
+                name);
+          }
+          break;
+        case METHOD:
+          if (inStaticContext(currentMethod) && !inStaticContext(element)) {
+            onError(x, ResolverErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC,
+                name);
+          }
+          break;
+        case CLASS:
+          if (!isQualifier) {
+            onError(x, ResolverErrorCode.IS_A_CLASS, name);
+          }
+          break;
+        case TYPE_VARIABLE:
+          // Type variables are not legal in identifier expressions, but the type variable
+          // may be hiding a class element.
+          LibraryElement libraryElement = scope.getLibrary();
+          Scope libraryScope = libraryElement.getScope();
+          // dip again at the library level.
+          element = libraryScope.findElement(libraryElement, name);
+          if (element == null) {
+            onError(x, ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+          } else {
+            return checkResolvedIdentifier(x, isQualifier, libraryScope, name, element);
+          }
+          break;
+        default:
+          break;
+      }
+      return element;
     }
 
     @Override

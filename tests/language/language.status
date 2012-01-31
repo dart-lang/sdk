@@ -337,6 +337,7 @@ TryCatch9NegativeTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
 TypeVariableBoundsTest/10: Fail
+TypeVariableIdentifierExpressionNegativeTest: Fail # Issue 643
 TypeVariableShadowsClass: Fail # Issue 643
 WrongNumberTypeArgumentsTest: Fail
 ImplicitThisTest/01: Fail # Issue 376
