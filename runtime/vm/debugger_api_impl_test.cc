@@ -160,6 +160,7 @@ TEST_CASE(Debug_InspectObject) {
     " class A { \n"
     "   var a_field = 'a'; \n"
     "   static var bla = 'yada yada yada';\n"
+    "   static var error = unresolvedName(); \n"
     "   var d = 42.1; \n"
     " } \n"
     " class B extends A { \n"
@@ -243,7 +244,7 @@ TEST_CASE(Debug_InspectObject) {
   Dart_StringToCString(value_handle, &value);
   EXPECT_STREQ("blah blah", value);
 
-  // Check static field of B's superclass (one field named 'bla')
+  // Check static field of B's superclass.
   Dart_Handle class_A = Dart_GetSuperclass(class_B);
   EXPECT_NOT_ERROR(class_A);
   EXPECT(!Dart_IsNull(class_A));
@@ -253,7 +254,8 @@ TEST_CASE(Debug_InspectObject) {
   list_length = 0;
   retval = Dart_ListLength(fields, &list_length);
   EXPECT_NOT_ERROR(retval);
-  EXPECT_EQ(2, list_length);
+  EXPECT_EQ(4, list_length);
+  // Static field "bla" should have value "yada yada yada".
   name_handle = Dart_ListGetAt(fields, 0);
   EXPECT_NOT_ERROR(name_handle);
   EXPECT(Dart_IsString(name_handle));
@@ -266,6 +268,14 @@ TEST_CASE(Debug_InspectObject) {
   EXPECT(Dart_IsString(value_handle));
   Dart_StringToCString(value_handle, &value);
   EXPECT_STREQ("yada yada yada", value);
+  // The static field "error" should result in a compile error.
+  name_handle = Dart_ListGetAt(fields, 2);
+  EXPECT_NOT_ERROR(name_handle);
+  EXPECT(Dart_IsString(name_handle));
+  Dart_StringToCString(name_handle, &name);
+  EXPECT_STREQ("error", name);
+  value_handle = Dart_ListGetAt(fields, 3);
+  EXPECT(Dart_IsError(value_handle));
 }
 
 

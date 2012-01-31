@@ -159,6 +159,21 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 
 
 /**
+ * Returns an array containing all the local variable names and values of
+ * the given \activation_frame.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to an array containing variable names and
+ * corresponding values. The array is empty if the activation frame has
+ * no variables. If non-empty, variable names are at array offsets 2*n,
+ * values at offset 2*n+1.
+ */
+DART_EXPORT Dart_Handle Dart_GetLocalVariables(
+                            Dart_ActivationFrame activation_frame);
+
+
+/**
  * Returns the class of the given \object.
  *
  * Requires there to be a current isolate.

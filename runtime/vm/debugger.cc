@@ -161,19 +161,54 @@ intptr_t ActivationFrame::LineNumber() {
 }
 
 
-void ActivationFrame::GetLocalVariables() {
+void ActivationFrame::GetDescIndices() {
   if (var_descriptors_ == NULL) {
     const Code& code = Code::Handle(DartFunction().code());
     var_descriptors_ =
         &LocalVarDescriptors::ZoneHandle(code.var_descriptors());
+    GrowableArray<String*> var_names(8);
     intptr_t activation_token_pos = TokenIndex();
-    intptr_t desc_len = var_descriptors_->Length();
-    for (int i = 0; i < desc_len; i++) {
+    intptr_t var_desc_len = var_descriptors_->Length();
+    for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+      ASSERT(var_names.length() == desc_indices_.length());
       intptr_t scope_id, begin_pos, end_pos;
-      var_descriptors_->GetScopeInfo(i, &scope_id, &begin_pos, &end_pos);
+      var_descriptors_->GetScopeInfo(cur_idx, &scope_id, &begin_pos, &end_pos);
       if ((begin_pos <= activation_token_pos) &&
           (activation_token_pos <= end_pos)) {
-        desc_indices_.Add(i);
+        // The current variable is textually in scope. Now check whether
+        // there is another local variable with the same name that shadows
+        // or is shadowed by this variable.
+        String& var_name = String::Handle(var_descriptors_->GetName(cur_idx));
+        intptr_t indices_len = desc_indices_.length();
+        bool name_match_found = false;
+        for (int i = 0; i < indices_len; i++) {
+          if (var_name.Equals(*var_names[i])) {
+            // Found two local variables with the same name. Now determine
+            // which one is shadowed.
+            name_match_found = true;
+            intptr_t i_begin_pos, ignore;
+            var_descriptors_->GetScopeInfo(
+                desc_indices_[i], &ignore, &i_begin_pos, &ignore);
+            if (i_begin_pos < begin_pos) {
+              // The variable we found earlier is in an outer scope
+              // and is shadowed by the current variable. Replace the
+              // descriptor index of the previously found variable
+              // with the descriptor index of the current variable.
+              desc_indices_[i] = cur_idx;
+            } else {
+              // The variable we found earlier is in an inner scope
+              // and shadows the current variable. Skip the current
+              // variable. (Nothing to do.)
+            }
+            break;  // Stop looking for name matches.
+          }
+        }
+        if (!name_match_found) {
+          // No duplicate name found. Add the current descriptor index to the
+          // list of visible variables.
+          desc_indices_.Add(cur_idx);
+          var_names.Add(&var_name);
+        }
       }
     }
   }
@@ -181,7 +216,7 @@ void ActivationFrame::GetLocalVariables() {
 
 
 intptr_t ActivationFrame::NumLocalVariables() {
-  GetLocalVariables();
+  GetDescIndices();
   return desc_indices_.length();
 }
 
@@ -191,7 +226,7 @@ void ActivationFrame::VariableAt(intptr_t i,
                                  intptr_t* token_pos,
                                  intptr_t* end_pos,
                                  Instance* value) {
-  GetLocalVariables();
+  GetDescIndices();
   ASSERT(i < desc_indices_.length());
   ASSERT(name != NULL);
   intptr_t desc_index = desc_indices_[i];
@@ -200,6 +235,22 @@ void ActivationFrame::VariableAt(intptr_t i,
   var_descriptors_->GetScopeInfo(desc_index, &scope_id, token_pos, end_pos);
   ASSERT(value != NULL);
   *value = GetLocalVarValue(var_descriptors_->GetSlotIndex(desc_index));
+}
+
+
+RawArray* ActivationFrame::GetLocalVariables() {
+  GetDescIndices();
+  intptr_t num_variables = desc_indices_.length();
+  String& var_name = String::Handle();
+  Instance& value = Instance::Handle();
+  const Array& list = Array::Handle(Array::New(2 * num_variables));
+  for (int i = 0; i < num_variables; i++) {
+    var_name = var_descriptors_->GetName(i);
+    list.SetAt(2 * i, var_name);
+    value = GetLocalVarValue(var_descriptors_->GetSlotIndex(i));
+    list.SetAt((2 * i) + 1, value);
+  }
+  return list.raw();
 }
 
 

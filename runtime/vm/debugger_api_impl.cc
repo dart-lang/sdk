@@ -108,6 +108,16 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetLocalVariables(
+                            Dart_ActivationFrame activation_frame) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
+  const Array& variables = Array::Handle(frame->GetLocalVariables());
+  return Api::NewLocalHandle(variables);
+}
+
+
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
                             Dart_Handle script_url_in,
                             Dart_Handle line_number_in,

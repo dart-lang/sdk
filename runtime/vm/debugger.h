@@ -74,8 +74,10 @@ class ActivationFrame : public ZoneAllocated {
                   intptr_t* end_pos,
                   Instance* value);
 
+  RawArray* GetLocalVariables();
+
  private:
-  void GetLocalVariables();
+  void GetDescIndices();
   RawInstance* GetLocalVarValue(intptr_t slot_index);
 
   uword pc_;
