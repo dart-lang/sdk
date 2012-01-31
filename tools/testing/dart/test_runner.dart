@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -77,8 +77,12 @@ class TestCase {
 
   int get timeout() => configuration['timeout'];
 
-  String get configurationString() =>
-      "${configuration['mode']}_${configuration['arch']}";
+  String get configurationString() {
+    final component = configuration['component'];
+    final mode = configuration['mode'];
+    final arch = configuration['arch'];
+    return "$component ${mode}_$arch";
+  }
 
   void completed() { completedHandler(this); }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env dart
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19,6 +19,7 @@
 #import("../tests/language/test_config.dart");
 #import("../tests/standalone/test_config.dart");
 #import("../tests/stub-generator/test_config.dart");
+#import("../tests/utils/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
 
 main() {
@@ -61,6 +62,9 @@ main() {
     }
     if (selectors.containsKey('stub-generator')) {
       queue.addTestSuite(new StubGeneratorTestSuite(conf));
+    }
+    if (selectors.containsKey('utils')) {
+      queue.addTestSuite(new UtilsTestSuite(conf));
     }
     if (conf['component'] == 'vm' && selectors.containsKey('vm')) {
       queue.addTestSuite(new VMTestSuite(conf));
