@@ -1904,6 +1904,7 @@ void Parser::SkipInitializers() {
 
 void Parser::ParseQualIdent(QualIdent* qual_ident) {
   ASSERT(IsIdentifier());
+  ASSERT(!current_class().IsNull());
   qual_ident->ident_pos = token_index_;
   qual_ident->ident = CurrentLiteral();
   qual_ident->lib_prefix = NULL;
@@ -3363,19 +3364,19 @@ void Parser::ParseTopLevel() {
       ParseFunctionTypeAlias(&classes);
     } else if (CurrentToken() == Token::kINTERFACE) {
       ParseInterfaceDefinition(&classes);
-    } else if (IsVariableDeclaration()) {
-      set_current_class(toplevel_class);
-      ParseTopLevelVariable(&top_level);
-    } else if (IsTopLevelFunction()) {
-      set_current_class(toplevel_class);
-      ParseTopLevelFunction(&top_level);
-    } else if (IsTopLevelAccessor()) {
-      set_current_class(toplevel_class);
-      ParseTopLevelAccessor(&top_level);
-    } else if (CurrentToken() == Token::kEOS) {
-      break;
     } else {
-      UnexpectedToken();
+      set_current_class(toplevel_class);
+      if (IsVariableDeclaration()) {
+        ParseTopLevelVariable(&top_level);
+      } else if (IsTopLevelFunction()) {
+        ParseTopLevelFunction(&top_level);
+      } else if (IsTopLevelAccessor()) {
+        ParseTopLevelAccessor(&top_level);
+      } else if (CurrentToken() == Token::kEOS) {
+        break;
+      } else {
+        UnexpectedToken();
+      }
     }
   }
   if ((top_level.fields.length() > 0) || (top_level.functions.length() > 0)) {
