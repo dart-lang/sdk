@@ -16,13 +16,19 @@ touch/touch_tests: Skip  # Issue 157.
 html/html_tests: Skip  # Doesn't recognize SVGElement constructors
 samples/dartcombat/dartcombat_tests: Skip # Issue 1218
 
-[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
+[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
 samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
 
-[ $component == webdriver && ($browser == ff || $browser == safari) ]
+[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
+html/html_tests: Fail
+
+[ $component == webdriver && ($browser == safari || $browser == ie) ]
 samples/swarm/swarm_tests: Fail
+
+[ $component == webdriver && $browser == ff ]
+samples/swarm/swarm_tests: Skip
 
 [ $component == webdriver && $browser == safari ]
 samples/smoketest/dartWebBase_tests: Fail

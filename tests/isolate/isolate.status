@@ -25,11 +25,13 @@ StaticStateTest: Fail         # Bug 5401734
 MandelIsolateTest: Skip     # Bug 5353937.
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
-NestedSpawn2Test: Fail
-NestedSpawnTest: Fail
+NestedSpawn2Test: Skip
+NestedSpawnTest: Skip
+IsolateNegativeTest: Skip
+Isolate2NegativeTest: Skip
 
 [ $component == webdriver && $browser == safari ]
-CrossIsolateMessageTest: Pass,Fail # Depends on 32/64 bit Safari. See Issue 1120
+CrossIsolateMessageTest: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
 Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 MessageTest: Fail

@@ -92,7 +92,7 @@ def parse_args():
       action = 'store', default = 'chrome') 
   parser.add_option('--timeout', dest = 'timeout', 
       help = 'Amount of time (seconds) to wait before timeout', type = 'int', 
-      action = 'store', default=10)
+      action = 'store', default=40)
   parser.add_option('--perf', dest = 'is_perf', 
       help = 'Add this flag if we are running a browser performance test', 
       action = 'store_true', default=False)
@@ -108,7 +108,7 @@ def Main():
   if browser == 'chrome':
     browser = selenium.webdriver.Chrome()
   elif browser == 'ff':
-    browser = selenium.webdriver.Firefox() 
+    browser = selenium.webdriver.Firefox()
   elif browser == 'ie' and platform.system() == 'Windows':
     browser = selenium.webdriver.Ie()
   elif browser == 'safari' and platform.system() == 'Darwin':
@@ -141,8 +141,9 @@ def Main():
     else:
       return 0
   else:
-    # We're running a correctness test.
-    if ('PASS' in source):
+    # We're running a correctness test. Mark test as passing if all individual
+    # test cases pass.
+    if 'FAIL' not in source and 'PASS' in source:
       print 'Content-Type: text/plain\nPASS'
       return 0
     else: 

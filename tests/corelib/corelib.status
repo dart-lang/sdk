@@ -26,7 +26,7 @@ StringTest: Fail                # Bug 5196164
 CoreRuntimeTypesTest: Fail
 
 
-[ $component == frog || $component == frogsh || $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
+[ $component == frog || $component == frogsh || $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
 *VMTest: Skip
 *VMNegativeTest: Skip
@@ -48,7 +48,7 @@ StringPatternTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail  # Needs index out of range checks.
 
-[ $component == webdriver && $browser == ff ]
+[ $component == webdriver && ($browser == ff || $browser == ie) ]
 UnicodeTest: Fail
 
 [ $component == webdriver && $browser == safari ]

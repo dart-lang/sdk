@@ -217,7 +217,7 @@ StringEscape1NegativeTest: Skip
 [ $component == frog ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-[ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) || $component == frogium ]
+[ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) || $component == frogium ]
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
@@ -345,7 +345,10 @@ NamedParameters4Test: Fail
 StringEscape4NegativeTest: Fail # Issue 1352
 
 
-[ $component == webdriver && ($browser == ff || $browser == safari) ]
+[ $component == webdriver && $browser == chrome ]
+StringEscape1NegativeTest: Skip
+
+[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
 MethodInvocationTest: Fail
 Private3Test: Fail
 StackTraceTest: Fail
@@ -369,6 +372,13 @@ NamingTest: Fail
 StackOverflowTest: Fail
 StringConcatTest: Fail
 ToStringAsFixedTest: Fail
+
+[ $component == webdriver && $browser == ie ]
+ToStringAsFixedTest: Fail
+StackOverflowTest: Fail
+ObjectDynamicMethodTest: Fail
+NumberSyntaxTest: Fail
+ApplicationNegativeTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
