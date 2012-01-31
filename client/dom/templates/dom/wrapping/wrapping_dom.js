@@ -132,7 +132,8 @@ function native__TypedArrayFactoryProvider__U32(arg) {
 
 function native__TypedArrayFactoryProvider__U8C(arg) {
   try {
-    return __dom_wrap(new Uint8ClampedArray(__dom_unwrap(arg)));
+    // Use array syntax because JSCompiler doesn't know this symbol.
+    return __dom_wrap(new window['Uint8ClampedArray'](__dom_unwrap(arg)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
