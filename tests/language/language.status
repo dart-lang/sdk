@@ -224,7 +224,6 @@ StringEscape1NegativeTest: Skip
 
 [ $component == frog ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
-LiteralUnaryPlusTest/01: Fail # Issue 1400
 
 [ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) || $component == frogium ]
 Factory3Test: Fail # Issue 417
@@ -426,6 +425,7 @@ SyntaxTest/31: Fail # Issue 1109
 SyntaxTest/32: Fail # Issue 1109
 SyntaxTest/33: Fail # Issue 1109
 StringEscape3NegativeTest: Fail # Issue 1352
+LiteralUnaryPlusTest/01: Fail # Issue 1400
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
