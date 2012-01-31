@@ -8,9 +8,9 @@
  */
 interface Process default _Process {
   /**
-   * Creates a new process object and starts a process running the 
-   * [executable] with the specified [arguments]. When the process has been 
-   * successfully started the [startHandler] is called. If the process fails 
+   * Creates a new process object and starts a process running the
+   * [executable] with the specified [arguments]. When the process has been
+   * successfully started the [startHandler] is called. If the process fails
    * to start the [errorHandler] is called.
    *
    * An optional [workingDirectory] can be passed to specify where the process
@@ -21,8 +21,8 @@ interface Process default _Process {
    * No data can be written to the process stdin and the process cannot be
    * closed nor killed before the [startHandler] has been invoked.
    */
-  Process.start(String executable, 
-                List<String> arguments, 
+  Process.start(String executable,
+                List<String> arguments,
                 [String workingDirectory]);
 
   /**
@@ -58,7 +58,7 @@ interface Process default _Process {
   void set errorHandler(void callback(ProcessException error));
 
   /**
-   * Kills the process. When the process terminates as a result of calling 
+   * Kills the process. When the process terminates as a result of calling
    * [kill] the [exitHandler] is called. If the kill operation fails, the
    * [errorHandler] is called.
    */

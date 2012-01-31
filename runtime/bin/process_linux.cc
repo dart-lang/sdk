@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,62 +15,194 @@
 #include <unistd.h>
 
 #include "bin/fdutils.h"
+#include "bin/thread.h"
 
 
+// ProcessInfo is used to map a process id to the file descriptor for
+// the pipe used to communicate the exit code of the process to Dart.
+// ProcessInfo objects are kept in the static singly-linked
+// ProcessInfoList.
 class ProcessInfo {
  public:
   ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) { }
-
   pid_t pid() { return pid_; }
   intptr_t fd() { return fd_; }
   ProcessInfo* next() { return next_; }
-  void set_next(ProcessInfo* next) { next_ = next; }
+  void set_next(ProcessInfo* info) { next_ = info; }
 
  private:
-  pid_t pid_;  // Process pid.
-  intptr_t fd_;  // File descriptor for pipe to report exit code.
+  pid_t pid_;
+  intptr_t fd_;
   ProcessInfo* next_;
 };
 
 
-ProcessInfo* active_processes = NULL;
-
-
-static void AddProcess(ProcessInfo* process) {
-  process->set_next(active_processes);
-  active_processes = process;
-}
-
-
-static ProcessInfo* LookupProcess(pid_t pid) {
-  ProcessInfo* current = active_processes;
-  while (current != NULL) {
-    if (current->pid() == pid) {
-      return current;
-    }
-    current = current->next();
+// Singly-linked list of ProcessInfo objects for all active processes
+// started from Dart.
+class ProcessInfoList {
+ public:
+  static void AddProcess(pid_t pid, intptr_t fd) {
+    MutexLocker locker(&mutex_);
+    ProcessInfo* info = new ProcessInfo(pid, fd);
+    info->set_next(active_processes_);
+    active_processes_ = info;
   }
-  return NULL;
-}
 
 
-static void RemoveProcess(pid_t pid) {
-  ProcessInfo* prev = NULL;
-  ProcessInfo* current = active_processes;
-  while (current != NULL) {
-    if (current->pid() == pid) {
-      if (prev == NULL) {
-        active_processes = current->next();
-      } else {
-        prev->set_next(current->next());
+  static intptr_t LookupProcessExitFd(pid_t pid) {
+    MutexLocker locker(&mutex_);
+    ProcessInfo* current = active_processes_;
+    while (current != NULL) {
+      if (current->pid() == pid) {
+        return current->fd();
       }
-      delete current;
-      return;
+      current = current->next();
     }
-    prev = current;
-    current = current->next();
+    return 0;
   }
-}
+
+
+  static void RemoveProcess(pid_t pid) {
+    MutexLocker locker(&mutex_);
+    ProcessInfo* prev = NULL;
+    ProcessInfo* current = active_processes_;
+    while (current != NULL) {
+      if (current->pid() == pid) {
+        if (prev == NULL) {
+          active_processes_ = current->next();
+        } else {
+          prev->set_next(current->next());
+        }
+        delete current;
+        return;
+      }
+      prev = current;
+      current = current->next();
+    }
+  }
+
+ private:
+  // Linked list of ProcessInfo objects for all active processes
+  // started from Dart code.
+  static ProcessInfo* active_processes_;
+  // Mutex protecting all accesses to the linked list of active
+  // processes.
+  static dart::Mutex mutex_;
+};
+
+
+ProcessInfo* ProcessInfoList::active_processes_ = NULL;
+dart::Mutex ProcessInfoList::mutex_;
+
+
+// The exit code handler sets up a separate thread which is signalled
+// on SIGCHLD. That separate thread can then get the exit code from
+// processes that have exited and communicate it to Dart through the
+// event loop.
+class ExitCodeHandler {
+ public:
+  // Ensure that the ExitCodeHandler has been initialized.
+  static bool EnsureInitialized() {
+    // Multiple isolates could be starting processes at the same
+    // time. Make sure that only one of them initializes the
+    // ExitCodeHandler.
+    MutexLocker locker(&mutex_);
+    if (initialized_) {
+      return true;
+    }
+
+    // Allocate a pipe that the signal handler can write a byte to and
+    // that the exit handler thread can poll.
+    int result = TEMP_FAILURE_RETRY(pipe(sig_chld_fds_));
+    if (result < 0) {
+      return false;
+    }
+
+    // Start thread that polls the pipe and handles process exits when
+    // data is received on the pipe.
+    new dart::Thread(ExitCodeHandlerEntry, sig_chld_fds_[0]);
+
+    // Mark write end non-blocking.
+    FDUtils::SetNonBlocking(sig_chld_fds_[1]);
+
+    // Thread started and the ExitCodeHandler is initialized.
+    initialized_ = true;
+    return true;
+  }
+
+  // Get the write end of the pipe.
+  static int WakeUpFd() {
+    ASSERT(initialized_);
+    return sig_chld_fds_[1];
+  }
+
+ private:
+  // GetProcessExitCodes is called on a separate thread when a SIGCHLD
+  // signal is received to retrieve the exit codes and post them to
+  // dart.
+  static void GetProcessExitCodes() {
+    pid_t pid = 0;
+    int status = 0;
+    while ((pid = TEMP_FAILURE_RETRY(waitpid(-1, &status, WNOHANG))) > 0) {
+      int exit_code = 0;
+      int negative = 0;
+      if (WIFEXITED(status)) {
+        exit_code = WEXITSTATUS(status);
+      }
+      if (WIFSIGNALED(status)) {
+        exit_code = WTERMSIG(status);
+        negative = 1;
+      }
+      intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
+      if (exit_code_fd != 0) {
+        int message[3] = { pid, exit_code, negative };
+        ssize_t result =
+            FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
+        if (result != sizeof(message) && errno != EPIPE) {
+          perror("ExitHandler notification failed");
+        }
+        TEMP_FAILURE_RETRY(close(exit_code_fd));
+      }
+    }
+  }
+
+
+  // Entry point for the separate exit code handler thread started by
+  // the ExitCodeHandler.
+  static void ExitCodeHandlerEntry(uword param) {
+    struct pollfd pollfds;
+    pollfds.fd = param;
+    pollfds.events |= POLLIN;
+    while (true) {
+      int result = TEMP_FAILURE_RETRY(poll(&pollfds, 1, -1));
+      if (result == -1) {
+        ASSERT(EAGAIN == EWOULDBLOCK);
+        if (errno != EWOULDBLOCK) {
+          perror("ExitCodeHandler poll failed");
+        }
+      } else {
+        // Read the byte from the wake-up fd.
+        ASSERT(result = 1);
+        intptr_t data = 0;
+        ssize_t read_bytes = FDUtils::ReadFromBlocking(pollfds.fd, &data, 1);
+        if (read_bytes < 1) {
+          perror("Failed to read from wake-up fd in exit-code handler");
+        }
+        // Get the exit code from all processes that have died.
+        GetProcessExitCodes();
+      }
+    }
+  }
+
+  static dart::Mutex mutex_;
+  static bool initialized_;
+  static int sig_chld_fds_[2];
+};
+
+
+dart::Mutex ExitCodeHandler::mutex_;
+bool ExitCodeHandler::initialized_ = false;
+int ExitCodeHandler::sig_chld_fds_[2] = { 0, 0 };
 
 
 static char* SafeStrNCpy(char* dest, const char* src, size_t n) {
@@ -85,38 +218,17 @@ static void SetChildOsErrorMessage(char* os_error_message,
 }
 
 
-void ExitHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
-  int pid = 0;
-  int status = 0;
+static void SigChldHandler(int process_signal, siginfo_t* siginfo, void* tmp) {
   // Save errno so it can be restored at the end.
   int entry_errno = errno;
-  while ((pid = TEMP_FAILURE_RETRY(waitpid(-1, &status, WNOHANG))) > 0) {
-    int exit_code = 0;
-    int negative = 0;
-    if (WIFEXITED(status)) {
-      exit_code = WEXITSTATUS(status);
-    }
-    if (WIFSIGNALED(status)) {
-      exit_code = WTERMSIG(status);
-      negative = 1;
-    }
-    // Lookup the process and extract all needed information from
-    // it. The WriteToBlocking call below can cause the deletion of
-    // the process object (because this signal handler can be running
-    // on an arbitrary thread, not just the main thread) so we cannot
-    // touch it after that call.
-    ProcessInfo* process = LookupProcess(pid);
-    intptr_t exit_code_fd = process->fd();
-    if (process != NULL) {
-      int message[3] = { pid, exit_code, negative };
-      intptr_t result =
-          FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
-      if (result != sizeof(message) && errno != EPIPE) {
-        perror("ExitHandler notification failed");
-      }
-      TEMP_FAILURE_RETRY(close(exit_code_fd));
-    }
+  // Signal the exit code handler where the actual processing takes
+  // place.
+  ssize_t result =
+      TEMP_FAILURE_RETRY(write(ExitCodeHandler::WakeUpFd(), "", 1));
+  if (result < 1) {
+    perror("Failed to write to wake-up fd in SIGCHLD handler");
   }
+  // Restore errno.
   errno = entry_errno;
 }
 
@@ -156,6 +268,15 @@ int Process::Start(const char* path,
   int write_out[2];  // Pipe for stdin to child process.
   int exec_control[2];  // Pipe to get the result from exec.
   int result;
+
+  bool initialized = ExitCodeHandler::EnsureInitialized();
+  if (!initialized) {
+    SetChildOsErrorMessage(os_error_message, os_error_message_len);
+    fprintf(stderr,
+            "Error initializing exit code handler: %s\n",
+            os_error_message);
+    return errno;
+  }
 
   result = TEMP_FAILURE_RETRY(pipe(read_in));
   if (result < 0) {
@@ -225,7 +346,7 @@ int Process::Start(const char* path,
 
   struct sigaction act;
   bzero(&act, sizeof(act));
-  act.sa_sigaction = ExitHandler;
+  act.sa_sigaction = SigChldHandler;
   act.sa_flags = SA_NOCLDSTOP | SA_SIGINFO;
   if (sigaction(SIGCHLD, &act, 0) != 0) {
     perror("Process start: setting signal handler failed");
@@ -299,8 +420,7 @@ int Process::Start(const char* path,
     return errno;
   }
 
-  ProcessInfo* process = new ProcessInfo(pid, event_fds[1]);
-  AddProcess(process);
+  ProcessInfoList::AddProcess(pid, event_fds[1]);
   *exit_event = event_fds[0];
   FDUtils::SetNonBlocking(event_fds[0]);
 
@@ -369,5 +489,5 @@ bool Process::Kill(intptr_t id) {
 
 
 void Process::Exit(intptr_t id) {
-  RemoveProcess(id);
+  ProcessInfoList::RemoveProcess(id);
 }
