@@ -7,16 +7,39 @@ prefix client
 [ $component == dartium ]
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
-dom/IsolateLightTest: Skip
+# TODO(vsm): Triage DOM tests.
+dom/AudioContextTest: Fail
+dom/DocumentTest: Fail
+dom/TypingTest: Fail
+dom/IsolateLightTest: Fail
+dom/XHRTest: Fail
+dom/WebGL1Test: Fail
+dom/WebSocketTest: Fail
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 html/html_tests: Skip  # Doesn't recognize SVGElement constructors
+# TODO(vsm): Triage DOM tests.
+dom/AsyncWindowTest: Skip # This test appears to interact badly with other tests.
+dom/DOMIsolatesTest: Fail
+dom/DocumentTest: Fail
+dom/HTMLElementTest: Fail
+dom/TypingTest: Fail
+dom/WebGL1Test: Fail
+dom/XHRTest: Fail
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
+# TODO(vsm): Triage DOM tests.
+dom/DocumentTest: Fail
+dom/DOMIsolatesTest: Fail
+dom/HTMLElementTest: Fail
+dom/TypingTest: Fail
+dom/WebGL1Test: Fail
+dom/WindowOpenTest: Fail
+dom/XHRTest: Fail
 
 [ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
 html/html_tests: Fail

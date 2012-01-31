@@ -1,3 +1,4 @@
+#library('IsolateLightTest');
 #import('../../../testing/unittest/unittest.dart');
 #import('dart:dom');
 #import('dart:json');
