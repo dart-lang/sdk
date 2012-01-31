@@ -49,12 +49,10 @@ ConstObjectsAreImmutableTest: Fail
 ConstTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
-Constructor3NegativeTest: Fail
 Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
-ConstructorCallWrongArgumentCountNegativeTest: Fail
 ConstructorDefaultTest: Fail
 ConstructorDuplicateInitializersTest/02: Fail
 ConstructorNegativeTest: Pass # For the wrong reason.
@@ -307,7 +305,6 @@ SourceSelfNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
-StaticCallWrongArgumentCountNegativeTest: Fail
 StaticFieldTest: Fail
 StaticFinalField2NegativeTest: Fail
 StaticFinalFieldNegativeTest: Fail
