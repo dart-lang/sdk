@@ -325,7 +325,6 @@ StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
-TopLevelPrefixedDeclarationTest: Fail
 TryCatch9NegativeTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
