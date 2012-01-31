@@ -721,7 +721,9 @@ class Class : public Object {
 // to a class after all classes have been loaded and finalized.
 class UnresolvedClass : public Object {
  public:
-  RawString* qualifier() const { return raw_ptr()->qualifier_; }
+  RawLibraryPrefix* library_prefix() const {
+    return raw_ptr()->library_prefix_;
+  }
   RawString* ident() const { return raw_ptr()->ident_; }
   intptr_t token_index() const { return raw_ptr()->token_index_; }
 
@@ -736,13 +738,13 @@ class UnresolvedClass : public Object {
     return RoundedAllocationSize(sizeof(RawUnresolvedClass));
   }
   static RawUnresolvedClass* New(intptr_t token_index,
-                                 const String& qualifier,
+                                 const LibraryPrefix& library_prefix,
                                  const String& ident);
 
  private:
   void set_token_index(intptr_t token_index) const;
   void set_ident(const String& ident) const;
-  void set_qualifier(const String& qualifier) const;
+  void set_library_prefix(const LibraryPrefix& library_prefix) const;
 
   static RawUnresolvedClass* New();
 
@@ -932,9 +934,6 @@ class Type : public AbstractType {
 
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
-
-  static RawType* NewParameterizedType(
-      const Object& type_class, const AbstractTypeArguments& arguments);
 
   static RawType* New(const Object& clazz,
                       const AbstractTypeArguments& arguments);

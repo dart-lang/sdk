@@ -73,9 +73,9 @@ TEST_CASE(ClassFinalize_Resolve) {
   lib.AddClass(sbb);
   const String& superclass_name = String::Handle(sbb.Name());
   const UnresolvedClass& unresolved = UnresolvedClass::Handle(
-      UnresolvedClass::New(0, String::Handle(), superclass_name));
+      UnresolvedClass::New(0, LibraryPrefix::Handle(), superclass_name));
   const TypeArguments& type_arguments = TypeArguments::Handle();
-  rhb.set_super_type(Type::Handle(Type::NewParameterizedType(
+  rhb.set_super_type(Type::Handle(Type::New(
       Object::Handle(unresolved.raw()), type_arguments)));
   ClassFinalizer::AddPendingClasses(classes);
   EXPECT(ClassFinalizer::FinalizePendingClasses());

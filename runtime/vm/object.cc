@@ -1749,11 +1749,11 @@ void Class::InsertCanonicalConstant(intptr_t index,
 
 
 RawUnresolvedClass* UnresolvedClass::New(intptr_t token_index,
-                                         const String& qualifier,
+                                         const LibraryPrefix& library_prefix,
                                          const String& ident) {
   const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
   type.set_token_index(token_index);
-  type.set_qualifier(qualifier);
+  type.set_library_prefix(library_prefix);
   type.set_ident(ident);
   return type.raw();
 }
@@ -1779,8 +1779,9 @@ void UnresolvedClass::set_ident(const String& ident) const {
 }
 
 
-void UnresolvedClass::set_qualifier(const String& qualifier) const {
-  StorePointer(&raw_ptr()->qualifier_, qualifier.raw());
+void UnresolvedClass::set_library_prefix(
+    const LibraryPrefix& library_prefix) const {
+  StorePointer(&raw_ptr()->library_prefix_, library_prefix.raw());
 }
 
 
@@ -1790,10 +1791,11 @@ void UnresolvedClass::set_factory_signature_class(const Class& value) const {
 
 
 RawString* UnresolvedClass::Name() const {
-  if (qualifier() != String::null()) {
+  if (library_prefix() != LibraryPrefix::null()) {
+    const LibraryPrefix& lib_prefix = LibraryPrefix::Handle(library_prefix());
     String& name = String::Handle();
-    name = qualifier();
     String& str = String::Handle();
+    name = lib_prefix.name();  // Qualifier.
     str = String::New(".");
     name = String::Concat(name, str);
     str = ident();
@@ -2139,7 +2141,7 @@ RawType* Type::ListInterface() {
 RawType* Type::NewRawType(const Class& type_class) {
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(type_class.type_parameter_extends());
-  return NewParameterizedType(Object::Handle(type_class.raw()), type_arguments);
+  return New(Object::Handle(type_class.raw()), type_arguments);
 }
 
 
@@ -2153,12 +2155,6 @@ RawType* Type::NewNonParameterizedType(
   type.set_is_finalized();
   type ^= type.Canonicalize();
   return type.raw();
-}
-
-
-RawType* Type::NewParameterizedType(const Object& clazz,
-                                    const AbstractTypeArguments& arguments) {
-  return Type::New(clazz, arguments);
 }
 
 
@@ -5652,8 +5648,7 @@ const char* Instance::ToCString() const {
     if (num_type_arguments > 0) {
       type_arguments = GetTypeArguments();
     }
-    const Type& type = Type::Handle(
-        Type::NewParameterizedType(cls, type_arguments));
+    const Type& type = Type::Handle(Type::New(cls, type_arguments));
     const String& type_name = String::Handle(type.Name());
     // Calculate the size of the string.
     intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;

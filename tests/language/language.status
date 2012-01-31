@@ -36,8 +36,6 @@ ImplicitThisTest/03: Fail # Issue 374
 ImplicitThisTest/04: Fail # Issue 374
 ImplicitThisTest/none: Fail # Issue 374
 
-LibrarySameNameUsedTest: Fail    # Issue 686
-
 # These bugs refer currently ongoing language discussions.
 Constructor5Test: Fail          # (Discussion ongoing)
 Constructor6Test: Fail          # (Discussion ongoing)
@@ -81,7 +79,7 @@ ConstructorDuplicateInitializersTest/02: Fail
 OperatorIndexEvaluationOrderTest: Fail
 
 # Issue 1355
-CallOperatorTest: Fail 
+CallOperatorTest: Fail
 
 [ ($component == vm || $component == dartium) && $unchecked ]
 
@@ -272,6 +270,8 @@ FunctionTest: Fail
 FunctionTypeAliasNegativeTest: Fail
 FunctionTypeAliasTest: Fail
 FunctionTypeAlias2Test: Fail
+FunctionTypeAlias3Test: Fail
+FunctionTypeAlias4Test: Fail
 FunctionTypeParameter2Test: Fail
 FunctionTypeParameterTest: Fail
 GenericDeepTest: Fail

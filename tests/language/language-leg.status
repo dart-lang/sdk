@@ -129,6 +129,8 @@ FunctionLiteralsTest: Fail
 FunctionSyntaxTest: Fail
 FunctionTest: Fail
 FunctionTypeAlias2Test: Fail
+FunctionTypeAlias3Test: Fail
+FunctionTypeAlias4Test: Fail
 FunctionTypeAliasTest: Fail
 FunctionTypeParameter2Test: Fail
 FunctionTypeParameterTest: Fail

@@ -270,12 +270,10 @@ struct QualIdent {
   }
   void Clear() {
     lib_prefix = NULL;
-    qualifier = NULL;
     ident_pos = 0;
     ident = NULL;
   }
   LibraryPrefix* lib_prefix;
-  String* qualifier;
   intptr_t ident_pos;
   String* ident;
 };
@@ -1906,46 +1904,32 @@ void Parser::SkipInitializers() {
 
 void Parser::ParseQualIdent(QualIdent* qual_ident) {
   ASSERT(IsIdentifier());
-  if (!is_top_level_) {
-    qual_ident->ident_pos = token_index_;
-    qual_ident->ident = CurrentLiteral();
-    qual_ident->lib_prefix = NULL;
-    qual_ident->qualifier = NULL;
-    ConsumeToken();
-    if (CurrentToken() == Token::kPERIOD) {
-      if (!ResolveIdentInLocalScope(qual_ident->ident_pos,
-                                    *(qual_ident->ident),
-                                    NULL)) {
-        LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
-        lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
-        if (!lib_prefix.IsNull()) {
-          // We have a library prefix qualified identifier, unless the prefix is
-          // shadowed by a type parameter in scope.
-          const Class& scope_class = Class::Handle(TypeParametersScopeClass());
-          if (scope_class.IsNull() ||
-              (scope_class.LookupTypeParameter(*(qual_ident->ident)) ==
-               TypeParameter::null())) {
-            ConsumeToken();  // Consume the kPERIOD token.
-            qual_ident->lib_prefix = &lib_prefix;
-            qual_ident->qualifier = qual_ident->ident;
-            qual_ident->ident_pos = token_index_;
-            qual_ident->ident =
-                ExpectIdentifier("identifier expected after '.'");
-          }
+  qual_ident->ident_pos = token_index_;
+  qual_ident->ident = CurrentLiteral();
+  qual_ident->lib_prefix = NULL;
+  ConsumeToken();
+  if (CurrentToken() == Token::kPERIOD) {
+    // An identifier cannot be resolved in a local scope when top level parsing.
+    if (is_top_level_ ||
+        !ResolveIdentInLocalScope(qual_ident->ident_pos,
+                                  *(qual_ident->ident),
+                                  NULL)) {
+      LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
+      lib_prefix = current_class().LookupLibraryPrefix(*(qual_ident->ident));
+      if (!lib_prefix.IsNull()) {
+        // We have a library prefix qualified identifier, unless the prefix is
+        // shadowed by a type parameter in scope.
+        const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+        if (scope_class.IsNull() ||
+            (scope_class.LookupTypeParameter(*(qual_ident->ident)) ==
+             TypeParameter::null())) {
+          ConsumeToken();  // Consume the kPERIOD token.
+          qual_ident->lib_prefix = &lib_prefix;
+          qual_ident->ident_pos = token_index_;
+          qual_ident->ident =
+              ExpectIdentifier("identifier expected after '.'");
         }
       }
-    }
-  } else {
-    qual_ident->ident_pos = token_index_;
-    qual_ident->ident = CurrentLiteral();
-    qual_ident->lib_prefix = NULL;
-    qual_ident->qualifier = NULL;
-    ConsumeToken();
-    if (CurrentToken() == Token::kPERIOD) {
-      ConsumeToken();  // Consume the kPERIOD token.
-      qual_ident->qualifier = qual_ident->ident;
-      qual_ident->ident_pos = token_index_;
-      qual_ident->ident = ExpectIdentifier("identifier expected after '.'");
     }
   }
 }
@@ -2338,33 +2322,22 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   // Optionally parse a (possibly named) constructor name or factory.
   if (IsIdentifier() &&
       (CurrentLiteral()->Equals(members->class_name()) || member.has_factory)) {
-    member.name = CurrentLiteral();
-    member.name_pos = this->token_index_;
-    // TODO(regis): Simplify the following code by calling ParseQualIdent().
-    ConsumeToken();
     if (member.has_factory) {
-      String& qualifier = String::Handle();
-      if (CurrentToken() == Token::kPERIOD) {
-        LibraryPrefix& lib_prefix = LibraryPrefix::ZoneHandle();
-        lib_prefix = current_class().LookupLibraryPrefix(*member.name);
-        if (!lib_prefix.IsNull()) {
-          // We have a library prefix qualified identifier.
-          ConsumeToken();  // Consume the kPERIOD token.
-          qualifier ^= member.name->raw();
-          member.name = ExpectIdentifier("identifier expected");
-        }
-      }
-      // TODO(regis): Stop postponing resolution of the factory result type
-      // until class finalization. Use ResolveTypeFromClass instead.
-      // Factory result type is the same as the type name of the factory.
-      const UnresolvedClass& unresolved_factory_class =
-          UnresolvedClass::Handle(UnresolvedClass::New(member.name_pos,
-                                                       qualifier,
-                                                       *member.name));
+      // The factory name may be qualified.
+      QualIdent factory_name;
+      ParseQualIdent(&factory_name);
+      member.name_pos = factory_name.ident_pos;
+      member.name = factory_name.ident;  // Unqualified identifier.
+      // The class of the factory result type is specified by the factory name.
+      const Object& result_type_class = Object::Handle(
+          LookupTypeClass(factory_name, kCanResolve));
       // The type arguments of the result type are set during finalization.
       member.type = &Type::ZoneHandle(
-          Type::NewParameterizedType(unresolved_factory_class,
-                                     TypeArguments::Handle()));
+          Type::New(result_type_class, TypeArguments::Handle()));
+    } else {
+      member.name_pos = token_index_;
+      member.name = CurrentLiteral();
+      ConsumeToken();
     }
     // We must be dealing with a constructor or named constructor.
     member.kind = RawFunction::kConstructor;
@@ -2646,6 +2619,16 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
+  // Allocate an interface to hold the type parameters and their 'extends'
+  // constraints. Make it the owner of the function type descriptor.
+  const Class& alias_owner = Class::Handle(
+      Class::New(String::Handle(String::NewSymbol(":alias_owner")),
+                 Script::Handle()));
+  alias_owner.set_is_interface();
+  alias_owner.set_library(library_);
+  set_current_class(alias_owner);
+
+  // Parse the result type of the function type.
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   const intptr_t result_type_pos = token_index_;
   if (CurrentToken() == Token::kVOID) {
@@ -2661,18 +2644,8 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   const String* alias_name =
       ExpectTypeIdentifier("function alias name expected");
 
-  // Allocate an interface to hold the type parameters and their 'extends'
-  // constraints. Make it the owner of the function type descriptor.
-  const Class& alias_owner = Class::Handle(
-      Class::New(String::Handle(String::NewSymbol(":alias_owner")),
-                 Script::Handle()));
-  alias_owner.set_is_interface();
-  set_current_class(alias_owner);
+  // Parse the type parameters of the function type.
   ParseTypeParameters(alias_owner);
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("formal parameter list expected");
-  }
-
   // At this point, the type parameters have been parsed, so we can resolve the
   // result type.
   if (!result_type.IsNull()) {
@@ -2680,6 +2653,10 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
                          alias_owner,
                          kCanResolve,
                          &result_type);
+  }
+  // Parse the formal parameters of the function type.
+  if (CurrentToken() != Token::kLPAREN) {
+    ErrorMsg("formal parameter list expected");
   }
   ParamList func_params;
   const bool no_explicit_default_values = false;
@@ -2784,12 +2761,12 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     const intptr_t factory_pos = token_index_;
     QualIdent factory_name;
     ParseQualIdent(&factory_name);
-    String& qualifier = String::Handle();
-    if (factory_name.qualifier != NULL) {
-      qualifier ^= factory_name.qualifier->raw();
+    LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+    if (factory_name.lib_prefix != NULL) {
+      lib_prefix = factory_name.lib_prefix->raw();
     }
     const UnresolvedClass& unresolved_factory_class = UnresolvedClass::Handle(
-        UnresolvedClass::New(factory_pos, qualifier, *factory_name.ident));
+        UnresolvedClass::New(factory_pos, lib_prefix, *factory_name.ident));
     const Class& factory_class = Class::Handle(
         Class::New(String::Handle(String::NewSymbol(":factory_signature")),
                    script_));
@@ -3772,8 +3749,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // We temporarily use the class of the Function interface.
     const Class& unknown_signature_class = Class::Handle(
         Type::Handle(Type::FunctionInterface()).type_class());
-    function_type = Type::New(unknown_signature_class,
-                              TypeArguments::Handle());
+    function_type = Type::New(unknown_signature_class, TypeArguments::Handle());
     function_type.set_is_finalized();  // No real finalization needed.
 
     // Add the function variable to the scope before parsing the function in
@@ -6140,18 +6116,18 @@ AstNode* Parser::ParsePostfixExpr() {
 }
 
 
-// Resolve the given type and its type arguments from the given class according
-// to the given type_resolution.
+// Resolve the given type and its type arguments from the given scope class
+// according to the given type_resolution.
+// If the given scope class is null, use the current library, but do not try to
+// resolve type parameters.
 // Not all involved type classes may get resolved yet, but at least the type
 // parameters of the given class will get resolved, thereby relieving the class
 // finalizer from resolving type parameters out of context.
 void Parser::ResolveTypeFromClass(intptr_t type_pos,
-                                  const Class& cls,
+                                  const Class& scope_class,
                                   TypeResolution type_resolution,
                                   AbstractType* type) {
-  // TODO(regis): Implement kMustResolve functionality and consolidate with
-  // other resolution code. For now, only support kCanResolve functionality.
-  ASSERT(type_resolution == kCanResolve);
+  ASSERT((type_resolution == kCanResolve) || (type_resolution == kMustResolve));
   ASSERT(type != NULL);
   // Resolve class.
   if (!type->HasResolvedTypeClass()) {
@@ -6159,28 +6135,46 @@ void Parser::ResolveTypeFromClass(intptr_t type_pos,
         UnresolvedClass::Handle(type->unresolved_class());
     const String& unresolved_class_name =
         String::Handle(unresolved_class.ident());
-    // First check if the type is a type parameter of the given class.
-    const TypeParameter& type_parameter = TypeParameter::Handle(
-        cls.LookupTypeParameter(unresolved_class_name));
-    if (!type_parameter.IsNull()) {
-      // A type parameter cannot be parameterized, so report an error if type
-      // arguments have previously been parsed.
-      if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
-        ErrorMsg(type_pos, "type parameter '%s' cannot be parameterized",
-                 type_parameter.ToCString());
+    // First resolve library prefix if any.
+    Library& lib = Library::Handle();
+    if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
+      if (scope_class.IsNull()) {
+        lib = library_.raw();
+      } else {
+        lib = scope_class.library();
+        // First check if the type is a type parameter of the given scope class.
+        const TypeParameter& type_parameter = TypeParameter::Handle(
+            scope_class.LookupTypeParameter(unresolved_class_name));
+        if (!type_parameter.IsNull()) {
+          // A type parameter cannot be parameterized, so report an error if
+          // type arguments have previously been parsed.
+          if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
+            ErrorMsg(type_pos, "type parameter '%s' cannot be parameterized",
+                     String::Handle(type_parameter.Name()).ToCString());
+          }
+          *type = type_parameter.raw();
+          return;
+        }
       }
-      *type = type_parameter.raw();
-      return;
+    } else {
+      LibraryPrefix& lib_prefix =
+          LibraryPrefix::Handle(unresolved_class.library_prefix());
+      lib = lib_prefix.library();
     }
-    const Class& resolved_type_class =
-        Class::Handle(LookupClass(unresolved_class_name));
-    if (!resolved_type_class.IsNull()) {
-      Object& type_class = Object::Handle(resolved_type_class.raw());
-      ASSERT(type->IsType());
-      // Replace unresolved class with resolved type class.
-      Type& parameterized_type = Type::Handle();
-      parameterized_type ^= type->raw();
-      parameterized_type.set_type_class(type_class);
+    if (!lib.IsNull()) {
+      const Class& resolved_type_class = Class::Handle(
+          lib.LookupLocalClass(unresolved_class_name));
+      if (!resolved_type_class.IsNull()) {
+        Object& type_class = Object::Handle(resolved_type_class.raw());
+        ASSERT(type->IsType());
+        // Replace unresolved class with resolved type class.
+        Type& parameterized_type = Type::Handle();
+        parameterized_type ^= type->raw();
+        parameterized_type.set_type_class(type_class);
+      } else if (type_resolution == kMustResolve) {
+        ErrorMsg(type_pos, "type '%s' is not loaded",
+                 String::Handle(type->Name()).ToCString());
+      }
     }
   }
   // Resolve type arguments, if any.
@@ -6190,7 +6184,10 @@ void Parser::ResolveTypeFromClass(intptr_t type_pos,
     const intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
       AbstractType& type_argument = AbstractType::Handle(arguments.TypeAt(i));
-      ResolveTypeFromClass(type_pos, cls, type_resolution, &type_argument);
+      ResolveTypeFromClass(type_pos,
+                           scope_class,
+                           type_resolution,
+                           &type_argument);
       arguments.SetTypeAt(i, type_argument);
     }
   }
@@ -6219,13 +6216,14 @@ RawObject* Parser::LookupTypeClass(const QualIdent& type_name,
              type_name.ident->ToCString());
     return Object::null_class();
   }
-  // We have an unresolved name, create an UnresolvedClass object
-  // for this case.
-  String& qualifier = String::Handle();
-  if (type_name.qualifier != NULL) {
-    qualifier ^= type_name.qualifier->raw();
+  // We have an unresolved name, create an UnresolvedClass object for this case.
+  LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+  if (type_name.lib_prefix != NULL) {
+    lib_prefix = type_name.lib_prefix->raw();
   }
-  return UnresolvedClass::New(type_name.ident_pos, qualifier, *type_name.ident);
+  return UnresolvedClass::New(type_name.ident_pos,
+                              lib_prefix,
+                              *type_name.ident);
 }
 
 
@@ -6545,12 +6543,12 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
                                 Class::ZoneHandle(func.owner()),
                                 *qual_ident.ident);
   }
-  if (qual_ident.qualifier != NULL) {
+  if (qual_ident.lib_prefix != NULL) {
     // This is an unresolved prefixed primary identifier, need to report
     // an error.
     ErrorMsg(qual_ident.ident_pos, "identifier '%s.%s' cannot be resolved",
-             (qual_ident.qualifier)->ToCString(),
-             (qual_ident.ident)->ToCString());
+             String::Handle(qual_ident.lib_prefix->name()).ToCString(),
+             qual_ident.ident->ToCString());
   }
   // Lexically unresolved primary identifiers are referenced by their name.
   return new PrimaryNode(qual_ident.ident_pos, *qual_ident.ident);
@@ -6572,7 +6570,6 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
     // Not found in the local scope, so try finding the variable in the
     // library scope (current library and all libraries imported by it).
     QualIdent qual_ident;
-    qual_ident.qualifier = NULL;
     qual_ident.lib_prefix = NULL;
     qual_ident.ident_pos = ident_pos;
     qual_ident.ident = &(String::ZoneHandle(ident.raw()));
@@ -6621,7 +6618,9 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
     SkipQualIdent();
   } else {
     ParseQualIdent(&type_name);
-    if (!is_top_level_ && (type_name.qualifier == NULL) &&
+    // An identifier cannot be resolved in a local scope when top level parsing.
+    if (!is_top_level_ &&
+        (type_name.lib_prefix == NULL) &&
         ResolveIdentInLocalScope(type_pos, *type_name.ident, NULL)) {
       ErrorMsg(type_pos, "using '%s' in this context is invalid",
                type_name.ident->ToCString());
@@ -6632,29 +6631,18 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   if (type_resolution == kIgnore) {
     // Leave type_class as null.
   } else if (type_resolution == kDoNotResolve) {
-    String& qualifier = String::Handle();
-    if (type_name.qualifier != NULL) {
-      qualifier ^= type_name.qualifier->raw();
+    LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+    if (type_name.lib_prefix != NULL) {
+      lib_prefix = type_name.lib_prefix->raw();
     }
-    type_class = UnresolvedClass::New(type_pos, qualifier, *type_name.ident);
+    type_class = UnresolvedClass::New(type_pos, lib_prefix, *type_name.ident);
   } else {
+    // TODO(regis): Use ResolveTypeFromClass().
     ASSERT((type_resolution == kCanResolve) ||
            (type_resolution == kMustResolve));
     scope_class = TypeParametersScopeClass();
     if (!scope_class.IsNull()) {
-      if (type_name.qualifier != NULL) {
-        // Check if qualifier is a type parameter in scope, unless it was
-        // already checked by ParseQualIdent when !is_top_level_.
-        if (is_top_level_) {
-          const TypeParameter& type_parameter = TypeParameter::Handle(
-              scope_class.LookupTypeParameter(*type_name.qualifier));
-          if (!type_parameter.IsNull()) {
-            ErrorMsg(type_pos,
-                     "type Parameter '%s' cannot be used as qualifier",
-                     type_name.qualifier->ToCString());
-          }
-        }
-      } else {
+      if (type_name.lib_prefix == NULL) {
         // Check if ident is a type parameter in scope.
         TypeParameter& type_parameter = TypeParameter::Handle(
             scope_class.LookupTypeParameter(*type_name.ident));
@@ -6686,8 +6674,7 @@ RawAbstractType* Parser::ParseType(TypeResolution type_resolution) {
   if (type_resolution == kIgnore) {
     return Type::DynamicType();
   }
-  Type& type = Type::Handle(
-      Type::NewParameterizedType(type_class, type_arguments));
+  Type& type = Type::Handle(Type::New(type_class, type_arguments));
   if (type_resolution == kMustResolve) {
     ASSERT(type_class.IsClass());  // Must be resolved.
     Error& error = Error::Handle();
@@ -7234,7 +7221,7 @@ AstNode* Parser::ParseNewOperator() {
     }
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& temp_type = Type::Handle(
-        Type::NewParameterizedType(constructor_class, temp_type_arguments));
+        Type::New(constructor_class, temp_type_arguments));
     Error& error = Error::Handle();
     const Class& scope_class = Class::Handle(TypeParametersScopeClass());
     temp_type ^= ClassFinalizer::FinalizeAndCanonicalizeType(scope_class,
@@ -7351,7 +7338,7 @@ AstNode* Parser::ParsePrimary() {
   } else if (IsIdentifier()) {
     QualIdent qual_ident;
     ParseQualIdent(&qual_ident);
-    if (qual_ident.qualifier == NULL) {
+    if (qual_ident.lib_prefix == NULL) {
       if (!ResolveIdentInLocalScope(qual_ident.ident_pos,
                                     *qual_ident.ident,
                                     &primary)) {

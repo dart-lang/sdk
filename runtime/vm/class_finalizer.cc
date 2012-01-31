@@ -261,19 +261,12 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 RawClass* ClassFinalizer::ResolveClass(
     const Class& cls, const UnresolvedClass& unresolved_class) {
   Library& lib = Library::Handle();
-  if (unresolved_class.qualifier() == String::null()) {
+  if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
     lib = cls.library();
   } else {
-    const String& qualifier = String::Handle(unresolved_class.qualifier());
     LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
-    lib_prefix = cls.LookupLibraryPrefix(qualifier);
-    if (lib_prefix.IsNull()) {
-      const Script& script = Script::Handle(cls.script());
-      ReportError(script, unresolved_class.token_index(),
-                  "cannot resolve library prefix '%s' from '%s'.\n",
-                  qualifier.ToCString(),
-                  String::Handle(cls.Name()).ToCString());
-    }
+    lib_prefix = unresolved_class.library_prefix();
+    ASSERT(!lib_prefix.IsNull());
     lib = lib_prefix.library();
   }
   ASSERT(!lib.IsNull());
