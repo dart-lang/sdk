@@ -366,12 +366,25 @@ MethodBindingTest: Fail
 Prefix15Test: Fail
 StringConcatTest: Fail
 ToStringAsFixedTest: Pass,Fail # Passes in 32-bit Safari, but fails in 64-bit Issue #1220
+ExecuteFinally6Test: Skip
 
 [ $component == webdriver && $browser == ff ]
 NamingTest: Fail
 StackOverflowTest: Fail
 StringConcatTest: Fail
 ToStringAsFixedTest: Fail
+ExecuteFinally7Test: Skip 
+StaticFinalField2NegativeTest: Skip
+
+[ $component == webdriver && ($browser == ff || $browser == safari) ]
+Label2NegativeTest: Skip
+Label3NegativeTest: Skip
+Label5NegativeTest: Skip
+Label6NegativeTest: Skip
+LabelTest: Skip
+StringEscape1NegativeTest: Skip
+Switch3NegativeTest: Skip
+Switch4NegativeTest: Skip
 
 [ $component == webdriver && $browser == ie ]
 ToStringAsFixedTest: Fail

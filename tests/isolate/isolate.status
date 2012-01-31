@@ -34,8 +34,8 @@ Isolate2NegativeTest: Skip
 CrossIsolateMessageTest: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 MixedTest: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
 Mixed2Test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
-MessageTest: Fail
-PromiseBasedTest: Fail
+MessageTest: Skip
+PromiseBasedTest: Skip
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip

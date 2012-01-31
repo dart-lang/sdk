@@ -89,10 +89,13 @@ def parse_args():
       action = 'store', default = '') 
   parser.add_option('--browser', dest='browser', 
       help = 'The browser type (default = chrome)', 
-      action = 'store', default = 'chrome') 
+      action = 'store', default = 'chrome')
+  # TODO(efortuna): Put this back up to 40 sec. Right now it needs to be less
+  # than 20 so that when test.dart times out, this script also closes the
+  # browser windows.
   parser.add_option('--timeout', dest = 'timeout', 
       help = 'Amount of time (seconds) to wait before timeout', type = 'int', 
-      action = 'store', default=40)
+      action = 'store', default=18)
   parser.add_option('--perf', dest = 'is_perf', 
       help = 'Add this flag if we are running a browser performance test', 
       action = 'store_true', default=False)
