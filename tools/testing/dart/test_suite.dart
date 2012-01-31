@@ -586,6 +586,9 @@ class StandardTestSuite implements TestSuite {
   }
 
   String get dumpRenderTreeFilename() {
+    if (configuration['drt'] != '') {
+      return configuration['drt'];
+    }
     if (new Platform().operatingSystem() == 'macos') {
       return 'client/tests/drt/DumpRenderTree.app/Contents/' +
           'MacOS/DumpRenderTree';

@@ -8,7 +8,7 @@
 
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
-           'isolate', 'stub-generator', 'vm', 'client', 'dartdoc'];
+           'isolate', 'stub-generator', 'vm', 'client', 'dartdoc', 'utils'];
 
 /**
  * Specification of a single test option.
@@ -170,6 +170,12 @@ is 'dart file.dart' and you specify special command
               'frog',
               'Path to frog executable',
               ['--frog'],
+              [],
+              ''),
+          new _TestOptionSpecification(
+              'drt',
+              'Path to DumpRenderTree executable',
+              ['--drt'],
               [],
               ''),
           new _TestOptionSpecification(
