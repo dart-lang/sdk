@@ -246,8 +246,8 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
 
 
 AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_index,
-                                           Token::Kind kind,
-                                           AstNode* operand) {
+                                       Token::Kind kind,
+                                       AstNode* operand) {
   AstNode* new_operand = operand->ApplyUnaryOp(kind);
   if (new_operand != NULL) {
     return new_operand;

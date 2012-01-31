@@ -12,7 +12,7 @@
 # 1) Copy the old version of the test to
 #    tests/language/src/TestName[Dartc|VM|Frog]Test.dart.
 #    to maintain coverage.
-# 2) File a bug on each archtiecture for the failure due to the language change.
+# 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
 prefix language
@@ -56,8 +56,6 @@ TypeVariableBoundsTest/10: Fail
 NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
-
-UnaryPlusNegativeTest: Fail # Issue 1229
 
 # Issue 1350.
 StringEscape1NegativeTest: Fail
@@ -174,6 +172,7 @@ TypeChecksInFactoryMethodTest: Fail # Issue 925
 SyntaxTest/31: Fail # Issue 1108
 SyntaxTest/32: Fail # Issue 1108
 SyntaxTest/33: Fail # Issue 1108
+LiteralUnaryPlusTest/01: Fail # Issue 1399
 
 PseudoKWTest: Fail           # Issue 356
 NamingTest: Fail             # Issue 356
@@ -216,6 +215,7 @@ StringEscape1NegativeTest: Skip
 
 [ $component == frog ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
+LiteralUnaryPlusTest/01: Fail # Issue 1400
 
 [ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) || $component == frogium ]
 Factory3Test: Fail # Issue 417

@@ -118,6 +118,11 @@ bool Scanner::IsDecimalDigit(int32_t c) {
 }
 
 
+bool Scanner::IsNumberStart(int32_t ch) {
+  return IsDecimalDigit(ch) || ch == '.';
+}
+
+
 bool Scanner::IsHexDigit(int32_t c) {
   return IsDecimalDigit(c)
          || (('A' <= c) && (c <= 'F'))
@@ -593,7 +598,9 @@ void Scanner::Scan() {
         break;
 
       case '+':  // +  ++  +=
-        Recognize(Token::kADD);
+        ReadChar();
+        current_token_.kind =
+            IsNumberStart(c0_) ? Token::kTIGHTADD : Token::kADD;
         if (c0_ == '+') {
           Recognize(Token::kINCR);
         } else if (c0_ == '=') {

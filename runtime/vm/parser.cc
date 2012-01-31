@@ -5334,8 +5334,10 @@ bool Parser::IsIncrementOperator(Token::Kind token) {
 
 
 bool Parser::IsPrefixOperator(Token::Kind token) {
-  return token == Token::kADD || token == Token::kSUB
-      || token == Token::kNOT || token == Token::kBIT_NOT;
+  return (token == Token::kTIGHTADD) ||   // Valid for literals only!
+         (token == Token::kSUB) ||
+         (token == Token::kNOT) ||
+         (token == Token::kBIT_NOT);
 }
 
 
@@ -5361,6 +5363,9 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
   while (current_preced >= min_preced) {
     while (Token::Precedence(CurrentToken()) == current_preced) {
       Token::Kind op_kind = CurrentToken();
+      if (op_kind == Token::kTIGHTADD) {
+        op_kind = Token::kADD;
+      }
       const intptr_t op_pos = token_index_;
       ConsumeToken();
       AstNode* right_operand = NULL;
@@ -5660,7 +5665,15 @@ AstNode* Parser::ParseUnaryExpr() {
     Token::Kind unary_op = CurrentToken();
     ConsumeToken();
     expr = ParseUnaryExpr();
-    expr = UnaryOpNode::UnaryOpOrLiteral(op_pos, unary_op, expr);
+    if (unary_op == Token::kTIGHTADD) {
+      // kTIGHADD is added only in front of a number literal.
+      if (!expr->IsLiteralNode()) {
+        ErrorMsg(op_pos, "unexpected operator '+'");
+      }
+      // Expression is the literal itself.
+    } else {
+      expr = UnaryOpNode::UnaryOpOrLiteral(op_pos, unary_op, expr);
+    }
   } else if (IsIncrementOperator(CurrentToken())) {
     Token::Kind incr_op = CurrentToken();
     ConsumeToken();
