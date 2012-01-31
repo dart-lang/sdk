@@ -82,6 +82,7 @@ public enum ResolverErrorCode implements ErrorCode {
   EXPECTED_CONSTANT_EXPRESSION("Expected constant expression"),
   EXPECTED_CONSTANT_EXPRESSION_BOOLEAN("Expected constant expression of type bool, got %s"),
   EXPECTED_CONSTANT_EXPRESSION_INT("Expected constant expression of type int, got %s"),
+  EXPECTED_CONSTANT_EXPRESSION_STRING("Expected constant expression of type String, got %s"),
   EXPECTED_CONSTANT_EXPRESSION_NUMBER("Expected constant expression of type num, got %s"),
   EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL(
       "Expected constant expression of type String, num or bool, got %s"),

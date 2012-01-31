@@ -1871,7 +1871,7 @@ public class Resolver {
         ConstructorElement nextConstructorElement = (ConstructorElement) element;
         ClassElement nextClass = (ClassElement) nextConstructorElement.getEnclosingElement();
         ClassElement currentClass = (ClassElement) constructor.getEnclosingElement();
-        if (nextClass.getName().equals(currentClass.getName())) {
+        if (nextClass == currentClass) {
           return nextConstructorElement;
         }
       }

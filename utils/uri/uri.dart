@@ -169,13 +169,13 @@ class Uri {
     if (hasAuthority() || (scheme == "file")) {
       sb.add("//");
       _addIfNonEmpty(sb, userInfo, userInfo, "@");
-      sb.add(domain);
+      sb.add(domain === null ? "null" : domain);
       if (port != 0) {
         sb.add(":");
         sb.add(port.toString());
       }
     }
-    sb.add(path);
+    sb.add(path === null ? "null" : path);
     _addIfNonEmpty(sb, query, "?", query);
     _addIfNonEmpty(sb, fragment, "#", fragment);
     return sb.toString();
@@ -184,8 +184,8 @@ class Uri {
   static void _addIfNonEmpty(StringBuffer sb, String test,
                              String first, String second) {
     if ("" != test) {
-      sb.add(first);
-      sb.add(second);
+      sb.add(first === null ? "null" : first);
+      sb.add(second === null ? "null" : second);
     }
   }
 }

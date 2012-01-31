@@ -7,7 +7,3 @@ UriTest: Fail
 
 [ $component == frog || $component == frogium || $component == frogsh ]
 UriTest: Fail
-
-
-[ $component == dartc || $component == chromium ]
-UriTest: Fail
