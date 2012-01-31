@@ -21,6 +21,8 @@ class InspectorFrontendHostJs extends DOMTypeJs implements InspectorFrontendHost
 
   void moveWindowBy(num x, num y) native;
 
+  void openInNewTab(String url) native;
+
   String platform() native;
 
   String port() native;

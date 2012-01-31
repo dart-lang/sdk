@@ -1,13 +1,13 @@
 
 class Int8ArrayJs extends ArrayBufferViewJs implements Int8Array, List<int> native "*Int8Array" {
 
-  factory Int8Array(int length) =>  _construct(length);
+  factory Int8Array(int length) =>  _construct_Int8Array(length);
 
-  factory Int8Array.fromList(List<int> list) => _construct(list);
+  factory Int8Array.fromList(List<int> list) => _construct_Int8Array(list);
 
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct_Int8Array(buffer);
 
-  static _construct(arg) native 'return new Int8Array(arg);';
+  static _construct_Int8Array(arg) native 'return new Int8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 

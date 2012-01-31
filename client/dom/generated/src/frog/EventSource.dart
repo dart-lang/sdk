@@ -11,6 +11,8 @@ class EventSourceJs extends DOMTypeJs implements EventSource native "*EventSourc
 
   int get readyState() native "return this.readyState;";
 
+  String get url() native "return this.url;";
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close() native;

@@ -646,6 +646,10 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void compileShader(WebGLShader shader);
 
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data);
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data);
+
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border);
 
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height);

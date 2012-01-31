@@ -15,6 +15,8 @@ class DOMApplicationCacheJs extends DOMTypeJs implements DOMApplicationCache nat
 
   int get status() native "return this.status;";
 
+  void abort() native;
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   bool dispatchEvent(EventJs evt) native;

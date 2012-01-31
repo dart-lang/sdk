@@ -222,7 +222,7 @@ interface Window extends EventTarget {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
-  void postMessage(String message, String targetOrigin, [List messagePorts]);
+  void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
 
   void print();
 
@@ -258,7 +258,7 @@ interface Window extends EventTarget {
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
 
-  void webkitPostMessage(String message, String targetOrigin, [List transferList]);
+  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
 

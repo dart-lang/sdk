@@ -1,13 +1,13 @@
 
 class Int16ArrayJs extends ArrayBufferViewJs implements Int16Array, List<int> native "*Int16Array" {
 
-  factory Int16Array(int length) =>  _construct(length);
+  factory Int16Array(int length) =>  _construct_Int16Array(length);
 
-  factory Int16Array.fromList(List<int> list) => _construct(list);
+  factory Int16Array.fromList(List<int> list) => _construct_Int16Array(list);
 
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct_Int16Array(buffer);
 
-  static _construct(arg) native 'return new Int16Array(arg);';
+  static _construct_Int16Array(arg) native 'return new Int16Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 2;
 

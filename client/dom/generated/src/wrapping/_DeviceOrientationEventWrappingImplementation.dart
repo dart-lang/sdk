@@ -11,6 +11,9 @@ class _DeviceOrientationEventWrappingImplementation extends _EventWrappingImplem
     return new _DeviceOrientationEventWrappingImplementation();
   }
 
+  bool get absolute() { return _get_absolute(this); }
+  static bool _get_absolute(var _this) native;
+
   num get alpha() { return _get_alpha(this); }
   static num _get_alpha(var _this) native;
 
@@ -20,11 +23,11 @@ class _DeviceOrientationEventWrappingImplementation extends _EventWrappingImplem
   num get gamma() { return _get_gamma(this); }
   static num _get_gamma(var _this) native;
 
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) {
-    _initDeviceOrientationEvent(this, type, bubbles, cancelable, alpha, beta, gamma);
+  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) {
+    _initDeviceOrientationEvent(this, type, bubbles, cancelable, alpha, beta, gamma, absolute);
     return;
   }
-  static void _initDeviceOrientationEvent(receiver, type, bubbles, cancelable, alpha, beta, gamma) native;
+  static void _initDeviceOrientationEvent(receiver, type, bubbles, cancelable, alpha, beta, gamma, absolute) native;
 
   String get typeName() { return "DeviceOrientationEvent"; }
 }

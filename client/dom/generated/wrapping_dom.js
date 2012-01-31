@@ -3014,6 +3014,14 @@ function native__DOMApplicationCacheWrappingImplementation__get_status(_this) {
   }
 }
 
+function native__DOMApplicationCacheWrappingImplementation__abort(_this) {
+  try {
+    return __dom_wrap(_this.$dom.abort());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DOMApplicationCacheWrappingImplementation__addEventListener_DOMApplicationCache(_this, type, listener) {
   try {
     return __dom_wrap(_this.$dom.addEventListener(__dom_unwrap(type), __dom_unwrap(listener)));
@@ -4766,9 +4774,17 @@ function native__DataTransferItemListWrappingImplementation__get_length(_this) {
   }
 }
 
-function native__DataTransferItemListWrappingImplementation__add(_this, data, type) {
+function native__DataTransferItemListWrappingImplementation__add(_this, data_OR_file) {
   try {
-    return __dom_wrap(_this.$dom.add(__dom_unwrap(data), __dom_unwrap(type)));
+    return __dom_wrap(_this.$dom.add(__dom_unwrap(data_OR_file)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__DataTransferItemListWrappingImplementation__add_2(_this, data_OR_file, type) {
+  try {
+    return __dom_wrap(_this.$dom.add(__dom_unwrap(data_OR_file), __dom_unwrap(type)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -5214,6 +5230,14 @@ function native__DeviceMotionEventWrappingImplementation__get_interval(_this) {
   }
 }
 
+function native__DeviceOrientationEventWrappingImplementation__get_absolute(_this) {
+  try {
+    return __dom_wrap(_this.$dom.absolute);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__DeviceOrientationEventWrappingImplementation__get_alpha(_this) {
   try {
     return __dom_wrap(_this.$dom.alpha);
@@ -5238,9 +5262,9 @@ function native__DeviceOrientationEventWrappingImplementation__get_gamma(_this) 
   }
 }
 
-function native__DeviceOrientationEventWrappingImplementation__initDeviceOrientationEvent(_this, type, bubbles, cancelable, alpha, beta, gamma) {
+function native__DeviceOrientationEventWrappingImplementation__initDeviceOrientationEvent(_this, type, bubbles, cancelable, alpha, beta, gamma, absolute) {
   try {
-    return __dom_wrap(_this.$dom.initDeviceOrientationEvent(__dom_unwrap(type), __dom_unwrap(bubbles), __dom_unwrap(cancelable), __dom_unwrap(alpha), __dom_unwrap(beta), __dom_unwrap(gamma)));
+    return __dom_wrap(_this.$dom.initDeviceOrientationEvent(__dom_unwrap(type), __dom_unwrap(bubbles), __dom_unwrap(cancelable), __dom_unwrap(alpha), __dom_unwrap(beta), __dom_unwrap(gamma), __dom_unwrap(absolute)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -7169,6 +7193,14 @@ function native__EventSourceWrappingImplementation__get_URL(_this) {
 function native__EventSourceWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__EventSourceWrappingImplementation__get_url(_this) {
+  try {
+    return __dom_wrap(_this.$dom.url);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -9209,6 +9241,22 @@ function native__HTMLCollectionWrappingImplementation__item(_this, index) {
 function native__HTMLCollectionWrappingImplementation__namedItem(_this, name) {
   try {
     return __dom_wrap(_this.$dom.namedItem(__dom_unwrap(name)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLContentElementWrappingImplementation__get_select(_this) {
+  try {
+    return __dom_wrap(_this.$dom.select);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__HTMLContentElementWrappingImplementation__set_select(_this, value) {
+  try {
+    _this.$dom.select = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17158,9 +17206,9 @@ function native__InjectedScriptHostWrappingImplementation__evaluate(_this, text)
   }
 }
 
-function native__InjectedScriptHostWrappingImplementation__functionLocation(_this, object) {
+function native__InjectedScriptHostWrappingImplementation__functionDetails(_this, object) {
   try {
-    return __dom_wrap(_this.$dom.functionLocation(__dom_unwrap(object)));
+    return __dom_wrap(_this.$dom.functionDetails(__dom_unwrap(object)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17297,6 +17345,14 @@ function native__InspectorFrontendHostWrappingImplementation__localizedStringsUR
 function native__InspectorFrontendHostWrappingImplementation__moveWindowBy(_this, x, y) {
   try {
     return __dom_wrap(_this.$dom.moveWindowBy(__dom_unwrap(x), __dom_unwrap(y)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__InspectorFrontendHostWrappingImplementation__openInNewTab(_this, url) {
+  try {
+    return __dom_wrap(_this.$dom.openInNewTab(__dom_unwrap(url)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30294,6 +30350,14 @@ function native__ScriptProfileNodeWrappingImplementation__get_visible(_this) {
   }
 }
 
+function native__ShadowRootWrappingImplementation__get_host(_this) {
+  try {
+    return __dom_wrap(_this.$dom.host);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__SharedWorkerWrappingImplementation__get_port(_this) {
   try {
     return __dom_wrap(_this.$dom.port);
@@ -31718,6 +31782,30 @@ function native__Uint8ArrayWrappingImplementation__subarray_2(_this, start, end)
   }
 }
 
+function native__Uint8ClampedArrayWrappingImplementation__get_length_Uint8ClampedArray(_this) {
+  try {
+    return __dom_wrap(_this.$dom.length);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ClampedArrayWrappingImplementation__subarray_Uint8ClampedArray(_this, start) {
+  try {
+    return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__Uint8ClampedArrayWrappingImplementation__subarray_Uint8ClampedArray_2(_this, start, end) {
+  try {
+    return __dom_wrap(_this.$dom.subarray(__dom_unwrap(start), __dom_unwrap(end)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__ValidityStateWrappingImplementation__get_customError(_this) {
   try {
     return __dom_wrap(_this.$dom.customError);
@@ -32177,6 +32265,22 @@ function native__WebGLRenderingContextWrappingImplementation__colorMask(_this, r
 function native__WebGLRenderingContextWrappingImplementation__compileShader(_this, shader) {
   try {
     return __dom_wrap(_this.$dom.compileShader(__dom_unwrap(shader)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebGLRenderingContextWrappingImplementation__compressedTexImage2D(_this, target, level, internalformat, width, height, border, data) {
+  try {
+    return __dom_wrap(_this.$dom.compressedTexImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(internalformat), __dom_unwrap(width), __dom_unwrap(height), __dom_unwrap(border), __dom_unwrap(data)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebGLRenderingContextWrappingImplementation__compressedTexSubImage2D(_this, target, level, xoffset, yoffset, width, height, format, data) {
+  try {
+    return __dom_wrap(_this.$dom.compressedTexSubImage2D(__dom_unwrap(target), __dom_unwrap(level), __dom_unwrap(xoffset), __dom_unwrap(yoffset), __dom_unwrap(width), __dom_unwrap(height), __dom_unwrap(format), __dom_unwrap(data)));
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -33830,6 +33934,14 @@ function native__WebKitCSSMatrixWrappingImplementation__translate(_this, x, y, z
   }
 }
 
+function native__WebKitCSSRegionRuleWrappingImplementation__get_cssRules(_this) {
+  try {
+    return __dom_wrap(_this.$dom.cssRules);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__WebKitCSSTransformValueWrappingImplementation__get_operationType(_this) {
   try {
     return __dom_wrap(_this.$dom.operationType);
@@ -33945,6 +34057,14 @@ function native__WebSocketWrappingImplementation__get_protocol(_this) {
 function native__WebSocketWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__WebSocketWrappingImplementation__get_url(_this) {
+  try {
+    return __dom_wrap(_this.$dom.url);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -35258,6 +35378,14 @@ function native__TypedArrayFactoryProvider__U32(arg) {
   }
 }
 
+function native__TypedArrayFactoryProvider__U8C(arg) {
+  try {
+    return __dom_wrap(new Uint8ClampedArray(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__WebKitCSSMatrixFactoryProvider_create(spec) {
   try {
     return __dom_wrap(new WebKitCSSMatrix(spec));  // string doesn't need unwrap.
@@ -35420,6 +35548,7 @@ var __dom_type_map = {
   "HTMLButtonElement": native__HTMLButtonElementWrappingImplementation_create__HTMLButtonElementWrappingImplementation,
   "HTMLCanvasElement": native__HTMLCanvasElementWrappingImplementation_create__HTMLCanvasElementWrappingImplementation,
   "HTMLCollection": native__HTMLCollectionWrappingImplementation_create__HTMLCollectionWrappingImplementation,
+  "HTMLContentElement": native__HTMLContentElementWrappingImplementation_create__HTMLContentElementWrappingImplementation,
   "HTMLDListElement": native__HTMLDListElementWrappingImplementation_create__HTMLDListElementWrappingImplementation,
   "HTMLDataListElement": native__HTMLDataListElementWrappingImplementation_create__HTMLDataListElementWrappingImplementation,
   "HTMLDetailsElement": native__HTMLDetailsElementWrappingImplementation_create__HTMLDetailsElementWrappingImplementation,
@@ -35717,6 +35846,7 @@ var __dom_type_map = {
   "Screen": native__ScreenWrappingImplementation_create__ScreenWrappingImplementation,
   "ScriptProfile": native__ScriptProfileWrappingImplementation_create__ScriptProfileWrappingImplementation,
   "ScriptProfileNode": native__ScriptProfileNodeWrappingImplementation_create__ScriptProfileNodeWrappingImplementation,
+  "ShadowRoot": native__ShadowRootWrappingImplementation_create__ShadowRootWrappingImplementation,
   "SharedWorker": native__SharedWorkerWrappingImplementation_create__SharedWorkerWrappingImplementation,
   "SharedWorkerContext": native__SharedWorkerContextWrappingImplementation_create__SharedWorkerContextWrappingImplementation,
   "SpeechInputEvent": native__SpeechInputEventWrappingImplementation_create__SpeechInputEventWrappingImplementation,
@@ -35745,6 +35875,7 @@ var __dom_type_map = {
   "Uint16Array": native__Uint16ArrayWrappingImplementation_create__Uint16ArrayWrappingImplementation,
   "Uint32Array": native__Uint32ArrayWrappingImplementation_create__Uint32ArrayWrappingImplementation,
   "Uint8Array": native__Uint8ArrayWrappingImplementation_create__Uint8ArrayWrappingImplementation,
+  "Uint8ClampedArray": native__Uint8ClampedArrayWrappingImplementation_create__Uint8ClampedArrayWrappingImplementation,
   "ValidityState": native__ValidityStateWrappingImplementation_create__ValidityStateWrappingImplementation,
   "WaveShaperNode": native__WaveShaperNodeWrappingImplementation_create__WaveShaperNodeWrappingImplementation,
   "WebGLActiveInfo": native__WebGLActiveInfoWrappingImplementation_create__WebGLActiveInfoWrappingImplementation,
@@ -35771,6 +35902,7 @@ var __dom_type_map = {
   "WebKitCSSKeyframeRule": native__WebKitCSSKeyframeRuleWrappingImplementation_create__WebKitCSSKeyframeRuleWrappingImplementation,
   "WebKitCSSKeyframesRule": native__WebKitCSSKeyframesRuleWrappingImplementation_create__WebKitCSSKeyframesRuleWrappingImplementation,
   "WebKitCSSMatrix": native__WebKitCSSMatrixWrappingImplementation_create__WebKitCSSMatrixWrappingImplementation,
+  "WebKitCSSRegionRule": native__WebKitCSSRegionRuleWrappingImplementation_create__WebKitCSSRegionRuleWrappingImplementation,
   "WebKitCSSTransformValue": native__WebKitCSSTransformValueWrappingImplementation_create__WebKitCSSTransformValueWrappingImplementation,
   "WebKitMutationObserver": native__WebKitMutationObserverWrappingImplementation_create__WebKitMutationObserverWrappingImplementation,
   "WebKitNamedFlow": native__WebKitNamedFlowWrappingImplementation_create__WebKitNamedFlowWrappingImplementation,

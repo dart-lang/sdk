@@ -67,6 +67,12 @@ class _InspectorFrontendHostWrappingImplementation extends DOMWrapperBase implem
   }
   static void _moveWindowBy(receiver, x, y) native;
 
+  void openInNewTab(String url) {
+    _openInNewTab(this, url);
+    return;
+  }
+  static void _openInNewTab(receiver, url) native;
+
   String platform() {
     return _platform(this);
   }

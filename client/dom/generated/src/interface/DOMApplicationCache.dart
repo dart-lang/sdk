@@ -8,6 +8,8 @@ interface ApplicationCache extends EventTarget {
 
   int get status();
 
+  void abort();
+
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event evt);

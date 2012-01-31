@@ -13,7 +13,7 @@ class InjectedScriptHostJs extends DOMTypeJs implements InjectedScriptHost nativ
 
   Object evaluate(String text) native;
 
-  Object functionLocation(Object object) native;
+  Object functionDetails(Object object) native;
 
   void inspect(Object objectId, Object hints) native;
 

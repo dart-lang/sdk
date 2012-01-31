@@ -18,7 +18,7 @@ interface InjectedScriptHost {
 
   Object evaluate(String text);
 
-  Object functionLocation(Object object);
+  Object functionDetails(Object object);
 
   void inspect(Object objectId, Object hints);
 

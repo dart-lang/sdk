@@ -54,15 +54,19 @@ class _TypedArrayFactoryProvider {
   factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _U32(buffer);
 
+  factory Uint8ClampedArray(int length) => _U8C(length);
+  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _U8C(buffer);
 
   static Float32Array _F32(arg) native;
-  static Float32Array _F64(arg) native;
-  static Float32Array _I8(arg) native;
-  static Float32Array _I16(arg) native;
-  static Float32Array _I32(arg) native;
-  static Float32Array _U8(arg) native;
-  static Float32Array _U16(arg) native;
-  static Float32Array _U32(arg) native;
+  static Float64Array _F64(arg) native;
+  static Int8Array _I8(arg) native;
+  static Int16Array _I16(arg) native;
+  static Int32Array _I32(arg) native;
+  static Uint8Array _U8(arg) native;
+  static Uint16Array _U16(arg) native;
+  static Uint32Array _U32(arg) native;
+  static Uint8ClampedArray _U8C(arg) native;
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }

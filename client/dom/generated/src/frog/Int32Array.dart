@@ -1,13 +1,13 @@
 
 class Int32ArrayJs extends ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
 
-  factory Int32Array(int length) =>  _construct(length);
+  factory Int32Array(int length) =>  _construct_Int32Array(length);
 
-  factory Int32Array.fromList(List<int> list) => _construct(list);
+  factory Int32Array.fromList(List<int> list) => _construct_Int32Array(list);
 
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct_Int32Array(buffer);
 
-  static _construct(arg) native 'return new Int32Array(arg);';
+  static _construct_Int32Array(arg) native 'return new Int32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 

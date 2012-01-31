@@ -14,6 +14,12 @@ class _DOMApplicationCacheWrappingImplementation extends DOMWrapperBase implemen
   int get status() { return _get_status(this); }
   static int _get_status(var _this) native;
 
+  void abort() {
+    _abort(this);
+    return;
+  }
+  static void _abort(receiver) native;
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener_DOMApplicationCache(this, type, listener);

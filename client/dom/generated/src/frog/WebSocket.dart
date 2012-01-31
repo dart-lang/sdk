@@ -25,6 +25,8 @@ class WebSocketJs extends DOMTypeJs implements WebSocket native "*WebSocket" {
 
   int get readyState() native "return this.readyState;";
 
+  String get url() native "return this.url;";
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close([int code = null, String reason = null]) native;

@@ -1,13 +1,13 @@
 
 class Float64ArrayJs extends ArrayBufferViewJs implements Float64Array, List<num> native "*Float64Array" {
 
-  factory Float64Array(int length) =>  _construct(length);
+  factory Float64Array(int length) =>  _construct_Float64Array(length);
 
-  factory Float64Array.fromList(List<num> list) => _construct(list);
+  factory Float64Array.fromList(List<num> list) => _construct_Float64Array(list);
 
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct_Float64Array(buffer);
 
-  static _construct(arg) native 'return new Float64Array(arg);';
+  static _construct_Float64Array(arg) native 'return new Float64Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 8;
 

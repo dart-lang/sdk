@@ -16,6 +16,8 @@ interface EventSource extends EventTarget {
 
   int get readyState();
 
+  String get url();
+
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close();

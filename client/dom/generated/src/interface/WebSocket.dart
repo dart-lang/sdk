@@ -30,6 +30,8 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   int get readyState();
 
+  String get url();
+
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close([int code, String reason]);

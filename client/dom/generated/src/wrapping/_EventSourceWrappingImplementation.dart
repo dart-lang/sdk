@@ -17,6 +17,9 @@ class _EventSourceWrappingImplementation extends DOMWrapperBase implements Event
   int get readyState() { return _get_readyState(this); }
   static int _get_readyState(var _this) native;
 
+  String get url() { return _get_url(this); }
+  static String _get_url(var _this) native;
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {
       _addEventListener_EventSource(this, type, listener);

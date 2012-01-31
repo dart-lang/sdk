@@ -221,7 +221,7 @@ class DOMWindowJs extends DOMTypeJs implements DOMWindow native "@*DOMWindow" {
 
   DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
+  void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
 
@@ -257,7 +257,7 @@ class DOMWindowJs extends DOMTypeJs implements DOMWindow native "@*DOMWindow" {
 
   WebKitPointJs webkitConvertPointFromPageToNode(NodeJs node, WebKitPointJs p) native;
 
-  void webkitPostMessage(String message, String targetOrigin, [List transferList = null]) native;
+  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, ElementJs element) native;
 

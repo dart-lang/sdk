@@ -11,7 +11,7 @@ class _WorkerWrappingImplementation extends _AbstractWorkerWrappingImplementatio
     return new _WorkerWrappingImplementation();
   }
 
-  void postMessage(String message, [List messagePorts = null]) {
+  void postMessage(Dynamic message, [List messagePorts = null]) {
     if (messagePorts === null) {
       _postMessage(this, message);
       return;
@@ -29,7 +29,7 @@ class _WorkerWrappingImplementation extends _AbstractWorkerWrappingImplementatio
   }
   static void _terminate(receiver) native;
 
-  void webkitPostMessage(String message, [List messagePorts = null]) {
+  void webkitPostMessage(Dynamic message, [List messagePorts = null]) {
     if (messagePorts === null) {
       _webkitPostMessage(this, message);
       return;

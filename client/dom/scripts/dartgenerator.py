@@ -42,9 +42,10 @@ _idl_to_dart_type_conversions = {
     'void': 'void',
     'Array': 'List',
     'sequence': 'List',
-    # TODO(vsm): We need to support other types. We could weaken to
-    # Object, or inject SSV into the appropriate types.
-    'SerializedScriptValue': 'String',
+    # TODO(sra): Come up with some meaningful name so that where this appears in
+    # the documentation, the user is made aware that only a limited subset of
+    # serializable types are actually permitted.
+    'SerializedScriptValue': 'Dynamic',
     # TODO(vsm): Automatically recognize types defined in src.
     'TimeoutHandler': 'TimeoutHandler',
     'RequestAnimationFrameCallback': 'RequestAnimationFrameCallback',
@@ -95,6 +96,7 @@ _interface_factories = {
     'Uint8Array': '_TypedArrayFactoryProvider',
     'Uint16Array': '_TypedArrayFactoryProvider',
     'Uint32Array': '_TypedArrayFactoryProvider',
+    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
 }
 
 #
@@ -750,6 +752,8 @@ def MaybeTypedArrayElementType(interface):
   for parent in interface.parents:
     if  parent.type.id == 'ArrayBufferView':
       return MaybeListElementType(interface)
+    if  parent.type.id == 'Uint8Array':
+      return 'int'
   return None
 
 
@@ -2010,13 +2014,13 @@ class FrogInterfaceGenerator(object):
   def AddTypedArrayConstructors(self, element_type):
     self._members_emitter.Emit(
         '\n'
-        '  factory $CTOR(int length) =>  _construct(length);\n'
+        '  factory $CTOR(int length) =>  _construct_$CTOR(length);\n'
         '\n'
-        '  factory $CTOR.fromList(List<$TYPE> list) => _construct(list);\n'
+        '  factory $CTOR.fromList(List<$TYPE> list) => _construct_$CTOR(list);\n'
         '\n'
-        '  factory $CTOR.fromBuffer(ArrayBuffer buffer) => _construct(buffer);\n'
+        '  factory $CTOR.fromBuffer(ArrayBuffer buffer) => _construct_$CTOR(buffer);\n'
         '\n'
-        '  static _construct(arg) native \'return new $CTOR(arg);\';\n',
+        '  static _construct_$CTOR(arg) native \'return new $CTOR(arg);\';\n',
         CTOR=self._interface.id,
         TYPE=element_type)
 

@@ -641,6 +641,10 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void compileShader(WebGLShaderJs shader) native;
 
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferViewJs data) native;
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferViewJs data) native;
+
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;

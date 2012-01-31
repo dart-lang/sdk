@@ -142,6 +142,7 @@
 #source('generated/src/interface/HTMLButtonElement.dart');
 #source('generated/src/interface/HTMLCanvasElement.dart');
 #source('generated/src/interface/HTMLCollection.dart');
+#source('generated/src/interface/HTMLContentElement.dart');
 #source('generated/src/interface/HTMLDListElement.dart');
 #source('generated/src/interface/HTMLDataListElement.dart');
 #source('generated/src/interface/HTMLDetailsElement.dart');
@@ -447,6 +448,7 @@
 #source('generated/src/interface/Screen.dart');
 #source('generated/src/interface/ScriptProfile.dart');
 #source('generated/src/interface/ScriptProfileNode.dart');
+#source('generated/src/interface/ShadowRoot.dart');
 #source('generated/src/interface/SharedWorker.dart');
 #source('generated/src/interface/SharedWorkerContext.dart');
 #source('generated/src/interface/SpeechInputEvent.dart');
@@ -479,6 +481,7 @@
 #source('generated/src/interface/Uint16Array.dart');
 #source('generated/src/interface/Uint32Array.dart');
 #source('generated/src/interface/Uint8Array.dart');
+#source('generated/src/interface/Uint8ClampedArray.dart');
 #source('generated/src/interface/ValidityState.dart');
 #source('generated/src/interface/VoidCallback.dart');
 #source('generated/src/interface/WaveShaperNode.dart');
@@ -506,6 +509,7 @@
 #source('generated/src/interface/WebKitCSSKeyframeRule.dart');
 #source('generated/src/interface/WebKitCSSKeyframesRule.dart');
 #source('generated/src/interface/WebKitCSSMatrix.dart');
+#source('generated/src/interface/WebKitCSSRegionRule.dart');
 #source('generated/src/interface/WebKitCSSTransformValue.dart');
 #source('generated/src/interface/WebKitMutationObserver.dart');
 #source('generated/src/interface/WebKitNamedFlow.dart');
@@ -656,6 +660,7 @@
 #source('generated/src/wrapping/_HTMLButtonElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLCanvasElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLCollectionWrappingImplementation.dart');
+#source('generated/src/wrapping/_HTMLContentElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDListElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDataListElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDetailsElementWrappingImplementation.dart');
@@ -953,6 +958,7 @@
 #source('generated/src/wrapping/_ScreenWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileWrappingImplementation.dart');
+#source('generated/src/wrapping/_ShadowRootWrappingImplementation.dart');
 #source('generated/src/wrapping/_SharedWorkerContextWrappingImplementation.dart');
 #source('generated/src/wrapping/_SharedWorkerWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputEventWrappingImplementation.dart');
@@ -981,6 +987,7 @@
 #source('generated/src/wrapping/_Uint16ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_Uint32ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_Uint8ArrayWrappingImplementation.dart');
+#source('generated/src/wrapping/_Uint8ClampedArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_ValidityStateWrappingImplementation.dart');
 #source('generated/src/wrapping/_WaveShaperNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLActiveInfoWrappingImplementation.dart');
@@ -1007,6 +1014,7 @@
 #source('generated/src/wrapping/_WebKitCSSKeyframeRuleWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSKeyframesRuleWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSMatrixWrappingImplementation.dart');
+#source('generated/src/wrapping/_WebKitCSSRegionRuleWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSTransformValueWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitMutationObserverWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitNamedFlowWrappingImplementation.dart');

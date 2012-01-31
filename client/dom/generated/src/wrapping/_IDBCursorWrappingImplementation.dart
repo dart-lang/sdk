@@ -40,7 +40,7 @@ class _IDBCursorWrappingImplementation extends DOMWrapperBase implements IDBCurs
   }
   static IDBRequest _delete(receiver) native;
 
-  IDBRequest update(String value) {
+  IDBRequest update(Dynamic value) {
     return _update(this, value);
   }
   static IDBRequest _update(receiver, value) native;

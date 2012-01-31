@@ -7,7 +7,7 @@ class IDBObjectStoreJs extends DOMTypeJs implements IDBObjectStore native "*IDBO
 
   IDBTransactionJs get transaction() native "return this.transaction;";
 
-  IDBRequestJs add(String value, [IDBKeyJs key = null]) native;
+  IDBRequestJs add(Dynamic value, [IDBKeyJs key = null]) native;
 
   IDBRequestJs clear() native;
 
@@ -25,5 +25,5 @@ class IDBObjectStoreJs extends DOMTypeJs implements IDBObjectStore native "*IDBO
 
   IDBRequestJs openCursor([IDBKeyRangeJs range = null, int direction = null]) native;
 
-  IDBRequestJs put(String value, [IDBKeyJs key = null]) native;
+  IDBRequestJs put(Dynamic value, [IDBKeyJs key = null]) native;
 }

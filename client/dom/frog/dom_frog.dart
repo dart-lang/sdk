@@ -1032,6 +1032,8 @@ class DOMApplicationCacheJs extends DOMTypeJs implements DOMApplicationCache nat
 
   int get status() native "return this.status;";
 
+  void abort() native;
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   bool dispatchEvent(EventJs evt) native;
@@ -1495,7 +1497,7 @@ class DOMWindowJs extends DOMTypeJs implements DOMWindow native "@*DOMWindow" {
 
   DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
-  void postMessage(String message, String targetOrigin, [List messagePorts = null]) native;
+  void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) native;
 
   void print() native;
 
@@ -1531,7 +1533,7 @@ class DOMWindowJs extends DOMTypeJs implements DOMWindow native "@*DOMWindow" {
 
   WebKitPointJs webkitConvertPointFromPageToNode(NodeJs node, WebKitPointJs p) native;
 
-  void webkitPostMessage(String message, String targetOrigin, [List transferList = null]) native;
+  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, ElementJs element) native;
 
@@ -1555,7 +1557,7 @@ class DataTransferItemListJs extends DOMTypeJs implements DataTransferItemList n
 
   int get length() native "return this.length;";
 
-  void add(String data, String type) native;
+  void add(var data_OR_file, [String type = null]) native;
 
   void clear() native;
 
@@ -1644,13 +1646,15 @@ class DeviceMotionEventJs extends EventJs implements DeviceMotionEvent native "*
 
 class DeviceOrientationEventJs extends EventJs implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
 
+  bool get absolute() native "return this.absolute;";
+
   num get alpha() native "return this.alpha;";
 
   num get beta() native "return this.beta;";
 
   num get gamma() native "return this.gamma;";
 
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma) native;
+  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }
 
 class DirectoryEntryJs extends EntryJs implements DirectoryEntry native "*DirectoryEntry" {
@@ -2205,6 +2209,8 @@ class EventSourceJs extends DOMTypeJs implements EventSource native "*EventSourc
 
   int get readyState() native "return this.readyState;";
 
+  String get url() native "return this.url;";
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close() native;
@@ -2453,13 +2459,13 @@ class FileWriterSyncJs extends DOMTypeJs implements FileWriterSync native "*File
 
 class Float32ArrayJs extends ArrayBufferViewJs implements Float32Array, List<num> native "*Float32Array" {
 
-  factory Float32Array(int length) =>  _construct(length);
+  factory Float32Array(int length) =>  _construct_Float32Array(length);
 
-  factory Float32Array.fromList(List<num> list) => _construct(list);
+  factory Float32Array.fromList(List<num> list) => _construct_Float32Array(list);
 
-  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Float32Array.fromBuffer(ArrayBuffer buffer) => _construct_Float32Array(buffer);
 
-  static _construct(arg) native 'return new Float32Array(arg);';
+  static _construct_Float32Array(arg) native 'return new Float32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -2543,13 +2549,13 @@ class Float32ArrayJs extends ArrayBufferViewJs implements Float32Array, List<num
 
 class Float64ArrayJs extends ArrayBufferViewJs implements Float64Array, List<num> native "*Float64Array" {
 
-  factory Float64Array(int length) =>  _construct(length);
+  factory Float64Array(int length) =>  _construct_Float64Array(length);
 
-  factory Float64Array.fromList(List<num> list) => _construct(list);
+  factory Float64Array.fromList(List<num> list) => _construct_Float64Array(list);
 
-  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Float64Array.fromBuffer(ArrayBuffer buffer) => _construct_Float64Array(buffer);
 
-  static _construct(arg) native 'return new Float64Array(arg);';
+  static _construct_Float64Array(arg) native 'return new Float64Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 8;
 
@@ -3050,6 +3056,13 @@ class HTMLCollectionJs extends DOMTypeJs implements HTMLCollection native "*HTML
   NodeJs item(int index) native;
 
   NodeJs namedItem(String name) native;
+}
+
+class HTMLContentElementJs extends HTMLElementJs implements HTMLContentElement native "*HTMLContentElement" {
+
+  String get select() native "return this.select;";
+
+  void set select(String value) native "this.select = value;";
 }
 
 class HTMLDListElementJs extends HTMLElementJs implements HTMLDListElement native "*HTMLDListElement" {
@@ -5026,7 +5039,7 @@ class IDBCursorJs extends DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   IDBRequestJs delete() native;
 
-  IDBRequestJs update(String value) native;
+  IDBRequestJs update(Dynamic value) native;
 }
 
 class IDBCursorWithValueJs extends IDBCursorJs implements IDBCursorWithValue native "*IDBCursorWithValue" {
@@ -5181,7 +5194,7 @@ class IDBObjectStoreJs extends DOMTypeJs implements IDBObjectStore native "*IDBO
 
   IDBTransactionJs get transaction() native "return this.transaction;";
 
-  IDBRequestJs add(String value, [IDBKeyJs key = null]) native;
+  IDBRequestJs add(Dynamic value, [IDBKeyJs key = null]) native;
 
   IDBRequestJs clear() native;
 
@@ -5199,7 +5212,7 @@ class IDBObjectStoreJs extends DOMTypeJs implements IDBObjectStore native "*IDBO
 
   IDBRequestJs openCursor([IDBKeyRangeJs range = null, int direction = null]) native;
 
-  IDBRequestJs put(String value, [IDBKeyJs key = null]) native;
+  IDBRequestJs put(Dynamic value, [IDBKeyJs key = null]) native;
 }
 
 class IDBRequestJs extends DOMTypeJs implements IDBRequest native "*IDBRequest" {
@@ -5305,7 +5318,7 @@ class InjectedScriptHostJs extends DOMTypeJs implements InjectedScriptHost nativ
 
   Object evaluate(String text) native;
 
-  Object functionLocation(Object object) native;
+  Object functionDetails(Object object) native;
 
   void inspect(Object objectId, Object hints) native;
 
@@ -5344,6 +5357,8 @@ class InspectorFrontendHostJs extends DOMTypeJs implements InspectorFrontendHost
 
   void moveWindowBy(num x, num y) native;
 
+  void openInNewTab(String url) native;
+
   String platform() native;
 
   String port() native;
@@ -5373,13 +5388,13 @@ class InspectorFrontendHostJs extends DOMTypeJs implements InspectorFrontendHost
 
 class Int16ArrayJs extends ArrayBufferViewJs implements Int16Array, List<int> native "*Int16Array" {
 
-  factory Int16Array(int length) =>  _construct(length);
+  factory Int16Array(int length) =>  _construct_Int16Array(length);
 
-  factory Int16Array.fromList(List<int> list) => _construct(list);
+  factory Int16Array.fromList(List<int> list) => _construct_Int16Array(list);
 
-  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Int16Array.fromBuffer(ArrayBuffer buffer) => _construct_Int16Array(buffer);
 
-  static _construct(arg) native 'return new Int16Array(arg);';
+  static _construct_Int16Array(arg) native 'return new Int16Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -5463,13 +5478,13 @@ class Int16ArrayJs extends ArrayBufferViewJs implements Int16Array, List<int> na
 
 class Int32ArrayJs extends ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
 
-  factory Int32Array(int length) =>  _construct(length);
+  factory Int32Array(int length) =>  _construct_Int32Array(length);
 
-  factory Int32Array.fromList(List<int> list) => _construct(list);
+  factory Int32Array.fromList(List<int> list) => _construct_Int32Array(list);
 
-  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Int32Array.fromBuffer(ArrayBuffer buffer) => _construct_Int32Array(buffer);
 
-  static _construct(arg) native 'return new Int32Array(arg);';
+  static _construct_Int32Array(arg) native 'return new Int32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -5553,13 +5568,13 @@ class Int32ArrayJs extends ArrayBufferViewJs implements Int32Array, List<int> na
 
 class Int8ArrayJs extends ArrayBufferViewJs implements Int8Array, List<int> native "*Int8Array" {
 
-  factory Int8Array(int length) =>  _construct(length);
+  factory Int8Array(int length) =>  _construct_Int8Array(length);
 
-  factory Int8Array.fromList(List<int> list) => _construct(list);
+  factory Int8Array.fromList(List<int> list) => _construct_Int8Array(list);
 
-  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Int8Array.fromBuffer(ArrayBuffer buffer) => _construct_Int8Array(buffer);
 
-  static _construct(arg) native 'return new Int8Array(arg);';
+  static _construct_Int8Array(arg) native 'return new Int8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -10489,6 +10504,11 @@ class ScriptProfileNodeJs extends DOMTypeJs implements ScriptProfileNode native 
   bool get visible() native "return this.visible;";
 }
 
+class ShadowRootJs extends NodeJs implements ShadowRoot native "*ShadowRoot" {
+
+  ElementJs get host() native "return this.host;";
+}
+
 class SharedWorkerJs extends AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
 
   MessagePortJs get port() native "return this.port;";
@@ -11038,13 +11058,13 @@ class UIEventJs extends EventJs implements UIEvent native "*UIEvent" {
 
 class Uint16ArrayJs extends ArrayBufferViewJs implements Uint16Array, List<int> native "*Uint16Array" {
 
-  factory Uint16Array(int length) =>  _construct(length);
+  factory Uint16Array(int length) =>  _construct_Uint16Array(length);
 
-  factory Uint16Array.fromList(List<int> list) => _construct(list);
+  factory Uint16Array.fromList(List<int> list) => _construct_Uint16Array(list);
 
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint16Array(buffer);
 
-  static _construct(arg) native 'return new Uint16Array(arg);';
+  static _construct_Uint16Array(arg) native 'return new Uint16Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -11128,13 +11148,13 @@ class Uint16ArrayJs extends ArrayBufferViewJs implements Uint16Array, List<int> 
 
 class Uint32ArrayJs extends ArrayBufferViewJs implements Uint32Array, List<int> native "*Uint32Array" {
 
-  factory Uint32Array(int length) =>  _construct(length);
+  factory Uint32Array(int length) =>  _construct_Uint32Array(length);
 
-  factory Uint32Array.fromList(List<int> list) => _construct(list);
+  factory Uint32Array.fromList(List<int> list) => _construct_Uint32Array(list);
 
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint32Array(buffer);
 
-  static _construct(arg) native 'return new Uint32Array(arg);';
+  static _construct_Uint32Array(arg) native 'return new Uint32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -11218,13 +11238,13 @@ class Uint32ArrayJs extends ArrayBufferViewJs implements Uint32Array, List<int> 
 
 class Uint8ArrayJs extends ArrayBufferViewJs implements Uint8Array, List<int> native "*Uint8Array" {
 
-  factory Uint8Array(int length) =>  _construct(length);
+  factory Uint8Array(int length) =>  _construct_Uint8Array(length);
 
-  factory Uint8Array.fromList(List<int> list) => _construct(list);
+  factory Uint8Array.fromList(List<int> list) => _construct_Uint8Array(list);
 
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Uint8Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint8Array(buffer);
 
-  static _construct(arg) native 'return new Uint8Array(arg);';
+  static _construct_Uint8Array(arg) native 'return new Uint8Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 1;
 
@@ -11304,6 +11324,21 @@ class Uint8ArrayJs extends ArrayBufferViewJs implements Uint8Array, List<int> na
   void setElements(Object array, [int offset = null]) native;
 
   Uint8ArrayJs subarray(int start, [int end = null]) native;
+}
+
+class Uint8ClampedArrayJs extends Uint8ArrayJs implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
+
+  factory Uint8ClampedArray(int length) =>  _construct_Uint8ClampedArray(length);
+
+  factory Uint8ClampedArray.fromList(List<int> list) => _construct_Uint8ClampedArray(list);
+
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _construct_Uint8ClampedArray(buffer);
+
+  static _construct_Uint8ClampedArray(arg) native 'return new Uint8ClampedArray(arg);';
+
+  int get length() native "return this.length;";
+
+  Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }
 
 class ValidityStateJs extends DOMTypeJs implements ValidityState native "*ValidityState" {
@@ -12067,6 +12102,10 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void compileShader(WebGLShaderJs shader) native;
 
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferViewJs data) native;
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferViewJs data) native;
+
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
@@ -12528,6 +12567,11 @@ class WebKitCSSMatrixJs extends DOMTypeJs implements WebKitCSSMatrix native "*We
   WebKitCSSMatrixJs translate(num x, num y, num z) native;
 }
 
+class WebKitCSSRegionRuleJs extends CSSRuleJs implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
+
+  CSSRuleListJs get cssRules() native "return this.cssRules;";
+}
+
 class WebKitCSSTransformValueJs extends CSSValueListJs implements WebKitCSSTransformValue native "*WebKitCSSTransformValue" {
 
   static final int CSS_MATRIX = 11;
@@ -12629,6 +12673,8 @@ class WebSocketJs extends DOMTypeJs implements WebSocket native "*WebSocket" {
 
   int get readyState() native "return this.readyState;";
 
+  String get url() native "return this.url;";
+
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void close([int code = null, String reason = null]) native;
@@ -12679,12 +12725,11 @@ class WheelEventJs extends UIEventJs implements WheelEvent native "*WheelEvent" 
 
 class WorkerJs extends AbstractWorkerJs implements Worker native "*Worker" {
 
-  // TODO(jimhug): Manually changed this from String message to var message.
-  void postMessage(var message, [List messagePorts = null]) native;
+  void postMessage(Dynamic message, [List messagePorts = null]) native;
 
   void terminate() native;
 
-  void webkitPostMessage(String message, [List messagePorts = null]) native;
+  void webkitPostMessage(Dynamic message, [List messagePorts = null]) native;
 }
 
 class WorkerContextJs extends DOMTypeJs implements WorkerContext native "*WorkerContext" {
@@ -14180,6 +14225,8 @@ interface ApplicationCache extends EventTarget {
 
   int get status();
 
+  void abort();
+
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   bool dispatchEvent(Event evt);
@@ -14735,7 +14782,7 @@ interface Window extends EventTarget {
 
   Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]);
 
-  void postMessage(String message, String targetOrigin, [List messagePorts]);
+  void postMessage(Dynamic message, String targetOrigin, [List messagePorts]);
 
   void print();
 
@@ -14771,7 +14818,7 @@ interface Window extends EventTarget {
 
   WebKitPoint webkitConvertPointFromPageToNode(Node node, WebKitPoint p);
 
-  void webkitPostMessage(String message, String targetOrigin, [List transferList]);
+  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList]);
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback, Element element);
 
@@ -14812,7 +14859,7 @@ interface DataTransferItemList {
 
   int get length();
 
-  void add(String data, String type);
+  void add(var data_OR_file, [String type]);
 
   void clear();
 
@@ -14946,13 +14993,15 @@ interface DeviceMotionEvent extends Event {
 
 interface DeviceOrientationEvent extends Event {
 
+  bool get absolute();
+
   num get alpha();
 
   num get beta();
 
   num get gamma();
 
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma);
+  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15632,6 +15681,8 @@ interface EventSource extends EventTarget {
   String get URL();
 
   int get readyState();
+
+  String get url();
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -16415,6 +16466,18 @@ interface HTMLCollection extends List<Node> {
   Node item(int index);
 
   Node namedItem(String name);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface HTMLContentElement extends HTMLElement {
+
+  String get select();
+
+  void set select(String value);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18726,7 +18789,7 @@ interface IDBCursor {
 
   IDBRequest delete();
 
-  IDBRequest update(String value);
+  IDBRequest update(Dynamic value);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18926,7 +18989,7 @@ interface IDBObjectStore {
 
   IDBTransaction get transaction();
 
-  IDBRequest add(String value, [IDBKey key]);
+  IDBRequest add(Dynamic value, [IDBKey key]);
 
   IDBRequest clear();
 
@@ -18944,7 +19007,7 @@ interface IDBObjectStore {
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest put(String value, [IDBKey key]);
+  IDBRequest put(Dynamic value, [IDBKey key]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19080,7 +19143,7 @@ interface InjectedScriptHost {
 
   Object evaluate(String text);
 
-  Object functionLocation(Object object);
+  Object functionDetails(Object object);
 
   void inspect(Object objectId, Object hints);
 
@@ -19123,6 +19186,8 @@ interface InspectorFrontendHost {
   String localizedStringsURL();
 
   void moveWindowBy(num x, num y);
+
+  void openInNewTab(String url);
 
   String platform();
 
@@ -23404,6 +23469,16 @@ interface ScriptProfileNode {
 
 // WARNING: Do not edit - generated code.
 
+interface ShadowRoot extends Node {
+
+  Element get host();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface SharedWorker extends AbstractWorker {
 
   MessagePort get port();
@@ -23994,6 +24069,24 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
   void setElements(Object array, [int offset]);
 
   Uint8Array subarray(int start, [int end]);
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvider {
+
+  Uint8ClampedArray(int length);
+
+  Uint8ClampedArray.fromList(List<int> list);
+
+  Uint8ClampedArray.fromBuffer(ArrayBuffer buffer);
+
+  int get length();
+
+  Uint8ClampedArray subarray(int start, [int end]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24834,6 +24927,10 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void compileShader(WebGLShader shader);
 
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data);
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data);
+
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border);
 
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height);
@@ -25360,6 +25457,16 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+interface WebKitCSSRegionRule extends CSSRule {
+
+  CSSRuleList get cssRules();
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface WebKitCSSTransformValue extends CSSValueList {
 
   static final int CSS_MATRIX = 11;
@@ -25486,6 +25593,8 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   int get readyState();
 
+  String get url();
+
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void close([int code, String reason]);
@@ -25546,12 +25655,11 @@ interface WheelEvent extends UIEvent {
 
 interface Worker extends AbstractWorker {
 
-  // TODO(jimhug): Manually changed this from String message to var message.
-  void postMessage(var message, [List messagePorts]);
+  void postMessage(Dynamic message, [List messagePorts]);
 
   void terminate();
 
-  void webkitPostMessage(String message, [List messagePorts]);
+  void webkitPostMessage(Dynamic message, [List messagePorts]);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26615,6 +26723,9 @@ class _TypedArrayFactoryProvider {
   factory Uint32Array.fromList(List<num> list) => _U32(ensureNative(list));
   factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _U32(buffer);
 
+  factory Uint8ClampedArray(int length) => _U8C(length);
+  factory Uint8ClampedArray.fromList(List<num> list) => _U8C(ensureNative(list));
+  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _U8C(buffer);
 
   static Float32Array _F32(arg) native 'return new Float32Array(arg);';
   static Float64Array _F64(arg) native 'return new Float64Array(arg);';
@@ -26624,6 +26735,7 @@ class _TypedArrayFactoryProvider {
   static Uint8Array _U8(arg) native 'return new Uint8Array(arg);';
   static Uint16Array _U16(arg) native 'return new Uint16Array(arg);';
   static Uint32Array _U32(arg) native 'return new Uint32Array(arg);';
+  static Uint8ClampedArray _U8C(arg) native 'return new Uint8ClampedArray(arg);';
 
   static ensureNative(List list) => list;  // TODO: make sure.
 }

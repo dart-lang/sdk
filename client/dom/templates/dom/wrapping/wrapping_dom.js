@@ -130,6 +130,14 @@ function native__TypedArrayFactoryProvider__U32(arg) {
   }
 }
 
+function native__TypedArrayFactoryProvider__U8C(arg) {
+  try {
+    return __dom_wrap(new Uint8ClampedArray(__dom_unwrap(arg)));
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__WebKitCSSMatrixFactoryProvider_create(spec) {
   try {
     return __dom_wrap(new WebKitCSSMatrix(spec));  // string doesn't need unwrap.

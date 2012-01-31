@@ -4,15 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DeviceOrientationEvent extends Event {
+interface HTMLContentElement extends HTMLElement {
 
-  bool get absolute();
+  String get select();
 
-  num get alpha();
-
-  num get beta();
-
-  num get gamma();
-
-  void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
+  void set select(String value);
 }

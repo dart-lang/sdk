@@ -21,5 +21,5 @@ class IDBCursorJs extends DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   IDBRequestJs delete() native;
 
-  IDBRequestJs update(String value) native;
+  IDBRequestJs update(Dynamic value) native;
 }
