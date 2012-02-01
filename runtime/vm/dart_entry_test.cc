@@ -93,7 +93,6 @@ TEST_CASE(InvokeDynamic_CompileError) {
   GrowableArray<const Object*> constructor_arguments(2);
   constructor_arguments.Add(&instance);
   constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
-  const String& period = String::Handle(String::New("."));
   String& constructor_name = String::Handle(String::NewSymbol("A."));
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
