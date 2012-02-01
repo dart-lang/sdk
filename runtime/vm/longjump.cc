@@ -25,7 +25,7 @@ bool LongJump::IsSafeToJump() {
   // assumes the stack grows from high to low.
   Isolate* isolate = Isolate::Current();
   uword jumpbuf_addr = reinterpret_cast<uword>(this);
-  return (isolate->top_exit_frame_info() == NULL ||
+  return (isolate->top_exit_frame_info() == 0 ||
           jumpbuf_addr < isolate->top_exit_frame_info());
 }
 

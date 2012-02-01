@@ -6399,6 +6399,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
         error ^= result.raw();
         Isolate::Current()->long_jump_base()->Jump(1, error);
         UNREACHABLE();
+        return Object::null();
       }
   } else {
     if (constructor.IsFactory()) {
