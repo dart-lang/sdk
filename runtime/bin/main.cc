@@ -14,6 +14,7 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/platform.h"
+#include "bin/process.h"
 #include "platform/globals.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
@@ -571,7 +572,13 @@ int main(int argc, char** argv) {
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
   // Terminate event handler.
+  // TODO(ager): This does not actually terminate any resources of the
+  // eventhandler. The only thing it currently terminates is the
+  // global thread-pool. In order to properly terminate the event
+  // handlers we need to be able to tell when an isolate dies so we
+  // can stop the thread for the event loop in that isolate.
   EventHandler::Terminate();
-
+  // Terminate process exit-code handler.
+  Process::TerminateExitCodeHandler();
   return 0;
 }
