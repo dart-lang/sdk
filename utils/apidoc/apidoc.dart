@@ -30,6 +30,11 @@ void main() {
   _diff.run();
   world.reset();
 
+  // TODO(rnystrom): Cram in the the IO libraries. This is hackish right now.
+  // We should probably move corelib stuff completely out of dartdoc and have it
+  // all here.
+  world.getOrAddLibrary('io_libs.dart');
+
   print('Generating docs...');
   final apidoc = new Apidoc(mdn);
   apidoc.document('html');
@@ -65,6 +70,9 @@ class Apidoc extends doc.Dartdoc {
         <p><a href="$tos">Terms of Service</a> |
         <a href="$privacy">Privacy Policy</a></p>
         ''';
+
+    searchEngineId = '011220921317074318178:i4mscbaxtru';
+    searchResultsUrl = 'http://www.dartlang.org/search.html';
   }
 
   void writeHeadContents(String title) {
@@ -97,6 +105,27 @@ class Apidoc extends doc.Dartdoc {
           })();
         </script>
         ''');
+  }
+
+  void docIndexLibrary(Library library) {
+    // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
+    // want it in the docs.
+    if (library.name == 'dart:nativewrappers') return;
+    super.docIndexLibrary(library);
+  }
+
+  void docLibraryNavigationJson(Library library, Map libraries) {
+    // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
+    // want it in the docs.
+    if (library.name == 'dart:nativewrappers') return;
+    super.docLibraryNavigationJson(library, libraries);
+  }
+
+  void docLibrary(Library library) {
+    // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
+    // want it in the docs.
+    if (library.name == 'dart:nativewrappers') return;
+    super.docLibrary(library);
   }
 
   String getTypeComment(Type type) {

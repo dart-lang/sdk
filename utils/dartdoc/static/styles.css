@@ -124,6 +124,12 @@ hr + h2 {
   color: hsl(0, 0%, 100%);
 }
 
+.header #search-box {
+  display: inline;
+  float: right;
+  margin-right: 22px;
+}
+
 .nav {
   float: left;
   width: 263px; /* 12 x 22px - 1 for border */
