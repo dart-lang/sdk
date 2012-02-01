@@ -117,12 +117,12 @@ ToplevelCollision2Test/none: Fail        # Issue 647
 [ $component == dartc || $component == chromium ]
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
-CTConstTest: Fail            # Bug 4510015.
+CTConstTest: Fail            # Bug 5202940, Issue 176
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CallOperatorTest: Fail # Issue 1355
 CharEscapeTest: Fail
 ConstInit6NegativeTest: Fail       # Issue 811
-ConstObjectsAreImmutableTest: Fail  # Bug 5202940
+ConstObjectsAreImmutableTest: Fail  # Bug 5202940, Issue 176
 Constructor2Test: Fail       # Issue 255
 Constructor3Test: Fail       # Issue 257
 Constructor4Test: Fail       # Issue 286
@@ -130,6 +130,7 @@ Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not pars
 Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
 DefaultFactoryLibraryTest: Fail          # Issue 514
 DivByZeroTest: Fail          # Bug 5184183
+DuplicateImplementsTest: Skip # Issue 976
 DynamicTest: Fail            # Bug 5527899.
 ExampleConstructorTest: Fail # Bug 4205742.
 ExpectTest: Fail             # Missing extensions to class Expect.
@@ -138,50 +139,35 @@ FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
 GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
 GetterClosureExecutionOrderTest: Fail # Bug 5481595
-IsObjectTest: Skip # Hasn't be tested on DartC yet
-Library4NegativeTest: Fail               # Bug 5406175
-ListLiteral3Test: Fail # Issue 176
-ListLiteral4Test: Fail # Issue 1343
-ListTest: Fail              # Bug 5146975.
+IsObjectTest: Fail           # Issue 1455
+Library4NegativeTest: Fail   # Bug 5406175
+ListLiteral3Test: Fail       # Bug 5202940, Issue 176
+ListLiteral4Test: Fail       # Issue 1343
+ListTest: Fail               # Bug 5146975.
+LiteralUnaryPlusTest/01: Fail # Issue 1399
 LocalFunction3Test: Fail     # Bug 4202974.
 LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
-MapLiteral4Test: Fail # Issue 1343
+MapLiteral4Test: Fail        # Issue 1343
 ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
 NamedParametersTypeTest: Fail            # Implementation in progress.
+NamingTest: Fail             # Issue 356
 NoSuchMethodTest: Fail       # Bug 4202974.
 NullToStringTest: Fail       # Bug 5421978
 NumbersTest: Fail            # Fails because numbers are mapped to doubles.
-OverriddenNoSuchMethodTest: Fail  # Bug 4202974.
+OverriddenNoSuchMethodTest: Fail       # Bug 4202974.
 OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod4NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
-OverrideFieldTest/04: Fail       # Bug 5215249
+OverrideFieldTest/04: Fail             # Bug 5215249
 OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
-Prefix11NegativeTest: Fail               # Bug 5406175
-Prefix12NegativeTest: Fail               # Bug 5406175
-Prefix16NegativeTest: Fail               # Bug 5532534
-Prefix3NegativeTest: Fail                # Bug 5406175
-RegExp3Test: Fail                    # 5299683
-ScopeNegativeTest: Fail      # Bug 4207538.
-StackOverflowTest: Fail      # Bug 4591172.
-StackTraceTest: Fail         # Bug 4971920.
-StringConcatTest: Fail       # Bug 5196164
-SuperOperatorTest: Fail      # Bug 4995463.
-Switch7NegativeTest: Fail    # Bug 4208467.
-SwitchLabelTest: Fail        # Bug 4208467.
-ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
-Throw7NegativeTest: Fail     # Bug 4208459.
-TypeChecksInFactoryMethodTest: Fail # Issue 925
-SyntaxTest/31: Fail # Issue 1108
-SyntaxTest/32: Fail # Issue 1108
-SyntaxTest/33: Fail # Issue 1108
-LiteralUnaryPlusTest/01: Fail # Issue 1399
-
+Prefix11NegativeTest: Fail             # Bug 5406175
+Prefix12NegativeTest: Fail             # Bug 5406175
+Prefix16NegativeTest: Fail             # Bug 5532534
+Prefix3NegativeTest: Fail              # Bug 5406175
 PseudoKWTest: Fail           # Issue 356
-NamingTest: Fail             # Issue 356
 PseudoKWIllegalTest/01: Fail # Issue 356
 PseudoKWIllegalTest/02: Fail # Issue 356
 PseudoKWIllegalTest/03: Fail # Issue 356
@@ -198,11 +184,26 @@ PseudoKWIllegalTest/13: Fail # Issue 356
 PseudoKWIllegalTest/14: Fail # Issue 356
 PseudoKWIllegalTest/15: Fail # Issue 356
 PseudoKWIllegalTest/16: Fail # Issue 356
-DuplicateImplementsTest: Skip # Issue 976
+RegExp3Test: Fail            # 5299683
+ScopeNegativeTest: Fail      # Bug 4207538.
+StackOverflowTest: Fail      # Bug 4591172.
+StackTraceTest: Fail         # Bug 4971920.
+StringConcatTest: Fail       # Bug 5196164
+StringEscape1NegativeTest: Fail # Issue 1351.
+StringEscape4NegativeTest: Fail # Issue 1351.
+SuperOperatorTest: Fail      # Bug 4995463.
+Switch7NegativeTest: Fail    # Bug 4208467.
+SwitchLabelTest: Fail        # Bug 4208467.
+SyntaxTest/31: Fail          # Issue 1108
+SyntaxTest/32: Fail          # Issue 1108
+SyntaxTest/33: Fail # Issue 1108
+ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
+Throw7NegativeTest: Fail     # Bug 4208459.
+TypeChecksInFactoryMethodTest: Fail # Issue 925
 
-# Issue 1351.
-StringEscape1NegativeTest: Fail
-StringEscape4NegativeTest: Fail
+#
+# Add new dartc annotations above in alphabetical order
+#
 
 
 # VM or Frog specific tests that should not be run by DartC.
