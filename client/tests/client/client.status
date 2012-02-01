@@ -50,6 +50,9 @@ samples/swarm/swarm_tests: Fail
 [ $component == webdriver && $browser == ff ]
 samples/swarm/swarm_tests: Skip
 
+[ $component == webdriver && $browser == ff && $system == linux ]
+samples/view/view_tests: Fail
+
 [ $component == webdriver && $browser == safari ]
 samples/smoketest/dartWebBase_tests: Fail
 
