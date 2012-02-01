@@ -81,7 +81,8 @@ static void ThrowErrorException(Exceptions::ExceptionType type,
 }
 
 
-RawInstance* ReceivePortCreate(intptr_t port_id) {
+// TODO(turnidge): Move to DartLibraryCalls.
+RawObject* ReceivePortCreate(intptr_t port_id) {
   const String& class_name =
       String::Handle(String::NewSymbol("ReceivePortImpl"));
   const String& function_name =
@@ -97,18 +98,17 @@ RawInstance* ReceivePortCreate(intptr_t port_id) {
                               Resolver::kIsQualified));
   GrowableArray<const Object*> arguments(kNumArguments);
   arguments.Add(&Integer::Handle(Integer::New(port_id)));
-  const Instance& result = Instance::Handle(
+  const Object& result = Object::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  if (result.IsError()) {
-    ProcessError(result);
-  } else {
+  if (!result.IsError()) {
     PortMap::SetLive(port_id);
   }
   return result.raw();
 }
 
 
-static RawInstance* SendPortCreate(intptr_t port_id) {
+// TODO(turnidge): Move to DartLibraryCalls.
+static RawObject* SendPortCreate(intptr_t port_id) {
   const String& class_name = String::Handle(String::NewSymbol("SendPortImpl"));
   const String& function_name = String::Handle(String::NewSymbol("_create"));
   const int kNumArguments = 1;
@@ -122,7 +122,7 @@ static RawInstance* SendPortCreate(intptr_t port_id) {
                               Resolver::kIsQualified));
   GrowableArray<const Object*> arguments(kNumArguments);
   arguments.Add(&Integer::Handle(Integer::New(port_id)));
-  const Instance& result = Instance::Handle(
+  const Object& result = Object::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
   return result.raw();
 }
@@ -184,7 +184,10 @@ static void RunIsolate(uword parameter) {
     // TODO(iposva): Proper error checking here.
     ASSERT(!target_function.IsNull());
     // TODO(iposva): Allocate the proper port number here.
-    const Instance& local_port = Instance::Handle(ReceivePortCreate(port_id));
+    const Object& local_port = Object::Handle(ReceivePortCreate(port_id));
+    if (local_port.IsError()) {
+      ProcessError(local_port);
+    }
     GrowableArray<const Object*> arguments(1);
     arguments.Add(&local_port);
     const Array& kNoArgumentNames = Array::Handle();
@@ -327,16 +330,13 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
                         library_url,
                         class_name);
   }
-  const Instance& port = Instance::Handle(SendPortCreate(port_id));
+
+  // TODO(turnidge): Move this code up before we launch the new
+  // thread.  That way we won't have a thread hanging around that we
+  // can't talk to.
+  const Object& port = Object::Handle(SendPortCreate(port_id));
   if (port.IsError()) {
-    if (port.IsUnhandledException()) {
-      ThrowErrorException(Exceptions::kInternalError,
-                          "Unable to create send port to isolate",
-                          library_url,
-                          class_name);
-    } else {
-      ProcessError(port);
-    }
+    Exceptions::PropagateError(port);
   }
   arguments->SetReturn(port);
 }
@@ -346,7 +346,10 @@ DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
   ASSERT(AbstractTypeArguments::CheckedHandle(arguments->At(0)).IsNull());
   intptr_t port_id =
       PortMap::CreatePort(arguments->isolate()->message_handler());
-  const Instance& port = Instance::Handle(ReceivePortCreate(port_id));
+  const Object& port = Object::Handle(ReceivePortCreate(port_id));
+  if (port.IsError()) {
+    Exceptions::PropagateError(port);
+  }
   arguments->SetReturn(port);
 }
 

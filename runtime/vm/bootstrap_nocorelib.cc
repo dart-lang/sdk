@@ -27,7 +27,7 @@ RawScript* Bootstrap::LoadImplScript() {
 }
 
 
-void Bootstrap::Compile(const Library& library, const Script& script) {
+RawError* Bootstrap::Compile(const Library& library, const Script& script) {
   UNREACHABLE();
 }
 
