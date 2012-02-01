@@ -54,8 +54,9 @@ class CCTestListerIsolate extends Isolate {
 
 class CCTestSuite implements TestSuite {
   Map configuration;
-  String suiteName;
+  final String suiteName;
   String runnerPath;
+  final String dartDir;
   List<String> statusFilePaths;
   Function doTest;
   Function doDone;
@@ -65,8 +66,10 @@ class CCTestSuite implements TestSuite {
   CCTestSuite(Map this.configuration,
               String this.suiteName,
               String runnerName,
-              List<String> this.statusFilePaths) {
+              List<String> this.statusFilePaths)
+      : dartDir = TestUtils.dartDir() {
     runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
+
   }
 
   bool complexStatusMatching() => false;
@@ -125,7 +128,7 @@ class CCTestSuite implements TestSuite {
         new TestExpectations(complexMatching: complexStatusMatching());
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
-                               statusFilePath,
+                               '$dartDir/$statusFilePath',
                                configuration,
                                statusFileRead);
     }
