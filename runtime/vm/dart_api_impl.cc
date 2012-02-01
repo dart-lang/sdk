@@ -1378,7 +1378,6 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   }
 
   GrowableArray<const Object*> args(0);
-  Dart_Handle result;
   const Array& kNoArgumentNames = Array::Handle();
   const Object& retval = Object::Handle(
       DartEntry::InvokeDynamic(instance, function, args, kNoArgumentNames));
@@ -1599,7 +1598,6 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
     if (!function.IsNull()) {
       Integer& indexobj = Integer::Handle();
       Integer& valueobj = Integer::Handle();
-      Dart_Handle result;
       for (int i = 0; i < length; i++) {
         indexobj = Integer::New(offset + i);
         valueobj = Integer::New(native_array[i]);
@@ -1746,7 +1744,6 @@ DART_EXPORT Dart_Handle Dart_InvokeStatic(Dart_Handle library_in,
     }
     return Api::NewError(msg);
   }
-  Dart_Handle retval;
   GrowableArray<const Object*> dart_arguments(number_of_arguments);
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
@@ -1791,7 +1788,6 @@ DART_EXPORT Dart_Handle Dart_InvokeDynamic(Dart_Handle object,
     OS::PrintErr("Unable to find instance function: %s\n", name.ToCString());
     return Api::NewError("Unable to find instance function");
   }
-  Dart_Handle retval;
   GrowableArray<const Object*> dart_arguments(number_of_arguments);
   for (int i = 0; i < number_of_arguments; i++) {
     const Object& arg = Object::Handle(Api::UnwrapHandle(arguments[i]));
