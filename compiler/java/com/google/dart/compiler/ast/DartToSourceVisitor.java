@@ -25,8 +25,6 @@ public class DartToSourceVisitor extends DartVisitor {
   private List<SourceMapping> mappings = Lists.newArrayList();
   private final boolean isDiet;
 
-  private final boolean calculateHash;
-
   public DartToSourceVisitor(TextOutput out) {
     this(out, false);
   }
@@ -34,13 +32,6 @@ public class DartToSourceVisitor extends DartVisitor {
   public DartToSourceVisitor(TextOutput out, boolean isDiet) {
     this.out = out;
     this.isDiet = isDiet;
-    this.calculateHash = false;
-  }
-
-  public DartToSourceVisitor(TextOutput out, boolean isDiet, boolean calculateHash) {
-    this.out = out;
-    this.isDiet = isDiet;
-    this.calculateHash = calculateHash;
   }
 
   public void generateSourceMap(boolean generate) {
@@ -132,11 +123,6 @@ public class DartToSourceVisitor extends DartVisitor {
 
   @Override
   public boolean visit(DartClass x, DartContext ctx) {
-    int start = 0;
-    if (calculateHash == true) {
-      start = out.getPosition();
-    }
-
     if (x.isInterface()) {
       p("interface ");
     } else {
@@ -185,9 +171,6 @@ public class DartToSourceVisitor extends DartVisitor {
 
     outdent();
     p("}");
-    if (calculateHash == true) {
-      x.setHash(out.toString().substring(start, out.getPosition()).hashCode());
-    }
     nl();
     nl();
     return false;

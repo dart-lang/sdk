@@ -158,8 +158,8 @@ public abstract class AbstractParserTest extends CompilerTestCase {
 
   @Override
   protected DartParser makeParser(ParserContext context) {
-    Set<String> set = new HashSet<String>();
-    set.add("prefix");
-    return new DartParser(context, set);
+    Set<String> prefixes = new HashSet<String>();
+    prefixes.add("prefix");
+    return new DartParser(context, prefixes, false);
   }
 }

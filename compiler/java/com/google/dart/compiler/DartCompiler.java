@@ -5,6 +5,8 @@
 package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.common.io.Files;
@@ -69,7 +71,6 @@ import java.util.Set;
  */
 public class DartCompiler {
 
-  public static final String EXTENSION_API = "api";
   public static final String EXTENSION_DEPS = "deps";
   public static final String EXTENSION_LOG = "log";
 
@@ -230,9 +231,8 @@ public class DartCompiler {
     }
 
     /**
-     * This method reads all libraries, updating their apis as necessary. They
-     * will be populated from some combination of fully-parsed compilation units
-     * and api files.
+     * This method reads all libraries. They will be populated from some combination of fully-parsed
+     * and diet-parser compilation units.
      */
     private void parseOutOfDateFiles() throws IOException {
       TraceEvent logEvent =
@@ -241,17 +241,21 @@ public class DartCompiler {
       long parseStart = compilerMetrics != null ? CompilerMetrics.getCPUTime() : 0;
 
       try {
+        final Set<String> topLevelSymbolsDiff = Sets.newHashSet();
         for (LibraryUnit lib : libraries.values()) {
           LibrarySource libSrc = lib.getSource();
-          boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
-          LibraryUnit apiLib = new LibraryUnit(libSrc);
           LibraryNode selfSourcePath = lib.getSelfSourcePath();
-          boolean shouldLoadApi = incremental || (libIsDartUri && usePrecompiledDartLibs);
-          boolean apiOutOfDate = !(shouldLoadApi && apiLib.loadApi(context, context));
+          boolean libIsDartUri = SystemLibraryManager.isDartUri(libSrc.getUri());
 
-          // Parse each compilation unit and update the API to reflect its contents.
+          // Load the existing DEPS, or create an empty one.
+          LibraryDeps deps = lib.getDeps(context);
+          Set<String> newUnitPaths = Sets.newHashSet();
+
+          // Parse each compilation unit.
           for (LibraryNode libNode : lib.getSourcePaths()) {
-            final DartSource dartSrc = libSrc.getSourceFor(libNode.getText());
+            String relPath = libNode.getText();
+            newUnitPaths.add(relPath);
+            final DartSource dartSrc = libSrc.getSourceFor(relPath);
             if (dartSrc == null || !dartSrc.exists()) {
               // Dart Editor needs to have all missing files reported as compilation errors.
               // In addition, continue allows lib.populateTopLevelNodes() to be called so that the
@@ -260,35 +264,89 @@ public class DartCompiler {
               continue;
             }
 
-            DartUnit apiUnit = apiLib.getUnit(dartSrc.getName());
-            if (apiUnit == null || isSourceOutOfDate(dartSrc, libSrc)) {
-              DartUnit unit = parse(dartSrc, lib.getPrefixes());
+
+            if (!incremental
+                || (libIsDartUri && !usePrecompiledDartLibs)
+                || isSourceOutOfDate(dartSrc, libSrc)) {
+              DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
               if (unit != null) {
                 if (libNode == selfSourcePath) {
                   lib.setSelfDartUnit(unit);
                 }
+                // Replace unit within the library.
                 lib.putUnit(unit);
-                apiOutOfDate = true;
+                context.setFilesHaveChanged();
+                // Include into top-level symbols diff from current units, already existed or new.
+                {
+                  LibraryDeps.Source source = deps.getSource(relPath);
+                  Set<String> newTopSymbols = unit.getTopDeclarationNames();
+                  if (source != null) {
+                    Set<String> oldTopSymbols = source.getTopSymbols();
+                    SetView<String> diff0 = Sets.symmetricDifference(oldTopSymbols, newTopSymbols);
+                    topLevelSymbolsDiff.addAll(diff0);
+                  } else {
+                    topLevelSymbolsDiff.addAll(newTopSymbols);
+                  }
+                }
               }
             } else {
-              if (libNode == selfSourcePath) {
-                lib.setSelfDartUnit(apiUnit);
+              DartUnit dietUnit = parse(dartSrc, lib.getPrefixes(), true);
+              if (dietUnit != null) {
+                if (libNode == selfSourcePath) {
+                  lib.setSelfDartUnit(dietUnit);
+                }
+                lib.putUnit(dietUnit);
               }
-              lib.putUnit(apiUnit);
             }
           }
 
-          // Persist the api file.
-          if (apiOutOfDate) {
-            context.setFilesHaveChanged();
-            if (!checkOnly) {
-              lib.saveApi(context);
+          // Include into top-level symbols diff from units which disappeared since last compiling.
+          {
+            Set<String> oldUnitPaths = deps.getUnitPaths();
+            Set<String> disappearedUnitPaths = Sets.difference(oldUnitPaths, newUnitPaths);
+            for (String relPath : disappearedUnitPaths) {
+              LibraryDeps.Source source = deps.getSource(relPath);
+              if (source != null) {
+                Set<String> oldTopSymbols = source.getTopSymbols();
+                topLevelSymbolsDiff.addAll(oldTopSymbols);
+              }
             }
           }
+        }
 
-          // Populate the library's class map. This is used later for
-          // dependency checking.
-          lib.populateTopLevelNodes();
+        // Parse units, which potentially depend on the difference in top-level symbols.
+        if (!topLevelSymbolsDiff.isEmpty()) {
+          context.setFilesHaveChanged();
+          for (LibraryUnit lib : libraries.values()) {
+            LibrarySource libSrc = lib.getSource();
+            LibraryNode selfSourcePath = lib.getSelfSourcePath();
+            LibraryDeps deps = lib.getDeps(context);
+            for (LibraryNode libNode : lib.getSourcePaths()) {
+              String relPath = libNode.getText();
+              // Prepare source dependency.
+              LibraryDeps.Source source = deps.getSource(relPath);
+              if (source == null) {
+                continue;
+              }
+              // Check re-compilation conditions.
+              if (source.shouldRecompileOnAnyTopLevelChange()
+                  || !Sets.intersection(source.getAllSymbols(), topLevelSymbolsDiff).isEmpty()
+                  || !Sets.intersection(source.getHoles(), topLevelSymbolsDiff).isEmpty()) {
+                DartSource dartSrc = libSrc.getSourceFor(relPath);
+                if (dartSrc == null || !dartSrc.exists()) {
+                  continue;
+                }
+                DartUnit unit = parse(dartSrc, lib.getPrefixes(), false);
+                if (unit != null) {
+                  if (libNode == selfSourcePath) {
+                    lib.setSelfDartUnit(unit);
+                  } else {
+                    lib.putUnit(unit);
+                  }
+                }
+              }
+            }
+          }
         }
       } finally {
         if (compilerMetrics != null) {
@@ -379,8 +437,7 @@ public class DartCompiler {
     }
 
     /**
-     * Determines whether the given source is out-of-date with respect to its artifacts or
-     * its library's associated api.
+     * Determines whether the given source is out-of-date with respect to its artifacts.
      */
     private boolean isSourceOutOfDate(DartSource dartSrc, LibrarySource libSrc) {
       TraceEvent logEvent =
@@ -405,7 +462,7 @@ public class DartCompiler {
             Tracer.end(backendEvent);
           }
         }
-        return (context.isOutOfDate(dartSrc, libSrc, EXTENSION_API));
+        return false;
       } finally {
         Tracer.end(logEvent);
       }
@@ -438,8 +495,7 @@ public class DartCompiler {
     }
 
     /**
-     * Parses compilation units that are out-of-date with respect to their dependencies. The
-     * parsed units will replace api units already in the library.
+     * Parses compilation units that are out-of-date with respect to their dependencies.
      */
     private void addOutOfDateDeps() throws IOException {
       TraceEvent logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.ADD_OUTOFDATE) : null;
@@ -455,17 +511,22 @@ public class DartCompiler {
           // Load the existing DEPS, or create an empty one.
           LibraryDeps deps = lib.getDeps(context);
 
-          // Parse units that are out-of-date with respect to their
-          // dependencies.
-          for (String sourceName : deps.getSourceNames()) {
-            LibraryDeps.Source depSource = deps.getSource(sourceName);
-            if (isSourceOutOfDate(lib, depSource)) {
+          // Prepare all top-level symbols.
+          Set<String> oldTopLevelSymbols = Sets.newHashSet();
+          for (LibraryDeps.Source source : deps.getSources()) {
+            oldTopLevelSymbols.addAll(source.getTopSymbols());
+          }
+
+          // Parse units that are out-of-date with respect to their dependencies.
+          for (DartUnit unit : lib.getUnits()) {
+            String relPath = unit.getSource().getRelativePath();
+            LibraryDeps.Source source = deps.getSource(relPath);
+            if (isUnitOutOfDate(lib, source)) {
               filesHaveChanged = true;
-              DartSource dartSrc = lib.getSource().getSourceFor(sourceName);
-              if ((dartSrc != null) && (dartSrc.exists())) {
-                DartUnit unit = parse(dartSrc, lib.getPrefixes());
+              DartSource dartSrc = lib.getSource().getSourceFor(relPath);
+              if (dartSrc != null && dartSrc.exists()) {
+                unit = parse(dartSrc, lib.getPrefixes(), false);
                 if (unit != null) {
-                  // Replace the newly-parsed unit within the library.
                   lib.putUnit(unit);
                 }
               }
@@ -482,52 +543,30 @@ public class DartCompiler {
     }
 
     /**
-     * Determines whether the given source (as referenced by {@link LibraryDeps.Source}) is
-     * out-of-date with respect to any of its dependencies.
+     * Determines whether the given dependencies are out-of-date.
      */
-    private boolean isSourceOutOfDate(LibraryUnit lib, LibraryDeps.Source depSource) {
-      for (String nodeName : depSource.getNodeNames()) {
-        TraceEvent logEvent =
-            Tracer.canTrace() ? Tracer.start(DartEventType.IS_CLASS_OUT_OF_DATE, "class",
-                nodeName) : null;
-        try {
-          if (depSource.isHole(nodeName)) {
-            // The dependency's a "hole", meaning that any new identifier in the
-            // library scope that shadows it should force a recompile.
-            if (lib.getTopLevelNode(nodeName) != null) {
-              // The library defines a top-level node with the same name as the hole, so
-              // we need to recompile.
-              return true;
-            }
-          } else {
-            // Normal dependency.
-            Dependency dep = depSource.getDependency(nodeName);
-
-            // Find the cached API and get its hash.
-            LibraryUnit depLib = libraries.get(dep.getLibUri());
-            if (depLib == null) {
-              // The library no longer exists, so presume that we need to
-              // recompile.
-              return true;
-            }
-
-            // If there's a hash mismatch, deps are out of date
-            DartNode depNode = depLib.getTopLevelNode(nodeName);
-            if (depNode == null) {
-              // Node was removed. That's about as mismatched as you can get.
-              return true;
-            }
-            String hash = Integer.toString(depNode.computeHash());
-            if (!hash.equals(dep.getHash())) {
-              return true;
-            }
-          }
-        } finally {
-          Tracer.end(logEvent);
+    private boolean isUnitOutOfDate(LibraryUnit lib, LibraryDeps.Source source) {
+      // If we don't have dependency information, then we can not be sure that nothing changed.
+      if (source == null) {
+        return true;
+      }
+      // Check all dependencies.
+      for (Dependency dep : source.getDeps()) {
+        LibraryUnit depLib = libraries.get(dep.getLibUri());
+        if (depLib == null) {
+          return true;
+        }
+        // Prepare unit.
+        DartUnit depUnit = depLib.getUnit(dep.getUnitName());
+        if (depUnit == null) {
+          return true;
+        }
+        // May be unit modified.
+        if (depUnit.getSource().getLastModified() != dep.getLastModified()) {
+          return true;
         }
       }
-
-      // No holes or hash mismatches; in date.
+      // No changed dependencies.
       return false;
     }
 
@@ -684,7 +723,7 @@ public class DartCompiler {
 
         // Dump the compiler parse tree if dump format is set in arguments
         BaseASTWriter astWriter = ASTWriterFactory.create(config);
-        
+
         // Coverage instrumenter
         CoverageInstrumenter coverageInstrumenter = CoverageInstrumenter.createInstance(config);
         coverageInstrumenter.process(libraries);
@@ -698,7 +737,7 @@ public class DartCompiler {
 
             astWriter.process(unit);
 
-            // Don't compile api-only units.
+            // Don't compile diet units.
             if (unit.isDiet()) {
               continue;
             }
@@ -743,7 +782,7 @@ public class DartCompiler {
             }
 
             // Update deps.
-            lib.getDeps(context).update(unit, context);
+            lib.getDeps(context).update(context, unit);
 
             // We compiled something, so remember that this means we need to
             // persist the deps and package the app.
@@ -808,7 +847,7 @@ public class DartCompiler {
       }
     }
 
-    DartUnit parse(DartSource dartSrc, Set<String> libraryPrefixes) throws IOException {
+    DartUnit parse(DartSource dartSrc, Set<String> libraryPrefixes, boolean diet) throws IOException {
       TraceEvent parseEvent =
           Tracer.canTrace() ? Tracer.start(DartEventType.PARSE, "src", dartSrc.getName()) : null;
       CompilerMetrics compilerMetrics = context.getCompilerMetrics();
@@ -833,7 +872,7 @@ public class DartCompiler {
         } else {
           DartScannerParserContext parserContext =
               new DartScannerParserContext(dartSrc, srcCode, context, context.getCompilerMetrics());
-          parser = new DartParser(parserContext, libraryPrefixes);
+          parser = new DartParser(parserContext, libraryPrefixes, diet);
         }
         DartUnit unit = parser.parseUnit(dartSrc);
         if (compilerMetrics != null) {
@@ -891,13 +930,13 @@ public class DartCompiler {
     }
 
     @Override
-    DartUnit parse(DartSource dartSrc, Set<String> prefixes) throws IOException {
+    DartUnit parse(DartSource dartSrc, Set<String> prefixes, boolean diet) throws IOException {
       if (parsedUnits == null) {
-        return super.parse(dartSrc, prefixes);
+        return super.parse(dartSrc, prefixes, diet);
       }
       URI srcUri = dartSrc.getUri();
       DartUnit parsedUnit = parsedUnits.get(srcUri);
-      return parsedUnit == null ? super.parse(dartSrc, prefixes) : parsedUnit;
+      return parsedUnit == null ? super.parse(dartSrc, prefixes, diet) : parsedUnit;
     }
   }
 
@@ -1034,8 +1073,9 @@ public class DartCompiler {
   }
 
   /**
-   * Compiles the source file which could be a single *.dart source file or a *.app file.  If it
-   * is the former an *.app file is conceptually synthesized.
+   * Treats the <code>sourceFile</code> as the top level library and generates compiled output by
+   * linking the dart source in this file with all libraries referenced with <code>#import</code>
+   * statements.
    */
   public static String compileApp(File sourceFile, CompilerConfiguration config) throws IOException {
     TraceEvent logEvent =
@@ -1144,7 +1184,6 @@ public class DartCompiler {
       embeddedLibraries.add(new NamedPlaceHolderLibrarySource("dart:coreimpl"));
     }
 
-
     new Compiler(lib, embeddedLibraries, config, context).compile();
     int errorCount = context.getErrorCount();
     if (config.typeErrorsAreFatal()) {
@@ -1209,11 +1248,11 @@ public class DartCompiler {
         new TypeAnalyzer()
       };
       for (DartUnit unit : libraryUnit.getUnits()) {
-        // Don't analyze api-only units.
+        // Don't analyze diet units.
         if (unit.isDiet()) {
           continue;
         }
-  
+
         for (DartCompilationPhase phase : phases) {
           unit = phase.exec(unit, context, compiler.getTypeProvider());
           // Ignore errors. TypeAnalyzer should be able to cope with

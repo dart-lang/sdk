@@ -50,4 +50,9 @@ public enum DartCompilerErrorCode implements ErrorCode {
   public SubSystem getSubSystem() {
     return SubSystem.COMPILER;
   }
+
+  @Override
+  public boolean needsRecompilation() {
+    return true;
+  }
 }

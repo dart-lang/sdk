@@ -78,7 +78,6 @@ class DeltaAnalyzer {
     // Create a library unit which holds the new unit.
     LibraryUnit libraryUnit = new LibraryUnit(makeLibrarySource("delta"));
     libraryUnit.putUnit(unit);
-    libraryUnit.populateTopLevelNodes();
 
     // Create top-level elements for the new unit.
     new TopLevelElementBuilder().exec(libraryUnit, context);

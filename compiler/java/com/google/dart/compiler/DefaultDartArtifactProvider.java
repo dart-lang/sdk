@@ -81,7 +81,7 @@ public class DefaultDartArtifactProvider extends DartArtifactProvider {
       }
     }
     File artifactFile = getArtifactFile(base, "", extension);
-    return artifactFile.lastModified() < source.getLastModified();
+    return !artifactFile.exists() || artifactFile.lastModified() < source.getLastModified();
   }
 
   // TODO(jbrosenberg): remove 'source' argument from this method, it's not used

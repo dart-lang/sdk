@@ -22,4 +22,10 @@ public interface ErrorCode {
    * @return the {@link SubSystem} which issued this error.
    */
   SubSystem getSubSystem();
+
+  /**
+   * @return <code>true</code> if this {@link ErrorCode} should cause recompilation of the source
+   *         during next incremental compilation.
+   */
+  boolean needsRecompilation();
 }

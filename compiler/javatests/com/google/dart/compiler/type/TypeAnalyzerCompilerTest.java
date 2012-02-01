@@ -11,6 +11,7 @@ import com.google.common.collect.Iterables;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
@@ -23,6 +24,8 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
+import com.google.dart.compiler.common.Symbol;
 import com.google.dart.compiler.parser.ParserErrorCode;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.Element;
@@ -727,5 +730,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  print(b.foo);",
                 "}"));
     assertErrors(libraryResult.getTypeErrors());
+  }
+
+  public void test_bindToLibraryFunctionFirst() throws Exception {
+    AnalyzeLibraryResult libraryResult =
+        analyzeLibrary(
+            getName(),
+            makeCode(
+                "// filler filler filler filler filler filler filler filler filler filler",
+                "foo() {}",
+                "class A {",
+                " foo() {}",
+                "}",
+                "class B extends A {",
+                "  bar() {",
+                "    foo();",
+                "  }",
+                "}",
+                ""));
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    // Find foo() invocation.
+    DartUnqualifiedInvocation invocation;
+    {
+      DartClass classB = (DartClass) unit.getTopLevelNodes().get(2);
+      DartMethodDefinition methodBar = (DartMethodDefinition) classB.getMembers().get(0);
+      DartExprStmt stmt = (DartExprStmt) methodBar.getFunction().getBody().getStatements().get(0);
+      invocation = (DartUnqualifiedInvocation) stmt.getExpression();
+    }
+    // Check that unqualified foo() invocation is resolved to the top-level (library) function. 
+    Symbol symbol = invocation.getTarget().getSymbol();
+    assertNotNull(symbol);
+    assertSame(unit, symbol.getNode().getParent());
   }
 }

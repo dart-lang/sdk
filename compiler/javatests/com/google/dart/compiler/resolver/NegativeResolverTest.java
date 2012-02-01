@@ -314,6 +314,16 @@ public class NegativeResolverTest extends CompilerTestCase {
     checkNumErrors("ConstVariableInitializationNegativeTest2.dart", 1);
   }
 
+  public void test_nameShadow_topLevel_method_class() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {}",
+            "class foo {}"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 1, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 7, 3));
+  }
+
   public void test_nameShadow_topLevel_getterSetter_class() {
     checkSourceErrors(
         makeCode(

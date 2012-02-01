@@ -12,6 +12,8 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartUnit;
 
+import java.util.Set;
+
 /**
  * Negative Parser/Syntax tests.
  */
@@ -540,5 +542,94 @@ public class NegativeParserTest extends CompilerTestCase {
             "  });",
             "}"),
         parserRunner.getDartUnit().toSource());
+  }
+
+  /**
+   * Test for {@link DartUnit#getTopDeclarationNames()}.
+   */
+  public void test_getTopDeclarationNames() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass {}",
+            "class MyInterface {}",
+            "topLevelMethod() {}",
+            "int get topLevelGetter() {return 0;}",
+            "void set topLevelSetter(int v) {}",
+            "typedef void MyTypeDef();",
+            ""));
+    DartUnit unit = parserRunner.getDartUnit();
+    // Check top level declarations.
+    Set<String> names = unit.getTopDeclarationNames();
+    assertEquals(6, names.size());
+    assertTrue(names.contains("MyClass"));
+    assertTrue(names.contains("MyInterface"));
+    assertTrue(names.contains("topLevelMethod"));
+    assertTrue(names.contains("topLevelGetter"));
+    assertTrue(names.contains("topLevelSetter"));
+    assertTrue(names.contains("MyTypeDef"));
+  }
+
+  /**
+   * Test for {@link DartUnit#getDeclarationNames()}.
+   */
+  public void test_getDeclarationNames() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass<TypeVar> {",
+            "  myMethod(int pA, int pB) {",
+            "    int varA;",
+            "    try {",
+            "    } catch(var ex) {",
+            "    }",
+            "  }",
+            "}",
+            "topLevelMethod() {}",
+            "int get topLevelGetter() {return 0;}",
+            "void set topLevelSetter(int setterParam) {}",
+            "typedef void MyTypeDef();",
+            ""));
+    DartUnit unit = parserRunner.getDartUnit();
+    // Check all declarations.
+    Set<String> names = unit.getDeclarationNames();
+    assertEquals(12, names.size());
+    assertTrue(names.contains("MyClass"));
+    assertTrue(names.contains("TypeVar"));
+    assertTrue(names.contains("myMethod"));
+    assertTrue(names.contains("pA"));
+    assertTrue(names.contains("pB"));
+    assertTrue(names.contains("varA"));
+    assertTrue(names.contains("ex"));
+    assertTrue(names.contains("topLevelMethod"));
+    assertTrue(names.contains("topLevelGetter"));
+    assertTrue(names.contains("topLevelSetter"));
+    assertTrue(names.contains("setterParam"));
+    assertTrue(names.contains("MyTypeDef"));
+  }
+
+  /**
+   * There was bug in diet parser, it did not understand new "arrow" syntax of function definition.
+   */
+  public void test_dietParser_functionArrow() {
+    DartParserRunner parserRunner =
+        DartParserRunner.parse(
+            getName(),
+            Joiner.on("\n").join(
+                "class ClassWithVeryLongNameEnoughToForceLineWrapping {",
+                "  foo() => return 0;",
+                "}",
+                ""),
+            true);
+    assertErrors(parserRunner.getErrors());
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit " + getName(),
+            "class ClassWithVeryLongNameEnoughToForceLineWrapping {",
+            "",
+            "  foo() {",
+            "  }",
+            "}"),
+        parserRunner.getDartUnit().toSource().trim());
   }
 }

@@ -170,8 +170,8 @@ public class DartParser extends CompletionHooksParserBase {
     this(ctx, false);
   }
 
-  public DartParser(ParserContext ctx, Set<String> prefixes) {
-    this(ctx, false, prefixes);
+  public DartParser(ParserContext ctx, Set<String> prefixes, boolean isDietParse) {
+    this(ctx, isDietParse, prefixes);
   }
 
   public DartParser(ParserContext ctx, boolean isDietParse) {
@@ -2720,20 +2720,29 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartBlock parseFunctionStatementBody(boolean requireSemicolonForArrow) {
     if (isDietParse) {
-      expect(Token.LBRACE);
       DartBlock emptyBlock = new DartBlock(new ArrayList<DartStatement>());
-      int nesting = 1;
-      while (nesting > 0) {
-        Token token = next();
-        switch (token) {
-          case LBRACE:
-            ++nesting;
+      if (optional(Token.ARROW)) {
+        while (true) {
+          Token token = next();
+          if (token == Token.SEMICOLON) {
             break;
-          case RBRACE:
-            --nesting;
-            break;
-          case EOS:
-            return emptyBlock;
+          }
+        }
+      } else {
+        expect(Token.LBRACE);
+        int nesting = 1;
+        while (nesting > 0) {
+          Token token = next();
+          switch (token) {
+            case LBRACE:
+              ++nesting;
+              break;
+            case RBRACE:
+              --nesting;
+              break;
+            case EOS:
+              return emptyBlock;
+          }
         }
       }
       // Return an empty block so we don't generate unparseable code.

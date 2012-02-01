@@ -851,9 +851,13 @@ public class TypeHeuristicImplementationTest extends CompilerTestCase {
   }
 
   private DartClass getClass(DartUnit unit, String name) {
-    DartNode node = unit.getLibrary().getTopLevelNode(name);
-    if (node instanceof DartClass) {
-      return (DartClass) node;
+    for (DartNode topLevelNode : unit.getTopLevelNodes()) {
+      if (topLevelNode instanceof DartClass) {
+        DartClass dartClass = (DartClass) topLevelNode;
+        if (dartClass.getName().getTargetName().equals(name)) {
+          return dartClass;
+        }
+      }
     }
     return null;
   }

@@ -116,4 +116,9 @@ public enum ParserErrorCode implements ErrorCode {
   public SubSystem getSubSystem() {
     return SubSystem.PARSER;
   }
+
+  @Override
+  public boolean needsRecompilation() {
+    return true;
+  }
 }

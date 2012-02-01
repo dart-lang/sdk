@@ -5,12 +5,14 @@
 package com.google.dart.compiler.ast;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.util.DefaultTextOutput;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a Dart compilation unit.
@@ -116,7 +118,7 @@ public class DartUnit extends DartNode {
   public final String toDietSource() {
     if (dietParse == null) {
       DefaultTextOutput out = new DefaultTextOutput(false);
-      new DartToSourceVisitor(out, true, true).accept(this);
+      new DartToSourceVisitor(out, true).accept(this);
       dietParse = out.toString();
     }
     return dietParse;
@@ -140,5 +142,87 @@ public class DartUnit extends DartNode {
       return Collections.<DartDirective> emptyList();
     }
     return directives;
+  }
+
+  /**
+   * @return the names of top-level declarations.
+   */
+  public Set<String> getTopDeclarationNames() {
+    Set<String> topLevelSymbols = Sets.newHashSet();
+    for (DartNode node : getTopLevelNodes()) {
+      if (node instanceof DartClass) {
+        DartIdentifier name = ((DartClass) node).getName();
+        topLevelSymbols.add(name.getTargetName());
+      }
+      if (node instanceof DartFunctionTypeAlias) {
+        DartIdentifier name = ((DartFunctionTypeAlias) node).getName();
+        topLevelSymbols.add(name.getTargetName());
+      }
+      if (node instanceof DartMethodDefinition) {
+        DartExpression name = ((DartMethodDefinition) node).getName();
+        topLevelSymbols.add(((DartIdentifier) name).getTargetName());
+      }
+      if (node instanceof DartFieldDefinition) {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) node;
+        List<DartField> fields = fieldDefinition.getFields();
+        for (DartField variable : fields) {
+          topLevelSymbols.add(variable.getName().getTargetName());
+        }
+      }
+    }
+    return topLevelSymbols;
+  }
+
+  /**
+   * @return the {@link Set} of names of all declarations.
+   */
+  public Set<String> getDeclarationNames() {
+    final Set<String> symbols = Sets.newHashSet();
+    accept(new DartNodeTraverser<Void>() {
+      @Override
+      public Void visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+        symbols.add(node.getName().getTargetName());
+        return super.visitFunctionTypeAlias(node);
+      }
+
+      @Override
+      public Void visitClass(DartClass node) {
+        symbols.add(node.getClassName());
+        return super.visitClass(node);
+      }
+
+      @Override
+      public Void visitTypeParameter(DartTypeParameter node) {
+        symbols.add(node.getName().getTargetName());
+        return super.visitTypeParameter(node);
+      }
+
+      @Override
+      public Void visitField(DartField node) {
+        symbols.add(node.getName().getTargetName());
+        return super.visitField(node);
+      }
+
+      @Override
+      public Void visitMethodDefinition(DartMethodDefinition node) {
+        if (node.getName() instanceof DartIdentifier) {
+          symbols.add(((DartIdentifier) node.getName()).getTargetName());
+        }
+        return super.visitMethodDefinition(node);
+      }
+
+      @Override
+      public Void visitParameter(DartParameter node) {
+        symbols.add(node.getParameterName());
+        return super.visitParameter(node);
+      }
+
+      @Override
+      public Void visitVariable(DartVariable node) {
+        symbols.add(node.getVariableName());
+        return super.visitVariable(node);
+      }
+    });
+    return symbols;
   }
 }

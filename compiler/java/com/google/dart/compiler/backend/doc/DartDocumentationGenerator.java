@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.backend.doc;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
@@ -80,7 +81,7 @@ public class DartDocumentationGenerator extends AbstractBackend {
     List<ClassElement> exceptions = new ArrayList<ClassElement>(10);
     List<FieldElement> fields = new ArrayList<FieldElement>(10);
     List<MethodElement> methods = new ArrayList<MethodElement>(10);
-    for (DartNode dartNode : lib.getTopLevelNodes()) {
+    for (DartNode dartNode : getTopLevelNodes(lib)) {
       if (dartNode instanceof DartClass) {
         DartClass dartClass = (DartClass) dartNode;
         ClassElement classElement = dartClass.getSymbol();
@@ -181,6 +182,18 @@ public class DartDocumentationGenerator extends AbstractBackend {
     }
   }
 
+  /**
+   * @return all top-level declarations in the given {@link LibraryUnit}.
+   */
+  private static List<DartNode> getTopLevelNodes(LibraryUnit lib) {
+    List<DartNode> topLevelNodes = Lists.newArrayList();
+    Iterable<DartUnit> units = lib.getUnits();
+    for (DartUnit unit : units) {
+      topLevelNodes.addAll(unit.getTopLevelNodes());
+    }
+    return topLevelNodes;
+  }
+
   @Override
   public boolean isOutOfDate(DartSource src, DartCompilerContext context) {
     return true;
@@ -214,7 +227,7 @@ public class DartDocumentationGenerator extends AbstractBackend {
     stream.println("<section id=\"libraries-overview\">");
     for (LibraryUnit lib : libraries) {
       if (library == null || library.equals(lib.getName())) {
-        if (lib.getTopLevelNodes().size() > 0) {
+        if (!getTopLevelNodes(lib).isEmpty()) {
           stream.print("<h2>");
           stream.print(lib.getName());
           stream.println("</h2>");

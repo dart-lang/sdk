@@ -143,24 +143,6 @@ public abstract class DartNode extends AbstractNode implements DartVisitable {
 
   public abstract <R> R accept(DartPlainVisitor<R> visitor);
 
-  public int computeHash() {
-    // TODO(jgw): Remove this altogether in fixing b/5324113.
-    //
-    // This computes a "hash" of the class' interface by simply serializing it to diet source and
-    // computing a hash of the string. This will work for now, but encodes too much information in
-    // the hash, and is slower than it should be. It should also cache the result and invalidate it
-    // if anything substantive changes.
-    //
-    // Examples of changes incorrectly captured by this hash, which would cause unnecessary
-    // recompiled include:
-    // - any change in method/field order would trigger an unnecessary recompile.
-    // - purely lexical changes such as {int x; int y;} => {int x, y;}
-    //
-    DefaultTextOutput out = new DefaultTextOutput(false);
-    new DartToSourceVisitor(out, true).accept(this);
-    return out.toString().trim().hashCode();
-  }
-
   @Override
   public DartNode clone() {
     // TODO (fabiomfv) - Implement proper cloning when strictly needed.

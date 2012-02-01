@@ -7,10 +7,7 @@ package com.google.dart.compiler.ast;
 import com.google.dart.compiler.common.AbstractNode;
 
 /**
- * An element in a library or application manifest
- *
- * TODO(jgw): This class works with both JSON and the new library syntax. It can be greatly
- * simplified once support for the JSON syntax is removed.
+ * An element in a library.
  */
 public class LibraryNode extends AbstractNode {
 

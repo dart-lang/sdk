@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.MapMaker;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -14,6 +16,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +34,8 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
   private final LibrarySource lib;
   private final DartArtifactProvider provider;
   private final DartCompilerListener listener;
+  private final Map<Source, List<DartCompilationError>> errors =
+      new MapMaker().weakKeys().makeMap();
   private final AtomicInteger errorCount = new AtomicInteger(0);
   private final AtomicInteger warningCount = new AtomicInteger(0);
   private final AtomicInteger typeErrorCount = new AtomicInteger(0);
@@ -49,6 +56,19 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
 
   @Override
   public void onError(DartCompilationError event) {
+    // Remember error.
+    {
+      Source source = event.getSource();
+      if (source != null) {
+        List<DartCompilationError> sourceErrors = errors.get(source);
+        if (sourceErrors == null) {
+          sourceErrors = Lists.newArrayList();
+          errors.put(source, sourceErrors);
+        }
+        sourceErrors.add(event);
+      }
+    }
+    // Increment counters.
     if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
       incrementTypeErrorCount();
     } else if (shouldWarnOnNoSuchType() && event.getErrorCode() == ResolverErrorCode.NO_SUCH_TYPE) {
@@ -58,6 +78,7 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
     } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
       incrementWarningCount();
     }
+    // Notify listener.
     listener.onError(event);
   }
 
@@ -100,6 +121,17 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
   public Writer getArtifactWriter(Source source, String part, String extension)
       throws IOException {
     return provider.getArtifactWriter(source, part, extension);
+  }
+
+  /**
+   * @return the {@link DartCompilationError}s found in the given {@link Source}.
+   */
+  public List<DartCompilationError> getSourceErrors(Source source) {
+    List<DartCompilationError> sourceErrors = errors.get(source);
+    if (sourceErrors != null) {
+      return sourceErrors;
+    }
+    return Collections.emptyList();
   }
 
   public int getErrorCount() {

@@ -41,4 +41,9 @@ public enum JsErrorCode implements ErrorCode {
   public SubSystem getSubSystem() {
     return SubSystem.JS_BACKEND;
   }
+
+  @Override
+  public boolean needsRecompilation() {
+    return true;
+  }
 }

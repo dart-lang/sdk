@@ -44,7 +44,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
   CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE("Generative constructors cannot have return type"),
   CONST_AND_NONCONST_CONSTRUCTOR("Cannot reference to non-const constructor."),
-  CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS("Const class %s cannot have non-final, inherited field %s from class %s"),
+  CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS(
+      "Const class %s cannot have non-final, inherited field %s from class %s"),
   CONST_CLASS_WITH_NONFINAL_FIELDS("Const class %s cannot have non-final field %s"),
   CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
@@ -52,8 +53,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
   DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS(
       "default class must have the same type parameters as declared in the interface"),
-  DEFAULT_CONSTRUCTOR_UNRESOLVED(
-      "Can not resolve constructor with name '%s' in default class '%s'"),
+  DEFAULT_CONSTRUCTOR_UNRESOLVED("Can not resolve constructor with name '%s' in default class '%s'"),
   DEFAULT_CONSTRUCTOR_NUMBER_OF_REQUIRED_PARAMETERS(
       "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
   DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS(
@@ -63,19 +63,19 @@ public enum ResolverErrorCode implements ErrorCode {
       "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
   DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
-  DUPLICATE_INITIALIZATION(ErrorSeverity.ERROR, "Duplicate initialization of '%s'"),
-  DUPLICATE_FUNCTION_EXPRESSION(ErrorSeverity.ERROR, "Duplicate function expression '%s'"),
+  DUPLICATE_INITIALIZATION("Duplicate initialization of '%s'"),
+  DUPLICATE_FUNCTION_EXPRESSION("Duplicate function expression '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION_WARNING(ErrorSeverity.WARNING,
       "Function expression '%s' is hiding '%s' at %s"),
-  DUPLICATE_LOCAL_VARIABLE_ERROR(ErrorSeverity.ERROR, "Duplicate local variable '%s'"),
+  DUPLICATE_LOCAL_VARIABLE_ERROR("Duplicate local variable '%s'"),
   DUPLICATE_LOCAL_VARIABLE_WARNING(ErrorSeverity.WARNING,
       "Local variable '%s' is hiding '%s' at %s"),
   DUPLICATE_MEMBER("Duplicate member '%s'"),
   DUPLICATE_NAMED_ARGUMENT("Duplicate named parameter argument"),
-  DUPLICATE_PARAMETER(ErrorSeverity.ERROR, "Duplicate parameter '%s'"),
+  DUPLICATE_PARAMETER("Duplicate parameter '%s'"),
   DUPLICATE_PARAMETER_WARNING(ErrorSeverity.WARNING, "Parameter '%s' is hiding '%s' at %s"),
   DUPLICATE_TOP_LEVEL_DEFINITION("duplicate top-level definition '%s'"),
-  DUPLICATE_TYPE_VARIABLE(ErrorSeverity.ERROR, "Duplicate type variable '%s'"),
+  DUPLICATE_TYPE_VARIABLE("Duplicate type variable '%s'"),
   DUPLICATE_TYPE_VARIABLE_WARNING(ErrorSeverity.WARNING, "Type variable '%s' is hiding '%s' at %s"),
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
       "expected an instance field in the super class, but got %s"),
@@ -150,7 +150,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   TYPE_VARIABLE_DOES_NOT_MATCH("Type variable %s does not match %s in default class %s."),
   TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
-     "Type parameters in default declaration must match referenced class exactly"),
+      "Type parameters in default declaration must match referenced class exactly"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER("type variables are not allowed in identifier expressions"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
@@ -185,5 +185,10 @@ public enum ResolverErrorCode implements ErrorCode {
   @Override
   public SubSystem getSubSystem() {
     return SubSystem.RESOLVER;
+  }
+
+  @Override
+  public boolean needsRecompilation() {
+    return true;
   }
 }
