@@ -19,11 +19,11 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
   }
 
   List<int> _read(int bytesToRead) {
-    List<int> result = new List<int>(bytesToRead);
+    ByteArray result = new ByteArray(bytesToRead);
     int bytesRead = _file.readListSync(result, 0, bytesToRead);
     if (bytesRead < bytesToRead) {
-      List<int> buffer = new List<int>(bytesRead);
-      buffer.copyFrom(result, 0, 0, bytesRead);
+      ByteArray buffer = new ByteArray(bytesRead);
+      buffer.setRange(0, bytesRead, result);
       result = buffer;
     }
     _checkScheduleCallbacks();
@@ -175,7 +175,7 @@ class _ReadListOperation extends _FileOperation {
                       port.toSendPort());
       return;
     }
-    var buffer = new List(_bytes);
+    ByteArray buffer = new ByteArray(_bytes);
     var result =
         new _ReadListResult(_FileUtils.readList(_id, buffer, 0, _bytes),
                             buffer);
@@ -421,19 +421,24 @@ class _FileUtils {
       native "File_ReadList";
   static int writeByte(int id, int value) native "File_WriteByte";
   static int writeList(int id, List<int> buffer, int offset, int bytes) {
-    // When using the Dart C API access to ObjectArray by index is
+    // When using the Dart C API to access raw data, using a ByteArray is
     // currently much faster. This function will make a copy of the
-    // supplied List to an ObjectArray if it isn't already.
-    ObjectArray outBuffer;
+    // supplied List to a ByteArray if it isn't already.
+    List outBuffer;
     int outOffset = offset;
-    if (buffer is ObjectArray) {
+    if (buffer is ByteArray || buffer is ObjectArray) {
       outBuffer = buffer;
     } else {
-      outBuffer = new ObjectArray(bytes);
+      outBuffer = new ByteArray(bytes);
       outOffset = 0;
       int j = offset;
       for (int i = 0; i < bytes; i++) {
-        outBuffer[i] = buffer[j];
+        int value = buffer[j];
+        if (value is! int) {
+          throw new FileIOException(
+              "List element is not an integer at index $j");
+        }
+        outBuffer[i] = value;
         j++;
       }
     }

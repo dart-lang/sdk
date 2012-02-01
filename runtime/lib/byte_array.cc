@@ -30,20 +30,41 @@ DEFINE_NATIVE_ENTRY(InternalByteArray_allocate, 1) {
 }
 
 
-static void RangeCheck(const ByteArray& array, const Smi& index,
+static void RangeCheck(const ByteArray& array,
+                       intptr_t index,
                        intptr_t num_bytes) {
-  if ((index.Value() < 0) || ((index.Value() + num_bytes) > array.Length())) {
+  if (!Utils::RangeCheck(index, num_bytes, array.Length())) {
     GrowableArray<const Object*> arguments;
-    arguments.Add(&index);
+    const Smi &index_object = Smi::Handle(Smi::New(index));
+    arguments.Add(&index_object);
     Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
   }
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
+  ByteArray& dst = ByteArray::CheckedHandle(arguments->At(0));
+  GET_NATIVE_ARGUMENT(Smi, dst_start, arguments->At(1));
+  GET_NATIVE_ARGUMENT(Smi, length, arguments->At(2));
+  GET_NATIVE_ARGUMENT(ByteArray, src, arguments->At(3));
+  GET_NATIVE_ARGUMENT(Smi, src_start, arguments->At(4));
+  intptr_t length_value = length.Value();
+  intptr_t src_start_value = src_start.Value();
+  intptr_t dst_start_value = dst_start.Value();
+  if (length_value < 0) {
+    GrowableArray<const Object*> args;
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+  }
+  RangeCheck(src, src_start_value, length_value);
+  RangeCheck(dst, dst_start_value, length_value);
+  ByteArray::Copy(dst, dst_start_value, src, src_start_value, length_value);
 }
 
 
 #define GETTER(ArrayT, ObjectT, ValueT)                                 \
   GET_NATIVE_ARGUMENT(ArrayT, array, arguments->At(0));                 \
   GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));                    \
-  RangeCheck(array, index, sizeof(ValueT));                             \
+  RangeCheck(array, index.Value(), sizeof(ValueT));                     \
   ValueT result = array.UnalignedAt<ValueT>(index.Value());             \
   arguments->SetReturn(ObjectT::Handle(ObjectT::New(result)));
 
@@ -51,7 +72,7 @@ static void RangeCheck(const ByteArray& array, const Smi& index,
 #define SETTER(ArrayT, ObjectT, Getter, ValueT)                         \
   GET_NATIVE_ARGUMENT(ArrayT, array, arguments->At(0));                 \
   GET_NATIVE_ARGUMENT(Smi, index, arguments->At(1));                    \
-  RangeCheck(array, index, sizeof(ValueT));                             \
+  RangeCheck(array, index.Value(), sizeof(ValueT));                     \
   GET_NATIVE_ARGUMENT(ObjectT, value, arguments->At(2));                \
   array.SetUnalignedAt<ValueT>(index.Value(), value.Getter());
 

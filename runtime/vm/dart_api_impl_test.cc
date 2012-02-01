@@ -614,28 +614,28 @@ TEST_CASE(ListAccess) {
 
 
 TEST_CASE(ByteArray) {
-  Dart_Handle obj1 = Dart_NewByteArray(10);
-  EXPECT_VALID(obj1);
-  EXPECT(Dart_IsByteArray(obj1));
-  EXPECT(Dart_IsList(obj1));
+  Dart_Handle byte_array1 = Dart_NewByteArray(10);
+  EXPECT_VALID(byte_array1);
+  EXPECT(Dart_IsByteArray(byte_array1));
+  EXPECT(Dart_IsList(byte_array1));
 
   intptr_t length = 0;
-  Dart_Handle result = Dart_ListLength(obj1, &length);
+  Dart_Handle result = Dart_ListLength(byte_array1, &length);
   EXPECT_VALID(result);
   EXPECT_EQ(10, length);
 
-  result = Dart_ListSetAt(obj1, -1, Dart_NewInteger(1));
+  result = Dart_ListSetAt(byte_array1, -1, Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
-  result = Dart_ListSetAt(obj1, 10, Dart_NewInteger(1));
+  result = Dart_ListSetAt(byte_array1, 10, Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
 
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(obj1, i, Dart_NewInteger(i + 1));
+    result = Dart_ListSetAt(byte_array1, i, Dart_NewInteger(i + 1));
     EXPECT_VALID(result);
   }
 
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListGetAt(obj1, i);
+    result = Dart_ListGetAt(byte_array1, i);
     EXPECT_VALID(result);
     int64_t value = 0;
     result = Dart_IntegerToInt64(result, &value);
@@ -643,25 +643,49 @@ TEST_CASE(ByteArray) {
     EXPECT_EQ(i + 1, value);
   }
 
-  Dart_Handle obj2 = Dart_NewByteArray(10);
+  Dart_Handle byte_array2 = Dart_NewByteArray(10);
   bool is_equal = false;
-  Dart_ObjectEquals(obj1, obj2, &is_equal);
+  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
 
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(obj2, i, Dart_NewInteger(i + 1));
+    result = Dart_ListSetAt(byte_array2, i, Dart_NewInteger(i + 1));
     EXPECT_VALID(result);
   }
   is_equal = false;
-  Dart_ObjectEquals(obj1, obj2, &is_equal);
+  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
 
   for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle e1 = Dart_ListGetAt(obj1, i);
-    Dart_Handle e2 = Dart_ListGetAt(obj2, i);
+    Dart_Handle e1 = Dart_ListGetAt(byte_array1, i);
+    Dart_Handle e2 = Dart_ListGetAt(byte_array2, i);
     is_equal = false;
     Dart_ObjectEquals(e1, e2, &is_equal);
     EXPECT(is_equal);
+  }
+
+  uint8_t data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  result = Dart_ListSetAsBytes(byte_array1, 0, data, 10);
+  EXPECT_VALID(result);
+  for (intptr_t i = 0; i < 10; ++i) {
+    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
+    int64_t value;
+    result = Dart_IntegerToInt64(e, &value);
+    EXPECT_VALID(result);
+    EXPECT_EQ(i, value);
+  }
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    EXPECT_VALID(Dart_ListSetAt(byte_array1, i, Dart_NewInteger(10 - i)));
+  }
+  Dart_ListGetAsBytes(byte_array1, 0, data, 10);
+  for (intptr_t i = 0; i < 10; ++i) {
+    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(e);
+    int64_t value;
+    result = Dart_IntegerToInt64(e, &value);
+    EXPECT_VALID(result);
+    EXPECT_EQ(10 - i, value);
   }
 }
 

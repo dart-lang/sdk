@@ -105,6 +105,7 @@ namespace dart {
   V(Clock_now, 0)                                                              \
   V(Clock_frequency, 0)                                                        \
   V(ByteArray_getLength, 1)                                                    \
+  V(ByteArray_setRange, 5)                                                     \
   V(InternalByteArray_allocate, 1)                                             \
   V(InternalByteArray_getInt8, 2)                                              \
   V(InternalByteArray_setInt8, 3)                                              \

@@ -1391,6 +1391,12 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
+  if (obj.IsByteArray()) {
+    ByteArray& byte_array = ByteArray::Handle();
+    byte_array ^= obj.raw();
+    *len = byte_array.Length();
+    return Api::Success();
+  }
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1596,6 +1602,15 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
+  if (obj.IsByteArray()) {
+    ByteArray& byte_array = ByteArray::Handle();
+    byte_array ^= obj.raw();
+    if (Utils::RangeCheck(offset, length, byte_array.Length())) {
+      ByteArray::Copy(native_array, byte_array, offset, length);
+      return Api::Success();
+    }
+    return Api::NewError("Invalid length passed in to access list elements");
+  }
   if (obj.IsArray()) {
     Array& array_obj = Array::Handle();
     array_obj ^= obj.raw();
@@ -1659,6 +1674,15 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(Api::UnwrapHandle(list));
+  if (obj.IsByteArray()) {
+    ByteArray& byte_array = ByteArray::Handle();
+    byte_array ^= obj.raw();
+    if (Utils::RangeCheck(offset, length, byte_array.Length())) {
+      ByteArray::Copy(byte_array, offset, native_array, length);
+      return Api::Success();
+    }
+    return Api::NewError("Invalid length passed in to set list elements");
+  }
   if (obj.IsArray()) {
     if (obj.IsImmutableArray()) {
       return Api::NewError("Cannot modify immutable array");

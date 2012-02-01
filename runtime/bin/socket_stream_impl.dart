@@ -17,11 +17,11 @@ class _SocketInputStream implements SocketInputStream {
         bytesToRead = len;
       }
     }
-    List<int> buffer = new List<int>(bytesToRead);
+    ByteArray buffer = new ByteArray(bytesToRead);
     int bytesRead = _socket.readList(buffer, 0, bytesToRead);
     if (bytesRead < bytesToRead) {
-      List<int> newBuffer = new List<int>(bytesRead);
-      newBuffer.copyFrom(buffer, 0, 0, bytesRead);
+      ByteArray newBuffer = new ByteArray(bytesRead);
+      newBuffer.setRange(0, bytesRead, buffer);
       return newBuffer;
     } else {
       return buffer;

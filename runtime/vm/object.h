@@ -3249,7 +3249,25 @@ class ByteArray : public Instance {
  public:
   virtual intptr_t Length() const;
 
+  static void Copy(uint8_t* dst,
+                   const ByteArray& src,
+                   intptr_t src_offset,
+                   intptr_t length);
+
+  static void Copy(const ByteArray& dst,
+                   intptr_t dst_offset,
+                   const uint8_t* src,
+                   intptr_t length);
+
+  static void Copy(const ByteArray& dst,
+                   intptr_t dst_offset,
+                   const ByteArray& src,
+                   intptr_t src_offset,
+                   intptr_t length);
+
  private:
+  virtual uint8_t* ByteAddr(intptr_t byte_offset) const;
+
   HEAP_OBJECT_IMPLEMENTATION(ByteArray, Instance);
   friend class Class;
 };
@@ -3313,6 +3331,10 @@ class InternalByteArray : public ByteArray {
                                    Heap::Space space = Heap::kNew);
 
  private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    return Addr<uint8_t>(byte_offset);
+  }
+
   template<typename T>
   T* Addr(intptr_t byte_offset) const {
     intptr_t limit = byte_offset + sizeof(T);
@@ -3373,6 +3395,10 @@ class ExternalByteArray : public ByteArray {
                                    Heap::Space space = Heap::kNew);
 
  private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    return Addr<uint8_t>(byte_offset);
+  }
+
   template<typename T>
   T* Addr(intptr_t byte_offset) const {
     intptr_t limit = byte_offset + sizeof(T);

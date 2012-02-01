@@ -76,7 +76,7 @@ class _BufferList {
         _length -= count;
         return result;
       } else {
-        result = new List<int>(count);
+        result = new ByteArray(count);
         int remaining = count;
         while (remaining > 0) {
           int bytesInFirst = _buffers.first().length - _index;

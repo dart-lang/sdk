@@ -7506,6 +7506,51 @@ intptr_t ByteArray::Length() const {
 }
 
 
+void ByteArray::Copy(uint8_t* dst,
+                     const ByteArray& src,
+                     intptr_t src_offset,
+                     intptr_t length) {
+  ASSERT(Utils::RangeCheck(src_offset, length, src.Length()));
+  {
+    NoGCScope no_gc;
+    memmove(dst, src.ByteAddr(src_offset), length);
+  }
+}
+
+
+void ByteArray::Copy(const ByteArray& dst,
+                     intptr_t dst_offset,
+                     const uint8_t* src,
+                     intptr_t length) {
+  ASSERT(Utils::RangeCheck(dst_offset, length, dst.Length()));
+  {
+    NoGCScope no_gc;
+    memmove(dst.ByteAddr(dst_offset), src, length);
+  }
+}
+
+
+void ByteArray::Copy(const ByteArray& dst,
+                     intptr_t dst_offset,
+                     const ByteArray& src,
+                     intptr_t src_offset,
+                     intptr_t length) {
+  ASSERT(Utils::RangeCheck(src_offset, length, src.Length()));
+  ASSERT(Utils::RangeCheck(dst_offset, length, dst.Length()));
+  {
+    NoGCScope no_gc;
+    memmove(dst.ByteAddr(dst_offset), src.ByteAddr(src_offset), length);
+  }
+}
+
+
+uint8_t* ByteArray::ByteAddr(intptr_t byte_offset) const {
+  // ByteArray is an abstract class.
+  UNREACHABLE();
+  return NULL;
+}
+
+
 const char* ByteArray::ToCString() const {
   // ByteArray is an abstract class.
   UNREACHABLE();
@@ -7526,7 +7571,9 @@ RawInternalByteArray* InternalByteArray::New(intptr_t len,
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(len);
-    memset(result.Addr<uint8_t>(0), 0, len);
+    if (len > 0) {
+      memset(result.Addr<uint8_t>(0), 0, len);
+    }
   }
   return result.raw();
 }
@@ -7539,7 +7586,9 @@ RawInternalByteArray* InternalByteArray::New(const uint8_t* data,
       InternalByteArray::Handle(InternalByteArray::New(len, space));
   {
     NoGCScope no_gc;
-    memmove(result.Addr<uint8_t>(0), data, len);
+    if (len > 0) {
+      memmove(result.Addr<uint8_t>(0), data, len);
+    }
   }
   return result.raw();
 }
