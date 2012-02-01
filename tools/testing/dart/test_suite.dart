@@ -428,11 +428,17 @@ class StandardTestSuite implements TestSuite {
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
+      String filePrefix = '';
+      if (new Platform().operatingSystem() == 'windows') {
+        // Firefox on Windows does not like absolute file path names that start
+        // with 'C:' adding 'file:///' solves the problem.
+        filePrefix = 'file:///';
+      }
       htmlTest.writeStringSync(GetHtmlContents(
           filename,
-          '$dartDir/client/testing/unittest/test_controller.js',
+          '$filePrefix$dartDir/client/testing/unittest/test_controller.js',
           scriptType,
-          scriptPath));
+          filePrefix + scriptPath));
       htmlTest.closeSync();
 
       List<String> compilerArgs = TestUtils.standardOptions(configuration);

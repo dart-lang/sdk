@@ -398,7 +398,6 @@ ToStringAsFixedTest: Fail
 StackOverflowTest: Fail
 ObjectDynamicMethodTest: Fail
 NumberSyntaxTest: Fail
-ApplicationNegativeTest: Fail
 
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip

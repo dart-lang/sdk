@@ -55,7 +55,7 @@ html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
 
-[ $component == webdriver && $browser == ff && $system == linux ]
+[ $component == webdriver && $browser == ff && ($system == linux  || $system == win32) ]
 view/view_tests: Fail
 
 [ $component == webdriver && $browser == safari ]
