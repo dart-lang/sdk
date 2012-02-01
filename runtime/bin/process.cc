@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -112,5 +112,13 @@ void FUNCTION_NAME(Process_Kill)(Dart_NativeArguments args) {
   intptr_t pid = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
   bool success = Process::Kill(pid);
   Dart_SetReturnValue(args, Dart_NewBoolean(success));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t pid = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 1));
+  Process::Exit(pid);
   Dart_ExitScope();
 }

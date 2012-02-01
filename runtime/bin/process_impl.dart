@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -86,18 +86,23 @@ class _Process implements Process {
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
     _exitHandler.inputStream.dataHandler = () {
-      final int EXIT_DATA_SIZE = 8;
+      final int EXIT_DATA_SIZE = 12;
       List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
       int exitDataRead = 0;
 
       int exitCode(List<int> ints) {
-        var code = _intFromBytes(ints, 0);
-        var negative = _intFromBytes(ints, 4);
+        var code = _intFromBytes(ints, 4);
+        var negative = _intFromBytes(ints, 8);
         assert(negative == 0 || negative == 1);
         return (negative == 0) ? code : -code;
       }
 
+      int exitPid(List<int> ints) {
+        return _intFromBytes(ints, 0);
+      }
+
       void handleExit() {
+        _processExit(exitPid(exitDataBuffer));
         if (_exitHandlerCallback !== null) {
           _exitHandlerCallback(exitCode(exitDataBuffer));
         }
@@ -121,6 +126,8 @@ class _Process implements Process {
               Socket error,
               Socket exitHandler,
               _ProcessStartStatus status) native "Process_Start";
+
+  void _processExit(int pid) native "Process_Exit";
 
   InputStream get stdout() {
     if (_closed) {

@@ -24,12 +24,6 @@
 class ProcessInfo {
  public:
   ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) { }
-  ~ProcessInfo() {
-    int closed = TEMP_FAILURE_RETRY(close(fd_));
-    if (closed != 0) {
-      FATAL("Failed to close process exit code pipe");
-    }
-  }
   pid_t pid() { return pid_; }
   intptr_t fd() { return fd_; }
   ProcessInfo* next() { return next_; }
@@ -106,8 +100,6 @@ dart::Mutex ProcessInfoList::mutex_;
 // event loop.
 class ExitCodeHandler {
  public:
-  static const uint8_t kTerminateByte = 1;
-
   // Ensure that the ExitCodeHandler has been initialized.
   static bool EnsureInitialized() {
     // Multiple isolates could be starting processes at the same
@@ -143,18 +135,6 @@ class ExitCodeHandler {
     return sig_chld_fds_[1];
   }
 
-  static void Terminate() {
-    MutexLocker locker(&mutex_);
-    if (!initialized_) {
-      return;
-    }
-    char data = ExitCodeHandler::kTerminateByte;
-    ssize_t result = TEMP_FAILURE_RETRY(write(WakeUpFd(), &data, 1));
-    if (result < 1) {
-      perror("Failed to write to wake-up fd in SIGCHLD handler");
-    }
-  }
-
  private:
   // GetProcessExitCodes is called on a separate thread when a SIGCHLD
   // signal is received to retrieve the exit codes and post them to
@@ -174,13 +154,13 @@ class ExitCodeHandler {
       }
       intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
       if (exit_code_fd != 0) {
-        int message[2] = { exit_code, negative };
+        int message[3] = { pid, exit_code, negative };
         ssize_t result =
             FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
         if (result != sizeof(message) && errno != EPIPE) {
           perror("ExitHandler notification failed");
         }
-        ProcessInfoList::RemoveProcess(pid);
+        TEMP_FAILURE_RETRY(close(exit_code_fd));
       }
     }
   }
@@ -206,10 +186,6 @@ class ExitCodeHandler {
         ssize_t read_bytes = FDUtils::ReadFromBlocking(pollfds.fd, &data, 1);
         if (read_bytes < 1) {
           perror("Failed to read from wake-up fd in exit-code handler");
-        }
-        // Check if the ExitCodeHandler has been terminated.
-        if (data == ExitCodeHandler::kTerminateByte) {
-          return;
         }
         // Get the exit code from all processes that have died.
         GetProcessExitCodes();
@@ -511,6 +487,6 @@ bool Process::Kill(intptr_t id) {
 }
 
 
-void Process::TerminateExitCodeHandler() {
-  ExitCodeHandler::Terminate();
+void Process::Exit(intptr_t id) {
+  ProcessInfoList::RemoveProcess(id);
 }
