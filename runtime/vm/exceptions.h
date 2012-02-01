@@ -11,16 +11,14 @@
 namespace dart {
 
 // Forward declarations.
-class Error;
 class Instance;
 class Object;
-class RawObject;
+class RawInstance;
 
 class Exceptions : AllStatic {
  public:
   static void Throw(const Instance& exception);
   static void ReThrow(const Instance& exception, const Instance& stacktrace);
-  static void PropagateError(const Object& obj);
 
   enum ExceptionType {
     kIndexOutOfRange,
@@ -39,10 +37,8 @@ class Exceptions : AllStatic {
 
   static void ThrowByType(ExceptionType type,
                           const GrowableArray<const Object*>& arguments);
-  // Returns a RawInstance if the exception is successfully created,
-  // otherwise returns a RawError.
-  static RawObject* Create(ExceptionType type,
-                           const GrowableArray<const Object*>& arguments);
+  static RawInstance* Create(ExceptionType type,
+                             const GrowableArray<const Object*>& arguments);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Exceptions);

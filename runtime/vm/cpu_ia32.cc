@@ -73,16 +73,16 @@ void CPU::JumpToExceptionHandler(uword program_counter,
 }
 
 
-void CPU::JumpToErrorHandler(
+void CPU::JumpToUnhandledExceptionHandler(
     uword program_counter,
     uword stack_pointer,
     uword frame_pointer,
-    const Error& error) {
+    const UnhandledException& unhandled_exception_object) {
   // The no_gc StackResource is unwound through the tear down of
   // stack resources below.
   NoGCScope no_gc;
-  ASSERT(!error.IsNull());
-  RawError* raw_error = error.raw();
+  ASSERT(!unhandled_exception_object.IsNull());
+  RawUnhandledException* unhandled_exception = unhandled_exception_object.raw();
 
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
@@ -92,11 +92,11 @@ void CPU::JumpToErrorHandler(
     isolate->top_resource()->~StackResource();
   }
 
-  // Set up the error object as the return value in EAX and continue
-  // from the invocation stub.
+  // Set up the unhandled exception object as the return value in EAX
+  // and continue from the invocation stub.
 #if defined(TARGET_OS_WINDOWS)
   __asm {
-    mov eax, raw_error
+    mov eax, unhandled_exception
     mov ebx, program_counter
     mov ecx, frame_pointer
     mov edi, stack_pointer
@@ -105,7 +105,7 @@ void CPU::JumpToErrorHandler(
     jmp ebx
   }
 #else
-  asm volatile("mov %[raw_error], %%eax;"
+  asm volatile("mov %[unhandled_exception], %%eax;"
                "mov %[pc], %%ebx;"
                "mov %[fp], %%ecx;"
                "mov %[sp], %%edi;"
@@ -113,7 +113,7 @@ void CPU::JumpToErrorHandler(
                "mov %%edi, %%esp;"
                "jmp *%%ebx;"
                :
-               : [raw_error] "m" (raw_error),
+               : [unhandled_exception] "m" (unhandled_exception),
                  [pc] "m" (program_counter),
                  [sp] "m" (stack_pointer),
                  [fp] "m" (frame_pointer));

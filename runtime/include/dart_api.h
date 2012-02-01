@@ -140,30 +140,6 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle);
  */
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
 
-/**
- * Propagates an error.
- *
- * It only makes sense to call this function when there are dart
- * frames on the stack.  That is, this function should only be called
- * in the C implementation of a native function which has been called
- * from Dart code.  If this function is called in the top-level
- * embedder code, it will return an error, as there is no way to
- * further propagate the error.
- *
- * The provided handle must be an error handle.  (See Dart_IsError.)
- *
- * If the provided handle is an unhandled exception, this function
- * will cause the unhandled exception to be rethrown.  Otherwise, the
- * error will be propagated to the caller, discarding any active dart
- * frames up to the next C frame.
- *
- * \param An error handle.
- *
- * \return On success, this function does not return.  On failure, an
- *   error handle is returned.
- */
-DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle);
-
 // Internal routine used for reporting error handles.
 DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
                                          int line,

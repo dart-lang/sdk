@@ -59,68 +59,6 @@ TEST_CASE(ErrorHandles) {
   EXPECT_VALID(Dart_ErrorGetStacktrace(exception));
 }
 
-
-void PropagateErrorNative(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle closure = Dart_GetNativeArgument(args, 0);
-  EXPECT(Dart_IsClosure(closure));
-  Dart_Handle result = Dart_InvokeClosure(closure, 0, NULL);
-  EXPECT(Dart_IsError(result));
-  result = Dart_PropagateError(result);
-  EXPECT_VALID(result);  // We do not expect to reach here.
-  UNREACHABLE();
-}
-
-
-static Dart_NativeFunction PropagateError_native_lookup(
-    Dart_Handle name, int argument_count) {
-  return reinterpret_cast<Dart_NativeFunction>(&PropagateErrorNative);
-}
-
-
-TEST_CASE(Dart_PropagateError) {
-  const char* kScriptChars =
-      "class Test {\n"
-      "  static void raiseCompileError() {\n"
-      "    return badIdent;\n"
-      "  }\n"
-      "\n"
-      "  static void throwException() {\n"
-      "    throw new Exception('myException');\n"
-      "  }\n"
-      "  static void nativeFunc(closure) native 'Test_nativeFunc';\n"
-      "\n"
-      "  static void Func1() {\n"
-      "    nativeFunc(() => raiseCompileError());\n"
-      "  }\n"
-      "\n"
-      "  static void Func2() {\n"
-      "    nativeFunc(() => throwException());\n"
-      "  }\n"
-      "}\n";
-  Dart_Handle lib = TestCase::LoadTestScript(
-      kScriptChars, &PropagateError_native_lookup);
-  Dart_Handle result;
-
-  result = Dart_InvokeStatic(lib,
-                             Dart_NewString("Test"),
-                             Dart_NewString("Func1"),
-                             0,
-                             NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT(!Dart_ErrorHasException(result));
-  EXPECT_SUBSTRING("badIdent", Dart_GetError(result));
-
-  result = Dart_InvokeStatic(lib,
-                             Dart_NewString("Test"),
-                             Dart_NewString("Func2"),
-                             0,
-                             NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT(Dart_ErrorHasException(result));
-  EXPECT_SUBSTRING("myException", Dart_GetError(result));
-}
-
 #endif
 
 

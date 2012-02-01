@@ -10,8 +10,8 @@
 namespace dart {
 
 // Forward Declarations.
-class Error;
 class Instance;
+class UnhandledException;
 
 
 class CPU : public AllStatic {
@@ -22,11 +22,11 @@ class CPU : public AllStatic {
                                      uword frame_pointer,
                                      const Instance& exception_object,
                                      const Instance& stacktrace_object);
-  static void JumpToErrorHandler(
+  static void JumpToUnhandledExceptionHandler(
       uword program_counter,
       uword stack_pointer,
       uword frame_pointer,
-      const Error& error);
+      const UnhandledException& unhandled_exception);
   static const char* Id();
 };
 

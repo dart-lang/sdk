@@ -13,7 +13,6 @@ namespace dart {
 // Forward declarations.
 class DebugInfo;
 class Isolate;
-class RawError;
 
 class Dart : public AllStatic {
  public:
@@ -21,7 +20,7 @@ class Dart : public AllStatic {
                        Dart_IsolateInterruptCallback interrupt);
 
   static Isolate* CreateIsolate(const char* name_prefix);
-  static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
+  static void InitializeIsolate(const uint8_t* snapshot, void* data);
   static void ShutdownIsolate();
 
   static Isolate* vm_isolate() { return vm_isolate_; }

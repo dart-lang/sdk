@@ -10,6 +10,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -62,7 +63,7 @@ Isolate* Dart::CreateIsolate(const char* name_prefix) {
 }
 
 
-RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
+void Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   TIMERSCOPE(time_isolate_initialization);
   Isolate* isolate = Isolate::Current();
@@ -73,10 +74,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   ObjectStore::Init(isolate);
 
   if (snapshot_buffer == NULL) {
-    const Error& error = Error::Handle(Object::Init(isolate));
-    if (!error.IsNull()) {
-      return error.raw();
-    }
+    Object::Init(isolate);
   } else {
     // Initialize from snapshot (this should replicate the functionality
     // of Object::Init(..) in a regular isolate creation path.
@@ -89,7 +87,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   StubCode::Init(isolate);
   CodeIndexTable::Init(isolate);
   isolate->set_init_callback_data(data);
-  return Error::null();
 }
 
 

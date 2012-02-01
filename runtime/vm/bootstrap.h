@@ -11,7 +11,6 @@ namespace dart {
 
 // Forward declarations.
 class Library;
-class RawError;
 class RawScript;
 class Script;
 
@@ -19,7 +18,7 @@ class Bootstrap : public AllStatic {
  public:
   static RawScript* LoadScript();
   static RawScript* LoadImplScript();
-  static RawError* Compile(const Library& library, const Script& script);
+  static void Compile(const Library& library, const Script& script);
   static void SetupNativeResolver();
 
  private:

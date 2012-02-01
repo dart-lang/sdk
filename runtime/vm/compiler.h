@@ -25,32 +25,21 @@ class Compiler : public AllStatic {
  public:
   // Extracts class, interface, function symbols from the script and populates
   // the symbol tables and the class dictionary of the library.
-  //
-  // Returns Error::null() if there is no compilation error.
-  static RawError* Compile(const Library& library, const Script& script);
+  static void Compile(const Library& library, const Script& script);
 
   // Generates code for given function and sets its code field.
-  //
-  // Returns Error::null() if there is no compilation error.
-  static RawError* CompileFunction(const Function& function);
+  static void CompileFunction(const Function& function);
 
   // Generates optimized code for function.
-  //
-  // Returns Error::null() if there is no compilation error.
-  static RawError* CompileOptimizedFunction(const Function& function);
+  static void CompileOptimizedFunction(const Function& function);
 
   // Generates and executes code for a given code fragment, e.g. a
   // compile time constant expression. Returns the result returned
   // by the fragment.
-  //
-  // The return value is either a RawInstance on success or a RawError
-  // on compilation failure.
-  static RawObject* ExecuteOnce(SequenceNode* fragment);
+  static RawInstance* ExecuteOnce(SequenceNode* fragment);
 
   // Eagerly compiles all functions in a class.
-  //
-  // Returns Error::null() if there is no compilation error.
-  static RawError* CompileAllFunctions(const Class& cls);
+  static void CompileAllFunctions(const Class& cls);
 };
 
 }  // namespace dart

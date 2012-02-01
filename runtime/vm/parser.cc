@@ -99,9 +99,9 @@ static RawTypeArguments* NewTypeArguments(
 
 
 static ThrowNode* CreateEvalConstConstructorThrow(intptr_t token_pos,
-                                                  const Object& obj) {
+                                                  const Instance& instance) {
   UnhandledException& excp = UnhandledException::Handle();
-  excp ^= obj.raw();
+  excp ^= instance.raw();
   const Instance& exception = Instance::ZoneHandle(excp.exception());
   const Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
   return new ThrowNode(token_pos,
@@ -228,7 +228,6 @@ void Parser::SetPosition(intptr_t position) {
 
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
-  ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Parser parser(script, library);
   parser.ParseTopLevel();
@@ -552,7 +551,6 @@ static bool HasReturnNode(SequenceNode* seq) {
 void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->long_jump_base()->IsSafeToJump());
   // Compilation can be nested, preserve the ast node id.
   const int prev_ast_node_id = isolate->ast_node_id();
   isolate->set_ast_node_id(0);
@@ -6336,29 +6334,20 @@ void Parser::RunStaticFieldInitializer(const Field& field) {
                                                  Resolver::kIsQualified));
     ASSERT(!func.IsNull());
     ASSERT(func.kind() == RawFunction::kConstImplicitGetter);
-    Object& const_value = Object::Handle(
+    Instance& const_value = Instance::Handle(
         DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
-    if (const_value.IsError()) {
-      if (const_value.IsUnhandledException()) {
-        ErrorMsg("exception thrown in Parser::RunStaticFieldInitializer");
-      } else {
-        Error& error = Error::Handle();
-        error ^= const_value.raw();
-        Isolate::Current()->long_jump_base()->Jump(1, error);
-      }
+    if (const_value.IsUnhandledException()) {
+      ErrorMsg("exception thrown in Parser::RunStaticFieldInitializer");
     }
-    ASSERT(const_value.IsNull() || const_value.IsInstance());
-    Instance& instance = Instance::Handle();
-    instance ^= const_value.raw();
-    if (!instance.IsNull()) {
-      instance ^= instance.Canonicalize();
+    if (!const_value.IsNull()) {
+      const_value ^= const_value.Canonicalize();
     }
-    field.set_value(instance);
+    field.set_value(const_value);
   }
 }
 
 
-RawObject* Parser::EvaluateConstConstructorCall(
+RawInstance* Parser::EvaluateConstConstructorCall(
     const Class& type_class,
     const AbstractTypeArguments& type_arguments,
     const Function& constructor,
@@ -6389,28 +6378,20 @@ RawObject* Parser::EvaluateConstConstructorCall(
     arg_values.Add(&arg->AsLiteralNode()->literal());
   }
   const Array& opt_arg_names = arguments->names();
-  const Object& result = Object::Handle(
+  const Instance& result = Instance::Handle(
       DartEntry::InvokeStatic(constructor, arg_values, opt_arg_names));
-  if (result.IsError()) {
-      if (result.IsUnhandledException()) {
-        return result.raw();
-      } else {
-        Error& error = Error::Handle();
-        error ^= result.raw();
-        Isolate::Current()->long_jump_base()->Jump(1, error);
-        UNREACHABLE();
-        return Object::null();
-      }
+  if (result.IsUnhandledException()) {
+    instance = result.raw();
   } else {
     if (constructor.IsFactory()) {
       // The factory method returns the allocated object.
-      instance ^= result.raw();
+      instance = result.raw();
     }
     if (!instance.IsNull()) {
       instance ^= instance.Canonicalize();
     }
-    return instance.raw();
   }
+  return instance.raw();
 }
 
 
@@ -7032,16 +7013,14 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const Function& map_constr = Function::ZoneHandle(
         immutable_map_class.LookupConstructor(constr_name));
     ASSERT(!map_constr.IsNull());
-    const Object& constructor_result = Object::Handle(
+    const Instance& const_instance = Instance::ZoneHandle(
         EvaluateConstConstructorCall(immutable_map_class,
                                      map_type_arguments,
                                      map_constr,
                                      constr_args));
-    if (constructor_result.IsUnhandledException()) {
-      return CreateEvalConstConstructorThrow(literal_pos, constructor_result);
+    if (const_instance.IsUnhandledException()) {
+      return CreateEvalConstConstructorThrow(literal_pos, const_instance);
     } else {
-      Instance& const_instance = Instance::ZoneHandle();
-      const_instance ^= constructor_result.raw();
       return new LiteralNode(literal_pos, const_instance);
     }
   } else {
@@ -7282,16 +7261,14 @@ AstNode* Parser::ParseNewOperator() {
       ErrorMsg("'const' requires const constructor: '%s'",
           String::Handle(constructor.name()).ToCString());
     }
-    const Object& constructor_result = Object::Handle(
+    const Instance& const_instance = Instance::ZoneHandle(
         EvaluateConstConstructorCall(constructor_class,
                                      type_arguments,
                                      constructor,
                                      arguments));
-    if (constructor_result.IsUnhandledException()) {
-      new_object = CreateEvalConstConstructorThrow(new_pos, constructor_result);
+    if (const_instance.IsUnhandledException()) {
+      new_object = CreateEvalConstConstructorThrow(new_pos, const_instance);
     } else {
-      Instance& const_instance = Instance::ZoneHandle();
-      const_instance ^= constructor_result.raw();
       new_object = new LiteralNode(new_pos, const_instance);
     }
   } else {
@@ -7500,17 +7477,7 @@ const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
     SequenceNode* seq = new SequenceNode(expr->token_index(), empty_scope);
     seq->Add(ret);
 
-    Object& result = Object::Handle(Compiler::ExecuteOnce(seq));
-    if (result.IsError()) {
-      // Propagate the compilation error.
-      Error& error = Error::Handle();
-      error ^= result.raw();
-      Isolate::Current()->long_jump_base()->Jump(1, error);
-      UNREACHABLE();
-    }
-    ASSERT(result.IsInstance());
-    Instance& value = Instance::ZoneHandle();
-    value ^= result.raw();
+    Instance& value = Instance::ZoneHandle(Compiler::ExecuteOnce(seq));
     if (value.IsNull()) {
       value ^= value.Canonicalize();
     }

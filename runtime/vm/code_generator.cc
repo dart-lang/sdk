@@ -431,10 +431,7 @@ static RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
     return Code::null();
   } else {
     if (!function.HasCode()) {
-      const Error& error = Error::Handle(Compiler::CompileFunction(function));
-      if (!error.IsNull()) {
-        Exceptions::PropagateError(error);
-      }
+      Compiler::CompileFunction(function);
     }
     functions_cache.AddCompiledFunction(function,
                                         num_arguments,
@@ -446,9 +443,13 @@ static RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
 
 // Result of an invoke may be an unhandled exception, in which case we
 // rethrow it.
-static void CheckResultError(const Object& result) {
-  if (result.IsError()) {
-    Exceptions::PropagateError(result);
+static void CheckResultException(const Instance& result) {
+  if (result.IsUnhandledException()) {
+    const UnhandledException& unhandled  = UnhandledException::Handle(
+        reinterpret_cast<RawUnhandledException*>(result.raw()));
+    const Instance& excp = Instance::Handle(unhandled.exception());
+    const Instance& stack = Instance::Handle(unhandled.stacktrace());
+    Exceptions::ReThrow(excp, stack);
   }
 }
 
@@ -481,10 +482,7 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
   // further tests.
   const Function& function = Function::CheckedHandle(arguments.At(0));
   if (!function.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
+    Compiler::CompileFunction(function);
   }
 }
 
@@ -709,19 +707,15 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
   }
   GrowableArray<const Object*> invoke_arguments(0);
   const Array& kNoArgumentNames = Array::Handle();
-  const Object& result =
-      Object::Handle(DartEntry::InvokeDynamic(receiver,
-                                              function,
-                                              invoke_arguments,
-                                              kNoArgumentNames));
-  if (result.IsError()) {
-    if (result.IsUnhandledException()) {
-      // If the getter throws an exception, treat as no such method.
-      arguments.SetReturn(code);
-      return;
-    } else {
-      Exceptions::PropagateError(result);
-    }
+  const Instance& result =
+      Instance::Handle(
+          DartEntry::InvokeDynamic(receiver,
+                                   function,
+                                   invoke_arguments,
+                                   kNoArgumentNames));
+  if (result.IsUnhandledException()) {
+    arguments.SetReturn(code);
+    return;  // Error accessing getter, treat as no such method.
   }
   if (!result.IsSmi()) {
     const Class& cls = Class::Handle(result.clazz());
@@ -749,10 +743,7 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
   const Function& function = Function::Handle(closure.function());
   ASSERT(!function.IsNull());
   if (!function.HasCode()) {
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
+    Compiler::CompileFunction(function);
   }
   const Context& context = Context::Handle(closure.context());
   const Code& code = Code::Handle(function.code());
@@ -801,12 +792,12 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
   DartEntry::invokestub entrypoint = reinterpret_cast<DartEntry::invokestub>(
       StubCode::InvokeDartCodeEntryPoint());
   ASSERT(context.isolate() == Isolate::Current());
-  const Object& result = Object::Handle(
+  const Instance& result = Instance::Handle(
       entrypoint(instrs.EntryPoint(),
                  adjusted_arg_descriptor,
                  invoke_arguments.data(),
                  context));
-  CheckResultError(result);
+  CheckResultException(result);
   arguments.SetReturn(result);
 }
 
@@ -842,12 +833,12 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   GrowableArray<const Object*> invoke_arguments(2);
   invoke_arguments.Add(&original_function_name);
   invoke_arguments.Add(&orig_arguments);
-  const Object& result = Object::Handle(
+  const Instance& result = Instance::Handle(
       DartEntry::InvokeDynamic(receiver,
                                function,
                                invoke_arguments,
                                kNoArgumentNames));
-  CheckResultError(result);
+  CheckResultException(result);
   arguments.SetReturn(result);
 }
 
@@ -927,11 +918,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     ASSERT(!Code::Handle(function.code()).is_optimized());
     const Code& unoptimized_code = Code::Handle(function.code());
     // Compilation patches the entry of unoptimized code.
-    const Error& error =
-        Error::Handle(Compiler::CompileOptimizedFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
+    Compiler::CompileOptimizedFunction(function);
     const Code& optimized_code = Code::Handle(function.code());
     ASSERT(!optimized_code.IsNull());
     ASSERT(!unoptimized_code.IsNull());
@@ -1038,10 +1025,7 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   if (Code::Handle(function.code()).is_optimized()) {
     // Get unoptimized code. Compilation restores (reenables) the entry of
     // unoptimized code.
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
+    Compiler::CompileFunction(function);
   }
   // TODO(srdjan): Handle better complex cases, e.g. when an older optimized
   // code is alive on frame and gets deoptimized after the function was

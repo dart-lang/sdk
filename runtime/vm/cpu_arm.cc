@@ -40,11 +40,11 @@ void CPU::JumpToExceptionHandler(uword program_counter,
 }
 
 
-void CPU::JumpToErrorHandler(
+void CPU::JumpToUnhandledExceptionHandler(
     uword program_counter,
     uword stack_pointer,
     uword frame_pointer,
-    const Error& error) {
+    const UnhandledException& unhandled_exception) {
   UNIMPLEMENTED();
 }
 

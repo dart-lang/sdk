@@ -399,7 +399,7 @@ void Object::RegisterClass(const Class& cls,
 }
 
 
-RawError* Object::Init(Isolate* isolate) {
+void Object::Init(Isolate* isolate) {
   TIMERSCOPE(time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
 
@@ -645,15 +645,8 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
-  Error& error = Error::Handle();
-  error = Bootstrap::Compile(core_lib, script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
-  error = Bootstrap::Compile(core_impl_lib, impl_script);
-  if (!error.IsNull()) {
-    return error.raw();
-  }
+  Bootstrap::Compile(core_lib, script);
+  Bootstrap::Compile(core_impl_lib, impl_script);
 
   Bootstrap::SetupNativeResolver();
 
@@ -663,7 +656,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_super_type(Type::Handle());
 
   ClassFinalizer::VerifyBootstrapClasses();
-  return Error::null();
 }
 
 
@@ -4701,8 +4693,7 @@ void LibraryPrefix::set_library(const Library& value) const {
 }
 
 
-RawError* Library::CompileAll() {
-  Error& error = Error::Handle();
+void Library::CompileAll() {
   Library& lib = Library::Handle(
       Isolate::Current()->object_store()->registered_libraries());
   Class& cls = Class::Handle();
@@ -4711,18 +4702,17 @@ RawError* Library::CompileAll() {
     while (it.HasNext()) {
       cls ^= it.GetNextClass();
       if (!cls.is_interface()) {
-        error = Compiler::CompileAllFunctions(cls);
+        Compiler::CompileAllFunctions(cls);
       }
     }
     Array& anon_classes = Array::Handle(lib.raw_ptr()->anonymous_classes_);
     for (int i = 0; i < lib.raw_ptr()->num_anonymous_; i++) {
       cls ^= anon_classes.At(i);
       ASSERT(!cls.is_interface());
-      error = Compiler::CompileAllFunctions(cls);
+      Compiler::CompileAllFunctions(cls);
     }
     lib = lib.next_registered();
   }
-  return error.raw();
 }
 
 

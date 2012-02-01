@@ -132,11 +132,9 @@ class Debugger {
                                const String& function_name);
 
   // Set breakpoint at closest location to function entry.
-  Breakpoint* SetBreakpointAtEntry(const Function& target_function,
-                                   Error* error);
+  Breakpoint* SetBreakpointAtEntry(const Function& target_function);
   Breakpoint* SetBreakpointAtLine(const String& script_url,
-                                  intptr_t line_number,
-                                  Error* error);
+                                  intptr_t line_number);
 
   void RemoveBreakpoint(Breakpoint* bpt);
 
@@ -162,8 +160,7 @@ class Debugger {
 
  private:
   Breakpoint* SetBreakpoint(const Function& target_function,
-                            intptr_t token_index,
-                            Error* error);
+                            intptr_t token_index);
   void UnsetBreakpoint(Breakpoint* bpt);
   Breakpoint* NewBreakpoint(const Function& func, intptr_t pc_desc_index);
   void RegisterBreakpoint(Breakpoint* bpt);

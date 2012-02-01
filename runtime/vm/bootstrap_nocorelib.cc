@@ -27,9 +27,8 @@ RawScript* Bootstrap::LoadImplScript() {
 }
 
 
-RawError* Bootstrap::Compile(const Library& library, const Script& script) {
+void Bootstrap::Compile(const Library& library, const Script& script) {
   UNREACHABLE();
-  return Error::null();
 }
 
 }  // namespace dart

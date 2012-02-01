@@ -78,12 +78,9 @@
   static void CodeGenTestRun##name(const Function& function) {                 \
     GrowableArray<const Object*>  arguments;                                   \
     const Array& kNoArgumentNames = Array::Handle();                           \
-    Object& result = Object::Handle();                                         \
+    Instance& result = Instance::Handle();                                     \
     result = DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);   \
-    EXPECT(!result.IsError());                                                 \
-    Instance& actual = Instance::Handle();                                     \
-    actual ^= result.raw();                                                    \
-    EXPECT(actual.Equals(Instance::Handle(expected)));                         \
+    EXPECT(result.Equals(Instance::Handle(expected)));                         \
   }
 
 
@@ -118,12 +115,9 @@
   static void CodeGenTestRun##name1(const Function& function) {                \
     GrowableArray<const Object*> arguments;                                    \
     const Array& kNoArgumentNames = Array::Handle();                           \
-    Object& result = Object::Handle();                                         \
+    Instance& result = Instance::Handle();                                     \
     result = DartEntry::InvokeStatic(function, arguments, kNoArgumentNames);   \
-    EXPECT(!result.IsError());                                                 \
-    Instance& actual = Instance::Handle();                                     \
-    actual ^= result.raw();                                                    \
-    EXPECT(actual.Equals(Instance::Handle(expected)));                         \
+    EXPECT(result.Equals(Instance::Handle(expected)));                         \
   }
 
 

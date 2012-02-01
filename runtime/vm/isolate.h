@@ -26,7 +26,7 @@ class Mutex;
 class ObjectPointerVisitor;
 class ObjectStore;
 class RawContext;
-class RawError;
+class RawObject;
 class StackResource;
 class StubCode;
 class Zone;
@@ -217,8 +217,8 @@ class Isolate {
   MessageHandler* message_handler() const { return message_handler_; }
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
-  // Returns null on success, a RawError on failure.
-  RawError* StandardRunLoop();
+  // Returns null on success, unhandled exception on failure.
+  RawObject* StandardRunLoop();
 
   intptr_t ast_node_id() const { return ast_node_id_; }
   void set_ast_node_id(int value) { ast_node_id_ = value; }
