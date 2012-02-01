@@ -5458,7 +5458,7 @@ LocalVariable* Parser::CreateTempConstVariable(intptr_t token_index,
                                                intptr_t token_id,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, "%s%d", s, token_id);
+  OS::SNPrint(name, 64, ":%s%d", s, token_id);
   LocalVariable* temp =
       new LocalVariable(token_index,
                         String::ZoneHandle(String::NewSymbol(name)),
@@ -5478,6 +5478,22 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
     intptr_t token_id = node->id();
     intptr_t token_index = node->token_index();
     node = NULL;  // Do not use it.
+    // The array object access may not have side effects.
+    // First, evaluate the array object expression if it might have side
+    // effects.
+    if (!IsLocalOrLiteralNode(load_indexed->array())) {
+      LocalVariable* temp =
+      CreateTempConstVariable(token_index, token_id, "lia");
+      AstNode* save =
+      new StoreLocalNode(token_index, *temp, load_indexed->array());
+      current_block_->statements->Add(save);
+      AstNode* load = new LoadLocalNode(token_index, *temp);
+      load_indexed = new LoadIndexedNode(token_index,
+                                         load,
+                                         load_indexed->index_expr());
+    }
+    // Second, evaluate the index expression and store in a temporary
+    // variable if it might have side effects.
     if (!IsLocalOrLiteralNode(load_indexed->index_expr())) {
       LocalVariable* temp =
           CreateTempConstVariable(token_index, token_id, "lix");
@@ -5488,18 +5504,6 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
       load_indexed = new LoadIndexedNode(token_index,
                                          load_indexed->array(),
                                          load);
-    }
-    // The array object access may not have side effects.
-    if (!IsLocalOrLiteralNode(load_indexed->array())) {
-      LocalVariable* temp =
-          CreateTempConstVariable(token_index, token_id, "lia");
-      AstNode* save =
-          new StoreLocalNode(token_index, *temp, load_indexed->array());
-      current_block_->statements->Add(save);
-      AstNode* load = new LoadLocalNode(token_index, *temp);
-      load_indexed = new LoadIndexedNode(token_index,
-                                         load,
-                                         load_indexed->index_expr());
     }
     return load_indexed;
   }
@@ -5648,9 +5652,9 @@ AstNode* Parser::ParseConditionalExpr() {
   AstNode* expr = ParseBinaryExpr(Token::Precedence(Token::kOR));
   if (CurrentToken() == Token::kCONDITIONAL) {
     ConsumeToken();
-    AstNode* expr1 = ParseConditionalExpr();
+    AstNode* expr1 = ParseExpr(kAllowConst);
     ExpectToken(Token::kCOLON);
-    AstNode* expr2 = ParseConditionalExpr();
+    AstNode* expr2 = ParseExpr(kAllowConst);
     expr = new ConditionalExprNode(expr_pos, expr, expr1, expr2);
   }
   return expr;
@@ -7704,9 +7708,9 @@ void Parser::SkipConditionalExpr() {
   SkipBinaryExpr();
   if (CurrentToken() == Token::kCONDITIONAL) {
     ConsumeToken();
-    SkipConditionalExpr();
+    SkipExpr();
     ExpectToken(Token::kCOLON);
-    SkipConditionalExpr();
+    SkipExpr();
   }
 }
 
