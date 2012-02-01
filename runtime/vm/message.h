@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_MESSAGE_QUEUE_H_
-#define VM_MESSAGE_QUEUE_H_
+#ifndef VM_MESSAGE_H_
+#define VM_MESSAGE_H_
 
-#include "include/dart_api.h"
 #include "vm/thread.h"
+
+// Duplicated from dart_api.h to avoid including the whole header.
+typedef int64_t Dart_Port;
 
 namespace dart {
 
@@ -22,7 +24,7 @@ class Message {
   } Priority;
 
   // A port number which is never used.
-  static const int kIllegalPort = 0;
+  static const Dart_Port kIllegalPort = 0;
 
   // A new message to be sent between two isolates. The data handed to this
   // message will be disposed by calling free() once the message object is
@@ -56,7 +58,6 @@ class Message {
 
   DISALLOW_COPY_AND_ASSIGN(Message);
 };
-
 
 // There is a message queue per isolate.
 class MessageQueue {
@@ -92,6 +93,60 @@ class MessageQueue {
   DISALLOW_COPY_AND_ASSIGN(MessageQueue);
 };
 
+// A MessageHandler is an entity capable of accepting messages.
+class MessageHandler {
+ protected:
+  MessageHandler();
+
+  // Allows subclasses to provide custom message notification.
+  virtual void MessageNotify(Message::Priority priority);
+
+ public:
+  virtual ~MessageHandler();
+
+  // Allow subclasses to provide a handler name.
+  virtual const char* name() const;
+
+#if defined(DEBUG)
+  // Check that it is safe to access this message handler.
+  //
+  // For example, if this MessageHandler is an isolate, then it is
+  // only safe to access it when the MessageHandler is the current
+  // isolate.
+  virtual void CheckAccess();
+#endif
+
+  void PostMessage(Message* message);
+  void ClosePort(Dart_Port port);
+  void CloseAllPorts();
+
+  // A message handler tracks how many live ports it has.
+  bool HasLivePorts() const { return live_ports_ > 0; }
+  void increment_live_ports() {
+#if defined(DEBUG)
+    CheckAccess();
+#endif
+    live_ports_++;
+  }
+  void decrement_live_ports() {
+#if defined(DEBUG)
+    CheckAccess();
+#endif
+    live_ports_--;
+  }
+
+  // Returns true if the handler is owned by the PortMap.
+  //
+  // This is used to delete handlers when their last live port is closed.
+  virtual bool OwnedByPortMap() const { return false; }
+
+  MessageQueue* queue() const { return queue_; }
+
+ private:
+  intptr_t live_ports_;
+  MessageQueue* queue_;
+};
+
 }  // namespace dart
 
-#endif  // VM_MESSAGE_QUEUE_H_
+#endif  // VM_MESSAGE_H_

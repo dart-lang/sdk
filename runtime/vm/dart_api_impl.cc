@@ -15,8 +15,9 @@
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/longjump.h"
-#include "vm/message_queue.h"
+#include "vm/message.h"
 #include "vm/native_entry.h"
+#include "vm/native_message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -676,7 +677,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Message::Priority priority = Message::kNormalPriority;
   do {
     DARTSCOPE(isolate);
-    message = isolate->message_queue()->DequeueNoWait();
+    message = isolate->message_handler()->queue()->DequeueNoWait();
     if (message == NULL) {
       break;
     }
@@ -705,7 +706,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
 DART_EXPORT bool Dart_HasLivePorts() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate);
-  return isolate->live_ports() > 0;
+  return isolate->message_handler()->HasLivePorts();
 }
 
 
@@ -740,6 +741,37 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   writer.FinalizeBuffer();
   return PortMap::PostMessage(new Message(
       port_id, Message::kIllegalPort, data, Message::kNormalPriority));
+}
+
+
+DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
+                                         Dart_NativeMessageHandler handler,
+                                         bool handle_concurrently) {
+  if (name == NULL) {
+    name = "<UnnamedNativePort>";
+  }
+  if (handler == NULL) {
+    OS::PrintErr("%s expects argument 'handler' to be non-null.", CURRENT_FUNC);
+    return kIllegalPort;
+  }
+  // Start the native port without a current isolate.
+  IsolateSaver saver(Isolate::Current());
+  Isolate::SetCurrent(NULL);
+
+  NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
+  Dart_Port port_id = PortMap::CreatePort(nmh);
+  nmh->StartWorker();
+  return port_id;
+}
+
+
+DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
+  // Close the native port without a current isolate.
+  IsolateSaver saver(Isolate::Current());
+  Isolate::SetCurrent(NULL);
+
+  // TODO(turnidge): Check that the port is native before trying to close.
+  return PortMap::ClosePort(native_port_id);
 }
 
 

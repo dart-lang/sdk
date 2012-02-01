@@ -21,8 +21,7 @@ class HandleScope;
 class HandleVisitor;
 class Heap;
 class LongJump;
-class Message;
-class MessageQueue;
+class MessageHandler;
 class Mutex;
 class ObjectPointerVisitor;
 class ObjectStore;
@@ -57,33 +56,7 @@ class Isolate {
     message_notify_callback_ = value;
   }
 
-  MessageQueue* message_queue() const { return message_queue_; }
-  void set_message_queue(MessageQueue* value) { message_queue_ = value; }
-
   const char* name() const { return name_; }
-
-  // The number of ports is only correct when read from the current
-  // isolate. This value is not protected from being updated
-  // concurrently.
-  intptr_t num_ports() const { return num_ports_; }
-  void increment_num_ports() {
-    ASSERT(this == Isolate::Current());
-    num_ports_++;
-  }
-  void decrement_num_ports() {
-    ASSERT(this == Isolate::Current());
-    num_ports_--;
-  }
-
-  intptr_t live_ports() const { return live_ports_; }
-  void increment_live_ports() {
-    ASSERT(this == Isolate::Current());
-    live_ports_++;
-  }
-  void decrement_live_ports() {
-    ASSERT(this == Isolate::Current());
-    live_ports_--;
-  }
 
   Dart_Port main_port() { return main_port_; }
   void set_main_port(Dart_Port port) {
@@ -241,9 +214,8 @@ class Isolate {
   void ScheduleInterrupts(uword interrupt_bits);
   uword GetAndClearInterrupts();
 
-  void PostMessage(Message* message);
-  void ClosePort(Dart_Port port);
-  void CloseAllPorts();
+  MessageHandler* message_handler() const { return message_handler_; }
+  void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
   // Returns null on success, unhandled exception on failure.
   RawObject* StandardRunLoop();
@@ -271,11 +243,8 @@ class Isolate {
   static const uword kDefaultStackSize = (1 * MB);
 
   StoreBufferBlock store_buffer_;
-  MessageQueue* message_queue_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
-  intptr_t num_ports_;
-  intptr_t live_ports_;
   Dart_Port main_port_;
   Heap* heap_;
   ObjectStore* object_store_;
@@ -302,6 +271,7 @@ class Isolate {
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;
+  MessageHandler* message_handler_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;

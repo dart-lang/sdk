@@ -2,9 +2,75 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/message_queue.h"
+#include "vm/message.h"
 
 namespace dart {
+
+DECLARE_FLAG(bool, trace_isolates);
+
+
+MessageHandler::MessageHandler()
+    : live_ports_(0),
+      queue_(new MessageQueue()) {
+  ASSERT(queue_ != NULL);
+}
+
+
+MessageHandler::~MessageHandler() {
+  delete queue_;
+}
+
+
+const char* MessageHandler::name() const {
+  return "<unnamed>";
+}
+
+
+#if defined(DEBUG)
+void MessageHandler::CheckAccess() {
+  // By default there is no checking.
+}
+#endif
+
+
+void MessageHandler::MessageNotify(Message::Priority priority) {
+  // By default, there is no custom message notification.
+}
+
+
+void MessageHandler::PostMessage(Message* message) {
+  if (FLAG_trace_isolates) {
+    const char* source_name = "<native code>";
+    Isolate* source_isolate = Isolate::Current();
+    if (source_isolate) {
+      source_name = source_isolate->name();
+    }
+    OS::Print("[>] Posting message:\n"
+              "\tsource:     %s\n"
+              "\treply_port: %lld\n"
+              "\tdest:       %s\n"
+              "\tdest_port:  %lld\n",
+              source_name, message->reply_port(), name(), message->dest_port());
+  }
+
+  Message::Priority priority = message->priority();
+  queue()->Enqueue(message);
+  message = NULL;  // Do not access message.  May have been deleted.
+
+  // Invoke any custom message notification.
+  MessageNotify(priority);
+}
+
+
+void MessageHandler::ClosePort(Dart_Port port) {
+  queue()->Flush(port);
+}
+
+
+void MessageHandler::CloseAllPorts() {
+  queue()->FlushAll();
+}
+
 
 MessageQueue::MessageQueue() {
   for (int p = Message::kFirstPriority; p < Message::kNumPriorities; p++) {
@@ -25,11 +91,7 @@ MessageQueue::~MessageQueue() {
 
 
 void MessageQueue::Enqueue(Message* msg) {
-  // TODO(turnidge): Add a scoped locker for monitors which is not a
-  // stack resource.  This would probably be useful in the platform
-  // headers.
-  monitor_.Enter();
-
+  MonitorLocker ml(&monitor_);
   Message::Priority p = msg->priority();
   // Make sure messages are not reused.
   ASSERT(msg->next_ == NULL);
@@ -46,8 +108,6 @@ void MessageQueue::Enqueue(Message* msg) {
     tail_[p]->next_ = msg;
     tail_[p] = msg;
   }
-
-  monitor_.Exit();
 }
 
 Message* MessageQueue::DequeueNoWait() {
@@ -78,11 +138,10 @@ Message* MessageQueue::DequeueNoWaitHoldsLock() {
 Message* MessageQueue::Dequeue(int64_t millis) {
   ASSERT(millis >= 0);
   MonitorLocker ml(&monitor_);
-
   Message* result = DequeueNoWaitHoldsLock();
   if (result == NULL) {
     // No message available at any priority.
-    ml.Wait(millis);
+    monitor_.Wait(millis);
     result = DequeueNoWaitHoldsLock();
   }
   return result;

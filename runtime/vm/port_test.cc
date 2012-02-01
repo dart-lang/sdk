@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/assert.h"
-#include "vm/message_queue.h"
+#include "vm/message.h"
 #include "vm/os.h"
 #include "vm/port.h"
 #include "vm/unit_test.h"
@@ -29,22 +29,21 @@ class PortMapTestPeer {
 };
 
 
-// Intercept the post message callback and just store a copy of the message.
-static int notify_count = 0;
-static void MyMessageNotifyCallback(Dart_Isolate dest_isolate) {
-  notify_count++;
-}
+class TestMessageHandler : public MessageHandler {
+ public:
+  TestMessageHandler() : notify_count(0) {}
 
+  void MessageNotify(Message::Priority priority) {
+    notify_count++;
+  }
 
-static void InitPortMapTest() {
-  Dart_SetMessageNotifyCallback(&MyMessageNotifyCallback);
-  notify_count = 0;
-}
+  int notify_count;
+};
 
 
 TEST_CASE(PortMap_CreateAndCloseOnePort) {
-  InitPortMapTest();
-  intptr_t port = PortMap::CreatePort();
+  TestMessageHandler handler;
+  intptr_t port = PortMap::CreatePort(&handler);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
 
@@ -54,9 +53,9 @@ TEST_CASE(PortMap_CreateAndCloseOnePort) {
 
 
 TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
-  InitPortMapTest();
-  Dart_Port port1 = PortMap::CreatePort();
-  Dart_Port port2 = PortMap::CreatePort();
+  TestMessageHandler handler;
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
   EXPECT(PortMapTestPeer::IsActivePort(port1));
   EXPECT(PortMapTestPeer::IsActivePort(port2));
 
@@ -74,23 +73,23 @@ TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
 
 
 TEST_CASE(PortMap_ClosePorts) {
-  InitPortMapTest();
-  Dart_Port port1 = PortMap::CreatePort();
-  Dart_Port port2 = PortMap::CreatePort();
+  TestMessageHandler handler;
+  Dart_Port port1 = PortMap::CreatePort(&handler);
+  Dart_Port port2 = PortMap::CreatePort(&handler);
   EXPECT(PortMapTestPeer::IsActivePort(port1));
   EXPECT(PortMapTestPeer::IsActivePort(port2));
 
   // Close all ports at once.
-  PortMap::ClosePorts();
+  PortMap::ClosePorts(&handler);
   EXPECT(!PortMapTestPeer::IsActivePort(port1));
   EXPECT(!PortMapTestPeer::IsActivePort(port2));
 }
 
 
 TEST_CASE(PortMap_CreateManyPorts) {
-  InitPortMapTest();
+  TestMessageHandler handler;
   for (int i = 0; i < 32; i++) {
-    Dart_Port port = PortMap::CreatePort();
+    Dart_Port port = PortMap::CreatePort(&handler);
     EXPECT(PortMapTestPeer::IsActivePort(port));
     PortMap::ClosePort(port);
     EXPECT(!PortMapTestPeer::IsActivePort(port));
@@ -99,8 +98,8 @@ TEST_CASE(PortMap_CreateManyPorts) {
 
 
 TEST_CASE(PortMap_SetLive) {
-  InitPortMapTest();
-  intptr_t port = PortMap::CreatePort();
+  TestMessageHandler handler;
+  intptr_t port = PortMap::CreatePort(&handler);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
   EXPECT(!PortMapTestPeer::IsLivePort(port));
@@ -116,26 +115,24 @@ TEST_CASE(PortMap_SetLive) {
 
 
 TEST_CASE(PortMap_PostMessage) {
-  InitPortMapTest();
-  Dart_Port port = PortMap::CreatePort();
+  TestMessageHandler handler;
+  Dart_Port port = PortMap::CreatePort(&handler);
+  EXPECT_EQ(0, handler.notify_count);
+
   EXPECT(PortMap::PostMessage(new Message(
       port, 0, reinterpret_cast<uint8_t*>(strdup("msg")),
       Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
-  EXPECT_EQ(1, notify_count);
-  PortMap::ClosePorts();
+  EXPECT_EQ(1, handler.notify_count);
+  PortMap::ClosePorts(&handler);
 }
 
 
 TEST_CASE(PortMap_PostMessageInvalidPort) {
-  InitPortMapTest();
   EXPECT(!PortMap::PostMessage(new Message(
       0, 0, reinterpret_cast<uint8_t*>(strdup("msg")),
       Message::kNormalPriority)));
-
-  // Check that the message notifycallback was not called.
-  EXPECT_STREQ(0, notify_count);
 }
 
 
@@ -157,19 +154,19 @@ intptr_t GetIntData(uint8_t* data) {
 
 static Message* NextMessage() {
   Isolate* isolate = Isolate::Current();
-  Message* result = isolate->message_queue()->Dequeue(0);
+  Message* result = isolate->message_handler()->queue()->Dequeue(0);
   return result;
 }
 
 
 void ThreadedPort_start(uword parameter) {
-  // We only need an isolate here because the MutexLocker in
-  // PortMap::CreatePort expects it, we don't need to initialize
-  // the isolate as it does not run any dart code.
-  Dart::CreateIsolate(NULL);
+  // TODO(turnidge): We only use the isolate to get access to its
+  // message handler.  I should rewrite this test to use a
+  // TestMessageHandler instead.
+  Isolate* isolate = Dart::CreateIsolate(NULL);
 
   intptr_t remote = parameter;
-  intptr_t local = PortMap::CreatePort();
+  intptr_t local = PortMap::CreatePort(isolate->message_handler());
 
   PortMap::PostMessage(new Message(
       remote, 0, AllocIntData(local), Message::kNormalPriority));
@@ -194,7 +191,7 @@ void ThreadedPort_start(uword parameter) {
 
 
 TEST_CASE(ThreadedPort) {
-  intptr_t local = PortMap::CreatePort();
+  intptr_t local = PortMap::CreatePort(Isolate::Current()->message_handler());
 
   Thread* thr = new Thread(ThreadedPort_start, local);
   EXPECT(thr != NULL);

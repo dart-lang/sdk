@@ -2801,6 +2801,85 @@ TEST_CASE(ImportLibrary5) {
 }
 
 
+void NewNativePort_send123(Dart_Port dest_port_id,
+                           Dart_Port reply_port_id,
+                           uint8_t* data) {
+  intptr_t response = 123;
+  Dart_PostIntArray(reply_port_id, 1, &response);
+}
+
+
+void NewNativePort_send321(Dart_Port dest_port_id,
+                           Dart_Port reply_port_id,
+                           uint8_t* data) {
+  intptr_t response = 321;
+  Dart_PostIntArray(reply_port_id, 1, &response);
+}
+
+
+UNIT_TEST_CASE(NewNativePort) {
+  // Create a port with a bogus handler.
+  Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
+  EXPECT_EQ(kIllegalPort, error_port);
+
+  // Create the port w/o a current isolate, just to make sure that works.
+  Dart_Port port_id1 =
+      Dart_NewNativePort("Port123", NewNativePort_send123, true);
+
+  TestIsolateScope __test_isolate__;
+  const char* kScriptChars =
+      "void callPort(SendPort port) {\n"
+      "    port.call(null).receive((message, replyTo) {\n"
+      "      throw new Exception(message[0]);\n"
+      "    });\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  // Create a port w/ a current isolate, to make sure that works too.
+  Dart_Port port_id2 =
+      Dart_NewNativePort("Port321", NewNativePort_send321, true);
+
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+  Dart_Handle send_port2 = Dart_NewSendPort(port_id2);
+  EXPECT_VALID(send_port2);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result = Dart_InvokeStatic(lib,
+                                         Dart_NewString(""),
+                                         Dart_NewString("callPort"),
+                                         1,
+                                         dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  // result second port.
+  dart_args[0] = send_port2;
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString(""),
+                             Dart_NewString("callPort"),
+                             1,
+                             dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 321\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+  EXPECT(Dart_CloseNativePort(port_id2));
+}
+
+
 static bool RunLoopTestCallback(const char* name_prefix,
                                 void* data, char** error) {
   const char* kScriptChars =

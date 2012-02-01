@@ -13,23 +13,26 @@ namespace dart {
 
 class Isolate;
 class Message;
+class MessageHandler;
 class Mutex;
 class PortMapTestPeer;
 
 class PortMap: public AllStatic {
  public:
-  // Allocate a port in the current isolate and return its VM-global id.
-  static Dart_Port CreatePort();
+  // Allocate a port for the provided handler and return its VM-global id.
+  static Dart_Port CreatePort(MessageHandler* handler);
 
   // Indicates that a port has had a ReceivePort created for it at the
   // dart language level.  The port remains live until it is closed.
   static void SetLive(Dart_Port id);
 
   // Close the port with id. All pending messages will be dropped.
-  static void ClosePort(Dart_Port id);
+  //
+  // Returns true if the port is successfully closed.
+  static bool ClosePort(Dart_Port id);
 
-  // Close all the ports of the current isolate.
-  static void ClosePorts();
+  // Close all the ports for the provided handler.
+  static void ClosePorts(MessageHandler* handler);
 
   // Enqueues the message in the port with id. Returns false if the port is not
   // active any longer.
@@ -42,12 +45,13 @@ class PortMap: public AllStatic {
  private:
   friend class dart::PortMapTestPeer;
 
-  // Mapping between port numbers and isolates.
-  // Free entries have id == 0 and isolate == NULL. Deleted entries have id == 0
-  // and isolate == deleted_entry_.
+  // Mapping between port numbers and handlers.
+  //
+  // Free entries have id == 0 and handler == NULL. Deleted entries
+  // have id == 0 and handler == deleted_entry_.
   typedef struct {
     Dart_Port port;
-    Isolate* isolate;
+    MessageHandler* handler;
     bool live;
   } Entry;
 
@@ -67,7 +71,7 @@ class PortMap: public AllStatic {
 
   // Hashmap of ports.
   static Entry* map_;
-  static Isolate* deleted_entry_;
+  static MessageHandler* deleted_entry_;
   static intptr_t capacity_;
   static intptr_t used_;
   static intptr_t deleted_;

@@ -429,6 +429,12 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
 typedef int64_t Dart_Port;
 
 /**
+ * kIllegalPort is a port number guaranteed never to be associated
+ * with a valid port.
+ */
+const Dart_Port kIllegalPort = 0;
+
+/**
  * A message notification callback.
  *
  * This callback allows the embedder to provide an alternate wakeup
@@ -520,6 +526,46 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
  * \return True if the message was posted.
  */
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
+
+/**
+ * A native message handler.
+ *
+ * This handler is associated with a native port by calling
+ * Dart_NewNativePort.
+ */
+typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
+                                          Dart_Port reply_port_id,
+                                          uint8_t* data);
+// TODO(turnidge): Make this function take more appropriate arguments.
+
+/**
+ * Creates a new native port.  When messages are received on this
+ * native port, then they will be dispatched to the provided native
+ * message handler.
+ *
+ * \param name The name of this port in debugging messages.
+ * \param handler The C handler to run when messages arrive on the port.
+ * \param handle_concurrently Is it okay to process requests on this
+ *                            native port concurrently?
+ *
+ * \return If successful, returns the port id for the native port.  In
+ *   case of error, returns kIllegalPort.
+ */
+DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
+                                         Dart_NativeMessageHandler handler,
+                                         bool handle_concurrently);
+// TODO(turnidge): Currently handle_concurrently is ignored.
+
+/**
+ * Closes the native port with the given id.
+ *
+ * The port must have been allocated by a call to Dart_NewNativePort.
+ *
+ * \param native_port_id The id of the native port to close.
+ *
+ * \return Returns true if the port was closed successfully.
+ */
+DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
 
 /**
  * Returns a new SendPort with the provided port id.

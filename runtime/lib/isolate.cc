@@ -10,7 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/longjump.h"
-#include "vm/message_queue.h"
+#include "vm/message.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/port.h"
@@ -344,7 +344,8 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
 
 DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
   ASSERT(AbstractTypeArguments::CheckedHandle(arguments->At(0)).IsNull());
-  intptr_t port_id = PortMap::CreatePort();
+  intptr_t port_id =
+      PortMap::CreatePort(arguments->isolate()->message_handler());
   const Instance& port = Instance::Handle(ReceivePortCreate(port_id));
   arguments->SetReturn(port);
 }
