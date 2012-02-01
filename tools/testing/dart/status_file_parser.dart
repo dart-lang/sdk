@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -34,15 +34,6 @@ class Section {
       condition == null || condition.evaluate(environment);
 }
 
-
-// Helper method to be able to run the test from the runtime
-// directory, or the top directory.
-String getFilename(String path) =>
-    new File(path).existsSync() ? path : '../$path';
-
-String getDirname(String path) =>
-    new Directory(path).existsSync() ? path : '../$path';
-
 void ReadTestExpectationsInto(TestExpectations expectations,
                               String statusFilePath,
                               environment,
@@ -64,7 +55,7 @@ void ReadTestExpectationsInto(TestExpectations expectations,
 }
 
 void ReadConfigurationInto(path, sections, onDone) {
-  File file = new File(getFilename(path));
+  File file = new File(path);
   if (!file.existsSync()) return;  // TODO(whesse): Handle missing file.
   InputStream file_stream = file.openInputStream();
   StringInputStream lines = new StringInputStream(file_stream);

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -212,14 +212,14 @@ class StandardTestSuite implements TestSuite {
         new TestExpectations(complexMatching: complexStatusMatching());
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
-                               statusFilePath,
+                               '$dartDir/$statusFilePath',
                                configuration,
                                statusFileRead);
     }
   }
 
   void processDirectory() {
-    directoryPath = getDirname(directoryPath);
+    directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
     dir.errorHandler = (s) {
       throw s;
@@ -467,7 +467,7 @@ class StandardTestSuite implements TestSuite {
           Expect.fail('unimplemented component $component');
       }
 
-      String executable = getFilename(dumpRenderTreeFilename);
+      String executable = dumpRenderTreeFilename;
       List<String> args;
       if (component == 'webdriver') {
         executable = 'python';
@@ -590,10 +590,10 @@ class StandardTestSuite implements TestSuite {
       return configuration['drt'];
     }
     if (new Platform().operatingSystem() == 'macos') {
-      return 'client/tests/drt/DumpRenderTree.app/Contents/' +
+      return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/' +
           'MacOS/DumpRenderTree';
     }
-    return 'client/tests/drt/DumpRenderTree';
+    return '$dartDir/client/tests/drt/DumpRenderTree';
   }
 
   void testGeneratorStarted() {
@@ -765,7 +765,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   }
 
   void processDirectory() {
-    directoryPath = getDirname(directoryPath);
+    directoryPath = '$dartDir/$directoryPath';
     // Enqueueing the directory listers is an activity.
     activityStarted();
     for (String testDir in _testDirs) {
@@ -836,7 +836,7 @@ class JUnitTestSuite implements TestSuite {
   }
 
   void processDirectory() {
-    directoryPath = getDirname(directoryPath);
+    directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
 
     dir.errorHandler = (s) {
@@ -988,16 +988,9 @@ class TestUtils {
   }
 
   static String dartDir() {
-    Directory dart;
-    if (new File('tools/testing/dart/test_suite.dart').existsSync()) {
-      return new File('.').fullPathSync().replaceAll('\\', '/');
-    } else if (new File('../tools/testing/dart/test_suite.dart').existsSync()) {
-      return new File('..').fullPathSync().replaceAll('\\', '/');
-    } else {
-      print('Run test.dart from the dart directory or' +
-            ' an immediate subdirectory only.');
-      Expect.fail('Could not find top level dart directory.');
-    }
+    String scriptPath = new Options().script.replaceAll('\\', '/');
+    String toolsDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
+    return new File('$toolsDir/..').fullPathSync().replaceAll('\\', '/');    
   }
 
   static List<String> standardOptions(Map configuration) {
