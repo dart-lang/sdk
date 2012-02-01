@@ -234,6 +234,8 @@ PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
 
+CondExprTest: Fail
+
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 
 # VM or DartC specific tests not to be run by Frog. See language.status
