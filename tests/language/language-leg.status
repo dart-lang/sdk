@@ -204,8 +204,6 @@ NamedConstructorTest: Fail
 NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
-NamedParametersNamedCountTest: Fail
-NamedParametersPassingFalseTest: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersPassingNullTest: Fail
 NamedParametersPassingZeroTest: Fail
@@ -213,7 +211,6 @@ NamedParametersTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NamedParametersWithDollarsTest: Fail
-NamedParametersWithObjectPropertyNamesTest: Fail
 NamingTest: Fail
 NativeClassInheritance1FrogTest: Fail
 NativeClassInheritance2FrogTest: Fail
