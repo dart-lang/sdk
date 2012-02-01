@@ -7,6 +7,10 @@
  * DumpRenderTree.
  */
 
+if (navigator.webkitStartDart) {
+  navigator.webkitStartDart();
+}
+
 function processMessage(msg) {
   if (window.layoutTestController) {
     if (msg == 'unittest-suite-done') {
