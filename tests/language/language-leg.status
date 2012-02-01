@@ -289,7 +289,6 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
-RawStringTest: Fail
 RegEx2Test: Fail
 RegExp2Test: Fail
 RegExp3Test: Fail
