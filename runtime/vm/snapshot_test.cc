@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "include/dart_debugger_api.h"
 #include "platform/assert.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
@@ -544,6 +545,13 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
 
 UNIT_TEST_CASE(ScriptSnapshot) {
+  const char* kLibScriptChars =
+      "#library('dart:import-lib');"
+      "class LibFields  {"
+      "  LibFields(int i, int j) : fld1 = i, fld2 = j {}"
+      "  int fld1;"
+      "  final int fld2;"
+      "}";
   const char* kScriptChars =
       "class Fields  {"
       "  Fields(int i, int j) : fld1 = i, fld2 = j {}"
@@ -580,6 +588,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
   intptr_t size;
   uint8_t* full_snapshot = NULL;
   uint8_t* script_snapshot = NULL;
+  intptr_t expected_num_libs;
+  intptr_t actual_num_libs;
 
   {
     // Start an Isolate, and create a full snapshot of it.
@@ -600,8 +610,20 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
+    // Load the library.
+    Dart_Handle import_lib = Dart_LoadLibrary(Dart_NewString("dart:import-lib"),
+                                              Dart_NewString(kLibScriptChars));
+    EXPECT_VALID(import_lib);
+
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
+
+    EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(), import_lib));
+
+    // Get list of library URLs loaded and save the count.
+    Dart_Handle libs = Dart_GetLibraryURLs();
+    EXPECT(Dart_IsList(libs));
+    Dart_ListLength(libs, &expected_num_libs);
 
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
@@ -622,6 +644,13 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT(script_snapshot != NULL);
     result = Dart_LoadScriptFromSnapshot(script_snapshot);
     EXPECT_VALID(result);
+
+    // Get list of library URLs loaded and compare with expected count.
+    Dart_Handle libs = Dart_GetLibraryURLs();
+    EXPECT(Dart_IsList(libs));
+    Dart_ListLength(libs, &actual_num_libs);
+
+    EXPECT_EQ(expected_num_libs, actual_num_libs);
 
     // Invoke a function which returns an object.
     result = Dart_InvokeStatic(result,

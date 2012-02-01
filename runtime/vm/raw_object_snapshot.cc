@@ -705,6 +705,9 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     for (intptr_t i = 0; i <= num_flds; i++) {
       *(library.raw()->from() + i) = reader->ReadObject();
     }
+    if (kind != Snapshot::kFull) {
+      library.Register();
+    }
   }
   return library.raw();
 }

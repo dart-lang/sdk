@@ -2223,7 +2223,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
                          CURRENT_FUNC);
   }
   library ^= tmp.raw();
-  library.Register();
   isolate->object_store()->set_root_library(library);
   return Api::NewLocalHandle(library);
 }
