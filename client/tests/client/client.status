@@ -54,12 +54,6 @@ html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
 
-[ $component == webdriver && ($browser == safari || $browser == ie) ]
-samples/swarm/swarm_tests: Fail
-
-[ $component == webdriver && $browser == ff ]
-samples/swarm/swarm_tests: Skip
-
 [ $component == webdriver && $browser == ff && $system == linux ]
 samples/view/view_tests: Fail
 
