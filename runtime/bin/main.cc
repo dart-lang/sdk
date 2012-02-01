@@ -14,6 +14,7 @@
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/platform.h"
+#include "bin/process.h"
 #include "platform/globals.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
@@ -572,6 +573,8 @@ int main(int argc, char** argv) {
   Dart_ShutdownIsolate();
   // Terminate event handler.
   EventHandler::Terminate();
+  // Terminate process exit-code handler.
+  Process::TerminateExitCodeHandler();
 
   return 0;
 }

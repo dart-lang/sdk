@@ -31,6 +31,10 @@ class Process {
   // Indicate that the process with the given pid has exited.
   static void Exit(intptr_t id);
 
+  // Terminate the exit code handler thread. Does not return before
+  // the thread has terminated.
+  static void TerminateExitCodeHandler();
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
 };

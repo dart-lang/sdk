@@ -136,7 +136,36 @@ class ExitCodeHandler {
     return sig_chld_fds_[1];
   }
 
+  static void TerminateExitCodeThread() {
+    MutexLocker locker(&mutex_);
+    if (!initialized_) {
+      return;
+    }
+
+    uint8_t data = kThreadTerminateByte;
+    ssize_t result =
+        TEMP_FAILURE_RETRY(write(ExitCodeHandler::WakeUpFd(), &data, 1));
+    if (result < 1) {
+      perror("Failed to write to wake-up fd to terminate exit code thread");
+    }
+
+    {
+      MonitorLocker terminate_locker(&thread_terminate_monitor_);
+      while (!thread_terminated_) {
+        terminate_locker.Wait();
+      }
+    }
+  }
+
+  static void ExitCodeThreadTerminated() {
+    MonitorLocker locker(&thread_terminate_monitor_);
+    thread_terminated_ = true;
+    locker.Notify();
+  }
+
  private:
+  static const uint8_t kThreadTerminateByte = 1;
+
   // GetProcessExitCodes is called on a separate thread when a SIGCHLD
   // signal is received to retrieve the exit codes and post them to
   // dart.
@@ -188,6 +217,10 @@ class ExitCodeHandler {
         if (read_bytes < 1) {
           perror("Failed to read from wake-up fd in exit-code handler");
         }
+        if (data == ExitCodeHandler::kThreadTerminateByte) {
+          ExitCodeThreadTerminated();
+          return;
+        }
         // Get the exit code from all processes that have died.
         GetProcessExitCodes();
       }
@@ -197,12 +230,16 @@ class ExitCodeHandler {
   static dart::Mutex mutex_;
   static bool initialized_;
   static int sig_chld_fds_[2];
+  static bool thread_terminated_;
+  static dart::Monitor thread_terminate_monitor_;
 };
 
 
 dart::Mutex ExitCodeHandler::mutex_;
 bool ExitCodeHandler::initialized_ = false;
 int ExitCodeHandler::sig_chld_fds_[2] = { 0, 0 };
+bool ExitCodeHandler::thread_terminated_ = false;
+dart::Monitor ExitCodeHandler::thread_terminate_monitor_;
 
 
 static char* SafeStrNCpy(char* dest, const char* src, size_t n) {
@@ -490,4 +527,9 @@ bool Process::Kill(intptr_t id) {
 
 void Process::Exit(intptr_t id) {
   ProcessInfoList::RemoveProcess(id);
+}
+
+
+void Process::TerminateExitCodeHandler() {
+  ExitCodeHandler::TerminateExitCodeThread();
 }

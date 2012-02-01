@@ -412,3 +412,8 @@ bool Process::Kill(intptr_t id) {
 void Process::Exit(intptr_t id) {
   RemoveProcess(id);
 }
+
+
+void Process::TerminateExitCodeHandler() {
+  // TODO(ager): Implement.
+}
