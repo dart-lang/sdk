@@ -41,8 +41,18 @@ dom/WebGL1Test: Fail
 dom/WindowOpenTest: Fail
 dom/XHRTest: Fail
 
+[ ($component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie))) && $checked ]
+# TODO(vsm): Triage DOM tests.
+dom/EventsTest: Fail
+
+[ $component == webdriver ]
+dom/ImplementationTest: Fail
+dom/HistoryTest: Fail
+
 [ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
 html/html_tests: Fail
+# TODO(vsm): Triage DOM failures on other browsers.
+dom/*: Skip
 
 [ $component == webdriver && ($browser == safari || $browser == ie) ]
 samples/swarm/swarm_tests: Fail
