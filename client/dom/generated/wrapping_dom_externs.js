@@ -1234,6 +1234,7 @@ dom_externs.reset;                      // operation HTMLFormElement.reset, oper
 dom_externs.resizeBy;                   // operation DOMWindow.resizeBy
 dom_externs.resizeTo;                   // operation DOMWindow.resizeTo
 dom_externs.resonance;                  // attribute HighPass2FilterNode.resonance, attribute LowPass2FilterNode.resonance
+dom_externs.response;                   // attribute XMLHttpRequest.response
 dom_externs.responseBlob;               // attribute XMLHttpRequest.responseBlob
 dom_externs.responseEnd;                // attribute PerformanceTiming.responseEnd
 dom_externs.responseStart;              // attribute PerformanceTiming.responseStart
@@ -1512,6 +1513,7 @@ dom_externs.textContent;                // attribute Node.textContent
 dom_externs.textLength;                 // attribute HTMLTextAreaElement.textLength, attribute SVGTextContentElement.textLength
 dom_externs.textPosition;               // attribute TextTrackCue.textPosition
 dom_externs.textTracks;                 // attribute HTMLMediaElement.textTracks
+dom_externs.thisObject;                 // attribute JavaScriptCallFrame.thisObject
 dom_externs.time;                       // operation Console.time
 dom_externs.timeEnd;                    // operation Console.timeEnd
 dom_externs.timeStamp;                  // operation Console.timeStamp, attribute Event.timeStamp

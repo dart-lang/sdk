@@ -19,6 +19,8 @@ class XMLHttpRequestJs extends DOMTypeJs implements XMLHttpRequest native "*XMLH
 
   int get readyState() native "return this.readyState;";
 
+  Object get response() native "return this.response;";
+
   BlobJs get responseBlob() native "return this.responseBlob;";
 
   String get responseText() native "return this.responseText;";

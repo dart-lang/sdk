@@ -28,6 +28,8 @@ interface JavaScriptCallFrame {
 
   int get sourceID();
 
+  Object get thisObject();
+
   String get type();
 
   void evaluate(String script);

@@ -5689,6 +5689,8 @@ class JavaScriptCallFrameJs extends DOMTypeJs implements JavaScriptCallFrame nat
 
   int get sourceID() native "return this.sourceID;";
 
+  Object get thisObject() native "return this.thisObject;";
+
   String get type() native "return this.type;";
 
   void evaluate(String script) native;
@@ -12845,6 +12847,8 @@ class XMLHttpRequestJs extends DOMTypeJs implements XMLHttpRequest native "*XMLH
 
   int get readyState() native "return this.readyState;";
 
+  Object get response() native "return this.response;";
+
   BlobJs get responseBlob() native "return this.responseBlob;";
 
   String get responseText() native "return this.responseText;";
@@ -19325,6 +19329,8 @@ interface JavaScriptCallFrame {
 
   int get sourceID();
 
+  Object get thisObject();
+
   String get type();
 
   void evaluate(String script);
@@ -25798,6 +25804,8 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   void set asBlob(bool value);
 
   int get readyState();
+
+  Object get response();
 
   Blob get responseBlob();
 

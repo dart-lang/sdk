@@ -17702,6 +17702,14 @@ function native__JavaScriptCallFrameWrappingImplementation__get_sourceID(_this) 
   }
 }
 
+function native__JavaScriptCallFrameWrappingImplementation__get_thisObject(_this) {
+  try {
+    return __dom_wrap(_this.$dom.thisObject);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__JavaScriptCallFrameWrappingImplementation__get_type(_this) {
   try {
     return __dom_wrap(_this.$dom.type);
@@ -34705,6 +34713,14 @@ function native__XMLHttpRequestWrappingImplementation__set_asBlob(_this, value) 
 function native__XMLHttpRequestWrappingImplementation__get_readyState(_this) {
   try {
     return __dom_wrap(_this.$dom.readyState);
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
+function native__XMLHttpRequestWrappingImplementation__get_response(_this) {
+  try {
+    return __dom_wrap(_this.$dom.response);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }

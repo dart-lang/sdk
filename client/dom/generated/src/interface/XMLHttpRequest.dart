@@ -25,6 +25,8 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   int get readyState();
 
+  Object get response();
+
   Blob get responseBlob();
 
   String get responseText();

@@ -305,7 +305,7 @@ class IDLParser(object):
       return 'any[]'
 
     def ObjectType():
-      return 'object'
+      return re.compile(r'(object|Object)\b')   # both spellings.
 
     def VoidType():
       return 'void'

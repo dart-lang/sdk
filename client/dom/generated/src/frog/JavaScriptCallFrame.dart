@@ -23,6 +23,8 @@ class JavaScriptCallFrameJs extends DOMTypeJs implements JavaScriptCallFrame nat
 
   int get sourceID() native "return this.sourceID;";
 
+  Object get thisObject() native "return this.thisObject;";
+
   String get type() native "return this.type;";
 
   void evaluate(String script) native;
