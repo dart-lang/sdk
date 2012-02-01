@@ -254,13 +254,14 @@ class StandardTestSuite implements TestSuite {
       // rest. They use the .dart suffix in the status files. They
       // find tests in weird ways (testing that they contain "#").
       // They need to be redone.
-      // directoryPath may start with '../'.
       // TODO(1058): This does not work on Windows.
-      String sanitizedDirectoryPath = (directoryPath.startsWith('../')) ?
-          directoryPath.substring(3) : directoryPath;
-      start = filename.indexOf(sanitizedDirectoryPath);
-      testName = filename.substring(start + sanitizedDirectoryPath.length + 1,
-                                    filename.length);
+      start = filename.indexOf(directoryPath);      
+      if (start != -1) {
+        testName = filename.substring(start + directoryPath.length + 1);
+      } else {
+        testName = filename;
+      }
+
       if (configuration['component'] != 'dartc') {
         if (testName.endsWith('.dart')) {
           testName = testName.substring(0, testName.length - 5);
