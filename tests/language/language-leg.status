@@ -148,7 +148,6 @@ ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
-IncrOpTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
@@ -294,7 +293,6 @@ Script1NegativeTest: Fail
 Script2NegativeTest: Fail
 ScriptNegativeTest: Fail
 Setter0Test: Fail
-Setter1Test: Fail
 SourceSelfNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
