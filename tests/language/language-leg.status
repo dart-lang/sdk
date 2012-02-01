@@ -6,7 +6,6 @@ prefix language
 
 [ $component == leg ]
 AbstractStaticNegativeTest: Fail
-AllocateTest: Fail
 ApplicationTest: Fail
 ArithmeticTest: Fail
 AssertionTest: Fail
@@ -205,8 +204,6 @@ NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
 NamedParametersPassingFalsyTest: Fail
-NamedParametersPassingNullTest: Fail
-NamedParametersPassingZeroTest: Fail
 NamedParametersTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
