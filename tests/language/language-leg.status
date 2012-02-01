@@ -380,5 +380,3 @@ Unary2Test: Fail
 UnaryTest: Fail
 UnboundGetterTest: Fail
 WhileTest: Fail
-
-LiteralUnaryPlusTest/01: Fail

@@ -9,7 +9,5 @@ main() {
   var a = + 1;       /// 01: compile-time error
   var x = +"foo";    /// 02: compile-time error
   var x = + "foo";   /// 03: compile-time error
-  var z = +12;
-  var y = +.2;
 }
 
