@@ -455,6 +455,17 @@ CMessageReader::CMessageReader(const uint8_t* buffer,
 }
 
 
+Dart_CMessage* CMessageReader::ReadMessage() {
+  // Read the object out of the message.
+  Dart_CObject* object = ReadObject();
+
+  Dart_CMessage* message =
+      reinterpret_cast<Dart_CMessage*>(alloc_(NULL, 0, sizeof(Dart_CMessage)));
+  if (message == NULL) return NULL;
+  message->root = object;
+  return message;
+}
+
 intptr_t CMessageReader::LookupInternalClass(intptr_t class_header) {
   SerializedHeaderType header_type = SerializedHeaderTag::decode(class_header);
   ASSERT(header_type == kObjectId);

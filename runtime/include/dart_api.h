@@ -1406,7 +1406,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
 
-// --- Message encoding/decoding ----
+// --- Message sending/receiving from native code ----
 
 /**
  * A Dart_CObject is used for representing Dart objects as native C
@@ -1438,10 +1438,17 @@ struct Dart_CObject {
 };
 
 /**
- * A Dart_CMessage is used for encoding and decoding messages from native code.
+ * A Dart_CMessage is used for receiving and sending messages from
+ * native code not running in an isolate. A message contains an object
+ * graph represented as Dart_CObject structures rooted as the provided
+ * root.
+ *
+ * For information on the lifetime of this data, when provided in
+ * callbacks, see the documentation for the individual callbacks.
  */
 struct Dart_CMessage {
-  Dart_CObject** message;
+  Dart_CObject* root;
 };
+
 
 #endif  // INCLUDE_DART_API_H_

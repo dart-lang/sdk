@@ -424,7 +424,7 @@ class CMessageReader : public BaseReader {
   CMessageReader(const uint8_t* buffer, intptr_t length, ReAlloc alloc);
   ~CMessageReader() { }
 
-  Dart_CObject* ReadObject();
+  Dart_CMessage* ReadMessage();
 
  private:
   // Allocates a Dart_CObject object on the C heap.
@@ -448,6 +448,7 @@ class CMessageReader : public BaseReader {
   Dart_CObject* ReadInlinedObject(intptr_t object_id);
   Dart_CObject* ReadObjectImpl(intptr_t header);
   Dart_CObject* ReadIndexedObject(intptr_t object_id);
+  Dart_CObject* ReadObject();
 
   // Add object to backward references.
   void AddBackwardReference(intptr_t id, Dart_CObject* obj);
