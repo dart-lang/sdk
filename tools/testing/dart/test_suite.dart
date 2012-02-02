@@ -477,20 +477,16 @@ class StandardTestSuite implements TestSuite {
           Expect.fail('unimplemented component $component');
       }
 
-      String executable = dumpRenderTreeFilename;
       List<String> args;
       if (component == 'webdriver') {
-        executable = 'python';
-        if (new Platform().operatingSystem() == 'windows') {
-          // For Windows, the first command, must have the Windows 
-          // slash direction.
-          // TODO(efortuna): Get rid of this hack when issue 1306 is fixed.
-          executable = executable.replaceAll('/', '\\');
-        }
         args = ['$dartDir/tools/testing/run_selenium.py', '--out=$htmlPath', 
             '--browser=${configuration["browser"]}'];
       } else {
-        args = ['--no-timeout'];
+        args = [
+            '$dartDir/tools/testing/drt-trampoline.py',
+            dumpRenderTreeFilename,
+            '--no-timeout'
+        ];
         if (component == 'dartium') {
           var dartFlags = ['--ignore-unrecognized-flags'];
           if (configuration["checked"]) {
@@ -507,7 +503,7 @@ class StandardTestSuite implements TestSuite {
           testName,
           compilerExecutable,
           compilerArgs,
-          executable,
+          'python',
           args,
           configuration,
           completeHandler,
