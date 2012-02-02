@@ -1,7 +1,7 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// Tests that the VM does not crash on weird cornercases of class Math.
+// Tests that the VM does not crash on weird corner cases of class Math.
 
 class FakeNumber {
   const FakeNumber();
@@ -11,7 +11,7 @@ class FakeNumber {
 class MathTest {
   static bool testParseInt(x) {
     try {
-      Math.parseInt(x);
+      Math.parseInt(x);  // Expects string.
       return true;
     } catch (var e) {
       return false;
@@ -20,7 +20,7 @@ class MathTest {
 
   static bool testSqrt(x) {
     try {
-      Math.sqrt(x);
+      Math.sqrt(x);  // Expects number.
       return true;
     } catch (var e) {
       return false;
@@ -33,5 +33,7 @@ class MathTest {
   }
 }
 main() {
-  MathTest.testMain();
+  for (int i = 0; i < 2000; i++) {
+    MathTest.testMain();
+  }
 }

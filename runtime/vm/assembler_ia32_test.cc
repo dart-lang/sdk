@@ -968,6 +968,19 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(IntToDoubleConversion2, assembler) {
+  __ filds(Address(ESP, kWordSize));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(IntToDoubleConversion2, entry) {
+  typedef double (*IntToDoubleConversion2Code)(int i);
+  double res = reinterpret_cast<IntToDoubleConversion2Code>(entry)(3);
+  EXPECT_FLOAT_EQ(3.0, res, 0.001);
+}
+
+
 ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
   __ movl(EDX, Immediate(6));
   __ cvtsi2ss(XMM1, EDX);
@@ -1650,6 +1663,24 @@ ASSEMBLER_TEST_RUN(DoubleAbs, entry) {
   val = 12.45;
   res =  reinterpret_cast<DoubleAbsCode>(entry)(val);
   EXPECT_FLOAT_EQ(val, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
+  __ movsd(XMM0, Address(ESP, kWordSize));
+  __ movmskpd(EAX, XMM0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ExtractSignBits, entry) {
+  typedef int (*ExtractSignBits)(double d);
+  int res = reinterpret_cast<ExtractSignBits>(entry)(1.0);
+  EXPECT_EQ(0, res);
+  res = reinterpret_cast<ExtractSignBits>(entry)(-1.0);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ExtractSignBits>(entry)(-0.0);
+  EXPECT_EQ(1, res);
 }
 
 
