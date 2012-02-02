@@ -1353,7 +1353,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("{ void f() {} assert(f()); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {} assert(f); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {} while (f()); }", TypeErrorCode.VOID);
-    //analyzeFail("{ void f() {} ({ 'x': f() }); }", TypeErrorCode.VOID); // TODO issue 1353
     analyzeFail("{ void f() {}; ({ 'x': f() }); }", TypeErrorCode.VOID);
   }
 
