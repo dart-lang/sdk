@@ -12,5 +12,9 @@ main() {
     div = (_) {
       var b = l;  // Was causing OutOfMemory.
     };
+    var lSmall = new List(3);
+    // Circular reference between new and old gen objects.
+    lSmall[0] = l;
+    l[0] = lSmall;
   }
 }

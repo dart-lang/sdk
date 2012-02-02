@@ -19,6 +19,7 @@ prefix language
 
 
 [ $component == vm || $component == dartium ]
+GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
