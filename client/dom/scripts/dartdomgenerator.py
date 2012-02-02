@@ -8,12 +8,14 @@
 import dartgenerator
 import database
 import logging.config
+import optparse
 import os
 import shutil
 import sys
 
 DOM_LIBRARY = 'dom.dart'
 DOM_DEFAULT_LIBRARY = 'wrapping_dom.dart'
+DEFAULT_SYSTEM = 'wrapping'
 
 _logger = logging.getLogger('dartdomgenerator')
 
@@ -31,7 +33,7 @@ _webkit_renames = {
 
 _webkit_renames_inverse = dict((v,k) for k, v in _webkit_renames.iteritems())
 
-def GenerateDOM(output_dir):
+def GenerateDOM(systems, output_dir):
   # TODO(sra): Make this entry point also generate HTML.
   current_dir = os.path.dirname(__file__)
 
@@ -79,19 +81,35 @@ def GenerateDOM(output_dir):
                      source_filter = ['WebKit', 'Dart'],
                      super_database = common_database,
                      common_prefix = 'common',
-                     super_map = _webkit_renames_inverse)
+                     super_map = _webkit_renames_inverse,
+                     systems = systems)
 
   generator.Flush()
 
-  # Install default DOM library.
-  default = os.path.join(output_dir, DOM_DEFAULT_LIBRARY)
-  target = os.path.join(output_dir, DOM_LIBRARY)
-  shutil.copyfile(default, target)
-
 def main():
+  parser = optparse.OptionParser()
+  parser.add_option('--systems', dest='systems',
+                    action='store', type='string',
+                    default='frog,wrapping',
+                    help='Systems to generate (frog, native, wrapping)')
+  parser.add_option('--output-dir', dest='output_dir',
+                    action='store', type='string',
+                    default=None,
+                    help='Directory to put the generated files')
+  (options, args) = parser.parse_args()
+
   current_dir = os.path.dirname(__file__)
+  output_dir = options.output_dir or os.path.join(current_dir, '..')
+  systems = options.systems.split(',')
+
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
-  GenerateDOM(os.path.join(current_dir, '..'))
+  GenerateDOM(systems, output_dir)
+
+  if DEFAULT_SYSTEM in systems:
+      # Install default DOM library.
+      default = os.path.join(output_dir, DOM_DEFAULT_LIBRARY)
+      target = os.path.join(output_dir, DOM_LIBRARY)
+      shutil.copyfile(default, target)
 
 if __name__ == '__main__':
   sys.exit(main())
