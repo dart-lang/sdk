@@ -237,7 +237,6 @@ LangSpecTest/13_Types/13_4_Interface_Types/A10/t10: Fail # Issue co19 - 37
 LangSpecTest/13_Types/13_4_Interface_Types/A10/t11: Fail # Issue co19 - 37
 LibTest/core/BadNumberFormatException/BadNumberFormatException/BadNumberFormatException/A01/t01: Fail # Issue co19 - 37
 LibTest/core/Date/Date.withTimeZone/Date/Date.withTimeZone/A01/t01: Fail # Issue co19 - 37
-LibTest/core/IllegalArgumentException/IllegalArgumentException/IllegalArgumentException/A01/t01: Fail # Issue co19 - 37
 LibTest/core/InternalError/toString/InternalError/toString/A01/t01: Fail # Issue co19 - 37
 LibTest/core/List/every/List/every/A01/t02: Fail # Issue co19 - 37
 LibTest/core/List/every/List/every/A01/t09: Fail # Issue co19 - 37
