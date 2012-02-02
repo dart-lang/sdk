@@ -4,6 +4,8 @@
 
 prefix client
 
+dom/WebGL1Test: Skip  # Issue 1495
+
 [ $component == dartium ]
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
@@ -14,7 +16,6 @@ dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
 dom/TypingTest: Fail
 dom/XHRTest: Fail
-dom/WebGL1Test: Fail
 dom/WebSocketTest: Fail
 
 [ $component == chromium ]
@@ -27,7 +28,6 @@ dom/DOMIsolatesTest: Fail
 dom/DocumentTest: Fail
 dom/HTMLElementTest: Fail
 dom/TypingTest: Fail
-dom/WebGL1Test: Fail
 dom/XHRTest: Fail
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
@@ -38,7 +38,6 @@ dom/DocumentTest: Fail
 dom/DOMIsolatesTest: Fail
 dom/HTMLElementTest: Fail
 dom/TypingTest: Fail
-dom/WebGL1Test: Fail
 dom/WindowOpenTest: Fail
 dom/XHRTest: Fail
 
