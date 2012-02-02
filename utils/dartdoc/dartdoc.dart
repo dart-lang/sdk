@@ -133,6 +133,15 @@ class Dartdoc {
   /** Set this to add footer text to each generated page. */
   String footerText = '';
 
+  /**
+   * From exposes the set of libraries in `world.libraries`. That maps library
+   * *keys* to [Library] objects. The keys are *not* exactly the same as their
+   * names. This means if we order by key, we won't actually have them sorted
+   * correctly. This list contains the libraries in correct order by their
+   * *name*.
+   */
+  List<Library> _sortedLibraries;
+
   CommentMap _comments;
 
   /** The library that we're currently generating docs for. */
@@ -204,11 +213,17 @@ class Dartdoc {
 
       world.resolveAll();
 
+      // Sort the libraries by name (not key).
+      _sortedLibraries = world.libraries.getValues();
+      _sortedLibraries.sort((a, b) {
+        return a.name.toUpperCase().compareTo(b.name.toUpperCase());
+      });
+
       // Generate the docs.
       if (mode == MODE_LIVE_NAV) docNavigationJson();
 
       docIndex();
-      for (final library in world.libraries.getValues()) {
+      for (final library in _sortedLibraries) {
         docLibrary(library);
       }
     } finally {
@@ -347,7 +362,7 @@ class Dartdoc {
     writeln('<h2>$mainTitle</h2>');
     writeln('<h3>Libraries</h3>');
 
-    for (final library in orderByName(world.libraries)) {
+    for (final library in _sortedLibraries) {
       docIndexLibrary(library);
     }
 
@@ -368,7 +383,7 @@ class Dartdoc {
 
     final libraries = {};
 
-    for (final library in orderByName(world.libraries)) {
+    for (final library in _sortedLibraries) {
       docLibraryNavigationJson(library, libraries);
     }
 
@@ -398,7 +413,7 @@ class Dartdoc {
         ''');
 
     if (mode == MODE_STATIC) {
-      for (final library in orderByName(world.libraries)) {
+      for (final library in _sortedLibraries) {
         write('<h2><div class="icon-library"></div>');
 
         if ((_currentLibrary == library) && (_currentType == null)) {
