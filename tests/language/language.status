@@ -225,7 +225,20 @@ StringEscape1NegativeTest: Skip
 [ $component == frog ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
-[ $component == frogsh ||  $component == frog || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) || $component == frogium ]
+# This set of four test components (frog, frogsh, frogium, and webdriver) all
+# consume frog output, so if frog is generating the incorrect code, chances are
+# it will fail on all of these components. 
+#
+# Further explanation:
+# frog: frog compiler, run using the VM
+# frogsh: self-hosted frog compiler
+# frogium: Dart code compiled with frogsh running under DumpRenderTree
+# webdriver: Dart code compiled with frogsh running on an actual browser 
+# (Chrome, IE, Firefox, Safari, etc). If a test is only failing on a particular
+# browser, you can be more specific about the failure by using $browser:
+# [ $component == webdriver && $browser == chrome ] for example.
+[ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
+IntrinsifiedMethodsTest: Fail # Issue 1470
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
@@ -416,9 +429,6 @@ PrivateMemberTest/04: Fail # test seems bad - see issue #353
 
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
-
-[ $component == frog || $component == frogsh || $component == frogium ]
-IntrinsifiedMethodsTest: Fail # Issue 1470
 
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
