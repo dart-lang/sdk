@@ -141,6 +141,7 @@ GenericTest: Fail
 GenericsTest: Fail
 GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
+GCTest: Fail
 HelloScriptTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail

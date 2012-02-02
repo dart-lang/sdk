@@ -96,6 +96,7 @@ DefaultFactory2Test/01: Fail # Issue 943
 WrongNumberTypeArgumentsTest: Fail # This test should be negative
 
 [ $component == vm && $mode == debug ]
+GCTest: Skip  # Takes too long.
 
 [ $component == vm && $mode == release ]
 
