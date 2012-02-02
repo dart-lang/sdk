@@ -417,6 +417,9 @@ PrivateMemberTest/04: Fail # test seems bad - see issue #353
 [ ($component == frogsh ||  $component == frog || $component == frogium) && $checked ]
 PrivateMemberTest/none: Fail # test seems bad - see issue #353
 
+[ $component == frog || $component == frogsh || $component == frogium ]
+IntrinsifiedMethodsTest: Fail # Issue 1470
+
 [ $component == frog || $component == frogsh ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass
@@ -428,13 +431,11 @@ SyntaxTest/32: Fail # Issue 1109
 SyntaxTest/33: Fail # Issue 1109
 StringEscape3NegativeTest: Fail # Issue 1352
 LiteralUnaryPlusTest/01: Fail # Issue 1400
-IntrinsifiedMethodsTest: Fail # Issue 1470
 
 [ $component == frogium ]
 # these tests are inconsistent in frogium and frogsh-node, investigate
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
-
 
 [ $arch == simarm ]
 *: Skip
