@@ -196,6 +196,7 @@ MapTest: Fail
 MathVMTest: Fail
 MethodBindingTest: Fail
 MethodInvocationTest: Fail
+MethodNameTest: Fail
 MethodOverrideTest: Fail
 MultiPass2Test: Fail
 MultiPassTest: Fail

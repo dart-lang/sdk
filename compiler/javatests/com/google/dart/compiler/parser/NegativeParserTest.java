@@ -632,4 +632,40 @@ public class NegativeParserTest extends CompilerTestCase {
             "}"),
         parserRunner.getDartUnit().toSource().trim());
   }
+
+  /**
+   * "get" is valid name for method, it can cause warning, but not parsing failure.
+   */
+  public void test_methodNamed_get() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void get() {}",
+        "}",
+        ""));
+  }
+
+  /**
+   * "set" is valid name for method, it can cause warning, but not parsing failure.
+   */
+  public void test_methodNamed_set() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void set() {}",
+        "}",
+        ""));
+  }
+
+  /**
+   * "operator" is valid name for method, it can cause warning, but not parsing failure.
+   */
+  public void test_methodNamed_operator() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void operator() {}",
+        "}",
+        ""));
+  }
 }

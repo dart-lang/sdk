@@ -1076,7 +1076,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     int arity = -1;
-    if (optionalPseudoKeyword(OPERATOR_KEYWORD)) {
+    if (peek(1) != Token.LPAREN && optionalPseudoKeyword(OPERATOR_KEYWORD)) {
       // Overloaded operator.
       if (modifiers.isStatic()) {
         reportError(position(), ParserErrorCode.OPERATOR_CANNOT_BE_STATIC);
@@ -1111,11 +1111,11 @@ public class DartParser extends CompletionHooksParserBase {
     } else {
       beginMethodName();
       // Check for getters and setters.
-      if (optionalPseudoKeyword(GETTER_KEYWORD)) {
+      if (peek(1) != Token.LPAREN && optionalPseudoKeyword(GETTER_KEYWORD)) {
         name = parseIdentifier();
         modifiers = modifiers.makeGetter();
         arity = 0;
-      } else if (optionalPseudoKeyword(SETTER_KEYWORD)) {
+      } else if (peek(1) != Token.LPAREN && optionalPseudoKeyword(SETTER_KEYWORD)) {
         name = parseIdentifier();
         modifiers = modifiers.makeSetter();
         arity = 1;
