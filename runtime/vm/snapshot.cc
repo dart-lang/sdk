@@ -440,7 +440,18 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
 CMessageReader::CMessageReader(const uint8_t* buffer,
                                intptr_t length,
                                ReAlloc alloc)
-    : BaseReader(buffer, length), alloc_(alloc) {
+    : BaseReader(buffer, length),
+      alloc_(alloc),
+      backward_references_(kNumInitialReferences) {
+  // Initialize marker objects used to handle Lists.
+  // TODO(sjesse): Remove this when message serialization format is
+  // updated.
+  memset(&type_arguments_marker, 0, sizeof(type_arguments_marker));
+  memset(&dynamic_type_marker, 0, sizeof(dynamic_type_marker));
+  type_arguments_marker.type =
+      static_cast<Dart_CObject::Type>(Dart_CObject_Internal::kTypeArguments);
+  dynamic_type_marker.type =
+      static_cast<Dart_CObject::Type>(Dart_CObject_Internal::kDynamicType);
 }
 
 
@@ -452,7 +463,7 @@ intptr_t CMessageReader::LookupInternalClass(intptr_t class_header) {
 }
 
 
-Dart_CObject* CMessageReader::AllocateDartValue(Dart_CObject::Type type) {
+Dart_CObject* CMessageReader::AllocateDartCObject(Dart_CObject::Type type) {
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(
           alloc_(NULL, 0, sizeof(Dart_CObject)));
@@ -461,33 +472,33 @@ Dart_CObject* CMessageReader::AllocateDartValue(Dart_CObject::Type type) {
 }
 
 
-Dart_CObject* CMessageReader::AllocateDartValueNull() {
-  return AllocateDartValue(Dart_CObject::kNull);
+Dart_CObject* CMessageReader::AllocateDartCObjectNull() {
+  return AllocateDartCObject(Dart_CObject::kNull);
 }
 
 
-Dart_CObject* CMessageReader::AllocateDartValueBool(bool val) {
-  Dart_CObject* value = AllocateDartValue(Dart_CObject::kBool);
+Dart_CObject* CMessageReader::AllocateDartCObjectBool(bool val) {
+  Dart_CObject* value = AllocateDartCObject(Dart_CObject::kBool);
   value->value.as_bool = val;
   return value;
 }
 
 
-Dart_CObject* CMessageReader::AllocateDartValueInt32(int32_t val) {
-  Dart_CObject* value = AllocateDartValue(Dart_CObject::kInt32);
+Dart_CObject* CMessageReader::AllocateDartCObjectInt32(int32_t val) {
+  Dart_CObject* value = AllocateDartCObject(Dart_CObject::kInt32);
   value->value.as_int32 = val;
   return value;
 }
 
 
-Dart_CObject* CMessageReader::AllocateDartValueDouble(double val) {
-  Dart_CObject* value = AllocateDartValue(Dart_CObject::kDouble);
+Dart_CObject* CMessageReader::AllocateDartCObjectDouble(double val) {
+  Dart_CObject* value = AllocateDartCObject(Dart_CObject::kDouble);
   value->value.as_double = val;
   return value;
 }
 
 
-Dart_CObject* CMessageReader::AllocateDartValueString(intptr_t length) {
+Dart_CObject* CMessageReader::AllocateDartCObjectString(intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of chars
   // for the string content. The pointer to the string content is set
   // up to this area.
@@ -500,7 +511,7 @@ Dart_CObject* CMessageReader::AllocateDartValueString(intptr_t length) {
 }
 
 
-Dart_CObject* CMessageReader::AllocateDartValueArray(intptr_t length) {
+Dart_CObject* CMessageReader::AllocateDartCObjectArray(intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of
   // pointers to Dart_CObject structures. The pointer to the array
   // content is set up to this area.
@@ -536,15 +547,31 @@ Dart_CObject* CMessageReader::ReadInlinedObject(intptr_t object_id) {
     case Object::kClassClass: {
       return NULL;
     }
+    case Object::kTypeArgumentsClass: {
+      // TODO(sjesse): Remove this when message serialization format is
+      // updated (currently length is leaked).
+      AddBackwardReference(object_id, NULL);
+      Dart_CObject* length = ReadObject();
+      ASSERT(length->type == Dart_CObject::kInt32);
+      for (int i = 0; i < length->value.as_int32; i++) {
+        Dart_CObject* type = ReadObject();
+        if (type != &dynamic_type_marker) return NULL;
+      }
+      return &type_arguments_marker;
+      break;
+    }
     case ObjectStore::kArrayClass: {
       intptr_t len = ReadSmiValue();
+      Dart_CObject* value = AllocateDartCObjectArray(len);
+      AddBackwardReference(object_id, value);
       // Skip type arguments.
+      // TODO(sjesse): Remove this when message serialization format is
+      // updated (currently type_arguments is leaked).
       Dart_CObject* type_arguments = ReadObject();
-      if (type_arguments == NULL ||
+      if (type_arguments != &type_arguments_marker &&
           type_arguments->type != Dart_CObject::kNull) {
         return NULL;
       }
-      Dart_CObject* value = AllocateDartValueArray(len);
       for (int i = 0; i < len; i++) {
         value->value.as_array.values[i] = ReadObject();
       }
@@ -553,21 +580,24 @@ Dart_CObject* CMessageReader::ReadInlinedObject(intptr_t object_id) {
     }
     case ObjectStore::kDoubleClass: {
       // Read the double value for the object.
-      return AllocateDartValueDouble(Read<double>());
+      Dart_CObject* object = AllocateDartCObjectDouble(Read<double>());
+      AddBackwardReference(object_id, object);
+      return object;
       break;
     }
     case ObjectStore::kOneByteStringClass: {
       intptr_t len = ReadSmiValue();
       intptr_t hash = ReadSmiValue();
       USE(hash);
-      Dart_CObject* value = AllocateDartValueString(len);
-      char* p = value->value.as_string;
+      Dart_CObject* object = AllocateDartCObjectString(len);
+      AddBackwardReference(object_id, object);
+      char* p = object->value.as_string;
       for (intptr_t i = 0; i < len; i++) {
         *p = Read<uint8_t>();
         p++;
       }
       *p = '\0';
-      return value;
+      return object;
       break;
     }
     case ObjectStore::kTwoByteStringClass:
@@ -587,14 +617,23 @@ Dart_CObject* CMessageReader::ReadInlinedObject(intptr_t object_id) {
 
 Dart_CObject* CMessageReader::ReadIndexedObject(intptr_t object_id) {
   if (object_id == Object::kNullObject) {
-    return AllocateDartValueNull();
+    return AllocateDartCObjectNull();
   } else if (object_id == ObjectStore::kTrueValue) {
-    return AllocateDartValueBool(true);
+    return AllocateDartCObjectBool(true);
   } else if (object_id == ObjectStore::kFalseValue) {
-    return AllocateDartValueBool(false);
+    return AllocateDartCObjectBool(false);
+  } else if (object_id == ObjectStore::kDynamicType ||
+             object_id == ObjectStore::kDoubleInterface ||
+             object_id == ObjectStore::kIntInterface ||
+             object_id == ObjectStore::kBoolInterface ||
+             object_id == ObjectStore::kStringInterface) {
+    // Always return dynamic type (this is only a marker).
+    return &dynamic_type_marker;
   } else {
-    // TODO(sgjesse): Handle back-references.
-    UNREACHABLE();
+    intptr_t index = object_id - kMaxPredefinedObjectIds;
+    ASSERT(index < backward_references_.length());
+    ASSERT(backward_references_[index] != NULL);
+    return backward_references_[index];
   }
   return NULL;
 }
@@ -615,11 +654,17 @@ Dart_CObject* CMessageReader::ReadObjectImpl(intptr_t header) {
 Dart_CObject* CMessageReader::ReadObject() {
   int64_t value = Read<int64_t>();
   if ((value & kSmiTagMask) == 0) {
-    Dart_CObject* dart_value = AllocateDartValueInt32(value >> kSmiTagShift);
+    Dart_CObject* dart_value = AllocateDartCObjectInt32(value >> kSmiTagShift);
     return dart_value;
   }
   ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
   return ReadObjectImpl(value);
+}
+
+
+void CMessageReader::AddBackwardReference(intptr_t id, Dart_CObject* obj) {
+  ASSERT((id - kMaxPredefinedObjectIds) == backward_references_.length());
+  backward_references_.Add(obj);
 }
 
 

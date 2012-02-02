@@ -64,6 +64,7 @@ TEST_CASE(SerializeNull) {
                         writer.BytesWritten(),
                         &allocator);
   Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_NOTNULL(cobject);
   EXPECT_EQ(Dart_CObject::kNull, cobject->type);
   free(cobject);
 }
@@ -90,6 +91,7 @@ TEST_CASE(SerializeSmi1) {
                          writer.BytesWritten(),
                          &allocator);
   Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_NOTNULL(cobject);
   EXPECT_EQ(Dart_CObject::kInt32, cobject->type);
   EXPECT_EQ(smi.Value(), cobject->value.as_int32);
   free(cobject);
@@ -117,6 +119,7 @@ TEST_CASE(SerializeSmi2) {
                          writer.BytesWritten(),
                          &allocator);
   Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_NOTNULL(cobject);
   EXPECT_EQ(Dart_CObject::kInt32, cobject->type);
   EXPECT_EQ(smi.Value(), cobject->value.as_int32);
   free(cobject);
@@ -144,6 +147,7 @@ TEST_CASE(SerializeDouble) {
                          writer.BytesWritten(),
                          &allocator);
   Dart_CObject* cobject = mreader.ReadObject();
+  EXPECT_NOTNULL(cobject);
   EXPECT_EQ(Dart_CObject::kDouble, cobject->type);
   EXPECT_EQ(dbl.value(), cobject->value.as_double);
   free(cobject);
@@ -173,9 +177,11 @@ TEST_CASE(SerializeBool) {
                          writer.BytesWritten(),
                          &allocator);
   Dart_CObject* cobject1 = mreader.ReadObject();
+  EXPECT_NOTNULL(cobject1);
   EXPECT_EQ(Dart_CObject::kBool, cobject1->type);
   EXPECT_EQ(true, cobject1->value.as_bool);
   Dart_CObject* cobject2 = mreader.ReadObject();
+  EXPECT_NOTNULL(cobject2);
   EXPECT_EQ(Dart_CObject::kBool, cobject2->type);
   EXPECT_EQ(false, cobject2->value.as_bool);
   free(cobject1);
@@ -693,18 +699,46 @@ TEST_CASE(IntArrayMessage) {
 }
 
 
+// Helper function to call a top level Dart function, serialize the
+// result and deserialize the result into a Dart_CObject structure.
+static Dart_CObject* GetDeserializedDartObject(Dart_Handle lib,
+                                               const char* dart_function) {
+  Dart_Handle result;
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString(""),
+                             Dart_NewString(dart_function),
+                             0,
+                             NULL);
+  EXPECT_VALID(result);
+
+  // Serialize the list into a message.
+  uint8_t* buffer;
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
+  const Object& list = Object::Handle(Api::UnwrapHandle(result));
+  writer.WriteObject(list.raw());
+  writer.FinalizeBuffer();
+
+  // Read object back from the snapshot into a C structure.
+  CMessageReader reader(buffer + Snapshot::kHeaderSize,
+                        writer.BytesWritten(),
+                        &allocator);
+  Dart_CObject* value = reader.ReadObject();
+  free(buffer);
+  return value;
+}
+
+
 UNIT_TEST_CASE(DartGeneratedMessages) {
-  const int kArrayLength = 10;
   static const char* kCustomIsolateScriptChars =
-    "getSmi() {\n"
-    "  return 42;\n"
-    "}\n"
-    "getString() {\n"
+      "getSmi() {\n"
+      "  return 42;\n"
+      "}\n"
+      "getString() {\n"
       "  return \"Hello, world!\";\n"
-    "}\n"
-    "getList() {\n"
-    "  return [1,2,3,4,5,6,7,8,9,10];\n"
-    "}\n";
+      "}\n"
+      "getList() {\n"
+      "  return new List(kArrayLength);\n"
+      "}\n";
 
   TestCase::CreateTestIsolate();
   Isolate* isolate = Isolate::Current();
@@ -729,17 +763,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
                                     NULL);
   EXPECT_VALID(string_result);
   EXPECT(Dart_IsString(string_result));
-  Dart_Handle list_result;
-  list_result = Dart_InvokeStatic(lib,
-                                  Dart_NewString(""),
-                                  Dart_NewString("getList"),
-                                  0,
-                                  NULL);
-  EXPECT_VALID(list_result);
-  EXPECT(Dart_IsList(list_result));
-  intptr_t result_len = 0;
-  EXPECT_VALID(Dart_ListLength(list_result, &result_len));
-  EXPECT_EQ(kArrayLength, result_len);
+
   {
     DARTSCOPE_NOCHECKS(isolate);
 
@@ -756,6 +780,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
                              writer.BytesWritten(),
                              &allocator);
       Dart_CObject* value = mreader.ReadObject();
+      EXPECT_NOTNULL(value);
       EXPECT_EQ(Dart_CObject::kInt32, value->type);
       EXPECT_EQ(42, value->value.as_int32);
       free(value);
@@ -774,19 +799,231 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
                              writer.BytesWritten(),
                              &allocator);
       Dart_CObject* value = mreader.ReadObject();
+      EXPECT_NOTNULL(value);
       EXPECT_EQ(Dart_CObject::kString, value->type);
       EXPECT_STREQ("Hello, world!", value->value.as_string);
       free(value);
       free(buffer);
     }
+  }
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(DartGeneratedListMessages) {
+  const int kArrayLength = 10;
+  static const char* kScriptChars =
+      "final int kArrayLength = 10;\n"
+      "getList() {\n"
+      "  return new List(kArrayLength);\n"
+      "}\n"
+      "getIntList() {\n"
+      "  var list = new List<int>(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = i;\n"
+      "  return list;\n"
+      "}\n"
+      "getStringList() {\n"
+      "  var list = new List<String>(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = i.toString();\n"
+      "  return list;\n"
+      "}\n"
+      "getMixedList() {\n"
+      "  var list = new List(kArrayLength);\n"
+      "  list[0] = 0;\n"
+      "  list[1] = '1';\n"
+      "  list[2] = 2.2;\n"
+      "  list[3] = true;\n"
+      "  return list;\n"
+      "}\n";
+
+  TestCase::CreateTestIsolate();
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  Dart_EnterScope();
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+
     {
-      uint8_t* buffer;
-      SnapshotWriter writer(Snapshot::kMessage, &buffer, &allocator);
-      const Object& list = Object::Handle(Api::UnwrapHandle(list_result));
-      writer.WriteObject(list.raw());
-      writer.FinalizeBuffer();
-      // TODO(sgjesse): Make this work!
-      free(buffer);
+      // Generate a list of nulls from Dart code.
+      Dart_CObject* value = GetDeserializedDartObject(lib, "getList");
+      EXPECT_NOTNULL(value);
+      EXPECT_EQ(Dart_CObject::kArray, value->type);
+      EXPECT_EQ(kArrayLength, value->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        EXPECT_EQ(Dart_CObject::kNull, value->value.as_array.values[i]->type);
+        free(value->value.as_array.values[i]);
+      }
+      free(value);
+    }
+    {
+      // Generate a list of ints from Dart code.
+      Dart_CObject* value = GetDeserializedDartObject(lib, "getIntList");
+      EXPECT_NOTNULL(value);
+      EXPECT_EQ(Dart_CObject::kArray, value->type);
+      EXPECT_EQ(kArrayLength, value->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        EXPECT_EQ(Dart_CObject::kInt32, value->value.as_array.values[i]->type);
+        EXPECT_EQ(i, value->value.as_array.values[i]->value.as_int32);
+        free(value->value.as_array.values[i]);
+      }
+      free(value);
+    }
+    {
+      // Generate a list of strings from Dart code.
+      Dart_CObject* value = GetDeserializedDartObject(lib, "getStringList");
+      EXPECT_NOTNULL(value);
+      EXPECT_EQ(Dart_CObject::kArray, value->type);
+      EXPECT_EQ(kArrayLength, value->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        EXPECT_EQ(Dart_CObject::kString, value->value.as_array.values[i]->type);
+        char buffer[3];
+        snprintf(buffer, sizeof(buffer), "%d", i);
+        EXPECT_STREQ(buffer, value->value.as_array.values[i]->value.as_string);
+        free(value->value.as_array.values[i]);
+      }
+      free(value);
+    }
+    {
+      // Generate a list of objects of different types from Dart code.
+      Dart_CObject* value = GetDeserializedDartObject(lib, "getMixedList");
+      EXPECT_NOTNULL(value);
+      EXPECT_EQ(Dart_CObject::kArray, value->type);
+      EXPECT_EQ(kArrayLength, value->value.as_array.length);
+
+      EXPECT_EQ(Dart_CObject::kInt32, value->value.as_array.values[0]->type);
+      EXPECT_EQ(0, value->value.as_array.values[0]->value.as_int32);
+      EXPECT_EQ(Dart_CObject::kString, value->value.as_array.values[1]->type);
+      EXPECT_STREQ("1", value->value.as_array.values[1]->value.as_string);
+      EXPECT_EQ(Dart_CObject::kDouble, value->value.as_array.values[2]->type);
+      EXPECT_EQ(2.2, value->value.as_array.values[2]->value.as_double);
+      EXPECT_EQ(Dart_CObject::kBool, value->value.as_array.values[3]->type);
+      EXPECT_EQ(true, value->value.as_array.values[3]->value.as_bool);
+
+      for (int i = 0; i < kArrayLength; i++) {
+        if (i > 3) {
+          EXPECT_EQ(Dart_CObject::kNull, value->value.as_array.values[i]->type);
+        }
+        free(value->value.as_array.values[i]);
+      }
+      free(value);
+    }
+  }
+  Dart_ExitScope();
+  Dart_ShutdownIsolate();
+}
+
+
+UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
+  const int kArrayLength = 10;
+  static const char* kScriptChars =
+      "final int kArrayLength = 10;\n"
+      "getStringList() {\n"
+      "  var s = 'Hello, world!';\n"
+      "  var list = new List<String>(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = s;\n"
+      "  return list;\n"
+      "}\n"
+      "getDoubleList() {\n"
+      "  var d = 3.14;\n"
+      "  var list = new List<double>(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = d;\n"
+      "  return list;\n"
+      "}\n"
+      "getMixedList() {\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) {\n"
+      "    list[i] = ((i % 2) == 0) ? 'A' : 2.72;\n"
+      "  }\n"
+      "  return list;\n"
+      "}\n"
+      "getSelfRefList() {\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) {\n"
+      "    list[i] = list;\n"
+      "  }\n"
+      "  return list;\n"
+      "}\n";
+
+  TestCase::CreateTestIsolate();
+  Isolate* isolate = Isolate::Current();
+  EXPECT(isolate != NULL);
+  Dart_EnterScope();
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+
+  {
+    DARTSCOPE_NOCHECKS(isolate);
+
+    {
+      // Generate a list of strings from Dart code.
+      Dart_CObject* object = GetDeserializedDartObject(lib, "getStringList");
+      EXPECT_NOTNULL(object);
+      EXPECT_EQ(Dart_CObject::kArray, object->type);
+      EXPECT_EQ(kArrayLength, object->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = object->value.as_array.values[i];
+        EXPECT_EQ(object->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kString, element->type);
+        EXPECT_STREQ("Hello, world!", element->value.as_string);
+      }
+      free(object->value.as_array.values[0]);
+      free(object);
+    }
+    {
+      // Generate a list of doubles from Dart code.
+      Dart_CObject* object = GetDeserializedDartObject(lib, "getDoubleList");
+      EXPECT_NOTNULL(object);
+      EXPECT_EQ(Dart_CObject::kArray, object->type);
+      EXPECT_EQ(kArrayLength, object->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = object->value.as_array.values[i];
+        EXPECT_EQ(object->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kDouble, element->type);
+        EXPECT_EQ(3.14, element->value.as_double);
+      }
+      free(object->value.as_array.values[0]);
+      free(object);
+    }
+    {
+      // Generate a list of objects of different types from Dart code.
+      Dart_CObject* object = GetDeserializedDartObject(lib, "getMixedList");
+      EXPECT_NOTNULL(object);
+      EXPECT_EQ(Dart_CObject::kArray, object->type);
+      EXPECT_EQ(kArrayLength, object->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = object->value.as_array.values[i];
+        if ((i % 2) == 0) {
+          EXPECT_EQ(object->value.as_array.values[0], element);
+          EXPECT_EQ(Dart_CObject::kString, element->type);
+          EXPECT_STREQ("A", element->value.as_string);
+        } else {
+          EXPECT_EQ(object->value.as_array.values[1], element);
+          EXPECT_EQ(Dart_CObject::kDouble, element->type);
+          EXPECT_STREQ(2.72, element->value.as_double);
+        }
+      }
+      free(object->value.as_array.values[0]);
+      free(object->value.as_array.values[1]);
+      free(object);
+    }
+    {
+      // Generate a list of objects of different types from Dart code.
+      Dart_CObject* object = GetDeserializedDartObject(lib, "getSelfRefList");
+      EXPECT_NOTNULL(object);
+      EXPECT_EQ(Dart_CObject::kArray, object->type);
+      EXPECT_EQ(kArrayLength, object->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = object->value.as_array.values[i];
+        EXPECT_EQ(Dart_CObject::kArray, element->type);
+        EXPECT_EQ(object, element);
+      }
+      free(object);
     }
   }
   Dart_ExitScope();

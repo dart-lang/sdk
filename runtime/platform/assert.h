@@ -62,6 +62,9 @@ class DynamicAssertionHelper {
 
   template<typename E, typename A>
   void GreaterEqual(const E& left, const A& right);
+
+  template<typename T>
+  void NotNull(const T p);
 #endif
 
  private:
@@ -196,6 +199,13 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
   std::string es = ess.str(), as = ass.str();
   Fail("expected: %s >= %s", es.c_str(), as.c_str());
 }
+
+
+template<typename T>
+void DynamicAssertionHelper::NotNull(const T p) {
+  if (p != NULL) return;
+  Fail("expected: not NULL, found NULL");
+}
 #endif
 
 }  // namespace dart
@@ -277,6 +287,9 @@ void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
 
 #define EXPECT_GE(left, right)                                                 \
   dart::Expect(__FILE__, __LINE__).GreaterEqual((left), (right))
+
+#define EXPECT_NOTNULL(ptr)                                                    \
+  dart::Expect(__FILE__, __LINE__).NotNull((ptr))
 #endif
 
 // TODO(iposva): provide a better way to get extra info on an EXPECT

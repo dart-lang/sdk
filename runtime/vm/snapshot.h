@@ -404,6 +404,20 @@ class SnapshotReader : public BaseReader {
 };
 
 
+// Use this C structure for reading internal objects in the serialized
+// data. These are objects that we need to process in order to
+// generate the Dart_CObject graph but that we don't want to expose in
+// that graph.
+// TODO(sjesse): Remove this when message serialization format is
+// updated.
+struct Dart_CObject_Internal : public Dart_CObject {
+  enum Type {
+    kTypeArguments = Dart_CObject::kNumberOfTypes,
+    kDynamicType,
+  };
+};
+
+
 // Reads a message snapshot into C structure.
 class CMessageReader : public BaseReader {
  public:
@@ -414,28 +428,40 @@ class CMessageReader : public BaseReader {
 
  private:
   // Allocates a Dart_CObject object on the C heap.
-  Dart_CObject* AllocateDartValue();
+  Dart_CObject* AllocateDartCObject();
   // Allocates a Dart_CObject object with the specified type on the C heap.
-  Dart_CObject* AllocateDartValue(Dart_CObject::Type type);
+  Dart_CObject* AllocateDartCObject(Dart_CObject::Type type);
   // Allocates a Dart_CObject object for the null object on the C heap.
-  Dart_CObject* AllocateDartValueNull();
+  Dart_CObject* AllocateDartCObjectNull();
   // Allocates a Dart_CObject object for a boolean object on the C heap.
-  Dart_CObject* AllocateDartValueBool(bool value);
+  Dart_CObject* AllocateDartCObjectBool(bool value);
   // Allocates a Dart_CObject object for for a 32-bit integer on the C heap.
-  Dart_CObject* AllocateDartValueInt32(int32_t value);
+  Dart_CObject* AllocateDartCObjectInt32(int32_t value);
   // Allocates a Dart_CObject object for a double on the C heap.
-  Dart_CObject* AllocateDartValueDouble(double value);
+  Dart_CObject* AllocateDartCObjectDouble(double value);
   // Allocates a Dart_CObject object for string data on the C heap.
-  Dart_CObject* AllocateDartValueString(intptr_t length);
+  Dart_CObject* AllocateDartCObjectString(intptr_t length);
   // Allocates a C array of Dart_CObject objects on the C heap.
-  Dart_CObject* AllocateDartValueArray(intptr_t length);
+  Dart_CObject* AllocateDartCObjectArray(intptr_t length);
 
   intptr_t LookupInternalClass(intptr_t class_header);
   Dart_CObject* ReadInlinedObject(intptr_t object_id);
   Dart_CObject* ReadObjectImpl(intptr_t header);
   Dart_CObject* ReadIndexedObject(intptr_t object_id);
 
+  // Add object to backward references.
+  void AddBackwardReference(intptr_t id, Dart_CObject* obj);
+
+  Dart_CObject_Internal* AsInternal(Dart_CObject* object) {
+    ASSERT(object->type >= Dart_CObject::kNumberOfTypes);
+    return reinterpret_cast<Dart_CObject_Internal*>(object);
+  }
+
   ReAlloc alloc_;
+  GrowableArray<Dart_CObject*> backward_references_;
+
+  Dart_CObject type_arguments_marker;
+  Dart_CObject dynamic_type_marker;
 };
 
 

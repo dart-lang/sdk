@@ -1416,12 +1416,13 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
  */
 struct Dart_CObject {
   enum Type {
-    kNull,
+    kNull = 0,
     kBool,
     kInt32,
     kDouble,
     kString,
-    kArray
+    kArray,
+    kNumberOfTypes
   };
   Type type;
   union {
