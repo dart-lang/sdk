@@ -73,7 +73,7 @@ uword Heap::AllocateOld(intptr_t size) {
   ASSERT(Isolate::Current()->no_gc_scope_depth() == 0);
   uword addr = old_space_->TryAllocate(size);
   if (addr == 0) {
-    CollectGarbage(kOld);
+    CollectAllGarbage();
     if (FLAG_verbose_gc) {
       OS::PrintErr("New space (%dk) Old space (%dk) Code space (%dk)\n",
                    (new_space_->in_use() / KB),
