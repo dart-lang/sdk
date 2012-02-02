@@ -17,7 +17,7 @@ void main() {
 testForCompletion() {
   Element element = document.query('#testResultScore');
   RegExp re = new RegExp('Score: [0-9]+');
-  window.console.log(element.text);
+  print(element.text);
   Expect.isTrue(re.hasMatch(element.text));
   callbackDone();
 }
