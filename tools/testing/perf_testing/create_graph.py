@@ -107,9 +107,10 @@ def sync_and_build():
   # have test statistics for what's passing on x64. Eliminate arch specification
   # when we have tests running on x64, too.
   shutil.rmtree(os.path.join(os.getcwd(), 
-    utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')), onerror=on_rm_error)
+      utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')), 
+      onerror=on_rm_error)
   lines = run_cmd([os.path.join('.', 'tools', 'build.py'), '-m', 'release',
-    '--arch=ia32', 'create_sdk'])
+      '--arch=ia32', 'create_sdk'])
   
   for line in lines:
     if 'BUILD FAILED' in lines:
