@@ -940,7 +940,7 @@ enum TrigonometricFunctions {
 };
 
 
-static bool EmitTrigonometric(Assembler* assembler,
+static void EmitTrigonometric(Assembler* assembler,
                               TrigonometricFunctions kind) {
   Label fall_through, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
