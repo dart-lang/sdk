@@ -519,15 +519,17 @@ public class DartCompiler {
 
           // Parse units that are out-of-date with respect to their dependencies.
           for (DartUnit unit : lib.getUnits()) {
-            String relPath = unit.getSource().getRelativePath();
-            LibraryDeps.Source source = deps.getSource(relPath);
-            if (isUnitOutOfDate(lib, source)) {
-              filesHaveChanged = true;
-              DartSource dartSrc = lib.getSource().getSourceFor(relPath);
-              if (dartSrc != null && dartSrc.exists()) {
-                unit = parse(dartSrc, lib.getPrefixes(), false);
-                if (unit != null) {
-                  lib.putUnit(unit);
+            if (unit.isDiet()) {
+              String relPath = unit.getSource().getRelativePath();
+              LibraryDeps.Source source = deps.getSource(relPath);
+              if (isUnitOutOfDate(lib, source)) {
+                filesHaveChanged = true;
+                DartSource dartSrc = lib.getSource().getSourceFor(relPath);
+                if (dartSrc != null && dartSrc.exists()) {
+                  unit = parse(dartSrc, lib.getPrefixes(), false);
+                  if (unit != null) {
+                    lib.putUnit(unit);
+                  }
                 }
               }
             }

@@ -6,6 +6,7 @@ package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -34,8 +35,7 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
   private final LibrarySource lib;
   private final DartArtifactProvider provider;
   private final DartCompilerListener listener;
-  private final Map<Source, List<DartCompilationError>> errors =
-      new MapMaker().weakKeys().makeMap();
+  private final Map<Source, List<DartCompilationError>> errors = Maps.newHashMap();
   private final AtomicInteger errorCount = new AtomicInteger(0);
   private final AtomicInteger warningCount = new AtomicInteger(0);
   private final AtomicInteger typeErrorCount = new AtomicInteger(0);
