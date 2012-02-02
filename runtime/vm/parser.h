@@ -190,7 +190,7 @@ class Parser : ValueObject {
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   void RunStaticFieldInitializer(const Field& field);
-  RawInstance* EvaluateConstConstructorCall(
+  RawObject* EvaluateConstConstructorCall(
       const Class& type_class,
       const AbstractTypeArguments& type_arguments,
       const Function& constructor,

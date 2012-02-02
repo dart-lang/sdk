@@ -46,6 +46,24 @@ static bool FindExceptionHandler(uword* handler_pc,
 }
 
 
+static void FindErrorHandler(uword* handler_pc,
+                             uword* handler_sp,
+                             uword* handler_fp) {
+  // TODO(turnidge): Is there a faster way to get the next entry frame?
+  StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  ASSERT(frame != NULL);
+  while (!frame->IsEntryFrame()) {
+    frame = frames.NextFrame();
+    ASSERT(frame != NULL);
+  }
+  ASSERT(frame->IsEntryFrame());
+  *handler_pc = frame->pc();
+  *handler_sp = frame->sp();
+  *handler_fp = frame->fp();
+}
+
+
 static void ThrowExceptionHelper(const Instance& exception,
                                  const Instance& existing_stacktrace) {
   uword handler_pc = 0;
@@ -91,10 +109,10 @@ static void ThrowExceptionHelper(const Instance& exception,
     // the isolate etc.).
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
         UnhandledException::New(exception, stacktrace));
-    CPU::JumpToUnhandledExceptionHandler(handler_pc,
-                                         handler_sp,
-                                         handler_fp,
-                                         unhandled_exception);
+    CPU::JumpToErrorHandler(handler_pc,
+                            handler_sp,
+                            handler_fp,
+                            unhandled_exception);
   }
   UNREACHABLE();
 }
@@ -112,14 +130,51 @@ void Exceptions::ReThrow(const Instance& exception,
 }
 
 
-void Exceptions::ThrowByType(
-    ExceptionType type, const GrowableArray<const Object*>& arguments) {
-  const Instance& exception = Instance::Handle(Create(type, arguments));
-  Throw(exception);
+void Exceptions::PropagateError(const Object& obj) {
+  ASSERT(Isolate::Current()->top_exit_frame_info() != 0);
+  Error& error = Error::Handle();
+  error ^= obj.raw();
+  if (error.IsUnhandledException()) {
+    // If the error object represents an unhandled exception, then
+    // rethrow the exception in the normal fashion.
+    UnhandledException& uhe = UnhandledException::Handle();
+    uhe ^= error.raw();
+    const Instance& exc = Instance::Handle(uhe.exception());
+    const Instance& stk = Instance::Handle(uhe.stacktrace());
+    Exceptions::ReThrow(exc, stk);
+  } else {
+    // Return to the invocation stub and return this error object.  The
+    // C++ code which invoked this dart sequence can check and do the
+    // appropriate thing.
+    uword handler_pc = 0;
+    uword handler_sp = 0;
+    uword handler_fp = 0;
+    FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
+    CPU::JumpToErrorHandler(handler_pc, handler_sp, handler_fp, error);
+  }
+  UNREACHABLE();
 }
 
 
-RawInstance* Exceptions::Create(
+void Exceptions::ThrowByType(
+    ExceptionType type, const GrowableArray<const Object*>& arguments) {
+  const Object& result = Object::Handle(Create(type, arguments));
+  if (result.IsError()) {
+    // We got an error while constructing the exception object.
+    // Propagate the error instead of throwing the exception.
+    Error& error = Error::Handle();
+    error ^= result.raw();
+    PropagateError(error);
+  } else {
+    ASSERT(result.IsInstance());
+    Instance& exception = Instance::Handle();
+    exception ^= result.raw();
+    Throw(exception);
+  }
+}
+
+
+RawObject* Exceptions::Create(
     ExceptionType type, const GrowableArray<const Object*>& arguments) {
   String& class_name = String::Handle();
   switch (type) {

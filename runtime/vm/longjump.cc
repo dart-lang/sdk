@@ -20,9 +20,20 @@ jmp_buf* LongJump::Set() {
 }
 
 
+bool LongJump::IsSafeToJump() {
+  // We do not want to jump past Dart frames.  Note that this code
+  // assumes the stack grows from high to low.
+  Isolate* isolate = Isolate::Current();
+  uword jumpbuf_addr = reinterpret_cast<uword>(this);
+  return (isolate->top_exit_frame_info() == 0 ||
+          jumpbuf_addr < isolate->top_exit_frame_info());
+}
+
+
 void LongJump::Jump(int value, const Error& error) {
   // A zero is the default return value from setting up a LongJump using Set.
   ASSERT(value != 0);
+  ASSERT(IsSafeToJump());
 
   Isolate* isolate = Isolate::Current();
 

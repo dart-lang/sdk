@@ -8,7 +8,6 @@
 #include "vm/dart_api_state.h"
 #include "vm/debugger.h"
 #include "vm/isolate.h"
-#include "vm/longjump.h"
 #include "vm/object_store.h"
 
 namespace dart {
@@ -141,25 +140,23 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
     return Api::NewError(msg);
   }
 
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
   Dart_Handle result = Api::True();
   *breakpoint = NULL;
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
-  if (setjmp(*jump.Set()) == 0) {
-    Breakpoint* bpt = debugger->SetBreakpointAtLine(script_url, line);
-    if (bpt == NULL) {
+  Error& error = Error::Handle();
+  Breakpoint* bpt = debugger->SetBreakpointAtLine(script_url, line, &error);
+  if (bpt == NULL) {
+    if (!error.IsNull()) {
+      // If SetBreakpointAtLine provided an error message, use it.
+      result =  Api::NewLocalHandle(error);
+    } else {
       result = Api::NewError("%s: could not set breakpoint at line %d of '%s'",
                              CURRENT_FUNC, line, script_url.ToCString());
-    } else {
-      *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
     }
   } else {
-    SetupErrorResult(&result);
+    *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
   }
-  isolate->set_long_jump_base(base);
   return result;
 }
 
@@ -198,24 +195,21 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                          function_name.ToCString());
   }
 
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
   Dart_Handle result = Api::True();
   *breakpoint = NULL;
-  if (setjmp(*jump.Set()) == 0) {
-    Breakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
-    if (bpt == NULL) {
-      const char* target_name = Debugger::QualifiedFunctionName(bp_target);
-      result = Api::NewError("%s: no breakpoint location found in '%s'",
-                             CURRENT_FUNC, target_name);
-    } else {
-      *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
-    }
-  } else {
-    SetupErrorResult(&result);
+
+  Error& error = Error::Handle();
+  Breakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target, &error);
+  if (!error.IsNull()) {
+    return Api::NewLocalHandle(error);
   }
-  isolate->set_long_jump_base(base);
+  if (bpt == NULL) {
+    const char* target_name = Debugger::QualifiedFunctionName(bp_target);
+    result = Api::NewError("%s: no breakpoint location found in '%s'",
+                             CURRENT_FUNC, target_name);
+  } else {
+    *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
+  }
   return result;
 }
 

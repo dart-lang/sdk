@@ -358,8 +358,7 @@ static RawInstance* DeserializeMessage(void* data) {
 
 
 
-RawObject* Isolate::StandardRunLoop() {
-  ASSERT(long_jump_base() != NULL);
+RawError* Isolate::StandardRunLoop() {
   ASSERT(message_notify_callback() == NULL);
   ASSERT(message_handler() != NULL);
 
@@ -383,14 +382,16 @@ RawObject* Isolate::StandardRunLoop() {
               message->dest_port(), message->reply_port(), msg));
       delete message;
       if (result.IsError()) {
-        return result.raw();
+        Error& error = Error::Handle();
+        error ^= result.raw();
+        return error.raw();
       }
       ASSERT(result.IsNull());
     }
   }
 
   // Indicates success.
-  return Object::null();
+  return Error::null();
 }
 
 

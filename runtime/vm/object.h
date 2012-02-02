@@ -310,7 +310,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
                             const Script& script,
                             const Library& lib);
 
-  static void Init(Isolate* isolate);
+  static RawError* Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
 
@@ -1729,7 +1729,7 @@ class Library : public Object {
   static RawLibrary* NativeWrappersLibrary();
 
   // Eagerly compile all classes and functions in the library.
-  static void CompileAll();
+  static RawError* CompileAll();
 
  private:
   static const int kInitialImportsCapacity = 4;

@@ -19,42 +19,37 @@ class Instance;
 class Integer;
 class Object;
 class RawInstance;
+class RawObject;
 class String;
 
 // DartEntry abstracts functionality needed to resolve dart functions
 // and invoke them from C++.
-//
-// TODO(turnidge): Make these functions assert that there is an active
-// setjmp.  Or make these functions do the setjmps themselves and
-// represent compile errors with an explict object type.
-//
-// TODO(turnidge): Make these functions return RawObject instead of
-// RawInstance.
 class DartEntry : public AllStatic {
  public:
-  typedef RawInstance* (*invokestub)(uword entry_point,
-                                     const Array& arguments_descriptor,
-                                     const Object** arguments,
-                                     const Context& context);
+  // On success, returns a RawInstance.  On failure, a RawError.
+  typedef RawObject* (*invokestub)(uword entry_point,
+                                   const Array& arguments_descriptor,
+                                   const Object** arguments,
+                                   const Context& context);
 
-  // Invoke the specified instance function on the receiver.
-  // Returns object returned by the dart instance function.
-  static RawInstance* InvokeDynamic(
+  // Invokes the specified instance function on the receiver.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeDynamic(
       const Instance& receiver,
       const Function& function,
       const GrowableArray<const Object*>& arguments,
       const Array& optional_arguments_names);
 
   // Invoke the specified static function.
-  // Returns object returned by the dart static function.
-  static RawInstance* InvokeStatic(
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeStatic(
       const Function& function,
       const GrowableArray<const Object*>& arguments,
       const Array& optional_arguments_names);
 
   // Invoke the specified closure object.
-  // Returns object returned by the closure.
-  static RawInstance* InvokeClosure(
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* InvokeClosure(
       const Closure& closure,
       const GrowableArray<const Object*>& arguments,
       const Array& optional_arguments_names);
@@ -65,13 +60,18 @@ class DartEntry : public AllStatic {
 // Each may return an exception object.
 class DartLibraryCalls : public AllStatic {
  public:
-  static RawInstance* ExceptionCreate(
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* ExceptionCreate(
       const String& exception_name,
       const GrowableArray<const Object*>& arguments);
-  static RawInstance* ToString(const Instance& receiver);
-  static RawInstance* Equals(const Instance& left, const Instance& right);
 
-  // Returns either an unhandled exception or null.
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* ToString(const Instance& receiver);
+
+  // On success, returns a RawInstance.  On failure, a RawError.
+  static RawObject* Equals(const Instance& left, const Instance& right);
+
+  // Returns null on success, a RawError on failure.
   static RawObject* HandleMessage(Dart_Port dest_port_id,
                                   Dart_Port reply_port_id,
                                   const Instance& dart_message);

@@ -20,6 +20,11 @@ class LongJump : public ValueObject {
   jmp_buf* Set();
   void Jump(int value, const Error& error);
 
+  // Would it be safe to use this longjump?
+  //
+  // Checks to make sure that the jump would not cross Dart frames.
+  bool IsSafeToJump();
+
  private:
   jmp_buf environment_;
   StackResource* top_;

@@ -188,6 +188,7 @@ CodeGenerator::CodeGenerator(Assembler* assembler,
       try_index_(CatchClauseNode::kInvalidTryIndex) {
   ASSERT(assembler_ != NULL);
   ASSERT(parsed_function.node_sequence() != NULL);
+  ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
   pc_descriptors_list_ = new CodeGenerator::DescriptorList();
   exception_handlers_list_ = new CodeGenerator::HandlerList();
 }

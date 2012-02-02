@@ -6,14 +6,13 @@
 
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
-#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stub_code.h"
 
 namespace dart {
 
-RawInstance* DartEntry::InvokeDynamic(
+RawObject* DartEntry::InvokeDynamic(
     const Instance& receiver,
     const Function& function,
     const GrowableArray<const Object*>& arguments,
@@ -22,7 +21,10 @@ RawInstance* DartEntry::InvokeDynamic(
   // will result in a compilation of the function if it is not already
   // compiled.
   if (!function.HasCode()) {
-    Compiler::CompileFunction(function);
+    const Error& error = Error::Handle(Compiler::CompileFunction(function));
+    if (!error.IsNull()) {
+      return error.raw();
+    }
   }
   const Code& code = Code::Handle(function.code());
   ASSERT(!code.IsNull());
@@ -53,7 +55,7 @@ RawInstance* DartEntry::InvokeDynamic(
 }
 
 
-RawInstance* DartEntry::InvokeStatic(
+RawObject* DartEntry::InvokeStatic(
     const Function& function,
     const GrowableArray<const Object*>& arguments,
     const Array& optional_arguments_names) {
@@ -62,7 +64,10 @@ RawInstance* DartEntry::InvokeStatic(
   // compiled.
   ASSERT(!function.IsNull());
   if (!function.HasCode()) {
-    Compiler::CompileFunction(function);
+    const Error& error = Error::Handle(Compiler::CompileFunction(function));
+    if (!error.IsNull()) {
+      return error.raw();
+    }
   }
   const Code& code = Code::Handle(function.code());
   ASSERT(!code.IsNull());
@@ -84,7 +89,7 @@ RawInstance* DartEntry::InvokeStatic(
 }
 
 
-RawInstance* DartEntry::InvokeClosure(
+RawObject* DartEntry::InvokeClosure(
     const Closure& closure,
     const GrowableArray<const Object*>& arguments,
     const Array& optional_arguments_names) {
@@ -96,7 +101,10 @@ RawInstance* DartEntry::InvokeClosure(
   const Context& context = Context::Handle(closure.context());
   ASSERT(!function.IsNull());
   if (!function.HasCode()) {
-    Compiler::CompileFunction(function);
+    const Error& error = Error::Handle(Compiler::CompileFunction(function));
+    if (!error.IsNull()) {
+      return error.raw();
+    }
   }
   const Code& code = Code::Handle(function.code());
   ASSERT(!code.IsNull());
@@ -116,7 +124,7 @@ RawInstance* DartEntry::InvokeClosure(
 }
 
 
-RawInstance* DartLibraryCalls::ExceptionCreate(
+RawObject* DartLibraryCalls::ExceptionCreate(
     const String& class_name,
     const GrowableArray<const Object*>& arguments) {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
@@ -135,12 +143,18 @@ RawInstance* DartLibraryCalls::ExceptionCreate(
       Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
   const Array& kNoArgumentNames = Array::Handle();
-  DartEntry::InvokeStatic(constructor, constructor_arguments, kNoArgumentNames);
+  const Object& retval = Object::Handle(
+      DartEntry::InvokeStatic(constructor, constructor_arguments,
+                              kNoArgumentNames));
+  ASSERT(retval.IsNull() || retval.IsError());
+  if (retval.IsError()) {
+    return retval.raw();
+  }
   return exception_object.raw();
 }
 
 
-RawInstance* DartLibraryCalls::ToString(const Instance& receiver) {
+RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   const String& function_name =
       String::Handle(String::NewSymbol("toString"));
   GrowableArray<const Object*> arguments;
@@ -153,19 +167,18 @@ RawInstance* DartLibraryCalls::ToString(const Instance& receiver) {
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
-  const Instance& result = Instance::Handle(
+  const Object& result = Object::Handle(
       DartEntry::InvokeDynamic(receiver,
                                function,
                                arguments,
                                kNoArgumentNames));
-  // Object's 'toString' threw an exception, let the caller handle it.
-  ASSERT(result.IsString() || result.IsUnhandledException());
+  ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
 
 
-RawInstance* DartLibraryCalls::Equals(const Instance& left,
-                                      const Instance& right) {
+RawObject* DartLibraryCalls::Equals(const Instance& left,
+                                    const Instance& right) {
   const String& function_name =
       String::Handle(String::NewSymbol("=="));
   GrowableArray<const Object*> arguments;
@@ -179,10 +192,9 @@ RawInstance* DartLibraryCalls::Equals(const Instance& left,
                                kNumArguments,
                                kNumNamedArguments));
   ASSERT(!function.IsNull());
-  const Instance& result = Instance::Handle(
+  const Object& result = Object::Handle(
       DartEntry::InvokeDynamic(left, function, arguments, kNoArgumentNames));
-  // Object's '==' threw an exception, let the caller handle it.
-  ASSERT(result.IsBool() || result.IsUnhandledException());
+  ASSERT(result.IsInstance() || result.IsError());
   return result.raw();
 }
 
@@ -209,7 +221,7 @@ RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
   arguments.Add(&message);
   const Object& result = Object::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
-  ASSERT(result.IsNull() || result.IsUnhandledException());
+  ASSERT(result.IsNull() || result.IsError());
   return result.raw();
 }
 

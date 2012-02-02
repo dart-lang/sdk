@@ -23,6 +23,7 @@ namespace dart {
 
 static const bool verbose = false;
 
+
 Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
     : function_(func.raw()),
       pc_desc_index_(pc_desc_index),
@@ -347,14 +348,18 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // TODO(hausner): Distinguish between newly created breakpoints and
 // returning a breakpoint that already exists?
 Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
-                                    intptr_t token_index) {
+                                    intptr_t token_index,
+                                    Error* error) {
   if ((token_index < target_function.token_index()) ||
       (target_function.end_token_index() <= token_index)) {
     // The given token position is not within the target function.
     return NULL;
   }
   if (!target_function.HasCode()) {
-    Compiler::CompileFunction(target_function);
+    *error = Compiler::CompileFunction(target_function);
+    if (!error->IsNull()) {
+      return NULL;
+    }
   }
   Code& code = Code::Handle(target_function.code());
   ASSERT(!code.IsNull());
@@ -424,14 +429,16 @@ void Debugger::UnsetBreakpoint(Breakpoint* bpt) {
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function) {
+Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
+                                           Error* error) {
   ASSERT(!target_function.IsNull());
-  return SetBreakpoint(target_function, target_function.token_index());
+  return SetBreakpoint(target_function, target_function.token_index(), error);
 }
 
 
 Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
-                                          intptr_t line_number) {
+                                          intptr_t line_number,
+                                          Error* error) {
   Library& lib = Library::Handle();
   Script& script = Script::Handle();
   lib = isolate_->object_store()->registered_libraries();
@@ -455,7 +462,7 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   if (func.IsNull()) {
     return NULL;
   }
-  return SetBreakpoint(func, token_index_at_line);
+  return SetBreakpoint(func, token_index_at_line, error);
 }
 
 
