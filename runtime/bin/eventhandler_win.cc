@@ -210,14 +210,16 @@ static unsigned int __stdcall ReadFileThread(void* args) {
 
 void Handle::ReadSyncCompleteAsync() {
   ASSERT(pending_read_ != NULL);
-  DWORD bytes_read;
+  DWORD bytes_read = 0;
   BOOL ok = ReadFile(handle_,
                      pending_read_->GetBufferStart(),
                      pending_read_->GetBufferSize(),
                      &bytes_read,
                      NULL);
   if (!ok) {
-    fprintf(stderr, "ReadFile failed %d\n", GetLastError());
+    if (GetLastError() != ERROR_BROKEN_PIPE) {
+      fprintf(stderr, "ReadFile failed %d\n", GetLastError());
+    }
     bytes_read = 0;
   }
   OVERLAPPED* overlapped = pending_read_->GetCleanOverlapped();

@@ -28,9 +28,6 @@ class Process {
   // Kill a process with a given pid.
   static bool Kill(intptr_t id);
 
-  // Indicate that the process with the given pid has exited.
-  static void Exit(intptr_t id);
-
   // Terminate the exit code handler thread. Does not return before
   // the thread has terminated.
   static void TerminateExitCodeHandler();

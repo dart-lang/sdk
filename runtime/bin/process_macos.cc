@@ -24,6 +24,12 @@
 class ProcessInfo {
  public:
   ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) { }
+  ~ProcessInfo() {
+    int closed = TEMP_FAILURE_RETRY(close(fd_));
+    if (closed != 0) {
+      FATAL("Failed to close process exit code pipe");
+    }
+  }
   pid_t pid() { return pid_; }
   intptr_t fd() { return fd_; }
   ProcessInfo* next() { return next_; }
@@ -186,13 +192,19 @@ class ExitCodeHandler {
       }
       intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
       if (exit_code_fd != 0) {
-        int message[3] = { pid, exit_code, negative };
+        int message[2] = { exit_code, negative };
         ssize_t result =
             FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
-        if (result != sizeof(message) && errno != EPIPE) {
-          perror("ExitHandler notification failed");
+        // If the process has been closed, the read end of the exit
+        // pipe has been closed. It is therefore not a problem that
+        // writennnj fails with a broken pipe error. Other errors should
+        // not happen.
+        if (result != -1 && result != sizeof(message)) {
+          FATAL("Failed to write entire process exit message");
+        } else if (result == -1 && errno != EPIPE) {
+          FATAL1("Failed to write exit code: %d", errno);
         }
-        TEMP_FAILURE_RETRY(close(exit_code_fd));
+        ProcessInfoList::RemoveProcess(pid);
       }
     }
   }
@@ -524,11 +536,6 @@ bool Process::Kill(intptr_t id) {
     return false;
   }
   return true;
-}
-
-
-void Process::Exit(intptr_t id) {
-  ProcessInfoList::RemoveProcess(id);
 }
 
 
