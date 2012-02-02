@@ -1,5 +1,5 @@
 
-class CanvasPixelArrayJs extends DOMTypeJs implements CanvasPixelArray native "*CanvasPixelArray" {
+class _CanvasPixelArrayJs extends _DOMTypeJs implements CanvasPixelArray native "*CanvasPixelArray" {
 
   int get length() native "return this.length;";
 

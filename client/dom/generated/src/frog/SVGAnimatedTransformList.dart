@@ -1,7 +1,7 @@
 
-class SVGAnimatedTransformListJs extends DOMTypeJs implements SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
+class _SVGAnimatedTransformListJs extends _DOMTypeJs implements SVGAnimatedTransformList native "*SVGAnimatedTransformList" {
 
-  SVGTransformListJs get animVal() native "return this.animVal;";
+  _SVGTransformListJs get animVal() native "return this.animVal;";
 
-  SVGTransformListJs get baseVal() native "return this.baseVal;";
+  _SVGTransformListJs get baseVal() native "return this.baseVal;";
 }

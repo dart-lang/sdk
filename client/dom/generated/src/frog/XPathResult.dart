@@ -1,5 +1,5 @@
 
-class XPathResultJs extends DOMTypeJs implements XPathResult native "*XPathResult" {
+class _XPathResultJs extends _DOMTypeJs implements XPathResult native "*XPathResult" {
 
   static final int ANY_TYPE = 0;
 
@@ -29,13 +29,13 @@ class XPathResultJs extends DOMTypeJs implements XPathResult native "*XPathResul
 
   int get resultType() native "return this.resultType;";
 
-  NodeJs get singleNodeValue() native "return this.singleNodeValue;";
+  _NodeJs get singleNodeValue() native "return this.singleNodeValue;";
 
   int get snapshotLength() native "return this.snapshotLength;";
 
   String get stringValue() native "return this.stringValue;";
 
-  NodeJs iterateNext() native;
+  _NodeJs iterateNext() native;
 
-  NodeJs snapshotItem(int index) native;
+  _NodeJs snapshotItem(int index) native;
 }

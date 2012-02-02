@@ -1,29 +1,29 @@
 
-class IDBObjectStoreJs extends DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
+class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
 
   String get keyPath() native "return this.keyPath;";
 
   String get name() native "return this.name;";
 
-  IDBTransactionJs get transaction() native "return this.transaction;";
+  _IDBTransactionJs get transaction() native "return this.transaction;";
 
-  IDBRequestJs add(Dynamic value, [IDBKeyJs key = null]) native;
+  _IDBRequestJs add(Dynamic value, [_IDBKeyJs key = null]) native;
 
-  IDBRequestJs clear() native;
+  _IDBRequestJs clear() native;
 
-  IDBRequestJs count([IDBKeyRangeJs range = null]) native;
+  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
 
-  IDBIndexJs createIndex(String name, String keyPath) native;
+  _IDBIndexJs createIndex(String name, String keyPath) native;
 
-  IDBRequestJs delete(IDBKeyJs key) native;
+  _IDBRequestJs delete(_IDBKeyJs key) native;
 
   void deleteIndex(String name) native;
 
-  IDBRequestJs getObject(IDBKeyJs key) native;
+  _IDBRequestJs getObject(_IDBKeyJs key) native;
 
-  IDBIndexJs index(String name) native;
+  _IDBIndexJs index(String name) native;
 
-  IDBRequestJs openCursor([IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
 
-  IDBRequestJs put(Dynamic value, [IDBKeyJs key = null]) native;
+  _IDBRequestJs put(Dynamic value, [_IDBKeyJs key = null]) native;
 }

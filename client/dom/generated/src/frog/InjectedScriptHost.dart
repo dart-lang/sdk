@@ -1,5 +1,5 @@
 
-class InjectedScriptHostJs extends DOMTypeJs implements InjectedScriptHost native "*InjectedScriptHost" {
+class _InjectedScriptHostJs extends _DOMTypeJs implements InjectedScriptHost native "*InjectedScriptHost" {
 
   void clearConsoleMessages() native;
 

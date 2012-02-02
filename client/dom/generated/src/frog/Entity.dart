@@ -1,5 +1,5 @@
 
-class EntityJs extends NodeJs implements Entity native "*Entity" {
+class _EntityJs extends _NodeJs implements Entity native "*Entity" {
 
   String get notationName() native "return this.notationName;";
 

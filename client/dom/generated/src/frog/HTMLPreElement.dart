@@ -1,5 +1,5 @@
 
-class HTMLPreElementJs extends HTMLElementJs implements HTMLPreElement native "*HTMLPreElement" {
+class _HTMLPreElementJs extends _HTMLElementJs implements HTMLPreElement native "*HTMLPreElement" {
 
   int get width() native "return this.width;";
 

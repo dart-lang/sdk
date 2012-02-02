@@ -1,3 +1,3 @@
 
-class WebGLFramebufferJs extends DOMTypeJs implements WebGLFramebuffer native "*WebGLFramebuffer" {
+class _WebGLFramebufferJs extends _DOMTypeJs implements WebGLFramebuffer native "*WebGLFramebuffer" {
 }

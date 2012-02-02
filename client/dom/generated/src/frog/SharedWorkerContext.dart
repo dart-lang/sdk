@@ -1,5 +1,5 @@
 
-class SharedWorkerContextJs extends WorkerContextJs implements SharedWorkerContext native "*SharedWorkerContext" {
+class _SharedWorkerContextJs extends _WorkerContextJs implements SharedWorkerContext native "*SharedWorkerContext" {
 
   String get name() native "return this.name;";
 

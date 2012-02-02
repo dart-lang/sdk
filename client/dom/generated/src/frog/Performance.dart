@@ -1,9 +1,9 @@
 
-class PerformanceJs extends DOMTypeJs implements Performance native "*Performance" {
+class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performance" {
 
-  MemoryInfoJs get memory() native "return this.memory;";
+  _MemoryInfoJs get memory() native "return this.memory;";
 
-  PerformanceNavigationJs get navigation() native "return this.navigation;";
+  _PerformanceNavigationJs get navigation() native "return this.navigation;";
 
-  PerformanceTimingJs get timing() native "return this.timing;";
+  _PerformanceTimingJs get timing() native "return this.timing;";
 }

@@ -1,5 +1,5 @@
 
-class DataViewJs extends ArrayBufferViewJs implements DataView native "*DataView" {
+class _DataViewJs extends _ArrayBufferViewJs implements DataView native "*DataView" {
 
   num getFloat32(int byteOffset, [bool littleEndian = null]) native;
 

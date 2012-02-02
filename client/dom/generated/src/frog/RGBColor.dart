@@ -1,9 +1,9 @@
 
-class RGBColorJs extends DOMTypeJs implements RGBColor native "*RGBColor" {
+class _RGBColorJs extends _DOMTypeJs implements RGBColor native "*RGBColor" {
 
-  CSSPrimitiveValueJs get blue() native "return this.blue;";
+  _CSSPrimitiveValueJs get blue() native "return this.blue;";
 
-  CSSPrimitiveValueJs get green() native "return this.green;";
+  _CSSPrimitiveValueJs get green() native "return this.green;";
 
-  CSSPrimitiveValueJs get red() native "return this.red;";
+  _CSSPrimitiveValueJs get red() native "return this.red;";
 }

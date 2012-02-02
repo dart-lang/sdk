@@ -1,17 +1,17 @@
 
-class SVGViewElementJs extends SVGElementJs implements SVGViewElement native "*SVGViewElement" {
+class _SVGViewElementJs extends _SVGElementJs implements SVGViewElement native "*SVGViewElement" {
 
-  SVGStringListJs get viewTarget() native "return this.viewTarget;";
+  _SVGStringListJs get viewTarget() native "return this.viewTarget;";
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  _SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
+  _SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
 
   // From SVGZoomAndPan
 

@@ -1,5 +1,5 @@
 
-class TextTrackJs extends DOMTypeJs implements TextTrack native "*TextTrack" {
+class _TextTrackJs extends _DOMTypeJs implements TextTrack native "*TextTrack" {
 
   static final int DISABLED = 0;
 
@@ -7,9 +7,9 @@ class TextTrackJs extends DOMTypeJs implements TextTrack native "*TextTrack" {
 
   static final int SHOWING = 2;
 
-  TextTrackCueListJs get activeCues() native "return this.activeCues;";
+  _TextTrackCueListJs get activeCues() native "return this.activeCues;";
 
-  TextTrackCueListJs get cues() native "return this.cues;";
+  _TextTrackCueListJs get cues() native "return this.cues;";
 
   String get kind() native "return this.kind;";
 
@@ -25,13 +25,13 @@ class TextTrackJs extends DOMTypeJs implements TextTrack native "*TextTrack" {
 
   void set oncuechange(EventListener value) native "this.oncuechange = value;";
 
-  void addCue(TextTrackCueJs cue) native;
+  void addCue(_TextTrackCueJs cue) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
-  void removeCue(TextTrackCueJs cue) native;
+  void removeCue(_TextTrackCueJs cue) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }

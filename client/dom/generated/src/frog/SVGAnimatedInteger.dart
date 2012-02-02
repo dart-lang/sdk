@@ -1,5 +1,5 @@
 
-class SVGAnimatedIntegerJs extends DOMTypeJs implements SVGAnimatedInteger native "*SVGAnimatedInteger" {
+class _SVGAnimatedIntegerJs extends _DOMTypeJs implements SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
   int get animVal() native "return this.animVal;";
 

@@ -1,5 +1,5 @@
 
-class SVGFETurbulenceElementJs extends SVGElementJs implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
+class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulenceElement native "*SVGFETurbulenceElement" {
 
   static final int SVG_STITCHTYPE_NOSTITCH = 2;
 
@@ -13,35 +13,35 @@ class SVGFETurbulenceElementJs extends SVGElementJs implements SVGFETurbulenceEl
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumberJs get baseFrequencyX() native "return this.baseFrequencyX;";
+  _SVGAnimatedNumberJs get baseFrequencyX() native "return this.baseFrequencyX;";
 
-  SVGAnimatedNumberJs get baseFrequencyY() native "return this.baseFrequencyY;";
+  _SVGAnimatedNumberJs get baseFrequencyY() native "return this.baseFrequencyY;";
 
-  SVGAnimatedIntegerJs get numOctaves() native "return this.numOctaves;";
+  _SVGAnimatedIntegerJs get numOctaves() native "return this.numOctaves;";
 
-  SVGAnimatedNumberJs get seed() native "return this.seed;";
+  _SVGAnimatedNumberJs get seed() native "return this.seed;";
 
-  SVGAnimatedEnumerationJs get stitchTiles() native "return this.stitchTiles;";
+  _SVGAnimatedEnumerationJs get stitchTiles() native "return this.stitchTiles;";
 
-  SVGAnimatedEnumerationJs get type() native "return this.type;";
+  _SVGAnimatedEnumerationJs get type() native "return this.type;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLengthJs get height() native "return this.height;";
+  _SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGAnimatedStringJs get result() native "return this.result;";
+  _SVGAnimatedStringJs get result() native "return this.result;";
 
-  SVGAnimatedLengthJs get width() native "return this.width;";
+  _SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJs get x() native "return this.x;";
+  _SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJs get y() native "return this.y;";
+  _SVGAnimatedLengthJs get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 }

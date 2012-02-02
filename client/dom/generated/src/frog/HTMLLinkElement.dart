@@ -1,5 +1,5 @@
 
-class HTMLLinkElementJs extends HTMLElementJs implements HTMLLinkElement native "*HTMLLinkElement" {
+class _HTMLLinkElementJs extends _HTMLElementJs implements HTMLLinkElement native "*HTMLLinkElement" {
 
   String get charset() native "return this.charset;";
 
@@ -29,11 +29,11 @@ class HTMLLinkElementJs extends HTMLElementJs implements HTMLLinkElement native 
 
   void set rev(String value) native "this.rev = value;";
 
-  StyleSheetJs get sheet() native "return this.sheet;";
+  _StyleSheetJs get sheet() native "return this.sheet;";
 
-  DOMSettableTokenListJs get sizes() native "return this.sizes;";
+  _DOMSettableTokenListJs get sizes() native "return this.sizes;";
 
-  void set sizes(DOMSettableTokenListJs value) native "this.sizes = value;";
+  void set sizes(_DOMSettableTokenListJs value) native "this.sizes = value;";
 
   String get target() native "return this.target;";
 

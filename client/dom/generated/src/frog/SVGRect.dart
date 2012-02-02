@@ -1,5 +1,5 @@
 
-class SVGRectJs extends DOMTypeJs implements SVGRect native "*SVGRect" {
+class _SVGRectJs extends _DOMTypeJs implements SVGRect native "*SVGRect" {
 
   num get height() native "return this.height;";
 

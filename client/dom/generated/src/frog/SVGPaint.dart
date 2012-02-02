@@ -1,5 +1,5 @@
 
-class SVGPaintJs extends SVGColorJs implements SVGPaint native "*SVGPaint" {
+class _SVGPaintJs extends _SVGColorJs implements SVGPaint native "*SVGPaint" {
 
   static final int SVG_PAINTTYPE_CURRENTCOLOR = 102;
 

@@ -1,5 +1,5 @@
 
-class CSSRuleJs extends DOMTypeJs implements CSSRule native "*CSSRule" {
+class _CSSRuleJs extends _DOMTypeJs implements CSSRule native "*CSSRule" {
 
   static final int CHARSET_RULE = 2;
 
@@ -25,9 +25,9 @@ class CSSRuleJs extends DOMTypeJs implements CSSRule native "*CSSRule" {
 
   void set cssText(String value) native "this.cssText = value;";
 
-  CSSRuleJs get parentRule() native "return this.parentRule;";
+  _CSSRuleJs get parentRule() native "return this.parentRule;";
 
-  CSSStyleSheetJs get parentStyleSheet() native "return this.parentStyleSheet;";
+  _CSSStyleSheetJs get parentStyleSheet() native "return this.parentStyleSheet;";
 
   int get type() native "return this.type;";
 }

@@ -1,5 +1,5 @@
 
-class MemoryInfoJs extends DOMTypeJs implements MemoryInfo native "*MemoryInfo" {
+class _MemoryInfoJs extends _DOMTypeJs implements MemoryInfo native "*MemoryInfo" {
 
   int get jsHeapSizeLimit() native "return this.jsHeapSizeLimit;";
 

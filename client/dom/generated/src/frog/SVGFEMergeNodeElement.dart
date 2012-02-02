@@ -1,5 +1,5 @@
 
-class SVGFEMergeNodeElementJs extends SVGElementJs implements SVGFEMergeNodeElement native "*SVGFEMergeNodeElement" {
+class _SVGFEMergeNodeElementJs extends _SVGElementJs implements SVGFEMergeNodeElement native "*SVGFEMergeNodeElement" {
 
-  SVGAnimatedStringJs get in1() native "return this.in1;";
+  _SVGAnimatedStringJs get in1() native "return this.in1;";
 }

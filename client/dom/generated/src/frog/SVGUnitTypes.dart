@@ -1,5 +1,5 @@
 
-class SVGUnitTypesJs extends DOMTypeJs implements SVGUnitTypes native "*SVGUnitTypes" {
+class _SVGUnitTypesJs extends _DOMTypeJs implements SVGUnitTypes native "*SVGUnitTypes" {
 
   static final int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 

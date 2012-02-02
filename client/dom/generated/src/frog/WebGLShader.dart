@@ -1,3 +1,3 @@
 
-class WebGLShaderJs extends DOMTypeJs implements WebGLShader native "*WebGLShader" {
+class _WebGLShaderJs extends _DOMTypeJs implements WebGLShader native "*WebGLShader" {
 }

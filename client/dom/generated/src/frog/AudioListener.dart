@@ -1,5 +1,5 @@
 
-class AudioListenerJs extends DOMTypeJs implements AudioListener native "*AudioListener" {
+class _AudioListenerJs extends _DOMTypeJs implements AudioListener native "*AudioListener" {
 
   num get dopplerFactor() native "return this.dopplerFactor;";
 

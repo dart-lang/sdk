@@ -1,5 +1,5 @@
 
-class IDBTransactionJs extends DOMTypeJs implements IDBTransaction native "*IDBTransaction" {
+class _IDBTransactionJs extends _DOMTypeJs implements IDBTransaction native "*IDBTransaction" {
 
   static final int READ_ONLY = 0;
 
@@ -7,7 +7,7 @@ class IDBTransactionJs extends DOMTypeJs implements IDBTransaction native "*IDBT
 
   static final int VERSION_CHANGE = 2;
 
-  IDBDatabaseJs get db() native "return this.db;";
+  _IDBDatabaseJs get db() native "return this.db;";
 
   int get mode() native "return this.mode;";
 
@@ -27,9 +27,9 @@ class IDBTransactionJs extends DOMTypeJs implements IDBTransaction native "*IDBT
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
-  IDBObjectStoreJs objectStore(String name) native;
+  _IDBObjectStoreJs objectStore(String name) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }

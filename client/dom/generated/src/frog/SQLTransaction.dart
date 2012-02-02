@@ -1,3 +1,3 @@
 
-class SQLTransactionJs extends DOMTypeJs implements SQLTransaction native "*SQLTransaction" {
+class _SQLTransactionJs extends _DOMTypeJs implements SQLTransaction native "*SQLTransaction" {
 }

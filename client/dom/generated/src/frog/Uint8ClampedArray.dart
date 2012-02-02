@@ -1,5 +1,5 @@
 
-class Uint8ClampedArrayJs extends Uint8ArrayJs implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
+class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, List<int> native "*Uint8ClampedArray" {
 
   factory Uint8ClampedArray(int length) =>  _construct_Uint8ClampedArray(length);
 
@@ -11,5 +11,5 @@ class Uint8ClampedArrayJs extends Uint8ArrayJs implements Uint8ClampedArray, Lis
 
   int get length() native "return this.length;";
 
-  Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
+  _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }

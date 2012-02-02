@@ -1,11 +1,11 @@
 
-class HTMLCollectionJs extends DOMTypeJs implements HTMLCollection native "*HTMLCollection" {
+class _HTMLCollectionJs extends _DOMTypeJs implements HTMLCollection native "*HTMLCollection" {
 
   int get length() native "return this.length;";
 
-  NodeJs operator[](int index) native "return this[index];";
+  _NodeJs operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, NodeJs value) {
+  void operator[]=(int index, _NodeJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
@@ -76,7 +76,7 @@ class HTMLCollectionJs extends DOMTypeJs implements HTMLCollection native "*HTML
 
   // -- end List<Node> mixins.
 
-  NodeJs item(int index) native;
+  _NodeJs item(int index) native;
 
-  NodeJs namedItem(String name) native;
+  _NodeJs namedItem(String name) native;
 }

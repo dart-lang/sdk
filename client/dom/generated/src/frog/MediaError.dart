@@ -1,5 +1,5 @@
 
-class MediaErrorJs extends DOMTypeJs implements MediaError native "*MediaError" {
+class _MediaErrorJs extends _DOMTypeJs implements MediaError native "*MediaError" {
 
   static final int MEDIA_ERR_ABORTED = 1;
 

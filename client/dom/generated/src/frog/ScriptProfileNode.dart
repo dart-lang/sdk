@@ -1,5 +1,5 @@
 
-class ScriptProfileNodeJs extends DOMTypeJs implements ScriptProfileNode native "*ScriptProfileNode" {
+class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode native "*ScriptProfileNode" {
 
   int get callUID() native "return this.callUID;";
 

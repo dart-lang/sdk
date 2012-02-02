@@ -1,5 +1,5 @@
 
-class FileReaderJs extends DOMTypeJs implements FileReader native "*FileReader" {
+class _FileReaderJs extends _DOMTypeJs implements FileReader native "*FileReader" {
   FileReader() native;
 
 
@@ -9,7 +9,7 @@ class FileReaderJs extends DOMTypeJs implements FileReader native "*FileReader" 
 
   static final int LOADING = 1;
 
-  FileErrorJs get error() native "return this.error;";
+  _FileErrorJs get error() native "return this.error;";
 
   EventListener get onabort() native "return this.onabort;";
 
@@ -43,15 +43,15 @@ class FileReaderJs extends DOMTypeJs implements FileReader native "*FileReader" 
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
-  void readAsArrayBuffer(BlobJs blob) native;
+  void readAsArrayBuffer(_BlobJs blob) native;
 
-  void readAsBinaryString(BlobJs blob) native;
+  void readAsBinaryString(_BlobJs blob) native;
 
-  void readAsDataURL(BlobJs blob) native;
+  void readAsDataURL(_BlobJs blob) native;
 
-  void readAsText(BlobJs blob, [String encoding = null]) native;
+  void readAsText(_BlobJs blob, [String encoding = null]) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }

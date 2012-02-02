@@ -1,5 +1,5 @@
 
-class XPathExceptionJs extends DOMTypeJs implements XPathException native "*XPathException" {
+class _XPathExceptionJs extends _DOMTypeJs implements XPathException native "*XPathException" {
 
   static final int INVALID_EXPRESSION_ERR = 51;
 

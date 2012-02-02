@@ -1,5 +1,5 @@
 
-class HTMLHRElementJs extends HTMLElementJs implements HTMLHRElement native "*HTMLHRElement" {
+class _HTMLHRElementJs extends _HTMLElementJs implements HTMLHRElement native "*HTMLHRElement" {
 
   String get align() native "return this.align;";
 

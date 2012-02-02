@@ -1,5 +1,5 @@
 
-class SVGAnimatedEnumerationJs extends DOMTypeJs implements SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
+class _SVGAnimatedEnumerationJs extends _DOMTypeJs implements SVGAnimatedEnumeration native "*SVGAnimatedEnumeration" {
 
   int get animVal() native "return this.animVal;";
 

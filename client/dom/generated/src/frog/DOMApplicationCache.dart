@@ -1,5 +1,5 @@
 
-class DOMApplicationCacheJs extends DOMTypeJs implements DOMApplicationCache native "*DOMApplicationCache" {
+class _DOMApplicationCacheJs extends _DOMTypeJs implements DOMApplicationCache native "*DOMApplicationCache" {
 
   static final int CHECKING = 2;
 
@@ -19,7 +19,7 @@ class DOMApplicationCacheJs extends DOMTypeJs implements DOMApplicationCache nat
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

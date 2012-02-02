@@ -1,19 +1,19 @@
 
-class SVGPointListJs extends DOMTypeJs implements SVGPointList native "*SVGPointList" {
+class _SVGPointListJs extends _DOMTypeJs implements SVGPointList native "*SVGPointList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGPointJs appendItem(SVGPointJs item) native;
+  _SVGPointJs appendItem(_SVGPointJs item) native;
 
   void clear() native;
 
-  SVGPointJs getItem(int index) native;
+  _SVGPointJs getItem(int index) native;
 
-  SVGPointJs initialize(SVGPointJs item) native;
+  _SVGPointJs initialize(_SVGPointJs item) native;
 
-  SVGPointJs insertItemBefore(SVGPointJs item, int index) native;
+  _SVGPointJs insertItemBefore(_SVGPointJs item, int index) native;
 
-  SVGPointJs removeItem(int index) native;
+  _SVGPointJs removeItem(int index) native;
 
-  SVGPointJs replaceItem(SVGPointJs item, int index) native;
+  _SVGPointJs replaceItem(_SVGPointJs item, int index) native;
 }

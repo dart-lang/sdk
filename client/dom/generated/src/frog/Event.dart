@@ -1,5 +1,5 @@
 
-class EventJs extends DOMTypeJs implements Event native "*Event" {
+class _EventJs extends _DOMTypeJs implements Event native "*Event" {
 
   static final int AT_TARGET = 2;
 
@@ -47,9 +47,9 @@ class EventJs extends DOMTypeJs implements Event native "*Event" {
 
   bool get cancelable() native "return this.cancelable;";
 
-  ClipboardJs get clipboardData() native "return this.clipboardData;";
+  _ClipboardJs get clipboardData() native "return this.clipboardData;";
 
-  EventTargetJs get currentTarget() native "return this.currentTarget;";
+  _EventTargetJs get currentTarget() native "return this.currentTarget;";
 
   bool get defaultPrevented() native "return this.defaultPrevented;";
 
@@ -59,9 +59,9 @@ class EventJs extends DOMTypeJs implements Event native "*Event" {
 
   void set returnValue(bool value) native "this.returnValue = value;";
 
-  EventTargetJs get srcElement() native "return this.srcElement;";
+  _EventTargetJs get srcElement() native "return this.srcElement;";
 
-  EventTargetJs get target() native "return this.target;";
+  _EventTargetJs get target() native "return this.target;";
 
   int get timeStamp() native "return this.timeStamp;";
 

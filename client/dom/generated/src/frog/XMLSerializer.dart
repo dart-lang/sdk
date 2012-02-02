@@ -1,5 +1,5 @@
 
-class XMLSerializerJs extends DOMTypeJs implements XMLSerializer native "*XMLSerializer" {
+class _XMLSerializerJs extends _DOMTypeJs implements XMLSerializer native "*XMLSerializer" {
 
-  String serializeToString(NodeJs node) native;
+  String serializeToString(_NodeJs node) native;
 }

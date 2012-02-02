@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class StorageJs extends DOMTypeJs implements Storage native "*Storage" {
+class _StorageJs extends _DOMTypeJs implements Storage native "*Storage" {
 
   int get length() native "return this.length;";
 

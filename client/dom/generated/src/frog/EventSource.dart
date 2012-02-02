@@ -1,5 +1,5 @@
 
-class EventSourceJs extends DOMTypeJs implements EventSource native "*EventSource" {
+class _EventSourceJs extends _DOMTypeJs implements EventSource native "*EventSource" {
 
   static final int CLOSED = 2;
 
@@ -17,7 +17,7 @@ class EventSourceJs extends DOMTypeJs implements EventSource native "*EventSourc
 
   void close() native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }

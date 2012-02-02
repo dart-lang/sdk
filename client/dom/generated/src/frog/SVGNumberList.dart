@@ -1,19 +1,19 @@
 
-class SVGNumberListJs extends DOMTypeJs implements SVGNumberList native "*SVGNumberList" {
+class _SVGNumberListJs extends _DOMTypeJs implements SVGNumberList native "*SVGNumberList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGNumberJs appendItem(SVGNumberJs item) native;
+  _SVGNumberJs appendItem(_SVGNumberJs item) native;
 
   void clear() native;
 
-  SVGNumberJs getItem(int index) native;
+  _SVGNumberJs getItem(int index) native;
 
-  SVGNumberJs initialize(SVGNumberJs item) native;
+  _SVGNumberJs initialize(_SVGNumberJs item) native;
 
-  SVGNumberJs insertItemBefore(SVGNumberJs item, int index) native;
+  _SVGNumberJs insertItemBefore(_SVGNumberJs item, int index) native;
 
-  SVGNumberJs removeItem(int index) native;
+  _SVGNumberJs removeItem(int index) native;
 
-  SVGNumberJs replaceItem(SVGNumberJs item, int index) native;
+  _SVGNumberJs replaceItem(_SVGNumberJs item, int index) native;
 }

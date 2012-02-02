@@ -1,5 +1,5 @@
 
-class SVGPathSegArcAbsJs extends SVGPathSegJs implements SVGPathSegArcAbs native "*SVGPathSegArcAbs" {
+class _SVGPathSegArcAbsJs extends _SVGPathSegJs implements SVGPathSegArcAbs native "*SVGPathSegArcAbs" {
 
   num get angle() native "return this.angle;";
 

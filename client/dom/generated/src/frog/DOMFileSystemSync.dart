@@ -1,7 +1,7 @@
 
-class DOMFileSystemSyncJs extends DOMTypeJs implements DOMFileSystemSync native "*DOMFileSystemSync" {
+class _DOMFileSystemSyncJs extends _DOMTypeJs implements DOMFileSystemSync native "*DOMFileSystemSync" {
 
   String get name() native "return this.name;";
 
-  DirectoryEntrySyncJs get root() native "return this.root;";
+  _DirectoryEntrySyncJs get root() native "return this.root;";
 }

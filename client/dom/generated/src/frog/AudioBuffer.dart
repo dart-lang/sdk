@@ -1,5 +1,5 @@
 
-class AudioBufferJs extends DOMTypeJs implements AudioBuffer native "*AudioBuffer" {
+class _AudioBufferJs extends _DOMTypeJs implements AudioBuffer native "*AudioBuffer" {
 
   num get duration() native "return this.duration;";
 
@@ -13,5 +13,5 @@ class AudioBufferJs extends DOMTypeJs implements AudioBuffer native "*AudioBuffe
 
   num get sampleRate() native "return this.sampleRate;";
 
-  Float32ArrayJs getChannelData(int channelIndex) native;
+  _Float32ArrayJs getChannelData(int channelIndex) native;
 }

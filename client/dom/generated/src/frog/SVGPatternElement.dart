@@ -1,31 +1,31 @@
 
-class SVGPatternElementJs extends SVGElementJs implements SVGPatternElement native "*SVGPatternElement" {
+class _SVGPatternElementJs extends _SVGElementJs implements SVGPatternElement native "*SVGPatternElement" {
 
-  SVGAnimatedLengthJs get height() native "return this.height;";
+  _SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGAnimatedEnumerationJs get patternContentUnits() native "return this.patternContentUnits;";
+  _SVGAnimatedEnumerationJs get patternContentUnits() native "return this.patternContentUnits;";
 
-  SVGAnimatedTransformListJs get patternTransform() native "return this.patternTransform;";
+  _SVGAnimatedTransformListJs get patternTransform() native "return this.patternTransform;";
 
-  SVGAnimatedEnumerationJs get patternUnits() native "return this.patternUnits;";
+  _SVGAnimatedEnumerationJs get patternUnits() native "return this.patternUnits;";
 
-  SVGAnimatedLengthJs get width() native "return this.width;";
+  _SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJs get x() native "return this.x;";
+  _SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJs get y() native "return this.y;";
+  _SVGAnimatedLengthJs get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedStringJs get href() native "return this.href;";
+  _SVGAnimatedStringJs get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -41,19 +41,19 @@ class SVGPatternElementJs extends SVGElementJs implements SVGPatternElement nati
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  _SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
+  _SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
 }

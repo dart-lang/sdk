@@ -1,5 +1,5 @@
 
-class StyleSheetJs extends DOMTypeJs implements StyleSheet native "*StyleSheet" {
+class _StyleSheetJs extends _DOMTypeJs implements StyleSheet native "*StyleSheet" {
 
   bool get disabled() native "return this.disabled;";
 
@@ -7,11 +7,11 @@ class StyleSheetJs extends DOMTypeJs implements StyleSheet native "*StyleSheet" 
 
   String get href() native "return this.href;";
 
-  MediaListJs get media() native "return this.media;";
+  _MediaListJs get media() native "return this.media;";
 
-  NodeJs get ownerNode() native "return this.ownerNode;";
+  _NodeJs get ownerNode() native "return this.ownerNode;";
 
-  StyleSheetJs get parentStyleSheet() native "return this.parentStyleSheet;";
+  _StyleSheetJs get parentStyleSheet() native "return this.parentStyleSheet;";
 
   String get title() native "return this.title;";
 

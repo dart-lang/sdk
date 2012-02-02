@@ -1,17 +1,17 @@
 
-class HTMLOutputElementJs extends HTMLElementJs implements HTMLOutputElement native "*HTMLOutputElement" {
+class _HTMLOutputElementJs extends _HTMLElementJs implements HTMLOutputElement native "*HTMLOutputElement" {
 
   String get defaultValue() native "return this.defaultValue;";
 
   void set defaultValue(String value) native "this.defaultValue = value;";
 
-  HTMLFormElementJs get form() native "return this.form;";
+  _HTMLFormElementJs get form() native "return this.form;";
 
-  DOMSettableTokenListJs get htmlFor() native "return this.htmlFor;";
+  _DOMSettableTokenListJs get htmlFor() native "return this.htmlFor;";
 
-  void set htmlFor(DOMSettableTokenListJs value) native "this.htmlFor = value;";
+  void set htmlFor(_DOMSettableTokenListJs value) native "this.htmlFor = value;";
 
-  NodeListJs get labels() native "return this.labels;";
+  _NodeListJs get labels() native "return this.labels;";
 
   String get name() native "return this.name;";
 
@@ -21,7 +21,7 @@ class HTMLOutputElementJs extends HTMLElementJs implements HTMLOutputElement nat
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityStateJs get validity() native "return this.validity;";
+  _ValidityStateJs get validity() native "return this.validity;";
 
   String get value() native "return this.value;";
 

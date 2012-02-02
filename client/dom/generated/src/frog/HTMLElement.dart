@@ -1,13 +1,13 @@
 
-class HTMLElementJs extends ElementJs implements HTMLElement native "*HTMLElement" {
+class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElement" {
 
   String get accessKey() native "return this.accessKey;";
 
   void set accessKey(String value) native "this.accessKey = value;";
 
-  HTMLCollectionJs get children() native "return this.children;";
+  _HTMLCollectionJs get children() native "return this.children;";
 
-  DOMTokenListJs get classList() native "return this.classList;";
+  _DOMTokenListJs get classList() native "return this.classList;";
 
   String get className() native "return this.className;";
 
@@ -47,15 +47,15 @@ class HTMLElementJs extends ElementJs implements HTMLElement native "*HTMLElemen
 
   void set itemId(String value) native "this.itemId = value;";
 
-  DOMSettableTokenListJs get itemProp() native "return this.itemProp;";
+  _DOMSettableTokenListJs get itemProp() native "return this.itemProp;";
 
-  DOMSettableTokenListJs get itemRef() native "return this.itemRef;";
+  _DOMSettableTokenListJs get itemRef() native "return this.itemRef;";
 
   bool get itemScope() native "return this.itemScope;";
 
   void set itemScope(bool value) native "this.itemScope = value;";
 
-  DOMSettableTokenListJs get itemType() native "return this.itemType;";
+  _DOMSettableTokenListJs get itemType() native "return this.itemType;";
 
   Object get itemValue() native "return this.itemValue;";
 
@@ -89,7 +89,7 @@ class HTMLElementJs extends ElementJs implements HTMLElement native "*HTMLElemen
 
   void set webkitdropzone(String value) native "this.webkitdropzone = value;";
 
-  ElementJs insertAdjacentElement(String where, ElementJs element) native;
+  _ElementJs insertAdjacentElement(String where, _ElementJs element) native;
 
   void insertAdjacentHTML(String where, String html) native;
 

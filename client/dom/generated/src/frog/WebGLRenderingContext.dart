@@ -1,5 +1,5 @@
 
-class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLRenderingContext native "*WebGLRenderingContext" {
+class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebGLRenderingContext native "*WebGLRenderingContext" {
 
   static final int ACTIVE_ATTRIBUTES = 0x8B89;
 
@@ -601,17 +601,17 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void activeTexture(int texture) native;
 
-  void attachShader(WebGLProgramJs program, WebGLShaderJs shader) native;
+  void attachShader(_WebGLProgramJs program, _WebGLShaderJs shader) native;
 
-  void bindAttribLocation(WebGLProgramJs program, int index, String name) native;
+  void bindAttribLocation(_WebGLProgramJs program, int index, String name) native;
 
-  void bindBuffer(int target, WebGLBufferJs buffer) native;
+  void bindBuffer(int target, _WebGLBufferJs buffer) native;
 
-  void bindFramebuffer(int target, WebGLFramebufferJs framebuffer) native;
+  void bindFramebuffer(int target, _WebGLFramebufferJs framebuffer) native;
 
-  void bindRenderbuffer(int target, WebGLRenderbufferJs renderbuffer) native;
+  void bindRenderbuffer(int target, _WebGLRenderbufferJs renderbuffer) native;
 
-  void bindTexture(int target, WebGLTextureJs texture) native;
+  void bindTexture(int target, _WebGLTextureJs texture) native;
 
   void blendColor(num red, num green, num blue, num alpha) native;
 
@@ -639,41 +639,41 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void colorMask(bool red, bool green, bool blue, bool alpha) native;
 
-  void compileShader(WebGLShaderJs shader) native;
+  void compileShader(_WebGLShaderJs shader) native;
 
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferViewJs data) native;
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, _ArrayBufferViewJs data) native;
 
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferViewJs data) native;
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, _ArrayBufferViewJs data) native;
 
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) native;
 
   void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) native;
 
-  WebGLBufferJs createBuffer() native;
+  _WebGLBufferJs createBuffer() native;
 
-  WebGLFramebufferJs createFramebuffer() native;
+  _WebGLFramebufferJs createFramebuffer() native;
 
-  WebGLProgramJs createProgram() native;
+  _WebGLProgramJs createProgram() native;
 
-  WebGLRenderbufferJs createRenderbuffer() native;
+  _WebGLRenderbufferJs createRenderbuffer() native;
 
-  WebGLShaderJs createShader(int type) native;
+  _WebGLShaderJs createShader(int type) native;
 
-  WebGLTextureJs createTexture() native;
+  _WebGLTextureJs createTexture() native;
 
   void cullFace(int mode) native;
 
-  void deleteBuffer(WebGLBufferJs buffer) native;
+  void deleteBuffer(_WebGLBufferJs buffer) native;
 
-  void deleteFramebuffer(WebGLFramebufferJs framebuffer) native;
+  void deleteFramebuffer(_WebGLFramebufferJs framebuffer) native;
 
-  void deleteProgram(WebGLProgramJs program) native;
+  void deleteProgram(_WebGLProgramJs program) native;
 
-  void deleteRenderbuffer(WebGLRenderbufferJs renderbuffer) native;
+  void deleteRenderbuffer(_WebGLRenderbufferJs renderbuffer) native;
 
-  void deleteShader(WebGLShaderJs shader) native;
+  void deleteShader(_WebGLShaderJs shader) native;
 
-  void deleteTexture(WebGLTextureJs texture) native;
+  void deleteTexture(_WebGLTextureJs texture) native;
 
   void depthFunc(int func) native;
 
@@ -681,7 +681,7 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void depthRange(num zNear, num zFar) native;
 
-  void detachShader(WebGLProgramJs program, WebGLShaderJs shader) native;
+  void detachShader(_WebGLProgramJs program, _WebGLShaderJs shader) native;
 
   void disable(int cap) native;
 
@@ -699,25 +699,25 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void flush() native;
 
-  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, WebGLRenderbufferJs renderbuffer) native;
+  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, _WebGLRenderbufferJs renderbuffer) native;
 
-  void framebufferTexture2D(int target, int attachment, int textarget, WebGLTextureJs texture, int level) native;
+  void framebufferTexture2D(int target, int attachment, int textarget, _WebGLTextureJs texture, int level) native;
 
   void frontFace(int mode) native;
 
   void generateMipmap(int target) native;
 
-  WebGLActiveInfoJs getActiveAttrib(WebGLProgramJs program, int index) native;
+  _WebGLActiveInfoJs getActiveAttrib(_WebGLProgramJs program, int index) native;
 
-  WebGLActiveInfoJs getActiveUniform(WebGLProgramJs program, int index) native;
+  _WebGLActiveInfoJs getActiveUniform(_WebGLProgramJs program, int index) native;
 
-  List getAttachedShaders(WebGLProgramJs program) native;
+  List getAttachedShaders(_WebGLProgramJs program) native;
 
-  int getAttribLocation(WebGLProgramJs program, String name) native;
+  int getAttribLocation(_WebGLProgramJs program, String name) native;
 
   Object getBufferParameter(int target, int pname) native;
 
-  WebGLContextAttributesJs getContextAttributes() native;
+  _WebGLContextAttributesJs getContextAttributes() native;
 
   int getError() native;
 
@@ -727,23 +727,23 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   Object getParameter(int pname) native;
 
-  String getProgramInfoLog(WebGLProgramJs program) native;
+  String getProgramInfoLog(_WebGLProgramJs program) native;
 
-  Object getProgramParameter(WebGLProgramJs program, int pname) native;
+  Object getProgramParameter(_WebGLProgramJs program, int pname) native;
 
   Object getRenderbufferParameter(int target, int pname) native;
 
-  String getShaderInfoLog(WebGLShaderJs shader) native;
+  String getShaderInfoLog(_WebGLShaderJs shader) native;
 
-  Object getShaderParameter(WebGLShaderJs shader, int pname) native;
+  Object getShaderParameter(_WebGLShaderJs shader, int pname) native;
 
-  String getShaderSource(WebGLShaderJs shader) native;
+  String getShaderSource(_WebGLShaderJs shader) native;
 
   Object getTexParameter(int target, int pname) native;
 
-  Object getUniform(WebGLProgramJs program, WebGLUniformLocationJs location) native;
+  Object getUniform(_WebGLProgramJs program, _WebGLUniformLocationJs location) native;
 
-  WebGLUniformLocationJs getUniformLocation(WebGLProgramJs program, String name) native;
+  _WebGLUniformLocationJs getUniformLocation(_WebGLProgramJs program, String name) native;
 
   Object getVertexAttrib(int index, int pname) native;
 
@@ -751,31 +751,31 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void hint(int target, int mode) native;
 
-  bool isBuffer(WebGLBufferJs buffer) native;
+  bool isBuffer(_WebGLBufferJs buffer) native;
 
   bool isContextLost() native;
 
   bool isEnabled(int cap) native;
 
-  bool isFramebuffer(WebGLFramebufferJs framebuffer) native;
+  bool isFramebuffer(_WebGLFramebufferJs framebuffer) native;
 
-  bool isProgram(WebGLProgramJs program) native;
+  bool isProgram(_WebGLProgramJs program) native;
 
-  bool isRenderbuffer(WebGLRenderbufferJs renderbuffer) native;
+  bool isRenderbuffer(_WebGLRenderbufferJs renderbuffer) native;
 
-  bool isShader(WebGLShaderJs shader) native;
+  bool isShader(_WebGLShaderJs shader) native;
 
-  bool isTexture(WebGLTextureJs texture) native;
+  bool isTexture(_WebGLTextureJs texture) native;
 
   void lineWidth(num width) native;
 
-  void linkProgram(WebGLProgramJs program) native;
+  void linkProgram(_WebGLProgramJs program) native;
 
   void pixelStorei(int pname, int param) native;
 
   void polygonOffset(num factor, num units) native;
 
-  void readPixels(int x, int y, int width, int height, int format, int type, ArrayBufferViewJs pixels) native;
+  void readPixels(int x, int y, int width, int height, int format, int type, _ArrayBufferViewJs pixels) native;
 
   void releaseShaderCompiler() native;
 
@@ -785,7 +785,7 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void scissor(int x, int y, int width, int height) native;
 
-  void shaderSource(WebGLShaderJs shader, String string) native;
+  void shaderSource(_WebGLShaderJs shader, String string) native;
 
   void stencilFunc(int func, int ref, int mask) native;
 
@@ -799,71 +799,71 @@ class WebGLRenderingContextJs extends CanvasRenderingContextJs implements WebGLR
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, ArrayBufferViewJs pixels = null]) native;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, var border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewJs pixels = null]) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, ArrayBufferViewJs pixels = null]) native;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, var canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewJs pixels = null]) native;
 
-  void uniform1f(WebGLUniformLocationJs location, num x) native;
+  void uniform1f(_WebGLUniformLocationJs location, num x) native;
 
-  void uniform1fv(WebGLUniformLocationJs location, Float32ArrayJs v) native;
+  void uniform1fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
 
-  void uniform1i(WebGLUniformLocationJs location, int x) native;
+  void uniform1i(_WebGLUniformLocationJs location, int x) native;
 
-  void uniform1iv(WebGLUniformLocationJs location, Int32ArrayJs v) native;
+  void uniform1iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
 
-  void uniform2f(WebGLUniformLocationJs location, num x, num y) native;
+  void uniform2f(_WebGLUniformLocationJs location, num x, num y) native;
 
-  void uniform2fv(WebGLUniformLocationJs location, Float32ArrayJs v) native;
+  void uniform2fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
 
-  void uniform2i(WebGLUniformLocationJs location, int x, int y) native;
+  void uniform2i(_WebGLUniformLocationJs location, int x, int y) native;
 
-  void uniform2iv(WebGLUniformLocationJs location, Int32ArrayJs v) native;
+  void uniform2iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
 
-  void uniform3f(WebGLUniformLocationJs location, num x, num y, num z) native;
+  void uniform3f(_WebGLUniformLocationJs location, num x, num y, num z) native;
 
-  void uniform3fv(WebGLUniformLocationJs location, Float32ArrayJs v) native;
+  void uniform3fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
 
-  void uniform3i(WebGLUniformLocationJs location, int x, int y, int z) native;
+  void uniform3i(_WebGLUniformLocationJs location, int x, int y, int z) native;
 
-  void uniform3iv(WebGLUniformLocationJs location, Int32ArrayJs v) native;
+  void uniform3iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
 
-  void uniform4f(WebGLUniformLocationJs location, num x, num y, num z, num w) native;
+  void uniform4f(_WebGLUniformLocationJs location, num x, num y, num z, num w) native;
 
-  void uniform4fv(WebGLUniformLocationJs location, Float32ArrayJs v) native;
+  void uniform4fv(_WebGLUniformLocationJs location, _Float32ArrayJs v) native;
 
-  void uniform4i(WebGLUniformLocationJs location, int x, int y, int z, int w) native;
+  void uniform4i(_WebGLUniformLocationJs location, int x, int y, int z, int w) native;
 
-  void uniform4iv(WebGLUniformLocationJs location, Int32ArrayJs v) native;
+  void uniform4iv(_WebGLUniformLocationJs location, _Int32ArrayJs v) native;
 
-  void uniformMatrix2fv(WebGLUniformLocationJs location, bool transpose, Float32ArrayJs array) native;
+  void uniformMatrix2fv(_WebGLUniformLocationJs location, bool transpose, _Float32ArrayJs array) native;
 
-  void uniformMatrix3fv(WebGLUniformLocationJs location, bool transpose, Float32ArrayJs array) native;
+  void uniformMatrix3fv(_WebGLUniformLocationJs location, bool transpose, _Float32ArrayJs array) native;
 
-  void uniformMatrix4fv(WebGLUniformLocationJs location, bool transpose, Float32ArrayJs array) native;
+  void uniformMatrix4fv(_WebGLUniformLocationJs location, bool transpose, _Float32ArrayJs array) native;
 
-  void useProgram(WebGLProgramJs program) native;
+  void useProgram(_WebGLProgramJs program) native;
 
-  void validateProgram(WebGLProgramJs program) native;
+  void validateProgram(_WebGLProgramJs program) native;
 
   void vertexAttrib1f(int indx, num x) native;
 
-  void vertexAttrib1fv(int indx, Float32ArrayJs values) native;
+  void vertexAttrib1fv(int indx, _Float32ArrayJs values) native;
 
   void vertexAttrib2f(int indx, num x, num y) native;
 
-  void vertexAttrib2fv(int indx, Float32ArrayJs values) native;
+  void vertexAttrib2fv(int indx, _Float32ArrayJs values) native;
 
   void vertexAttrib3f(int indx, num x, num y, num z) native;
 
-  void vertexAttrib3fv(int indx, Float32ArrayJs values) native;
+  void vertexAttrib3fv(int indx, _Float32ArrayJs values) native;
 
   void vertexAttrib4f(int indx, num x, num y, num z, num w) native;
 
-  void vertexAttrib4fv(int indx, Float32ArrayJs values) native;
+  void vertexAttrib4fv(int indx, _Float32ArrayJs values) native;
 
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) native;
 

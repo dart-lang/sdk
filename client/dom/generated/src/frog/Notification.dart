@@ -1,5 +1,5 @@
 
-class NotificationJs extends DOMTypeJs implements Notification native "*Notification" {
+class _NotificationJs extends _DOMTypeJs implements Notification native "*Notification" {
 
   String get dir() native "return this.dir;";
 
@@ -13,7 +13,7 @@ class NotificationJs extends DOMTypeJs implements Notification native "*Notifica
 
   void cancel() native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

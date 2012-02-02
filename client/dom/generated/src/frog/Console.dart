@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ConsoleJs
+class _ConsoleJs
     // Implement DOMType directly.  Console is sometimes a singleton
     // bag-of-properties without a prototype, so it can't inherit from
     // DOMTypeJs.
     implements Console, DOMType
     native "=(typeof console == 'undefined' ? {} : console)" {
 
-  MemoryInfoJs get memory() native "return this.memory;";
+  _MemoryInfoJs get memory() native "return this.memory;";
 
   List get profiles() native "return this.profiles;";
 

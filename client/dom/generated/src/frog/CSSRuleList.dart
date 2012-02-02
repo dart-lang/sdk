@@ -1,7 +1,7 @@
 
-class CSSRuleListJs extends DOMTypeJs implements CSSRuleList native "*CSSRuleList" {
+class _CSSRuleListJs extends _DOMTypeJs implements CSSRuleList native "*CSSRuleList" {
 
   int get length() native "return this.length;";
 
-  CSSRuleJs item(int index) native;
+  _CSSRuleJs item(int index) native;
 }

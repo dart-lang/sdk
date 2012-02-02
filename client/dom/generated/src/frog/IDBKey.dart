@@ -1,3 +1,3 @@
 
-class IDBKeyJs extends DOMTypeJs implements IDBKey native "*IDBKey" {
+class _IDBKeyJs extends _DOMTypeJs implements IDBKey native "*IDBKey" {
 }

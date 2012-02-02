@@ -1,7 +1,7 @@
 
-class SVGElementInstanceListJs extends DOMTypeJs implements SVGElementInstanceList native "*SVGElementInstanceList" {
+class _SVGElementInstanceListJs extends _DOMTypeJs implements SVGElementInstanceList native "*SVGElementInstanceList" {
 
   int get length() native "return this.length;";
 
-  SVGElementInstanceJs item(int index) native;
+  _SVGElementInstanceJs item(int index) native;
 }

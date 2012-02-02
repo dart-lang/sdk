@@ -1,5 +1,5 @@
 
-class IDBDatabaseExceptionJs extends DOMTypeJs implements IDBDatabaseException native "*IDBDatabaseException" {
+class _IDBDatabaseExceptionJs extends _DOMTypeJs implements IDBDatabaseException native "*IDBDatabaseException" {
 
   static final int ABORT_ERR = 8;
 

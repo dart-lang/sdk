@@ -1,5 +1,5 @@
 
-class RangeExceptionJs extends DOMTypeJs implements RangeException native "*RangeException" {
+class _RangeExceptionJs extends _DOMTypeJs implements RangeException native "*RangeException" {
 
   static final int BAD_BOUNDARYPOINTS_ERR = 1;
 

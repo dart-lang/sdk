@@ -1,5 +1,5 @@
 
-class WebGLCompressedTexturesJs extends DOMTypeJs implements WebGLCompressedTextures native "*WebGLCompressedTextures" {
+class _WebGLCompressedTexturesJs extends _DOMTypeJs implements WebGLCompressedTextures native "*WebGLCompressedTextures" {
 
   static final int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
 
@@ -13,7 +13,7 @@ class WebGLCompressedTexturesJs extends DOMTypeJs implements WebGLCompressedText
 
   static final int ETC1_RGB8_OES = 0x8D64;
 
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferViewJs data) native;
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, _ArrayBufferViewJs data) native;
 
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferViewJs data) native;
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, _ArrayBufferViewJs data) native;
 }

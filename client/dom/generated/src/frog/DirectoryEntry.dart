@@ -1,7 +1,7 @@
 
-class DirectoryEntryJs extends EntryJs implements DirectoryEntry native "*DirectoryEntry" {
+class _DirectoryEntryJs extends _EntryJs implements DirectoryEntry native "*DirectoryEntry" {
 
-  DirectoryReaderJs createReader() native;
+  _DirectoryReaderJs createReader() native;
 
   void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 

@@ -1,23 +1,23 @@
 
-class SVGTransformListJs extends DOMTypeJs implements SVGTransformList native "*SVGTransformList" {
+class _SVGTransformListJs extends _DOMTypeJs implements SVGTransformList native "*SVGTransformList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGTransformJs appendItem(SVGTransformJs item) native;
+  _SVGTransformJs appendItem(_SVGTransformJs item) native;
 
   void clear() native;
 
-  SVGTransformJs consolidate() native;
+  _SVGTransformJs consolidate() native;
 
-  SVGTransformJs createSVGTransformFromMatrix(SVGMatrixJs matrix) native;
+  _SVGTransformJs createSVGTransformFromMatrix(_SVGMatrixJs matrix) native;
 
-  SVGTransformJs getItem(int index) native;
+  _SVGTransformJs getItem(int index) native;
 
-  SVGTransformJs initialize(SVGTransformJs item) native;
+  _SVGTransformJs initialize(_SVGTransformJs item) native;
 
-  SVGTransformJs insertItemBefore(SVGTransformJs item, int index) native;
+  _SVGTransformJs insertItemBefore(_SVGTransformJs item, int index) native;
 
-  SVGTransformJs removeItem(int index) native;
+  _SVGTransformJs removeItem(int index) native;
 
-  SVGTransformJs replaceItem(SVGTransformJs item, int index) native;
+  _SVGTransformJs replaceItem(_SVGTransformJs item, int index) native;
 }

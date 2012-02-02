@@ -1,5 +1,5 @@
 
-class XMLHttpRequestExceptionJs extends DOMTypeJs implements XMLHttpRequestException native "*XMLHttpRequestException" {
+class _XMLHttpRequestExceptionJs extends _DOMTypeJs implements XMLHttpRequestException native "*XMLHttpRequestException" {
 
   static final int ABORT_ERR = 102;
 

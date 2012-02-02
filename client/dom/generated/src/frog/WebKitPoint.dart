@@ -1,5 +1,5 @@
 
-class WebKitPointJs extends DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
+class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
   WebKitPoint(num x, num y) native;
 
 

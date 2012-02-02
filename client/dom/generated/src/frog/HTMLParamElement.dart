@@ -1,5 +1,5 @@
 
-class HTMLParamElementJs extends HTMLElementJs implements HTMLParamElement native "*HTMLParamElement" {
+class _HTMLParamElementJs extends _HTMLElementJs implements HTMLParamElement native "*HTMLParamElement" {
 
   String get name() native "return this.name;";
 

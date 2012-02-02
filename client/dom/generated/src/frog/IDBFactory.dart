@@ -1,11 +1,11 @@
 
-class IDBFactoryJs extends DOMTypeJs implements IDBFactory native "*IDBFactory" {
+class _IDBFactoryJs extends _DOMTypeJs implements IDBFactory native "*IDBFactory" {
 
-  int cmp(IDBKeyJs first, IDBKeyJs second) native;
+  int cmp(_IDBKeyJs first, _IDBKeyJs second) native;
 
-  IDBVersionChangeRequestJs deleteDatabase(String name) native;
+  _IDBVersionChangeRequestJs deleteDatabase(String name) native;
 
-  IDBRequestJs getDatabaseNames() native;
+  _IDBRequestJs getDatabaseNames() native;
 
-  IDBRequestJs open(String name) native;
+  _IDBRequestJs open(String name) native;
 }

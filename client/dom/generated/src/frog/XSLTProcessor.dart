@@ -1,11 +1,11 @@
 
-class XSLTProcessorJs extends DOMTypeJs implements XSLTProcessor native "*XSLTProcessor" {
+class _XSLTProcessorJs extends _DOMTypeJs implements XSLTProcessor native "*XSLTProcessor" {
 
   void clearParameters() native;
 
   String getParameter(String namespaceURI, String localName) native;
 
-  void importStylesheet(NodeJs stylesheet) native;
+  void importStylesheet(_NodeJs stylesheet) native;
 
   void removeParameter(String namespaceURI, String localName) native;
 
@@ -13,7 +13,7 @@ class XSLTProcessorJs extends DOMTypeJs implements XSLTProcessor native "*XSLTPr
 
   void setParameter(String namespaceURI, String localName, String value) native;
 
-  DocumentJs transformToDocument(NodeJs source) native;
+  _DocumentJs transformToDocument(_NodeJs source) native;
 
-  DocumentFragmentJs transformToFragment(NodeJs source, DocumentJs docVal) native;
+  _DocumentFragmentJs transformToFragment(_NodeJs source, _DocumentJs docVal) native;
 }

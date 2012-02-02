@@ -1,5 +1,5 @@
 
-class HTMLLIElementJs extends HTMLElementJs implements HTMLLIElement native "*HTMLLIElement" {
+class _HTMLLIElementJs extends _HTMLElementJs implements HTMLLIElement native "*HTMLLIElement" {
 
   String get type() native "return this.type;";
 

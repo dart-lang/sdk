@@ -1,5 +1,5 @@
 
-class SVGAnimatedBooleanJs extends DOMTypeJs implements SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
+class _SVGAnimatedBooleanJs extends _DOMTypeJs implements SVGAnimatedBoolean native "*SVGAnimatedBoolean" {
 
   bool get animVal() native "return this.animVal;";
 

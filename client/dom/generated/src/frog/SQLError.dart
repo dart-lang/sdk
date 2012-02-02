@@ -1,5 +1,5 @@
 
-class SQLErrorJs extends DOMTypeJs implements SQLError native "*SQLError" {
+class _SQLErrorJs extends _DOMTypeJs implements SQLError native "*SQLError" {
 
   static final int CONSTRAINT_ERR = 6;
 

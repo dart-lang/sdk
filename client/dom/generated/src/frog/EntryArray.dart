@@ -1,7 +1,7 @@
 
-class EntryArrayJs extends DOMTypeJs implements EntryArray native "*EntryArray" {
+class _EntryArrayJs extends _DOMTypeJs implements EntryArray native "*EntryArray" {
 
   int get length() native "return this.length;";
 
-  EntryJs item(int index) native;
+  _EntryJs item(int index) native;
 }

@@ -1,5 +1,5 @@
 
-class DataTransferItemListJs extends DOMTypeJs implements DataTransferItemList native "*DataTransferItemList" {
+class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList native "*DataTransferItemList" {
 
   int get length() native "return this.length;";
 
@@ -7,5 +7,5 @@ class DataTransferItemListJs extends DOMTypeJs implements DataTransferItemList n
 
   void clear() native;
 
-  DataTransferItemJs item(int index) native;
+  _DataTransferItemJs item(int index) native;
 }

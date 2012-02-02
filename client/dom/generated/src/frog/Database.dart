@@ -1,5 +1,5 @@
 
-class DatabaseJs extends DOMTypeJs implements Database native "*Database" {
+class _DatabaseJs extends _DOMTypeJs implements Database native "*Database" {
 
   String get version() native "return this.version;";
 

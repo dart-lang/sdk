@@ -1,3 +1,3 @@
 
-class WebGLUniformLocationJs extends DOMTypeJs implements WebGLUniformLocation native "*WebGLUniformLocation" {
+class _WebGLUniformLocationJs extends _DOMTypeJs implements WebGLUniformLocation native "*WebGLUniformLocation" {
 }

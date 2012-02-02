@@ -1,5 +1,5 @@
 
-class WorkerLocationJs extends DOMTypeJs implements WorkerLocation native "*WorkerLocation" {
+class _WorkerLocationJs extends _DOMTypeJs implements WorkerLocation native "*WorkerLocation" {
 
   String get hash() native "return this.hash;";
 

@@ -1,5 +1,5 @@
 
-class HTMLContentElementJs extends HTMLElementJs implements HTMLContentElement native "*HTMLContentElement" {
+class _HTMLContentElementJs extends _HTMLElementJs implements HTMLContentElement native "*HTMLContentElement" {
 
   String get select() native "return this.select;";
 

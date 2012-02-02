@@ -1,5 +1,5 @@
 
-class HTMLDListElementJs extends HTMLElementJs implements HTMLDListElement native "*HTMLDListElement" {
+class _HTMLDListElementJs extends _HTMLElementJs implements HTMLDListElement native "*HTMLDListElement" {
 
   bool get compact() native "return this.compact;";
 

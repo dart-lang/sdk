@@ -1,5 +1,5 @@
 
-class WebSocketJs extends DOMTypeJs implements WebSocket native "*WebSocket" {
+class _WebSocketJs extends _DOMTypeJs implements WebSocket native "*WebSocket" {
   WebSocket(String url) native;
 
 
@@ -31,7 +31,7 @@ class WebSocketJs extends DOMTypeJs implements WebSocket native "*WebSocket" {
 
   void close([int code = null, String reason = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

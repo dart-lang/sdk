@@ -1,5 +1,5 @@
 
-class TimeRangesJs extends DOMTypeJs implements TimeRanges native "*TimeRanges" {
+class _TimeRangesJs extends _DOMTypeJs implements TimeRanges native "*TimeRanges" {
 
   int get length() native "return this.length;";
 

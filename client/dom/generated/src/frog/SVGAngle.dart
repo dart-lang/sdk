@@ -1,5 +1,5 @@
 
-class SVGAngleJs extends DOMTypeJs implements SVGAngle native "*SVGAngle" {
+class _SVGAngleJs extends _DOMTypeJs implements SVGAngle native "*SVGAngle" {
 
   static final int SVG_ANGLETYPE_DEG = 2;
 

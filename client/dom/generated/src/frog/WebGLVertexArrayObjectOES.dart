@@ -1,3 +1,3 @@
 
-class WebGLVertexArrayObjectOESJs extends DOMTypeJs implements WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
+class _WebGLVertexArrayObjectOESJs extends _DOMTypeJs implements WebGLVertexArrayObjectOES native "*WebGLVertexArrayObjectOES" {
 }

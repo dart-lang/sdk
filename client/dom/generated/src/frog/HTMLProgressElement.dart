@@ -1,9 +1,9 @@
 
-class HTMLProgressElementJs extends HTMLElementJs implements HTMLProgressElement native "*HTMLProgressElement" {
+class _HTMLProgressElementJs extends _HTMLElementJs implements HTMLProgressElement native "*HTMLProgressElement" {
 
-  HTMLFormElementJs get form() native "return this.form;";
+  _HTMLFormElementJs get form() native "return this.form;";
 
-  NodeListJs get labels() native "return this.labels;";
+  _NodeListJs get labels() native "return this.labels;";
 
   num get max() native "return this.max;";
 

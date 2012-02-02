@@ -1,7 +1,7 @@
 
-class ScriptProfileJs extends DOMTypeJs implements ScriptProfile native "*ScriptProfile" {
+class _ScriptProfileJs extends _DOMTypeJs implements ScriptProfile native "*ScriptProfile" {
 
-  ScriptProfileNodeJs get head() native "return this.head;";
+  _ScriptProfileNodeJs get head() native "return this.head;";
 
   String get title() native "return this.title;";
 

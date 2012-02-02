@@ -1,5 +1,5 @@
 
-class HTMLAppletElementJs extends HTMLElementJs implements HTMLAppletElement native "*HTMLAppletElement" {
+class _HTMLAppletElementJs extends _HTMLElementJs implements HTMLAppletElement native "*HTMLAppletElement" {
 
   String get align() native "return this.align;";
 

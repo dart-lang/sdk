@@ -1,11 +1,11 @@
 
-class StyleSheetListJs extends DOMTypeJs implements StyleSheetList native "*StyleSheetList" {
+class _StyleSheetListJs extends _DOMTypeJs implements StyleSheetList native "*StyleSheetList" {
 
   int get length() native "return this.length;";
 
-  StyleSheetJs operator[](int index) native "return this[index];";
+  _StyleSheetJs operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, StyleSheetJs value) {
+  void operator[]=(int index, _StyleSheetJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<StyleSheet> mixins.
@@ -76,5 +76,5 @@ class StyleSheetListJs extends DOMTypeJs implements StyleSheetList native "*Styl
 
   // -- end List<StyleSheet> mixins.
 
-  StyleSheetJs item(int index) native;
+  _StyleSheetJs item(int index) native;
 }

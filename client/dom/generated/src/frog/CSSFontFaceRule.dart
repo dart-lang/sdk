@@ -1,5 +1,5 @@
 
-class CSSFontFaceRuleJs extends CSSRuleJs implements CSSFontFaceRule native "*CSSFontFaceRule" {
+class _CSSFontFaceRuleJs extends _CSSRuleJs implements CSSFontFaceRule native "*CSSFontFaceRule" {
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 }

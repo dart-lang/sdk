@@ -1,7 +1,7 @@
 
-class SVGAnimatedRectJs extends DOMTypeJs implements SVGAnimatedRect native "*SVGAnimatedRect" {
+class _SVGAnimatedRectJs extends _DOMTypeJs implements SVGAnimatedRect native "*SVGAnimatedRect" {
 
-  SVGRectJs get animVal() native "return this.animVal;";
+  _SVGRectJs get animVal() native "return this.animVal;";
 
-  SVGRectJs get baseVal() native "return this.baseVal;";
+  _SVGRectJs get baseVal() native "return this.baseVal;";
 }

@@ -1,5 +1,5 @@
 
-class SVGGlyphRefElementJs extends SVGElementJs implements SVGGlyphRefElement native "*SVGGlyphRefElement" {
+class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement native "*SVGGlyphRefElement" {
 
   num get dx() native "return this.dx;";
 
@@ -27,13 +27,13 @@ class SVGGlyphRefElementJs extends SVGElementJs implements SVGGlyphRefElement na
 
   // From SVGURIReference
 
-  SVGAnimatedStringJs get href() native "return this.href;";
+  _SVGAnimatedStringJs get href() native "return this.href;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 }

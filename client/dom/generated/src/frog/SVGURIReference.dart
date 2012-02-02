@@ -1,5 +1,5 @@
 
-class SVGURIReferenceJs extends DOMTypeJs implements SVGURIReference native "*SVGURIReference" {
+class _SVGURIReferenceJs extends _DOMTypeJs implements SVGURIReference native "*SVGURIReference" {
 
-  SVGAnimatedStringJs get href() native "return this.href;";
+  _SVGAnimatedStringJs get href() native "return this.href;";
 }

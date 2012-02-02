@@ -1,5 +1,5 @@
 
-class HTMLAnchorElementJs extends HTMLElementJs implements HTMLAnchorElement native "*HTMLAnchorElement" {
+class _HTMLAnchorElementJs extends _HTMLElementJs implements HTMLAnchorElement native "*HTMLAnchorElement" {
 
   String get charset() native "return this.charset;";
 

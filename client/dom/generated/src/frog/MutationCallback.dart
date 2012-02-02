@@ -1,3 +1,3 @@
 
-class MutationCallbackJs extends DOMTypeJs implements MutationCallback native "*MutationCallback" {
+class _MutationCallbackJs extends _DOMTypeJs implements MutationCallback native "*MutationCallback" {
 }

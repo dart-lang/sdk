@@ -1,5 +1,5 @@
 
-class FileWriterJs extends DOMTypeJs implements FileWriter native "*FileWriter" {
+class _FileWriterJs extends _DOMTypeJs implements FileWriter native "*FileWriter" {
 
   static final int DONE = 2;
 
@@ -7,7 +7,7 @@ class FileWriterJs extends DOMTypeJs implements FileWriter native "*FileWriter" 
 
   static final int WRITING = 1;
 
-  FileErrorJs get error() native "return this.error;";
+  _FileErrorJs get error() native "return this.error;";
 
   int get length() native "return this.length;";
 
@@ -45,5 +45,5 @@ class FileWriterJs extends DOMTypeJs implements FileWriter native "*FileWriter" 
 
   void truncate(int size) native;
 
-  void write(BlobJs data) native;
+  void write(_BlobJs data) native;
 }

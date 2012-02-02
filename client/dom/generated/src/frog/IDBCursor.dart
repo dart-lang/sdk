@@ -1,5 +1,5 @@
 
-class IDBCursorJs extends DOMTypeJs implements IDBCursor native "*IDBCursor" {
+class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   static final int NEXT = 0;
 
@@ -11,15 +11,15 @@ class IDBCursorJs extends DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   int get direction() native "return this.direction;";
 
-  IDBKeyJs get key() native "return this.key;";
+  _IDBKeyJs get key() native "return this.key;";
 
-  IDBKeyJs get primaryKey() native "return this.primaryKey;";
+  _IDBKeyJs get primaryKey() native "return this.primaryKey;";
 
-  IDBAnyJs get source() native "return this.source;";
+  _IDBAnyJs get source() native "return this.source;";
 
-  void continueFunction([IDBKeyJs key = null]) native;
+  void continueFunction([_IDBKeyJs key = null]) native;
 
-  IDBRequestJs delete() native;
+  _IDBRequestJs delete() native;
 
-  IDBRequestJs update(Dynamic value) native;
+  _IDBRequestJs update(Dynamic value) native;
 }

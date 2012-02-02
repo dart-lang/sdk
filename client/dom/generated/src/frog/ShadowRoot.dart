@@ -1,5 +1,5 @@
 
-class ShadowRootJs extends NodeJs implements ShadowRoot native "*ShadowRoot" {
+class _ShadowRootJs extends _NodeJs implements ShadowRoot native "*ShadowRoot" {
 
-  ElementJs get host() native "return this.host;";
+  _ElementJs get host() native "return this.host;";
 }

@@ -1,5 +1,5 @@
 
-class WebGLDebugRendererInfoJs extends DOMTypeJs implements WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
+class _WebGLDebugRendererInfoJs extends _DOMTypeJs implements WebGLDebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static final int UNMASKED_RENDERER_WEBGL = 0x9246;
 

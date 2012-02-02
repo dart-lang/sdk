@@ -1,5 +1,5 @@
 
-class XPathExpressionJs extends DOMTypeJs implements XPathExpression native "*XPathExpression" {
+class _XPathExpressionJs extends _DOMTypeJs implements XPathExpression native "*XPathExpression" {
 
-  XPathResultJs evaluate(NodeJs contextNode, int type, XPathResultJs inResult) native;
+  _XPathResultJs evaluate(_NodeJs contextNode, int type, _XPathResultJs inResult) native;
 }

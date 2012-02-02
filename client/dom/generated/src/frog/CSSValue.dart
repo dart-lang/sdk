@@ -1,5 +1,5 @@
 
-class CSSValueJs extends DOMTypeJs implements CSSValue native "*CSSValue" {
+class _CSSValueJs extends _DOMTypeJs implements CSSValue native "*CSSValue" {
 
   static final int CSS_CUSTOM = 3;
 

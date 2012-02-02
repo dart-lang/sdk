@@ -1,11 +1,11 @@
 
-class TouchListJs extends DOMTypeJs implements TouchList native "*TouchList" {
+class _TouchListJs extends _DOMTypeJs implements TouchList native "*TouchList" {
 
   int get length() native "return this.length;";
 
-  TouchJs operator[](int index) native "return this[index];";
+  _TouchJs operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, TouchJs value) {
+  void operator[]=(int index, _TouchJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<Touch> mixins.
@@ -76,5 +76,5 @@ class TouchListJs extends DOMTypeJs implements TouchList native "*TouchList" {
 
   // -- end List<Touch> mixins.
 
-  TouchJs item(int index) native;
+  _TouchJs item(int index) native;
 }

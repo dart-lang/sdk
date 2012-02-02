@@ -1871,7 +1871,7 @@ class FrogInterfaceGenerator(object):
       # The implementation is a singleton with no prototype.
       extends = ''
     else:
-      extends = ' extends DOMTypeJs'
+      extends = ' extends _DOMTypeJs'
 
     # TODO: Include all implemented interfaces, including other Lists.
     implements = [interface_name]
@@ -1905,7 +1905,7 @@ class FrogInterfaceGenerator(object):
     pass
 
   def _ImplClassName(self, type_name):
-    return type_name + 'Js'
+    return '_' + type_name + 'Js'
 
   def _NarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.

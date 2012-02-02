@@ -1,5 +1,5 @@
 
-class DOMPluginJs extends DOMTypeJs implements DOMPlugin native "*DOMPlugin" {
+class _DOMPluginJs extends _DOMTypeJs implements DOMPlugin native "*DOMPlugin" {
 
   String get description() native "return this.description;";
 
@@ -9,7 +9,7 @@ class DOMPluginJs extends DOMTypeJs implements DOMPlugin native "*DOMPlugin" {
 
   String get name() native "return this.name;";
 
-  DOMMimeTypeJs item(int index) native;
+  _DOMMimeTypeJs item(int index) native;
 
-  DOMMimeTypeJs namedItem(String name) native;
+  _DOMMimeTypeJs namedItem(String name) native;
 }

@@ -1,19 +1,19 @@
 
-class SVGFESpotLightElementJs extends SVGElementJs implements SVGFESpotLightElement native "*SVGFESpotLightElement" {
+class _SVGFESpotLightElementJs extends _SVGElementJs implements SVGFESpotLightElement native "*SVGFESpotLightElement" {
 
-  SVGAnimatedNumberJs get limitingConeAngle() native "return this.limitingConeAngle;";
+  _SVGAnimatedNumberJs get limitingConeAngle() native "return this.limitingConeAngle;";
 
-  SVGAnimatedNumberJs get pointsAtX() native "return this.pointsAtX;";
+  _SVGAnimatedNumberJs get pointsAtX() native "return this.pointsAtX;";
 
-  SVGAnimatedNumberJs get pointsAtY() native "return this.pointsAtY;";
+  _SVGAnimatedNumberJs get pointsAtY() native "return this.pointsAtY;";
 
-  SVGAnimatedNumberJs get pointsAtZ() native "return this.pointsAtZ;";
+  _SVGAnimatedNumberJs get pointsAtZ() native "return this.pointsAtZ;";
 
-  SVGAnimatedNumberJs get specularExponent() native "return this.specularExponent;";
+  _SVGAnimatedNumberJs get specularExponent() native "return this.specularExponent;";
 
-  SVGAnimatedNumberJs get x() native "return this.x;";
+  _SVGAnimatedNumberJs get x() native "return this.x;";
 
-  SVGAnimatedNumberJs get y() native "return this.y;";
+  _SVGAnimatedNumberJs get y() native "return this.y;";
 
-  SVGAnimatedNumberJs get z() native "return this.z;";
+  _SVGAnimatedNumberJs get z() native "return this.z;";
 }

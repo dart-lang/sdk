@@ -1,5 +1,5 @@
 
-class SVGPointJs extends DOMTypeJs implements SVGPoint native "*SVGPoint" {
+class _SVGPointJs extends _DOMTypeJs implements SVGPoint native "*SVGPoint" {
 
   num get x() native "return this.x;";
 
@@ -9,5 +9,5 @@ class SVGPointJs extends DOMTypeJs implements SVGPoint native "*SVGPoint" {
 
   void set y(num value) native "this.y = value;";
 
-  SVGPointJs matrixTransform(SVGMatrixJs matrix) native;
+  _SVGPointJs matrixTransform(_SVGMatrixJs matrix) native;
 }

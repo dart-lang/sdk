@@ -1,5 +1,5 @@
 
-class SVGExceptionJs extends DOMTypeJs implements SVGException native "*SVGException" {
+class _SVGExceptionJs extends _DOMTypeJs implements SVGException native "*SVGException" {
 
   static final int SVG_INVALID_VALUE_ERR = 1;
 

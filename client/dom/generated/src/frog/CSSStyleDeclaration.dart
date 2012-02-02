@@ -1,5 +1,5 @@
 
-class CSSStyleDeclarationJs extends DOMTypeJs implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
+class _CSSStyleDeclarationJs extends _DOMTypeJs implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
   String get cssText() native "return this.cssText;";
 
@@ -7,9 +7,9 @@ class CSSStyleDeclarationJs extends DOMTypeJs implements CSSStyleDeclaration nat
 
   int get length() native "return this.length;";
 
-  CSSRuleJs get parentRule() native "return this.parentRule;";
+  _CSSRuleJs get parentRule() native "return this.parentRule;";
 
-  CSSValueJs getPropertyCSSValue(String propertyName) native;
+  _CSSValueJs getPropertyCSSValue(String propertyName) native;
 
   String getPropertyPriority(String propertyName) native;
 

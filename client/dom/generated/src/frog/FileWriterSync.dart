@@ -1,5 +1,5 @@
 
-class FileWriterSyncJs extends DOMTypeJs implements FileWriterSync native "*FileWriterSync" {
+class _FileWriterSyncJs extends _DOMTypeJs implements FileWriterSync native "*FileWriterSync" {
 
   int get length() native "return this.length;";
 
@@ -9,5 +9,5 @@ class FileWriterSyncJs extends DOMTypeJs implements FileWriterSync native "*File
 
   void truncate(int size) native;
 
-  void write(BlobJs data) native;
+  void write(_BlobJs data) native;
 }

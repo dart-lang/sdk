@@ -1,5 +1,5 @@
 
-class Int32ArrayJs extends ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
+class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
 
   factory Int32Array(int length) =>  _construct_Int32Array(length);
 
@@ -86,5 +86,5 @@ class Int32ArrayJs extends ArrayBufferViewJs implements Int32Array, List<int> na
 
   void setElements(Object array, [int offset = null]) native;
 
-  Int32ArrayJs subarray(int start, [int end = null]) native;
+  _Int32ArrayJs subarray(int start, [int end = null]) native;
 }

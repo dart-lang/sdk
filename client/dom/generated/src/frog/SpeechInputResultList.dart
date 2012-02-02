@@ -1,7 +1,7 @@
 
-class SpeechInputResultListJs extends DOMTypeJs implements SpeechInputResultList native "*SpeechInputResultList" {
+class _SpeechInputResultListJs extends _DOMTypeJs implements SpeechInputResultList native "*SpeechInputResultList" {
 
   int get length() native "return this.length;";
 
-  SpeechInputResultJs item(int index) native;
+  _SpeechInputResultJs item(int index) native;
 }

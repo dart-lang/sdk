@@ -1,7 +1,7 @@
 
-class SVGAnimatedAngleJs extends DOMTypeJs implements SVGAnimatedAngle native "*SVGAnimatedAngle" {
+class _SVGAnimatedAngleJs extends _DOMTypeJs implements SVGAnimatedAngle native "*SVGAnimatedAngle" {
 
-  SVGAngleJs get animVal() native "return this.animVal;";
+  _SVGAngleJs get animVal() native "return this.animVal;";
 
-  SVGAngleJs get baseVal() native "return this.baseVal;";
+  _SVGAngleJs get baseVal() native "return this.baseVal;";
 }

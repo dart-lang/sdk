@@ -1,5 +1,5 @@
 
-class IDBDatabaseErrorJs extends DOMTypeJs implements IDBDatabaseError native "*IDBDatabaseError" {
+class _IDBDatabaseErrorJs extends _DOMTypeJs implements IDBDatabaseError native "*IDBDatabaseError" {
 
   int get code() native "return this.code;";
 

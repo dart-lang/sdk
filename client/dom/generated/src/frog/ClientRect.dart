@@ -1,5 +1,5 @@
 
-class ClientRectJs extends DOMTypeJs implements ClientRect native "*ClientRect" {
+class _ClientRectJs extends _DOMTypeJs implements ClientRect native "*ClientRect" {
 
   num get bottom() native "return this.bottom;";
 

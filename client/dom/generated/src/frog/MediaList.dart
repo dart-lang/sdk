@@ -1,5 +1,5 @@
 
-class MediaListJs extends DOMTypeJs implements MediaList native "*MediaList" {
+class _MediaListJs extends _DOMTypeJs implements MediaList native "*MediaList" {
 
   int get length() native "return this.length;";
 

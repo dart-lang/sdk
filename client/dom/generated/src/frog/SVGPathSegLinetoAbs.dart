@@ -1,5 +1,5 @@
 
-class SVGPathSegLinetoAbsJs extends SVGPathSegJs implements SVGPathSegLinetoAbs native "*SVGPathSegLinetoAbs" {
+class _SVGPathSegLinetoAbsJs extends _SVGPathSegJs implements SVGPathSegLinetoAbs native "*SVGPathSegLinetoAbs" {
 
   num get x() native "return this.x;";
 

@@ -1,5 +1,5 @@
 
-class DeviceOrientationEventJs extends EventJs implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
+class _DeviceOrientationEventJs extends _EventJs implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
 
   bool get absolute() native "return this.absolute;";
 

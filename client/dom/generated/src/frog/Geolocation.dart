@@ -1,5 +1,5 @@
 
-class GeolocationJs extends DOMTypeJs implements Geolocation native "*Geolocation" {
+class _GeolocationJs extends _DOMTypeJs implements Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
 

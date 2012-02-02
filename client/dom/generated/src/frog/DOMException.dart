@@ -1,5 +1,5 @@
 
-class DOMExceptionJs extends DOMTypeJs implements DOMException native "*DOMException" {
+class _DOMExceptionJs extends _DOMTypeJs implements DOMException native "*DOMException" {
 
   static final int ABORT_ERR = 20;
 

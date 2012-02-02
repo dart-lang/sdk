@@ -1,5 +1,5 @@
 
-class HTMLHtmlElementJs extends HTMLElementJs implements HTMLHtmlElement native "*HTMLHtmlElement" {
+class _HTMLHtmlElementJs extends _HTMLElementJs implements HTMLHtmlElement native "*HTMLHtmlElement" {
 
   String get manifest() native "return this.manifest;";
 

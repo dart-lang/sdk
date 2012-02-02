@@ -1,5 +1,5 @@
 
-class ValidityStateJs extends DOMTypeJs implements ValidityState native "*ValidityState" {
+class _ValidityStateJs extends _DOMTypeJs implements ValidityState native "*ValidityState" {
 
   bool get customError() native "return this.customError;";
 

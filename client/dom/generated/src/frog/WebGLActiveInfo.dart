@@ -1,5 +1,5 @@
 
-class WebGLActiveInfoJs extends DOMTypeJs implements WebGLActiveInfo native "*WebGLActiveInfo" {
+class _WebGLActiveInfoJs extends _DOMTypeJs implements WebGLActiveInfo native "*WebGLActiveInfo" {
 
   String get name() native "return this.name;";
 

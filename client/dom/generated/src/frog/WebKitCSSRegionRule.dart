@@ -1,5 +1,5 @@
 
-class WebKitCSSRegionRuleJs extends CSSRuleJs implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
+class _WebKitCSSRegionRuleJs extends _CSSRuleJs implements WebKitCSSRegionRule native "*WebKitCSSRegionRule" {
 
-  CSSRuleListJs get cssRules() native "return this.cssRules;";
+  _CSSRuleListJs get cssRules() native "return this.cssRules;";
 }

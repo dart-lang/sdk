@@ -1,25 +1,25 @@
 
-class SVGFETileElementJs extends SVGElementJs implements SVGFETileElement native "*SVGFETileElement" {
+class _SVGFETileElementJs extends _SVGElementJs implements SVGFETileElement native "*SVGFETileElement" {
 
-  SVGAnimatedStringJs get in1() native "return this.in1;";
+  _SVGAnimatedStringJs get in1() native "return this.in1;";
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  SVGAnimatedLengthJs get height() native "return this.height;";
+  _SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGAnimatedStringJs get result() native "return this.result;";
+  _SVGAnimatedStringJs get result() native "return this.result;";
 
-  SVGAnimatedLengthJs get width() native "return this.width;";
+  _SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJs get x() native "return this.x;";
+  _SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJs get y() native "return this.y;";
+  _SVGAnimatedLengthJs get y() native "return this.y;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 }

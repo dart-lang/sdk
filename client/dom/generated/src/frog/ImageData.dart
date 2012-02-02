@@ -1,7 +1,7 @@
 
-class ImageDataJs extends DOMTypeJs implements ImageData native "*ImageData" {
+class _ImageDataJs extends _DOMTypeJs implements ImageData native "*ImageData" {
 
-  CanvasPixelArrayJs get data() native "return this.data;";
+  _CanvasPixelArrayJs get data() native "return this.data;";
 
   int get height() native "return this.height;";
 

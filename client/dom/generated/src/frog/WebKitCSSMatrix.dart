@@ -1,5 +1,5 @@
 
-class WebKitCSSMatrixJs extends DOMTypeJs implements WebKitCSSMatrix native "*WebKitCSSMatrix" {
+class _WebKitCSSMatrixJs extends _DOMTypeJs implements WebKitCSSMatrix native "*WebKitCSSMatrix" {
   WebKitCSSMatrix([String spec]) native;
 
 
@@ -91,23 +91,23 @@ class WebKitCSSMatrixJs extends DOMTypeJs implements WebKitCSSMatrix native "*We
 
   void set m44(num value) native "this.m44 = value;";
 
-  WebKitCSSMatrixJs inverse() native;
+  _WebKitCSSMatrixJs inverse() native;
 
-  WebKitCSSMatrixJs multiply(WebKitCSSMatrixJs secondMatrix) native;
+  _WebKitCSSMatrixJs multiply(_WebKitCSSMatrixJs secondMatrix) native;
 
-  WebKitCSSMatrixJs rotate(num rotX, num rotY, num rotZ) native;
+  _WebKitCSSMatrixJs rotate(num rotX, num rotY, num rotZ) native;
 
-  WebKitCSSMatrixJs rotateAxisAngle(num x, num y, num z, num angle) native;
+  _WebKitCSSMatrixJs rotateAxisAngle(num x, num y, num z, num angle) native;
 
-  WebKitCSSMatrixJs scale(num scaleX, num scaleY, num scaleZ) native;
+  _WebKitCSSMatrixJs scale(num scaleX, num scaleY, num scaleZ) native;
 
   void setMatrixValue(String string) native;
 
-  WebKitCSSMatrixJs skewX(num angle) native;
+  _WebKitCSSMatrixJs skewX(num angle) native;
 
-  WebKitCSSMatrixJs skewY(num angle) native;
+  _WebKitCSSMatrixJs skewY(num angle) native;
 
   String toString() native;
 
-  WebKitCSSMatrixJs translate(num x, num y, num z) native;
+  _WebKitCSSMatrixJs translate(num x, num y, num z) native;
 }

@@ -1,5 +1,5 @@
 
-class PerformanceTimingJs extends DOMTypeJs implements PerformanceTiming native "*PerformanceTiming" {
+class _PerformanceTimingJs extends _DOMTypeJs implements PerformanceTiming native "*PerformanceTiming" {
 
   int get connectEnd() native "return this.connectEnd;";
 

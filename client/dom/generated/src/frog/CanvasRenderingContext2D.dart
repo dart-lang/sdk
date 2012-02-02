@@ -1,5 +1,5 @@
 
-class CanvasRenderingContext2DJs extends CanvasRenderingContextJs implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
+class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
   Dynamic get fillStyle() native "return this.fillStyle;";
 
@@ -85,17 +85,17 @@ class CanvasRenderingContext2DJs extends CanvasRenderingContextJs implements Can
 
   void closePath() native;
 
-  ImageDataJs createImageData(var imagedata_OR_sw, [num sh = null]) native;
+  _ImageDataJs createImageData(var imagedata_OR_sw, [num sh = null]) native;
 
-  CanvasGradientJs createLinearGradient(num x0, num y0, num x1, num y1) native;
+  _CanvasGradientJs createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  CanvasPatternJs createPattern(var canvas_OR_image, String repetitionType) native;
+  _CanvasPatternJs createPattern(var canvas_OR_image, String repetitionType) native;
 
-  CanvasGradientJs createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
+  _CanvasGradientJs createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
   void drawImage(var canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
 
-  void drawImageFromRect(HTMLImageElementJs image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
+  void drawImageFromRect(_HTMLImageElementJs image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
 
   void fill() native;
 
@@ -103,17 +103,17 @@ class CanvasRenderingContext2DJs extends CanvasRenderingContextJs implements Can
 
   void fillText(String text, num x, num y, [num maxWidth = null]) native;
 
-  ImageDataJs getImageData(num sx, num sy, num sw, num sh) native;
+  _ImageDataJs getImageData(num sx, num sy, num sw, num sh) native;
 
   bool isPointInPath(num x, num y) native;
 
   void lineTo(num x, num y) native;
 
-  TextMetricsJs measureText(String text) native;
+  _TextMetricsJs measureText(String text) native;
 
   void moveTo(num x, num y) native;
 
-  void putImageData(ImageDataJs imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
+  void putImageData(_ImageDataJs imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 

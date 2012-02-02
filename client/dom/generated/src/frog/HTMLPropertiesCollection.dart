@@ -1,7 +1,7 @@
 
-class HTMLPropertiesCollectionJs extends HTMLCollectionJs implements HTMLPropertiesCollection native "*HTMLPropertiesCollection" {
+class _HTMLPropertiesCollectionJs extends _HTMLCollectionJs implements HTMLPropertiesCollection native "*HTMLPropertiesCollection" {
 
   int get length() native "return this.length;";
 
-  NodeJs item(int index) native;
+  _NodeJs item(int index) native;
 }

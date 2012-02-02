@@ -1,5 +1,5 @@
 
-class WebKitMutationObserverJs extends DOMTypeJs implements WebKitMutationObserver native "*WebKitMutationObserver" {
+class _WebKitMutationObserverJs extends _DOMTypeJs implements WebKitMutationObserver native "*WebKitMutationObserver" {
 
   void disconnect() native;
 }

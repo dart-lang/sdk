@@ -1,5 +1,5 @@
 
-class LocationJs extends DOMTypeJs implements Location native "*Location" {
+class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
 
   String get hash() native "return this.hash;";
 
