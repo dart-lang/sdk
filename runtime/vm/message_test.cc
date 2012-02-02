@@ -155,8 +155,8 @@ void MessageReceiver_start(uword unused) {
 TEST_CASE(MessageQueue_WaitNotify) {
   sync = new Monitor();
 
-  Thread* thread = new Thread(MessageReceiver_start, 0);
-  EXPECT(thread != NULL);
+  int result = Thread::Start(MessageReceiver_start, 0);
+  EXPECT_EQ(0, result);
 
   // Wait for the shared queue to be created.
   while (shared_queue == NULL) {

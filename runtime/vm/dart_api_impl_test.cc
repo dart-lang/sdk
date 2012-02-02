@@ -3116,8 +3116,8 @@ TEST_CASE(IsolateInterrupt) {
   Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
 
   sync = new Monitor();
-  Thread* thread = new Thread(BusyLoop_start, 0);
-  EXPECT(thread != NULL);
+  int result = Thread::Start(BusyLoop_start, 0);
+  EXPECT_EQ(0, result);
 
   {
     MonitorLocker ml(sync);

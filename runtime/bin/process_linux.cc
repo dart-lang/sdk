@@ -120,7 +120,10 @@ class ExitCodeHandler {
 
     // Start thread that polls the pipe and handles process exits when
     // data is received on the pipe.
-    new dart::Thread(ExitCodeHandlerEntry, sig_chld_fds_[0]);
+    result = dart::Thread::Start(ExitCodeHandlerEntry, sig_chld_fds_[0]);
+    if (result != 0) {
+      FATAL1("Failed to start exit code handler worker thread %d", result);
+    }
 
     // Mark write end non-blocking.
     FDUtils::SetNonBlocking(sig_chld_fds_[1]);

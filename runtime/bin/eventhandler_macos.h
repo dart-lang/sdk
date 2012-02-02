@@ -103,7 +103,7 @@ class EventHandlerImplementation {
   struct pollfd* GetPollFds(intptr_t* size);
   void HandleEvents(struct pollfd* pollfds, int pollfds_size, int result_size);
   void HandleTimeout();
-  static void* Poll(void* args);
+  static void Poll(uword args);
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   void HandleInterruptFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);

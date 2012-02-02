@@ -51,12 +51,6 @@
     'set_test.cc',
     'thread.h',
     'thread_pool.cc',
-    'thread_pool_linux.cc',
-    'thread_pool_linux.h',
-    'thread_pool_macos.cc',
-    'thread_pool_macos.h',
     'thread_pool_test.cc',
-    'thread_pool_win.cc',
-    'thread_pool_win.h',
   ],
 }

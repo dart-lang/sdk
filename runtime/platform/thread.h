@@ -22,17 +22,12 @@ namespace dart {
 
 class Thread {
  public:
-  // Function to be called on thread start.
   typedef void (*ThreadStartFunction) (uword parameter);
 
-  // TODO(iposva): Define the proper interface for spawning and killing threads.
-  Thread(ThreadStartFunction function, uword parameters);
-  ~Thread();
-
- private:
-  ThreadData data_;
-
-  DISALLOW_COPY_AND_ASSIGN(Thread);
+  // Start a thread running the specified function. Returns 0 if the
+  // thread started successfuly and a system specific error code if
+  // the thread failed to start.
+  static int Start(ThreadStartFunction function, uword parameters);
 };
 
 

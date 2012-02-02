@@ -193,8 +193,8 @@ void ThreadedPort_start(uword parameter) {
 TEST_CASE(ThreadedPort) {
   intptr_t local = PortMap::CreatePort(Isolate::Current()->message_handler());
 
-  Thread* thr = new Thread(ThreadedPort_start, local);
-  EXPECT(thr != NULL);
+  int result = Thread::Start(ThreadedPort_start, local);
+  EXPECT_EQ(0, result);
 
   Message* msg = NextMessage();
   EXPECT_EQ(local, msg->dest_port());

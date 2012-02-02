@@ -299,7 +299,10 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
                                strdup(library_url),
                                strdup(class_name),
                                port_id));
-      new Thread(RunIsolate, data);
+      int result = Thread::Start(RunIsolate, data);
+      if (result != 0) {
+        FATAL1("Failed to start isolate thread %d", result);
+      }
     } else {
       // Error spawning the isolate, maybe due to initialization errors or
       // errors while loading the application into spawned isolate, shut

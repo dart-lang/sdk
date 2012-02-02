@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/eventhandler.h"
+
 #include <errno.h>
 #include <poll.h>
 #include <pthread.h>
@@ -10,7 +12,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "bin/eventhandler.h"
 #include "bin/fdutils.h"
 #include "bin/hashmap.h"
 #include "platform/utils.h"
@@ -337,11 +338,12 @@ void EventHandlerImplementation::HandleTimeout() {
 }
 
 
-void* EventHandlerImplementation::Poll(void* args) {
+void EventHandlerImplementation::Poll(uword args) {
   intptr_t pollfds_size;
   struct pollfd* pollfds;
   EventHandlerImplementation* handler =
       reinterpret_cast<EventHandlerImplementation*>(args);
+  ASSERT(handler != NULL);
   while (1) {
     pollfds = handler->GetPollFds(&pollfds_size);
     intptr_t millis = handler->GetTimeout();
@@ -357,18 +359,14 @@ void* EventHandlerImplementation::Poll(void* args) {
     }
     free(pollfds);
   }
-  return NULL;
 }
 
 
 void EventHandlerImplementation::StartEventHandler() {
-  pthread_t handler_thread;
-  int result = pthread_create(&handler_thread,
-                              NULL,
-                              &EventHandlerImplementation::Poll,
-                              this);
+  int result = dart::Thread::Start(&EventHandlerImplementation::Poll,
+                                   reinterpret_cast<uword>(this));
   if (result != 0) {
-    FATAL("Create start event handler thread");
+    FATAL1("Failed to start event handler thread %d", result);
   }
 }
 

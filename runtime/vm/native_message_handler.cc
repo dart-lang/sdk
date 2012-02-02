@@ -60,7 +60,10 @@ static void RunWorker(uword parameter) {
 
 
 void NativeMessageHandler::StartWorker() {
-  new Thread(RunWorker, reinterpret_cast<uword>(this));
+  int result = Thread::Start(RunWorker, reinterpret_cast<uword>(this));
+  if (result != 0) {
+    FATAL1("Failed to start native message handler worker thread %d", result);
+  }
 }
 
 

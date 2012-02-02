@@ -10,27 +10,37 @@
 
 namespace dart {
 
-#define VALIDATE_PTHREAD_RESULT(result) \
+#define VALIDATE_PTHREAD_RESULT(result)         \
   if (result != 0) { \
     FATAL2("pthread error: %d (%s)", result, strerror(result)); \
   }
 
 
+#ifdef DEBUG
+#define RETURN_ON_PTHREAD_FAILURE(result) \
+  if (result != 0) { \
+    fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
+            __FILE__, __LINE__, result, strerror(result)); \
+    return result; \
+  }
+#else
+#define RETURN_ON_PTHREAD_FAILURE(result) \
+  if (result != 0) return result;
+#endif
+
+
 class ThreadStartData {
  public:
   ThreadStartData(Thread::ThreadStartFunction function,
-                  uword parameter,
-                  Thread* thread)
-      : function_(function), parameter_(parameter), thread_(thread) {}
+                  uword parameter)
+      : function_(function), parameter_(parameter) {}
 
   Thread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
-  Thread* thread() const { return thread_; }
 
  private:
   Thread::ThreadStartFunction function_;
   uword parameter_;
-  Thread* thread_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
@@ -44,47 +54,36 @@ static void* ThreadStart(void* data_ptr) {
 
   Thread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
-  Thread* thread = data->thread();
   delete data;
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
 
-  // When the function returns here, make sure that the thread is deleted.
-  delete thread;
-
   return NULL;
 }
 
 
-Thread::Thread(ThreadStartFunction function, uword parameter) {
+int Thread::Start(ThreadStartFunction function, uword parameter) {
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
+  RETURN_ON_PTHREAD_FAILURE(result);
 
   result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  VALIDATE_PTHREAD_RESULT(result);
+  RETURN_ON_PTHREAD_FAILURE(result);
 
   result = pthread_attr_setstacksize(&attr, 128 * KB);
-  VALIDATE_PTHREAD_RESULT(result);
+  RETURN_ON_PTHREAD_FAILURE(result);
 
-  ThreadStartData* data = new ThreadStartData(function, parameter, this);
+  ThreadStartData* data = new ThreadStartData(function, parameter);
 
   pthread_t tid;
-  result = pthread_create(&tid,
-                          &attr,
-                          ThreadStart,
-                          data);
-  VALIDATE_PTHREAD_RESULT(result);
-
-  data_.tid_ = tid;
+  result = pthread_create(&tid, &attr, ThreadStart, data);
+  RETURN_ON_PTHREAD_FAILURE(result);
 
   result = pthread_attr_destroy(&attr);
-  VALIDATE_PTHREAD_RESULT(result);
-}
+  RETURN_ON_PTHREAD_FAILURE(result);
 
-
-Thread::~Thread() {
+  return 0;
 }
 
 

@@ -16,22 +16,6 @@
 
 namespace dart {
 
-class ThreadData {
- private:
-  ThreadData() {}
-  ~ThreadData() {}
-
-  pthread_t* tid() { return &tid_; }
-
-  pthread_t tid_;
-
-  friend class Thread;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ThreadData);
-};
-
-
 class MutexData {
  private:
   MutexData() {}
