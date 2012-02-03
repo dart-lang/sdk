@@ -36,6 +36,7 @@ public class SharedTests extends TestSetup {
       TEST_PY,
       "--component=dartc",
       "--mode=release",
+      "--progress=silent",
       "--list"};
 
   public SharedTests(Test test) {

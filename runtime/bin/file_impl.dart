@@ -502,10 +502,12 @@ class _File implements File {
       }
       return;
     }
-    var handler =
-        (_existsHandler != null) ? _existsHandler : (result) => null;
     var operation = new _ExistsOperation(_name);
-    _scheduler.enqueue(operation, (result, ignored) { _existsHandler(result); });
+    _scheduler.enqueue(operation, (result, ignored) {
+      var handler =
+          (_existsHandler != null) ? _existsHandler : (result) => null;
+      handler(result);
+    });
   }
 
   bool existsSync() {
@@ -521,8 +523,8 @@ class _File implements File {
 
   void create() {
     _asyncUsed = true;
-    var handler = (_createHandler != null) ? _createHandler : () => null;
     var handleCreateResult = (created, ignored) {
+      var handler = (_createHandler != null) ? _createHandler : () => null;
       if (created) {
         handler();
       } else if (_errorHandler != null) {
@@ -546,8 +548,8 @@ class _File implements File {
 
   void delete() {
     _asyncUsed = true;
-    var handler = (_deleteHandler != null) ? _deleteHandler : () => null;
     var handleDeleteResult = (created, ignored) {
+      var handler = (_deleteHandler != null) ? _deleteHandler : () => null;
       if (created) {
         handler();
       } else if (_errorHandler != null) {
@@ -580,13 +582,13 @@ class _File implements File {
         return;
       }
     }
-    // If no open handler is present, close the file immediately to
-    // avoid leaking an open file descriptor.
-    var handler = _openHandler;
-    if (handler === null) {
-      handler = (file) => file.close();
-    }
     var handleOpenResult = (id, ignored) {
+      // If no open handler is present, close the file immediately to
+      // avoid leaking an open file descriptor.
+      var handler = _openHandler;
+      if (handler === null) {
+        handler = (file) => file.close();
+      }
       if (id != 0) {
         var randomAccessFile = new _RandomAccessFile(id, _name);
         handler(randomAccessFile);
@@ -618,9 +620,9 @@ class _File implements File {
 
   void fullPath() {
     _asyncUsed = true;
-    var handler = _fullPathHandler;
-    if (handler == null) handler = (path) => null;
     var handleFullPathResult = (result, ignored) {
+      var handler = _fullPathHandler;
+      if (handler == null) handler = (path) => null;
       if (result != null) {
         handler(result);
       } else if (_errorHandler != null) {
@@ -694,8 +696,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void close() {
     _asyncUsed = true;
-    var handler = (_closeHandler != null) ? _closeHandler : () => null;
     var handleCloseResult = (result, ignored) {
+      var handler = (_closeHandler != null) ? _closeHandler : () => null;
       if (result != -1) {
         _id = result;
         handler();
@@ -721,9 +723,9 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void readByte() {
     _asyncUsed = true;
-    var handler =
-        (_readByteHandler != null) ? _readByteHandler : (byte) => null;
     var handleReadByteResult = (result, ignored) {
+      var handler =
+          (_readByteHandler != null) ? _readByteHandler : (byte) => null;
       if (result != -1) {
         handler(result);
       } else if (_errorHandler != null) {
@@ -754,9 +756,9 @@ class _RandomAccessFile implements RandomAccessFile {
       }
       return;
     };
-    var handler =
-        (_readListHandler != null) ? _readListHandler : (result) => null;
     var handleReadListResult = (result, ignored) {
+      var handler =
+          (_readListHandler != null) ? _readListHandler : (result) => null;
       if (result is _ReadListResult && result.read != -1) {
         var read = result.read;
         buffer.setRange(offset, read, result.buffer);
@@ -909,8 +911,9 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void position() {
     _asyncUsed = true;
-    var handler = (_positionHandler != null) ? _positionHandler : (pos) => null;
     var handlePositionResult = (result, ignored) {
+      var handler =
+          (_positionHandler != null) ? _positionHandler : (pos) => null;
       if (result == -1 && _errorHandler != null) {
         _errorHandler("position failed");
         return;
@@ -935,9 +938,9 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void setPosition(int position) {
     _asyncUsed = true;
-    var handler =
-        (_setPositionHandler != null) ? _setPositionHandler : () => null;
     var handleSetPositionResult = (result, ignored) {
+      var handler =
+          (_setPositionHandler != null) ? _setPositionHandler : () => null;
       if (result == false && _errorHandler != null) {
         _errorHandler("setPosition failed");
         return;
@@ -961,8 +964,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void truncate(int length) {
     _asyncUsed = true;
-    var handler = (_truncateHandler != null) ? _truncateHandler : () => null;
     var handleTruncateResult = (result, ignored) {
+      var handler = (_truncateHandler != null) ? _truncateHandler : () => null;
       if (result == false && _errorHandler != null) {
         _errorHandler("truncate failed");
         return;
@@ -986,8 +989,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void length() {
     _asyncUsed = true;
-    var handler = (_lengthHandler != null) ? _lengthHandler : (pos) => null;
     var handleLengthResult = (result, ignored) {
+      var handler = (_lengthHandler != null) ? _lengthHandler : (pos) => null;
       if (result == -1 && _errorHandler != null) {
         _errorHandler("length failed");
         return;
@@ -1012,8 +1015,8 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void flush() {
     _asyncUsed = true;
-    var handler = (_flushHandler != null) ? _flushHandler : (pos) => null;
     var handleFlushResult = (result, ignored) {
+      var handler = (_flushHandler != null) ? _flushHandler : (pos) => null;
       if (result == -1 && _errorHandler != null) {
         _errorHandler("flush failed");
         return;

@@ -19,7 +19,7 @@
   V(Directory_Exists, 1)                                                       \
   V(Directory_Create, 1)                                                       \
   V(Directory_CreateTemp, 2)                                                   \
-  V(Directory_Delete, 1)                                                       \
+  V(Directory_Delete, 2)                                                       \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
   V(Exit, 1)                                                                   \

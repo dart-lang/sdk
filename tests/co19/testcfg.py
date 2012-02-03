@@ -84,25 +84,13 @@ class Co19TestConfiguration(test.TestConfiguration):
         test_path.extend(root.split(os.path.sep)[strip:])
         test_name = short_name = f
 
-        # shotlen test_name
-        # remove repeats
-        if short_name.startswith(test_path[-1]):
-          short_name = short_name[len(test_path[-1]) : ]
-
         # remove suffixes
         if short_name.endswith(".dart"):
           short_name = short_name[:-5]  # Remove .dart suffix.
-        # now .app suffix discarded at self.IsTest()
-        #elif short_name.endswith(".app"):
-        #  short_name = short_name[:-4]  # Remove .app suffix.
         else:
           raise Error('Unknown suffix in "%s", fix IsTest() predicate' % f)
 
-
-        while short_name.startswith('_'):
-          short_name = short_name[1:]
-
-        test_path.extend(short_name.split('_'))
+        test_path.append(short_name)
 
         # test full name and shorted name matches given path pattern
         if self.Contains(path, test_path): pass

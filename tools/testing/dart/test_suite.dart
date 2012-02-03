@@ -72,8 +72,6 @@ class CCTestSuite implements TestSuite {
 
   }
 
-  bool complexStatusMatching() => false;
-
   void testNameHandler(String testName, ignore) {
     if (testName == "") {
       receiveTestName.close();
@@ -124,8 +122,7 @@ class CCTestSuite implements TestSuite {
       }
     }
 
-    testExpectations =
-        new TestExpectations(complexMatching: complexStatusMatching());
+    testExpectations = new TestExpectations();
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                '$dartDir/$statusFilePath',
@@ -175,8 +172,6 @@ class StandardTestSuite implements TestSuite {
 
   bool listRecursively() => false;
 
-  bool complexStatusMatching() => false;
-
   String shellPath() => TestUtils.dartShellFileName(configuration);
 
   List<String> additionalOptions(String filename) => [];
@@ -211,8 +206,7 @@ class StandardTestSuite implements TestSuite {
     }
 
     // Read test expectations from status files.
-    testExpectations =
-        new TestExpectations(complexMatching: complexStatusMatching());
+    testExpectations = new TestExpectations();
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                '$dartDir/$statusFilePath',
@@ -227,9 +221,17 @@ class StandardTestSuite implements TestSuite {
     dir.errorHandler = (s) {
       throw s;
     };
-    dir.fileHandler = processFile;
-    dir.doneHandler = directoryListingDone;
-    dir.list(recursive: listRecursively());
+    dir.existsHandler = (bool exists) {
+      if (!exists) {
+        print('Directory containing tests not found: $directoryPath');
+        directoryListingDone(false);
+      } else {      
+        dir.fileHandler = processFile;
+        dir.doneHandler = directoryListingDone;
+        dir.list(recursive: listRecursively());
+      }
+    };
+    dir.exists();
   }
 
   void enqueueTestCaseFromTestInformation(TestInformation info) {
@@ -873,7 +875,8 @@ class JUnitTestSuite implements TestSuite {
         '-ea',
         '-classpath', classPath,
         '-Dcom.google.dart.runner.d8=$d8',
-        '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
+        '-Dcom.google.dart.corelib.SharedTests.test_py=' +
+            dartDir + '/tools/test_wrapper.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
 
@@ -955,7 +958,7 @@ class TestUtils {
 
   static String dartShellFileName(Map configuration) {
     var name = '${buildDir(configuration)}/${executableName(configuration)}';
-    if (!(new File(name)).existsSync()) {
+    if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
     return name;
@@ -969,7 +972,7 @@ class TestUtils {
     if (name == '') {
       name = '${buildDir(configuration)}/${compilerName(configuration)}';
     }
-    if (!(new File(name)).existsSync()) {
+    if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
     return name;

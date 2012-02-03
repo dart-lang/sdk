@@ -115,7 +115,14 @@ def render(idl_node, indent_str='  '):
         w('getter ')
       if node.is_fc_setter:
         w('setter ')
-      wln('attribute %s %s;' % (node.type.id, node.id))
+      w('attribute %s %s' % (node.type.id, node.id))
+      if node.raises:
+        w(' raises (%s)' % node.raises.id)
+      elif node.get_raises:
+        w(' getraises (%s)' % node.get_raises.id)
+      elif node.set_raises:
+        w(' setraises (%s)' % node.set_raises.id)
+      wln(';')
     elif isinstance(node, IDLConstant):
       w(node.annotations)
       w(node.ext_attrs)

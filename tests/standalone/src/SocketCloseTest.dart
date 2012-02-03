@@ -15,6 +15,7 @@ class SocketClose {
   SocketClose.start(mode)
       : _receivePort = new ReceivePort(),
         _sendPort = null,
+        _readBytes = 0,
         _dataEvents = 0,
         _closeEvents = 0,
         _errorEvents = 0,
@@ -48,8 +49,10 @@ class SocketClose {
         case 5:
         case 6:
           List<int> b = new List<int>(100);
-          _socket.readList(b, 0, 100);
-          _dataEvents++;
+          _readBytes += _socket.readList(b, 0, 100);
+          if ((_readBytes % 5) == 0) {
+            _dataEvents++;
+          }
           break;
         default:
           Expect.fail("Unknown test mode");
@@ -174,6 +177,7 @@ class SocketClose {
   SendPort _sendPort;
   Socket _socket;
   List<int> _buffer;
+  int _readBytes;
   int _dataEvents;
   int _closeEvents;
   int _errorEvents;
@@ -191,6 +195,14 @@ class SocketCloseServer extends Isolate {
 
     void connectionHandler(Socket connection) {
 
+      void readBytes(whenFiveBytes) {
+        List<int> b = new List<int>(100);
+        _readBytes += connection.readList(b, 0, 100);
+        if ((_readBytes % 5) == 0) {
+          whenFiveBytes();
+        }
+      }
+
       void dataHandler() {
         _dataEvents++;
         switch (_mode) {
@@ -198,31 +210,30 @@ class SocketCloseServer extends Isolate {
             Expect.fail("No data expected");
             break;
           case 1:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
+            readBytes(() { });
             break;
           case 2:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.close();
+            readBytes(() {
+              connection.close();
+            });
             break;
           case 3:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.writeList("Hello".charCodes(), 0, 5);
-            connection.close();
+            readBytes(() {
+              connection.writeList("Hello".charCodes(), 0, 5);
+              connection.close();
+            });
             break;
           case 4:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.writeList("Hello".charCodes(), 0, 5);
+            readBytes(() {
+              connection.writeList("Hello".charCodes(), 0, 5);
+            });
             break;
           case 5:
           case 6:
-            List<int> b = new List<int>(100);
-            connection.readList(b, 0, 100);
-            connection.writeList("Hello".charCodes(), 0, 5);
-            connection.close(true);
+            readBytes(() {
+              connection.writeList("Hello".charCodes(), 0, 5);
+              connection.close(true);
+            });
             break;
           default:
             Expect.fail("Unknown test mode");
@@ -291,6 +302,7 @@ class SocketCloseServer extends Isolate {
 
     this.port.receive((message, SendPort replyTo) {
       if (message != SERVERSHUTDOWN) {
+        _readBytes = 0;
         _errorEvents = 0;
         _dataEvents = 0;
         _closeEvents = 0;
@@ -308,6 +320,7 @@ class SocketCloseServer extends Isolate {
   }
 
   ServerSocket _server;
+  int _readBytes;
   int _errorEvents;
   int _dataEvents;
   int _closeEvents;

@@ -121,8 +121,10 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle path = Dart_GetNativeArgument(args, 0);
-  if (Dart_IsString(path)) {
-    bool deleted = Directory::Delete(DartUtils::GetStringValue(path));
+  Dart_Handle recursive = Dart_GetNativeArgument(args, 1);
+  if (Dart_IsString(path) && Dart_IsBoolean(recursive)) {
+    bool deleted = Directory::Delete(DartUtils::GetStringValue(path),
+                                     DartUtils::GetBooleanValue(recursive));
     Dart_SetReturnValue(args, Dart_NewBoolean(deleted));
   } else {
     Dart_SetReturnValue(args, Dart_NewBoolean(false));

@@ -27,30 +27,36 @@ static void SetOsErrorMessage(char* os_error_message,
 }
 
 
-// Forward declaration.
+// Forward declarations.
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
                             Dart_Port dir_port,
                             Dart_Port file_port,
                             Dart_Port done_port,
                             Dart_Port error_port);
+static bool DeleteRecursively(const char* dir_name);
 
 
-static void ComputeFullPath(const char* dir_name,
+static bool ComputeFullPath(const char* dir_name,
                             char* path,
                             int* path_length) {
   char* abs_path;
   do {
     abs_path = realpath(dir_name, path);
   } while (abs_path == NULL && errno == EINTR);
-  ASSERT(abs_path != NULL);
+  if (abs_path == NULL) {
+    return false;
+  }
   *path_length = strlen(path);
   size_t written = snprintf(path + *path_length,
                             PATH_MAX - *path_length,
                             "%s",
                             File::PathSeparator());
-  ASSERT(written == strlen(File::PathSeparator()));
+  if (written != strlen(File::PathSeparator())) {
+    return false;
+  }
   *path_length += written;
+  return true;
 }
 
 
@@ -68,7 +74,9 @@ static bool HandleDir(char* dir_name,
                               PATH_MAX - path_length,
                               "%s",
                               dir_name);
-    ASSERT(written == strlen(dir_name));
+    if (written != strlen(dir_name)) {
+      return false;
+    }
     if (dir_port != 0) {
       Dart_Handle name = Dart_NewString(path);
       Dart_Post(dir_port, name);
@@ -86,7 +94,7 @@ static bool HandleDir(char* dir_name,
 }
 
 
-static void HandleFile(char* file_name,
+static bool HandleFile(char* file_name,
                        char* path,
                        int path_length,
                        Dart_Port file_port) {
@@ -95,10 +103,13 @@ static void HandleFile(char* file_name,
                               PATH_MAX - path_length,
                               "%s",
                               file_name);
-    ASSERT(written == strlen(file_name));
+    if (written != strlen(file_name)) {
+      return false;
+    }
     Dart_Handle name = Dart_NewString(path);
     Dart_Post(file_port, name);
   }
+  return true;
 }
 
 
@@ -140,36 +151,48 @@ static bool ListRecursively(const char* dir_name,
     return false;
   }
 
-  // Compute full path for the directory currently being listed.
+  // Compute full path for the directory currently being listed.  The
+  // path buffer will be used to construct the current path in the
+  // recursive traversal. path_length does not always equal
+  // strlen(path) but indicates the current prefix of path that is the
+  // path of the current directory in the traversal.
   char *path = static_cast<char*>(malloc(PATH_MAX));
   ASSERT(path != NULL);
   int path_length = 0;
-  ComputeFullPath(dir_name, path, &path_length);
+  bool valid = ComputeFullPath(dir_name, path, &path_length);
+  if (!valid) {
+    free(path);
+    PostError(error_port, "Directory listing failed for: ", dir_name, errno);
+    return false;
+  }
 
   // Iterated the directory and post the directories and files to the
   // ports.
-  int success = 0;
-  bool listing_error = false;
+  int read = 0;
+  bool success = true;
   dirent entry;
   dirent* result;
-  while ((success = TEMP_FAILURE_RETRY(readdir_r(dir_pointer,
-                                                 &entry,
-                                                 &result))) == 0 &&
+  while ((read = TEMP_FAILURE_RETRY(readdir_r(dir_pointer,
+                                              &entry,
+                                              &result))) == 0 &&
          result != NULL &&
-         !listing_error) {
+         success) {
     switch (entry.d_type) {
       case DT_DIR:
-        listing_error = listing_error || !HandleDir(entry.d_name,
-                                                    path,
-                                                    path_length,
-                                                    recursive,
-                                                    dir_port,
-                                                    file_port,
-                                                    done_port,
-                                                    error_port);
+        success = success && HandleDir(entry.d_name,
+                                       path,
+                                       path_length,
+                                       recursive,
+                                       dir_port,
+                                       file_port,
+                                       done_port,
+                                       error_port);
         break;
       case DT_REG:
-        HandleFile(entry.d_name, path, path_length, file_port);
+        success = success && HandleFile(entry.d_name,
+                                        path,
+                                        path_length,
+                                        file_port);
         break;
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
@@ -180,24 +203,30 @@ static bool ListRecursively(const char* dir_name,
                                   PATH_MAX - path_length,
                                   "%s",
                                   entry.d_name);
-        ASSERT(written == strlen(entry.d_name));
+        if (written != strlen(entry.d_name)) {
+          success = false;
+          break;
+        }
         int lstat_success = TEMP_FAILURE_RETRY(lstat(path, &entry_info));
         if (lstat_success == -1) {
-          listing_error = true;
+          success = false;
           PostError(error_port, "Directory listing failed for: ", path, errno);
           break;
         }
         if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
-          listing_error = listing_error || !HandleDir(entry.d_name,
-                                                      path,
-                                                      path_length,
-                                                      recursive,
-                                                      dir_port,
-                                                      file_port,
-                                                      done_port,
-                                                      error_port);
+          success = success && HandleDir(entry.d_name,
+                                         path,
+                                         path_length,
+                                         recursive,
+                                         dir_port,
+                                         file_port,
+                                         done_port,
+                                         error_port);
         } else if ((entry_info.st_mode & S_IFMT) == S_IFREG) {
-          HandleFile(entry.d_name, path, path_length, file_port);
+          success = success && HandleFile(entry.d_name,
+                                          path,
+                                          path_length,
+                                          file_port);
         }
         break;
       }
@@ -206,9 +235,9 @@ static bool ListRecursively(const char* dir_name,
     }
   }
 
-  if (success != 0) {
-    listing_error = true;
-    PostError(error_port, "Directory listing failed", "", success);
+  if (read != 0) {
+    success = false;
+    PostError(error_port, "Directory listing failed", "", read);
   }
 
   if (closedir(dir_pointer) == -1) {
@@ -216,7 +245,122 @@ static bool ListRecursively(const char* dir_name,
   }
   free(path);
 
-  return !listing_error;
+  return success;
+}
+
+
+static bool DeleteFile(char* file_name,
+                       char* path,
+                       int path_length) {
+  size_t written = snprintf(path + path_length,
+                            PATH_MAX - path_length,
+                            "%s",
+                            file_name);
+  if (written != strlen(file_name)) {
+    return false;
+  }
+  return (remove(path) == 0);
+}
+
+
+static bool DeleteDir(char* dir_name,
+                      char* path,
+                      int path_length) {
+  if (strcmp(dir_name, ".") != 0 &&
+      strcmp(dir_name, "..") != 0) {
+    size_t written = snprintf(path + path_length,
+                              PATH_MAX - path_length,
+                              "%s",
+                              dir_name);
+    if (written != strlen(dir_name)) {
+      return false;
+    }
+    return DeleteRecursively(path);
+  }
+  return true;
+}
+
+
+static bool DeleteRecursively(const char* dir_name) {
+  DIR* dir_pointer;
+  do {
+    dir_pointer = opendir(dir_name);
+  } while (dir_pointer == NULL && errno == EINTR);
+
+  if (dir_pointer == NULL) {
+    return false;
+  }
+
+  // Compute full path for the directory currently being deleted.  The
+  // path buffer will be used to construct the current path in the
+  // recursive traversal. path_length does not always equal
+  // strlen(path) but indicates the current prefix of path that is the
+  // path of the current directory in the traversal.
+  char *path = static_cast<char*>(malloc(PATH_MAX));
+  ASSERT(path != NULL);
+  int path_length = 0;
+  bool valid = ComputeFullPath(dir_name, path, &path_length);
+  if (!valid) {
+    free(path);
+    return false;
+  }
+
+  // Iterate the directory and delete all files and directories.
+  int read = 0;
+  bool success = true;
+  dirent entry;
+  dirent* result;
+  while ((read = TEMP_FAILURE_RETRY(readdir_r(dir_pointer,
+                                              &entry,
+                                              &result))) == 0 &&
+         result != NULL &&
+         success) {
+    switch (entry.d_type) {
+      case DT_DIR:
+        success = success && DeleteDir(entry.d_name, path, path_length);
+        break;
+      case DT_REG:
+        success = success && DeleteFile(entry.d_name, path, path_length);
+        break;
+      case DT_UNKNOWN: {
+        // On some file systems the entry type is not determined by
+        // readdir_r. For those we use lstat to determine the entry
+        // type.
+        struct stat entry_info;
+        size_t written = snprintf(path + path_length,
+                                  PATH_MAX - path_length,
+                                  "%s",
+                                  entry.d_name);
+        if (written != strlen(entry.d_name)) {
+          success = false;
+          break;
+        }
+        int lstat_success = TEMP_FAILURE_RETRY(lstat(path, &entry_info));
+        if (lstat_success == -1) {
+          success = false;
+          break;
+        }
+        if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
+          success = success && DeleteDir(entry.d_name, path, path_length);
+        } else if ((entry_info.st_mode & S_IFMT) == S_IFREG) {
+          success = success && DeleteFile(entry.d_name, path, path_length);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  free(path);
+
+  if ((read != 0) ||
+      (closedir(dir_pointer) == -1) ||
+      (remove(dir_name) == -1)) {
+    return false;
+  }
+
+  return success;
 }
 
 
@@ -309,6 +453,10 @@ int Directory::CreateTemp(const char* const_template,
 }
 
 
-bool Directory::Delete(const char* dir_name) {
-  return (TEMP_FAILURE_RETRY(rmdir(dir_name)) == 0);
+bool Directory::Delete(const char* dir_name, bool recursive) {
+  if (!recursive) {
+    return (TEMP_FAILURE_RETRY(remove(dir_name)) == 0);
+  } else {
+    return DeleteRecursively(dir_name);
+  }
 }

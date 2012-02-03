@@ -32,7 +32,7 @@ class Directory {
                         char* os_error_message,
                         int os_error_message_len);
 
-  static bool Delete(const char* path);
+  static bool Delete(const char* path, bool recursive);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);

@@ -37,7 +37,8 @@ class IllegalAccessException implements Exception {
 class NoSuchMethodException implements Exception {
   const NoSuchMethodException(Object this._receiver,
                               String this._functionName,
-                              List this._arguments);
+                              List this._arguments,
+                              [String this._extraMessage = ""]);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -48,13 +49,15 @@ class NoSuchMethodException implements Exception {
       sb.add(_arguments[i]);
     }
     sb.add("]");
+    var x = _extraMessage;
     return "NoSuchMethodException - receiver: '$_receiver' " +
-           "function name: '$_functionName' arguments: [$sb]";
+           "function name: '$_functionName' arguments: [$sb]$x";
   }
 
   final Object _receiver;
   final String _functionName;
   final List _arguments;
+  final String _extraMessage;
 }
 
 

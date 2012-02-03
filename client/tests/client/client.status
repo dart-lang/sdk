@@ -12,6 +12,7 @@ layout/layout_tests: Fail  # Issue 152.
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
 dom/DocumentTest: Fail
+dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
 dom/TypingTest: Fail
