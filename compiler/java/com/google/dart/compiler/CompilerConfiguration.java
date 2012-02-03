@@ -94,11 +94,6 @@ public interface CompilerConfiguration {
   ErrorFormat printErrorFormat();
 
   /**
-   * Returns <code>true</code> if the compiler should collect comments.
-   */
-  boolean collectComments();
-
-  /**
    * Return the system library corresponding to the specified "dart:<libname>" spec.
    */
   LibrarySource getSystemLibraryFor(String importSpec);

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -53,18 +53,6 @@ public class CommandLineOptions {
     @Option(name = "--disable-type-optimizations",
         usage = "Turn off type optimizations\n (for debugging)")
     private boolean disableTypeOptimizations = false;
-
-    @Option(name = "--documentation-lib", aliases = { "-documentation-lib" },
-        usage = "Only generate docs for the\n given library")
-    private String documentationLibrary = null;
-
-    @Option(name = "--documentation-out", aliases = { "-documentation-out" },
-        usage = "Directory to write documentation")
-    private String documentationOutputDirectory = "out";
-
-    @Option(name = "--generate-documentation", aliases = { "-generate-documentation" },
-        usage = "Generate docs from source")
-    private boolean generateDocumentation = false;
 
     @Option(name = "--generate-isolate-stubs", aliases = { "-generate-isolate-stubs" },
         usage = "Classes to generate stubs\n (comma-separated list)")
@@ -170,28 +158,6 @@ public class CommandLineOptions {
      */
     public boolean shouldExposeCoreImpl() {
       return exposeCoreImpl;
-    }
-
-    /**
-     * Returns whether the option -generate-documentation is provided.
-     */
-    public boolean generateDocumentation() {
-      return generateDocumentation;
-    }
-
-    /**
-     * Returns the library to document. If null is returned generate
-     * documentation for all libraries.
-     */
-    public String getDocumentationLibrary() {
-      return documentationLibrary;
-    }
-
-    /**
-     * Returns the documentation output directory.
-     */
-    public String getDocumentationOutputDirectory() {
-      return documentationOutputDirectory;
     }
 
     /**

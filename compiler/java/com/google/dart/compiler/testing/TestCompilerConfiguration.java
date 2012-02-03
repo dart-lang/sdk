@@ -101,11 +101,6 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean collectComments() {
-    return false;
-  }
-
-  @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     URI systemUri;
     try {

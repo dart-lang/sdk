@@ -99,11 +99,6 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean collectComments() {
-    return delegate.collectComments();
-  }
-
-  @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     return delegate.getSystemLibraryFor(importSpec);
   }
