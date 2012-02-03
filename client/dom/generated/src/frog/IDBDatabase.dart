@@ -1,5 +1,5 @@
 
-class IDBDatabaseJs extends DOMTypeJs implements IDBDatabase native "*IDBDatabase" {
+class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatabase" {
 
   String get name() native "return this.name;";
 
@@ -21,15 +21,15 @@ class IDBDatabaseJs extends DOMTypeJs implements IDBDatabase native "*IDBDatabas
 
   void close() native;
 
-  IDBObjectStoreJs createObjectStore(String name) native;
+  _IDBObjectStoreJs createObjectStore(String name) native;
 
   void deleteObjectStore(String name) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  IDBVersionChangeRequestJs setVersion(String version) native;
+  _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  IDBTransactionJs transaction(String storeName, int mode) native;
+  _IDBTransactionJs transaction(String storeName, int mode) native;
 }

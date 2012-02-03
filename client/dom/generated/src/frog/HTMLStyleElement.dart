@@ -1,5 +1,5 @@
 
-class HTMLStyleElementJs extends HTMLElementJs implements HTMLStyleElement native "*HTMLStyleElement" {
+class _HTMLStyleElementJs extends _HTMLElementJs implements HTMLStyleElement native "*HTMLStyleElement" {
 
   bool get disabled() native "return this.disabled;";
 
@@ -13,7 +13,7 @@ class HTMLStyleElementJs extends HTMLElementJs implements HTMLStyleElement nativ
 
   void set scoped(bool value) native "this.scoped = value;";
 
-  StyleSheetJs get sheet() native "return this.sheet;";
+  _StyleSheetJs get sheet() native "return this.sheet;";
 
   String get type() native "return this.type;";
 

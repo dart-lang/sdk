@@ -42,6 +42,7 @@ intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   int available;  // ioctl for FIONREAD expects an 'int*' argument.
   int result = TEMP_FAILURE_RETRY(ioctl(fd, FIONREAD, &available));
   if (result < 0) {
+    perror("ioctl FIONREAD failed");
     return result;
   }
 #ifdef DEBUG

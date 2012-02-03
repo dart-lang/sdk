@@ -1,5 +1,5 @@
 
-class SVGZoomAndPanJs extends DOMTypeJs implements SVGZoomAndPan native "*SVGZoomAndPan" {
+class _SVGZoomAndPanJs extends _DOMTypeJs implements SVGZoomAndPan native "*SVGZoomAndPan" {
 
   static final int SVG_ZOOMANDPAN_DISABLE = 1;
 

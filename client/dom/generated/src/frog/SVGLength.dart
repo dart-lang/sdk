@@ -1,5 +1,5 @@
 
-class SVGLengthJs extends DOMTypeJs implements SVGLength native "*SVGLength" {
+class _SVGLengthJs extends _DOMTypeJs implements SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_CM = 6;
 

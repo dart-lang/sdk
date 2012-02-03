@@ -1,5 +1,5 @@
 
-class SVGLangSpaceJs extends DOMTypeJs implements SVGLangSpace native "*SVGLangSpace" {
+class _SVGLangSpaceJs extends _DOMTypeJs implements SVGLangSpace native "*SVGLangSpace" {
 
   String get xmllang() native "return this.xmllang;";
 

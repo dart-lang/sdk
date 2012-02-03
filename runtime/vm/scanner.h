@@ -131,6 +131,7 @@ class Scanner : ValueObject {
   // a decimal digit, a hexadecimal digit, etc.
   static bool IsLetter(int32_t c);
   static bool IsDecimalDigit(int32_t c);
+  static bool IsNumberStart(int32_t);
   static bool IsHexDigit(int32_t c);
   static bool IsIdentStartChar(int32_t c);
   static bool IsIdentChar(int32_t c);

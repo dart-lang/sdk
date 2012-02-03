@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@
  * A parsed URI, inspired by:
  * http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
  */
-class Uri {
+class Uri extends uri.Uri {
   /**
    * Parses a URL query string into a map. Because you can have multiple values
    * for the same parameter name, each parameter name maps to a list of
@@ -73,73 +73,5 @@ class Uri {
                     .replaceAll('%20', ' ');
   }
 
-  String scheme;
-  String userInfo;
-  String domain;
-  int port;
-  String path;
-  String query;
-  String fragment;
-
-  Uri.fromString(String uri) {
-    final m = _splitRe.firstMatch(uri);
-
-    scheme = _decodeOrEmpty(m[_COMPONENT_SCHEME]);
-    userInfo = _decodeOrEmpty(m[_COMPONENT_USER_INFO]);
-    domain = _decodeOrEmpty(m[_COMPONENT_DOMAIN]);
-    port = _parseIntOrZero(m[_COMPONENT_PORT]);
-    path = _decodeOrEmpty(m[_COMPONENT_PATH]);
-    query = _decodeOrEmpty(m[_COMPONENT_QUERY_DATA]);
-    fragment = _decodeOrEmpty(m[_COMPONENT_FRAGMENT]);
-  }
-
-  static String _decodeOrEmpty(String val) {
-    // TODO(jmesserly): use Uri.decodeComponent when available
-    //return val ? Uri.decodeComponent(val) : '';
-    return val != null ? val : '';
-  }
-
-  static int _parseIntOrZero(String val) {
-    if (val !== null && val != '') {
-      return Math.parseInt(val);
-    } else {
-      return 0;
-    }
-  }
-
-  // NOTE: This code was ported from: closure-library/closure/goog/uri/utils.js
-  static RegExp _splitReLazy;
-
-  static RegExp get _splitRe() {
-    if (_splitReLazy == null) {
-      _splitReLazy = new RegExp(
-        '^' +
-        '(?:' +
-          '([^:/?#.]+)' +                 // scheme - ignore special characters
-                                          // used by other URL parts such as :,
-                                          // ?, /, #, and .
-        ':)?' +
-        '(?://' +
-          '(?:([^/?#]*)@)?' +             // userInfo
-          '([\\w\\d\\-\\u0100-\\uffff.%]*)' +
-                                          // domain - restrict to letters,
-                                          // digits, dashes, dots, percent
-                                          // escapes, and unicode characters.
-          '(?::([0-9]+))?' +              // port
-        ')?' +
-        '([^?#]+)?' +                     // path
-        '(?:\\?([^#]*))?' +               // query
-        '(?:#(.*))?' +                    // fragment
-        '\$');
-    }
-    return _splitReLazy;
-  }
-
-  static final _COMPONENT_SCHEME = 1;
-  static final _COMPONENT_USER_INFO = 2;
-  static final _COMPONENT_DOMAIN = 3;
-  static final _COMPONENT_PORT = 4;
-  static final _COMPONENT_PATH = 5;
-  static final _COMPONENT_QUERY_DATA = 6;
-  static final _COMPONENT_FRAGMENT = 7;
+  Uri.fromString(String uri) : super.fromString(uri);
 }

@@ -1,5 +1,5 @@
 
-class ScreenJs extends DOMTypeJs implements Screen native "*Screen" {
+class _ScreenJs extends _DOMTypeJs implements Screen native "*Screen" {
 
   int get availHeight() native "return this.availHeight;";
 

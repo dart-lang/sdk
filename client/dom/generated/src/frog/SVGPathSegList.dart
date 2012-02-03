@@ -1,19 +1,19 @@
 
-class SVGPathSegListJs extends DOMTypeJs implements SVGPathSegList native "*SVGPathSegList" {
+class _SVGPathSegListJs extends _DOMTypeJs implements SVGPathSegList native "*SVGPathSegList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 
-  SVGPathSegJs appendItem(SVGPathSegJs newItem) native;
+  _SVGPathSegJs appendItem(_SVGPathSegJs newItem) native;
 
   void clear() native;
 
-  SVGPathSegJs getItem(int index) native;
+  _SVGPathSegJs getItem(int index) native;
 
-  SVGPathSegJs initialize(SVGPathSegJs newItem) native;
+  _SVGPathSegJs initialize(_SVGPathSegJs newItem) native;
 
-  SVGPathSegJs insertItemBefore(SVGPathSegJs newItem, int index) native;
+  _SVGPathSegJs insertItemBefore(_SVGPathSegJs newItem, int index) native;
 
-  SVGPathSegJs removeItem(int index) native;
+  _SVGPathSegJs removeItem(int index) native;
 
-  SVGPathSegJs replaceItem(SVGPathSegJs newItem, int index) native;
+  _SVGPathSegJs replaceItem(_SVGPathSegJs newItem, int index) native;
 }

@@ -1,3 +1,3 @@
 
-class SQLTransactionSyncJs extends DOMTypeJs implements SQLTransactionSync native "*SQLTransactionSync" {
+class _SQLTransactionSyncJs extends _DOMTypeJs implements SQLTransactionSync native "*SQLTransactionSync" {
 }

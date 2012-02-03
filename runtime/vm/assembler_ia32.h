@@ -375,6 +375,8 @@ class Assembler : public ValueObject {
   void comiss(XmmRegister a, XmmRegister b);
   void comisd(XmmRegister a, XmmRegister b);
 
+  void movmskpd(Register dst, XmmRegister src);
+
   void sqrtsd(XmmRegister dst, XmmRegister src);
   void sqrtss(XmmRegister dst, XmmRegister src);
 
@@ -397,6 +399,7 @@ class Assembler : public ValueObject {
   void fistpl(const Address& dst);
   void fistps(const Address& dst);
   void fildl(const Address& src);
+  void filds(const Address& src);
 
   void fincstp();
   void ffree(const Immediate& index);

@@ -1,5 +1,5 @@
 
-class CryptoJs extends DOMTypeJs implements Crypto native "*Crypto" {
+class _CryptoJs extends _DOMTypeJs implements Crypto native "*Crypto" {
 
-  void getRandomValues(ArrayBufferViewJs array) native;
+  void getRandomValues(_ArrayBufferViewJs array) native;
 }

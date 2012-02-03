@@ -1,5 +1,5 @@
 
-class SpeechInputResultJs extends DOMTypeJs implements SpeechInputResult native "*SpeechInputResult" {
+class _SpeechInputResultJs extends _DOMTypeJs implements SpeechInputResult native "*SpeechInputResult" {
 
   num get confidence() native "return this.confidence;";
 

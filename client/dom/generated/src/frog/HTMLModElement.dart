@@ -1,5 +1,5 @@
 
-class HTMLModElementJs extends HTMLElementJs implements HTMLModElement native "*HTMLModElement" {
+class _HTMLModElementJs extends _HTMLElementJs implements HTMLModElement native "*HTMLModElement" {
 
   String get cite() native "return this.cite;";
 

@@ -1,5 +1,5 @@
 
-class FileErrorJs extends DOMTypeJs implements FileError native "*FileError" {
+class _FileErrorJs extends _DOMTypeJs implements FileError native "*FileError" {
 
   static final int ABORT_ERR = 3;
 

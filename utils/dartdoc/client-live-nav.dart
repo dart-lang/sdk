@@ -51,13 +51,12 @@ buildNavigation(libraries) {
 
   final html = new StringBuffer();
   for (final libraryName in libraryNames) {
-    final saneLibrary = sanitize(libraryName);
     html.add('<h2><div class="icon-library"></div>');
     if (currentLibrary == libraryName && currentType == null) {
-      html.add('<strong>$saneLibrary</strong>');
+      html.add('<strong>${md.escapeHtml(libraryName)}</strong>');
     } else {
-      final url = '$prefix$saneLibrary.html';
-      html.add('<a href="$url">$saneLibrary</a>');
+      final url = '$prefix${sanitize(libraryName)}.html';
+      html.add('<a href="$url">${md.escapeHtml(libraryName)}</a>');
     }
     html.add('</h2>');
 

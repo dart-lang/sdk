@@ -1,5 +1,5 @@
 
-class HTMLTableCellElementJs extends HTMLElementJs implements HTMLTableCellElement native "*HTMLTableCellElement" {
+class _HTMLTableCellElementJs extends _HTMLElementJs implements HTMLTableCellElement native "*HTMLTableCellElement" {
 
   String get abbr() native "return this.abbr;";
 

@@ -1,5 +1,5 @@
 
-class EventExceptionJs extends DOMTypeJs implements EventException native "*EventException" {
+class _EventExceptionJs extends _DOMTypeJs implements EventException native "*EventException" {
 
   static final int DISPATCH_REQUEST_ERR = 1;
 

@@ -1,5 +1,5 @@
 
-class SVGSVGElementJs extends SVGElementJs implements SVGSVGElement native "*SVGSVGElement" {
+class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*SVGSVGElement" {
 
   String get contentScriptType() native "return this.contentScriptType;";
 
@@ -13,9 +13,9 @@ class SVGSVGElementJs extends SVGElementJs implements SVGSVGElement native "*SVG
 
   void set currentScale(num value) native "this.currentScale = value;";
 
-  SVGPointJs get currentTranslate() native "return this.currentTranslate;";
+  _SVGPointJs get currentTranslate() native "return this.currentTranslate;";
 
-  SVGAnimatedLengthJs get height() native "return this.height;";
+  _SVGAnimatedLengthJs get height() native "return this.height;";
 
   num get pixelUnitToMillimeterX() native "return this.pixelUnitToMillimeterX;";
 
@@ -29,35 +29,35 @@ class SVGSVGElementJs extends SVGElementJs implements SVGSVGElement native "*SVG
 
   void set useCurrentView(bool value) native "this.useCurrentView = value;";
 
-  SVGRectJs get viewport() native "return this.viewport;";
+  _SVGRectJs get viewport() native "return this.viewport;";
 
-  SVGAnimatedLengthJs get width() native "return this.width;";
+  _SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJs get x() native "return this.x;";
+  _SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJs get y() native "return this.y;";
+  _SVGAnimatedLengthJs get y() native "return this.y;";
 
   bool animationsPaused() native;
 
-  bool checkEnclosure(SVGElementJs element, SVGRectJs rect) native;
+  bool checkEnclosure(_SVGElementJs element, _SVGRectJs rect) native;
 
-  bool checkIntersection(SVGElementJs element, SVGRectJs rect) native;
+  bool checkIntersection(_SVGElementJs element, _SVGRectJs rect) native;
 
-  SVGAngleJs createSVGAngle() native;
+  _SVGAngleJs createSVGAngle() native;
 
-  SVGLengthJs createSVGLength() native;
+  _SVGLengthJs createSVGLength() native;
 
-  SVGMatrixJs createSVGMatrix() native;
+  _SVGMatrixJs createSVGMatrix() native;
 
-  SVGNumberJs createSVGNumber() native;
+  _SVGNumberJs createSVGNumber() native;
 
-  SVGPointJs createSVGPoint() native;
+  _SVGPointJs createSVGPoint() native;
 
-  SVGRectJs createSVGRect() native;
+  _SVGRectJs createSVGRect() native;
 
-  SVGTransformJs createSVGTransform() native;
+  _SVGTransformJs createSVGTransform() native;
 
-  SVGTransformJs createSVGTransformFromMatrix(SVGMatrixJs matrix) native;
+  _SVGTransformJs createSVGTransformFromMatrix(_SVGMatrixJs matrix) native;
 
   void deselectAll() native;
 
@@ -65,11 +65,11 @@ class SVGSVGElementJs extends SVGElementJs implements SVGSVGElement native "*SVG
 
   num getCurrentTime() native;
 
-  ElementJs getElementById(String elementId) native;
+  _ElementJs getElementById(String elementId) native;
 
-  NodeListJs getEnclosureList(SVGRectJs rect, SVGElementJs referenceElement) native;
+  _NodeListJs getEnclosureList(_SVGRectJs rect, _SVGElementJs referenceElement) native;
 
-  NodeListJs getIntersectionList(SVGRectJs rect, SVGElementJs referenceElement) native;
+  _NodeListJs getIntersectionList(_SVGRectJs rect, _SVGElementJs referenceElement) native;
 
   void pauseAnimations() native;
 
@@ -85,11 +85,11 @@ class SVGSVGElementJs extends SVGElementJs implements SVGSVGElement native "*SVG
 
   // From SVGTests
 
-  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -105,35 +105,35 @@ class SVGSVGElementJs extends SVGElementJs implements SVGSVGElement native "*SVG
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGLocatable
 
-  SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
+  _SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
+  _SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
 
-  SVGRectJs getBBox() native;
+  _SVGRectJs getBBox() native;
 
-  SVGMatrixJs getCTM() native;
+  _SVGMatrixJs getCTM() native;
 
-  SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixJs getScreenCTM() native;
 
-  SVGMatrixJs getTransformToElement(SVGElementJs element) native;
+  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
 
   // From SVGFitToViewBox
 
-  SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  _SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
 
-  SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
+  _SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
 
   // From SVGZoomAndPan
 

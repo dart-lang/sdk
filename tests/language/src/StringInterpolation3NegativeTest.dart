@@ -5,7 +5,7 @@
 // A dollar must be followed by a "{" or an identifier.
 
 class StringInterpolation3NegativeTest {
-  testMain() {
+  static testMain() {
     print('F;P4;F$2R');  // Dollar followed by a number.
   }
 }

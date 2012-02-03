@@ -1,5 +1,5 @@
 
-class SQLResultSetRowListJs extends DOMTypeJs implements SQLResultSetRowList native "*SQLResultSetRowList" {
+class _SQLResultSetRowListJs extends _DOMTypeJs implements SQLResultSetRowList native "*SQLResultSetRowList" {
 
   int get length() native "return this.length;";
 

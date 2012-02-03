@@ -7,6 +7,7 @@ String GetHtmlContents(String title,
                        String scriptType,
                        String sourceScript) =>
 """
+<!DOCTYPE html>
 <html>
 <head>
   <title> Test $title </title>

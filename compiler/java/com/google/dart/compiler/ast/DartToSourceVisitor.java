@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,8 +25,6 @@ public class DartToSourceVisitor extends DartVisitor {
   private List<SourceMapping> mappings = Lists.newArrayList();
   private final boolean isDiet;
 
-  private final boolean calculateHash;
-
   public DartToSourceVisitor(TextOutput out) {
     this(out, false);
   }
@@ -34,13 +32,6 @@ public class DartToSourceVisitor extends DartVisitor {
   public DartToSourceVisitor(TextOutput out, boolean isDiet) {
     this.out = out;
     this.isDiet = isDiet;
-    this.calculateHash = false;
-  }
-
-  public DartToSourceVisitor(TextOutput out, boolean isDiet, boolean calculateHash) {
-    this.out = out;
-    this.isDiet = isDiet;
-    this.calculateHash = calculateHash;
   }
 
   public void generateSourceMap(boolean generate) {
@@ -132,11 +123,6 @@ public class DartToSourceVisitor extends DartVisitor {
 
   @Override
   public boolean visit(DartClass x, DartContext ctx) {
-    int start = 0;
-    if (calculateHash == true) {
-      start = out.getPosition();
-    }
-
     if (x.isInterface()) {
       p("interface ");
     } else {
@@ -185,9 +171,6 @@ public class DartToSourceVisitor extends DartVisitor {
 
     outdent();
     p("}");
-    if (calculateHash == true) {
-      x.setHash(out.toString().substring(start, out.getPosition()).hashCode());
-    }
     nl();
     nl();
     return false;
@@ -870,6 +853,12 @@ public class DartToSourceVisitor extends DartVisitor {
 
   @Override
   public boolean visit(DartArrayLiteral x, DartContext ctx) {
+    List<DartTypeNode> typeArguments = x.getTypeArguments();
+    if (typeArguments != null && typeArguments.size() > 0) {
+      p("<");
+      printSeparatedByComma(typeArguments);
+      p(">");
+    }
     p("[");
     printSeparatedByComma(x.getExpressions());
     p("]");
@@ -878,6 +867,12 @@ public class DartToSourceVisitor extends DartVisitor {
 
   @Override
   public boolean visit(DartMapLiteral x, DartContext ctx) {
+    List<DartTypeNode> typeArguments = x.getTypeArguments();
+    if (typeArguments != null && typeArguments.size() > 0) {
+      p("<");
+      printSeparatedByComma(typeArguments);
+      p(">");
+    }
     p("{");
     List<DartMapLiteralEntry> entries = x.getEntries();
     for (int i = 0; i < entries.size(); ++i) {

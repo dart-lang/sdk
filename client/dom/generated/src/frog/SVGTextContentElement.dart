@@ -1,5 +1,5 @@
 
-class SVGTextContentElementJs extends SVGElementJs implements SVGTextContentElement native "*SVGTextContentElement" {
+class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentElement native "*SVGTextContentElement" {
 
   static final int LENGTHADJUST_SPACING = 1;
 
@@ -7,23 +7,23 @@ class SVGTextContentElementJs extends SVGElementJs implements SVGTextContentElem
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
-  SVGAnimatedEnumerationJs get lengthAdjust() native "return this.lengthAdjust;";
+  _SVGAnimatedEnumerationJs get lengthAdjust() native "return this.lengthAdjust;";
 
-  SVGAnimatedLengthJs get textLength() native "return this.textLength;";
+  _SVGAnimatedLengthJs get textLength() native "return this.textLength;";
 
-  int getCharNumAtPosition(SVGPointJs point) native;
+  int getCharNumAtPosition(_SVGPointJs point) native;
 
   num getComputedTextLength() native;
 
-  SVGPointJs getEndPositionOfChar(int offset) native;
+  _SVGPointJs getEndPositionOfChar(int offset) native;
 
-  SVGRectJs getExtentOfChar(int offset) native;
+  _SVGRectJs getExtentOfChar(int offset) native;
 
   int getNumberOfChars() native;
 
   num getRotationOfChar(int offset) native;
 
-  SVGPointJs getStartPositionOfChar(int offset) native;
+  _SVGPointJs getStartPositionOfChar(int offset) native;
 
   num getSubStringLength(int offset, int length) native;
 
@@ -31,11 +31,11 @@ class SVGTextContentElementJs extends SVGElementJs implements SVGTextContentElem
 
   // From SVGTests
 
-  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -51,13 +51,13 @@ class SVGTextContentElementJs extends SVGElementJs implements SVGTextContentElem
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 }

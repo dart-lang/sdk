@@ -1,5 +1,5 @@
 
-class IDBCursorWithValueJs extends IDBCursorJs implements IDBCursorWithValue native "*IDBCursorWithValue" {
+class _IDBCursorWithValueJs extends _IDBCursorJs implements IDBCursorWithValue native "*IDBCursorWithValue" {
 
-  IDBAnyJs get value() native "return this.value;";
+  _IDBAnyJs get value() native "return this.value;";
 }

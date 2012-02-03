@@ -276,6 +276,7 @@ class ObjectStore {
     ASSERT(!value.IsNull());
     sticky_error_ = value.raw();
   }
+  void clear_sticky_error() { sticky_error_ = Error::null(); }
 
   RawBool* true_value() const { return true_value_; }
   void set_true_value(const Bool& value) { true_value_ = value.raw(); }

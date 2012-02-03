@@ -23,13 +23,17 @@ class DartGeneratorTestCase(unittest.TestCase):
     return os.path.exists(os.path.join(self._database_dir,
                                        '%s.idl' % interface_name))
 
+  def _FilePathForDartInterface(self, interface_name):
+    return os.path.join(self._generator._output_dir, 'src', 'interface',
+                        '%s.dart' % interface_name)
+
   def _InOutput(self, interface_name):
     return os.path.exists(
-        self._generator.FilePathForDartInterface(interface_name))
+        self._FilePathForDartInterface(interface_name))
 
   def _ReadOutputFile(self, interface_name):
     self.assertTrue(self._InOutput(interface_name))
-    file_path = self._generator.FilePathForDartInterface(interface_name)
+    file_path = self._FilePathForDartInterface(interface_name)
     f = open(file_path, 'r')
     content = f.read()
     f.close()
@@ -131,6 +135,7 @@ FILE CONTENT:
 
     self._database = database.Database(self._database_dir)
     self._generator = dartgenerator.DartGenerator(self._auxiliary_dir,
+                                                  '../templates',
                                                   'test')
 
   def tearDown(self):

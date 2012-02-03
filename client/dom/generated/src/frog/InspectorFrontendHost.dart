@@ -1,5 +1,5 @@
 
-class InspectorFrontendHostJs extends DOMTypeJs implements InspectorFrontendHost native "*InspectorFrontendHost" {
+class _InspectorFrontendHostJs extends _DOMTypeJs implements InspectorFrontendHost native "*InspectorFrontendHost" {
 
   void bringToFront() native;
 
@@ -20,6 +20,8 @@ class InspectorFrontendHostJs extends DOMTypeJs implements InspectorFrontendHost
   String localizedStringsURL() native;
 
   void moveWindowBy(num x, num y) native;
+
+  void openInNewTab(String url) native;
 
   String platform() native;
 
@@ -45,5 +47,5 @@ class InspectorFrontendHostJs extends DOMTypeJs implements InspectorFrontendHost
 
   void setInjectedScriptForOrigin(String origin, String script) native;
 
-  void showContextMenu(MouseEventJs event, Object items) native;
+  void showContextMenu(_MouseEventJs event, Object items) native;
 }

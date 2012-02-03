@@ -1,13 +1,13 @@
 
-class ElementTraversalJs extends DOMTypeJs implements ElementTraversal native "*ElementTraversal" {
+class _ElementTraversalJs extends _DOMTypeJs implements ElementTraversal native "*ElementTraversal" {
 
   int get childElementCount() native "return this.childElementCount;";
 
-  ElementJs get firstElementChild() native "return this.firstElementChild;";
+  _ElementJs get firstElementChild() native "return this.firstElementChild;";
 
-  ElementJs get lastElementChild() native "return this.lastElementChild;";
+  _ElementJs get lastElementChild() native "return this.lastElementChild;";
 
-  ElementJs get nextElementSibling() native "return this.nextElementSibling;";
+  _ElementJs get nextElementSibling() native "return this.nextElementSibling;";
 
-  ElementJs get previousElementSibling() native "return this.previousElementSibling;";
+  _ElementJs get previousElementSibling() native "return this.previousElementSibling;";
 }

@@ -1,9 +1,9 @@
 
-class ConvolverNodeJs extends AudioNodeJs implements ConvolverNode native "*ConvolverNode" {
+class _ConvolverNodeJs extends _AudioNodeJs implements ConvolverNode native "*ConvolverNode" {
 
-  AudioBufferJs get buffer() native "return this.buffer;";
+  _AudioBufferJs get buffer() native "return this.buffer;";
 
-  void set buffer(AudioBufferJs value) native "this.buffer = value;";
+  void set buffer(_AudioBufferJs value) native "this.buffer = value;";
 
   bool get normalize() native "return this.normalize;";
 

@@ -310,7 +310,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
                             const Script& script,
                             const Library& lib);
 
-  static void Init(Isolate* isolate);
+  static RawError* Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
 
@@ -721,7 +721,9 @@ class Class : public Object {
 // to a class after all classes have been loaded and finalized.
 class UnresolvedClass : public Object {
  public:
-  RawString* qualifier() const { return raw_ptr()->qualifier_; }
+  RawLibraryPrefix* library_prefix() const {
+    return raw_ptr()->library_prefix_;
+  }
   RawString* ident() const { return raw_ptr()->ident_; }
   intptr_t token_index() const { return raw_ptr()->token_index_; }
 
@@ -736,13 +738,13 @@ class UnresolvedClass : public Object {
     return RoundedAllocationSize(sizeof(RawUnresolvedClass));
   }
   static RawUnresolvedClass* New(intptr_t token_index,
-                                 const String& qualifier,
+                                 const LibraryPrefix& library_prefix,
                                  const String& ident);
 
  private:
   void set_token_index(intptr_t token_index) const;
   void set_ident(const String& ident) const;
-  void set_qualifier(const String& qualifier) const;
+  void set_library_prefix(const LibraryPrefix& library_prefix) const;
 
   static RawUnresolvedClass* New();
 
@@ -932,9 +934,6 @@ class Type : public AbstractType {
 
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
-
-  static RawType* NewParameterizedType(
-      const Object& type_class, const AbstractTypeArguments& arguments);
 
   static RawType* New(const Object& clazz,
                       const AbstractTypeArguments& arguments);
@@ -1730,7 +1729,7 @@ class Library : public Object {
   static RawLibrary* NativeWrappersLibrary();
 
   // Eagerly compile all classes and functions in the library.
-  static void CompileAll();
+  static RawError* CompileAll();
 
  private:
   static const int kInitialImportsCapacity = 4;
@@ -3250,7 +3249,25 @@ class ByteArray : public Instance {
  public:
   virtual intptr_t Length() const;
 
+  static void Copy(uint8_t* dst,
+                   const ByteArray& src,
+                   intptr_t src_offset,
+                   intptr_t length);
+
+  static void Copy(const ByteArray& dst,
+                   intptr_t dst_offset,
+                   const uint8_t* src,
+                   intptr_t length);
+
+  static void Copy(const ByteArray& dst,
+                   intptr_t dst_offset,
+                   const ByteArray& src,
+                   intptr_t src_offset,
+                   intptr_t length);
+
  private:
+  virtual uint8_t* ByteAddr(intptr_t byte_offset) const;
+
   HEAP_OBJECT_IMPLEMENTATION(ByteArray, Instance);
   friend class Class;
 };
@@ -3314,6 +3331,10 @@ class InternalByteArray : public ByteArray {
                                    Heap::Space space = Heap::kNew);
 
  private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    return Addr<uint8_t>(byte_offset);
+  }
+
   template<typename T>
   T* Addr(intptr_t byte_offset) const {
     intptr_t limit = byte_offset + sizeof(T);
@@ -3374,6 +3395,10 @@ class ExternalByteArray : public ByteArray {
                                    Heap::Space space = Heap::kNew);
 
  private:
+  uint8_t* ByteAddr(intptr_t byte_offset) const {
+    return Addr<uint8_t>(byte_offset);
+  }
+
   template<typename T>
   T* Addr(intptr_t byte_offset) const {
     intptr_t limit = byte_offset + sizeof(T);

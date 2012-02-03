@@ -18,6 +18,9 @@ module default {
   Uint8Array implements sequence<int>;
   Uint16Array implements sequence<int>;
   Uint32Array implements sequence<int>;
+
+  // Is List<int> because inherits from Uint8Array:
+  // Uint8ClampedArray implements sequence<int>;
 }
 
 module dom {
@@ -149,6 +152,15 @@ module canvas {
   };
   [Supplemental]
   interface Uint8Array {
+    [DartName=setElements] void set(in any array, in optional unsigned long offset);
+  };
+
+  [Supplemental]
+  interface Uint8ClampedArray {
+    // Avoid 'overriding static member BYTES_PER_ELEMENT'.
+    [Suppressed] const unsigned int BYTES_PER_ELEMENT = 1;
+
+    [Suppressed] void set();
     [DartName=setElements] void set(in any array, in optional unsigned long offset);
   };
 };

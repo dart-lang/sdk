@@ -393,7 +393,17 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   static DOMWindow _open(receiver, url, name) native;
   static DOMWindow _open_2(receiver, url, name, options) native;
 
-  void postMessage(String message, String targetOrigin, [List messagePorts = null]) {
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) {
+    if (creationCallback === null) {
+      return _openDatabase(this, name, version, displayName, estimatedSize);
+    } else {
+      return _openDatabase_2(this, name, version, displayName, estimatedSize, creationCallback);
+    }
+  }
+  static Database _openDatabase(receiver, name, version, displayName, estimatedSize) native;
+  static Database _openDatabase_2(receiver, name, version, displayName, estimatedSize, creationCallback) native;
+
+  void postMessage(Dynamic message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts === null) {
       _postMessage(this, message, targetOrigin);
       return;
@@ -520,7 +530,7 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   }
   static WebKitPoint _webkitConvertPointFromPageToNode(receiver, node, p) native;
 
-  void webkitPostMessage(String message, String targetOrigin, [List transferList = null]) {
+  void webkitPostMessage(Dynamic message, String targetOrigin, [List transferList = null]) {
     if (transferList === null) {
       _webkitPostMessage(this, message, targetOrigin);
       return;

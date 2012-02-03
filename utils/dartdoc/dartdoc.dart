@@ -24,8 +24,10 @@
 #import('markdown.dart', prefix: 'md');
 
 #source('comment_map.dart');
-#source('files.dart');
 #source('utils.dart');
+
+/** Path to generate HTML files into. */
+final _outdir = 'docs';
 
 /**
  * Generates completely static HTML containing everything you need to browse
@@ -119,8 +121,26 @@ class Dartdoc {
    */
   String mainUrl = 'index.html';
 
+  /**
+   * The Google Custom Search ID that should be used for the search box. If
+   * this is `null` then no search box will be shown.
+   */
+  String searchEngineId = null;
+
+  /* The URL that the embedded search results should be displayed on. */
+  String searchResultsUrl = 'results.html';
+
   /** Set this to add footer text to each generated page. */
   String footerText = '';
+
+  /**
+   * From exposes the set of libraries in `world.libraries`. That maps library
+   * *keys* to [Library] objects. The keys are *not* exactly the same as their
+   * names. This means if we order by key, we won't actually have them sorted
+   * correctly. This list contains the libraries in correct order by their
+   * *name*.
+   */
+  List<Library> _sortedLibraries;
 
   CommentMap _comments;
 
@@ -132,6 +152,12 @@ class Dartdoc {
 
   /** The member that we're currently generating docs for. */
   Member _currentMember;
+
+  /** The path to the file currently being written to, relative to [outdir]. */
+  String _filePath;
+
+  /** The file currently being written to. */
+  StringBuffer _file;
 
   int _totalLibraries = 0;
   int _totalTypes = 0;
@@ -149,7 +175,7 @@ class Dartdoc {
             member: _currentMember));
   }
 
-  document(String entrypoint) {
+  void document(String entrypoint) {
     var oldDietParse = options.dietParse;
     try {
       options.dietParse = true;
@@ -187,16 +213,45 @@ class Dartdoc {
 
       world.resolveAll();
 
+      // Sort the libraries by name (not key).
+      _sortedLibraries = world.libraries.getValues();
+      _sortedLibraries.sort((a, b) {
+        return a.name.toUpperCase().compareTo(b.name.toUpperCase());
+      });
+
       // Generate the docs.
       if (mode == MODE_LIVE_NAV) docNavigationJson();
 
       docIndex();
-      for (final library in world.libraries.getValues()) {
+      for (final library in _sortedLibraries) {
         docLibrary(library);
       }
     } finally {
       options.dietParse = oldDietParse;
     }
+  }
+
+  void startFile(String path) {
+    _filePath = path;
+    _file = new StringBuffer();
+  }
+
+  void endFile() {
+    String outPath = '$_outdir/$_filePath';
+    world.files.createDirectory(dirname(outPath), recursive: true);
+
+    world.files.writeString(outPath, _file.toString());
+    _filePath = null;
+    _file = null;
+  }
+
+  void write(String s) {
+    _file.add(s);
+  }
+
+  void writeln(String s) {
+    write(s);
+    write('\n');
   }
 
   /**
@@ -210,7 +265,7 @@ class Dartdoc {
    *
    *     <a href="foo.html">foo</a> &rsaquo; bar
    */
-  writeHeader(String title, List<String> breadcrumbs) {
+  void writeHeader(String title, List<String> breadcrumbs) {
     write(
         '''
         <!DOCTYPE html>
@@ -247,6 +302,20 @@ class Dartdoc {
         write(' &rsaquo; ${a(breadcrumbs[i + 1], breadcrumbs[i])}');
       }
     }
+
+    if (searchEngineId != null) {
+      writeln(
+        '''
+        <form action="$searchResultsUrl" id="search-box">
+          <input type="hidden" name="cx" value="$searchEngineId">
+          <input type="hidden" name="ie" value="UTF-8">
+          <input type="hidden" name="hl" value="en">
+          <input type="search" name="q" id="q" autocomplete="off"
+              placeholder="Search">
+        </form>
+        ''');
+    }
+
     writeln('</div>');
 
     docNavigation();
@@ -261,7 +330,7 @@ class Dartdoc {
     }
   }
 
-  writeHeadContents(String title) {
+  void writeHeadContents(String title) {
     writeln(
         '''
         <meta charset="utf-8">
@@ -274,7 +343,7 @@ class Dartdoc {
         ''');
   }
 
-  writeFooter() {
+  void writeFooter() {
     writeln(
         '''
         </div>
@@ -285,7 +354,7 @@ class Dartdoc {
         ''');
   }
 
-  docIndex() {
+  void docIndex() {
     startFile('index.html');
 
     writeHeader(mainTitle, []);
@@ -293,53 +362,58 @@ class Dartdoc {
     writeln('<h2>$mainTitle</h2>');
     writeln('<h3>Libraries</h3>');
 
-    for (final library in orderByName(world.libraries)) {
-      writeln(
-          '''
-          <h4>${a(libraryUrl(library), library.name)}</h4>
-          ''');
+    for (final library in _sortedLibraries) {
+      docIndexLibrary(library);
     }
 
     writeFooter();
     endFile();
   }
 
+  void docIndexLibrary(Library library) {
+    writeln('<h4>${a(libraryUrl(library), library.name)}</h4>');
+  }
+
   /**
    * Walks the libraries and creates a JSON object containing the data needed
    * to generate navigation for them.
    */
-  docNavigationJson() {
+  void docNavigationJson() {
     startFile('nav.json');
 
     final libraries = {};
 
-    for (final library in orderByName(world.libraries)) {
-      final types = [];
-
-      for (final type in orderByName(library.types)) {
-        if (type.isTop) continue;
-        if (type.name.startsWith('_')) continue;
-
-        final kind = type.isClass ? 'class' : 'interface';
-        final url = typeUrl(type);
-        types.add({ 'name': typeName(type), 'kind': kind, 'url': url });
-      }
-
-      libraries[library.name] = types;
+    for (final library in _sortedLibraries) {
+      docLibraryNavigationJson(library, libraries);
     }
 
     writeln(JSON.stringify(libraries));
     endFile();
   }
 
-  docNavigation() {
+  void docLibraryNavigationJson(Library library, Map libraries) {
+    final types = [];
+
+    for (final type in orderByName(library.types)) {
+      if (type.isTop) continue;
+      if (type.name.startsWith('_')) continue;
+
+      final kind = type.isClass ? 'class' : 'interface';
+      final url = typeUrl(type);
+      types.add({ 'name': typeName(type), 'kind': kind, 'url': url });
+    }
+
+    libraries[library.name] = types;
+  }
+
+  void docNavigation() {
     writeln(
         '''
         <div class="nav">
         ''');
 
     if (mode == MODE_STATIC) {
-      for (final library in orderByName(world.libraries)) {
+      for (final library in _sortedLibraries) {
         write('<h2><div class="icon-library"></div>');
 
         if ((_currentLibrary == library) && (_currentType == null)) {
@@ -358,7 +432,7 @@ class Dartdoc {
   }
 
   /** Writes the navigation for the types contained by the given library. */
-  docLibraryNavigation(Library library) {
+  void docLibraryNavigation(Library library) {
     // Show the exception types separately.
     final types = <Type>[];
     final exceptions = <Type>[];
@@ -383,7 +457,7 @@ class Dartdoc {
   }
 
   /** Writes a linked navigation list item for the given type. */
-  docTypeNavigation(Type type) {
+  void docTypeNavigation(Type type) {
     var icon = 'interface';
     if (type.name.endsWith('Exception')) {
       icon = 'exception';
@@ -402,7 +476,7 @@ class Dartdoc {
     writeln('</li>');
   }
 
-  docLibrary(Library library) {
+  void docLibrary(Library library) {
     _totalLibraries++;
     _currentLibrary = library;
     _currentType = null;
@@ -451,7 +525,7 @@ class Dartdoc {
     }
   }
 
-  docTypes(List<Type> types, String header) {
+  void docTypes(List<Type> types, String header) {
     if (types.length == 0) return;
 
     writeln('<h3>$header</h3>');
@@ -468,7 +542,7 @@ class Dartdoc {
     }
   }
 
-  docType(Type type) {
+  void docType(Type type) {
     _totalTypes++;
     _currentType = type;
 
@@ -490,8 +564,14 @@ class Dartdoc {
     docConstructors(type);
     docMembers(type);
 
+    writeTypeFooter();
     writeFooter();
     endFile();
+  }
+
+  /** Override this to write additional content at the end of a type's page. */
+  void writeTypeFooter() {
+    // Do nothing.
   }
 
   /**
@@ -499,7 +579,7 @@ class Dartdoc {
    * an icon and the type's name. It's similar to how types appear in the
    * navigation, but is suitable for inline (as opposed to in a `<ul>`) use.
    */
-  typeSpan(Type type) {
+  void typeSpan(Type type) {
     var icon = 'interface';
     if (type.name.endsWith('Exception')) {
       icon = 'exception';
@@ -521,7 +601,7 @@ class Dartdoc {
    * subclasses, superclasses, subinterfaces, superinferfaces, and default
    * class.
    */
-  docInheritance(Type type) {
+  void docInheritance(Type type) {
     // Don't show the inheritance details for Object. It doesn't have any base
     // class (obviously) and it has too many subclasses to be useful.
     if (type.isObject) return;
@@ -613,7 +693,7 @@ class Dartdoc {
   }
 
   /** Document the constructors for [Type], if any. */
-  docConstructors(Type type) {
+  void docConstructors(Type type) {
     final names = type.constructors.getKeys().filter(
       (name) => !name.startsWith('_'));
 
@@ -677,7 +757,8 @@ class Dartdoc {
    * Documents the [method] in type [type]. Handles all kinds of methods
    * including getters, setters, and constructors.
    */
-  docMethod(Type type, MethodMember method, [String constructorName = null]) {
+  void docMethod(Type type, MethodMember method,
+      [String constructorName = null]) {
     _totalMembers++;
     _currentMember = method;
 
@@ -706,6 +787,8 @@ class Dartdoc {
     } else if (name == ':negate') {
       // Dart uses 'negate' for prefix negate operators, not '!'.
       name = 'operator negate';
+    } else if (name == ':call') {
+      name = 'operator call';
     } else {
       // See if it's an operator.
       name = TokenKind.rawOperatorFromMethod(name);
@@ -736,7 +819,7 @@ class Dartdoc {
   }
 
   /** Documents the field [field] of type [type]. */
-  docField(Type type, FieldMember field) {
+  void docField(Type type, FieldMember field) {
     _totalMembers++;
     _currentMember = field;
 
@@ -765,7 +848,7 @@ class Dartdoc {
     writeln('</div>');
   }
 
-  docParamList(Type enclosingType, MethodMember member) {
+  void docParamList(Type enclosingType, MethodMember member) {
     write('(');
     bool first = true;
     bool inOptionals = false;
@@ -802,10 +885,10 @@ class Dartdoc {
    * Documents the code contained within [span] with [comment]. If [showCode]
    * is `true` (and [includeSource] is set), also includes the source code.
    */
-  docCode(SourceSpan span, String comment, [bool showCode = false]) {
+  void docCode(SourceSpan span, String comment, [bool showCode = false]) {
     writeln('<div class="doc">');
     if (comment != null) {
-      writeln(md.markdownToHtml(comment));
+      writeln(comment);
     }
 
     if (includeSource && showCode) {
@@ -818,21 +901,83 @@ class Dartdoc {
   }
 
   /** Get the doc comment associated with the given type. */
-  String getTypeComment(Type type) => _comments.find(type.span);
+  String getTypeComment(Type type) {
+    String comment = _comments.find(type.span);
+    if (comment == null) return null;
+    return md.markdownToHtml(comment);
+  }
 
   /** Get the doc comment associated with the given method. */
-  String getMethodComment(MethodMember method) => _comments.find(method.span);
+  String getMethodComment(MethodMember method) {
+    String comment = _comments.find(method.span);
+    if (comment == null) return null;
+    return md.markdownToHtml(comment);
+  }
 
   /** Get the doc comment associated with the given field. */
-  String getFieldComment(FieldMember field) => _comments.find(field.span);
+  String getFieldComment(FieldMember field) {
+    String comment = _comments.find(field.span);
+    if (comment == null) return null;
+    return md.markdownToHtml(comment);
+  }
+
+  /**
+   * Converts [fullPath] which is understood to be a full path from the root of
+   * the generated docs to one relative to the current file.
+   */
+  String relativePath(String fullPath) {
+    // Don't make it relative if it's an absolute path.
+    if (isAbsolute(fullPath)) return fullPath;
+
+    // TODO(rnystrom): Walks all the way up to root each time. Shouldn't do
+    // this if the paths overlap.
+    return repeat('../', countOccurrences(_filePath, '/')) + fullPath;
+  }
+
+  /** Gets whether or not the given URL is absolute or relative. */
+  bool isAbsolute(String url) {
+    // TODO(rnystrom): Why don't we have a nice type in the platform for this?
+    // TODO(rnystrom): This is a bit hackish. We consider any URL that lacks
+    // a scheme to be relative.
+    return const RegExp(@'^\w+:').hasMatch(url);
+  }
+
+  /** Gets the URL to the documentation for [library]. */
+  String libraryUrl(Library library) {
+    return '${sanitize(library.name)}.html';
+  }
+
+  /** Gets the URL for the documentation for [type]. */
+  String typeUrl(Type type) {
+    if (type.isTop) return '${sanitize(type.library.name)}.html';
+    // Always get the generic type to strip off any type parameters or
+    // arguments. If the type isn't generic, genericType returns `this`, so it
+    // works for non-generic types too.
+    return '${sanitize(type.library.name)}/${type.genericType.name}.html';
+  }
+
+  /** Gets the URL for the documentation for [member]. */
+  String memberUrl(Member member) {
+    final typeUrl = typeUrl(member.declaringType);
+    if (!member.isConstructor) return '$typeUrl#${member.name}';
+    if (member.constructorName == '') return '$typeUrl#new:${member.name}';
+    return '$typeUrl#new:${member.name}.${member.constructorName}';
+  }
+
+  /** Gets the anchor id for the document for [member]. */
+  String memberAnchor(Member member) {
+    return '${member.name}';
+  }
 
   /**
    * Creates a hyperlink. Handles turning the [href] into an appropriate
    * relative path from the current file.
    */
   String a(String href, String contents, [String css]) {
+    // Mark outgoing external links, mainly so we can style them.
+    final rel = isAbsolute(href) ? ' ref="external"' : '';
     final cssClass = css == null ? '' : ' class="$css"';
-    return '<a href="${relativePath(href)}"$cssClass>$contents</a>';
+    return '<a href="${relativePath(href)}"$cssClass$rel>$contents</a>';
   }
 
   /**

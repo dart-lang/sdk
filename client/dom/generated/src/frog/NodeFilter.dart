@@ -1,5 +1,5 @@
 
-class NodeFilterJs extends DOMTypeJs implements NodeFilter native "*NodeFilter" {
+class _NodeFilterJs extends _DOMTypeJs implements NodeFilter native "*NodeFilter" {
 
   static final int FILTER_ACCEPT = 1;
 
@@ -33,5 +33,5 @@ class NodeFilterJs extends DOMTypeJs implements NodeFilter native "*NodeFilter" 
 
   static final int SHOW_TEXT = 0x00000004;
 
-  int acceptNode(NodeJs n) native;
+  int acceptNode(_NodeJs n) native;
 }

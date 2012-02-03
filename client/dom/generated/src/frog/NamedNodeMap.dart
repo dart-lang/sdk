@@ -1,11 +1,11 @@
 
-class NamedNodeMapJs extends DOMTypeJs implements NamedNodeMap native "*NamedNodeMap" {
+class _NamedNodeMapJs extends _DOMTypeJs implements NamedNodeMap native "*NamedNodeMap" {
 
   int get length() native "return this.length;";
 
-  NodeJs operator[](int index) native "return this[index];";
+  _NodeJs operator[](int index) native "return this[index];";
 
-  void operator[]=(int index, NodeJs value) {
+  void operator[]=(int index, _NodeJs value) {
     throw new UnsupportedOperationException("Cannot assign element of immutable List.");
   }
   // -- start List<Node> mixins.
@@ -76,17 +76,17 @@ class NamedNodeMapJs extends DOMTypeJs implements NamedNodeMap native "*NamedNod
 
   // -- end List<Node> mixins.
 
-  NodeJs getNamedItem(String name) native;
+  _NodeJs getNamedItem(String name) native;
 
-  NodeJs getNamedItemNS(String namespaceURI, String localName) native;
+  _NodeJs getNamedItemNS(String namespaceURI, String localName) native;
 
-  NodeJs item(int index) native;
+  _NodeJs item(int index) native;
 
-  NodeJs removeNamedItem(String name) native;
+  _NodeJs removeNamedItem(String name) native;
 
-  NodeJs removeNamedItemNS(String namespaceURI, String localName) native;
+  _NodeJs removeNamedItemNS(String namespaceURI, String localName) native;
 
-  NodeJs setNamedItem(NodeJs node) native;
+  _NodeJs setNamedItem(_NodeJs node) native;
 
-  NodeJs setNamedItemNS(NodeJs node) native;
+  _NodeJs setNamedItemNS(_NodeJs node) native;
 }

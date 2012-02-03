@@ -245,6 +245,7 @@ const char* BigintOperations::ToHexCString(const Bigint& bigint,
 
 
 bool BigintOperations::FitsIntoSmi(const Bigint& bigint) {
+  ASSERT(!bigint.IsNull());
   const BIGNUM *bn = bigint.BNAddr();
   int bits = BN_num_bits(bn);
   // Special case for kMinValue as the absolute value is 1 bit longer

@@ -4,26 +4,55 @@
 
 prefix client
 
+dom/WebGL1Test: Skip  # Issue 1495
+
 [ $component == dartium ]
-samples/dartcombat/dartcombat_tests: Skip # Bug 5279716
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
-dom/dom_tests: Skip
+# TODO(vsm): Triage DOM tests.
+dom/AudioContextTest: Fail
+dom/DocumentTest: Fail
+dom/IsolateLightTest: Fail
+dom/NativeGCTest: Fail  # Issue 1448.
+dom/TypingTest: Fail
+dom/XHRTest: Fail
+dom/WebSocketTest: Fail
 
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
 html/html_tests: Skip  # Doesn't recognize SVGElement constructors
-samples/dartcombat/dartcombat_tests: Skip # Issue 1218
+# TODO(vsm): Triage DOM tests.
+dom/AsyncWindowTest: Skip # This test appears to interact badly with other tests.
+dom/DOMIsolatesTest: Fail
+dom/DocumentTest: Fail
+dom/HTMLElementTest: Fail
+dom/TypingTest: Fail
+dom/XHRTest: Fail
 
-[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
+[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Skip # Issue 152, also seems flaky
-samples/dartcombat/dartcombat_tests: Skip # passes locally but timeout on bot?
-samples/total/total_tests: Skip # Issue 867.
+# TODO(vsm): Triage DOM tests.
+dom/DocumentTest: Fail
+dom/DOMIsolatesTest: Fail
+dom/HTMLElementTest: Fail
+dom/TypingTest: Fail
+dom/WindowOpenTest: Fail
+dom/XHRTest: Fail
 
-[ $component == webdriver && ($browser == ff || $browser == safari) ]
-samples/swarm/swarm_tests: Fail
+[ ($component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie))) && $checked ]
+# TODO(vsm): Triage DOM tests.
+dom/EventsTest: Fail
+
+[ $component == webdriver ]
+dom/ImplementationTest: Fail
+dom/HistoryTest: Fail
+
+[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
+html/html_tests: Fail
+# TODO(vsm): Triage DOM failures on other browsers.
+dom/*: Skip
 
 [ $component == webdriver && $browser == safari ]
 samples/smoketest/dartWebBase_tests: Fail

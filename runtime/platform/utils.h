@@ -154,6 +154,18 @@ class Utils {
     if (i < 10) return static_cast<char>('0' + i);
     return static_cast<char>('A' + (i - 10));
   }
+
+  // Perform a range check, checking if
+  //    offset + count <= length
+  // without the risk of integer overflow.
+  static inline bool RangeCheck(intptr_t offset,
+                                intptr_t count,
+                                intptr_t length) {
+    return offset >= 0 &&
+           count >= 0 &&
+           length >= 0 &&
+           count <= (length - offset);
+  }
 };
 
 }  // namespace dart

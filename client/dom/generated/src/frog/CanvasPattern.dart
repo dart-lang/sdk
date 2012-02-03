@@ -1,3 +1,3 @@
 
-class CanvasPatternJs extends DOMTypeJs implements CanvasPattern native "*CanvasPattern" {
+class _CanvasPatternJs extends _DOMTypeJs implements CanvasPattern native "*CanvasPattern" {
 }

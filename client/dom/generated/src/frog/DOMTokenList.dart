@@ -1,5 +1,5 @@
 
-class DOMTokenListJs extends DOMTypeJs implements DOMTokenList native "*DOMTokenList" {
+class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTokenList" {
 
   int get length() native "return this.length;";
 

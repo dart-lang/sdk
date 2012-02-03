@@ -7,8 +7,10 @@
 #include "vm/code_index_table.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
+#include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -20,6 +22,7 @@
 namespace dart {
 
 static const bool verbose = false;
+
 
 Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
     : function_(func.raw()),
@@ -159,19 +162,54 @@ intptr_t ActivationFrame::LineNumber() {
 }
 
 
-void ActivationFrame::GetLocalVariables() {
+void ActivationFrame::GetDescIndices() {
   if (var_descriptors_ == NULL) {
     const Code& code = Code::Handle(DartFunction().code());
     var_descriptors_ =
         &LocalVarDescriptors::ZoneHandle(code.var_descriptors());
+    GrowableArray<String*> var_names(8);
     intptr_t activation_token_pos = TokenIndex();
-    intptr_t desc_len = var_descriptors_->Length();
-    for (int i = 0; i < desc_len; i++) {
+    intptr_t var_desc_len = var_descriptors_->Length();
+    for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+      ASSERT(var_names.length() == desc_indices_.length());
       intptr_t scope_id, begin_pos, end_pos;
-      var_descriptors_->GetScopeInfo(i, &scope_id, &begin_pos, &end_pos);
+      var_descriptors_->GetScopeInfo(cur_idx, &scope_id, &begin_pos, &end_pos);
       if ((begin_pos <= activation_token_pos) &&
           (activation_token_pos <= end_pos)) {
-        desc_indices_.Add(i);
+        // The current variable is textually in scope. Now check whether
+        // there is another local variable with the same name that shadows
+        // or is shadowed by this variable.
+        String& var_name = String::Handle(var_descriptors_->GetName(cur_idx));
+        intptr_t indices_len = desc_indices_.length();
+        bool name_match_found = false;
+        for (int i = 0; i < indices_len; i++) {
+          if (var_name.Equals(*var_names[i])) {
+            // Found two local variables with the same name. Now determine
+            // which one is shadowed.
+            name_match_found = true;
+            intptr_t i_begin_pos, ignore;
+            var_descriptors_->GetScopeInfo(
+                desc_indices_[i], &ignore, &i_begin_pos, &ignore);
+            if (i_begin_pos < begin_pos) {
+              // The variable we found earlier is in an outer scope
+              // and is shadowed by the current variable. Replace the
+              // descriptor index of the previously found variable
+              // with the descriptor index of the current variable.
+              desc_indices_[i] = cur_idx;
+            } else {
+              // The variable we found earlier is in an inner scope
+              // and shadows the current variable. Skip the current
+              // variable. (Nothing to do.)
+            }
+            break;  // Stop looking for name matches.
+          }
+        }
+        if (!name_match_found) {
+          // No duplicate name found. Add the current descriptor index to the
+          // list of visible variables.
+          desc_indices_.Add(cur_idx);
+          var_names.Add(&var_name);
+        }
       }
     }
   }
@@ -179,7 +217,7 @@ void ActivationFrame::GetLocalVariables() {
 
 
 intptr_t ActivationFrame::NumLocalVariables() {
-  GetLocalVariables();
+  GetDescIndices();
   return desc_indices_.length();
 }
 
@@ -189,7 +227,7 @@ void ActivationFrame::VariableAt(intptr_t i,
                                  intptr_t* token_pos,
                                  intptr_t* end_pos,
                                  Instance* value) {
-  GetLocalVariables();
+  GetDescIndices();
   ASSERT(i < desc_indices_.length());
   ASSERT(name != NULL);
   intptr_t desc_index = desc_indices_[i];
@@ -198,6 +236,22 @@ void ActivationFrame::VariableAt(intptr_t i,
   var_descriptors_->GetScopeInfo(desc_index, &scope_id, token_pos, end_pos);
   ASSERT(value != NULL);
   *value = GetLocalVarValue(var_descriptors_->GetSlotIndex(desc_index));
+}
+
+
+RawArray* ActivationFrame::GetLocalVariables() {
+  GetDescIndices();
+  intptr_t num_variables = desc_indices_.length();
+  String& var_name = String::Handle();
+  Instance& value = Instance::Handle();
+  const Array& list = Array::Handle(Array::New(2 * num_variables));
+  for (int i = 0; i < num_variables; i++) {
+    var_name = var_descriptors_->GetName(i);
+    list.SetAt(2 * i, var_name);
+    value = GetLocalVarValue(var_descriptors_->GetSlotIndex(i));
+    list.SetAt((2 * i) + 1, value);
+  }
+  return list.raw();
 }
 
 
@@ -225,7 +279,8 @@ void StackTrace::AddActivation(ActivationFrame* frame) {
 
 
 Debugger::Debugger()
-    : initialized_(false),
+    : isolate_(NULL),
+      initialized_(false),
       bp_handler_(NULL),
       breakpoints_(NULL) {
 }
@@ -293,14 +348,18 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // TODO(hausner): Distinguish between newly created breakpoints and
 // returning a breakpoint that already exists?
 Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
-                                    intptr_t token_index) {
+                                    intptr_t token_index,
+                                    Error* error) {
   if ((token_index < target_function.token_index()) ||
       (target_function.end_token_index() <= token_index)) {
     // The given token position is not within the target function.
     return NULL;
   }
   if (!target_function.HasCode()) {
-    Compiler::CompileFunction(target_function);
+    *error = Compiler::CompileFunction(target_function);
+    if (!error->IsNull()) {
+      return NULL;
+    }
   }
   Code& code = Code::Handle(target_function.code());
   ASSERT(!code.IsNull());
@@ -370,19 +429,19 @@ void Debugger::UnsetBreakpoint(Breakpoint* bpt) {
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function) {
+Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
+                                           Error* error) {
   ASSERT(!target_function.IsNull());
-  return SetBreakpoint(target_function, target_function.token_index());
+  return SetBreakpoint(target_function, target_function.token_index(), error);
 }
 
 
 Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
-                                          intptr_t line_number) {
+                                          intptr_t line_number,
+                                          Error* error) {
   Library& lib = Library::Handle();
   Script& script = Script::Handle();
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  lib = isolate->object_store()->registered_libraries();
+  lib = isolate_->object_store()->registered_libraries();
   while (!lib.IsNull()) {
     script = lib.LookupScript(script_url);
     if (!script.IsNull()) {
@@ -403,7 +462,107 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
   if (func.IsNull()) {
     return NULL;
   }
-  return SetBreakpoint(func, token_index_at_line);
+  return SetBreakpoint(func, token_index_at_line, error);
+}
+
+
+static RawArray* MakeNameValueList(const GrowableArray<Object*>& pairs) {
+  int pairs_len = pairs.length();
+  ASSERT(pairs_len % 2 == 0);
+  const Array& list = Array::Handle(Array::New(pairs_len));
+  for (int i = 0; i < pairs_len; i++) {
+    list.SetAt(i, *pairs[i]);
+  }
+  return list.raw();
+}
+
+
+// TODO(hausner): Merge some of this functionality with the code in
+// dart_api_impl.cc.
+RawObject* Debugger::GetInstanceField(const Class& cls,
+                                      const String& field_name,
+                                      const Instance& object) {
+  const Function& getter_func =
+      Function::Handle(cls.LookupGetterFunction(field_name));
+  ASSERT(!getter_func.IsNull());
+
+  Object& result = Object::Handle();
+  LongJump* base = isolate_->long_jump_base();
+  LongJump jump;
+  isolate_->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    GrowableArray<const Object*> noArguments;
+    const Array& noArgumentNames = Array::Handle();
+    result = DartEntry::InvokeDynamic(object, getter_func,
+                                      noArguments, noArgumentNames);
+  } else {
+    result = isolate_->object_store()->sticky_error();
+  }
+  isolate_->set_long_jump_base(base);
+  return result.raw();
+}
+
+
+RawObject* Debugger::GetStaticField(const Class& cls,
+                                    const String& field_name) {
+  const Function& getter_func =
+      Function::Handle(cls.LookupGetterFunction(field_name));
+  ASSERT(!getter_func.IsNull());
+
+  Object& result = Object::Handle();
+  LongJump* base = isolate_->long_jump_base();
+  LongJump jump;
+  isolate_->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    GrowableArray<const Object*> noArguments;
+    const Array& noArgumentNames = Array::Handle();
+    result = DartEntry::InvokeStatic(getter_func, noArguments, noArgumentNames);
+  } else {
+    result = isolate_->object_store()->sticky_error();
+  }
+  isolate_->set_long_jump_base(base);
+  return result.raw();
+}
+
+
+RawArray* Debugger::GetInstanceFields(const Instance& obj) {
+  Class& cls = Class::Handle(obj.clazz());
+  Array& fields = Array::Handle();
+  Field& field = Field::Handle();
+  GrowableArray<Object*> field_list(8);
+  // Iterate over fields in class hierarchy to count all instance fields.
+  while (!cls.IsNull()) {
+    fields = cls.fields();
+    for (int i = 0; i < fields.Length(); i++) {
+      field ^= fields.At(i);
+      if (!field.is_static()) {
+        String& field_name = String::Handle(field.name());
+        field_list.Add(&field_name);
+        Object& field_value = Object::Handle();
+        field_value = GetInstanceField(cls, field_name, obj);
+        field_list.Add(&field_value);
+      }
+    }
+    cls = cls.SuperClass();
+  }
+  return MakeNameValueList(field_list);
+}
+
+
+RawArray* Debugger::GetStaticFields(const Class& cls) {
+  GrowableArray<Object*> field_list(8);
+  Array& fields = Array::Handle(cls.fields());
+  Field& field = Field::Handle();
+  for (int i = 0; i < fields.Length(); i++) {
+    field ^= fields.At(i);
+    if (field.is_static()) {
+      String& field_name = String::Handle(field.name());
+      Object& field_value = Object::Handle(GetStaticField(cls, field_name));
+      field_list.Add(&field_name);
+      field_list.Add(&field_value);
+    }
+  }
+  return MakeNameValueList(field_list);
 }
 
 
@@ -476,6 +635,7 @@ void Debugger::Initialize(Isolate* isolate) {
   if (initialized_) {
     return;
   }
+  isolate_ = isolate;
   initialized_ = true;
   SetBreakpointHandler(DefaultBreakpointHandler);
 }

@@ -22,8 +22,8 @@ class ListLiteral3Test {
     } catch (UnsupportedOperationException e) {
       caughtException = true;
     }
-    Expect.equals(true, joke[0] === joke[1]);
     Expect.equals(true, caughtException);
+    Expect.equals(true, joke[0] === joke[1]);
 
     // Make sure lists allocated at runtime are mutable and are
     // not canonicalized.

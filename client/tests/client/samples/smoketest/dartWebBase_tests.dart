@@ -1,6 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+#library('Smoketests_main');
 
 #import('benchmarklib.dart');
 #import('dart:html');
@@ -16,7 +17,7 @@ void main() {
 testForCompletion() {
   Element element = document.query('#testResultScore');
   RegExp re = new RegExp('Score: [0-9]+');
-  window.console.log(element.text);
+  print(element.text);
   Expect.isTrue(re.hasMatch(element.text));
   callbackDone();
 }

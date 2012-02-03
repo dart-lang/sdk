@@ -1,5 +1,5 @@
 
-class AudioGainNodeJs extends AudioNodeJs implements AudioGainNode native "*AudioGainNode" {
+class _AudioGainNodeJs extends _AudioNodeJs implements AudioGainNode native "*AudioGainNode" {
 
-  AudioGainJs get gain() native "return this.gain;";
+  _AudioGainJs get gain() native "return this.gain;";
 }

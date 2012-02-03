@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -54,8 +54,9 @@ class CCTestListerIsolate extends Isolate {
 
 class CCTestSuite implements TestSuite {
   Map configuration;
-  String suiteName;
+  final String suiteName;
   String runnerPath;
+  final String dartDir;
   List<String> statusFilePaths;
   Function doTest;
   Function doDone;
@@ -65,8 +66,10 @@ class CCTestSuite implements TestSuite {
   CCTestSuite(Map this.configuration,
               String this.suiteName,
               String runnerName,
-              List<String> this.statusFilePaths) {
+              List<String> this.statusFilePaths)
+      : dartDir = TestUtils.dartDir() {
     runnerPath = TestUtils.buildDir(configuration) + '/' + runnerName;
+
   }
 
   bool complexStatusMatching() => false;
@@ -125,7 +128,7 @@ class CCTestSuite implements TestSuite {
         new TestExpectations(complexMatching: complexStatusMatching());
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
-                               statusFilePath,
+                               '$dartDir/$statusFilePath',
                                configuration,
                                statusFileRead);
     }
@@ -212,14 +215,14 @@ class StandardTestSuite implements TestSuite {
         new TestExpectations(complexMatching: complexStatusMatching());
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
-                               statusFilePath,
+                               '$dartDir/$statusFilePath',
                                configuration,
                                statusFileRead);
     }
   }
 
   void processDirectory() {
-    directoryPath = getDirname(directoryPath);
+    directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
     dir.errorHandler = (s) {
       throw s;
@@ -254,13 +257,14 @@ class StandardTestSuite implements TestSuite {
       // rest. They use the .dart suffix in the status files. They
       // find tests in weird ways (testing that they contain "#").
       // They need to be redone.
-      // directoryPath may start with '../'.
       // TODO(1058): This does not work on Windows.
-      String sanitizedDirectoryPath = (directoryPath.startsWith('../')) ?
-          directoryPath.substring(3) : directoryPath;
-      start = filename.indexOf(sanitizedDirectoryPath);
-      testName = filename.substring(start + sanitizedDirectoryPath.length + 1,
-                                    filename.length);
+      start = filename.indexOf(directoryPath);      
+      if (start != -1) {
+        testName = filename.substring(start + directoryPath.length + 1);
+      } else {
+        testName = filename;
+      }
+
       if (configuration['component'] != 'dartc') {
         if (testName.endsWith('.dart')) {
           testName = testName.substring(0, testName.length - 5);
@@ -424,11 +428,17 @@ class StandardTestSuite implements TestSuite {
           dartWrapperFilename : compiledDartWrapperFilename;
       // Create the HTML file for the test.
       RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
+      String filePrefix = '';
+      if (new Platform().operatingSystem() == 'windows') {
+        // Firefox on Windows does not like absolute file path names that start
+        // with 'C:' adding 'file:///' solves the problem.
+        filePrefix = 'file:///';
+      }
       htmlTest.writeStringSync(GetHtmlContents(
           filename,
-          '$dartDir/client/testing/unittest/test_controller.js',
+          '$filePrefix$dartDir/client/testing/unittest/test_controller.js',
           scriptType,
-          scriptPath));
+          filePrefix + scriptPath));
       htmlTest.closeSync();
 
       List<String> compilerArgs = TestUtils.standardOptions(configuration);
@@ -467,19 +477,16 @@ class StandardTestSuite implements TestSuite {
           Expect.fail('unimplemented component $component');
       }
 
-      String executable = getFilename(dumpRenderTreeFilename);
       List<String> args;
       if (component == 'webdriver') {
-        executable = '$dartDir/tools/testing/run_selenium.py';
-        if (new Platform().operatingSystem() == 'windows') {
-          // For Windows, the first command, must have the Windows 
-          // slash direction.
-          // TODO(efortuna): Get rid of this hack when issue 1306 is fixed.
-          executable = executable.replaceAll('/', '\\');
-        }
-        args = ['--out=$htmlPath', '--browser=${configuration["browser"]}'];
+        args = ['$dartDir/tools/testing/run_selenium.py', '--out=$htmlPath', 
+            '--browser=${configuration["browser"]}'];
       } else {
-        args = ['--no-timeout'];
+        args = [
+            '$dartDir/tools/testing/drt-trampoline.py',
+            dumpRenderTreeFilename,
+            '--no-timeout'
+        ];
         if (component == 'dartium') {
           var dartFlags = ['--ignore-unrecognized-flags'];
           if (configuration["checked"]) {
@@ -496,7 +503,7 @@ class StandardTestSuite implements TestSuite {
           testName,
           compilerExecutable,
           compilerArgs,
-          executable,
+          'python',
           args,
           configuration,
           completeHandler,
@@ -580,15 +587,19 @@ class StandardTestSuite implements TestSuite {
   }
 
   String getHtmlName(String filename) {
-    return filename.replaceAll('/', '_') + configuration['component'] + '.html';
+    return filename.replaceAll('/', '_').replaceAll(':', '_') 
+        + configuration['component'] + '.html';
   }
 
   String get dumpRenderTreeFilename() {
+    if (configuration['drt'] != '') {
+      return configuration['drt'];
+    }
     if (new Platform().operatingSystem() == 'macos') {
-      return 'client/tests/drt/DumpRenderTree.app/Contents/' +
+      return '$dartDir/client/tests/drt/DumpRenderTree.app/Contents/' +
           'MacOS/DumpRenderTree';
     }
-    return 'client/tests/drt/DumpRenderTree';
+    return '$dartDir/client/tests/drt/DumpRenderTree';
   }
 
   void testGeneratorStarted() {
@@ -760,7 +771,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
   }
 
   void processDirectory() {
-    directoryPath = getDirname(directoryPath);
+    directoryPath = '$dartDir/$directoryPath';
     // Enqueueing the directory listers is an activity.
     activityStarted();
     for (String testDir in _testDirs) {
@@ -831,7 +842,7 @@ class JUnitTestSuite implements TestSuite {
   }
 
   void processDirectory() {
-    directoryPath = getDirname(directoryPath);
+    directoryPath = '$dartDir/$directoryPath';
     Directory dir = new Directory(directoryPath);
 
     dir.errorHandler = (s) {
@@ -856,7 +867,8 @@ class JUnitTestSuite implements TestSuite {
   }
 
   void createTest(successIgnored) {
-    String d8 = '$buildDir/d8${TestUtils.executableSuffix}';
+    String d8 =
+        "$buildDir/d8${TestUtils.executableSuffix(configuration['component'])}";
     List<String> args = <String>[
         '-ea',
         '-classpath', classPath,
@@ -899,35 +911,43 @@ class JUnitTestSuite implements TestSuite {
 
 
 class TestUtils {
-  static String get executableSuffix() =>
-      (new Platform().operatingSystem() == 'windows') ? '.exe' : '';
+  static String executableSuffix(String component) {
+    if (new Platform().operatingSystem() == 'windows') {
+      if (component != 'frogium' && component != 'webdriver') {
+        return '.exe';
+      } else {
+        return '.bat';
+      }
+    }
+    return '';
+  }
 
   static String executableName(Map configuration) {
-    String postfix = executableSuffix;
+    String suffix = executableSuffix(configuration['component']);
     switch (configuration['component']) {
       case 'vm':
-        return 'dart$postfix';
+        return 'dart$suffix';
       case 'dartc':
-        return 'compiler/bin/dartc_test$postfix';
+        return 'compiler/bin/dartc_test$suffix';
       case 'frog':
       case 'leg':
-          return 'frog/bin/frog$postfix';
+          return 'frog/bin/frog$suffix';
       case 'frogsh':
-        return 'frog/bin/frogsh';
+        return 'frog/bin/frogsh$suffix';
       default:
         throw "Unknown executable for: ${configuration['component']}";
     }
   }
 
   static String compilerName(Map configuration) {
-    String postfix = executableSuffix;
+    String suffix = executableSuffix(configuration['component']);
     switch (configuration['component']) {
       case 'chromium':
       case 'dartc':
-        return 'compiler/bin/dartc$postfix';
+        return 'compiler/bin/dartc$suffix';
       case 'frogium':
       case 'webdriver':
-        return 'frog/bin/frogsh';
+        return 'frog/bin/frogsh$suffix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
     }
@@ -974,16 +994,9 @@ class TestUtils {
   }
 
   static String dartDir() {
-    Directory dart;
-    if (new File('tools/testing/dart/test_suite.dart').existsSync()) {
-      return new File('.').fullPathSync().replaceAll('\\', '/');
-    } else if (new File('../tools/testing/dart/test_suite.dart').existsSync()) {
-      return new File('..').fullPathSync().replaceAll('\\', '/');
-    } else {
-      print('Run test.dart from the dart directory or' +
-            ' an immediate subdirectory only.');
-      Expect.fail('Could not find top level dart directory.');
-    }
+    String scriptPath = new Options().script.replaceAll('\\', '/');
+    String toolsDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
+    return new File('$toolsDir/..').fullPathSync().replaceAll('\\', '/');    
   }
 
   static List<String> standardOptions(Map configuration) {

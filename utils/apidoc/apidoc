@@ -16,17 +16,21 @@
 # gross. Ideally, we'd write the whole thing in Dart an ditch the shell
 # but right now we can't even copy binary files using Dart.
 
-# Run from dartdoc directory to get correct relative paths.
+# Run from apidoc directory to get correct relative paths.
 pushd `dirname "$0"` >>/dev/null
 
-# Generate the client-side .js file from interact.dart if we haven't already or
-# if it's out of date.
-if [ "interact.dart" -nt "static/interact.js" ]
-  then
-  ../../frog/minfrog --libdir=../../frog/lib \
-    --out=../dartdoc/static/interact.js --compile-only interact.dart
-  echo "Compiled interact.dart."
-fi
+compileToJs() {
+  if [ "../dartdoc/$1.dart" -nt "../dartdoc/static/$1.js" ]
+    then
+    ../../frog/minfrog --libdir=../../frog/lib \
+      --out=../dartdoc/static/$1.js --compile-only ../dartdoc/$1.dart
+    echo "Compiled $1.dart."
+  fi
+}
+
+# Generate the client-side .js files if needed.
+compileToJs "client-static"
+compileToJs "client-live-nav"
 
 # Clean the output directory.
 if [ -d "docs" ]; then
@@ -34,8 +38,16 @@ if [ -d "docs" ]; then
 fi
 mkdir docs
 
+# Bundle up the IO libraries so dartdoc can find them.
+# TODO(rnystrom): Having to do this is gross. Ideally apidoc should walk the
+# sources under runtime/bin/ directly instead of relying on this.
+grep "'*.dart'" ../../runtime/bin/io_sources.gypi | sed s/\',//g | \
+    sed s,\',../../runtime/bin/,g | xargs cat > io_libs.dart
+
 # Copy the static files over.
 cp ../dartdoc/static/* docs
+# Overlay any apidoc-specific ones.
+cp static/* docs
 
 # Ditch the first arg so we can pass any extra arguments to dartdoc.
 shift

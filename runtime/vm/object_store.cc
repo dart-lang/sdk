@@ -6,7 +6,6 @@
 
 #include "vm/exceptions.h"
 #include "vm/isolate.h"
-#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -80,23 +79,26 @@ bool ObjectStore::PreallocateObjects() {
   if (preallocate_objects_called_) {
     return true;
   }
-
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL && isolate->object_store() == this);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    GrowableArray<const Object*> args;
-    Instance& exception =Instance::Handle();
-    exception = Exceptions::Create(Exceptions::kStackOverflow, args);
-    set_stack_overflow(exception);
-    exception = Exceptions::Create(Exceptions::kOutOfMemory, args);
-    set_out_of_memory(exception);
-  } else {
+  GrowableArray<const Object*> args;
+  Object& result = Object::Handle();
+  Instance& exception = Instance::Handle();
+
+  result = Exceptions::Create(Exceptions::kStackOverflow, args);
+  if (result.IsError()) {
     return false;
   }
-  isolate->set_long_jump_base(base);
+  exception ^= result.raw();
+  set_stack_overflow(exception);
+
+  result = Exceptions::Create(Exceptions::kOutOfMemory, args);
+  if (result.IsError()) {
+    return false;
+  }
+  exception ^= result.raw();
+  set_out_of_memory(exception);
+
   preallocate_objects_called_ = true;
   return true;
 }

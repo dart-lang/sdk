@@ -1,5 +1,5 @@
 
-class MediaQueryListListenerJs extends DOMTypeJs implements MediaQueryListListener native "*MediaQueryListListener" {
+class _MediaQueryListListenerJs extends _DOMTypeJs implements MediaQueryListListener native "*MediaQueryListListener" {
 
-  void queryChanged(MediaQueryListJs list) native;
+  void queryChanged(_MediaQueryListJs list) native;
 }

@@ -89,14 +89,15 @@ static bool IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
     return true;
   }
   if ((tokens.length() == 3) &&
-      ((tokens[0].kind == Token::kADD) || (tokens[0].kind == Token::kSUB)) &&
+      ((tokens[0].kind == Token::kTIGHTADD) ||
+          (tokens[0].kind == Token::kSUB)) &&
       (tokens[1].kind == literal_kind) &&
       (tokens[2].kind == Token::kEOS)) {
     // Check there is no space between "+/-" and number.
     if ((tokens[0].offset + 1) != tokens[1].offset) {
       return false;
     }
-    *is_positive = tokens[0].kind == Token::kADD;
+    *is_positive = tokens[0].kind == Token::kTIGHTADD;
     *value = tokens[1].literal;
     return true;
   }

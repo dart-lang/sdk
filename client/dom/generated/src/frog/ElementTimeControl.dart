@@ -1,5 +1,5 @@
 
-class ElementTimeControlJs extends DOMTypeJs implements ElementTimeControl native "*ElementTimeControl" {
+class _ElementTimeControlJs extends _DOMTypeJs implements ElementTimeControl native "*ElementTimeControl" {
 
   void beginElement() native;
 

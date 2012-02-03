@@ -1,5 +1,5 @@
 
-class CSSPrimitiveValueJs extends CSSValueJs implements CSSPrimitiveValue native "*CSSPrimitiveValue" {
+class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue native "*CSSPrimitiveValue" {
 
   static final int CSS_ATTR = 22;
 
@@ -55,13 +55,13 @@ class CSSPrimitiveValueJs extends CSSValueJs implements CSSPrimitiveValue native
 
   int get primitiveType() native "return this.primitiveType;";
 
-  CounterJs getCounterValue() native;
+  _CounterJs getCounterValue() native;
 
   num getFloatValue(int unitType) native;
 
-  RGBColorJs getRGBColorValue() native;
+  _RGBColorJs getRGBColorValue() native;
 
-  RectJs getRectValue() native;
+  _RectJs getRectValue() native;
 
   String getStringValue() native;
 

@@ -1,5 +1,5 @@
 
-class SVGPathSegMovetoAbsJs extends SVGPathSegJs implements SVGPathSegMovetoAbs native "*SVGPathSegMovetoAbs" {
+class _SVGPathSegMovetoAbsJs extends _SVGPathSegJs implements SVGPathSegMovetoAbs native "*SVGPathSegMovetoAbs" {
 
   num get x() native "return this.x;";
 

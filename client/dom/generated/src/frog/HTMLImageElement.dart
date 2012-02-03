@@ -1,5 +1,5 @@
 
-class HTMLImageElementJs extends HTMLElementJs implements HTMLImageElement native "*HTMLImageElement" {
+class _HTMLImageElementJs extends _HTMLElementJs implements HTMLImageElement native "*HTMLImageElement" {
 
   String get align() native "return this.align;";
 

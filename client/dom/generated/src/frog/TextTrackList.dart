@@ -1,5 +1,5 @@
 
-class TextTrackListJs extends DOMTypeJs implements TextTrackList native "*TextTrackList" {
+class _TextTrackListJs extends _DOMTypeJs implements TextTrackList native "*TextTrackList" {
 
   int get length() native "return this.length;";
 
@@ -9,9 +9,9 @@ class TextTrackListJs extends DOMTypeJs implements TextTrackList native "*TextTr
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
-  TextTrackJs item(int index) native;
+  _TextTrackJs item(int index) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }

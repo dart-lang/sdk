@@ -1,5 +1,5 @@
 
-class ClipboardJs extends DOMTypeJs implements Clipboard native "*Clipboard" {
+class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   String get dropEffect() native "return this.dropEffect;";
 
@@ -9,9 +9,9 @@ class ClipboardJs extends DOMTypeJs implements Clipboard native "*Clipboard" {
 
   void set effectAllowed(String value) native "this.effectAllowed = value;";
 
-  FileListJs get files() native "return this.files;";
+  _FileListJs get files() native "return this.files;";
 
-  DataTransferItemListJs get items() native "return this.items;";
+  _DataTransferItemListJs get items() native "return this.items;";
 
   List get types() native "return this.types;";
 
@@ -21,5 +21,5 @@ class ClipboardJs extends DOMTypeJs implements Clipboard native "*Clipboard" {
 
   bool setData(String type, String data) native;
 
-  void setDragImage(HTMLImageElementJs image, int x, int y) native;
+  void setDragImage(_HTMLImageElementJs image, int x, int y) native;
 }

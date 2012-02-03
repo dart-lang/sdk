@@ -74,8 +74,10 @@ class ActivationFrame : public ZoneAllocated {
                   intptr_t* end_pos,
                   Instance* value);
 
+  RawArray* GetLocalVariables();
+
  private:
-  void GetLocalVariables();
+  void GetDescIndices();
   RawInstance* GetLocalVarValue(intptr_t slot_index);
 
   uword pc_;
@@ -130,9 +132,11 @@ class Debugger {
                                const String& function_name);
 
   // Set breakpoint at closest location to function entry.
-  Breakpoint* SetBreakpointAtEntry(const Function& target_function);
+  Breakpoint* SetBreakpointAtEntry(const Function& target_function,
+                                   Error* error);
   Breakpoint* SetBreakpointAtLine(const String& script_url,
-                                  intptr_t line_number);
+                                  intptr_t line_number,
+                                  Error* error);
 
   void RemoveBreakpoint(Breakpoint* bpt);
 
@@ -144,18 +148,29 @@ class Debugger {
   // Called from Runtime when a breakpoint in Dart code is reached.
   void BreakpointCallback();
 
+  RawArray* GetInstanceFields(const Instance& obj);
+  RawArray* GetStaticFields(const Class& cls);
+
   // Utility functions.
   static const char* QualifiedFunctionName(const Function& func);
 
+  RawObject* GetInstanceField(const Class& cls,
+                              const String& field_name,
+                              const Instance& object);
+  RawObject* GetStaticField(const Class& cls,
+                            const String& field_name);
+
  private:
   Breakpoint* SetBreakpoint(const Function& target_function,
-                            intptr_t token_index);
+                            intptr_t token_index,
+                            Error* error);
   void UnsetBreakpoint(Breakpoint* bpt);
   Breakpoint* NewBreakpoint(const Function& func, intptr_t pc_desc_index);
   void RegisterBreakpoint(Breakpoint* bpt);
   Breakpoint* GetBreakpointByFunction(const Function& func,
                                       intptr_t token_index);
 
+  Isolate* isolate_;
   bool initialized_;
   BreakpointHandler* bp_handler_;
   Breakpoint* breakpoints_;

@@ -1,5 +1,5 @@
 
-class StyleMediaJs extends DOMTypeJs implements StyleMedia native "*StyleMedia" {
+class _StyleMediaJs extends _DOMTypeJs implements StyleMedia native "*StyleMedia" {
 
   String get type() native "return this.type;";
 

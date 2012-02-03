@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,7 +11,9 @@ void testUtf8() {
                     0xdf, 0xbf,
                     0xe0, 0xa0, 0x80,
                     0xef, 0xbf, 0xbf];
-  InputStream s = new ListInputStream(data);
+  InputStream s = new ListInputStream();
+  s.write(data);
+  s.markEndOfStream();
   StringInputStream stream = new StringInputStream(s);
   void stringData() {
     String s = stream.read();
@@ -32,7 +34,9 @@ void testLatin1() {
                     0x44, 0x61, 0x72, 0x74,
                     0x80,
                     0xff];
-  InputStream s = new ListInputStream(data);
+  InputStream s = new ListInputStream();
+  s.write(data);
+  s.markEndOfStream();
   StringInputStream stream = new StringInputStream(s, "ISO-8859-1");
   void stringData() {
     String s = stream.read();
@@ -50,7 +54,9 @@ void testAscii() {
   List<int> data = [0x01,
                     0x44, 0x61, 0x72, 0x74,
                     0x7f];
-  InputStream s = new ListInputStream(data);
+  InputStream s = new ListInputStream();
+  s.write(data);
+  s.markEndOfStream();
   StringInputStream stream = new StringInputStream(s, "ASCII");
   void stringData() {
     String s = stream.read();
@@ -63,7 +69,7 @@ void testAscii() {
 }
 
 void testReadLine1() {
-  InputStream s = new DynamicListInputStream();
+  InputStream s = new ListInputStream();
   StringInputStream stream = new StringInputStream(s);
   var stage = 0;
 
@@ -94,7 +100,7 @@ void testReadLine1() {
 }
 
 void testReadLine2() {
-  InputStream s = new DynamicListInputStream();
+  InputStream s = new ListInputStream();
   StringInputStream stream = new StringInputStream(s);
   var stage = 0;
 

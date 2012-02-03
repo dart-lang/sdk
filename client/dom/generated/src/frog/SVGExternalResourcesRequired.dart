@@ -1,5 +1,5 @@
 
-class SVGExternalResourcesRequiredJs extends DOMTypeJs implements SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
+class _SVGExternalResourcesRequiredJs extends _DOMTypeJs implements SVGExternalResourcesRequired native "*SVGExternalResourcesRequired" {
 
-  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 }

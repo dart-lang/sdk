@@ -1,5 +1,5 @@
 
-class SVGStringListJs extends DOMTypeJs implements SVGStringList native "*SVGStringList" {
+class _SVGStringListJs extends _DOMTypeJs implements SVGStringList native "*SVGStringList" {
 
   int get numberOfItems() native "return this.numberOfItems;";
 

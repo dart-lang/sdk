@@ -1,3 +1,3 @@
 
-class WebGLTextureJs extends DOMTypeJs implements WebGLTexture native "*WebGLTexture" {
+class _WebGLTextureJs extends _DOMTypeJs implements WebGLTexture native "*WebGLTexture" {
 }

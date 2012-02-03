@@ -500,9 +500,10 @@ public class RuntimeTypeInjector {
    * No lookup method exists for the type "int bar(double x)", hence the in-line creation of:
    *   RTT.createFunction([RTT Parameter Types],RTT ReturnType))
    */
-  private JsInvocation generateRTTCreate(VariableElement element, ClassElement classElement) {
+  private JsInvocation generateRTTCreate(Element element,
+      FunctionType elementType,
+      ClassElement classElement) {
     boolean hasTypes = false;
-    FunctionType type = (FunctionType) element.getType();
 
     if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)
         || element.getModifiers().isNative()) {
@@ -516,14 +517,14 @@ public class RuntimeTypeInjector {
     JsInvocation callLookup;
     callLookup = newInvocation(newQualifiedNameRef("RTT.createFunction"));
 
-    JsArrayLiteral arr = generateTypeArrayFromTypes(type.getParameterTypes(), classElement,
+    JsArrayLiteral arr = generateTypeArrayFromTypes(elementType.getParameterTypes(), classElement,
         typeArgContextExpr);
     if (arr == null) {
       return newInvocation(newQualifiedNameRef(RTT_DYNAMIC_LOOKUP));
     }
 
-    JsExpression returnExpr = generateRTTLookupForType(element, type.getReturnType(), classElement,
-        typeArgContextExpr);
+    JsExpression returnExpr = generateRTTLookupForType(element, elementType.getReturnType(),
+        classElement, typeArgContextExpr);
 
     callLookup.getArguments().add(arr.getExpressions().isEmpty() ? program.getNullLiteral() : arr);
     callLookup.getArguments().add(returnExpr);
@@ -584,7 +585,7 @@ public class RuntimeTypeInjector {
             (InterfaceType) elementType, classElement);
         break;
       case FUNCTION:
-        elementInvoke = generateRTTCreate((VariableElement) element, classElement);
+        elementInvoke = generateRTTCreate(element, (FunctionType) elementType, classElement);
         break;
       case FUNCTION_ALIAS:
         elementInvoke = buildTypeLookupExpression(elementType,
@@ -1150,7 +1151,8 @@ public class RuntimeTypeInjector {
    *
    * @param enclosingClass enclosing class element
    * @param expr expression to check
-   * @param type {@link Type} to check against, null is unknown
+   * @param type {@link Type} expected type to check against, null is unknown
+   * @param exprType {@link Type} statically determined type from analyzing expr
    * @param src source info to use for the generated code
    * @return an expression wrapping the type check call
    */

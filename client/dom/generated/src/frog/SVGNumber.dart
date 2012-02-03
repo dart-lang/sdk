@@ -1,5 +1,5 @@
 
-class SVGNumberJs extends DOMTypeJs implements SVGNumber native "*SVGNumber" {
+class _SVGNumberJs extends _DOMTypeJs implements SVGNumber native "*SVGNumber" {
 
   num get value() native "return this.value;";
 

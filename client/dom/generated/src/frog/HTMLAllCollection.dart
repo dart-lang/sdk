@@ -1,11 +1,11 @@
 
-class HTMLAllCollectionJs extends DOMTypeJs implements HTMLAllCollection native "*HTMLAllCollection" {
+class _HTMLAllCollectionJs extends _DOMTypeJs implements HTMLAllCollection native "*HTMLAllCollection" {
 
   int get length() native "return this.length;";
 
-  NodeJs item(int index) native;
+  _NodeJs item(int index) native;
 
-  NodeJs namedItem(String name) native;
+  _NodeJs namedItem(String name) native;
 
-  NodeListJs tags(String name) native;
+  _NodeListJs tags(String name) native;
 }

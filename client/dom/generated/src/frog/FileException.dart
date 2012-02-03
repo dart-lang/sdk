@@ -1,5 +1,5 @@
 
-class FileExceptionJs extends DOMTypeJs implements FileException native "*FileException" {
+class _FileExceptionJs extends _DOMTypeJs implements FileException native "*FileException" {
 
   static final int ABORT_ERR = 3;
 

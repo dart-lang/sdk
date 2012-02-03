@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test compile time error for factories with parametrized types.
+// Test compile time error for factories with parameterized types.
 
-interface Link<T> default LinkFactory { 
+interface Link<T> default LinkFactory {
   Link.create();
 }
 

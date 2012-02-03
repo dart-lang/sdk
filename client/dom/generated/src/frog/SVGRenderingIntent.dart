@@ -1,5 +1,5 @@
 
-class SVGRenderingIntentJs extends DOMTypeJs implements SVGRenderingIntent native "*SVGRenderingIntent" {
+class _SVGRenderingIntentJs extends _DOMTypeJs implements SVGRenderingIntent native "*SVGRenderingIntent" {
 
   static final int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 

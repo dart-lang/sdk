@@ -10,7 +10,7 @@
 #
 # The SDK will be used either from the command-line or from the editor. 
 # Top structure is
-# 
+#
 # ..dart-sdk/
 # ....bin/
 # ......dart or dart.exe (executable)
@@ -19,6 +19,8 @@
 # ....lib/
 # ......builtin/
 # ........builtin_runtime.dart
+# ......io/
+# ........io_runtime.dart
 # ........runtime/
 # ......core/
 # ........core_{frog, runtime}.dart
@@ -36,6 +38,8 @@
 # ......json/
 # ........json_{frog}.dart
 # ........{frog}/
+# ......uri/
+# ........uri.dart
 # ......(more will come here - io, etc)
 # ....util/
 # ......(more will come here)
@@ -55,6 +59,8 @@ def Main(argv):
   # Pull in all of the gpyi files which will be munged into the sdk.
   builtin_runtime_sources = \
     (eval(open("runtime/bin/builtin_sources.gypi").read()))['sources']
+  io_runtime_sources = \
+    (eval(open("runtime/bin/io_sources.gypi").read()))['sources']
   corelib_sources = \
     (eval(open("corelib/src/corelib_sources.gypi").read()))['sources']
   corelib_frog_sources = \
@@ -133,23 +139,40 @@ def Main(argv):
 
 
   #
-  # Create and populate lib/runtime.
+  # Create and populate lib/builtin.
   #
   builtin_dest_dir = join(LIB, 'builtin')
   os.makedirs(builtin_dest_dir)
-  os.makedirs(join(builtin_dest_dir, 'runtime'))
-  for filename in builtin_runtime_sources:
-    if filename.endswith('.dart'):
-      copyfile(join(HOME, 'runtime', 'bin', filename), 
-               join(builtin_dest_dir, 'runtime', filename))
+  assert len(builtin_runtime_sources) == 1
+  assert builtin_runtime_sources[0] == 'builtin.dart'
+  copyfile(join(HOME, 'runtime', 'bin', 'builtin.dart'),
+           join(builtin_dest_dir, 'builtin_runtime.dart'))
 
-  # Construct lib/builtin/builtin_runtime.dart from whole cloth.
-  dest_file = open(join(builtin_dest_dir, 'builtin_runtime.dart'), 'w')
-  dest_file.write('#library("dart:builtin");\n')
-  for filename in builtin_runtime_sources:
-    if filename.endswith('.dart'):
-      dest_file.write('#source("runtime/' + filename + '");\n')
+
+  #
+  # Create and populate lib/io.
+  #
+  io_dest_dir = join(LIB, 'io')
+  os.makedirs(io_dest_dir)
+  os.makedirs(join(io_dest_dir, 'runtime'))
+  for filename in io_runtime_sources:
+    assert filename.endswith('.dart')
+    if filename == 'io.dart':
+      copyfile(join(HOME, 'runtime', 'bin', filename),
+               join(io_dest_dir, 'io_runtime.dart'))
+    else:
+      copyfile(join(HOME, 'runtime', 'bin', filename),
+               join(io_dest_dir, 'runtime', filename))
+
+  # Construct lib/io/io_runtime.dart from whole cloth.
+  dest_file = open(join(io_dest_dir, 'io_runtime.dart'), 'a')
+  for filename in io_runtime_sources:
+    assert filename.endswith('.dart')
+    if filename == 'io.dart':
+      continue
+    dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
+
 
   #
   # Create and populate lib/frog.
@@ -171,6 +194,21 @@ def Main(argv):
 
   copytree(join(frog_src_dir, 'leg'), join(frog_dest_dir, 'leg'), 
            ignore=ignore_patterns('.svn'))
+
+  frog_leg_contents = \
+    open(join(frog_src_dir, 'leg', 'frog_leg.dart')).read()
+  frog_leg_dest = open(join(frog_dest_dir, 'leg', 'frog_leg.dart'), 'w')
+  frog_leg_dest.write( \
+    re.sub("../../utils/uri", "../../uri", frog_leg_contents))
+  frog_leg_dest.close()
+
+  leg_contents = \
+    open(join(frog_src_dir, 'leg', 'leg.dart')).read()
+  leg_dest = open(join(frog_dest_dir, 'leg', 'leg.dart'), 'w')
+  leg_dest.write( \
+    re.sub("../../utils/uri", "../../uri", leg_contents))
+  leg_dest.close()
+
 
   copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'), 
            ignore=ignore_patterns('.svn'))
@@ -224,6 +262,18 @@ def Main(argv):
         copytree(src_file, dest_file, 
                  ignore=ignore_patterns('.svn', 'interface', 'wrapping', 
                                         '*monkey*'))
+
+  # 
+  # Create and populate lib/uri.
+  #
+
+  uri_src_dir = join(HOME, 'utils', 'uri')
+  uri_dest_dir = join(LIB, 'uri')
+  os.makedirs(uri_dest_dir)
+
+  for filename in os.listdir(uri_src_dir):
+    if filename.endswith('.dart'):
+      copyfile(join(uri_src_dir, filename), join(uri_dest_dir, filename))
 
   #
   # Create and populate lib/core.

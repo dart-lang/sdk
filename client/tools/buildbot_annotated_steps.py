@@ -182,14 +182,16 @@ def ProcessFrog(name):
   build and test experimental frog build
   '''
   print 'ProcessFrog'
+  has_shell=False
   if 'windows' in name:
-    os.environ['PATH'] = (os.path.join('C:', 'Program Files (x86)', 'nodejs') +
-                         os.pathsep + os.environ['PATH'])
-  # In Windows we need to run in the shell, so that we have all the
-  # environment variables available.
-  return subprocess.call([sys.executable + ' ' +
+    os.environ['PATH'] = (os.path.join('C:', 'Program Files (x86)', 'nodejs') + 
+        os.pathsep + os.environ['PATH'])
+    # In Windows we need to run in the shell, so that we have all the
+    # environment variables available.
+    has_shell=True
+  return subprocess.call([sys.executable, 
       os.path.join('frog', 'scripts', 'buildbot_annotated_steps.py')],
-      env=os.environ, shell=True)
+      env=os.environ, shell=has_shell)
 
 def main():
   print 'main'

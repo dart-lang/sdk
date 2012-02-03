@@ -1,5 +1,5 @@
 
-class CustomEventJs extends EventJs implements CustomEvent native "*CustomEvent" {
+class _CustomEventJs extends _EventJs implements CustomEvent native "*CustomEvent" {
 
   Object get detail() native "return this.detail;";
 

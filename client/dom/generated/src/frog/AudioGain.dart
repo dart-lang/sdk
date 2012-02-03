@@ -1,3 +1,3 @@
 
-class AudioGainJs extends AudioParamJs implements AudioGain native "*AudioGain" {
+class _AudioGainJs extends _AudioParamJs implements AudioGain native "*AudioGain" {
 }

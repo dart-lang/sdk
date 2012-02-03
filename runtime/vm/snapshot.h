@@ -37,6 +37,7 @@ class RawMint;
 class RawObject;
 class RawOneByteString;
 class RawScript;
+class RawSmi;
 class RawTokenStream;
 class RawType;
 class RawTypeParameter;
@@ -193,6 +194,7 @@ class ReadStream : public ValueObject {
 
   // SnapshotReader needs access to the private Raw classes.
   friend class SnapshotReader;
+  friend class BaseReader;
   DISALLOW_COPY_AND_ASSIGN(ReadStream);
 };
 
@@ -298,12 +300,9 @@ class WriteStream : public ValueObject {
 };
 
 
-// Reads a snapshot into objects.
-class SnapshotReader {
+class BaseReader {
  public:
-  SnapshotReader(const Snapshot* snapshot, Isolate* isolate);
-  ~SnapshotReader() { }
-
+  BaseReader(const uint8_t* buffer, intptr_t size) : stream_(buffer, size) {}
   // Reads raw data (for basic types).
   // sizeof(T) must be in {1,2,4,8}.
   template <typename T>
@@ -317,6 +316,20 @@ class SnapshotReader {
     ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
     return value;
   }
+
+  RawSmi* ReadAsSmi();
+  intptr_t ReadSmiValue();
+
+ private:
+  ReadStream stream_;  // input stream.
+};
+
+
+// Reads a snapshot into objects.
+class SnapshotReader : public BaseReader {
+ public:
+  SnapshotReader(const Snapshot* snapshot, Isolate* isolate);
+  ~SnapshotReader() { }
 
   Isolate* isolate() const { return isolate_; }
   Heap* heap() const { return isolate_->heap(); }
@@ -377,7 +390,6 @@ class SnapshotReader {
   // Based on header field check to see if it is an internal VM class.
   RawClass* LookupInternalClass(intptr_t class_header);
 
-  ReadStream stream_;  // input stream.
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
   Class& cls_;  // Temporary Class handle.
@@ -389,6 +401,68 @@ class SnapshotReader {
   GrowableArray<Object*> backward_references_;
 
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
+};
+
+
+// Use this C structure for reading internal objects in the serialized
+// data. These are objects that we need to process in order to
+// generate the Dart_CObject graph but that we don't want to expose in
+// that graph.
+// TODO(sjesse): Remove this when message serialization format is
+// updated.
+struct Dart_CObject_Internal : public Dart_CObject {
+  enum Type {
+    kTypeArguments = Dart_CObject::kNumberOfTypes,
+    kDynamicType,
+  };
+};
+
+
+// Reads a message snapshot into C structure.
+class CMessageReader : public BaseReader {
+ public:
+  CMessageReader(const uint8_t* buffer, intptr_t length, ReAlloc alloc);
+  ~CMessageReader() { }
+
+  Dart_CMessage* ReadMessage();
+
+ private:
+  // Allocates a Dart_CObject object on the C heap.
+  Dart_CObject* AllocateDartCObject();
+  // Allocates a Dart_CObject object with the specified type on the C heap.
+  Dart_CObject* AllocateDartCObject(Dart_CObject::Type type);
+  // Allocates a Dart_CObject object for the null object on the C heap.
+  Dart_CObject* AllocateDartCObjectNull();
+  // Allocates a Dart_CObject object for a boolean object on the C heap.
+  Dart_CObject* AllocateDartCObjectBool(bool value);
+  // Allocates a Dart_CObject object for for a 32-bit integer on the C heap.
+  Dart_CObject* AllocateDartCObjectInt32(int32_t value);
+  // Allocates a Dart_CObject object for a double on the C heap.
+  Dart_CObject* AllocateDartCObjectDouble(double value);
+  // Allocates a Dart_CObject object for string data on the C heap.
+  Dart_CObject* AllocateDartCObjectString(intptr_t length);
+  // Allocates a C array of Dart_CObject objects on the C heap.
+  Dart_CObject* AllocateDartCObjectArray(intptr_t length);
+
+  intptr_t LookupInternalClass(intptr_t class_header);
+  Dart_CObject* ReadInlinedObject(intptr_t object_id);
+  Dart_CObject* ReadObjectImpl(intptr_t header);
+  Dart_CObject* ReadIndexedObject(intptr_t object_id);
+  Dart_CObject* ReadObject();
+
+  // Add object to backward references.
+  void AddBackwardReference(intptr_t id, Dart_CObject* obj);
+
+  Dart_CObject_Internal* AsInternal(Dart_CObject* object) {
+    ASSERT(object->type >= Dart_CObject::kNumberOfTypes);
+    return reinterpret_cast<Dart_CObject_Internal*>(object);
+  }
+
+  ReAlloc alloc_;
+  GrowableArray<Dart_CObject*> backward_references_;
+
+  Dart_CObject type_arguments_marker;
+  Dart_CObject dynamic_type_marker;
 };
 
 

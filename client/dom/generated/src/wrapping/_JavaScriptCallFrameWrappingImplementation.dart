@@ -29,6 +29,9 @@ class _JavaScriptCallFrameWrappingImplementation extends DOMWrapperBase implemen
   int get sourceID() { return _get_sourceID(this); }
   static int _get_sourceID(var _this) native;
 
+  Object get thisObject() { return _get_thisObject(this); }
+  static Object _get_thisObject(var _this) native;
+
   String get type() { return _get_type(this); }
   static String _get_type(var _this) native;
 

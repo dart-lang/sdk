@@ -1,5 +1,5 @@
 
-class WebGLDebugShadersJs extends DOMTypeJs implements WebGLDebugShaders native "*WebGLDebugShaders" {
+class _WebGLDebugShadersJs extends _DOMTypeJs implements WebGLDebugShaders native "*WebGLDebugShaders" {
 
-  String getTranslatedShaderSource(WebGLShaderJs shader) native;
+  String getTranslatedShaderSource(_WebGLShaderJs shader) native;
 }

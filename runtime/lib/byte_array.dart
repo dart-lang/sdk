@@ -141,9 +141,33 @@ class _ByteArrayBase {
     return this[length - 1];
   }
 
+  void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
+    if (length < 0) {
+      throw new IllegalArgumentException("negative length $length");
+    }
+    if (from is ByteArray) {
+      _setRange(start, length, from, startFrom);
+    } else {
+      Arrays.copy(from, startFrom, this, start, length);
+    }
+  }
+  
+  List getRange(int start, int length) {
+    if (length == 0) return [];
+    Arrays.rangeCheck(this, start, length);
+    ByteArray list = new ByteArray(length);
+    list._setRange(0, length, this, start);
+    return list;
+  }
+
+
   // Implementation
 
   int _length() native "ByteArray_getLength";
+
+  void _setRange(int start, int length, ByteArray from, int startFrom)
+      native "ByteArray_setRange";
+
 }
 
 

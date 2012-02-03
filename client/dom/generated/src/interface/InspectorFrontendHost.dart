@@ -26,6 +26,8 @@ interface InspectorFrontendHost {
 
   void moveWindowBy(num x, num y);
 
+  void openInNewTab(String url);
+
   String platform();
 
   String port();

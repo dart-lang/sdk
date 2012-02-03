@@ -1,5 +1,5 @@
 
-class OperationNotAllowedExceptionJs extends DOMTypeJs implements OperationNotAllowedException native "*OperationNotAllowedException" {
+class _OperationNotAllowedExceptionJs extends _DOMTypeJs implements OperationNotAllowedException native "*OperationNotAllowedException" {
 
   static final int NOT_ALLOWED_ERR = 1;
 

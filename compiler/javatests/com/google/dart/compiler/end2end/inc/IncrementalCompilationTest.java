@@ -4,15 +4,15 @@
 
 package com.google.dart.compiler.end2end.inc;
 
-import static com.google.dart.compiler.DartCompiler.EXTENSION_API;
 import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
-import static com.google.dart.compiler.backend.js.JavascriptBackend.EXTENSION_APP_JS;
-import static com.google.dart.compiler.backend.js.JavascriptBackend.EXTENSION_JS;
+import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_APP_JS;
+import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_JS;
 
+import com.google.common.collect.Lists;
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
-import com.google.dart.compiler.DartCompilerListenerTest;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
@@ -25,7 +25,7 @@ import junit.framework.AssertionFailedError;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -63,6 +63,8 @@ public class IncrementalCompilationTest extends CompilerTestCase {
   private MockBundleLibrarySource someLibSource;
   private MockBundleLibrarySource someImplLibSource;
 
+  private final List<DartCompilationError> errors = Lists.newArrayList();
+
   @Override
   protected void setUp() throws Exception {
     config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
@@ -88,7 +90,7 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     someImplLibSource = null;
   }
 
-  public void testRemoveDeps() throws URISyntaxException {
+  public void testRemoveDeps() throws Exception {
     compile();
 
     MockBundleLibrarySource myNuke5AppSource = new MockBundleLibrarySource(
@@ -98,28 +100,25 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     myNuke5AppSource.remapSource("my.dart", "my.no5ref.dart");
     myNuke5AppSource.removeSource("myother5.dart");
 
-    compile(myNuke5AppSource, null);
+    compile(myNuke5AppSource);
   }
 
   public void testFullCompile() {
     compile();
 
     // Assert that all artifacts are written.
-    didWrite("someimpl.dart", EXTENSION_JS, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS, provider);
-    didWrite("some.lib.dart", EXTENSION_API, provider);
-    didWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("myother1.dart", EXTENSION_JS, provider);
-    didWrite("myother2.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_JS, provider);
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("myother1.dart", EXTENSION_JS);
+    didWrite("myother2.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_JS);
   }
 
   public void testNoOpRecompile() {
@@ -129,21 +128,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     compile();
 
     // Assert we didn't write anything.
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("my.dart", EXTENSION_JS, provider);
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
-    didNotWrite("my.app.dart", EXTENSION_API, provider);
-    didNotWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didNotWrite("my.app.dart", EXTENSION_JS, provider);
+    didNotWrite("my.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("my.app.dart", EXTENSION_DEPS);
+    didNotWrite("my.app.dart", EXTENSION_JS);
   }
 
   public void testTouchOneSource() {
@@ -155,23 +151,20 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // We just bumped the timestamp on my.dart, so only my.dart.js and my.app.js should be changed.
     // At present, the app's deps and api will be rewritten. This might be optimized later.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
 
     // Nothing else should have changed.
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testNormalizationTracking() {
@@ -190,24 +183,21 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     // We just bumped the timestamp on myother7.dart, so only myother7.dart.js and my.app.js should
     // be changed. At present, the app's deps and api will be rewritten.
 
-    didWrite("myother7.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
+    didWrite("myother7.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
 
     // Nothing else should have changed.
-    didNotWrite("my.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("my.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testKnockout_jsArtifact() {
@@ -219,372 +209,293 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // At present, knocking out a js artifact will force an update of the library's api and
     // deps. This could be optimized.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
 
     // Assert that everything else was left alone.
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
-  }
-
-  public void testKnockout_intfArtifact() {
-    compile();
-
-    provider.resetReadsAndWrites();
-    provider.removeArtifact("my.app.dart", "", EXTENSION_API);
-    compile();
-
-    // At present, knocking out an api artifact will force an update of the library's units
-    // and deps. This could be optimized.
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("myother1.dart", EXTENSION_JS, provider);
-    didWrite("myother2.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-
-    // Assert that everything else was left alone.
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testChangeImplementation_methodBody() {
     compile();
 
     provider.resetReadsAndWrites();
-    someImplLibSource.touchSource("someimpl.dart");
     someImplLibSource.remapSource("someimpl.dart", "someimpl.bodychange.dart");
     compile();
 
-    // Changed someimpl.dart, so it, its library, and the compiled app should be written, but not
-    // units that depend upon it.
-    didWrite("someimpl.dart", EXTENSION_JS, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed someimpl.dart, so it, its library, and the compiled app should be written.
+    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.lib.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    // We've switched to (unit -> unit) dependency, so should be recompiled too.
+    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("my.dart", EXTENSION_JS, provider);
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
-    didNotWrite("my.app.dart", EXTENSION_API, provider);
-    didNotWrite("my.app.dart", EXTENSION_DEPS, provider);
+    didNotWrite("my.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("my.app.dart", EXTENSION_DEPS);
   }
 
   public void testChangeApi_newStaticMethod() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother0.dart");
     myAppSource.remapSource("myother0.dart", "myother0.newstaticmethod.dart");
     compile();
 
-    // Added a new static method to Other0, which should force a recompile of my.dart, because the
-    // latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Added a new static method to Other0, which should force a recompile of my.dart,
+    // because the latter contains a reference to one of its static methods.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testChangeApi_staticFieldRef() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother3.dart");
     myAppSource.remapSource("myother3.dart", "myother3.newstaticfield.dart");
     compile();
 
-    // Added a new static method to Other0, which should force a recompile of my.dart, because the
-    // latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother3.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Added a new static field to Other0, which should force a recompile of my.dart,
+    // because the latter contains a reference to one of its static methods.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother3.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testChangeApi_viaTypeParamBound() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother4.dart");
     myAppSource.remapSource("myother4.dart", "myother4.newstaticfield.dart");
     compile();
 
-    // Added a new static method to Other0, which should force a recompile of my.dart, because the
-    // latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother4.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Added a new static field to Other0, which should force a recompile of my.dart,
+    // because the latter contains a reference to one of its static methods.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother4.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testChangeApi_returnTypeChange() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother0.dart");
     myAppSource.remapSource("myother0.dart", "myother0.returntypechange.dart");
     compile();
 
-    // Changed a return type in Other0, which should force a recompile of my.dart, because
-    // the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed a return type in Other0, which should force a recompile of my.dart,
+    // because the latter contains a reference to one of its static methods.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testChangeApi_globalVarChange() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother0.dart");
     myAppSource.remapSource("myother0.dart", "myother0.globalvarchange.dart");
     compile();
 
-    // Changed a return type in Other0, which should force a recompile of my.dart, because
-    // the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed a top-level variable type in Other0, which should force a recompile of my.dart,
+    // because the latter contains a reference to one of its static methods.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
   }
 
   public void testChangeApi_globalFunctionChange() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother0.dart");
     myAppSource.remapSource("myother0.dart", "myother0.globalfunctionchange.dart");
     compile();
 
-    // Changed a return type in Other0, which should force a recompile of my.dart, because
-    // the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed a return type in Other0, which should force a recompile of my.dart,
+    // because the latter contains a reference to one of its static methods.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
   }
 
   public void testChangeApi_viaNew() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother1.dart");
     myAppSource.remapSource("myother1.dart", "myother1.change.dart");
     compile();
 
-    // Changed the api of Other1, which should force a recompile of my.dart, because the
-    // latter intantiates one of its classes.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother1.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed the api of Other1, which should force a recompile of my.dart,
+    // because the latter instantiates one of its classes.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother1.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testChangeApi_viaSubclassing() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother2.dart");
     myAppSource.remapSource("myother2.dart", "myother2.change.dart");
     compile();
 
-    // Changed the api of Other2, which should force a recompile of my.dart, because the
-    // latter subclasses one of its classes.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother2.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed the api of Other2, which should force a recompile of my.dart,
+    // because the latter subclasses one of its classes.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother2.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
   }
 
   public void testChangeApi_inLibrary() {
     compile();
 
     provider.resetReadsAndWrites();
-    someLibSource.touchSource("some.dart");
     someLibSource.remapSource("some.dart", "some.newmethod.dart");
-    someImplLibSource.touchSource("someimpl.dart");
     someImplLibSource.remapSource("someimpl.dart", "someimpl.change.dart");
     compile();
 
     // We changed both the interface and implementation libraries, so almost everything should have
     // been recompiled.
-    didWrite("someimpl.dart", EXTENSION_JS, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS, provider);
-    didWrite("some.lib.dart", EXTENSION_API, provider);
-    didWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
     // Except the "others", which have no dependency on the library.
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
-
-    // And the app's api, which also hasn't changed.
-    didNotWrite("my.app.dart", EXTENSION_API, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testChangeApi_inImplLibrary() {
     compile();
 
     provider.resetReadsAndWrites();
-    someImplLibSource.touchSource("someimpl.dart");
     someImplLibSource.remapSource("someimpl.dart", "someimpl.change.dart");
     compile();
 
     // Assert that only the interface and implementation library were recompiled.
-    didWrite("someimpl.dart", EXTENSION_JS, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS, provider);
-    didWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
     // The app should remain untouched.
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
-    didNotWrite("my.dart", EXTENSION_JS, provider);
-    didNotWrite("my.app.dart", EXTENSION_API, provider);
-    didNotWrite("my.app.dart", EXTENSION_DEPS, provider);
-
-    // As should the api of some.lib.
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("my.dart", EXTENSION_JS);
+    didNotWrite("my.app.dart", EXTENSION_DEPS);
   }
 
   public void testChangeApi_inInterface() {
     compile();
 
     provider.resetReadsAndWrites();
-    someLibSource.touchSource("some.dart");
     someLibSource.remapSource("some.dart", "some.intfchange.dart");
     compile();
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
-    didNotWrite("my.app.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
 
     // Assert we recompiled both some.dart and someimpl.dart, as well as my.dart.
     // (someimpl.dart is recompiled because its interface in some.dart changed)
-    didWrite("someimpl.dart", EXTENSION_JS, provider);
-    didWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS, provider);
-    didWrite("some.lib.dart", EXTENSION_API, provider);
-    didWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
   }
 
   // TODO(jgw): Bug 5319907.
@@ -592,169 +503,148 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother0.dart");
     myAppSource.remapSource("myother0.dart", "myother0.fillthehole.dart");
     compile();
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
 
     // Both myother0.dart and my.dart should be recompiled.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
   }
 
   public void testMethodHole() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother0.dart");
     myAppSource.remapSource("myother0.dart", "myother0.fillthemethodhole.dart");
-    compile("my.dart", "methodHole is a class. Did you mean (new methodHole)?", 48, 5);
-  }
-
-  public void testTheNotHole() {
     compile();
-
-    provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother0.dart");
-    myAppSource.remapSource("myother0.dart", "myother0.fillthenothole.dart");
-    compile();
-
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
-
-    didNotWrite("my.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
-
-    // Only myother0.dart should be recompiled.
-    didWrite("myother0.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
   }
 
   public void testQualifiedFieldRef() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother5.dart");
     myAppSource.remapSource("myother5.dart", "myother5.change.dart");
     compile();
 
-    // Changed the api of Other5, which should force a recompile of my.dart, because the
-    // latter includes a qualified reference to one of its instance fields.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother5.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed the api of Other5, which should force a recompile of my.dart,
+    // because the latter includes a qualified reference to one of its instance fields.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother5.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testQualifiedMethodRef() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother6.dart");
     myAppSource.remapSource("myother6.dart", "myother6.change.dart");
     compile();
 
-    // Changed the api of Other6, which should force a recompile of my.dart, because the
-    // latter includes a qualified reference to one of its instance methods.
-    didWrite("my.dart", EXTENSION_JS, provider);
-    didWrite("myother6.dart", EXTENSION_JS, provider);
-    didWrite("my.app.dart", EXTENSION_API, provider);
-    didWrite("my.app.dart", EXTENSION_DEPS, provider);
-    didWrite("my.app.dart", EXTENSION_APP_JS, provider);
+    // Changed the api of Other6, which should force a recompile of my.dart,
+    // because the latter includes a qualified reference to one of its instance methods.
+    didWrite("my.dart", EXTENSION_JS);
+    didWrite("myother6.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS, provider);
-    didNotWrite("someimpl.lib.dart", EXTENSION_API, provider);
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS, provider);
-    didNotWrite("some.lib.dart", EXTENSION_API, provider);
-    didNotWrite("some.lib.dart", EXTENSION_DEPS, provider);
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS, provider);
-    didNotWrite("myother1.dart", EXTENSION_JS, provider);
-    didNotWrite("myother2.dart", EXTENSION_JS, provider);
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
   public void testRemoveDepClass() {
     compile();
 
     provider.resetReadsAndWrites();
-    myAppSource.touchSource("myother5.dart");
     myAppSource.remapSource("myother5.dart", "myother5.change.dart");
-    myAppSource.touchSource("myother6.dart");
     myAppSource.remapSource("myother6.dart", "myother6.removeclass.dart");
     compile();
 
-    // TODO
+    // Changed myother6.dart, which should force a recompile of myother5.dart,
+    // because the latter had a qualified reference to one of its classes.
+    didWrite("myother5.dart", EXTENSION_JS);
+    didWrite("myother6.dart", EXTENSION_JS);
+
+    didWrite("my.dart", EXTENSION_JS);
+    // Because of the previous changes my.app.dart is also recompile.
+    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.app.dart", EXTENSION_APP_JS);
+
+    // No changes in not related units.
+    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
+
+    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.lib.dart", EXTENSION_DEPS);
+
+    didNotWrite("myother0.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother2.dart", EXTENSION_JS);
   }
 
-  public void testMergeFiles() throws URISyntaxException {
+  public void testMergeFiles() throws Exception {
     compile();
 
     MockBundleLibrarySource myMergedAppSource = new MockBundleLibrarySource(
       IncrementalCompilationTest.class.getClassLoader(),
       TEST_BASE_PATH, "my.merged.app.dart", "my.app.dart");
 
-    compile(myMergedAppSource, null);
+    compile(myMergedAppSource);
   }
 
   private void compile() {
-    compile(null);
+    compile(myAppSource);
   }
 
-  private void compile(String srcName, Object... errors) {
-    compile(myAppSource, srcName, errors);
-  }
-
-  private void compile(LibrarySource lib, String srcName, Object... errors) {
+  private void compile(LibrarySource lib) {
     try {
-      DartCompilerListener listener = new DartCompilerListenerTest(srcName, errors);
+      errors.clear();
+      DartCompilerListener listener = new DartCompilerListener.Empty() {
+        @Override
+        public void onError(DartCompilationError event) {
+          errors.add(event);
+        }
+      };
       DartCompiler.compileLib(lib, config, provider, listener);
     } catch (IOException e) {
       throw new AssertionFailedError("Unexpected IOException: " + e.getMessage());
     }
   }
 
-  private void didWrite(String sourceName, String extension, IncMockArtifactProvider provider) {
+  private void didWrite(String sourceName, String extension) {
     String spec = sourceName + "/" + extension;
     assertTrue("Expected write: " + spec, provider.writes.contains(spec));
   }
 
-  private void didNotWrite(String sourceName, String extension, IncMockArtifactProvider provider) {
+  private void didNotWrite(String sourceName, String extension) {
     String spec = sourceName + "/" + extension;
     assertFalse("Didn't expect write: " + spec, provider.writes.contains(spec));
   }

@@ -1,5 +1,5 @@
 
-class DOMParserJs extends DOMTypeJs implements DOMParser native "*DOMParser" {
+class _DOMParserJs extends _DOMTypeJs implements DOMParser native "*DOMParser" {
 
-  DocumentJs parseFromString(String str, String contentType) native;
+  _DocumentJs parseFromString(String str, String contentType) native;
 }

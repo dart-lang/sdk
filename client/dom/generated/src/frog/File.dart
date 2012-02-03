@@ -1,5 +1,5 @@
 
-class FileJs extends BlobJs implements File native "*File" {
+class _FileJs extends _BlobJs implements File native "*File" {
 
   String get fileName() native "return this.fileName;";
 

@@ -1,5 +1,5 @@
 
-class WebGLContextAttributesJs extends DOMTypeJs implements WebGLContextAttributes native "*WebGLContextAttributes" {
+class _WebGLContextAttributesJs extends _DOMTypeJs implements WebGLContextAttributes native "*WebGLContextAttributes" {
 
   bool get alpha() native "return this.alpha;";
 

@@ -1,5 +1,5 @@
 
-class SVGTitleElementJs extends SVGElementJs implements SVGTitleElement native "*SVGTitleElement" {
+class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native "*SVGTitleElement" {
 
   // From SVGLangSpace
 
@@ -13,9 +13,9 @@ class SVGTitleElementJs extends SVGElementJs implements SVGTitleElement native "
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 }

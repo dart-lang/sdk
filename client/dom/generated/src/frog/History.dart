@@ -1,5 +1,5 @@
 
-class HistoryJs extends DOMTypeJs implements History native "*History" {
+class _HistoryJs extends _DOMTypeJs implements History native "*History" {
 
   int get length() native "return this.length;";
 

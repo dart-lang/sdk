@@ -1,13 +1,13 @@
 
-class Uint16ArrayJs extends ArrayBufferViewJs implements Uint16Array, List<int> native "*Uint16Array" {
+class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int> native "*Uint16Array" {
 
-  factory Uint16Array(int length) =>  _construct(length);
+  factory Uint16Array(int length) =>  _construct_Uint16Array(length);
 
-  factory Uint16Array.fromList(List<int> list) => _construct(list);
+  factory Uint16Array.fromList(List<int> list) => _construct_Uint16Array(list);
 
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Uint16Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint16Array(buffer);
 
-  static _construct(arg) native 'return new Uint16Array(arg);';
+  static _construct_Uint16Array(arg) native 'return new Uint16Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 2;
 
@@ -86,5 +86,5 @@ class Uint16ArrayJs extends ArrayBufferViewJs implements Uint16Array, List<int> 
 
   void setElements(Object array, [int offset = null]) native;
 
-  Uint16ArrayJs subarray(int start, [int end = null]) native;
+  _Uint16ArrayJs subarray(int start, [int end = null]) native;
 }

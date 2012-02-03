@@ -1,5 +1,5 @@
 
-class HTMLDataListElementJs extends HTMLElementJs implements HTMLDataListElement native "*HTMLDataListElement" {
+class _HTMLDataListElementJs extends _HTMLElementJs implements HTMLDataListElement native "*HTMLDataListElement" {
 
-  HTMLCollectionJs get options() native "return this.options;";
+  _HTMLCollectionJs get options() native "return this.options;";
 }

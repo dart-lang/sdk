@@ -1,13 +1,13 @@
 
-class Uint32ArrayJs extends ArrayBufferViewJs implements Uint32Array, List<int> native "*Uint32Array" {
+class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int> native "*Uint32Array" {
 
-  factory Uint32Array(int length) =>  _construct(length);
+  factory Uint32Array(int length) =>  _construct_Uint32Array(length);
 
-  factory Uint32Array.fromList(List<int> list) => _construct(list);
+  factory Uint32Array.fromList(List<int> list) => _construct_Uint32Array(list);
 
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct(buffer);
+  factory Uint32Array.fromBuffer(ArrayBuffer buffer) => _construct_Uint32Array(buffer);
 
-  static _construct(arg) native 'return new Uint32Array(arg);';
+  static _construct_Uint32Array(arg) native 'return new Uint32Array(arg);';
 
   static final int BYTES_PER_ELEMENT = 4;
 
@@ -86,5 +86,5 @@ class Uint32ArrayJs extends ArrayBufferViewJs implements Uint32Array, List<int> 
 
   void setElements(Object array, [int offset = null]) native;
 
-  Uint32ArrayJs subarray(int start, [int end = null]) native;
+  _Uint32ArrayJs subarray(int start, [int end = null]) native;
 }

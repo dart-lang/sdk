@@ -26,5 +26,5 @@ interface IDBCursor {
 
   IDBRequest delete();
 
-  IDBRequest update(String value);
+  IDBRequest update(Dynamic value);
 }

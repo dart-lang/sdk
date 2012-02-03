@@ -1,3 +1,3 @@
 
-class HTMLUnknownElementJs extends HTMLElementJs implements HTMLUnknownElement native "*HTMLUnknownElement" {
+class _HTMLUnknownElementJs extends _HTMLElementJs implements HTMLUnknownElement native "*HTMLUnknownElement" {
 }

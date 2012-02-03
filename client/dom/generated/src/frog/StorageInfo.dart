@@ -1,5 +1,5 @@
 
-class StorageInfoJs extends DOMTypeJs implements StorageInfo native "*StorageInfo" {
+class _StorageInfoJs extends _DOMTypeJs implements StorageInfo native "*StorageInfo" {
 
   static final int PERSISTENT = 1;
 

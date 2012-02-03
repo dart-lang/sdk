@@ -7,6 +7,7 @@ package com.google.dart.compiler.type;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -124,6 +125,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * Analyzer of static type information.
  */
 public class TypeAnalyzer implements DartCompilationPhase {
+  private static final ImmutableSet<Token> ASSIGN_OPERATORS =
+      Sets.immutableEnumSet(
+          Token.ASSIGN,
+          Token.ASSIGN_BIT_OR,
+          Token.ASSIGN_BIT_XOR,
+          Token.ASSIGN_BIT_AND,
+          Token.ASSIGN_SHL,
+          Token.ASSIGN_SAR,
+          Token.ASSIGN_ADD,
+          Token.ASSIGN_SUB,
+          Token.ASSIGN_MUL,
+          Token.ASSIGN_DIV,
+          Token.ASSIGN_MOD,
+          Token.ASSIGN_TRUNC);
   private final ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements =
       new ConcurrentHashMap<ClassElement, List<Element>>();
   private final Set<ClassElement> diagnosedAbstractClasses =
@@ -175,6 +190,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final Type nullType;
     private final InterfaceType functionType;
     private final InterfaceType dynamicIteratorType;
+    private final boolean developerModeChecks;
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -182,11 +198,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
      */
     private int catchDepth = 0;
 
-
     Analyzer(DartCompilerContext context, CoreTypeProvider typeProvider,
              ConcurrentHashMap<ClassElement, List<Element>> unimplementedElements,
              Set<ClassElement> diagnosedAbstractClasses) {
       this.context = context;
+      this.developerModeChecks = context.getCompilerConfiguration().developerModeChecks();
       this.unimplementedElements = unimplementedElements;
       this.types = Types.getInstance(typeProvider);
       this.dynamicType = typeProvider.getDynamicType();
@@ -435,16 +451,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return member;
     }
 
-    private void checkAssignable(DartNode node, Type t, Type s) {
+    private boolean checkAssignable(DartNode node, Type t, Type s) {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       if (!types.isAssignable(t, s)) {
         typeError(node, TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+        return false;
       }
+      return true;
     }
 
-    private void checkAssignable(Type targetType, DartExpression node) {
-      checkAssignable(node, targetType, nonVoidTypeOf(node));
+    private boolean checkAssignable(Type targetType, DartExpression node) {
+      return checkAssignable(node, targetType, nonVoidTypeOf(node));
     }
 
     private Type analyzeMethodInvocation(Type receiver, Member member, String name,
@@ -664,6 +682,34 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
     }
 
+    /* Check for a type variable is repeated in its own bounds:
+     * e.g. Foo<T extends T>
+     */
+    private void checkCyclicBounds(List<? extends Type> arguments) {
+      for (Type argument : arguments) {
+        if (TypeKind.of(argument).equals(TypeKind.VARIABLE)) {
+          TypeVariable typeVar = (TypeVariable) argument;
+          checkCyclicBound(typeVar, typeVar.getTypeVariableElement().getBound());
+        }
+      }
+    }
+
+    private void checkCyclicBound(TypeVariable variable, Type bound) {
+      switch(TypeKind.of(bound)) {
+        case VARIABLE: {
+          TypeVariable boundType = (TypeVariable)bound;
+          if (boundType.equals(variable)) {
+            onError(boundType.getElement().getNode(),
+                    TypeErrorCode.CYCLIC_REFERENCE_TO_TYPE_VARIABLE,
+                    boundType.getElement().getOriginalSymbolName());
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
     /**
      * Returns the type of a node.  If a type of an expression can't be resolved,
      * returns the dynamic type.
@@ -792,6 +838,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     public Type visitClass(DartClass node) {
       ClassElement element = node.getSymbol();
       InterfaceType type = element.getType();
+      checkCyclicBounds(type.getArguments());
       findUnimplementedMembers(element);
       setCurrentClass(type);
       visit(node.getTypeParameters());
@@ -962,7 +1009,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
           typeError(iterableExpression, TypeErrorCode.FOR_IN_WITH_ITERATOR_FIELD);
         }
       }
-
       return typeAsVoid(node);
     }
 
@@ -995,6 +1041,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunctionTypeAlias(DartFunctionTypeAlias node) {
+      if (TypeKind.of(node.getSymbol().getType()).equals(TypeKind.FUNCTION_ALIAS)) {
+        FunctionAliasType type = node.getSymbol().getType();
+        checkCyclicBounds(type.getElement().getTypeParameters());
+      }
       return typeAsVoid(node);
     }
 
@@ -1066,7 +1116,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type valueType = type.getArguments().get(1);
       // Check the map literal entries against the return type.
       for (DartMapLiteralEntry literalEntry : node.getEntries()) {
-        checkAssignable(literalEntry, typeOf(literalEntry), valueType);
+        boolean result = checkAssignable(literalEntry, typeOf(literalEntry), valueType);
+        if (developerModeChecks == true && result == false) {
+          typeError(literalEntry, ResolverErrorCode.MAP_LITERAL_ELEMENT_TYPE,
+                    valueType.toString());
+        }
       }
       return type;
     }
@@ -1291,12 +1345,87 @@ public class TypeAnalyzer implements DartCompilationPhase {
                            name, element.getName());
 
         case METHOD:
+          return member.getType();
+
         case FIELD:
+          FieldElement fieldElement = (FieldElement) element;
+          // Check for cases when property has no setter or getter.
+          if (fieldElement.getModifiers().isAbstractField()
+              && fieldElement.getEnclosingElement() instanceof ClassElement) {
+            ClassElement enclosingClass = (ClassElement) fieldElement.getEnclosingElement();
+            // Check for using field without getter in other operation that assignment.
+            if (fieldElement.getGetter() == null && !hasFieldElementGetter(enclosingClass, name)) {
+              if (!(node.getParent() instanceof DartBinaryExpression)
+                  || ((DartBinaryExpression) node.getParent()).getOperator() != Token.ASSIGN
+                  || ((DartBinaryExpression) node.getParent()).getArg1() != node) {
+                return typeError(node.getName(), TypeErrorCode.FIELD_HAS_NO_GETTER, node.getName());
+              }
+            }
+            // Check for using field without setter in some assignment variant.
+            if (fieldElement.getSetter() == null && !hasFieldElementSetter(enclosingClass, name)) {
+              if (node.getParent() instanceof DartBinaryExpression) {
+                DartBinaryExpression expr = (DartBinaryExpression) node.getParent();
+                if (ASSIGN_OPERATORS.contains(expr.getOperator()) && expr.getArg1() == node) {
+                  return typeError(
+                      node.getName(),
+                      TypeErrorCode.FIELD_HAS_NO_SETTER,
+                      node.getName());
+                }
+              }
+            }
+          }
+          // Return field type.
           return member.getType();
 
         default:
           throw internalError(node.getName(), "unexpected kind %s", element.getKind());
       }
+    }
+
+    /**
+     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
+     *         {@link FieldElement} with getter.
+     */
+    private static boolean hasFieldElementGetter(ClassElement holder, String name) {
+      Element element = holder.lookupLocalElement(name);
+      if (element instanceof FieldElement) {
+        FieldElement fieldElement = (FieldElement) element;
+        if (fieldElement.getGetter() != null) {
+          return true;
+        }
+      }
+      for (InterfaceType interfaceType : holder.getInterfaces()) {
+        if (hasFieldElementGetter(interfaceType.getElement(), name)) {
+          return true;
+        }
+      }
+      if (holder.getSupertype() != null) {
+        return hasFieldElementGetter(holder.getSupertype().getElement(), name);
+      }
+      return false;
+    }
+
+    /**
+     * @return <code>true</code> if "holder", or one of its interfaces, or its superclass has
+     *         {@link FieldElement} with setter.
+     */
+    private static boolean hasFieldElementSetter(ClassElement holder, String name) {
+      Element element = holder.lookupLocalElement(name);
+      if (element instanceof FieldElement) {
+        FieldElement fieldElement = (FieldElement) element;
+        if (fieldElement.getSetter() != null) {
+          return true;
+        }
+      }
+      for (InterfaceType interfaceType : holder.getInterfaces()) {
+        if (hasFieldElementSetter(interfaceType.getElement(), name)) {
+          return true;
+        }
+      }
+      if (holder.getSupertype() != null) {
+        return hasFieldElementSetter(holder.getSupertype().getElement(), name);
+      }
+      return false;
     }
 
     @Override
@@ -1570,7 +1699,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       InterfaceType type = node.getType();
       Type elementType = type.getArguments().get(0);
       for (DartExpression expression : node.getExpressions()) {
-        checkAssignable(elementType, expression);
+        boolean result = checkAssignable(elementType, expression);
+        if (developerModeChecks == true && result == false) {
+          typeError(expression, ResolverErrorCode.LIST_LITERAL_ELEMENT_TYPE,
+                    elementType.toString());
+        }
       }
       return type;
     }

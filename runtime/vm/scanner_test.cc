@@ -42,6 +42,7 @@ void CheckKind(const Scanner::GrowableTokenStream &token_stream,
     OS::PrintErr("Token %d: expected kind %s but got %s\n", index,
         Token::Name(token_stream[index].kind), Token::Name(kind));
   }
+  EXPECT_EQ(kind, token_stream[index].kind);
 }
 
 
@@ -245,7 +246,7 @@ void EmptyMultilineString() {
 
 void NumberLiteral() {
   const Scanner::GrowableTokenStream& tokens =
-      Scan("5 0x5d 0.3 0.33 1E+12 .42");
+      Scan("5 0x5d 0.3 0.33 1E+12 .42 +5");
 
   CheckKind(tokens, 0, Token::kINTEGER);
   CheckKind(tokens, 1, Token::kINTEGER);
@@ -253,7 +254,9 @@ void NumberLiteral() {
   CheckKind(tokens, 3, Token::kDOUBLE);
   CheckKind(tokens, 4, Token::kDOUBLE);
   CheckKind(tokens, 5, Token::kDOUBLE);
-  CheckKind(tokens, 6, Token::kEOS);
+  CheckKind(tokens, 6, Token::kTIGHTADD);
+  CheckKind(tokens, 7, Token::kINTEGER);
+  CheckKind(tokens, 8, Token::kEOS);
 }
 
 

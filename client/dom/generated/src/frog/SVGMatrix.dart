@@ -1,5 +1,5 @@
 
-class SVGMatrixJs extends DOMTypeJs implements SVGMatrix native "*SVGMatrix" {
+class _SVGMatrixJs extends _DOMTypeJs implements SVGMatrix native "*SVGMatrix" {
 
   num get a() native "return this.a;";
 
@@ -25,25 +25,25 @@ class SVGMatrixJs extends DOMTypeJs implements SVGMatrix native "*SVGMatrix" {
 
   void set f(num value) native "this.f = value;";
 
-  SVGMatrixJs flipX() native;
+  _SVGMatrixJs flipX() native;
 
-  SVGMatrixJs flipY() native;
+  _SVGMatrixJs flipY() native;
 
-  SVGMatrixJs inverse() native;
+  _SVGMatrixJs inverse() native;
 
-  SVGMatrixJs multiply(SVGMatrixJs secondMatrix) native;
+  _SVGMatrixJs multiply(_SVGMatrixJs secondMatrix) native;
 
-  SVGMatrixJs rotate(num angle) native;
+  _SVGMatrixJs rotate(num angle) native;
 
-  SVGMatrixJs rotateFromVector(num x, num y) native;
+  _SVGMatrixJs rotateFromVector(num x, num y) native;
 
-  SVGMatrixJs scale(num scaleFactor) native;
+  _SVGMatrixJs scale(num scaleFactor) native;
 
-  SVGMatrixJs scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
+  _SVGMatrixJs scaleNonUniform(num scaleFactorX, num scaleFactorY) native;
 
-  SVGMatrixJs skewX(num angle) native;
+  _SVGMatrixJs skewX(num angle) native;
 
-  SVGMatrixJs skewY(num angle) native;
+  _SVGMatrixJs skewY(num angle) native;
 
-  SVGMatrixJs translate(num x, num y) native;
+  _SVGMatrixJs translate(num x, num y) native;
 }

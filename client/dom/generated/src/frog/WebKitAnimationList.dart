@@ -1,7 +1,7 @@
 
-class WebKitAnimationListJs extends DOMTypeJs implements WebKitAnimationList native "*WebKitAnimationList" {
+class _WebKitAnimationListJs extends _DOMTypeJs implements WebKitAnimationList native "*WebKitAnimationList" {
 
   int get length() native "return this.length;";
 
-  WebKitAnimationJs item(int index) native;
+  _WebKitAnimationJs item(int index) native;
 }

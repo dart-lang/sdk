@@ -246,8 +246,8 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
 
 
 AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_index,
-                                           Token::Kind kind,
-                                           AstNode* operand) {
+                                       Token::Kind kind,
+                                       AstNode* operand) {
   AstNode* new_operand = operand->ApplyUnaryOp(kind);
   if (new_operand != NULL) {
     return new_operand;
@@ -438,17 +438,19 @@ const Instance* StaticGetterNode::EvalConstExpr() const {
   }
   GrowableArray<const Object*> arguments;
   const Array& kNoArgumentNames = Array::Handle();
-  const Instance& field_value =
-      Instance::ZoneHandle(DartEntry::InvokeStatic(getter_func,
-                                                   arguments,
-                                                   kNoArgumentNames));
-  if (field_value.IsUnhandledException()) {
+  const Object& result =
+      Object::Handle(DartEntry::InvokeStatic(getter_func,
+                                             arguments,
+                                             kNoArgumentNames));
+  if (result.IsError() || result.IsNull()) {
+    // TODO(turnidge): We could get better error messages by returning
+    // the Error object directly to the parser.  This will involve
+    // replumbing all of the EvalConstExpr methods.
     return NULL;
   }
-  if (!field_value.IsNull()) {
-    return &field_value;
-  }
-  return NULL;
+  Instance& field_value = Instance::ZoneHandle();
+  field_value ^= result.raw();
+  return &field_value;
 }
 
 }  // namespace dart

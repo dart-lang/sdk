@@ -1,5 +1,5 @@
 
-class DirectoryReaderSyncJs extends DOMTypeJs implements DirectoryReaderSync native "*DirectoryReaderSync" {
+class _DirectoryReaderSyncJs extends _DOMTypeJs implements DirectoryReaderSync native "*DirectoryReaderSync" {
 
-  EntryArraySyncJs readEntries() native;
+  _EntryArraySyncJs readEntries() native;
 }

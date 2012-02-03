@@ -1,15 +1,15 @@
 
-class DocumentJs extends NodeJs implements Document native "*Document" {
+class _DocumentJs extends _NodeJs implements Document native "*Document" {
 
   String get URL() native "return this.URL;";
 
-  HTMLCollectionJs get anchors() native "return this.anchors;";
+  _HTMLCollectionJs get anchors() native "return this.anchors;";
 
-  HTMLCollectionJs get applets() native "return this.applets;";
+  _HTMLCollectionJs get applets() native "return this.applets;";
 
-  HTMLElementJs get body() native "return this.body;";
+  _HTMLElementJs get body() native "return this.body;";
 
-  void set body(HTMLElementJs value) native "this.body = value;";
+  void set body(_HTMLElementJs value) native "this.body = value;";
 
   String get characterSet() native "return this.characterSet;";
 
@@ -25,11 +25,11 @@ class DocumentJs extends NodeJs implements Document native "*Document" {
 
   String get defaultCharset() native "return this.defaultCharset;";
 
-  DOMWindowJs get defaultView() native "return this.defaultView;";
+  _DOMWindowJs get defaultView() native "return this.defaultView;";
 
-  DocumentTypeJs get doctype() native "return this.doctype;";
+  _DocumentTypeJs get doctype() native "return this.doctype;";
 
-  ElementJs get documentElement() native "return this.documentElement;";
+  _ElementJs get documentElement() native "return this.documentElement;";
 
   String get documentURI() native "return this.documentURI;";
 
@@ -39,23 +39,23 @@ class DocumentJs extends NodeJs implements Document native "*Document" {
 
   void set domain(String value) native "this.domain = value;";
 
-  HTMLCollectionJs get forms() native "return this.forms;";
+  _HTMLCollectionJs get forms() native "return this.forms;";
 
-  HTMLHeadElementJs get head() native "return this.head;";
+  _HTMLHeadElementJs get head() native "return this.head;";
 
-  HTMLCollectionJs get images() native "return this.images;";
+  _HTMLCollectionJs get images() native "return this.images;";
 
-  DOMImplementationJs get implementation() native "return this.implementation;";
+  _DOMImplementationJs get implementation() native "return this.implementation;";
 
   String get inputEncoding() native "return this.inputEncoding;";
 
   String get lastModified() native "return this.lastModified;";
 
-  HTMLCollectionJs get links() native "return this.links;";
+  _HTMLCollectionJs get links() native "return this.links;";
 
-  LocationJs get location() native "return this.location;";
+  _LocationJs get location() native "return this.location;";
 
-  void set location(LocationJs value) native "this.location = value;";
+  void set location(_LocationJs value) native "this.location = value;";
 
   String get preferredStylesheetSet() native "return this.preferredStylesheetSet;";
 
@@ -67,13 +67,13 @@ class DocumentJs extends NodeJs implements Document native "*Document" {
 
   void set selectedStylesheetSet(String value) native "this.selectedStylesheetSet = value;";
 
-  StyleSheetListJs get styleSheets() native "return this.styleSheets;";
+  _StyleSheetListJs get styleSheets() native "return this.styleSheets;";
 
   String get title() native "return this.title;";
 
   void set title(String value) native "this.title = value;";
 
-  ElementJs get webkitCurrentFullScreenElement() native "return this.webkitCurrentFullScreenElement;";
+  _ElementJs get webkitCurrentFullScreenElement() native "return this.webkitCurrentFullScreenElement;";
 
   bool get webkitFullScreenKeyboardInputAllowed() native "return this.webkitFullScreenKeyboardInputAllowed;";
 
@@ -93,69 +93,69 @@ class DocumentJs extends NodeJs implements Document native "*Document" {
 
   void set xmlVersion(String value) native "this.xmlVersion = value;";
 
-  NodeJs adoptNode(NodeJs source) native;
+  _NodeJs adoptNode(_NodeJs source) native;
 
-  RangeJs caretRangeFromPoint(int x, int y) native;
+  _RangeJs caretRangeFromPoint(int x, int y) native;
 
-  AttrJs createAttribute(String name) native;
+  _AttrJs createAttribute(String name) native;
 
-  AttrJs createAttributeNS(String namespaceURI, String qualifiedName) native;
+  _AttrJs createAttributeNS(String namespaceURI, String qualifiedName) native;
 
-  CDATASectionJs createCDATASection(String data) native;
+  _CDATASectionJs createCDATASection(String data) native;
 
-  CommentJs createComment(String data) native;
+  _CommentJs createComment(String data) native;
 
-  DocumentFragmentJs createDocumentFragment() native;
+  _DocumentFragmentJs createDocumentFragment() native;
 
-  ElementJs createElement(String tagName) native;
+  _ElementJs createElement(String tagName) native;
 
-  ElementJs createElementNS(String namespaceURI, String qualifiedName) native;
+  _ElementJs createElementNS(String namespaceURI, String qualifiedName) native;
 
-  EntityReferenceJs createEntityReference(String name) native;
+  _EntityReferenceJs createEntityReference(String name) native;
 
-  EventJs createEvent(String eventType) native;
+  _EventJs createEvent(String eventType) native;
 
-  XPathExpressionJs createExpression(String expression, XPathNSResolverJs resolver) native;
+  _XPathExpressionJs createExpression(String expression, _XPathNSResolverJs resolver) native;
 
-  XPathNSResolverJs createNSResolver(NodeJs nodeResolver) native;
+  _XPathNSResolverJs createNSResolver(_NodeJs nodeResolver) native;
 
-  NodeIteratorJs createNodeIterator(NodeJs root, int whatToShow, NodeFilterJs filter, bool expandEntityReferences) native;
+  _NodeIteratorJs createNodeIterator(_NodeJs root, int whatToShow, _NodeFilterJs filter, bool expandEntityReferences) native;
 
-  ProcessingInstructionJs createProcessingInstruction(String target, String data) native;
+  _ProcessingInstructionJs createProcessingInstruction(String target, String data) native;
 
-  RangeJs createRange() native;
+  _RangeJs createRange() native;
 
-  TextJs createTextNode(String data) native;
+  _TextJs createTextNode(String data) native;
 
-  TouchJs createTouch(DOMWindowJs window, EventTargetJs target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
+  _TouchJs createTouch(_DOMWindowJs window, _EventTargetJs target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native;
 
-  TouchListJs createTouchList() native;
+  _TouchListJs createTouchList() native;
 
-  TreeWalkerJs createTreeWalker(NodeJs root, int whatToShow, NodeFilterJs filter, bool expandEntityReferences) native;
+  _TreeWalkerJs createTreeWalker(_NodeJs root, int whatToShow, _NodeFilterJs filter, bool expandEntityReferences) native;
 
-  ElementJs elementFromPoint(int x, int y) native;
+  _ElementJs elementFromPoint(int x, int y) native;
 
-  XPathResultJs evaluate(String expression, NodeJs contextNode, XPathNSResolverJs resolver, int type, XPathResultJs inResult) native;
+  _XPathResultJs evaluate(String expression, _NodeJs contextNode, _XPathNSResolverJs resolver, int type, _XPathResultJs inResult) native;
 
   bool execCommand(String command, bool userInterface, String value) native;
 
   Object getCSSCanvasContext(String contextId, String name, int width, int height) native;
 
-  ElementJs getElementById(String elementId) native;
+  _ElementJs getElementById(String elementId) native;
 
-  NodeListJs getElementsByClassName(String tagname) native;
+  _NodeListJs getElementsByClassName(String tagname) native;
 
-  NodeListJs getElementsByName(String elementName) native;
+  _NodeListJs getElementsByName(String elementName) native;
 
-  NodeListJs getElementsByTagName(String tagname) native;
+  _NodeListJs getElementsByTagName(String tagname) native;
 
-  NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native;
+  _NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native;
 
-  CSSStyleDeclarationJs getOverrideStyle(ElementJs element, String pseudoElement) native;
+  _CSSStyleDeclarationJs getOverrideStyle(_ElementJs element, String pseudoElement) native;
 
-  DOMSelectionJs getSelection() native;
+  _DOMSelectionJs getSelection() native;
 
-  NodeJs importNode(NodeJs importedNode, [bool deep = null]) native;
+  _NodeJs importNode(_NodeJs importedNode, [bool deep = null]) native;
 
   bool queryCommandEnabled(String command) native;
 
@@ -167,11 +167,11 @@ class DocumentJs extends NodeJs implements Document native "*Document" {
 
   String queryCommandValue(String command) native;
 
-  ElementJs querySelector(String selectors) native;
+  _ElementJs querySelector(String selectors) native;
 
-  NodeListJs querySelectorAll(String selectors) native;
+  _NodeListJs querySelectorAll(String selectors) native;
 
   void webkitCancelFullScreen() native;
 
-  WebKitNamedFlowJs webkitGetFlowByName(String name) native;
+  _WebKitNamedFlowJs webkitGetFlowByName(String name) native;
 }

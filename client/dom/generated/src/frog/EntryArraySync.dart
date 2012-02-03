@@ -1,7 +1,7 @@
 
-class EntryArraySyncJs extends DOMTypeJs implements EntryArraySync native "*EntryArraySync" {
+class _EntryArraySyncJs extends _DOMTypeJs implements EntryArraySync native "*EntryArraySync" {
 
   int get length() native "return this.length;";
 
-  EntrySyncJs item(int index) native;
+  _EntrySyncJs item(int index) native;
 }

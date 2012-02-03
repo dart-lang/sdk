@@ -1,3 +1,3 @@
 
-class CDATASectionJs extends TextJs implements CDATASection native "*CDATASection" {
+class _CDATASectionJs extends _TextJs implements CDATASection native "*CDATASection" {
 }

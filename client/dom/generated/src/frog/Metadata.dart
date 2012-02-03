@@ -1,5 +1,5 @@
 
-class MetadataJs extends DOMTypeJs implements Metadata native "*Metadata" {
+class _MetadataJs extends _DOMTypeJs implements Metadata native "*Metadata" {
 
   Date get modificationTime() native "return this.modificationTime;";
 }

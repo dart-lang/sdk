@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Unit tests for dartdoc.
+/// Unit tests for doc.
 #library('dartdoc_tests');
 
 #import('../../../dartdoc/dartdoc.dart', prefix: 'dd');
@@ -55,64 +55,70 @@ main() {
   });
 
   group('isAbsolute', () {
+    final doc = new dd.Dartdoc();
+
     test('returns false if there is no scheme', () {
-      expect(dd.isAbsolute('index.html')).isFalse();
-      expect(dd.isAbsolute('foo/index.html')).isFalse();
-      expect(dd.isAbsolute('foo/bar/index.html')).isFalse();
+      expect(doc.isAbsolute('index.html')).isFalse();
+      expect(doc.isAbsolute('foo/index.html')).isFalse();
+      expect(doc.isAbsolute('foo/bar/index.html')).isFalse();
     });
 
     test('returns true if there is a scheme', () {
-      expect(dd.isAbsolute('http://google.com')).isTrue();
-      expect(dd.isAbsolute('hTtPs://google.com')).isTrue();
-      expect(dd.isAbsolute('mailto:fake@email.com')).isTrue();
+      expect(doc.isAbsolute('http://google.com')).isTrue();
+      expect(doc.isAbsolute('hTtPs://google.com')).isTrue();
+      expect(doc.isAbsolute('mailto:fake@email.com')).isTrue();
     });
   });
 
   group('relativePath', () {
+    final doc = new dd.Dartdoc();
+
     test('absolute path is unchanged', () {
-      dd.startFile('dir/sub/file.html');
-      expect(dd.relativePath('http://google.com')).equals('http://google.com');
+      doc.startFile('dir/sub/file.html');
+      expect(doc.relativePath('http://foo.com')).equals('http://foo.com');
     });
 
     test('from root to root', () {
-      dd.startFile('root.html');
-      expect(dd.relativePath('other.html')).equals('other.html');
+      doc.startFile('root.html');
+      expect(doc.relativePath('other.html')).equals('other.html');
     });
 
     test('from root to directory', () {
-      dd.startFile('root.html');
-      expect(dd.relativePath('dir/file.html')).equals('dir/file.html');
+      doc.startFile('root.html');
+      expect(doc.relativePath('dir/file.html')).equals('dir/file.html');
     });
 
     test('from root to nested', () {
-      dd.startFile('root.html');
-      expect(dd.relativePath('dir/sub/file.html')).equals('dir/sub/file.html');
+      doc.startFile('root.html');
+      expect(doc.relativePath('dir/sub/file.html')).equals(
+          'dir/sub/file.html');
     });
 
     test('from directory to root', () {
-      dd.startFile('dir/file.html');
-      expect(dd.relativePath('root.html')).equals('../root.html');
+      doc.startFile('dir/file.html');
+      expect(doc.relativePath('root.html')).equals('../root.html');
     });
 
     test('from nested to root', () {
-      dd.startFile('dir/sub/file.html');
-      expect(dd.relativePath('root.html')).equals('../../root.html');
+      doc.startFile('dir/sub/file.html');
+      expect(doc.relativePath('root.html')).equals('../../root.html');
     });
 
     test('from dir to dir with different path', () {
-      dd.startFile('dir/file.html');
-      expect(dd.relativePath('other/file.html')).equals('../other/file.html');
+      doc.startFile('dir/file.html');
+      expect(doc.relativePath('other/file.html')).equals(
+          '../other/file.html');
     });
 
     test('from nested to nested with different path', () {
-      dd.startFile('dir/sub/file.html');
-      expect(dd.relativePath('other/sub/file.html')).equals(
+      doc.startFile('dir/sub/file.html');
+      expect(doc.relativePath('other/sub/file.html')).equals(
           '../../other/sub/file.html');
     });
 
     test('from nested to directory with different path', () {
-      dd.startFile('dir/sub/file.html');
-      expect(dd.relativePath('other/file.html')).equals(
+      doc.startFile('dir/sub/file.html');
+      expect(doc.relativePath('other/file.html')).equals(
           '../../other/file.html');
     });
   });
@@ -137,6 +143,8 @@ main() {
     }
 
     var doc = new dd.Dartdoc();
+    doc.startFile('someLib/someType.html');
+
     world.processDartScript(dummyPath);
     world.resolveAll();
     var dummy = world.libraries[dummyPath];
@@ -152,38 +160,38 @@ main() {
 
     test('to a member of the current type', () {
       expect(render(doc.resolveNameReference('method', type: klass))).
-        equals('<a class="crossref" href="../../dummy/Class.html#method">' +
+        equals('<a class="crossref" href="../dummy/Class.html#method">' +
             'method</a>');
     });
 
     test('to a property with only a getter links to the getter', () {
       expect(render(doc.resolveNameReference('getterOnly', type: klass))).
         equals('<a class="crossref" ' +
-            'href="../../dummy/Class.html#get:getterOnly">getterOnly</a>');
+            'href="../dummy/Class.html#get:getterOnly">getterOnly</a>');
     });
 
     test('to a property with only a setter links to the setter', () {
       expect(render(doc.resolveNameReference('setterOnly', type: klass))).
         equals('<a class="crossref" ' +
-            'href="../../dummy/Class.html#set:setterOnly">setterOnly</a>');
+            'href="../dummy/Class.html#set:setterOnly">setterOnly</a>');
     });
 
     test('to a property with a getter and setter links to the getter', () {
       expect(render(doc.resolveNameReference('getterAndSetter', type: klass))).
         equals('<a class="crossref" ' +
-            'href="../../dummy/Class.html#get:getterAndSetter">' +
+            'href="../dummy/Class.html#get:getterAndSetter">' +
             'getterAndSetter</a>');
     });
 
     test('to a type in the current library', () {
       expect(render(doc.resolveNameReference('Class', library: dummy))).
-        equals('<a class="crossref" href="../../dummy/Class.html">Class</a>');
+        equals('<a class="crossref" href="../dummy/Class.html">Class</a>');
     });
 
     test('to a top-level member in the current library', () {
       expect(render(doc.resolveNameReference('topLevelMethod',
                   library: dummy))).
-        equals('<a class="crossref" href="../../dummy.html#topLevelMethod">' +
+        equals('<a class="crossref" href="../dummy.html#topLevelMethod">' +
             'topLevelMethod</a>');
     });
 
@@ -195,13 +203,13 @@ main() {
 
     test('to a member of another class', () {
       expect(render(doc.resolveNameReference('Class.method', library: dummy))).
-        equals('<a class="crossref" href="../../dummy/Class.html#method">' +
+        equals('<a class="crossref" href="../dummy/Class.html#method">' +
             'Class.method</a>');
     });
 
     test('to a constructor', () {
       expect(render(doc.resolveNameReference('new Class', library: dummy))).
-        equals('<a class="crossref" href="../../dummy/Class.html#new:Class">' +
+        equals('<a class="crossref" href="../dummy/Class.html#new:Class">' +
             'new Class</a>');
     });
 
@@ -209,7 +217,7 @@ main() {
       expect(render(doc.resolveNameReference('new Class.namedConstructor',
                   library: dummy))).
         equals('<a class="crossref" ' +
-            'href="../../dummy/Class.html#new:Class.namedConstructor">new ' +
+            'href="../dummy/Class.html#new:Class.namedConstructor">new ' +
             'Class.namedConstructor</a>');
     });
   });

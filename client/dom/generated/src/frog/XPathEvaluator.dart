@@ -1,9 +1,9 @@
 
-class XPathEvaluatorJs extends DOMTypeJs implements XPathEvaluator native "*XPathEvaluator" {
+class _XPathEvaluatorJs extends _DOMTypeJs implements XPathEvaluator native "*XPathEvaluator" {
 
-  XPathExpressionJs createExpression(String expression, XPathNSResolverJs resolver) native;
+  _XPathExpressionJs createExpression(String expression, _XPathNSResolverJs resolver) native;
 
-  XPathNSResolverJs createNSResolver(NodeJs nodeResolver) native;
+  _XPathNSResolverJs createNSResolver(_NodeJs nodeResolver) native;
 
-  XPathResultJs evaluate(String expression, NodeJs contextNode, XPathNSResolverJs resolver, int type, XPathResultJs inResult) native;
+  _XPathResultJs evaluate(String expression, _NodeJs contextNode, _XPathNSResolverJs resolver, int type, _XPathResultJs inResult) native;
 }

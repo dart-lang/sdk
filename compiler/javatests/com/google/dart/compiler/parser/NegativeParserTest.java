@@ -12,6 +12,8 @@ import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartUnit;
 
+import java.util.Set;
+
 /**
  * Negative Parser/Syntax tests.
  */
@@ -457,5 +459,213 @@ public class NegativeParserTest extends CompilerTestCase {
             "var e = +a;",
             ""),
         errEx(ParserErrorCode.NO_UNARY_PLUS_OPERATOR, 6, 9, 1));
+  }
+
+  public void test_functionDeclaration_name() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {",
+            "  f1(p){};", // function declaration as statement, has name
+            "  (p){}", // function declaration as statement, should have name
+            "  var f2 = (p){};", // variable declaration, name of function literal is not required
+            "}",
+            ""),
+        errEx(ParserErrorCode.MISSING_FUNCTION_NAME, 4, 3, 5));
+  }
+
+  /**
+   * Separate test for invocation of function literal which has both return type and name.
+   */
+  public void test_invokeFunctionLiteral_returnType_name() {
+    DartParserRunner parserRunner =
+        parseExpectErrors(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "topLevelFunctionWithVeryLongNameToForceLineWrapping() {",
+            "  int f(p){}(0);", // invocation of function literal in statement, has type and name
+            "}",
+            ""));
+    assertEquals(
+        makeCode(
+            "// unit " + getName(),
+            "",
+            "topLevelFunctionWithVeryLongNameToForceLineWrapping() {",
+            "  int f(p) {",
+            "  }(0);",
+            "}"),
+        parserRunner.getDartUnit().toSource());
+  }
+
+  /**
+   * Test with variants of function declarations and function literal invocations.
+   */
+  public void test_functionDeclaration_functionLiteral() {
+    DartParserRunner parserRunner =
+        parseExpectErrors(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {",
+            "  f0(p){}", // declaration of function as statement
+            "  int f1(p){}", // declaration of function as statement, has type
+            "  var res = (p){}(1);", // invocation of function literal in assignment
+            "  (p){}(2);", // invocation of function literal in statement, no name
+            "  f2(p){}(3);", // invocation of function literal in statement, has name
+            "  f3(p) => 4;", // function with => arrow ends with ';'
+            "  (5);", // this is separate statement, not invocation of previous function
+            "  join(promises, (p) => 6);", // function with => arrow as argument
+            "  join(promises, (p) {return 7;});", // function with block as argument
+            "}",
+            ""));
+    assertEquals(
+        makeCode(
+            "// unit " + getName(),
+            "",
+            "foo() {",
+            "  f0(p) {",
+            "  };",
+            "  int f1(p) {",
+            "  };",
+            "  var res = (p) {",
+            "  }(1);",
+            "  (p) {",
+            "  }(2);",
+            "  f2(p) {",
+            "  }(3);",
+            "  f3(p) {",
+            "    return 4;",
+            "  };",
+            "  (5);",
+            "  join(promises, (p) {",
+            "    return 6;",
+            "  });",
+            "  join(promises, (p) {",
+            "    return 7;",
+            "  });",
+            "}"),
+        parserRunner.getDartUnit().toSource());
+  }
+
+  /**
+   * Test for {@link DartUnit#getTopDeclarationNames()}.
+   */
+  public void test_getTopDeclarationNames() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass {}",
+            "class MyInterface {}",
+            "topLevelMethod() {}",
+            "int get topLevelGetter() {return 0;}",
+            "void set topLevelSetter(int v) {}",
+            "typedef void MyTypeDef();",
+            ""));
+    DartUnit unit = parserRunner.getDartUnit();
+    // Check top level declarations.
+    Set<String> names = unit.getTopDeclarationNames();
+    assertEquals(6, names.size());
+    assertTrue(names.contains("MyClass"));
+    assertTrue(names.contains("MyInterface"));
+    assertTrue(names.contains("topLevelMethod"));
+    assertTrue(names.contains("topLevelGetter"));
+    assertTrue(names.contains("topLevelSetter"));
+    assertTrue(names.contains("MyTypeDef"));
+  }
+
+  /**
+   * Test for {@link DartUnit#getDeclarationNames()}.
+   */
+  public void test_getDeclarationNames() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass<TypeVar> {",
+            "  myMethod(int pA, int pB) {",
+            "    int varA;",
+            "    try {",
+            "    } catch(var ex) {",
+            "    }",
+            "  }",
+            "}",
+            "topLevelMethod() {}",
+            "int get topLevelGetter() {return 0;}",
+            "void set topLevelSetter(int setterParam) {}",
+            "typedef void MyTypeDef();",
+            ""));
+    DartUnit unit = parserRunner.getDartUnit();
+    // Check all declarations.
+    Set<String> names = unit.getDeclarationNames();
+    assertEquals(12, names.size());
+    assertTrue(names.contains("MyClass"));
+    assertTrue(names.contains("TypeVar"));
+    assertTrue(names.contains("myMethod"));
+    assertTrue(names.contains("pA"));
+    assertTrue(names.contains("pB"));
+    assertTrue(names.contains("varA"));
+    assertTrue(names.contains("ex"));
+    assertTrue(names.contains("topLevelMethod"));
+    assertTrue(names.contains("topLevelGetter"));
+    assertTrue(names.contains("topLevelSetter"));
+    assertTrue(names.contains("setterParam"));
+    assertTrue(names.contains("MyTypeDef"));
+  }
+
+  /**
+   * There was bug in diet parser, it did not understand new "arrow" syntax of function definition.
+   */
+  public void test_dietParser_functionArrow() {
+    DartParserRunner parserRunner =
+        DartParserRunner.parse(
+            getName(),
+            Joiner.on("\n").join(
+                "class ClassWithVeryLongNameEnoughToForceLineWrapping {",
+                "  foo() => return 0;",
+                "}",
+                ""),
+            true);
+    assertErrors(parserRunner.getErrors());
+    assertEquals(
+        Joiner.on("\n").join(
+            "// unit " + getName(),
+            "class ClassWithVeryLongNameEnoughToForceLineWrapping {",
+            "",
+            "  foo() {",
+            "  }",
+            "}"),
+        parserRunner.getDartUnit().toSource().trim());
+  }
+
+  /**
+   * "get" is valid name for method, it can cause warning, but not parsing failure.
+   */
+  public void test_methodNamed_get() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void get() {}",
+        "}",
+        ""));
+  }
+
+  /**
+   * "set" is valid name for method, it can cause warning, but not parsing failure.
+   */
+  public void test_methodNamed_set() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void set() {}",
+        "}",
+        ""));
+  }
+
+  /**
+   * "operator" is valid name for method, it can cause warning, but not parsing failure.
+   */
+  public void test_methodNamed_operator() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void operator() {}",
+        "}",
+        ""));
   }
 }

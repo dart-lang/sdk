@@ -1,5 +1,5 @@
 
-class MouseEventJs extends UIEventJs implements MouseEvent native "*MouseEvent" {
+class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent" {
 
   bool get altKey() native "return this.altKey;";
 
@@ -11,9 +11,9 @@ class MouseEventJs extends UIEventJs implements MouseEvent native "*MouseEvent" 
 
   bool get ctrlKey() native "return this.ctrlKey;";
 
-  ClipboardJs get dataTransfer() native "return this.dataTransfer;";
+  _ClipboardJs get dataTransfer() native "return this.dataTransfer;";
 
-  NodeJs get fromElement() native "return this.fromElement;";
+  _NodeJs get fromElement() native "return this.fromElement;";
 
   bool get metaKey() native "return this.metaKey;";
 
@@ -21,7 +21,7 @@ class MouseEventJs extends UIEventJs implements MouseEvent native "*MouseEvent" 
 
   int get offsetY() native "return this.offsetY;";
 
-  EventTargetJs get relatedTarget() native "return this.relatedTarget;";
+  _EventTargetJs get relatedTarget() native "return this.relatedTarget;";
 
   int get screenX() native "return this.screenX;";
 
@@ -29,7 +29,7 @@ class MouseEventJs extends UIEventJs implements MouseEvent native "*MouseEvent" 
 
   bool get shiftKey() native "return this.shiftKey;";
 
-  NodeJs get toElement() native "return this.toElement;";
+  _NodeJs get toElement() native "return this.toElement;";
 
   int get webkitMovementX() native "return this.webkitMovementX;";
 
@@ -39,5 +39,5 @@ class MouseEventJs extends UIEventJs implements MouseEvent native "*MouseEvent" 
 
   int get y() native "return this.y;";
 
-  void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindowJs view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTargetJs relatedTarget) native;
+  void initMouseEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetJs relatedTarget) native;
 }

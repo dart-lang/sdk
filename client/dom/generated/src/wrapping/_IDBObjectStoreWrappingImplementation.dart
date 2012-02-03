@@ -20,7 +20,7 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   IDBTransaction get transaction() { return _get_transaction(this); }
   static IDBTransaction _get_transaction(var _this) native;
 
-  IDBRequest add(String value, [IDBKey key = null]) {
+  IDBRequest add(Dynamic value, [IDBKey key = null]) {
     if (key === null) {
       return _add(this, value);
     } else {
@@ -89,7 +89,7 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   static IDBRequest _openCursor_2(receiver, range) native;
   static IDBRequest _openCursor_3(receiver, range, direction) native;
 
-  IDBRequest put(String value, [IDBKey key = null]) {
+  IDBRequest put(Dynamic value, [IDBKey key = null]) {
     if (key === null) {
       return _put(this, value);
     } else {

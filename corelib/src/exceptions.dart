@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -71,9 +71,9 @@ class ObjectNotClosureException implements Exception {
 
 
 class IllegalArgumentException implements Exception {
-  const IllegalArgumentException([args = ""]) : _args = args;
-  String toString() => "Illegal argument(s): $_args";
-  final String _args;
+  const IllegalArgumentException([arg = ""]) : _arg = arg;
+  String toString() => "Illegal argument(s): $_arg";
+  final _arg;
 }
 
 

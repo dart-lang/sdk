@@ -22,6 +22,6 @@ class Smoketest extends BenchmarkBase {
   }
 
   static void log(String str) {
-    window.console.log(str);
+    print(str);
   }
 }

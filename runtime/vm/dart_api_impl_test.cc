@@ -59,6 +59,68 @@ TEST_CASE(ErrorHandles) {
   EXPECT_VALID(Dart_ErrorGetStacktrace(exception));
 }
 
+
+void PropagateErrorNative(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle closure = Dart_GetNativeArgument(args, 0);
+  EXPECT(Dart_IsClosure(closure));
+  Dart_Handle result = Dart_InvokeClosure(closure, 0, NULL);
+  EXPECT(Dart_IsError(result));
+  result = Dart_PropagateError(result);
+  EXPECT_VALID(result);  // We do not expect to reach here.
+  UNREACHABLE();
+}
+
+
+static Dart_NativeFunction PropagateError_native_lookup(
+    Dart_Handle name, int argument_count) {
+  return reinterpret_cast<Dart_NativeFunction>(&PropagateErrorNative);
+}
+
+
+TEST_CASE(Dart_PropagateError) {
+  const char* kScriptChars =
+      "class Test {\n"
+      "  static void raiseCompileError() {\n"
+      "    return badIdent;\n"
+      "  }\n"
+      "\n"
+      "  static void throwException() {\n"
+      "    throw new Exception('myException');\n"
+      "  }\n"
+      "  static void nativeFunc(closure) native 'Test_nativeFunc';\n"
+      "\n"
+      "  static void Func1() {\n"
+      "    nativeFunc(() => raiseCompileError());\n"
+      "  }\n"
+      "\n"
+      "  static void Func2() {\n"
+      "    nativeFunc(() => throwException());\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(
+      kScriptChars, &PropagateError_native_lookup);
+  Dart_Handle result;
+
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString("Test"),
+                             Dart_NewString("Func1"),
+                             0,
+                             NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(!Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("badIdent", Dart_GetError(result));
+
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString("Test"),
+                             Dart_NewString("Func2"),
+                             0,
+                             NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("myException", Dart_GetError(result));
+}
+
 #endif
 
 
@@ -614,28 +676,28 @@ TEST_CASE(ListAccess) {
 
 
 TEST_CASE(ByteArray) {
-  Dart_Handle obj1 = Dart_NewByteArray(10);
-  EXPECT_VALID(obj1);
-  EXPECT(Dart_IsByteArray(obj1));
-  EXPECT(Dart_IsList(obj1));
+  Dart_Handle byte_array1 = Dart_NewByteArray(10);
+  EXPECT_VALID(byte_array1);
+  EXPECT(Dart_IsByteArray(byte_array1));
+  EXPECT(Dart_IsList(byte_array1));
 
   intptr_t length = 0;
-  Dart_Handle result = Dart_ListLength(obj1, &length);
+  Dart_Handle result = Dart_ListLength(byte_array1, &length);
   EXPECT_VALID(result);
   EXPECT_EQ(10, length);
 
-  result = Dart_ListSetAt(obj1, -1, Dart_NewInteger(1));
+  result = Dart_ListSetAt(byte_array1, -1, Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
-  result = Dart_ListSetAt(obj1, 10, Dart_NewInteger(1));
+  result = Dart_ListSetAt(byte_array1, 10, Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
 
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(obj1, i, Dart_NewInteger(i + 1));
+    result = Dart_ListSetAt(byte_array1, i, Dart_NewInteger(i + 1));
     EXPECT_VALID(result);
   }
 
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListGetAt(obj1, i);
+    result = Dart_ListGetAt(byte_array1, i);
     EXPECT_VALID(result);
     int64_t value = 0;
     result = Dart_IntegerToInt64(result, &value);
@@ -643,25 +705,49 @@ TEST_CASE(ByteArray) {
     EXPECT_EQ(i + 1, value);
   }
 
-  Dart_Handle obj2 = Dart_NewByteArray(10);
+  Dart_Handle byte_array2 = Dart_NewByteArray(10);
   bool is_equal = false;
-  Dart_ObjectEquals(obj1, obj2, &is_equal);
+  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
 
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(obj2, i, Dart_NewInteger(i + 1));
+    result = Dart_ListSetAt(byte_array2, i, Dart_NewInteger(i + 1));
     EXPECT_VALID(result);
   }
   is_equal = false;
-  Dart_ObjectEquals(obj1, obj2, &is_equal);
+  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
 
   for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle e1 = Dart_ListGetAt(obj1, i);
-    Dart_Handle e2 = Dart_ListGetAt(obj2, i);
+    Dart_Handle e1 = Dart_ListGetAt(byte_array1, i);
+    Dart_Handle e2 = Dart_ListGetAt(byte_array2, i);
     is_equal = false;
     Dart_ObjectEquals(e1, e2, &is_equal);
     EXPECT(is_equal);
+  }
+
+  uint8_t data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+  result = Dart_ListSetAsBytes(byte_array1, 0, data, 10);
+  EXPECT_VALID(result);
+  for (intptr_t i = 0; i < 10; ++i) {
+    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
+    int64_t value;
+    result = Dart_IntegerToInt64(e, &value);
+    EXPECT_VALID(result);
+    EXPECT_EQ(i, value);
+  }
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    EXPECT_VALID(Dart_ListSetAt(byte_array1, i, Dart_NewInteger(10 - i)));
+  }
+  Dart_ListGetAsBytes(byte_array1, 0, data, 10);
+  for (intptr_t i = 0; i < 10; ++i) {
+    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(e);
+    int64_t value;
+    result = Dart_IntegerToInt64(e, &value);
+    EXPECT_VALID(result);
+    EXPECT_EQ(10 - i, value);
   }
 }
 
@@ -2801,6 +2887,85 @@ TEST_CASE(ImportLibrary5) {
 }
 
 
+void NewNativePort_send123(Dart_Port dest_port_id,
+                           Dart_Port reply_port_id,
+                           uint8_t* data) {
+  intptr_t response = 123;
+  Dart_PostIntArray(reply_port_id, 1, &response);
+}
+
+
+void NewNativePort_send321(Dart_Port dest_port_id,
+                           Dart_Port reply_port_id,
+                           uint8_t* data) {
+  intptr_t response = 321;
+  Dart_PostIntArray(reply_port_id, 1, &response);
+}
+
+
+UNIT_TEST_CASE(NewNativePort) {
+  // Create a port with a bogus handler.
+  Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
+  EXPECT_EQ(kIllegalPort, error_port);
+
+  // Create the port w/o a current isolate, just to make sure that works.
+  Dart_Port port_id1 =
+      Dart_NewNativePort("Port123", NewNativePort_send123, true);
+
+  TestIsolateScope __test_isolate__;
+  const char* kScriptChars =
+      "void callPort(SendPort port) {\n"
+      "    port.call(null).receive((message, replyTo) {\n"
+      "      throw new Exception(message[0]);\n"
+      "    });\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  // Create a port w/ a current isolate, to make sure that works too.
+  Dart_Port port_id2 =
+      Dart_NewNativePort("Port321", NewNativePort_send321, true);
+
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+  Dart_Handle send_port2 = Dart_NewSendPort(port_id2);
+  EXPECT_VALID(send_port2);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result = Dart_InvokeStatic(lib,
+                                         Dart_NewString(""),
+                                         Dart_NewString("callPort"),
+                                         1,
+                                         dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  // result second port.
+  dart_args[0] = send_port2;
+  result = Dart_InvokeStatic(lib,
+                             Dart_NewString(""),
+                             Dart_NewString("callPort"),
+                             1,
+                             dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 321\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+  EXPECT(Dart_CloseNativePort(port_id2));
+}
+
+
 static bool RunLoopTestCallback(const char* name_prefix,
                                 void* data, char** error) {
   const char* kScriptChars =
@@ -3013,8 +3178,8 @@ TEST_CASE(IsolateInterrupt) {
   Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
 
   sync = new Monitor();
-  Thread* thread = new Thread(BusyLoop_start, 0);
-  EXPECT(thread != NULL);
+  int result = Thread::Start(BusyLoop_start, 0);
+  EXPECT_EQ(0, result);
 
   {
     MonitorLocker ml(sync);

@@ -1,5 +1,5 @@
 
-class XMLHttpRequestJs extends DOMTypeJs implements XMLHttpRequest native "*XMLHttpRequest" {
+class _XMLHttpRequestJs extends _DOMTypeJs implements XMLHttpRequest native "*XMLHttpRequest" {
   XMLHttpRequest() native;
 
 
@@ -19,7 +19,9 @@ class XMLHttpRequestJs extends DOMTypeJs implements XMLHttpRequest native "*XMLH
 
   int get readyState() native "return this.readyState;";
 
-  BlobJs get responseBlob() native "return this.responseBlob;";
+  Object get response() native "return this.response;";
+
+  _BlobJs get responseBlob() native "return this.responseBlob;";
 
   String get responseText() native "return this.responseText;";
 
@@ -27,13 +29,13 @@ class XMLHttpRequestJs extends DOMTypeJs implements XMLHttpRequest native "*XMLH
 
   void set responseType(String value) native "this.responseType = value;";
 
-  DocumentJs get responseXML() native "return this.responseXML;";
+  _DocumentJs get responseXML() native "return this.responseXML;";
 
   int get status() native "return this.status;";
 
   String get statusText() native "return this.statusText;";
 
-  XMLHttpRequestUploadJs get upload() native "return this.upload;";
+  _XMLHttpRequestUploadJs get upload() native "return this.upload;";
 
   bool get withCredentials() native "return this.withCredentials;";
 
@@ -43,7 +45,7 @@ class XMLHttpRequestJs extends DOMTypeJs implements XMLHttpRequest native "*XMLH
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   String getAllResponseHeaders() native;
 

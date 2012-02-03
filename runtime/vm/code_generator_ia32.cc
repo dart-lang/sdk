@@ -188,6 +188,7 @@ CodeGenerator::CodeGenerator(Assembler* assembler,
       try_index_(CatchClauseNode::kInvalidTryIndex) {
   ASSERT(assembler_ != NULL);
   ASSERT(parsed_function.node_sequence() != NULL);
+  ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
   pc_descriptors_list_ = new CodeGenerator::DescriptorList();
   exception_handlers_list_ = new CodeGenerator::HandlerList();
 }
@@ -2298,8 +2299,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // The type arguments are compile time constants.
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
     // TODO(regis): Temporary type should be allocated in new gen heap.
-    Type& type = Type::Handle(
-        Type::NewParameterizedType(instantiator_class, type_arguments));
+    Type& type = Type::Handle(Type::New(instantiator_class, type_arguments));
     Error& error = Error::Handle();
     type ^= ClassFinalizer::FinalizeAndCanonicalizeType(instantiator_class,
                                                         type,

@@ -1,3 +1,3 @@
 
-class WebGLRenderbufferJs extends DOMTypeJs implements WebGLRenderbuffer native "*WebGLRenderbuffer" {
+class _WebGLRenderbufferJs extends _DOMTypeJs implements WebGLRenderbuffer native "*WebGLRenderbuffer" {
 }

@@ -1,7 +1,7 @@
 
-class MediaControllerJs extends DOMTypeJs implements MediaController native "*MediaController" {
+class _MediaControllerJs extends _DOMTypeJs implements MediaController native "*MediaController" {
 
-  TimeRangesJs get buffered() native "return this.buffered;";
+  _TimeRangesJs get buffered() native "return this.buffered;";
 
   num get currentTime() native "return this.currentTime;";
 
@@ -23,9 +23,9 @@ class MediaControllerJs extends DOMTypeJs implements MediaController native "*Me
 
   void set playbackRate(num value) native "this.playbackRate = value;";
 
-  TimeRangesJs get played() native "return this.played;";
+  _TimeRangesJs get played() native "return this.played;";
 
-  TimeRangesJs get seekable() native "return this.seekable;";
+  _TimeRangesJs get seekable() native "return this.seekable;";
 
   num get volume() native "return this.volume;";
 
@@ -33,7 +33,7 @@ class MediaControllerJs extends DOMTypeJs implements MediaController native "*Me
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   void pause() native;
 

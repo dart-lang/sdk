@@ -306,6 +306,27 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeClass(classes.get("OptionalParameter"), 1);
   }
 
+  public void testCyclicTypeVariable() {
+    Map<String, ClassElement> classes = loadSource(
+        "interface A<T> { }",
+        "typedef funcType<T>(T arg);",
+        "class B<T extends T> {}",
+        "class C<T extends A<T>> {}",
+        "class D<T extends funcType<T>> {}");
+    analyzeClasses(classes,
+        TypeErrorCode.CYCLIC_REFERENCE_TO_TYPE_VARIABLE);
+    ClassElement B = classes.get("B");
+    analyzeClass(B, 1);
+    assertEquals(1, B.getType().getArguments().size());
+    ClassElement C = classes.get("C");
+    analyzeClass(C, 0);
+    assertEquals(1, C.getType().getArguments().size());
+    ClassElement D = classes.get("D");
+    analyzeClass(D, 0);
+    assertEquals(1, D.getType().getArguments().size());
+
+  }
+
   public void testDoWhileStatement() {
     analyze("do {} while (true);");
     analyze("do {} while (null);");
@@ -1332,7 +1353,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("{ void f() {} assert(f()); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {} assert(f); }", TypeErrorCode.VOID);
     analyzeFail("{ void f() {} while (f()); }", TypeErrorCode.VOID);
-    analyzeFail("{ void f() {} ({ 'x': f() }); }", TypeErrorCode.VOID);
+    analyzeFail("{ void f() {}; ({ 'x': f() }); }", TypeErrorCode.VOID);
   }
 
   public void testWhileStatement() {
@@ -1355,8 +1376,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  factory A() {}",
         "}");
     analyzeClasses(source);
-   // analyze("{ var val1 = new IA<Foo>(); }");
-   // analyze("{ var val1 = new IA<Bar>(); }");
+    analyze("{ var val1 = new IA<Foo>(); }");
+    analyze("{ var val1 = new IA<Bar>(); }");
     analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
 }

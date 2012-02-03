@@ -166,6 +166,18 @@ class _WebGLRenderingContextWrappingImplementation extends _CanvasRenderingConte
   }
   static void _compileShader(receiver, shader) native;
 
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data) {
+    _compressedTexImage2D(this, target, level, internalformat, width, height, border, data);
+    return;
+  }
+  static void _compressedTexImage2D(receiver, target, level, internalformat, width, height, border, data) native;
+
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data) {
+    _compressedTexSubImage2D(this, target, level, xoffset, yoffset, width, height, format, data);
+    return;
+  }
+  static void _compressedTexSubImage2D(receiver, target, level, xoffset, yoffset, width, height, format, data) native;
+
   void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) {
     _copyTexImage2D(this, target, level, internalformat, x, y, width, height, border);
     return;

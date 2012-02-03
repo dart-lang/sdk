@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.end2end.inc;
 
-import static com.google.dart.compiler.DartCompiler.EXTENSION_API;
 import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
 import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_APP_JS;
 import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_JS;
@@ -98,12 +97,11 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
     someLibSource.remapSource("some.prefixable.lib.dart", "some.prefixable.modified.lib.dart");
     compile();
 
-    didWrite("my.unprefixed.app.dart", EXTENSION_JS, provider);
-    didWrite("my.unprefixed.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.unprefixed.app.dart", EXTENSION_DEPS, provider);
-    didWrite("some.prefixable.lib.dart", EXTENSION_JS, provider);
-    didWrite("some.prefixable.lib.dart", EXTENSION_DEPS, provider);
-    didWrite("some.prefixable.lib.dart", EXTENSION_API, provider);
+    didWrite("my.unprefixed.app.dart", EXTENSION_JS);
+    didWrite("my.unprefixed.app.dart", EXTENSION_APP_JS);
+    didWrite("my.unprefixed.app.dart", EXTENSION_DEPS);
+    didWrite("some.prefixable.lib.dart", EXTENSION_JS);
+    didWrite("some.prefixable.lib.dart", EXTENSION_DEPS);
   }
 
   public void testModifyPrefixedLib() {
@@ -122,12 +120,11 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
     someLibSource.remapSource("some.prefixable.lib.dart", "some.prefixable.modified.lib.dart");
     compile();
 
-    didWrite("my.prefixed.app.dart", EXTENSION_JS, provider);
-    didWrite("my.prefixed.app.dart", EXTENSION_APP_JS, provider);
-    didWrite("my.prefixed.app.dart", EXTENSION_DEPS, provider);
-    didWrite("some.prefixable.lib.dart", EXTENSION_JS, provider);
-    didWrite("some.prefixable.lib.dart", EXTENSION_DEPS, provider);
-    didWrite("some.prefixable.lib.dart", EXTENSION_API, provider);
+    didWrite("my.prefixed.app.dart", EXTENSION_JS);
+    didWrite("my.prefixed.app.dart", EXTENSION_APP_JS);
+    didWrite("my.prefixed.app.dart", EXTENSION_DEPS);
+    didWrite("some.prefixable.lib.dart", EXTENSION_JS);
+    didWrite("some.prefixable.lib.dart", EXTENSION_DEPS);
   }
 
   private void compile() {
@@ -147,13 +144,8 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
     }
   }
 
-  private void didWrite(String sourceName, String extension, IncMockArtifactProvider provider) {
+  private void didWrite(String sourceName, String extension) {
     String spec = sourceName + "/" + extension;
     assertTrue("Expected write: " + spec, provider.writes.contains(spec));
-  }
-
-  private void didNotWrite(String sourceName, String extension, IncMockArtifactProvider provider) {
-    String spec = sourceName + "/" + extension;
-    assertFalse("Didn't expect write: " + spec, provider.writes.contains(spec));
   }
 }

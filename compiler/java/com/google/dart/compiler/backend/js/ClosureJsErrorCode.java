@@ -41,4 +41,9 @@ public enum ClosureJsErrorCode implements ErrorCode {
   public SubSystem getSubSystem() {
     return SubSystem.CLOSURE_BACKEND;
   }
+
+  @Override
+  public boolean needsRecompilation() {
+    return true;
+  }
 }

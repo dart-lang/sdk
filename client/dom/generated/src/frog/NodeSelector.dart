@@ -1,7 +1,7 @@
 
-class NodeSelectorJs extends DOMTypeJs implements NodeSelector native "*NodeSelector" {
+class _NodeSelectorJs extends _DOMTypeJs implements NodeSelector native "*NodeSelector" {
 
-  ElementJs querySelector(String selectors) native;
+  _ElementJs querySelector(String selectors) native;
 
-  NodeListJs querySelectorAll(String selectors) native;
+  _NodeListJs querySelectorAll(String selectors) native;
 }

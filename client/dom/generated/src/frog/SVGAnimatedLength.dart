@@ -1,7 +1,7 @@
 
-class SVGAnimatedLengthJs extends DOMTypeJs implements SVGAnimatedLength native "*SVGAnimatedLength" {
+class _SVGAnimatedLengthJs extends _DOMTypeJs implements SVGAnimatedLength native "*SVGAnimatedLength" {
 
-  SVGLengthJs get animVal() native "return this.animVal;";
+  _SVGLengthJs get animVal() native "return this.animVal;";
 
-  SVGLengthJs get baseVal() native "return this.baseVal;";
+  _SVGLengthJs get baseVal() native "return this.baseVal;";
 }

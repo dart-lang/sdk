@@ -20,6 +20,9 @@ class _XMLHttpRequestWrappingImplementation extends DOMWrapperBase implements XM
   int get readyState() { return _get_readyState(this); }
   static int _get_readyState(var _this) native;
 
+  Object get response() { return _get_response(this); }
+  static Object _get_response(var _this) native;
+
   Blob get responseBlob() { return _get_responseBlob(this); }
   static Blob _get_responseBlob(var _this) native;
 

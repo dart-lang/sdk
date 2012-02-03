@@ -1,5 +1,5 @@
 
-class SVGComponentTransferFunctionElementJs extends SVGElementJs implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
+class _SVGComponentTransferFunctionElementJs extends _SVGElementJs implements SVGComponentTransferFunctionElement native "*SVGComponentTransferFunctionElement" {
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
 
@@ -13,17 +13,17 @@ class SVGComponentTransferFunctionElementJs extends SVGElementJs implements SVGC
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumberJs get amplitude() native "return this.amplitude;";
+  _SVGAnimatedNumberJs get amplitude() native "return this.amplitude;";
 
-  SVGAnimatedNumberJs get exponent() native "return this.exponent;";
+  _SVGAnimatedNumberJs get exponent() native "return this.exponent;";
 
-  SVGAnimatedNumberJs get intercept() native "return this.intercept;";
+  _SVGAnimatedNumberJs get intercept() native "return this.intercept;";
 
-  SVGAnimatedNumberJs get offset() native "return this.offset;";
+  _SVGAnimatedNumberJs get offset() native "return this.offset;";
 
-  SVGAnimatedNumberJs get slope() native "return this.slope;";
+  _SVGAnimatedNumberJs get slope() native "return this.slope;";
 
-  SVGAnimatedNumberListJs get tableValues() native "return this.tableValues;";
+  _SVGAnimatedNumberListJs get tableValues() native "return this.tableValues;";
 
-  SVGAnimatedEnumerationJs get type() native "return this.type;";
+  _SVGAnimatedEnumerationJs get type() native "return this.type;";
 }

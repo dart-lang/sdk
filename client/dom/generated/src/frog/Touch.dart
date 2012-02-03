@@ -1,5 +1,5 @@
 
-class TouchJs extends DOMTypeJs implements Touch native "*Touch" {
+class _TouchJs extends _DOMTypeJs implements Touch native "*Touch" {
 
   int get clientX() native "return this.clientX;";
 
@@ -15,7 +15,7 @@ class TouchJs extends DOMTypeJs implements Touch native "*Touch" {
 
   int get screenY() native "return this.screenY;";
 
-  EventTargetJs get target() native "return this.target;";
+  _EventTargetJs get target() native "return this.target;";
 
   num get webkitForce() native "return this.webkitForce;";
 

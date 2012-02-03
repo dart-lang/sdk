@@ -38,7 +38,7 @@ class _SocketBase {
     _handlerMask = 0;
     _canActivateHandlers = true;
     _id = -1;
-    EventHandler._start();
+    _EventHandler._start();
   }
 
   // Multiplexes socket events to the socket handlers.
@@ -163,7 +163,7 @@ class _SocketBase {
       _handler = new ReceivePort();
       _handler.receive((var message, ignored) { _multiplex(message); });
     }
-    EventHandler._sendData(_id, _handler, data);
+    _EventHandler._sendData(_id, _handler, data);
   }
 
   abstract bool _isListenSocket();
@@ -306,19 +306,24 @@ class _Socket extends _SocketBase implements Socket {
       if ((offset + bytes) > buffer.length) {
         throw new IndexOutOfRangeException(offset + bytes);
       }
-      // When using the Dart C API access to ObjectArray by index is
+      // When using the Dart C API to access raw data, using a ByteArray is
       // currently much faster. This function will make a copy of the
-      // supplied List to an ObjectArray if it isn't already.
-      ObjectArray outBuffer;
+      // supplied List to a ByteArray if it isn't already.
+      List outBuffer;
       int outOffset = offset;
-      if (buffer is ObjectArray) {
+      if (buffer is ByteArray || buffer is ObjectArray) {
         outBuffer = buffer;
       } else {
-        outBuffer = new ObjectArray(bytes);
+        outBuffer = new ByteArray(bytes);
         outOffset = 0;
         int j = offset;
         for (int i = 0; i < bytes; i++) {
-          outBuffer[i] = buffer[j];
+          int value = buffer[j];
+          if (value is! int) {
+            throw new FileIOException(
+                "List element is not an integer at index $j");
+          }
+          outBuffer[i] = value;
           j++;
         }
       }

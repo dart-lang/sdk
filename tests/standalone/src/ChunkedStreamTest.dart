@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,8 +6,10 @@
 
 void test1() {
   void testWithChunkSize(var data, int chunkSize, Function testDone) {
-    InputStream s = new ListInputStream(data);
-    ChunkedInputStream stream = new ChunkedInputStream(s);
+    InputStream list_input_stream = new ListInputStream();
+    list_input_stream.write(data);
+    list_input_stream.markEndOfStream();
+    ChunkedInputStream stream = new ChunkedInputStream(list_input_stream);
     int chunkCount = 0;
     int byteCount = 0;
     void chunkData() {
@@ -65,7 +67,7 @@ void test1() {
 
 
 void test2() {
-  InputStream s = new DynamicListInputStream();
+  InputStream s = new ListInputStream();
   ChunkedInputStream stream = new ChunkedInputStream(s);
   stream.chunkSize = 5;
   ReceivePort donePort = new ReceivePort();

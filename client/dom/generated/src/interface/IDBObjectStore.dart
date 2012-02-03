@@ -12,7 +12,7 @@ interface IDBObjectStore {
 
   IDBTransaction get transaction();
 
-  IDBRequest add(String value, [IDBKey key]);
+  IDBRequest add(Dynamic value, [IDBKey key]);
 
   IDBRequest clear();
 
@@ -30,5 +30,5 @@ interface IDBObjectStore {
 
   IDBRequest openCursor([IDBKeyRange range, int direction]);
 
-  IDBRequest put(String value, [IDBKey key]);
+  IDBRequest put(Dynamic value, [IDBKey key]);
 }

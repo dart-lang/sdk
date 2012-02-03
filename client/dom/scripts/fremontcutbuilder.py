@@ -26,24 +26,25 @@ def main():
 
   # Import WebKit IDL files:
   webkit_dirs = [
-    'css',
-    'dom',
-    'fileapi',
-    'html',
-    'html/canvas',
-    'inspector',
-    'loader',
-    'loader/appcache',
-    'notifications',
-    'page',
-    'plugins',
-    'storage',
-    'svg',
-    'webaudio',
-    'websockets',
-    'workers',
-    'xml',
-  ]
+      'Modules/indexeddb',
+      'css',
+      'dom',
+      'fileapi',
+      'html',
+      'html/canvas',
+      'inspector',
+      'loader',
+      'loader/appcache',
+      'notifications',
+      'page',
+      'plugins',
+      'storage',
+      'svg',
+      'webaudio',
+      'websockets',
+      'workers',
+      'xml',
+      ]
   # TODO(vsm): Move this to a README.
   # This is the Dart SVN revision.
   webkit_revision = '1060'

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -139,6 +139,30 @@ DART_EXPORT Dart_Handle Dart_ErrorGetStacktrace(Dart_Handle handle);
  * \param error A C string containing an error message.
  */
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
+
+/**
+ * Propagates an error.
+ *
+ * It only makes sense to call this function when there are dart
+ * frames on the stack.  That is, this function should only be called
+ * in the C implementation of a native function which has been called
+ * from Dart code.  If this function is called in the top-level
+ * embedder code, it will return an error, as there is no way to
+ * further propagate the error.
+ *
+ * The provided handle must be an error handle.  (See Dart_IsError.)
+ *
+ * If the provided handle is an unhandled exception, this function
+ * will cause the unhandled exception to be rethrown.  Otherwise, the
+ * error will be propagated to the caller, discarding any active dart
+ * frames up to the next C frame.
+ *
+ * \param An error handle.
+ *
+ * \return On success, this function does not return.  On failure, an
+ *   error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle);
 
 // Internal routine used for reporting error handles.
 DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
@@ -429,6 +453,12 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
 typedef int64_t Dart_Port;
 
 /**
+ * kIllegalPort is a port number guaranteed never to be associated
+ * with a valid port.
+ */
+const Dart_Port kIllegalPort = 0;
+
+/**
  * A message notification callback.
  *
  * This callback allows the embedder to provide an alternate wakeup
@@ -520,6 +550,46 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
  * \return True if the message was posted.
  */
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
+
+/**
+ * A native message handler.
+ *
+ * This handler is associated with a native port by calling
+ * Dart_NewNativePort.
+ */
+typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
+                                          Dart_Port reply_port_id,
+                                          uint8_t* data);
+// TODO(turnidge): Make this function take more appropriate arguments.
+
+/**
+ * Creates a new native port.  When messages are received on this
+ * native port, then they will be dispatched to the provided native
+ * message handler.
+ *
+ * \param name The name of this port in debugging messages.
+ * \param handler The C handler to run when messages arrive on the port.
+ * \param handle_concurrently Is it okay to process requests on this
+ *                            native port concurrently?
+ *
+ * \return If successful, returns the port id for the native port.  In
+ *   case of error, returns kIllegalPort.
+ */
+DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
+                                         Dart_NativeMessageHandler handler,
+                                         bool handle_concurrently);
+// TODO(turnidge): Currently handle_concurrently is ignored.
+
+/**
+ * Closes the native port with the given id.
+ *
+ * The port must have been allocated by a call to Dart_NewNativePort.
+ *
+ * \param native_port_id The id of the native port to close.
+ *
+ * \return Returns true if the port was closed successfully.
+ */
+DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
 
 /**
  * Returns a new SendPort with the provided port id.
@@ -1359,5 +1429,50 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 // dynamically generated code.
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
+
+// --- Message sending/receiving from native code ----
+
+/**
+ * A Dart_CObject is used for representing Dart objects as native C
+ * data outside the Dart heap. These objects are totally detached from
+ * the Dart heap. Only a subset of the Dart objects have a
+ * representation as a Dart_CObject.
+ */
+struct Dart_CObject {
+  enum Type {
+    kNull = 0,
+    kBool,
+    kInt32,
+    kDouble,
+    kString,
+    kArray,
+    kNumberOfTypes
+  };
+  Type type;
+  union {
+    bool as_bool;
+    int32_t as_int32;
+    double as_double;
+    char* as_string;
+    struct {
+      int length;
+      Dart_CObject** values;
+    } as_array;
+  } value;
+};
+
+/**
+ * A Dart_CMessage is used for receiving and sending messages from
+ * native code not running in an isolate. A message contains an object
+ * graph represented as Dart_CObject structures rooted as the provided
+ * root.
+ *
+ * For information on the lifetime of this data, when provided in
+ * callbacks, see the documentation for the individual callbacks.
+ */
+struct Dart_CMessage {
+  Dart_CObject* root;
+};
+
 
 #endif  // INCLUDE_DART_API_H_

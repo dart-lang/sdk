@@ -1,5 +1,5 @@
 
-class NavigatorJs extends DOMTypeJs implements Navigator native "*Navigator" {
+class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
   String get appCodeName() native "return this.appCodeName;";
 
@@ -9,17 +9,17 @@ class NavigatorJs extends DOMTypeJs implements Navigator native "*Navigator" {
 
   bool get cookieEnabled() native "return this.cookieEnabled;";
 
-  GeolocationJs get geolocation() native "return this.geolocation;";
+  _GeolocationJs get geolocation() native "return this.geolocation;";
 
   String get language() native "return this.language;";
 
-  DOMMimeTypeArrayJs get mimeTypes() native "return this.mimeTypes;";
+  _DOMMimeTypeArrayJs get mimeTypes() native "return this.mimeTypes;";
 
   bool get onLine() native "return this.onLine;";
 
   String get platform() native "return this.platform;";
 
-  DOMPluginArrayJs get plugins() native "return this.plugins;";
+  _DOMPluginArrayJs get plugins() native "return this.plugins;";
 
   String get product() native "return this.product;";
 

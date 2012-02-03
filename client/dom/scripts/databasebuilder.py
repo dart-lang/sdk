@@ -149,13 +149,27 @@ class DatabaseBuilder(object):
   def _rename_types(self, idl_file, import_options):
     """Rename interface and type names with names provided in the
     options. Also clears scopes from scoped names"""
-    def rename(idl_node):
-      name_parts = idl_node.id.split('::')
-      idl_node.id = name_parts[-1]
-      if idl_node.id in import_options.type_rename_map:
-        idl_node.id =  import_options.type_rename_map[idl_node.id]
-    map(rename, idl_file.all(IDLInterface))
-    map(rename, idl_file.all(IDLType))
+
+    def rename(name):
+      name_parts = name.split('::')
+      name = name_parts[-1]
+      if name in import_options.type_rename_map:
+        name = import_options.type_rename_map[name]
+      return name
+
+    def rename_node(idl_node):
+      idl_node.id = rename(idl_node.id)
+
+    def rename_ext_attrs(ext_attrs_node):
+      for type_valued_attribute_name in ['Supplemental']:
+        if type_valued_attribute_name in ext_attrs_node:
+          value = ext_attrs_node[type_valued_attribute_name]
+          if isinstance(value, str):
+            ext_attrs_node[type_valued_attribute_name] = rename(value)
+
+    map(rename_node, idl_file.all(IDLInterface))
+    map(rename_node, idl_file.all(IDLType))
+    map(rename_ext_attrs, idl_file.all(IDLExtAttrs))
 
   def _annotate(self, interface, module_name, import_options):
     """Adds @ annotations based on the source and source_attributes
@@ -434,14 +448,18 @@ class DatabaseBuilder(object):
     # Step 3: Merge in supplemental interfaces
     for interface, module_name, import_options in self._imported_interfaces:
       if interface.is_supplemental:
-        # For now, ignore WebKit [Supplemental=BaseInterface] attributes.
-        target = interface.ext_attrs['Supplemental']
-        if target:
-          continue
-        target = interface.id
+        target_name = interface.ext_attrs['Supplemental']
+        if target_name:
+          # [Supplemental=DOMWindow] - merge into DOMWindow.
+          target = target_name
+        else:
+          # [Supplemental] - merge into existing inteface with same name.
+          target = interface.id
         if self._database.HasInterface(target):
           old_interface = self._database.GetInterface(target)
           self._merge_interfaces(old_interface, interface, import_options)
+        else:
+          raise Exception("Supplemental target '%s' not found", target)
 
     # Step 4: Resolve 'implements' statements
     for impl_stmt, import_options in self._impl_stmts:

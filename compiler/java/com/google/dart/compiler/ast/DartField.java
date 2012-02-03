@@ -77,19 +77,4 @@ public class DartField extends DartClassMember<DartIdentifier> {
   public <R> R accept(DartPlainVisitor<R> visitor) {
     return visitor.visitField(this);
   }
-
-  @Override
-  public int computeHash() {
-    // TODO(jgw): Remove this altogether in fixing b/5324113.
-
-    // DartField doesn't include the type-node, so we directly return the hash of its type, which
-    // is all that matters for the purposes of dependency-tracking.
-    DartFieldDefinition def = (DartFieldDefinition) getParent();
-    DartTypeNode typeNode = def.getTypeNode();
-    if (typeNode == null) {
-      // Use 0 to represent an untyped field.
-      return 0;
-    }
-    return typeNode.computeHash();
-  }
 }

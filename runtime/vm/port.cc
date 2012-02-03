@@ -7,7 +7,7 @@
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/isolate.h"
-#include "vm/message_queue.h"
+#include "vm/message.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -15,13 +15,11 @@ namespace dart {
 DECLARE_FLAG(bool, trace_isolates);
 
 Mutex* PortMap::mutex_ = NULL;
-
 PortMap::Entry* PortMap::map_ = NULL;
-Isolate* PortMap::deleted_entry_ = reinterpret_cast<Isolate*>(1);
+MessageHandler* PortMap::deleted_entry_ = reinterpret_cast<MessageHandler*>(1);
 intptr_t PortMap::capacity_ = 0;
 intptr_t PortMap::used_ = 0;
 intptr_t PortMap::deleted_ = 0;
-
 Dart_Port PortMap::next_port_ = 7111;
 
 
@@ -29,7 +27,7 @@ intptr_t PortMap::FindPort(Dart_Port port) {
   intptr_t index = port % capacity_;
   intptr_t start_index = index;
   Entry entry = map_[index];
-  while (entry.isolate != NULL) {
+  while (entry.handler != NULL) {
     if (entry.port == port) {
       return index;
     }
@@ -83,7 +81,7 @@ void PortMap::SetLive(Dart_Port port) {
   intptr_t index = FindPort(port);
   ASSERT(index >= 0);
   map_[index].live = true;
-  map_[index].isolate->increment_live_ports();
+  map_[index].handler->increment_live_ports();
 }
 
 
@@ -100,13 +98,16 @@ void PortMap::MaintainInvariants() {
 }
 
 
-Dart_Port PortMap::CreatePort() {
-  Isolate* isolate = Isolate::Current();
+Dart_Port PortMap::CreatePort(MessageHandler* handler) {
+  ASSERT(handler != NULL);
   MutexLocker ml(mutex_);
+#if defined(DEBUG)
+  handler->CheckAccess();
+#endif
 
   Entry entry;
   entry.port = AllocatePort();
-  entry.isolate = isolate;
+  entry.handler = handler;
   entry.live = false;
 
   // Search for the first unused slot. Make use of the knowledge that here is
@@ -124,14 +125,13 @@ Dart_Port PortMap::CreatePort() {
   ASSERT(index >= 0);
   ASSERT(index < capacity_);
   ASSERT(map_[index].port == 0);
-  ASSERT((map_[index].isolate == NULL) ||
-         (map_[index].isolate == deleted_entry_));
-  if (map_[index].isolate == deleted_entry_) {
+  ASSERT((map_[index].handler == NULL) ||
+         (map_[index].handler == deleted_entry_));
+  if (map_[index].handler == deleted_entry_) {
     // Consuming a deleted entry.
     deleted_--;
   }
   map_[index] = entry;
-  isolate->increment_num_ports();
 
   // Increment number of used slots and grow if necessary.
   used_++;
@@ -141,74 +141,78 @@ Dart_Port PortMap::CreatePort() {
 }
 
 
-void PortMap::ClosePort(Dart_Port port) {
-  Isolate* isolate = Isolate::Current();
+bool PortMap::ClosePort(Dart_Port port) {
+  MessageHandler* handler = NULL;
   {
     MutexLocker ml(mutex_);
     intptr_t index = FindPort(port);
     if (index < 0) {
-      return;
+      return false;
     }
     ASSERT(index < capacity_);
     ASSERT(map_[index].port != 0);
-    ASSERT(map_[index].isolate == isolate);
+    ASSERT(map_[index].handler != deleted_entry_);
+    ASSERT(map_[index].handler != NULL);
+
+    handler = map_[index].handler;
+#if defined(DEBUG)
+    handler->CheckAccess();
+#endif
     // Before releasing the lock mark the slot in the map as deleted. This makes
     // it possible to release the port map lock before flushing all of its
     // pending messages below.
     map_[index].port = 0;
-    map_[index].isolate = deleted_entry_;
-    isolate->decrement_num_ports();
+    map_[index].handler = deleted_entry_;
     if (map_[index].live) {
-      isolate->decrement_live_ports();
+      handler->decrement_live_ports();
     }
 
     used_--;
     deleted_++;
     MaintainInvariants();
   }
-  isolate->ClosePort(port);
+  handler->ClosePort(port);
+  if (!handler->HasLivePorts() && handler->OwnedByPortMap()) {
+    delete handler;
+  }
+  return true;
 }
 
 
-void PortMap::ClosePorts() {
-  Isolate* isolate = Isolate::Current();
+void PortMap::ClosePorts(MessageHandler* handler) {
   {
     MutexLocker ml(mutex_);
     for (intptr_t i = 0; i < capacity_; i++) {
-      if (map_[i].isolate == isolate) {
+      if (map_[i].handler == handler) {
         // Mark the slot as deleted.
         map_[i].port = 0;
-        map_[i].isolate = deleted_entry_;
-        isolate->decrement_num_ports();
-
+        map_[i].handler = deleted_entry_;
+        if (map_[i].live) {
+          handler->decrement_live_ports();
+        }
         used_--;
         deleted_++;
       }
     }
     MaintainInvariants();
   }
-  isolate->CloseAllPorts();
+  handler->CloseAllPorts();
 }
 
 
 bool PortMap::PostMessage(Message* message) {
-  // TODO(turnidge): Add a scoped locker for mutexes which is not a
-  // stack resource.  This would probably be useful in the platform
-  // headers.
-  mutex_->Lock();
+  MutexLocker ml(mutex_);
   intptr_t index = FindPort(message->dest_port());
   if (index < 0) {
     free(message);
-    mutex_->Unlock();
     return false;
   }
   ASSERT(index >= 0);
   ASSERT(index < capacity_);
-  Isolate* isolate = map_[index].isolate;
+  MessageHandler* handler = map_[index].handler;
   ASSERT(map_[index].port != 0);
-  ASSERT((isolate != NULL) && (isolate != deleted_entry_));
-  isolate->PostMessage(message);
-  mutex_->Unlock();
+  ASSERT((handler != NULL) && (handler != deleted_entry_));
+  handler->PostMessage(message);
   return true;
 }
 
@@ -225,6 +229,5 @@ void PortMap::InitOnce() {
   used_ = 0;
   deleted_ = 0;
 }
-
 
 }  // namespace dart

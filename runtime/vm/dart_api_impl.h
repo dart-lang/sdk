@@ -123,6 +123,20 @@ class Api : AllStatic {
   static uword Reallocate(uword ptr, intptr_t old_size, intptr_t new_size);
 };
 
+class IsolateSaver {
+ public:
+  explicit IsolateSaver(Isolate* current_isolate)
+      : saved_isolate_(current_isolate) {
+  }
+  ~IsolateSaver() {
+    Isolate::SetCurrent(saved_isolate_);
+  }
+ private:
+  Isolate* saved_isolate_;
+
+  DISALLOW_COPY_AND_ASSIGN(IsolateSaver);
+};
+
 }  // namespace dart.
 
 #endif  // VM_DART_API_IMPL_H_

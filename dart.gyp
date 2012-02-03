@@ -107,14 +107,5 @@
         },
       ],
     }
-    # TODO(ngeoffray): Fling does not have proper dependencies,
-    # so don't build it for now.
-    #{
-    #  'target_name': 'client',
-    #  'type': 'none',
-    #  'dependencies': [
-    #    'client/dart.gyp:fling',
-    #  ],
-    #},
   ],
 }

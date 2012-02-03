@@ -14,11 +14,22 @@ class _DataTransferItemListWrappingImplementation extends DOMWrapperBase impleme
   int get length() { return _get_length(this); }
   static int _get_length(var _this) native;
 
-  void add(String data, String type) {
-    _add(this, data, type);
-    return;
+  void add(var data_OR_file, [String type = null]) {
+    if (data_OR_file is File) {
+      if (type === null) {
+        _add(this, data_OR_file);
+        return;
+      }
+    } else {
+      if (data_OR_file is String) {
+        _add_2(this, data_OR_file, type);
+        return;
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static void _add(receiver, data, type) native;
+  static void _add(receiver, data_OR_file) native;
+  static void _add_2(receiver, data_OR_file, type) native;
 
   void clear() {
     _clear(this);

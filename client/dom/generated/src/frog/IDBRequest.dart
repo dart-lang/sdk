@@ -1,5 +1,5 @@
 
-class IDBRequestJs extends DOMTypeJs implements IDBRequest native "*IDBRequest" {
+class _IDBRequestJs extends _DOMTypeJs implements IDBRequest native "*IDBRequest" {
 
   static final int DONE = 2;
 
@@ -17,17 +17,17 @@ class IDBRequestJs extends DOMTypeJs implements IDBRequest native "*IDBRequest" 
 
   int get readyState() native "return this.readyState;";
 
-  IDBAnyJs get result() native "return this.result;";
+  _IDBAnyJs get result() native "return this.result;";
 
-  IDBAnyJs get source() native "return this.source;";
+  _IDBAnyJs get source() native "return this.source;";
 
-  IDBTransactionJs get transaction() native "return this.transaction;";
+  _IDBTransactionJs get transaction() native "return this.transaction;";
 
   String get webkitErrorMessage() native "return this.webkitErrorMessage;";
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  bool dispatchEvent(EventJs evt) native;
+  bool dispatchEvent(_EventJs evt) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 }

@@ -1,5 +1,5 @@
 
-class WebKitAnimationJs extends DOMTypeJs implements WebKitAnimation native "*WebKitAnimation" {
+class _WebKitAnimationJs extends _DOMTypeJs implements WebKitAnimation native "*WebKitAnimation" {
 
   static final int DIRECTION_ALTERNATE = 1;
 

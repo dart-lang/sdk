@@ -1,5 +1,5 @@
 
-class HTMLObjectElementJs extends HTMLElementJs implements HTMLObjectElement native "*HTMLObjectElement" {
+class _HTMLObjectElementJs extends _HTMLElementJs implements HTMLObjectElement native "*HTMLObjectElement" {
 
   String get align() native "return this.align;";
 
@@ -25,7 +25,7 @@ class HTMLObjectElementJs extends HTMLElementJs implements HTMLObjectElement nat
 
   void set codeType(String value) native "this.codeType = value;";
 
-  DocumentJs get contentDocument() native "return this.contentDocument;";
+  _DocumentJs get contentDocument() native "return this.contentDocument;";
 
   String get data() native "return this.data;";
 
@@ -35,7 +35,7 @@ class HTMLObjectElementJs extends HTMLElementJs implements HTMLObjectElement nat
 
   void set declare(bool value) native "this.declare = value;";
 
-  HTMLFormElementJs get form() native "return this.form;";
+  _HTMLFormElementJs get form() native "return this.form;";
 
   String get height() native "return this.height;";
 
@@ -63,7 +63,7 @@ class HTMLObjectElementJs extends HTMLElementJs implements HTMLObjectElement nat
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityStateJs get validity() native "return this.validity;";
+  _ValidityStateJs get validity() native "return this.validity;";
 
   int get vspace() native "return this.vspace;";
 
@@ -77,7 +77,7 @@ class HTMLObjectElementJs extends HTMLElementJs implements HTMLObjectElement nat
 
   bool checkValidity() native;
 
-  SVGDocumentJs getSVGDocument() native;
+  _SVGDocumentJs getSVGDocument() native;
 
   void setCustomValidity(String error) native;
 }

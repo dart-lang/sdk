@@ -6,9 +6,9 @@
 
 interface Worker extends AbstractWorker {
 
-  void postMessage(String message, [List messagePorts]);
+  void postMessage(Dynamic message, [List messagePorts]);
 
   void terminate();
 
-  void webkitPostMessage(String message, [List messagePorts]);
+  void webkitPostMessage(Dynamic message, [List messagePorts]);
 }

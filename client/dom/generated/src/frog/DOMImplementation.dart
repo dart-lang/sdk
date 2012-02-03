@@ -1,13 +1,13 @@
 
-class DOMImplementationJs extends DOMTypeJs implements DOMImplementation native "*DOMImplementation" {
+class _DOMImplementationJs extends _DOMTypeJs implements DOMImplementation native "*DOMImplementation" {
 
-  CSSStyleSheetJs createCSSStyleSheet(String title, String media) native;
+  _CSSStyleSheetJs createCSSStyleSheet(String title, String media) native;
 
-  DocumentJs createDocument(String namespaceURI, String qualifiedName, DocumentTypeJs doctype) native;
+  _DocumentJs createDocument(String namespaceURI, String qualifiedName, _DocumentTypeJs doctype) native;
 
-  DocumentTypeJs createDocumentType(String qualifiedName, String publicId, String systemId) native;
+  _DocumentTypeJs createDocumentType(String qualifiedName, String publicId, String systemId) native;
 
-  HTMLDocumentJs createHTMLDocument(String title) native;
+  _HTMLDocumentJs createHTMLDocument(String title) native;
 
   bool hasFeature(String feature, String version) native;
 }

@@ -22,11 +22,7 @@ def Main():
   current_directory = os.path.abspath('');
   client = os.path.abspath(os.path.join(tools_dir, '..'));
   if current_directory == os.path.join(client, 'runtime'):
-    if GuessOS() == "macos":
-      dart_script_name = 'test.py'
-      dart_binary = 'python'
-    else:
-      dart_script_name = 'test-runtime.dart'
+    dart_script_name = 'test-runtime.dart'
   elif current_directory == os.path.join(client, 'compiler'):
     dart_script_name = 'test-compiler.dart'
   else:

@@ -1,5 +1,5 @@
 
-class SVGAnimatedStringJs extends DOMTypeJs implements SVGAnimatedString native "*SVGAnimatedString" {
+class _SVGAnimatedStringJs extends _DOMTypeJs implements SVGAnimatedString native "*SVGAnimatedString" {
 
   String get animVal() native "return this.animVal;";
 

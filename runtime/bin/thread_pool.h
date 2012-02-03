@@ -9,18 +9,6 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 
-// Declare the OS-specific types ahead of defining the generic classes.
-#if defined(TARGET_OS_LINUX)
-#include "bin/thread_pool_linux.h"
-#elif defined(TARGET_OS_MACOS)
-#include "bin/thread_pool_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
-#include "bin/thread_pool_win.h"
-#else
-#error Unknown target os.
-#endif
-
-
 typedef void* Task;
 
 
@@ -74,18 +62,20 @@ class ThreadPool {
 
   void InsertTask(Task task);
 
+  void ThreadTerminated();
+
  private:
   Task WaitForTask();
 
-  static void* Main(void* args);
+  static void Main(uword args);
 
   TaskQueue queue_;
   // TODO(sgjesse): Move the monitor in TaskQueue to ThreadPool and
   // obtain it for updating terminate_.
+  dart::Monitor monitor_;
   bool terminate_;
   int size_;  // Number of threads.
   TaskHandler task_handler_;
-  ThreadPoolData data_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadPool);
 };

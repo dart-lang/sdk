@@ -1,5 +1,5 @@
 
-class HTMLKeygenElementJs extends HTMLElementJs implements HTMLKeygenElement native "*HTMLKeygenElement" {
+class _HTMLKeygenElementJs extends _HTMLElementJs implements HTMLKeygenElement native "*HTMLKeygenElement" {
 
   bool get autofocus() native "return this.autofocus;";
 
@@ -13,13 +13,13 @@ class HTMLKeygenElementJs extends HTMLElementJs implements HTMLKeygenElement nat
 
   void set disabled(bool value) native "this.disabled = value;";
 
-  HTMLFormElementJs get form() native "return this.form;";
+  _HTMLFormElementJs get form() native "return this.form;";
 
   String get keytype() native "return this.keytype;";
 
   void set keytype(String value) native "this.keytype = value;";
 
-  NodeListJs get labels() native "return this.labels;";
+  _NodeListJs get labels() native "return this.labels;";
 
   String get name() native "return this.name;";
 
@@ -29,7 +29,7 @@ class HTMLKeygenElementJs extends HTMLElementJs implements HTMLKeygenElement nat
 
   String get validationMessage() native "return this.validationMessage;";
 
-  ValidityStateJs get validity() native "return this.validity;";
+  _ValidityStateJs get validity() native "return this.validity;";
 
   bool get willValidate() native "return this.willValidate;";
 

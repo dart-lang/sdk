@@ -27,8 +27,6 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   private DartParameterizedTypeNode defaultClass;
   private final Modifiers modifiers;
 
-  private int hash = -1;
-
   // If the Dart class is implemented by a native JS class the nativeName
   // points to the JS class. Otherwise it is null.
   private final DartStringLiteral nativeName;
@@ -54,14 +52,6 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
         defaultClass,
         true,
         Modifiers.NONE);
-  }
-
-  /**
-   * Set the diet-string hash code for the class
-   * @param hash the hash code to set
-   */
-  void setHash(int hash) {
-    this.hash = hash;
   }
 
   public DartClass(DartIdentifier name, DartStringLiteral nativeName,
@@ -214,16 +204,5 @@ public class DartClass extends DartDeclaration<DartIdentifier> implements HasSym
   @Override
   public <R> R accept(DartPlainVisitor<R> visitor) {
     return visitor.visitClass(this);
-  }
-
-  @Override
-  public int computeHash() {
-    // TODO(jgw): Remove this altogether in fixing b/5324113.
-
-    // Cache hashes for DartClass, because they're always needed.
-    if (this.hash == -1) {
-      this.hash = super.computeHash();
-    }
-    return this.hash;
   }
 }

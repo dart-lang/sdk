@@ -1,13 +1,13 @@
 
-class SVGStopElementJs extends SVGElementJs implements SVGStopElement native "*SVGStopElement" {
+class _SVGStopElementJs extends _SVGElementJs implements SVGStopElement native "*SVGStopElement" {
 
-  SVGAnimatedNumberJs get offset() native "return this.offset;";
+  _SVGAnimatedNumberJs get offset() native "return this.offset;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 }

@@ -1,5 +1,5 @@
 
-class NodeJs extends DOMTypeJs implements Node native "*Node" {
+class _NodeJs extends _DOMTypeJs implements Node native "*Node" {
 
   static final int ATTRIBUTE_NODE = 2;
 
@@ -37,21 +37,21 @@ class NodeJs extends DOMTypeJs implements Node native "*Node" {
 
   static final int TEXT_NODE = 3;
 
-  NamedNodeMapJs get attributes() native "return this.attributes;";
+  _NamedNodeMapJs get attributes() native "return this.attributes;";
 
   String get baseURI() native "return this.baseURI;";
 
-  NodeListJs get childNodes() native "return this.childNodes;";
+  _NodeListJs get childNodes() native "return this.childNodes;";
 
-  NodeJs get firstChild() native "return this.firstChild;";
+  _NodeJs get firstChild() native "return this.firstChild;";
 
-  NodeJs get lastChild() native "return this.lastChild;";
+  _NodeJs get lastChild() native "return this.lastChild;";
 
   String get localName() native "return this.localName;";
 
   String get namespaceURI() native "return this.namespaceURI;";
 
-  NodeJs get nextSibling() native "return this.nextSibling;";
+  _NodeJs get nextSibling() native "return this.nextSibling;";
 
   String get nodeName() native "return this.nodeName;";
 
@@ -61,17 +61,17 @@ class NodeJs extends DOMTypeJs implements Node native "*Node" {
 
   void set nodeValue(String value) native "this.nodeValue = value;";
 
-  DocumentJs get ownerDocument() native "return this.ownerDocument;";
+  _DocumentJs get ownerDocument() native "return this.ownerDocument;";
 
-  ElementJs get parentElement() native "return this.parentElement;";
+  _ElementJs get parentElement() native "return this.parentElement;";
 
-  NodeJs get parentNode() native "return this.parentNode;";
+  _NodeJs get parentNode() native "return this.parentNode;";
 
   String get prefix() native "return this.prefix;";
 
   void set prefix(String value) native "this.prefix = value;";
 
-  NodeJs get previousSibling() native "return this.previousSibling;";
+  _NodeJs get previousSibling() native "return this.previousSibling;";
 
   String get textContent() native "return this.textContent;";
 
@@ -79,27 +79,27 @@ class NodeJs extends DOMTypeJs implements Node native "*Node" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  NodeJs appendChild(NodeJs newChild) native;
+  _NodeJs appendChild(_NodeJs newChild) native;
 
-  NodeJs cloneNode(bool deep) native;
+  _NodeJs cloneNode(bool deep) native;
 
-  int compareDocumentPosition(NodeJs other) native;
+  int compareDocumentPosition(_NodeJs other) native;
 
-  bool contains(NodeJs other) native;
+  bool contains(_NodeJs other) native;
 
-  bool dispatchEvent(EventJs event) native;
+  bool dispatchEvent(_EventJs event) native;
 
   bool hasAttributes() native;
 
   bool hasChildNodes() native;
 
-  NodeJs insertBefore(NodeJs newChild, NodeJs refChild) native;
+  _NodeJs insertBefore(_NodeJs newChild, _NodeJs refChild) native;
 
   bool isDefaultNamespace(String namespaceURI) native;
 
-  bool isEqualNode(NodeJs other) native;
+  bool isEqualNode(_NodeJs other) native;
 
-  bool isSameNode(NodeJs other) native;
+  bool isSameNode(_NodeJs other) native;
 
   bool isSupported(String feature, String version) native;
 
@@ -109,9 +109,9 @@ class NodeJs extends DOMTypeJs implements Node native "*Node" {
 
   void normalize() native;
 
-  NodeJs removeChild(NodeJs oldChild) native;
+  _NodeJs removeChild(_NodeJs oldChild) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
-  NodeJs replaceChild(NodeJs newChild, NodeJs oldChild) native;
+  _NodeJs replaceChild(_NodeJs newChild, _NodeJs oldChild) native;
 }

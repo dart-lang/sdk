@@ -1,5 +1,5 @@
 
-class DatabaseSyncJs extends DOMTypeJs implements DatabaseSync native "*DatabaseSync" {
+class _DatabaseSyncJs extends _DOMTypeJs implements DatabaseSync native "*DatabaseSync" {
 
   String get lastErrorMessage() native "return this.lastErrorMessage;";
 

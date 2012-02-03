@@ -1,5 +1,5 @@
 
-class HTMLTableColElementJs extends HTMLElementJs implements HTMLTableColElement native "*HTMLTableColElement" {
+class _HTMLTableColElementJs extends _HTMLElementJs implements HTMLTableColElement native "*HTMLTableColElement" {
 
   String get align() native "return this.align;";
 

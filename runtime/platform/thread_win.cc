@@ -12,19 +12,15 @@ namespace dart {
 
 class ThreadStartData {
  public:
-  ThreadStartData(Thread::ThreadStartFunction function,
-                  uword parameter,
-                  Thread* thread)
-      : function_(function), parameter_(parameter), thread_(thread) {}
+  ThreadStartData(Thread::ThreadStartFunction function, uword parameter)
+      : function_(function), parameter_(parameter) {}
 
   Thread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
-  Thread* thread() const { return thread_; }
 
  private:
   Thread::ThreadStartFunction function_;
   uword parameter_;
-  Thread* thread_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadStartData);
 };
@@ -38,33 +34,31 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 
   Thread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
-  Thread* thread = data->thread();
   delete data;
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
 
-  // When the function returns here, make sure that the thread is deleted.
-  delete thread;
+  // When the function returns here close the handle.
+  CloseHandle(GetCurrentThread());
 
   return 0;
 }
 
 
-Thread::Thread(ThreadStartFunction function, uword parameter) {
-  ThreadStartData* start_data = new ThreadStartData(function, parameter, this);
+int Thread::Start(ThreadStartFunction function, uword parameter) {
+  ThreadStartData* start_data = new ThreadStartData(function, parameter);
   uint32_t tid;
-  data_.thread_handle_ =
-    _beginthreadex(NULL, 64 * KB, ThreadEntry, start_data, 0, &tid);
-  if (data_.thread_handle_ == -1) {
-    FATAL("Thread creation failed");
+  uintptr_t thread =
+      _beginthreadex(NULL, 64 * KB, ThreadEntry, start_data, 0, &tid);
+  if (thread == -1L || thread == 0) {
+#ifdef DEBUG
+    fprintf(stderr, "_beginthreadex error: %d (%s)\n", errno, strerror(errno));
+#endif
+    return errno;
   }
-  data_.tid_ = tid;
-}
 
-
-Thread::~Thread() {
-  CloseHandle(reinterpret_cast<HANDLE>(data_.thread_handle_));
+  return 0;
 }
 
 

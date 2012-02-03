@@ -1,5 +1,5 @@
 
-class PositionErrorJs extends DOMTypeJs implements PositionError native "*PositionError" {
+class _PositionErrorJs extends _DOMTypeJs implements PositionError native "*PositionError" {
 
   static final int PERMISSION_DENIED = 1;
 

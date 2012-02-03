@@ -1,3 +1,3 @@
 
-class IDBAnyJs extends DOMTypeJs implements IDBAny native "*IDBAny" {
+class _IDBAnyJs extends _DOMTypeJs implements IDBAny native "*IDBAny" {
 }

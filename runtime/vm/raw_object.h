@@ -351,9 +351,9 @@ class RawUnresolvedClass : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->qualifier_);
+    return reinterpret_cast<RawObject**>(&ptr()->library_prefix_);
   }
-  RawString* qualifier_;  // Qualifier for the identifier.
+  RawLibraryPrefix* library_prefix_;  // Library prefix qualifier for the ident.
   RawString* ident_;  // Name of the unresolved identifier.
   RawClass* factory_signature_class_;  // Expected type parameters for factory.
   RawObject** to() {

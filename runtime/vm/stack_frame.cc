@@ -8,6 +8,7 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/stub_code.h"
 #include "vm/visitor.h"
@@ -15,7 +16,7 @@
 namespace dart {
 
 void StackFrame::Print() const {
-  UNIMPLEMENTED();
+  OS::Print("[%-8s : sp(%p) ]\n", GetName(), sp());
 }
 
 

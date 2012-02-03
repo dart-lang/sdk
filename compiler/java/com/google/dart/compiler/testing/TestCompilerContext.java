@@ -9,6 +9,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
+import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ErrorSeverity;
 import com.google.dart.compiler.LibrarySource;
@@ -38,6 +39,7 @@ public class TestCompilerContext implements DartCompilerListener, DartCompilerCo
   private int typeErrorCount;
   private int warningCount;
   private int errorCount;
+  private final CompilerConfiguration compilerConfiguration = new DefaultCompilerConfiguration();
 
   /**
    * @param ignored list of events that will be ignored. All other events cause an AssertionError.
@@ -136,7 +138,7 @@ public class TestCompilerContext implements DartCompilerListener, DartCompilerCo
 
   @Override
   public CompilerConfiguration getCompilerConfiguration() {
-    return null;
+    return compilerConfiguration;
   }
 
   public enum EventKind {

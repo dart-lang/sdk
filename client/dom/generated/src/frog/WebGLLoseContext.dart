@@ -1,5 +1,5 @@
 
-class WebGLLoseContextJs extends DOMTypeJs implements WebGLLoseContext native "*WebGLLoseContext" {
+class _WebGLLoseContextJs extends _DOMTypeJs implements WebGLLoseContext native "*WebGLLoseContext" {
 
   void loseContext() native;
 

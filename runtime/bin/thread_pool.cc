@@ -63,7 +63,36 @@ Task ThreadPool::WaitForTask() {
 }
 
 
-void* ThreadPool::Main(void* args) {
+void ThreadPool::Start() {
+  MonitorLocker monitor(&monitor_);
+  for (int i = 0; i < size_; i++) {
+    int result = dart::Thread::Start(&ThreadPool::Main,
+                                     reinterpret_cast<uword>(this));
+    if (result != 0) {
+      FATAL1("Failed to start thread pool thread %d", result);
+    }
+  }
+}
+
+
+void ThreadPool::Shutdown() {
+  terminate_ = true;
+  queue_.Shutdown();
+  MonitorLocker monitor(&monitor_);
+  while (size_ > 0) {
+    monitor.Wait();
+  }
+}
+
+
+void ThreadPool::ThreadTerminated() {
+  MonitorLocker monitor(&monitor_);
+  size_--;
+  monitor.Notify();
+}
+
+
+void ThreadPool::Main(uword args) {
   if (Dart_IsVMFlagSet("trace_thread_pool")) {
     printf("Thread pool thread started\n");
   }
@@ -73,8 +102,8 @@ void* ThreadPool::Main(void* args) {
       printf("Waiting for task\n");
     }
     Task task = pool->WaitForTask();
-    if (pool->terminate_) return NULL;
+    if (pool->terminate_) break;
     (*(pool->task_handler_))(task);
   }
-  return NULL;
+  pool->ThreadTerminated();
 };

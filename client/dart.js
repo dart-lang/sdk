@@ -4,7 +4,10 @@
 
 // Bootstrap support for Dart scripts on the page as this script.
 
-if (!document.implementation.hasFeature('dart', '1.0')) {
+// TODO: remove hasFeature clause once fully migrated to webkitStartDart.
+if (navigator.webkitStartDart) {
+  navigator.webkitStartDart();
+} else if (!document.implementation.hasFeature('dart', '1.0')) {
   window.addEventListener("DOMContentLoaded", function (e) {
       // Fall back to compiled JS.
       var scripts = document.getElementsByTagName("script");

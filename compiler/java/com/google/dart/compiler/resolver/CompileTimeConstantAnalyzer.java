@@ -87,6 +87,17 @@ public class CompileTimeConstantAnalyzer {
       return true;
     }
 
+    private boolean checkString(DartNode x, Type type) {
+      if (!type.equals(stringType)) {
+        context
+            .onError(new DartCompilationError(x,
+                ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING, type
+                    .toString()));
+        return false;
+      }
+      return true;
+    }
+
     private boolean checkNumber(DartNode x, Type type) {
       if (!(type.equals(numType) || type.equals(intType) || type
           .equals(doubleType))) {
@@ -209,6 +220,14 @@ public class CompileTimeConstantAnalyzer {
           break;
 
         case ADD:
+          if (lhsType.equals(stringType)) {
+            if (checkString(rhs, rhsType)) {
+              rememberInferredType(x, stringType);
+            }
+          } else if (checkNumber(lhs, lhsType) && checkNumber(rhs, rhsType)) {
+            rememberInferredType(x, numType);
+          }
+          break;
         case SUB:
         case MUL:
         case DIV:

@@ -40,15 +40,19 @@ public abstract class SnippetTestCase extends CompilerTestCase {
     super.tearDown();
   }
 
-  protected String compileSingleUnit(final String filePath) throws IOException {
+  protected String compileSingleUnit(String filePath) throws IOException {
     return compileSingleUnit(filePath, "Main");
   }
 
-  protected String compileSingleUnit(final String filePath, final String part) throws IOException {
+  protected String compileSingleUnit(String filePath, String part) throws IOException {
     URL url = inputUrlFor(getClass(), filePath + ".dart");
     String source = readUrl(url);
+    return compileSingleUnitSource(source, part);
+  }
+
+  protected String compileSingleUnitSource(String source, String part) throws IOException {
     MockLibrarySource lib = new MockLibrarySource();
-    DartSourceTest src = new DartSourceTest(filePath, source, lib);
+    DartSourceTest src = new DartSourceTest("test", source, lib);
     lib.addSource(src);
     CompilerOptions options = new CompilerOptions();
     CompilerConfiguration config = new DefaultCompilerConfiguration(this.getBackend(), options);

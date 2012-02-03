@@ -186,38 +186,18 @@ void CodeGenTest::Compile() {
 
 bool CompilerTest::TestCompileScript(const Library& library,
                                      const Script& script) {
-  bool retval;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    Compiler::Compile(library, script);
-    retval = true;
-  } else {
-    retval = false;
-  }
-  isolate->set_long_jump_base(base);
-  return retval;
+  const Error& error = Error::Handle(Compiler::Compile(library, script));
+  return error.IsNull();
 }
 
 
 bool CompilerTest::TestCompileFunction(const Function& function) {
-  bool retval;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    Compiler::CompileFunction(function);
-    retval = true;
-  } else {
-    retval = false;
-  }
-  isolate->set_long_jump_base(base);
-  return retval;
+  const Error& error = Error::Handle(Compiler::CompileFunction(function));
+  return error.IsNull();
 }
 
 }  // namespace dart

@@ -155,6 +155,7 @@ public class MockBundleLibrarySource extends UrlLibrarySource implements Library
    */
   public void remapSource(String relPath, String remappedRelPath) {
     sourceRemapping.put(relPath, remappedRelPath);
+    touchSource(relPath);
   }
 
   /**

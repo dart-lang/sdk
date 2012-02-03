@@ -1,13 +1,10 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
 package com.google.dart.compiler;
 
 import com.google.dart.compiler.ast.DartClass;
-import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartNodeTraverser;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -27,36 +24,26 @@ import java.net.URI;
  * A visitor that fills in {@link LibraryDeps} for a compilation unit.
  */
 public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
-
   /**
-   * Fill in library dependencies from a compilation unit.
-   *
-   * @param unit the unit whose dependencies are to be filled in
-   * @param deps the target library deps
+   * Fill in {@link LibraryDeps} from a {@link DartUnit}.
    */
-  static void exec(DartUnit unit, LibraryDeps deps) {
-    LibraryDepsVisitor v = new LibraryDepsVisitor();
+  static void exec(DartUnit unit, LibraryDeps.Source source) {
+    LibraryDepsVisitor v = new LibraryDepsVisitor(source);
     unit.accept(v);
-
-    String relPath = unit.getSource().getRelativePath();
-    deps.setSource(relPath, v.source);
   }
 
-  private final LibraryDeps.Source source = new LibraryDeps.Source();
+  private final LibraryDeps.Source source;
   private DartClass currentClass;
 
-  private LibraryDepsVisitor() {
+  private LibraryDepsVisitor(LibraryDeps.Source source) {
+    this.source = source;
   }
 
   @Override
   public Void visitIdentifier(DartIdentifier node) {
     Element target = node.getTargetSymbol();
     ElementKind kind = ElementKind.of(target);
-
-    // Deal with field and method references:
-    // - Add explicit dependencies on top-level fields and method.
-    // - Add "holes" for fields and methods found in a superclass (see LibraryDeps for further
-    //   explanation).
+    // Add dependency on the field or method.
     switch (kind) {
       case FIELD:
       case METHOD: {
@@ -68,13 +55,11 @@ public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
         break;
       }
     }
-
     // Add dependency on the computed type of identifiers.
     switch (kind) {
       case NONE:
       case DYNAMIC:
         break;
-
       default: {
         Type type = target.getType();
         if (type != null) {
@@ -86,7 +71,6 @@ public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
         break;
       }
     }
-
     return null;
   }
 
@@ -101,7 +85,7 @@ public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
         return super.visitPropertyAccess(node);
       }
     }
-    // Skip rhs of property accesses, so that all identifiers we visit will be
+    // Skip rhs of property accesses, so that all identifiers we visit will be 
     // unqualified.
     return node.getQualifier().accept(this);
   }
@@ -136,46 +120,27 @@ public class LibraryDepsVisitor extends DartNodeTraverser<Void> {
    * Add a 'hole' for the given identifier, if its declaring class is a superclass of the current
    * class. A 'hole' dependency specifies a name that, if filled by something in the library scope,
    * would require this unit to be recompiled.
-   *
+   * 
    * This situation occurs because names in the library scope bind more strongly than unqualified
    * superclass members.
    */
   private void addHoleIfSuper(DartIdentifier node, Element holder) {
-    if (ElementKind.of(holder).equals(ElementKind.CLASS)
-        && holder != currentClass.getSymbol()) {
-      source.putHole(node.getTargetName());
+    if (ElementKind.of(holder).equals(ElementKind.CLASS) && holder != currentClass.getSymbol()) {
+      source.addHole(node.getTargetName());
     }
   }
 
   /**
-   * Adds a direct dependency on the given class.
+   * Adds a direct dependency on the unit providing given {@link Element}.
    */
   private void addElementDependency(Element elem) {
     DartNode node = elem.getNode();
     if (node != null) {
-      Source nodeSource = node.getSource();
-      URI libUri = ((DartSource) nodeSource).getLibrary().getUri();
-      LibraryDeps.Dependency dep = new LibraryDeps.Dependency(libUri,
-          Integer.toString(node.computeHash()));
-
-      String name;
-      switch (elem.getKind()) {
-        case CLASS:
-          name = ((DartClass) node).getClassName();
-          break;
-        case FIELD:
-          name = ((DartField) node).getName().getTargetName();
-          break;
-        case METHOD:
-          DartMethodDefinition method = (DartMethodDefinition) node;
-          DartIdentifier ident = (DartIdentifier) method.getName();
-          name = ident.getTargetName();
-          break;
-        default:
-          throw new AssertionError("Unexpected top-level node type");
-      }
-
-      source.putDependency(name, dep);
+      DartSource unitSource = (DartSource) node.getSource();
+      URI libUri = unitSource.getLibrary().getUri();
+      LibraryDeps.Dependency dep =
+          new LibraryDeps.Dependency(libUri, unitSource.getName(), unitSource.getLastModified());
+      source.addDep(dep);
     }
   }
 }

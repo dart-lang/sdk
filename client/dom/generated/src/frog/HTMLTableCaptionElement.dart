@@ -1,5 +1,5 @@
 
-class HTMLTableCaptionElementJs extends HTMLElementJs implements HTMLTableCaptionElement native "*HTMLTableCaptionElement" {
+class _HTMLTableCaptionElementJs extends _HTMLElementJs implements HTMLTableCaptionElement native "*HTMLTableCaptionElement" {
 
   String get align() native "return this.align;";
 

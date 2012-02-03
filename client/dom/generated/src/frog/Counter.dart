@@ -1,5 +1,5 @@
 
-class CounterJs extends DOMTypeJs implements Counter native "*Counter" {
+class _CounterJs extends _DOMTypeJs implements Counter native "*Counter" {
 
   String get identifier() native "return this.identifier;";
 

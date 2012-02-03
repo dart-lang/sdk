@@ -19,7 +19,6 @@ import java.util.List;
 // TODO(ngeoffray): Move these tests to the VM tests once we can run VM tests.
 public class NegativeResolverTest extends CompilerTestCase {
   List<DartCompilationError> errors = new ArrayList<DartCompilationError>();
-  List<DartCompilationError> typeErrors = new ArrayList<DartCompilationError>();
 
   /**
    * Parses given Dart source, runs {@link Resolver} and checks that expected errors were generated.
@@ -42,7 +41,6 @@ public class NegativeResolverTest extends CompilerTestCase {
   public void checkNumErrors(String fileName, int expectedErrorCount) {
     DartUnit unit = parseUnit(fileName);
     resolve(unit);
-    assertEquals(new ArrayList<DartCompilationError>(), typeErrors);
     if (errors.size() != expectedErrorCount) {
       fail(String.format(
           "Expected %s errors, but got %s: %s",
@@ -312,6 +310,16 @@ public class NegativeResolverTest extends CompilerTestCase {
 
   public void testConstVariableInitializationNegativeTest2() {
     checkNumErrors("ConstVariableInitializationNegativeTest2.dart", 1);
+  }
+
+  public void test_nameShadow_topLevel_method_class() {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo() {}",
+            "class foo {}"),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 1, 3),
+        errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 3, 7, 3));
   }
 
   public void test_nameShadow_topLevel_getterSetter_class() {

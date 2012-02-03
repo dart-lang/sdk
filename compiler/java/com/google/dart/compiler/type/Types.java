@@ -19,11 +19,13 @@ import com.google.dart.compiler.resolver.VariableElement;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Utility class for types.
@@ -257,6 +259,10 @@ public class Types {
    */
   @VisibleForTesting
   public InterfaceType asInstanceOf(Type t, ClassElement element) {
+    return checkedAsInstanceOf(t, element, new HashSet<TypeVariable>());
+  }
+
+  private InterfaceType checkedAsInstanceOf(Type t, ClassElement element, Set<TypeVariable> variablesReferenced) {
     switch (TypeKind.of(t)) {
       case FUNCTION_ALIAS:
       case INTERFACE: {
@@ -267,13 +273,15 @@ public class Types {
         ClassElement tElement = ti.getElement();
         InterfaceType supertype = tElement.getSupertype();
         if (supertype != null) {
-          InterfaceType result = asInstanceOf(asSupertype(ti, supertype), element);
+          InterfaceType result = checkedAsInstanceOf(asSupertype(ti, supertype), element,
+                                                     variablesReferenced);
           if (result != null) {
             return result;
           }
         }
         for (InterfaceType intrface : tElement.getInterfaces()) {
-          InterfaceType result = asInstanceOf(asSupertype(ti, intrface), element);
+          InterfaceType result = checkedAsInstanceOf(asSupertype(ti, intrface), element,
+                                                     variablesReferenced);
           if (result != null) {
             return result;
           }
@@ -287,7 +295,7 @@ public class Types {
             // e should be the interface Function in the core library. See the
             // documentation comment on FunctionType.
             InterfaceType ti = (InterfaceType) e.getType();
-            return asInstanceOf(ti, element);
+            return checkedAsInstanceOf(ti, element, variablesReferenced);
           default:
             return null;
         }
@@ -295,7 +303,15 @@ public class Types {
       case VARIABLE: {
         TypeVariable v = (TypeVariable) t;
         Type bound = v.getTypeVariableElement().getBound();
-        return asInstanceOf(bound, element);
+        // Check for previously encountered variables to avoid getting stuck in an infinite loop.
+        if (variablesReferenced.contains(v)) {
+          if (bound instanceof InterfaceType) {
+            return (InterfaceType) bound;
+          }
+          return typeProvider.getObjectType();
+        }
+        variablesReferenced.add(v);
+        return checkedAsInstanceOf(bound, element, variablesReferenced);
       }
       default:
         return null;

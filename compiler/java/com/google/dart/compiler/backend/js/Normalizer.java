@@ -737,8 +737,24 @@ public class Normalizer {
           if (superLocator.needsSuperInvocation) {
             DartSuperConstructorInvocation superInvocation = new DartSuperConstructorInvocation(
                 new DartIdentifier(""), Collections.<DartExpression>emptyList());
-            superInvocation.setSymbol(new SyntheticDefaultConstructorElement(null,
-                classElement.getSupertype().getElement(), null));
+            // Set constructor element - actual constructor with all named parameters or synthetic.
+            ConstructorElement superConstructorElement = null;
+            {
+              ClassElement superTypeElement = classElement.getSupertype().getElement();
+              List<ConstructorElement> constructors = superTypeElement.getConstructors();
+              for (ConstructorElement constructor : constructors) {
+                if (hasOnlyNamedParameters(constructor)) {
+                  superConstructorElement = constructor;
+                  break;
+                }
+              }
+              if (superConstructorElement == null) {
+                superConstructorElement =
+                    new SyntheticDefaultConstructorElement(null, superTypeElement, null);
+              }
+              superInvocation.setSymbol(superConstructorElement);
+            }
+            // Add implicit "super" invocation.
             nInit.add(new DartInitializer(null, superInvocation));
           }
         }
@@ -755,6 +771,18 @@ public class Normalizer {
         nConstructor.setSourceInfo(node.getSourceInfo());
         node.setNormalizedNode(nConstructor);
       }
+    }
+
+    /**
+     * @return <code>true</code> if given constructor has only named (i.e. optional) parameters.
+     */
+    private static boolean hasOnlyNamedParameters(ConstructorElement constructor) {
+      for (VariableElement parameter : constructor.getParameters()) {
+        if (!parameter.isNamed()) {
+          return false;
+        }
+      }
+      return true;
     }
 
     private DartExpression normalizeCompoundAssignment(Token operator,

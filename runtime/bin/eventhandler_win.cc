@@ -1,6 +1,8 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+#include "bin/eventhandler.h"
 
 #include <process.h>
 #include <winsock2.h>
@@ -8,7 +10,6 @@
 #include <mswsock.h>
 
 #include "bin/builtin.h"
-#include "bin/eventhandler.h"
 #include "bin/socket.h"
 
 
@@ -209,14 +210,16 @@ static unsigned int __stdcall ReadFileThread(void* args) {
 
 void Handle::ReadSyncCompleteAsync() {
   ASSERT(pending_read_ != NULL);
-  DWORD bytes_read;
+  DWORD bytes_read = 0;
   BOOL ok = ReadFile(handle_,
                      pending_read_->GetBufferStart(),
                      pending_read_->GetBufferSize(),
                      &bytes_read,
                      NULL);
   if (!ok) {
-    fprintf(stderr, "ReadFile failed %d\n", GetLastError());
+    if (GetLastError() != ERROR_BROKEN_PIPE) {
+      fprintf(stderr, "ReadFile failed %d\n", GetLastError());
+    }
     bytes_read = 0;
   }
   OVERLAPPED* overlapped = pending_read_->GetCleanOverlapped();
@@ -823,9 +826,10 @@ void EventHandlerImplementation::SendData(intptr_t id,
 }
 
 
-static unsigned int __stdcall EventHandlerThread(void* args) {
+static void EventHandlerThread(uword args) {
   EventHandlerImplementation* handler =
       reinterpret_cast<EventHandlerImplementation*>(args);
+  ASSERT(handler != NULL);
   while (true) {
     DWORD bytes;
     ULONG_PTR key;
@@ -877,11 +881,10 @@ static unsigned int __stdcall EventHandlerThread(void* args) {
 
 
 void EventHandlerImplementation::StartEventHandler() {
-  uint32_t tid;
-  uintptr_t thread_handle =
-      _beginthreadex(NULL, 32 * 1024, EventHandlerThread, this, 0, &tid);
-  if (thread_handle == -1) {
-    FATAL("Failed to start event handler thread");
+  int result = dart::Thread::Start(EventHandlerThread,
+                                   reinterpret_cast<uword>(this));
+  if (result != 0) {
+    FATAL1("Failed to start event handler thread %d", result);
   }
 
   // Initialize Winsock32

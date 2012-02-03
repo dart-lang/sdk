@@ -1,7 +1,7 @@
 
-class SVGAnimationElementJs extends SVGElementJs implements SVGAnimationElement native "*SVGAnimationElement" {
+class _SVGAnimationElementJs extends _SVGElementJs implements SVGAnimationElement native "*SVGAnimationElement" {
 
-  SVGElementJs get targetElement() native "return this.targetElement;";
+  _SVGElementJs get targetElement() native "return this.targetElement;";
 
   num getCurrentTime() native;
 
@@ -11,17 +11,17 @@ class SVGAnimationElementJs extends SVGElementJs implements SVGAnimationElement 
 
   // From SVGTests
 
-  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From ElementTimeControl
 

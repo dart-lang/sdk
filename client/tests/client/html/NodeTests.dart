@@ -8,6 +8,36 @@ Node makeNodeWithChildren() =>
   new Element.html("<div>Foo<br/><!--baz--></div>");
 
 void testNode() {
+  test('replaceWith', () {
+    final node = makeNodeWithChildren();
+    final subnode = node.nodes[1];
+    final out = subnode.replaceWith(new Text('Bar'));
+    Expect.equals(subnode, out, '#replaceWith should be chainable');
+    Expect.equals(3, node.nodes.length);
+    Expect.isTrue(node.nodes[0] is Text);
+    Expect.equals('Foo', node.nodes[0].text);
+    Expect.isTrue(node.nodes[1] is Text);
+    Expect.equals('Bar', node.nodes[1].text);
+    Expect.isTrue(node.nodes[2] is Comment);
+  });
+
+  test('remove', () {
+    final node = makeNodeWithChildren();
+    final subnode = node.nodes[1];
+    final out = subnode.remove();
+    Expect.equals(subnode, out, '#remove should be chainable');
+    Expect.equals(2, node.nodes.length);
+    Expect.isTrue(node.nodes[0] is Text);
+    Expect.isTrue(node.nodes[1] is Comment);
+  });
+
+  test('contains', () {
+    final Node node = new Element.html("<div>Foo<span>Bar</span></div>");
+    Expect.isTrue(node.contains(node.nodes.first));
+    Expect.isTrue(node.contains(node.nodes[1].nodes.first));
+    Expect.isFalse(node.contains(new Text('Foo')));
+  });
+
   group('nodes', () {
     test('is a NodeList', () {
       Expect.isTrue(makeNodeWithChildren().nodes is NodeList);

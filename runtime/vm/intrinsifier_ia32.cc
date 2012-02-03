@@ -64,6 +64,8 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(Double, toDouble, Double_toDouble)                                         \
   V(Double, mulFromInteger, Double_mulFromInteger)                             \
   V(Double, Double.fromInteger, Double_fromInteger)                            \
+  V(Double, isNaN, Double_isNaN)                                               \
+  V(Double, isNegative, Double_isNegative)                                     \
   V(ObjectArray, ObjectArray., ObjectArray_Allocate)                           \
   V(ObjectArray, get:length, Array_getLength)                                  \
   V(ObjectArray, [], Array_getIndexed)                                         \
@@ -74,6 +76,8 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(ImmutableArray, [], Array_getIndexed)                                      \
   V(ImmutableArray, get:length, Array_getLength)                               \
   V(Math, sqrt, Math_sqrt)                                                     \
+  V(Math, sin, Math_sin)                                                       \
+  V(Math, cos, Math_cos)                                                       \
   V(Object, ==, Object_equal)                                                  \
   V(FixedSizeArrayIterator, next, FixedSizeArrayIterator_next)                 \
   V(FixedSizeArrayIterator, hasNext, FixedSizeArrayIterator_hasNext)           \
@@ -859,6 +863,50 @@ static bool Double_fromInteger(Assembler* assembler) {
 }
 
 
+static bool Double_isNaN(Assembler* assembler) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label is_true;
+  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ comisd(XMM0, XMM0);
+  __ j(PARITY_EVEN, &is_true, Assembler::kNearJump);  // NaN -> true;
+  __ LoadObject(EAX, bool_false);
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(EAX, bool_true);
+  __ ret();
+  return true;  // Method is complete, no slow case.
+}
+
+
+static bool Double_isNegative(Assembler* assembler) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label is_false, is_true, is_zero;
+  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
+  __ xorps(XMM1, XMM1);  // 0.0 -> XMM1.
+  __ comisd(XMM0, XMM1);
+  __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false.
+  __ j(EQUAL, &is_zero, Assembler::kNearJump);  // Check for negative zero.
+  __ j(ABOVE_EQUAL, &is_false, Assembler::kNearJump);  // >= 0 -> false.
+  __ Bind(&is_true);
+  __ LoadObject(EAX, bool_true);
+  __ ret();
+  __ Bind(&is_false);
+  __ LoadObject(EAX, bool_false);
+  __ ret();
+  __ Bind(&is_zero);
+  // Check for negative zero (get the sign bit).
+  __ movmskpd(EAX, XMM0);
+  __ testl(EAX, Immediate(1));
+  __ j(NOT_ZERO, &is_true, Assembler::kNearJump);
+  __ jmp(&is_false, Assembler::kNearJump);
+  return true;  // Method is complete, no slow case.
+}
+
+
 // Argument type is not known
 static bool Math_sqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
@@ -883,6 +931,59 @@ static bool Math_sqrt(Assembler* assembler) {
   __ jmp(&double_op);
   __ Bind(&fall_through);
   return false;
+}
+
+
+enum TrigonometricFunctions {
+  kSine,
+  kCosine,
+};
+
+
+static void EmitTrigonometric(Assembler* assembler,
+                              TrigonometricFunctions kind) {
+  Label fall_through, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+  // Argument is double and is in EAX.
+  __ fldl(FieldAddress(EAX, Double::value_offset()));
+  __ Bind(&double_op);
+  switch (kind) {
+    case kSine:   __ fsin(); break;
+    case kCosine: __ fcos(); break;
+    default:
+      UNREACHABLE();
+  }
+  const Class& double_class = Class::ZoneHandle(
+      Isolate::Current()->object_store()->double_class());
+  __ LoadObject(EBX, double_class);
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               EBX,  // Class register.
+                               &fall_through,
+                               EAX);  // Result register.
+  __ fstpl(FieldAddress(EAX, Double::value_offset()));
+  __ ret();
+
+  __ Bind(&is_smi);  // smi -> double.
+  __ SmiUntag(EAX);
+  __ pushl(EAX);
+  __ filds(Address(ESP, 0));
+  __ popl(EAX);
+  __ jmp(&double_op);
+
+  __ Bind(&fall_through);
+}
+
+
+static bool Math_sin(Assembler* assembler) {
+  EmitTrigonometric(assembler, kSine);
+  return false;  // Compile method for slow case.
+}
+
+
+static bool Math_cos(Assembler* assembler) {
+  EmitTrigonometric(assembler, kCosine);
+  return false;  // Compile method for slow case.
 }
 
 

@@ -2709,7 +2709,7 @@ public class GenerateJavascriptAST {
 
       if (element == null) {
         mangledName = mangler.mangleNamedMethod(x.getFunctionNameString(), unitLibrary);
-        qualifier = (JsExpression)generate(x.getTarget());
+        qualifier = (JsExpression) generate(x.getTarget());
       } else {
         switch (element.getKind()) {
           case METHOD: {
@@ -3308,8 +3308,14 @@ public class GenerateJavascriptAST {
 
     @Override
     public JsNode visitArrayLiteral(DartArrayLiteral x) {
+      Type elementType = x.getType().getArguments().get(0);
       JsArrayLiteral jsArray = new JsArrayLiteral();
-      generateAll(x.getExpressions(), jsArray.getExpressions(), JsExpression.class);
+      for (DartNode node : x.getExpressions()) {
+        JsExpression expr = (JsExpression) generate(node);
+        JsExpression checkedExpr = rtt.addTypeCheck(getCurrentClass(), expr,
+                                                    elementType, node.getType(), node.getSourceInfo());
+        jsArray.getExpressions().add(checkedExpr);
+      }
       jsArray.setSourceRef(x);
       JsExpression result = rtt.maybeAddRuntimeTypeForArrayLiteral(getCurrentClass(), x, jsArray);
       if (x.isConst()) {
@@ -3335,8 +3341,9 @@ public class GenerateJavascriptAST {
       rtt.maybeAddRuntimeTypeToMapLiteralConstructor(getCurrentClass(), x, invoke);
       JsExpression assig = AstUtil.newAssignment(tmpVar.makeRef(), invoke.setSourceRef(x));
       JsExpression result = assig;
+      Type actualEntryType = x.getType().getArguments().get(1);
       for (DartMapLiteralEntry entry : x.getEntries()) {
-        result = AstUtil.newSequence(result, visitMapLiteralEntry(entry, tmpVar));
+        result = AstUtil.newSequence(result, visitMapLiteralEntry(entry, tmpVar, actualEntryType));
       }
       result = AstUtil.newSequence(result, tmpVar.makeRef());
       if (x.isConst()) {
@@ -3345,9 +3352,10 @@ public class GenerateJavascriptAST {
       return result;
     }
 
-    private JsExpression visitMapLiteralEntry(DartMapLiteralEntry x, JsName map) {
+    private JsExpression visitMapLiteralEntry(DartMapLiteralEntry x, JsName map, Type valueType) {
       String addMethod = mangler.createOperatorSyntax(Token.ASSIGN_INDEX);
       JsExpression value = (JsExpression) generate(x.getValue());
+      value = rtt.addTypeCheck(getCurrentClass(), value, valueType, x.getType(), x.getSourceInfo());
       JsExpression key = (JsExpression) generate(x.getKey());
       JsNameRef methodName = AstUtil.newNameRef(map.makeRef(), addMethod);
       return AstUtil.newInvocation(methodName, key, value).setSourceRef(x);

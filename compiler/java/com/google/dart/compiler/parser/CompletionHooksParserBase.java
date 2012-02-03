@@ -42,7 +42,7 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
      * an upper bound on the 'space' the parser can consume before declaring
      * it is not making progress.
      */
-    private static final int THRESHOLD = 100;
+    private static final int THRESHOLD = 1000;
 
     private int maxPositionRange = Integer.MIN_VALUE;
     private int minPositionRange = Integer.MAX_VALUE;

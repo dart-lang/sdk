@@ -1,7 +1,7 @@
 
-class DocumentFragmentJs extends NodeJs implements DocumentFragment native "*DocumentFragment" {
+class _DocumentFragmentJs extends _NodeJs implements DocumentFragment native "*DocumentFragment" {
 
-  ElementJs querySelector(String selectors) native;
+  _ElementJs querySelector(String selectors) native;
 
-  NodeListJs querySelectorAll(String selectors) native;
+  _NodeListJs querySelectorAll(String selectors) native;
 }

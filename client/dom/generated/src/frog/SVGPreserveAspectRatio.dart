@@ -1,5 +1,5 @@
 
-class SVGPreserveAspectRatioJs extends DOMTypeJs implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
+class _SVGPreserveAspectRatioJs extends _DOMTypeJs implements SVGPreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
   static final int SVG_MEETORSLICE_MEET = 1;
 

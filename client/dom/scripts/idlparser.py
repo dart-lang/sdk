@@ -305,7 +305,7 @@ class IDLParser(object):
       return 'any[]'
 
     def ObjectType():
-      return 'object'
+      return re.compile(r'(object|Object)\b')   # both spellings.
 
     def VoidType():
       return 'void'
@@ -355,7 +355,7 @@ class IDLParser(object):
 
     # Extended Attributes:
     def ExtAttrs():
-      return ['[', MANY(ExtAttr, ','), ']']
+      return ['[', MAYBE(MANY(ExtAttr, ',')), ']']
 
     def ExtAttr():
       return [Id, MAYBE(OR(['=', ExtAttrValue], ExtAttrArgList))]

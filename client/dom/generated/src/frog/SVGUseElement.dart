@@ -1,29 +1,29 @@
 
-class SVGUseElementJs extends SVGElementJs implements SVGUseElement native "*SVGUseElement" {
+class _SVGUseElementJs extends _SVGElementJs implements SVGUseElement native "*SVGUseElement" {
 
-  SVGElementInstanceJs get animatedInstanceRoot() native "return this.animatedInstanceRoot;";
+  _SVGElementInstanceJs get animatedInstanceRoot() native "return this.animatedInstanceRoot;";
 
-  SVGAnimatedLengthJs get height() native "return this.height;";
+  _SVGAnimatedLengthJs get height() native "return this.height;";
 
-  SVGElementInstanceJs get instanceRoot() native "return this.instanceRoot;";
+  _SVGElementInstanceJs get instanceRoot() native "return this.instanceRoot;";
 
-  SVGAnimatedLengthJs get width() native "return this.width;";
+  _SVGAnimatedLengthJs get width() native "return this.width;";
 
-  SVGAnimatedLengthJs get x() native "return this.x;";
+  _SVGAnimatedLengthJs get x() native "return this.x;";
 
-  SVGAnimatedLengthJs get y() native "return this.y;";
+  _SVGAnimatedLengthJs get y() native "return this.y;";
 
   // From SVGURIReference
 
-  SVGAnimatedStringJs get href() native "return this.href;";
+  _SVGAnimatedStringJs get href() native "return this.href;";
 
   // From SVGTests
 
-  SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
 
-  SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
 
-  SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
 
   bool hasExtension(String extension) native;
 
@@ -39,31 +39,31 @@ class SVGUseElementJs extends SVGElementJs implements SVGUseElement native "*SVG
 
   // From SVGExternalResourcesRequired
 
-  SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
 
   // From SVGStylable
 
-  SVGAnimatedStringJs get className() native "return this.className;";
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
-  CSSStyleDeclarationJs get style() native "return this.style;";
+  _CSSStyleDeclarationJs get style() native "return this.style;";
 
-  CSSValueJs getPresentationAttribute(String name) native;
+  _CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGTransformable
 
-  SVGAnimatedTransformListJs get transform() native "return this.transform;";
+  _SVGAnimatedTransformListJs get transform() native "return this.transform;";
 
   // From SVGLocatable
 
-  SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
+  _SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
 
-  SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
+  _SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
 
-  SVGRectJs getBBox() native;
+  _SVGRectJs getBBox() native;
 
-  SVGMatrixJs getCTM() native;
+  _SVGMatrixJs getCTM() native;
 
-  SVGMatrixJs getScreenCTM() native;
+  _SVGMatrixJs getScreenCTM() native;
 
-  SVGMatrixJs getTransformToElement(SVGElementJs element) native;
+  _SVGMatrixJs getTransformToElement(_SVGElementJs element) native;
 }

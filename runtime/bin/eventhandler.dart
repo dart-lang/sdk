@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class EventHandler extends NativeFieldWrapperClass1 {
-  EventHandler() { }
+class _EventHandler extends NativeFieldWrapperClass1 {
+  _EventHandler() { }
 
   static void _start() {
     if (_eventHandler === null) {
-      _eventHandler = new EventHandler();
+      _eventHandler = new _EventHandler();
       _eventHandler._doStart();
     }
   }
@@ -23,5 +23,5 @@ class EventHandler extends NativeFieldWrapperClass1 {
   void _doSendData(int id, ReceivePort receivePort, int data)
       native "EventHandler_SendData";
 
-  static EventHandler _eventHandler;
+  static _EventHandler _eventHandler;
 }

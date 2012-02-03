@@ -1,5 +1,5 @@
 
-class JavaScriptCallFrameJs extends DOMTypeJs implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
+class _JavaScriptCallFrameJs extends _DOMTypeJs implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
 
   static final int CATCH_SCOPE = 4;
 
@@ -11,7 +11,7 @@ class JavaScriptCallFrameJs extends DOMTypeJs implements JavaScriptCallFrame nat
 
   static final int WITH_SCOPE = 2;
 
-  JavaScriptCallFrameJs get caller() native "return this.caller;";
+  _JavaScriptCallFrameJs get caller() native "return this.caller;";
 
   int get column() native "return this.column;";
 
@@ -22,6 +22,8 @@ class JavaScriptCallFrameJs extends DOMTypeJs implements JavaScriptCallFrame nat
   List get scopeChain() native "return this.scopeChain;";
 
   int get sourceID() native "return this.sourceID;";
+
+  Object get thisObject() native "return this.thisObject;";
 
   String get type() native "return this.type;";
 

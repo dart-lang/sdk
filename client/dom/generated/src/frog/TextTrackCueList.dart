@@ -1,9 +1,9 @@
 
-class TextTrackCueListJs extends DOMTypeJs implements TextTrackCueList native "*TextTrackCueList" {
+class _TextTrackCueListJs extends _DOMTypeJs implements TextTrackCueList native "*TextTrackCueList" {
 
   int get length() native "return this.length;";
 
-  TextTrackCueJs getCueById(String id) native;
+  _TextTrackCueJs getCueById(String id) native;
 
-  TextTrackCueJs item(int index) native;
+  _TextTrackCueJs item(int index) native;
 }

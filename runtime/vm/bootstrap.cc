@@ -38,15 +38,18 @@ RawScript* Bootstrap::LoadImplScript() {
 }
 
 
-void Bootstrap::Compile(const Library& library, const Script& script) {
+RawError* Bootstrap::Compile(const Library& library, const Script& script) {
   if (FLAG_print_bootstrap) {
     OS::Print("Bootstrap source '%s':\n%s\n",
         String::Handle(script.url()).ToCString(),
         String::Handle(script.source()).ToCString());
   }
   library.SetLoadInProgress();
-  Compiler::Compile(library, script);
-  library.SetLoaded();
+  const Error& error = Error::Handle(Compiler::Compile(library, script));
+  if (error.IsNull()) {
+    library.SetLoaded();
+  }
+  return error.raw();
 }
 
 }  // namespace dart

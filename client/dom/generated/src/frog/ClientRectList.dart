@@ -1,7 +1,7 @@
 
-class ClientRectListJs extends DOMTypeJs implements ClientRectList native "*ClientRectList" {
+class _ClientRectListJs extends _DOMTypeJs implements ClientRectList native "*ClientRectList" {
 
   int get length() native "return this.length;";
 
-  ClientRectJs item(int index) native;
+  _ClientRectJs item(int index) native;
 }

@@ -20,7 +20,7 @@ class ListLiteral4Test<T> {
       result += 10;
     }
     try {
-      var m = <T>{"a": "b"};  // "b" is not an int.
+      var m = <T>["a", "b"];  // "b" is not an int.
     } catch (TypeError error) {
       result += 100;
     }

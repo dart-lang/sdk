@@ -1,3 +1,3 @@
 
-class CommentJs extends CharacterDataJs implements Comment native "*Comment" {
+class _CommentJs extends _CharacterDataJs implements Comment native "*Comment" {
 }

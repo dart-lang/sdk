@@ -8,7 +8,7 @@ interface DataTransferItemList {
 
   int get length();
 
-  void add(String data, String type);
+  void add(var data_OR_file, [String type]);
 
   void clear();
 

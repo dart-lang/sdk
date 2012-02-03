@@ -21,6 +21,9 @@ class WillNotOptimizeFieldAccessSubclass extends WillNotOptimizeFieldAccess {
   int get x() {
     return this.x;
   }
+
+  void set x(v) {
+  }
 }
 
 class B extends A {

@@ -1,5 +1,5 @@
 
-class WorkerNavigatorJs extends DOMTypeJs implements WorkerNavigator native "*WorkerNavigator" {
+class _WorkerNavigatorJs extends _DOMTypeJs implements WorkerNavigator native "*WorkerNavigator" {
 
   String get appName() native "return this.appName;";
 

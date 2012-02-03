@@ -1,5 +1,5 @@
 
-class CoordinatesJs extends DOMTypeJs implements Coordinates native "*Coordinates" {
+class _CoordinatesJs extends _DOMTypeJs implements Coordinates native "*Coordinates" {
 
   num get accuracy() native "return this.accuracy;";
 

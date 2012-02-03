@@ -6,7 +6,6 @@ prefix language
 
 [ $component == leg ]
 AbstractStaticNegativeTest: Fail
-AllocateTest: Fail
 ApplicationTest: Fail
 ArithmeticTest: Fail
 AssertionTest: Fail
@@ -19,6 +18,7 @@ BlackListedTest/07: Fail
 BlackListedTest/09: Fail
 BlockScopeTest: Fail
 BreakTest: Fail
+CallOperatorTest: Fail
 CTConst3Test: Fail
 CTConst4Test: Fail
 CTConstTest: Fail
@@ -37,7 +37,6 @@ ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
 ClosuresWithComplexParamsTest: Fail
-CompoundAssignmentOperatorTest: Fail
 ConstEscapeFrogTest: Fail
 ConstFieldNegativeTest: Fail
 ConstInit4NegativeTest: Fail
@@ -49,12 +48,10 @@ ConstObjectsAreImmutableTest: Fail
 ConstTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
-Constructor3NegativeTest: Fail
 Constructor3Test: Fail
 Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
-ConstructorCallWrongArgumentCountNegativeTest: Fail
 ConstructorDefaultTest: Fail
 ConstructorDuplicateInitializersTest/02: Fail
 ConstructorNegativeTest: Pass # For the wrong reason.
@@ -68,6 +65,7 @@ ContextArgsWithDefaultsTest: Fail
 ContextTest: Crash # NPE in Types.isSubtype.
 ContinueTest: Fail
 CyclicImportTest: Fail
+CyclicTypeVariableTest: Fail
 DefaultClassImplicitConstructorTest: Fail
 DefaultFactory2Test: Fail
 DefaultFactoryLibraryTest: Fail
@@ -98,6 +96,7 @@ ExecuteFinally9Test: Fail
 ExpectTest: Fail
 Factory2Test: Fail
 Factory3Test: Fail
+Factory4Test: Fail
 FactoryImplementationTest: Fail
 FactoryTest: Fail
 FannkuchTest: Fail
@@ -128,6 +127,8 @@ FunctionLiteralsTest: Fail
 FunctionSyntaxTest: Fail
 FunctionTest: Fail
 FunctionTypeAlias2Test: Fail
+FunctionTypeAlias3Test: Fail
+FunctionTypeAlias4Test: Fail
 FunctionTypeAliasTest: Fail
 FunctionTypeParameter2Test: Fail
 FunctionTypeParameterTest: Fail
@@ -140,19 +141,14 @@ GenericTest: Fail
 GenericsTest: Fail
 GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
+GCTest: Fail
 HelloScriptTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
-ImplicitThisTest/01: Fail
-ImplicitThisTest/02: Fail
-ImplicitThisTest/03: Fail
-ImplicitThisTest/04: Fail
-ImplicitThisTest/none: Fail
 ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
-IncrOpTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
@@ -200,6 +196,7 @@ MapTest: Fail
 MathVMTest: Fail
 MethodBindingTest: Fail
 MethodInvocationTest: Fail
+MethodNameTest: Fail
 MethodOverrideTest: Fail
 MultiPass2Test: Fail
 MultiPassTest: Fail
@@ -207,16 +204,11 @@ NamedConstructorTest: Fail
 NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
-NamedParametersNamedCountTest: Fail
-NamedParametersPassingFalseTest: Fail
 NamedParametersPassingFalsyTest: Fail
-NamedParametersPassingNullTest: Fail
-NamedParametersPassingZeroTest: Fail
 NamedParametersTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithConversionsTest: Fail
 NamedParametersWithDollarsTest: Fail
-NamedParametersWithObjectPropertyNamesTest: Fail
 NamingTest: Fail
 NativeClassInheritance1FrogTest: Fail
 NativeClassInheritance2FrogTest: Fail
@@ -240,14 +232,16 @@ NumberSyntaxTest: Fail
 NumbersTest: Fail
 ObjectDynamicMethodTest: Fail
 Operator1NegativeTest: Fail
-Operator2Test: Fail
-OperatorTest: Fail
 OptimizationTest: Fail
 OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
 OverriddenNoSuchMethodTest: Fail
 OverrideFieldMethod1NegativeTest: Fail
+OverrideFieldMethod2NegativeTest: Fail
+OverrideFieldMethod3NegativeTest: Fail
 OverrideFieldMethod4NegativeTest: Fail
+OverrideFieldMethod5NegativeTest: Fail
+OverrideFieldMethod6NegativeTest: Fail
 OverrideFieldTest/02: Fail
 OverrideFieldTest/03: Fail
 OverrideFieldTest/none: Fail
@@ -290,7 +284,6 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
-RawStringTest: Fail
 RegEx2Test: Fail
 RegExp2Test: Fail
 RegExp3Test: Fail
@@ -302,15 +295,10 @@ Script1NegativeTest: Fail
 Script2NegativeTest: Fail
 ScriptNegativeTest: Fail
 Setter0Test: Fail
-Setter1Test: Fail
-Setter3Test/01: Fail
-Setter3Test/02: Fail
-Setter3Test/none: Fail
 SourceSelfNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
-StaticCallWrongArgumentCountNegativeTest: Fail
 StaticFieldTest: Fail
 StaticFinalField2NegativeTest: Fail
 StaticFinalFieldNegativeTest: Fail
@@ -332,12 +320,10 @@ StringInterpolationTest/01: Fail
 StringInterpolationTest/none: Fail
 StringJoinTest: Fail
 StringTest: Fail
-StringUnicode1NegativeTest: Fail
-StringUnicode2NegativeTest: Fail
-StringUnicode3NegativeTest: Fail
-StringUnicode4NegativeTest: Fail
+SuperAllNamedConstructorTest: Fail
 SuperCallTest: Fail
 SuperFieldTest: Fail
+SuperFirstConstructorTest: Fail
 SuperImplicitClosureTest: Fail
 SuperOperatorTest: Fail
 SuperSetterTest: Fail
@@ -363,6 +349,7 @@ TopLevelGetterArrowSyntaxTest: Fail
 TopLevelInInitializerTest: Fail
 TopLevelMultipleFilesTest: Fail
 TopLevelNonPrefixedLibraryTest: Fail
+TopLevelPrefixedDeclarationTest: Fail
 TopLevelVarTest: Fail
 ToplevelCollision2Test/none: Fail
 TryCatch2Test: Fail

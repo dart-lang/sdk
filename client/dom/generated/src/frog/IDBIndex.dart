@@ -1,5 +1,5 @@
 
-class IDBIndexJs extends DOMTypeJs implements IDBIndex native "*IDBIndex" {
+class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   String get keyPath() native "return this.keyPath;";
 
@@ -7,17 +7,17 @@ class IDBIndexJs extends DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   String get name() native "return this.name;";
 
-  IDBObjectStoreJs get objectStore() native "return this.objectStore;";
+  _IDBObjectStoreJs get objectStore() native "return this.objectStore;";
 
   bool get unique() native "return this.unique;";
 
-  IDBRequestJs count([IDBKeyRangeJs range = null]) native;
+  _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
 
-  IDBRequestJs getObject(IDBKeyJs key) native;
+  _IDBRequestJs getObject(_IDBKeyJs key) native;
 
-  IDBRequestJs getKey(IDBKeyJs key) native;
+  _IDBRequestJs getKey(_IDBKeyJs key) native;
 
-  IDBRequestJs openCursor([IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
 
-  IDBRequestJs openKeyCursor([IDBKeyRangeJs range = null, int direction = null]) native;
+  _IDBRequestJs openKeyCursor([_IDBKeyRangeJs range = null, int direction = null]) native;
 }

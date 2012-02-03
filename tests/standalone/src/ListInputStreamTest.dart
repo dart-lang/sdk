@@ -1,11 +1,13 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:io");
 
 void testEmptyListInputStream() {
-  InputStream stream = new ListInputStream([]);
+  InputStream stream = new ListInputStream();
+  stream.write([]);
+  stream.markEndOfStream();
   ReceivePort donePort = new ReceivePort();
 
   void onData() {
@@ -23,7 +25,7 @@ void testEmptyListInputStream() {
 }
 
 void testEmptyDynamicListInputStream() {
-  InputStream stream = new DynamicListInputStream();
+  InputStream stream = new ListInputStream();
   ReceivePort donePort = new ReceivePort();
 
   void onData() {
@@ -43,7 +45,9 @@ void testEmptyDynamicListInputStream() {
 
 void testListInputStream1() {
   List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
-  InputStream stream = new ListInputStream(data);
+  InputStream stream = new ListInputStream();
+  stream.write(data);
+  stream.markEndOfStream();
   int count = 0;
   ReceivePort donePort = new ReceivePort();
 
@@ -66,7 +70,9 @@ void testListInputStream1() {
 
 void testListInputStream2() {
   List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
-  InputStream stream = new ListInputStream(data);
+  InputStream stream = new ListInputStream();
+  stream.write(data);
+  stream.markEndOfStream();
   int count = 0;
   ReceivePort donePort = new ReceivePort();
 
@@ -91,7 +97,9 @@ void testListInputStream2() {
 
 void testListInputStreamPipe1() {
   List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
-  InputStream input = new ListInputStream(data);
+  InputStream input = new ListInputStream();
+  input.write(data);
+  input.markEndOfStream();
   OutputStream output = new ListOutputStream();
   ReceivePort donePort = new ReceivePort();
 
@@ -115,7 +123,9 @@ void testListInputStreamPipe2() {
 
   void onClose() {
     if (count < 10) {
-      InputStream input = new ListInputStream(data);
+      InputStream input = new ListInputStream();
+      input.write(data);
+      input.markEndOfStream();
       input.closeHandler = onClose;
       if (count < 9) {
         input.pipe(output, close: false);
@@ -130,7 +140,9 @@ void testListInputStreamPipe2() {
     }
   }
 
-  InputStream input = new ListInputStream(data);
+  InputStream input = new ListInputStream();
+  input.write(data);
+  input.markEndOfStream();
   input.closeHandler = onClose;
   input.pipe(output, close: false);
   count++;
@@ -140,7 +152,9 @@ void testListInputStreamPipe2() {
 
 void testListInputClose1() {
   List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  InputStream stream = new ListInputStream(data);
+  InputStream stream = new ListInputStream();
+  stream.write(data);
+  stream.markEndOfStream();
   ReceivePort donePort = new ReceivePort();
 
   void onData() {
@@ -160,7 +174,9 @@ void testListInputClose1() {
 
 void testListInputClose2() {
   List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  InputStream stream = new ListInputStream(data);
+  InputStream stream = new ListInputStream();
+  stream.write(data);
+  stream.markEndOfStream();
   ReceivePort donePort = new ReceivePort();
   int count = 0;
 
@@ -182,7 +198,7 @@ void testListInputClose2() {
 
 void testDynamicListInputStream() {
   List<int> data = [0x00, 0x01, 0x10, 0x11, 0x7e, 0x7f, 0x80, 0x81, 0xfe, 0xff];
-  InputStream stream = new DynamicListInputStream();
+  InputStream stream = new ListInputStream();
   int count = 0;
   ReceivePort donePort = new ReceivePort();
 
@@ -213,7 +229,7 @@ void testDynamicListInputStream() {
 
 void testDynamicListInputClose1() {
   List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  InputStream stream = new DynamicListInputStream();
+  InputStream stream = new ListInputStream();
   ReceivePort donePort = new ReceivePort();
 
   void onData() {
@@ -235,7 +251,7 @@ void testDynamicListInputClose1() {
 
 void testDynamicListInputClose2() {
   List<int> data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  InputStream stream = new DynamicListInputStream();
+  InputStream stream = new ListInputStream();
   ReceivePort donePort = new ReceivePort();
   int count = 0;
 

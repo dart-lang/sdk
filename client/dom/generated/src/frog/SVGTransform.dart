@@ -1,5 +1,5 @@
 
-class SVGTransformJs extends DOMTypeJs implements SVGTransform native "*SVGTransform" {
+class _SVGTransformJs extends _DOMTypeJs implements SVGTransform native "*SVGTransform" {
 
   static final int SVG_TRANSFORM_MATRIX = 1;
 
@@ -17,11 +17,11 @@ class SVGTransformJs extends DOMTypeJs implements SVGTransform native "*SVGTrans
 
   num get angle() native "return this.angle;";
 
-  SVGMatrixJs get matrix() native "return this.matrix;";
+  _SVGMatrixJs get matrix() native "return this.matrix;";
 
   int get type() native "return this.type;";
 
-  void setMatrix(SVGMatrixJs matrix) native;
+  void setMatrix(_SVGMatrixJs matrix) native;
 
   void setRotate(num angle, num cx, num cy) native;
 

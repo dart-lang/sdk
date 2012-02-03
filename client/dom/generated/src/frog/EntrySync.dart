@@ -1,7 +1,7 @@
 
-class EntrySyncJs extends DOMTypeJs implements EntrySync native "*EntrySync" {
+class _EntrySyncJs extends _DOMTypeJs implements EntrySync native "*EntrySync" {
 
-  DOMFileSystemSyncJs get filesystem() native "return this.filesystem;";
+  _DOMFileSystemSyncJs get filesystem() native "return this.filesystem;";
 
   String get fullPath() native "return this.fullPath;";
 
@@ -11,13 +11,13 @@ class EntrySyncJs extends DOMTypeJs implements EntrySync native "*EntrySync" {
 
   String get name() native "return this.name;";
 
-  EntrySyncJs copyTo(DirectoryEntrySyncJs parent, String name) native;
+  _EntrySyncJs copyTo(_DirectoryEntrySyncJs parent, String name) native;
 
-  MetadataJs getMetadata() native;
+  _MetadataJs getMetadata() native;
 
-  DirectoryEntrySyncJs getParent() native;
+  _DirectoryEntrySyncJs getParent() native;
 
-  EntrySyncJs moveTo(DirectoryEntrySyncJs parent, String name) native;
+  _EntrySyncJs moveTo(_DirectoryEntrySyncJs parent, String name) native;
 
   void remove() native;
 

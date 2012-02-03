@@ -1,5 +1,5 @@
 
-class SVGPathSegJs extends DOMTypeJs implements SVGPathSeg native "*SVGPathSeg" {
+class _SVGPathSegJs extends _DOMTypeJs implements SVGPathSeg native "*SVGPathSeg" {
 
   static final int PATHSEG_ARC_ABS = 10;
 
