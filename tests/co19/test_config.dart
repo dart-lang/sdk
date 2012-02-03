@@ -19,5 +19,4 @@ class Co19TestSuite extends StandardTestSuite {
 
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);
   bool listRecursively() => true;
-  bool complexStatusMatching() => true;
 }

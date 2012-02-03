@@ -72,8 +72,6 @@ class CCTestSuite implements TestSuite {
 
   }
 
-  bool complexStatusMatching() => false;
-
   void testNameHandler(String testName, ignore) {
     if (testName == "") {
       receiveTestName.close();
@@ -124,8 +122,7 @@ class CCTestSuite implements TestSuite {
       }
     }
 
-    testExpectations =
-        new TestExpectations(complexMatching: complexStatusMatching());
+    testExpectations = new TestExpectations();
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                '$dartDir/$statusFilePath',
@@ -175,8 +172,6 @@ class StandardTestSuite implements TestSuite {
 
   bool listRecursively() => false;
 
-  bool complexStatusMatching() => false;
-
   String shellPath() => TestUtils.dartShellFileName(configuration);
 
   List<String> additionalOptions(String filename) => [];
@@ -211,8 +206,7 @@ class StandardTestSuite implements TestSuite {
     }
 
     // Read test expectations from status files.
-    testExpectations =
-        new TestExpectations(complexMatching: complexStatusMatching());
+    testExpectations = new TestExpectations();
     for (var statusFilePath in statusFilePaths) {
       ReadTestExpectationsInto(testExpectations,
                                '$dartDir/$statusFilePath',

@@ -121,20 +121,16 @@ class TestRule {
 
 
 class TestExpectations {
-  bool _complexMatching;
   Map _map;
   bool _preprocessed = false;
   Map _regExpCache;
   Map _keyToRegExps;
 
   /**
-   * Create a TestExpectations object. Optionally specify
-   * complexMatching behavior. See the [expectations] method
+   * Create a TestExpectations object. See the [expectations] method
    * for an explanation of matching.
    */
-  TestExpectations([bool complexMatching = false])
-      : _complexMatching = complexMatching,
-        _map = new Map();
+  TestExpectations() : _map = new Map();
 
   /**
    * Add a rule to the expectations.
@@ -159,37 +155,10 @@ class TestExpectations {
    * Normal matching splits the key and the filename into path
    * components and checks that the anchored regular expression
    * "^$keyComponent\$" matches the corresponding filename component.
-   *
-   * If Complex matching is required the last filename component is
-   * translated into multiple components. If the last filename
-   * component starts with the second-to-last filename component that
-   * part is removed from the last filename component. Then the last
-   * component is split into more components at '_'s.
-   *
-   * Examples of complext filename component splits:
-   *
-   * a/b/c/d_e_f/d_e_f_A01_t01 -> ['a', 'b', 'c', 'd_e_f', 'A01', 't01']
-   * a/b/c/d_e_f_A01_t01 -> ['a', 'b', 'c', 'd', 'e', 'f', 'A01', 't01']
    */
   Set<String> expectations(String filename) {
     var result = new Set();
     var splitFilename = filename.split('/');
-
-    // If complex matching is required split the last filename
-    // component at '_'. Additionally, remove the prefix of the last
-    // component if it is identical to the second-to-last component.
-    if (_complexMatching && splitFilename.length >= 2) {
-      var last = splitFilename.removeLast();
-      var secondToLast = splitFilename.last();
-      if (last.startsWith(secondToLast)) {
-        last = last.substring(secondToLast.length);
-      }
-      last.split('_').forEach((component) {
-        if (!component.isEmpty()) {
-          splitFilename.add(component);
-        }
-      });
-    }
 
     // Create mapping from keys to list of RegExps once and for all.
     _preprocessForMatching();
