@@ -6,7 +6,6 @@ prefix language
 
 [ $component == leg ]
 AbstractStaticNegativeTest: Fail
-ApplicationTest: Fail
 ArithmeticTest: Fail
 AssertionTest: Fail
 BadNamedParameters2Test: Fail
@@ -18,10 +17,9 @@ BlackListedTest/07: Fail
 BlackListedTest/09: Fail
 BlockScopeTest: Fail
 BreakTest: Fail
-CallOperatorTest: Fail
 CTConst3Test: Fail
-CTConst4Test: Fail
 CTConstTest: Fail
+CallOperatorTest: Fail
 CallThroughGetterTest: Fail
 CallThroughNullGetterTest: Fail
 CanonicalConstTest: Fail
@@ -64,7 +62,6 @@ ConstructorTest: Fail
 ContextArgsWithDefaultsTest: Fail
 ContextTest: Crash # NPE in Types.isSubtype.
 ContinueTest: Fail
-CyclicImportTest: Fail
 CyclicTypeVariableTest: Fail
 DefaultClassImplicitConstructorTest: Fail
 DefaultFactory2Test: Fail
@@ -141,13 +138,13 @@ GenericsTest: Fail
 GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
 GCTest: Fail
-HelloScriptTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
+ImportCoreNoPrefixTest: Fail
 InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
@@ -170,9 +167,6 @@ Issue4157508Test: Fail
 Issue4295001Test: Fail
 Issue4515170Test: Fail
 LabelTest: Fail
-Library1Test: Fail
-Library4NegativeTest: Fail
-Library5NegativeTest: Fail
 Library5Test: Fail
 LibraryPrefixesTest: Fail
 LibrarySameNameUsedTest: Fail
@@ -186,7 +180,6 @@ LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyCallsTest: Fail
 ManyGenericInstanceofTest: Fail
-ManyOverriddenNoSuchMethodTest: Fail
 MapLiteral2Test: Fail
 MapLiteral3Test: Fail
 MapLiteral4Test: Fail
@@ -233,7 +226,6 @@ Operator1NegativeTest: Fail
 OptimizationTest: Fail
 OptimizedSetterTest: Fail
 OrderedMapsTest: Fail
-OverriddenNoSuchMethodTest: Fail
 OverrideFieldMethod1NegativeTest: Fail
 OverrideFieldMethod2NegativeTest: Fail
 OverrideFieldMethod3NegativeTest: Fail
@@ -257,11 +249,9 @@ Prefix20NegativeTest: Fail
 Prefix21Test: Fail
 Prefix22Test: Fail
 Prefix23NegativeTest: Fail
-Prefix3NegativeTest: Fail
-Prefix7NegativeTest: Fail
-PrefixTest: Fail
 Private2Test: Fail
 Private3Test: Fail
+PrivateMember3NegativeTest: Crash # NPE in TypeCheckerVisitor.visitSend.
 PrivateMemberTest: Fail
 PrivateTest: Fail
 PropertyFieldOverrideTest: Fail
@@ -290,10 +280,8 @@ RethrowTest: Fail
 SavannahTest: Fail
 ScopeNegativeTest: Fail
 Script1NegativeTest: Fail
-Script2NegativeTest: Fail
 ScriptNegativeTest: Fail
 Setter0Test: Fail
-SourceSelfNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
@@ -340,12 +328,9 @@ Throw5Test: Fail
 Throw6Test: Fail
 ThrowTest: Fail
 ToStringAsFixedTest: Fail
-TopLevelEntryTest: Fail
 TopLevelFuncTest: Fail
 TopLevelGetterArrowSyntaxTest: Fail
 TopLevelInInitializerTest: Fail
-TopLevelMultipleFilesTest: Fail
-TopLevelNonPrefixedLibraryTest: Fail
 TopLevelPrefixedDeclarationTest: Fail
 TopLevelVarTest: Fail
 ToplevelCollision2Test/none: Fail
