@@ -182,7 +182,6 @@ ListLiteral3Test: Fail
 ListLiteral4Test: Fail
 ListLiteralTest: Fail
 ListTest: Fail
-LiteralUnaryPlusTest/01: Fail # Leg fails to reject '+ 1'
 LocalFunction2Test: Fail
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail
