@@ -38,6 +38,8 @@
 # ......json/
 # ........json_{frog}.dart
 # ........{frog}/
+# ......uri/
+# ........uri.dart
 # ......(more will come here - io, etc)
 # ....util/
 # ......(more will come here)
@@ -193,6 +195,21 @@ def Main(argv):
   copytree(join(frog_src_dir, 'leg'), join(frog_dest_dir, 'leg'), 
            ignore=ignore_patterns('.svn'))
 
+  frog_leg_contents = \
+    open(join(frog_src_dir, 'leg', 'frog_leg.dart')).read()
+  frog_leg_dest = open(join(frog_dest_dir, 'leg', 'frog_leg.dart'), 'w')
+  frog_leg_dest.write( \
+    re.sub("../../utils/uri", "../../uri", frog_leg_contents))
+  frog_leg_dest.close()
+
+  leg_contents = \
+    open(join(frog_src_dir, 'leg', 'leg.dart')).read()
+  leg_dest = open(join(frog_dest_dir, 'leg', 'leg.dart'), 'w')
+  leg_dest.write( \
+    re.sub("../../utils/uri", "../../uri", leg_contents))
+  leg_dest.close()
+
+
   copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'), 
            ignore=ignore_patterns('.svn'))
 
@@ -245,6 +262,18 @@ def Main(argv):
         copytree(src_file, dest_file, 
                  ignore=ignore_patterns('.svn', 'interface', 'wrapping', 
                                         '*monkey*'))
+
+  # 
+  # Create and populate lib/uri.
+  #
+
+  uri_src_dir = join(HOME, 'utils', 'uri')
+  uri_dest_dir = join(LIB, 'uri')
+  os.makedirs(uri_dest_dir)
+
+  for filename in os.listdir(uri_src_dir):
+    if filename.endswith('.dart'):
+      copyfile(join(uri_src_dir, filename), join(uri_dest_dir, filename))
 
   #
   # Create and populate lib/core.
