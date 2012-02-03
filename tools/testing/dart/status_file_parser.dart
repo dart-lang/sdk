@@ -56,7 +56,9 @@ void ReadTestExpectationsInto(TestExpectations expectations,
 
 void ReadConfigurationInto(path, sections, onDone) {
   File file = new File(path);
-  if (!file.existsSync()) return;  // TODO(whesse): Handle missing file.
+  if (!file.existsSync()) {
+    throw new Exception('Cannot find test status file $path');
+  }
   InputStream file_stream = file.openInputStream();
   StringInputStream lines = new StringInputStream(file_stream);
 

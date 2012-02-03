@@ -227,9 +227,17 @@ class StandardTestSuite implements TestSuite {
     dir.errorHandler = (s) {
       throw s;
     };
-    dir.fileHandler = processFile;
-    dir.doneHandler = directoryListingDone;
-    dir.list(recursive: listRecursively());
+    dir.existsHandler = (bool exists) {
+      if (!exists) {
+        print('Directory containing tests not found: $directoryPath');
+        directoryListingDone(false);
+      } else {      
+        dir.fileHandler = processFile;
+        dir.doneHandler = directoryListingDone;
+        dir.list(recursive: listRecursively());
+      }
+    };
+    dir.exists();
   }
 
   void enqueueTestCaseFromTestInformation(TestInformation info) {
