@@ -182,6 +182,7 @@ ListLiteral3Test: Fail
 ListLiteral4Test: Fail
 ListLiteralTest: Fail
 ListTest: Fail
+LiteralUnaryPlusTest/01: Fail # Leg fails to reject '+ 1'
 LocalFunction2Test: Fail
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail
@@ -334,7 +335,6 @@ SwitchLabelTest: Fail
 SwitchScopeTest: Fail
 SwitchTest: Fail
 SyntaxTest/none: Fail
-TernaryTest: Fail
 Throw1Test: Fail
 Throw2Test: Fail
 Throw3Test: Fail
@@ -369,7 +369,5 @@ TypeVariableBoundsTest/10: Fail
 TypeVariableBoundsTest/none: Fail
 TypeVariableScopeTest/none: Fail
 TypedMessageTest: Fail
-Unary2Test: Fail
-UnaryTest: Fail
 UnboundGetterTest: Fail
 WhileTest: Fail
