@@ -964,7 +964,7 @@ class TestUtils {
 
   static String dartShellFileName(Map configuration) {
     var name = '${buildDir(configuration)}/${executableName(configuration)}';
-    if (!(new File(name)).existsSync()) {
+    if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
     return name;
@@ -978,7 +978,7 @@ class TestUtils {
     if (name == '') {
       name = '${buildDir(configuration)}/${compilerName(configuration)}';
     }
-    if (!(new File(name)).existsSync()) {
+    if (!(new File(name)).existsSync() && !configuration['list']) {
       throw "Executable '$name' does not exist";
     }
     return name;
