@@ -53,11 +53,6 @@ TypeVariableBoundsTest/06: Fail
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 
-#Issue 1307.
-NamedParameters2Test: Fail
-NamedParameters3Test: Fail
-NamedParameters4Test: Fail
-
 # Issue 1350.
 StringEscape1NegativeTest: Fail
 StringEscape4NegativeTest: Fail

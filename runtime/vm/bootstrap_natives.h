@@ -102,6 +102,7 @@ namespace dart {
   V(AssertionError_throwNew, 2)                                                \
   V(TypeError_throwNew, 4)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
+  V(StaticResolutionException_throwNew, 1)                                     \
   V(Clock_now, 0)                                                              \
   V(Clock_frequency, 0)                                                        \
   V(ByteArray_getLength, 1)                                                    \

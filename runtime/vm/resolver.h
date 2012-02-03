@@ -53,6 +53,11 @@ class Resolver : public AllStatic {
                                     StaticResolveType resolve_type);
 
   // Resolve specified dart static function.
+  static RawFunction* ResolveStaticByName(const Class&  cls,
+                                          const String& function_name,
+                                          StaticResolveType resolve_type);
+
+  // Resolve specified dart static function with specified arity.
   static RawFunction* ResolveStatic(const Class&  cls,
                                     const String& function_name,
                                     int num_arguments,

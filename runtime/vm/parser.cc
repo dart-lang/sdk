@@ -30,6 +30,7 @@ DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 // All references to Dart names are listed here.
 static const char* kAssertionErrorName = "AssertionError";
 static const char* kFallThroughErrorName = "FallThroughError";
+static const char* kStaticResolutionExceptionName = "StaticResolutionException";
 static const char* kThrowNewName = "_throwNew";
 static const char* kListLiteralFactoryClassName = "_ListLiteralFactory";
 static const char* kListLiteralFactoryName = "List.fromLiteral";
@@ -5792,7 +5793,21 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       closure = GenerateStaticFieldLookup(field, call_pos);
       return new ClosureCallNode(call_pos, closure, arguments);
     }
-    ErrorMsg(ident_pos, "unresolved static method '%s'", func_name.ToCString());
+    // Could not resolve static method: throw an exception if the arguments
+    // do not match or compile time error otherwise.
+    const Function& test_func = Function::Handle(
+        Resolver::ResolveStaticByName(cls, func_name, Resolver::kIsQualified));
+    if (test_func.IsNull()) {
+      ErrorMsg(ident_pos, "unresolved static method '%s'",
+          func_name.ToCString());
+    } else {
+      ArgumentListNode* arguments = new ArgumentListNode(ident_pos);
+      arguments->Add(new LiteralNode(
+          token_index_, Integer::ZoneHandle(Integer::New(ident_pos))));
+      return MakeStaticCall(kStaticResolutionExceptionName,
+                            kThrowNewName,
+                            arguments);
+    }
   }
   CheckFunctionIsCallable(call_pos, func);
   return new StaticCallNode(call_pos, func, arguments);

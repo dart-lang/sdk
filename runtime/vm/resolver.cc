@@ -118,11 +118,9 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
 }
 
 
-RawFunction* Resolver::ResolveStatic(const Class&  cls,
-                                     const String& function_name,
-                                     int num_arguments,
-                                     const Array& argument_names,
-                                     StaticResolveType resolve_type) {
+RawFunction* Resolver::ResolveStaticByName(const Class&  cls,
+                                           const String& function_name,
+                                           StaticResolveType resolve_type) {
   if (cls.IsNull()) {
     // Can't resolve function if cls is null.
     return Function::null();
@@ -145,6 +143,18 @@ RawFunction* Resolver::ResolveStatic(const Class&  cls,
       if (super_class.IsNull()) break;
     }
   }
+  return function.raw();
+}
+
+
+
+RawFunction* Resolver::ResolveStatic(const Class&  cls,
+                                     const String& function_name,
+                                     int num_arguments,
+                                     const Array& argument_names,
+                                     StaticResolveType resolve_type) {
+  const Function& function = Function::Handle(
+      ResolveStaticByName(cls, function_name, resolve_type));
   if (function.IsNull() ||
       !function.AreValidArguments(num_arguments, argument_names)) {
     // Return a null function to signal to the upper levels to throw a
