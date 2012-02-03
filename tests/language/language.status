@@ -244,6 +244,7 @@ FactoryImplementationTest: Fail # Issue 523
 PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
+ThirdTest: Fail # Issue 1511
 
 CondExprTest: Fail
 

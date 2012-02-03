@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Third dart test program.
 
-class A {
+class A extends B {
   var a;
   static var s;
 
@@ -11,10 +11,10 @@ class A {
     return s;
   }
 
-  A(x, y) : a = x + y + 1 { }
+  A(x, y) : super(y), a = x { }
 
   value() {
-    return a + foo();
+    return a + b + foo();
   }
 }
 

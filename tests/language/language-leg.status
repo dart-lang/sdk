@@ -320,6 +320,7 @@ SwitchLabelTest: Fail
 SwitchScopeTest: Fail
 SwitchTest: Fail
 SyntaxTest/none: Fail
+ThirdTest: Fail # Issue 1511
 Throw1Test: Fail
 Throw2Test: Fail
 Throw3Test: Fail

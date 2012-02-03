@@ -7,4 +7,4 @@
 #import("libraryC.dart");
 #import("libraryF.dart");
 
-var fooE = fooC;
+var fooE = 0;
