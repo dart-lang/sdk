@@ -309,6 +309,11 @@ LibTest/core/Strings/concatAll_A04_t01: Fail
 LibTest/core/Strings/join_A04_t01: Fail
 
 
+Language/07_Classes/3_Setters_A01_t02: Fail
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail
+Language/07_Classes/2_Getters_A01_t02: Fail
+
+
 [ $component == dartc && $mode == release ]
 *: Skip
 

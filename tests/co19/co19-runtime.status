@@ -117,6 +117,9 @@ LibTest/core/Math/pow_A07_t01: Fail
 LibTest/core/double/operator_remainder_A01_t04: Fail
 LibTest/core/double/round_A01_t01: Fail
 LibTest/core/double/remainder_A01_t04: Fail
+LibTest/core/Math/atan2_A01_t03: Fail
+LibTest/core/int/remainder_A01_t02: Fail
+LibTest/core/int/operator_remainder_A01_t02: Fail
 
 
 [ $component == vm ]
@@ -222,7 +225,6 @@ LibTest/core/FallThroughError/toString_A01_t01: Fail
 LibTest/core/List/lastIndexOf_A03_t01: Fail
 LibTest/core/ReceivePort/receive_A01_t02: Fail
 LibTest/core/SendPort/send_A02_t01: Fail
-LibTest/core/Stopwatch/elapsed_A01_t02: Fail
 LibTest/core/Stopwatch/start_A01_t02: Fail
 LibTest/core/String/contains_A01_t02: Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail
