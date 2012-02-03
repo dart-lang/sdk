@@ -24,7 +24,7 @@ void main() {
   TestReadStatusFile("client/tests/dartc/dartc.status");
 }
 
-String getFile(String filePath) {
+String fixedFilePath(String filePath) {
   if (new File(filePath).existsSync()) {
     return filePath;
   } else {
@@ -33,10 +33,10 @@ String getFile(String filePath) {
 }
 
 void TestReadStatusFile(String filePath) {
-  File file = new File(getFile(filePath));
+  File file = new File(fixedFilePath(filePath));
   if (file.existsSync()) {
     List<Section> sections = new List<Section>();
-    ReadConfigurationInto(filePath, sections, () {
+    ReadConfigurationInto(file.name, sections, () {
       Expect.isTrue(sections.length > 0);
     });
   }
