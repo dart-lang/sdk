@@ -65,14 +65,24 @@ interface Directory default _Directory {
    * Deletes the directory with this name. If the operation completes
    * successfully the [deleteHandler] is called. Otherwise the
    * [errorHandler] is called.
+   *
+   * If [recursive] is [:true:] this directory and all sub-directories
+   * and files in the directory are deleted. If [recursive] is
+   * [:false:] only this directory (which must be empty) is
+   * deleted. [recursive] is [:false:] by default.
    */
-  void delete();
+  void delete([bool recursive]);
 
   /**
    * Deletes the directory with this name. Throws an exception
-   * if the directory is not empty or if deletion failed.
+   * if the directory cannot be deleted.
+   *
+   * If [recursive] is [:true:] this directory and all sub-directories
+   * and files in the directory are deleted. If [recursive] is
+   * [:false:] only this directory (which must be empty) is
+   * deleted. [recursive] is [:false:] by default.
    */
-  void deleteSync();
+  void deleteSync([bool recursive]);
 
   /**
    * List the sub-directories and files of this
