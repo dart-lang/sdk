@@ -1,81 +1,94 @@
-#library("dump");
+#library("postProcess");
 
 #import("../../../frog/lib/node/node.dart");
 #import("dart:json");
 
-Map database;
-Map allProps;
-Set matchedTypes;
+// TODO(jacobr): this file conflates pretty printing of the JSON database with
+// filtering the database to select the best matches per file.
+// Separate out the two tasks as quick and dirty coding is correct for pretty
+// printing but more carefully documented code is required for the code
+// filtering the database.
+Map<String, List> database;
+Map<String, Map> allProps;
+Set<String> matchedTypes;
 
 String orEmpty(String str) {
   return str == null ? "" : str;
 }
 
-/** Returns whether the type has any property matching the specified name. */
+/** Returns whether the type has any member matching the specified name. */
 bool hasAny(String type, String prop) {
-  Map data = allProps[type];
+  final data = allProps[type];
   return data['properties'].containsKey(prop) ||
       data['methods'].containsKey(prop) ||
       data['constants'].containsKey(prop);
 }
 
 List<String> sortStringCollection(Collection<String> collection) {
-  List<String> out = new List<String>();
+  final out = <String>[];
   out.addAll(collection);
   out.sort((String a, String b) => a.compareTo(b));
   return out;
 }
 
-/** Switch from a List of members to a Map of members. */
+/**
+ * Return the members from an [entry] as Map of member names to member
+ * objects.
+ */
 Map getMembersMap(Map entry) {
-  List rawMembers = entry["members"];
-  Map members = new Map<String, Object>();
-  for (Map entry in rawMembers) {
+  List<Map> rawMembers = entry["members"];
+  final members = {};
+  for (final entry in rawMembers) {
     members[entry['name']] = entry;
   }
   return members;
 }
 
-/**
- * Add all missing members to the string output and return the number of
- * missing members.
- */
-int addMissingHelper(StringBuffer sb, String type, Map members,
-                     String propType) {
-  int total = 0;
-  Map expected = allProps[type][propType];
-  if (expected == null) return total;
-  for(String name in sortStringCollection(expected.getKeys())) {
-    if (!members.containsKey(name)) {
-      total++;
-    sb.add("""
-            <tr class="missing">
-                <td>$name</td>
-                <td></td>
-                <td>Could not find documentation for $propType</td>
-              </tr>
-""");
-    }
-  }
-  return total;
-}
-
 int addMissing(StringBuffer sb, String type, Map members) {
   int total = 0;
-  total += addMissingHelper(sb, type, members, 'properties');
-  total += addMissingHelper(sb, type, members, 'methods');
-  total += addMissingHelper(sb, type, members, 'constants');
+  /**
+   * Add all missing members to the string output and return the number of
+   * missing members.
+   */
+  void addMissingHelper(String propType) {
+    Map expected = allProps[type][propType];
+    if (expected != null) {
+      for(final name in sortStringCollection(expected.getKeys())) {
+        if (!members.containsKey(name)) {
+          total++;
+        sb.add("""
+                <tr class="missing">
+                  <td>$name</td>
+                  <td></td>
+                  <td>Could not find documentation for $propType</td>
+                </tr>
+    """);
+        }
+      }
+    }
+  }
+
+  addMissingHelper('properties');
+  addMissingHelper('methods');
+  addMissingHelper('constants');
   return total;
 }
 
 /**
- * Score an entry using heuristics to determine how well a entry
- * matches the expected list of matching members.
- * We could be much less naive and penalize spurious methods, prefer entries
- * with class level comments, etc.
+ * Score entries using similarity heuristics calculated from the observed and
+ * expected list of members. We could be much less naive and penalize spurious
+ * methods, prefer entries with class level comments, etc. This method is
+ * needed becase we extract entries for each of the top search results for
+ * each class name and rely on these scores to determine which entry was
+ * best.  Typically all scores but one will be zero.  Multiple pages have
+ * non-zero scores when MDN has multiple pages on the same class or pages on
+ * similar classes (e.g. HTMLElement and Element), or pages on Mozilla
+ * specific classes that are similar to DOM classes (Console).
  */
 num scoreEntry(Map entry, String type) {
   num score = 0;
+  // TODO(jacobr): consider removing skipped entries completely instead of
+  // just giving them lower scores.
   if (!entry.containsKey('skipped')) {
     score++;
   }
@@ -99,12 +112,12 @@ Map pickBestEntry(List entries, String type) {
   Map bestEntry;
   for (Map entry in entries) {
     if (entry != null) {
-    num score = scoreEntry(entry, type);
-    if (score > bestScore) {
-      bestScore = score;
-      bestEntry = entry;
+      num score = scoreEntry(entry, type);
+      if (score > bestScore) {
+        bestScore = score;
+        bestEntry = entry;
+      }
     }
-  }
   }
   return bestEntry;
 }
@@ -130,6 +143,8 @@ void main() {
   // Main documentation file.
   final sb = new StringBuffer();
 
+  // TODO(jacobr): switch to using a real template system instead of string
+  // interpolation combined with StringBuffers.
   sb.add("""
 <html>
   <head>
@@ -137,7 +152,8 @@ void main() {
       body {
       	background-color: #eee;
       	margin: 10px;
-      	font: 14px/1.428 "Lucida Grande", "Lucida Sans Unicode", Lucida, Arial, Helvetica, sans-serif;
+      	font: 14px/1.428 "Lucida Grande", "Lucida Sans Unicode", Lucida,
+            Arial, Helvetica, sans-serif;
       }
 
       .debug {
@@ -220,8 +236,14 @@ void main() {
     <li id="$type">
       <a target="_blank" href="http://www.google.com/cse?cx=017193972565947830266%3Awpqsk6dy6ee&ie=UTF-8&q=$type">
         $type
-      </a> -- Title: ${entry == null ? "???" : entry["title"]} -- Issue: ${entry == null ? "???" : entry['cause']}
-      -- <a target="_blank" href="${entry == null ? "???" : entry["srcUrl"]}">scraped url</a>
+      </a>
+      --
+      Title: ${entry == null ? "???" : entry["title"]} -- Issue:
+      ${entry == null ? "???" : entry['cause']}
+      --
+      <a target="_blank" href="${entry == null ? "???" : entry["srcUrl"]}">
+        scraped url
+      </a>
     </li>""");
       continue;
     }
@@ -231,8 +253,8 @@ void main() {
     StringBuffer sbMembers = new StringBuffer();
     StringBuffer sbExamples = new StringBuffer();
     if (entry.containsKey("members")) {
-    	Map members = getMembersMap(entry);
-    	sbMembers.add("""
+      Map members = getMembersMap(entry);
+      sbMembers.add("""
   	    <div class="members">
           <h3><span class="debug">[dart]</span> Members</h3>
           <table>
@@ -254,15 +276,15 @@ void main() {
 
         final sbMember = new StringBuffer();
 
-      if (memberData.containsKey('url')) {
-        sbMember.add("""
+        if (memberData.containsKey('url')) {
+          sbMember.add("""
 		         <td><a href="${memberData['url']}">$name</a></td>
 """);
-      } else {
-        sbMember.add("""
+        } else {
+          sbMember.add("""
 		         <td>$name</td>
 """);
-    }
+        }
         sbMember.add("""
 		  	     <td>${memberData['help']}</td>
              <td>
@@ -285,14 +307,16 @@ void main() {
 """);
     }
     for (String sectionName in
-        ["summary", "constructor", "compatibility", "specification", "seeAlso"])
-    if (entry.containsKey(sectionName)) {
-      sbSections.add("""
+        ["summary", "constructor", "compatibility", "specification",
+         "seeAlso"]) {
+      if (entry.containsKey(sectionName)) {
+        sbSections.add("""
       <div class="$sectionName">
         <h3><span class="debug">[Dart]</span> $sectionName</h3>
         ${entry[sectionName]}
       </div>
 """);
+      }
     }
     if (entry.containsKey("links")) {
       sbSections.add("""
@@ -305,12 +329,12 @@ void main() {
     	  sbSections.add("""
       <li><a href="${link['href']}">${link['title']}</a></li>
 """);
-      	}
+      }
       sbSections.add("""
         </ul>
       </div>
 """);
-      }
+    }
     if (entry.containsKey("examples")) {
     	for (String example in entry["examples"]) {
   	  sbExamples.add("""
@@ -324,9 +348,9 @@ void main() {
 
     String title = entry['title'];
     if (title != type) {
-    	title = '<h4>Dart type: $type</h4><h2>${title}</h2>';
+      title = '<h4>Dart type: $type</h4><h2>$title</h2>';
     } else {
-    	title = '<h2>${title}</h2>';
+      title = '<h2>$title</h2>';
     }
     sb.add("""
     <div class='type' id="$type">
@@ -340,7 +364,7 @@ $sbMembers
       sbAllExamples.add("""
     <div class='type' id="$type">
       <a href='${entry['srcUrl']}'>$title</a>
-      ${sbExamples.toString()}
+      $sbExamples
     </div>
 """);
     }
@@ -363,11 +387,22 @@ $sbMembers
   sb.add("""
 <div id="#dart_summary">
   <h2>Summary</h2>
-  <h3>Generated docs for ${numGen} classes out of a possible ${allProps.getKeys().length}</h3>
+  <h3>
+    Generated docs for $numGen classes out of a possible
+    ${allProps.getKeys().length}
+  </h3>
   <h3>Found documentation for $numFoundMethods methods listed in WebKit</h3>
-  <h3>Found documentation for $numExtraMethods methods not listed in WebKit</h3>
-  <h3>Unable to find documentation for $numMissingMethods methods not present in WebKit</h3>
-  <h3>Skipped generating documentation for $numSkipped classes due to no plausible matching files</h3>
+  <h3>
+    Found documentation for $numExtraMethods methods not listed in WebKit
+  </h3>
+  <h3>
+    Unable to find documentation for $numMissingMethods methods present in
+    WebKit
+  </h3>
+  <h3>
+    Skipped generating documentation for $numSkipped classes due to no
+    plausible matching files
+  </h3>
   <ul>
 $sbSkipped
   </ul>
@@ -387,7 +422,8 @@ $sbSkipped
       body {
       	background-color: #eee;
       	margin: 10px;
-      	font: 14px/1.428 "Lucida Grande", "Lucida Sans Unicode", Lucida, Arial, Helvetica, sans-serif;
+      	font: 14px/1.428 "Lucida Grande", "Lucida Sans Unicode", Lucida, Arial,
+            Helvetica, sans-serif;
       }
 
       .debug {
@@ -428,7 +464,8 @@ $sbAllExamples
       body {
         background-color: #eee;
         margin: 10px;
-        font: 14px/1.428 "Lucida Grande", "Lucida Sans Unicode", Lucida, Arial, Helvetica, sans-serif;
+        font: 14px/1.428 "Lucida Grande", "Lucida Sans Unicode", Lucida,
+            Arial, Helvetica, sans-serif;
       }
 
       .debug {
@@ -451,11 +488,15 @@ $sbAllExamples
   </head>
   <body>
     <h1>Methods marked as obsolete</h1>
-          <table>
-            <tbody>
-              <tr>
-                <th>Type</th><th>Name</th><th>Description</th><th>IDL</th><th>Status</th>
-              </tr>
+    <table>
+      <tbody>
+        <tr>
+          <th>Type</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th>IDL</th>
+          <th>Status</th>
+        </tr>
 $sbObsolete
     </tbody>
    </table>
@@ -463,5 +504,6 @@ $sbObsolete
  </html>
  """);
 
-  fs.writeFileSync("output/database.filtered.json", JSON.stringify(filteredDb));
+  fs.writeFileSync("output/database.filtered.json",
+      JSON.stringify(filteredDb));
 }
