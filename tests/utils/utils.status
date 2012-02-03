@@ -6,4 +6,4 @@
 UriTest: Fail
 
 [ $arch == simarm ]
-UriTest: Crash # Issue 1409.
+*: Skip
