@@ -24,6 +24,8 @@ class ProgressIndicator {
         return new LineProgressIndicator(startTime, printTiming);
       case 'verbose':
         return new VerboseProgressIndicator(startTime, printTiming);
+      case 'silent':
+        return new SilentProgressIndicator(startTime, printTiming);
       case 'status':
         return new StatusProgressIndicator(startTime, printTiming);
       case 'buildbot':
@@ -182,6 +184,18 @@ class ProgressIndicator {
   List<String> _failureSummary;
 }
 
+
+class SilentProgressIndicator extends ProgressIndicator {
+  SilentProgressIndicator(Date startTime, bool printTiming)
+      : super(startTime, printTiming);
+  void testAdded() { }
+  void start(TestCase test) { }
+  void done(TestCase test) { }
+  void allTestsKnown() { }
+  void allDone() {
+    exit(0);
+  }
+}
 
 class CompactIndicator extends ProgressIndicator {
   CompactIndicator(Date startTime, bool printTiming)

@@ -881,7 +881,8 @@ class JUnitTestSuite implements TestSuite {
         '-ea',
         '-classpath', classPath,
         '-Dcom.google.dart.runner.d8=$d8',
-        '-Dcom.google.dart.corelib.SharedTests.test_py=$dartDir/tools/test.py',
+        '-Dcom.google.dart.corelib.SharedTests.test_py=' +
+            dartDir + '/tools/test_wrapper.py',
         'org.junit.runner.JUnitCore'];
     args.addAll(testClasses);
 

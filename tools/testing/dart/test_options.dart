@@ -96,7 +96,8 @@ is 'dart file.dart' and you specify special command
               'progress',
               'Progress indication mode',
               ['-p', '--progress'],
-              ['compact', 'color', 'line', 'verbose', 'status', 'buildbot'],
+              ['compact', 'color', 'line', 'verbose',
+               'silent', 'status', 'buildbot'],
               'compact'),
           new _TestOptionSpecification(
               'report',

@@ -495,7 +495,9 @@ class ProcessQueue {
               new Process.start('/bin/rm', ['-rf', _temporaryDirectory]);
           deletion.exitHandler = (int exitCode) {
             if (exitCode == 0) {
-              print('\nTemporary directory $_temporaryDirectory deleted.');
+              if (!_listTests) {  // Output of --list option is used by scripts.
+                print('\nTemporary directory $_temporaryDirectory deleted.');
+              }
             } else {
               print('\nDeletion of temp dir $_temporaryDirectory failed.');
             }
@@ -538,7 +540,11 @@ class ProcessQueue {
       TestCase test = _tests.removeFirst();
       if (_verbose) print(test.commandLine);
       if (_listTests) {
-        print(test.commandLine);
+        final String tab = '\t';
+        String outcomes =
+            Strings.join(new List.from(test.expectedOutcomes), ',');
+        print(test.displayName + tab + outcomes + tab + test.isNegative +
+              tab + Strings.join(test.arguments, tab));
         return;
       }
       _progress.start(test);

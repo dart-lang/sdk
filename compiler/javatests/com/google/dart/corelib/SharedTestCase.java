@@ -279,7 +279,9 @@ public abstract class SharedTestCase extends TestCase {
 
   static Test getInstance(String line, boolean regularCompile) {
     String[] fields = SEPARATOR.split(line);
-    assertTrue(line, fields.length > 3);
+    if (fields.length <= 3) {
+      fail("Line is not parsable: " + line);
+    }
     String name = fields[0];
     Set<String> outcomes = new HashSet<String>(Arrays.<String>asList(fields[1].split(",")));
     boolean isNegative = fields[2].equals("True");
