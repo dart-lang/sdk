@@ -386,6 +386,7 @@ MethodBindingTest: Fail
 Prefix15Test: Fail
 ToStringAsFixedTest: Pass,Fail # Passes in 32-bit Safari, but fails in 64-bit Issue #1220
 ExecuteFinally6Test: Skip
+GCTest: Fail
 
 [ $component == webdriver && $browser == ff ]
 NamingTest: Fail
