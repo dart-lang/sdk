@@ -73,7 +73,6 @@ DefaultFactoryTest: Fail
 DefaultImplementationTest: Fail
 DefaultInitTest: Fail
 DeoptNoFeedbackTest: Fail
-DeoptimizationTest: Fail
 DivByZeroTest: Fail
 DoWhileTest: Fail
 DuplicateConstructorTest/01: Fail
@@ -220,7 +219,6 @@ NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
 NewExpressionTypeArgsFrogTest/02: Fail
-NoSuchMethodTest: Fail
 NonConstConstructorWithoutBodyTest: Fail
 NonConstSuperNegativeTest: Fail
 NonParameterizedFactory2Test: Fail
