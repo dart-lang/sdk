@@ -3,11 +3,7 @@ class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPo
   WebKitPoint(num x, num y) native;
 
 
-  num get x() native "return this.x;";
+  num x;
 
-  void set x(num value) native "this.x = value;";
-
-  num get y() native "return this.y;";
-
-  void set y(num value) native "this.y = value;";
+  num y;
 }

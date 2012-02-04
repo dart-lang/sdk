@@ -1,39 +1,27 @@
 
 class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement native "*SVGGlyphRefElement" {
 
-  num get dx() native "return this.dx;";
+  num dx;
 
-  void set dx(num value) native "this.dx = value;";
+  num dy;
 
-  num get dy() native "return this.dy;";
+  String format;
 
-  void set dy(num value) native "this.dy = value;";
+  String glyphRef;
 
-  String get format() native "return this.format;";
+  num x;
 
-  void set format(String value) native "this.format = value;";
-
-  String get glyphRef() native "return this.glyphRef;";
-
-  void set glyphRef(String value) native "this.glyphRef = value;";
-
-  num get x() native "return this.x;";
-
-  void set x(num value) native "this.x = value;";
-
-  num get y() native "return this.y;";
-
-  void set y(num value) native "this.y = value;";
+  num y;
 
   // From SVGURIReference
 
-  _SVGAnimatedStringJs get href() native "return this.href;";
+  final _SVGAnimatedStringJs href;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

@@ -1,35 +1,35 @@
 
 class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
-  String get appCodeName() native "return this.appCodeName;";
+  final String appCodeName;
 
-  String get appName() native "return this.appName;";
+  final String appName;
 
-  String get appVersion() native "return this.appVersion;";
+  final String appVersion;
 
-  bool get cookieEnabled() native "return this.cookieEnabled;";
+  final bool cookieEnabled;
 
-  _GeolocationJs get geolocation() native "return this.geolocation;";
+  final _GeolocationJs geolocation;
 
-  String get language() native "return this.language;";
+  final String language;
 
-  _DOMMimeTypeArrayJs get mimeTypes() native "return this.mimeTypes;";
+  final _DOMMimeTypeArrayJs mimeTypes;
 
-  bool get onLine() native "return this.onLine;";
+  final bool onLine;
 
-  String get platform() native "return this.platform;";
+  final String platform;
 
-  _DOMPluginArrayJs get plugins() native "return this.plugins;";
+  final _DOMPluginArrayJs plugins;
 
-  String get product() native "return this.product;";
+  final String product;
 
-  String get productSub() native "return this.productSub;";
+  final String productSub;
 
-  String get userAgent() native "return this.userAgent;";
+  final String userAgent;
 
-  String get vendor() native "return this.vendor;";
+  final String vendor;
 
-  String get vendorSub() native "return this.vendorSub;";
+  final String vendorSub;
 
   void getStorageUpdates() native;
 

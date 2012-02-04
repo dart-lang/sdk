@@ -1,19 +1,15 @@
 
 class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
-  String get dropEffect() native "return this.dropEffect;";
+  String dropEffect;
 
-  void set dropEffect(String value) native "this.dropEffect = value;";
+  String effectAllowed;
 
-  String get effectAllowed() native "return this.effectAllowed;";
+  final _FileListJs files;
 
-  void set effectAllowed(String value) native "this.effectAllowed = value;";
+  final _DataTransferItemListJs items;
 
-  _FileListJs get files() native "return this.files;";
-
-  _DataTransferItemListJs get items() native "return this.items;";
-
-  List get types() native "return this.types;";
+  final List types;
 
   void clearData([String type = null]) native;
 

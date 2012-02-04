@@ -1,7 +1,7 @@
 
 class _TextJs extends _CharacterDataJs implements Text native "*Text" {
 
-  String get wholeText() native "return this.wholeText;";
+  final String wholeText;
 
   _TextJs replaceWholeText(String content) native;
 

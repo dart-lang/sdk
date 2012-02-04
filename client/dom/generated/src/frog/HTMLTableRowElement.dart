@@ -1,31 +1,21 @@
 
 class _HTMLTableRowElementJs extends _HTMLElementJs implements HTMLTableRowElement native "*HTMLTableRowElement" {
 
-  String get align() native "return this.align;";
+  String align;
 
-  void set align(String value) native "this.align = value;";
+  String bgColor;
 
-  String get bgColor() native "return this.bgColor;";
+  final _HTMLCollectionJs cells;
 
-  void set bgColor(String value) native "this.bgColor = value;";
+  String ch;
 
-  _HTMLCollectionJs get cells() native "return this.cells;";
+  String chOff;
 
-  String get ch() native "return this.ch;";
+  final int rowIndex;
 
-  void set ch(String value) native "this.ch = value;";
+  final int sectionRowIndex;
 
-  String get chOff() native "return this.chOff;";
-
-  void set chOff(String value) native "this.chOff = value;";
-
-  int get rowIndex() native "return this.rowIndex;";
-
-  int get sectionRowIndex() native "return this.sectionRowIndex;";
-
-  String get vAlign() native "return this.vAlign;";
-
-  void set vAlign(String value) native "this.vAlign = value;";
+  String vAlign;
 
   void deleteCell(int index) native;
 

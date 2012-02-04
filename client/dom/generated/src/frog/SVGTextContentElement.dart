@@ -7,9 +7,9 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
-  _SVGAnimatedEnumerationJs get lengthAdjust() native "return this.lengthAdjust;";
+  final _SVGAnimatedEnumerationJs lengthAdjust;
 
-  _SVGAnimatedLengthJs get textLength() native "return this.textLength;";
+  final _SVGAnimatedLengthJs textLength;
 
   int getCharNumAtPosition(_SVGPointJs point) native;
 
@@ -31,33 +31,29 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   // From SVGTests
 
-  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  final _SVGStringListJs requiredExtensions;
 
-  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  final _SVGStringListJs requiredFeatures;
 
-  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  final _SVGStringListJs systemLanguage;
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String get xmllang() native "return this.xmllang;";
+  String xmllang;
 
-  void set xmllang(String value) native "this.xmllang = value;";
-
-  String get xmlspace() native "return this.xmlspace;";
-
-  void set xmlspace(String value) native "this.xmlspace = value;";
+  String xmlspace;
 
   // From SVGExternalResourcesRequired
 
-  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  final _SVGAnimatedBooleanJs externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

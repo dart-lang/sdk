@@ -13,19 +13,19 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  _SVGAnimatedLengthJs get markerHeight() native "return this.markerHeight;";
+  final _SVGAnimatedLengthJs markerHeight;
 
-  _SVGAnimatedEnumerationJs get markerUnits() native "return this.markerUnits;";
+  final _SVGAnimatedEnumerationJs markerUnits;
 
-  _SVGAnimatedLengthJs get markerWidth() native "return this.markerWidth;";
+  final _SVGAnimatedLengthJs markerWidth;
 
-  _SVGAnimatedAngleJs get orientAngle() native "return this.orientAngle;";
+  final _SVGAnimatedAngleJs orientAngle;
 
-  _SVGAnimatedEnumerationJs get orientType() native "return this.orientType;";
+  final _SVGAnimatedEnumerationJs orientType;
 
-  _SVGAnimatedLengthJs get refX() native "return this.refX;";
+  final _SVGAnimatedLengthJs refX;
 
-  _SVGAnimatedLengthJs get refY() native "return this.refY;";
+  final _SVGAnimatedLengthJs refY;
 
   void setOrientToAngle(_SVGAngleJs angle) native;
 
@@ -33,29 +33,25 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   // From SVGLangSpace
 
-  String get xmllang() native "return this.xmllang;";
+  String xmllang;
 
-  void set xmllang(String value) native "this.xmllang = value;";
-
-  String get xmlspace() native "return this.xmlspace;";
-
-  void set xmlspace(String value) native "this.xmlspace = value;";
+  String xmlspace;
 
   // From SVGExternalResourcesRequired
 
-  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  final _SVGAnimatedBooleanJs externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  _SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
 
-  _SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
+  final _SVGAnimatedRectJs viewBox;
 }

@@ -1,9 +1,9 @@
 
 class _CounterJs extends _DOMTypeJs implements Counter native "*Counter" {
 
-  String get identifier() native "return this.identifier;";
+  final String identifier;
 
-  String get listStyle() native "return this.listStyle;";
+  final String listStyle;
 
-  String get separator() native "return this.separator;";
+  final String separator;
 }

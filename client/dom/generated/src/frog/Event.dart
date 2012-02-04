@@ -39,33 +39,29 @@ class _EventJs extends _DOMTypeJs implements Event native "*Event" {
 
   static final int SELECT = 16384;
 
-  bool get bubbles() native "return this.bubbles;";
+  final bool bubbles;
 
-  bool get cancelBubble() native "return this.cancelBubble;";
+  bool cancelBubble;
 
-  void set cancelBubble(bool value) native "this.cancelBubble = value;";
+  final bool cancelable;
 
-  bool get cancelable() native "return this.cancelable;";
+  final _ClipboardJs clipboardData;
 
-  _ClipboardJs get clipboardData() native "return this.clipboardData;";
+  final _EventTargetJs currentTarget;
 
-  _EventTargetJs get currentTarget() native "return this.currentTarget;";
+  final bool defaultPrevented;
 
-  bool get defaultPrevented() native "return this.defaultPrevented;";
+  final int eventPhase;
 
-  int get eventPhase() native "return this.eventPhase;";
+  bool returnValue;
 
-  bool get returnValue() native "return this.returnValue;";
+  final _EventTargetJs srcElement;
 
-  void set returnValue(bool value) native "this.returnValue = value;";
+  final _EventTargetJs target;
 
-  _EventTargetJs get srcElement() native "return this.srcElement;";
+  final int timeStamp;
 
-  _EventTargetJs get target() native "return this.target;";
-
-  int get timeStamp() native "return this.timeStamp;";
-
-  String get type() native "return this.type;";
+  final String type;
 
   void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native;
 

@@ -11,7 +11,7 @@ class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int get length() native "return this.length;";
+  final int length;
 
   int operator[](int index) native "return this[index];";
 

@@ -27,11 +27,11 @@ class _IDBDatabaseExceptionJs extends _DOMTypeJs implements IDBDatabaseException
 
   static final int VER_ERR = 12;
 
-  int get code() native "return this.code;";
+  final int code;
 
-  String get message() native "return this.message;";
+  final String message;
 
-  String get name() native "return this.name;";
+  final String name;
 
   String toString() native;
 }

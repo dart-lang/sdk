@@ -11,7 +11,7 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
 
   static final int BYTES_PER_ELEMENT = 8;
 
-  int get length() native "return this.length;";
+  final int length;
 
   num operator[](int index) native "return this[index];";
 

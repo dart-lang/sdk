@@ -1,15 +1,13 @@
 
 class _AttrJs extends _NodeJs implements Attr native "*Attr" {
 
-  bool get isId() native "return this.isId;";
+  final bool isId;
 
-  String get name() native "return this.name;";
+  final String name;
 
-  _ElementJs get ownerElement() native "return this.ownerElement;";
+  final _ElementJs ownerElement;
 
-  bool get specified() native "return this.specified;";
+  final bool specified;
 
-  String get value() native "return this.value;";
-
-  void set value(String value) native "this.value = value;";
+  String value;
 }

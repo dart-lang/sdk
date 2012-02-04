@@ -1,13 +1,13 @@
 
 class _DOMPluginJs extends _DOMTypeJs implements DOMPlugin native "*DOMPlugin" {
 
-  String get description() native "return this.description;";
+  final String description;
 
-  String get filename() native "return this.filename;";
+  final String filename;
 
-  int get length() native "return this.length;";
+  final int length;
 
-  String get name() native "return this.name;";
+  final String name;
 
   _DOMMimeTypeJs item(int index) native;
 

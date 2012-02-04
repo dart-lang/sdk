@@ -1,35 +1,25 @@
 
 class _MediaControllerJs extends _DOMTypeJs implements MediaController native "*MediaController" {
 
-  _TimeRangesJs get buffered() native "return this.buffered;";
+  final _TimeRangesJs buffered;
 
-  num get currentTime() native "return this.currentTime;";
+  num currentTime;
 
-  void set currentTime(num value) native "this.currentTime = value;";
+  num defaultPlaybackRate;
 
-  num get defaultPlaybackRate() native "return this.defaultPlaybackRate;";
+  final num duration;
 
-  void set defaultPlaybackRate(num value) native "this.defaultPlaybackRate = value;";
+  bool muted;
 
-  num get duration() native "return this.duration;";
+  final bool paused;
 
-  bool get muted() native "return this.muted;";
+  num playbackRate;
 
-  void set muted(bool value) native "this.muted = value;";
+  final _TimeRangesJs played;
 
-  bool get paused() native "return this.paused;";
+  final _TimeRangesJs seekable;
 
-  num get playbackRate() native "return this.playbackRate;";
-
-  void set playbackRate(num value) native "this.playbackRate = value;";
-
-  _TimeRangesJs get played() native "return this.played;";
-
-  _TimeRangesJs get seekable() native "return this.seekable;";
-
-  num get volume() native "return this.volume;";
-
-  void set volume(num value) native "this.volume = value;";
+  num volume;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

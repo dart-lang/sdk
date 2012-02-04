@@ -1,7 +1,7 @@
 
 class _SVGFitToViewBoxJs extends _DOMTypeJs implements SVGFitToViewBox native "*SVGFitToViewBox" {
 
-  _SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
 
-  _SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
+  final _SVGAnimatedRectJs viewBox;
 }

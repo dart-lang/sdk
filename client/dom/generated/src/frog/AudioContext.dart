@@ -3,17 +3,15 @@ class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioC
   AudioContext() native;
 
 
-  num get currentTime() native "return this.currentTime;";
+  final num currentTime;
 
-  _AudioDestinationNodeJs get destination() native "return this.destination;";
+  final _AudioDestinationNodeJs destination;
 
-  _AudioListenerJs get listener() native "return this.listener;";
+  final _AudioListenerJs listener;
 
-  EventListener get oncomplete() native "return this.oncomplete;";
+  EventListener oncomplete;
 
-  void set oncomplete(EventListener value) native "this.oncomplete = value;";
-
-  num get sampleRate() native "return this.sampleRate;";
+  final num sampleRate;
 
   _RealtimeAnalyserNodeJs createAnalyser() native;
 

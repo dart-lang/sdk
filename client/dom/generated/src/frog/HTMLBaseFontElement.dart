@@ -1,15 +1,9 @@
 
 class _HTMLBaseFontElementJs extends _HTMLElementJs implements HTMLBaseFontElement native "*HTMLBaseFontElement" {
 
-  String get color() native "return this.color;";
+  String color;
 
-  void set color(String value) native "this.color = value;";
+  String face;
 
-  String get face() native "return this.face;";
-
-  void set face(String value) native "this.face = value;";
-
-  int get size() native "return this.size;";
-
-  void set size(int value) native "this.size = value;";
+  int size;
 }

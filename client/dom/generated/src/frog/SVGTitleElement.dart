@@ -3,19 +3,15 @@ class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native
 
   // From SVGLangSpace
 
-  String get xmllang() native "return this.xmllang;";
+  String xmllang;
 
-  void set xmllang(String value) native "this.xmllang = value;";
-
-  String get xmlspace() native "return this.xmlspace;";
-
-  void set xmlspace(String value) native "this.xmlspace = value;";
+  String xmlspace;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

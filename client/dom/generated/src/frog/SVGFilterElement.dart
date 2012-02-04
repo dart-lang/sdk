@@ -1,47 +1,43 @@
 
 class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement native "*SVGFilterElement" {
 
-  _SVGAnimatedIntegerJs get filterResX() native "return this.filterResX;";
+  final _SVGAnimatedIntegerJs filterResX;
 
-  _SVGAnimatedIntegerJs get filterResY() native "return this.filterResY;";
+  final _SVGAnimatedIntegerJs filterResY;
 
-  _SVGAnimatedEnumerationJs get filterUnits() native "return this.filterUnits;";
+  final _SVGAnimatedEnumerationJs filterUnits;
 
-  _SVGAnimatedLengthJs get height() native "return this.height;";
+  final _SVGAnimatedLengthJs height;
 
-  _SVGAnimatedEnumerationJs get primitiveUnits() native "return this.primitiveUnits;";
+  final _SVGAnimatedEnumerationJs primitiveUnits;
 
-  _SVGAnimatedLengthJs get width() native "return this.width;";
+  final _SVGAnimatedLengthJs width;
 
-  _SVGAnimatedLengthJs get x() native "return this.x;";
+  final _SVGAnimatedLengthJs x;
 
-  _SVGAnimatedLengthJs get y() native "return this.y;";
+  final _SVGAnimatedLengthJs y;
 
   void setFilterRes(int filterResX, int filterResY) native;
 
   // From SVGURIReference
 
-  _SVGAnimatedStringJs get href() native "return this.href;";
+  final _SVGAnimatedStringJs href;
 
   // From SVGLangSpace
 
-  String get xmllang() native "return this.xmllang;";
+  String xmllang;
 
-  void set xmllang(String value) native "this.xmllang = value;";
-
-  String get xmlspace() native "return this.xmlspace;";
-
-  void set xmlspace(String value) native "this.xmlspace = value;";
+  String xmlspace;
 
   // From SVGExternalResourcesRequired
 
-  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  final _SVGAnimatedBooleanJs externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

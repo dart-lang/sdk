@@ -1,9 +1,9 @@
 
 class _ScriptProfileJs extends _DOMTypeJs implements ScriptProfile native "*ScriptProfile" {
 
-  _ScriptProfileNodeJs get head() native "return this.head;";
+  final _ScriptProfileNodeJs head;
 
-  String get title() native "return this.title;";
+  final String title;
 
-  int get uid() native "return this.uid;";
+  final int uid;
 }

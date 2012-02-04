@@ -43,5 +43,5 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
 
   static final int CSS_TRANSLATEZ = 12;
 
-  int get operationType() native "return this.operationType;";
+  final int operationType;
 }

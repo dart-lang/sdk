@@ -1,11 +1,9 @@
 
 class _TextTrackListJs extends _DOMTypeJs implements TextTrackList native "*TextTrackList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
-  EventListener get onaddtrack() native "return this.onaddtrack;";
-
-  void set onaddtrack(EventListener value) native "this.onaddtrack = value;";
+  EventListener onaddtrack;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

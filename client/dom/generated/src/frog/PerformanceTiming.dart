@@ -1,45 +1,45 @@
 
 class _PerformanceTimingJs extends _DOMTypeJs implements PerformanceTiming native "*PerformanceTiming" {
 
-  int get connectEnd() native "return this.connectEnd;";
+  final int connectEnd;
 
-  int get connectStart() native "return this.connectStart;";
+  final int connectStart;
 
-  int get domComplete() native "return this.domComplete;";
+  final int domComplete;
 
-  int get domContentLoadedEventEnd() native "return this.domContentLoadedEventEnd;";
+  final int domContentLoadedEventEnd;
 
-  int get domContentLoadedEventStart() native "return this.domContentLoadedEventStart;";
+  final int domContentLoadedEventStart;
 
-  int get domInteractive() native "return this.domInteractive;";
+  final int domInteractive;
 
-  int get domLoading() native "return this.domLoading;";
+  final int domLoading;
 
-  int get domainLookupEnd() native "return this.domainLookupEnd;";
+  final int domainLookupEnd;
 
-  int get domainLookupStart() native "return this.domainLookupStart;";
+  final int domainLookupStart;
 
-  int get fetchStart() native "return this.fetchStart;";
+  final int fetchStart;
 
-  int get loadEventEnd() native "return this.loadEventEnd;";
+  final int loadEventEnd;
 
-  int get loadEventStart() native "return this.loadEventStart;";
+  final int loadEventStart;
 
-  int get navigationStart() native "return this.navigationStart;";
+  final int navigationStart;
 
-  int get redirectEnd() native "return this.redirectEnd;";
+  final int redirectEnd;
 
-  int get redirectStart() native "return this.redirectStart;";
+  final int redirectStart;
 
-  int get requestStart() native "return this.requestStart;";
+  final int requestStart;
 
-  int get responseEnd() native "return this.responseEnd;";
+  final int responseEnd;
 
-  int get responseStart() native "return this.responseStart;";
+  final int responseStart;
 
-  int get secureConnectionStart() native "return this.secureConnectionStart;";
+  final int secureConnectionStart;
 
-  int get unloadEventEnd() native "return this.unloadEventEnd;";
+  final int unloadEventEnd;
 
-  int get unloadEventStart() native "return this.unloadEventStart;";
+  final int unloadEventStart;
 }

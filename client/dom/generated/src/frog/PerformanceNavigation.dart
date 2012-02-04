@@ -9,7 +9,7 @@ class _PerformanceNavigationJs extends _DOMTypeJs implements PerformanceNavigati
 
   static final int TYPE_RESERVED = 255;
 
-  int get redirectCount() native "return this.redirectCount;";
+  final int redirectCount;
 
-  int get type() native "return this.type;";
+  final int type;
 }

@@ -25,5 +25,5 @@ class _FileErrorJs extends _DOMTypeJs implements FileError native "*FileError" {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int get code() native "return this.code;";
+  final int code;
 }

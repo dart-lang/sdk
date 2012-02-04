@@ -1,21 +1,21 @@
 
 class _MutationRecordJs extends _DOMTypeJs implements MutationRecord native "*MutationRecord" {
 
-  _NodeListJs get addedNodes() native "return this.addedNodes;";
+  final _NodeListJs addedNodes;
 
-  String get attributeName() native "return this.attributeName;";
+  final String attributeName;
 
-  String get attributeNamespace() native "return this.attributeNamespace;";
+  final String attributeNamespace;
 
-  _NodeJs get nextSibling() native "return this.nextSibling;";
+  final _NodeJs nextSibling;
 
-  String get oldValue() native "return this.oldValue;";
+  final String oldValue;
 
-  _NodeJs get previousSibling() native "return this.previousSibling;";
+  final _NodeJs previousSibling;
 
-  _NodeListJs get removedNodes() native "return this.removedNodes;";
+  final _NodeListJs removedNodes;
 
-  _NodeJs get target() native "return this.target;";
+  final _NodeJs target;
 
-  String get type() native "return this.type;";
+  final String type;
 }

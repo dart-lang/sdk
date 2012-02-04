@@ -1,85 +1,47 @@
 
 class _HTMLAnchorElementJs extends _HTMLElementJs implements HTMLAnchorElement native "*HTMLAnchorElement" {
 
-  String get charset() native "return this.charset;";
+  String charset;
 
-  void set charset(String value) native "this.charset = value;";
+  String coords;
 
-  String get coords() native "return this.coords;";
+  String download;
 
-  void set coords(String value) native "this.coords = value;";
+  String hash;
 
-  String get download() native "return this.download;";
+  String host;
 
-  void set download(String value) native "this.download = value;";
+  String hostname;
 
-  String get hash() native "return this.hash;";
+  String href;
 
-  void set hash(String value) native "this.hash = value;";
+  String hreflang;
 
-  String get host() native "return this.host;";
+  String name;
 
-  void set host(String value) native "this.host = value;";
+  final String origin;
 
-  String get hostname() native "return this.hostname;";
+  String pathname;
 
-  void set hostname(String value) native "this.hostname = value;";
+  String ping;
 
-  String get href() native "return this.href;";
+  String port;
 
-  void set href(String value) native "this.href = value;";
+  String protocol;
 
-  String get hreflang() native "return this.hreflang;";
+  String rel;
 
-  void set hreflang(String value) native "this.hreflang = value;";
+  String rev;
 
-  String get name() native "return this.name;";
+  String search;
 
-  void set name(String value) native "this.name = value;";
+  String shape;
 
-  String get origin() native "return this.origin;";
+  String target;
 
-  String get pathname() native "return this.pathname;";
+  final String text;
 
-  void set pathname(String value) native "this.pathname = value;";
-
-  String get ping() native "return this.ping;";
-
-  void set ping(String value) native "this.ping = value;";
-
-  String get port() native "return this.port;";
-
-  void set port(String value) native "this.port = value;";
-
-  String get protocol() native "return this.protocol;";
-
-  void set protocol(String value) native "this.protocol = value;";
-
-  String get rel() native "return this.rel;";
-
-  void set rel(String value) native "this.rel = value;";
-
-  String get rev() native "return this.rev;";
-
-  void set rev(String value) native "this.rev = value;";
-
-  String get search() native "return this.search;";
-
-  void set search(String value) native "this.search = value;";
-
-  String get shape() native "return this.shape;";
-
-  void set shape(String value) native "this.shape = value;";
-
-  String get target() native "return this.target;";
-
-  void set target(String value) native "this.target = value;";
-
-  String get text() native "return this.text;";
-
-  String get type() native "return this.type;";
-
-  void set type(String value) native "this.type = value;";
+  String type;
 
   String toString() native;
 }

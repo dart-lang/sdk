@@ -13,33 +13,27 @@ class _XMLHttpRequestJs extends _DOMTypeJs implements XMLHttpRequest native "*XM
 
   static final int UNSENT = 0;
 
-  bool get asBlob() native "return this.asBlob;";
+  bool asBlob;
 
-  void set asBlob(bool value) native "this.asBlob = value;";
+  final int readyState;
 
-  int get readyState() native "return this.readyState;";
+  final Object response;
 
-  Object get response() native "return this.response;";
+  final _BlobJs responseBlob;
 
-  _BlobJs get responseBlob() native "return this.responseBlob;";
+  final String responseText;
 
-  String get responseText() native "return this.responseText;";
+  String responseType;
 
-  String get responseType() native "return this.responseType;";
+  final _DocumentJs responseXML;
 
-  void set responseType(String value) native "this.responseType = value;";
+  final int status;
 
-  _DocumentJs get responseXML() native "return this.responseXML;";
+  final String statusText;
 
-  int get status() native "return this.status;";
+  final _XMLHttpRequestUploadJs upload;
 
-  String get statusText() native "return this.statusText;";
-
-  _XMLHttpRequestUploadJs get upload() native "return this.upload;";
-
-  bool get withCredentials() native "return this.withCredentials;";
-
-  void set withCredentials(bool value) native "this.withCredentials = value;";
+  bool withCredentials;
 
   void abort() native;
 

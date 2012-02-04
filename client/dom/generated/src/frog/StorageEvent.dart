@@ -1,15 +1,15 @@
 
 class _StorageEventJs extends _EventJs implements StorageEvent native "*StorageEvent" {
 
-  String get key() native "return this.key;";
+  final String key;
 
-  String get newValue() native "return this.newValue;";
+  final String newValue;
 
-  String get oldValue() native "return this.oldValue;";
+  final String oldValue;
 
-  _StorageJs get storageArea() native "return this.storageArea;";
+  final _StorageJs storageArea;
 
-  String get url() native "return this.url;";
+  final String url;
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, _StorageJs storageAreaArg) native;
 }

@@ -1,7 +1,7 @@
 
 class _FileListJs extends _DOMTypeJs implements FileList native "*FileList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _FileJs item(int index) native;
 }

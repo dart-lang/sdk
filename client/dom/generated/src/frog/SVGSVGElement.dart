@@ -1,41 +1,33 @@
 
 class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*SVGSVGElement" {
 
-  String get contentScriptType() native "return this.contentScriptType;";
+  String contentScriptType;
 
-  void set contentScriptType(String value) native "this.contentScriptType = value;";
+  String contentStyleType;
 
-  String get contentStyleType() native "return this.contentStyleType;";
+  num currentScale;
 
-  void set contentStyleType(String value) native "this.contentStyleType = value;";
+  final _SVGPointJs currentTranslate;
 
-  num get currentScale() native "return this.currentScale;";
+  final _SVGAnimatedLengthJs height;
 
-  void set currentScale(num value) native "this.currentScale = value;";
+  final num pixelUnitToMillimeterX;
 
-  _SVGPointJs get currentTranslate() native "return this.currentTranslate;";
+  final num pixelUnitToMillimeterY;
 
-  _SVGAnimatedLengthJs get height() native "return this.height;";
+  final num screenPixelToMillimeterX;
 
-  num get pixelUnitToMillimeterX() native "return this.pixelUnitToMillimeterX;";
+  final num screenPixelToMillimeterY;
 
-  num get pixelUnitToMillimeterY() native "return this.pixelUnitToMillimeterY;";
+  bool useCurrentView;
 
-  num get screenPixelToMillimeterX() native "return this.screenPixelToMillimeterX;";
+  final _SVGRectJs viewport;
 
-  num get screenPixelToMillimeterY() native "return this.screenPixelToMillimeterY;";
+  final _SVGAnimatedLengthJs width;
 
-  bool get useCurrentView() native "return this.useCurrentView;";
+  final _SVGAnimatedLengthJs x;
 
-  void set useCurrentView(bool value) native "this.useCurrentView = value;";
-
-  _SVGRectJs get viewport() native "return this.viewport;";
-
-  _SVGAnimatedLengthJs get width() native "return this.width;";
-
-  _SVGAnimatedLengthJs get x() native "return this.x;";
-
-  _SVGAnimatedLengthJs get y() native "return this.y;";
+  final _SVGAnimatedLengthJs y;
 
   bool animationsPaused() native;
 
@@ -85,41 +77,37 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   // From SVGTests
 
-  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  final _SVGStringListJs requiredExtensions;
 
-  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  final _SVGStringListJs requiredFeatures;
 
-  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  final _SVGStringListJs systemLanguage;
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String get xmllang() native "return this.xmllang;";
+  String xmllang;
 
-  void set xmllang(String value) native "this.xmllang = value;";
-
-  String get xmlspace() native "return this.xmlspace;";
-
-  void set xmlspace(String value) native "this.xmlspace = value;";
+  String xmlspace;
 
   // From SVGExternalResourcesRequired
 
-  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  final _SVGAnimatedBooleanJs externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGLocatable
 
-  _SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
+  final _SVGElementJs farthestViewportElement;
 
-  _SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
+  final _SVGElementJs nearestViewportElement;
 
   _SVGRectJs getBBox() native;
 
@@ -131,13 +119,11 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   // From SVGFitToViewBox
 
-  _SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
 
-  _SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
+  final _SVGAnimatedRectJs viewBox;
 
   // From SVGZoomAndPan
 
-  int get zoomAndPan() native "return this.zoomAndPan;";
-
-  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
+  int zoomAndPan;
 }

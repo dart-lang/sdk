@@ -1,39 +1,23 @@
 
 class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
 
-  String get hash() native "return this.hash;";
+  String hash;
 
-  void set hash(String value) native "this.hash = value;";
+  String host;
 
-  String get host() native "return this.host;";
+  String hostname;
 
-  void set host(String value) native "this.host = value;";
+  String href;
 
-  String get hostname() native "return this.hostname;";
+  final String origin;
 
-  void set hostname(String value) native "this.hostname = value;";
+  String pathname;
 
-  String get href() native "return this.href;";
+  String port;
 
-  void set href(String value) native "this.href = value;";
+  String protocol;
 
-  String get origin() native "return this.origin;";
-
-  String get pathname() native "return this.pathname;";
-
-  void set pathname(String value) native "this.pathname = value;";
-
-  String get port() native "return this.port;";
-
-  void set port(String value) native "this.port = value;";
-
-  String get protocol() native "return this.protocol;";
-
-  void set protocol(String value) native "this.protocol = value;";
-
-  String get search() native "return this.search;";
-
-  void set search(String value) native "this.search = value;";
+  String search;
 
   void assign(String url) native;
 

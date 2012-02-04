@@ -1,13 +1,13 @@
 
 class _SVGTextPositioningElementJs extends _SVGTextContentElementJs implements SVGTextPositioningElement native "*SVGTextPositioningElement" {
 
-  _SVGAnimatedLengthListJs get dx() native "return this.dx;";
+  final _SVGAnimatedLengthListJs dx;
 
-  _SVGAnimatedLengthListJs get dy() native "return this.dy;";
+  final _SVGAnimatedLengthListJs dy;
 
-  _SVGAnimatedNumberListJs get rotate() native "return this.rotate;";
+  final _SVGAnimatedNumberListJs rotate;
 
-  _SVGAnimatedLengthListJs get x() native "return this.x;";
+  final _SVGAnimatedLengthListJs x;
 
-  _SVGAnimatedLengthListJs get y() native "return this.y;";
+  final _SVGAnimatedLengthListJs y;
 }

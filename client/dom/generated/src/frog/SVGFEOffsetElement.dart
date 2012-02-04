@@ -1,29 +1,29 @@
 
 class _SVGFEOffsetElementJs extends _SVGElementJs implements SVGFEOffsetElement native "*SVGFEOffsetElement" {
 
-  _SVGAnimatedNumberJs get dx() native "return this.dx;";
+  final _SVGAnimatedNumberJs dx;
 
-  _SVGAnimatedNumberJs get dy() native "return this.dy;";
+  final _SVGAnimatedNumberJs dy;
 
-  _SVGAnimatedStringJs get in1() native "return this.in1;";
+  final _SVGAnimatedStringJs in1;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  _SVGAnimatedLengthJs get height() native "return this.height;";
+  final _SVGAnimatedLengthJs height;
 
-  _SVGAnimatedStringJs get result() native "return this.result;";
+  final _SVGAnimatedStringJs result;
 
-  _SVGAnimatedLengthJs get width() native "return this.width;";
+  final _SVGAnimatedLengthJs width;
 
-  _SVGAnimatedLengthJs get x() native "return this.x;";
+  final _SVGAnimatedLengthJs x;
 
-  _SVGAnimatedLengthJs get y() native "return this.y;";
+  final _SVGAnimatedLengthJs y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

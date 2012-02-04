@@ -11,21 +11,19 @@ class _WebSocketJs extends _DOMTypeJs implements WebSocket native "*WebSocket" {
 
   static final int OPEN = 1;
 
-  String get URL() native "return this.URL;";
+  final String URL;
 
-  String get binaryType() native "return this.binaryType;";
+  String binaryType;
 
-  void set binaryType(String value) native "this.binaryType = value;";
+  final int bufferedAmount;
 
-  int get bufferedAmount() native "return this.bufferedAmount;";
+  final String extensions;
 
-  String get extensions() native "return this.extensions;";
+  final String protocol;
 
-  String get protocol() native "return this.protocol;";
+  final int readyState;
 
-  int get readyState() native "return this.readyState;";
-
-  String get url() native "return this.url;";
+  final String url;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

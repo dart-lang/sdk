@@ -9,35 +9,23 @@ class _FileReaderJs extends _DOMTypeJs implements FileReader native "*FileReader
 
   static final int LOADING = 1;
 
-  _FileErrorJs get error() native "return this.error;";
+  final _FileErrorJs error;
 
-  EventListener get onabort() native "return this.onabort;";
+  EventListener onabort;
 
-  void set onabort(EventListener value) native "this.onabort = value;";
+  EventListener onerror;
 
-  EventListener get onerror() native "return this.onerror;";
+  EventListener onload;
 
-  void set onerror(EventListener value) native "this.onerror = value;";
+  EventListener onloadend;
 
-  EventListener get onload() native "return this.onload;";
+  EventListener onloadstart;
 
-  void set onload(EventListener value) native "this.onload = value;";
+  EventListener onprogress;
 
-  EventListener get onloadend() native "return this.onloadend;";
+  final int readyState;
 
-  void set onloadend(EventListener value) native "this.onloadend = value;";
-
-  EventListener get onloadstart() native "return this.onloadstart;";
-
-  void set onloadstart(EventListener value) native "this.onloadstart = value;";
-
-  EventListener get onprogress() native "return this.onprogress;";
-
-  void set onprogress(EventListener value) native "this.onprogress = value;";
-
-  int get readyState() native "return this.readyState;";
-
-  Object get result() native "return this.result;";
+  final Object result;
 
   void abort() native;
 

@@ -1,13 +1,9 @@
 
 class _NotificationJs extends _DOMTypeJs implements Notification native "*Notification" {
 
-  String get dir() native "return this.dir;";
+  String dir;
 
-  void set dir(String value) native "this.dir = value;";
-
-  String get replaceId() native "return this.replaceId;";
-
-  void set replaceId(String value) native "this.replaceId = value;";
+  String replaceId;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

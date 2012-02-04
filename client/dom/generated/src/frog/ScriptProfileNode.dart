@@ -1,21 +1,21 @@
 
 class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode native "*ScriptProfileNode" {
 
-  int get callUID() native "return this.callUID;";
+  final int callUID;
 
-  List get children() native "return this.children;";
+  final List children;
 
-  String get functionName() native "return this.functionName;";
+  final String functionName;
 
-  int get lineNumber() native "return this.lineNumber;";
+  final int lineNumber;
 
-  int get numberOfCalls() native "return this.numberOfCalls;";
+  final int numberOfCalls;
 
-  num get selfTime() native "return this.selfTime;";
+  final num selfTime;
 
-  num get totalTime() native "return this.totalTime;";
+  final num totalTime;
 
-  String get url() native "return this.url;";
+  final String url;
 
-  bool get visible() native "return this.visible;";
+  final bool visible;
 }

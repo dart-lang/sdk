@@ -1,15 +1,15 @@
 
 class _DocumentTypeJs extends _NodeJs implements DocumentType native "*DocumentType" {
 
-  _NamedNodeMapJs get entities() native "return this.entities;";
+  final _NamedNodeMapJs entities;
 
-  String get internalSubset() native "return this.internalSubset;";
+  final String internalSubset;
 
-  String get name() native "return this.name;";
+  final String name;
 
-  _NamedNodeMapJs get notations() native "return this.notations;";
+  final _NamedNodeMapJs notations;
 
-  String get publicId() native "return this.publicId;";
+  final String publicId;
 
-  String get systemId() native "return this.systemId;";
+  final String systemId;
 }

@@ -1,21 +1,21 @@
 
 class _WorkerLocationJs extends _DOMTypeJs implements WorkerLocation native "*WorkerLocation" {
 
-  String get hash() native "return this.hash;";
+  final String hash;
 
-  String get host() native "return this.host;";
+  final String host;
 
-  String get hostname() native "return this.hostname;";
+  final String hostname;
 
-  String get href() native "return this.href;";
+  final String href;
 
-  String get pathname() native "return this.pathname;";
+  final String pathname;
 
-  String get port() native "return this.port;";
+  final String port;
 
-  String get protocol() native "return this.protocol;";
+  final String protocol;
 
-  String get search() native "return this.search;";
+  final String search;
 
   String toString() native;
 }

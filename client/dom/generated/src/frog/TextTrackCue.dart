@@ -1,59 +1,33 @@
 
 class _TextTrackCueJs extends _DOMTypeJs implements TextTrackCue native "*TextTrackCue" {
 
-  String get alignment() native "return this.alignment;";
+  String alignment;
 
-  void set alignment(String value) native "this.alignment = value;";
+  String direction;
 
-  String get direction() native "return this.direction;";
+  num endTime;
 
-  void set direction(String value) native "this.direction = value;";
+  String id;
 
-  num get endTime() native "return this.endTime;";
+  int linePosition;
 
-  void set endTime(num value) native "this.endTime = value;";
+  EventListener onenter;
 
-  String get id() native "return this.id;";
+  EventListener onexit;
 
-  void set id(String value) native "this.id = value;";
+  bool pauseOnExit;
 
-  int get linePosition() native "return this.linePosition;";
+  int size;
 
-  void set linePosition(int value) native "this.linePosition = value;";
+  bool snapToLines;
 
-  EventListener get onenter() native "return this.onenter;";
+  num startTime;
 
-  void set onenter(EventListener value) native "this.onenter = value;";
+  String text;
 
-  EventListener get onexit() native "return this.onexit;";
+  int textPosition;
 
-  void set onexit(EventListener value) native "this.onexit = value;";
-
-  bool get pauseOnExit() native "return this.pauseOnExit;";
-
-  void set pauseOnExit(bool value) native "this.pauseOnExit = value;";
-
-  int get size() native "return this.size;";
-
-  void set size(int value) native "this.size = value;";
-
-  bool get snapToLines() native "return this.snapToLines;";
-
-  void set snapToLines(bool value) native "this.snapToLines = value;";
-
-  num get startTime() native "return this.startTime;";
-
-  void set startTime(num value) native "this.startTime = value;";
-
-  String get text() native "return this.text;";
-
-  void set text(String value) native "this.text = value;";
-
-  int get textPosition() native "return this.textPosition;";
-
-  void set textPosition(int value) native "this.textPosition = value;";
-
-  _TextTrackJs get track() native "return this.track;";
+  final _TextTrackJs track;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

@@ -51,11 +51,11 @@ class _DOMExceptionJs extends _DOMTypeJs implements DOMException native "*DOMExc
 
   static final int WRONG_DOCUMENT_ERR = 4;
 
-  int get code() native "return this.code;";
+  final int code;
 
-  String get message() native "return this.message;";
+  final String message;
 
-  String get name() native "return this.name;";
+  final String name;
 
   String toString() native;
 }

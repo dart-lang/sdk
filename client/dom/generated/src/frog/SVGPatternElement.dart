@@ -1,59 +1,55 @@
 
 class _SVGPatternElementJs extends _SVGElementJs implements SVGPatternElement native "*SVGPatternElement" {
 
-  _SVGAnimatedLengthJs get height() native "return this.height;";
+  final _SVGAnimatedLengthJs height;
 
-  _SVGAnimatedEnumerationJs get patternContentUnits() native "return this.patternContentUnits;";
+  final _SVGAnimatedEnumerationJs patternContentUnits;
 
-  _SVGAnimatedTransformListJs get patternTransform() native "return this.patternTransform;";
+  final _SVGAnimatedTransformListJs patternTransform;
 
-  _SVGAnimatedEnumerationJs get patternUnits() native "return this.patternUnits;";
+  final _SVGAnimatedEnumerationJs patternUnits;
 
-  _SVGAnimatedLengthJs get width() native "return this.width;";
+  final _SVGAnimatedLengthJs width;
 
-  _SVGAnimatedLengthJs get x() native "return this.x;";
+  final _SVGAnimatedLengthJs x;
 
-  _SVGAnimatedLengthJs get y() native "return this.y;";
+  final _SVGAnimatedLengthJs y;
 
   // From SVGURIReference
 
-  _SVGAnimatedStringJs get href() native "return this.href;";
+  final _SVGAnimatedStringJs href;
 
   // From SVGTests
 
-  _SVGStringListJs get requiredExtensions() native "return this.requiredExtensions;";
+  final _SVGStringListJs requiredExtensions;
 
-  _SVGStringListJs get requiredFeatures() native "return this.requiredFeatures;";
+  final _SVGStringListJs requiredFeatures;
 
-  _SVGStringListJs get systemLanguage() native "return this.systemLanguage;";
+  final _SVGStringListJs systemLanguage;
 
   bool hasExtension(String extension) native;
 
   // From SVGLangSpace
 
-  String get xmllang() native "return this.xmllang;";
+  String xmllang;
 
-  void set xmllang(String value) native "this.xmllang = value;";
-
-  String get xmlspace() native "return this.xmlspace;";
-
-  void set xmlspace(String value) native "this.xmlspace = value;";
+  String xmlspace;
 
   // From SVGExternalResourcesRequired
 
-  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  final _SVGAnimatedBooleanJs externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
   // From SVGFitToViewBox
 
-  _SVGAnimatedPreserveAspectRatioJs get preserveAspectRatio() native "return this.preserveAspectRatio;";
+  final _SVGAnimatedPreserveAspectRatioJs preserveAspectRatio;
 
-  _SVGAnimatedRectJs get viewBox() native "return this.viewBox;";
+  final _SVGAnimatedRectJs viewBox;
 }

@@ -1,21 +1,21 @@
 
 class _SVGElementInstanceJs extends _DOMTypeJs implements SVGElementInstance native "*SVGElementInstance" {
 
-  _SVGElementInstanceListJs get childNodes() native "return this.childNodes;";
+  final _SVGElementInstanceListJs childNodes;
 
-  _SVGElementJs get correspondingElement() native "return this.correspondingElement;";
+  final _SVGElementJs correspondingElement;
 
-  _SVGUseElementJs get correspondingUseElement() native "return this.correspondingUseElement;";
+  final _SVGUseElementJs correspondingUseElement;
 
-  _SVGElementInstanceJs get firstChild() native "return this.firstChild;";
+  final _SVGElementInstanceJs firstChild;
 
-  _SVGElementInstanceJs get lastChild() native "return this.lastChild;";
+  final _SVGElementInstanceJs lastChild;
 
-  _SVGElementInstanceJs get nextSibling() native "return this.nextSibling;";
+  final _SVGElementInstanceJs nextSibling;
 
-  _SVGElementInstanceJs get parentNode() native "return this.parentNode;";
+  final _SVGElementInstanceJs parentNode;
 
-  _SVGElementInstanceJs get previousSibling() native "return this.previousSibling;";
+  final _SVGElementInstanceJs previousSibling;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

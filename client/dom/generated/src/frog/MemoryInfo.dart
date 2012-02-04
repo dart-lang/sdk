@@ -1,9 +1,9 @@
 
 class _MemoryInfoJs extends _DOMTypeJs implements MemoryInfo native "*MemoryInfo" {
 
-  int get jsHeapSizeLimit() native "return this.jsHeapSizeLimit;";
+  final int jsHeapSizeLimit;
 
-  int get totalJSHeapSize() native "return this.totalJSHeapSize;";
+  final int totalJSHeapSize;
 
-  int get usedJSHeapSize() native "return this.usedJSHeapSize;";
+  final int usedJSHeapSize;
 }

@@ -1,11 +1,11 @@
 
 class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
 
-  String get keyPath() native "return this.keyPath;";
+  final String keyPath;
 
-  String get name() native "return this.name;";
+  final String name;
 
-  _IDBTransactionJs get transaction() native "return this.transaction;";
+  final _IDBTransactionJs transaction;
 
   _IDBRequestJs add(Dynamic value, [_IDBKeyJs key = null]) native;
 

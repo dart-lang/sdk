@@ -1,21 +1,21 @@
 
 class _ValidityStateJs extends _DOMTypeJs implements ValidityState native "*ValidityState" {
 
-  bool get customError() native "return this.customError;";
+  final bool customError;
 
-  bool get patternMismatch() native "return this.patternMismatch;";
+  final bool patternMismatch;
 
-  bool get rangeOverflow() native "return this.rangeOverflow;";
+  final bool rangeOverflow;
 
-  bool get rangeUnderflow() native "return this.rangeUnderflow;";
+  final bool rangeUnderflow;
 
-  bool get stepMismatch() native "return this.stepMismatch;";
+  final bool stepMismatch;
 
-  bool get tooLong() native "return this.tooLong;";
+  final bool tooLong;
 
-  bool get typeMismatch() native "return this.typeMismatch;";
+  final bool typeMismatch;
 
-  bool get valid() native "return this.valid;";
+  final bool valid;
 
-  bool get valueMissing() native "return this.valueMissing;";
+  final bool valueMissing;
 }

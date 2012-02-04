@@ -1,9 +1,9 @@
 
 class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native "*DataTransferItem" {
 
-  String get kind() native "return this.kind;";
+  final String kind;
 
-  String get type() native "return this.type;";
+  final String type;
 
   _BlobJs getAsFile() native;
 

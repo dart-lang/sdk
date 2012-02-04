@@ -1,31 +1,19 @@
 
 class _HTMLMeterElementJs extends _HTMLElementJs implements HTMLMeterElement native "*HTMLMeterElement" {
 
-  _HTMLFormElementJs get form() native "return this.form;";
+  final _HTMLFormElementJs form;
 
-  num get high() native "return this.high;";
+  num high;
 
-  void set high(num value) native "this.high = value;";
+  final _NodeListJs labels;
 
-  _NodeListJs get labels() native "return this.labels;";
+  num low;
 
-  num get low() native "return this.low;";
+  num max;
 
-  void set low(num value) native "this.low = value;";
+  num min;
 
-  num get max() native "return this.max;";
+  num optimum;
 
-  void set max(num value) native "this.max = value;";
-
-  num get min() native "return this.min;";
-
-  void set min(num value) native "this.min = value;";
-
-  num get optimum() native "return this.optimum;";
-
-  void set optimum(num value) native "this.optimum = value;";
-
-  num get value() native "return this.value;";
-
-  void set value(num value) native "this.value = value;";
+  num value;
 }

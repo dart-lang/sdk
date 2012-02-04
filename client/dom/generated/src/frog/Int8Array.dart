@@ -11,7 +11,7 @@ class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> na
 
   static final int BYTES_PER_ELEMENT = 1;
 
-  int get length() native "return this.length;";
+  final int length;
 
   int operator[](int index) native "return this[index];";
 

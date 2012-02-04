@@ -1,15 +1,9 @@
 
 class _HTMLSourceElementJs extends _HTMLElementJs implements HTMLSourceElement native "*HTMLSourceElement" {
 
-  String get media() native "return this.media;";
+  String media;
 
-  void set media(String value) native "this.media = value;";
+  String src;
 
-  String get src() native "return this.src;";
-
-  void set src(String value) native "this.src = value;";
-
-  String get type() native "return this.type;";
-
-  void set type(String value) native "this.type = value;";
+  String type;
 }

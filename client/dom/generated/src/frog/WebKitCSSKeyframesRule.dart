@@ -1,11 +1,9 @@
 
 class _WebKitCSSKeyframesRuleJs extends _CSSRuleJs implements WebKitCSSKeyframesRule native "*WebKitCSSKeyframesRule" {
 
-  _CSSRuleListJs get cssRules() native "return this.cssRules;";
+  final _CSSRuleListJs cssRules;
 
-  String get name() native "return this.name;";
-
-  void set name(String value) native "this.name = value;";
+  String name;
 
   void deleteRule(String key) native;
 

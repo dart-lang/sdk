@@ -13,17 +13,17 @@ class _SVGComponentTransferFunctionElementJs extends _SVGElementJs implements SV
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  _SVGAnimatedNumberJs get amplitude() native "return this.amplitude;";
+  final _SVGAnimatedNumberJs amplitude;
 
-  _SVGAnimatedNumberJs get exponent() native "return this.exponent;";
+  final _SVGAnimatedNumberJs exponent;
 
-  _SVGAnimatedNumberJs get intercept() native "return this.intercept;";
+  final _SVGAnimatedNumberJs intercept;
 
-  _SVGAnimatedNumberJs get offset() native "return this.offset;";
+  final _SVGAnimatedNumberJs offset;
 
-  _SVGAnimatedNumberJs get slope() native "return this.slope;";
+  final _SVGAnimatedNumberJs slope;
 
-  _SVGAnimatedNumberListJs get tableValues() native "return this.tableValues;";
+  final _SVGAnimatedNumberListJs tableValues;
 
-  _SVGAnimatedEnumerationJs get type() native "return this.type;";
+  final _SVGAnimatedEnumerationJs type;
 }

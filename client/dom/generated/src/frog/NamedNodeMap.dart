@@ -1,7 +1,7 @@
 
 class _NamedNodeMapJs extends _DOMTypeJs implements NamedNodeMap native "*NamedNodeMap" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _NodeJs operator[](int index) native "return this[index];";
 

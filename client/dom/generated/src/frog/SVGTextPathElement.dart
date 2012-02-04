@@ -13,13 +13,13 @@ class _SVGTextPathElementJs extends _SVGTextContentElementJs implements SVGTextP
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  _SVGAnimatedEnumerationJs get method() native "return this.method;";
+  final _SVGAnimatedEnumerationJs method;
 
-  _SVGAnimatedEnumerationJs get spacing() native "return this.spacing;";
+  final _SVGAnimatedEnumerationJs spacing;
 
-  _SVGAnimatedLengthJs get startOffset() native "return this.startOffset;";
+  final _SVGAnimatedLengthJs startOffset;
 
   // From SVGURIReference
 
-  _SVGAnimatedStringJs get href() native "return this.href;";
+  final _SVGAnimatedStringJs href;
 }

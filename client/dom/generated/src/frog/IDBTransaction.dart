@@ -7,21 +7,15 @@ class _IDBTransactionJs extends _DOMTypeJs implements IDBTransaction native "*ID
 
   static final int VERSION_CHANGE = 2;
 
-  _IDBDatabaseJs get db() native "return this.db;";
+  final _IDBDatabaseJs db;
 
-  int get mode() native "return this.mode;";
+  final int mode;
 
-  EventListener get onabort() native "return this.onabort;";
+  EventListener onabort;
 
-  void set onabort(EventListener value) native "this.onabort = value;";
+  EventListener oncomplete;
 
-  EventListener get oncomplete() native "return this.oncomplete;";
-
-  void set oncomplete(EventListener value) native "this.oncomplete = value;";
-
-  EventListener get onerror() native "return this.onerror;";
-
-  void set onerror(EventListener value) native "this.onerror = value;";
+  EventListener onerror;
 
   void abort() native;
 

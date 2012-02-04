@@ -1,73 +1,39 @@
 
 class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements CanvasRenderingContext2D native "*CanvasRenderingContext2D" {
 
-  Dynamic get fillStyle() native "return this.fillStyle;";
+  Dynamic fillStyle;
 
-  void set fillStyle(Dynamic value) native "this.fillStyle = value;";
+  String font;
 
-  String get font() native "return this.font;";
+  num globalAlpha;
 
-  void set font(String value) native "this.font = value;";
+  String globalCompositeOperation;
 
-  num get globalAlpha() native "return this.globalAlpha;";
+  String lineCap;
 
-  void set globalAlpha(num value) native "this.globalAlpha = value;";
+  String lineJoin;
 
-  String get globalCompositeOperation() native "return this.globalCompositeOperation;";
+  num lineWidth;
 
-  void set globalCompositeOperation(String value) native "this.globalCompositeOperation = value;";
+  num miterLimit;
 
-  String get lineCap() native "return this.lineCap;";
+  num shadowBlur;
 
-  void set lineCap(String value) native "this.lineCap = value;";
+  String shadowColor;
 
-  String get lineJoin() native "return this.lineJoin;";
+  num shadowOffsetX;
 
-  void set lineJoin(String value) native "this.lineJoin = value;";
+  num shadowOffsetY;
 
-  num get lineWidth() native "return this.lineWidth;";
+  Dynamic strokeStyle;
 
-  void set lineWidth(num value) native "this.lineWidth = value;";
+  String textAlign;
 
-  num get miterLimit() native "return this.miterLimit;";
+  String textBaseline;
 
-  void set miterLimit(num value) native "this.miterLimit = value;";
+  List webkitLineDash;
 
-  num get shadowBlur() native "return this.shadowBlur;";
-
-  void set shadowBlur(num value) native "this.shadowBlur = value;";
-
-  String get shadowColor() native "return this.shadowColor;";
-
-  void set shadowColor(String value) native "this.shadowColor = value;";
-
-  num get shadowOffsetX() native "return this.shadowOffsetX;";
-
-  void set shadowOffsetX(num value) native "this.shadowOffsetX = value;";
-
-  num get shadowOffsetY() native "return this.shadowOffsetY;";
-
-  void set shadowOffsetY(num value) native "this.shadowOffsetY = value;";
-
-  Dynamic get strokeStyle() native "return this.strokeStyle;";
-
-  void set strokeStyle(Dynamic value) native "this.strokeStyle = value;";
-
-  String get textAlign() native "return this.textAlign;";
-
-  void set textAlign(String value) native "this.textAlign = value;";
-
-  String get textBaseline() native "return this.textBaseline;";
-
-  void set textBaseline(String value) native "this.textBaseline = value;";
-
-  List get webkitLineDash() native "return this.webkitLineDash;";
-
-  void set webkitLineDash(List value) native "this.webkitLineDash = value;";
-
-  num get webkitLineDashOffset() native "return this.webkitLineDashOffset;";
-
-  void set webkitLineDashOffset(num value) native "this.webkitLineDashOffset = value;";
+  num webkitLineDashOffset;
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 

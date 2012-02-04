@@ -1,9 +1,9 @@
 
 class _CSSImportRuleJs extends _CSSRuleJs implements CSSImportRule native "*CSSImportRule" {
 
-  String get href() native "return this.href;";
+  final String href;
 
-  _MediaListJs get media() native "return this.media;";
+  final _MediaListJs media;
 
-  _CSSStyleSheetJs get styleSheet() native "return this.styleSheet;";
+  final _CSSStyleSheetJs styleSheet;
 }

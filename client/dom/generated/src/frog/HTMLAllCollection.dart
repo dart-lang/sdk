@@ -1,7 +1,7 @@
 
 class _HTMLAllCollectionJs extends _DOMTypeJs implements HTMLAllCollection native "*HTMLAllCollection" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _NodeJs item(int index) native;
 

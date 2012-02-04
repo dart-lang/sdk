@@ -490,18 +490,11 @@ class DartGenerator(object):
       for generator in generators:
         generator.AddConstant(const)
 
-    for attr in sorted(interface.attributes, AttributeOutputOrder):
-      if attr.type.id == 'EventListener':
-        # Remove EventListener attributes like 'onclick' when addEventListener
-        # is available.
-        if 'EventTarget' in self._AllImplementedInterfaces(interface):
-          continue
-      if attr.is_fc_getter:
-        for generator in generators:
-          generator.AddGetter(attr)
-      elif attr.is_fc_setter:
-        for generator in generators:
-          generator.AddSetter(attr)
+    attributes = [attr for attr in interface.attributes
+                  if not self._OmitAttribute(interface, attr)]
+    for (getter, setter) in  _PairUpAttributes(attributes):
+      for generator in generators:
+        generator.AddAttribute(getter, setter)
 
     # The implementation should define an indexer if the interface directly
     # extends List.
@@ -532,16 +525,11 @@ class DartGenerator(object):
     for parent_interface in self._TransitiveSecondaryParents(interface):
       if isinstance(parent_interface, str):  # _IsDartCollectionType(parent_interface)
         continue
-      attributes = sorted(parent_interface.attributes,
-                          AttributeOutputOrder)
-      for attr in attributes:
-        if not self._DefinesSameAttribute(interface, attr):
-          if attr.is_fc_getter:
-            for generator in generators:
-              generator.AddSecondaryGetter(parent_interface, attr)
-          elif attr.is_fc_setter:
-            for generator in generators:
-              generator.AddSecondarySetter(parent_interface, attr)
+      attributes = [attr for attr in parent_interface.attributes
+                    if not self._DefinesSameAttribute(interface, attr)]
+      for (getter, setter) in _PairUpAttributes(attributes):
+        for generator in generators:
+          generator.AddSecondaryAttribute(parent_interface, getter, setter)
 
       # Group overloaded operations by id
       operationsById = {}
@@ -561,6 +549,14 @@ class DartGenerator(object):
     for generator in generators:
       generator.FinishInterface()
     return
+
+  def _OmitAttribute(self, interface, attr):
+    # Remove EventListener attributes like 'onclick' when addEventListener
+    # is available.
+    if attr.type.id == 'EventListener':
+      if 'EventTarget' in self._AllImplementedInterfaces(interface):
+        return True
+    return False
 
   def _DefinesSameAttribute(self, interface, attr1):
     return any(attr1.id == attr2.id
@@ -634,6 +630,22 @@ def _RecognizeCallback(interface):
   if not handlers: return None
   if not (handlers == interface.operations): return None
   return _AnalyzeOperation(interface, handlers)
+
+
+def _PairUpAttributes(attributes):
+  """Returns a list of (getter, setter) pairs sorted by name.
+
+  One element of the pair may be None.
+  """
+  names = sorted(set(attr.id for attr in attributes))
+  getters = {}
+  setters = {}
+  for attr in attributes:
+    if attr.is_fc_getter:
+      getters[attr.id] = attr
+    elif attr.is_fc_setter:
+      setters[attr.id] = attr
+  return [(getters.get(id), setters.get(id)) for id in names]
 
 
 def _AnalyzeOperation(interface, operations):
@@ -1237,13 +1249,13 @@ class DartInterfaceGenerator(object):
                  TYPE=constant.type.id,
                  VALUE=constant.value)
 
-  def AddGetter(self, attr):
-    self._members_emitter.Emit('\n  $TYPE get $NAME();\n',
-                               NAME=attr.id, TYPE=attr.type.id)
-
-  def AddSetter(self, attr):
-    self._members_emitter.Emit('\n  void set $NAME($TYPE value);\n',
-                               NAME=attr.id, TYPE=attr.type.id)
+  def AddAttribute(self, getter, setter):
+    if getter:
+      self._members_emitter.Emit('\n  $TYPE get $NAME();\n',
+                                 NAME=getter.id, TYPE=getter.type.id)
+    if setter:
+      self._members_emitter.Emit('\n  void set $NAME($TYPE value);\n',
+                                 NAME=setter.id, TYPE=setter.type.id)
 
   def AddIndexer(self, element_type):
     # Interface inherits all operations from List<element_type>.
@@ -1262,10 +1274,9 @@ class DartInterfaceGenerator(object):
                                PARAMS=info.ParametersInterfaceDeclaration())
 
   # Interfaces get secondary members directly via the superinterfaces.
-  def AddSecondaryGetter(self, interface, attr):
+  def AddSecondaryAttribute(self, interface, getter, setter):
     pass
-  def AddSecondarySetter(self, interface, attr):
-    pass
+
   def AddSecondaryOperation(self, interface, attr):
     pass
 
@@ -1381,7 +1392,13 @@ class WrappingInterfaceGenerator(object):
       method_name = method_name + '_' + self._interface.id
     return method_name
 
-  def AddGetter(self, attr):
+  def AddAttribute(self, getter, setter):
+    if getter:
+      self._AddGetter(getter)
+    if setter:
+      self._AddSetter(setter)
+
+  def _AddGetter(self, attr):
     # FIXME: Instead of injecting the interface name into the method when it is
     # also implemented in the base class, suppress the method altogether if it
     # has the same signature.  I.e., let the JS do the virtual dispatch instead.
@@ -1404,7 +1421,7 @@ class WrappingInterfaceGenerator(object):
           CLASS=self._class_name, NAME=attr.id, METHOD=method_name)
       self._externs.add((self._interface.id, attr.id, 'attribute'))
 
-  def AddSetter(self, attr):
+  def _AddSetter(self, attr):
     # FIXME: See comment on getter.
     method_name = self._MethodName('_set_', attr.id)
     self._members_emitter.Emit(
@@ -1424,13 +1441,9 @@ class WrappingInterfaceGenerator(object):
         CLASS=self._class_name, NAME=attr.id, METHOD=method_name)
     self._externs.add((self._interface.id, attr.id, 'attribute'))
 
-  def AddSecondaryGetter(self, interface, attr):
+  def AddSecondaryAttribute(self, interface, getter, setter):
     self._SecondaryContext(interface)
-    self.AddGetter(attr)
-
-  def AddSecondarySetter(self, interface, attr):
-    self._SecondaryContext(interface)
-    self.AddSetter(attr)
+    self.AddAttribute(getter, setter)
 
   def AddSecondaryOperation(self, interface, info):
     self._SecondaryContext(interface)
@@ -1964,25 +1977,41 @@ class FrogInterfaceGenerator(object):
 
     pass
 
-  def AddGetter(self, attr):
+  def AddAttribute(self, getter, setter):
+    use_fields = True
+    output_type = getter and self._NarrowOutputType(getter.type.id)
+    input_type = setter and self._NarrowInputType(setter.type.id)
+    if use_fields and getter and setter:
+      if input_type == output_type:
+        self._members_emitter.Emit(
+            '\n  $TYPE $NAME;\n',
+            NAME=getter.id, TYPE=output_type)
+        return
+    if use_fields and getter and not setter:
+        self._members_emitter.Emit(
+            '\n  final $TYPE $NAME;\n',
+            NAME=getter.id, TYPE=output_type)
+        return
+    if getter:
+      self._AddGetter(getter)
+    if setter:
+      self._AddSetter(setter)
+
+  def _AddGetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
         '\n  $TYPE get $NAME() native "return this.$NAME;";\n',
         NAME=attr.id, TYPE=self._NarrowOutputType(attr.type.id))
 
-  def AddSetter(self, attr):
+  def _AddSetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
         '\n  void set $NAME($TYPE value) native "this.$NAME = value;";\n',
         NAME=attr.id, TYPE=self._NarrowInputType(attr.type.id))
 
-  def AddSecondaryGetter(self, interface, attr):
+  def AddSecondaryAttribute(self, interface, getter, setter):
     self._SecondaryContext(interface)
-    self.AddGetter(attr)
-
-  def AddSecondarySetter(self, interface, attr):
-    self._SecondaryContext(interface)
-    self.AddSetter(attr)
+    self.AddAttribute(getter, setter)
 
   def AddSecondaryOperation(self, interface, info):
     self._SecondaryContext(interface)
@@ -2183,13 +2212,19 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
         CLASS=self._class_name, BASE=base, INTERFACE=interface_name,
         MEMBERS=self._members_emitter.Fragments())
 
-  def AddGetter(self, attr):
+  def AddAttribute(self, getter, setter):
+    if getter:
+      self._AddGetter(getter)
+    if setter:
+      self._AddSetter(setter)
+
+  def _AddGetter(self, attr):
     self._members_emitter.Emit(
         '\n'
         '  $TYPE get $NAME() native "$(INTERFACE)_$(NAME)_Getter";\n',
         NAME=attr.id, TYPE=attr.type.id, INTERFACE=self._interface.id)
 
-  def AddSetter(self, attr):
+  def _AddSetter(self, attr):
     self._members_emitter.Emit(
         '\n'
         '  void set $NAME($TYPE) native "$(INTERFACE)_$(NAME)_Setter";\n',

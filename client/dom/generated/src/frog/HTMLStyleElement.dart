@@ -1,21 +1,13 @@
 
 class _HTMLStyleElementJs extends _HTMLElementJs implements HTMLStyleElement native "*HTMLStyleElement" {
 
-  bool get disabled() native "return this.disabled;";
+  bool disabled;
 
-  void set disabled(bool value) native "this.disabled = value;";
+  String media;
 
-  String get media() native "return this.media;";
+  bool scoped;
 
-  void set media(String value) native "this.media = value;";
+  final _StyleSheetJs sheet;
 
-  bool get scoped() native "return this.scoped;";
-
-  void set scoped(bool value) native "this.scoped = value;";
-
-  _StyleSheetJs get sheet() native "return this.sheet;";
-
-  String get type() native "return this.type;";
-
-  void set type(String value) native "this.type = value;";
+  String type;
 }

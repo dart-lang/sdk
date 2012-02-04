@@ -1,47 +1,25 @@
 
 class _HTMLAppletElementJs extends _HTMLElementJs implements HTMLAppletElement native "*HTMLAppletElement" {
 
-  String get align() native "return this.align;";
+  String align;
 
-  void set align(String value) native "this.align = value;";
+  String alt;
 
-  String get alt() native "return this.alt;";
+  String archive;
 
-  void set alt(String value) native "this.alt = value;";
+  String code;
 
-  String get archive() native "return this.archive;";
+  String codeBase;
 
-  void set archive(String value) native "this.archive = value;";
+  String height;
 
-  String get code() native "return this.code;";
+  String hspace;
 
-  void set code(String value) native "this.code = value;";
+  String name;
 
-  String get codeBase() native "return this.codeBase;";
+  String object;
 
-  void set codeBase(String value) native "this.codeBase = value;";
+  String vspace;
 
-  String get height() native "return this.height;";
-
-  void set height(String value) native "this.height = value;";
-
-  String get hspace() native "return this.hspace;";
-
-  void set hspace(String value) native "this.hspace = value;";
-
-  String get name() native "return this.name;";
-
-  void set name(String value) native "this.name = value;";
-
-  String get object() native "return this.object;";
-
-  void set object(String value) native "this.object = value;";
-
-  String get vspace() native "return this.vspace;";
-
-  void set vspace(String value) native "this.vspace = value;";
-
-  String get width() native "return this.width;";
-
-  void set width(String value) native "this.width = value;";
+  String width;
 }

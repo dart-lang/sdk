@@ -1,19 +1,19 @@
 
 class _ScreenJs extends _DOMTypeJs implements Screen native "*Screen" {
 
-  int get availHeight() native "return this.availHeight;";
+  final int availHeight;
 
-  int get availLeft() native "return this.availLeft;";
+  final int availLeft;
 
-  int get availTop() native "return this.availTop;";
+  final int availTop;
 
-  int get availWidth() native "return this.availWidth;";
+  final int availWidth;
 
-  int get colorDepth() native "return this.colorDepth;";
+  final int colorDepth;
 
-  int get height() native "return this.height;";
+  final int height;
 
-  int get pixelDepth() native "return this.pixelDepth;";
+  final int pixelDepth;
 
-  int get width() native "return this.width;";
+  final int width;
 }

@@ -1,13 +1,13 @@
 
 class _WorkerNavigatorJs extends _DOMTypeJs implements WorkerNavigator native "*WorkerNavigator" {
 
-  String get appName() native "return this.appName;";
+  final String appName;
 
-  String get appVersion() native "return this.appVersion;";
+  final String appVersion;
 
-  bool get onLine() native "return this.onLine;";
+  final bool onLine;
 
-  String get platform() native "return this.platform;";
+  final String platform;
 
-  String get userAgent() native "return this.userAgent;";
+  final String userAgent;
 }

@@ -1,37 +1,37 @@
 
 class _WheelEventJs extends _UIEventJs implements WheelEvent native "*WheelEvent" {
 
-  bool get altKey() native "return this.altKey;";
+  final bool altKey;
 
-  int get clientX() native "return this.clientX;";
+  final int clientX;
 
-  int get clientY() native "return this.clientY;";
+  final int clientY;
 
-  bool get ctrlKey() native "return this.ctrlKey;";
+  final bool ctrlKey;
 
-  bool get metaKey() native "return this.metaKey;";
+  final bool metaKey;
 
-  int get offsetX() native "return this.offsetX;";
+  final int offsetX;
 
-  int get offsetY() native "return this.offsetY;";
+  final int offsetY;
 
-  int get screenX() native "return this.screenX;";
+  final int screenX;
 
-  int get screenY() native "return this.screenY;";
+  final int screenY;
 
-  bool get shiftKey() native "return this.shiftKey;";
+  final bool shiftKey;
 
-  bool get webkitDirectionInvertedFromDevice() native "return this.webkitDirectionInvertedFromDevice;";
+  final bool webkitDirectionInvertedFromDevice;
 
-  int get wheelDelta() native "return this.wheelDelta;";
+  final int wheelDelta;
 
-  int get wheelDeltaX() native "return this.wheelDeltaX;";
+  final int wheelDeltaX;
 
-  int get wheelDeltaY() native "return this.wheelDeltaY;";
+  final int wheelDeltaY;
 
-  int get x() native "return this.x;";
+  final int x;
 
-  int get y() native "return this.y;";
+  final int y;
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, _DOMWindowJs view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }

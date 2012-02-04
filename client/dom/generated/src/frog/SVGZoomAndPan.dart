@@ -7,7 +7,5 @@ class _SVGZoomAndPanJs extends _DOMTypeJs implements SVGZoomAndPan native "*SVGZ
 
   static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-  int get zoomAndPan() native "return this.zoomAndPan;";
-
-  void set zoomAndPan(int value) native "this.zoomAndPan = value;";
+  int zoomAndPan;
 }

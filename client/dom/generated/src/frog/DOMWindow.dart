@@ -5,179 +5,107 @@ class _DOMWindowJs extends _DOMTypeJs implements DOMWindow native "@*DOMWindow" 
 
   static final int TEMPORARY = 0;
 
-  _DOMApplicationCacheJs get applicationCache() native "return this.applicationCache;";
+  final _DOMApplicationCacheJs applicationCache;
 
-  _NavigatorJs get clientInformation() native "return this.clientInformation;";
+  _NavigatorJs clientInformation;
 
-  void set clientInformation(_NavigatorJs value) native "this.clientInformation = value;";
+  final bool closed;
 
-  bool get closed() native "return this.closed;";
+  _ConsoleJs console;
 
-  _ConsoleJs get console() native "return this.console;";
+  final _CryptoJs crypto;
 
-  void set console(_ConsoleJs value) native "this.console = value;";
+  String defaultStatus;
 
-  _CryptoJs get crypto() native "return this.crypto;";
+  String defaultstatus;
 
-  String get defaultStatus() native "return this.defaultStatus;";
+  num devicePixelRatio;
 
-  void set defaultStatus(String value) native "this.defaultStatus = value;";
+  final _DocumentJs document;
 
-  String get defaultstatus() native "return this.defaultstatus;";
+  _EventJs event;
 
-  void set defaultstatus(String value) native "this.defaultstatus = value;";
+  final _ElementJs frameElement;
 
-  num get devicePixelRatio() native "return this.devicePixelRatio;";
+  _DOMWindowJs frames;
 
-  void set devicePixelRatio(num value) native "this.devicePixelRatio = value;";
+  _HistoryJs history;
 
-  _DocumentJs get document() native "return this.document;";
+  int innerHeight;
 
-  _EventJs get event() native "return this.event;";
+  int innerWidth;
 
-  void set event(_EventJs value) native "this.event = value;";
+  int length;
 
-  _ElementJs get frameElement() native "return this.frameElement;";
+  final _StorageJs localStorage;
 
-  _DOMWindowJs get frames() native "return this.frames;";
+  _LocationJs location;
 
-  void set frames(_DOMWindowJs value) native "this.frames = value;";
+  _BarInfoJs locationbar;
 
-  _HistoryJs get history() native "return this.history;";
+  _BarInfoJs menubar;
 
-  void set history(_HistoryJs value) native "this.history = value;";
+  String name;
 
-  int get innerHeight() native "return this.innerHeight;";
+  _NavigatorJs navigator;
 
-  void set innerHeight(int value) native "this.innerHeight = value;";
+  bool offscreenBuffering;
 
-  int get innerWidth() native "return this.innerWidth;";
+  _DOMWindowJs opener;
 
-  void set innerWidth(int value) native "this.innerWidth = value;";
+  int outerHeight;
 
-  int get length() native "return this.length;";
+  int outerWidth;
 
-  void set length(int value) native "this.length = value;";
+  final int pageXOffset;
 
-  _StorageJs get localStorage() native "return this.localStorage;";
+  final int pageYOffset;
 
-  _LocationJs get location() native "return this.location;";
+  _DOMWindowJs parent;
 
-  void set location(_LocationJs value) native "this.location = value;";
+  _PerformanceJs performance;
 
-  _BarInfoJs get locationbar() native "return this.locationbar;";
+  _BarInfoJs personalbar;
 
-  void set locationbar(_BarInfoJs value) native "this.locationbar = value;";
+  _ScreenJs screen;
 
-  _BarInfoJs get menubar() native "return this.menubar;";
+  int screenLeft;
 
-  void set menubar(_BarInfoJs value) native "this.menubar = value;";
+  int screenTop;
 
-  String get name() native "return this.name;";
+  int screenX;
 
-  void set name(String value) native "this.name = value;";
+  int screenY;
 
-  _NavigatorJs get navigator() native "return this.navigator;";
+  int scrollX;
 
-  void set navigator(_NavigatorJs value) native "this.navigator = value;";
+  int scrollY;
 
-  bool get offscreenBuffering() native "return this.offscreenBuffering;";
+  _BarInfoJs scrollbars;
 
-  void set offscreenBuffering(bool value) native "this.offscreenBuffering = value;";
+  _DOMWindowJs self;
 
-  _DOMWindowJs get opener() native "return this.opener;";
+  final _StorageJs sessionStorage;
 
-  void set opener(_DOMWindowJs value) native "this.opener = value;";
+  String status;
 
-  int get outerHeight() native "return this.outerHeight;";
+  _BarInfoJs statusbar;
 
-  void set outerHeight(int value) native "this.outerHeight = value;";
+  final _StyleMediaJs styleMedia;
 
-  int get outerWidth() native "return this.outerWidth;";
+  _BarInfoJs toolbar;
 
-  void set outerWidth(int value) native "this.outerWidth = value;";
+  _DOMWindowJs top;
 
-  int get pageXOffset() native "return this.pageXOffset;";
+  final _IDBFactoryJs webkitIndexedDB;
 
-  int get pageYOffset() native "return this.pageYOffset;";
+  final _NotificationCenterJs webkitNotifications;
 
-  _DOMWindowJs get parent() native "return this.parent;";
+  final _StorageInfoJs webkitStorageInfo;
 
-  void set parent(_DOMWindowJs value) native "this.parent = value;";
+  final _DOMURLJs webkitURL;
 
-  _PerformanceJs get performance() native "return this.performance;";
-
-  void set performance(_PerformanceJs value) native "this.performance = value;";
-
-  _BarInfoJs get personalbar() native "return this.personalbar;";
-
-  void set personalbar(_BarInfoJs value) native "this.personalbar = value;";
-
-  _ScreenJs get screen() native "return this.screen;";
-
-  void set screen(_ScreenJs value) native "this.screen = value;";
-
-  int get screenLeft() native "return this.screenLeft;";
-
-  void set screenLeft(int value) native "this.screenLeft = value;";
-
-  int get screenTop() native "return this.screenTop;";
-
-  void set screenTop(int value) native "this.screenTop = value;";
-
-  int get screenX() native "return this.screenX;";
-
-  void set screenX(int value) native "this.screenX = value;";
-
-  int get screenY() native "return this.screenY;";
-
-  void set screenY(int value) native "this.screenY = value;";
-
-  int get scrollX() native "return this.scrollX;";
-
-  void set scrollX(int value) native "this.scrollX = value;";
-
-  int get scrollY() native "return this.scrollY;";
-
-  void set scrollY(int value) native "this.scrollY = value;";
-
-  _BarInfoJs get scrollbars() native "return this.scrollbars;";
-
-  void set scrollbars(_BarInfoJs value) native "this.scrollbars = value;";
-
-  _DOMWindowJs get self() native "return this.self;";
-
-  void set self(_DOMWindowJs value) native "this.self = value;";
-
-  _StorageJs get sessionStorage() native "return this.sessionStorage;";
-
-  String get status() native "return this.status;";
-
-  void set status(String value) native "this.status = value;";
-
-  _BarInfoJs get statusbar() native "return this.statusbar;";
-
-  void set statusbar(_BarInfoJs value) native "this.statusbar = value;";
-
-  _StyleMediaJs get styleMedia() native "return this.styleMedia;";
-
-  _BarInfoJs get toolbar() native "return this.toolbar;";
-
-  void set toolbar(_BarInfoJs value) native "this.toolbar = value;";
-
-  _DOMWindowJs get top() native "return this.top;";
-
-  void set top(_DOMWindowJs value) native "this.top = value;";
-
-  _IDBFactoryJs get webkitIndexedDB() native "return this.webkitIndexedDB;";
-
-  _NotificationCenterJs get webkitNotifications() native "return this.webkitNotifications;";
-
-  _StorageInfoJs get webkitStorageInfo() native "return this.webkitStorageInfo;";
-
-  _DOMURLJs get webkitURL() native "return this.webkitURL;";
-
-  _DOMWindowJs get window() native "return this.window;";
+  final _DOMWindowJs window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

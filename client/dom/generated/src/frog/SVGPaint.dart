@@ -21,9 +21,9 @@ class _SVGPaintJs extends _SVGColorJs implements SVGPaint native "*SVGPaint" {
 
   static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
-  int get paintType() native "return this.paintType;";
+  final int paintType;
 
-  String get uri() native "return this.uri;";
+  final String uri;
 
   void setPaint(int paintType, String uri, String rgbColor, String iccColor) native;
 

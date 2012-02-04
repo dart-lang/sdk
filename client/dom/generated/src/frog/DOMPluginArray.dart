@@ -1,7 +1,7 @@
 
 class _DOMPluginArrayJs extends _DOMTypeJs implements DOMPluginArray native "*DOMPluginArray" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _DOMPluginJs item(int index) native;
 

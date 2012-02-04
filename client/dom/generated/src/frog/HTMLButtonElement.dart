@@ -1,53 +1,35 @@
 
 class _HTMLButtonElementJs extends _HTMLElementJs implements HTMLButtonElement native "*HTMLButtonElement" {
 
-  bool get autofocus() native "return this.autofocus;";
+  bool autofocus;
 
-  void set autofocus(bool value) native "this.autofocus = value;";
+  bool disabled;
 
-  bool get disabled() native "return this.disabled;";
+  final _HTMLFormElementJs form;
 
-  void set disabled(bool value) native "this.disabled = value;";
+  String formAction;
 
-  _HTMLFormElementJs get form() native "return this.form;";
+  String formEnctype;
 
-  String get formAction() native "return this.formAction;";
+  String formMethod;
 
-  void set formAction(String value) native "this.formAction = value;";
+  bool formNoValidate;
 
-  String get formEnctype() native "return this.formEnctype;";
+  String formTarget;
 
-  void set formEnctype(String value) native "this.formEnctype = value;";
+  final _NodeListJs labels;
 
-  String get formMethod() native "return this.formMethod;";
+  String name;
 
-  void set formMethod(String value) native "this.formMethod = value;";
+  final String type;
 
-  bool get formNoValidate() native "return this.formNoValidate;";
+  final String validationMessage;
 
-  void set formNoValidate(bool value) native "this.formNoValidate = value;";
+  final _ValidityStateJs validity;
 
-  String get formTarget() native "return this.formTarget;";
+  String value;
 
-  void set formTarget(String value) native "this.formTarget = value;";
-
-  _NodeListJs get labels() native "return this.labels;";
-
-  String get name() native "return this.name;";
-
-  void set name(String value) native "this.name = value;";
-
-  String get type() native "return this.type;";
-
-  String get validationMessage() native "return this.validationMessage;";
-
-  _ValidityStateJs get validity() native "return this.validity;";
-
-  String get value() native "return this.value;";
-
-  void set value(String value) native "this.value = value;";
-
-  bool get willValidate() native "return this.willValidate;";
+  final bool willValidate;
 
   bool checkValidity() native;
 

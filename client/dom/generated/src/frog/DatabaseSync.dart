@@ -1,9 +1,9 @@
 
 class _DatabaseSyncJs extends _DOMTypeJs implements DatabaseSync native "*DatabaseSync" {
 
-  String get lastErrorMessage() native "return this.lastErrorMessage;";
+  final String lastErrorMessage;
 
-  String get version() native "return this.version;";
+  final String version;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native;
 

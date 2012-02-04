@@ -7,41 +7,25 @@ class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native 
 
   static final int SOUNDFIELD = 2;
 
-  _AudioGainJs get coneGain() native "return this.coneGain;";
+  final _AudioGainJs coneGain;
 
-  num get coneInnerAngle() native "return this.coneInnerAngle;";
+  num coneInnerAngle;
 
-  void set coneInnerAngle(num value) native "this.coneInnerAngle = value;";
+  num coneOuterAngle;
 
-  num get coneOuterAngle() native "return this.coneOuterAngle;";
+  num coneOuterGain;
 
-  void set coneOuterAngle(num value) native "this.coneOuterAngle = value;";
+  final _AudioGainJs distanceGain;
 
-  num get coneOuterGain() native "return this.coneOuterGain;";
+  int distanceModel;
 
-  void set coneOuterGain(num value) native "this.coneOuterGain = value;";
+  num maxDistance;
 
-  _AudioGainJs get distanceGain() native "return this.distanceGain;";
+  int panningModel;
 
-  int get distanceModel() native "return this.distanceModel;";
+  num refDistance;
 
-  void set distanceModel(int value) native "this.distanceModel = value;";
-
-  num get maxDistance() native "return this.maxDistance;";
-
-  void set maxDistance(num value) native "this.maxDistance = value;";
-
-  int get panningModel() native "return this.panningModel;";
-
-  void set panningModel(int value) native "this.panningModel = value;";
-
-  num get refDistance() native "return this.refDistance;";
-
-  void set refDistance(num value) native "this.refDistance = value;";
-
-  num get rolloffFactor() native "return this.rolloffFactor;";
-
-  void set rolloffFactor(num value) native "this.rolloffFactor = value;";
+  num rolloffFactor;
 
   void setOrientation(num x, num y, num z) native;
 

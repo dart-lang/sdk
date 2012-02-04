@@ -11,7 +11,7 @@ class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> 
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int get length() native "return this.length;";
+  final int length;
 
   int operator[](int index) native "return this[index];";
 

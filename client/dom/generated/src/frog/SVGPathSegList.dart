@@ -1,7 +1,7 @@
 
 class _SVGPathSegListJs extends _DOMTypeJs implements SVGPathSegList native "*SVGPathSegList" {
 
-  int get numberOfItems() native "return this.numberOfItems;";
+  final int numberOfItems;
 
   _SVGPathSegJs appendItem(_SVGPathSegJs newItem) native;
 

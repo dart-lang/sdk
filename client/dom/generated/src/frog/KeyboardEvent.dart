@@ -1,19 +1,19 @@
 
 class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*KeyboardEvent" {
 
-  bool get altGraphKey() native "return this.altGraphKey;";
+  final bool altGraphKey;
 
-  bool get altKey() native "return this.altKey;";
+  final bool altKey;
 
-  bool get ctrlKey() native "return this.ctrlKey;";
+  final bool ctrlKey;
 
-  String get keyIdentifier() native "return this.keyIdentifier;";
+  final String keyIdentifier;
 
-  int get keyLocation() native "return this.keyLocation;";
+  final int keyLocation;
 
-  bool get metaKey() native "return this.metaKey;";
+  final bool metaKey;
 
-  bool get shiftKey() native "return this.shiftKey;";
+  final bool shiftKey;
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }

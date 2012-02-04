@@ -1,7 +1,7 @@
 
 class _SVGNumberListJs extends _DOMTypeJs implements SVGNumberList native "*SVGNumberList" {
 
-  int get numberOfItems() native "return this.numberOfItems;";
+  final int numberOfItems;
 
   _SVGNumberJs appendItem(_SVGNumberJs item) native;
 

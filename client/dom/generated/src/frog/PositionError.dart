@@ -7,7 +7,7 @@ class _PositionErrorJs extends _DOMTypeJs implements PositionError native "*Posi
 
   static final int TIMEOUT = 3;
 
-  int get code() native "return this.code;";
+  final int code;
 
-  String get message() native "return this.message;";
+  final String message;
 }

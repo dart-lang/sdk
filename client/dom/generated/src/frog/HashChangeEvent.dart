@@ -1,9 +1,9 @@
 
 class _HashChangeEventJs extends _EventJs implements HashChangeEvent native "*HashChangeEvent" {
 
-  String get newURL() native "return this.newURL;";
+  final String newURL;
 
-  String get oldURL() native "return this.oldURL;";
+  final String oldURL;
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 }

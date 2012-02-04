@@ -1,15 +1,15 @@
 
 class _MessageEventJs extends _EventJs implements MessageEvent native "*MessageEvent" {
 
-  Object get data() native "return this.data;";
+  final Object data;
 
-  String get lastEventId() native "return this.lastEventId;";
+  final String lastEventId;
 
-  String get origin() native "return this.origin;";
+  final String origin;
 
-  List get ports() native "return this.ports;";
+  final List ports;
 
-  _DOMWindowJs get source() native "return this.source;";
+  final _DOMWindowJs source;
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _DOMWindowJs sourceArg, List messagePorts) native;
 

@@ -1,43 +1,43 @@
 
 class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent" {
 
-  bool get altKey() native "return this.altKey;";
+  final bool altKey;
 
-  int get button() native "return this.button;";
+  final int button;
 
-  int get clientX() native "return this.clientX;";
+  final int clientX;
 
-  int get clientY() native "return this.clientY;";
+  final int clientY;
 
-  bool get ctrlKey() native "return this.ctrlKey;";
+  final bool ctrlKey;
 
-  _ClipboardJs get dataTransfer() native "return this.dataTransfer;";
+  final _ClipboardJs dataTransfer;
 
-  _NodeJs get fromElement() native "return this.fromElement;";
+  final _NodeJs fromElement;
 
-  bool get metaKey() native "return this.metaKey;";
+  final bool metaKey;
 
-  int get offsetX() native "return this.offsetX;";
+  final int offsetX;
 
-  int get offsetY() native "return this.offsetY;";
+  final int offsetY;
 
-  _EventTargetJs get relatedTarget() native "return this.relatedTarget;";
+  final _EventTargetJs relatedTarget;
 
-  int get screenX() native "return this.screenX;";
+  final int screenX;
 
-  int get screenY() native "return this.screenY;";
+  final int screenY;
 
-  bool get shiftKey() native "return this.shiftKey;";
+  final bool shiftKey;
 
-  _NodeJs get toElement() native "return this.toElement;";
+  final _NodeJs toElement;
 
-  int get webkitMovementX() native "return this.webkitMovementX;";
+  final int webkitMovementX;
 
-  int get webkitMovementY() native "return this.webkitMovementY;";
+  final int webkitMovementY;
 
-  int get x() native "return this.x;";
+  final int x;
 
-  int get y() native "return this.y;";
+  final int y;
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetJs relatedTarget) native;
 }

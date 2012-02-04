@@ -1,7 +1,7 @@
 
 class _CanvasPixelArrayJs extends _DOMTypeJs implements CanvasPixelArray native "*CanvasPixelArray" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   int operator[](int index) native "return this[index];";
 

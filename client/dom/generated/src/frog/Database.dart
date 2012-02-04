@@ -1,7 +1,7 @@
 
 class _DatabaseJs extends _DOMTypeJs implements Database native "*Database" {
 
-  String get version() native "return this.version;";
+  final String version;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
 

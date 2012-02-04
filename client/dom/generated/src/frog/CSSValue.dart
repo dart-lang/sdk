@@ -9,9 +9,7 @@ class _CSSValueJs extends _DOMTypeJs implements CSSValue native "*CSSValue" {
 
   static final int CSS_VALUE_LIST = 2;
 
-  String get cssText() native "return this.cssText;";
+  String cssText;
 
-  void set cssText(String value) native "this.cssText = value;";
-
-  int get cssValueType() native "return this.cssValueType;";
+  final int cssValueType;
 }

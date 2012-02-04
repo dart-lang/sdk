@@ -15,11 +15,11 @@ class _SVGTransformJs extends _DOMTypeJs implements SVGTransform native "*SVGTra
 
   static final int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num get angle() native "return this.angle;";
+  final num angle;
 
-  _SVGMatrixJs get matrix() native "return this.matrix;";
+  final _SVGMatrixJs matrix;
 
-  int get type() native "return this.type;";
+  final int type;
 
   void setMatrix(_SVGMatrixJs matrix) native;
 

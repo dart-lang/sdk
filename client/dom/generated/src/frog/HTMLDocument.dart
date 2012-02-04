@@ -1,47 +1,31 @@
 
 class _HTMLDocumentJs extends _DocumentJs implements HTMLDocument native "*HTMLDocument" {
 
-  _ElementJs get activeElement() native "return this.activeElement;";
+  final _ElementJs activeElement;
 
-  String get alinkColor() native "return this.alinkColor;";
+  String alinkColor;
 
-  void set alinkColor(String value) native "this.alinkColor = value;";
+  _HTMLAllCollectionJs all;
 
-  _HTMLAllCollectionJs get all() native "return this.all;";
+  String bgColor;
 
-  void set all(_HTMLAllCollectionJs value) native "this.all = value;";
+  final String compatMode;
 
-  String get bgColor() native "return this.bgColor;";
+  String designMode;
 
-  void set bgColor(String value) native "this.bgColor = value;";
+  String dir;
 
-  String get compatMode() native "return this.compatMode;";
+  final _HTMLCollectionJs embeds;
 
-  String get designMode() native "return this.designMode;";
+  String fgColor;
 
-  void set designMode(String value) native "this.designMode = value;";
+  String linkColor;
 
-  String get dir() native "return this.dir;";
+  final _HTMLCollectionJs plugins;
 
-  void set dir(String value) native "this.dir = value;";
+  final _HTMLCollectionJs scripts;
 
-  _HTMLCollectionJs get embeds() native "return this.embeds;";
-
-  String get fgColor() native "return this.fgColor;";
-
-  void set fgColor(String value) native "this.fgColor = value;";
-
-  String get linkColor() native "return this.linkColor;";
-
-  void set linkColor(String value) native "this.linkColor = value;";
-
-  _HTMLCollectionJs get plugins() native "return this.plugins;";
-
-  _HTMLCollectionJs get scripts() native "return this.scripts;";
-
-  String get vlinkColor() native "return this.vlinkColor;";
-
-  void set vlinkColor(String value) native "this.vlinkColor = value;";
+  String vlinkColor;
 
   void captureEvents() native;
 

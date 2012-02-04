@@ -1,7 +1,7 @@
 
 class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTokenList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   void add(String token) native;
 

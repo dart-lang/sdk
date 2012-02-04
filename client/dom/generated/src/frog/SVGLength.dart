@@ -23,19 +23,13 @@ class _SVGLengthJs extends _DOMTypeJs implements SVGLength native "*SVGLength" {
 
   static final int SVG_LENGTHTYPE_UNKNOWN = 0;
 
-  int get unitType() native "return this.unitType;";
+  final int unitType;
 
-  num get value() native "return this.value;";
+  num value;
 
-  void set value(num value) native "this.value = value;";
+  String valueAsString;
 
-  String get valueAsString() native "return this.valueAsString;";
-
-  void set valueAsString(String value) native "this.valueAsString = value;";
-
-  num get valueInSpecifiedUnits() native "return this.valueInSpecifiedUnits;";
-
-  void set valueInSpecifiedUnits(num value) native "this.valueInSpecifiedUnits = value;";
+  num valueInSpecifiedUnits;
 
   void convertToSpecifiedUnits(int unitType) native;
 

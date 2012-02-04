@@ -1,13 +1,9 @@
 
 class _AudioListenerJs extends _DOMTypeJs implements AudioListener native "*AudioListener" {
 
-  num get dopplerFactor() native "return this.dopplerFactor;";
+  num dopplerFactor;
 
-  void set dopplerFactor(num value) native "this.dopplerFactor = value;";
-
-  num get speedOfSound() native "return this.speedOfSound;";
-
-  void set speedOfSound(num value) native "this.speedOfSound = value;";
+  num speedOfSound;
 
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
 

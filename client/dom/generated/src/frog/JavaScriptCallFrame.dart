@@ -11,21 +11,21 @@ class _JavaScriptCallFrameJs extends _DOMTypeJs implements JavaScriptCallFrame n
 
   static final int WITH_SCOPE = 2;
 
-  _JavaScriptCallFrameJs get caller() native "return this.caller;";
+  final _JavaScriptCallFrameJs caller;
 
-  int get column() native "return this.column;";
+  final int column;
 
-  String get functionName() native "return this.functionName;";
+  final String functionName;
 
-  int get line() native "return this.line;";
+  final int line;
 
-  List get scopeChain() native "return this.scopeChain;";
+  final List scopeChain;
 
-  int get sourceID() native "return this.sourceID;";
+  final int sourceID;
 
-  Object get thisObject() native "return this.thisObject;";
+  final Object thisObject;
 
-  String get type() native "return this.type;";
+  final String type;
 
   void evaluate(String script) native;
 

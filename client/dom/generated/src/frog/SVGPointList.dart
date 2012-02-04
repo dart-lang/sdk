@@ -1,7 +1,7 @@
 
 class _SVGPointListJs extends _DOMTypeJs implements SVGPointList native "*SVGPointList" {
 
-  int get numberOfItems() native "return this.numberOfItems;";
+  final int numberOfItems;
 
   _SVGPointJs appendItem(_SVGPointJs item) native;
 

@@ -1,9 +1,9 @@
 
 class _BlobJs extends _DOMTypeJs implements Blob native "*Blob" {
 
-  int get size() native "return this.size;";
+  final int size;
 
-  String get type() native "return this.type;";
+  final String type;
 
   _BlobJs webkitSlice([int start = null, int end = null, String contentType = null]) native;
 }

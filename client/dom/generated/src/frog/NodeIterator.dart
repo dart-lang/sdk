@@ -1,17 +1,17 @@
 
 class _NodeIteratorJs extends _DOMTypeJs implements NodeIterator native "*NodeIterator" {
 
-  bool get expandEntityReferences() native "return this.expandEntityReferences;";
+  final bool expandEntityReferences;
 
-  _NodeFilterJs get filter() native "return this.filter;";
+  final _NodeFilterJs filter;
 
-  bool get pointerBeforeReferenceNode() native "return this.pointerBeforeReferenceNode;";
+  final bool pointerBeforeReferenceNode;
 
-  _NodeJs get referenceNode() native "return this.referenceNode;";
+  final _NodeJs referenceNode;
 
-  _NodeJs get root() native "return this.root;";
+  final _NodeJs root;
 
-  int get whatToShow() native "return this.whatToShow;";
+  final int whatToShow;
 
   void detach() native;
 

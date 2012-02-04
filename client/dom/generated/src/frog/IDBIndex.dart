@@ -1,15 +1,15 @@
 
 class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
-  String get keyPath() native "return this.keyPath;";
+  final String keyPath;
 
-  bool get multiEntry() native "return this.multiEntry;";
+  final bool multiEntry;
 
-  String get name() native "return this.name;";
+  final String name;
 
-  _IDBObjectStoreJs get objectStore() native "return this.objectStore;";
+  final _IDBObjectStoreJs objectStore;
 
-  bool get unique() native "return this.unique;";
+  final bool unique;
 
   _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
 

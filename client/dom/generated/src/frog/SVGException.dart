@@ -7,11 +7,11 @@ class _SVGExceptionJs extends _DOMTypeJs implements SVGException native "*SVGExc
 
   static final int SVG_WRONG_TYPE_ERR = 0;
 
-  int get code() native "return this.code;";
+  final int code;
 
-  String get message() native "return this.message;";
+  final String message;
 
-  String get name() native "return this.name;";
+  final String name;
 
   String toString() native;
 }

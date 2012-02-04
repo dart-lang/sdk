@@ -1,7 +1,7 @@
 
 class _SVGStringListJs extends _DOMTypeJs implements SVGStringList native "*SVGStringList" {
 
-  int get numberOfItems() native "return this.numberOfItems;";
+  final int numberOfItems;
 
   String appendItem(String item) native;
 
