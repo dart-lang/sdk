@@ -11,6 +11,20 @@ prefix co19
 # Skip library tests for now.
 LibTest/*: Skip
 
+
+# TODO(ahe): Investigate why these tests are flaky.
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A18_t01: Fail,Pass
+LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A03_t01: Fail,Pass
+LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/Variable_Or_Parameter_Assignment_A03_t04: Fail,Pass
+Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail,Pass
+Language/07_Classes/5_Constructors/2_Factories_A06_t02: Fail,Pass
+Language/07_Classes/5_Constructors/2_Factories_A06_t03: Fail,Pass
+Language/07_Classes/5_Constructors/2_Factories_A06_t04: Fail,Pass
+Language/07_Classes/5_Constructors/2_Factories_A06_t05: Fail,Pass
+Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail,Pass
+Language/13_Types/2_Dynamic_Type_System_A01_t01: Fail,Pass
+
+
 # Crashes and time outs.
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Crash
 Language/09_Generics/09_Generics_A01_t06: Crash
