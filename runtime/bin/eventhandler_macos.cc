@@ -310,7 +310,7 @@ void EventHandlerImplementation::HandleEvents(struct pollfd* pollfds,
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         sd->Unregister();
-        DartUtils::PostInteger(port, event_mask);
+        DartUtils::PostInt32(port, event_mask);
       }
     }
   }
