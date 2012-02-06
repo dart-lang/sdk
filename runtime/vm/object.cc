@@ -382,7 +382,8 @@ RawClass* Object::CreateAndRegisterInterface(const char* cname,
                                              const Script& script,
                                              const Library& lib) {
   const String& name = String::Handle(String::NewSymbol(cname));
-  const Class& cls = Class::Handle(Class::NewInterface(name, script));
+  const Class& cls = Class::Handle(
+      Class::NewInterface(name, script, Scanner::kDummyTokenIndex));
   lib.AddClass(cls);
   return cls.raw();
 }
@@ -821,17 +822,20 @@ RawType* Class::SignatureType() const {
   // matching the type parameters here.
   if (num_type_params > 0) {
     const Array& type_params = Array::Handle(type_parameters());
+    // TODO(regis): Simply use the type parameters as type arguments, once type
+    // parameters are stored as an array of TypeParameter, rather than String.
     signature_type_arguments = TypeArguments::New(num_type_params);
     String& type_param_name = String::Handle();
     AbstractType& type_param = AbstractType::Handle();
     for (int i = 0; i < num_type_params; i++) {
       type_param_name ^= type_params.At(i);
-      type_param = AbstractType::NewTypeParameter(i, type_param_name);
+      // TODO(regis): Use dummy token index 1 for now; see TODO above.
+      type_param = AbstractType::NewTypeParameter(i, type_param_name, 1);
       signature_type_arguments.SetTypeAt(i, type_param);
     }
   }
   const Type& signature_type = Type::Handle(
-      Type::New(*this, signature_type_arguments));
+      Type::New(*this, signature_type_arguments, token_index()));
 
   // Return the still unfinalized signature type.
   ASSERT(!signature_type.IsFinalized());
@@ -867,6 +871,7 @@ RawClass* Class::New() {
   result.raw_ptr()->class_state_ = RawClass::kPreFinalized;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
+  result.raw_ptr()->token_index_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
   return result.raw();
 }
@@ -1024,7 +1029,8 @@ void Class::set_factory_class(const Object& value) const {
 
 // Return a TypeParameter if the type_name is a type parameter of this class.
 // Return null otherwise.
-RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
+RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
+                                             intptr_t token_index) const {
   ASSERT(!type_name.IsNull());
   const Array& type_params = Array::Handle(type_parameters());
   if (!type_params.IsNull()) {
@@ -1033,7 +1039,7 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.At(i);
       if (type_param.Equals(type_name)) {
-        return TypeParameter::New(i, type_name);
+        return TypeParameter::New(i, type_name, token_index);
       }
     }
   }
@@ -1114,7 +1120,10 @@ void Class::SetFields(const Array& value) const {
 
 
 template <class FakeInstance>
-RawClass* Class::New(const String& name, const Script& script) {
+RawClass* Class::New(const String& name,
+                     const Script& script,
+                     intptr_t token_index) {
+  ASSERT(token_index >= 0);
   Class& class_class = Class::Handle(Object::class_class());
   Class& result = Class::Handle();
   {
@@ -1132,6 +1141,7 @@ RawClass* Class::New(const String& name, const Script& script) {
   result.set_instance_kind(FakeInstance::kInstanceKind);
   result.set_name(name);
   result.set_script(script);
+  result.set_token_index(token_index);
   result.raw_ptr()->is_const_ = false;
   result.raw_ptr()->is_interface_ = false;
   result.raw_ptr()->class_state_ = RawClass::kAllocated;
@@ -1142,14 +1152,18 @@ RawClass* Class::New(const String& name, const Script& script) {
 }
 
 
-RawClass* Class::New(const String& name, const Script& script) {
-  Class& result = Class::Handle(New<Instance>(name, script));
+RawClass* Class::New(const String& name,
+                     const Script& script,
+                     intptr_t token_index) {
+  Class& result = Class::Handle(New<Instance>(name, script, token_index));
   return result.raw();
 }
 
 
-RawClass* Class::NewInterface(const String& name, const Script& script) {
-  Class& result = Class::Handle(New<Instance>(name, script));
+RawClass* Class::NewInterface(const String& name,
+                              const Script& script,
+                              intptr_t token_index) {
+  Class& result = Class::Handle(New<Instance>(name, script, token_index));
   result.set_is_interface();
   return result.raw();
 }
@@ -1173,7 +1187,8 @@ RawClass* Class::NewSignatureClass(const String& name,
       type_parameter_extends = owner_class.type_parameter_extends();
     }
   }
-  Class& result = Class::Handle(New<Closure>(name, script));
+  const intptr_t token_index = signature_function.token_index();
+  Class& result = Class::Handle(New<Closure>(name, script, token_index));
   const Type& super_type = Type::Handle(Type::ObjectType());
   ASSERT(!super_type.IsNull());
   result.set_super_type(super_type);
@@ -1276,7 +1291,7 @@ RawClass* Class::NewNativeWrapper(Library* library,
                                   int field_count) {
   Class& cls = Class::Handle(library->LookupClass(name));
   if (cls.IsNull()) {
-    cls = New<Instance>(name, Script::Handle());
+    cls = New<Instance>(name, Script::Handle(), Scanner::kDummyTokenIndex);
     cls.SetFields(Array::Handle(Array::Empty()));
     cls.SetFunctions(Array::Handle(Array::Empty()));
     // Set super class to Object.
@@ -1303,6 +1318,12 @@ void Class::set_name(const String& value) const {
 
 void Class::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+
+void Class::set_token_index(intptr_t token_index) const {
+  ASSERT(token_index >= 0);
+  raw_ptr()->token_index_ = token_index;
 }
 
 
@@ -1756,13 +1777,13 @@ void Class::InsertCanonicalConstant(intptr_t index,
 }
 
 
-RawUnresolvedClass* UnresolvedClass::New(intptr_t token_index,
-                                         const LibraryPrefix& library_prefix,
-                                         const String& ident) {
+RawUnresolvedClass* UnresolvedClass::New(const LibraryPrefix& library_prefix,
+                                         const String& ident,
+                                         intptr_t token_index) {
   const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
-  type.set_token_index(token_index);
   type.set_library_prefix(library_prefix);
   type.set_ident(ident);
+  type.set_token_index(token_index);
   return type.raw();
 }
 
@@ -1778,6 +1799,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 
 void UnresolvedClass::set_token_index(intptr_t token_index) const {
+  ASSERT(token_index >= 0);
   raw_ptr()->token_index_ = token_index;
 }
 
@@ -1852,6 +1874,13 @@ RawAbstractTypeArguments* AbstractType::arguments() const  {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return NULL;
+}
+
+
+intptr_t AbstractType::token_index() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return -1;
 }
 
 
@@ -2071,8 +2100,8 @@ bool AbstractType::Test(TypeTestKind test, const AbstractType& other) const {
 }
 
 RawAbstractType* AbstractType::NewTypeParameter(
-    intptr_t index, const String& name) {
-  return TypeParameter::New(index, name);
+    intptr_t index, const String& name, intptr_t token_index) {
+  return TypeParameter::New(index, name, token_index);
 }
 
 
@@ -2146,10 +2175,10 @@ RawType* Type::ListInterface() {
 }
 
 
-RawType* Type::NewRawType(const Class& type_class) {
+RawType* Type::NewRawType(const Class& type_class, intptr_t token_index) {
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::Handle(type_class.type_parameter_extends());
-  return New(Object::Handle(type_class.raw()), type_arguments);
+  return New(Object::Handle(type_class.raw()), type_arguments, token_index);
 }
 
 
@@ -2158,8 +2187,9 @@ RawType* Type::NewNonParameterizedType(
   ASSERT(!type_class.HasTypeArguments());
   const TypeArguments& no_type_arguments = TypeArguments::Handle();
   Type& type = Type::Handle();
-  type ^= Type::New(
-      Object::Handle(type_class.raw()), no_type_arguments);
+  type ^= Type::New(Object::Handle(type_class.raw()),
+                    no_type_arguments,
+                    Scanner::kDummyTokenIndex);
   type.set_is_finalized();
   type ^= type.Canonicalize();
   return type.raw();
@@ -2235,7 +2265,8 @@ RawAbstractType* Type::InstantiateFrom(
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments);
   const Class& cls = Class::Handle(type_class());
   ASSERT(cls.is_finalized());
-  Type& instantiated_type = Type::Handle(Type::New(cls, type_arguments));
+  Type& instantiated_type = Type::Handle(
+      Type::New(cls, type_arguments, token_index()));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
   instantiated_type.set_is_finalized();
@@ -2331,12 +2362,20 @@ RawType* Type::New() {
 
 
 RawType* Type::New(const Object& clazz,
-                   const AbstractTypeArguments& arguments) {
+                   const AbstractTypeArguments& arguments,
+                   intptr_t token_index) {
   const Type& result = Type::Handle(Type::New());
   result.set_type_class(clazz);
   result.set_arguments(arguments);
+  result.set_token_index(token_index);
   result.raw_ptr()->type_state_ = RawType::kAllocated;
   return result.raw();
+}
+
+
+void Type::set_token_index(intptr_t token_index) const {
+  ASSERT(token_index >= 0);
+  raw_ptr()->token_index_ = token_index;
 }
 
 
@@ -2430,12 +2469,20 @@ RawTypeParameter* TypeParameter::New() {
 }
 
 
-RawTypeParameter* TypeParameter::New(intptr_t index, const String& name) {
+RawTypeParameter* TypeParameter::New(
+    intptr_t index, const String& name, intptr_t token_index) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_index(index);
   result.set_name(name);
+  result.set_token_index(token_index);
   result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
   return result.raw();
+}
+
+
+void TypeParameter::set_token_index(intptr_t token_index) const {
+  ASSERT(token_index >= 0);
+  raw_ptr()->token_index_ = token_index;
 }
 
 
@@ -2468,6 +2515,11 @@ RawAbstractTypeArguments* InstantiatedType::arguments() const {
       AbstractTypeArguments::Handle(AbstractType::Handle(
           uninstantiated_type()).arguments()),
       AbstractTypeArguments::Handle(instantiator_type_arguments()));
+}
+
+
+intptr_t InstantiatedType::token_index() const {
+  return AbstractType::Handle(uninstantiated_type()).token_index();
 }
 
 
@@ -3406,11 +3458,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   }
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
-    Error& error = Error::Handle();
-    ClassFinalizer::FinalizeAndCanonicalizeType(signature_class,
-                                                signature_type,
-                                                &error);
-    ASSERT(error.IsNull());
+    ClassFinalizer::FinalizeType(signature_class, signature_type);
   }
   ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);
@@ -5517,7 +5565,8 @@ RawType* Instance::GetType() const {
   if (cls.HasTypeArguments()) {
     type_arguments = GetTypeArguments();
   }
-  const Type& type = Type::Handle(Type::New(cls, type_arguments));
+  const Type& type = Type::Handle(
+      Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
   type.set_is_finalized();
   return type.raw();
 }
@@ -5658,7 +5707,8 @@ const char* Instance::ToCString() const {
     if (num_type_arguments > 0) {
       type_arguments = GetTypeArguments();
     }
-    const Type& type = Type::Handle(Type::New(cls, type_arguments));
+    const Type& type =
+        Type::Handle(Type::New(cls, type_arguments, Scanner::kDummyTokenIndex));
     const String& type_name = String::Handle(type.Name());
     // Calculate the size of the string.
     intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;

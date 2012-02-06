@@ -22,7 +22,7 @@ namespace dart {
 #define __ assembler_->
 
 
-static const intptr_t kPos = 1;  // Dummy token index in non-existing source.
+static const intptr_t kPos = Scanner::kDummyTokenIndex;
 
 
 // Helper to allocate and return a LocalVariable.

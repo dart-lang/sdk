@@ -221,8 +221,7 @@ class Parser : ValueObject {
     kCanResolve,  // Type resolution is optional.
     kMustResolve  // Type resolution is required.
   };
-  void ResolveTypeFromClass(intptr_t type_pos,
-                            const Class& cls,
+  void ResolveTypeFromClass(const Class& cls,
                             TypeResolution type_resolution,
                             AbstractType* type);
   RawAbstractType* ParseType(TypeResolution type_resolution);

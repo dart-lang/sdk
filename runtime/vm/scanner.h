@@ -41,6 +41,9 @@ class Scanner : ValueObject {
     String* literal;          // Identifier, number or string literal.
   };
 
+  // Dummy token index reflecting an unknown source position.
+  static const intptr_t kDummyTokenIndex = 0;
+
   // Character used to indicate a private identifier.
   static const char kPrivateIdentifierStart  = '_';
 

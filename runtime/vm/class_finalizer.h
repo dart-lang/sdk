@@ -41,11 +41,10 @@ class ClassFinalizer : public AllStatic {
                                    AbstractType* interface,
                                    AbstractType* conflicting);
 
-  // Finalize and canonicalize type while parsing class cls.
-  // Set the error message on failure (to Error::null() if no error).
-  static RawAbstractType* FinalizeAndCanonicalizeType(const Class& cls,
-                                                      const AbstractType& type,
-                                                      Error* error);
+  // Finalize given type while parsing class cls.
+  // Also canonicalize type if applicable.
+  static RawAbstractType* FinalizeType(const Class& cls,
+                                       const AbstractType& type);
 
   // Pending classes are classes that need to be finalized.
   static void AddPendingClasses(const GrowableArray<const Class*>& classes);
@@ -82,8 +81,6 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeTypeArguments(const Class& cls,
                                     const AbstractTypeArguments& arguments);
   static void ResolveType(const Class& cls, const AbstractType& type);
-  static RawAbstractType* FinalizeType(const Class& cls,
-                                       const AbstractType& type);
   static void ResolveAndFinalizeUpperBounds(const Class& cls);
   static void VerifyUpperBounds(const Class& cls,
                                 const AbstractTypeArguments& arguments);
