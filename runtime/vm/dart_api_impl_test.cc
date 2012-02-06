@@ -1495,7 +1495,10 @@ TEST_CASE(InjectNativeFields4) {
   // We expect the test script to fail finalization with the error below:
   EXPECT(Dart_IsError(result));
   Dart_Handle expected_error = Dart_Error(
-      "'dart:test-lib': Error: line 1 pos 38: class 'NativeFields' is trying");
+      "'dart:test-lib': Error: line 1 pos 38: "
+      "class 'NativeFields' is trying to extend a native fields class, "
+      "but library '%s' has no native resolvers",
+      TestCase::url());
   EXPECT_SUBSTRING(Dart_GetError(expected_error), Dart_GetError(result));
 }
 
