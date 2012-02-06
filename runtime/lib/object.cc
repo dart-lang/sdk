@@ -40,26 +40,14 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 3) {
     function = instance_class.LookupDynamicFunction(function_name);
   }
   if (!function.IsNull()) {
-    String& tmp = String::Handle();
-    String& extra_message = String::Handle();
-    tmp = String::NewSymbol("\nFound '");
-    extra_message = String::Concat(tmp, function_name);
-    tmp = String::NewSymbol("(");
-    extra_message = String::Concat(extra_message, tmp);
-    const int total_num_paramaters =
+    const int total_num_parameters =
         function.num_fixed_parameters() + function.num_optional_parameters();
-    // 0 is the receiver ('this'), skip it.
-    for (int i = 1; i < total_num_paramaters; i++) {
-      if (i > 1) {
-        tmp = String::NewSymbol(", ");
-        extra_message = String::Concat(extra_message, tmp);
-      }
-      tmp = function.ParameterNameAt(i);
-      extra_message = String::Concat(extra_message, tmp);
+    const Array& array = Array::Handle(Array::New(total_num_parameters - 1));
+    // Skip receiver.
+    for (int i = 1; i < total_num_parameters; i++) {
+      array.SetAt(i - 1, String::Handle(function.ParameterNameAt(i)));
     }
-    tmp = String::NewSymbol(")'");
-    extra_message = String::Concat(extra_message, tmp);
-    dart_arguments.Add(&extra_message);
+    dart_arguments.Add(&array);
   }
   Exceptions::ThrowByType(Exceptions::kNoSuchMethod, dart_arguments);
 }
