@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -158,7 +158,7 @@ public class DartRunner {
       }
     }
 
-    if (!options.shouldCompileOnly()) {
+    if (!options.shouldCompileOnly() && !options.checkOnly()) {
       runApp(compiled, app.getName(), options, scriptArguments.toArray(new String[0]),
              stdout, stderr);
     }
@@ -242,7 +242,7 @@ public class DartRunner {
                                       PrintStream stderr)
       throws RunnerError {
     CompilationResult compiled = compileApp(
-        app, Collections.<LibrarySource>emptyList(), config, listener);
+        app,  options, Collections.<LibrarySource>emptyList(), config, listener);
     runApp(compiled, app.getName(), options, dartArguments, stdout, stderr);
   }
 
@@ -293,16 +293,17 @@ public class DartRunner {
         return options.typeErrorsAreFatal();
       }
     };
-    return compileApp(app, imports, config, listener);
+    return compileApp(app, options, imports, config, listener);
   }
 
   /**
    * Parses and compiles an application to Javascript.
    */
   private static CompilationResult compileApp(LibrarySource app,
+                                              final DartRunnerOptions options,
                                               List<LibrarySource> imports,
                                               CompilerConfiguration config,
-                                              DartCompilerListener listener) throws RunnerError {
+                                              DartCompilerListener listener)  throws RunnerError {
     try {
       final RunnerDartArtifactProvider provider = new RunnerDartArtifactProvider();
       String errmsg = DartCompiler.compileLib(app, imports, config, provider, listener);
@@ -337,10 +338,13 @@ public class DartRunner {
         }
       }
 
-      Reader r = provider.getArtifactReader(app, "", backend.getAppExtension());
-      String js = CharStreams.toString(r);
-      r.close();
-      return new CompilationResult(js, mapping);
+      if (!options.checkOnly()) {
+        Reader r = provider.getArtifactReader(app, "", backend.getAppExtension());
+        String js = CharStreams.toString(r);
+        r.close();
+        return new CompilationResult(js, mapping);
+      }
+      return null;
     } catch (IOException e) {
       // This can't happen; it's just a StringWriter.
       throw new AssertionError(e);
