@@ -690,11 +690,11 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
 }
 
 
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* root) {
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
   MessageWriter writer(&buffer, allocator);
 
-  writer.WriteCMessage(root);
+  writer.WriteCMessage(message);
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(

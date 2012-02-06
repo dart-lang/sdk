@@ -1447,11 +1447,11 @@ struct Dart_CObject {
 
 /**
  * Posts a message on some port. The message will contain the
- * Dart_CObject object graph rooted in the provided Dart_CObject.
+ * Dart_CObject object graph rooted in 'message'.
  *
  * While the message is being sent the state of the graph of
- * Dart_CObject structures rooted in message should not be accessed,
- * as the message generation will make temporaly modification to the
+ * Dart_CObject structures rooted in 'message' should not be accessed,
+ * as the message generation will make temporary modifications to the
  * data. When the message has been sent the graph will be fully
  * restored.
  *
@@ -1460,6 +1460,6 @@ struct Dart_CObject {
  *
  * \return True if the message was posted.
  */
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* root);
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
 
 #endif  // INCLUDE_DART_API_H_
