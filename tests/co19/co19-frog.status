@@ -7,24 +7,18 @@ prefix co19
 [ $component == frog || $component == frogsh ]
 *: Skip
 
+
 [ $component == leg ]
 # Skip library tests for now.
 LibTest/*: Skip
 
 
-# TODO(ahe): Investigate why these tests are flaky.
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A18_t01: Fail,Pass
-LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A03_t01: Fail,Pass
-LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/Variable_Or_Parameter_Assignment_A03_t04: Fail,Pass
-Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail,Pass
-Language/07_Classes/5_Constructors/2_Factories_A06_t02: Fail,Pass
-Language/07_Classes/5_Constructors/2_Factories_A06_t03: Fail,Pass
-Language/07_Classes/5_Constructors/2_Factories_A06_t04: Fail,Pass
-Language/07_Classes/5_Constructors/2_Factories_A06_t05: Fail,Pass
-Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail,Pass
-Language/13_Types/2_Dynamic_Type_System_A01_t01: Fail,Pass
+[ $component == leg && $checked ]
+# Leg does not support checked mode yet.
+*: Skip
 
 
+[ $component == leg ]
 # Crashes and time outs.
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Crash
 Language/09_Generics/09_Generics_A01_t06: Crash
@@ -84,6 +78,7 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Cla
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A15_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A16_t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A17_t01: Fail
+LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A18_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A19_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A20_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A21_t01: Fail
@@ -150,10 +145,12 @@ LangGuideTest/07_Overriding/07_Overriding_A04_t01: Fail
 LangGuideTest/07_Overriding/07_Overriding_A05_t01: Fail
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A02_t01: Fail
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A02_t02: Fail
+LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A03_t01: Fail
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A04_t01: Fail
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Regular_Instance_Method_Invocation/Regular_Instance_Method_Invocation_A02_t02: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Static-Field_Assignment/Static-Field_Assignment_A03_t02: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/Variable_Or_Parameter_Assignment_A02_t01: Fail
+LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/Variable_Or_Parameter_Assignment_A03_t04: Fail
 LangGuideTest/08_Expressions/08_5_Logical-Or_Operator/08_5_Logical-Or_Operator_A03_t01: Fail
 LangGuideTest/08_Expressions/08_6_Logical-And_Operator/08_6_Logical-And_Operator_A03_t01: Fail
 LangGuideTest/08_Expressions/08_Expressions_A01_t01: Fail
@@ -214,6 +211,12 @@ Language/07_Classes/5_Constructors/2_Factories_A04_t01: Fail
 Language/07_Classes/5_Constructors/2_Factories_A04_t02: Fail
 Language/07_Classes/5_Constructors/2_Factories_A04_t03: Fail
 Language/07_Classes/5_Constructors/2_Factories_A04_t04: Fail
+Language/07_Classes/5_Constructors/2_Factories_A06_t01: Fail
+Language/07_Classes/5_Constructors/2_Factories_A06_t02: Fail
+Language/07_Classes/5_Constructors/2_Factories_A06_t03: Fail
+Language/07_Classes/5_Constructors/2_Factories_A06_t04: Fail
+Language/07_Classes/5_Constructors/2_Factories_A06_t05: Fail
+Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t01: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t04: Fail
 Language/07_Classes/5_Constructors_A02_t02: Fail
@@ -270,6 +273,7 @@ Language/09_Generics/09_Generics_A01_t04: Fail
 Language/09_Generics/09_Generics_A02_t01: Fail
 Language/09_Generics/09_Generics_A04_t01: Fail
 Language/09_Generics/09_Generics_A04_t03: Fail
+Language/13_Types/2_Dynamic_Type_System_A01_t01: Fail
 Language/13_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t01: Fail
 Language/13_Types/3_Type_Declarations/1_Typedef_A02_t02: Fail

@@ -4,6 +4,10 @@
 
 prefix corelib
 
+[ $component == leg && $checked ]
+*: Skip
+
+
 [ $component == leg ]
 BigIntegerVMTest: Fail
 CollectionFromTest: Fail

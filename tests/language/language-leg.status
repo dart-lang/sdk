@@ -4,6 +4,10 @@
 
 prefix language
 
+[ $component == leg && $checked ]
+*: Skip
+
+
 [ $component == leg ]
 AbstractStaticNegativeTest: Fail
 ArithmeticTest: Fail
