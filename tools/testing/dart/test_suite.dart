@@ -713,9 +713,6 @@ class StandardTestSuite implements TestSuite {
     if (contents.contains("@compile-error") ||
         contents.contains("@runtime-error")) {
       isNegative = true;
-    } else if (contents.contains("@dynamic-type-error") &&
-               configuration['checked']) {
-      isNegative = true;
     }
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);

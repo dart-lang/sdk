@@ -29,8 +29,6 @@ class Co19TestCase(test.TestCase):
       contents = self.GetSource()
       if '@compile-error' in contents or '@runtime-error' in contents:
         self._is_negative = True
-      elif '@dynamic-type-error' in contents:
-        self._is_negative = self.context.checked
       else:
         self._is_negative = False
     return self._is_negative
