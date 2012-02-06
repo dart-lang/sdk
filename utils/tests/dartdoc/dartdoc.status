@@ -13,9 +13,6 @@ prefix dartdoc
 [ $component == frogium || $component == dartium || $component == webdriver ]
 *: Skip # Tests use node flavor of unittest lib. :(
 
-[ $component == frog && $mode == debug ]
-dartdoc_tests: Skip # Times out.
-
 [ $arch == x64 ]
 *: Skip
 

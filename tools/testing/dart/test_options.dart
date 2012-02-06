@@ -427,6 +427,11 @@ is 'dart file.dart' and you specify special command
         case 'frogium':
           timeout *= 4;
           break;
+        case 'frog':
+          if (configuration['mode'] == 'debug') {
+            timeout *= 4;
+          }
+          break;
         default:
           if (configuration['mode'] == 'debug') {
             timeout *= 2;
