@@ -25,18 +25,6 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
 
   final bool isContentEditable;
 
-  String itemId;
-
-  final _DOMSettableTokenListJs itemProp;
-
-  final _DOMSettableTokenListJs itemRef;
-
-  bool itemScope;
-
-  final _DOMSettableTokenListJs itemType;
-
-  Object itemValue;
-
   String lang;
 
   String outerHTML;

@@ -41,8 +41,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
   final _NodeListJs labels;
 
-  final _HTMLElementJs list;
-
   String max;
 
   int maxLength;
@@ -60,8 +58,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
   bool readOnly;
 
   bool required;
-
-  final _HTMLOptionElementJs selectedOption;
 
   String selectionDirection;
 

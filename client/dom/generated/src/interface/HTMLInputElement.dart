@@ -80,8 +80,6 @@ interface HTMLInputElement extends HTMLElement {
 
   NodeList get labels();
 
-  HTMLElement get list();
-
   String get max();
 
   void set max(String value);
@@ -117,8 +115,6 @@ interface HTMLInputElement extends HTMLElement {
   bool get required();
 
   void set required(bool value);
-
-  HTMLOptionElement get selectedOption();
 
   String get selectionDirection();
 

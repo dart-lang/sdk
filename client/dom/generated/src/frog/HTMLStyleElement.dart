@@ -5,8 +5,6 @@ class _HTMLStyleElementJs extends _HTMLElementJs implements HTMLStyleElement nat
 
   String media;
 
-  bool scoped;
-
   final _StyleSheetJs sheet;
 
   String type;

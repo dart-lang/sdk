@@ -9246,22 +9246,6 @@ function native__HTMLCollectionWrappingImplementation__namedItem(_this, name) {
   }
 }
 
-function native__HTMLContentElementWrappingImplementation__get_select(_this) {
-  try {
-    return __dom_wrap(_this.$dom.select);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLContentElementWrappingImplementation__set_select(_this, value) {
-  try {
-    _this.$dom.select = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__HTMLDListElementWrappingImplementation__get_compact(_this) {
   try {
     return __dom_wrap(_this.$dom.compact);
@@ -9273,14 +9257,6 @@ function native__HTMLDListElementWrappingImplementation__get_compact(_this) {
 function native__HTMLDListElementWrappingImplementation__set_compact(_this, value) {
   try {
     _this.$dom.compact = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLDataListElementWrappingImplementation__get_options(_this) {
-  try {
-    return __dom_wrap(_this.$dom.options);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -9729,78 +9705,6 @@ function native__HTMLElementWrappingImplementation__set_innerText(_this, value) 
 function native__HTMLElementWrappingImplementation__get_isContentEditable(_this) {
   try {
     return __dom_wrap(_this.$dom.isContentEditable);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__get_itemId(_this) {
-  try {
-    return __dom_wrap(_this.$dom.itemId);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__set_itemId(_this, value) {
-  try {
-    _this.$dom.itemId = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__get_itemProp(_this) {
-  try {
-    return __dom_wrap(_this.$dom.itemProp);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__get_itemRef(_this) {
-  try {
-    return __dom_wrap(_this.$dom.itemRef);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__get_itemScope(_this) {
-  try {
-    return __dom_wrap(_this.$dom.itemScope);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__set_itemScope(_this, value) {
-  try {
-    _this.$dom.itemScope = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__get_itemType(_this) {
-  try {
-    return __dom_wrap(_this.$dom.itemType);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__get_itemValue(_this) {
-  try {
-    return __dom_wrap(_this.$dom.itemValue);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLElementWrappingImplementation__set_itemValue(_this, value) {
-  try {
-    _this.$dom.itemValue = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -11430,14 +11334,6 @@ function native__HTMLInputElementWrappingImplementation__get_labels(_this) {
   }
 }
 
-function native__HTMLInputElementWrappingImplementation__get_list(_this) {
-  try {
-    return __dom_wrap(_this.$dom.list);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__HTMLInputElementWrappingImplementation__get_max(_this) {
   try {
     return __dom_wrap(_this.$dom.max);
@@ -11577,14 +11473,6 @@ function native__HTMLInputElementWrappingImplementation__get_required(_this) {
 function native__HTMLInputElementWrappingImplementation__set_required(_this, value) {
   try {
     _this.$dom.required = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLInputElementWrappingImplementation__get_selectedOption(_this) {
-  try {
-    return __dom_wrap(_this.$dom.selectedOption);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -14110,22 +13998,6 @@ function native__HTMLProgressElementWrappingImplementation__set_value(_this, val
   }
 }
 
-function native__HTMLPropertiesCollectionWrappingImplementation__get_length_HTMLPropertiesCollection(_this) {
-  try {
-    return __dom_wrap(_this.$dom.length);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLPropertiesCollectionWrappingImplementation__item_HTMLPropertiesCollection(_this, index) {
-  try {
-    return __dom_wrap(_this.$dom.item(__dom_unwrap(index)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__HTMLQuoteElementWrappingImplementation__get_cite(_this) {
   try {
     return __dom_wrap(_this.$dom.cite);
@@ -14601,22 +14473,6 @@ function native__HTMLStyleElementWrappingImplementation__get_media(_this) {
 function native__HTMLStyleElementWrappingImplementation__set_media(_this, value) {
   try {
     _this.$dom.media = __dom_unwrap(value);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLStyleElementWrappingImplementation__get_scoped(_this) {
-  try {
-    return __dom_wrap(_this.$dom.scoped);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__HTMLStyleElementWrappingImplementation__set_scoped(_this, value) {
-  try {
-    _this.$dom.scoped = __dom_unwrap(value);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -17158,310 +17014,6 @@ function native__ImageDataWrappingImplementation__get_width(_this) {
   }
 }
 
-function native__InjectedScriptHostWrappingImplementation__clearConsoleMessages(_this) {
-  try {
-    return __dom_wrap(_this.$dom.clearConsoleMessages());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__copyText(_this, text) {
-  try {
-    return __dom_wrap(_this.$dom.copyText(__dom_unwrap(text)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__databaseId(_this, database) {
-  try {
-    return __dom_wrap(_this.$dom.databaseId(__dom_unwrap(database)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__didCreateWorker(_this, id, url, isFakeWorker) {
-  try {
-    return __dom_wrap(_this.$dom.didCreateWorker(__dom_unwrap(id), __dom_unwrap(url), __dom_unwrap(isFakeWorker)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__didDestroyWorker(_this, id) {
-  try {
-    return __dom_wrap(_this.$dom.didDestroyWorker(__dom_unwrap(id)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__evaluate(_this, text) {
-  try {
-    return __dom_wrap(_this.$dom.evaluate(__dom_unwrap(text)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__functionDetails(_this, object) {
-  try {
-    return __dom_wrap(_this.$dom.functionDetails(__dom_unwrap(object)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__inspect(_this, objectId, hints) {
-  try {
-    return __dom_wrap(_this.$dom.inspect(__dom_unwrap(objectId), __dom_unwrap(hints)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__inspectedNode(_this, num) {
-  try {
-    return __dom_wrap(_this.$dom.inspectedNode(__dom_unwrap(num)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__internalConstructorName(_this, object) {
-  try {
-    return __dom_wrap(_this.$dom.internalConstructorName(__dom_unwrap(object)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__isHTMLAllCollection(_this, object) {
-  try {
-    return __dom_wrap(_this.$dom.isHTMLAllCollection(__dom_unwrap(object)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__nextWorkerId(_this) {
-  try {
-    return __dom_wrap(_this.$dom.nextWorkerId());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__storageId(_this, storage) {
-  try {
-    return __dom_wrap(_this.$dom.storageId(__dom_unwrap(storage)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InjectedScriptHostWrappingImplementation__type(_this, object) {
-  try {
-    return __dom_wrap(_this.$dom.type(__dom_unwrap(object)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__bringToFront(_this) {
-  try {
-    return __dom_wrap(_this.$dom.bringToFront());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__canSaveAs(_this) {
-  try {
-    return __dom_wrap(_this.$dom.canSaveAs());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__closeWindow(_this) {
-  try {
-    return __dom_wrap(_this.$dom.closeWindow());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__copyText(_this, text) {
-  try {
-    return __dom_wrap(_this.$dom.copyText(__dom_unwrap(text)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__hiddenPanels(_this) {
-  try {
-    return __dom_wrap(_this.$dom.hiddenPanels());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__inspectedURLChanged(_this, newURL) {
-  try {
-    return __dom_wrap(_this.$dom.inspectedURLChanged(__dom_unwrap(newURL)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__loadResourceSynchronously(_this, url) {
-  try {
-    return __dom_wrap(_this.$dom.loadResourceSynchronously(__dom_unwrap(url)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__loaded(_this) {
-  try {
-    return __dom_wrap(_this.$dom.loaded());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__localizedStringsURL(_this) {
-  try {
-    return __dom_wrap(_this.$dom.localizedStringsURL());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__moveWindowBy(_this, x, y) {
-  try {
-    return __dom_wrap(_this.$dom.moveWindowBy(__dom_unwrap(x), __dom_unwrap(y)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__openInNewTab(_this, url) {
-  try {
-    return __dom_wrap(_this.$dom.openInNewTab(__dom_unwrap(url)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__platform(_this) {
-  try {
-    return __dom_wrap(_this.$dom.platform());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__port(_this) {
-  try {
-    return __dom_wrap(_this.$dom.port());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__recordActionTaken(_this, actionCode) {
-  try {
-    return __dom_wrap(_this.$dom.recordActionTaken(__dom_unwrap(actionCode)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__recordPanelShown(_this, panelCode) {
-  try {
-    return __dom_wrap(_this.$dom.recordPanelShown(__dom_unwrap(panelCode)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__recordSettingChanged(_this, settingChanged) {
-  try {
-    return __dom_wrap(_this.$dom.recordSettingChanged(__dom_unwrap(settingChanged)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__requestAttachWindow(_this) {
-  try {
-    return __dom_wrap(_this.$dom.requestAttachWindow());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__requestDetachWindow(_this) {
-  try {
-    return __dom_wrap(_this.$dom.requestDetachWindow());
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__requestSetDockSide(_this, side) {
-  try {
-    return __dom_wrap(_this.$dom.requestSetDockSide(__dom_unwrap(side)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__saveAs(_this, fileName, content) {
-  try {
-    return __dom_wrap(_this.$dom.saveAs(__dom_unwrap(fileName), __dom_unwrap(content)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__sendMessageToBackend(_this, message) {
-  try {
-    return __dom_wrap(_this.$dom.sendMessageToBackend(__dom_unwrap(message)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__setAttachedWindowHeight(_this, height) {
-  try {
-    return __dom_wrap(_this.$dom.setAttachedWindowHeight(__dom_unwrap(height)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__setInjectedScriptForOrigin(_this, origin, script) {
-  try {
-    return __dom_wrap(_this.$dom.setInjectedScriptForOrigin(__dom_unwrap(origin), __dom_unwrap(script)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__InspectorFrontendHostWrappingImplementation__showContextMenu(_this, event, items) {
-  try {
-    return __dom_wrap(_this.$dom.showContextMenu(__dom_unwrap(event), __dom_unwrap(items)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__Int16ArrayWrappingImplementation__get_length(_this) {
   try {
     return __dom_wrap(_this.$dom.length);
@@ -18582,22 +18134,6 @@ function native__MouseEventWrappingImplementation__get_toElement(_this) {
   }
 }
 
-function native__MouseEventWrappingImplementation__get_webkitMovementX(_this) {
-  try {
-    return __dom_wrap(_this.$dom.webkitMovementX);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MouseEventWrappingImplementation__get_webkitMovementY(_this) {
-  try {
-    return __dom_wrap(_this.$dom.webkitMovementY);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__MouseEventWrappingImplementation__get_x(_this) {
   try {
     return __dom_wrap(_this.$dom.x);
@@ -18665,78 +18201,6 @@ function native__MutationEventWrappingImplementation__get_relatedNode(_this) {
 function native__MutationEventWrappingImplementation__initMutationEvent(_this, type, canBubble, cancelable, relatedNode, prevValue, newValue, attrName, attrChange) {
   try {
     return __dom_wrap(_this.$dom.initMutationEvent(__dom_unwrap(type), __dom_unwrap(canBubble), __dom_unwrap(cancelable), __dom_unwrap(relatedNode), __dom_unwrap(prevValue), __dom_unwrap(newValue), __dom_unwrap(attrName), __dom_unwrap(attrChange)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_addedNodes(_this) {
-  try {
-    return __dom_wrap(_this.$dom.addedNodes);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_attributeName(_this) {
-  try {
-    return __dom_wrap(_this.$dom.attributeName);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_attributeNamespace(_this) {
-  try {
-    return __dom_wrap(_this.$dom.attributeNamespace);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_nextSibling(_this) {
-  try {
-    return __dom_wrap(_this.$dom.nextSibling);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_oldValue(_this) {
-  try {
-    return __dom_wrap(_this.$dom.oldValue);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_previousSibling(_this) {
-  try {
-    return __dom_wrap(_this.$dom.previousSibling);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_removedNodes(_this) {
-  try {
-    return __dom_wrap(_this.$dom.removedNodes);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_target(_this) {
-  try {
-    return __dom_wrap(_this.$dom.target);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__MutationRecordWrappingImplementation__get_type(_this) {
-  try {
-    return __dom_wrap(_this.$dom.type);
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -19849,46 +19313,6 @@ function native__PerformanceTimingWrappingImplementation__get_unloadEventEnd(_th
 function native__PerformanceTimingWrappingImplementation__get_unloadEventStart(_this) {
   try {
     return __dom_wrap(_this.$dom.unloadEventStart);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__PointerLockWrappingImplementation__get_isLocked(_this) {
-  try {
-    return __dom_wrap(_this.$dom.isLocked);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__PointerLockWrappingImplementation__lock(_this, target) {
-  try {
-    return __dom_wrap(_this.$dom.lock(__dom_unwrap(target)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__PointerLockWrappingImplementation__lock_2(_this, target, successCallback) {
-  try {
-    return __dom_wrap(_this.$dom.lock(__dom_unwrap(target), __dom_unwrap(successCallback)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__PointerLockWrappingImplementation__lock_3(_this, target, successCallback, failureCallback) {
-  try {
-    return __dom_wrap(_this.$dom.lock(__dom_unwrap(target), __dom_unwrap(successCallback), __dom_unwrap(failureCallback)));
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__PointerLockWrappingImplementation__unlock(_this) {
-  try {
-    return __dom_wrap(_this.$dom.unlock());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -30358,14 +29782,6 @@ function native__ScriptProfileNodeWrappingImplementation__get_visible(_this) {
   }
 }
 
-function native__ShadowRootWrappingImplementation__get_host(_this) {
-  try {
-    return __dom_wrap(_this.$dom.host);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__SharedWorkerWrappingImplementation__get_port(_this) {
   try {
     return __dom_wrap(_this.$dom.port);
@@ -33430,14 +32846,6 @@ function native__WebKitBlobBuilderWrappingImplementation__getBlob_2(_this, conte
   }
 }
 
-function native__WebKitCSSFilterValueWrappingImplementation__get_operationType(_this) {
-  try {
-    return __dom_wrap(_this.$dom.operationType);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
 function native__WebKitCSSKeyframeRuleWrappingImplementation__get_keyText(_this) {
   try {
     return __dom_wrap(_this.$dom.keyText);
@@ -33953,14 +33361,6 @@ function native__WebKitCSSRegionRuleWrappingImplementation__get_cssRules(_this) 
 function native__WebKitCSSTransformValueWrappingImplementation__get_operationType(_this) {
   try {
     return __dom_wrap(_this.$dom.operationType);
-  } catch (e) {
-    throw __dom_wrap_exception(e);
-  }
-}
-
-function native__WebKitMutationObserverWrappingImplementation__disconnect(_this) {
-  try {
-    return __dom_wrap(_this.$dom.disconnect());
   } catch (e) {
     throw __dom_wrap_exception(e);
   }
@@ -35565,9 +34965,7 @@ var __dom_type_map = {
   "HTMLButtonElement": native__HTMLButtonElementWrappingImplementation_create__HTMLButtonElementWrappingImplementation,
   "HTMLCanvasElement": native__HTMLCanvasElementWrappingImplementation_create__HTMLCanvasElementWrappingImplementation,
   "HTMLCollection": native__HTMLCollectionWrappingImplementation_create__HTMLCollectionWrappingImplementation,
-  "HTMLContentElement": native__HTMLContentElementWrappingImplementation_create__HTMLContentElementWrappingImplementation,
   "HTMLDListElement": native__HTMLDListElementWrappingImplementation_create__HTMLDListElementWrappingImplementation,
-  "HTMLDataListElement": native__HTMLDataListElementWrappingImplementation_create__HTMLDataListElementWrappingImplementation,
   "HTMLDetailsElement": native__HTMLDetailsElementWrappingImplementation_create__HTMLDetailsElementWrappingImplementation,
   "HTMLDirectoryElement": native__HTMLDirectoryElementWrappingImplementation_create__HTMLDirectoryElementWrappingImplementation,
   "HTMLDivElement": native__HTMLDivElementWrappingImplementation_create__HTMLDivElementWrappingImplementation,
@@ -35609,7 +35007,6 @@ var __dom_type_map = {
   "HTMLParamElement": native__HTMLParamElementWrappingImplementation_create__HTMLParamElementWrappingImplementation,
   "HTMLPreElement": native__HTMLPreElementWrappingImplementation_create__HTMLPreElementWrappingImplementation,
   "HTMLProgressElement": native__HTMLProgressElementWrappingImplementation_create__HTMLProgressElementWrappingImplementation,
-  "HTMLPropertiesCollection": native__HTMLPropertiesCollectionWrappingImplementation_create__HTMLPropertiesCollectionWrappingImplementation,
   "HTMLQuoteElement": native__HTMLQuoteElementWrappingImplementation_create__HTMLQuoteElementWrappingImplementation,
   "HTMLScriptElement": native__HTMLScriptElementWrappingImplementation_create__HTMLScriptElementWrappingImplementation,
   "HTMLSelectElement": native__HTMLSelectElementWrappingImplementation_create__HTMLSelectElementWrappingImplementation,
@@ -35647,8 +35044,6 @@ var __dom_type_map = {
   "IDBVersionChangeEvent": native__IDBVersionChangeEventWrappingImplementation_create__IDBVersionChangeEventWrappingImplementation,
   "IDBVersionChangeRequest": native__IDBVersionChangeRequestWrappingImplementation_create__IDBVersionChangeRequestWrappingImplementation,
   "ImageData": native__ImageDataWrappingImplementation_create__ImageDataWrappingImplementation,
-  "InjectedScriptHost": native__InjectedScriptHostWrappingImplementation_create__InjectedScriptHostWrappingImplementation,
-  "InspectorFrontendHost": native__InspectorFrontendHostWrappingImplementation_create__InspectorFrontendHostWrappingImplementation,
   "Int16Array": native__Int16ArrayWrappingImplementation_create__Int16ArrayWrappingImplementation,
   "Int32Array": native__Int32ArrayWrappingImplementation_create__Int32ArrayWrappingImplementation,
   "Int8Array": native__Int8ArrayWrappingImplementation_create__Int8ArrayWrappingImplementation,
@@ -35669,9 +35064,7 @@ var __dom_type_map = {
   "MessagePort": native__MessagePortWrappingImplementation_create__MessagePortWrappingImplementation,
   "Metadata": native__MetadataWrappingImplementation_create__MetadataWrappingImplementation,
   "MouseEvent": native__MouseEventWrappingImplementation_create__MouseEventWrappingImplementation,
-  "MutationCallback": native__MutationCallbackWrappingImplementation_create__MutationCallbackWrappingImplementation,
   "MutationEvent": native__MutationEventWrappingImplementation_create__MutationEventWrappingImplementation,
-  "MutationRecord": native__MutationRecordWrappingImplementation_create__MutationRecordWrappingImplementation,
   "NamedNodeMap": native__NamedNodeMapWrappingImplementation_create__NamedNodeMapWrappingImplementation,
   "Navigator": native__NavigatorWrappingImplementation_create__NavigatorWrappingImplementation,
   "Node": native__NodeWrappingImplementation_create__NodeWrappingImplementation,
@@ -35692,7 +35085,6 @@ var __dom_type_map = {
   "Performance": native__PerformanceWrappingImplementation_create__PerformanceWrappingImplementation,
   "PerformanceNavigation": native__PerformanceNavigationWrappingImplementation_create__PerformanceNavigationWrappingImplementation,
   "PerformanceTiming": native__PerformanceTimingWrappingImplementation_create__PerformanceTimingWrappingImplementation,
-  "PointerLock": native__PointerLockWrappingImplementation_create__PointerLockWrappingImplementation,
   "PopStateEvent": native__PopStateEventWrappingImplementation_create__PopStateEventWrappingImplementation,
   "PositionError": native__PositionErrorWrappingImplementation_create__PositionErrorWrappingImplementation,
   "ProcessingInstruction": native__ProcessingInstructionWrappingImplementation_create__ProcessingInstructionWrappingImplementation,
@@ -35863,7 +35255,6 @@ var __dom_type_map = {
   "Screen": native__ScreenWrappingImplementation_create__ScreenWrappingImplementation,
   "ScriptProfile": native__ScriptProfileWrappingImplementation_create__ScriptProfileWrappingImplementation,
   "ScriptProfileNode": native__ScriptProfileNodeWrappingImplementation_create__ScriptProfileNodeWrappingImplementation,
-  "ShadowRoot": native__ShadowRootWrappingImplementation_create__ShadowRootWrappingImplementation,
   "SharedWorker": native__SharedWorkerWrappingImplementation_create__SharedWorkerWrappingImplementation,
   "SharedWorkerContext": native__SharedWorkerContextWrappingImplementation_create__SharedWorkerContextWrappingImplementation,
   "SpeechInputEvent": native__SpeechInputEventWrappingImplementation_create__SpeechInputEventWrappingImplementation,
@@ -35915,13 +35306,11 @@ var __dom_type_map = {
   "WebKitAnimationEvent": native__WebKitAnimationEventWrappingImplementation_create__WebKitAnimationEventWrappingImplementation,
   "WebKitAnimationList": native__WebKitAnimationListWrappingImplementation_create__WebKitAnimationListWrappingImplementation,
   "WebKitBlobBuilder": native__WebKitBlobBuilderWrappingImplementation_create__WebKitBlobBuilderWrappingImplementation,
-  "WebKitCSSFilterValue": native__WebKitCSSFilterValueWrappingImplementation_create__WebKitCSSFilterValueWrappingImplementation,
   "WebKitCSSKeyframeRule": native__WebKitCSSKeyframeRuleWrappingImplementation_create__WebKitCSSKeyframeRuleWrappingImplementation,
   "WebKitCSSKeyframesRule": native__WebKitCSSKeyframesRuleWrappingImplementation_create__WebKitCSSKeyframesRuleWrappingImplementation,
   "WebKitCSSMatrix": native__WebKitCSSMatrixWrappingImplementation_create__WebKitCSSMatrixWrappingImplementation,
   "WebKitCSSRegionRule": native__WebKitCSSRegionRuleWrappingImplementation_create__WebKitCSSRegionRuleWrappingImplementation,
   "WebKitCSSTransformValue": native__WebKitCSSTransformValueWrappingImplementation_create__WebKitCSSTransformValueWrappingImplementation,
-  "WebKitMutationObserver": native__WebKitMutationObserverWrappingImplementation_create__WebKitMutationObserverWrappingImplementation,
   "WebKitNamedFlow": native__WebKitNamedFlowWrappingImplementation_create__WebKitNamedFlowWrappingImplementation,
   "WebKitPoint": native__WebKitPointWrappingImplementation_create__WebKitPointWrappingImplementation,
   "WebKitTransitionEvent": native__WebKitTransitionEventWrappingImplementation_create__WebKitTransitionEventWrappingImplementation,

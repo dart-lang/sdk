@@ -31,10 +31,6 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
 
   final _NodeJs toElement;
 
-  final int webkitMovementX;
-
-  final int webkitMovementY;
-
   final int x;
 
   final int y;

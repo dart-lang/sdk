@@ -74,33 +74,6 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   bool get isContentEditable() { return _get_isContentEditable(this); }
   static bool _get_isContentEditable(var _this) native;
 
-  String get itemId() { return _get_itemId(this); }
-  static String _get_itemId(var _this) native;
-
-  void set itemId(String value) { _set_itemId(this, value); }
-  static void _set_itemId(var _this, String value) native;
-
-  DOMSettableTokenList get itemProp() { return _get_itemProp(this); }
-  static DOMSettableTokenList _get_itemProp(var _this) native;
-
-  DOMSettableTokenList get itemRef() { return _get_itemRef(this); }
-  static DOMSettableTokenList _get_itemRef(var _this) native;
-
-  bool get itemScope() { return _get_itemScope(this); }
-  static bool _get_itemScope(var _this) native;
-
-  void set itemScope(bool value) { _set_itemScope(this, value); }
-  static void _set_itemScope(var _this, bool value) native;
-
-  DOMSettableTokenList get itemType() { return _get_itemType(this); }
-  static DOMSettableTokenList _get_itemType(var _this) native;
-
-  Object get itemValue() { return _get_itemValue(this); }
-  static Object _get_itemValue(var _this) native;
-
-  void set itemValue(Object value) { _set_itemValue(this, value); }
-  static void _set_itemValue(var _this, Object value) native;
-
   String get lang() { return _get_lang(this); }
   static String _get_lang(var _this) native;
 

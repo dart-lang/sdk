@@ -23,12 +23,6 @@ class _HTMLStyleElementWrappingImplementation extends _HTMLElementWrappingImplem
   void set media(String value) { _set_media(this, value); }
   static void _set_media(var _this, String value) native;
 
-  bool get scoped() { return _get_scoped(this); }
-  static bool _get_scoped(var _this) native;
-
-  void set scoped(bool value) { _set_scoped(this, value); }
-  static void _set_scoped(var _this, bool value) native;
-
   StyleSheet get sheet() { return _get_sheet(this); }
   static StyleSheet _get_sheet(var _this) native;
 

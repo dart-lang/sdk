@@ -122,9 +122,6 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   NodeList get labels() { return _get_labels(this); }
   static NodeList _get_labels(var _this) native;
 
-  HTMLElement get list() { return _get_list(this); }
-  static HTMLElement _get_list(var _this) native;
-
   String get max() { return _get_max(this); }
   static String _get_max(var _this) native;
 
@@ -178,9 +175,6 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
 
   void set required(bool value) { _set_required(this, value); }
   static void _set_required(var _this, bool value) native;
-
-  HTMLOptionElement get selectedOption() { return _get_selectedOption(this); }
-  static HTMLOptionElement _get_selectedOption(var _this) native;
 
   String get selectionDirection() { return _get_selectionDirection(this); }
   static String _get_selectionDirection(var _this) native;

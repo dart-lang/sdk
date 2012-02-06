@@ -142,9 +142,7 @@
 #source('generated/src/interface/HTMLButtonElement.dart');
 #source('generated/src/interface/HTMLCanvasElement.dart');
 #source('generated/src/interface/HTMLCollection.dart');
-#source('generated/src/interface/HTMLContentElement.dart');
 #source('generated/src/interface/HTMLDListElement.dart');
-#source('generated/src/interface/HTMLDataListElement.dart');
 #source('generated/src/interface/HTMLDetailsElement.dart');
 #source('generated/src/interface/HTMLDirectoryElement.dart');
 #source('generated/src/interface/HTMLDivElement.dart');
@@ -186,7 +184,6 @@
 #source('generated/src/interface/HTMLParamElement.dart');
 #source('generated/src/interface/HTMLPreElement.dart');
 #source('generated/src/interface/HTMLProgressElement.dart');
-#source('generated/src/interface/HTMLPropertiesCollection.dart');
 #source('generated/src/interface/HTMLQuoteElement.dart');
 #source('generated/src/interface/HTMLScriptElement.dart');
 #source('generated/src/interface/HTMLSelectElement.dart');
@@ -224,8 +221,6 @@
 #source('generated/src/interface/IDBVersionChangeEvent.dart');
 #source('generated/src/interface/IDBVersionChangeRequest.dart');
 #source('generated/src/interface/ImageData.dart');
-#source('generated/src/interface/InjectedScriptHost.dart');
-#source('generated/src/interface/InspectorFrontendHost.dart');
 #source('generated/src/interface/Int16Array.dart');
 #source('generated/src/interface/Int32Array.dart');
 #source('generated/src/interface/Int8Array.dart');
@@ -247,9 +242,7 @@
 #source('generated/src/interface/Metadata.dart');
 #source('generated/src/interface/MetadataCallback.dart');
 #source('generated/src/interface/MouseEvent.dart');
-#source('generated/src/interface/MutationCallback.dart');
 #source('generated/src/interface/MutationEvent.dart');
-#source('generated/src/interface/MutationRecord.dart');
 #source('generated/src/interface/NamedNodeMap.dart');
 #source('generated/src/interface/Navigator.dart');
 #source('generated/src/interface/Node.dart');
@@ -270,7 +263,6 @@
 #source('generated/src/interface/Performance.dart');
 #source('generated/src/interface/PerformanceNavigation.dart');
 #source('generated/src/interface/PerformanceTiming.dart');
-#source('generated/src/interface/PointerLock.dart');
 #source('generated/src/interface/PopStateEvent.dart');
 #source('generated/src/interface/PositionCallback.dart');
 #source('generated/src/interface/PositionError.dart');
@@ -448,7 +440,6 @@
 #source('generated/src/interface/Screen.dart');
 #source('generated/src/interface/ScriptProfile.dart');
 #source('generated/src/interface/ScriptProfileNode.dart');
-#source('generated/src/interface/ShadowRoot.dart');
 #source('generated/src/interface/SharedWorker.dart');
 #source('generated/src/interface/SharedWorkerContext.dart');
 #source('generated/src/interface/SpeechInputEvent.dart');
@@ -505,13 +496,11 @@
 #source('generated/src/interface/WebKitAnimationEvent.dart');
 #source('generated/src/interface/WebKitAnimationList.dart');
 #source('generated/src/interface/WebKitBlobBuilder.dart');
-#source('generated/src/interface/WebKitCSSFilterValue.dart');
 #source('generated/src/interface/WebKitCSSKeyframeRule.dart');
 #source('generated/src/interface/WebKitCSSKeyframesRule.dart');
 #source('generated/src/interface/WebKitCSSMatrix.dart');
 #source('generated/src/interface/WebKitCSSRegionRule.dart');
 #source('generated/src/interface/WebKitCSSTransformValue.dart');
-#source('generated/src/interface/WebKitMutationObserver.dart');
 #source('generated/src/interface/WebKitNamedFlow.dart');
 #source('generated/src/interface/WebKitPoint.dart');
 #source('generated/src/interface/WebKitTransitionEvent.dart');
@@ -660,9 +649,7 @@
 #source('generated/src/wrapping/_HTMLButtonElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLCanvasElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLCollectionWrappingImplementation.dart');
-#source('generated/src/wrapping/_HTMLContentElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDListElementWrappingImplementation.dart');
-#source('generated/src/wrapping/_HTMLDataListElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDetailsElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDirectoryElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDivElementWrappingImplementation.dart');
@@ -704,7 +691,6 @@
 #source('generated/src/wrapping/_HTMLParamElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLPreElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLProgressElementWrappingImplementation.dart');
-#source('generated/src/wrapping/_HTMLPropertiesCollectionWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLQuoteElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLScriptElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLSelectElementWrappingImplementation.dart');
@@ -742,8 +728,6 @@
 #source('generated/src/wrapping/_IDBVersionChangeEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_IDBVersionChangeRequestWrappingImplementation.dart');
 #source('generated/src/wrapping/_ImageDataWrappingImplementation.dart');
-#source('generated/src/wrapping/_InjectedScriptHostWrappingImplementation.dart');
-#source('generated/src/wrapping/_InspectorFrontendHostWrappingImplementation.dart');
 #source('generated/src/wrapping/_Int16ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_Int32ArrayWrappingImplementation.dart');
 #source('generated/src/wrapping/_Int8ArrayWrappingImplementation.dart');
@@ -764,9 +748,7 @@
 #source('generated/src/wrapping/_MessagePortWrappingImplementation.dart');
 #source('generated/src/wrapping/_MetadataWrappingImplementation.dart');
 #source('generated/src/wrapping/_MouseEventWrappingImplementation.dart');
-#source('generated/src/wrapping/_MutationCallbackWrappingImplementation.dart');
 #source('generated/src/wrapping/_MutationEventWrappingImplementation.dart');
-#source('generated/src/wrapping/_MutationRecordWrappingImplementation.dart');
 #source('generated/src/wrapping/_NamedNodeMapWrappingImplementation.dart');
 #source('generated/src/wrapping/_NavigatorWrappingImplementation.dart');
 #source('generated/src/wrapping/_NodeFilterWrappingImplementation.dart');
@@ -787,7 +769,6 @@
 #source('generated/src/wrapping/_PerformanceNavigationWrappingImplementation.dart');
 #source('generated/src/wrapping/_PerformanceTimingWrappingImplementation.dart');
 #source('generated/src/wrapping/_PerformanceWrappingImplementation.dart');
-#source('generated/src/wrapping/_PointerLockWrappingImplementation.dart');
 #source('generated/src/wrapping/_PopStateEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_PositionErrorWrappingImplementation.dart');
 #source('generated/src/wrapping/_ProcessingInstructionWrappingImplementation.dart');
@@ -958,7 +939,6 @@
 #source('generated/src/wrapping/_ScreenWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileWrappingImplementation.dart');
-#source('generated/src/wrapping/_ShadowRootWrappingImplementation.dart');
 #source('generated/src/wrapping/_SharedWorkerContextWrappingImplementation.dart');
 #source('generated/src/wrapping/_SharedWorkerWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputEventWrappingImplementation.dart');
@@ -1010,13 +990,11 @@
 #source('generated/src/wrapping/_WebKitAnimationListWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitAnimationWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitBlobBuilderWrappingImplementation.dart');
-#source('generated/src/wrapping/_WebKitCSSFilterValueWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSKeyframeRuleWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSKeyframesRuleWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSMatrixWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSRegionRuleWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitCSSTransformValueWrappingImplementation.dart');
-#source('generated/src/wrapping/_WebKitMutationObserverWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitNamedFlowWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitPointWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebKitTransitionEventWrappingImplementation.dart');
