@@ -424,7 +424,7 @@ class CMessageReader : public BaseReader {
   CMessageReader(const uint8_t* buffer, intptr_t length, ReAlloc alloc);
   ~CMessageReader() { }
 
-  Dart_CMessage* ReadMessage();
+  Dart_CObject* ReadMessage();
 
  private:
   // Allocates a Dart_CObject object on the C heap.
@@ -531,18 +531,39 @@ class BaseWriter {
 
 class MessageWriter : public BaseWriter {
  public:
-  MessageWriter(uint8_t** buffer, ReAlloc alloc) : BaseWriter(buffer, alloc) {
+  MessageWriter(uint8_t** buffer, ReAlloc alloc)
+      : BaseWriter(buffer, alloc), object_id_(0) {
+    ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes);
   }
   ~MessageWriter() { }
 
   // Writes a message of integers.
   void WriteMessage(intptr_t field_count, intptr_t *data);
 
+  void WriteCMessage(Dart_CObject* object);
+
   void FinalizeBuffer() {
     BaseWriter::FinalizeBuffer(Snapshot::kMessage);
   }
 
  private:
+  static const intptr_t kDartCObjectTypeBits = 3;
+  static const intptr_t kDartCObjectTypeMask = (1 << kDartCObjectTypeBits) - 1;
+  static const intptr_t kDartCObjectMarkMask = ~kDartCObjectTypeMask;
+  static const intptr_t kDartCObjectMarkOffset = 1;
+
+  void MarkCObject(Dart_CObject* object, intptr_t object_id);
+  void UnmarkCObject(Dart_CObject* object);
+  bool IsCObjectMarked(Dart_CObject* object);
+  intptr_t GetMarkedCObjectMark(Dart_CObject* object);
+  void UnmarkAllCObjects(Dart_CObject* object);
+
+  void WriteSmi(int32_t value);
+  void WriteInlinedHeader(Dart_CObject* object);
+  void WriteCObject(Dart_CObject* object);
+
+  intptr_t object_id_;
+
   DISALLOW_COPY_AND_ASSIGN(MessageWriter);
 };
 

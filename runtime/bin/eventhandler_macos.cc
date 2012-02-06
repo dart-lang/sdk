@@ -12,6 +12,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/hashmap.h"
 #include "platform/utils.h"
@@ -309,7 +310,7 @@ void EventHandlerImplementation::HandleEvents(struct pollfd* pollfds,
         Dart_Port port = sd->port();
         ASSERT(port != 0);
         sd->Unregister();
-        Dart_PostIntArray(port, 1, &event_mask);
+        DartUtils::PostInteger(port, event_mask);
       }
     }
   }
@@ -330,7 +331,7 @@ void EventHandlerImplementation::HandleTimeout() {
   if (timeout_ != kInfinityTimeout) {
     intptr_t millis = timeout_ - GetCurrentTimeMilliseconds();
     if (millis <= 0) {
-      Dart_PostIntArray(timeout_port_, 0, NULL);
+      DartUtils::PostNull(timeout_port_);
       timeout_ = kInfinityTimeout;
       timeout_port_ = 0;
     }

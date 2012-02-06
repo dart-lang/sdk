@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -683,6 +683,18 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
   MessageWriter writer(&buffer, &allocator);
 
   writer.WriteMessage(len, data);
+
+  // Post the message at the given port.
+  return PortMap::PostMessage(new Message(
+      port_id, Message::kIllegalPort, buffer, Message::kNormalPriority));
+}
+
+
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* root) {
+  uint8_t* buffer = NULL;
+  MessageWriter writer(&buffer, allocator);
+
+  writer.WriteCMessage(root);
 
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(

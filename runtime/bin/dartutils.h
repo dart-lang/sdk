@@ -78,6 +78,8 @@ class DartUtils {
                                 Dart_Handle url,
                                 Dart_LibraryTag tag,
                                 const char* filename);
+  static bool PostNull(Dart_Port port_id);
+  static bool PostInt32(Dart_Port port_id, int32_t value);
 
   static const char* kDartScheme;
   static const char* kBuiltinLibURL;

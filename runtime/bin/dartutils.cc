@@ -5,6 +5,7 @@
 #include "bin/dartutils.h"
 
 #include "bin/file.h"
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
 
@@ -228,4 +229,24 @@ const char* DartUtils::GetCanonicalPath(const char* reference_dir,
   }
   free(absolute_filename);
   return canonical_filename;
+}
+
+
+bool DartUtils::PostNull(Dart_Port port_id) {
+  // Post a message with just the null object.
+  Dart_CObject object;
+  object.type = Dart_CObject::kNull;
+  return Dart_PostCObject(port_id, &object);
+}
+
+
+bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
+  // Post a message with the integer value.
+  int32_t min = 0xc0000000;  // -1073741824
+  int32_t max = 0x3fffffff;  // 1073741823
+  ASSERT(min <= value && value < max);
+  Dart_CObject object;
+  object.type = Dart_CObject::kInt32;
+  object.value.as_int32 = value;
+  return Dart_PostCObject(port_id, &object);
 }

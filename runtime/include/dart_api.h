@@ -523,22 +523,6 @@ DART_EXPORT Dart_Port Dart_GetMainPortId();
 DART_EXPORT bool Dart_HasLivePorts();
 
 /**
- * Posts a message for some isolate. The message is built from a raw
- * array.
- *
- * \param port The destination port.
- * \param length The length of the data array.
- * \param data A data array to be sent in the message.
- *
- * \return True if the message was posted.
- */
-DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
-                                   intptr_t length,
-                                   intptr_t* data);
-// TODO(turnidge): Should this be intptr_t or some fixed length type?
-// TODO(turnidge): Reverse length/data for consistency.
-
-/**
  * Posts a message for some isolate. The message is a serialized
  * object.
  *
@@ -1462,17 +1446,20 @@ struct Dart_CObject {
 };
 
 /**
- * A Dart_CMessage is used for receiving and sending messages from
- * native code not running in an isolate. A message contains an object
- * graph represented as Dart_CObject structures rooted as the provided
- * root.
+ * Posts a message on some port. The message will contain the
+ * Dart_CObject object graph rooted in the provided Dart_CObject.
  *
- * For information on the lifetime of this data, when provided in
- * callbacks, see the documentation for the individual callbacks.
+ * While the message is being sent the state of the graph of
+ * Dart_CObject structures rooted in message should not be accessed,
+ * as the message generation will make temporaly modification to the
+ * data. When the message has been sent the graph will be fully
+ * restored.
+ *
+ * \param port_id The destination port.
+ * \param message The message to send.
+ *
+ * \return True if the message was posted.
  */
-struct Dart_CMessage {
-  Dart_CObject* root;
-};
-
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* root);
 
 #endif  // INCLUDE_DART_API_H_

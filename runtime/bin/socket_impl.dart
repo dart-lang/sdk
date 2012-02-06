@@ -42,10 +42,8 @@ class _SocketBase {
   }
 
   // Multiplexes socket events to the socket handlers.
-  void _multiplex(List<int> message) {
-    assert(message.length == 1);
+  void _multiplex(int event_mask) {
     _canActivateHandlers = false;
-    int event_mask = message[0];
     for (int i = _FIRST_EVENT; i <= _LAST_EVENT; i++) {
       if (((event_mask & (1 << i)) != 0)) {
         if ((i == _CLOSE_EVENT) && this is _Socket && _id >= 0) {
