@@ -656,7 +656,7 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
       if ((msg->data & (1 << kOutEvent)) != 0) {
         if (!handle->HasPendingWrite()) {
           int event_mask = (1 << kOutEvent);
-          DartUtils::PostInteger(port, event_mask);
+          DartUtils::PostInt32(port, event_mask);
         }
       }
 
@@ -692,7 +692,7 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
   if (!listen_socket->IsClosing()) {
     int event_mask = 1 << kInEvent;
     if ((listen_socket->mask() & event_mask) != 0) {
-      DartUtils::PostInteger(port, event_mask);
+      DartUtils::PostInt32(port, event_mask);
     }
   }
 
@@ -705,7 +705,7 @@ void EventHandlerImplementation::HandleAccept(ListenSocket* listen_socket,
 void EventHandlerImplementation::HandleClosed(Handle* handle) {
   if (!handle->IsClosing()) {
     int event_mask = 1 << kCloseEvent;
-    DartUtils::PostInteger(port, event_mask);
+    DartUtils::PostInt32(port, event_mask);
   }
 }
 
@@ -719,7 +719,7 @@ void EventHandlerImplementation::HandleRead(Handle* handle,
     if (!handle->IsClosing()) {
       int event_mask = 1 << kInEvent;
       if ((handle->mask() & event_mask) != 0) {
-        DartUtils::PostInteger(port, event_mask);
+        DartUtils::PostInt32(port, event_mask);
       }
     }
   } else {
@@ -743,7 +743,7 @@ void EventHandlerImplementation::HandleWrite(Handle* handle,
     if (!handle->IsClosing()) {
       int event_mask = 1 << kOutEvent;
       if ((handle->mask() & event_mask) != 0) {
-        DartUtils::PostInteger(port, event_mask);
+        DartUtils::PostInt32(port, event_mask);
       }
     }
   } else {
