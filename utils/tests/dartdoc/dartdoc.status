@@ -5,13 +5,16 @@
 prefix dartdoc
 
 [ $component == leg ]
-*: Skip # library tags are not implemented: Bug 1126
+*: Skip # Leg is not ready yet.
 
 [ $component == vm || $component == dartc || $component == chromium ]
 *: Skip # Tests use node flavor of unittest lib. :(
 
 [ $component == frogium || $component == dartium || $component == webdriver ]
 *: Skip # Tests use node flavor of unittest lib. :(
+
+[ $component == frog && $mode == debug ]
+dartdoc_tests: Skip # Times out.
 
 [ $arch == x64 ]
 *: Skip

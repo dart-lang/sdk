@@ -444,6 +444,12 @@ LiteralUnaryPlusTest/01: Fail # Issue 1400
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
 
+[ $component == frog && $mode == debug ]
+ConstructorRedirect1NegativeTest: Skip # Undiagnosed infinite loop.
+ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
+CTConst2Test: Skip # Times out.
+HelloDartTest: Skip # Times out.
+
 [ $arch == simarm ]
 *: Skip
 
