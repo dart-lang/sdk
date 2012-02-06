@@ -14,6 +14,11 @@ class _AudioContextFactoryProvider {
 ''';
 }
 
+class _DOMParserFactoryProvider {
+
+  factory DOMParser() native '''return new DOMParser();''';
+}
+
 class _FileReaderFactoryProvider {
 
   factory FileReader() native '''return new FileReader();''';

@@ -34722,6 +34722,14 @@ function native__AudioContextFactoryProvider_create() {
   }
 }
 
+function native__DOMParserFactoryProvider_create() {
+  try {
+    return __dom_wrap(new DOMParser());
+  } catch (e) {
+    throw __dom_wrap_exception(e);
+  }
+}
+
 function native__FileReaderFactoryProvider_create() {
   try {
     return __dom_wrap(new FileReader());

@@ -13,6 +13,13 @@ class _AudioContextFactoryProvider {
   static AudioContext create() native;
 }
 
+class _DOMParserFactoryProvider {
+
+  factory DOMParser() { return create(); }
+
+  static DOMParser create() native;
+}
+
 class _FileReaderFactoryProvider {
 
   factory FileReader() { return create(); }

@@ -4,9 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMParser default _DOMParserFactoryProvider {
+interface DOMParser$!EXTENDS default _DOMParserFactoryProvider {
 
   DOMParser();
-
-  Document parseFromString(String str, String contentType);
-}
+$!MEMBERS}

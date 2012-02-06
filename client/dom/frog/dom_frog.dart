@@ -1067,6 +1067,7 @@ class _DOMMimeTypeArrayJs extends _DOMTypeJs implements DOMMimeTypeArray native 
 }
 
 class _DOMParserJs extends _DOMTypeJs implements DOMParser native "*DOMParser" {
+  DOMParser() native;
 
   _DocumentJs parseFromString(String str, String contentType) native;
 }
@@ -12899,7 +12900,9 @@ interface DOMMimeTypeArray {
 
 // WARNING: Do not edit - generated code.
 
-interface DOMParser {
+interface DOMParser default _DOMParserFactoryProvider {
+
+  DOMParser();
 
   Document parseFromString(String str, String contentType);
 }
@@ -25176,6 +25179,10 @@ class _AudioContextFactoryProvider {
     var constructor = window.AudioContext || window.webkitAudioContext;
     return new constructor();
 ''';
+}
+
+class _DOMParserFactoryProvider {
+  factory DOMParser() native '''return new DOMParser();''';
 }
 
 class _FileReaderFactoryProvider {
