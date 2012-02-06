@@ -61,33 +61,34 @@ List<int> codepointsToUtf16CodeUnits(
   int encodedLength = 0;
   for (int i = offset; i < end; i++) {
     int value = codepoints[i];
-    if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) || 
+    if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
         (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
       encodedLength++;
-    } else if (value > UNICODE_PLANE_ONE_MAX && 
+    } else if (value > UNICODE_PLANE_ONE_MAX &&
         value <= UNICODE_VALID_RANGE_MAX) {
       encodedLength += 2;
     } else {
       encodedLength++;
     }
   }
-  
+
   void addReplacementCodepoint(List<int> codepointBuffer, int offset,
       int replacementCodepoint) {
-    if(replacementCodepoint != null) {
+    if (replacementCodepoint != null) {
       codepointBuffer[offset] = replacementCodepoint;
     } else {
       throw new IllegalArgumentException("Invalid encoding");
     }
   }
+
   List<int> codeUnitsBuffer = new List<int>(encodedLength);
   int j = 0;
   for (int i = offset; i < end; i++) {
     int value = codepoints[i];
-    if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) || 
+    if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
         (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
       codeUnitsBuffer[j++] = value;
-    } else if (value > UNICODE_PLANE_ONE_MAX && 
+    } else if (value > UNICODE_PLANE_ONE_MAX &&
         value <= UNICODE_VALID_RANGE_MAX) {
       int base = value - UNICODE_UTF16_OFFSET;
       codeUnitsBuffer[j++] = UNICODE_UTF16_SURROGATE_UNIT_0_BASE +
@@ -119,15 +120,7 @@ List<int> utf16CodeUnitsToCodepoints(
       Math.min(utf16CodeUnits.length, offset + length) :
       utf16CodeUnits.length;
 
-  void addReplacementCodepoint(void f(int v), int replacementCodepoint) {
-    if(replacementCodepoint != null) {
-      f(replacementCodepoint);
-    } else {
-      throw new IllegalArgumentException("Invalid encoding");
-    }
-  }
-
-  void apply(void f(int v)) {
+  void decode(void f(int v)) {
     int i = offset;
     // skip the first entry if it is a BOM.
     if (end > 0 && utf16CodeUnits[0] == UNICODE_BOM) {
@@ -136,10 +129,10 @@ List<int> utf16CodeUnitsToCodepoints(
     while (i < end) {
       int value = utf16CodeUnits[i++];
       if (value < 0) {
-        addReplacementCodepoint(f, replacementCodepoint);
+        f(null);
         continue;
       }
-      if (value < UNICODE_UTF16_RESERVED_LO || 
+      if (value < UNICODE_UTF16_RESERVED_LO ||
           (value > UNICODE_UTF16_RESERVED_HI &&
           value <= UNICODE_PLANE_ONE_MAX)) {
         // transfer directly
@@ -147,7 +140,7 @@ List<int> utf16CodeUnitsToCodepoints(
       } else if (value < UNICODE_UTF16_SURROGATE_UNIT_1_BASE && i < end) {
         // merge surrogate pair
         int nextValue = utf16CodeUnits[i++];
-        if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_1_BASE && 
+        if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
             nextValue <= UNICODE_UTF16_RESERVED_HI) {
           value = (value - UNICODE_UTF16_SURROGATE_UNIT_0_BASE) << 10;
           value += UNICODE_UTF16_OFFSET +
@@ -158,24 +151,50 @@ List<int> utf16CodeUnitsToCodepoints(
              nextValue < UNICODE_UTF16_SURROGATE_UNIT_1_BASE) {
             i--;
           }
-          addReplacementCodepoint(f, replacementCodepoint);
+          f(null);
           continue;
         }
       } else {
-        addReplacementCodepoint(f, replacementCodepoint);
+        f(null);
         continue;
       }
     }
   }
+
+  // First pass through data to 1) size the output buffer and 2) check for 
+  // special case optimization where A) the length stays the same and B)
+  // no special replacement characters are used. If these criteria are met
+  // we can just copy input to the output.
   int codepointBufferLength = 0;
-  apply(void _(int value) {
+  bool hasReplacements = false;
+  decode(void _(int value) {
       codepointBufferLength++;
+      if (value == null) {
+        hasReplacements = true;
+      }
   });
 
+  // If the string calls for replacements, but when the method is called
+  // with replacementCodepoint explicitly set to null, then throw an exception.
+  if (hasReplacements && replacementCodepoint == null) {
+    throw new IllegalArgumentException("Invalid encoding");
+  }
+
+  int _length = end - offset;
   List<int> codepointBuffer = new List<int>(codepointBufferLength);
-  int i = 0;
-  apply(void _(int value) {
-      codepointBuffer[i++] = value;
-  });
+  if (_length == codepointBufferLength && !hasReplacements) {
+    codepointBuffer.setRange(0, _length, utf16CodeUnits, offset);
+  } else {
+    int i = 0;
+    decode(
+      void _(int value) {
+        if (value != null) {
+          codepointBuffer[i++] = value;
+        } else {
+          codepointBuffer[i++] = replacementCodepoint;
+        }
+      }
+    );
+  }
   return codepointBuffer;
 }

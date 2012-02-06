@@ -32,6 +32,6 @@ class UnicodeTests extends TestClass {
   }
 
   void testCodepointsToString() {
-    Expect.listEquals(testPhrase, codepointsToString(testCodepoints));
+    Expect.stringEquals(testPhrase, codepointsToString(testCodepoints));
   }
 }
