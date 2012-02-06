@@ -870,10 +870,9 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
     __ LoadObject(kResultRegister, double_object);
   }
   __ movsd(XMM0, FieldAddress(kOperandRegister, Double::value_offset()));
-  __ xorps(XMM1, XMM1);  // 0.0 -> XMM1.
   ASSERT(node->kind() == Token::kSUB);
-  __ subsd(XMM1, XMM0);
-  __ movsd(FieldAddress(kResultRegister, Double::value_offset()), XMM1);
+  __ DoubleNegate(XMM0);
+  __ movsd(FieldAddress(kResultRegister, Double::value_offset()), XMM0);
   if (CodeGenerator::IsResultNeeded(node)) {
     if (node->info() != NULL) {
       node->info()->set_is_temp(using_temp);

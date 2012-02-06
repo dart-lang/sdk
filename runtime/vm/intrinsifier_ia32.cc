@@ -886,7 +886,7 @@ static bool Double_isNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
   __ movl(EAX, Address(ESP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
-  __ xorps(XMM1, XMM1);  // 0.0 -> XMM1.
+  __ xorpd(XMM1, XMM1);  // 0.0 -> XMM1.
   __ comisd(XMM0, XMM1);
   __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false.
   __ j(EQUAL, &is_zero, Assembler::kNearJump);  // Check for negative zero.
