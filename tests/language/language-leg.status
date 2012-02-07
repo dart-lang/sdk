@@ -358,3 +358,7 @@ TypeVariableScopeTest/none: Fail
 TypedMessageTest: Fail
 UnboundGetterTest: Fail
 WhileTest: Fail
+
+[ $component == leg && $mode == debug]
+BranchesTest: Crash # VM issue 1570
+IncrOpTest: Crash # VM issue 1570
