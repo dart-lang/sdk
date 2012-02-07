@@ -947,7 +947,7 @@ class TestUtils {
         return 'compiler/bin/dartc$suffix';
       case 'frogium':
       case 'webdriver':
-        return 'frog/bin/frogsh$suffix';
+        return 'frog/bin/frog$suffix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
     }
