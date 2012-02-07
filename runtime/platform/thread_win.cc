@@ -62,6 +62,36 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
+ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
+
+
+ThreadLocalKey Thread::CreateThreadLocal() {
+  ThreadLocalKey key = TlsAlloc();
+  if (key == kUnsetThreadLocalKey) {
+    FATAL("TlsAlloc failed");
+  }
+  return key;
+}
+
+
+void Thread::DeleteThreadLocal(ThreadLocalKey key) {
+  ASSERT(key != kUnsetThreadLocalKey);
+  BOOL result = TlsFree(key);
+  if (!result) {
+    FATAL("TlsFree failed");
+  }
+}
+
+
+void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
+  ASSERT(key != kUnsetThreadLocalKey);
+  BOOL result = TlsSetValue(key, reinterpret_cast<void*>(value));
+  if (!result) {
+    FATAL("TlsSetValue failed");
+  }
+}
+
+
 Mutex::Mutex() {
   // Allocate unnamed semaphore with initial count 1 and max count 1.
   data_.semaphore_ = CreateSemaphore(NULL, 1, 1, NULL);

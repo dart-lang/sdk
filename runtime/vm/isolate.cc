@@ -134,6 +134,25 @@ Isolate::~Isolate() {
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
 }
 
+void Isolate::SetCurrent(Isolate* current) {
+  Thread::SetThreadLocal(isolate_key, reinterpret_cast<uword>(current));
+}
+
+
+// The single thread local key which stores all the thread local data
+// for a thread. Since an Isolate is the central repository for
+// storing all isolate specific information a single thread local key
+// is sufficient.
+ThreadLocalKey Isolate::isolate_key = Thread::kUnsetThreadLocalKey;
+
+
+void Isolate::InitOnce() {
+  ASSERT(isolate_key == Thread::kUnsetThreadLocalKey);
+  isolate_key = Thread::CreateThreadLocal();
+  ASSERT(isolate_key != Thread::kUnsetThreadLocalKey);
+  create_callback_ = NULL;
+}
+
 
 Isolate* Isolate::Init(const char* name_prefix) {
   Isolate* result = new Isolate();

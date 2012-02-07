@@ -103,6 +103,32 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
+ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
+
+
+ThreadLocalKey Thread::CreateThreadLocal() {
+  pthread_key_t key = kUnsetThreadLocalKey;
+  int result = pthread_key_create(&key, NULL);
+  VALIDATE_PTHREAD_RESULT(result);
+  ASSERT(key != kUnsetThreadLocalKey);
+  return key;
+}
+
+
+void Thread::DeleteThreadLocal(ThreadLocalKey key) {
+  ASSERT(key != kUnsetThreadLocalKey);
+  int result = pthread_key_delete(key);
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+
+void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
+  ASSERT(key != kUnsetThreadLocalKey);
+  int result = pthread_setspecific(key, reinterpret_cast<void*>(value));
+  VALIDATE_PTHREAD_RESULT(result);
+}
+
+
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);

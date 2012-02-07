@@ -7,6 +7,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/thread.h"
 #include "vm/store_buffer.h"
 #include "vm/timer.h"
 
@@ -31,11 +32,15 @@ class StackResource;
 class StubCode;
 class Zone;
 
+
 class Isolate {
  public:
   ~Isolate();
 
-  static inline Isolate* Current();
+  static inline Isolate* Current() {
+    return reinterpret_cast<Isolate*>(Thread::GetThreadLocal(isolate_key));
+  }
+
   static void SetCurrent(Isolate* isolate);
 
   static void InitOnce();
@@ -242,6 +247,7 @@ class Isolate {
   static const uword kStackSizeBuffer = (128 * KB);
   static const uword kDefaultStackSize = (1 * MB);
 
+  static ThreadLocalKey isolate_key;
   StoreBufferBlock store_buffer_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
@@ -280,15 +286,5 @@ class Isolate {
 };
 
 }  // namespace dart
-
-#if defined(TARGET_OS_LINUX)
-#include "vm/isolate_linux.h"
-#elif defined(TARGET_OS_MACOS)
-#include "vm/isolate_macos.h"
-#elif defined(TARGET_OS_WINDOWS)
-#include "vm/isolate_win.h"
-#else
-#error Unknown target os.
-#endif
 
 #endif  // VM_ISOLATE_H_
