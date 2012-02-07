@@ -6,6 +6,7 @@ prefix corelib
 
 [ $component == vm || $component == dartium ]
 UnicodeTest: Fail        # Bug 5163868
+StringSplitRegExpTest: Fail    # Issue 429
 *DartcTest: Skip
 
 [ $arch == ia32 ]
