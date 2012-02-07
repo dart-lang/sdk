@@ -518,7 +518,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
           }
           break;
         default:
-          if ((c0_ == '\0') || (c0_ == '\n') && !string_is_multiline_) {
+          if ((c0_ == '\0') || ((c0_ == '\n') && !string_is_multiline_)) {
             ErrorMsg("unterminated string literal");
             EndStringLiteral();
             return;
