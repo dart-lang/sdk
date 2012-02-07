@@ -382,12 +382,12 @@ class DartGenerator(object):
     self._systems.append(interface_system)
 
     if 'native' in systems:
-        native_system = NativeImplementationSystem(
-            TemplateLoader(self._template_dir, ['dom/native', 'dom', '']),
-            self._database, self._emitters, self._auxiliary_dir,
-            self._output_dir)
+      native_system = NativeImplementationSystem(
+          TemplateLoader(self._template_dir, ['dom/native', 'dom', '']),
+          self._database, self._emitters, self._auxiliary_dir,
+          self._output_dir)
 
-        self._systems.append(native_system)
+      self._systems.append(native_system)
 
     if 'wrapping' in systems:
       wrapping_system = WrappingImplementationSystem(
@@ -398,6 +398,16 @@ class DartGenerator(object):
       # wrapping implementation.
       wrapping_system._interface_system = interface_system
       self._systems.append(wrapping_system)
+
+    if 'dummy' in systems:
+      dummy_system = DummyImplementationSystem(
+          TemplateLoader(self._template_dir, ['dom/dummy', 'dom', '']),
+          self._database, self._emitters, self._output_dir)
+
+      # Makes interface files available for listing in the library for the
+      # dummy implementation.
+      dummy_system._interface_system = interface_system
+      self._systems.append(dummy_system)
 
     if 'frog' in systems:
       frog_system = FrogSystem(
@@ -972,6 +982,40 @@ class InterfacesSystem(System):
 
 # ------------------------------------------------------------------------------
 
+class DummyImplementationSystem(System):
+  """Generates a dummy implementation for use by the editor analysis.
+
+  All the code comes from hand-written library files.
+  """
+
+  def __init__(self, templates, database, emitters, output_dir):
+    super(DummyImplementationSystem, self).__init__(
+        templates, database, emitters, output_dir)
+
+  def InterfaceGenerator(self,
+                         interface,
+                         common_prefix,
+                         super_interface_name,
+                         source_filter):
+    return DummyInterfaceGenerator(self, interface)
+
+  def ProcessCallback(self, interface, info):
+    pass
+
+  def GenerateLibraries(self, lib_dir):
+    # Library generated for implementation.
+    self._GenerateLibFile(
+        'dom_dummy.darttemplate',
+        os.path.join(lib_dir, 'dom_dummy.dart'),
+        (self._interface_system._dart_interface_file_paths +
+         self._interface_system._dart_callback_file_paths +
+         []
+         # FIXME: Move the implementation to a separate library.
+         # self._dart_wrapping_file_paths
+         ))
+
+# ------------------------------------------------------------------------------
+
 class WrappingImplementationSystem(System):
 
   def __init__(self, templates, database, emitters, output_dir):
@@ -1277,6 +1321,41 @@ def TypeName(typeIds, interface):
   # Dynamically type this field for now.
   return 'var'
 
+
+# ------------------------------------------------------------------------------
+
+class DummyInterfaceGenerator(object):
+  """Generates nothing."""
+
+  def __init__(self, system, interface):
+    pass
+
+  def StartInterface(self):
+    pass
+
+  def FinishInterface(self):
+    pass
+
+  def AddConstant(self, constant):
+    pass
+
+  def AddAttribute(self, getter, setter):
+    pass
+
+  def AddSecondaryAttribute(self, interface, getter, setter):
+    pass
+
+  def AddSecondaryOperation(self, interface, info):
+    pass
+
+  def AddIndexer(self, element_type):
+    pass
+
+  def AddTypedArrayConstructors(self, element_type):
+    pass
+
+  def AddOperation(self, info):
+    pass
 
 # ------------------------------------------------------------------------------
 

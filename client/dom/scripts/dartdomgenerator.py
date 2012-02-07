@@ -14,8 +14,8 @@ import shutil
 import sys
 
 DOM_LIBRARY = 'dom.dart'
-DOM_DEFAULT_LIBRARY = 'wrapping_dom.dart'
-DEFAULT_SYSTEM = 'wrapping'
+DOM_DEFAULT_LIBRARY = 'dom_dummy.dart'
+DEFAULT_SYSTEM = 'dummy'
 
 _logger = logging.getLogger('dartdomgenerator')
 
@@ -90,8 +90,8 @@ def main():
   parser = optparse.OptionParser()
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
-                    default='frog,wrapping',
-                    help='Systems to generate (frog, native, wrapping)')
+                    default='frog,dummy',
+                    help='Systems to generate (frog, native, dummy)')
   parser.add_option('--output-dir', dest='output_dir',
                     action='store', type='string',
                     default=None,

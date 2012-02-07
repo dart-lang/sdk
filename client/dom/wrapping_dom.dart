@@ -1021,14 +1021,14 @@
 #source('src/EventListener.dart');
 #source('src/KeyLocation.dart');
 #source('src/KeyName.dart');
-#source('src/GlobalProperties.dart');
 #source('src/ReadyState.dart');
 #source('src/RequestAnimationFrameCallback.dart');
 #source('src/TimeoutHandler.dart');
 #source('src/_Collections.dart');
-#source('src/_FactoryProviders.dart');
 #source('src/_ListIterators.dart');
 #source('src/_Lists.dart');
+#source('src/wrapping_FactoryProviders.dart');
+#source('src/wrapping_GlobalProperties.dart');
 
 #native('generated/wrapping_dom.js');
 #native('generated/wrapping_dom_externs.js');
