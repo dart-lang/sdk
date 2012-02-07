@@ -139,6 +139,7 @@ GenericParameterizedExtendsTest: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail
+GetSetSyntaxTest/none: Fail
 GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
 GCTest: Fail

@@ -80,7 +80,19 @@ ConstructorDuplicateInitializersTest/02: Fail
 # Issue 1355
 CallOperatorTest: Fail
 
-# Issue
+GetSetSyntaxTest/04: Fail # Issue 1569
+GetSetSyntaxTest/05: Fail # Issue 1569
+GetSetSyntaxTest/06: Fail # Issue 1569
+GetSetSyntaxTest/07: Fail # Issue 1569
+GetSetSyntaxTest/08: Fail # Issue 1569
+GetSetSyntaxTest/09: Fail # Issue 1569
+GetSetSyntaxTest/10: Fail # Issue 1569
+GetSetSyntaxTest/11: Fail # Issue 1569
+GetSetSyntaxTest/12: Fail # Issue 1569
+GetSetSyntaxTest/13: Fail # Issue 1569
+GetSetSyntaxTest/14: Fail # Issue 1569
+GetSetSyntaxTest/15: Fail # Issue 1569
+
 [ ($component == vm || $component == dartium) && $unchecked ]
 
 Prefix16NegativeTest: Fail    # Bug 5532534
@@ -242,6 +254,22 @@ Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
+GetSetSyntaxTest/00: Fail # Issue 1571
+GetSetSyntaxTest/01: Fail # Issue 1571
+GetSetSyntaxTest/02: Fail # Issue 1571
+GetSetSyntaxTest/03: Fail # Issue 1571
+GetSetSyntaxTest/04: Fail # Issue 1571
+GetSetSyntaxTest/05: Fail # Issue 1571
+GetSetSyntaxTest/06: Fail # Issue 1571
+GetSetSyntaxTest/07: Fail # Issue 1571
+GetSetSyntaxTest/08: Fail # Issue 1571
+GetSetSyntaxTest/09: Fail # Issue 1571
+GetSetSyntaxTest/10: Fail # Issue 1571
+GetSetSyntaxTest/11: Fail # Issue 1571
+GetSetSyntaxTest/12: Fail # Issue 1571
+GetSetSyntaxTest/13: Fail # Issue 1571
+GetSetSyntaxTest/14: Fail # Issue 1571
+GetSetSyntaxTest/15: Fail # Issue 1571
 ImplementTypeParameterNegativeTest: Skip # Issue 887
 FactoryImplementationTest: Fail # Issue 523
 PseudoKWTest: Fail  # Issue 356
