@@ -1,7 +1,5 @@
 
 class _FileReaderJs extends _DOMTypeJs implements FileReader native "*FileReader" {
-  FileReader() native;
-
 
   static final int DONE = 2;
 

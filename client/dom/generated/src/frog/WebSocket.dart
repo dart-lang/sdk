@@ -1,7 +1,5 @@
 
 class _WebSocketJs extends _DOMTypeJs implements WebSocket native "*WebSocket" {
-  WebSocket(String url) native;
-
 
   static final int CLOSED = 3;
 

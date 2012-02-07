@@ -1,7 +1,5 @@
 
 class _WebKitCSSMatrixJs extends _DOMTypeJs implements WebKitCSSMatrix native "*WebKitCSSMatrix" {
-  WebKitCSSMatrix([String spec]) native;
-
 
   num a;
 

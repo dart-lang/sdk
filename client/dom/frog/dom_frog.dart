@@ -96,8 +96,6 @@ class _AudioChannelSplitterJs extends _AudioNodeJs implements AudioChannelSplitt
 }
 
 class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioContext" {
-  AudioContext() native;
-
 
   final num currentTime;
 
@@ -2132,8 +2130,6 @@ class _FileListJs extends _DOMTypeJs implements FileList native "*FileList" {
 }
 
 class _FileReaderJs extends _DOMTypeJs implements FileReader native "*FileReader" {
-  FileReader() native;
-
 
   static final int DONE = 2;
 
@@ -10821,8 +10817,6 @@ class _WebKitCSSKeyframesRuleJs extends _CSSRuleJs implements WebKitCSSKeyframes
 }
 
 class _WebKitCSSMatrixJs extends _DOMTypeJs implements WebKitCSSMatrix native "*WebKitCSSMatrix" {
-  WebKitCSSMatrix([String spec]) native;
-
 
   num a;
 
@@ -10945,8 +10939,6 @@ class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*
 }
 
 class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
-  WebKitPoint(num x, num y) native;
-
 
   num x;
 
@@ -10961,8 +10953,6 @@ class _WebKitTransitionEventJs extends _EventJs implements WebKitTransitionEvent
 }
 
 class _WebSocketJs extends _DOMTypeJs implements WebSocket native "*WebSocket" {
-  WebSocket(String url) native;
-
 
   static final int CLOSED = 3;
 
@@ -11129,8 +11119,6 @@ class _WorkerNavigatorJs extends _DOMTypeJs implements WorkerNavigator native "*
 }
 
 class _XMLHttpRequestJs extends _DOMTypeJs implements XMLHttpRequest native "*XMLHttpRequest" {
-  XMLHttpRequest() native;
-
 
   static final int DONE = 4;
 
@@ -23324,10 +23312,6 @@ class _DOMTypeJs implements DOMType native '*DOMType' {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-
-// These factory methods could all live in one factory provider class but dartc
-// has a bug (5399939) preventing that.
 
 class _AudioContextFactoryProvider {
 

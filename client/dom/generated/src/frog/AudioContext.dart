@@ -1,7 +1,5 @@
 
 class _AudioContextJs extends _DOMTypeJs implements AudioContext native "*AudioContext" {
-  AudioContext() native;
-
 
   final num currentTime;
 

@@ -1,7 +1,5 @@
 
 class _XMLHttpRequestJs extends _DOMTypeJs implements XMLHttpRequest native "*XMLHttpRequest" {
-  XMLHttpRequest() native;
-
 
   static final int DONE = 4;
 

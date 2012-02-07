@@ -66,24 +66,6 @@ _dart_to_idl_type_conversions = dict((v,k) for k, v in
 _javascript_keywords = ['delete', 'continue']
 
 #
-# Types with user-invocable constructors.  We do not have enough
-# information in IDL to create the signature.
-#
-# Each entry is of the form:
-#   type name: constructor parameters
-_constructable_types = {
-    'AudioContext': '',
-    'FileReader': '',
-    'XMLHttpRequest': '',
-    'WebKitCSSMatrix': '[String spec]',
-    'WebKitPoint': 'num x, num y',
-    'WebSocket': 'String url',
-    # dart:html types
-    'CSSMatrix': '[String spec]',
-    'Point': 'num x, num y',
-}
-
-#
 # Interface version of the DOM needs to delegate typed array constructors to a
 # factory provider.
 #
@@ -1931,12 +1913,6 @@ class FrogInterfaceGenerator(object):
         EXTENDS=extends,
         IMPLEMENTS=' implements ' + ', '.join(implements),
         NATIVESPEC=' native "' + native_spec + '"')
-
-    if interface_name in _constructable_types:
-      self._members_emitter.Emit(
-          '  $NAME($PARAMS) native;\n\n',
-          NAME=interface_name,
-          PARAMS=_constructable_types[interface_name])
 
     element_type = MaybeTypedArrayElementType(interface)
     if element_type:
