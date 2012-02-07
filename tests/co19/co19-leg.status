@@ -26,7 +26,6 @@ LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
 
 [ $component == leg ]
 # Crashes and time outs.
-Language/09_Generics/09_Generics_A01_t06: Crash
 Language/13_Types/4_Interface_Types_A09_t01: Crash
 Language/13_Types/4_Interface_Types_A11_t01: Skip # Times out.
 
