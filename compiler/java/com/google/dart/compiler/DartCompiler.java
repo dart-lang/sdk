@@ -1114,20 +1114,22 @@ public class DartCompiler {
           }
         }
 
-        Reader r = null;
-        try {
-        // HACK: there can be more than one backend.  Since there isn't
-        // an obvious way to tell which one the user meant, for now
-        // just restrict the option to save the output if more than
-        // one is active.
-         r = provider.getArtifactReader(lib, "",
-             config.getBackends().get(0).getAppExtension());
-         String js = CharStreams.toString(r);
-         if (r != null) {
-           Files.write(js, outFile, Charset.defaultCharset());
-         }
-        } finally {
-          Closeables.close(r, true);
+        if (!config.getCompilerOptions().checkOnly()) {
+          Reader r = null;
+          try {
+            // HACK: there can be more than one backend.  Since there isn't
+            // an obvious way to tell which one the user meant, for now
+            // just restrict the option to save the output if more than
+            // one is active.
+            r = provider.getArtifactReader(lib, "",
+                                           config.getBackends().get(0).getAppExtension());
+            String js = CharStreams.toString(r);
+            if (r != null) {
+              Files.write(js, outFile, Charset.defaultCharset());
+            }
+          } finally {
+            Closeables.close(r, true);
+          }
         }
       }
       return errorString;

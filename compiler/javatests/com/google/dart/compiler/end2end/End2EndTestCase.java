@@ -29,6 +29,9 @@ import java.util.List;
 /**
  * Abstract base for end-to-end tests. Tests are entirely Dart code that are compiled and run
  * within Rhino or V8.
+ *
+ * TODO(zundel): code generation is being removed.  Remove any references to code generation
+ * or running code.
  */
 public abstract class End2EndTestCase extends CompilerTestCase {
 
@@ -59,9 +62,23 @@ public abstract class End2EndTestCase extends CompilerTestCase {
   CompilerConfiguration getCompilerConfiguration(OptimizationLevel opLevel) {
     switch (opLevel) {
       case RAW:
-        return new DefaultCompilerConfiguration(new JavascriptBackend());
+        return new DefaultCompilerConfiguration(new JavascriptBackend(),
+                                                new CompilerOptions() {
+          // TODO(zundel): To be removed when code generation is removed
+          @Override
+          public boolean checkOnly() {
+            return false;
+          }
+        });
       case APP:
-        return new DefaultCompilerConfiguration(new ClosureJsBackend());
+        return new DefaultCompilerConfiguration(new ClosureJsBackend(),
+                                                new CompilerOptions() {
+          // TODO(zundel): To be removed when code generation is removed
+          @Override
+          public boolean checkOnly() {
+            return false;
+          }
+        });
     }
     throw new IllegalStateException("unexpected opLevel");
   }
@@ -69,11 +86,13 @@ public abstract class End2EndTestCase extends CompilerTestCase {
   /**
    * Runs an end-to-end Dart test for the given compilation unit.
    */
+  @Deprecated
   protected void runTest(LibrarySource app, OptimizationLevel opLevel,
                          DartCompilerListener listener) {
     runTest(app, opLevel, listener, new String[0]);
   }
 
+  @Deprecated
   protected void runTest(LibrarySource app, OptimizationLevel opLevel,
                          DartCompilerListener listener, String[] args) {
     final CompilerConfiguration config = getCompilerConfiguration(opLevel);
@@ -81,12 +100,19 @@ public abstract class End2EndTestCase extends CompilerTestCase {
   }
 
   /**
-   * Runs an end-to-end Dart test for the given compilation unit.
+   * Compiles and runs an end-to-end Dart test for the given compilation unit.
+   *
    */
+  @Deprecated
   protected void runTest(LibrarySource app, OptimizationLevel opLevel,
                          DartCompilerListener listener,
                          CompilerConfiguration config, String[] args) {
-    DartRunnerOptions verboseOptions = new CommandLineOptions.DartRunnerOptions();
+    DartRunnerOptions verboseOptions = new CommandLineOptions.DartRunnerOptions() {
+      @Override
+      public boolean checkOnly() {
+        return false;
+      }
+    };
     verboseOptions.setVerbose(true);
     try {
       DartRunner.compileAndRunApp(app, verboseOptions, config, listener, args,

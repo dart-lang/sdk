@@ -8,6 +8,7 @@ import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
 import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_APP_JS;
 import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_JS;
 
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
@@ -64,7 +65,15 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
+    CompilerOptions compilerOptions = new CompilerOptions() {
+      // TODO(zundel): update this test not to rely on code generation
+      @Override
+      public boolean checkOnly() {
+        return false;
+      }
+    };
+    config = new DefaultCompilerConfiguration(new JavascriptBackend(),
+                                              compilerOptions) {
       @Override
       public boolean incremental() {
         return true;

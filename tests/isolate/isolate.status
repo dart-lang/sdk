@@ -10,6 +10,10 @@ Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 [ $component == dartium || $component == vm ]
 SerializationTest: Skip  # DartC test (uses coreimpl).
 
+[ $component == dartc ]
+IsolateNegativeTest: Fail    # status change with --check-only
+Isolate2NegativeTest: Fail   # status change with --check-only
+
 [ $arch == chromium && $arch == release ]
 ConstructorTest: Fail            # Bug 5382463
 SpawnTest: Fail                  # Bug 5382463

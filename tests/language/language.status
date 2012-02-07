@@ -106,6 +106,7 @@ GCTest: Skip  # Takes too long.
 
 # Problems specific to dartc optimized mode
 [ ($component == dartc || $component == chromium) && $mode == release ]
+
 CTConst2Test: Fail                       # Codesite issue 124
 CallThroughNullGetterTest: Fail          # Bug 5391976
 Label2NegativeTest: Crash                # Bug 5318228
@@ -120,6 +121,72 @@ ToplevelCollision2Test/none: Fail        # Issue 647
 
 
 [ $component == dartc || $component == chromium ]
+
+# Marked failed after code generation removed from dartc
+
+ApplicationNegativeTest: Fail    # status change with --check-only
+AssertKeywordNegativeTest: Fail    # status change with --check-only
+AssignInstanceMethodNegativeTest: Fail    # status change with --check-only
+BitOperationsTest: Pass    # status change with --check-only
+BodyLessConstructorWrongArgNegativeTest: Fail    # status change with --check-only
+CallOperatorTest: Pass    # status change with --check-only
+CallThroughNullGetterTest: Pass    # status change with --check-only
+CharEscapeTest: Pass    # status change with --check-only
+ClosureCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+ConstCounterNegativeTest: Fail    # status change with --check-only
+ConstInit4NegativeTest: Fail    # status change with --check-only
+ConstObjectsAreImmutableTest: Pass    # status change with --check-only
+Constructor2Test: Pass    # status change with --check-only
+Constructor3NegativeTest: Fail    # status change with --check-only
+Constructor3Test: Pass    # status change with --check-only
+Constructor4Test: Pass    # status change with --check-only
+Constructor5Test: Pass    # status change with --check-only
+Constructor6Test: Pass    # status change with --check-only
+ConstructorCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+CTConstTest: Pass    # status change with --check-only
+DivByZeroTest: Pass    # status change with --check-only
+DynamicTest: Pass    # status change with --check-only
+ExampleConstructorTest: Pass    # status change with --check-only
+ExpectTest: Pass    # status change with --check-only
+Field3aNegativeTest: Fail    # status change with --check-only
+FieldMethod4NegativeTest: Fail    # status change with --check-only
+For2Test: Pass    # status change with --check-only
+GenericTest: Pass    # status change with --check-only
+GetterClosureExecutionOrderTest: Pass    # status change with --check-only
+InstanceCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+IsObjectTest: Pass    # status change with --check-only
+Label2NegativeTest: Fail    # status change with --check-only
+ListLiteral3Test: Pass    # status change with --check-only
+ListTest: Pass    # status change with --check-only
+LocalFunction3Test: Pass    # status change with --check-only
+LocalFunctionTest: Pass    # status change with --check-only
+ManyOverriddenNoSuchMethodTest: Pass    # status change with --check-only
+NamedParametersNegativeTest: Fail    # status change with --check-only
+NamedParametersTypeTest: Pass    # status change with --check-only
+NamingTest: Pass    # status change with --check-only
+NoSuchMethodNegativeTest: Fail    # status change with --check-only
+NoSuchMethodTest: Pass    # status change with --check-only
+NullToStringTest: Pass    # status change with --check-only
+OverriddenNoSuchMethodTest: Pass    # status change with --check-only
+Prefix6NegativeTest: Fail    # status change with --check-only
+PrivateMember3NegativeTest: Fail    # status change with --check-only
+RegExp3Test: Pass    # status change with --check-only
+StackOverflowTest: Pass    # status change with --check-only
+StackTraceTest: Pass    # status change with --check-only
+StaticCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+StaticField1aRunNegativeTest: Fail    # status change with --check-only
+StaticField1RunNegativeTest: Fail    # status change with --check-only
+StaticField2aRunNegativeTest: Fail    # status change with --check-only
+StaticField2RunNegativeTest: Fail    # status change with --check-only
+StringConcatTest: Pass    # status change with --check-only
+Switch3NegativeTest: Fail    # status change with --check-only
+SyntaxTest/29: Fail    # status change with --check-only
+SyntaxTest/30: Fail    # status change with --check-only
+TypeChecksInFactoryMethodTest: Pass    # status change with --check-only
+
+
+# Problems traiaged before static analysis-only change
+
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
 CTConstTest: Fail            # Bug 5202940, Issue 176
@@ -209,7 +276,6 @@ TypeChecksInFactoryMethodTest: Fail # Issue 925
 #
 # Add new dartc annotations above in alphabetical order
 #
-
 
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
