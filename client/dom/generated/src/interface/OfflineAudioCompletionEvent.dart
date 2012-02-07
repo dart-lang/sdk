@@ -6,5 +6,5 @@
 
 interface OfflineAudioCompletionEvent extends Event {
 
-  AudioBuffer get renderedBuffer();
+  final AudioBuffer renderedBuffer;
 }

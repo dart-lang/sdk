@@ -6,15 +6,15 @@
 
 interface DocumentType extends Node {
 
-  NamedNodeMap get entities();
+  final NamedNodeMap entities;
 
-  String get internalSubset();
+  final String internalSubset;
 
-  String get name();
+  final String name;
 
-  NamedNodeMap get notations();
+  final NamedNodeMap notations;
 
-  String get publicId();
+  final String publicId;
 
-  String get systemId();
+  final String systemId;
 }

@@ -6,11 +6,9 @@
 
 interface WebKitCSSKeyframesRule extends CSSRule {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 
-  String get name();
-
-  void set name(String value);
+  String name;
 
   void deleteRule(String key);
 

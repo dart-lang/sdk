@@ -6,15 +6,15 @@
 
 interface MessageEvent extends Event {
 
-  Object get data();
+  final Object data;
 
-  String get lastEventId();
+  final String lastEventId;
 
-  String get origin();
+  final String origin;
 
-  List get ports();
+  final List ports;
 
-  DOMWindow get source();
+  final DOMWindow source;
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List messagePorts);
 

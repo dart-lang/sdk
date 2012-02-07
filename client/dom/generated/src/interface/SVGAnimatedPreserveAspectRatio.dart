@@ -6,7 +6,7 @@
 
 interface SVGAnimatedPreserveAspectRatio {
 
-  SVGPreserveAspectRatio get animVal();
+  final SVGPreserveAspectRatio animVal;
 
-  SVGPreserveAspectRatio get baseVal();
+  final SVGPreserveAspectRatio baseVal;
 }

@@ -6,17 +6,11 @@
 
 interface HTMLStyleElement extends HTMLElement {
 
-  bool get disabled();
+  bool disabled;
 
-  void set disabled(bool value);
+  String media;
 
-  String get media();
+  final StyleSheet sheet;
 
-  void set media(String value);
-
-  StyleSheet get sheet();
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }

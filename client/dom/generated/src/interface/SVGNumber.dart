@@ -6,7 +6,5 @@
 
 interface SVGNumber {
 
-  num get value();
-
-  void set value(num value);
+  num value;
 }

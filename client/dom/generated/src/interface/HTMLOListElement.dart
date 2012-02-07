@@ -6,19 +6,11 @@
 
 interface HTMLOListElement extends HTMLElement {
 
-  bool get compact();
+  bool compact;
 
-  void set compact(bool value);
+  bool reversed;
 
-  bool get reversed();
+  int start;
 
-  void set reversed(bool value);
-
-  int get start();
-
-  void set start(int value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }

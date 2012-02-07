@@ -12,23 +12,19 @@ interface TextTrack {
 
   static final int SHOWING = 2;
 
-  TextTrackCueList get activeCues();
+  final TextTrackCueList activeCues;
 
-  TextTrackCueList get cues();
+  final TextTrackCueList cues;
 
-  String get kind();
+  final String kind;
 
-  String get label();
+  final String label;
 
-  String get language();
+  final String language;
 
-  int get mode();
+  int mode;
 
-  void set mode(int value);
-
-  EventListener get oncuechange();
-
-  void set oncuechange(EventListener value);
+  EventListener oncuechange;
 
   void addCue(TextTrackCue cue);
 

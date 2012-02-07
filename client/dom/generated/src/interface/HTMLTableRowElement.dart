@@ -6,31 +6,21 @@
 
 interface HTMLTableRowElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String bgColor;
 
-  String get bgColor();
+  final HTMLCollection cells;
 
-  void set bgColor(String value);
+  String ch;
 
-  HTMLCollection get cells();
+  String chOff;
 
-  String get ch();
+  final int rowIndex;
 
-  void set ch(String value);
+  final int sectionRowIndex;
 
-  String get chOff();
-
-  void set chOff(String value);
-
-  int get rowIndex();
-
-  int get sectionRowIndex();
-
-  String get vAlign();
-
-  void set vAlign(String value);
+  String vAlign;
 
   void deleteCell(int index);
 

@@ -6,7 +6,5 @@
 
 interface DOMSettableTokenList extends DOMTokenList {
 
-  String get value();
-
-  void set value(String value);
+  String value;
 }

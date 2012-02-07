@@ -6,11 +6,9 @@
 
 interface ProcessingInstruction extends Node {
 
-  String get data();
+  String data;
 
-  void set data(String value);
+  final StyleSheet sheet;
 
-  StyleSheet get sheet();
-
-  String get target();
+  final String target;
 }

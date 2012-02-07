@@ -6,5 +6,5 @@
 
 interface TextMetrics {
 
-  num get width();
+  final num width;
 }

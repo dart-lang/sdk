@@ -14,9 +14,9 @@ interface SVGColor extends CSSValue {
 
   static final int SVG_COLORTYPE_UNKNOWN = 0;
 
-  int get colorType();
+  final int colorType;
 
-  RGBColor get rgbColor();
+  final RGBColor rgbColor;
 
   void setColor(int colorType, String rgbColor, String iccColor);
 

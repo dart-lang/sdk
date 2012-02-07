@@ -6,73 +6,39 @@
 
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
-  Dynamic get fillStyle();
+  Dynamic fillStyle;
 
-  void set fillStyle(Dynamic value);
+  String font;
 
-  String get font();
+  num globalAlpha;
 
-  void set font(String value);
+  String globalCompositeOperation;
 
-  num get globalAlpha();
+  String lineCap;
 
-  void set globalAlpha(num value);
+  String lineJoin;
 
-  String get globalCompositeOperation();
+  num lineWidth;
 
-  void set globalCompositeOperation(String value);
+  num miterLimit;
 
-  String get lineCap();
+  num shadowBlur;
 
-  void set lineCap(String value);
+  String shadowColor;
 
-  String get lineJoin();
+  num shadowOffsetX;
 
-  void set lineJoin(String value);
+  num shadowOffsetY;
 
-  num get lineWidth();
+  Dynamic strokeStyle;
 
-  void set lineWidth(num value);
+  String textAlign;
 
-  num get miterLimit();
+  String textBaseline;
 
-  void set miterLimit(num value);
+  List webkitLineDash;
 
-  num get shadowBlur();
-
-  void set shadowBlur(num value);
-
-  String get shadowColor();
-
-  void set shadowColor(String value);
-
-  num get shadowOffsetX();
-
-  void set shadowOffsetX(num value);
-
-  num get shadowOffsetY();
-
-  void set shadowOffsetY(num value);
-
-  Dynamic get strokeStyle();
-
-  void set strokeStyle(Dynamic value);
-
-  String get textAlign();
-
-  void set textAlign(String value);
-
-  String get textBaseline();
-
-  void set textBaseline(String value);
-
-  List get webkitLineDash();
-
-  void set webkitLineDash(List value);
-
-  num get webkitLineDashOffset();
-
-  void set webkitLineDashOffset(num value);
+  num webkitLineDashOffset;
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise);
 

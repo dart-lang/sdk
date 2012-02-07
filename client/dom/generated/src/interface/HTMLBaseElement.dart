@@ -6,11 +6,7 @@
 
 interface HTMLBaseElement extends HTMLElement {
 
-  String get href();
+  String href;
 
-  void set href(String value);
-
-  String get target();
-
-  void set target(String value);
+  String target;
 }

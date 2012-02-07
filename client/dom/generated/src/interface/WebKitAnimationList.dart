@@ -6,7 +6,7 @@
 
 interface WebKitAnimationList {
 
-  int get length();
+  final int length;
 
   WebKitAnimation item(int index);
 }

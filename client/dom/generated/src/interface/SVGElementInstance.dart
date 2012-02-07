@@ -6,21 +6,21 @@
 
 interface SVGElementInstance extends EventTarget {
 
-  SVGElementInstanceList get childNodes();
+  final SVGElementInstanceList childNodes;
 
-  SVGElement get correspondingElement();
+  final SVGElement correspondingElement;
 
-  SVGUseElement get correspondingUseElement();
+  final SVGUseElement correspondingUseElement;
 
-  SVGElementInstance get firstChild();
+  final SVGElementInstance firstChild;
 
-  SVGElementInstance get lastChild();
+  final SVGElementInstance lastChild;
 
-  SVGElementInstance get nextSibling();
+  final SVGElementInstance nextSibling;
 
-  SVGElementInstance get parentNode();
+  final SVGElementInstance parentNode;
 
-  SVGElementInstance get previousSibling();
+  final SVGElementInstance previousSibling;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

@@ -6,11 +6,11 @@
 
 interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumber get specularConstant();
+  final SVGAnimatedNumber specularConstant;
 
-  SVGAnimatedNumber get specularExponent();
+  final SVGAnimatedNumber specularExponent;
 
-  SVGAnimatedNumber get surfaceScale();
+  final SVGAnimatedNumber surfaceScale;
 }

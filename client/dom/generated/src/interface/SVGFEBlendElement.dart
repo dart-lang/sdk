@@ -18,9 +18,9 @@ interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
   static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedString get in2();
+  final SVGAnimatedString in2;
 
-  SVGAnimatedEnumeration get mode();
+  final SVGAnimatedEnumeration mode;
 }

@@ -6,11 +6,7 @@
 
 interface HTMLPreElement extends HTMLElement {
 
-  int get width();
+  int width;
 
-  void set width(int value);
-
-  bool get wrap();
-
-  void set wrap(bool value);
+  bool wrap;
 }

@@ -6,37 +6,27 @@
 
 interface HTMLKeygenElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  String challenge;
 
-  String get challenge();
+  bool disabled;
 
-  void set challenge(String value);
+  final HTMLFormElement form;
 
-  bool get disabled();
+  String keytype;
 
-  void set disabled(bool value);
+  final NodeList labels;
 
-  HTMLFormElement get form();
+  String name;
 
-  String get keytype();
+  final String type;
 
-  void set keytype(String value);
+  final String validationMessage;
 
-  NodeList get labels();
+  final ValidityState validity;
 
-  String get name();
-
-  void set name(String value);
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 

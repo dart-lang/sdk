@@ -6,97 +6,77 @@
 
 interface Document extends Node, NodeSelector {
 
-  String get URL();
+  final String URL;
 
-  HTMLCollection get anchors();
+  final HTMLCollection anchors;
 
-  HTMLCollection get applets();
+  final HTMLCollection applets;
 
-  HTMLElement get body();
+  HTMLElement body;
 
-  void set body(HTMLElement value);
+  final String characterSet;
 
-  String get characterSet();
+  String charset;
 
-  String get charset();
+  final String compatMode;
 
-  void set charset(String value);
+  String cookie;
 
-  String get compatMode();
+  final String defaultCharset;
 
-  String get cookie();
+  final DOMWindow defaultView;
 
-  void set cookie(String value);
+  final DocumentType doctype;
 
-  String get defaultCharset();
+  final Element documentElement;
 
-  DOMWindow get defaultView();
+  String documentURI;
 
-  DocumentType get doctype();
+  String domain;
 
-  Element get documentElement();
+  final HTMLCollection forms;
 
-  String get documentURI();
+  final HTMLHeadElement head;
 
-  void set documentURI(String value);
+  final HTMLCollection images;
 
-  String get domain();
+  final DOMImplementation implementation;
 
-  void set domain(String value);
+  final String inputEncoding;
 
-  HTMLCollection get forms();
+  final String lastModified;
 
-  HTMLHeadElement get head();
+  final HTMLCollection links;
 
-  HTMLCollection get images();
+  Location location;
 
-  DOMImplementation get implementation();
+  final String preferredStylesheetSet;
 
-  String get inputEncoding();
+  final String readyState;
 
-  String get lastModified();
+  final String referrer;
 
-  HTMLCollection get links();
+  String selectedStylesheetSet;
 
-  Location get location();
+  final StyleSheetList styleSheets;
 
-  void set location(Location value);
+  String title;
 
-  String get preferredStylesheetSet();
+  final Element webkitCurrentFullScreenElement;
 
-  String get readyState();
+  final bool webkitFullScreenKeyboardInputAllowed;
 
-  String get referrer();
+  final bool webkitHidden;
 
-  String get selectedStylesheetSet();
+  final bool webkitIsFullScreen;
 
-  void set selectedStylesheetSet(String value);
+  final String webkitVisibilityState;
 
-  StyleSheetList get styleSheets();
+  final String xmlEncoding;
 
-  String get title();
+  bool xmlStandalone;
 
-  void set title(String value);
-
-  Element get webkitCurrentFullScreenElement();
-
-  bool get webkitFullScreenKeyboardInputAllowed();
-
-  bool get webkitHidden();
-
-  bool get webkitIsFullScreen();
-
-  String get webkitVisibilityState();
-
-  String get xmlEncoding();
-
-  bool get xmlStandalone();
-
-  void set xmlStandalone(bool value);
-
-  String get xmlVersion();
-
-  void set xmlVersion(String value);
+  String xmlVersion;
 
   Node adoptNode(Node source);
 

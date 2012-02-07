@@ -22,7 +22,7 @@ interface SQLError {
 
   static final int VERSION_ERR = 2;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 }

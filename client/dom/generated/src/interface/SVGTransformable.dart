@@ -6,5 +6,5 @@
 
 interface SVGTransformable extends SVGLocatable {
 
-  SVGAnimatedTransformList get transform();
+  final SVGAnimatedTransformList transform;
 }

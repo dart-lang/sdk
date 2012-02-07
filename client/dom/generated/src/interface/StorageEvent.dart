@@ -6,15 +6,15 @@
 
 interface StorageEvent extends Event {
 
-  String get key();
+  final String key;
 
-  String get newValue();
+  final String newValue;
 
-  String get oldValue();
+  final String oldValue;
 
-  Storage get storageArea();
+  final Storage storageArea;
 
-  String get url();
+  final String url;
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }

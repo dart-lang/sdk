@@ -6,9 +6,9 @@
 
 interface ScriptProfile {
 
-  ScriptProfileNode get head();
+  final ScriptProfileNode head;
 
-  String get title();
+  final String title;
 
-  int get uid();
+  final int uid;
 }

@@ -6,9 +6,9 @@
 
 interface Performance {
 
-  MemoryInfo get memory();
+  final MemoryInfo memory;
 
-  PerformanceNavigation get navigation();
+  final PerformanceNavigation navigation;
 
-  PerformanceTiming get timing();
+  final PerformanceTiming timing;
 }

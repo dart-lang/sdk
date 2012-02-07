@@ -6,19 +6,11 @@
 
 interface HTMLParamElement extends HTMLElement {
 
-  String get name();
+  String name;
 
-  void set name(String value);
+  String type;
 
-  String get type();
+  String value;
 
-  void set type(String value);
-
-  String get value();
-
-  void set value(String value);
-
-  String get valueType();
-
-  void set valueType(String value);
+  String valueType;
 }

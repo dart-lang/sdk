@@ -6,9 +6,7 @@
 
 interface HTMLLegendElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
-
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 }

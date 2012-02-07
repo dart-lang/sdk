@@ -6,27 +6,19 @@
 
 interface WorkerGlobalScope {
 
-  WorkerLocation get location();
+  WorkerLocation location;
 
-  void set location(WorkerLocation value);
+  WorkerNavigator navigator;
 
-  WorkerNavigator get navigator();
+  EventListener onerror;
 
-  void set navigator(WorkerNavigator value);
+  WorkerContext self;
 
-  EventListener get onerror();
+  final IDBFactory webkitIndexedDB;
 
-  void set onerror(EventListener value);
+  final NotificationCenter webkitNotifications;
 
-  WorkerContext get self();
-
-  void set self(WorkerContext value);
-
-  IDBFactory get webkitIndexedDB();
-
-  NotificationCenter get webkitNotifications();
-
-  DOMURL get webkitURL();
+  final DOMURL webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

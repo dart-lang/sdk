@@ -6,17 +6,17 @@
 
 interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedEnumeration get patternContentUnits();
+  final SVGAnimatedEnumeration patternContentUnits;
 
-  SVGAnimatedTransformList get patternTransform();
+  final SVGAnimatedTransformList patternTransform;
 
-  SVGAnimatedEnumeration get patternUnits();
+  final SVGAnimatedEnumeration patternUnits;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }

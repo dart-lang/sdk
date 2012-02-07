@@ -6,9 +6,9 @@
 
 interface Counter {
 
-  String get identifier();
+  final String identifier;
 
-  String get listStyle();
+  final String listStyle;
 
-  String get separator();
+  final String separator;
 }

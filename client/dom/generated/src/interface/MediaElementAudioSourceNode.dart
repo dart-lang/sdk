@@ -6,5 +6,5 @@
 
 interface MediaElementAudioSourceNode extends AudioSourceNode {
 
-  HTMLMediaElement get mediaElement();
+  final HTMLMediaElement mediaElement;
 }

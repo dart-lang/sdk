@@ -6,13 +6,9 @@
 
 interface HTMLOptionsCollection extends HTMLCollection {
 
-  int get length();
+  int length;
 
-  void set length(int value);
-
-  int get selectedIndex();
-
-  void set selectedIndex(int value);
+  int selectedIndex;
 
   void remove(int index);
 }

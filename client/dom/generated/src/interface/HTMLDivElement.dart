@@ -6,7 +6,5 @@
 
 interface HTMLDivElement extends HTMLElement {
 
-  String get align();
-
-  void set align(String value);
+  String align;
 }

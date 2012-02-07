@@ -6,15 +6,15 @@
 
 interface EntrySync {
 
-  DOMFileSystemSync get filesystem();
+  final DOMFileSystemSync filesystem;
 
-  String get fullPath();
+  final String fullPath;
 
-  bool get isDirectory();
+  final bool isDirectory;
 
-  bool get isFile();
+  final bool isFile;
 
-  String get name();
+  final String name;
 
   EntrySync copyTo(DirectoryEntrySync parent, String name);
 

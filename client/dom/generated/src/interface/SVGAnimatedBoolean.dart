@@ -6,9 +6,7 @@
 
 interface SVGAnimatedBoolean {
 
-  bool get animVal();
+  final bool animVal;
 
-  bool get baseVal();
-
-  void set baseVal(bool value);
+  bool baseVal;
 }

@@ -6,29 +6,17 @@
 
 interface SVGMatrix {
 
-  num get a();
+  num a;
 
-  void set a(num value);
+  num b;
 
-  num get b();
+  num c;
 
-  void set b(num value);
+  num d;
 
-  num get c();
+  num e;
 
-  void set c(num value);
-
-  num get d();
-
-  void set d(num value);
-
-  num get e();
-
-  void set e(num value);
-
-  num get f();
-
-  void set f(num value);
+  num f;
 
   SVGMatrix flipX();
 

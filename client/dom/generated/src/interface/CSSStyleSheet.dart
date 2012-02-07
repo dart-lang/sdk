@@ -6,11 +6,11 @@
 
 interface CSSStyleSheet extends StyleSheet {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 
-  CSSRule get ownerRule();
+  final CSSRule ownerRule;
 
-  CSSRuleList get rules();
+  final CSSRuleList rules;
 
   int addRule(String selector, String style, [int index]);
 

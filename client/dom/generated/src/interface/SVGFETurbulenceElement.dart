@@ -18,15 +18,15 @@ interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber get baseFrequencyX();
+  final SVGAnimatedNumber baseFrequencyX;
 
-  SVGAnimatedNumber get baseFrequencyY();
+  final SVGAnimatedNumber baseFrequencyY;
 
-  SVGAnimatedInteger get numOctaves();
+  final SVGAnimatedInteger numOctaves;
 
-  SVGAnimatedNumber get seed();
+  final SVGAnimatedNumber seed;
 
-  SVGAnimatedEnumeration get stitchTiles();
+  final SVGAnimatedEnumeration stitchTiles;
 
-  SVGAnimatedEnumeration get type();
+  final SVGAnimatedEnumeration type;
 }

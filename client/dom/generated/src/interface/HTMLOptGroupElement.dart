@@ -6,11 +6,7 @@
 
 interface HTMLOptGroupElement extends HTMLElement {
 
-  bool get disabled();
+  bool disabled;
 
-  void set disabled(bool value);
-
-  String get label();
-
-  void set label(String value);
+  String label;
 }

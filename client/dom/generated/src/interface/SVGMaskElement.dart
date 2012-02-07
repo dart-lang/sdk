@@ -6,15 +6,15 @@
 
 interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedEnumeration get maskContentUnits();
+  final SVGAnimatedEnumeration maskContentUnits;
 
-  SVGAnimatedEnumeration get maskUnits();
+  final SVGAnimatedEnumeration maskUnits;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }

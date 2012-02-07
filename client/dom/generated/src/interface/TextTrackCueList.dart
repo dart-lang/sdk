@@ -6,7 +6,7 @@
 
 interface TextTrackCueList {
 
-  int get length();
+  final int length;
 
   TextTrackCue getCueById(String id);
 

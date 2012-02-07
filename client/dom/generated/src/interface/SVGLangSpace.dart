@@ -6,11 +6,7 @@
 
 interface SVGLangSpace {
 
-  String get xmllang();
+  String xmllang;
 
-  void set xmllang(String value);
-
-  String get xmlspace();
-
-  void set xmlspace(String value);
+  String xmlspace;
 }

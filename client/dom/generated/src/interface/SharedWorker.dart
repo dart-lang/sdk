@@ -6,5 +6,5 @@
 
 interface SharedWorker extends AbstractWorker {
 
-  MessagePort get port();
+  final MessagePort port;
 }

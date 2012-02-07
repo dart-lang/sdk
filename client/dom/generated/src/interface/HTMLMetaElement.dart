@@ -6,19 +6,11 @@
 
 interface HTMLMetaElement extends HTMLElement {
 
-  String get content();
+  String content;
 
-  void set content(String value);
+  String httpEquiv;
 
-  String get httpEquiv();
+  String name;
 
-  void set httpEquiv(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get scheme();
-
-  void set scheme(String value);
+  String scheme;
 }

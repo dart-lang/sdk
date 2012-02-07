@@ -6,61 +6,33 @@
 
 interface HTMLTableCellElement extends HTMLElement {
 
-  String get abbr();
+  String abbr;
 
-  void set abbr(String value);
+  String align;
 
-  String get align();
+  String axis;
 
-  void set align(String value);
+  String bgColor;
 
-  String get axis();
+  final int cellIndex;
 
-  void set axis(String value);
+  String ch;
 
-  String get bgColor();
+  String chOff;
 
-  void set bgColor(String value);
+  int colSpan;
 
-  int get cellIndex();
+  String headers;
 
-  String get ch();
+  String height;
 
-  void set ch(String value);
+  bool noWrap;
 
-  String get chOff();
+  int rowSpan;
 
-  void set chOff(String value);
+  String scope;
 
-  int get colSpan();
+  String vAlign;
 
-  void set colSpan(int value);
-
-  String get headers();
-
-  void set headers(String value);
-
-  String get height();
-
-  void set height(String value);
-
-  bool get noWrap();
-
-  void set noWrap(bool value);
-
-  int get rowSpan();
-
-  void set rowSpan(int value);
-
-  String get scope();
-
-  void set scope(String value);
-
-  String get vAlign();
-
-  void set vAlign(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }

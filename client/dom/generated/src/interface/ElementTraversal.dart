@@ -6,13 +6,13 @@
 
 interface ElementTraversal {
 
-  int get childElementCount();
+  final int childElementCount;
 
-  Element get firstElementChild();
+  final Element firstElementChild;
 
-  Element get lastElementChild();
+  final Element lastElementChild;
 
-  Element get nextElementSibling();
+  final Element nextElementSibling;
 
-  Element get previousElementSibling();
+  final Element previousElementSibling;
 }

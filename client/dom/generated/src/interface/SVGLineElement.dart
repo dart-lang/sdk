@@ -6,11 +6,11 @@
 
 interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get x1();
+  final SVGAnimatedLength x1;
 
-  SVGAnimatedLength get x2();
+  final SVGAnimatedLength x2;
 
-  SVGAnimatedLength get y1();
+  final SVGAnimatedLength y1;
 
-  SVGAnimatedLength get y2();
+  final SVGAnimatedLength y2;
 }

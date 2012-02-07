@@ -6,9 +6,9 @@
 
 interface FileWriterSync {
 
-  int get length();
+  final int length;
 
-  int get position();
+  final int position;
 
   void seek(int position);
 

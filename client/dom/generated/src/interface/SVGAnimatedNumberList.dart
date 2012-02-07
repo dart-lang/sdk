@@ -6,7 +6,7 @@
 
 interface SVGAnimatedNumberList {
 
-  SVGNumberList get animVal();
+  final SVGNumberList animVal;
 
-  SVGNumberList get baseVal();
+  final SVGNumberList baseVal;
 }

@@ -6,9 +6,7 @@
 
 interface CSSPageRule extends CSSRule {
 
-  String get selectorText();
+  String selectorText;
 
-  void set selectorText(String value);
-
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 }

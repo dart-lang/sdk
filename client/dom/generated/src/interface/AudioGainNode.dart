@@ -6,5 +6,5 @@
 
 interface AudioGainNode extends AudioNode {
 
-  AudioGain get gain();
+  final AudioGain gain;
 }

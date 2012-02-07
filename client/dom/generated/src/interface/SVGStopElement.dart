@@ -6,5 +6,5 @@
 
 interface SVGStopElement extends SVGElement, SVGStylable {
 
-  SVGAnimatedNumber get offset();
+  final SVGAnimatedNumber offset;
 }

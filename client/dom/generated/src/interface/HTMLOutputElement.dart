@@ -6,33 +6,25 @@
 
 interface HTMLOutputElement extends HTMLElement {
 
-  String get defaultValue();
+  String defaultValue;
 
-  void set defaultValue(String value);
+  final HTMLFormElement form;
 
-  HTMLFormElement get form();
+  DOMSettableTokenList htmlFor;
 
-  DOMSettableTokenList get htmlFor();
+  final NodeList labels;
 
-  void set htmlFor(DOMSettableTokenList value);
+  String name;
 
-  NodeList get labels();
+  final String type;
 
-  String get name();
+  final String validationMessage;
 
-  void set name(String value);
+  final ValidityState validity;
 
-  String get type();
+  String value;
 
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 

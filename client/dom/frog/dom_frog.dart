@@ -1067,7 +1067,6 @@ class _DOMMimeTypeArrayJs extends _DOMTypeJs implements DOMMimeTypeArray native 
 }
 
 class _DOMParserJs extends _DOMTypeJs implements DOMParser native "*DOMParser" {
-  DOMParser() native;
 
   _DocumentJs parseFromString(String str, String contentType) native;
 }
@@ -2719,19 +2718,9 @@ class _HTMLCollectionJs extends _DOMTypeJs implements HTMLCollection native "*HT
   _NodeJs namedItem(String name) native;
 }
 
-class _HTMLContentElementJs extends _HTMLElementJs implements HTMLContentElement native "*HTMLContentElement" {
-
-  String select;
-}
-
 class _HTMLDListElementJs extends _HTMLElementJs implements HTMLDListElement native "*HTMLDListElement" {
 
   bool compact;
-}
-
-class _HTMLDataListElementJs extends _HTMLElementJs implements HTMLDataListElement native "*HTMLDataListElement" {
-
-  final _HTMLCollectionJs options;
 }
 
 class _HTMLDetailsElementJs extends _HTMLElementJs implements HTMLDetailsElement native "*HTMLDetailsElement" {
@@ -2819,18 +2808,6 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
   String innerText;
 
   final bool isContentEditable;
-
-  String itemId;
-
-  final _DOMSettableTokenListJs itemProp;
-
-  final _DOMSettableTokenListJs itemRef;
-
-  bool itemScope;
-
-  final _DOMSettableTokenListJs itemType;
-
-  Object itemValue;
 
   String lang;
 
@@ -3105,8 +3082,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
   final _NodeListJs labels;
 
-  final _HTMLElementJs list;
-
   String max;
 
   int maxLength;
@@ -3124,8 +3099,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
   bool readOnly;
 
   bool required;
-
-  final _HTMLOptionElementJs selectedOption;
 
   String selectionDirection;
 
@@ -3613,13 +3586,6 @@ class _HTMLProgressElementJs extends _HTMLElementJs implements HTMLProgressEleme
   num value;
 }
 
-class _HTMLPropertiesCollectionJs extends _HTMLCollectionJs implements HTMLPropertiesCollection native "*HTMLPropertiesCollection" {
-
-  final int length;
-
-  _NodeJs item(int index) native;
-}
-
 class _HTMLQuoteElementJs extends _HTMLElementJs implements HTMLQuoteElement native "*HTMLQuoteElement" {
 
   String cite;
@@ -3708,8 +3674,6 @@ class _HTMLStyleElementJs extends _HTMLElementJs implements HTMLStyleElement nat
   bool disabled;
 
   String media;
-
-  bool scoped;
 
   final _StyleSheetJs sheet;
 
@@ -4279,88 +4243,6 @@ class _ImageDataJs extends _DOMTypeJs implements ImageData native "*ImageData" {
   final int height;
 
   final int width;
-}
-
-class _InjectedScriptHostJs extends _DOMTypeJs implements InjectedScriptHost native "*InjectedScriptHost" {
-
-  void clearConsoleMessages() native;
-
-  void copyText(String text) native;
-
-  int databaseId(Object database) native;
-
-  void didCreateWorker(int id, String url, bool isFakeWorker) native;
-
-  void didDestroyWorker(int id) native;
-
-  Object evaluate(String text) native;
-
-  Object functionDetails(Object object) native;
-
-  void inspect(Object objectId, Object hints) native;
-
-  Object inspectedNode(int num) native;
-
-  Object internalConstructorName(Object object) native;
-
-  bool isHTMLAllCollection(Object object) native;
-
-  int nextWorkerId() native;
-
-  int storageId(Object storage) native;
-
-  String type(Object object) native;
-}
-
-class _InspectorFrontendHostJs extends _DOMTypeJs implements InspectorFrontendHost native "*InspectorFrontendHost" {
-
-  void bringToFront() native;
-
-  bool canSaveAs() native;
-
-  void closeWindow() native;
-
-  void copyText(String text) native;
-
-  String hiddenPanels() native;
-
-  void inspectedURLChanged(String newURL) native;
-
-  String loadResourceSynchronously(String url) native;
-
-  void loaded() native;
-
-  String localizedStringsURL() native;
-
-  void moveWindowBy(num x, num y) native;
-
-  void openInNewTab(String url) native;
-
-  String platform() native;
-
-  String port() native;
-
-  void recordActionTaken(int actionCode) native;
-
-  void recordPanelShown(int panelCode) native;
-
-  void recordSettingChanged(int settingChanged) native;
-
-  void requestAttachWindow() native;
-
-  void requestDetachWindow() native;
-
-  void requestSetDockSide(String side) native;
-
-  void saveAs(String fileName, String content) native;
-
-  void sendMessageToBackend(String message) native;
-
-  void setAttachedWindowHeight(int height) native;
-
-  void setInjectedScriptForOrigin(String origin, String script) native;
-
-  void showContextMenu(_MouseEventJs event, Object items) native;
 }
 
 class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> native "*Int16Array" {
@@ -4968,18 +4850,11 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
 
   final _NodeJs toElement;
 
-  final int webkitMovementX;
-
-  final int webkitMovementY;
-
   final int x;
 
   final int y;
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetJs relatedTarget) native;
-}
-
-class _MutationCallbackJs extends _DOMTypeJs implements MutationCallback native "*MutationCallback" {
 }
 
 class _MutationEventJs extends _EventJs implements MutationEvent native "*MutationEvent" {
@@ -5001,27 +4876,6 @@ class _MutationEventJs extends _EventJs implements MutationEvent native "*Mutati
   final _NodeJs relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeJs relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
-}
-
-class _MutationRecordJs extends _DOMTypeJs implements MutationRecord native "*MutationRecord" {
-
-  final _NodeListJs addedNodes;
-
-  final String attributeName;
-
-  final String attributeNamespace;
-
-  final _NodeJs nextSibling;
-
-  final String oldValue;
-
-  final _NodeJs previousSibling;
-
-  final _NodeListJs removedNodes;
-
-  final _NodeJs target;
-
-  final String type;
 }
 
 class _NamedNodeMapJs extends _DOMTypeJs implements NamedNodeMap native "*NamedNodeMap" {
@@ -5572,15 +5426,6 @@ class _PerformanceTimingJs extends _DOMTypeJs implements PerformanceTiming nativ
   final int unloadEventEnd;
 
   final int unloadEventStart;
-}
-
-class _PointerLockJs extends _DOMTypeJs implements PointerLock native "*PointerLock" {
-
-  final bool isLocked;
-
-  void lock(_ElementJs target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
-
-  void unlock() native;
 }
 
 class _PopStateEventJs extends _EventJs implements PopStateEvent native "*PopStateEvent" {
@@ -9115,11 +8960,6 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
   final bool visible;
 }
 
-class _ShadowRootJs extends _NodeJs implements ShadowRoot native "*ShadowRoot" {
-
-  final _ElementJs host;
-}
-
 class _SharedWorkerJs extends _AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
 
   final _MessagePortJs port;
@@ -10960,33 +10800,6 @@ class _WebKitBlobBuilderJs extends _DOMTypeJs implements WebKitBlobBuilder nativ
   _BlobJs getBlob([String contentType = null]) native;
 }
 
-class _WebKitCSSFilterValueJs extends _CSSValueListJs implements WebKitCSSFilterValue native "*WebKitCSSFilterValue" {
-
-  static final int CSS_FILTER_BLUR = 10;
-
-  static final int CSS_FILTER_BRIGHTNESS = 8;
-
-  static final int CSS_FILTER_CONTRAST = 9;
-
-  static final int CSS_FILTER_DROP_SHADOW = 11;
-
-  static final int CSS_FILTER_GRAYSCALE = 2;
-
-  static final int CSS_FILTER_HUE_ROTATE = 5;
-
-  static final int CSS_FILTER_INVERT = 6;
-
-  static final int CSS_FILTER_OPACITY = 7;
-
-  static final int CSS_FILTER_REFERENCE = 1;
-
-  static final int CSS_FILTER_SATURATE = 4;
-
-  static final int CSS_FILTER_SEPIA = 3;
-
-  final int operationType;
-}
-
 class _WebKitCSSKeyframeRuleJs extends _CSSRuleJs implements WebKitCSSKeyframeRule native "*WebKitCSSKeyframeRule" {
 
   String keyText;
@@ -11126,11 +10939,6 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
   static final int CSS_TRANSLATEZ = 12;
 
   final int operationType;
-}
-
-class _WebKitMutationObserverJs extends _DOMTypeJs implements WebKitMutationObserver native "*WebKitMutationObserver" {
-
-  void disconnect() native;
 }
 
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
@@ -11528,7 +11336,7 @@ interface AbstractWorker extends EventTarget {
 
 interface ArrayBuffer {
 
-  int get byteLength();
+  final int byteLength;
 
   ArrayBuffer slice(int begin, [int end]);
 }
@@ -11540,11 +11348,11 @@ interface ArrayBuffer {
 
 interface ArrayBufferView {
 
-  ArrayBuffer get buffer();
+  final ArrayBuffer buffer;
 
-  int get byteLength();
+  final int byteLength;
 
-  int get byteOffset();
+  final int byteOffset;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11554,17 +11362,15 @@ interface ArrayBufferView {
 
 interface Attr extends Node {
 
-  bool get isId();
+  final bool isId;
 
-  String get name();
+  final String name;
 
-  Element get ownerElement();
+  final Element ownerElement;
 
-  bool get specified();
+  final bool specified;
 
-  String get value();
-
-  void set value(String value);
+  String value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11574,17 +11380,15 @@ interface Attr extends Node {
 
 interface AudioBuffer {
 
-  num get duration();
+  final num duration;
 
-  num get gain();
+  num gain;
 
-  void set gain(num value);
+  final int length;
 
-  int get length();
+  final int numberOfChannels;
 
-  int get numberOfChannels();
-
-  num get sampleRate();
+  final num sampleRate;
 
   Float32Array getChannelData(int channelIndex);
 }
@@ -11603,21 +11407,15 @@ typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
 
 interface AudioBufferSourceNode extends AudioSourceNode {
 
-  AudioBuffer get buffer();
+  AudioBuffer buffer;
 
-  void set buffer(AudioBuffer value);
+  final AudioGain gain;
 
-  AudioGain get gain();
+  bool loop;
 
-  bool get loop();
+  bool looping;
 
-  void set loop(bool value);
-
-  bool get looping();
-
-  void set looping(bool value);
-
-  AudioParam get playbackRate();
+  final AudioParam playbackRate;
 
   void noteGrainOn(num when, num grainOffset, num grainDuration);
 
@@ -11651,17 +11449,15 @@ interface AudioContext default _AudioContextFactoryProvider {
 
   AudioContext();
 
-  num get currentTime();
+  final num currentTime;
 
-  AudioDestinationNode get destination();
+  final AudioDestinationNode destination;
 
-  AudioListener get listener();
+  final AudioListener listener;
 
-  EventListener get oncomplete();
+  EventListener oncomplete;
 
-  void set oncomplete(EventListener value);
-
-  num get sampleRate();
+  final num sampleRate;
 
   RealtimeAnalyserNode createAnalyser();
 
@@ -11707,7 +11503,7 @@ interface AudioContext default _AudioContextFactoryProvider {
 
 interface AudioDestinationNode extends AudioNode {
 
-  int get numberOfChannels();
+  final int numberOfChannels;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11725,7 +11521,7 @@ interface AudioGain extends AudioParam {
 
 interface AudioGainNode extends AudioNode {
 
-  AudioGain get gain();
+  final AudioGain gain;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11735,13 +11531,9 @@ interface AudioGainNode extends AudioNode {
 
 interface AudioListener {
 
-  num get dopplerFactor();
+  num dopplerFactor;
 
-  void set dopplerFactor(num value);
-
-  num get speedOfSound();
-
-  void set speedOfSound(num value);
+  num speedOfSound;
 
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp);
 
@@ -11757,11 +11549,11 @@ interface AudioListener {
 
 interface AudioNode {
 
-  AudioContext get context();
+  final AudioContext context;
 
-  int get numberOfInputs();
+  final int numberOfInputs;
 
-  int get numberOfOutputs();
+  final int numberOfOutputs;
 
   void connect(AudioNode destination, int output, int input);
 
@@ -11781,41 +11573,25 @@ interface AudioPannerNode extends AudioNode {
 
   static final int SOUNDFIELD = 2;
 
-  AudioGain get coneGain();
+  final AudioGain coneGain;
 
-  num get coneInnerAngle();
+  num coneInnerAngle;
 
-  void set coneInnerAngle(num value);
+  num coneOuterAngle;
 
-  num get coneOuterAngle();
+  num coneOuterGain;
 
-  void set coneOuterAngle(num value);
+  final AudioGain distanceGain;
 
-  num get coneOuterGain();
+  int distanceModel;
 
-  void set coneOuterGain(num value);
+  num maxDistance;
 
-  AudioGain get distanceGain();
+  int panningModel;
 
-  int get distanceModel();
+  num refDistance;
 
-  void set distanceModel(int value);
-
-  num get maxDistance();
-
-  void set maxDistance(num value);
-
-  int get panningModel();
-
-  void set panningModel(int value);
-
-  num get refDistance();
-
-  void set refDistance(num value);
-
-  num get rolloffFactor();
-
-  void set rolloffFactor(num value);
+  num rolloffFactor;
 
   void setOrientation(num x, num y, num z);
 
@@ -11831,19 +11607,17 @@ interface AudioPannerNode extends AudioNode {
 
 interface AudioParam {
 
-  num get defaultValue();
+  final num defaultValue;
 
-  num get maxValue();
+  final num maxValue;
 
-  num get minValue();
+  final num minValue;
 
-  String get name();
+  final String name;
 
-  int get units();
+  final int units;
 
-  num get value();
-
-  void set value(num value);
+  num value;
 
   void cancelScheduledValues(num startTime);
 
@@ -11865,9 +11639,9 @@ interface AudioParam {
 
 interface AudioProcessingEvent extends Event {
 
-  AudioBuffer get inputBuffer();
+  final AudioBuffer inputBuffer;
 
-  AudioBuffer get outputBuffer();
+  final AudioBuffer outputBuffer;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11885,7 +11659,7 @@ interface AudioSourceNode extends AudioNode {
 
 interface BarProp {
 
-  bool get visible();
+  final bool visible;
 }
 
 interface BarInfo extends BarProp {
@@ -11898,7 +11672,7 @@ interface BarInfo extends BarProp {
 
 interface BeforeLoadEvent extends Event {
 
-  String get url();
+  final String url;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11924,15 +11698,13 @@ interface BiquadFilterNode extends AudioNode {
 
   static final int PEAKING = 5;
 
-  AudioParam get Q();
+  final AudioParam Q;
 
-  AudioParam get frequency();
+  final AudioParam frequency;
 
-  AudioParam get gain();
+  final AudioParam gain;
 
-  int get type();
-
-  void set type(int value);
+  int type;
 
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse);
 }
@@ -11944,9 +11716,9 @@ interface BiquadFilterNode extends AudioNode {
 
 interface Blob {
 
-  int get size();
+  final int size;
 
-  String get type();
+  final String type;
 
   Blob webkitSlice([int start, int end, String contentType]);
 }
@@ -11966,9 +11738,7 @@ interface CDATASection extends Text {
 
 interface CSSCharsetRule extends CSSRule {
 
-  String get encoding();
-
-  void set encoding(String value);
+  String encoding;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11978,7 +11748,7 @@ interface CSSCharsetRule extends CSSRule {
 
 interface CSSFontFaceRule extends CSSRule {
 
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11988,11 +11758,11 @@ interface CSSFontFaceRule extends CSSRule {
 
 interface CSSImportRule extends CSSRule {
 
-  String get href();
+  final String href;
 
-  MediaList get media();
+  final MediaList media;
 
-  CSSStyleSheet get styleSheet();
+  final CSSStyleSheet styleSheet;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12002,9 +11772,9 @@ interface CSSImportRule extends CSSRule {
 
 interface CSSMediaRule extends CSSRule {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 
-  MediaList get media();
+  final MediaList media;
 
   void deleteRule(int index);
 
@@ -12018,11 +11788,9 @@ interface CSSMediaRule extends CSSRule {
 
 interface CSSPageRule extends CSSRule {
 
-  String get selectorText();
+  String selectorText;
 
-  void set selectorText(String value);
-
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12084,7 +11852,7 @@ interface CSSPrimitiveValue extends CSSValue {
 
   static final int CSS_URI = 20;
 
-  int get primitiveType();
+  final int primitiveType;
 
   Counter getCounterValue();
 
@@ -12128,15 +11896,13 @@ interface CSSRule {
 
   static final int WEBKIT_REGION_RULE = 10;
 
-  String get cssText();
+  String cssText;
 
-  void set cssText(String value);
+  final CSSRule parentRule;
 
-  CSSRule get parentRule();
+  final CSSStyleSheet parentStyleSheet;
 
-  CSSStyleSheet get parentStyleSheet();
-
-  int get type();
+  final int type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12146,7 +11912,7 @@ interface CSSRule {
 
 interface CSSRuleList {
 
-  int get length();
+  final int length;
 
   CSSRule item(int index);
 }
@@ -12158,13 +11924,11 @@ interface CSSRuleList {
 
 interface CSSStyleDeclaration {
 
-  String get cssText();
+  String cssText;
 
-  void set cssText(String value);
+  final int length;
 
-  int get length();
-
-  CSSRule get parentRule();
+  final CSSRule parentRule;
 
   CSSValue getPropertyCSSValue(String propertyName);
 
@@ -12190,11 +11954,9 @@ interface CSSStyleDeclaration {
 
 interface CSSStyleRule extends CSSRule {
 
-  String get selectorText();
+  String selectorText;
 
-  void set selectorText(String value);
-
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12204,11 +11966,11 @@ interface CSSStyleRule extends CSSRule {
 
 interface CSSStyleSheet extends StyleSheet {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 
-  CSSRule get ownerRule();
+  final CSSRule ownerRule;
 
-  CSSRuleList get rules();
+  final CSSRuleList rules;
 
   int addRule(String selector, String style, [int index]);
 
@@ -12242,11 +12004,9 @@ interface CSSValue {
 
   static final int CSS_VALUE_LIST = 2;
 
-  String get cssText();
+  String cssText;
 
-  void set cssText(String value);
-
-  int get cssValueType();
+  final int cssValueType;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12256,7 +12016,7 @@ interface CSSValue {
 
 interface CSSValueList extends CSSValue {
 
-  int get length();
+  final int length;
 
   CSSValue item(int index);
 }
@@ -12286,7 +12046,7 @@ interface CanvasPattern {
 
 interface CanvasPixelArray extends List<int> {
 
-  int get length();
+  final int length;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12296,7 +12056,7 @@ interface CanvasPixelArray extends List<int> {
 
 interface CanvasRenderingContext {
 
-  HTMLCanvasElement get canvas();
+  final HTMLCanvasElement canvas;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12306,73 +12066,39 @@ interface CanvasRenderingContext {
 
 interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
-  Dynamic get fillStyle();
+  Dynamic fillStyle;
 
-  void set fillStyle(Dynamic value);
+  String font;
 
-  String get font();
+  num globalAlpha;
 
-  void set font(String value);
+  String globalCompositeOperation;
 
-  num get globalAlpha();
+  String lineCap;
 
-  void set globalAlpha(num value);
+  String lineJoin;
 
-  String get globalCompositeOperation();
+  num lineWidth;
 
-  void set globalCompositeOperation(String value);
+  num miterLimit;
 
-  String get lineCap();
+  num shadowBlur;
 
-  void set lineCap(String value);
+  String shadowColor;
 
-  String get lineJoin();
+  num shadowOffsetX;
 
-  void set lineJoin(String value);
+  num shadowOffsetY;
 
-  num get lineWidth();
+  Dynamic strokeStyle;
 
-  void set lineWidth(num value);
+  String textAlign;
 
-  num get miterLimit();
+  String textBaseline;
 
-  void set miterLimit(num value);
+  List webkitLineDash;
 
-  num get shadowBlur();
-
-  void set shadowBlur(num value);
-
-  String get shadowColor();
-
-  void set shadowColor(String value);
-
-  num get shadowOffsetX();
-
-  void set shadowOffsetX(num value);
-
-  num get shadowOffsetY();
-
-  void set shadowOffsetY(num value);
-
-  Dynamic get strokeStyle();
-
-  void set strokeStyle(Dynamic value);
-
-  String get textAlign();
-
-  void set textAlign(String value);
-
-  String get textBaseline();
-
-  void set textBaseline(String value);
-
-  List get webkitLineDash();
-
-  void set webkitLineDash(List value);
-
-  num get webkitLineDashOffset();
-
-  void set webkitLineDashOffset(num value);
+  num webkitLineDashOffset;
 
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise);
 
@@ -12470,11 +12196,9 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
 interface CharacterData extends Node {
 
-  String get data();
+  String data;
 
-  void set data(String value);
-
-  int get length();
+  final int length;
 
   void appendData(String data);
 
@@ -12494,17 +12218,17 @@ interface CharacterData extends Node {
 
 interface ClientRect {
 
-  num get bottom();
+  final num bottom;
 
-  num get height();
+  final num height;
 
-  num get left();
+  final num left;
 
-  num get right();
+  final num right;
 
-  num get top();
+  final num top;
 
-  num get width();
+  final num width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12514,7 +12238,7 @@ interface ClientRect {
 
 interface ClientRectList {
 
-  int get length();
+  final int length;
 
   ClientRect item(int index);
 }
@@ -12526,19 +12250,15 @@ interface ClientRectList {
 
 interface Clipboard {
 
-  String get dropEffect();
+  String dropEffect;
 
-  void set dropEffect(String value);
+  String effectAllowed;
 
-  String get effectAllowed();
+  final FileList files;
 
-  void set effectAllowed(String value);
+  final DataTransferItemList items;
 
-  FileList get files();
-
-  DataTransferItemList get items();
-
-  List get types();
+  final List types;
 
   void clearData([String type]);
 
@@ -12556,11 +12276,11 @@ interface Clipboard {
 
 interface CloseEvent extends Event {
 
-  int get code();
+  final int code;
 
-  String get reason();
+  final String reason;
 
-  bool get wasClean();
+  final bool wasClean;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12578,7 +12298,7 @@ interface Comment extends CharacterData {
 
 interface CompositionEvent extends UIEvent {
 
-  String get data();
+  final String data;
 
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg);
 }
@@ -12590,9 +12310,9 @@ interface CompositionEvent extends UIEvent {
 
 interface Console {
 
-  MemoryInfo get memory();
+  final MemoryInfo memory;
 
-  List get profiles();
+  final List profiles;
 
   void assertCondition(bool condition);
 
@@ -12640,13 +12360,9 @@ interface Console {
 
 interface ConvolverNode extends AudioNode {
 
-  AudioBuffer get buffer();
+  AudioBuffer buffer;
 
-  void set buffer(AudioBuffer value);
-
-  bool get normalize();
-
-  void set normalize(bool value);
+  bool normalize;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12656,19 +12372,19 @@ interface ConvolverNode extends AudioNode {
 
 interface Coordinates {
 
-  num get accuracy();
+  final num accuracy;
 
-  num get altitude();
+  final num altitude;
 
-  num get altitudeAccuracy();
+  final num altitudeAccuracy;
 
-  num get heading();
+  final num heading;
 
-  num get latitude();
+  final num latitude;
 
-  num get longitude();
+  final num longitude;
 
-  num get speed();
+  final num speed;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12678,11 +12394,11 @@ interface Coordinates {
 
 interface Counter {
 
-  String get identifier();
+  final String identifier;
 
-  String get listStyle();
+  final String listStyle;
 
-  String get separator();
+  final String separator;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12702,7 +12418,7 @@ interface Crypto {
 
 interface CustomEvent extends Event {
 
-  Object get detail();
+  final Object detail;
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
@@ -12714,7 +12430,7 @@ interface CustomEvent extends Event {
 
 interface ApplicationCache extends EventTarget {
 
-  int get status();
+  final int status;
 
   void abort();
 
@@ -12801,11 +12517,11 @@ interface DOMException {
 
   static final int WRONG_DOCUMENT_ERR = 4;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -12817,9 +12533,9 @@ interface DOMException {
 
 interface DOMFileSystem {
 
-  String get name();
+  final String name;
 
-  DirectoryEntry get root();
+  final DirectoryEntry root;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12829,9 +12545,9 @@ interface DOMFileSystem {
 
 interface DOMFileSystemSync {
 
-  String get name();
+  final String name;
 
-  DirectoryEntrySync get root();
+  final DirectoryEntrySync root;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12872,13 +12588,13 @@ interface DOMImplementation {
 
 interface DOMMimeType {
 
-  String get description();
+  final String description;
 
-  DOMPlugin get enabledPlugin();
+  final DOMPlugin enabledPlugin;
 
-  String get suffixes();
+  final String suffixes;
 
-  String get type();
+  final String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12888,7 +12604,7 @@ interface DOMMimeType {
 
 interface DOMMimeTypeArray {
 
-  int get length();
+  final int length;
 
   DOMMimeType item(int index);
 
@@ -12914,13 +12630,13 @@ interface DOMParser default _DOMParserFactoryProvider {
 
 interface DOMPlugin {
 
-  String get description();
+  final String description;
 
-  String get filename();
+  final String filename;
 
-  int get length();
+  final int length;
 
-  String get name();
+  final String name;
 
   DOMMimeType item(int index);
 
@@ -12934,7 +12650,7 @@ interface DOMPlugin {
 
 interface DOMPluginArray {
 
-  int get length();
+  final int length;
 
   DOMPlugin item(int index);
 
@@ -12950,27 +12666,27 @@ interface DOMPluginArray {
 
 interface Selection {
 
-  Node get anchorNode();
+  final Node anchorNode;
 
-  int get anchorOffset();
+  final int anchorOffset;
 
-  Node get baseNode();
+  final Node baseNode;
 
-  int get baseOffset();
+  final int baseOffset;
 
-  Node get extentNode();
+  final Node extentNode;
 
-  int get extentOffset();
+  final int extentOffset;
 
-  Node get focusNode();
+  final Node focusNode;
 
-  int get focusOffset();
+  final int focusOffset;
 
-  bool get isCollapsed();
+  final bool isCollapsed;
 
-  int get rangeCount();
+  final int rangeCount;
 
-  String get type();
+  final String type;
 
   void addRange(Range range);
 
@@ -13013,9 +12729,7 @@ interface DOMSelection extends Selection {
 
 interface DOMSettableTokenList extends DOMTokenList {
 
-  String get value();
-
-  void set value(String value);
+  String value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13025,7 +12739,7 @@ interface DOMSettableTokenList extends DOMTokenList {
 
 interface DOMTokenList {
 
-  int get length();
+  final int length;
 
   void add(String token);
 
@@ -13059,179 +12773,107 @@ interface DOMURL {
 
 interface Window extends EventTarget {
 
-  DOMApplicationCache get applicationCache();
+  final DOMApplicationCache applicationCache;
 
-  Navigator get clientInformation();
+  Navigator clientInformation;
 
-  void set clientInformation(Navigator value);
+  final bool closed;
 
-  bool get closed();
+  Console console;
 
-  Console get console();
+  final Crypto crypto;
 
-  void set console(Console value);
+  String defaultStatus;
 
-  Crypto get crypto();
+  String defaultstatus;
 
-  String get defaultStatus();
+  num devicePixelRatio;
 
-  void set defaultStatus(String value);
+  final Document document;
 
-  String get defaultstatus();
+  Event event;
 
-  void set defaultstatus(String value);
+  final Element frameElement;
 
-  num get devicePixelRatio();
+  DOMWindow frames;
 
-  void set devicePixelRatio(num value);
+  History history;
 
-  Document get document();
+  int innerHeight;
 
-  Event get event();
+  int innerWidth;
 
-  void set event(Event value);
+  int length;
 
-  Element get frameElement();
+  final Storage localStorage;
 
-  DOMWindow get frames();
+  Location location;
 
-  void set frames(DOMWindow value);
+  BarInfo locationbar;
 
-  History get history();
+  BarInfo menubar;
 
-  void set history(History value);
+  String name;
 
-  int get innerHeight();
+  Navigator navigator;
 
-  void set innerHeight(int value);
+  bool offscreenBuffering;
 
-  int get innerWidth();
+  DOMWindow opener;
 
-  void set innerWidth(int value);
+  int outerHeight;
 
-  int get length();
+  int outerWidth;
 
-  void set length(int value);
+  final int pageXOffset;
 
-  Storage get localStorage();
+  final int pageYOffset;
 
-  Location get location();
+  DOMWindow parent;
 
-  void set location(Location value);
+  Performance performance;
 
-  BarInfo get locationbar();
+  BarInfo personalbar;
 
-  void set locationbar(BarInfo value);
+  Screen screen;
 
-  BarInfo get menubar();
+  int screenLeft;
 
-  void set menubar(BarInfo value);
+  int screenTop;
 
-  String get name();
+  int screenX;
 
-  void set name(String value);
+  int screenY;
 
-  Navigator get navigator();
+  int scrollX;
 
-  void set navigator(Navigator value);
+  int scrollY;
 
-  bool get offscreenBuffering();
+  BarInfo scrollbars;
 
-  void set offscreenBuffering(bool value);
+  DOMWindow self;
 
-  DOMWindow get opener();
+  final Storage sessionStorage;
 
-  void set opener(DOMWindow value);
+  String status;
 
-  int get outerHeight();
+  BarInfo statusbar;
 
-  void set outerHeight(int value);
+  final StyleMedia styleMedia;
 
-  int get outerWidth();
+  BarInfo toolbar;
 
-  void set outerWidth(int value);
+  DOMWindow top;
 
-  int get pageXOffset();
+  final IDBFactory webkitIndexedDB;
 
-  int get pageYOffset();
+  final NotificationCenter webkitNotifications;
 
-  DOMWindow get parent();
+  final StorageInfo webkitStorageInfo;
 
-  void set parent(DOMWindow value);
+  final DOMURL webkitURL;
 
-  Performance get performance();
-
-  void set performance(Performance value);
-
-  BarInfo get personalbar();
-
-  void set personalbar(BarInfo value);
-
-  Screen get screen();
-
-  void set screen(Screen value);
-
-  int get screenLeft();
-
-  void set screenLeft(int value);
-
-  int get screenTop();
-
-  void set screenTop(int value);
-
-  int get screenX();
-
-  void set screenX(int value);
-
-  int get screenY();
-
-  void set screenY(int value);
-
-  int get scrollX();
-
-  void set scrollX(int value);
-
-  int get scrollY();
-
-  void set scrollY(int value);
-
-  BarInfo get scrollbars();
-
-  void set scrollbars(BarInfo value);
-
-  DOMWindow get self();
-
-  void set self(DOMWindow value);
-
-  Storage get sessionStorage();
-
-  String get status();
-
-  void set status(String value);
-
-  BarInfo get statusbar();
-
-  void set statusbar(BarInfo value);
-
-  StyleMedia get styleMedia();
-
-  BarInfo get toolbar();
-
-  void set toolbar(BarInfo value);
-
-  DOMWindow get top();
-
-  void set top(DOMWindow value);
-
-  IDBFactory get webkitIndexedDB();
-
-  NotificationCenter get webkitNotifications();
-
-  StorageInfo get webkitStorageInfo();
-
-  DOMURL get webkitURL();
-
-  DOMWindow get window();
+  final DOMWindow window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -13334,9 +12976,9 @@ interface DOMWindow extends Window {
 
 interface DataTransferItem {
 
-  String get kind();
+  final String kind;
 
-  String get type();
+  final String type;
 
   Blob getAsFile();
 
@@ -13350,7 +12992,7 @@ interface DataTransferItem {
 
 interface DataTransferItemList {
 
-  int get length();
+  final int length;
 
   void add(var data_OR_file, [String type]);
 
@@ -13406,7 +13048,7 @@ interface DataView extends ArrayBufferView {
 
 interface Database {
 
-  String get version();
+  final String version;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 
@@ -13429,9 +13071,9 @@ typedef bool DatabaseCallback(var database);
 
 interface DatabaseSync {
 
-  String get lastErrorMessage();
+  final String lastErrorMessage;
 
-  String get version();
+  final String version;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
 
@@ -13447,9 +13089,7 @@ interface DatabaseSync {
 
 interface DedicatedWorkerGlobalScope extends WorkerContext {
 
-  EventListener get onmessage();
-
-  void set onmessage(EventListener value);
+  EventListener onmessage;
 
   void postMessage(Object message, [List messagePorts]);
 
@@ -13466,7 +13106,7 @@ interface DedicatedWorkerContext extends DedicatedWorkerGlobalScope {
 
 interface DelayNode extends AudioNode {
 
-  AudioParam get delayTime();
+  final AudioParam delayTime;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13476,7 +13116,7 @@ interface DelayNode extends AudioNode {
 
 interface DeviceMotionEvent extends Event {
 
-  num get interval();
+  final num interval;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13486,13 +13126,13 @@ interface DeviceMotionEvent extends Event {
 
 interface DeviceOrientationEvent extends Event {
 
-  bool get absolute();
+  final bool absolute;
 
-  num get alpha();
+  final num alpha;
 
-  num get beta();
+  final num beta;
 
-  num get gamma();
+  final num gamma;
 
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
 }
@@ -13556,97 +13196,77 @@ interface DirectoryReaderSync {
 
 interface Document extends Node, NodeSelector {
 
-  String get URL();
+  final String URL;
 
-  HTMLCollection get anchors();
+  final HTMLCollection anchors;
 
-  HTMLCollection get applets();
+  final HTMLCollection applets;
 
-  HTMLElement get body();
+  HTMLElement body;
 
-  void set body(HTMLElement value);
+  final String characterSet;
 
-  String get characterSet();
+  String charset;
 
-  String get charset();
+  final String compatMode;
 
-  void set charset(String value);
+  String cookie;
 
-  String get compatMode();
+  final String defaultCharset;
 
-  String get cookie();
+  final DOMWindow defaultView;
 
-  void set cookie(String value);
+  final DocumentType doctype;
 
-  String get defaultCharset();
+  final Element documentElement;
 
-  DOMWindow get defaultView();
+  String documentURI;
 
-  DocumentType get doctype();
+  String domain;
 
-  Element get documentElement();
+  final HTMLCollection forms;
 
-  String get documentURI();
+  final HTMLHeadElement head;
 
-  void set documentURI(String value);
+  final HTMLCollection images;
 
-  String get domain();
+  final DOMImplementation implementation;
 
-  void set domain(String value);
+  final String inputEncoding;
 
-  HTMLCollection get forms();
+  final String lastModified;
 
-  HTMLHeadElement get head();
+  final HTMLCollection links;
 
-  HTMLCollection get images();
+  Location location;
 
-  DOMImplementation get implementation();
+  final String preferredStylesheetSet;
 
-  String get inputEncoding();
+  final String readyState;
 
-  String get lastModified();
+  final String referrer;
 
-  HTMLCollection get links();
+  String selectedStylesheetSet;
 
-  Location get location();
+  final StyleSheetList styleSheets;
 
-  void set location(Location value);
+  String title;
 
-  String get preferredStylesheetSet();
+  final Element webkitCurrentFullScreenElement;
 
-  String get readyState();
+  final bool webkitFullScreenKeyboardInputAllowed;
 
-  String get referrer();
+  final bool webkitHidden;
 
-  String get selectedStylesheetSet();
+  final bool webkitIsFullScreen;
 
-  void set selectedStylesheetSet(String value);
+  final String webkitVisibilityState;
 
-  StyleSheetList get styleSheets();
+  final String xmlEncoding;
 
-  String get title();
+  bool xmlStandalone;
 
-  void set title(String value);
-
-  Element get webkitCurrentFullScreenElement();
-
-  bool get webkitFullScreenKeyboardInputAllowed();
-
-  bool get webkitHidden();
-
-  bool get webkitIsFullScreen();
-
-  String get webkitVisibilityState();
-
-  String get xmlEncoding();
-
-  bool get xmlStandalone();
-
-  void set xmlStandalone(bool value);
-
-  String get xmlVersion();
-
-  void set xmlVersion(String value);
+  String xmlVersion;
 
   Node adoptNode(Node source);
 
@@ -13750,17 +13370,17 @@ interface DocumentFragment extends Node, NodeSelector {
 
 interface DocumentType extends Node {
 
-  NamedNodeMap get entities();
+  final NamedNodeMap entities;
 
-  String get internalSubset();
+  final String internalSubset;
 
-  String get name();
+  final String name;
 
-  NamedNodeMap get notations();
+  final NamedNodeMap notations;
 
-  String get publicId();
+  final String publicId;
 
-  String get systemId();
+  final String systemId;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13780,49 +13400,45 @@ interface Element extends Node, NodeSelector, ElementTraversal {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  int get childElementCount();
+  final int childElementCount;
 
-  int get clientHeight();
+  final int clientHeight;
 
-  int get clientLeft();
+  final int clientLeft;
 
-  int get clientTop();
+  final int clientTop;
 
-  int get clientWidth();
+  final int clientWidth;
 
-  Element get firstElementChild();
+  final Element firstElementChild;
 
-  Element get lastElementChild();
+  final Element lastElementChild;
 
-  Element get nextElementSibling();
+  final Element nextElementSibling;
 
-  int get offsetHeight();
+  final int offsetHeight;
 
-  int get offsetLeft();
+  final int offsetLeft;
 
-  Element get offsetParent();
+  final Element offsetParent;
 
-  int get offsetTop();
+  final int offsetTop;
 
-  int get offsetWidth();
+  final int offsetWidth;
 
-  Element get previousElementSibling();
+  final Element previousElementSibling;
 
-  int get scrollHeight();
+  final int scrollHeight;
 
-  int get scrollLeft();
+  int scrollLeft;
 
-  void set scrollLeft(int value);
+  int scrollTop;
 
-  int get scrollTop();
+  final int scrollWidth;
 
-  void set scrollTop(int value);
+  final CSSStyleDeclaration style;
 
-  int get scrollWidth();
-
-  CSSStyleDeclaration get style();
-
-  String get tagName();
+  final String tagName;
 
   void blur();
 
@@ -13904,15 +13520,15 @@ interface ElementTimeControl {
 
 interface ElementTraversal {
 
-  int get childElementCount();
+  final int childElementCount;
 
-  Element get firstElementChild();
+  final Element firstElementChild;
 
-  Element get lastElementChild();
+  final Element lastElementChild;
 
-  Element get nextElementSibling();
+  final Element nextElementSibling;
 
-  Element get previousElementSibling();
+  final Element previousElementSibling;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13922,11 +13538,11 @@ interface ElementTraversal {
 
 interface Entity extends Node {
 
-  String get notationName();
+  final String notationName;
 
-  String get publicId();
+  final String publicId;
 
-  String get systemId();
+  final String systemId;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13951,15 +13567,15 @@ typedef bool EntriesCallback(EntryArray entries);
 
 interface Entry {
 
-  DOMFileSystem get filesystem();
+  final DOMFileSystem filesystem;
 
-  String get fullPath();
+  final String fullPath;
 
-  bool get isDirectory();
+  final bool isDirectory;
 
-  bool get isFile();
+  final bool isFile;
 
-  String get name();
+  final String name;
 
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 
@@ -13981,7 +13597,7 @@ interface Entry {
 
 interface EntryArray {
 
-  int get length();
+  final int length;
 
   Entry item(int index);
 }
@@ -13993,7 +13609,7 @@ interface EntryArray {
 
 interface EntryArraySync {
 
-  int get length();
+  final int length;
 
   EntrySync item(int index);
 }
@@ -14012,15 +13628,15 @@ typedef bool EntryCallback(Entry entry);
 
 interface EntrySync {
 
-  DOMFileSystemSync get filesystem();
+  final DOMFileSystemSync filesystem;
 
-  String get fullPath();
+  final String fullPath;
 
-  bool get isDirectory();
+  final bool isDirectory;
 
-  bool get isFile();
+  final bool isFile;
 
-  String get name();
+  final String name;
 
   EntrySync copyTo(DirectoryEntrySync parent, String name);
 
@@ -14049,11 +13665,11 @@ typedef bool ErrorCallback(FileError error);
 
 interface ErrorEvent extends Event {
 
-  String get filename();
+  final String filename;
 
-  int get lineno();
+  final int lineno;
 
-  String get message();
+  final String message;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14101,33 +13717,29 @@ interface Event {
 
   static final int SELECT = 16384;
 
-  bool get bubbles();
+  final bool bubbles;
 
-  bool get cancelBubble();
+  bool cancelBubble;
 
-  void set cancelBubble(bool value);
+  final bool cancelable;
 
-  bool get cancelable();
+  final Clipboard clipboardData;
 
-  Clipboard get clipboardData();
+  final EventTarget currentTarget;
 
-  EventTarget get currentTarget();
+  final bool defaultPrevented;
 
-  bool get defaultPrevented();
+  final int eventPhase;
 
-  int get eventPhase();
+  bool returnValue;
 
-  bool get returnValue();
+  final EventTarget srcElement;
 
-  void set returnValue(bool value);
+  final EventTarget target;
 
-  EventTarget get srcElement();
+  final int timeStamp;
 
-  EventTarget get target();
-
-  int get timeStamp();
-
-  String get type();
+  final String type;
 
   void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
 
@@ -14149,11 +13761,11 @@ interface EventException {
 
   static final int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -14171,11 +13783,11 @@ interface EventSource extends EventTarget {
 
   static final int OPEN = 1;
 
-  String get URL();
+  final String URL;
 
-  int get readyState();
+  final int readyState;
 
-  String get url();
+  final String url;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -14207,15 +13819,15 @@ interface EventTarget {
 
 interface File extends Blob {
 
-  String get fileName();
+  final String fileName;
 
-  int get fileSize();
+  final int fileSize;
 
-  Date get lastModifiedDate();
+  final Date lastModifiedDate;
 
-  String get name();
+  final String name;
 
-  String get webkitRelativePath();
+  final String webkitRelativePath;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14280,7 +13892,7 @@ interface FileError {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int get code();
+  final int code;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14314,11 +13926,11 @@ interface FileException {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -14330,7 +13942,7 @@ interface FileException {
 
 interface FileList {
 
-  int get length();
+  final int length;
 
   File item(int index);
 }
@@ -14350,35 +13962,23 @@ interface FileReader default _FileReaderFactoryProvider {
 
   static final int LOADING = 1;
 
-  FileError get error();
+  final FileError error;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener onerror;
 
-  EventListener get onerror();
+  EventListener onload;
 
-  void set onerror(EventListener value);
+  EventListener onloadend;
 
-  EventListener get onload();
+  EventListener onloadstart;
 
-  void set onload(EventListener value);
+  EventListener onprogress;
 
-  EventListener get onloadend();
+  final int readyState;
 
-  void set onloadend(EventListener value);
-
-  EventListener get onloadstart();
-
-  void set onloadstart(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
-
-  int get readyState();
-
-  Object get result();
+  final Object result;
 
   void abort();
 
@@ -14433,37 +14033,25 @@ interface FileWriter {
 
   static final int WRITING = 1;
 
-  FileError get error();
+  final FileError error;
 
-  int get length();
+  final int length;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener onerror;
 
-  EventListener get onerror();
+  EventListener onprogress;
 
-  void set onerror(EventListener value);
+  EventListener onwrite;
 
-  EventListener get onprogress();
+  EventListener onwriteend;
 
-  void set onprogress(EventListener value);
+  EventListener onwritestart;
 
-  EventListener get onwrite();
+  final int position;
 
-  void set onwrite(EventListener value);
-
-  EventListener get onwriteend();
-
-  void set onwriteend(EventListener value);
-
-  EventListener get onwritestart();
-
-  void set onwritestart(EventListener value);
-
-  int get position();
-
-  int get readyState();
+  final int readyState;
 
   void abort();
 
@@ -14488,9 +14076,9 @@ typedef bool FileWriterCallback(FileWriter fileWriter);
 
 interface FileWriterSync {
 
-  int get length();
+  final int length;
 
-  int get position();
+  final int position;
 
   void seek(int position);
 
@@ -14514,7 +14102,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -14536,7 +14124,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   static final int BYTES_PER_ELEMENT = 8;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -14564,9 +14152,9 @@ interface Geolocation {
 
 interface Geoposition {
 
-  Coordinates get coords();
+  final Coordinates coords;
 
-  int get timestamp();
+  final int timestamp;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14576,7 +14164,7 @@ interface Geoposition {
 
 interface HTMLAllCollection {
 
-  int get length();
+  final int length;
 
   Node item(int index);
 
@@ -14592,85 +14180,47 @@ interface HTMLAllCollection {
 
 interface HTMLAnchorElement extends HTMLElement {
 
-  String get charset();
+  String charset;
 
-  void set charset(String value);
+  String coords;
 
-  String get coords();
+  String download;
 
-  void set coords(String value);
+  String hash;
 
-  String get download();
+  String host;
 
-  void set download(String value);
+  String hostname;
 
-  String get hash();
+  String href;
 
-  void set hash(String value);
+  String hreflang;
 
-  String get host();
+  String name;
 
-  void set host(String value);
+  final String origin;
 
-  String get hostname();
+  String pathname;
 
-  void set hostname(String value);
+  String ping;
 
-  String get href();
+  String port;
 
-  void set href(String value);
+  String protocol;
 
-  String get hreflang();
+  String rel;
 
-  void set hreflang(String value);
+  String rev;
 
-  String get name();
+  String search;
 
-  void set name(String value);
+  String shape;
 
-  String get origin();
+  String target;
 
-  String get pathname();
+  final String text;
 
-  void set pathname(String value);
-
-  String get ping();
-
-  void set ping(String value);
-
-  String get port();
-
-  void set port(String value);
-
-  String get protocol();
-
-  void set protocol(String value);
-
-  String get rel();
-
-  void set rel(String value);
-
-  String get rev();
-
-  void set rev(String value);
-
-  String get search();
-
-  void set search(String value);
-
-  String get shape();
-
-  void set shape(String value);
-
-  String get target();
-
-  void set target(String value);
-
-  String get text();
-
-  String get type();
-
-  void set type(String value);
+  String type;
 
   String toString();
 }
@@ -14682,49 +14232,27 @@ interface HTMLAnchorElement extends HTMLElement {
 
 interface HTMLAppletElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String alt;
 
-  String get alt();
+  String archive;
 
-  void set alt(String value);
+  String code;
 
-  String get archive();
+  String codeBase;
 
-  void set archive(String value);
+  String height;
 
-  String get code();
+  String hspace;
 
-  void set code(String value);
+  String name;
 
-  String get codeBase();
+  String object;
 
-  void set codeBase(String value);
+  String vspace;
 
-  String get height();
-
-  void set height(String value);
-
-  String get hspace();
-
-  void set hspace(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get object();
-
-  void set object(String value);
-
-  String get vspace();
-
-  void set vspace(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14734,47 +14262,33 @@ interface HTMLAppletElement extends HTMLElement {
 
 interface HTMLAreaElement extends HTMLElement {
 
-  String get alt();
+  String alt;
 
-  void set alt(String value);
+  String coords;
 
-  String get coords();
+  final String hash;
 
-  void set coords(String value);
+  final String host;
 
-  String get hash();
+  final String hostname;
 
-  String get host();
+  String href;
 
-  String get hostname();
+  bool noHref;
 
-  String get href();
+  final String pathname;
 
-  void set href(String value);
+  String ping;
 
-  bool get noHref();
+  final String port;
 
-  void set noHref(bool value);
+  final String protocol;
 
-  String get pathname();
+  final String search;
 
-  String get ping();
+  String shape;
 
-  void set ping(String value);
-
-  String get port();
-
-  String get protocol();
-
-  String get search();
-
-  String get shape();
-
-  void set shape(String value);
-
-  String get target();
-
-  void set target(String value);
+  String target;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14792,9 +14306,7 @@ interface HTMLAudioElement extends HTMLMediaElement {
 
 interface HTMLBRElement extends HTMLElement {
 
-  String get clear();
-
-  void set clear(String value);
+  String clear;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14804,13 +14316,9 @@ interface HTMLBRElement extends HTMLElement {
 
 interface HTMLBaseElement extends HTMLElement {
 
-  String get href();
+  String href;
 
-  void set href(String value);
-
-  String get target();
-
-  void set target(String value);
+  String target;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14820,17 +14328,11 @@ interface HTMLBaseElement extends HTMLElement {
 
 interface HTMLBaseFontElement extends HTMLElement {
 
-  String get color();
+  String color;
 
-  void set color(String value);
+  String face;
 
-  String get face();
-
-  void set face(String value);
-
-  int get size();
-
-  void set size(int value);
+  int size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14840,29 +14342,17 @@ interface HTMLBaseFontElement extends HTMLElement {
 
 interface HTMLBodyElement extends HTMLElement {
 
-  String get aLink();
+  String aLink;
 
-  void set aLink(String value);
+  String background;
 
-  String get background();
+  String bgColor;
 
-  void set background(String value);
+  String link;
 
-  String get bgColor();
+  String text;
 
-  void set bgColor(String value);
-
-  String get link();
-
-  void set link(String value);
-
-  String get text();
-
-  void set text(String value);
-
-  String get vLink();
-
-  void set vLink(String value);
+  String vLink;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14872,53 +14362,35 @@ interface HTMLBodyElement extends HTMLElement {
 
 interface HTMLButtonElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  bool disabled;
 
-  bool get disabled();
+  final HTMLFormElement form;
 
-  void set disabled(bool value);
+  String formAction;
 
-  HTMLFormElement get form();
+  String formEnctype;
 
-  String get formAction();
+  String formMethod;
 
-  void set formAction(String value);
+  bool formNoValidate;
 
-  String get formEnctype();
+  String formTarget;
 
-  void set formEnctype(String value);
+  final NodeList labels;
 
-  String get formMethod();
+  String name;
 
-  void set formMethod(String value);
+  final String type;
 
-  bool get formNoValidate();
+  final String validationMessage;
 
-  void set formNoValidate(bool value);
+  final ValidityState validity;
 
-  String get formTarget();
+  String value;
 
-  void set formTarget(String value);
-
-  NodeList get labels();
-
-  String get name();
-
-  void set name(String value);
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 
@@ -14934,13 +14406,9 @@ interface HTMLButtonElement extends HTMLElement {
 
 interface HTMLCanvasElement extends HTMLElement {
 
-  int get height();
+  int height;
 
-  void set height(int value);
-
-  int get width();
-
-  void set width(int value);
+  int width;
 
   Object getContext(String contextId);
 
@@ -14954,7 +14422,7 @@ interface HTMLCanvasElement extends HTMLElement {
 
 interface HTMLCollection extends List<Node> {
 
-  int get length();
+  final int length;
 
   Node item(int index);
 
@@ -14966,33 +14434,9 @@ interface HTMLCollection extends List<Node> {
 
 // WARNING: Do not edit - generated code.
 
-interface HTMLContentElement extends HTMLElement {
-
-  String get select();
-
-  void set select(String value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface HTMLDListElement extends HTMLElement {
 
-  bool get compact();
-
-  void set compact(bool value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface HTMLDataListElement extends HTMLElement {
-
-  HTMLCollection get options();
+  bool compact;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15002,9 +14446,7 @@ interface HTMLDataListElement extends HTMLElement {
 
 interface HTMLDetailsElement extends HTMLElement {
 
-  bool get open();
-
-  void set open(bool value);
+  bool open;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15014,9 +14456,7 @@ interface HTMLDetailsElement extends HTMLElement {
 
 interface HTMLDirectoryElement extends HTMLElement {
 
-  bool get compact();
-
-  void set compact(bool value);
+  bool compact;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15026,9 +14466,7 @@ interface HTMLDirectoryElement extends HTMLElement {
 
 interface HTMLDivElement extends HTMLElement {
 
-  String get align();
-
-  void set align(String value);
+  String align;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15038,47 +14476,31 @@ interface HTMLDivElement extends HTMLElement {
 
 interface HTMLDocument extends Document {
 
-  Element get activeElement();
+  final Element activeElement;
 
-  String get alinkColor();
+  String alinkColor;
 
-  void set alinkColor(String value);
+  HTMLAllCollection all;
 
-  HTMLAllCollection get all();
+  String bgColor;
 
-  void set all(HTMLAllCollection value);
+  final String compatMode;
 
-  String get bgColor();
+  String designMode;
 
-  void set bgColor(String value);
+  String dir;
 
-  String get compatMode();
+  final HTMLCollection embeds;
 
-  String get designMode();
+  String fgColor;
 
-  void set designMode(String value);
+  String linkColor;
 
-  String get dir();
+  final HTMLCollection plugins;
 
-  void set dir(String value);
+  final HTMLCollection scripts;
 
-  HTMLCollection get embeds();
-
-  String get fgColor();
-
-  void set fgColor(String value);
-
-  String get linkColor();
-
-  void set linkColor(String value);
-
-  HTMLCollection get plugins();
-
-  HTMLCollection get scripts();
-
-  String get vlinkColor();
-
-  void set vlinkColor(String value);
+  String vlinkColor;
 
   void captureEvents();
 
@@ -15104,93 +14526,43 @@ interface HTMLDocument extends Document {
 
 interface HTMLElement extends Element {
 
-  String get accessKey();
+  String accessKey;
 
-  void set accessKey(String value);
+  final HTMLCollection children;
 
-  HTMLCollection get children();
+  final DOMTokenList classList;
 
-  DOMTokenList get classList();
+  String className;
 
-  String get className();
+  String contentEditable;
 
-  void set className(String value);
+  String dir;
 
-  String get contentEditable();
+  bool draggable;
 
-  void set contentEditable(String value);
+  bool hidden;
 
-  String get dir();
+  String id;
 
-  void set dir(String value);
+  String innerHTML;
 
-  bool get draggable();
+  String innerText;
 
-  void set draggable(bool value);
+  final bool isContentEditable;
 
-  bool get hidden();
+  String lang;
 
-  void set hidden(bool value);
+  String outerHTML;
 
-  String get id();
+  String outerText;
 
-  void set id(String value);
+  bool spellcheck;
 
-  String get innerHTML();
+  int tabIndex;
 
-  void set innerHTML(String value);
+  String title;
 
-  String get innerText();
-
-  void set innerText(String value);
-
-  bool get isContentEditable();
-
-  String get itemId();
-
-  void set itemId(String value);
-
-  DOMSettableTokenList get itemProp();
-
-  DOMSettableTokenList get itemRef();
-
-  bool get itemScope();
-
-  void set itemScope(bool value);
-
-  DOMSettableTokenList get itemType();
-
-  Object get itemValue();
-
-  void set itemValue(Object value);
-
-  String get lang();
-
-  void set lang(String value);
-
-  String get outerHTML();
-
-  void set outerHTML(String value);
-
-  String get outerText();
-
-  void set outerText(String value);
-
-  bool get spellcheck();
-
-  void set spellcheck(bool value);
-
-  int get tabIndex();
-
-  void set tabIndex(int value);
-
-  String get title();
-
-  void set title(String value);
-
-  String get webkitdropzone();
-
-  void set webkitdropzone(String value);
+  String webkitdropzone;
 
   Element insertAdjacentElement(String where, Element element);
 
@@ -15206,29 +14578,17 @@ interface HTMLElement extends Element {
 
 interface HTMLEmbedElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String height;
 
-  String get height();
+  String name;
 
-  void set height(String value);
+  String src;
 
-  String get name();
+  String type;
 
-  void set name(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get type();
-
-  void set type(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   SVGDocument getSVGDocument();
 }
@@ -15240,13 +14600,13 @@ interface HTMLEmbedElement extends HTMLElement {
 
 interface HTMLFieldSetElement extends HTMLElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  String get validationMessage();
+  final String validationMessage;
 
-  ValidityState get validity();
+  final ValidityState validity;
 
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 
@@ -15260,17 +14620,11 @@ interface HTMLFieldSetElement extends HTMLElement {
 
 interface HTMLFontElement extends HTMLElement {
 
-  String get color();
+  String color;
 
-  void set color(String value);
+  String face;
 
-  String get face();
-
-  void set face(String value);
-
-  String get size();
-
-  void set size(String value);
+  String size;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15280,45 +14634,27 @@ interface HTMLFontElement extends HTMLElement {
 
 interface HTMLFormElement extends HTMLElement {
 
-  String get acceptCharset();
+  String acceptCharset;
 
-  void set acceptCharset(String value);
+  String action;
 
-  String get action();
+  String autocomplete;
 
-  void set action(String value);
+  final HTMLCollection elements;
 
-  String get autocomplete();
+  String encoding;
 
-  void set autocomplete(String value);
+  String enctype;
 
-  HTMLCollection get elements();
+  final int length;
 
-  String get encoding();
+  String method;
 
-  void set encoding(String value);
+  String name;
 
-  String get enctype();
+  bool noValidate;
 
-  void set enctype(String value);
-
-  int get length();
-
-  String get method();
-
-  void set method(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  bool get noValidate();
-
-  void set noValidate(bool value);
-
-  String get target();
-
-  void set target(String value);
+  String target;
 
   bool checkValidity();
 
@@ -15334,49 +14670,31 @@ interface HTMLFormElement extends HTMLElement {
 
 interface HTMLFrameElement extends HTMLElement {
 
-  Document get contentDocument();
+  final Document contentDocument;
 
-  DOMWindow get contentWindow();
+  final DOMWindow contentWindow;
 
-  String get frameBorder();
+  String frameBorder;
 
-  void set frameBorder(String value);
+  final int height;
 
-  int get height();
+  String location;
 
-  String get location();
+  String longDesc;
 
-  void set location(String value);
+  String marginHeight;
 
-  String get longDesc();
+  String marginWidth;
 
-  void set longDesc(String value);
+  String name;
 
-  String get marginHeight();
+  bool noResize;
 
-  void set marginHeight(String value);
+  String scrolling;
 
-  String get marginWidth();
+  String src;
 
-  void set marginWidth(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  bool get noResize();
-
-  void set noResize(bool value);
-
-  String get scrolling();
-
-  void set scrolling(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  int get width();
+  final int width;
 
   SVGDocument getSVGDocument();
 }
@@ -15388,13 +14706,9 @@ interface HTMLFrameElement extends HTMLElement {
 
 interface HTMLFrameSetElement extends HTMLElement {
 
-  String get cols();
+  String cols;
 
-  void set cols(String value);
-
-  String get rows();
-
-  void set rows(String value);
+  String rows;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15404,21 +14718,13 @@ interface HTMLFrameSetElement extends HTMLElement {
 
 interface HTMLHRElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  bool noShade;
 
-  bool get noShade();
+  String size;
 
-  void set noShade(bool value);
-
-  String get size();
-
-  void set size(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15428,9 +14734,7 @@ interface HTMLHRElement extends HTMLElement {
 
 interface HTMLHeadElement extends HTMLElement {
 
-  String get profile();
-
-  void set profile(String value);
+  String profile;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15440,9 +14744,7 @@ interface HTMLHeadElement extends HTMLElement {
 
 interface HTMLHeadingElement extends HTMLElement {
 
-  String get align();
-
-  void set align(String value);
+  String align;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15452,13 +14754,9 @@ interface HTMLHeadingElement extends HTMLElement {
 
 interface HTMLHtmlElement extends HTMLElement {
 
-  String get manifest();
+  String manifest;
 
-  void set manifest(String value);
-
-  String get version();
-
-  void set version(String value);
+  String version;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15468,53 +14766,31 @@ interface HTMLHtmlElement extends HTMLElement {
 
 interface HTMLIFrameElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  final Document contentDocument;
 
-  Document get contentDocument();
+  final DOMWindow contentWindow;
 
-  DOMWindow get contentWindow();
+  String frameBorder;
 
-  String get frameBorder();
+  String height;
 
-  void set frameBorder(String value);
+  String longDesc;
 
-  String get height();
+  String marginHeight;
 
-  void set height(String value);
+  String marginWidth;
 
-  String get longDesc();
+  String name;
 
-  void set longDesc(String value);
+  String sandbox;
 
-  String get marginHeight();
+  String scrolling;
 
-  void set marginHeight(String value);
+  String src;
 
-  String get marginWidth();
-
-  void set marginWidth(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get sandbox();
-
-  void set sandbox(String value);
-
-  String get scrolling();
-
-  void set scrolling(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   SVGDocument getSVGDocument();
 }
@@ -15526,71 +14802,43 @@ interface HTMLIFrameElement extends HTMLElement {
 
 interface HTMLImageElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String alt;
 
-  String get alt();
+  String border;
 
-  void set alt(String value);
+  final bool complete;
 
-  String get border();
+  String crossOrigin;
 
-  void set border(String value);
+  int height;
 
-  bool get complete();
+  int hspace;
 
-  String get crossOrigin();
+  bool isMap;
 
-  void set crossOrigin(String value);
+  String longDesc;
 
-  int get height();
+  String lowsrc;
 
-  void set height(int value);
+  String name;
 
-  int get hspace();
+  final int naturalHeight;
 
-  void set hspace(int value);
+  final int naturalWidth;
 
-  bool get isMap();
+  String src;
 
-  void set isMap(bool value);
+  String useMap;
 
-  String get longDesc();
+  int vspace;
 
-  void set longDesc(String value);
+  int width;
 
-  String get lowsrc();
+  final int x;
 
-  void set lowsrc(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  int get naturalHeight();
-
-  int get naturalWidth();
-
-  String get src();
-
-  void set src(String value);
-
-  String get useMap();
-
-  void set useMap(String value);
-
-  int get vspace();
-
-  void set vspace(int value);
-
-  int get width();
-
-  void set width(int value);
-
-  int get x();
-
-  int get y();
+  final int y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15600,181 +14848,97 @@ interface HTMLImageElement extends HTMLElement {
 
 interface HTMLInputElement extends HTMLElement {
 
-  String get accept();
+  String accept;
 
-  void set accept(String value);
+  String align;
 
-  String get align();
+  String alt;
 
-  void set align(String value);
+  String autocomplete;
 
-  String get alt();
+  bool autofocus;
 
-  void set alt(String value);
+  bool checked;
 
-  String get autocomplete();
+  bool defaultChecked;
 
-  void set autocomplete(String value);
+  String defaultValue;
 
-  bool get autofocus();
+  String dirName;
 
-  void set autofocus(bool value);
+  bool disabled;
 
-  bool get checked();
+  final FileList files;
 
-  void set checked(bool value);
+  final HTMLFormElement form;
 
-  bool get defaultChecked();
+  String formAction;
 
-  void set defaultChecked(bool value);
+  String formEnctype;
 
-  String get defaultValue();
+  String formMethod;
 
-  void set defaultValue(String value);
+  bool formNoValidate;
 
-  String get dirName();
+  String formTarget;
 
-  void set dirName(String value);
+  bool incremental;
 
-  bool get disabled();
+  bool indeterminate;
 
-  void set disabled(bool value);
+  final NodeList labels;
 
-  FileList get files();
+  String max;
 
-  HTMLFormElement get form();
+  int maxLength;
 
-  String get formAction();
+  String min;
 
-  void set formAction(String value);
+  bool multiple;
 
-  String get formEnctype();
+  String name;
 
-  void set formEnctype(String value);
+  String pattern;
 
-  String get formMethod();
+  String placeholder;
 
-  void set formMethod(String value);
+  bool readOnly;
 
-  bool get formNoValidate();
+  bool required;
 
-  void set formNoValidate(bool value);
+  String selectionDirection;
 
-  String get formTarget();
+  int selectionEnd;
 
-  void set formTarget(String value);
+  int selectionStart;
 
-  bool get incremental();
+  int size;
 
-  void set incremental(bool value);
+  String src;
 
-  bool get indeterminate();
+  String step;
 
-  void set indeterminate(bool value);
+  String type;
 
-  NodeList get labels();
+  String useMap;
 
-  HTMLElement get list();
+  final String validationMessage;
 
-  String get max();
+  final ValidityState validity;
 
-  void set max(String value);
+  String value;
 
-  int get maxLength();
+  Date valueAsDate;
 
-  void set maxLength(int value);
+  num valueAsNumber;
 
-  String get min();
+  bool webkitGrammar;
 
-  void set min(String value);
+  bool webkitSpeech;
 
-  bool get multiple();
+  bool webkitdirectory;
 
-  void set multiple(bool value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get pattern();
-
-  void set pattern(String value);
-
-  String get placeholder();
-
-  void set placeholder(String value);
-
-  bool get readOnly();
-
-  void set readOnly(bool value);
-
-  bool get required();
-
-  void set required(bool value);
-
-  HTMLOptionElement get selectedOption();
-
-  String get selectionDirection();
-
-  void set selectionDirection(String value);
-
-  int get selectionEnd();
-
-  void set selectionEnd(int value);
-
-  int get selectionStart();
-
-  void set selectionStart(int value);
-
-  int get size();
-
-  void set size(int value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get step();
-
-  void set step(String value);
-
-  String get type();
-
-  void set type(String value);
-
-  String get useMap();
-
-  void set useMap(String value);
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  Date get valueAsDate();
-
-  void set valueAsDate(Date value);
-
-  num get valueAsNumber();
-
-  void set valueAsNumber(num value);
-
-  bool get webkitGrammar();
-
-  void set webkitGrammar(bool value);
-
-  bool get webkitSpeech();
-
-  void set webkitSpeech(bool value);
-
-  bool get webkitdirectory();
-
-  void set webkitdirectory(bool value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 
@@ -15798,11 +14962,9 @@ interface HTMLInputElement extends HTMLElement {
 
 interface HTMLIsIndexElement extends HTMLInputElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  String get prompt();
-
-  void set prompt(String value);
+  String prompt;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15812,37 +14974,27 @@ interface HTMLIsIndexElement extends HTMLInputElement {
 
 interface HTMLKeygenElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  String challenge;
 
-  String get challenge();
+  bool disabled;
 
-  void set challenge(String value);
+  final HTMLFormElement form;
 
-  bool get disabled();
+  String keytype;
 
-  void set disabled(bool value);
+  final NodeList labels;
 
-  HTMLFormElement get form();
+  String name;
 
-  String get keytype();
+  final String type;
 
-  void set keytype(String value);
+  final String validationMessage;
 
-  NodeList get labels();
+  final ValidityState validity;
 
-  String get name();
-
-  void set name(String value);
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 
@@ -15856,13 +15008,9 @@ interface HTMLKeygenElement extends HTMLElement {
 
 interface HTMLLIElement extends HTMLElement {
 
-  String get type();
+  String type;
 
-  void set type(String value);
-
-  int get value();
-
-  void set value(int value);
+  int value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15872,13 +15020,11 @@ interface HTMLLIElement extends HTMLElement {
 
 interface HTMLLabelElement extends HTMLElement {
 
-  HTMLElement get control();
+  final HTMLElement control;
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  String get htmlFor();
-
-  void set htmlFor(String value);
+  String htmlFor;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15888,11 +15034,9 @@ interface HTMLLabelElement extends HTMLElement {
 
 interface HTMLLegendElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
-
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15902,47 +15046,27 @@ interface HTMLLegendElement extends HTMLElement {
 
 interface HTMLLinkElement extends HTMLElement {
 
-  String get charset();
+  String charset;
 
-  void set charset(String value);
+  bool disabled;
 
-  bool get disabled();
+  String href;
 
-  void set disabled(bool value);
+  String hreflang;
 
-  String get href();
+  String media;
 
-  void set href(String value);
+  String rel;
 
-  String get hreflang();
+  String rev;
 
-  void set hreflang(String value);
+  final StyleSheet sheet;
 
-  String get media();
+  DOMSettableTokenList sizes;
 
-  void set media(String value);
+  String target;
 
-  String get rel();
-
-  void set rel(String value);
-
-  String get rev();
-
-  void set rev(String value);
-
-  StyleSheet get sheet();
-
-  DOMSettableTokenList get sizes();
-
-  void set sizes(DOMSettableTokenList value);
-
-  String get target();
-
-  void set target(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15952,11 +15076,9 @@ interface HTMLLinkElement extends HTMLElement {
 
 interface HTMLMapElement extends HTMLElement {
 
-  HTMLCollection get areas();
+  final HTMLCollection areas;
 
-  String get name();
-
-  void set name(String value);
+  String name;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15966,49 +15088,27 @@ interface HTMLMapElement extends HTMLElement {
 
 interface HTMLMarqueeElement extends HTMLElement {
 
-  String get behavior();
+  String behavior;
 
-  void set behavior(String value);
+  String bgColor;
 
-  String get bgColor();
+  String direction;
 
-  void set bgColor(String value);
+  String height;
 
-  String get direction();
+  int hspace;
 
-  void set direction(String value);
+  int loop;
 
-  String get height();
+  int scrollAmount;
 
-  void set height(String value);
+  int scrollDelay;
 
-  int get hspace();
+  bool trueSpeed;
 
-  void set hspace(int value);
+  int vspace;
 
-  int get loop();
-
-  void set loop(int value);
-
-  int get scrollAmount();
-
-  void set scrollAmount(int value);
-
-  int get scrollDelay();
-
-  void set scrollDelay(int value);
-
-  bool get trueSpeed();
-
-  void set trueSpeed(bool value);
-
-  int get vspace();
-
-  void set vspace(int value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   void start();
 
@@ -16052,103 +15152,73 @@ interface HTMLMediaElement extends HTMLElement {
 
   static final int SOURCE_OPEN = 1;
 
-  bool get autoplay();
+  bool autoplay;
 
-  void set autoplay(bool value);
+  final TimeRanges buffered;
 
-  TimeRanges get buffered();
+  MediaController controller;
 
-  MediaController get controller();
+  bool controls;
 
-  void set controller(MediaController value);
+  final String currentSrc;
 
-  bool get controls();
+  num currentTime;
 
-  void set controls(bool value);
+  bool defaultMuted;
 
-  String get currentSrc();
+  num defaultPlaybackRate;
 
-  num get currentTime();
+  final num duration;
 
-  void set currentTime(num value);
+  final bool ended;
 
-  bool get defaultMuted();
+  final MediaError error;
 
-  void set defaultMuted(bool value);
+  final num initialTime;
 
-  num get defaultPlaybackRate();
+  bool loop;
 
-  void set defaultPlaybackRate(num value);
+  String mediaGroup;
 
-  num get duration();
+  bool muted;
 
-  bool get ended();
+  final int networkState;
 
-  MediaError get error();
+  final bool paused;
 
-  num get initialTime();
+  num playbackRate;
 
-  bool get loop();
+  final TimeRanges played;
 
-  void set loop(bool value);
+  String preload;
 
-  String get mediaGroup();
+  final int readyState;
 
-  void set mediaGroup(String value);
+  final TimeRanges seekable;
 
-  bool get muted();
+  final bool seeking;
 
-  void set muted(bool value);
+  String src;
 
-  int get networkState();
+  final num startTime;
 
-  bool get paused();
+  final TextTrackList textTracks;
 
-  num get playbackRate();
+  num volume;
 
-  void set playbackRate(num value);
+  final int webkitAudioDecodedByteCount;
 
-  TimeRanges get played();
+  bool webkitClosedCaptionsVisible;
 
-  String get preload();
+  final bool webkitHasClosedCaptions;
 
-  void set preload(String value);
+  final String webkitMediaSourceURL;
 
-  int get readyState();
+  bool webkitPreservesPitch;
 
-  TimeRanges get seekable();
+  final int webkitSourceState;
 
-  bool get seeking();
-
-  String get src();
-
-  void set src(String value);
-
-  num get startTime();
-
-  TextTrackList get textTracks();
-
-  num get volume();
-
-  void set volume(num value);
-
-  int get webkitAudioDecodedByteCount();
-
-  bool get webkitClosedCaptionsVisible();
-
-  void set webkitClosedCaptionsVisible(bool value);
-
-  bool get webkitHasClosedCaptions();
-
-  String get webkitMediaSourceURL();
-
-  bool get webkitPreservesPitch();
-
-  void set webkitPreservesPitch(bool value);
-
-  int get webkitSourceState();
-
-  int get webkitVideoDecodedByteCount();
+  final int webkitVideoDecodedByteCount;
 
   TextTrack addTrack(String kind, [String label, String language]);
 
@@ -16172,9 +15242,7 @@ interface HTMLMediaElement extends HTMLElement {
 
 interface HTMLMenuElement extends HTMLElement {
 
-  bool get compact();
-
-  void set compact(bool value);
+  bool compact;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16184,21 +15252,13 @@ interface HTMLMenuElement extends HTMLElement {
 
 interface HTMLMetaElement extends HTMLElement {
 
-  String get content();
+  String content;
 
-  void set content(String value);
+  String httpEquiv;
 
-  String get httpEquiv();
+  String name;
 
-  void set httpEquiv(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get scheme();
-
-  void set scheme(String value);
+  String scheme;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16208,33 +15268,21 @@ interface HTMLMetaElement extends HTMLElement {
 
 interface HTMLMeterElement extends HTMLElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  num get high();
+  num high;
 
-  void set high(num value);
+  final NodeList labels;
 
-  NodeList get labels();
+  num low;
 
-  num get low();
+  num max;
 
-  void set low(num value);
+  num min;
 
-  num get max();
+  num optimum;
 
-  void set max(num value);
-
-  num get min();
-
-  void set min(num value);
-
-  num get optimum();
-
-  void set optimum(num value);
-
-  num get value();
-
-  void set value(num value);
+  num value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16244,13 +15292,9 @@ interface HTMLMeterElement extends HTMLElement {
 
 interface HTMLModElement extends HTMLElement {
 
-  String get cite();
+  String cite;
 
-  void set cite(String value);
-
-  String get dateTime();
-
-  void set dateTime(String value);
+  String dateTime;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16260,21 +15304,13 @@ interface HTMLModElement extends HTMLElement {
 
 interface HTMLOListElement extends HTMLElement {
 
-  bool get compact();
+  bool compact;
 
-  void set compact(bool value);
+  bool reversed;
 
-  bool get reversed();
+  int start;
 
-  void set reversed(bool value);
-
-  int get start();
-
-  void set start(int value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16284,79 +15320,47 @@ interface HTMLOListElement extends HTMLElement {
 
 interface HTMLObjectElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String archive;
 
-  String get archive();
+  String border;
 
-  void set archive(String value);
+  String code;
 
-  String get border();
+  String codeBase;
 
-  void set border(String value);
+  String codeType;
 
-  String get code();
+  final Document contentDocument;
 
-  void set code(String value);
+  String data;
 
-  String get codeBase();
+  bool declare;
 
-  void set codeBase(String value);
+  final HTMLFormElement form;
 
-  String get codeType();
+  String height;
 
-  void set codeType(String value);
+  int hspace;
 
-  Document get contentDocument();
+  String name;
 
-  String get data();
+  String standby;
 
-  void set data(String value);
+  String type;
 
-  bool get declare();
+  String useMap;
 
-  void set declare(bool value);
+  final String validationMessage;
 
-  HTMLFormElement get form();
+  final ValidityState validity;
 
-  String get height();
+  int vspace;
 
-  void set height(String value);
+  String width;
 
-  int get hspace();
-
-  void set hspace(int value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get standby();
-
-  void set standby(String value);
-
-  String get type();
-
-  void set type(String value);
-
-  String get useMap();
-
-  void set useMap(String value);
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  int get vspace();
-
-  void set vspace(int value);
-
-  String get width();
-
-  void set width(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 
@@ -16372,13 +15376,9 @@ interface HTMLObjectElement extends HTMLElement {
 
 interface HTMLOptGroupElement extends HTMLElement {
 
-  bool get disabled();
+  bool disabled;
 
-  void set disabled(bool value);
-
-  String get label();
-
-  void set label(String value);
+  String label;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16388,33 +15388,21 @@ interface HTMLOptGroupElement extends HTMLElement {
 
 interface HTMLOptionElement extends HTMLElement {
 
-  bool get defaultSelected();
+  bool defaultSelected;
 
-  void set defaultSelected(bool value);
+  bool disabled;
 
-  bool get disabled();
+  final HTMLFormElement form;
 
-  void set disabled(bool value);
+  final int index;
 
-  HTMLFormElement get form();
+  String label;
 
-  int get index();
+  bool selected;
 
-  String get label();
+  String text;
 
-  void set label(String value);
-
-  bool get selected();
-
-  void set selected(bool value);
-
-  String get text();
-
-  void set text(String value);
-
-  String get value();
-
-  void set value(String value);
+  String value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16424,13 +15412,9 @@ interface HTMLOptionElement extends HTMLElement {
 
 interface HTMLOptionsCollection extends HTMLCollection {
 
-  int get length();
+  int length;
 
-  void set length(int value);
-
-  int get selectedIndex();
-
-  void set selectedIndex(int value);
+  int selectedIndex;
 
   void remove(int index);
 }
@@ -16442,33 +15426,25 @@ interface HTMLOptionsCollection extends HTMLCollection {
 
 interface HTMLOutputElement extends HTMLElement {
 
-  String get defaultValue();
+  String defaultValue;
 
-  void set defaultValue(String value);
+  final HTMLFormElement form;
 
-  HTMLFormElement get form();
+  DOMSettableTokenList htmlFor;
 
-  DOMSettableTokenList get htmlFor();
+  final NodeList labels;
 
-  void set htmlFor(DOMSettableTokenList value);
+  String name;
 
-  NodeList get labels();
+  final String type;
 
-  String get name();
+  final String validationMessage;
 
-  void set name(String value);
+  final ValidityState validity;
 
-  String get type();
+  String value;
 
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 
@@ -16482,9 +15458,7 @@ interface HTMLOutputElement extends HTMLElement {
 
 interface HTMLParagraphElement extends HTMLElement {
 
-  String get align();
-
-  void set align(String value);
+  String align;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16494,21 +15468,13 @@ interface HTMLParagraphElement extends HTMLElement {
 
 interface HTMLParamElement extends HTMLElement {
 
-  String get name();
+  String name;
 
-  void set name(String value);
+  String type;
 
-  String get type();
+  String value;
 
-  void set type(String value);
-
-  String get value();
-
-  void set value(String value);
-
-  String get valueType();
-
-  void set valueType(String value);
+  String valueType;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16518,13 +15484,9 @@ interface HTMLParamElement extends HTMLElement {
 
 interface HTMLPreElement extends HTMLElement {
 
-  int get width();
+  int width;
 
-  void set width(int value);
-
-  bool get wrap();
-
-  void set wrap(bool value);
+  bool wrap;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16534,31 +15496,15 @@ interface HTMLPreElement extends HTMLElement {
 
 interface HTMLProgressElement extends HTMLElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  NodeList get labels();
+  final NodeList labels;
 
-  num get max();
+  num max;
 
-  void set max(num value);
+  final num position;
 
-  num get position();
-
-  num get value();
-
-  void set value(num value);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface HTMLPropertiesCollection extends HTMLCollection {
-
-  int get length();
-
-  Node item(int index);
+  num value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16568,9 +15514,7 @@ interface HTMLPropertiesCollection extends HTMLCollection {
 
 interface HTMLQuoteElement extends HTMLElement {
 
-  String get cite();
-
-  void set cite(String value);
+  String cite;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16580,37 +15524,21 @@ interface HTMLQuoteElement extends HTMLElement {
 
 interface HTMLScriptElement extends HTMLElement {
 
-  bool get async();
+  bool async;
 
-  void set async(bool value);
+  String charset;
 
-  String get charset();
+  bool defer;
 
-  void set charset(String value);
+  String event;
 
-  bool get defer();
+  String htmlFor;
 
-  void set defer(bool value);
+  String src;
 
-  String get event();
+  String text;
 
-  void set event(String value);
-
-  String get htmlFor();
-
-  void set htmlFor(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get text();
-
-  void set text(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16620,55 +15548,37 @@ interface HTMLScriptElement extends HTMLElement {
 
 interface HTMLSelectElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  bool disabled;
 
-  bool get disabled();
+  final HTMLFormElement form;
 
-  void set disabled(bool value);
+  final NodeList labels;
 
-  HTMLFormElement get form();
+  int length;
 
-  NodeList get labels();
+  bool multiple;
 
-  int get length();
+  String name;
 
-  void set length(int value);
+  final HTMLOptionsCollection options;
 
-  bool get multiple();
+  bool required;
 
-  void set multiple(bool value);
+  int selectedIndex;
 
-  String get name();
+  int size;
 
-  void set name(String value);
+  final String type;
 
-  HTMLOptionsCollection get options();
+  final String validationMessage;
 
-  bool get required();
+  final ValidityState validity;
 
-  void set required(bool value);
+  String value;
 
-  int get selectedIndex();
-
-  void set selectedIndex(int value);
-
-  int get size();
-
-  void set size(int value);
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   void add(HTMLElement element, HTMLElement before);
 
@@ -16690,17 +15600,11 @@ interface HTMLSelectElement extends HTMLElement {
 
 interface HTMLSourceElement extends HTMLElement {
 
-  String get media();
+  String media;
 
-  void set media(String value);
+  String src;
 
-  String get src();
-
-  void set src(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16718,23 +15622,13 @@ interface HTMLSpanElement extends HTMLElement {
 
 interface HTMLStyleElement extends HTMLElement {
 
-  bool get disabled();
+  bool disabled;
 
-  void set disabled(bool value);
+  String media;
 
-  String get media();
+  final StyleSheet sheet;
 
-  void set media(String value);
-
-  bool get scoped();
-
-  void set scoped(bool value);
-
-  StyleSheet get sheet();
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16744,9 +15638,7 @@ interface HTMLStyleElement extends HTMLElement {
 
 interface HTMLTableCaptionElement extends HTMLElement {
 
-  String get align();
-
-  void set align(String value);
+  String align;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16756,63 +15648,35 @@ interface HTMLTableCaptionElement extends HTMLElement {
 
 interface HTMLTableCellElement extends HTMLElement {
 
-  String get abbr();
+  String abbr;
 
-  void set abbr(String value);
+  String align;
 
-  String get align();
+  String axis;
 
-  void set align(String value);
+  String bgColor;
 
-  String get axis();
+  final int cellIndex;
 
-  void set axis(String value);
+  String ch;
 
-  String get bgColor();
+  String chOff;
 
-  void set bgColor(String value);
+  int colSpan;
 
-  int get cellIndex();
+  String headers;
 
-  String get ch();
+  String height;
 
-  void set ch(String value);
+  bool noWrap;
 
-  String get chOff();
+  int rowSpan;
 
-  void set chOff(String value);
+  String scope;
 
-  int get colSpan();
+  String vAlign;
 
-  void set colSpan(int value);
-
-  String get headers();
-
-  void set headers(String value);
-
-  String get height();
-
-  void set height(String value);
-
-  bool get noWrap();
-
-  void set noWrap(bool value);
-
-  int get rowSpan();
-
-  void set rowSpan(int value);
-
-  String get scope();
-
-  void set scope(String value);
-
-  String get vAlign();
-
-  void set vAlign(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16822,29 +15686,17 @@ interface HTMLTableCellElement extends HTMLElement {
 
 interface HTMLTableColElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String ch;
 
-  String get ch();
+  String chOff;
 
-  void set ch(String value);
+  int span;
 
-  String get chOff();
+  String vAlign;
 
-  void set chOff(String value);
-
-  int get span();
-
-  void set span(int value);
-
-  String get vAlign();
-
-  void set vAlign(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16854,57 +15706,33 @@ interface HTMLTableColElement extends HTMLElement {
 
 interface HTMLTableElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String bgColor;
 
-  String get bgColor();
+  String border;
 
-  void set bgColor(String value);
+  HTMLTableCaptionElement caption;
 
-  String get border();
+  String cellPadding;
 
-  void set border(String value);
+  String cellSpacing;
 
-  HTMLTableCaptionElement get caption();
+  String frame;
 
-  void set caption(HTMLTableCaptionElement value);
+  final HTMLCollection rows;
 
-  String get cellPadding();
+  String rules;
 
-  void set cellPadding(String value);
+  String summary;
 
-  String get cellSpacing();
+  final HTMLCollection tBodies;
 
-  void set cellSpacing(String value);
+  HTMLTableSectionElement tFoot;
 
-  String get frame();
+  HTMLTableSectionElement tHead;
 
-  void set frame(String value);
-
-  HTMLCollection get rows();
-
-  String get rules();
-
-  void set rules(String value);
-
-  String get summary();
-
-  void set summary(String value);
-
-  HTMLCollection get tBodies();
-
-  HTMLTableSectionElement get tFoot();
-
-  void set tFoot(HTMLTableSectionElement value);
-
-  HTMLTableSectionElement get tHead();
-
-  void set tHead(HTMLTableSectionElement value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   HTMLElement createCaption();
 
@@ -16930,31 +15758,21 @@ interface HTMLTableElement extends HTMLElement {
 
 interface HTMLTableRowElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String bgColor;
 
-  String get bgColor();
+  final HTMLCollection cells;
 
-  void set bgColor(String value);
+  String ch;
 
-  HTMLCollection get cells();
+  String chOff;
 
-  String get ch();
+  final int rowIndex;
 
-  void set ch(String value);
+  final int sectionRowIndex;
 
-  String get chOff();
-
-  void set chOff(String value);
-
-  int get rowIndex();
-
-  int get sectionRowIndex();
-
-  String get vAlign();
-
-  void set vAlign(String value);
+  String vAlign;
 
   void deleteCell(int index);
 
@@ -16968,23 +15786,15 @@ interface HTMLTableRowElement extends HTMLElement {
 
 interface HTMLTableSectionElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String ch;
 
-  String get ch();
+  String chOff;
 
-  void set ch(String value);
+  final HTMLCollection rows;
 
-  String get chOff();
-
-  void set chOff(String value);
-
-  HTMLCollection get rows();
-
-  String get vAlign();
-
-  void set vAlign(String value);
+  String vAlign;
 
   void deleteRow(int index);
 
@@ -16998,83 +15808,51 @@ interface HTMLTableSectionElement extends HTMLElement {
 
 interface HTMLTextAreaElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  int cols;
 
-  int get cols();
+  String defaultValue;
 
-  void set cols(int value);
+  String dirName;
 
-  String get defaultValue();
+  bool disabled;
 
-  void set defaultValue(String value);
+  final HTMLFormElement form;
 
-  String get dirName();
+  final NodeList labels;
 
-  void set dirName(String value);
+  int maxLength;
 
-  bool get disabled();
+  String name;
 
-  void set disabled(bool value);
+  String placeholder;
 
-  HTMLFormElement get form();
+  bool readOnly;
 
-  NodeList get labels();
+  bool required;
 
-  int get maxLength();
+  int rows;
 
-  void set maxLength(int value);
+  String selectionDirection;
 
-  String get name();
+  int selectionEnd;
 
-  void set name(String value);
+  int selectionStart;
 
-  String get placeholder();
+  final int textLength;
 
-  void set placeholder(String value);
+  final String type;
 
-  bool get readOnly();
+  final String validationMessage;
 
-  void set readOnly(bool value);
+  final ValidityState validity;
 
-  bool get required();
+  String value;
 
-  void set required(bool value);
+  final bool willValidate;
 
-  int get rows();
-
-  void set rows(int value);
-
-  String get selectionDirection();
-
-  void set selectionDirection(String value);
-
-  int get selectionEnd();
-
-  void set selectionEnd(int value);
-
-  int get selectionStart();
-
-  void set selectionStart(int value);
-
-  int get textLength();
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
-
-  String get wrap();
-
-  void set wrap(String value);
+  String wrap;
 
   bool checkValidity();
 
@@ -17092,9 +15870,7 @@ interface HTMLTextAreaElement extends HTMLElement {
 
 interface HTMLTitleElement extends HTMLElement {
 
-  String get text();
-
-  void set text(String value);
+  String text;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17112,29 +15888,19 @@ interface HTMLTrackElement extends HTMLElement {
 
   static final int NONE = 0;
 
-  bool get isDefault();
+  bool isDefault;
 
-  void set isDefault(bool value);
+  String kind;
 
-  String get kind();
+  String label;
 
-  void set kind(String value);
+  final int readyState;
 
-  String get label();
+  String src;
 
-  void set label(String value);
+  String srclang;
 
-  int get readyState();
-
-  String get src();
-
-  void set src(String value);
-
-  String get srclang();
-
-  void set srclang(String value);
-
-  TextTrack get track();
+  final TextTrack track;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17144,13 +15910,9 @@ interface HTMLTrackElement extends HTMLElement {
 
 interface HTMLUListElement extends HTMLElement {
 
-  bool get compact();
+  bool compact;
 
-  void set compact(bool value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17168,29 +15930,23 @@ interface HTMLUnknownElement extends HTMLElement {
 
 interface HTMLVideoElement extends HTMLMediaElement {
 
-  int get height();
+  int height;
 
-  void set height(int value);
+  String poster;
 
-  String get poster();
+  final int videoHeight;
 
-  void set poster(String value);
+  final int videoWidth;
 
-  int get videoHeight();
+  final int webkitDecodedFrameCount;
 
-  int get videoWidth();
+  final bool webkitDisplayingFullscreen;
 
-  int get webkitDecodedFrameCount();
+  final int webkitDroppedFrameCount;
 
-  bool get webkitDisplayingFullscreen();
+  final bool webkitSupportsFullscreen;
 
-  int get webkitDroppedFrameCount();
-
-  bool get webkitSupportsFullscreen();
-
-  int get width();
-
-  void set width(int value);
+  int width;
 
   void webkitEnterFullScreen();
 
@@ -17208,9 +15964,9 @@ interface HTMLVideoElement extends HTMLMediaElement {
 
 interface HashChangeEvent extends Event {
 
-  String get newURL();
+  final String newURL;
 
-  String get oldURL();
+  final String oldURL;
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
 }
@@ -17222,9 +15978,9 @@ interface HashChangeEvent extends Event {
 
 interface HighPass2FilterNode extends AudioNode {
 
-  AudioParam get cutoff();
+  final AudioParam cutoff;
 
-  AudioParam get resonance();
+  final AudioParam resonance;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17234,7 +15990,7 @@ interface HighPass2FilterNode extends AudioNode {
 
 interface History {
 
-  int get length();
+  final int length;
 
   void back();
 
@@ -17270,13 +16026,13 @@ interface IDBCursor {
 
   static final int PREV_NO_DUPLICATE = 3;
 
-  int get direction();
+  final int direction;
 
-  IDBKey get key();
+  final IDBKey key;
 
-  IDBKey get primaryKey();
+  final IDBKey primaryKey;
 
-  IDBAny get source();
+  final IDBAny source;
 
   void continueFunction([IDBKey key]);
 
@@ -17292,7 +16048,7 @@ interface IDBCursor {
 
 interface IDBCursorWithValue extends IDBCursor {
 
-  IDBAny get value();
+  final IDBAny value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17302,21 +16058,15 @@ interface IDBCursorWithValue extends IDBCursor {
 
 interface IDBDatabase {
 
-  String get name();
+  final String name;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener onerror;
 
-  EventListener get onerror();
+  EventListener onversionchange;
 
-  void set onerror(EventListener value);
-
-  EventListener get onversionchange();
-
-  void set onversionchange(EventListener value);
-
-  String get version();
+  final String version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -17342,13 +16092,9 @@ interface IDBDatabase {
 
 interface IDBDatabaseError {
 
-  int get code();
+  int code;
 
-  void set code(int value);
-
-  String get message();
-
-  void set message(String value);
+  String message;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17384,11 +16130,11 @@ interface IDBDatabaseException {
 
   static final int VER_ERR = 12;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -17416,15 +16162,15 @@ interface IDBFactory {
 
 interface IDBIndex {
 
-  String get keyPath();
+  final String keyPath;
 
-  bool get multiEntry();
+  final bool multiEntry;
 
-  String get name();
+  final String name;
 
-  IDBObjectStore get objectStore();
+  final IDBObjectStore objectStore;
 
-  bool get unique();
+  final bool unique;
 
   IDBRequest count([IDBKeyRange range]);
 
@@ -17452,13 +16198,13 @@ interface IDBKey {
 
 interface IDBKeyRange {
 
-  IDBKey get lower();
+  final IDBKey lower;
 
-  bool get lowerOpen();
+  final bool lowerOpen;
 
-  IDBKey get upper();
+  final IDBKey upper;
 
-  bool get upperOpen();
+  final bool upperOpen;
 
   IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
 
@@ -17476,11 +16222,11 @@ interface IDBKeyRange {
 
 interface IDBObjectStore {
 
-  String get keyPath();
+  final String keyPath;
 
-  String get name();
+  final String name;
 
-  IDBTransaction get transaction();
+  final IDBTransaction transaction;
 
   IDBRequest add(Dynamic value, [IDBKey key]);
 
@@ -17514,25 +16260,21 @@ interface IDBRequest {
 
   static final int LOADING = 1;
 
-  int get errorCode();
+  final int errorCode;
 
-  EventListener get onerror();
+  EventListener onerror;
 
-  void set onerror(EventListener value);
+  EventListener onsuccess;
 
-  EventListener get onsuccess();
+  final int readyState;
 
-  void set onsuccess(EventListener value);
+  final IDBAny result;
 
-  int get readyState();
+  final IDBAny source;
 
-  IDBAny get result();
+  final IDBTransaction transaction;
 
-  IDBAny get source();
-
-  IDBTransaction get transaction();
-
-  String get webkitErrorMessage();
+  final String webkitErrorMessage;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -17554,21 +16296,15 @@ interface IDBTransaction {
 
   static final int VERSION_CHANGE = 2;
 
-  IDBDatabase get db();
+  final IDBDatabase db;
 
-  int get mode();
+  final int mode;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener oncomplete;
 
-  EventListener get oncomplete();
-
-  void set oncomplete(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
+  EventListener onerror;
 
   void abort();
 
@@ -17588,7 +16324,7 @@ interface IDBTransaction {
 
 interface IDBVersionChangeEvent extends Event {
 
-  String get version();
+  final String version;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17598,9 +16334,7 @@ interface IDBVersionChangeEvent extends Event {
 
 interface IDBVersionChangeRequest extends IDBRequest {
 
-  EventListener get onblocked();
-
-  void set onblocked(EventListener value);
+  EventListener onblocked;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17610,103 +16344,11 @@ interface IDBVersionChangeRequest extends IDBRequest {
 
 interface ImageData {
 
-  CanvasPixelArray get data();
+  final CanvasPixelArray data;
 
-  int get height();
+  final int height;
 
-  int get width();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface InjectedScriptHost {
-
-  void clearConsoleMessages();
-
-  void copyText(String text);
-
-  int databaseId(Object database);
-
-  void didCreateWorker(int id, String url, bool isFakeWorker);
-
-  void didDestroyWorker(int id);
-
-  Object evaluate(String text);
-
-  Object functionDetails(Object object);
-
-  void inspect(Object objectId, Object hints);
-
-  Object inspectedNode(int num);
-
-  Object internalConstructorName(Object object);
-
-  bool isHTMLAllCollection(Object object);
-
-  int nextWorkerId();
-
-  int storageId(Object storage);
-
-  String type(Object object);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface InspectorFrontendHost {
-
-  void bringToFront();
-
-  bool canSaveAs();
-
-  void closeWindow();
-
-  void copyText(String text);
-
-  String hiddenPanels();
-
-  void inspectedURLChanged(String newURL);
-
-  String loadResourceSynchronously(String url);
-
-  void loaded();
-
-  String localizedStringsURL();
-
-  void moveWindowBy(num x, num y);
-
-  void openInNewTab(String url);
-
-  String platform();
-
-  String port();
-
-  void recordActionTaken(int actionCode);
-
-  void recordPanelShown(int panelCode);
-
-  void recordSettingChanged(int settingChanged);
-
-  void requestAttachWindow();
-
-  void requestDetachWindow();
-
-  void requestSetDockSide(String side);
-
-  void saveAs(String fileName, String content);
-
-  void sendMessageToBackend(String message);
-
-  void setAttachedWindowHeight(int height);
-
-  void setInjectedScriptForOrigin(String origin, String script);
-
-  void showContextMenu(MouseEvent event, Object items);
+  final int width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17724,7 +16366,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -17746,7 +16388,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -17768,7 +16410,7 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   static final int BYTES_PER_ELEMENT = 1;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -17782,11 +16424,9 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
 interface JavaScriptAudioNode extends AudioNode {
 
-  int get bufferSize();
+  final int bufferSize;
 
-  EventListener get onaudioprocess();
-
-  void set onaudioprocess(EventListener value);
+  EventListener onaudioprocess;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17806,21 +16446,21 @@ interface JavaScriptCallFrame {
 
   static final int WITH_SCOPE = 2;
 
-  JavaScriptCallFrame get caller();
+  final JavaScriptCallFrame caller;
 
-  int get column();
+  final int column;
 
-  String get functionName();
+  final String functionName;
 
-  int get line();
+  final int line;
 
-  List get scopeChain();
+  final List scopeChain;
 
-  int get sourceID();
+  final int sourceID;
 
-  Object get thisObject();
+  final Object thisObject;
 
-  String get type();
+  final String type;
 
   void evaluate(String script);
 
@@ -17834,19 +16474,19 @@ interface JavaScriptCallFrame {
 
 interface KeyboardEvent extends UIEvent {
 
-  bool get altGraphKey();
+  final bool altGraphKey;
 
-  bool get altKey();
+  final bool altKey;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  String get keyIdentifier();
+  final String keyIdentifier;
 
-  int get keyLocation();
+  final int keyLocation;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }
@@ -17858,39 +16498,23 @@ interface KeyboardEvent extends UIEvent {
 
 interface Location {
 
-  String get hash();
+  String hash;
 
-  void set hash(String value);
+  String host;
 
-  String get host();
+  String hostname;
 
-  void set host(String value);
+  String href;
 
-  String get hostname();
+  final String origin;
 
-  void set hostname(String value);
+  String pathname;
 
-  String get href();
+  String port;
 
-  void set href(String value);
+  String protocol;
 
-  String get origin();
-
-  String get pathname();
-
-  void set pathname(String value);
-
-  String get port();
-
-  void set port(String value);
-
-  String get protocol();
-
-  void set protocol(String value);
-
-  String get search();
-
-  void set search(String value);
+  String search;
 
   void assign(String url);
 
@@ -17908,9 +16532,9 @@ interface Location {
 
 interface LowPass2FilterNode extends AudioNode {
 
-  AudioParam get cutoff();
+  final AudioParam cutoff;
 
-  AudioParam get resonance();
+  final AudioParam resonance;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17920,35 +16544,25 @@ interface LowPass2FilterNode extends AudioNode {
 
 interface MediaController {
 
-  TimeRanges get buffered();
+  final TimeRanges buffered;
 
-  num get currentTime();
+  num currentTime;
 
-  void set currentTime(num value);
+  num defaultPlaybackRate;
 
-  num get defaultPlaybackRate();
+  final num duration;
 
-  void set defaultPlaybackRate(num value);
+  bool muted;
 
-  num get duration();
+  final bool paused;
 
-  bool get muted();
+  num playbackRate;
 
-  void set muted(bool value);
+  final TimeRanges played;
 
-  bool get paused();
+  final TimeRanges seekable;
 
-  num get playbackRate();
-
-  void set playbackRate(num value);
-
-  TimeRanges get played();
-
-  TimeRanges get seekable();
-
-  num get volume();
-
-  void set volume(num value);
+  num volume;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -17968,7 +16582,7 @@ interface MediaController {
 
 interface MediaElementAudioSourceNode extends AudioSourceNode {
 
-  HTMLMediaElement get mediaElement();
+  final HTMLMediaElement mediaElement;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17986,7 +16600,7 @@ interface MediaError {
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  int get code();
+  final int code;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17996,11 +16610,9 @@ interface MediaError {
 
 interface MediaList extends List<String> {
 
-  int get length();
+  final int length;
 
-  String get mediaText();
-
-  void set mediaText(String value);
+  String mediaText;
 
   void appendMedium(String newMedium);
 
@@ -18016,9 +16628,9 @@ interface MediaList extends List<String> {
 
 interface MediaQueryList {
 
-  bool get matches();
+  final bool matches;
 
-  String get media();
+  final String media;
 
   void addListener(MediaQueryListListener listener);
 
@@ -18042,11 +16654,11 @@ interface MediaQueryListListener {
 
 interface MemoryInfo {
 
-  int get jsHeapSizeLimit();
+  final int jsHeapSizeLimit;
 
-  int get totalJSHeapSize();
+  final int totalJSHeapSize;
 
-  int get usedJSHeapSize();
+  final int usedJSHeapSize;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18056,9 +16668,9 @@ interface MemoryInfo {
 
 interface MessageChannel {
 
-  MessagePort get port1();
+  final MessagePort port1;
 
-  MessagePort get port2();
+  final MessagePort port2;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18068,15 +16680,15 @@ interface MessageChannel {
 
 interface MessageEvent extends Event {
 
-  Object get data();
+  final Object data;
 
-  String get lastEventId();
+  final String lastEventId;
 
-  String get origin();
+  final String origin;
 
-  List get ports();
+  final List ports;
 
-  DOMWindow get source();
+  final DOMWindow source;
 
   void initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List messagePorts);
 
@@ -18112,7 +16724,7 @@ interface MessagePort extends EventTarget {
 
 interface Metadata {
 
-  Date get modificationTime();
+  final Date modificationTime;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18129,53 +16741,41 @@ typedef bool MetadataCallback(Metadata metadata);
 
 interface MouseEvent extends UIEvent {
 
-  bool get altKey();
+  final bool altKey;
 
-  int get button();
+  final int button;
 
-  int get clientX();
+  final int clientX;
 
-  int get clientY();
+  final int clientY;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  Clipboard get dataTransfer();
+  final Clipboard dataTransfer;
 
-  Node get fromElement();
+  final Node fromElement;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  int get offsetX();
+  final int offsetX;
 
-  int get offsetY();
+  final int offsetY;
 
-  EventTarget get relatedTarget();
+  final EventTarget relatedTarget;
 
-  int get screenX();
+  final int screenX;
 
-  int get screenY();
+  final int screenY;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
-  Node get toElement();
+  final Node toElement;
 
-  int get webkitMovementX();
+  final int x;
 
-  int get webkitMovementY();
-
-  int get x();
-
-  int get y();
+  final int y;
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface MutationCallback {
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18191,15 +16791,15 @@ interface MutationEvent extends Event {
 
   static final int REMOVAL = 3;
 
-  int get attrChange();
+  final int attrChange;
 
-  String get attrName();
+  final String attrName;
 
-  String get newValue();
+  final String newValue;
 
-  String get prevValue();
+  final String prevValue;
 
-  Node get relatedNode();
+  final Node relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
 }
@@ -18209,35 +16809,9 @@ interface MutationEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface MutationRecord {
-
-  NodeList get addedNodes();
-
-  String get attributeName();
-
-  String get attributeNamespace();
-
-  Node get nextSibling();
-
-  String get oldValue();
-
-  Node get previousSibling();
-
-  NodeList get removedNodes();
-
-  Node get target();
-
-  String get type();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface NamedNodeMap extends List<Node> {
 
-  int get length();
+  final int length;
 
   Node getNamedItem(String name);
 
@@ -18261,35 +16835,35 @@ interface NamedNodeMap extends List<Node> {
 
 interface Navigator {
 
-  String get appCodeName();
+  final String appCodeName;
 
-  String get appName();
+  final String appName;
 
-  String get appVersion();
+  final String appVersion;
 
-  bool get cookieEnabled();
+  final bool cookieEnabled;
 
-  Geolocation get geolocation();
+  final Geolocation geolocation;
 
-  String get language();
+  final String language;
 
-  DOMMimeTypeArray get mimeTypes();
+  final DOMMimeTypeArray mimeTypes;
 
-  bool get onLine();
+  final bool onLine;
 
-  String get platform();
+  final String platform;
 
-  DOMPluginArray get plugins();
+  final DOMPluginArray plugins;
 
-  String get product();
+  final String product;
 
-  String get productSub();
+  final String productSub;
 
-  String get userAgent();
+  final String userAgent;
 
-  String get vendor();
+  final String vendor;
 
-  String get vendorSub();
+  final String vendorSub;
 
   void getStorageUpdates();
 
@@ -18341,45 +16915,39 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
-  NamedNodeMap get attributes();
+  final NamedNodeMap attributes;
 
-  String get baseURI();
+  final String baseURI;
 
-  NodeList get childNodes();
+  final NodeList childNodes;
 
-  Node get firstChild();
+  final Node firstChild;
 
-  Node get lastChild();
+  final Node lastChild;
 
-  String get localName();
+  final String localName;
 
-  String get namespaceURI();
+  final String namespaceURI;
 
-  Node get nextSibling();
+  final Node nextSibling;
 
-  String get nodeName();
+  final String nodeName;
 
-  int get nodeType();
+  final int nodeType;
 
-  String get nodeValue();
+  String nodeValue;
 
-  void set nodeValue(String value);
+  final Document ownerDocument;
 
-  Document get ownerDocument();
+  final Element parentElement;
 
-  Element get parentElement();
+  final Node parentNode;
 
-  Node get parentNode();
+  String prefix;
 
-  String get prefix();
+  final Node previousSibling;
 
-  void set prefix(String value);
-
-  Node get previousSibling();
-
-  String get textContent();
-
-  void set textContent(String value);
+  String textContent;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -18469,17 +17037,17 @@ interface NodeFilter {
 
 interface NodeIterator {
 
-  bool get expandEntityReferences();
+  final bool expandEntityReferences;
 
-  NodeFilter get filter();
+  final NodeFilter filter;
 
-  bool get pointerBeforeReferenceNode();
+  final bool pointerBeforeReferenceNode;
 
-  Node get referenceNode();
+  final Node referenceNode;
 
-  Node get root();
+  final Node root;
 
-  int get whatToShow();
+  final int whatToShow;
 
   void detach();
 
@@ -18495,7 +17063,7 @@ interface NodeIterator {
 
 interface NodeList extends List<Node> {
 
-  int get length();
+  final int length;
 
   Node item(int index);
 }
@@ -18519,9 +17087,9 @@ interface NodeSelector {
 
 interface Notation extends Node {
 
-  String get publicId();
+  final String publicId;
 
-  String get systemId();
+  final String systemId;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18531,13 +17099,9 @@ interface Notation extends Node {
 
 interface Notification extends EventTarget {
 
-  String get dir();
+  String dir;
 
-  void set dir(String value);
-
-  String get replaceId();
-
-  void set replaceId(String value);
+  String replaceId;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -18609,7 +17173,7 @@ interface OESVertexArrayObject {
 
 interface OfflineAudioCompletionEvent extends Event {
 
-  AudioBuffer get renderedBuffer();
+  final AudioBuffer renderedBuffer;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18621,11 +17185,11 @@ interface OperationNotAllowedException {
 
   static final int NOT_ALLOWED_ERR = 1;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -18643,11 +17207,11 @@ interface OverflowEvent extends Event {
 
   static final int VERTICAL = 1;
 
-  bool get horizontalOverflow();
+  final bool horizontalOverflow;
 
-  int get orient();
+  final int orient;
 
-  bool get verticalOverflow();
+  final bool verticalOverflow;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18657,7 +17221,7 @@ interface OverflowEvent extends Event {
 
 interface PageTransitionEvent extends Event {
 
-  bool get persisted();
+  final bool persisted;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18667,11 +17231,11 @@ interface PageTransitionEvent extends Event {
 
 interface Performance {
 
-  MemoryInfo get memory();
+  final MemoryInfo memory;
 
-  PerformanceNavigation get navigation();
+  final PerformanceNavigation navigation;
 
-  PerformanceTiming get timing();
+  final PerformanceTiming timing;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18689,9 +17253,9 @@ interface PerformanceNavigation {
 
   static final int TYPE_RESERVED = 255;
 
-  int get redirectCount();
+  final int redirectCount;
 
-  int get type();
+  final int type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18701,61 +17265,47 @@ interface PerformanceNavigation {
 
 interface PerformanceTiming {
 
-  int get connectEnd();
+  final int connectEnd;
 
-  int get connectStart();
+  final int connectStart;
 
-  int get domComplete();
+  final int domComplete;
 
-  int get domContentLoadedEventEnd();
+  final int domContentLoadedEventEnd;
 
-  int get domContentLoadedEventStart();
+  final int domContentLoadedEventStart;
 
-  int get domInteractive();
+  final int domInteractive;
 
-  int get domLoading();
+  final int domLoading;
 
-  int get domainLookupEnd();
+  final int domainLookupEnd;
 
-  int get domainLookupStart();
+  final int domainLookupStart;
 
-  int get fetchStart();
+  final int fetchStart;
 
-  int get loadEventEnd();
+  final int loadEventEnd;
 
-  int get loadEventStart();
+  final int loadEventStart;
 
-  int get navigationStart();
+  final int navigationStart;
 
-  int get redirectEnd();
+  final int redirectEnd;
 
-  int get redirectStart();
+  final int redirectStart;
 
-  int get requestStart();
+  final int requestStart;
 
-  int get responseEnd();
+  final int responseEnd;
 
-  int get responseStart();
+  final int responseStart;
 
-  int get secureConnectionStart();
+  final int secureConnectionStart;
 
-  int get unloadEventEnd();
+  final int unloadEventEnd;
 
-  int get unloadEventStart();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface PointerLock {
-
-  bool get isLocked();
-
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
-
-  void unlock();
+  final int unloadEventStart;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18765,7 +17315,7 @@ interface PointerLock {
 
 interface PopStateEvent extends Event {
 
-  Object get state();
+  final Object state;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18788,9 +17338,9 @@ interface PositionError {
 
   static final int TIMEOUT = 3;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18807,13 +17357,11 @@ typedef bool PositionErrorCallback(PositionError error);
 
 interface ProcessingInstruction extends Node {
 
-  String get data();
+  String data;
 
-  void set data(String value);
+  final StyleSheet sheet;
 
-  StyleSheet get sheet();
-
-  String get target();
+  final String target;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18823,11 +17371,11 @@ interface ProcessingInstruction extends Node {
 
 interface ProgressEvent extends Event {
 
-  bool get lengthComputable();
+  final bool lengthComputable;
 
-  int get loaded();
+  final int loaded;
 
-  int get total();
+  final int total;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18837,11 +17385,11 @@ interface ProgressEvent extends Event {
 
 interface RGBColor {
 
-  CSSPrimitiveValue get blue();
+  final CSSPrimitiveValue blue;
 
-  CSSPrimitiveValue get green();
+  final CSSPrimitiveValue green;
 
-  CSSPrimitiveValue get red();
+  final CSSPrimitiveValue red;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18867,17 +17415,17 @@ interface Range {
 
   static final int START_TO_START = 0;
 
-  bool get collapsed();
+  final bool collapsed;
 
-  Node get commonAncestorContainer();
+  final Node commonAncestorContainer;
 
-  Node get endContainer();
+  final Node endContainer;
 
-  int get endOffset();
+  final int endOffset;
 
-  Node get startContainer();
+  final Node startContainer;
 
-  int get startOffset();
+  final int startOffset;
 
   DocumentFragment cloneContents();
 
@@ -18941,11 +17489,11 @@ interface RangeException {
 
   static final int INVALID_NODE_TYPE_ERR = 2;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -18957,23 +17505,15 @@ interface RangeException {
 
 interface RealtimeAnalyserNode extends AudioNode {
 
-  int get fftSize();
+  int fftSize;
 
-  void set fftSize(int value);
+  final int frequencyBinCount;
 
-  int get frequencyBinCount();
+  num maxDecibels;
 
-  num get maxDecibels();
+  num minDecibels;
 
-  void set maxDecibels(num value);
-
-  num get minDecibels();
-
-  void set minDecibels(num value);
-
-  num get smoothingTimeConstant();
-
-  void set smoothingTimeConstant(num value);
+  num smoothingTimeConstant;
 
   void getByteFrequencyData(Uint8Array array);
 
@@ -18989,13 +17529,13 @@ interface RealtimeAnalyserNode extends AudioNode {
 
 interface Rect {
 
-  CSSPrimitiveValue get bottom();
+  final CSSPrimitiveValue bottom;
 
-  CSSPrimitiveValue get left();
+  final CSSPrimitiveValue left;
 
-  CSSPrimitiveValue get right();
+  final CSSPrimitiveValue right;
 
-  CSSPrimitiveValue get top();
+  final CSSPrimitiveValue top;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19021,9 +17561,9 @@ interface SQLError {
 
   static final int VERSION_ERR = 2;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19049,9 +17589,9 @@ interface SQLException {
 
   static final int VERSION_ERR = 2;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19061,11 +17601,11 @@ interface SQLException {
 
 interface SQLResultSet {
 
-  int get insertId();
+  final int insertId;
 
-  SQLResultSetRowList get rows();
+  final SQLResultSetRowList rows;
 
-  int get rowsAffected();
+  final int rowsAffected;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19075,7 +17615,7 @@ interface SQLResultSet {
 
 interface SQLResultSetRowList {
 
-  int get length();
+  final int length;
 
   Object item(int index);
 }
@@ -19138,7 +17678,7 @@ typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
 
 interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedString get target();
+  final SVGAnimatedString target;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19156,13 +17696,9 @@ interface SVGAltGlyphDefElement extends SVGElement {
 
 interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference {
 
-  String get format();
+  String format;
 
-  void set format(String value);
-
-  String get glyphRef();
-
-  void set glyphRef(String value);
+  String glyphRef;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19190,19 +17726,13 @@ interface SVGAngle {
 
   static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
-  int get unitType();
+  final int unitType;
 
-  num get value();
+  num value;
 
-  void set value(num value);
+  String valueAsString;
 
-  String get valueAsString();
-
-  void set valueAsString(String value);
-
-  num get valueInSpecifiedUnits();
-
-  void set valueInSpecifiedUnits(num value);
+  num valueInSpecifiedUnits;
 
   void convertToSpecifiedUnits(int unitType);
 
@@ -19248,9 +17778,9 @@ interface SVGAnimateTransformElement extends SVGAnimationElement {
 
 interface SVGAnimatedAngle {
 
-  SVGAngle get animVal();
+  final SVGAngle animVal;
 
-  SVGAngle get baseVal();
+  final SVGAngle baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19260,11 +17790,9 @@ interface SVGAnimatedAngle {
 
 interface SVGAnimatedBoolean {
 
-  bool get animVal();
+  final bool animVal;
 
-  bool get baseVal();
-
-  void set baseVal(bool value);
+  bool baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19274,11 +17802,9 @@ interface SVGAnimatedBoolean {
 
 interface SVGAnimatedEnumeration {
 
-  int get animVal();
+  final int animVal;
 
-  int get baseVal();
-
-  void set baseVal(int value);
+  int baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19288,11 +17814,9 @@ interface SVGAnimatedEnumeration {
 
 interface SVGAnimatedInteger {
 
-  int get animVal();
+  final int animVal;
 
-  int get baseVal();
-
-  void set baseVal(int value);
+  int baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19302,9 +17826,9 @@ interface SVGAnimatedInteger {
 
 interface SVGAnimatedLength {
 
-  SVGLength get animVal();
+  final SVGLength animVal;
 
-  SVGLength get baseVal();
+  final SVGLength baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19314,9 +17838,9 @@ interface SVGAnimatedLength {
 
 interface SVGAnimatedLengthList {
 
-  SVGLengthList get animVal();
+  final SVGLengthList animVal;
 
-  SVGLengthList get baseVal();
+  final SVGLengthList baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19326,11 +17850,9 @@ interface SVGAnimatedLengthList {
 
 interface SVGAnimatedNumber {
 
-  num get animVal();
+  final num animVal;
 
-  num get baseVal();
-
-  void set baseVal(num value);
+  num baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19340,9 +17862,9 @@ interface SVGAnimatedNumber {
 
 interface SVGAnimatedNumberList {
 
-  SVGNumberList get animVal();
+  final SVGNumberList animVal;
 
-  SVGNumberList get baseVal();
+  final SVGNumberList baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19352,9 +17874,9 @@ interface SVGAnimatedNumberList {
 
 interface SVGAnimatedPreserveAspectRatio {
 
-  SVGPreserveAspectRatio get animVal();
+  final SVGPreserveAspectRatio animVal;
 
-  SVGPreserveAspectRatio get baseVal();
+  final SVGPreserveAspectRatio baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19364,9 +17886,9 @@ interface SVGAnimatedPreserveAspectRatio {
 
 interface SVGAnimatedRect {
 
-  SVGRect get animVal();
+  final SVGRect animVal;
 
-  SVGRect get baseVal();
+  final SVGRect baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19376,11 +17898,9 @@ interface SVGAnimatedRect {
 
 interface SVGAnimatedString {
 
-  String get animVal();
+  final String animVal;
 
-  String get baseVal();
-
-  void set baseVal(String value);
+  String baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19390,9 +17910,9 @@ interface SVGAnimatedString {
 
 interface SVGAnimatedTransformList {
 
-  SVGTransformList get animVal();
+  final SVGTransformList animVal;
 
-  SVGTransformList get baseVal();
+  final SVGTransformList baseVal;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19402,7 +17922,7 @@ interface SVGAnimatedTransformList {
 
 interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
 
-  SVGElement get targetElement();
+  final SVGElement targetElement;
 
   num getCurrentTime();
 
@@ -19418,11 +17938,11 @@ interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResources
 
 interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get cx();
+  final SVGAnimatedLength cx;
 
-  SVGAnimatedLength get cy();
+  final SVGAnimatedLength cy;
 
-  SVGAnimatedLength get r();
+  final SVGAnimatedLength r;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19432,7 +17952,7 @@ interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExtern
 
 interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedEnumeration get clipPathUnits();
+  final SVGAnimatedEnumeration clipPathUnits;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19450,9 +17970,9 @@ interface SVGColor extends CSSValue {
 
   static final int SVG_COLORTYPE_UNKNOWN = 0;
 
-  int get colorType();
+  final int colorType;
 
-  RGBColor get rgbColor();
+  final RGBColor rgbColor;
 
   void setColor(int colorType, String rgbColor, String iccColor);
 
@@ -19480,19 +18000,19 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber get amplitude();
+  final SVGAnimatedNumber amplitude;
 
-  SVGAnimatedNumber get exponent();
+  final SVGAnimatedNumber exponent;
 
-  SVGAnimatedNumber get intercept();
+  final SVGAnimatedNumber intercept;
 
-  SVGAnimatedNumber get offset();
+  final SVGAnimatedNumber offset;
 
-  SVGAnimatedNumber get slope();
+  final SVGAnimatedNumber slope;
 
-  SVGAnimatedNumberList get tableValues();
+  final SVGAnimatedNumberList tableValues;
 
-  SVGAnimatedEnumeration get type();
+  final SVGAnimatedEnumeration type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19502,9 +18022,9 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
 
 interface SVGCursorElement extends SVGElement, SVGURIReference, SVGTests, SVGExternalResourcesRequired {
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19530,7 +18050,7 @@ interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 
 interface SVGDocument extends Document {
 
-  SVGSVGElement get rootElement();
+  final SVGSVGElement rootElement;
 
   Event createEvent(String eventType);
 }
@@ -19542,17 +18062,13 @@ interface SVGDocument extends Document {
 
 interface SVGElement extends Element {
 
-  String get id();
+  String id;
 
-  void set id(String value);
+  final SVGSVGElement ownerSVGElement;
 
-  SVGSVGElement get ownerSVGElement();
+  final SVGElement viewportElement;
 
-  SVGElement get viewportElement();
-
-  String get xmlbase();
-
-  void set xmlbase(String value);
+  String xmlbase;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19562,21 +18078,21 @@ interface SVGElement extends Element {
 
 interface SVGElementInstance extends EventTarget {
 
-  SVGElementInstanceList get childNodes();
+  final SVGElementInstanceList childNodes;
 
-  SVGElement get correspondingElement();
+  final SVGElement correspondingElement;
 
-  SVGUseElement get correspondingUseElement();
+  final SVGUseElement correspondingUseElement;
 
-  SVGElementInstance get firstChild();
+  final SVGElementInstance firstChild;
 
-  SVGElementInstance get lastChild();
+  final SVGElementInstance lastChild;
 
-  SVGElementInstance get nextSibling();
+  final SVGElementInstance nextSibling;
 
-  SVGElementInstance get parentNode();
+  final SVGElementInstance parentNode;
 
-  SVGElementInstance get previousSibling();
+  final SVGElementInstance previousSibling;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -19592,7 +18108,7 @@ interface SVGElementInstance extends EventTarget {
 
 interface SVGElementInstanceList {
 
-  int get length();
+  final int length;
 
   SVGElementInstance item(int index);
 }
@@ -19604,13 +18120,13 @@ interface SVGElementInstanceList {
 
 interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get cx();
+  final SVGAnimatedLength cx;
 
-  SVGAnimatedLength get cy();
+  final SVGAnimatedLength cy;
 
-  SVGAnimatedLength get rx();
+  final SVGAnimatedLength rx;
 
-  SVGAnimatedLength get ry();
+  final SVGAnimatedLength ry;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19626,11 +18142,11 @@ interface SVGException {
 
   static final int SVG_WRONG_TYPE_ERR = 0;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -19642,7 +18158,7 @@ interface SVGException {
 
 interface SVGExternalResourcesRequired {
 
-  SVGAnimatedBoolean get externalResourcesRequired();
+  final SVGAnimatedBoolean externalResourcesRequired;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19664,11 +18180,11 @@ interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
   static final int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedString get in2();
+  final SVGAnimatedString in2;
 
-  SVGAnimatedEnumeration get mode();
+  final SVGAnimatedEnumeration mode;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19688,11 +18204,11 @@ interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandard
 
   static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedEnumeration get type();
+  final SVGAnimatedEnumeration type;
 
-  SVGAnimatedNumberList get values();
+  final SVGAnimatedNumberList values;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19702,7 +18218,7 @@ interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandard
 
 interface SVGFEComponentTransferElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19726,19 +18242,19 @@ interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAt
 
   static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedString get in2();
+  final SVGAnimatedString in2;
 
-  SVGAnimatedNumber get k1();
+  final SVGAnimatedNumber k1;
 
-  SVGAnimatedNumber get k2();
+  final SVGAnimatedNumber k2;
 
-  SVGAnimatedNumber get k3();
+  final SVGAnimatedNumber k3;
 
-  SVGAnimatedNumber get k4();
+  final SVGAnimatedNumber k4;
 
-  SVGAnimatedEnumeration get operator();
+  final SVGAnimatedEnumeration operator;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19756,29 +18272,29 @@ interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStand
 
   static final int SVG_EDGEMODE_WRAP = 2;
 
-  SVGAnimatedNumber get bias();
+  final SVGAnimatedNumber bias;
 
-  SVGAnimatedNumber get divisor();
+  final SVGAnimatedNumber divisor;
 
-  SVGAnimatedEnumeration get edgeMode();
+  final SVGAnimatedEnumeration edgeMode;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumberList get kernelMatrix();
+  final SVGAnimatedNumberList kernelMatrix;
 
-  SVGAnimatedNumber get kernelUnitLengthX();
+  final SVGAnimatedNumber kernelUnitLengthX;
 
-  SVGAnimatedNumber get kernelUnitLengthY();
+  final SVGAnimatedNumber kernelUnitLengthY;
 
-  SVGAnimatedInteger get orderX();
+  final SVGAnimatedInteger orderX;
 
-  SVGAnimatedInteger get orderY();
+  final SVGAnimatedInteger orderY;
 
-  SVGAnimatedBoolean get preserveAlpha();
+  final SVGAnimatedBoolean preserveAlpha;
 
-  SVGAnimatedInteger get targetX();
+  final SVGAnimatedInteger targetX;
 
-  SVGAnimatedInteger get targetY();
+  final SVGAnimatedInteger targetY;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19788,15 +18304,15 @@ interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStand
 
 interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedNumber get diffuseConstant();
+  final SVGAnimatedNumber diffuseConstant;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumber get kernelUnitLengthX();
+  final SVGAnimatedNumber kernelUnitLengthX;
 
-  SVGAnimatedNumber get kernelUnitLengthY();
+  final SVGAnimatedNumber kernelUnitLengthY;
 
-  SVGAnimatedNumber get surfaceScale();
+  final SVGAnimatedNumber surfaceScale;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19816,15 +18332,15 @@ interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStan
 
   static final int SVG_CHANNEL_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedString get in2();
+  final SVGAnimatedString in2;
 
-  SVGAnimatedNumber get scale();
+  final SVGAnimatedNumber scale;
 
-  SVGAnimatedEnumeration get xChannelSelector();
+  final SVGAnimatedEnumeration xChannelSelector;
 
-  SVGAnimatedEnumeration get yChannelSelector();
+  final SVGAnimatedEnumeration yChannelSelector;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19834,9 +18350,9 @@ interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStan
 
 interface SVGFEDistantLightElement extends SVGElement {
 
-  SVGAnimatedNumber get azimuth();
+  final SVGAnimatedNumber azimuth;
 
-  SVGAnimatedNumber get elevation();
+  final SVGAnimatedNumber elevation;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19846,15 +18362,15 @@ interface SVGFEDistantLightElement extends SVGElement {
 
 interface SVGFEDropShadowElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedNumber get dx();
+  final SVGAnimatedNumber dx;
 
-  SVGAnimatedNumber get dy();
+  final SVGAnimatedNumber dy;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumber get stdDeviationX();
+  final SVGAnimatedNumber stdDeviationX;
 
-  SVGAnimatedNumber get stdDeviationY();
+  final SVGAnimatedNumber stdDeviationY;
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
 }
@@ -19906,11 +18422,11 @@ interface SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
 
 interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumber get stdDeviationX();
+  final SVGAnimatedNumber stdDeviationX;
 
-  SVGAnimatedNumber get stdDeviationY();
+  final SVGAnimatedNumber stdDeviationY;
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
 }
@@ -19922,7 +18438,7 @@ interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandar
 
 interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19940,7 +18456,7 @@ interface SVGFEMergeElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
 interface SVGFEMergeNodeElement extends SVGElement {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19956,13 +18472,13 @@ interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedEnumeration get operator();
+  final SVGAnimatedEnumeration operator;
 
-  SVGAnimatedNumber get radiusX();
+  final SVGAnimatedNumber radiusX;
 
-  SVGAnimatedNumber get radiusY();
+  final SVGAnimatedNumber radiusY;
 
   void setRadius(num radiusX, num radiusY);
 }
@@ -19974,11 +18490,11 @@ interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardA
 
 interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedNumber get dx();
+  final SVGAnimatedNumber dx;
 
-  SVGAnimatedNumber get dy();
+  final SVGAnimatedNumber dy;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19988,11 +18504,11 @@ interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttri
 
 interface SVGFEPointLightElement extends SVGElement {
 
-  SVGAnimatedNumber get x();
+  final SVGAnimatedNumber x;
 
-  SVGAnimatedNumber get y();
+  final SVGAnimatedNumber y;
 
-  SVGAnimatedNumber get z();
+  final SVGAnimatedNumber z;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20002,13 +18518,13 @@ interface SVGFEPointLightElement extends SVGElement {
 
 interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumber get specularConstant();
+  final SVGAnimatedNumber specularConstant;
 
-  SVGAnimatedNumber get specularExponent();
+  final SVGAnimatedNumber specularExponent;
 
-  SVGAnimatedNumber get surfaceScale();
+  final SVGAnimatedNumber surfaceScale;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20018,21 +18534,21 @@ interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveSta
 
 interface SVGFESpotLightElement extends SVGElement {
 
-  SVGAnimatedNumber get limitingConeAngle();
+  final SVGAnimatedNumber limitingConeAngle;
 
-  SVGAnimatedNumber get pointsAtX();
+  final SVGAnimatedNumber pointsAtX;
 
-  SVGAnimatedNumber get pointsAtY();
+  final SVGAnimatedNumber pointsAtY;
 
-  SVGAnimatedNumber get pointsAtZ();
+  final SVGAnimatedNumber pointsAtZ;
 
-  SVGAnimatedNumber get specularExponent();
+  final SVGAnimatedNumber specularExponent;
 
-  SVGAnimatedNumber get x();
+  final SVGAnimatedNumber x;
 
-  SVGAnimatedNumber get y();
+  final SVGAnimatedNumber y;
 
-  SVGAnimatedNumber get z();
+  final SVGAnimatedNumber z;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20042,7 +18558,7 @@ interface SVGFESpotLightElement extends SVGElement {
 
 interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20064,17 +18580,17 @@ interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber get baseFrequencyX();
+  final SVGAnimatedNumber baseFrequencyX;
 
-  SVGAnimatedNumber get baseFrequencyY();
+  final SVGAnimatedNumber baseFrequencyY;
 
-  SVGAnimatedInteger get numOctaves();
+  final SVGAnimatedInteger numOctaves;
 
-  SVGAnimatedNumber get seed();
+  final SVGAnimatedNumber seed;
 
-  SVGAnimatedEnumeration get stitchTiles();
+  final SVGAnimatedEnumeration stitchTiles;
 
-  SVGAnimatedEnumeration get type();
+  final SVGAnimatedEnumeration type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20084,21 +18600,21 @@ interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardA
 
 interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
-  SVGAnimatedInteger get filterResX();
+  final SVGAnimatedInteger filterResX;
 
-  SVGAnimatedInteger get filterResY();
+  final SVGAnimatedInteger filterResY;
 
-  SVGAnimatedEnumeration get filterUnits();
+  final SVGAnimatedEnumeration filterUnits;
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedEnumeration get primitiveUnits();
+  final SVGAnimatedEnumeration primitiveUnits;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 
   void setFilterRes(int filterResX, int filterResY);
 }
@@ -20110,15 +18626,15 @@ interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SV
 
 interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedString get result();
+  final SVGAnimatedString result;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20128,9 +18644,9 @@ interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
 
 interface SVGFitToViewBox {
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
-  SVGAnimatedRect get viewBox();
+  final SVGAnimatedRect viewBox;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20188,13 +18704,13 @@ interface SVGFontFaceUriElement extends SVGElement {
 
 interface SVGForeignObjectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20220,29 +18736,17 @@ interface SVGGlyphElement extends SVGElement {
 
 interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
 
-  num get dx();
+  num dx;
 
-  void set dx(num value);
+  num dy;
 
-  num get dy();
+  String format;
 
-  void set dy(num value);
+  String glyphRef;
 
-  String get format();
+  num x;
 
-  void set format(String value);
-
-  String get glyphRef();
-
-  void set glyphRef(String value);
-
-  num get x();
-
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20260,11 +18764,11 @@ interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalRes
 
   static final int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  SVGAnimatedTransformList get gradientTransform();
+  final SVGAnimatedTransformList gradientTransform;
 
-  SVGAnimatedEnumeration get gradientUnits();
+  final SVGAnimatedEnumeration gradientUnits;
 
-  SVGAnimatedEnumeration get spreadMethod();
+  final SVGAnimatedEnumeration spreadMethod;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20282,15 +18786,15 @@ interface SVGHKernElement extends SVGElement {
 
 interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20300,13 +18804,9 @@ interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLang
 
 interface SVGLangSpace {
 
-  String get xmllang();
+  String xmllang;
 
-  void set xmllang(String value);
-
-  String get xmlspace();
-
-  void set xmlspace(String value);
+  String xmlspace;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20338,19 +18838,13 @@ interface SVGLength {
 
   static final int SVG_LENGTHTYPE_UNKNOWN = 0;
 
-  int get unitType();
+  final int unitType;
 
-  num get value();
+  num value;
 
-  void set value(num value);
+  String valueAsString;
 
-  String get valueAsString();
-
-  void set valueAsString(String value);
-
-  num get valueInSpecifiedUnits();
-
-  void set valueInSpecifiedUnits(num value);
+  num valueInSpecifiedUnits;
 
   void convertToSpecifiedUnits(int unitType);
 
@@ -20364,7 +18858,7 @@ interface SVGLength {
 
 interface SVGLengthList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGLength appendItem(SVGLength item);
 
@@ -20388,13 +18882,13 @@ interface SVGLengthList {
 
 interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get x1();
+  final SVGAnimatedLength x1;
 
-  SVGAnimatedLength get x2();
+  final SVGAnimatedLength x2;
 
-  SVGAnimatedLength get y1();
+  final SVGAnimatedLength y1;
 
-  SVGAnimatedLength get y2();
+  final SVGAnimatedLength y2;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20404,13 +18898,13 @@ interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 interface SVGLinearGradientElement extends SVGGradientElement {
 
-  SVGAnimatedLength get x1();
+  final SVGAnimatedLength x1;
 
-  SVGAnimatedLength get x2();
+  final SVGAnimatedLength x2;
 
-  SVGAnimatedLength get y1();
+  final SVGAnimatedLength y1;
 
-  SVGAnimatedLength get y2();
+  final SVGAnimatedLength y2;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20420,9 +18914,9 @@ interface SVGLinearGradientElement extends SVGGradientElement {
 
 interface SVGLocatable {
 
-  SVGElement get farthestViewportElement();
+  final SVGElement farthestViewportElement;
 
-  SVGElement get nearestViewportElement();
+  final SVGElement nearestViewportElement;
 
   SVGRect getBBox();
 
@@ -20460,19 +18954,19 @@ interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  SVGAnimatedLength get markerHeight();
+  final SVGAnimatedLength markerHeight;
 
-  SVGAnimatedEnumeration get markerUnits();
+  final SVGAnimatedEnumeration markerUnits;
 
-  SVGAnimatedLength get markerWidth();
+  final SVGAnimatedLength markerWidth;
 
-  SVGAnimatedAngle get orientAngle();
+  final SVGAnimatedAngle orientAngle;
 
-  SVGAnimatedEnumeration get orientType();
+  final SVGAnimatedEnumeration orientType;
 
-  SVGAnimatedLength get refX();
+  final SVGAnimatedLength refX;
 
-  SVGAnimatedLength get refY();
+  final SVGAnimatedLength refY;
 
   void setOrientToAngle(SVGAngle angle);
 
@@ -20486,17 +18980,17 @@ interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
 interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedEnumeration get maskContentUnits();
+  final SVGAnimatedEnumeration maskContentUnits;
 
-  SVGAnimatedEnumeration get maskUnits();
+  final SVGAnimatedEnumeration maskUnits;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20506,29 +19000,17 @@ interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 interface SVGMatrix {
 
-  num get a();
+  num a;
 
-  void set a(num value);
+  num b;
 
-  num get b();
+  num c;
 
-  void set b(num value);
+  num d;
 
-  num get c();
+  num e;
 
-  void set c(num value);
-
-  num get d();
-
-  void set d(num value);
-
-  num get e();
-
-  void set e(num value);
-
-  num get f();
-
-  void set f(num value);
+  num f;
 
   SVGMatrix flipX();
 
@@ -20576,9 +19058,7 @@ interface SVGMissingGlyphElement extends SVGElement {
 
 interface SVGNumber {
 
-  num get value();
-
-  void set value(num value);
+  num value;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20588,7 +19068,7 @@ interface SVGNumber {
 
 interface SVGNumberList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGNumber appendItem(SVGNumber item);
 
@@ -20632,9 +19112,9 @@ interface SVGPaint extends SVGColor {
 
   static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
-  int get paintType();
+  final int paintType;
 
-  String get uri();
+  final String uri;
 
   void setPaint(int paintType, String uri, String rgbColor, String iccColor);
 
@@ -20648,15 +19128,15 @@ interface SVGPaint extends SVGColor {
 
 interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGPathSegList get animatedNormalizedPathSegList();
+  final SVGPathSegList animatedNormalizedPathSegList;
 
-  SVGPathSegList get animatedPathSegList();
+  final SVGPathSegList animatedPathSegList;
 
-  SVGPathSegList get normalizedPathSegList();
+  final SVGPathSegList normalizedPathSegList;
 
-  SVGAnimatedNumber get pathLength();
+  final SVGAnimatedNumber pathLength;
 
-  SVGPathSegList get pathSegList();
+  final SVGPathSegList pathSegList;
 
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
 
@@ -20750,9 +19230,9 @@ interface SVGPathSeg {
 
   static final int PATHSEG_UNKNOWN = 0;
 
-  int get pathSegType();
+  final int pathSegType;
 
-  String get pathSegTypeAsLetter();
+  final String pathSegTypeAsLetter;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20762,33 +19242,19 @@ interface SVGPathSeg {
 
 interface SVGPathSegArcAbs extends SVGPathSeg {
 
-  num get angle();
+  num angle;
 
-  void set angle(num value);
+  bool largeArcFlag;
 
-  bool get largeArcFlag();
+  num r1;
 
-  void set largeArcFlag(bool value);
+  num r2;
 
-  num get r1();
+  bool sweepFlag;
 
-  void set r1(num value);
+  num x;
 
-  num get r2();
-
-  void set r2(num value);
-
-  bool get sweepFlag();
-
-  void set sweepFlag(bool value);
-
-  num get x();
-
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20798,33 +19264,19 @@ interface SVGPathSegArcAbs extends SVGPathSeg {
 
 interface SVGPathSegArcRel extends SVGPathSeg {
 
-  num get angle();
+  num angle;
 
-  void set angle(num value);
+  bool largeArcFlag;
 
-  bool get largeArcFlag();
+  num r1;
 
-  void set largeArcFlag(bool value);
+  num r2;
 
-  num get r1();
+  bool sweepFlag;
 
-  void set r1(num value);
+  num x;
 
-  num get r2();
-
-  void set r2(num value);
-
-  bool get sweepFlag();
-
-  void set sweepFlag(bool value);
-
-  num get x();
-
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20842,29 +19294,17 @@ interface SVGPathSegClosePath extends SVGPathSeg {
 
 interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x1;
 
-  num get x1();
+  num x2;
 
-  void set x1(num value);
+  num y;
 
-  num get x2();
+  num y1;
 
-  void set x2(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y1();
-
-  void set y1(num value);
-
-  num get y2();
-
-  void set y2(num value);
+  num y2;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20874,29 +19314,17 @@ interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
 
 interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x1;
 
-  num get x1();
+  num x2;
 
-  void set x1(num value);
+  num y;
 
-  num get x2();
+  num y1;
 
-  void set x2(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y1();
-
-  void set y1(num value);
-
-  num get y2();
-
-  void set y2(num value);
+  num y2;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20906,21 +19334,13 @@ interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
 
 interface SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x2;
 
-  num get x2();
+  num y;
 
-  void set x2(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y2();
-
-  void set y2(num value);
+  num y2;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20930,21 +19350,13 @@ interface SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
 
 interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x2;
 
-  num get x2();
+  num y;
 
-  void set x2(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y2();
-
-  void set y2(num value);
+  num y2;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20954,21 +19366,13 @@ interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
 
 interface SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x1;
 
-  num get x1();
+  num y;
 
-  void set x1(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y1();
-
-  void set y1(num value);
+  num y1;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20978,21 +19382,13 @@ interface SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
 
 interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x1;
 
-  num get x1();
+  num y;
 
-  void set x1(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y1();
-
-  void set y1(num value);
+  num y1;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21002,13 +19398,9 @@ interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
 
 interface SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21018,13 +19410,9 @@ interface SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
 
 interface SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21034,13 +19422,9 @@ interface SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
 
 interface SVGPathSegLinetoAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21050,9 +19434,7 @@ interface SVGPathSegLinetoAbs extends SVGPathSeg {
 
 interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
 
-  num get x();
-
-  void set x(num value);
+  num x;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21062,9 +19444,7 @@ interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
 
 interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
 
-  num get x();
-
-  void set x(num value);
+  num x;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21074,13 +19454,9 @@ interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
 
 interface SVGPathSegLinetoRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21090,9 +19466,7 @@ interface SVGPathSegLinetoRel extends SVGPathSeg {
 
 interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
 
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21102,9 +19476,7 @@ interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
 
 interface SVGPathSegLinetoVerticalRel extends SVGPathSeg {
 
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21114,7 +19486,7 @@ interface SVGPathSegLinetoVerticalRel extends SVGPathSeg {
 
 interface SVGPathSegList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGPathSeg appendItem(SVGPathSeg newItem);
 
@@ -21138,13 +19510,9 @@ interface SVGPathSegList {
 
 interface SVGPathSegMovetoAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21154,13 +19522,9 @@ interface SVGPathSegMovetoAbs extends SVGPathSeg {
 
 interface SVGPathSegMovetoRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21170,19 +19534,19 @@ interface SVGPathSegMovetoRel extends SVGPathSeg {
 
 interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedEnumeration get patternContentUnits();
+  final SVGAnimatedEnumeration patternContentUnits;
 
-  SVGAnimatedTransformList get patternTransform();
+  final SVGAnimatedTransformList patternTransform;
 
-  SVGAnimatedEnumeration get patternUnits();
+  final SVGAnimatedEnumeration patternUnits;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21192,13 +19556,9 @@ interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLa
 
 interface SVGPoint {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 
   SVGPoint matrixTransform(SVGMatrix matrix);
 }
@@ -21210,7 +19570,7 @@ interface SVGPoint {
 
 interface SVGPointList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGPoint appendItem(SVGPoint item);
 
@@ -21234,9 +19594,9 @@ interface SVGPointList {
 
 interface SVGPolygonElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGPointList get animatedPoints();
+  final SVGPointList animatedPoints;
 
-  SVGPointList get points();
+  final SVGPointList points;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21246,9 +19606,9 @@ interface SVGPolygonElement extends SVGElement, SVGTests, SVGLangSpace, SVGExter
 
 interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGPointList get animatedPoints();
+  final SVGPointList animatedPoints;
 
-  SVGPointList get points();
+  final SVGPointList points;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21286,13 +19646,9 @@ interface SVGPreserveAspectRatio {
 
   static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  int get align();
+  int align;
 
-  void set align(int value);
-
-  int get meetOrSlice();
-
-  void set meetOrSlice(int value);
+  int meetOrSlice;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21302,15 +19658,15 @@ interface SVGPreserveAspectRatio {
 
 interface SVGRadialGradientElement extends SVGGradientElement {
 
-  SVGAnimatedLength get cx();
+  final SVGAnimatedLength cx;
 
-  SVGAnimatedLength get cy();
+  final SVGAnimatedLength cy;
 
-  SVGAnimatedLength get fx();
+  final SVGAnimatedLength fx;
 
-  SVGAnimatedLength get fy();
+  final SVGAnimatedLength fy;
 
-  SVGAnimatedLength get r();
+  final SVGAnimatedLength r;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21320,21 +19676,13 @@ interface SVGRadialGradientElement extends SVGGradientElement {
 
 interface SVGRect {
 
-  num get height();
+  num height;
 
-  void set height(num value);
+  num width;
 
-  num get width();
+  num x;
 
-  void set width(num value);
-
-  num get x();
-
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21344,17 +19692,17 @@ interface SVGRect {
 
 interface SVGRectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedLength get rx();
+  final SVGAnimatedLength rx;
 
-  SVGAnimatedLength get ry();
+  final SVGAnimatedLength ry;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21384,41 +19732,33 @@ interface SVGRenderingIntent {
 
 interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
 
-  String get contentScriptType();
+  String contentScriptType;
 
-  void set contentScriptType(String value);
+  String contentStyleType;
 
-  String get contentStyleType();
+  num currentScale;
 
-  void set contentStyleType(String value);
+  final SVGPoint currentTranslate;
 
-  num get currentScale();
+  final SVGAnimatedLength height;
 
-  void set currentScale(num value);
+  final num pixelUnitToMillimeterX;
 
-  SVGPoint get currentTranslate();
+  final num pixelUnitToMillimeterY;
 
-  SVGAnimatedLength get height();
+  final num screenPixelToMillimeterX;
 
-  num get pixelUnitToMillimeterX();
+  final num screenPixelToMillimeterY;
 
-  num get pixelUnitToMillimeterY();
+  bool useCurrentView;
 
-  num get screenPixelToMillimeterX();
+  final SVGRect viewport;
 
-  num get screenPixelToMillimeterY();
+  final SVGAnimatedLength width;
 
-  bool get useCurrentView();
+  final SVGAnimatedLength x;
 
-  void set useCurrentView(bool value);
-
-  SVGRect get viewport();
-
-  SVGAnimatedLength get width();
-
-  SVGAnimatedLength get x();
-
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 
   bool animationsPaused();
 
@@ -21474,9 +19814,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
 interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
 
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21494,7 +19832,7 @@ interface SVGSetElement extends SVGAnimationElement {
 
 interface SVGStopElement extends SVGElement, SVGStylable {
 
-  SVGAnimatedNumber get offset();
+  final SVGAnimatedNumber offset;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21504,7 +19842,7 @@ interface SVGStopElement extends SVGElement, SVGStylable {
 
 interface SVGStringList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   String appendItem(String item);
 
@@ -21528,9 +19866,9 @@ interface SVGStringList {
 
 interface SVGStylable {
 
-  SVGAnimatedString get className();
+  final SVGAnimatedString className;
 
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 
   CSSValue getPresentationAttribute(String name);
 }
@@ -21542,17 +19880,11 @@ interface SVGStylable {
 
 interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
-  String get media();
+  String media;
 
-  void set media(String value);
+  String title;
 
-  String get title();
-
-  void set title(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21594,11 +19926,11 @@ interface SVGTSpanElement extends SVGTextPositioningElement {
 
 interface SVGTests {
 
-  SVGStringList get requiredExtensions();
+  final SVGStringList requiredExtensions;
 
-  SVGStringList get requiredFeatures();
+  final SVGStringList requiredFeatures;
 
-  SVGStringList get systemLanguage();
+  final SVGStringList systemLanguage;
 
   bool hasExtension(String extension);
 }
@@ -21616,9 +19948,9 @@ interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGE
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration get lengthAdjust();
+  final SVGAnimatedEnumeration lengthAdjust;
 
-  SVGAnimatedLength get textLength();
+  final SVGAnimatedLength textLength;
 
   int getCharNumAtPosition(SVGPoint point);
 
@@ -21666,11 +19998,11 @@ interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration get method();
+  final SVGAnimatedEnumeration method;
 
-  SVGAnimatedEnumeration get spacing();
+  final SVGAnimatedEnumeration spacing;
 
-  SVGAnimatedLength get startOffset();
+  final SVGAnimatedLength startOffset;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21680,15 +20012,15 @@ interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
 interface SVGTextPositioningElement extends SVGTextContentElement {
 
-  SVGAnimatedLengthList get dx();
+  final SVGAnimatedLengthList dx;
 
-  SVGAnimatedLengthList get dy();
+  final SVGAnimatedLengthList dy;
 
-  SVGAnimatedNumberList get rotate();
+  final SVGAnimatedNumberList rotate;
 
-  SVGAnimatedLengthList get x();
+  final SVGAnimatedLengthList x;
 
-  SVGAnimatedLengthList get y();
+  final SVGAnimatedLengthList y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21720,11 +20052,11 @@ interface SVGTransform {
 
   static final int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num get angle();
+  final num angle;
 
-  SVGMatrix get matrix();
+  final SVGMatrix matrix;
 
-  int get type();
+  final int type;
 
   void setMatrix(SVGMatrix matrix);
 
@@ -21746,7 +20078,7 @@ interface SVGTransform {
 
 interface SVGTransformList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGTransform appendItem(SVGTransform item);
 
@@ -21774,7 +20106,7 @@ interface SVGTransformList {
 
 interface SVGTransformable extends SVGLocatable {
 
-  SVGAnimatedTransformList get transform();
+  final SVGAnimatedTransformList transform;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21784,7 +20116,7 @@ interface SVGTransformable extends SVGLocatable {
 
 interface SVGURIReference {
 
-  SVGAnimatedString get href();
+  final SVGAnimatedString href;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21808,17 +20140,17 @@ interface SVGUnitTypes {
 
 interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGElementInstance get animatedInstanceRoot();
+  final SVGElementInstance animatedInstanceRoot;
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGElementInstance get instanceRoot();
+  final SVGElementInstance instanceRoot;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21836,7 +20168,7 @@ interface SVGVKernElement extends SVGElement {
 
 interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
 
-  SVGStringList get viewTarget();
+  final SVGStringList viewTarget;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21846,17 +20178,17 @@ interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFi
 
 interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
-  String get preserveAspectRatioString();
+  final String preserveAspectRatioString;
 
-  SVGTransformList get transform();
+  final SVGTransformList transform;
 
-  String get transformString();
+  final String transformString;
 
-  String get viewBoxString();
+  final String viewBoxString;
 
-  SVGElement get viewTarget();
+  final SVGElement viewTarget;
 
-  String get viewTargetString();
+  final String viewTargetString;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21872,9 +20204,7 @@ interface SVGZoomAndPan {
 
   static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-  int get zoomAndPan();
-
-  void set zoomAndPan(int value);
+  int zoomAndPan;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21884,15 +20214,15 @@ interface SVGZoomAndPan {
 
 interface SVGZoomEvent extends UIEvent {
 
-  num get newScale();
+  final num newScale;
 
-  SVGPoint get newTranslate();
+  final SVGPoint newTranslate;
 
-  num get previousScale();
+  final num previousScale;
 
-  SVGPoint get previousTranslate();
+  final SVGPoint previousTranslate;
 
-  SVGRect get zoomRectScreen();
+  final SVGRect zoomRectScreen;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21902,21 +20232,21 @@ interface SVGZoomEvent extends UIEvent {
 
 interface Screen {
 
-  int get availHeight();
+  final int availHeight;
 
-  int get availLeft();
+  final int availLeft;
 
-  int get availTop();
+  final int availTop;
 
-  int get availWidth();
+  final int availWidth;
 
-  int get colorDepth();
+  final int colorDepth;
 
-  int get height();
+  final int height;
 
-  int get pixelDepth();
+  final int pixelDepth;
 
-  int get width();
+  final int width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21926,11 +20256,11 @@ interface Screen {
 
 interface ScriptProfile {
 
-  ScriptProfileNode get head();
+  final ScriptProfileNode head;
 
-  String get title();
+  final String title;
 
-  int get uid();
+  final int uid;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21940,33 +20270,23 @@ interface ScriptProfile {
 
 interface ScriptProfileNode {
 
-  int get callUID();
+  final int callUID;
 
-  List get children();
+  final List children;
 
-  String get functionName();
+  final String functionName;
 
-  int get lineNumber();
+  final int lineNumber;
 
-  int get numberOfCalls();
+  final int numberOfCalls;
 
-  num get selfTime();
+  final num selfTime;
 
-  num get totalTime();
+  final num totalTime;
 
-  String get url();
+  final String url;
 
-  bool get visible();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface ShadowRoot extends Node {
-
-  Element get host();
+  final bool visible;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21976,7 +20296,7 @@ interface ShadowRoot extends Node {
 
 interface SharedWorker extends AbstractWorker {
 
-  MessagePort get port();
+  final MessagePort port;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21986,11 +20306,9 @@ interface SharedWorker extends AbstractWorker {
 
 interface SharedWorkerGlobalScope extends WorkerContext {
 
-  String get name();
+  final String name;
 
-  EventListener get onconnect();
-
-  void set onconnect(EventListener value);
+  EventListener onconnect;
 }
 
 interface SharedWorkerContext extends SharedWorkerGlobalScope {
@@ -22003,7 +20321,7 @@ interface SharedWorkerContext extends SharedWorkerGlobalScope {
 
 interface SpeechInputEvent extends Event {
 
-  SpeechInputResultList get results();
+  final SpeechInputResultList results;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22013,9 +20331,9 @@ interface SpeechInputEvent extends Event {
 
 interface SpeechInputResult {
 
-  num get confidence();
+  final num confidence;
 
-  String get utterance();
+  final String utterance;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22025,7 +20343,7 @@ interface SpeechInputResult {
 
 interface SpeechInputResultList {
 
-  int get length();
+  final int length;
 
   SpeechInputResult item(int index);
 }
@@ -22037,7 +20355,7 @@ interface SpeechInputResultList {
 
 interface Storage {
 
-  int get length();
+  final int length;
 
   void clear();
 
@@ -22057,15 +20375,15 @@ interface Storage {
 
 interface StorageEvent extends Event {
 
-  String get key();
+  final String key;
 
-  String get newValue();
+  final String newValue;
 
-  String get oldValue();
+  final String oldValue;
 
-  Storage get storageArea();
+  final Storage storageArea;
 
-  String get url();
+  final String url;
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
@@ -22121,7 +20439,7 @@ typedef bool StringCallback(String data);
 
 interface StyleMedia {
 
-  String get type();
+  final String type;
 
   bool matchMedium(String mediaquery);
 }
@@ -22133,21 +20451,19 @@ interface StyleMedia {
 
 interface StyleSheet {
 
-  bool get disabled();
+  bool disabled;
 
-  void set disabled(bool value);
+  final String href;
 
-  String get href();
+  final MediaList media;
 
-  MediaList get media();
+  final Node ownerNode;
 
-  Node get ownerNode();
+  final StyleSheet parentStyleSheet;
 
-  StyleSheet get parentStyleSheet();
+  final String title;
 
-  String get title();
-
-  String get type();
+  final String type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22157,7 +20473,7 @@ interface StyleSheet {
 
 interface StyleSheetList extends List<StyleSheet> {
 
-  int get length();
+  final int length;
 
   StyleSheet item(int index);
 }
@@ -22169,7 +20485,7 @@ interface StyleSheetList extends List<StyleSheet> {
 
 interface Text extends CharacterData {
 
-  String get wholeText();
+  final String wholeText;
 
   Text replaceWholeText(String content);
 
@@ -22183,7 +20499,7 @@ interface Text extends CharacterData {
 
 interface TextEvent extends UIEvent {
 
-  String get data();
+  final String data;
 
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg);
 }
@@ -22195,7 +20511,7 @@ interface TextEvent extends UIEvent {
 
 interface TextMetrics {
 
-  num get width();
+  final num width;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22211,23 +20527,19 @@ interface TextTrack {
 
   static final int SHOWING = 2;
 
-  TextTrackCueList get activeCues();
+  final TextTrackCueList activeCues;
 
-  TextTrackCueList get cues();
+  final TextTrackCueList cues;
 
-  String get kind();
+  final String kind;
 
-  String get label();
+  final String label;
 
-  String get language();
+  final String language;
 
-  int get mode();
+  int mode;
 
-  void set mode(int value);
-
-  EventListener get oncuechange();
-
-  void set oncuechange(EventListener value);
+  EventListener oncuechange;
 
   void addCue(TextTrackCue cue);
 
@@ -22247,59 +20559,33 @@ interface TextTrack {
 
 interface TextTrackCue {
 
-  String get alignment();
+  String alignment;
 
-  void set alignment(String value);
+  String direction;
 
-  String get direction();
+  num endTime;
 
-  void set direction(String value);
+  String id;
 
-  num get endTime();
+  int linePosition;
 
-  void set endTime(num value);
+  EventListener onenter;
 
-  String get id();
+  EventListener onexit;
 
-  void set id(String value);
+  bool pauseOnExit;
 
-  int get linePosition();
+  int size;
 
-  void set linePosition(int value);
+  bool snapToLines;
 
-  EventListener get onenter();
+  num startTime;
 
-  void set onenter(EventListener value);
+  String text;
 
-  EventListener get onexit();
+  int textPosition;
 
-  void set onexit(EventListener value);
-
-  bool get pauseOnExit();
-
-  void set pauseOnExit(bool value);
-
-  int get size();
-
-  void set size(int value);
-
-  bool get snapToLines();
-
-  void set snapToLines(bool value);
-
-  num get startTime();
-
-  void set startTime(num value);
-
-  String get text();
-
-  void set text(String value);
-
-  int get textPosition();
-
-  void set textPosition(int value);
-
-  TextTrack get track();
+  final TextTrack track;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -22317,7 +20603,7 @@ interface TextTrackCue {
 
 interface TextTrackCueList {
 
-  int get length();
+  final int length;
 
   TextTrackCue getCueById(String id);
 
@@ -22331,11 +20617,9 @@ interface TextTrackCueList {
 
 interface TextTrackList {
 
-  int get length();
+  final int length;
 
-  EventListener get onaddtrack();
-
-  void set onaddtrack(EventListener value);
+  EventListener onaddtrack;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -22353,7 +20637,7 @@ interface TextTrackList {
 
 interface TimeRanges {
 
-  int get length();
+  final int length;
 
   num end(int index);
 
@@ -22367,29 +20651,29 @@ interface TimeRanges {
 
 interface Touch {
 
-  int get clientX();
+  final int clientX;
 
-  int get clientY();
+  final int clientY;
 
-  int get identifier();
+  final int identifier;
 
-  int get pageX();
+  final int pageX;
 
-  int get pageY();
+  final int pageY;
 
-  int get screenX();
+  final int screenX;
 
-  int get screenY();
+  final int screenY;
 
-  EventTarget get target();
+  final EventTarget target;
 
-  num get webkitForce();
+  final num webkitForce;
 
-  int get webkitRadiusX();
+  final int webkitRadiusX;
 
-  int get webkitRadiusY();
+  final int webkitRadiusY;
 
-  num get webkitRotationAngle();
+  final num webkitRotationAngle;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22399,19 +20683,19 @@ interface Touch {
 
 interface TouchEvent extends UIEvent {
 
-  bool get altKey();
+  final bool altKey;
 
-  TouchList get changedTouches();
+  final TouchList changedTouches;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
-  TouchList get targetTouches();
+  final TouchList targetTouches;
 
-  TouchList get touches();
+  final TouchList touches;
 
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
@@ -22423,7 +20707,7 @@ interface TouchEvent extends UIEvent {
 
 interface TouchList extends List<Touch> {
 
-  int get length();
+  final int length;
 
   Touch item(int index);
 }
@@ -22435,7 +20719,7 @@ interface TouchList extends List<Touch> {
 
 interface TrackEvent extends Event {
 
-  Object get track();
+  final Object track;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22445,17 +20729,15 @@ interface TrackEvent extends Event {
 
 interface TreeWalker {
 
-  Node get currentNode();
+  Node currentNode;
 
-  void set currentNode(Node value);
+  final bool expandEntityReferences;
 
-  bool get expandEntityReferences();
+  final NodeFilter filter;
 
-  NodeFilter get filter();
+  final Node root;
 
-  Node get root();
-
-  int get whatToShow();
+  final int whatToShow;
 
   Node firstChild();
 
@@ -22479,23 +20761,23 @@ interface TreeWalker {
 
 interface UIEvent extends Event {
 
-  int get charCode();
+  final int charCode;
 
-  int get detail();
+  final int detail;
 
-  int get keyCode();
+  final int keyCode;
 
-  int get layerX();
+  final int layerX;
 
-  int get layerY();
+  final int layerY;
 
-  int get pageX();
+  final int pageX;
 
-  int get pageY();
+  final int pageY;
 
-  DOMWindow get view();
+  final DOMWindow view;
 
-  int get which();
+  final int which;
 
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail);
 }
@@ -22515,7 +20797,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -22537,7 +20819,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -22559,7 +20841,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   static final int BYTES_PER_ELEMENT = 1;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
@@ -22579,7 +20861,7 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   Uint8ClampedArray.fromBuffer(ArrayBuffer buffer);
 
-  int get length();
+  final int length;
 
   Uint8ClampedArray subarray(int start, [int end]);
 }
@@ -22591,23 +20873,23 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
 interface ValidityState {
 
-  bool get customError();
+  final bool customError;
 
-  bool get patternMismatch();
+  final bool patternMismatch;
 
-  bool get rangeOverflow();
+  final bool rangeOverflow;
 
-  bool get rangeUnderflow();
+  final bool rangeUnderflow;
 
-  bool get stepMismatch();
+  final bool stepMismatch;
 
-  bool get tooLong();
+  final bool tooLong;
 
-  bool get typeMismatch();
+  final bool typeMismatch;
 
-  bool get valid();
+  final bool valid;
 
-  bool get valueMissing();
+  final bool valueMissing;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22624,9 +20906,7 @@ typedef void VoidCallback();
 
 interface WaveShaperNode extends AudioNode {
 
-  Float32Array get curve();
-
-  void set curve(Float32Array value);
+  Float32Array curve;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22636,11 +20916,11 @@ interface WaveShaperNode extends AudioNode {
 
 interface WebGLActiveInfo {
 
-  String get name();
+  final String name;
 
-  int get size();
+  final int size;
 
-  int get type();
+  final int type;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22682,29 +20962,17 @@ interface WebGLCompressedTextures {
 
 interface WebGLContextAttributes {
 
-  bool get alpha();
+  bool alpha;
 
-  void set alpha(bool value);
+  bool antialias;
 
-  bool get antialias();
+  bool depth;
 
-  void set antialias(bool value);
+  bool premultipliedAlpha;
 
-  bool get depth();
+  bool preserveDrawingBuffer;
 
-  void set depth(bool value);
-
-  bool get premultipliedAlpha();
-
-  void set premultipliedAlpha(bool value);
-
-  bool get preserveDrawingBuffer();
-
-  void set preserveDrawingBuffer(bool value);
-
-  bool get stencil();
-
-  void set stencil(bool value);
+  bool stencil;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22714,7 +20982,7 @@ interface WebGLContextAttributes {
 
 interface WebGLContextEvent extends Event {
 
-  String get statusMessage();
+  final String statusMessage;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23376,9 +21644,9 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   static final int ZERO = 0;
 
-  int get drawingBufferHeight();
+  final int drawingBufferHeight;
 
-  int get drawingBufferWidth();
+  final int drawingBufferWidth;
 
   void activeTexture(int texture);
 
@@ -23702,25 +21970,23 @@ interface WebKitAnimation {
 
   static final int FILL_NONE = 0;
 
-  num get delay();
+  final num delay;
 
-  int get direction();
+  final int direction;
 
-  num get duration();
+  final num duration;
 
-  num get elapsedTime();
+  num elapsedTime;
 
-  void set elapsedTime(num value);
+  final bool ended;
 
-  bool get ended();
+  final int fillMode;
 
-  int get fillMode();
+  final int iterationCount;
 
-  int get iterationCount();
+  final String name;
 
-  String get name();
-
-  bool get paused();
+  final bool paused;
 
   void pause();
 
@@ -23734,9 +22000,9 @@ interface WebKitAnimation {
 
 interface WebKitAnimationEvent extends Event {
 
-  String get animationName();
+  final String animationName;
 
-  num get elapsedTime();
+  final num elapsedTime;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23746,7 +22012,7 @@ interface WebKitAnimationEvent extends Event {
 
 interface WebKitAnimationList {
 
-  int get length();
+  final int length;
 
   WebKitAnimation item(int index);
 }
@@ -23768,45 +22034,11 @@ interface WebKitBlobBuilder {
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitCSSFilterValue extends CSSValueList {
-
-  static final int CSS_FILTER_BLUR = 10;
-
-  static final int CSS_FILTER_BRIGHTNESS = 8;
-
-  static final int CSS_FILTER_CONTRAST = 9;
-
-  static final int CSS_FILTER_DROP_SHADOW = 11;
-
-  static final int CSS_FILTER_GRAYSCALE = 2;
-
-  static final int CSS_FILTER_HUE_ROTATE = 5;
-
-  static final int CSS_FILTER_INVERT = 6;
-
-  static final int CSS_FILTER_OPACITY = 7;
-
-  static final int CSS_FILTER_REFERENCE = 1;
-
-  static final int CSS_FILTER_SATURATE = 4;
-
-  static final int CSS_FILTER_SEPIA = 3;
-
-  int get operationType();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface WebKitCSSKeyframeRule extends CSSRule {
 
-  String get keyText();
+  String keyText;
 
-  void set keyText(String value);
-
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23816,11 +22048,9 @@ interface WebKitCSSKeyframeRule extends CSSRule {
 
 interface WebKitCSSKeyframesRule extends CSSRule {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 
-  String get name();
-
-  void set name(String value);
+  String name;
 
   void deleteRule(String key);
 
@@ -23838,93 +22068,49 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
   WebKitCSSMatrix([String spec]);
 
-  num get a();
+  num a;
 
-  void set a(num value);
+  num b;
 
-  num get b();
+  num c;
 
-  void set b(num value);
+  num d;
 
-  num get c();
+  num e;
 
-  void set c(num value);
+  num f;
 
-  num get d();
+  num m11;
 
-  void set d(num value);
+  num m12;
 
-  num get e();
+  num m13;
 
-  void set e(num value);
+  num m14;
 
-  num get f();
+  num m21;
 
-  void set f(num value);
+  num m22;
 
-  num get m11();
+  num m23;
 
-  void set m11(num value);
+  num m24;
 
-  num get m12();
+  num m31;
 
-  void set m12(num value);
+  num m32;
 
-  num get m13();
+  num m33;
 
-  void set m13(num value);
+  num m34;
 
-  num get m14();
+  num m41;
 
-  void set m14(num value);
+  num m42;
 
-  num get m21();
+  num m43;
 
-  void set m21(num value);
-
-  num get m22();
-
-  void set m22(num value);
-
-  num get m23();
-
-  void set m23(num value);
-
-  num get m24();
-
-  void set m24(num value);
-
-  num get m31();
-
-  void set m31(num value);
-
-  num get m32();
-
-  void set m32(num value);
-
-  num get m33();
-
-  void set m33(num value);
-
-  num get m34();
-
-  void set m34(num value);
-
-  num get m41();
-
-  void set m41(num value);
-
-  num get m42();
-
-  void set m42(num value);
-
-  num get m43();
-
-  void set m43(num value);
-
-  num get m44();
-
-  void set m44(num value);
+  num m44;
 
   WebKitCSSMatrix inverse();
 
@@ -23954,7 +22140,7 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
 interface WebKitCSSRegionRule extends CSSRule {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24006,17 +22192,7 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
   static final int CSS_TRANSLATEZ = 12;
 
-  int get operationType();
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface WebKitMutationObserver {
-
-  void disconnect();
+  final int operationType;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24036,13 +22212,9 @@ interface WebKitPoint default _WebKitPointFactoryProvider {
 
   WebKitPoint(num x, num y);
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24052,9 +22224,9 @@ interface WebKitPoint default _WebKitPointFactoryProvider {
 
 interface WebKitTransitionEvent extends Event {
 
-  num get elapsedTime();
+  final num elapsedTime;
 
-  String get propertyName();
+  final String propertyName;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24074,21 +22246,19 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   static final int OPEN = 1;
 
-  String get URL();
+  final String URL;
 
-  String get binaryType();
+  String binaryType;
 
-  void set binaryType(String value);
+  final int bufferedAmount;
 
-  int get bufferedAmount();
+  final String extensions;
 
-  String get extensions();
+  final String protocol;
 
-  String get protocol();
+  final int readyState;
 
-  int get readyState();
-
-  String get url();
+  final String url;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -24108,37 +22278,37 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
 interface WheelEvent extends UIEvent {
 
-  bool get altKey();
+  final bool altKey;
 
-  int get clientX();
+  final int clientX;
 
-  int get clientY();
+  final int clientY;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  int get offsetX();
+  final int offsetX;
 
-  int get offsetY();
+  final int offsetY;
 
-  int get screenX();
+  final int screenX;
 
-  int get screenY();
+  final int screenY;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
-  bool get webkitDirectionInvertedFromDevice();
+  final bool webkitDirectionInvertedFromDevice;
 
-  int get wheelDelta();
+  final int wheelDelta;
 
-  int get wheelDeltaX();
+  final int wheelDeltaX;
 
-  int get wheelDeltaY();
+  final int wheelDeltaY;
 
-  int get x();
+  final int x;
 
-  int get y();
+  final int y;
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
@@ -24164,27 +22334,19 @@ interface Worker extends AbstractWorker {
 
 interface WorkerGlobalScope {
 
-  WorkerLocation get location();
+  WorkerLocation location;
 
-  void set location(WorkerLocation value);
+  WorkerNavigator navigator;
 
-  WorkerNavigator get navigator();
+  EventListener onerror;
 
-  void set navigator(WorkerNavigator value);
+  WorkerContext self;
 
-  EventListener get onerror();
+  final IDBFactory webkitIndexedDB;
 
-  void set onerror(EventListener value);
+  final NotificationCenter webkitNotifications;
 
-  WorkerContext get self();
-
-  void set self(WorkerContext value);
-
-  IDBFactory get webkitIndexedDB();
-
-  NotificationCenter get webkitNotifications();
-
-  DOMURL get webkitURL();
+  final DOMURL webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -24231,21 +22393,21 @@ interface WorkerContext extends WorkerGlobalScope {
 
 interface WorkerLocation {
 
-  String get hash();
+  final String hash;
 
-  String get host();
+  final String host;
 
-  String get hostname();
+  final String hostname;
 
-  String get href();
+  final String href;
 
-  String get pathname();
+  final String pathname;
 
-  String get port();
+  final String port;
 
-  String get protocol();
+  final String protocol;
 
-  String get search();
+  final String search;
 
   String toString();
 }
@@ -24257,15 +22419,15 @@ interface WorkerLocation {
 
 interface WorkerNavigator {
 
-  String get appName();
+  final String appName;
 
-  String get appVersion();
+  final String appVersion;
 
-  bool get onLine();
+  final bool onLine;
 
-  String get platform();
+  final String platform;
 
-  String get userAgent();
+  final String userAgent;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24288,33 +22450,27 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   static final int UNSENT = 0;
 
-  bool get asBlob();
+  bool asBlob;
 
-  void set asBlob(bool value);
+  final int readyState;
 
-  int get readyState();
+  final Object response;
 
-  Object get response();
+  final Blob responseBlob;
 
-  Blob get responseBlob();
+  final String responseText;
 
-  String get responseText();
+  String responseType;
 
-  String get responseType();
+  final Document responseXML;
 
-  void set responseType(String value);
+  final int status;
 
-  Document get responseXML();
+  final String statusText;
 
-  int get status();
+  final XMLHttpRequestUpload upload;
 
-  String get statusText();
-
-  XMLHttpRequestUpload get upload();
-
-  bool get withCredentials();
-
-  void set withCredentials(bool value);
+  bool withCredentials;
 
   void abort();
 
@@ -24348,11 +22504,11 @@ interface XMLHttpRequestException {
 
   static final int NETWORK_ERR = 101;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -24364,9 +22520,9 @@ interface XMLHttpRequestException {
 
 interface XMLHttpRequestProgressEvent extends ProgressEvent {
 
-  int get position();
+  final int position;
 
-  int get totalSize();
+  final int totalSize;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24418,11 +22574,11 @@ interface XPathException {
 
   static final int TYPE_ERR = 52;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }
@@ -24474,19 +22630,19 @@ interface XPathResult {
 
   static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  bool get booleanValue();
+  final bool booleanValue;
 
-  bool get invalidIteratorState();
+  final bool invalidIteratorState;
 
-  num get numberValue();
+  final num numberValue;
 
-  int get resultType();
+  final int resultType;
 
-  Node get singleNodeValue();
+  final Node singleNodeValue;
 
-  int get snapshotLength();
+  final int snapshotLength;
 
-  String get stringValue();
+  final String stringValue;
 
   Node iterateNext();
 
@@ -25182,6 +23338,7 @@ class _AudioContextFactoryProvider {
 }
 
 class _DOMParserFactoryProvider {
+
   factory DOMParser() native '''return new DOMParser();''';
 }
 

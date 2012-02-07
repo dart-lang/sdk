@@ -14,9 +14,7 @@ interface CSSValue {
 
   static final int CSS_VALUE_LIST = 2;
 
-  String get cssText();
+  String cssText;
 
-  void set cssText(String value);
-
-  int get cssValueType();
+  final int cssValueType;
 }

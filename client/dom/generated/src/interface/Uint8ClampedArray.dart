@@ -12,7 +12,7 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   Uint8ClampedArray.fromBuffer(ArrayBuffer buffer);
 
-  int get length();
+  final int length;
 
   Uint8ClampedArray subarray(int start, [int end]);
 }

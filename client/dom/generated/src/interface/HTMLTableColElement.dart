@@ -6,27 +6,15 @@
 
 interface HTMLTableColElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String ch;
 
-  String get ch();
+  String chOff;
 
-  void set ch(String value);
+  int span;
 
-  String get chOff();
+  String vAlign;
 
-  void set chOff(String value);
-
-  int get span();
-
-  void set span(int value);
-
-  String get vAlign();
-
-  void set vAlign(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }

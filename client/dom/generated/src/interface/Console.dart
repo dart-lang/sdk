@@ -6,9 +6,9 @@
 
 interface Console {
 
-  MemoryInfo get memory();
+  final MemoryInfo memory;
 
-  List get profiles();
+  final List profiles;
 
   void assertCondition(bool condition);
 

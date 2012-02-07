@@ -6,7 +6,7 @@
 
 interface ApplicationCache extends EventTarget {
 
-  int get status();
+  final int status;
 
   void abort();
 

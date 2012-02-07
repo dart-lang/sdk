@@ -6,5 +6,5 @@
 
 interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 }

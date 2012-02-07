@@ -6,13 +6,13 @@
 
 interface DOMPlugin {
 
-  String get description();
+  final String description;
 
-  String get filename();
+  final String filename;
 
-  int get length();
+  final int length;
 
-  String get name();
+  final String name;
 
   DOMMimeType item(int index);
 

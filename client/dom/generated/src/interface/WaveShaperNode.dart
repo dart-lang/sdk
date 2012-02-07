@@ -6,7 +6,5 @@
 
 interface WaveShaperNode extends AudioNode {
 
-  Float32Array get curve();
-
-  void set curve(Float32Array value);
+  Float32Array curve;
 }

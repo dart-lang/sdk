@@ -6,177 +6,97 @@
 
 interface HTMLInputElement extends HTMLElement {
 
-  String get accept();
+  String accept;
 
-  void set accept(String value);
+  String align;
 
-  String get align();
+  String alt;
 
-  void set align(String value);
+  String autocomplete;
 
-  String get alt();
+  bool autofocus;
 
-  void set alt(String value);
+  bool checked;
 
-  String get autocomplete();
+  bool defaultChecked;
 
-  void set autocomplete(String value);
+  String defaultValue;
 
-  bool get autofocus();
+  String dirName;
 
-  void set autofocus(bool value);
+  bool disabled;
 
-  bool get checked();
+  final FileList files;
 
-  void set checked(bool value);
+  final HTMLFormElement form;
 
-  bool get defaultChecked();
+  String formAction;
 
-  void set defaultChecked(bool value);
+  String formEnctype;
 
-  String get defaultValue();
+  String formMethod;
 
-  void set defaultValue(String value);
+  bool formNoValidate;
 
-  String get dirName();
+  String formTarget;
 
-  void set dirName(String value);
+  bool incremental;
 
-  bool get disabled();
+  bool indeterminate;
 
-  void set disabled(bool value);
+  final NodeList labels;
 
-  FileList get files();
+  String max;
 
-  HTMLFormElement get form();
+  int maxLength;
 
-  String get formAction();
+  String min;
 
-  void set formAction(String value);
+  bool multiple;
 
-  String get formEnctype();
+  String name;
 
-  void set formEnctype(String value);
+  String pattern;
 
-  String get formMethod();
+  String placeholder;
 
-  void set formMethod(String value);
+  bool readOnly;
 
-  bool get formNoValidate();
+  bool required;
 
-  void set formNoValidate(bool value);
+  String selectionDirection;
 
-  String get formTarget();
+  int selectionEnd;
 
-  void set formTarget(String value);
+  int selectionStart;
 
-  bool get incremental();
+  int size;
 
-  void set incremental(bool value);
+  String src;
 
-  bool get indeterminate();
+  String step;
 
-  void set indeterminate(bool value);
+  String type;
 
-  NodeList get labels();
+  String useMap;
 
-  String get max();
+  final String validationMessage;
 
-  void set max(String value);
+  final ValidityState validity;
 
-  int get maxLength();
+  String value;
 
-  void set maxLength(int value);
+  Date valueAsDate;
 
-  String get min();
+  num valueAsNumber;
 
-  void set min(String value);
+  bool webkitGrammar;
 
-  bool get multiple();
+  bool webkitSpeech;
 
-  void set multiple(bool value);
+  bool webkitdirectory;
 
-  String get name();
-
-  void set name(String value);
-
-  String get pattern();
-
-  void set pattern(String value);
-
-  String get placeholder();
-
-  void set placeholder(String value);
-
-  bool get readOnly();
-
-  void set readOnly(bool value);
-
-  bool get required();
-
-  void set required(bool value);
-
-  String get selectionDirection();
-
-  void set selectionDirection(String value);
-
-  int get selectionEnd();
-
-  void set selectionEnd(int value);
-
-  int get selectionStart();
-
-  void set selectionStart(int value);
-
-  int get size();
-
-  void set size(int value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get step();
-
-  void set step(String value);
-
-  String get type();
-
-  void set type(String value);
-
-  String get useMap();
-
-  void set useMap(String value);
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  Date get valueAsDate();
-
-  void set valueAsDate(Date value);
-
-  num get valueAsNumber();
-
-  void set valueAsNumber(num value);
-
-  bool get webkitGrammar();
-
-  void set webkitGrammar(bool value);
-
-  bool get webkitSpeech();
-
-  void set webkitSpeech(bool value);
-
-  bool get webkitdirectory();
-
-  void set webkitdirectory(bool value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 

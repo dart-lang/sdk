@@ -6,41 +6,33 @@
 
 interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGLocatable, SVGFitToViewBox, SVGZoomAndPan {
 
-  String get contentScriptType();
+  String contentScriptType;
 
-  void set contentScriptType(String value);
+  String contentStyleType;
 
-  String get contentStyleType();
+  num currentScale;
 
-  void set contentStyleType(String value);
+  final SVGPoint currentTranslate;
 
-  num get currentScale();
+  final SVGAnimatedLength height;
 
-  void set currentScale(num value);
+  final num pixelUnitToMillimeterX;
 
-  SVGPoint get currentTranslate();
+  final num pixelUnitToMillimeterY;
 
-  SVGAnimatedLength get height();
+  final num screenPixelToMillimeterX;
 
-  num get pixelUnitToMillimeterX();
+  final num screenPixelToMillimeterY;
 
-  num get pixelUnitToMillimeterY();
+  bool useCurrentView;
 
-  num get screenPixelToMillimeterX();
+  final SVGRect viewport;
 
-  num get screenPixelToMillimeterY();
+  final SVGAnimatedLength width;
 
-  bool get useCurrentView();
+  final SVGAnimatedLength x;
 
-  void set useCurrentView(bool value);
-
-  SVGRect get viewport();
-
-  SVGAnimatedLength get width();
-
-  SVGAnimatedLength get x();
-
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 
   bool animationsPaused();
 

@@ -14,9 +14,9 @@ interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalRes
 
   static final int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  SVGAnimatedTransformList get gradientTransform();
+  final SVGAnimatedTransformList gradientTransform;
 
-  SVGAnimatedEnumeration get gradientUnits();
+  final SVGAnimatedEnumeration gradientUnits;
 
-  SVGAnimatedEnumeration get spreadMethod();
+  final SVGAnimatedEnumeration spreadMethod;
 }

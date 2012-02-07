@@ -6,57 +6,33 @@
 
 interface HTMLTableElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String bgColor;
 
-  String get bgColor();
+  String border;
 
-  void set bgColor(String value);
+  HTMLTableCaptionElement caption;
 
-  String get border();
+  String cellPadding;
 
-  void set border(String value);
+  String cellSpacing;
 
-  HTMLTableCaptionElement get caption();
+  String frame;
 
-  void set caption(HTMLTableCaptionElement value);
+  final HTMLCollection rows;
 
-  String get cellPadding();
+  String rules;
 
-  void set cellPadding(String value);
+  String summary;
 
-  String get cellSpacing();
+  final HTMLCollection tBodies;
 
-  void set cellSpacing(String value);
+  HTMLTableSectionElement tFoot;
 
-  String get frame();
+  HTMLTableSectionElement tHead;
 
-  void set frame(String value);
-
-  HTMLCollection get rows();
-
-  String get rules();
-
-  void set rules(String value);
-
-  String get summary();
-
-  void set summary(String value);
-
-  HTMLCollection get tBodies();
-
-  HTMLTableSectionElement get tFoot();
-
-  void set tFoot(HTMLTableSectionElement value);
-
-  HTMLTableSectionElement get tHead();
-
-  void set tHead(HTMLTableSectionElement value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   HTMLElement createCaption();
 

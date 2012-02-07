@@ -6,29 +6,23 @@
 
 interface HTMLVideoElement extends HTMLMediaElement {
 
-  int get height();
+  int height;
 
-  void set height(int value);
+  String poster;
 
-  String get poster();
+  final int videoHeight;
 
-  void set poster(String value);
+  final int videoWidth;
 
-  int get videoHeight();
+  final int webkitDecodedFrameCount;
 
-  int get videoWidth();
+  final bool webkitDisplayingFullscreen;
 
-  int get webkitDecodedFrameCount();
+  final int webkitDroppedFrameCount;
 
-  bool get webkitDisplayingFullscreen();
+  final bool webkitSupportsFullscreen;
 
-  int get webkitDroppedFrameCount();
-
-  bool get webkitSupportsFullscreen();
-
-  int get width();
-
-  void set width(int value);
+  int width;
 
   void webkitEnterFullScreen();
 

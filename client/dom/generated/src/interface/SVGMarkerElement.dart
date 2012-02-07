@@ -18,19 +18,19 @@ interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
   static final int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
-  SVGAnimatedLength get markerHeight();
+  final SVGAnimatedLength markerHeight;
 
-  SVGAnimatedEnumeration get markerUnits();
+  final SVGAnimatedEnumeration markerUnits;
 
-  SVGAnimatedLength get markerWidth();
+  final SVGAnimatedLength markerWidth;
 
-  SVGAnimatedAngle get orientAngle();
+  final SVGAnimatedAngle orientAngle;
 
-  SVGAnimatedEnumeration get orientType();
+  final SVGAnimatedEnumeration orientType;
 
-  SVGAnimatedLength get refX();
+  final SVGAnimatedLength refX;
 
-  SVGAnimatedLength get refY();
+  final SVGAnimatedLength refY;
 
   void setOrientToAngle(SVGAngle angle);
 

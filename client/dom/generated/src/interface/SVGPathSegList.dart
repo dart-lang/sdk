@@ -6,7 +6,7 @@
 
 interface SVGPathSegList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGPathSeg appendItem(SVGPathSeg newItem);
 

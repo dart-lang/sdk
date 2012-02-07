@@ -6,7 +6,7 @@
 
 interface SVGDocument extends Document {
 
-  SVGSVGElement get rootElement();
+  final SVGSVGElement rootElement;
 
   Event createEvent(String eventType);
 }

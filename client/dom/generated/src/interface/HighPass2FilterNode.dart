@@ -6,7 +6,7 @@
 
 interface HighPass2FilterNode extends AudioNode {
 
-  AudioParam get cutoff();
+  final AudioParam cutoff;
 
-  AudioParam get resonance();
+  final AudioParam resonance;
 }

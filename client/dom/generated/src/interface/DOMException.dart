@@ -56,11 +56,11 @@ interface DOMException {
 
   static final int WRONG_DOCUMENT_ERR = 4;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }

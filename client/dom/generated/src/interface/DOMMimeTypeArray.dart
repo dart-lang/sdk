@@ -6,7 +6,7 @@
 
 interface DOMMimeTypeArray {
 
-  int get length();
+  final int length;
 
   DOMMimeType item(int index);
 

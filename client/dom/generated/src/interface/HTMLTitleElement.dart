@@ -6,7 +6,5 @@
 
 interface HTMLTitleElement extends HTMLElement {
 
-  String get text();
-
-  void set text(String value);
+  String text;
 }

@@ -6,53 +6,31 @@
 
 interface HTMLIFrameElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  final Document contentDocument;
 
-  Document get contentDocument();
+  final DOMWindow contentWindow;
 
-  DOMWindow get contentWindow();
+  String frameBorder;
 
-  String get frameBorder();
+  String height;
 
-  void set frameBorder(String value);
+  String longDesc;
 
-  String get height();
+  String marginHeight;
 
-  void set height(String value);
+  String marginWidth;
 
-  String get longDesc();
+  String name;
 
-  void set longDesc(String value);
+  String sandbox;
 
-  String get marginHeight();
+  String scrolling;
 
-  void set marginHeight(String value);
+  String src;
 
-  String get marginWidth();
-
-  void set marginWidth(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get sandbox();
-
-  void set sandbox(String value);
-
-  String get scrolling();
-
-  void set scrolling(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   SVGDocument getSVGDocument();
 }

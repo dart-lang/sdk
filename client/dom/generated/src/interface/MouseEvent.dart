@@ -6,39 +6,39 @@
 
 interface MouseEvent extends UIEvent {
 
-  bool get altKey();
+  final bool altKey;
 
-  int get button();
+  final int button;
 
-  int get clientX();
+  final int clientX;
 
-  int get clientY();
+  final int clientY;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  Clipboard get dataTransfer();
+  final Clipboard dataTransfer;
 
-  Node get fromElement();
+  final Node fromElement;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  int get offsetX();
+  final int offsetX;
 
-  int get offsetY();
+  final int offsetY;
 
-  EventTarget get relatedTarget();
+  final EventTarget relatedTarget;
 
-  int get screenX();
+  final int screenX;
 
-  int get screenY();
+  final int screenY;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
-  Node get toElement();
+  final Node toElement;
 
-  int get x();
+  final int x;
 
-  int get y();
+  final int y;
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }

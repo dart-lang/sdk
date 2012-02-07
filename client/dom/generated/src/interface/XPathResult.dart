@@ -26,19 +26,19 @@ interface XPathResult {
 
   static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  bool get booleanValue();
+  final bool booleanValue;
 
-  bool get invalidIteratorState();
+  final bool invalidIteratorState;
 
-  num get numberValue();
+  final num numberValue;
 
-  int get resultType();
+  final int resultType;
 
-  Node get singleNodeValue();
+  final Node singleNodeValue;
 
-  int get snapshotLength();
+  final int snapshotLength;
 
-  String get stringValue();
+  final String stringValue;
 
   Node iterateNext();
 

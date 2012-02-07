@@ -6,5 +6,5 @@
 
 interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedString get target();
+  final SVGAnimatedString target;
 }

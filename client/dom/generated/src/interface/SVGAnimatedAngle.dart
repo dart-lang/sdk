@@ -6,7 +6,7 @@
 
 interface SVGAnimatedAngle {
 
-  SVGAngle get animVal();
+  final SVGAngle animVal;
 
-  SVGAngle get baseVal();
+  final SVGAngle baseVal;
 }

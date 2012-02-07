@@ -6,21 +6,21 @@
 
 interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable {
 
-  SVGAnimatedInteger get filterResX();
+  final SVGAnimatedInteger filterResX;
 
-  SVGAnimatedInteger get filterResY();
+  final SVGAnimatedInteger filterResY;
 
-  SVGAnimatedEnumeration get filterUnits();
+  final SVGAnimatedEnumeration filterUnits;
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedEnumeration get primitiveUnits();
+  final SVGAnimatedEnumeration primitiveUnits;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 
   void setFilterRes(int filterResX, int filterResY);
 }

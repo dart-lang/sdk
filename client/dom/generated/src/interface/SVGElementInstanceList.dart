@@ -6,7 +6,7 @@
 
 interface SVGElementInstanceList {
 
-  int get length();
+  final int length;
 
   SVGElementInstance item(int index);
 }

@@ -6,79 +6,47 @@
 
 interface HTMLObjectElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String archive;
 
-  String get archive();
+  String border;
 
-  void set archive(String value);
+  String code;
 
-  String get border();
+  String codeBase;
 
-  void set border(String value);
+  String codeType;
 
-  String get code();
+  final Document contentDocument;
 
-  void set code(String value);
+  String data;
 
-  String get codeBase();
+  bool declare;
 
-  void set codeBase(String value);
+  final HTMLFormElement form;
 
-  String get codeType();
+  String height;
 
-  void set codeType(String value);
+  int hspace;
 
-  Document get contentDocument();
+  String name;
 
-  String get data();
+  String standby;
 
-  void set data(String value);
+  String type;
 
-  bool get declare();
+  String useMap;
 
-  void set declare(bool value);
+  final String validationMessage;
 
-  HTMLFormElement get form();
+  final ValidityState validity;
 
-  String get height();
+  int vspace;
 
-  void set height(String value);
+  String width;
 
-  int get hspace();
-
-  void set hspace(int value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get standby();
-
-  void set standby(String value);
-
-  String get type();
-
-  void set type(String value);
-
-  String get useMap();
-
-  void set useMap(String value);
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  int get vspace();
-
-  void set vspace(int value);
-
-  String get width();
-
-  void set width(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 

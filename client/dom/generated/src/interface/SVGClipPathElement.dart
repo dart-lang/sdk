@@ -6,5 +6,5 @@
 
 interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedEnumeration get clipPathUnits();
+  final SVGAnimatedEnumeration clipPathUnits;
 }

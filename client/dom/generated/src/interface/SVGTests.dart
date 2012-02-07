@@ -6,11 +6,11 @@
 
 interface SVGTests {
 
-  SVGStringList get requiredExtensions();
+  final SVGStringList requiredExtensions;
 
-  SVGStringList get requiredFeatures();
+  final SVGStringList requiredFeatures;
 
-  SVGStringList get systemLanguage();
+  final SVGStringList systemLanguage;
 
   bool hasExtension(String extension);
 }

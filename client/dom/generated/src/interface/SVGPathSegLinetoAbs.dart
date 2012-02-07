@@ -6,11 +6,7 @@
 
 interface SVGPathSegLinetoAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }

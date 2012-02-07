@@ -58,7 +58,7 @@ interface CSSPrimitiveValue extends CSSValue {
 
   static final int CSS_URI = 20;
 
-  int get primitiveType();
+  final int primitiveType;
 
   Counter getCounterValue();
 

@@ -6,13 +6,13 @@
 
 interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }

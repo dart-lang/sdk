@@ -6,9 +6,7 @@
 
 interface HTMLMapElement extends HTMLElement {
 
-  HTMLCollection get areas();
+  final HTMLCollection areas;
 
-  String get name();
-
-  void set name(String value);
+  String name;
 }

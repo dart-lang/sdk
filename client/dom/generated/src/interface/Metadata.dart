@@ -6,5 +6,5 @@
 
 interface Metadata {
 
-  Date get modificationTime();
+  final Date modificationTime;
 }

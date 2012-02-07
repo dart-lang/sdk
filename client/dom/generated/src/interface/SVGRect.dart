@@ -6,19 +6,11 @@
 
 interface SVGRect {
 
-  num get height();
+  num height;
 
-  void set height(num value);
+  num width;
 
-  num get width();
+  num x;
 
-  void set width(num value);
-
-  num get x();
-
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }

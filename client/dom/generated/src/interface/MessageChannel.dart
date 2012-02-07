@@ -6,7 +6,7 @@
 
 interface MessageChannel {
 
-  MessagePort get port1();
+  final MessagePort port1;
 
-  MessagePort get port2();
+  final MessagePort port2;
 }

@@ -6,9 +6,9 @@
 
 interface MediaQueryList {
 
-  bool get matches();
+  final bool matches;
 
-  String get media();
+  final String media;
 
   void addListener(MediaQueryListListener listener);
 

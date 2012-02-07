@@ -6,7 +6,7 @@
 
 interface StyleMedia {
 
-  String get type();
+  final String type;
 
   bool matchMedium(String mediaquery);
 }

@@ -6,39 +6,23 @@
 
 interface Location {
 
-  String get hash();
+  String hash;
 
-  void set hash(String value);
+  String host;
 
-  String get host();
+  String hostname;
 
-  void set host(String value);
+  String href;
 
-  String get hostname();
+  final String origin;
 
-  void set hostname(String value);
+  String pathname;
 
-  String get href();
+  String port;
 
-  void set href(String value);
+  String protocol;
 
-  String get origin();
-
-  String get pathname();
-
-  void set pathname(String value);
-
-  String get port();
-
-  void set port(String value);
-
-  String get protocol();
-
-  void set protocol(String value);
-
-  String get search();
-
-  void set search(String value);
+  String search;
 
   void assign(String url);
 

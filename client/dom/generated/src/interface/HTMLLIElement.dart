@@ -6,11 +6,7 @@
 
 interface HTMLLIElement extends HTMLElement {
 
-  String get type();
+  String type;
 
-  void set type(String value);
-
-  int get value();
-
-  void set value(int value);
+  int value;
 }

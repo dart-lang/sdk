@@ -22,17 +22,17 @@ interface Range {
 
   static final int START_TO_START = 0;
 
-  bool get collapsed();
+  final bool collapsed;
 
-  Node get commonAncestorContainer();
+  final Node commonAncestorContainer;
 
-  Node get endContainer();
+  final Node endContainer;
 
-  int get endOffset();
+  final int endOffset;
 
-  Node get startContainer();
+  final Node startContainer;
 
-  int get startOffset();
+  final int startOffset;
 
   DocumentFragment cloneContents();
 

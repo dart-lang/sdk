@@ -30,11 +30,11 @@ interface FileException {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }

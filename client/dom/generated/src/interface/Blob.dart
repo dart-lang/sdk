@@ -6,9 +6,9 @@
 
 interface Blob {
 
-  int get size();
+  final int size;
 
-  String get type();
+  final String type;
 
   Blob webkitSlice([int start, int end, String contentType]);
 }

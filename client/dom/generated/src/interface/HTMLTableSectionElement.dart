@@ -6,23 +6,15 @@
 
 interface HTMLTableSectionElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String ch;
 
-  String get ch();
+  String chOff;
 
-  void set ch(String value);
+  final HTMLCollection rows;
 
-  String get chOff();
-
-  void set chOff(String value);
-
-  HTMLCollection get rows();
-
-  String get vAlign();
-
-  void set vAlign(String value);
+  String vAlign;
 
   void deleteRow(int index);
 

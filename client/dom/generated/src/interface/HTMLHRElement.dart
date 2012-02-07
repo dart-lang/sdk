@@ -6,19 +6,11 @@
 
 interface HTMLHRElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  bool noShade;
 
-  bool get noShade();
+  String size;
 
-  void set noShade(bool value);
-
-  String get size();
-
-  void set size(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }

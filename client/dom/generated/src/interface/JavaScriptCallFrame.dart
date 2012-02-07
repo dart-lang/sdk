@@ -16,21 +16,21 @@ interface JavaScriptCallFrame {
 
   static final int WITH_SCOPE = 2;
 
-  JavaScriptCallFrame get caller();
+  final JavaScriptCallFrame caller;
 
-  int get column();
+  final int column;
 
-  String get functionName();
+  final String functionName;
 
-  int get line();
+  final int line;
 
-  List get scopeChain();
+  final List scopeChain;
 
-  int get sourceID();
+  final int sourceID;
 
-  Object get thisObject();
+  final Object thisObject;
 
-  String get type();
+  final String type;
 
   void evaluate(String script);
 

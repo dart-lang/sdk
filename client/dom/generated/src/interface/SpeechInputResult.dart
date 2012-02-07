@@ -6,7 +6,7 @@
 
 interface SpeechInputResult {
 
-  num get confidence();
+  final num confidence;
 
-  String get utterance();
+  final String utterance;
 }

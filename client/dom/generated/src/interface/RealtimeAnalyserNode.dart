@@ -6,23 +6,15 @@
 
 interface RealtimeAnalyserNode extends AudioNode {
 
-  int get fftSize();
+  int fftSize;
 
-  void set fftSize(int value);
+  final int frequencyBinCount;
 
-  int get frequencyBinCount();
+  num maxDecibels;
 
-  num get maxDecibels();
+  num minDecibels;
 
-  void set maxDecibels(num value);
-
-  num get minDecibels();
-
-  void set minDecibels(num value);
-
-  num get smoothingTimeConstant();
-
-  void set smoothingTimeConstant(num value);
+  num smoothingTimeConstant;
 
   void getByteFrequencyData(Uint8Array array);
 

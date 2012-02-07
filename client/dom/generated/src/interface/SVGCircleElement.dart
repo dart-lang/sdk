@@ -6,9 +6,9 @@
 
 interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get cx();
+  final SVGAnimatedLength cx;
 
-  SVGAnimatedLength get cy();
+  final SVGAnimatedLength cy;
 
-  SVGAnimatedLength get r();
+  final SVGAnimatedLength r;
 }

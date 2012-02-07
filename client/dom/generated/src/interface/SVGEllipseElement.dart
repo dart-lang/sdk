@@ -6,11 +6,11 @@
 
 interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGAnimatedLength get cx();
+  final SVGAnimatedLength cx;
 
-  SVGAnimatedLength get cy();
+  final SVGAnimatedLength cy;
 
-  SVGAnimatedLength get rx();
+  final SVGAnimatedLength rx;
 
-  SVGAnimatedLength get ry();
+  final SVGAnimatedLength ry;
 }

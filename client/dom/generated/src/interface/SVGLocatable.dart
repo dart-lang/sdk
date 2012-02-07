@@ -6,9 +6,9 @@
 
 interface SVGLocatable {
 
-  SVGElement get farthestViewportElement();
+  final SVGElement farthestViewportElement;
 
-  SVGElement get nearestViewportElement();
+  final SVGElement nearestViewportElement;
 
   SVGRect getBBox();
 

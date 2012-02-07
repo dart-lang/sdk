@@ -6,27 +6,15 @@
 
 interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
 
-  num get dx();
+  num dx;
 
-  void set dx(num value);
+  num dy;
 
-  num get dy();
+  String format;
 
-  void set dy(num value);
+  String glyphRef;
 
-  String get format();
+  num x;
 
-  void set format(String value);
-
-  String get glyphRef();
-
-  void set glyphRef(String value);
-
-  num get x();
-
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }

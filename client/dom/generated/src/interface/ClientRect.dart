@@ -6,15 +6,15 @@
 
 interface ClientRect {
 
-  num get bottom();
+  final num bottom;
 
-  num get height();
+  final num height;
 
-  num get left();
+  final num left;
 
-  num get right();
+  final num right;
 
-  num get top();
+  final num top;
 
-  num get width();
+  final num width;
 }

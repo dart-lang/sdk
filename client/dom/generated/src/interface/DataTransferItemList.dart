@@ -6,7 +6,7 @@
 
 interface DataTransferItemList {
 
-  int get length();
+  final int length;
 
   void add(var data_OR_file, [String type]);
 

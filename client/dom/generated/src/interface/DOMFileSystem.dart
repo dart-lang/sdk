@@ -6,7 +6,7 @@
 
 interface DOMFileSystem {
 
-  String get name();
+  final String name;
 
-  DirectoryEntry get root();
+  final DirectoryEntry root;
 }

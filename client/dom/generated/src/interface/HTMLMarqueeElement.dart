@@ -6,49 +6,27 @@
 
 interface HTMLMarqueeElement extends HTMLElement {
 
-  String get behavior();
+  String behavior;
 
-  void set behavior(String value);
+  String bgColor;
 
-  String get bgColor();
+  String direction;
 
-  void set bgColor(String value);
+  String height;
 
-  String get direction();
+  int hspace;
 
-  void set direction(String value);
+  int loop;
 
-  String get height();
+  int scrollAmount;
 
-  void set height(String value);
+  int scrollDelay;
 
-  int get hspace();
+  bool trueSpeed;
 
-  void set hspace(int value);
+  int vspace;
 
-  int get loop();
-
-  void set loop(int value);
-
-  int get scrollAmount();
-
-  void set scrollAmount(int value);
-
-  int get scrollDelay();
-
-  void set scrollDelay(int value);
-
-  bool get trueSpeed();
-
-  void set trueSpeed(bool value);
-
-  int get vspace();
-
-  void set vspace(int value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   void start();
 

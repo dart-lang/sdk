@@ -18,25 +18,23 @@ interface WebKitAnimation {
 
   static final int FILL_NONE = 0;
 
-  num get delay();
+  final num delay;
 
-  int get direction();
+  final int direction;
 
-  num get duration();
+  final num duration;
 
-  num get elapsedTime();
+  num elapsedTime;
 
-  void set elapsedTime(num value);
+  final bool ended;
 
-  bool get ended();
+  final int fillMode;
 
-  int get fillMode();
+  final int iterationCount;
 
-  int get iterationCount();
+  final String name;
 
-  String get name();
-
-  bool get paused();
+  final bool paused;
 
   void pause();
 

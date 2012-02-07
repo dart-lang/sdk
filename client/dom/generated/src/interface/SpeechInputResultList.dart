@@ -6,7 +6,7 @@
 
 interface SpeechInputResultList {
 
-  int get length();
+  final int length;
 
   SpeechInputResult item(int index);
 }

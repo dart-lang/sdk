@@ -6,7 +6,7 @@
 
 interface StyleSheetList extends List<StyleSheet> {
 
-  int get length();
+  final int length;
 
   StyleSheet item(int index);
 }

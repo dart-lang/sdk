@@ -6,17 +6,15 @@
 
 interface AudioBuffer {
 
-  num get duration();
+  final num duration;
 
-  num get gain();
+  num gain;
 
-  void set gain(num value);
+  final int length;
 
-  int get length();
+  final int numberOfChannels;
 
-  int get numberOfChannels();
-
-  num get sampleRate();
+  final num sampleRate;
 
   Float32Array getChannelData(int channelIndex);
 }

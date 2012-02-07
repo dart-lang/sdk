@@ -6,7 +6,7 @@
 
 interface Storage {
 
-  int get length();
+  final int length;
 
   void clear();
 

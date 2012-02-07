@@ -12,7 +12,7 @@ interface PositionError {
 
   static final int TIMEOUT = 3;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 }

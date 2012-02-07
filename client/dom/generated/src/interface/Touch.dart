@@ -6,27 +6,27 @@
 
 interface Touch {
 
-  int get clientX();
+  final int clientX;
 
-  int get clientY();
+  final int clientY;
 
-  int get identifier();
+  final int identifier;
 
-  int get pageX();
+  final int pageX;
 
-  int get pageY();
+  final int pageY;
 
-  int get screenX();
+  final int screenX;
 
-  int get screenY();
+  final int screenY;
 
-  EventTarget get target();
+  final EventTarget target;
 
-  num get webkitForce();
+  final num webkitForce;
 
-  int get webkitRadiusX();
+  final int webkitRadiusX;
 
-  int get webkitRadiusY();
+  final int webkitRadiusY;
 
-  num get webkitRotationAngle();
+  final num webkitRotationAngle;
 }

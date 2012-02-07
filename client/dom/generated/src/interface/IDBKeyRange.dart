@@ -6,13 +6,13 @@
 
 interface IDBKeyRange {
 
-  IDBKey get lower();
+  final IDBKey lower;
 
-  bool get lowerOpen();
+  final bool lowerOpen;
 
-  IDBKey get upper();
+  final IDBKey upper;
 
-  bool get upperOpen();
+  final bool upperOpen;
 
   IDBKeyRange bound(IDBKey lower, IDBKey upper, [bool lowerOpen, bool upperOpen]);
 

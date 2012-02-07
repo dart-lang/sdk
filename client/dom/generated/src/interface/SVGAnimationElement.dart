@@ -6,7 +6,7 @@
 
 interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResourcesRequired, ElementTimeControl {
 
-  SVGElement get targetElement();
+  final SVGElement targetElement;
 
   num getCurrentTime();
 

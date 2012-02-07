@@ -6,83 +6,51 @@
 
 interface HTMLTextAreaElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  int cols;
 
-  int get cols();
+  String defaultValue;
 
-  void set cols(int value);
+  String dirName;
 
-  String get defaultValue();
+  bool disabled;
 
-  void set defaultValue(String value);
+  final HTMLFormElement form;
 
-  String get dirName();
+  final NodeList labels;
 
-  void set dirName(String value);
+  int maxLength;
 
-  bool get disabled();
+  String name;
 
-  void set disabled(bool value);
+  String placeholder;
 
-  HTMLFormElement get form();
+  bool readOnly;
 
-  NodeList get labels();
+  bool required;
 
-  int get maxLength();
+  int rows;
 
-  void set maxLength(int value);
+  String selectionDirection;
 
-  String get name();
+  int selectionEnd;
 
-  void set name(String value);
+  int selectionStart;
 
-  String get placeholder();
+  final int textLength;
 
-  void set placeholder(String value);
+  final String type;
 
-  bool get readOnly();
+  final String validationMessage;
 
-  void set readOnly(bool value);
+  final ValidityState validity;
 
-  bool get required();
+  String value;
 
-  void set required(bool value);
+  final bool willValidate;
 
-  int get rows();
-
-  void set rows(int value);
-
-  String get selectionDirection();
-
-  void set selectionDirection(String value);
-
-  int get selectionEnd();
-
-  void set selectionEnd(int value);
-
-  int get selectionStart();
-
-  void set selectionStart(int value);
-
-  int get textLength();
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
-
-  String get wrap();
-
-  void set wrap(String value);
+  String wrap;
 
   bool checkValidity();
 

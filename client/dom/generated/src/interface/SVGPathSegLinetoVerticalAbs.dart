@@ -6,7 +6,5 @@
 
 interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
 
-  num get y();
-
-  void set y(num value);
+  num y;
 }

@@ -6,5 +6,5 @@
 
 interface WebKitCSSRegionRule extends CSSRule {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 }

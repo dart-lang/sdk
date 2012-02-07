@@ -6,11 +6,11 @@
 
 interface IDBObjectStore {
 
-  String get keyPath();
+  final String keyPath;
 
-  String get name();
+  final String name;
 
-  IDBTransaction get transaction();
+  final IDBTransaction transaction;
 
   IDBRequest add(Dynamic value, [IDBKey key]);
 

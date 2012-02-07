@@ -6,59 +6,33 @@
 
 interface TextTrackCue {
 
-  String get alignment();
+  String alignment;
 
-  void set alignment(String value);
+  String direction;
 
-  String get direction();
+  num endTime;
 
-  void set direction(String value);
+  String id;
 
-  num get endTime();
+  int linePosition;
 
-  void set endTime(num value);
+  EventListener onenter;
 
-  String get id();
+  EventListener onexit;
 
-  void set id(String value);
+  bool pauseOnExit;
 
-  int get linePosition();
+  int size;
 
-  void set linePosition(int value);
+  bool snapToLines;
 
-  EventListener get onenter();
+  num startTime;
 
-  void set onenter(EventListener value);
+  String text;
 
-  EventListener get onexit();
+  int textPosition;
 
-  void set onexit(EventListener value);
-
-  bool get pauseOnExit();
-
-  void set pauseOnExit(bool value);
-
-  int get size();
-
-  void set size(int value);
-
-  bool get snapToLines();
-
-  void set snapToLines(bool value);
-
-  num get startTime();
-
-  void set startTime(num value);
-
-  String get text();
-
-  void set text(String value);
-
-  int get textPosition();
-
-  void set textPosition(int value);
-
-  TextTrack get track();
+  final TextTrack track;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

@@ -6,17 +6,17 @@
 
 interface NodeIterator {
 
-  bool get expandEntityReferences();
+  final bool expandEntityReferences;
 
-  NodeFilter get filter();
+  final NodeFilter filter;
 
-  bool get pointerBeforeReferenceNode();
+  final bool pointerBeforeReferenceNode;
 
-  Node get referenceNode();
+  final Node referenceNode;
 
-  Node get root();
+  final Node root;
 
-  int get whatToShow();
+  final int whatToShow;
 
   void detach();
 

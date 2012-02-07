@@ -6,7 +6,7 @@
 
 interface HTMLAllCollection {
 
-  int get length();
+  final int length;
 
   Node item(int index);
 

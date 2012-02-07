@@ -6,5 +6,5 @@
 
 interface DelayNode extends AudioNode {
 
-  AudioParam get delayTime();
+  final AudioParam delayTime;
 }

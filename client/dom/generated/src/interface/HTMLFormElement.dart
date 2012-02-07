@@ -6,45 +6,27 @@
 
 interface HTMLFormElement extends HTMLElement {
 
-  String get acceptCharset();
+  String acceptCharset;
 
-  void set acceptCharset(String value);
+  String action;
 
-  String get action();
+  String autocomplete;
 
-  void set action(String value);
+  final HTMLCollection elements;
 
-  String get autocomplete();
+  String encoding;
 
-  void set autocomplete(String value);
+  String enctype;
 
-  HTMLCollection get elements();
+  final int length;
 
-  String get encoding();
+  String method;
 
-  void set encoding(String value);
+  String name;
 
-  String get enctype();
+  bool noValidate;
 
-  void set enctype(String value);
-
-  int get length();
-
-  String get method();
-
-  void set method(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  bool get noValidate();
-
-  void set noValidate(bool value);
-
-  String get target();
-
-  void set target(String value);
+  String target;
 
   bool checkValidity();
 

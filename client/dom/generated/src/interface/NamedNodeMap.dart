@@ -6,7 +6,7 @@
 
 interface NamedNodeMap extends List<Node> {
 
-  int get length();
+  final int length;
 
   Node getNamedItem(String name);
 

@@ -6,15 +6,13 @@
 
 interface Attr extends Node {
 
-  bool get isId();
+  final bool isId;
 
-  String get name();
+  final String name;
 
-  Element get ownerElement();
+  final Element ownerElement;
 
-  bool get specified();
+  final bool specified;
 
-  String get value();
-
-  void set value(String value);
+  String value;
 }

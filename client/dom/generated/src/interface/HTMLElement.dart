@@ -6,75 +6,43 @@
 
 interface HTMLElement extends Element {
 
-  String get accessKey();
+  String accessKey;
 
-  void set accessKey(String value);
+  final HTMLCollection children;
 
-  HTMLCollection get children();
+  final DOMTokenList classList;
 
-  DOMTokenList get classList();
+  String className;
 
-  String get className();
+  String contentEditable;
 
-  void set className(String value);
+  String dir;
 
-  String get contentEditable();
+  bool draggable;
 
-  void set contentEditable(String value);
+  bool hidden;
 
-  String get dir();
+  String id;
 
-  void set dir(String value);
+  String innerHTML;
 
-  bool get draggable();
+  String innerText;
 
-  void set draggable(bool value);
+  final bool isContentEditable;
 
-  bool get hidden();
+  String lang;
 
-  void set hidden(bool value);
+  String outerHTML;
 
-  String get id();
+  String outerText;
 
-  void set id(String value);
+  bool spellcheck;
 
-  String get innerHTML();
+  int tabIndex;
 
-  void set innerHTML(String value);
+  String title;
 
-  String get innerText();
-
-  void set innerText(String value);
-
-  bool get isContentEditable();
-
-  String get lang();
-
-  void set lang(String value);
-
-  String get outerHTML();
-
-  void set outerHTML(String value);
-
-  String get outerText();
-
-  void set outerText(String value);
-
-  bool get spellcheck();
-
-  void set spellcheck(bool value);
-
-  int get tabIndex();
-
-  void set tabIndex(int value);
-
-  String get title();
-
-  void set title(String value);
-
-  String get webkitdropzone();
-
-  void set webkitdropzone(String value);
+  String webkitdropzone;
 
   Element insertAdjacentElement(String where, Element element);
 

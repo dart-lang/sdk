@@ -6,27 +6,27 @@
 
 interface Selection {
 
-  Node get anchorNode();
+  final Node anchorNode;
 
-  int get anchorOffset();
+  final int anchorOffset;
 
-  Node get baseNode();
+  final Node baseNode;
 
-  int get baseOffset();
+  final int baseOffset;
 
-  Node get extentNode();
+  final Node extentNode;
 
-  int get extentOffset();
+  final int extentOffset;
 
-  Node get focusNode();
+  final Node focusNode;
 
-  int get focusOffset();
+  final int focusOffset;
 
-  bool get isCollapsed();
+  final bool isCollapsed;
 
-  int get rangeCount();
+  final int rangeCount;
 
-  String get type();
+  final String type;
 
   void addRange(Range range);
 

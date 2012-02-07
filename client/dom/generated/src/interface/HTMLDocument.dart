@@ -6,47 +6,31 @@
 
 interface HTMLDocument extends Document {
 
-  Element get activeElement();
+  final Element activeElement;
 
-  String get alinkColor();
+  String alinkColor;
 
-  void set alinkColor(String value);
+  HTMLAllCollection all;
 
-  HTMLAllCollection get all();
+  String bgColor;
 
-  void set all(HTMLAllCollection value);
+  final String compatMode;
 
-  String get bgColor();
+  String designMode;
 
-  void set bgColor(String value);
+  String dir;
 
-  String get compatMode();
+  final HTMLCollection embeds;
 
-  String get designMode();
+  String fgColor;
 
-  void set designMode(String value);
+  String linkColor;
 
-  String get dir();
+  final HTMLCollection plugins;
 
-  void set dir(String value);
+  final HTMLCollection scripts;
 
-  HTMLCollection get embeds();
-
-  String get fgColor();
-
-  void set fgColor(String value);
-
-  String get linkColor();
-
-  void set linkColor(String value);
-
-  HTMLCollection get plugins();
-
-  HTMLCollection get scripts();
-
-  String get vlinkColor();
-
-  void set vlinkColor(String value);
+  String vlinkColor;
 
   void captureEvents();
 

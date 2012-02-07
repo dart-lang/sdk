@@ -6,7 +6,7 @@
 
 interface FileList {
 
-  int get length();
+  final int length;
 
   File item(int index);
 }

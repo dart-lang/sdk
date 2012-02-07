@@ -30,5 +30,5 @@ interface FileError {
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int get code();
+  final int code;
 }

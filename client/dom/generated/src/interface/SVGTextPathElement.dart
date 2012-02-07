@@ -18,9 +18,9 @@ interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
   static final int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration get method();
+  final SVGAnimatedEnumeration method;
 
-  SVGAnimatedEnumeration get spacing();
+  final SVGAnimatedEnumeration spacing;
 
-  SVGAnimatedLength get startOffset();
+  final SVGAnimatedLength startOffset;
 }

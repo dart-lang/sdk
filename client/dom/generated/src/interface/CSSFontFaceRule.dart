@@ -6,5 +6,5 @@
 
 interface CSSFontFaceRule extends CSSRule {
 
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 }

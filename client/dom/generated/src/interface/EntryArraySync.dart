@@ -6,7 +6,7 @@
 
 interface EntryArraySync {
 
-  int get length();
+  final int length;
 
   EntrySync item(int index);
 }

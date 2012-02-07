@@ -6,11 +6,7 @@
 
 interface HTMLUListElement extends HTMLElement {
 
-  bool get compact();
+  bool compact;
 
-  void set compact(bool value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }

@@ -6,9 +6,9 @@
 
 interface SVGFEPointLightElement extends SVGElement {
 
-  SVGAnimatedNumber get x();
+  final SVGAnimatedNumber x;
 
-  SVGAnimatedNumber get y();
+  final SVGAnimatedNumber y;
 
-  SVGAnimatedNumber get z();
+  final SVGAnimatedNumber z;
 }

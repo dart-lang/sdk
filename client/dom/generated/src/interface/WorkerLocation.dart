@@ -6,21 +6,21 @@
 
 interface WorkerLocation {
 
-  String get hash();
+  final String hash;
 
-  String get host();
+  final String host;
 
-  String get hostname();
+  final String hostname;
 
-  String get href();
+  final String href;
 
-  String get pathname();
+  final String pathname;
 
-  String get port();
+  final String port;
 
-  String get protocol();
+  final String protocol;
 
-  String get search();
+  final String search;
 
   String toString();
 }

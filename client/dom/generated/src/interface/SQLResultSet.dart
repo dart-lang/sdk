@@ -6,9 +6,9 @@
 
 interface SQLResultSet {
 
-  int get insertId();
+  final int insertId;
 
-  SQLResultSetRowList get rows();
+  final SQLResultSetRowList rows;
 
-  int get rowsAffected();
+  final int rowsAffected;
 }

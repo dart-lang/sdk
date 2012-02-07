@@ -6,7 +6,7 @@
 
 interface ArrayBuffer {
 
-  int get byteLength();
+  final int byteLength;
 
   ArrayBuffer slice(int begin, [int end]);
 }

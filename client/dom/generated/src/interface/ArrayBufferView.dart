@@ -6,9 +6,9 @@
 
 interface ArrayBufferView {
 
-  ArrayBuffer get buffer();
+  final ArrayBuffer buffer;
 
-  int get byteLength();
+  final int byteLength;
 
-  int get byteOffset();
+  final int byteOffset;
 }

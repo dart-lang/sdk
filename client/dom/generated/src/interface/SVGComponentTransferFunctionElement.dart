@@ -18,17 +18,17 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
 
   static final int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedNumber get amplitude();
+  final SVGAnimatedNumber amplitude;
 
-  SVGAnimatedNumber get exponent();
+  final SVGAnimatedNumber exponent;
 
-  SVGAnimatedNumber get intercept();
+  final SVGAnimatedNumber intercept;
 
-  SVGAnimatedNumber get offset();
+  final SVGAnimatedNumber offset;
 
-  SVGAnimatedNumber get slope();
+  final SVGAnimatedNumber slope;
 
-  SVGAnimatedNumberList get tableValues();
+  final SVGAnimatedNumberList tableValues;
 
-  SVGAnimatedEnumeration get type();
+  final SVGAnimatedEnumeration type;
 }

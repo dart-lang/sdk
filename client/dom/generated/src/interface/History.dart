@@ -6,7 +6,7 @@
 
 interface History {
 
-  int get length();
+  final int length;
 
   void back();
 

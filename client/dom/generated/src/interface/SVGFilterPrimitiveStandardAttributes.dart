@@ -6,13 +6,13 @@
 
 interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGAnimatedString get result();
+  final SVGAnimatedString result;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }

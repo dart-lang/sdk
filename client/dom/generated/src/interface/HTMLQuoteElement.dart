@@ -6,7 +6,5 @@
 
 interface HTMLQuoteElement extends HTMLElement {
 
-  String get cite();
-
-  void set cite(String value);
+  String cite;
 }

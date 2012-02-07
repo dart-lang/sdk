@@ -6,7 +6,5 @@
 
 interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
 
-  num get x();
-
-  void set x(num value);
+  num x;
 }

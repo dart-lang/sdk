@@ -6,7 +6,7 @@
 
 interface SVGAnimatedRect {
 
-  SVGRect get animVal();
+  final SVGRect animVal;
 
-  SVGRect get baseVal();
+  final SVGRect baseVal;
 }

@@ -16,19 +16,13 @@ interface SVGAngle {
 
   static final int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
-  int get unitType();
+  final int unitType;
 
-  num get value();
+  num value;
 
-  void set value(num value);
+  String valueAsString;
 
-  String get valueAsString();
-
-  void set valueAsString(String value);
-
-  num get valueInSpecifiedUnits();
-
-  void set valueInSpecifiedUnits(num value);
+  num valueInSpecifiedUnits;
 
   void convertToSpecifiedUnits(int unitType);
 

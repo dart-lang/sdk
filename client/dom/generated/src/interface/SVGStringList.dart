@@ -6,7 +6,7 @@
 
 interface SVGStringList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   String appendItem(String item);
 

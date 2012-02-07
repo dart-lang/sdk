@@ -6,7 +6,7 @@
 
 interface CSSRuleList {
 
-  int get length();
+  final int length;
 
   CSSRule item(int index);
 }

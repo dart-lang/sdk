@@ -14,7 +14,7 @@ interface PerformanceNavigation {
 
   static final int TYPE_RESERVED = 255;
 
-  int get redirectCount();
+  final int redirectCount;
 
-  int get type();
+  final int type;
 }

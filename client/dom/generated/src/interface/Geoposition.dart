@@ -6,7 +6,7 @@
 
 interface Geoposition {
 
-  Coordinates get coords();
+  final Coordinates coords;
 
-  int get timestamp();
+  final int timestamp;
 }

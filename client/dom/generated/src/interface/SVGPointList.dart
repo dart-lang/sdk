@@ -6,7 +6,7 @@
 
 interface SVGPointList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGPoint appendItem(SVGPoint item);
 

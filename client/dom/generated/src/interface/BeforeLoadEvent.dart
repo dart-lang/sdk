@@ -6,5 +6,5 @@
 
 interface BeforeLoadEvent extends Event {
 
-  String get url();
+  final String url;
 }

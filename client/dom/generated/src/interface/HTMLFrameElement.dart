@@ -6,49 +6,31 @@
 
 interface HTMLFrameElement extends HTMLElement {
 
-  Document get contentDocument();
+  final Document contentDocument;
 
-  DOMWindow get contentWindow();
+  final DOMWindow contentWindow;
 
-  String get frameBorder();
+  String frameBorder;
 
-  void set frameBorder(String value);
+  final int height;
 
-  int get height();
+  String location;
 
-  String get location();
+  String longDesc;
 
-  void set location(String value);
+  String marginHeight;
 
-  String get longDesc();
+  String marginWidth;
 
-  void set longDesc(String value);
+  String name;
 
-  String get marginHeight();
+  bool noResize;
 
-  void set marginHeight(String value);
+  String scrolling;
 
-  String get marginWidth();
+  String src;
 
-  void set marginWidth(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  bool get noResize();
-
-  void set noResize(bool value);
-
-  String get scrolling();
-
-  void set scrolling(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  int get width();
+  final int width;
 
   SVGDocument getSVGDocument();
 }

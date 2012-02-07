@@ -6,15 +6,9 @@
 
 interface HTMLSourceElement extends HTMLElement {
 
-  String get media();
+  String media;
 
-  void set media(String value);
+  String src;
 
-  String get src();
-
-  void set src(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }

@@ -6,19 +6,11 @@
 
 interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x1;
 
-  num get x1();
+  num y;
 
-  void set x1(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y1();
-
-  void set y1(num value);
+  num y1;
 }

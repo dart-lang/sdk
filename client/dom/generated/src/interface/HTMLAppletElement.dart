@@ -6,47 +6,25 @@
 
 interface HTMLAppletElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String alt;
 
-  String get alt();
+  String archive;
 
-  void set alt(String value);
+  String code;
 
-  String get archive();
+  String codeBase;
 
-  void set archive(String value);
+  String height;
 
-  String get code();
+  String hspace;
 
-  void set code(String value);
+  String name;
 
-  String get codeBase();
+  String object;
 
-  void set codeBase(String value);
+  String vspace;
 
-  String get height();
-
-  void set height(String value);
-
-  String get hspace();
-
-  void set hspace(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  String get object();
-
-  void set object(String value);
-
-  String get vspace();
-
-  void set vspace(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 }

@@ -6,45 +6,31 @@
 
 interface HTMLAreaElement extends HTMLElement {
 
-  String get alt();
+  String alt;
 
-  void set alt(String value);
+  String coords;
 
-  String get coords();
+  final String hash;
 
-  void set coords(String value);
+  final String host;
 
-  String get hash();
+  final String hostname;
 
-  String get host();
+  String href;
 
-  String get hostname();
+  bool noHref;
 
-  String get href();
+  final String pathname;
 
-  void set href(String value);
+  String ping;
 
-  bool get noHref();
+  final String port;
 
-  void set noHref(bool value);
+  final String protocol;
 
-  String get pathname();
+  final String search;
 
-  String get ping();
+  String shape;
 
-  void set ping(String value);
-
-  String get port();
-
-  String get protocol();
-
-  String get search();
-
-  String get shape();
-
-  void set shape(String value);
-
-  String get target();
-
-  void set target(String value);
+  String target;
 }

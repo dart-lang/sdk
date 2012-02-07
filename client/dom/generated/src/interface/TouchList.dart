@@ -6,7 +6,7 @@
 
 interface TouchList extends List<Touch> {
 
-  int get length();
+  final int length;
 
   Touch item(int index);
 }

@@ -48,5 +48,5 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
   static final int CSS_TRANSLATEZ = 12;
 
-  int get operationType();
+  final int operationType;
 }

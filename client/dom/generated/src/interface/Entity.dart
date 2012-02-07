@@ -6,9 +6,9 @@
 
 interface Entity extends Node {
 
-  String get notationName();
+  final String notationName;
 
-  String get publicId();
+  final String publicId;
 
-  String get systemId();
+  final String systemId;
 }

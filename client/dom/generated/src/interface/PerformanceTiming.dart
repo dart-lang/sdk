@@ -6,45 +6,45 @@
 
 interface PerformanceTiming {
 
-  int get connectEnd();
+  final int connectEnd;
 
-  int get connectStart();
+  final int connectStart;
 
-  int get domComplete();
+  final int domComplete;
 
-  int get domContentLoadedEventEnd();
+  final int domContentLoadedEventEnd;
 
-  int get domContentLoadedEventStart();
+  final int domContentLoadedEventStart;
 
-  int get domInteractive();
+  final int domInteractive;
 
-  int get domLoading();
+  final int domLoading;
 
-  int get domainLookupEnd();
+  final int domainLookupEnd;
 
-  int get domainLookupStart();
+  final int domainLookupStart;
 
-  int get fetchStart();
+  final int fetchStart;
 
-  int get loadEventEnd();
+  final int loadEventEnd;
 
-  int get loadEventStart();
+  final int loadEventStart;
 
-  int get navigationStart();
+  final int navigationStart;
 
-  int get redirectEnd();
+  final int redirectEnd;
 
-  int get redirectStart();
+  final int redirectStart;
 
-  int get requestStart();
+  final int requestStart;
 
-  int get responseEnd();
+  final int responseEnd;
 
-  int get responseStart();
+  final int responseStart;
 
-  int get secureConnectionStart();
+  final int secureConnectionStart;
 
-  int get unloadEventEnd();
+  final int unloadEventEnd;
 
-  int get unloadEventStart();
+  final int unloadEventStart;
 }

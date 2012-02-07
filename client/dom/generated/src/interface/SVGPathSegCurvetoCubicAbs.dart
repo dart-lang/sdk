@@ -6,27 +6,15 @@
 
 interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x1;
 
-  num get x1();
+  num x2;
 
-  void set x1(num value);
+  num y;
 
-  num get x2();
+  num y1;
 
-  void set x2(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y1();
-
-  void set y1(num value);
-
-  num get y2();
-
-  void set y2(num value);
+  num y2;
 }

@@ -6,13 +6,11 @@
 
 interface CSSStyleDeclaration {
 
-  String get cssText();
+  String cssText;
 
-  void set cssText(String value);
+  final int length;
 
-  int get length();
-
-  CSSRule get parentRule();
+  final CSSRule parentRule;
 
   CSSValue getPropertyCSSValue(String propertyName);
 

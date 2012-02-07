@@ -6,7 +6,5 @@
 
 interface CSSCharsetRule extends CSSRule {
 
-  String get encoding();
-
-  void set encoding(String value);
+  String encoding;
 }

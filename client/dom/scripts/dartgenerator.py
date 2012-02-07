@@ -1250,12 +1250,16 @@ class DartInterfaceGenerator(object):
                  VALUE=constant.value)
 
   def AddAttribute(self, getter, setter):
-    if getter:
-      self._members_emitter.Emit('\n  $TYPE get $NAME();\n',
-                                 NAME=getter.id, TYPE=getter.type.id)
-    if setter:
-      self._members_emitter.Emit('\n  void set $NAME($TYPE value);\n',
-                                 NAME=setter.id, TYPE=setter.type.id)
+    if getter and setter and getter.type.id == setter.type.id:
+      self._members_emitter.Emit('\n  $TYPE $NAME;\n',
+                                 NAME=getter.id, TYPE=getter.type.id);
+      return
+    if getter and not setter:
+      self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
+                                 NAME=getter.id, TYPE=getter.type.id);
+      return
+    raise Exception('Unexpected getter/setter combination %s %s' %
+                    (getter, setter))
 
   def AddIndexer(self, element_type):
     # Interface inherits all operations from List<element_type>.
@@ -1978,20 +1982,18 @@ class FrogInterfaceGenerator(object):
     pass
 
   def AddAttribute(self, getter, setter):
-    use_fields = True
     output_type = getter and self._NarrowOutputType(getter.type.id)
     input_type = setter and self._NarrowInputType(setter.type.id)
-    if use_fields and getter and setter:
-      if input_type == output_type:
-        self._members_emitter.Emit(
-            '\n  $TYPE $NAME;\n',
-            NAME=getter.id, TYPE=output_type)
-        return
-    if use_fields and getter and not setter:
-        self._members_emitter.Emit(
-            '\n  final $TYPE $NAME;\n',
-            NAME=getter.id, TYPE=output_type)
-        return
+    if getter and setter and input_type == output_type:
+      self._members_emitter.Emit(
+          '\n  $TYPE $NAME;\n',
+          NAME=getter.id, TYPE=output_type)
+      return
+    if getter and not setter:
+      self._members_emitter.Emit(
+          '\n  final $TYPE $NAME;\n',
+          NAME=getter.id, TYPE=output_type)
+      return
     if getter:
       self._AddGetter(getter)
     if setter:

@@ -6,9 +6,7 @@
 
 interface SVGAnimatedEnumeration {
 
-  int get animVal();
+  final int animVal;
 
-  int get baseVal();
-
-  void set baseVal(int value);
+  int baseVal;
 }

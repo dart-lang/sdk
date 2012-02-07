@@ -6,7 +6,7 @@
 
 interface Database {
 
-  String get version();
+  final String version;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 

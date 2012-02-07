@@ -6,7 +6,7 @@
 
 interface HTMLCollection extends List<Node> {
 
-  int get length();
+  final int length;
 
   Node item(int index);
 
