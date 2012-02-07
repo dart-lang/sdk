@@ -11,6 +11,7 @@
 
 #include <pthread.h>
 
+#include "platform/assert.h"
 #include "platform/globals.h"
 
 namespace dart {

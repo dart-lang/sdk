@@ -9,6 +9,7 @@
 #error Do not include thread_win.h directly; use thread.h instead.
 #endif
 
+#include "platform/assert.h"
 #include "platform/globals.h"
 
 namespace dart {
