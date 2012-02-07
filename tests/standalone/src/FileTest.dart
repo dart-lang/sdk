@@ -262,6 +262,63 @@ class FileTest {
     file.open();
   }
 
+  static void testWriteAppend() {
+    String content = "foobar";
+    String filename = tempDirectory.path + "/write_append";
+    File file = new File(filename);
+    file.createSync();
+    Expect.isTrue(new File(filename).existsSync());
+    List<int> buffer = content.charCodes();
+    RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
+    openedFile.writeListSync(buffer, 0, buffer.length);
+    openedFile.closeSync();
+    // Reopen the file in write mode to ensure that we overwrite the content.
+    openedFile = (new File(filename)).openSync(FileMode.WRITE);
+    openedFile.writeListSync(buffer, 0, buffer.length);
+    Expect.equals(content.length, openedFile.lengthSync());
+    openedFile.closeSync();
+    // Open the file in append mode and ensure that we do not overwrite
+    // the existing content.
+    openedFile = (new File(filename)).openSync(FileMode.APPEND);
+    openedFile.writeListSync(buffer, 0, buffer.length);
+    Expect.equals(content.length * 2, openedFile.lengthSync());
+    openedFile.closeSync();
+    file.deleteSync();
+  }
+
+  static void testOutputStreamWriteAppend() {
+    String content = "foobar";
+    String filename = tempDirectory.path + "/outstream_write_append";
+    File file = new File(filename);
+    file.createSync();
+    List<int> buffer = content.charCodes();
+    OutputStream outStream = file.openOutputStream();
+    outStream.closeHandler = () {
+      File file2 = new File(filename);
+      OutputStream appendingOutput = file2.openOutputStream(FileMode.APPEND);
+      appendingOutput.write(buffer);
+      appendingOutput.closeHandler = () {
+        File file3 = new File(filename);
+        file3.openHandler = (RandomAccessFile openedFile) {
+          openedFile.lengthHandler = (int length) {
+            Expect.equals(content.length * 2, length);
+            openedFile.closeHandler = () {
+              asyncTestDone();
+            };
+            openedFile.close();
+          };
+          openedFile.length();
+        };
+        file3.open();
+      };
+      appendingOutput.close();
+    };
+    asyncTestStarted();
+    outStream.write(buffer);
+    outStream.close();
+  }
+
+  
   static void testReadWriteSync() {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
@@ -767,6 +824,8 @@ class FileTest {
         testBufferOutOfBoundsException();
         testAppend();
         testAppendSync();
+        testWriteAppend();
+        testOutputStreamWriteAppend();
         asyncTestDone();
       });
   }

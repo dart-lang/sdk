@@ -113,6 +113,12 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if (fd < 0) {
     return NULL;
   }
+  if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
+    int position = lseek(fd, 0, SEEK_END);
+    if (position < 0) {
+      return NULL;
+    }
+  }
   return new File(name, new FileHandle(fd));
 }
 
