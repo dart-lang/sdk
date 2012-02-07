@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -167,7 +167,7 @@ FILE CONTENT:
     # TODO(sra): make th
     self._AssertOutputSansHeaderEquals('Shape', """interface Shape {
 
-  int get attr();
+  final int attr;
 
   boolean op();
 }
@@ -203,7 +203,7 @@ FILE CONTENT:
     self._AssertOutputContains('Shape',
                                'static final int CONSTANT = 1')
     self._AssertOutputContains('Shape',
-                               'String get strAttr();')
+                               'final String strAttr;')
 
     # Verify interface names are converted:
     self._AssertOutputContains('Shape',
