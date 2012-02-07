@@ -10,11 +10,6 @@ DeclarationTest: Fail
 ExpressionTest: Fail
 SelectorLiteralTest: Fail
 
-[ $component == frog && $mode == debug ]
-DeclarationTest: Skip # Times out.
-ExpressionTest: Skip # Times out.
-SelectorLiteralTest: Skip # Times out.
-
 [ $arch == x64 ]
 *: Skip
 
