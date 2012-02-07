@@ -5,7 +5,7 @@
 #library('utilslib');
 
 #import('../observable/observable.dart');
-#import('../../utils/uri/uri.dart', prefix: 'uri');
+#import('../../lib/uri/uri.dart', prefix: 'uri');
 
 #source('CollectionUtils.dart');
 #source('DateUtils.dart');
