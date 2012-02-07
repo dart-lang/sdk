@@ -50,6 +50,21 @@ class ContinueTest {
       break;
     }
     Expect.equals(11, i);
+
+    // continue without label inside switch continues to innermost loop.
+    do {
+      i = 20;
+      switch (0) {
+        case 0:
+          i = 22;
+          continue;
+        default:
+          i = 25;
+          break;
+      }
+      i = 30;
+    } while (false);
+    Expect.equals(22, i);
   }
 }
 

@@ -4984,7 +4984,7 @@ AstNode* Parser::ParseJump(String* label_name) {
       ErrorMsg(jump_pos, "label '%s' not found", target_name.ToCString());
     }
   } else {
-    target = current_block_->scope->LookupInnermostLabel();
+    target = current_block_->scope->LookupInnermostLabel(jump_kind);
     if (target == NULL) {
       ErrorMsg(jump_pos, "'%s' is illegal here", Token::Str(jump_kind));
     }

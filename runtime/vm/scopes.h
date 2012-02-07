@@ -212,7 +212,7 @@ class LocalScope : public ZoneAllocated {
 
   // Lookup the "innermost" label that labels a for, while, do, or switch
   // statement.
-  SourceLabel* LookupInnermostLabel();
+  SourceLabel* LookupInnermostLabel(Token::Kind jump_kind);
 
   // Lookup the label for the "innermost" catch block if one exists.
   SourceLabel* LookupInnermostCatchLabel();
