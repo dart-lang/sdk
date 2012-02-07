@@ -5,10 +5,10 @@
 #include "bin/eventhandler.h"
 
 #include <errno.h>
-#include <poll.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/epoll.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -34,20 +34,62 @@ static const int kTimerId = -1;
 
 
 intptr_t SocketData::GetPollEvents() {
-  // Do not ask for POLLERR and POLLHUP explicitly as they are
+  // Do not ask for EPOLLERR and EPOLLHUP explicitly as they are
   // triggered anyway.
   intptr_t events = 0;
   if (!IsClosedRead()) {
     if ((mask_ & (1 << kInEvent)) != 0) {
-      events |= POLLIN;
+      events |= EPOLLIN;
     }
   }
   if (!IsClosedWrite()) {
     if ((mask_ & (1 << kOutEvent)) != 0) {
-      events |= POLLOUT;
+      events |= EPOLLOUT;
     }
   }
   return events;
+}
+
+
+// Unregister the file descriptor for a SocketData structure with epoll.
+static void RemoveFromEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
+  if (sd->tracked_by_epoll()) {
+    int status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
+                                              EPOLL_CTL_DEL,
+                                              sd->fd(),
+                                              NULL));
+    if (status == -1) {
+      FATAL("Failed unregistering events for file descriptor");
+    }
+    sd->set_tracked_by_epoll(false);
+  }
+}
+
+
+// Register the file descriptor for a SocketData structure with epoll
+// if events are requested.
+static void UpdateEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
+  struct epoll_event event;
+  event.events = sd->GetPollEvents();
+  event.data.ptr = sd;
+  if (sd->port() != 0 && event.events != 0) {
+    int status = 0;
+    if (sd->tracked_by_epoll()) {
+      status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
+                                            EPOLL_CTL_MOD,
+                                            sd->fd(),
+                                            &event));
+    } else {
+      status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
+                                            EPOLL_CTL_ADD,
+                                            sd->fd(),
+                                            &event));
+      sd->set_tracked_by_epoll(true);
+    }
+    if (status == -1) {
+      FATAL("Failed updating epoll instance");
+    }
+  }
 }
 
 
@@ -61,6 +103,24 @@ EventHandlerImplementation::EventHandlerImplementation()
   FDUtils::SetNonBlocking(interrupt_fds_[0]);
   timeout_ = kInfinityTimeout;
   timeout_port_ = 0;
+  // The initial size passed to epoll_create is ignore on newer (>=
+  // 2.6.8) Linux versions
+  static const int kEpollInitialSize = 64;
+  epoll_fd_ = TEMP_FAILURE_RETRY(epoll_create(kEpollInitialSize));
+  if (epoll_fd_ == -1) {
+    FATAL("Failed creating epoll file descriptor");
+  }
+  // Register the interrupt_fd with the epoll instance.
+  struct epoll_event event;
+  event.events = EPOLLIN;
+  event.data.ptr = NULL;
+  int status = TEMP_FAILURE_RETRY(epoll_ctl(epoll_fd_,
+                                            EPOLL_CTL_ADD,
+                                            interrupt_fds_[0],
+                                            &event));
+  if (status == -1) {
+    FATAL("Failed adding interrupt fd to epoll instance");
+  }
 }
 
 
@@ -77,8 +137,8 @@ SocketData* EventHandlerImplementation::GetSocketData(intptr_t fd) {
   ASSERT(entry != NULL);
   SocketData* sd = reinterpret_cast<SocketData*>(entry->value);
   if (sd == NULL) {
-    // If there is no data in the hash map for this file descriptor
-    // then this is inserting a new SocketData for the file descriptor.
+    // If there is no data in the hash map for this file descriptor a
+    // new SocketData for the file descriptor is inserted.
     sd = new SocketData(fd);
     entry->value = sd;
   }
@@ -102,43 +162,6 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
     }
     FATAL1("Interrupt message failure. Wrote %d bytes.", result);
   }
-}
-
-
-struct pollfd* EventHandlerImplementation::GetPollFds(intptr_t* pollfds_size) {
-  struct pollfd* pollfds;
-
-  // Calculate the number of file descriptors to poll on.
-  intptr_t numPollfds = 1;
-  for (HashMap::Entry* entry = socket_map_.Start();
-       entry != NULL;
-       entry = socket_map_.Next(entry)) {
-    SocketData* sd = reinterpret_cast<SocketData*>(entry->value);
-    if (sd->port() > 0 && sd->GetPollEvents() != 0) numPollfds++;
-  }
-
-  pollfds = reinterpret_cast<struct pollfd*>(calloc(sizeof(struct pollfd),
-                                                    numPollfds));
-  pollfds[0].fd = interrupt_fds_[0];
-  pollfds[0].events |= POLLIN;
-
-  int i = 1;
-  for (HashMap::Entry* entry = socket_map_.Start();
-       entry != NULL;
-       entry = socket_map_.Next(entry)) {
-    SocketData* sd = reinterpret_cast<SocketData*>(entry->value);
-    intptr_t events = sd->GetPollEvents();
-    if (sd->port() > 0 && events != 0) {
-      // Fd is added to the poll set.
-      pollfds[i].fd = sd->fd();
-      pollfds[i].events = events;
-      i++;
-    }
-  }
-  ASSERT(numPollfds == i);
-  *pollfds_size = i;
-
-  return pollfds;
 }
 
 
@@ -173,13 +196,17 @@ void EventHandlerImplementation::HandleInterruptFd() {
         ASSERT(msg.data == (1 << kShutdownReadCommand));
         // Close the socket for reading.
         sd->ShutdownRead();
+        UpdateEpollInstance(epoll_fd_, sd);
       } else if ((msg.data & (1 << kShutdownWriteCommand)) != 0) {
         ASSERT(msg.data == (1 << kShutdownWriteCommand));
         // Close the socket for writing.
         sd->ShutdownWrite();
+        UpdateEpollInstance(epoll_fd_, sd);
       } else if ((msg.data & (1 << kCloseCommand)) != 0) {
         ASSERT(msg.data == (1 << kCloseCommand));
-        // Close the socket and free system resources.
+        // Close the socket and free system resources and move on to
+        // next message.
+        RemoveFromEpollInstance(epoll_fd_, sd);
         intptr_t fd = sd->fd();
         sd->Close();
         socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
@@ -187,72 +214,68 @@ void EventHandlerImplementation::HandleInterruptFd() {
       } else {
         // Setup events to wait for.
         sd->SetPortAndMask(msg.dart_port, msg.data);
+        UpdateEpollInstance(epoll_fd_, sd);
       }
     }
   }
 }
 
 #ifdef DEBUG_POLL
-static void PrintEventMask(struct pollfd* pollfd) {
-  printf("%d ", pollfd->fd);
-  if ((pollfd->revents & POLLIN) != 0) printf("POLLIN ");
-  if ((pollfd->revents & POLLPRI) != 0) printf("POLLPRI ");
-  if ((pollfd->revents & POLLOUT) != 0) printf("POLLOUT ");
-  if ((pollfd->revents & POLLERR) != 0) printf("POLLERR ");
-  if ((pollfd->revents & POLLHUP) != 0) printf("POLLHUP ");
-  if ((pollfd->revents & POLLRDHUP) != 0) printf("POLLRDHUP ");
-  if ((pollfd->revents & POLLNVAL) != 0) printf("POLLNVAL ");
-  int all_events = POLLIN | POLLPRI | POLLOUT |
-                   POLLERR | POLLHUP | POLLRDHUP | POLLNVAL;
-  if ((pollfd->revents & ~all_events) != 0) {
-    printf("(and %08x) ", pollfd->revents & ~all_events);
+static void PrintEventMask(intptr_t fd, intptr_t events) {
+  printf("%d ", fd);
+  if ((events & EPOLLIN) != 0) printf("EPOLLIN ");
+  if ((events & EPOLLPRI) != 0) printf("EPOLLPRI ");
+  if ((events & EPOLLOUT) != 0) printf("EPOLLOUT ");
+  if ((events & EPOLLERR) != 0) printf("EPOLLERR ");
+  if ((events & EPOLLHUP) != 0) printf("EPOLLHUP ");
+  if ((events & EPOLLRDHUP) != 0) printf("EPOLLRDHUP ");
+  int all_events = EPOLLIN | EPOLLPRI | EPOLLOUT |
+      EPOLLERR | EPOLLHUP | EPOLLRDHUP;
+  if ((events & ~all_events) != 0) {
+    printf("(and %08x) ", events & ~all_events);
   }
-  printf("(available %d) ", FDUtils::AvailableBytes(pollfd->fd));
+  printf("(available %d) ", FDUtils::AvailableBytes(fd));
 
   printf("\n");
 }
 #endif
 
-intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
+intptr_t EventHandlerImplementation::GetPollEvents(intptr_t events,
+                                                   SocketData* sd) {
 #ifdef DEBUG_POLL
-  if (pollfd->fd != interrupt_fds_[0]) PrintEventMask(pollfd);
+  PrintEventMask(sd->fd(), events);
 #endif
   intptr_t event_mask = 0;
-  SocketData* sd = GetSocketData(pollfd->fd);
   if (sd->IsListeningSocket()) {
-    // For listening sockets the POLLIN event indicate that there are
+    // For listening sockets the EPOLLIN event indicate that there are
     // connections ready for accept unless accompanied with one of the
     // other flags.
-    if ((pollfd->revents & POLLIN) != 0) {
-      if ((pollfd->revents & POLLHUP) != 0) event_mask |= (1 << kCloseEvent);
-      if ((pollfd->revents & POLLERR) != 0) event_mask |= (1 << kErrorEvent);
+    if ((events & EPOLLIN) != 0) {
+      if ((events & EPOLLHUP) != 0) event_mask |= (1 << kCloseEvent);
+      if ((events & EPOLLERR) != 0) event_mask |= (1 << kErrorEvent);
       if (event_mask == 0) event_mask |= (1 << kInEvent);
     }
   } else {
-    if ((pollfd->revents & POLLNVAL) != 0) {
-      return 0;
-    }
-
     // Prioritize data events over close and error events.
-    if ((pollfd->revents & POLLIN) != 0) {
-      if (FDUtils::AvailableBytes(pollfd->fd) != 0) {
+    if ((events & EPOLLIN) != 0) {
+      if (FDUtils::AvailableBytes(sd->fd()) != 0) {
         event_mask = (1 << kInEvent);
-      } else if (((pollfd->revents & POLLHUP) != 0)) {
+      } else if (((events & EPOLLHUP) != 0)) {
         event_mask = (1 << kCloseEvent);
         sd->MarkClosedRead();
-      } else if ((pollfd->revents & POLLERR) != 0) {
+      } else if ((events & EPOLLERR) != 0) {
         event_mask = (1 << kErrorEvent);
       } else {
         if (sd->IsPipe()) {
           // When reading from stdin (either from a terminal or piped
-          // input) treat POLLIN with 0 available bytes as
+          // input) treat EPOLLIN with 0 available bytes as
           // end-of-file.
           if (sd->fd() == STDIN_FILENO) {
             event_mask = (1 << kCloseEvent);
             sd->MarkClosedRead();
           }
         } else {
-          // If POLLIN is set with no available data and no POLLHUP use
+          // If EPOLLIN is set with no available data and no EPOLLHUP use
           // recv to peek for whether the other end of the socket
           // actually closed.
           char buffer;
@@ -269,18 +292,18 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
       }
     }
 
-    // On pipes POLLHUP is reported without POLLIN when there is no
+    // On pipes EPOLLHUP is reported without EPOLLIN when there is no
     // more data to read.
     if (sd->IsPipe()) {
-      if (((pollfd->revents & POLLIN) == 0) &&
-          ((pollfd->revents & POLLHUP) != 0)) {
+      if (((events & EPOLLIN) == 0) &&
+          ((events & EPOLLHUP) != 0)) {
         event_mask = (1 << kCloseEvent);
         sd->MarkClosedRead();
       }
     }
 
-    if ((pollfd->revents & POLLOUT) != 0) {
-      if ((pollfd->revents & POLLERR) != 0) {
+    if ((events & EPOLLOUT) != 0) {
+      if ((events & EPOLLERR) != 0) {
         event_mask = (1 << kErrorEvent);
         sd->MarkClosedWrite();
       } else {
@@ -293,25 +316,19 @@ intptr_t EventHandlerImplementation::GetPollEvents(struct pollfd* pollfd) {
 }
 
 
-void EventHandlerImplementation::HandleEvents(struct pollfd* pollfds,
-                                              int pollfds_size,
-                                              int result_size) {
-  if ((pollfds[0].revents & POLLIN) != 0) {
-    result_size -= 1;
-  }
-  if (result_size > 0) {
-    for (int i = 1; i < pollfds_size; i++) {
-     /*
-      * The fd is unregistered. It gets re-registered when the request
-      * was handled by dart.
-      */
-      intptr_t event_mask = GetPollEvents(&pollfds[i]);
+void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
+                                              int size) {
+  for (int i = 0; i < size; i++) {
+    if (events[i].data.ptr != NULL) {
+      SocketData* sd = reinterpret_cast<SocketData*>(events[i].data.ptr);
+      intptr_t event_mask = GetPollEvents(events[i].events, sd);
       if (event_mask != 0) {
-        intptr_t fd = pollfds[i].fd;
-        SocketData* sd = GetSocketData(fd);
+        // Unregister events for the file descriptor. Events will be
+        // registered again when the current event has been handled in
+        // Dart code.
+        RemoveFromEpollInstance(epoll_fd_, sd);
         Dart_Port port = sd->port();
         ASSERT(port != 0);
-        sd->Unregister();
         DartUtils::PostInt32(port, event_mask);
       }
     }
@@ -342,15 +359,17 @@ void EventHandlerImplementation::HandleTimeout() {
 
 
 void EventHandlerImplementation::Poll(uword args) {
-  intptr_t pollfds_size;
-  struct pollfd* pollfds;
+  static const intptr_t kMaxEvents = 16;
+  struct epoll_event events[kMaxEvents];
   EventHandlerImplementation* handler =
       reinterpret_cast<EventHandlerImplementation*>(args);
   ASSERT(handler != NULL);
   while (1) {
-    pollfds = handler->GetPollFds(&pollfds_size);
     intptr_t millis = handler->GetTimeout();
-    intptr_t result = TEMP_FAILURE_RETRY(poll(pollfds, pollfds_size, millis));
+    intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler->epoll_fd_,
+                                                    events,
+                                                    kMaxEvents,
+                                                    millis));
     ASSERT(EAGAIN == EWOULDBLOCK);
     if (result == -1) {
       if (errno != EWOULDBLOCK) {
@@ -358,9 +377,8 @@ void EventHandlerImplementation::Poll(uword args) {
       }
     } else {
       handler->HandleTimeout();
-      handler->HandleEvents(pollfds, pollfds_size, result);
+      handler->HandleEvents(events, result);
     }
-    free(pollfds);
   }
 }
 
