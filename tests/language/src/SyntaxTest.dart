@@ -229,8 +229,14 @@ main() {
     print(null is void); /// 62: compile-time error
     new B();
 
+    new Bad();
+
   } catch (var ex) {
     // Swallowing exceptions. Any error should be a compile-time error
     // which kills the current isolate.
   }
+}
+
+class Bad {
+  factory Bad<Bad(String type) { return null; } /// 63: compile-time error
 }
