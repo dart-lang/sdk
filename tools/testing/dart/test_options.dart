@@ -373,8 +373,9 @@ is 'dart file.dart' and you specify special command
           pattern = ".*";
         }
         if (selectorMap.containsKey(suite)) {
-          print("Warning: selector '$suite/$pattern' overrides " +
-                "previous selector for suite '$suite'");
+          print("Error: '$suite/$pattern'.  Only one test selection" +
+                " pattern is allowed to start with '$suite/'");
+          exit(1);
         }
         selectorMap[suite] = new RegExp(pattern);
       }
