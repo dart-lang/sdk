@@ -878,15 +878,19 @@ class System(object):
               TYPE=info.type_name,
               PARAMS=info.ParametersImplementationDeclaration())
 
-  def _GenerateLibFile(self, lib_template, lib_file_path, file_paths):
-    """Generates a lib file from a template and a list of files."""
+  def _GenerateLibFile(self, lib_template, lib_file_path, file_paths,
+                       **template_args):
+    """Generates a lib file from a template and a list of files.
+
+    Additional keyword arguments are passed to the template.
+    """
     # Load template.
     template = self._templates.Load(lib_template)
     # Generate the .lib file.
     lib_file_contents = self._emitters.FileEmitter(lib_file_path)
 
     # Emit the list of #source directives.
-    list_emitter = lib_file_contents.Emit(template)
+    list_emitter = lib_file_contents.Emit(template, **template_args)
     lib_file_dir = os.path.dirname(lib_file_path)
     for path in sorted(file_paths):
       relpath = os.path.relpath(path, lib_file_dir)
@@ -2110,30 +2114,18 @@ class NativeImplementationSystem(System):
     auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
 
     # Generate dom_public.dart.
-    dom_public_path = os.path.join(self._output_dir, 'dom_public.dart')
-
-    dom_public_imports_emitter = emitter.Emitter()
-    for file in self._dom_public_files:
-        path = os.path.relpath(file, os.path.dirname(dom_public_path))
-        dom_public_imports_emitter.Emit('#source("$PATH");\n', PATH=path)
-
-    dom_public_emitter = self._emitters.FileEmitter(dom_public_path)
-    dom_public_emitter.Emit(self._templates.Load('dom_public.darttemplate'),
-        AUXILIARY_DIR=auxiliary_dir,
-        SOURCES=dom_public_imports_emitter.Fragments())
+    self._GenerateLibFile(
+        'dom_public.darttemplate',
+        os.path.join(self._output_dir, 'dom_public.dart'),
+        self._dom_public_files,
+        AUXILIARY_DIR=auxiliary_dir);
 
     # Generate dom_impl.dart.
-    dom_impl_path = os.path.join(self._output_dir, 'dom_impl.dart')
-
-    dom_impl_imports_emitter = emitter.Emitter()
-    for file in self._dom_impl_files:
-        path = os.path.relpath(file, os.path.dirname(dom_impl_path))
-        dom_impl_imports_emitter.Emit('#source("$PATH");\n', PATH=path)
-
-    dom_impl_emitter = self._emitters.FileEmitter(dom_impl_path)
-    dom_impl_emitter.Emit(self._templates.Load('dom_impl.darttemplate'),
-        AUXILIARY_DIR=auxiliary_dir,
-        SOURCES=dom_impl_imports_emitter.Fragments())
+    self._GenerateLibFile(
+        'dom_impl.darttemplate',
+        os.path.join(self._output_dir, 'dom_impl.dart'),
+        self._dom_impl_files,
+        AUXILIARY_DIR=auxiliary_dir);
 
   def Finish(self):
     pass
