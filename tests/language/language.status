@@ -53,10 +53,6 @@ TypeVariableBoundsTest/06: Fail
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 
-# Issue 1350.
-StringEscape1NegativeTest: Fail
-StringEscape4NegativeTest: Fail
-
 SuperFirstConstructorTest: Fail # Issue 1372.
 
 # Issue 1427
@@ -238,13 +234,13 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 # This set of four test components (frog, frogsh, frogium, and webdriver) all
 # consume frog output, so if frog is generating the incorrect code, chances are
-# it will fail on all of these components. 
+# it will fail on all of these components.
 #
 # Further explanation:
 # frog: frog compiler, run using the VM
 # frogsh: self-hosted frog compiler
 # frogium: Dart code compiled with frogsh running under DumpRenderTree
-# webdriver: Dart code compiled with frogsh running on an actual browser 
+# webdriver: Dart code compiled with frogsh running on an actual browser
 # (Chrome, IE, Firefox, Safari, etc). If a test is only failing on a particular
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.
