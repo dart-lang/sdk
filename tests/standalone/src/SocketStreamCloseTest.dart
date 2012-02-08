@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -240,14 +240,12 @@ class SocketCloseServer extends Isolate {
     }
 
     waitForResult(Timer timer) {
-      // Make sure all iterations have been run. For mode 0 and 1 the
-      // client just closes the socket and after the last iteration
-      // signals the server. The server might now be finished just
-      // because iterations have reached the limit as this number is
-      // incremented just after accept. In that case wait for the last
-      // close event.
-      if (_iterations == ITERATIONS &&
-          (_mode > 1 || _closeEvents == ITERATIONS)) {
+      // Make sure all iterations have been run. In multiple of these
+      // scenarios it is possible to get the SERVERSHUTDOWN message
+      // before we have received the last close event on the
+      // server. We therefore always wait for the correct number of
+      // close events.
+      if (_iterations == ITERATIONS && _closeEvents == ITERATIONS) {
         switch (_mode) {
           case 0:
             Expect.equals(0, _dataEvents);
