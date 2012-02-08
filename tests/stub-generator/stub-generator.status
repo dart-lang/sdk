@@ -28,6 +28,3 @@ prefix stub-generator
 
 [ $component == frog || $component == frogsh ||  $component == leg || $component == frogium ]
 *: Skip
-
-[ $component == dartc && $mode == release ]
-*: Skip

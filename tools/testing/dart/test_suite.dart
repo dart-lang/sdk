@@ -448,11 +448,9 @@ class StandardTestSuite implements TestSuite {
       switch (component) {
         case 'chromium':
           compilerArgs.addAll(['--work', tempDir.path]);
-          if (configuration['mode'] ==  'release') {
-            compilerArgs.add('--optimize');
-          }
           compilerArgs.addAll(vmOptions);
           compilerArgs.add('--ignore-unrecognized-flags');
+          // TODO(zundel): remove assumption of generated code from dartc
           compilerArgs.add('--out');
           compilerArgs.add(compiledDartWrapperFilename);
           compilerArgs.add(dartWrapperFilename);
@@ -1009,11 +1007,6 @@ class TestUtils {
       args.add("--verbose");
       args.add("--enable_leg");
       args.add("--leg_only");
-    }
-    if (configuration["component"] == "dartc") {
-      if (configuration["mode"] == "release") {
-        args.add("--optimize");
-      }
     }
     return args;
   }

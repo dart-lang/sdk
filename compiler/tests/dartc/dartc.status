@@ -49,5 +49,3 @@ corelib/SharedTests: Skip
 [ $component == webdriver ]
 *: Skip
 
-[ $component == dartc && $mode == release ]
-*: Skip

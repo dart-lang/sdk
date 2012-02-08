@@ -57,5 +57,3 @@ PromiseBasedTest: Skip
 [ $arch == arm ]
 *: Skip
 
-[ $component == dartc && $mode == release ]
-*: Skip

@@ -15,12 +15,6 @@ StringSplitRegExpTest: Fail    # Issue 429
 [ $component == dartc || $component == chromium ]
 *VMTest: Skip
 
-
-# Problems specific to dartc optimized mode.
-[ ($component == dartc || $component == chromium) && $mode == release ]
-CoreRuntimeTypesTest: Fail
-
-
 [ $component == frog || $component == frogsh || $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
 *VMTest: Skip
@@ -61,5 +55,3 @@ FuturesTest: Fail
 [ $arch == arm ]
 *: Skip
 
-[ $component == dartc && $mode == release ]
-*: Skip
