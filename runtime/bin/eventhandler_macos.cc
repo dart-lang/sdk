@@ -59,7 +59,7 @@ static void RemoveFromKqueue(intptr_t kqueue_fd_, SocketData* sd) {
     sd->set_write_tracked_by_kqueue(false);
   }
   if (changes > 0) {
-    ASSERT(changes < kMaxChanges);
+    ASSERT(changes <= kMaxChanges);
     int status =
       TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
     if (status == -1) {
@@ -102,7 +102,7 @@ static void UpdateKqueue(intptr_t kqueue_fd_, SocketData* sd) {
     }
   }
   if (changes > 0) {
-    ASSERT(changes < kMaxChanges);
+    ASSERT(changes <= kMaxChanges);
     int status =
       TEMP_FAILURE_RETRY(kevent(kqueue_fd_, events, changes, NULL, 0, NULL));
     if (status == -1) {
