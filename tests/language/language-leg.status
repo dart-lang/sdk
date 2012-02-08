@@ -62,7 +62,6 @@ ConstructorReturnNegativeTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
-ConstructorTest: Fail
 ContextArgsWithDefaultsTest: Fail
 ContextTest: Crash # NPE in Types.isSubtype.
 ContinueTest: Fail
@@ -99,10 +98,8 @@ Factory4Test: Fail
 FactoryImplementationTest: Fail
 FactoryTest: Fail
 FannkuchTest: Fail
-FauxverrideTest/01: Fail
-FauxverrideTest/02: Fail
-FauxverrideTest/04: Fail
-FauxverrideTest/none: Fail
+FauxverrideTest/03: Fail
+FauxverrideTest/05: Fail
 Field1NegativeTest: Fail
 Field2NegativeTest: Fail
 Field4NegativeTest: Fail
@@ -112,9 +109,6 @@ Field6aNegativeTest: Fail
 Field7NegativeTest: Fail
 Field7aNegativeTest: Fail
 FieldMethodTest: Fail
-FieldOverrideTest/01: Fail
-FieldOverrideTest/none: Fail
-FieldTest: Fail
 FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
 For2Test: Fail
@@ -149,7 +143,6 @@ ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
 ImportCoreImplNoPrefixTest: Fail
 ImportCoreNoPrefixTest: Fail
-InlineGetterTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
 InstanceCompoundAssignmentOperatorTest: Fail
@@ -182,7 +175,6 @@ ListTest: Fail
 LocalFunction2Test: Fail
 LocalFunction3Test: Fail
 LocalFunctionTest: Fail
-ManyCallsTest: Fail
 ManyGenericInstanceofTest: Fail
 MapLiteral2Test: Fail
 MapLiteral3Test: Fail
@@ -194,8 +186,6 @@ MethodBindingTest: Fail
 MethodInvocationTest: Fail
 MethodNameTest: Fail
 MethodOverrideTest: Fail
-MultiPass2Test: Fail
-MultiPassTest: Fail
 NamedConstructorTest: Fail
 NamedParameters2Test: Fail
 NamedParameters3Test: Fail
@@ -236,9 +226,10 @@ OverrideFieldMethod3NegativeTest: Fail
 OverrideFieldMethod4NegativeTest: Fail
 OverrideFieldMethod5NegativeTest: Fail
 OverrideFieldMethod6NegativeTest: Fail
-OverrideFieldTest/02: Fail
-OverrideFieldTest/03: Fail
-OverrideFieldTest/none: Fail
+OverrideFieldTest/01: Fail
+OverrideFieldTest/04: Fail
+OverrideMethodWithFieldTest/01: Fail
+OverrideMethodWithFieldTest/04: Fail
 OverrideMethodWithFieldTest/none: Fail
 Param2Test: Fail
 ParameterInitializerTest: Fail
@@ -253,7 +244,6 @@ Prefix20NegativeTest: Fail
 Prefix21Test: Fail
 Prefix22Test: Fail
 Prefix23NegativeTest: Fail
-Private2Test: Fail
 Private3Test: Fail
 PrivateMember3NegativeTest: Crash # NPE in TypeCheckerVisitor.visitSend.
 PrivateMemberTest: Fail
@@ -285,7 +275,6 @@ SavannahTest: Fail
 ScopeNegativeTest: Fail
 Script1NegativeTest: Fail
 ScriptNegativeTest: Fail
-Setter0Test: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
@@ -311,7 +300,6 @@ StringInterpolationTest/none: Fail
 StringJoinTest: Fail
 StringTest: Fail
 SuperAllNamedConstructorTest: Fail
-SuperCallTest: Fail
 SuperFieldTest: Fail
 SuperFirstConstructorTest: Fail
 SuperImplicitClosureTest: Fail
@@ -324,7 +312,6 @@ SwitchLabelTest: Fail
 SwitchScopeTest: Fail
 SwitchTest: Fail
 SyntaxTest/none: Fail
-ThirdTest: Fail # Issue 1511
 Throw1Test: Fail
 Throw2Test: Fail
 Throw3Test: Fail
@@ -356,7 +343,6 @@ TypeVariableBoundsTest/10: Fail
 TypeVariableBoundsTest/none: Fail
 TypeVariableScopeTest/none: Fail
 TypedMessageTest: Fail
-UnboundGetterTest: Fail
 WhileTest: Fail
 
 [ $component == leg && $mode == debug]
