@@ -1028,17 +1028,6 @@ class WrappingImplementationSystem(System):
         templates, database, emitters, output_dir)
     self._dart_wrapping_file_paths = []
 
-    js_file_name = os.path.join(output_dir, 'wrapping_dom.js')
-    code = self._emitters.FileEmitter(js_file_name)
-    template = self._templates.Load('wrapping_dom.js')
-    (self._wrapping_js_natives,
-     self._wrapping_map) = code.Emit(template)
-
-    _logger.info('Started Generating %s' % js_file_name)
-
-    # Set of (interface, name, kind), kind is 'attribute' or 'operation'.
-    self._wrapping_externs = set()
-
 
   def InterfaceGenerator(self,
                          interface,
@@ -1054,9 +1043,7 @@ class WrappingImplementationSystem(System):
     dart_code = self._emitters.FileEmitter(dart_wrapping_file_path)
     dart_code.Emit(self._templates.Load('wrapping_impl.darttemplate'))
     return WrappingInterfaceGenerator(interface, super_interface_name,
-                                      dart_code, self._wrapping_js_natives,
-                                      self._wrapping_map,
-                                      self._wrapping_externs,
+                                      dart_code,
                                       self._BaseDefines(interface))
 
   def ProcessCallback(self, interface, info):
@@ -1075,53 +1062,13 @@ class WrappingImplementationSystem(System):
 
 
   def Finish(self):
-    self._GenerateJavaScriptExternsWrapping(self._database, self._output_dir)
+    pass
 
 
   def _FilePathForDartWrappingImpl(self, interface_name):
     """Returns the file path of the Dart wrapping implementation."""
     return os.path.join(self._output_dir, 'src', 'wrapping',
                         '_%sWrappingImplementation.dart' % interface_name)
-
-  def _GenerateJavaScriptExternsWrapping(self, database, output_dir):
-    """Generates a JavaScript externs file.
-
-    Generates an externs file that is consistent with generated JavaScript code
-    and Dart APIs for the wrapping implementation.
-    """
-    externs_file_name = os.path.join(output_dir, 'wrapping_dom_externs.js')
-    code = self._emitters.FileEmitter(externs_file_name)
-    _logger.info('Started generating %s' % externs_file_name)
-
-    template = self._templates.Load('wrapping_dom_externs.js')
-    namespace = 'dom_externs'
-    members = code.Emit(template, NAMESPACE=namespace)
-
-    # TODO: Filter out externs that are known to the JavaScript back-end.  Some
-    # of the known externs have useful declarations like @nosideeffects that
-    # might improve back-end analysis.
-
-    names = dict()  # maps name to (interface, kind)
-    for (interface, name, kind) in self._wrapping_externs:
-      if name not in _javascript_keywords:
-        if name not in names:
-          names[name] = set()
-        names[name].add((interface, kind))
-
-    for name in sorted(names.keys()):
-      # Simply export the property name.
-      extern = emitter.Format('$NAMESPACE.$NAME;',
-                              NAMESPACE=namespace, NAME=name)
-      members.EmitRaw(extern)
-      # Add a big comment of all the attributes and operations contributing to
-      # the export.
-      filler = ' ' * (40 - 2 - len(extern))  # '2' for 2 spaces before comment.
-      separator = filler + '  //'
-      for (interface, kind) in sorted(names[name]):
-        members.Emit('$SEP $KIND $INTERFACE.$NAME',
-                     NAME=name, INTERFACE=interface, KIND=kind, SEP=separator)
-        separator = ','
-      members.Emit('\n')
 
 # ------------------------------------------------------------------------------
 
@@ -1362,8 +1309,7 @@ class DummyInterfaceGenerator(object):
 class WrappingInterfaceGenerator(object):
   """Generates Dart and JS implementation for one DOM IDL interface."""
 
-  def __init__(self, interface, super_interface, dart_code, js_code, type_map,
-               externs, base_members):
+  def __init__(self, interface, super_interface, dart_code, base_members):
     """Generates Dart and JS code for the given interface.
 
     Args:
@@ -1375,19 +1321,12 @@ class WrappingInterfaceGenerator(object):
          this interface implements, if any.
       dart_code: an Emitter for the file containing the Dart implementation
           class.
-      js_code: an Emitter for the file containing JS code.
-      type_map: an Emitter for the map from tokens to wrapper factory.
-      externs: a set of (class, property, kind) externs.  kind is 'attribute' or
-          'operation'.
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
     """
     self._interface = interface
     self._super_interface = super_interface
     self._dart_code = dart_code
-    self._js_code = js_code
-    self._type_map = type_map
-    self._externs = externs
     self._base_members = base_members
     self._current_secondary_parent = None
 
@@ -1397,8 +1336,6 @@ class WrappingInterfaceGenerator(object):
     interface_name = interface.id
 
     self._class_name = self._ImplClassName(interface_name)
-    self._type_map.Emit('  "$INTERFACE": native_$(CLASS)_create_$(CLASS),\n',
-                        INTERFACE=interface_name, CLASS=self._class_name)
 
     base = self._BaseClassName(interface)
 
@@ -1477,18 +1414,6 @@ class WrappingInterfaceGenerator(object):
         '  $TYPE get $NAME() { return $METHOD(this); }\n'
         '  static $TYPE $METHOD(var _this) native;\n',
         NAME=attr.id, TYPE=attr.type.id, METHOD=method_name)
-    if (self._interface.id, attr.id) not in _custom_getters:
-      self._js_code.Emit(
-          '\n'
-          'function native_$(CLASS)_$(METHOD)(_this) {\n'
-          '  try {\n'
-          '    return __dom_wrap(_this.$dom.$NAME);\n'
-          '  } catch (e) {\n'
-          '    throw __dom_wrap_exception(e);\n'
-          '  }\n'
-          '}\n',
-          CLASS=self._class_name, NAME=attr.id, METHOD=method_name)
-      self._externs.add((self._interface.id, attr.id, 'attribute'))
 
   def _AddSetter(self, attr):
     # FIXME: See comment on getter.
@@ -1498,17 +1423,6 @@ class WrappingInterfaceGenerator(object):
         '  void set $NAME($TYPE value) { $METHOD(this, value); }\n'
         '  static void $METHOD(var _this, $TYPE value) native;\n',
         NAME=attr.id, TYPE=attr.type.id, METHOD=method_name)
-    self._js_code.Emit(
-        '\n'
-        'function native_$(CLASS)_$(METHOD)(_this, value) {\n'
-        '  try {\n'
-        '    _this.$dom.$NAME = __dom_unwrap(value);\n'
-        '  } catch (e) {\n'
-        '    throw __dom_wrap_exception(e);\n'
-        '  }\n'
-        '}\n',
-        CLASS=self._class_name, NAME=attr.id, METHOD=method_name)
-    self._externs.add((self._interface.id, attr.id, 'attribute'))
 
   def AddSecondaryAttribute(self, interface, getter, setter):
     self._SecondaryContext(interface)
@@ -1662,16 +1576,6 @@ class WrappingInterfaceGenerator(object):
         '  $TYPE operator[](int index) { return $METHOD(this, index); }\n'
         '  static $TYPE $METHOD(var _this, int index) native;\n',
         TYPE=element_type, METHOD=method_name)
-    self._js_code.Emit(
-        '\n'
-        'function native_$(CLASS)_$(METHOD)(_this, index) {\n'
-        '  try {\n'
-        '    return __dom_wrap(_this.$dom[index]);\n'
-        '  } catch (e) {\n'
-        '    throw __dom_wrap_exception(e);\n'
-        '  }\n'
-        '}\n',
-        CLASS=self._class_name, METHOD=method_name)
 
   def _HasNativeIndexSetter(self, interface):
     return 'HasCustomIndexSetter' in interface.ext_attrs
@@ -1685,16 +1589,6 @@ class WrappingInterfaceGenerator(object):
         '  }\n'
         '  static $METHOD(_this, index, value) native;\n',
         TYPE=element_type, METHOD=method_name)
-    self._js_code.Emit(
-        '\n'
-        'function native_$(CLASS)_$(METHOD)(_this, index, value) {\n'
-        '  try {\n'
-        '    return _this.$dom[index] = __dom_unwrap(value);\n'
-        '  } catch (e) {\n'
-        '    throw __dom_wrap_exception(e);\n'
-        '  }\n'
-        '}\n',
-        CLASS=self._class_name, METHOD=method_name)
 
   def AddOperation(self, info):
     """
@@ -1718,7 +1612,6 @@ class WrappingInterfaceGenerator(object):
     fallthrough = self.GenerateDispatch(body, info, '    ', 0, overloads)
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
-    self._externs.add((self._interface.id, info.js_name, 'operation'))
 
   def GenerateSingleOperation(self,  emitter, info, indent, operation):
     """Generates a call to a single operation.
@@ -1766,48 +1659,6 @@ class WrappingInterfaceGenerator(object):
                                NAME=native_name,
                                TYPE=info.type_name,
                                PARAMS=', '.join(['receiver'] + arg_names) )
-
-    if (self._interface.id, info.name) not in _custom_methods:
-      alternates = _alternate_methods.get( (self._interface.id, info.name) )
-      if alternates:
-        (js_name_1, js_name_2) = alternates
-        self._js_code.Emit(
-            '\n'
-            'function native_$(CLASS)_$(NATIVENAME)($PARAMS) {\n'
-            '  try {\n'
-            '    var _method = _this.$dom.$JSNAME1 || _this.$dom.$JSNAME2;\n'
-            '    return __dom_wrap(_method.call($ARGS));\n'
-            '  } catch (e) {\n'
-            '    throw __dom_wrap_exception(e);\n'
-            '  }\n'
-            '}\n',
-            CLASS=self._class_name,
-            NAME=info.name,
-            JSNAME1=js_name_1,
-            JSNAME2=js_name_2,
-            NATIVENAME=native_name,
-            PARAMS=', '.join(['_this'] + arg_names),
-            ARGS=', '.join(['_this.$dom'] + unwrap_args))
-      else:
-        if info.js_name in _javascript_keywords:
-          access = "['%s']" % info.js_name
-        else:
-          access = ".%s" % info.js_name
-        self._js_code.Emit(
-            '\n'
-            'function native_$(CLASS)_$(NATIVENAME)($PARAMS) {\n'
-            '  try {\n'
-            '    return __dom_wrap(_this.$dom$ACCESS($ARGS));\n'
-            '  } catch (e) {\n'
-            '    throw __dom_wrap_exception(e);\n'
-            '  }\n'
-            '}\n',
-            CLASS=self._class_name,
-            NAME=info.name,
-            ACCESS=access,
-            NATIVENAME=native_name,
-            PARAMS=', '.join(['_this'] + arg_names),
-            ARGS=', '.join(unwrap_args))
 
 
   def GenerateDispatch(self, emitter, info, indent, position, overloads):
