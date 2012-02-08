@@ -82,7 +82,6 @@ DynamicTest: Fail
 EmptyBlockCaseTest: Fail
 EmptyBodyMemberNegativeTest: Fail
 ExampleConstructorTest: Fail
-ExceptionIdentityTest: Fail
 ExceptionTest: Fail
 ExecuteFinally1Test: Fail
 ExecuteFinally2Test: Fail
@@ -140,7 +139,7 @@ GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail
 GetSetSyntaxTest/none: Fail
-GetterClosureExecutionOrderTest: Fail
+GetterClosureExecutionOrderTest: Crash
 GettersSettersTest: Fail
 GCTest: Fail
 IfTest: Fail
