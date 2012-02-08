@@ -488,7 +488,10 @@ ToStringAsFixedTest: Fail
 ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
 
-[ $component == webdriver && ($browser == ff || $browser == safari) ]
+# For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
+# other browsers don't, so they eventually timeout.
+# In any case, we shouldn't be relying on SyntaxError.
+[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
 Label2NegativeTest: Skip
 Label3NegativeTest: Skip
 Label5NegativeTest: Skip
