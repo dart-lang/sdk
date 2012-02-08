@@ -291,7 +291,7 @@ TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
 
 
-[ $component == frogsh || $component == webdriver || $component == frogium ]
+[ $component == frogsh || $component == frogium ]
 IntrinsifiedMethodsTest: Fail # Issue 1470
 ArithmeticTest: Fail # Issue 1470
 
