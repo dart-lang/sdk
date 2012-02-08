@@ -376,10 +376,16 @@ class DartGenerator(object):
 
     self._systems = []
 
+    # TODO(jmesserly): only create these if needed
     interface_system = InterfacesSystem(
         TemplateLoader(self._template_dir, ['dom/interface', 'dom', '']),
         self._database, self._emitters, self._output_dir)
     self._systems.append(interface_system)
+
+    html_interface_system = HtmlInterfacesSystem(
+        TemplateLoader(self._template_dir, ['html/interface', 'html', '']),
+        self._database, self._emitters, self._output_dir)
+    self._systems.append(html_interface_system)
 
     if 'native' in systems:
       native_system = NativeImplementationSystem(
@@ -417,6 +423,21 @@ class DartGenerator(object):
       frog_system._interface_system = interface_system
       self._systems.append(frog_system)
 
+    if 'htmlfrog' in systems:
+      html_system = HtmlFrogSystem(
+          TemplateLoader(self._template_dir, ['html/frog', 'html', '']),
+          self._database, self._emitters, self._output_dir)
+
+      html_system._interface_system = html_interface_system
+      self._systems.append(html_system)
+
+    if 'htmldartium' in systems:
+      html_system = HtmlDartiumSystem(
+          TemplateLoader(self._template_dir, ['html/dartium', 'html', '']),
+          self._database, self._emitters, self._output_dir)
+
+      html_system._interface_system = html_interface_system
+      self._systems.append(html_system)
 
     # Render all interfaces into Dart and save them in files.
     for interface in database.GetInterfaces():
@@ -483,10 +504,16 @@ class DartGenerator(object):
         generator.AddConstant(const)
 
     attributes = [attr for attr in interface.attributes
-                  if not self._OmitAttribute(interface, attr)]
+                  if not self._IsEventAttribute(interface, attr)]
     for (getter, setter) in  _PairUpAttributes(attributes):
       for generator in generators:
         generator.AddAttribute(getter, setter)
+
+    events = _PairUpAttributes([attr for attr in interface.attributes
+                  if self._IsEventAttribute(interface, attr)])
+    if events:
+      for generator in generators:
+        generator.AddEventAttributes(events)
 
     # The implementation should define an indexer if the interface directly
     # extends List.
@@ -542,7 +569,7 @@ class DartGenerator(object):
       generator.FinishInterface()
     return
 
-  def _OmitAttribute(self, interface, attr):
+  def _IsEventAttribute(self, interface, attr):
     # Remove EventListener attributes like 'onclick' when addEventListener
     # is available.
     if attr.type.id == 'EventListener':
@@ -982,6 +1009,56 @@ class InterfacesSystem(System):
 
 # ------------------------------------------------------------------------------
 
+class HtmlInterfacesSystem(System):
+
+  def __init__(self, templates, database, emitters, output_dir):
+    super(HtmlInterfacesSystem, self).__init__(
+        templates, database, emitters, output_dir)
+    self._dart_interface_file_paths = []
+
+  def InterfaceGenerator(self,
+                         interface,
+                         common_prefix,
+                         super_interface_name,
+                         source_filter):
+    """."""
+    interface_name = interface.id
+    dart_interface_file_path = self._FilePathForDartInterface(interface_name)
+
+    self._dart_interface_file_paths.append(dart_interface_file_path)
+
+    dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
+
+    template_file = 'interface_%s.darttemplate' % interface_name
+    template = self._templates.TryLoad(template_file)
+    if not template:
+      template = self._templates.Load('interface.darttemplate')
+
+    return HtmlDartInterfaceGenerator(
+        interface, dart_interface_code,
+        template,
+        common_prefix, super_interface_name,
+        source_filter)
+
+  def ProcessCallback(self, interface, info):
+    """Generates a typedef for the callback interface."""
+    interface_name = interface.id
+    file_path = self._FilePathForDartInterface(interface_name)
+    self._ProcessCallback(interface, info, file_path)
+
+  def GenerateLibraries(self, lib_dir):
+    pass
+
+
+  def _FilePathForDartInterface(self, interface_name):
+    """Returns the file path of the Dart interface definition."""
+    # TODO(jmesserly): is this the right path
+    return os.path.join(self._output_dir, 'html', 'interface',
+                        '%s.dart' % interface_name)
+
+
+# ------------------------------------------------------------------------------
+
 class DummyImplementationSystem(System):
   """Generates a dummy implementation for use by the editor analysis.
 
@@ -1094,14 +1171,8 @@ class FrogSystem(System):
       template = self._templates.Load('frog_impl.darttemplate')
 
     dart_code = self._emitters.FileEmitter(dart_frog_file_path)
-    # dart_code.Emit(self._templates.Load('frog_impl.darttemplate'))
     return FrogInterfaceGenerator(self, interface, template,
                                   super_interface_name, dart_code)
-
-  #def ProcessCallback(self, interface, info):
-  #  """Generates a typedef for the callback interface."""
-  #  file_path = self._FilePathForFrogImpl(interface.id)
-  #  self._ProcessCallback(interface, info, file_path)
 
   def GenerateLibraries(self, lib_dir):
     self._GenerateLibFile(
@@ -1117,6 +1188,51 @@ class FrogSystem(System):
   def _FilePathForFrogImpl(self, interface_name):
     """Returns the file path of the Frog implementation."""
     return os.path.join(self._output_dir, 'src', 'frog',
+                        '%s.dart' % interface_name)
+
+
+# ------------------------------------------------------------------------------
+
+class HtmlFrogSystem(System):
+
+  def __init__(self, templates, database, emitters, output_dir):
+    super(HtmlFrogSystem, self).__init__(
+        templates, database, emitters, output_dir)
+    self._dart_frog_file_paths = []
+
+  def InterfaceGenerator(self,
+                         interface,
+                         common_prefix,
+                         super_interface_name,
+                         source_filter):
+    """."""
+    dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
+    self._dart_frog_file_paths.append(dart_frog_file_path)
+
+    template_file = 'impl_%s.darttemplate' % interface.id
+    template = self._templates.TryLoad(template_file)
+    if not template:
+      template = self._templates.Load('frog_impl.darttemplate')
+
+    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
+    return HtmlFrogInterfaceGenerator(self, interface, template,
+                                  super_interface_name, dart_code)
+
+  def GenerateLibraries(self, lib_dir):
+    self._GenerateLibFile(
+        'html_frog.darttemplate',
+        os.path.join(lib_dir, 'html_frog.dart'),
+        (self._interface_system._dart_interface_file_paths +
+         self._interface_system._dart_callback_file_paths +
+         self._dart_frog_file_paths))
+
+  def Finish(self):
+    pass
+
+  def _FilePathForFrogImpl(self, interface_name):
+    """Returns the file path of the Frog implementation."""
+    # TODO(jmesserly): is this the right path
+    return os.path.join(self._output_dir, 'html', 'frog',
                         '%s.dart' % interface_name)
 
 # ------------------------------------------------------------------------------
@@ -1261,12 +1377,38 @@ class DartInterfaceGenerator(object):
   def AddSecondaryOperation(self, interface, attr):
     pass
 
+  def AddEventAttributes(self, event_attrs):
+    pass
 
 # Given a sorted sequence of type identifiers, return an appropriate type
 # name
 def TypeName(typeIds, interface):
   # Dynamically type this field for now.
   return 'var'
+
+# ------------------------------------------------------------------------------
+
+# TODO(jmesserly): inheritance is probably not the right way to factor this long
+# term, but it makes merging better for now.
+class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
+  """Generates Dart Interface definition for one DOM IDL interface."""
+
+  def __init__(self, interface, emitter, template,
+               common_prefix, super_interface, source_filter):
+    super(HtmlDartInterfaceGenerator, self).__init__(interface,
+      emitter, template, common_prefix, super_interface, source_filter)
+
+  def AddEventAttributes(self, event_attrs):
+    events_interface = self._interface.id + 'Events'
+    self._members_emitter.Emit('\n  $TYPE get on();\n',
+                               TYPE=events_interface)
+    events_members = self._emitter.Emit(
+        '\ninterface $INTERFACE {\n$!MEMBERS}\n',
+        INTERFACE=events_interface)
+
+    for getter, setter in event_attrs:
+      event = getter or setter
+      events_members.Emit('\n  EventListenerList get $NAME();\n', NAME=event.id)
 
 
 # ------------------------------------------------------------------------------
@@ -1302,6 +1444,9 @@ class DummyInterfaceGenerator(object):
     pass
 
   def AddOperation(self, info):
+    pass
+
+  def AddEventAttributes(self, event_attrs):
     pass
 
 # ------------------------------------------------------------------------------
@@ -1431,6 +1576,9 @@ class WrappingInterfaceGenerator(object):
   def AddSecondaryOperation(self, interface, info):
     self._SecondaryContext(interface)
     self.AddOperation(info)
+
+  def AddEventAttributes(self, event_attrs):
+    pass
 
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
@@ -1929,6 +2077,9 @@ class FrogInterfaceGenerator(object):
     self._SecondaryContext(interface)
     self.AddOperation(info)
 
+  def AddEventAttributes(self, event_attrs):
+    pass
+
   def _SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
       self._current_secondary_parent = interface
@@ -2005,6 +2156,42 @@ class FrogInterfaceGenerator(object):
         NAME=info.name,
         PARAMS=info.ParametersImplementationDeclaration(
             lambda type_name: self._NarrowInputType(type_name)))
+
+
+# ------------------------------------------------------------------------------
+
+# TODO(jmesserly): inheritance is probably not the right way to factor this long
+# term, but it makes merging better for now.
+class HtmlFrogInterfaceGenerator(FrogInterfaceGenerator):
+  """Generates a Frog class for the dart:html library from a DOM IDL
+  interface.
+  """
+
+  def __init__(self, system, interface, template, super_interface, dart_code):
+    super(HtmlFrogInterfaceGenerator, self).__init__(
+        system, interface, template, super_interface, dart_code)
+
+  def AddEventAttributes(self, event_attrs):
+    events_class = self._interface.id + 'EventsImpl'
+    events_interface = self._interface.id + 'Events'
+    self._members_emitter.Emit('\n  $TYPE get on() =>\n    new $TYPE(this);\n',
+                               TYPE=events_class)
+
+    events_members = self._dart_code.Emit(
+        '\n'
+        'class $CLASSNAME extends EventsImplementation '
+            'implements $INTERFACE {\n'
+        '  $CLASSNAME(_ptr) : super._wrap(_ptr);\n'
+        '$!MEMBERS}\n',
+        CLASSNAME=events_class,
+        INTERFACE=events_interface)
+
+    for getter, setter in event_attrs:
+      event = getter or setter
+      events_members.Emit(
+          "\n"
+          "EventListenerList get $NAME() => _get('$NAME');\n",
+          NAME=event.id)
 
 
 # ------------------------------------------------------------------------------

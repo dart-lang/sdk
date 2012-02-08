@@ -90,8 +90,9 @@ def main():
   parser = optparse.OptionParser()
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
-                    default='frog,dummy',
-                    help='Systems to generate (frog, native, dummy)')
+                    default='frog,dummy,wrapping,htmlfrog',
+                    help='Systems to generate (frog, native, dummy, '
+                         'htmlfrog)')
   parser.add_option('--output-dir', dest='output_dir',
                     action='store', type='string',
                     default=None,
