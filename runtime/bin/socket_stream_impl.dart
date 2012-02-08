@@ -19,7 +19,13 @@ class _SocketInputStream implements SocketInputStream {
     }
     ByteArray buffer = new ByteArray(bytesToRead);
     int bytesRead = _socket.readList(buffer, 0, bytesToRead);
-    if (bytesRead < bytesToRead) {
+    if (bytesRead == 0) {
+      // On MacOS when reading from a tty Ctrl-D will result in one
+      // byte reported as available. Attempting to read it out will
+      // result in zero bytes read. When that happens there is no data
+      // which is indicated by a null return value.
+      return null;
+    } else if (bytesRead < bytesToRead) {
       ByteArray newBuffer = new ByteArray(bytesRead);
       newBuffer.setRange(0, bytesRead, buffer);
       return newBuffer;
