@@ -11,11 +11,8 @@ import logging.config
 import optparse
 import os
 import shutil
+import subprocess
 import sys
-
-DOM_LIBRARY = 'dom.dart'
-DOM_DEFAULT_LIBRARY = 'dom_dummy.dart'
-DEFAULT_SYSTEM = 'dummy'
 
 _logger = logging.getLogger('dartdomgenerator')
 
@@ -106,11 +103,19 @@ def main():
   logging.config.fileConfig(os.path.join(current_dir, 'logging.conf'))
   GenerateDOM(systems, output_dir)
 
-  if DEFAULT_SYSTEM in systems:
-      # Install default DOM library.
-      default = os.path.join(output_dir, DOM_DEFAULT_LIBRARY)
-      target = os.path.join(output_dir, DOM_LIBRARY)
-      shutil.copyfile(default, target)
+  # Copy Frog DOM to frog/dom_frog.dart.
+  if 'frog' in systems:
+    _logger.info('Copy dom_frog to frog/')
+    subprocess.call(['cd .. ; ../tools/copy_dart.py frog dom_frog.dart'],
+                    shell=True);
+
+  # Copy dummy DOM where dartc build expects it.
+  if 'dummy' in systems:
+    # TODO(sra): Make other tools pick this up directly, or do a copy_dart into
+    # a specific directory.
+    source = os.path.join(output_dir, 'dom_dummy.dart')
+    target = os.path.join(output_dir, 'dom.dart')
+    shutil.copyfile(source, target)
 
 if __name__ == '__main__':
   sys.exit(main())
