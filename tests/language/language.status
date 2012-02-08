@@ -289,8 +289,8 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 # Further explanation:
 # frog: frog compiler, run using the VM
 # frogsh: self-hosted frog compiler
-# frogium: Dart code compiled with frogsh running under DumpRenderTree
-# webdriver: Dart code compiled with frogsh running on an actual browser
+# frogium: Dart code compiled with frog VM running under DumpRenderTree
+# webdriver: Dart code compiled with frog VM running on an actual browser
 # (Chrome, IE, Firefox, Safari, etc). If a test is only failing on a particular
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.

@@ -441,6 +441,7 @@ class StandardTestSuite implements TestSuite {
           '$filePrefix$dartDir/client/testing/unittest/test_controller.js',
           scriptType,
           filePrefix + scriptPath));
+      htmlTest.flushSync();
       htmlTest.closeSync();
 
       List<String> compilerArgs = TestUtils.standardOptions(configuration);
