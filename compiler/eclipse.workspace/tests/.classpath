@@ -10,7 +10,5 @@
 	<classpathentry kind="var" path="DART_TRUNK/third_party/junit/v4_8_2/junit.jar"/>
 	<classpathentry kind="var" path="DART_TRUNK/third_party/guava/r09/guava-r09.jar"/>
 	<classpathentry kind="var" path="DART_TRUNK/third_party/rhino/1_7R3/js.jar" sourcepath="/DART_TRUNK/third_party/rhino/1_7R3/rhino1_7R3-sources.zip"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/closure-compiler"/>
-	<classpathentry kind="var" path="DART_TRUNK/third_party/closure_compiler_src/lib/protobuf-java.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>

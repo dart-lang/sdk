@@ -13,7 +13,5 @@
 	<classpathentry kind="var" path="DART_TRUNK/third_party/json/r2_20080312/json.jar"/>
 	<classpathentry kind="var" path="DART_TRUNK/third_party/junit/v4_8_2/junit.jar" sourcepath="/DART_TRUNK/third_party/junit/v4_8_2/junit-src.jar"/>
 	<classpathentry kind="var" path="DART_TRUNK/third_party/rhino/1_7R3/js.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/closure-compiler"/>
-	<classpathentry kind="lib" path="/closure-compiler/build/compiler.jar"/>
 	<classpathentry kind="output" path="output"/>
 </classpath>
