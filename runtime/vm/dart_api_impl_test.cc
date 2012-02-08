@@ -361,7 +361,7 @@ TEST_CASE(IntegerValues) {
 
 
 TEST_CASE(IntegerFitsIntoInt64) {
-  Dart_Handle max = Dart_NewInteger(DART_INT64_C(0x7FFFFFFFFFFFFFFF));
+  Dart_Handle max = Dart_NewInteger(kMaxInt64);
   EXPECT(Dart_IsInteger(max));
   bool fits = false;
   Dart_Handle result = Dart_IntegerFitsIntoInt64(max, &fits);
@@ -375,7 +375,7 @@ TEST_CASE(IntegerFitsIntoInt64) {
   EXPECT_VALID(result);
   EXPECT(!fits);
 
-  Dart_Handle min = Dart_NewInteger(DART_INT64_C(-0x8000000000000000));
+  Dart_Handle min = Dart_NewInteger(kMaxInt64);
   EXPECT(Dart_IsInteger(min));
   fits = false;
   result = Dart_IntegerFitsIntoInt64(min, &fits);

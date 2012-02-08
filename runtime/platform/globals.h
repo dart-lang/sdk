@@ -130,11 +130,18 @@
 
 
 // The following macro works on both 32 and 64-bit platforms.
-// Usage: instead of writing 0x1234567890123456
+// Usage: instead of writing 0x1234567890123456ULL
 //      write DART_2PART_UINT64_C(0x12345678,90123456);
 #define DART_2PART_UINT64_C(a, b)                                              \
                  (((static_cast<uint64_t>(a) << 32) + 0x##b##u))
 
+// Integer constants.
+const int32_t kMinInt32 = 0x80000000;
+const int32_t kMaxInt32 = 0x7FFFFFFF;
+const uint32_t kMaxUint32 = 0xFFFFFFFF;
+const int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
+const int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
+const uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
 
 // Types for native machine words. Guaranteed to be able to hold pointers and
 // integers.

@@ -78,22 +78,18 @@ TEST_CASE(BigintInt64) {
   EXPECT_EQ(0, BigintOperations::Compare(big, big_test));
 
   const Bigint& one = Bigint::Handle(BigintOperations::NewFromInt64(1));
-  const int64_t kMaxValue64 =
-      static_cast<int64_t>(DART_2PART_UINT64_C(0x7FFFFFFF, FFFFFFFF));
-  const int64_t kMinValue64 =
-      static_cast<int64_t>(DART_2PART_UINT64_C(0x80000000, 00000000));
-  big = BigintOperations::NewFromInt64(kMinValue64);
+  big = BigintOperations::NewFromInt64(kMinInt64);
   EXPECT(BigintOperations::FitsIntoInt64(big));
   int64_t back = BigintOperations::ToInt64(big);
-  EXPECT_EQ(kMinValue64, back);
+  EXPECT_EQ(kMinInt64, back);
 
   big = BigintOperations::Subtract(big, one);
   EXPECT(!BigintOperations::FitsIntoInt64(big));
 
-  big = BigintOperations::NewFromInt64(kMaxValue64);
+  big = BigintOperations::NewFromInt64(kMaxInt64);
   EXPECT(BigintOperations::FitsIntoInt64(big));
   back = BigintOperations::ToInt64(big);
-  EXPECT_EQ(kMaxValue64, back);
+  EXPECT_EQ(kMaxInt64, back);
 
   big = BigintOperations::Add(big, one);
   EXPECT(!BigintOperations::FitsIntoInt64(big));
@@ -101,19 +97,16 @@ TEST_CASE(BigintInt64) {
 
 
 TEST_CASE(BigintUint64) {
-  const uint64_t kMax =
-      static_cast<uint64_t>(DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF));
-
   const Bigint& one = Bigint::Handle(BigintOperations::NewFromUint64(1));
   EXPECT(BigintOperations::FitsIntoInt64(one));
   EXPECT(BigintOperations::FitsIntoUint64(one));
 
-  Bigint& big = Bigint::Handle(BigintOperations::NewFromUint64(kMax));
+  Bigint& big = Bigint::Handle(BigintOperations::NewFromUint64(kMaxUint64));
   EXPECT(!BigintOperations::FitsIntoInt64(big));
   EXPECT(BigintOperations::FitsIntoUint64(big));
 
   uint64_t back = BigintOperations::ToUint64(big);
-  EXPECT_EQ(kMax, back);
+  EXPECT_EQ(kMaxUint64, back);
 
   big = BigintOperations::Add(big, one);
   EXPECT(!BigintOperations::FitsIntoInt64(big));

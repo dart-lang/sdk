@@ -222,11 +222,11 @@ TEST_CASE(Smi) {
   EXPECT(Smi::IsValid(-15));
   // Upper two bits must be either 00 or 11.
 #if defined(ARCH_IS_64_BIT)
-  EXPECT(!Smi::IsValid(0x7FFFFFFFFFFFFFFF));
+  EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
   EXPECT(Smi::IsValid(0xFFFFFFFFFFFFFFFF));
 #else
-  EXPECT(!Smi::IsValid(0x7FFFFFFF));
+  EXPECT(!Smi::IsValid(kMaxInt32));
   EXPECT(Smi::IsValid(0x3FFFFFFF));
   EXPECT(Smi::IsValid(0xFFFFFFFF));
 #endif
