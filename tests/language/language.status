@@ -275,11 +275,11 @@ TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
 
 
-[ $component == frogsh || $component == frogium ]
+[ $component == frogsh ]
 IntrinsifiedMethodsTest: Fail # Issue 1470
 ArithmeticTest: Fail # Issue 1470
 
-[ $component == frog ]
+[ $component == frog || $component == frogium ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 # This set of four test components (frog, frogsh, frogium, and webdriver) all
