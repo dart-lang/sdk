@@ -6,13 +6,13 @@ package com.google.dart.compiler.backend.dart;
 
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
+import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.ast.DartToSourceVisitor;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.backend.common.AbstractBackend;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.util.DefaultTextOutput;
 import com.google.dart.compiler.util.TextOutput;
@@ -25,12 +25,9 @@ import java.util.Collection;
 /**
  * A compiler backend that produces optimized Dart.
  */
-public class DartBackend extends AbstractBackend {
+public class DartBackend implements Backend {
 
   public static final String EXTENSION_DART = "opt.dart";
-  public static final String EXTENSION_DART_SRC_MAP = "opt.dart.map";
-
-
 
   private static void packageLibs(Collection<LibraryUnit> libraries,
                                   Writer w,
@@ -64,23 +61,11 @@ public class DartBackend extends AbstractBackend {
     // Generate Javascript output.
     TextOutput out = new DefaultTextOutput(false);
     DartToSourceVisitor srcGenerator = new DartToSourceVisitor(out);
-    // TODO(johnlenz): Determine if we want to make source maps
-    // optional.
-    srcGenerator.generateSourceMap(true);
     srcGenerator.accept(unit);
     Writer w = context.getArtifactWriter(src, "", EXTENSION_DART);
     boolean failed = true;
     try {
       w.write(out.toString());
-      failed = false;
-    } finally {
-      Closeables.close(w, failed);
-    }
-    // Write out the source map.
-    w = context.getArtifactWriter(src, "", EXTENSION_DART_SRC_MAP);
-    failed = true;
-    try {
-      srcGenerator.writeSourceMap(w, src.getName());
       failed = false;
     } finally {
       Closeables.close(w, failed);
@@ -110,10 +95,5 @@ public class DartBackend extends AbstractBackend {
   @Override
   public String getAppExtension() {
     return EXTENSION_DART;
-  }
-
-  @Override
-  public String getSourceMapExtension() {
-    return EXTENSION_DART_SRC_MAP;
   }
 }

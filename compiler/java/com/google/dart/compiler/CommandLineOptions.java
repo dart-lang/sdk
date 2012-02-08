@@ -103,17 +103,6 @@ public class CommandLineOptions {
         usage = "Disable incremental compilation")
     private boolean noincremental = false;
 
-    private boolean optimize = false;
-
-    /**
-     * Enables optimization of the generated javascript.
-     */
-    @Option(name = "--optimize", aliases = { "-optimize" },
-        usage = "Produce optimized code")
-    public void setOptimize(boolean optimize) {
-      this.optimize = optimize;
-    }
-
     @Option(name = "--out",
         usage = "Write generated JavaScript to a file")
     private File outputFilename = null;
@@ -240,13 +229,6 @@ public class CommandLineOptions {
     }
 
     /**
-     * Returns <code>true</code> if optimization is enabled.
-     */
-    public boolean shouldOptimize() {
-      return optimize;
-    }
-
-    /**
      * Returns <code>true</code> if the compiler should print it's help message.
      */
     public boolean showHelp() {
@@ -305,9 +287,6 @@ public class CommandLineOptions {
     @Option(name="--prof", usage = "Enable profiling")
     private boolean prof;
 
-    @Option(name = "--rhino", usage = "Use rhino as the javascript interpreter")
-    private boolean rhino = false;
-
     /**
      * @return <code>true</code> if the program should compile but not execute.
      */
@@ -322,14 +301,6 @@ public class CommandLineOptions {
     @Override
     public boolean shouldProfile() {
       return prof;
-    }
-
-    /**
-     * @return <code>true</code> if rhino should be used as the runtime (default is to invoke d8)
-     */
-    @Override
-    public boolean useRhino() {
-      return rhino;
     }
 
     /**

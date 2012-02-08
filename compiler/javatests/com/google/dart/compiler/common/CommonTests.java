@@ -16,12 +16,7 @@ public class CommonTests extends TestSetup {
 
   public static Test suite() {
     TestSuite suite = new TestSuite("Dart common test suite.");
-
-    // TODO(zundel): remove all tests related to code generation
-    // suite.addTestSuite(GenerateSourceMapTest.class);  // related to code generation
     suite.addTestSuite(LibrarySourceFileTest.class);
-    suite.addTestSuite(NameTest.class);
-    suite.addTestSuite(NameFactoryTest.class);
     return new CommonTests(suite);
   }
 }

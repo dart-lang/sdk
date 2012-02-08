@@ -60,3 +60,6 @@ FuturesTest: Fail
 
 [ $arch == arm ]
 *: Skip
+
+[ $component == dartc && $mode == release ]
+*: Skip

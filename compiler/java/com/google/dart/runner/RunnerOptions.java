@@ -13,11 +13,7 @@ public interface RunnerOptions {
 
   public boolean shouldCompileOnly();
 
-  public boolean shouldOptimize();
-
   public boolean typeErrorsAreFatal();
-
-  public boolean useRhino();
 
   public boolean verbose();
 }

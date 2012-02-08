@@ -9,15 +9,11 @@
     # TODO(iposva): Move shared gyp setup to a shared location.
     '../tools/gyp/xcode.gypi',
     # TODO(mmendez): Add the appropriate gypi includes here.
-    'closure_compiler_sources.gypi',
   ],
   'targets': [
     {
       'target_name': 'dartc',
       'type': 'none',
-      'dependencies': [
-        'closure_compiler',
-      ],
       'actions': [
         {
           'action_name': 'Build and test',
@@ -29,7 +25,6 @@
           'action' : [
             '../third_party/apache_ant/v1_7_1/bin/ant',
             '-Dbuild.dir=<(PRODUCT_DIR)/ant-out',
-            '-Dclosure_compiler.jar=<(PRODUCT_DIR)/closure_out/compiler.jar',
             'clean',
             'dist',
           ],
@@ -38,30 +33,9 @@
       ],
     },
     {
-      'target_name': 'closure_compiler',
+      # GYP won't generate a catch-all target if there's only one target.
+      'target_name': 'dummy',
       'type': 'none',
-      'dependencies': [],
-      'actions': [
-        {
-          'action_name': 'build_closure_compiler',
-          'inputs': [
-            '<@(closure_compiler_src_sources)',
-            '<@(closure_compiler_src_resources)',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/closure_out/compiler.jar'  
-          ],
-          'action': [
-            '../third_party/apache_ant/v1_7_1/bin/ant',
-            '-f',
-            '../third_party/closure_compiler_src/build.xml',
-            '-Dclosure.build.dir=<(PRODUCT_DIR)/closure_out',
-            'clean',
-            'jar',
-          ],
-          'message': 'Building closure compiler'
-        },
-      ]
-    }
+    },
   ],
 }

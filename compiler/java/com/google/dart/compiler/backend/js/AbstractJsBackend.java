@@ -13,6 +13,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Multiset;
 import com.google.common.io.Closeables;
+import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
@@ -21,12 +22,11 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.backend.common.AbstractBackend;
 import com.google.dart.compiler.backend.js.ast.JsBlock;
 import com.google.dart.compiler.backend.js.ast.JsProgram;
 import com.google.dart.compiler.metrics.DartEventType;
-import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
+import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.MethodElement;
@@ -52,12 +52,10 @@ import java.util.Set;
  * Methods common to the ClosureJsBackend and JavascriptBackend.
  * @author johnlenz@google.com (John Lenz)
  */
-public abstract class AbstractJsBackend extends AbstractBackend {
+public abstract class AbstractJsBackend implements Backend {
 
   public static final String EXTENSION_JS = "js";
   public static final String EXTENSION_APP_JS = "app.js";
-  public static final String EXTENSION_JS_SRC_MAP = "js.map";
-  public static final String EXTENSION_APP_JS_SRC_MAP = "app.js.map";
 
   private static final String ROOT_PART_NAME = "";
   private static final String STATICS_PART_NAME = "$statics$";
@@ -321,22 +319,13 @@ public abstract class AbstractJsBackend extends AbstractBackend {
         Tracer.canTrace() ? Tracer.start(DartEventType.TRANSLATE_TO_JS, "unit",
             unit.getSourceName()) : null;
 
-    CompilerOptions options = context.getCompilerConfiguration().getCompilerOptions();
-    OptimizationStrategy optimizationStrategy;
-    if (shouldOptimize() && !options.disableTypeOptimizations()) {
-      optimizationStrategy = new BasicOptimizationStrategy(unit, typeProvider);
-    } else {
-      optimizationStrategy = new NoOptimizationStrategy(unit, typeProvider);
-    }
-
      try {
       TraceEvent normalizeEvent =
           Tracer.canTrace() ? Tracer.start(DartEventType.JS_NORMALIZE, "unit",
               unit.getSourceName()) : null;
       try {
         // Normalize front-end AST for back-end consumption.
-        unit = (DartUnit) (new Normalizer()).exec(unit, typeProvider,
-            optimizationStrategy).getNormalizedNode();
+        unit = (DartUnit) (new Normalizer()).exec(unit, typeProvider).getNormalizedNode();
       } finally {
         Tracer.end(normalizeEvent);
       }
@@ -377,8 +366,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
 
             // Generate the Javascript AST.
             GenerateJavascriptAST generator =
-                new GenerateJavascriptAST(unit, typeProvider, context, optimizationStrategy,
-                                          generateClosureCompatibleCode());
+                new GenerateJavascriptAST(unit, typeProvider, context);
             generator.translateNode(translationContext, node, staticInitBlock);
 
             TraceEvent namerEvent =
@@ -405,8 +393,7 @@ public abstract class AbstractJsBackend extends AbstractBackend {
             try {
               nonClassTranslationContext = TranslationContext.createContext(unit,
                   nonClassStatements, mangler, null);
-              nonClassGenerator = new GenerateJavascriptAST(unit, typeProvider, context,
-                  optimizationStrategy, generateClosureCompatibleCode());
+              nonClassGenerator = new GenerateJavascriptAST(unit, typeProvider, context);
             } finally {
               Tracer.end(genInitEvent);
             }
@@ -515,9 +502,6 @@ public abstract class AbstractJsBackend extends AbstractBackend {
       try {
         srcGenerator = new JsSourceGenerationVisitor(out);
 
-        // TODO(johnlenz): Make source maps optional.
-        srcGenerator.generateSourceMap(true);
-
         srcGenerator.accept(globalBlock);
         w = context.getArtifactWriter(src, name, EXTENSION_JS);
         try {
@@ -529,39 +513,6 @@ public abstract class AbstractJsBackend extends AbstractBackend {
       } finally {
         Tracer.end(srcEvent);
       }
-
-      /*
-       * Currently, out of date checks require that we write a JS file even if it is empty.
-       * However, we should not write a map file if it is.
-       */
-      if (!globalBlock.getStatements().isEmpty() && generateSourceMap(context)) {
-        TraceEvent sourcemapEvent =
-            Tracer.canTrace() ? Tracer.start(DartEventType.WRITE_SOURCE_MAP, "src", srcName,
-                "name", name) : null;
-        try {
-          // Write out the source map.
-          w = context.getArtifactWriter(src, name, EXTENSION_JS_SRC_MAP);
-          failed = true;
-          try {
-            srcGenerator.writeSourceMap(w, src.getName());
-            failed = false;
-          } finally {
-            Closeables.close(w, failed);
-          }
-        } finally {
-          Tracer.end(sourcemapEvent);
-        }
-      }
     }
-  }
-
-  protected abstract boolean shouldOptimize();
-
-  protected boolean generateClosureCompatibleCode() {
-    return false;
-  }
-
-  protected boolean generateSourceMap(DartCompilerContext context) {
-    return context.getCompilerConfiguration().getCompilerOptions().generateSourceMaps();
   }
 }

@@ -39,11 +39,6 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean shouldOptimize() {
-    return delegate.shouldOptimize();
-  }
-
-  @Override
   public CompilerMetrics getCompilerMetrics() {
     return delegate.getCompilerMetrics();
   }

@@ -32,11 +32,6 @@ public interface CompilerConfiguration {
   boolean developerModeChecks();
 
   /**
-   * Returns <code>true</code> if the compiler's output should be optimized.
-   */
-  boolean shouldOptimize();
-
-  /**
    * Returns the {@link CompilerMetrics} instance or <code>null</code> if metrics should not be
    * recorded.
    *

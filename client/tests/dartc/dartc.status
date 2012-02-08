@@ -21,3 +21,6 @@ tests/client/dom: Skip                  # These have known type errors.
 
 [ $component == vm ]
 *: Skip
+
+[ $mode == release ]
+*: Skip

@@ -22,12 +22,7 @@ import com.google.dart.compiler.Source;
 import com.google.dart.compiler.UnitTestBatchRunner;
 import com.google.dart.compiler.UnitTestBatchRunner.Invocation;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.compiler.backend.js.ClosureJsBackend;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
-import com.google.debugging.sourcemap.SourceMapConsumerFactory;
-import com.google.debugging.sourcemap.SourceMapParseException;
-import com.google.debugging.sourcemap.SourceMapSupplier;
-import com.google.debugging.sourcemap.SourceMapping;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -126,7 +121,7 @@ public class DartRunner {
     DefaultDartCompilerListener listener =
         new DefaultDartCompilerListener(stderr, options.printErrorFormat());
 
-    CompilationResult compiled;
+    String compiled;
     compiled = compileApp(app, imports, options, listener);
 
     if (listener.getErrorCount() != 0) {
@@ -152,7 +147,7 @@ public class DartRunner {
         }
       }
       try {
-        Files.write(compiled.js, outFile, Charset.defaultCharset());
+        Files.write(compiled, outFile, Charset.defaultCharset());
       } catch (IOException e) {
         throw new RunnerError(e);
       }
@@ -241,12 +236,12 @@ public class DartRunner {
                                       PrintStream stdout,
                                       PrintStream stderr)
       throws RunnerError {
-    CompilationResult compiled = compileApp(
+    String compiled = compileApp(
         app,  options, Collections.<LibrarySource>emptyList(), config, listener);
     runApp(compiled, app.getName(), options, dartArguments, stdout, stderr);
   }
 
-  private static void runApp(CompilationResult compiled,
+  private static void runApp(String compiled,
                              String sourceName,
                              DartRunnerOptions options,
                              String[] scriptArguments,
@@ -254,34 +249,13 @@ public class DartRunner {
                              PrintStream stderr)
       throws RunnerError {
 
-    if (options.useRhino()) {
-      new RhinoLauncher().execute(compiled.js, sourceName, scriptArguments, options, stdout, stderr);
-    } else {
-      new V8Launcher(compiled.mapping).execute(compiled.js, sourceName, scriptArguments, options,
-                                               stdout, stderr);
-    }
+    new V8Launcher().execute(compiled, sourceName, scriptArguments, options,
+                               stdout, stderr);
   }
 
-  private static class CompilationResult {
-    final SourceMapping mapping;
-    final String js;
-
-    public CompilationResult(String js, SourceMapping mapping) {
-      this.mapping = mapping;
-      this.js = js;
-    }
-  }
-
-  private static CompilationResult compileApp (LibrarySource app, List<LibrarySource> imports,
+  private static String compileApp (LibrarySource app, List<LibrarySource> imports,
       final DartRunnerOptions options, DartCompilerListener listener) throws RunnerError {
-    Backend backend;
-    if (options.shouldOptimize()) {
-      backend = new ClosureJsBackend(
-          options.developerModeChecks(),
-          options.generateHumanReadableOutput());
-    } else {
-      backend = new JavascriptBackend();
-    }
+    Backend backend = new JavascriptBackend();
     CompilerConfiguration config = new DefaultCompilerConfiguration(backend, options) {
       @Override
       public boolean expectEntryPoint() {
@@ -299,11 +273,11 @@ public class DartRunner {
   /**
    * Parses and compiles an application to Javascript.
    */
-  private static CompilationResult compileApp(LibrarySource app,
-                                              final DartRunnerOptions options,
-                                              List<LibrarySource> imports,
-                                              CompilerConfiguration config,
-                                              DartCompilerListener listener)  throws RunnerError {
+  private static String compileApp(LibrarySource app,
+                                   final DartRunnerOptions options,
+                                   List<LibrarySource> imports,
+                                   CompilerConfiguration config,
+                                   DartCompilerListener listener)  throws RunnerError {
     try {
       final RunnerDartArtifactProvider provider = new RunnerDartArtifactProvider();
       String errmsg = DartCompiler.compileLib(app, imports, config, provider, listener);
@@ -312,37 +286,11 @@ public class DartRunner {
       }
       Backend backend = config.getBackends().get(0);
 
-      SourceMapping mapping = null;
-      if (config.getCompilerOptions().generateSourceMaps()) {
-        Reader mr = provider.getArtifactReader(app, "", backend.getSourceMapExtension());
-        if (mr != null) {
-          try {
-            String mapContents = CharStreams.toString(mr);
-            mapping = SourceMapConsumerFactory.parse(mapContents, new SourceMapSupplier() {
-
-              @Override
-              public String getSourceMap(String url) {
-                String contents = provider.getGeneratedFileContents(url);
-                if (contents == null || contents.isEmpty()) {
-                  return null;
-                }
-                return contents;
-              }
-
-            });
-          } catch (SourceMapParseException e) {
-            throw new AssertionError(e);
-          } finally {
-            mr.close();
-          }
-        }
-      }
-
       if (!options.checkOnly()) {
         Reader r = provider.getArtifactReader(app, "", backend.getAppExtension());
         String js = CharStreams.toString(r);
         r.close();
-        return new CompilationResult(js, mapping);
+        return js;
       }
       return null;
     } catch (IOException e) {

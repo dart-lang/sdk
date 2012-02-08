@@ -51,9 +51,4 @@ public interface Backend {
    * The application extension for the backend.
    */
   String getAppExtension();
-
-  /**
-   * The source map extension for the backend.
-   */
-  String getSourceMapExtension();
 }

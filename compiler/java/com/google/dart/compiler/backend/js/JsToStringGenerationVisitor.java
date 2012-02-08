@@ -57,11 +57,8 @@ import com.google.dart.compiler.backend.js.ast.JsVisitable;
 import com.google.dart.compiler.backend.js.ast.JsVisitor;
 import com.google.dart.compiler.backend.js.ast.JsWhile;
 import com.google.dart.compiler.backend.js.ast.JsVars.JsVar;
-import com.google.dart.compiler.common.GenerateSourceMap;
 import com.google.dart.compiler.common.HasSourceInfo;
-import com.google.dart.compiler.common.SourceMapping;
 import com.google.dart.compiler.util.TextOutput;
-import com.google.debugging.sourcemap.FilePosition;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -261,42 +258,9 @@ public class JsToStringGenerationVisitor extends JsVisitor {
   private final TextOutput p;
   private ArrayList<Integer> statementEnds = new ArrayList<Integer>();
   private ArrayList<Integer> statementStarts = new ArrayList<Integer>();
-  private boolean buildMappings;
-  private List<SourceMapping> mappings = Lists.newArrayList();
 
   public JsToStringGenerationVisitor(TextOutput out) {
     this.p = out;
-  }
-
-  /**
-   * @param generate Whether to generate the source map.
-   */
-  public void generateSourceMap(boolean generate) {
-    this.buildMappings = generate;
-  }
-
-  public void writeSourceMap(Appendable out, String name) throws IOException {
-    GenerateSourceMap generator = new GenerateSourceMap();
-    for (SourceMapping m : mappings) {
-      generator.addMapping(m.getNode(), m.getStart(), m.getEnd());
-    }
-    generator.appendTo(out, name);
-  }
-
-  @Override
-  public void doTraverse(JsVisitable x, JsContext ctx) {
-    SourceMapping m = null;
-    // TODO(johnlenz): filter out uninteresting node types
-    if (buildMappings) {
-      m = new SourceMapping((HasSourceInfo) x, new FilePosition(p.getLine(), p.getColumn()));
-      mappings.add(m);
-    }
-
-    super.doTraverse(x, ctx);
-
-    if (buildMappings) {
-      m.setEnd(new FilePosition(p.getLine(), p.getColumn()));
-    }
   }
 
   @Override

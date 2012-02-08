@@ -84,7 +84,6 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.backend.common.TypeHeuristic.FieldKind;
 import com.google.dart.compiler.backend.js.ScopeRootInfo.DartScope;
 import com.google.dart.compiler.backend.js.ast.JsArrayLiteral;
 import com.google.dart.compiler.backend.js.ast.JsBinaryOperation;
@@ -173,18 +172,14 @@ import java.util.concurrent.Callable;
  */
 public class GenerateJavascriptAST {
   private final DartCompilerContext context;
-  private final OptimizationStrategy optStrategy;
   private final DartUnit unit;
   private final CoreTypeProvider typeProvider;
-  private final boolean generateClosureCompatibleCode;
 
   /**
    * Generates the Javascript AST using the names created in {@link GenerateNamesAndScopes}.
    */
   static class GenerateJavascriptVisitor
       implements DartPlainVisitor<JsNode>, TraversalContextProvider {
-
-    private final boolean generateClosureCompatibleCode;
 
     private static boolean isSuperCall(Symbol symbol) {
       return ElementKind.of(symbol).equals(ElementKind.SUPER);
@@ -248,7 +243,6 @@ public class GenerateJavascriptAST {
     private final RuntimeTypeInjector rtt;
 
     private final TranslationContext translationContext;
-    private final OptimizationStrategy optStrategy;
     private final DartCompilerContext context;
     private final LibraryElement unitLibrary;
     private final DartMangler mangler;
@@ -259,15 +253,12 @@ public class GenerateJavascriptAST {
 
     public GenerateJavascriptVisitor(DartUnit unit, DartCompilerContext context,
         TranslationContext translationContext,
-        OptimizationStrategy optStrategy, CoreTypeProvider typeProvider,
-        boolean generateClosureCompatibleCode) {
+        CoreTypeProvider typeProvider) {
       this.context = context;
       this.translationContext = translationContext;
-      this.optStrategy = optStrategy;
       this.typeProvider = typeProvider;
       this.typeUtils = Types.getInstance(typeProvider);
       this.unitLibrary = unit.getLibrary().getElement();
-      this.generateClosureCompatibleCode = generateClosureCompatibleCode;
 
       // Cache the mangler in a field since it is used frequently
       mangler = translationContext.getMangler();
@@ -411,14 +402,10 @@ public class GenerateJavascriptAST {
 
       // If there is already a native class we must not create the JS function.
       if (classElement.getNativeName() == null) {
-        if (optStrategy.canEmitOptimizedClassConstructor(classElement)) {
-          createInlinedClassConstructor(x);
-        } else {
-          JsFunction jsClass = new JsFunction(globalScope, classJsName).setSourceRef(x);
-          jsClass.setIsConstructor(true);
-          jsClass.setBody(new JsBlock());
-          globalBlock.getStatements().add(jsClass.makeStmt());
-        }
+        JsFunction jsClass = new JsFunction(globalScope, classJsName).setSourceRef(x);
+        jsClass.setIsConstructor(true);
+        jsClass.setBody(new JsBlock());
+        globalBlock.getStatements().add(jsClass.makeStmt());
       }
 
       if (classElement.isInterface()) {
@@ -1053,25 +1040,20 @@ public class GenerateJavascriptAST {
           constructorInvocation.makeStmt(),
           new JsReturn(tempVar.makeRef())));
 
-      if (optStrategy.canInlineInitializers(element)) {
-        rtt.maybeAddClassRuntimeTypeToConstructor(classElement, factoryFunction, tempVar.makeRef());
-        generateInitializersInlined(x, factoryFunction, factoryScope, tempVar);
-      } else {
-        addInitializers(x, factoryFunction, tempVar);
-        rtt.maybeAddClassRuntimeTypeToConstructor(classElement, factoryFunction, tempVar.makeRef());
-        JsNew jsNew = new JsNew(curClassJsName.makeRef());
-        if (classElement.getNativeName() != null && x.getFunction().getBody() == null) {
-          /*
-           * For native classes with bodyless constructors, we pass the user-declared arguments of
-           * the factory method to the native "new" expression.
-           */
-          List<JsExpression> newArguments = jsNew.getArguments();
-          for (JsName jsArgName : jsArgNames) {
-            newArguments.add(jsArgName.makeRef());
-          }
+      addInitializers(x, factoryFunction, tempVar);
+      rtt.maybeAddClassRuntimeTypeToConstructor(classElement, factoryFunction, tempVar.makeRef());
+      JsNew jsNew = new JsNew(curClassJsName.makeRef());
+      if (classElement.getNativeName() != null && x.getFunction().getBody() == null) {
+        /*
+         * For native classes with bodyless constructors, we pass the user-declared arguments of
+         * the factory method to the native "new" expression.
+         */
+        List<JsExpression> newArguments = jsNew.getArguments();
+        for (JsName jsArgName : jsArgNames) {
+          newArguments.add(jsArgName.makeRef());
         }
-        factoryFunction.getBody().getStatements().add(0, AstUtil.newVar(x, tempVar, jsNew));
       }
+      factoryFunction.getBody().getStatements().add(0, AstUtil.newVar(x, tempVar, jsNew));
 
       generateAll(x.getFunction().getParams(), factoryFunction.getParameters(), JsParameter.class);
 
@@ -1232,10 +1214,6 @@ public class GenerateJavascriptAST {
 
           String paramNameStr = getPropNameForNamedParameter(jsParam);
           JsExpression paramName = string(getPropNameForNamedParameter(jsParam));
-          if (generateClosureCompatibleCode) {
-            paramName = AstUtil.call(null,
-                AstUtil.nameref(null, "JSCompiler_renameProperty"), paramName);
-          }
           JsExpression ifExpr = AstUtil.in(null, paramName, namedParam.getName().makeRef());
 
           JsExpression ppSeen = AstUtil.preinc(null, seen.makeRef());
@@ -2323,11 +2301,6 @@ public class GenerateJavascriptAST {
       // We can skip shims for non-user-definable operators (NE is a special case because it's not
       // user-definable, but still has to be shimmed).
       boolean skipShim = (!operator.isUserDefinableOperator() && (operator != Token.NE));
-      if (!skipShim) {
-        // For user-defined operators, the optimization strategy can choose to skip the shim.
-        skipShim = optStrategy.canSkipOperatorShim(x);
-      }
-
       JsExpression lhs = (JsExpression) generate(arg1);
       Token op = x.getOperator();
 
@@ -2483,28 +2456,15 @@ public class GenerateJavascriptAST {
       Token operator = x.getOperator();
       JsNode result;
       JsExpression arg = (JsExpression) generate(x.getArg());
-      boolean canSkipUnaryOpShim = optStrategy.canSkipOperatorShim(x);
       if (operator == Token.SUB) {
-        if (canSkipUnaryOpShim) {
-          JsExpression unaryMinus = new JsPrefixOperation(JsUnaryOperator.NEG, arg);
-          unaryMinus.setSourceRef(x);
-          return unaryMinus;
-        } else {
-          JsNameRef ref =
-            new JsNameRef(mangler.createOperatorSyntax(DartMangler.NEGATE_OPERATOR_NAME));
-          result = (AstUtil.newInvocation(ref, arg));
-          return result.setSourceRef(x);
-        }
+        JsNameRef ref =
+          new JsNameRef(mangler.createOperatorSyntax(DartMangler.NEGATE_OPERATOR_NAME));
+        result = (AstUtil.newInvocation(ref, arg));
+        return result.setSourceRef(x);
       } else if (operator.isUserDefinableOperator()) {
-        if (canSkipUnaryOpShim) {
-          JsExpression expr = new JsPrefixOperation(mapUnaryOp(operator), arg);
-          expr.setSourceRef(x);
-          return expr;
-        } else {
-          JsNameRef ref = new JsNameRef(mangler.createOperatorSyntax(operator));
-          result = (AstUtil.newInvocation(ref, arg));
-          return result.setSourceRef(x);
-        }
+        JsNameRef ref = new JsNameRef(mangler.createOperatorSyntax(operator));
+        result = (AstUtil.newInvocation(ref, arg));
+        return result.setSourceRef(x);
       } else {
         JsUnaryOperator jsUnaryOperator;
         switch (operator) {
@@ -2535,21 +2495,16 @@ public class GenerateJavascriptAST {
 
     @Override
     public JsNode visitPropertyAccess(DartPropertyAccess x) {
-      Element element = optStrategy.findOptimizableFieldElementFor(x, FieldKind.GETTER);
-      return generateLoad(x.getQualifier(), x.getName(), element).setSourceRef(x);
+      return generateLoad(x.getQualifier(), x.getName()).setSourceRef(x);
     }
 
     @Override
     public JsNode visitArrayAccess(DartArrayAccess x) {
       JsExpression target = (JsExpression) generate(x.getTarget());
       JsExpression key = (JsExpression) generate(x.getKey());
-      if (optStrategy.canSkipArrayAccessShim(x, false /* isAssignee */)) {
-        return AstUtil.newArrayAccess(target, inlineArrayIndexCheck(target, key));
-      } else {
-        JsNameRef ref = AstUtil.newNameRef(target, mangler.createOperatorSyntax(Token.INDEX));
-        JsInvocation invoke = AstUtil.newInvocation(ref, key);
-        return invoke.setSourceRef(x);
-      }
+      JsNameRef ref = AstUtil.newNameRef(target, mangler.createOperatorSyntax(Token.INDEX));
+      JsInvocation invoke = AstUtil.newInvocation(ref, key);
+      return invoke.setSourceRef(x);
     }
 
     @Override
@@ -2702,7 +2657,7 @@ public class GenerateJavascriptAST {
 
     @Override
     public JsNode visitMethodInvocation(DartMethodInvocation x) {
-      Element element = optStrategy.findElementFor(x);
+      Element element = (Element) x.getTargetSymbol();
       MethodElement method = null;
       JsExpression qualifier;
       String mangledName;
@@ -3115,12 +3070,6 @@ public class GenerateJavascriptAST {
         int scopeCount = list.size();
         int argCount = fn.getParameters().size() + 2; // +2 => Named-parameter calling convention
         String jsBindName = "$bind";
-        if (optStrategy.canOptimizeFunctionExpressionBind(x)) {
-          if (scopeCount <= MAX_SPECIALIZED_BIND_SCOPES && argCount <= MAX_SPECIALIZED_BIND_ARGS) {
-            // Use specialized forms.
-            jsBindName = "$bind" + scopeCount + "_" + argCount;
-          }
-        }
 
         JsInvocation invoke = AstUtil.newInvocation(new JsNameRef(jsBindName),
             new JsNameRef(hoistedName),
@@ -3220,8 +3169,7 @@ public class GenerateJavascriptAST {
         return normalizedNode.accept(this);
       }
 
-      Element element = optStrategy.findOptimizableFieldElementFor(x, FieldKind.GETTER);
-      return generateLoad(null, x, element).setSourceRef(x);
+      return generateLoad(null, x).setSourceRef(x);
     }
 
     /**
@@ -3524,19 +3472,16 @@ public class GenerateJavascriptAST {
         }
         Type type = getTypeOfIdentifier(lhs);
         JsExpression wrapped =  rtt.addTypeCheck(getCurrentClass(), rhs, type, rhsType, info);
-        Element element = optStrategy.findOptimizableFieldElementFor(lhs, FieldKind.SETTER);
         // On the form e1.name = rhs.
-        return generateStore(null, lhs, wrapped, element).setSourceRef(info);
+        return generateStore(null, lhs, wrapped).setSourceRef(info);
       }
 
       @Override
       public JsNode visitPropertyAccess(DartPropertyAccess lhs) {
-        Element element = optStrategy.findOptimizableFieldElementFor(lhs, FieldKind.SETTER);
         // On the form e1.name = rhs.
         Type type = lhs.getType();
         JsExpression wrapped =  rtt.addTypeCheck(getCurrentClass(), rhs, type, rhsType, info);
-        return generateStore(lhs.getQualifier(), lhs.getName(), wrapped,
-            element).setSourceRef(info);
+        return generateStore(lhs.getQualifier(), lhs.getName(), wrapped).setSourceRef(info);
       }
 
       @Override
@@ -3548,21 +3493,14 @@ public class GenerateJavascriptAST {
         JsExpression e1 = (JsExpression) generate(lhs.getTarget());
         Type type = lhs.getType();
         JsExpression wrapped =  rtt.addTypeCheck(getCurrentClass(), rhs, type, rhsType, info);
-        if (optStrategy.canSkipArrayAccessShim(lhs, true /* isAssignee */)) {
-          JsBinaryOperation assign = new JsBinaryOperation(JsBinaryOperator.ASG);
-          assign.setArg1(AstUtil.newArrayAccess(e1, inlineArrayIndexCheck(e1, key)));
-          assign.setArg2(wrapped);
-          return assign.setSourceRef(info);
-        } else {
-          JsNameRef $0 = new JsNameRef(createTemporary());
-          String $set = mangler.createOperatorSyntax(Token.ASSIGN_INDEX);
-          // Generate: $0 = rhs
-          JsExpression e = AstUtil.newAssignment($0, wrapped);
-          // Generate: e1.$set(key, $0 = rhs)
-          e = AstUtil.newInvocation(AstUtil.newNameRef(e1, $set), key, e);
-          // Generate: e, $0
-          return new JsBinaryOperation(JsBinaryOperator.COMMA, e, $0).setSourceRef(info);
-        }
+        JsNameRef $0 = new JsNameRef(createTemporary());
+        String $set = mangler.createOperatorSyntax(Token.ASSIGN_INDEX);
+        // Generate: $0 = rhs
+        JsExpression e = AstUtil.newAssignment($0, wrapped);
+        // Generate: e1.$set(key, $0 = rhs)
+        e = AstUtil.newInvocation(AstUtil.newNameRef(e1, $set), key, e);
+        // Generate: e, $0
+        return new JsBinaryOperation(JsBinaryOperator.COMMA, e, $0).setSourceRef(info);
       }
     }
 
@@ -3670,7 +3608,7 @@ public class GenerateJavascriptAST {
     }
 
     private JsExpression generateQualifiedFieldAccess(DartNode qualifier,
-        String accessorName, boolean accessThroughShim) {
+        String accessorName) {
       // Generate this.ACCESSOR();
       JsExpression jsQualifier;
       if (qualifier == null || (qualifier instanceof DartThisExpression)) {
@@ -3681,17 +3619,13 @@ public class GenerateJavascriptAST {
 
       jsQualifier.setSourceRef(qualifier);
       JsNameRef nameRef = AstUtil.newNameRef(jsQualifier, accessorName);
-      if (accessThroughShim) {
-        return AstUtil.newInvocation(nameRef);
-      } else {
-        return nameRef;
-      }
+      return AstUtil.newInvocation(nameRef);
     }
 
     private JsExpression generateUnresolvedAccess(DartNode qualifier,
                                                   String accessorName) {
       if (qualifier == null) {
-        return generateQualifiedFieldAccess(qualifier, accessorName, true);
+        return generateQualifiedFieldAccess(qualifier, accessorName);
       }
       // Generate qualifier.ACCESSOR();
       JsExpression jsQualifier = (JsExpression) generate(qualifier);
@@ -3729,7 +3663,7 @@ public class GenerateJavascriptAST {
     }
 
     private JsExpression generateFieldAccess(FieldElement field, DartNode qualifier,
-        String accessorName, boolean accessThroughShim) {
+        String accessorName) {
       boolean isSuperCall = (qualifier != null) && isSuperCall(qualifier.getSymbol());
       if (isSuperCall) {
         return generateSuperFieldAccess(qualifier, accessorName);
@@ -3738,7 +3672,7 @@ public class GenerateJavascriptAST {
       } else if (field.isStatic()) {
         return generateStaticFieldAccess(field, qualifier, accessorName);
       } else {
-        return generateQualifiedFieldAccess(qualifier, accessorName, accessThroughShim);
+        return generateQualifiedFieldAccess(qualifier, accessorName);
       }
     }
 
@@ -3790,13 +3724,8 @@ public class GenerateJavascriptAST {
       return referenceName(element, node);
     }
 
-    private JsExpression generateLoad(DartNode qualifier, DartIdentifier node, Element element) {
-      boolean accessThroughShim = true;
-      if (element != null) {
-        accessThroughShim = false;
-      } else {
-        element = node.getTargetSymbol();
-      }
+    private JsExpression generateLoad(DartNode qualifier, DartIdentifier node) {
+      Element element = node.getTargetSymbol();
 
       switch (ElementKind.of(element)) {
         case VARIABLE:
@@ -3817,16 +3746,8 @@ public class GenerateJavascriptAST {
         case FIELD: {
           FieldElement field = (FieldElement) element;
           String accessorName;
-          if (accessThroughShim) {
-            accessorName = mangler.createGetterSyntax(field, unitLibrary);
-          } else {
-            if (optStrategy.isWhitelistedNativeField(field, FieldKind.GETTER)) {
-              accessorName = field.getName();
-            } else {
-              accessorName = mangler.mangleField(field, unitLibrary);
-            }
-          }
-          return generateFieldAccess(field, qualifier, accessorName, accessThroughShim);
+          accessorName = mangler.createGetterSyntax(field, unitLibrary);
+          return generateFieldAccess(field, qualifier, accessorName);
         }
 
         case METHOD: {
@@ -3863,14 +3784,8 @@ public class GenerateJavascriptAST {
       }
     }
 
-    private JsExpression generateStore(DartNode qualifier, DartIdentifier node, JsExpression rhs,
-        Element element) {
-      boolean accessThroughShim = true;
-      if (element != null) {
-        accessThroughShim = false;
-      } else {
-        element = node.getTargetSymbol();
-      }
+    private JsExpression generateStore(DartNode qualifier, DartIdentifier node, JsExpression rhs) {
+      Element element = node.getTargetSymbol();
 
       switch (ElementKind.of(element)) {
         case VARIABLE:
@@ -3888,18 +3803,9 @@ public class GenerateJavascriptAST {
           FieldElement field = (FieldElement) element;
           String accessorName;
 
-          if (accessThroughShim) {
-            accessorName = mangler.createSetterSyntax(field, unitLibrary);
-          } else {
-            if (optStrategy.isWhitelistedNativeField(field, FieldKind.SETTER)) {
-              accessorName = field.getName();
-            } else {
-              accessorName = mangler.mangleField(field, unitLibrary);
-            }
-          }
+          accessorName = mangler.createSetterSyntax(field, unitLibrary);
 
-          JsExpression invoke =
-              generateFieldAccess(field, qualifier, accessorName, accessThroughShim);
+          JsExpression invoke = generateFieldAccess(field, qualifier, accessorName);
           return generateStoreField(invoke, rhs);
         }
 
@@ -3954,21 +3860,17 @@ public class GenerateJavascriptAST {
     }
   }
 
-  GenerateJavascriptAST(DartUnit unit, CoreTypeProvider typeProvider, DartCompilerContext context,
-                        OptimizationStrategy optimizationStrategy,
-                        boolean generateClosureCompatibleCode) {
+  GenerateJavascriptAST(DartUnit unit, CoreTypeProvider typeProvider, DartCompilerContext context) {
     this.unit = unit;
     this.context = context;
-    this.optStrategy = optimizationStrategy;
     this.typeProvider = typeProvider;
-    this.generateClosureCompatibleCode = generateClosureCompatibleCode;
   }
 
   public void translateNode(TranslationContext translationContext, DartNode node,
       JsBlock blockStatics) {
     GenerateJavascriptVisitor generator =
         new GenerateJavascriptVisitor(unit, context, translationContext,
-            optStrategy, typeProvider, generateClosureCompatibleCode);
+            typeProvider);
     // Generate the Javascript AST.
     node.accept(generator);
     // Set aside the static initializations

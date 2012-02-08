@@ -8,7 +8,6 @@
     'test_sources.gypi',
     'corelib_sources.gypi',
     'compiler_corelib_sources.gypi',
-    'closure_compiler_sources.gypi',
     'domlib_sources.gypi',
     'htmllib_sources.gypi',
     'jsonlib_sources.gypi',
@@ -25,7 +24,6 @@
       },
       'dependencies': [
         '<(v8_location)/src/d8.gyp:d8',
-        'closure_compiler',
       ],
       'actions': [
         {
@@ -50,7 +48,6 @@
             'scripts/dartc_size.sh',
             'scripts/dartc_metrics.sh',
             '../third_party/args4j/2.0.12/args4j-2.0.12.jar',
-            '<(PRODUCT_DIR)/closure_out/compiler.jar',
             '../third_party/guava/r09/guava-r09.jar',
             '../third_party/json/r2_20080312/json.jar',
             '../third_party/rhino/1_7R3/js.jar',
@@ -64,7 +61,6 @@
             '<(PRODUCT_DIR)/compiler/bin/dartc',
             '<(PRODUCT_DIR)/compiler/bin/dartc_test',
             '<(PRODUCT_DIR)/compiler/lib/args4j/2.0.12/args4j-2.0.12.jar',
-            '<(PRODUCT_DIR)/compiler/lib/closure-compiler.jar',
             '<(PRODUCT_DIR)/compiler/lib/dartc.jar',
             '<(PRODUCT_DIR)/compiler/lib/guava/r09/guava-r09.jar',
             '<(PRODUCT_DIR)/compiler/lib/json/r2_20080312/json.jar',
@@ -75,7 +71,6 @@
             '-f', 'dartc.xml',
             '-Dbuild.dir=<(INTERMEDIATE_DIR)/<(_target_name)',
             '-Ddist.dir=<(PRODUCT_DIR)/compiler',
-            '-Dclosure_compiler.jar=<(PRODUCT_DIR)/closure_out/compiler.jar',
             'clean',
             'dist',
             'tests.jar',
@@ -137,13 +132,12 @@
             '-f', 'dartc.xml',
             '-Dbuild.dir=<(INTERMEDIATE_DIR)/<(_target_name)',
             '-Ddist.dir=<(PRODUCT_DIR)/compiler',
-            '-Dclosure_compiler.jar=<(PRODUCT_DIR)/closure_out/compiler.jar',
             'syslib_clean',
             'syslib',
           ],
         },
         {
-          'message': 'Compiling dart system libraries',
+          'message': 'Compiling dart system libraries to <(INTERMEDIATE_DIR)/<(_target_name)/api',
           'action_name': 'compile_systemlibrary',
           'inputs': [
             '<(PRODUCT_DIR)/dartc',
@@ -151,14 +145,15 @@
             'api.dart',
           ],
           'outputs': [
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/core/com/google/dart/corelib/corelib.dart.api',
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/dom/dom/dom.dart.api',
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/html/html/html.dart.api',
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.api',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/core/com/google/dart/corelib/corelib.dart.deps',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/dom/dom/dom.dart.deps',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/html/html/html.dart.deps',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.deps',
           ],
           'action': [
-            '<(PRODUCT_DIR)/dartc', 'api.dart', 
-            '--fatal-warnings', '--fatal-type-errors', 
+            '<(PRODUCT_DIR)/dartc', 'api.dart',
+            '--fatal-warnings', '--fatal-type-errors',
+            '--deprecated-generate-code',
             '-out', '<(INTERMEDIATE_DIR)/<(_target_name)/api',
           ],
         },
@@ -167,7 +162,7 @@
           'action_name': 'package_corelib_artifacts',
           'inputs': [
             '<(INTERMEDIATE_DIR)/<(_target_name)/corelib.jar.stamp',
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/core/com/google/dart/corelib/corelib.dart.api',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/core/com/google/dart/corelib/corelib.dart.deps',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/compiler/lib/corelib.jar',
@@ -181,7 +176,7 @@
           'action_name': 'package_domlib_artifacts',
           'inputs': [
             '<(INTERMEDIATE_DIR)/<(_target_name)/domlib.jar.stamp',
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/dom/dom/dom.dart.api',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/dom/dom/dom.dart.deps',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/compiler/lib/domlib.jar',
@@ -198,7 +193,7 @@
             '<@(htmllib_sources)',
             '<@(htmllib_resources)',
             '<(INTERMEDIATE_DIR)/<(_target_name)/htmllib.jar.stamp',
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/html/html/html.dart.api',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/html/html/html.dart.deps',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/compiler/lib/htmllib.jar',
@@ -212,7 +207,7 @@
           'action_name': 'package_jsonlib_artifacts',
           'inputs': [
             '<(INTERMEDIATE_DIR)/<(_target_name)/jsonlib.jar.stamp',
-            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.api',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.deps',
             'api.dart',
           ],
           'outputs': [
@@ -225,32 +220,9 @@
       ],
     },
     {
-      'target_name': 'closure_compiler',
+      # GYP won't generate a catch-all target if there's only one target.
+      'target_name': 'dummy',
       'type': 'none',
-      'dependencies': [],
-      'actions': [
-        {
-          'action_name': 'build_closure_compiler',
-          'inputs': [
-            'closure_compiler_sources.gypi',
-            '../third_party/closure_compiler_src/build.xml',
-            '<@(closure_compiler_src_sources)',
-            '<@(closure_compiler_src_resources)',
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/closure_out/compiler.jar'
-          ],
-          'action': [
-            '../third_party/apache_ant/v1_7_1/bin/ant',
-            '-f',
-            '../third_party/closure_compiler_src/build.xml',
-            '-Dclosure.build.dir=<(PRODUCT_DIR)/closure_out',
-            'clean',
-            'jar',
-          ],
-          'message': 'Building closure compiler'
-        },
-      ]
     },
   ],
 }

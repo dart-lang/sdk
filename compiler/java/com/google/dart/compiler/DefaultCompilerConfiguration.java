@@ -6,7 +6,6 @@ package com.google.dart.compiler;
 
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.backend.isolate.DartIsolateStubGenerator;
-import com.google.dart.compiler.backend.js.ClosureJsBackend;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
@@ -47,10 +46,6 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
     if (!compilerOptions.getIsolateStubClasses().isEmpty()) {
       return new DartIsolateStubGenerator(compilerOptions.getIsolateStubClasses(),
                                           compilerOptions.getIsolateStubOutputFile());
-    } else if (compilerOptions.shouldOptimize()) {
-      return new ClosureJsBackend(
-          compilerOptions.developerModeChecks(),
-          compilerOptions.generateHumanReadableOutput());
     } else {
       return new JavascriptBackend();
     }
@@ -131,11 +126,6 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   @Override
   public boolean developerModeChecks() {
     return compilerOptions.developerModeChecks();
-  }
-
-  @Override
-  public boolean shouldOptimize() {
-    return compilerOptions.shouldOptimize();
   }
 
   @Override

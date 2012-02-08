@@ -52,6 +52,6 @@ public class NamedParameterTest extends End2EndTestCase {
       }
     };
     DartLibrarySourceTest app = new DartLibrarySourceTest(getClass(), "NamedParameterTest.dart");
-    runTest(app, OptimizationLevel.RAW, listener);
+    runTest(app, listener);
   }
 }

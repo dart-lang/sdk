@@ -41,11 +41,6 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean shouldOptimize() {
-    return false;
-  }
-
-  @Override
   public boolean resolveDespiteParseErrors() {
     return true;
   }

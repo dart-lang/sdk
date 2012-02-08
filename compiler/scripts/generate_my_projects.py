@@ -61,14 +61,6 @@ def Main():
   if exit_code:
     return exit_code
 
-  exit_code = os.system("python %(compiler)s/generate_source_list.py "
-                        "closure_compiler_src %(compiler)s/closure_compiler_sources "
-                        "../third_party/closure_compiler_src "
-                        "build javadoc test"
-                        % locations)
-  if exit_code:
-    return exit_code
-
   if '--no-gyp' in sys.argv:
     print '--no-gyp is deprecated.'
 

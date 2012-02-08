@@ -152,14 +152,8 @@ public class DartCompiler {
       coreLibrarySource = context.getSystemLibraryFor(CORELIB_URL_SPEC);
       embeddedLibraries.add(coreLibrarySource);
 
-      if (config.shouldOptimize()) {
-        // Optimizing turns off incremental compilation.
-        incremental = false;
-        usePrecompiledDartLibs = false;
-      } else {
-        incremental = config.incremental();
-        usePrecompiledDartLibs = true;
-      }
+      incremental = config.incremental();
+      usePrecompiledDartLibs = true;
     }
 
     private void compile() {

@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.google.dart.compiler.Backend;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
@@ -26,13 +27,12 @@ import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVisitor;
 import com.google.dart.compiler.ast.LibraryUnit;
-import com.google.dart.compiler.backend.common.AbstractBackend;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 
 /**
  * Generate code for proxies and dispatchers for cross-isolate calls.
  */
-public class DartIsolateStubGenerator extends AbstractBackend {
+public class DartIsolateStubGenerator implements Backend {
   private final Set<String> stubInterfaces;
   private PrintStream outStream;
 
@@ -834,12 +834,6 @@ public class DartIsolateStubGenerator extends AbstractBackend {
 
   @Override
   public String getAppExtension() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String getSourceMapExtension() {
     // TODO Auto-generated method stub
     return null;
   }

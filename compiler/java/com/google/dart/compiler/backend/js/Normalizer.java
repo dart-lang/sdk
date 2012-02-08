@@ -88,15 +88,14 @@ import java.util.Set;
  */
 public class Normalizer {
 
-  public DartUnit exec(DartUnit unit, CoreTypeProvider typeProvider,
-      OptimizationStrategy optimizationStrategy) {
+  public DartUnit exec(DartUnit unit, CoreTypeProvider typeProvider) {
     new ParenNormalizer().accept(unit);
     new BlockNormalizer(typeProvider).accept(unit);
     new ForLoopInitNormalizer().accept(unit);
     // Now that the have been inserted and the For VAR has been
     // pulled out.  It is easy to split up the VAR declarations.
     new VarNormalizer().accept(unit);
-    unit.accept(new NormalizerVisitor(optimizationStrategy));
+    unit.accept(new NormalizerVisitor());
     // debugPrint(unit);
     return unit;
   }
@@ -521,11 +520,6 @@ public class Normalizer {
   private static class NormalizerVisitor extends DartNodeTraverser<DartNode> {
     // Collects names to avoid conflicts with synthesized variables.
     private final Set<String> usedNames = new HashSet<String>();
-    private final OptimizationStrategy optimizationStrategy;
-
-    NormalizerVisitor(OptimizationStrategy optimizationStrategy) {
-      this.optimizationStrategy = optimizationStrategy;
-    }
 
     @Override
     public DartNode visitClassMember(DartClassMember<?> node) {
@@ -613,8 +607,7 @@ public class Normalizer {
     public DartExpression visitBinaryExpression(DartBinaryExpression node) {
       node.visitChildren(this);
       Token operator = node.getOperator();
-      if (operator.isAssignmentOperator() && operator != Token.ASSIGN
-          && shouldNormalizeOperator(node)) {
+      if (operator.isAssignmentOperator() && operator != Token.ASSIGN) {
         node.setNormalizedNode(normalizeCompoundAssignment(mapAssignableOp(operator), false,
                                                            node.getArg1().getNormalizedNode(),
                                                            node.getArg2().getNormalizedNode()));
@@ -626,7 +619,7 @@ public class Normalizer {
     public DartExpression visitUnaryExpression(DartUnaryExpression node) {
       node.visitChildren(this);
       Token operator = node.getOperator();
-      if (operator.isCountOperator() && shouldNormalizeOperator(node)) {
+      if (operator.isCountOperator()) {
         DartExpression lhs = node.getArg().getNormalizedNode();
         DartIntegerLiteral rhs = DartIntegerLiteral.one();
         node.setNormalizedNode(normalizeCompoundAssignment(mapAssignableOp(operator),
@@ -978,14 +971,6 @@ public class Normalizer {
       return new DartMethodInvocation(receiver,
                                       new DartIdentifier(name),
                                       Collections.<DartExpression>emptyList());
-    }
-
-    private boolean shouldNormalizeOperator(DartBinaryExpression node) {
-      return !optimizationStrategy.canSkipNormalization(node);
-    }
-
-    private boolean shouldNormalizeOperator(DartUnaryExpression node) {
-      return !optimizationStrategy.canSkipNormalization(node);
     }
 
     private DartArrayAccess arrayAccess(DartExpression target, DartExpression key) {

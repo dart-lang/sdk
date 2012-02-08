@@ -39,11 +39,6 @@ public class DeltaBench {
       }
 
       @Override
-      public boolean shouldOptimize() {
-        return false;
-      }
-
-      @Override
       public boolean checkOnly() {
         return false;
       }

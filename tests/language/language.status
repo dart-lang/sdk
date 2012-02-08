@@ -549,3 +549,6 @@ ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
 
 [ $arch == arm ]
 *: Skip
+
+[ $component == dartc && $mode == release ]
+*: Skip
