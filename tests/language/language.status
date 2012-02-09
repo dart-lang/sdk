@@ -114,7 +114,6 @@ FinalSyntaxTest/none: Fail
 ApplicationNegativeTest: Fail    # status change with --check-only
 AssertKeywordNegativeTest: Fail    # status change with --check-only
 AssignInstanceMethodNegativeTest: Fail    # status change with --check-only
-BitOperationsTest: Pass    # status change with --check-only
 BodyLessConstructorWrongArgNegativeTest: Fail    # status change with --check-only
 CallOperatorTest: Pass    # status change with --check-only
 CallThroughNullGetterTest: Pass    # status change with --check-only
@@ -167,15 +166,13 @@ StaticField2aRunNegativeTest: Fail    # status change with --check-only
 StaticField2RunNegativeTest: Fail    # status change with --check-only
 StringConcatTest: Pass    # status change with --check-only
 Switch3NegativeTest: Fail    # status change with --check-only
-SyntaxTest/29: Fail    # status change with --check-only
-SyntaxTest/30: Fail    # status change with --check-only
+
 TypeChecksInFactoryMethodTest: Pass    # status change with --check-only
 
 
 # Problems traiaged before static analysis-only change
 
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
-BitOperationsTest: Fail      # Uses bignums.
 CTConstTest: Fail            # Bug 5202940, Issue 176
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CallOperatorTest: Fail # Issue 1355
@@ -253,6 +250,8 @@ StringEscape4NegativeTest: Fail # Issue 1351.
 SuperOperatorTest: Fail      # Bug 4995463.
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
+SyntaxTest/29: Fail          # Issue 1606
+SyntaxTest/30: Fail          # Issue 1606
 SyntaxTest/31: Fail          # Issue 1108
 SyntaxTest/32: Fail          # Issue 1108
 SyntaxTest/33: Fail # Issue 1108
