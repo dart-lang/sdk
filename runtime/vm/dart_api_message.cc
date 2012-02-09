@@ -56,6 +56,7 @@ intptr_t ApiMessageReader::LookupInternalClass(intptr_t class_header) {
 Dart_CObject* ApiMessageReader::AllocateDartCObject(Dart_CObject::Type type) {
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(alloc_(NULL, 0, sizeof(Dart_CObject)));
+  ASSERT(value != NULL);
   value->type = type;
   return value;
 }
@@ -94,8 +95,29 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectString(intptr_t length) {
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(
           alloc_(NULL, 0, sizeof(Dart_CObject) + length + 1));
+  ASSERT(value != NULL);
   value->value.as_string = reinterpret_cast<char*>(value) + sizeof(*value);
   value->type = Dart_CObject::kString;
+  return value;
+}
+
+
+Dart_CObject* ApiMessageReader::AllocateDartCObjectByteArray(intptr_t length) {
+  // Allocate a Dart_CObject structure followed by an array of bytes
+  // for the byte array content. The pointer to the byte array content
+  // is set up to this area.
+  Dart_CObject* value =
+      reinterpret_cast<Dart_CObject*>(
+          alloc_(NULL, 0, sizeof(Dart_CObject) + length));
+  ASSERT(value != NULL);
+  value->type = Dart_CObject::kByteArray;
+  value->value.as_array.length = length;
+  if (length > 0) {
+    value->value.as_byte_array.values =
+        reinterpret_cast<uint8_t*>(value) + sizeof(*value);
+  } else {
+    value->value.as_byte_array.values = NULL;
+  }
   return value;
 }
 
@@ -107,6 +129,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(
           alloc_(NULL, 0, sizeof(Dart_CObject) + length * sizeof(value)));
+  ASSERT(value != NULL);
   value->type = Dart_CObject::kArray;
   value->value.as_array.length = length;
   if (length > 0) {
@@ -182,10 +205,9 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       AddBackwardReference(object_id, object);
       char* p = object->value.as_string;
       for (intptr_t i = 0; i < len; i++) {
-        *p = Read<uint8_t>();
-        p++;
+        p[i] = Read<uint8_t>();
       }
-      *p = '\0';
+      p[len] = '\0';
       return object;
       break;
     }
@@ -197,6 +219,19 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       // Four byte strings not supported.
       return NULL;
       break;
+    case ObjectStore::kInternalByteArrayClass: {
+      intptr_t len = ReadSmiValue();
+      Dart_CObject* object = AllocateDartCObjectByteArray(len);
+      AddBackwardReference(object_id, object);
+      if (len > 0) {
+        uint8_t* p = object->value.as_byte_array.values;
+        for (intptr_t i = 0; i < len; i++) {
+          p[i] = Read<uint8_t>();
+        }
+      }
+      return object;
+      break;
+    }
     default:
       // Everything else not supported.
       return NULL;
@@ -215,7 +250,8 @@ Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
              object_id == ObjectStore::kDoubleInterface ||
              object_id == ObjectStore::kIntInterface ||
              object_id == ObjectStore::kBoolInterface ||
-             object_id == ObjectStore::kStringInterface) {
+             object_id == ObjectStore::kStringInterface ||
+             object_id == ObjectStore::kByteArrayInterface) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
   } else {

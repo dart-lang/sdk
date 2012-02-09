@@ -86,6 +86,14 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
     case Dart_CObject::kString:
       EXPECT_STREQ(first->value.as_string, second->value.as_string);
       break;
+    case Dart_CObject::kByteArray:
+      EXPECT_EQ(first->value.as_byte_array.length,
+                second->value.as_byte_array.length);
+      for (int i = 0; i < first->value.as_byte_array.length; i++) {
+        EXPECT_EQ(first->value.as_byte_array.values[i],
+                  second->value.as_byte_array.values[i]);
+      }
+      break;
     case Dart_CObject::kArray:
       // Use invalid type as a visited marker to avoid infinite
       // recursion on graphs with cycles.
@@ -491,6 +499,77 @@ TEST_CASE(SerializeEmptyArray) {
   EXPECT_EQ(Dart_CObject::kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
   EXPECT(root->value.as_array.values == NULL);
+  CheckEncodeDecodeMessage(root);
+}
+
+
+TEST_CASE(SerializeByteArray) {
+  Zone zone(Isolate::Current());
+
+  // Write snapshot with object content.
+  uint8_t* buffer;
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  const int kByteArrayLength = 256;
+  InternalByteArray& byte_array =
+      InternalByteArray::Handle(InternalByteArray::New(kByteArrayLength));
+  for (int i = 0; i < kByteArrayLength; i++) {
+    byte_array.SetAt<uint8_t>(i, i);
+  }
+  writer.WriteObject(byte_array.raw());
+  writer.FinalizeBuffer();
+
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  ByteArray& serialized_byte_array = ByteArray::Handle();
+  serialized_byte_array ^= reader.ReadObject();
+  EXPECT(serialized_byte_array.IsByteArray());
+
+  // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
+  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
+                                     writer.BytesWritten(),
+                                     &zone_allocator);
+  EXPECT_EQ(Dart_CObject::kByteArray, root->type);
+  EXPECT_EQ(kByteArrayLength, root->value.as_byte_array.length);
+  for (int i = 0; i < kByteArrayLength; i++) {
+    EXPECT(root->value.as_byte_array.values[i] == i);
+  }
+  CheckEncodeDecodeMessage(root);
+}
+
+
+TEST_CASE(SerializeEmptyByteArray) {
+  Zone zone(Isolate::Current());
+
+  // Write snapshot with object content.
+  uint8_t* buffer;
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  const int kByteArrayLength = 0;
+  InternalByteArray& byte_array =
+      InternalByteArray::Handle(InternalByteArray::New(kByteArrayLength));
+  writer.WriteObject(byte_array.raw());
+  writer.FinalizeBuffer();
+
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  ByteArray& serialized_byte_array = ByteArray::Handle();
+  serialized_byte_array ^= reader.ReadObject();
+  EXPECT(serialized_byte_array.IsByteArray());
+
+  // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
+  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
+                                     writer.BytesWritten(),
+                                     &zone_allocator);
+  EXPECT_EQ(Dart_CObject::kByteArray, root->type);
+  EXPECT_EQ(kByteArrayLength, root->value.as_byte_array.length);
+  EXPECT(root->value.as_byte_array.values == NULL);
   CheckEncodeDecodeMessage(root);
 }
 
@@ -1057,6 +1136,12 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  for (var i = 0; i < kArrayLength; i++) list[i] = d;\n"
       "  return list;\n"
       "}\n"
+      "getByteArrayList() {\n"
+      "  var byte_array = new ByteArray(256);\n"
+      "  var list = new List<ByteArray>(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = byte_array;\n"
+      "  return list;\n"
+      "}\n"
       "getMixedList() {\n"
       "  var list = new List(kArrayLength);\n"
       "  for (var i = 0; i < kArrayLength; i++) {\n"
@@ -1109,6 +1194,20 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject::kDouble, element->type);
         EXPECT_EQ(3.14, element->value.as_double);
+      }
+    }
+    {
+      // Generate a list of doubles from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getByteArrayList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kByteArray, element->type);
+        EXPECT_EQ(256, element->value.as_byte_array.length);
       }
     }
     {

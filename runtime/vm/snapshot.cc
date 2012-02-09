@@ -576,6 +576,19 @@ void MessageWriter::WriteCObject(Dart_CObject* object) {
       }
       break;
     }
+    case Dart_CObject::kByteArray: {
+      // Write out the serialization header value for this object.
+      WriteInlinedHeader(object);
+      // Write out the class and tags information.
+      WriteObjectHeader(ObjectStore::kInternalByteArrayClass, 0);
+      uint8_t* bytes = object->value.as_byte_array.values;
+      intptr_t len = object->value.as_byte_array.length;
+      WriteSmi(len);
+      for (intptr_t i = 0; i < len; i++) {
+        Write<uint8_t>(bytes[i]);
+      }
+      break;
+    }
     default:
       UNREACHABLE();
   }

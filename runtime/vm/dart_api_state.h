@@ -535,6 +535,7 @@ class ApiNativeScope {
 
  private:
   ApiZone zone_;
+  ThreadLocalKey key_;
 };
 
 
