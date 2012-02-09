@@ -6,11 +6,11 @@
 
 interface AudioNode {
 
-  AudioContext get context();
+  final AudioContext context;
 
-  int get numberOfInputs();
+  final int numberOfInputs;
 
-  int get numberOfOutputs();
+  final int numberOfOutputs;
 
   void connect(AudioNode destination, int output, int input);
 

@@ -6,7 +6,7 @@
 
 interface WebKitAnimationEvent extends Event {
 
-  String get animationName();
+  final String animationName;
 
-  num get elapsedTime();
+  final num elapsedTime;
 }

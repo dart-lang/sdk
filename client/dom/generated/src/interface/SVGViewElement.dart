@@ -6,5 +6,5 @@
 
 interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFitToViewBox, SVGZoomAndPan {
 
-  SVGStringList get viewTarget();
+  final SVGStringList viewTarget;
 }

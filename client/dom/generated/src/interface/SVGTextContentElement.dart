@@ -12,9 +12,9 @@ interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGE
 
   static final int LENGTHADJUST_UNKNOWN = 0;
 
-  SVGAnimatedEnumeration get lengthAdjust();
+  final SVGAnimatedEnumeration lengthAdjust;
 
-  SVGAnimatedLength get textLength();
+  final SVGAnimatedLength textLength;
 
   int getCharNumAtPosition(SVGPoint point);
 

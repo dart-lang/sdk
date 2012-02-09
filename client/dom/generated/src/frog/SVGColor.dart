@@ -9,9 +9,9 @@ class _SVGColorJs extends _CSSValueJs implements SVGColor native "*SVGColor" {
 
   static final int SVG_COLORTYPE_UNKNOWN = 0;
 
-  int get colorType() native "return this.colorType;";
+  final int colorType;
 
-  _RGBColorJs get rgbColor() native "return this.rgbColor;";
+  final _RGBColorJs rgbColor;
 
   void setColor(int colorType, String rgbColor, String iccColor) native;
 

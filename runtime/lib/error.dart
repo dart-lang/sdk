@@ -58,3 +58,21 @@ class InternalError {
   String toString() => "InternalError: '${_msg}'";
   final String _msg;
 }
+
+
+class StaticResolutionException implements Exception {
+  factory StaticResolutionException._uninstantiable() {
+    throw const UnsupportedOperationException(
+        "StaticResolutionException can only be allocated by the VM");
+  }
+
+  String toString() => "Unresolved static method: url '$url' line $line " +
+      "pos $column\n$failedResolutionLine\n";
+
+  static _throwNew(int token_pos) native "StaticResolutionException_throwNew";
+  
+  final String failedResolutionLine;
+  final String url;
+  final int line;
+  final int column;
+}

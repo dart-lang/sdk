@@ -1,17 +1,17 @@
 
 class _CoordinatesJs extends _DOMTypeJs implements Coordinates native "*Coordinates" {
 
-  num get accuracy() native "return this.accuracy;";
+  final num accuracy;
 
-  num get altitude() native "return this.altitude;";
+  final num altitude;
 
-  num get altitudeAccuracy() native "return this.altitudeAccuracy;";
+  final num altitudeAccuracy;
 
-  num get heading() native "return this.heading;";
+  final num heading;
 
-  num get latitude() native "return this.latitude;";
+  final num latitude;
 
-  num get longitude() native "return this.longitude;";
+  final num longitude;
 
-  num get speed() native "return this.speed;";
+  final num speed;
 }

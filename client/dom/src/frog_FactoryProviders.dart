@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-// These factory methods could all live in one factory provider class but dartc
-// has a bug (5399939) preventing that.
-
 class _AudioContextFactoryProvider {
 
   factory AudioContext() native '''
     var constructor = window.AudioContext || window.webkitAudioContext;
     return new constructor();
 ''';
+}
+
+class _DOMParserFactoryProvider {
+
+  factory DOMParser() native '''return new DOMParser();''';
 }
 
 class _FileReaderFactoryProvider {

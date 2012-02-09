@@ -203,6 +203,34 @@ DEFINE_NATIVE_ENTRY(FallThroughError_throwNew, 1) {
 }
 
 
+// Allocate and throw StaticResolutionException.
+// Arg0: index of the static call that was not resolved at compile time.
+// Return value: none, throws an exception.
+DEFINE_NATIVE_ENTRY(StaticResolutionException_throwNew, 1) {
+  GET_NATIVE_ARGUMENT(Smi, smi_pos, arguments->At(0));
+  intptr_t call_pos = smi_pos.Value();
+  // Allocate a new instance of type StaticResolutionException.
+  const Instance& resolution_exception =
+      Instance::Handle(NewInstance("StaticResolutionException"));
+  ASSERT(!resolution_exception.IsNull());
+
+  // Initialize 'url', 'line', and 'column' fields.
+  DartFrameIterator iterator;
+  iterator.NextFrame();  // Skip native call.
+  const Script& script = Script::Handle(GetCallerScript(&iterator));
+  const Class& cls = Class::Handle(resolution_exception.clazz());
+  SetLocationFields(resolution_exception, cls, script, call_pos);
+
+  intptr_t line, column;
+  script.GetTokenLocation(call_pos, &line, &column);
+  SetField(resolution_exception, cls, "failedResolutionLine",
+      String::Handle(script.GetLine(line)));
+
+  Exceptions::Throw(resolution_exception);
+  UNREACHABLE();
+}
+
+
 // Check that the type of the given instance is assignable to the given type.
 // Arg0: index of the token of the assignment (source location).
 // Arg1: instance being assigned.

@@ -6,7 +6,7 @@
 
 interface CustomEvent extends Event {
 
-  Object get detail();
+  final Object detail;
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }

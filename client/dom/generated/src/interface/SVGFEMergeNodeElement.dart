@@ -6,5 +6,5 @@
 
 interface SVGFEMergeNodeElement extends SVGElement {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 }

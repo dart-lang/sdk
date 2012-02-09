@@ -29,11 +29,7 @@ class _SVGPreserveAspectRatioJs extends _DOMTypeJs implements SVGPreserveAspectR
 
   static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  int get align() native "return this.align;";
+  int align;
 
-  void set align(int value) native "this.align = value;";
-
-  int get meetOrSlice() native "return this.meetOrSlice;";
-
-  void set meetOrSlice(int value) native "this.meetOrSlice = value;";
+  int meetOrSlice;
 }

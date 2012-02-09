@@ -1,13 +1,13 @@
 
 class _IDBKeyRangeJs extends _DOMTypeJs implements IDBKeyRange native "*IDBKeyRange" {
 
-  _IDBKeyJs get lower() native "return this.lower;";
+  final _IDBKeyJs lower;
 
-  bool get lowerOpen() native "return this.lowerOpen;";
+  final bool lowerOpen;
 
-  _IDBKeyJs get upper() native "return this.upper;";
+  final _IDBKeyJs upper;
 
-  bool get upperOpen() native "return this.upperOpen;";
+  final bool upperOpen;
 
   _IDBKeyRangeJs bound(_IDBKeyJs lower, _IDBKeyJs upper, [bool lowerOpen = null, bool upperOpen = null]) native;
 

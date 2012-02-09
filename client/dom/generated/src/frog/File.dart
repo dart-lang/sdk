@@ -1,13 +1,13 @@
 
 class _FileJs extends _BlobJs implements File native "*File" {
 
-  String get fileName() native "return this.fileName;";
+  final String fileName;
 
-  int get fileSize() native "return this.fileSize;";
+  final int fileSize;
 
-  Date get lastModifiedDate() native "return this.lastModifiedDate;";
+  final Date lastModifiedDate;
 
-  String get name() native "return this.name;";
+  final String name;
 
-  String get webkitRelativePath() native "return this.webkitRelativePath;";
+  final String webkitRelativePath;
 }

@@ -9,5 +9,5 @@ class _MediaErrorJs extends _DOMTypeJs implements MediaError native "*MediaError
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  int get code() native "return this.code;";
+  final int code;
 }

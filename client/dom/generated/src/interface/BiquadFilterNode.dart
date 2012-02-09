@@ -22,15 +22,13 @@ interface BiquadFilterNode extends AudioNode {
 
   static final int PEAKING = 5;
 
-  AudioParam get Q();
+  final AudioParam Q;
 
-  AudioParam get frequency();
+  final AudioParam frequency;
 
-  AudioParam get gain();
+  final AudioParam gain;
 
-  int get type();
-
-  void set type(int value);
+  int type;
 
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse);
 }

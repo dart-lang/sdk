@@ -10,6 +10,7 @@ import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+// TODO(zundel): update this test not to rely on code generation
 public class IncrementalCompilation2Test extends CompilerTestCase {
   private static final String APP = "Application.dart";
 
@@ -72,7 +74,15 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
+    CompilerOptions compilerOptions = new CompilerOptions() {
+      // TODO(zundel): Update these tests to run without requiring code generation
+      @Override
+      public boolean checkOnly() {
+        return false;
+      }
+    };
+    config = new DefaultCompilerConfiguration(new JavascriptBackend(),
+                                              compilerOptions) {
       @Override
       public boolean incremental() {
         return true;

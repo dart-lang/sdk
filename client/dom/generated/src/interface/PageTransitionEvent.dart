@@ -6,5 +6,5 @@
 
 interface PageTransitionEvent extends Event {
 
-  bool get persisted();
+  final bool persisted;
 }

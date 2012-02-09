@@ -10,25 +10,21 @@ interface IDBRequest {
 
   static final int LOADING = 1;
 
-  int get errorCode();
+  final int errorCode;
 
-  EventListener get onerror();
+  EventListener onerror;
 
-  void set onerror(EventListener value);
+  EventListener onsuccess;
 
-  EventListener get onsuccess();
+  final int readyState;
 
-  void set onsuccess(EventListener value);
+  final IDBAny result;
 
-  int get readyState();
+  final IDBAny source;
 
-  IDBAny get result();
+  final IDBTransaction transaction;
 
-  IDBAny get source();
-
-  IDBTransaction get transaction();
-
-  String get webkitErrorMessage();
+  final String webkitErrorMessage;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

@@ -1,15 +1,9 @@
 
 class _HTMLFontElementJs extends _HTMLElementJs implements HTMLFontElement native "*HTMLFontElement" {
 
-  String get color() native "return this.color;";
+  String color;
 
-  void set color(String value) native "this.color = value;";
+  String face;
 
-  String get face() native "return this.face;";
-
-  void set face(String value) native "this.face = value;";
-
-  String get size() native "return this.size;";
-
-  void set size(String value) native "this.size = value;";
+  String size;
 }

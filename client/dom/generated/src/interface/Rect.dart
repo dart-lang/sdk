@@ -6,11 +6,11 @@
 
 interface Rect {
 
-  CSSPrimitiveValue get bottom();
+  final CSSPrimitiveValue bottom;
 
-  CSSPrimitiveValue get left();
+  final CSSPrimitiveValue left;
 
-  CSSPrimitiveValue get right();
+  final CSSPrimitiveValue right;
 
-  CSSPrimitiveValue get top();
+  final CSSPrimitiveValue top;
 }

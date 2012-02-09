@@ -6,7 +6,7 @@
 
 interface SVGFitToViewBox {
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 
-  SVGAnimatedRect get viewBox();
+  final SVGAnimatedRect viewBox;
 }

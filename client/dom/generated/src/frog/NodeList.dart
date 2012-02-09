@@ -1,7 +1,7 @@
 
 class _NodeListJs extends _DOMTypeJs implements NodeList native "*NodeList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _NodeJs operator[](int index) native "return this[index];";
 

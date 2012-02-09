@@ -6,5 +6,5 @@
 
 interface SVGExternalResourcesRequired {
 
-  SVGAnimatedBoolean get externalResourcesRequired();
+  final SVGAnimatedBoolean externalResourcesRequired;
 }

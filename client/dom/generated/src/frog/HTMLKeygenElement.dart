@@ -1,37 +1,27 @@
 
 class _HTMLKeygenElementJs extends _HTMLElementJs implements HTMLKeygenElement native "*HTMLKeygenElement" {
 
-  bool get autofocus() native "return this.autofocus;";
+  bool autofocus;
 
-  void set autofocus(bool value) native "this.autofocus = value;";
+  String challenge;
 
-  String get challenge() native "return this.challenge;";
+  bool disabled;
 
-  void set challenge(String value) native "this.challenge = value;";
+  final _HTMLFormElementJs form;
 
-  bool get disabled() native "return this.disabled;";
+  String keytype;
 
-  void set disabled(bool value) native "this.disabled = value;";
+  final _NodeListJs labels;
 
-  _HTMLFormElementJs get form() native "return this.form;";
+  String name;
 
-  String get keytype() native "return this.keytype;";
+  final String type;
 
-  void set keytype(String value) native "this.keytype = value;";
+  final String validationMessage;
 
-  _NodeListJs get labels() native "return this.labels;";
+  final _ValidityStateJs validity;
 
-  String get name() native "return this.name;";
-
-  void set name(String value) native "this.name = value;";
-
-  String get type() native "return this.type;";
-
-  String get validationMessage() native "return this.validationMessage;";
-
-  _ValidityStateJs get validity() native "return this.validity;";
-
-  bool get willValidate() native "return this.willValidate;";
+  final bool willValidate;
 
   bool checkValidity() native;
 

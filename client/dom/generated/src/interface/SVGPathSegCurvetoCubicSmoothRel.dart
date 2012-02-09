@@ -6,19 +6,11 @@
 
 interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
 
-  num get x();
+  num x;
 
-  void set x(num value);
+  num x2;
 
-  num get x2();
+  num y;
 
-  void set x2(num value);
-
-  num get y();
-
-  void set y(num value);
-
-  num get y2();
-
-  void set y2(num value);
+  num y2;
 }

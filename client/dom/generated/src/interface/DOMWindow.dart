@@ -6,179 +6,107 @@
 
 interface Window extends EventTarget {
 
-  DOMApplicationCache get applicationCache();
+  final DOMApplicationCache applicationCache;
 
-  Navigator get clientInformation();
+  Navigator clientInformation;
 
-  void set clientInformation(Navigator value);
+  final bool closed;
 
-  bool get closed();
+  Console console;
 
-  Console get console();
+  final Crypto crypto;
 
-  void set console(Console value);
+  String defaultStatus;
 
-  Crypto get crypto();
+  String defaultstatus;
 
-  String get defaultStatus();
+  num devicePixelRatio;
 
-  void set defaultStatus(String value);
+  final Document document;
 
-  String get defaultstatus();
+  Event event;
 
-  void set defaultstatus(String value);
+  final Element frameElement;
 
-  num get devicePixelRatio();
+  DOMWindow frames;
 
-  void set devicePixelRatio(num value);
+  History history;
 
-  Document get document();
+  int innerHeight;
 
-  Event get event();
+  int innerWidth;
 
-  void set event(Event value);
+  int length;
 
-  Element get frameElement();
+  final Storage localStorage;
 
-  DOMWindow get frames();
+  Location location;
 
-  void set frames(DOMWindow value);
+  BarInfo locationbar;
 
-  History get history();
+  BarInfo menubar;
 
-  void set history(History value);
+  String name;
 
-  int get innerHeight();
+  Navigator navigator;
 
-  void set innerHeight(int value);
+  bool offscreenBuffering;
 
-  int get innerWidth();
+  DOMWindow opener;
 
-  void set innerWidth(int value);
+  int outerHeight;
 
-  int get length();
+  int outerWidth;
 
-  void set length(int value);
+  final int pageXOffset;
 
-  Storage get localStorage();
+  final int pageYOffset;
 
-  Location get location();
+  DOMWindow parent;
 
-  void set location(Location value);
+  Performance performance;
 
-  BarInfo get locationbar();
+  BarInfo personalbar;
 
-  void set locationbar(BarInfo value);
+  Screen screen;
 
-  BarInfo get menubar();
+  int screenLeft;
 
-  void set menubar(BarInfo value);
+  int screenTop;
 
-  String get name();
+  int screenX;
 
-  void set name(String value);
+  int screenY;
 
-  Navigator get navigator();
+  int scrollX;
 
-  void set navigator(Navigator value);
+  int scrollY;
 
-  bool get offscreenBuffering();
+  BarInfo scrollbars;
 
-  void set offscreenBuffering(bool value);
+  DOMWindow self;
 
-  DOMWindow get opener();
+  final Storage sessionStorage;
 
-  void set opener(DOMWindow value);
+  String status;
 
-  int get outerHeight();
+  BarInfo statusbar;
 
-  void set outerHeight(int value);
+  final StyleMedia styleMedia;
 
-  int get outerWidth();
+  BarInfo toolbar;
 
-  void set outerWidth(int value);
+  DOMWindow top;
 
-  int get pageXOffset();
+  final IDBFactory webkitIndexedDB;
 
-  int get pageYOffset();
+  final NotificationCenter webkitNotifications;
 
-  DOMWindow get parent();
+  final StorageInfo webkitStorageInfo;
 
-  void set parent(DOMWindow value);
+  final DOMURL webkitURL;
 
-  Performance get performance();
-
-  void set performance(Performance value);
-
-  BarInfo get personalbar();
-
-  void set personalbar(BarInfo value);
-
-  Screen get screen();
-
-  void set screen(Screen value);
-
-  int get screenLeft();
-
-  void set screenLeft(int value);
-
-  int get screenTop();
-
-  void set screenTop(int value);
-
-  int get screenX();
-
-  void set screenX(int value);
-
-  int get screenY();
-
-  void set screenY(int value);
-
-  int get scrollX();
-
-  void set scrollX(int value);
-
-  int get scrollY();
-
-  void set scrollY(int value);
-
-  BarInfo get scrollbars();
-
-  void set scrollbars(BarInfo value);
-
-  DOMWindow get self();
-
-  void set self(DOMWindow value);
-
-  Storage get sessionStorage();
-
-  String get status();
-
-  void set status(String value);
-
-  BarInfo get statusbar();
-
-  void set statusbar(BarInfo value);
-
-  StyleMedia get styleMedia();
-
-  BarInfo get toolbar();
-
-  void set toolbar(BarInfo value);
-
-  DOMWindow get top();
-
-  void set top(DOMWindow value);
-
-  IDBFactory get webkitIndexedDB();
-
-  NotificationCenter get webkitNotifications();
-
-  StorageInfo get webkitStorageInfo();
-
-  DOMURL get webkitURL();
-
-  DOMWindow get window();
+  final DOMWindow window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

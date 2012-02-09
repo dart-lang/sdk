@@ -8,17 +8,15 @@ interface AudioContext default _AudioContextFactoryProvider {
 
   AudioContext();
 
-  num get currentTime();
+  final num currentTime;
 
-  AudioDestinationNode get destination();
+  final AudioDestinationNode destination;
 
-  AudioListener get listener();
+  final AudioListener listener;
 
-  EventListener get oncomplete();
+  EventListener oncomplete;
 
-  void set oncomplete(EventListener value);
-
-  num get sampleRate();
+  final num sampleRate;
 
   RealtimeAnalyserNode createAnalyser();
 

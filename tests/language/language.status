@@ -53,15 +53,6 @@ TypeVariableBoundsTest/06: Fail
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 
-#Issue 1307.
-NamedParameters2Test: Fail
-NamedParameters3Test: Fail
-NamedParameters4Test: Fail
-
-# Issue 1350.
-StringEscape1NegativeTest: Fail
-StringEscape4NegativeTest: Fail
-
 SuperFirstConstructorTest: Fail # Issue 1372.
 
 # Issue 1427
@@ -85,7 +76,19 @@ ConstructorDuplicateInitializersTest/02: Fail
 # Issue 1355
 CallOperatorTest: Fail
 
-# Issue
+GetSetSyntaxTest/04: Fail # Issue 1569
+GetSetSyntaxTest/05: Fail # Issue 1569
+GetSetSyntaxTest/06: Fail # Issue 1569
+GetSetSyntaxTest/07: Fail # Issue 1569
+GetSetSyntaxTest/08: Fail # Issue 1569
+GetSetSyntaxTest/09: Fail # Issue 1569
+GetSetSyntaxTest/10: Fail # Issue 1569
+GetSetSyntaxTest/11: Fail # Issue 1569
+GetSetSyntaxTest/12: Fail # Issue 1569
+GetSetSyntaxTest/13: Fail # Issue 1569
+GetSetSyntaxTest/14: Fail # Issue 1569
+GetSetSyntaxTest/15: Fail # Issue 1569
+
 [ ($component == vm || $component == dartium) && $unchecked ]
 
 Prefix16NegativeTest: Fail    # Bug 5532534
@@ -101,22 +104,73 @@ GCTest: Skip  # Takes too long.
 
 [ $component == vm && $mode == release ]
 
-# Problems specific to dartc optimized mode
-[ ($component == dartc || $component == chromium) && $mode == release ]
-CTConst2Test: Fail                       # Codesite issue 124
-CallThroughNullGetterTest: Fail          # Bug 5391976
-Label2NegativeTest: Crash                # Bug 5318228
-MethodInvocationTest: Fail               # Bug  5392266
-NullPointerExceptionTest: Fail           # Bug 5391976
-Private3Test: Fail                       # Bug 5391976
-Switch3NegativeTest: Crash               # Bug 5318228
-ToplevelCollision2Test/none: Fail        # Issue 647
-
-# Problems specific to dartc debug mode
-[ ($component == dartc || $component == chromium) && $mode == debug ]
-
-
 [ $component == dartc || $component == chromium ]
+
+# Marked failed after code generation removed from dartc
+
+ApplicationNegativeTest: Fail    # status change with --check-only
+AssertKeywordNegativeTest: Fail    # status change with --check-only
+AssignInstanceMethodNegativeTest: Fail    # status change with --check-only
+BitOperationsTest: Pass    # status change with --check-only
+BodyLessConstructorWrongArgNegativeTest: Fail    # status change with --check-only
+CallOperatorTest: Pass    # status change with --check-only
+CallThroughNullGetterTest: Pass    # status change with --check-only
+CharEscapeTest: Pass    # status change with --check-only
+ClosureCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+ConstCounterNegativeTest: Fail    # status change with --check-only
+ConstInit4NegativeTest: Fail    # status change with --check-only
+ConstObjectsAreImmutableTest: Pass    # status change with --check-only
+Constructor2Test: Pass    # status change with --check-only
+Constructor3NegativeTest: Fail    # status change with --check-only
+Constructor3Test: Pass    # status change with --check-only
+Constructor4Test: Pass    # status change with --check-only
+Constructor5Test: Pass    # status change with --check-only
+Constructor6Test: Pass    # status change with --check-only
+ConstructorCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+CTConstTest: Pass    # status change with --check-only
+DivByZeroTest: Pass    # status change with --check-only
+DynamicTest: Pass    # status change with --check-only
+ExampleConstructorTest: Pass    # status change with --check-only
+ExpectTest: Pass    # status change with --check-only
+Field3aNegativeTest: Fail    # status change with --check-only
+FieldMethod4NegativeTest: Fail    # status change with --check-only
+For2Test: Pass    # status change with --check-only
+GenericTest: Pass    # status change with --check-only
+GetterClosureExecutionOrderTest: Pass    # status change with --check-only
+InstanceCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+IsObjectTest: Pass    # status change with --check-only
+Label2NegativeTest: Fail    # status change with --check-only
+ListLiteral3Test: Pass    # status change with --check-only
+ListTest: Pass    # status change with --check-only
+LocalFunction3Test: Pass    # status change with --check-only
+LocalFunctionTest: Pass    # status change with --check-only
+ManyOverriddenNoSuchMethodTest: Pass    # status change with --check-only
+NamedParametersNegativeTest: Fail    # status change with --check-only
+NamedParametersTypeTest: Pass    # status change with --check-only
+NamingTest: Pass    # status change with --check-only
+NoSuchMethodNegativeTest: Fail    # status change with --check-only
+NoSuchMethodTest: Pass    # status change with --check-only
+NullToStringTest: Pass    # status change with --check-only
+OverriddenNoSuchMethodTest: Pass    # status change with --check-only
+Prefix6NegativeTest: Fail    # status change with --check-only
+PrivateMember3NegativeTest: Fail    # status change with --check-only
+RegExp3Test: Pass    # status change with --check-only
+StackOverflowTest: Pass    # status change with --check-only
+StackTraceTest: Pass    # status change with --check-only
+StaticCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
+StaticField1aRunNegativeTest: Fail    # status change with --check-only
+StaticField1RunNegativeTest: Fail    # status change with --check-only
+StaticField2aRunNegativeTest: Fail    # status change with --check-only
+StaticField2RunNegativeTest: Fail    # status change with --check-only
+StringConcatTest: Pass    # status change with --check-only
+Switch3NegativeTest: Fail    # status change with --check-only
+SyntaxTest/29: Fail    # status change with --check-only
+SyntaxTest/30: Fail    # status change with --check-only
+TypeChecksInFactoryMethodTest: Pass    # status change with --check-only
+
+
+# Problems traiaged before static analysis-only change
+
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 BitOperationsTest: Fail      # Uses bignums.
 CTConstTest: Fail            # Bug 5202940, Issue 176
@@ -207,7 +261,6 @@ TypeChecksInFactoryMethodTest: Fail # Issue 925
 # Add new dartc annotations above in alphabetical order
 #
 
-
 # VM or Frog specific tests that should not be run by DartC.
 *VMTest: Skip
 *VMNegativeTest: Skip
@@ -222,33 +275,53 @@ TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
 
 
-[ $component == frog ]
+[ $component == frogsh ]
+IntrinsifiedMethodsTest: Fail # Issue 1470
+ArithmeticTest: Fail # Issue 1470
+
+[ $component == frog || $component == frogium ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 # This set of four test components (frog, frogsh, frogium, and webdriver) all
 # consume frog output, so if frog is generating the incorrect code, chances are
-# it will fail on all of these components. 
+# it will fail on all of these components.
 #
 # Further explanation:
 # frog: frog compiler, run using the VM
 # frogsh: self-hosted frog compiler
-# frogium: Dart code compiled with frogsh running under DumpRenderTree
-# webdriver: Dart code compiled with frogsh running on an actual browser 
+# frogium: Dart code compiled with frog VM running under DumpRenderTree
+# webdriver: Dart code compiled with frog VM running on an actual browser
 # (Chrome, IE, Firefox, Safari, etc). If a test is only failing on a particular
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.
 [ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
-IntrinsifiedMethodsTest: Fail # Issue 1470
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
+GetSetSyntaxTest/00: Fail # Issue 1571
+GetSetSyntaxTest/01: Fail # Issue 1571
+GetSetSyntaxTest/02: Fail # Issue 1571
+GetSetSyntaxTest/03: Fail # Issue 1571
+GetSetSyntaxTest/04: Fail # Issue 1571
+GetSetSyntaxTest/05: Fail # Issue 1571
+GetSetSyntaxTest/06: Fail # Issue 1571
+GetSetSyntaxTest/07: Fail # Issue 1571
+GetSetSyntaxTest/08: Fail # Issue 1571
+GetSetSyntaxTest/09: Fail # Issue 1571
+GetSetSyntaxTest/10: Fail # Issue 1571
+GetSetSyntaxTest/11: Fail # Issue 1571
+GetSetSyntaxTest/12: Fail # Issue 1571
+GetSetSyntaxTest/13: Fail # Issue 1571
+GetSetSyntaxTest/14: Fail # Issue 1571
+GetSetSyntaxTest/15: Fail # Issue 1571
 ImplementTypeParameterNegativeTest: Skip # Issue 887
 FactoryImplementationTest: Fail # Issue 523
 PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
+ThirdTest: Fail # Issue 1511
 
 CondExprTest: Fail
 
@@ -390,6 +463,7 @@ MethodBindingTest: Fail
 Prefix15Test: Fail
 ToStringAsFixedTest: Pass,Fail # Passes in 32-bit Safari, but fails in 64-bit Issue #1220
 ExecuteFinally6Test: Skip
+GCTest: Fail
 
 [ $component == webdriver && $browser == ff ]
 NamingTest: Fail
@@ -398,7 +472,10 @@ ToStringAsFixedTest: Fail
 ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
 
-[ $component == webdriver && ($browser == ff || $browser == safari) ]
+# For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
+# other browsers don't, so they eventually timeout.
+# In any case, we shouldn't be relying on SyntaxError.
+[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
 Label2NegativeTest: Skip
 Label3NegativeTest: Skip
 Label5NegativeTest: Skip
@@ -447,8 +524,13 @@ LiteralUnaryPlusTest/01: Fail # Issue 1400
 StaticField1RunNegativeTest: Pass # but error is not correct
 StaticField2RunNegativeTest: Pass # but error is not correct
 
+[ $component == frog && $mode == debug ]
+ConstructorRedirect1NegativeTest: Skip # Undiagnosed infinite loop.
+ConstructorRedirect2NegativeTest: Skip # Undiagnosed infinite loop.
+
 [ $arch == simarm ]
 *: Skip
 
 [ $arch == arm ]
 *: Skip
+

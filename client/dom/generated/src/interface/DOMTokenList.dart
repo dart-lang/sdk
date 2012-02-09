@@ -6,7 +6,7 @@
 
 interface DOMTokenList {
 
-  int get length();
+  final int length;
 
   void add(String token);
 

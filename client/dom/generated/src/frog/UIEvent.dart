@@ -1,23 +1,23 @@
 
 class _UIEventJs extends _EventJs implements UIEvent native "*UIEvent" {
 
-  int get charCode() native "return this.charCode;";
+  final int charCode;
 
-  int get detail() native "return this.detail;";
+  final int detail;
 
-  int get keyCode() native "return this.keyCode;";
+  final int keyCode;
 
-  int get layerX() native "return this.layerX;";
+  final int layerX;
 
-  int get layerY() native "return this.layerY;";
+  final int layerY;
 
-  int get pageX() native "return this.pageX;";
+  final int pageX;
 
-  int get pageY() native "return this.pageY;";
+  final int pageY;
 
-  _DOMWindowJs get view() native "return this.view;";
+  final _DOMWindowJs view;
 
-  int get which() native "return this.which;";
+  final int which;
 
   void initUIEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, int detail) native;
 }

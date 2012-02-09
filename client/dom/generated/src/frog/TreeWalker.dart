@@ -1,17 +1,15 @@
 
 class _TreeWalkerJs extends _DOMTypeJs implements TreeWalker native "*TreeWalker" {
 
-  _NodeJs get currentNode() native "return this.currentNode;";
+  _NodeJs currentNode;
 
-  void set currentNode(_NodeJs value) native "this.currentNode = value;";
+  final bool expandEntityReferences;
 
-  bool get expandEntityReferences() native "return this.expandEntityReferences;";
+  final _NodeFilterJs filter;
 
-  _NodeFilterJs get filter() native "return this.filter;";
+  final _NodeJs root;
 
-  _NodeJs get root() native "return this.root;";
-
-  int get whatToShow() native "return this.whatToShow;";
+  final int whatToShow;
 
   _NodeJs firstChild() native;
 

@@ -6,5 +6,5 @@
 
 interface SpeechInputEvent extends Event {
 
-  SpeechInputResultList get results();
+  final SpeechInputResultList results;
 }

@@ -8,49 +8,45 @@ interface Element extends Node, NodeSelector, ElementTraversal {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  int get childElementCount();
+  final int childElementCount;
 
-  int get clientHeight();
+  final int clientHeight;
 
-  int get clientLeft();
+  final int clientLeft;
 
-  int get clientTop();
+  final int clientTop;
 
-  int get clientWidth();
+  final int clientWidth;
 
-  Element get firstElementChild();
+  final Element firstElementChild;
 
-  Element get lastElementChild();
+  final Element lastElementChild;
 
-  Element get nextElementSibling();
+  final Element nextElementSibling;
 
-  int get offsetHeight();
+  final int offsetHeight;
 
-  int get offsetLeft();
+  final int offsetLeft;
 
-  Element get offsetParent();
+  final Element offsetParent;
 
-  int get offsetTop();
+  final int offsetTop;
 
-  int get offsetWidth();
+  final int offsetWidth;
 
-  Element get previousElementSibling();
+  final Element previousElementSibling;
 
-  int get scrollHeight();
+  final int scrollHeight;
 
-  int get scrollLeft();
+  int scrollLeft;
 
-  void set scrollLeft(int value);
+  int scrollTop;
 
-  int get scrollTop();
+  final int scrollWidth;
 
-  void set scrollTop(int value);
+  final CSSStyleDeclaration style;
 
-  int get scrollWidth();
-
-  CSSStyleDeclaration get style();
-
-  String get tagName();
+  final String tagName;
 
   void blur();
 

@@ -453,6 +453,8 @@ class Class : public Object {
 
   RawScript* script() const { return raw_ptr()->script_; }
 
+  intptr_t token_index() const { return raw_ptr()->token_index_; }
+
   // This class represents the signature class of a closure function if
   // signature_function() is not null.
   // The associated function may be a closure function (with code) or a
@@ -476,6 +478,7 @@ class Class : public Object {
   void set_library(const Library& value) const;
 
   // The type parameters are specified as an array of Strings.
+  // TODO(regis): Store them as an array of TypeParameter with token_index.
   RawArray* type_parameters() const { return raw_ptr()->type_parameters_; }
   void set_type_parameters(const Array& value) const;
   intptr_t NumTypeParameters() const;
@@ -489,7 +492,8 @@ class Class : public Object {
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
-  RawTypeParameter* LookupTypeParameter(const String& type_name) const;
+  RawTypeParameter* LookupTypeParameter(const String& type_name,
+                                        intptr_t token_index) const;
 
   // The type argument vector is flattened and includes the type arguments of
   // the super class.
@@ -659,11 +663,16 @@ class Class : public Object {
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance> static RawClass* New(const String& name,
-                                                     const Script& script);
+                                                     const Script& script,
+                                                     intptr_t token_index);
 
   // Allocate instance classes and interfaces.
-  static RawClass* New(const String& name, const Script& script);
-  static RawClass* NewInterface(const String& name, const Script& script);
+  static RawClass* New(const String& name,
+                       const Script& script,
+                       intptr_t token_index);
+  static RawClass* NewInterface(const String& name,
+                                const Script& script,
+                                intptr_t token_index);
   static RawClass* NewNativeWrapper(Library* library,
                                     const String& name,
                                     int num_fields);
@@ -686,6 +695,7 @@ class Class : public Object {
  private:
   void set_name(const String& value) const;
   void set_script(const Script& value) const;
+  void set_token_index(intptr_t value) const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
   void set_class_state(int8_t state) const;
@@ -737,14 +747,14 @@ class UnresolvedClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawUnresolvedClass));
   }
-  static RawUnresolvedClass* New(intptr_t token_index,
-                                 const LibraryPrefix& library_prefix,
-                                 const String& ident);
+  static RawUnresolvedClass* New(const LibraryPrefix& library_prefix,
+                                 const String& ident,
+                                 intptr_t token_index);
 
  private:
-  void set_token_index(intptr_t token_index) const;
-  void set_ident(const String& ident) const;
   void set_library_prefix(const LibraryPrefix& library_prefix) const;
+  void set_ident(const String& ident) const;
+  void set_token_index(intptr_t token_index) const;
 
   static RawUnresolvedClass* New();
 
@@ -770,6 +780,7 @@ class AbstractType : public Object {
   virtual RawClass* type_class() const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawAbstractTypeArguments* arguments() const;
+  virtual intptr_t token_index() const;
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
 
@@ -849,7 +860,9 @@ class AbstractType : public Object {
     return Test(kIsAssignableTo, dst);
   }
 
-  static RawAbstractType* NewTypeParameter(intptr_t index, const String& name);
+  static RawAbstractType* NewTypeParameter(intptr_t index,
+                                           const String& name,
+                                           intptr_t token_index);
 
   static RawAbstractType* NewInstantiatedType(
       const AbstractType& uninstantiated_type,
@@ -884,6 +897,7 @@ class Type : public AbstractType {
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawAbstractTypeArguments* arguments() const;
   void set_arguments(const AbstractTypeArguments& value) const;
+  virtual intptr_t token_index() const { return raw_ptr()->token_index_; }
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
@@ -930,15 +944,17 @@ class Type : public AbstractType {
   // The least specific valid raw type of the given class.
   // For example, type A<Dynamic> would be returned for class A<T>, and type
   // B<Dynamic, A<Dynamic>> would be returned for B<U, V extends A>.
-  static RawType* NewRawType(const Class& type_class);
+  static RawType* NewRawType(const Class& type_class, intptr_t token_index);
 
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
 
   static RawType* New(const Object& clazz,
-                      const AbstractTypeArguments& arguments);
+                      const AbstractTypeArguments& arguments,
+                      intptr_t token_index);
 
  private:
+  void set_token_index(intptr_t token_index) const;
   void set_type_state(int8_t state) const;
 
   static RawType* New();
@@ -967,6 +983,7 @@ class TypeParameter : public AbstractType {
   virtual RawString* Name() const { return raw_ptr()->name_; }
   virtual intptr_t Index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
+  virtual intptr_t token_index() const { return raw_ptr()->token_index_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const AbstractType& other) const;
   virtual RawAbstractType* InstantiateFrom(
@@ -977,10 +994,13 @@ class TypeParameter : public AbstractType {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
   }
 
-  static RawTypeParameter* New(intptr_t index, const String& name);
+  static RawTypeParameter* New(intptr_t index,
+                               const String& name,
+                               intptr_t token_index);
 
  private:
   void set_name(const String& value) const;
+  void set_token_index(intptr_t token_index) const;
   void set_type_state(int8_t state) const;
   static RawTypeParameter* New();
 
@@ -1006,6 +1026,7 @@ class InstantiatedType : public AbstractType {
   virtual bool HasResolvedTypeClass() const { return true; }
   virtual RawClass* type_class() const;
   virtual RawAbstractTypeArguments* arguments() const;
+  virtual intptr_t token_index() const;
   virtual bool IsInstantiated() const { return true; }
 
   RawAbstractType* uninstantiated_type() const {

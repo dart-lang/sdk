@@ -263,7 +263,11 @@ class Expectation {
 
   /** Asserts that the value is equivalent to [expected]. */
   void equals(expected) {
-    Expect.equals(expected, _value);
+    if (_value is String && expected is String) {
+      Expect.stringEquals(expected, _value);
+    } else {
+      Expect.equals(expected, _value);
+    }
   }
 
   /**

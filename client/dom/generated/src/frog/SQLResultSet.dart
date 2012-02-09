@@ -1,9 +1,9 @@
 
 class _SQLResultSetJs extends _DOMTypeJs implements SQLResultSet native "*SQLResultSet" {
 
-  int get insertId() native "return this.insertId;";
+  final int insertId;
 
-  _SQLResultSetRowListJs get rows() native "return this.rows;";
+  final _SQLResultSetRowListJs rows;
 
-  int get rowsAffected() native "return this.rowsAffected;";
+  final int rowsAffected;
 }

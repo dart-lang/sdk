@@ -6,9 +6,9 @@
 
 interface ProgressEvent extends Event {
 
-  bool get lengthComputable();
+  final bool lengthComputable;
 
-  int get loaded();
+  final int loaded;
 
-  int get total();
+  final int total;
 }

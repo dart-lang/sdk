@@ -6,19 +6,19 @@
 
 interface Screen {
 
-  int get availHeight();
+  final int availHeight;
 
-  int get availLeft();
+  final int availLeft;
 
-  int get availTop();
+  final int availTop;
 
-  int get availWidth();
+  final int availWidth;
 
-  int get colorDepth();
+  final int colorDepth;
 
-  int get height();
+  final int height;
 
-  int get pixelDepth();
+  final int pixelDepth;
 
-  int get width();
+  final int width;
 }

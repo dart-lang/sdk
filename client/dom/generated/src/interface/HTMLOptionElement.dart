@@ -6,31 +6,19 @@
 
 interface HTMLOptionElement extends HTMLElement {
 
-  bool get defaultSelected();
+  bool defaultSelected;
 
-  void set defaultSelected(bool value);
+  bool disabled;
 
-  bool get disabled();
+  final HTMLFormElement form;
 
-  void set disabled(bool value);
+  final int index;
 
-  HTMLFormElement get form();
+  String label;
 
-  int get index();
+  bool selected;
 
-  String get label();
+  String text;
 
-  void set label(String value);
-
-  bool get selected();
-
-  void set selected(bool value);
-
-  String get text();
-
-  void set text(String value);
-
-  String get value();
-
-  void set value(String value);
+  String value;
 }

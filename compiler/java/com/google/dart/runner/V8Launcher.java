@@ -5,8 +5,6 @@
 package com.google.dart.runner;
 
 import com.google.common.collect.Lists;
-import com.google.debugging.sourcemap.SourceMapping;
-import com.google.debugging.sourcemap.proto.Mapping.OriginalMapping;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,15 +53,9 @@ public class V8Launcher implements JavaScriptLauncher {
 
   private static final String D8_ENVIRONMENT_VARIABLE = "D8_EXEC";
 
-  private final SourceMapping appSourceMap;
-
   private static final String EOL = System.getProperty("line.separator");
 
-  /**
-   *
-   */
-  public V8Launcher(SourceMapping appSourceMap) {
-    this.appSourceMap = appSourceMap;
+  public V8Launcher() {
   }
 
   @Override
@@ -135,12 +127,6 @@ public class V8Launcher implements JavaScriptLauncher {
         }
         out.println("Execution failed.");
 
-        String str = mapStackEntry(decodeStackTraceFromString(stdOutLines), appSourceMap);
-        if (str != null) {
-          out.println("Mapped stack trace:");
-          out.println(str);
-          out.println("");
-        }
         out.println("V8 execution returned non-zero exit-code: " + p.exitValue());
         out.flush();
         throw new RunnerError(stringWriter.toString());
@@ -148,98 +134,6 @@ public class V8Launcher implements JavaScriptLauncher {
     } finally {
       sourceFile.delete();
     }
-  }
-
-  private String mapStackEntry(List<StackEntry> entries, SourceMapping map) {
-    if (entries != null) {
-      StringBuilder sb = new StringBuilder();
-      for (StackEntry entry : entries) {
-        SourceMapping sm = getSourceMapForFile(entry.file, map);
-        // TODO(johnlenz): Try to translate the method name.
-        String method = (entry.method.isEmpty()) ? "" : " (" + entry.method + ")";
-        if (sm != null) {
-          OriginalMapping mapping = sm.getMappingForLine(entry.line, entry.column);
-          if (mapping != null) {
-            String file = mapping.getOriginalFile();
-            int line = mapping.getLineNumber();
-            int column = mapping.getColumnPosition();
-            sb.append("    at MAPPED  : " + file + ":" + line + ":" + column + method + EOL);
-            continue;
-          }
-        }
-        sb.append("    at UNMAPPED: "
-            + entry.file + ":" + entry.line + ":" + entry.column + method + EOL);
-      }
-
-      return sb.toString();
-    }
-    return null;
-  }
-
-  SourceMapping getSourceMapForFile(String file, SourceMapping map) {
-    return map;
-  }
-
-  static class StackEntry {
-    String method;
-    String file;
-    int line;
-    int column;
-  }
-
-  private List<StackEntry> decodeStackTraceFromString(List<String> lines) {
-    List<StackEntry> entries = Lists.newArrayList();
-
-    boolean seenFirst = false;
-    for (String str : lines) {
-      StackEntry entry = decodeStackEntry(str);
-      if (entry == null) {
-        if (seenFirst) {
-          break;
-        } else {
-          continue;
-        }
-      } else {
-        seenFirst = true;
-      }
-      entries.add(entry);
-    }
-
-    return entries.isEmpty() ? null : entries;
-  }
-
-  private StackEntry decodeStackEntry(String str) {
-    final String PREFIX = "    at ";
-    if (str.startsWith(PREFIX)) {
-      StackEntry entry = new StackEntry();
-      int start = str.indexOf("(");
-      int end = str.indexOf(")");
-      entry.method = "";
-      String location;
-      if (start == -1) {
-        location = str.substring(PREFIX.length());
-      } else {
-        entry.method = str.substring(7, start-1);
-        location = str.substring(start+1, end);
-      }
-      return decodeLocation(entry, location);
-    }
-    return null;
-  }
-
-  private StackEntry decodeLocation(StackEntry entry, String location) {
-    String[] parts = location.split(":");
-    if (parts.length >= 3) {
-      String file = parts[0];
-      for (int i = 1; i <= parts.length-3; i++) {
-        file += ":" + parts[i];
-      }
-      entry.file = file;
-      entry.line = Integer.valueOf(parts[parts.length - 2]);
-      entry.column = Integer.valueOf(parts[parts.length - 1]);
-      return entry;
-    }
-    return null;
   }
 
   private File writeTempFile(String name, String content) throws IOException {

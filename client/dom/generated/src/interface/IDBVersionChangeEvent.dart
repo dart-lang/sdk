@@ -6,5 +6,5 @@
 
 interface IDBVersionChangeEvent extends Event {
 
-  String get version();
+  final String version;
 }

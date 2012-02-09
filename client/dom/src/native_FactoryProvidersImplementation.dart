@@ -4,6 +4,7 @@
 
 class FactoryProviderImplementation {
   static AudioContext createAudioContext() native "AudioContext_constructor_Callback";
+  static DOMParser createDOMParser() native "DOMParser_constructor_Callback";
   static FileReader createFileReader() native "FileReader_constructor_Callback";
 
   static Float32Array F32(_arg0, [_arg1, _arg2]) native "Float32Array_constructor_Callback";

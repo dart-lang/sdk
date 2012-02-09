@@ -6,37 +6,37 @@
 
 interface WheelEvent extends UIEvent {
 
-  bool get altKey();
+  final bool altKey;
 
-  int get clientX();
+  final int clientX;
 
-  int get clientY();
+  final int clientY;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  int get offsetX();
+  final int offsetX;
 
-  int get offsetY();
+  final int offsetY;
 
-  int get screenX();
+  final int screenX;
 
-  int get screenY();
+  final int screenY;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
-  bool get webkitDirectionInvertedFromDevice();
+  final bool webkitDirectionInvertedFromDevice;
 
-  int get wheelDelta();
+  final int wheelDelta;
 
-  int get wheelDeltaX();
+  final int wheelDeltaX;
 
-  int get wheelDeltaY();
+  final int wheelDeltaY;
 
-  int get x();
+  final int x;
 
-  int get y();
+  final int y;
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }

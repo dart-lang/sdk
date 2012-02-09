@@ -6,17 +6,17 @@
 
 interface Coordinates {
 
-  num get accuracy();
+  final num accuracy;
 
-  num get altitude();
+  final num altitude;
 
-  num get altitudeAccuracy();
+  final num altitudeAccuracy;
 
-  num get heading();
+  final num heading;
 
-  num get latitude();
+  final num latitude;
 
-  num get longitude();
+  final num longitude;
 
-  num get speed();
+  final num speed;
 }

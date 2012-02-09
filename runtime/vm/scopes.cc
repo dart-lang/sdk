@@ -274,15 +274,17 @@ SourceLabel* LocalScope::LookupLabel(const String& name) {
 }
 
 
-SourceLabel* LocalScope::LookupInnermostLabel() {
+SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
+  ASSERT((jump_kind == Token::kCONTINUE) || (jump_kind == Token::kBREAK));
   LocalScope* current_scope = this;
   while (current_scope != NULL) {
     for (intptr_t i = 0; i < current_scope->labels_.length(); i++) {
       SourceLabel* label = current_scope->labels_[i];
-      if (label->kind() == SourceLabel::kWhile ||
-          label->kind() == SourceLabel::kFor ||
-          label->kind() == SourceLabel::kDoWhile ||
-          label->kind() == SourceLabel::kSwitch) {
+      if ((label->kind() == SourceLabel::kWhile) ||
+          (label->kind() == SourceLabel::kFor) ||
+          (label->kind() == SourceLabel::kDoWhile) ||
+          ((jump_kind == Token::kBREAK) &&
+              (label->kind() == SourceLabel::kSwitch))) {
         return label;
       }
     }

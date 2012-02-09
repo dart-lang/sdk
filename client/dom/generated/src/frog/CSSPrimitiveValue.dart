@@ -53,7 +53,7 @@ class _CSSPrimitiveValueJs extends _CSSValueJs implements CSSPrimitiveValue nati
 
   static final int CSS_URI = 20;
 
-  int get primitiveType() native "return this.primitiveType;";
+  final int primitiveType;
 
   _CounterJs getCounterValue() native;
 

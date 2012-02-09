@@ -6,7 +6,7 @@
 
 interface DOMPluginArray {
 
-  int get length();
+  final int length;
 
   DOMPlugin item(int index);
 

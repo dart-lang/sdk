@@ -4,5 +4,5 @@
 
 prefix co19
 
-[ $component == frog || $component == frogsh || $component == leg ]
+[ $component == frog || $component == frogsh ]
 *: Skip

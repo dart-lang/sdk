@@ -1,93 +1,43 @@
 
 class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElement" {
 
-  String get accessKey() native "return this.accessKey;";
+  String accessKey;
 
-  void set accessKey(String value) native "this.accessKey = value;";
+  final _HTMLCollectionJs children;
 
-  _HTMLCollectionJs get children() native "return this.children;";
+  final _DOMTokenListJs classList;
 
-  _DOMTokenListJs get classList() native "return this.classList;";
+  String className;
 
-  String get className() native "return this.className;";
+  String contentEditable;
 
-  void set className(String value) native "this.className = value;";
+  String dir;
 
-  String get contentEditable() native "return this.contentEditable;";
+  bool draggable;
 
-  void set contentEditable(String value) native "this.contentEditable = value;";
+  bool hidden;
 
-  String get dir() native "return this.dir;";
+  String id;
 
-  void set dir(String value) native "this.dir = value;";
+  String innerHTML;
 
-  bool get draggable() native "return this.draggable;";
+  String innerText;
 
-  void set draggable(bool value) native "this.draggable = value;";
+  final bool isContentEditable;
 
-  bool get hidden() native "return this.hidden;";
+  String lang;
 
-  void set hidden(bool value) native "this.hidden = value;";
+  String outerHTML;
 
-  String get id() native "return this.id;";
+  String outerText;
 
-  void set id(String value) native "this.id = value;";
+  bool spellcheck;
 
-  String get innerHTML() native "return this.innerHTML;";
+  int tabIndex;
 
-  void set innerHTML(String value) native "this.innerHTML = value;";
+  String title;
 
-  String get innerText() native "return this.innerText;";
-
-  void set innerText(String value) native "this.innerText = value;";
-
-  bool get isContentEditable() native "return this.isContentEditable;";
-
-  String get itemId() native "return this.itemId;";
-
-  void set itemId(String value) native "this.itemId = value;";
-
-  _DOMSettableTokenListJs get itemProp() native "return this.itemProp;";
-
-  _DOMSettableTokenListJs get itemRef() native "return this.itemRef;";
-
-  bool get itemScope() native "return this.itemScope;";
-
-  void set itemScope(bool value) native "this.itemScope = value;";
-
-  _DOMSettableTokenListJs get itemType() native "return this.itemType;";
-
-  Object get itemValue() native "return this.itemValue;";
-
-  void set itemValue(Object value) native "this.itemValue = value;";
-
-  String get lang() native "return this.lang;";
-
-  void set lang(String value) native "this.lang = value;";
-
-  String get outerHTML() native "return this.outerHTML;";
-
-  void set outerHTML(String value) native "this.outerHTML = value;";
-
-  String get outerText() native "return this.outerText;";
-
-  void set outerText(String value) native "this.outerText = value;";
-
-  bool get spellcheck() native "return this.spellcheck;";
-
-  void set spellcheck(bool value) native "this.spellcheck = value;";
-
-  int get tabIndex() native "return this.tabIndex;";
-
-  void set tabIndex(int value) native "this.tabIndex = value;";
-
-  String get title() native "return this.title;";
-
-  void set title(String value) native "this.title = value;";
-
-  String get webkitdropzone() native "return this.webkitdropzone;";
-
-  void set webkitdropzone(String value) native "this.webkitdropzone = value;";
+  String webkitdropzone;
 
   _ElementJs insertAdjacentElement(String where, _ElementJs element) native;
 

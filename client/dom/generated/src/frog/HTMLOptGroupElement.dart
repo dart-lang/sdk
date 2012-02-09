@@ -1,11 +1,7 @@
 
 class _HTMLOptGroupElementJs extends _HTMLElementJs implements HTMLOptGroupElement native "*HTMLOptGroupElement" {
 
-  bool get disabled() native "return this.disabled;";
+  bool disabled;
 
-  void set disabled(bool value) native "this.disabled = value;";
-
-  String get label() native "return this.label;";
-
-  void set label(String value) native "this.label = value;";
+  String label;
 }

@@ -6,19 +6,19 @@
 
 interface SVGFESpotLightElement extends SVGElement {
 
-  SVGAnimatedNumber get limitingConeAngle();
+  final SVGAnimatedNumber limitingConeAngle;
 
-  SVGAnimatedNumber get pointsAtX();
+  final SVGAnimatedNumber pointsAtX;
 
-  SVGAnimatedNumber get pointsAtY();
+  final SVGAnimatedNumber pointsAtY;
 
-  SVGAnimatedNumber get pointsAtZ();
+  final SVGAnimatedNumber pointsAtZ;
 
-  SVGAnimatedNumber get specularExponent();
+  final SVGAnimatedNumber specularExponent;
 
-  SVGAnimatedNumber get x();
+  final SVGAnimatedNumber x;
 
-  SVGAnimatedNumber get y();
+  final SVGAnimatedNumber y;
 
-  SVGAnimatedNumber get z();
+  final SVGAnimatedNumber z;
 }

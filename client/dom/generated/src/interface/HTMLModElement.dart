@@ -6,11 +6,7 @@
 
 interface HTMLModElement extends HTMLElement {
 
-  String get cite();
+  String cite;
 
-  void set cite(String value);
-
-  String get dateTime();
-
-  void set dateTime(String value);
+  String dateTime;
 }

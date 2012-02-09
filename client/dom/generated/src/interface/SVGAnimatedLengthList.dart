@@ -6,7 +6,7 @@
 
 interface SVGAnimatedLengthList {
 
-  SVGLengthList get animVal();
+  final SVGLengthList animVal;
 
-  SVGLengthList get baseVal();
+  final SVGLengthList baseVal;
 }

@@ -6,11 +6,11 @@
 
 interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumber get stdDeviationX();
+  final SVGAnimatedNumber stdDeviationX;
 
-  SVGAnimatedNumber get stdDeviationY();
+  final SVGAnimatedNumber stdDeviationY;
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
 }

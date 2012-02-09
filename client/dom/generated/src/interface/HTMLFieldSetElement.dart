@@ -6,13 +6,13 @@
 
 interface HTMLFieldSetElement extends HTMLElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  String get validationMessage();
+  final String validationMessage;
 
-  ValidityState get validity();
+  final ValidityState validity;
 
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 

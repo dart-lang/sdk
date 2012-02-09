@@ -600,9 +600,9 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   static final int ZERO = 0;
 
-  int get drawingBufferHeight();
+  final int drawingBufferHeight;
 
-  int get drawingBufferWidth();
+  final int drawingBufferWidth;
 
   void activeTexture(int texture);
 

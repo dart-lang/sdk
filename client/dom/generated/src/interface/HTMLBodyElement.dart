@@ -6,27 +6,15 @@
 
 interface HTMLBodyElement extends HTMLElement {
 
-  String get aLink();
+  String aLink;
 
-  void set aLink(String value);
+  String background;
 
-  String get background();
+  String bgColor;
 
-  void set background(String value);
+  String link;
 
-  String get bgColor();
+  String text;
 
-  void set bgColor(String value);
-
-  String get link();
-
-  void set link(String value);
-
-  String get text();
-
-  void set text(String value);
-
-  String get vLink();
-
-  void set vLink(String value);
+  String vLink;
 }

@@ -1,19 +1,17 @@
 
 class _AudioParamJs extends _DOMTypeJs implements AudioParam native "*AudioParam" {
 
-  num get defaultValue() native "return this.defaultValue;";
+  final num defaultValue;
 
-  num get maxValue() native "return this.maxValue;";
+  final num maxValue;
 
-  num get minValue() native "return this.minValue;";
+  final num minValue;
 
-  String get name() native "return this.name;";
+  final String name;
 
-  int get units() native "return this.units;";
+  final int units;
 
-  num get value() native "return this.value;";
-
-  void set value(num value) native "this.value = value;";
+  num value;
 
   void cancelScheduledValues(num startTime) native;
 

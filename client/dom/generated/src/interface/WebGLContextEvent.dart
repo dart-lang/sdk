@@ -6,5 +6,5 @@
 
 interface WebGLContextEvent extends Event {
 
-  String get statusMessage();
+  final String statusMessage;
 }

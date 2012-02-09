@@ -6,21 +6,21 @@
 
 interface ScriptProfileNode {
 
-  int get callUID();
+  final int callUID;
 
-  List get children();
+  final List children;
 
-  String get functionName();
+  final String functionName;
 
-  int get lineNumber();
+  final int lineNumber;
 
-  int get numberOfCalls();
+  final int numberOfCalls;
 
-  num get selfTime();
+  final num selfTime;
 
-  num get totalTime();
+  final num totalTime;
 
-  String get url();
+  final String url;
 
-  bool get visible();
+  final bool visible;
 }

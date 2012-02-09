@@ -6,21 +6,15 @@
 
 interface IDBDatabase {
 
-  String get name();
+  final String name;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener onerror;
 
-  EventListener get onerror();
+  EventListener onversionchange;
 
-  void set onerror(EventListener value);
-
-  EventListener get onversionchange();
-
-  void set onversionchange(EventListener value);
-
-  String get version();
+  final String version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

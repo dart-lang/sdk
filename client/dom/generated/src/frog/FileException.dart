@@ -25,11 +25,11 @@ class _FileExceptionJs extends _DOMTypeJs implements FileException native "*File
 
   static final int TYPE_MISMATCH_ERR = 11;
 
-  int get code() native "return this.code;";
+  final int code;
 
-  String get message() native "return this.message;";
+  final String message;
 
-  String get name() native "return this.name;";
+  final String name;
 
   String toString() native;
 }

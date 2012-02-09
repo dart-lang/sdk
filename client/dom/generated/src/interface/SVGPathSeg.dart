@@ -46,7 +46,7 @@ interface SVGPathSeg {
 
   static final int PATHSEG_UNKNOWN = 0;
 
-  int get pathSegType();
+  final int pathSegType;
 
-  String get pathSegTypeAsLetter();
+  final String pathSegTypeAsLetter;
 }

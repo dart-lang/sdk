@@ -9,25 +9,25 @@ class _SVGGradientElementJs extends _SVGElementJs implements SVGGradientElement 
 
   static final int SVG_SPREADMETHOD_UNKNOWN = 0;
 
-  _SVGAnimatedTransformListJs get gradientTransform() native "return this.gradientTransform;";
+  final _SVGAnimatedTransformListJs gradientTransform;
 
-  _SVGAnimatedEnumerationJs get gradientUnits() native "return this.gradientUnits;";
+  final _SVGAnimatedEnumerationJs gradientUnits;
 
-  _SVGAnimatedEnumerationJs get spreadMethod() native "return this.spreadMethod;";
+  final _SVGAnimatedEnumerationJs spreadMethod;
 
   // From SVGURIReference
 
-  _SVGAnimatedStringJs get href() native "return this.href;";
+  final _SVGAnimatedStringJs href;
 
   // From SVGExternalResourcesRequired
 
-  _SVGAnimatedBooleanJs get externalResourcesRequired() native "return this.externalResourcesRequired;";
+  final _SVGAnimatedBooleanJs externalResourcesRequired;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

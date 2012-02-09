@@ -1,9 +1,9 @@
 
 class _SVGLocatableJs extends _DOMTypeJs implements SVGLocatable native "*SVGLocatable" {
 
-  _SVGElementJs get farthestViewportElement() native "return this.farthestViewportElement;";
+  final _SVGElementJs farthestViewportElement;
 
-  _SVGElementJs get nearestViewportElement() native "return this.nearestViewportElement;";
+  final _SVGElementJs nearestViewportElement;
 
   _SVGRectJs getBBox() native;
 

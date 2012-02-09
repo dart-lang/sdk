@@ -44,33 +44,29 @@ interface Event {
 
   static final int SELECT = 16384;
 
-  bool get bubbles();
+  final bool bubbles;
 
-  bool get cancelBubble();
+  bool cancelBubble;
 
-  void set cancelBubble(bool value);
+  final bool cancelable;
 
-  bool get cancelable();
+  final Clipboard clipboardData;
 
-  Clipboard get clipboardData();
+  final EventTarget currentTarget;
 
-  EventTarget get currentTarget();
+  final bool defaultPrevented;
 
-  bool get defaultPrevented();
+  final int eventPhase;
 
-  int get eventPhase();
+  bool returnValue;
 
-  bool get returnValue();
+  final EventTarget srcElement;
 
-  void set returnValue(bool value);
+  final EventTarget target;
 
-  EventTarget get srcElement();
+  final int timeStamp;
 
-  EventTarget get target();
-
-  int get timeStamp();
-
-  String get type();
+  final String type;
 
   void initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg);
 

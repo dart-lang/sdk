@@ -6,9 +6,9 @@
 
 interface WebGLActiveInfo {
 
-  String get name();
+  final String name;
 
-  int get size();
+  final int size;
 
-  int get type();
+  final int type;
 }

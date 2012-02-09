@@ -6,5 +6,5 @@
 
 interface SVGURIReference {
 
-  SVGAnimatedString get href();
+  final SVGAnimatedString href;
 }

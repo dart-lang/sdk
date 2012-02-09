@@ -7,9 +7,9 @@ class _OverflowEventJs extends _EventJs implements OverflowEvent native "*Overfl
 
   static final int VERTICAL = 1;
 
-  bool get horizontalOverflow() native "return this.horizontalOverflow;";
+  final bool horizontalOverflow;
 
-  int get orient() native "return this.orient;";
+  final int orient;
 
-  bool get verticalOverflow() native "return this.verticalOverflow;";
+  final bool verticalOverflow;
 }

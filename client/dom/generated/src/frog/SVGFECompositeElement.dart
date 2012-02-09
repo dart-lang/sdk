@@ -15,37 +15,37 @@ class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeEl
 
   static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  _SVGAnimatedStringJs get in1() native "return this.in1;";
+  final _SVGAnimatedStringJs in1;
 
-  _SVGAnimatedStringJs get in2() native "return this.in2;";
+  final _SVGAnimatedStringJs in2;
 
-  _SVGAnimatedNumberJs get k1() native "return this.k1;";
+  final _SVGAnimatedNumberJs k1;
 
-  _SVGAnimatedNumberJs get k2() native "return this.k2;";
+  final _SVGAnimatedNumberJs k2;
 
-  _SVGAnimatedNumberJs get k3() native "return this.k3;";
+  final _SVGAnimatedNumberJs k3;
 
-  _SVGAnimatedNumberJs get k4() native "return this.k4;";
+  final _SVGAnimatedNumberJs k4;
 
-  _SVGAnimatedEnumerationJs get operator() native "return this.operator;";
+  final _SVGAnimatedEnumerationJs operator;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  _SVGAnimatedLengthJs get height() native "return this.height;";
+  final _SVGAnimatedLengthJs height;
 
-  _SVGAnimatedStringJs get result() native "return this.result;";
+  final _SVGAnimatedStringJs result;
 
-  _SVGAnimatedLengthJs get width() native "return this.width;";
+  final _SVGAnimatedLengthJs width;
 
-  _SVGAnimatedLengthJs get x() native "return this.x;";
+  final _SVGAnimatedLengthJs x;
 
-  _SVGAnimatedLengthJs get y() native "return this.y;";
+  final _SVGAnimatedLengthJs y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

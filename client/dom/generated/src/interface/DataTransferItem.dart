@@ -6,9 +6,9 @@
 
 interface DataTransferItem {
 
-  String get kind();
+  final String kind;
 
-  String get type();
+  final String type;
 
   Blob getAsFile();
 

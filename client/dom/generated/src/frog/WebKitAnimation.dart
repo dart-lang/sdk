@@ -13,25 +13,23 @@ class _WebKitAnimationJs extends _DOMTypeJs implements WebKitAnimation native "*
 
   static final int FILL_NONE = 0;
 
-  num get delay() native "return this.delay;";
+  final num delay;
 
-  int get direction() native "return this.direction;";
+  final int direction;
 
-  num get duration() native "return this.duration;";
+  final num duration;
 
-  num get elapsedTime() native "return this.elapsedTime;";
+  num elapsedTime;
 
-  void set elapsedTime(num value) native "this.elapsedTime = value;";
+  final bool ended;
 
-  bool get ended() native "return this.ended;";
+  final int fillMode;
 
-  int get fillMode() native "return this.fillMode;";
+  final int iterationCount;
 
-  int get iterationCount() native "return this.iterationCount;";
+  final String name;
 
-  String get name() native "return this.name;";
-
-  bool get paused() native "return this.paused;";
+  final bool paused;
 
   void pause() native;
 

@@ -14,8 +14,7 @@ Range _tempRange;
 // Hacks because ASYNC measurement is annoying when just writing a script.
 ClientRect getClientRect(Node n) {
   if (n is Element) {
-    Element e = n;
-    dom.Element raw = unwrapDomObject(e.dynamic);
+    dom.Element raw = unwrapDomObject(n.dynamic);
     return LevelDom.wrapClientRect(raw.getBoundingClientRect());
   } else {
     // Crazy hacks that works for nodes.... create a range and measure it.
@@ -28,11 +27,18 @@ ClientRect getClientRect(Node n) {
   }
 }
 
-final DART_REMOVED = "dart_removed";
+/**
+ * CSS class that is added to elements in the DOM to indicate that they should
+ * be removed when extracting blocks of documentation.  This is helpful when
+ * running this script in a web browser as it is easy to visually see what
+ * blocks of information were extracted when using CSS such as DEBUG_CSS
+ * which highlights elements that should be removed. 
+ */
+final DART_REMOVED = "dart-removed";
 
 final DEBUG_CSS = """
 <style type="text/css">
-  .dart_removed {
+  .dart-removed {
     background-color: rgba(255, 0, 0, 0.5);
    }
 </style>""";
@@ -281,7 +287,7 @@ String getAbsoluteUrl(AnchorElement anchor) {
 }
 
 bool inTable(Node n) {
-  while(n != null) {
+  while (n != null) {
     if (n is TableElement) return true;
     n = n.parent;
   }
@@ -295,7 +301,7 @@ String escapeHTML(str) {
 }
 
 List<Text> getAllTextNodes(Element elem) {
-  List<Text> nodes = <Text>[];
+  final nodes = <Text>[];
   helper(Node n) {
     if (n is Text) {
       nodes.add(n);
@@ -323,8 +329,8 @@ bool isSkippableType(Node n) {
   }
   if (n is Text) return true;
 
-  for (Node child in n.nodes) {
-    if (isSkippableType(child) == false) {
+  for (final child in n.nodes) {
+    if (!isSkippableType(child)) {
       return false;
     }
   }
@@ -342,6 +348,8 @@ void onEnd() {
   // workaround bug in JSON parser.
   dbJson = dbJson.replaceAll("ZDARTIUMDOESNTESCAPESLASHNJXXXX", "\\n");
 
+  // Use postMessage to end the JSON to JavaScript. TODO(jacobr): use a simple
+  // isolate based Dart-JS interop solution in the future.
   window.postMessage("START_DART_MESSAGE_UNIQUE_IDENTIFIER$dbJson", "*");
 }
 
@@ -353,54 +361,87 @@ class SectionParseResult {
 }
 
 String genCleanHtml(Element root) {
-  for (Element e in root.queryAll(".$DART_REMOVED")) {
+  for (final e in root.queryAll(".$DART_REMOVED")) {
     e.classes.remove(DART_REMOVED);
   }
 
   // Ditch inline styles.
-  for (Element e in root.queryAll('[style]')) {
+  for (final e in root.queryAll('[style]')) {
     e.attributes.remove('style');
   }
 
   // These elements are just tags that we should suppress.
-  for (Element e in root.queryAll(".lang.lang-en")) {
+  for (final e in root.queryAll(".lang.lang-en")) {
     e.remove();
+  }
+
+  Element parametersHeader;
+  Element returnValueHeader;
+  for (final e in root.queryAll("h6")) {
+    if (e.text == 'Parameters') {
+      parametersHeader = e;
+    } else if (e.text == 'Return value') {
+      returnValueHeader = e;
+    }
+  }
+  
+  if (parametersHeader != null) {
+    int numEmptyParameters = 0;
+    final parameterDescriptions = root.queryAll("dd");
+    for (Element parameterDescription in parameterDescriptions) {
+      if (parameterDescription.text.trim().length == 0) {
+        numEmptyParameters++;
+      }
+    }
+    if (numEmptyParameters > 0 &&
+        numEmptyParameters == parameterDescriptions.length) {
+      // Remove the parameter list as it adds zero value as all descriptions
+      // are empty.
+      parametersHeader.remove();
+      for (final e in root.queryAll("dl")) {
+        e.remove();
+      }   
+    } else if (parameterDescriptions.length == 0 &&
+        parametersHeader.nextElementSibling != null &&
+        parametersHeader.nextElementSibling.text.trim() == 'None.') {
+      // No need to display that the function takes 0 parameters.
+      parametersHeader.nextElementSibling.remove();
+      parametersHeader.remove();
+    }
+  }
+
+  // Heuristic: if the return value is a single word it is a type name not a
+  // useful text description so suppress it.
+  if (returnValueHeader != null &&
+      returnValueHeader.nextElementSibling != null &&
+      returnValueHeader.nextElementSibling.text.trim().split(' ').length < 2) {
+    returnValueHeader.nextElementSibling.remove();
+    returnValueHeader.remove();
   }
 
   bool changed = true;
   while (changed) {
     changed = false;
-    while (root.nodes.length == 1) {
-      Node child = root.nodes.first;
-      if (child is Element) {
-        root = child;
-        changed = true;
-      } else {
-        // Just calling innerHTML on the parent will be sufficient...
-        // and insures the output is properly escaped.
-        break;
-      }
+    while (root.nodes.length == 1 && root.nodes.first is Element) {
+      root = root.nodes.first;
+      changed = true;
     }
 
     // Trim useless nodes from the front.
-    while(root.nodes.length > 0 &&
+    while (root.nodes.length > 0 &&
         isSkippable(root.nodes.first)) {
       root.nodes.first.remove();
       changed = true;
     }
 
     // Trim useless nodes from the back.
-    while(root.nodes.length > 0 &&
+    while (root.nodes.length > 0 &&
         isSkippable(root.nodes.last())) {
       root.nodes.last().remove();
       changed = true;
     }
   }
   return JSONFIXUPHACK(root.innerHTML);
-}
-
-String genPrettyHtml(DocumentFragment fragment) {
-  return genCleanHtml(fragment);
 }
 
 String genPrettyHtmlFromElement(Element e) {
@@ -420,7 +461,7 @@ class PostOrderTraversalIterator implements Iterator<Node> {
 
   Node next() {
     if (_next == null) return null;
-    Node ret = _next;
+    final ret = _next;
     if (_next.nextNode != null) {
       _next = _leftMostDescendent(_next.nextNode);
     } else {
@@ -444,12 +485,19 @@ class PostOrderTraversal implements Iterable<Node> {
   Iterator<Node> iterator() => new PostOrderTraversalIterator(_node);
 }
 
+/**
+ * Estimate what content represents the first line of text within the [section]
+ * range returning null if there isn't a plausible first line of text that
+ * contains the string [prop].  We measure the actual rendered client rectangle
+ * for the text and use heuristics defining how many pixels text can vary by
+ * and still be viewed as being on the same line.
+ */
 Range findFirstLine(Range section, String prop) {
-  Range firstLine = newRange();
+  final firstLine = newRange();
   firstLine.setStart(section.startContainer, section.startOffset);
 
   num maxBottom = null;
-  for (Node n in new PostOrderTraversal(section.startContainer)) {
+  for (final n in new PostOrderTraversal(section.startContainer)) {
     int compareResult = section.comparePoint(n, 0);
     if (compareResult == -1) {
       // before range so skip.
@@ -462,9 +510,8 @@ Range findFirstLine(Range section, String prop) {
     final rect = getClientRect(n);
     num bottom = rect.bottom;
     if (rect.height > 0 && rect.width > 0) {
-      if (maxBottom != null && (
-        maxBottom + MIN_PIXELS_DIFFERENT_LINES < bottom
-        )) {
+      if (maxBottom != null &&
+          maxBottom + MIN_PIXELS_DIFFERENT_LINES < bottom) {
         break;
       } else if (maxBottom == null || maxBottom > bottom) {
         maxBottom = bottom;
@@ -474,15 +521,19 @@ Range findFirstLine(Range section, String prop) {
     firstLine.setEndAfter(n);
   }
 
-  if (firstLine.toString().indexOf(stripWebkit(prop)) == -1) {
+  // If the first line of text in the section does not contain the property
+  // name then we're not confident we are able to extract a high accuracy match
+  // so we should not return anything.
+  if (!firstLine.toString().contains(stripWebkit(prop))) {
     return null;
   }
   return firstLine;
 }
 
+/** Find child anchor elements that contain the text [prop]. */
 AnchorElement findAnchorElement(Element root, String prop) {
   for (AnchorElement a in root.queryAll("a")) {
-    if (a.text.indexOf(prop) != -1) {
+    if (a.text.contains(prop)) {
       return a;
     }
   }
@@ -490,9 +541,9 @@ AnchorElement findAnchorElement(Element root, String prop) {
 }
 
 // First surrounding element with an ID is safe enough.
-Element findTigherRoot(Element elem, Element root) {
+Element findTighterRoot(Element elem, Element root) {
   Element candidate = elem;
-  while(root != candidate) {
+  while (root != candidate) {
     candidate = candidate.parent;
     if (candidate.id.length > 0 && candidate.id.indexOf("section_") != 0) {
       break;
@@ -501,22 +552,22 @@ Element findTigherRoot(Element elem, Element root) {
   return candidate;
 }
 
-// this is very slow and ugly.. consider rewriting.
+// TODO(jacobr): this is very slow and ugly.. consider rewriting or at least
+// commenting carefully.
 SectionParseResult filteredHtml(Element elem, Element root, String prop,
     Function fragmentGeneratedCallback) {
   // Using a tighter root avoids false positives at the risk of trimming
   // text we shouldn't.
-  root = findTigherRoot(elem, root);
-  Range range = newRange();
+  root = findTighterRoot(elem, root);
+  final range = newRange();
   range.setStartBefore(elem);
 
   Element current = elem;
   while (current != null) {
     range.setEndBefore(current);
-    if (current.classes.contains(DART_REMOVED)) {
-      if (range.toString().trim().length > 0) {
-        break;
-      }
+    if (current.classes.contains(DART_REMOVED) &&
+        range.toString().trim().length > 0) {
+      break;
     }
     if (current.firstElementChild != null) {
       current = current.firstElementChild;
@@ -547,7 +598,7 @@ SectionParseResult filteredHtml(Element elem, Element root, String prop,
       }
     }
   }
-  DocumentFragment fragment = range.cloneContents();
+  final fragment = range.cloneContents();
   if (fragmentGeneratedCallback != null) {
     fragmentGeneratedCallback(fragment);
   }
@@ -557,7 +608,7 @@ SectionParseResult filteredHtml(Element elem, Element root, String prop,
   }
 
   // Extract idl
-  StringBuffer idl = new StringBuffer();
+  final idl = new StringBuffer();
   if (prop != null && prop.length > 0) {
     // Only expect properties to have HTML.
     for(Element e in fragment.queryAll(IDL_SELECTOR)) {
@@ -570,43 +621,46 @@ SectionParseResult filteredHtml(Element elem, Element root, String prop,
     for (Element e in fragment.queryAll("pre")) {
       // Check if it looks like idl...
       String txt = e.text.trim();
-      if (likelyIdl.hasMatch(txt) && txt.indexOf("\n") != -1
-          && txt.indexOf(")") != -1) {
+      if (likelyIdl.hasMatch(txt) && txt.contains("\n") && txt.contains(")")) {
         idl.add(e.outerHTML);
         e.remove();
       }
     }
   }
-  return new SectionParseResult(genPrettyHtml(fragment), url, idl.toString());
+  return new SectionParseResult(genCleanHtml(fragment), url, idl.toString());
 }
 
-Element findBest(Element root, List<Text> allText, String prop, String propType) {
-  // Best bet: match an id
-  Element cand;
-  cand = root.query("#" + prop);
+/**
+ * Find the best child element of [root] that appears to be an API definition
+ * for [prop].  [allText] is a list of all text nodes under root computed by
+ * the caller to improve performance.
+ */
+Element findBest(Element root, List<Text> allText, String prop,
+    String propType) {
+  // Best bet: find a child of root where the id matches the property name.
+  Element cand = root.query("#$prop");
 
   if (cand == null && propType == "methods") {
-    cand = root.query("[id=" + prop + "\\(\\)]");
+    cand = root.query("[id=$prop\\(\\)]");
+  }
+  while (cand != null && cand.text.trim().length == 0) {
+    // We found the bookmark for the element but sadly it is just an empty
+    // placeholder. Find the first real element.
+    cand = cand.nextElementSibling;
   }
   if (cand != null) {
-    while (cand != null && cand.text.trim().length == 0) {
-      // We found the bookmark for the element but sadly it is just an empty
-      // placeholder. Find the first real element.
-      cand = cand.nextElementSibling;
-    }
-    if (cand != null) {
-      return cand;
-    }
+    return cand;
   }
 
-  // If you are at least 70 pixels from the left, something is definitely fishy and we shouldn't even consider this candidate.
+  // If we are at least 70 pixels from the left, something is definitely
+  // fishy and we shouldn't even consider this candidate as nobody visually
+  // formats API docs like that.
   num candLeft = 70;
 
   for (Text text in allText) {
     Element proposed = null;
 
-//    var t = safeNameCleanup(text.text);
-// TODO(jacobr): does it hurt precision to use the full cleanup?
+    // TODO(jacobr): does it hurt precision to use the full cleanup?
     String t = fullNameCleanup(text.text);
     if (t == prop) {
       proposed = text.parent;
@@ -623,6 +677,10 @@ Element findBest(Element root, List<Text> allText, String prop, String propType)
   return cand;
 }
 
+/**
+ * Checks whether [e] is tagged as obsolete or deprecated using heuristics
+ * for what these tags look like in the MDN docs.
+ */
 bool isObsolete(Element e) {
   RegExp obsoleteRegExp = new RegExp(@"(^|\s)obsolete(?=\s|$)");
   RegExp deprecatedRegExp = new RegExp(@"(^|\s)deprecated(?=\s|$)");
@@ -636,40 +694,52 @@ bool isObsolete(Element e) {
 }
 
 bool isFirstCharLowerCase(String str) {
-  RegExp firstLower = new RegExp("^[a-z]");
-  return firstLower.hasMatch(str);
+  return const RegExp("^[a-z]").hasMatch(str);
 }
 
-void scrapeSection(Element root, String sectionSelector,
-                   String currentType,
-                   List members,
-                   String propType) {
+/**
+ * Extracts information from a fragment of HTML only searching under the [root]
+ * html node.  [secitonSelector] specifies the query to use to find candidate
+ * sections of the document to consider (there may be more than one).
+ * [currentType] specifies the name of the current class. [members] specifies
+ * the known class members for this class that we are attempting to find
+ * documentation for.  [propType] indicates whether we are searching for
+ * methods, properties, constants, or constructors.
+ */
+void scrapeSection(Element root, String sectionSelector, String currentType,
+    List members, String propType) {
   Map expectedProps = dartIdl[propType];
 
   Set<String> alreadyMatchedProperties = new Set<String>();
   bool onlyConsiderTables = false;
   ElementList allMatches = root.queryAll(sectionSelector);
   if (allMatches.length == 0) {
+    // If we can't find any matches to the sectionSelector, we fall back to
+    // considering all tables in the document.  This is dangerous so we only
+    // allow the safer table matching extraction rules for this case.
     allMatches = root.queryAll(".fullwidth-table");
     onlyConsiderTables = true;
   }
   for (Element matchElement in allMatches) {
-    DivElement match = matchElement.parent;
-    if (!match.id.startsWith("section") && !(match.id == "pageText")) {
-      throw "Enexpected element $match";
+    final match = matchElement.parent;
+    if (!match.id.startsWith("section") && match.id != "pageText") {
+      throw "Unexpected element $match";
     }
+    // We don't want to later display this text a second time while for example
+    // displaying class level summary information as then we would display
+    // the same documentation twice.
     match.classes.add(DART_REMOVED);
 
     bool foundProps = false;
 
     // TODO(jacobr): we should really look for the table tag instead
     // add an assert if we are missing something that is a table...
-    // TODO(jacobr) ignore tables in tables....
+    // TODO(jacobr) ignore tables in tables.
     for (Element t in match.queryAll('.standard-table, .fullwidth-table')) {
       int helpIndex = -1;
       num i = 0;
       for (Element r in t.queryAll("th, td.header")) {
-        var txt = r.text.trim().split(" ")[0].toLowerCase();
+        final txt = r.text.trim().split(" ")[0].toLowerCase();
         if (txt == "description") {
           helpIndex = i;
           break;
@@ -677,22 +747,23 @@ void scrapeSection(Element root, String sectionSelector,
         i++;
       }
 
-      List<int> numMatches = new List<int>(i);
+      // Figure out which column in the table contains member names by
+      // tracking how many member names each column contains.
+      final numMatches = new List<int>(i);
       for (int j = 0; j < i; j++) {
         numMatches[j] = 0;
       }
 
-      // Find the row that seems to have the most names that look like
+      // Find the column that seems to have the most names that look like
       // expected properties.
       for (Element r in t.queryAll("tbody tr")) {
-        ElementList $row = r.elements;
-        if ($row.length == 0 || $row.first.classes.contains(".header")) {
+        ElementList row = r.elements;
+        if (row.length == 0 || row.first.classes.contains(".header")) {
           continue;
         }
 
-        for (int k = 0; k < numMatches.length && k < $row.length; k++) {
-          Element e = $row[k];
-          if (expectedProps.containsKey(fullNameCleanup(e.text))) {
+        for (int k = 0; k < numMatches.length && k < row.length; k++) {
+          if (expectedProps.containsKey(fullNameCleanup(row[k].text))) {
             numMatches[k]++;
             break;
           }
@@ -711,14 +782,14 @@ void scrapeSection(Element root, String sectionSelector,
       }
 
       for (Element r in t.queryAll("tbody tr")) {
-        ElementList $row = r.elements;
-        if ($row.length > propNameIndex && $row.length > helpIndex ) {
-          if ($row.first.classes.contains(".header")) {
+        final row = r.elements;
+        if (row.length > propNameIndex && row.length > helpIndex) {
+          if (row.first.classes.contains(".header")) {
             continue;
           }
           // TODO(jacobr): this code for determining the namestr is needlessly
           // messy.
-          Element nameRow = $row[propNameIndex];
+          final nameRow = row[propNameIndex];
           AnchorElement a = nameRow.query("a");
           String goodName = '';
           if (a != null) {
@@ -728,15 +799,14 @@ void scrapeSection(Element root, String sectionSelector,
 
           Map entry = new Map<String, String>();
 
-  //        "currentType": $($row[1]).text().trim(), // find("code") ?
-          entry["name"] = fullNameCleanup(nameStr.length > 0 ? nameStr : goodName);
+          entry["name"] = fullNameCleanup(nameStr.length > 0 ?
+              nameStr : goodName);
 
           final parse = filteredHtml(nameRow, nameRow, entry["name"], null);
           String altHelp = parse.html;
 
-         // "jsSignature": nameStr,
-          entry["help"] = (helpIndex == -1 || $row[helpIndex] == null) ? altHelp : genPrettyHtmlFromElement($row[helpIndex]);
-        //  "altHelp" : altHelp,
+          entry["help"] = (helpIndex == -1 || row[helpIndex] == null) ?
+              altHelp : genPrettyHtmlFromElement(row[helpIndex]);
           if (parse.url != null) {
             entry["url"] = parse.url;
           }
@@ -759,41 +829,71 @@ void scrapeSection(Element root, String sectionSelector,
     if (onlyConsiderTables) {
       continue;
     }
+
     // After this point we have higher risk tests that attempt to perform
-    // rudimentary page segmentation.
+    // rudimentary page segmentation.  This approach is much more error-prone
+    // than using tables because the HTML is far less clearly structured.
 
-    // Search for expected matching names.
-    List<Text> allText = getAllTextNodes(match);
+    final allText = getAllTextNodes(match);
 
-    Map<String, Element> pmap = new Map<String, Element>();
-    for (String prop in expectedProps.getKeys()) {
+    final pmap = new Map<String, Element>();
+    for (final prop in expectedProps.getKeys()) {
       if (alreadyMatchedProperties.contains(prop)) {
         continue;
       }
-      Element e = findBest(match, allText, prop, propType);
+      final e = findBest(match, allText, prop, propType);
       if (e != null && !inTable(e)) {
         pmap[prop] = e;
       }
     }
 
-    for (String prop in pmap.getKeys()) {
-      Element e = pmap[prop];
-      e.classes.add(DART_REMOVED);
+    for (final prop in pmap.getKeys()) {
+      pmap[prop].classes.add(DART_REMOVED);
     }
 
+    // The problem is the MDN docs do place documentation for each method in a
+    // nice self contained subtree. Instead you will see something like:
+
+    // <h3>drawImage</h3>
+    // <p>Draw image is an awesome method</p>
+    // some more info on drawImage here
+    // <h3>mozDrawWindow</h3>
+    // <p>This API cannot currently be used by Web content.
+    // It is chrome only.</p>
+    // <h3>drawRect</h3>
+    // <p>Always call drawRect instead of drawImage</p>
+    // some more info on drawRect here...
+
+    // The trouble is we will easily detect that the drawImage and drawRect
+    // entries are method definitions because we know to search for these
+    // method names but we will not detect that mozDrawWindow is a method
+    // definition as that method doesn't exist in our IDL.  Thus if we are not
+    // careful the definition for the drawImage method will contain the
+    // definition for the mozDrawWindow method as well which would result in
+    // broken docs.  We solve this problem by finding all content with similar
+    // visual structure to the already found method definitions.  It turns out
+    // that using the visual position of each element on the page is much
+    // more reliable than using the DOM structure
+    // (e.g. section_root > div > h3) for the MDN docs because MDN authors
+    // carefully check that the documentation for each method comment is
+    // visually consistent but take less care to check that each
+    // method comment has identical markup structure.
     for (String prop in pmap.getKeys()) {
       Element e = pmap[prop];
       ClientRect r = getClientRect(e);
-      // TODO(jacobr): a lot of these queries are identical.
-      for (Element cand in match.queryAll(e.tagName)) {
-        if (!cand.classes.contains(DART_REMOVED) && !inTable(cand) ) { // XXX use a neg selector.
-          ClientRect candRect = getClientRect(cand);
-          // TODO(jacobr): this is somewhat loose.
+      // TODO(jacobr): a lot of these queries are identical and this code
+      // could easily be optimized.
+      for (final cand in match.queryAll(e.tagName)) {
+        // TODO(jacobr): use a negative selector instead.
+        if (!cand.classes.contains(DART_REMOVED) && !inTable(cand)) {
+          final candRect = getClientRect(cand);
+          // Only consider matches that have similar heights and identical left
+          // coordinates.
           if (candRect.left == r.left &&
             (candRect.height - r.height).abs() < 5) {
             String propName = fullNameCleanup(cand.text);
-            if (isFirstCharLowerCase(propName) && pmap.containsKey(propName) == false && alreadyMatchedProperties.contains(propName) == false) {
-              // Don't set here to avoid layouts... cand.classes.add(DART_REMOVED);
+            if (isFirstCharLowerCase(propName) && !pmap.containsKey(propName)
+                && !alreadyMatchedProperties.contains(propName)) {
               pmap[propName] = cand;
             }
           }
@@ -801,6 +901,9 @@ void scrapeSection(Element root, String sectionSelector,
       }
     }
 
+    // We mark these elements in batch to reduce the number of layouts
+    // triggered. TODO(jacobr): use new batch based async measurement to make
+    // this code flow simpler.
     for (String prop in pmap.getKeys()) {
       Element e = pmap[prop];
       e.classes.add(DART_REMOVED);
@@ -810,7 +913,7 @@ void scrapeSection(Element root, String sectionSelector,
     // DART_REMOVED so we don't include them in member descriptions... which
     // would suck.
     for (Element e in match.queryAll("[id]")) {
-      if (e.id.indexOf(matchElement.id) != -1) {
+      if (e.id.contains(matchElement.id)) {
         e.classes.add(DART_REMOVED);
       }
     }
@@ -828,7 +931,6 @@ void scrapeSection(Element root, String sectionSelector,
         "name" : prop,
         "help" : parse.html,
         "obsolete" : obsolete
-        //"jsSignature" : nameStr
       };
       if (parse.idl.length > 0) {
         entry["idl"] = parse.idl;
@@ -839,20 +941,19 @@ void scrapeSection(Element root, String sectionSelector,
 }
 
 String trimHtml(String html) {
-  // TODO(jacobr): impl.
+  // TODO(jacobr): implement this.  Remove spurious enclosing HTML tags, etc.
   return html;
 }
 
 bool maybeName(String name) {
-  RegExp nameRegExp = new RegExp("^[a-z][a-z0-9A-Z]+\$");
-  if (nameRegExp.hasMatch(name)) return true;
-  RegExp constRegExp = new RegExp("^[A-Z][A-Z_]*\$");
-  if (constRegExp.hasMatch(name)) return true;
+  return const RegExp("^[a-z][a-z0-9A-Z]+\$").hasMatch(name) ||
+      const RegExp("^[A-Z][A-Z_]*\$").hasMatch(name);
 }
 
+// TODO(jacobr): this element is ugly at the moment but will become easier to
+// read once ElementList supports most of the Element functionality.
 void markRemoved(var e) {
   if (e != null) {
-    // TODO( remove)
     if (e is Element) {
       e.classes.add(DART_REMOVED);
     } else {
@@ -863,25 +964,23 @@ void markRemoved(var e) {
   }
 }
 
+// TODO(jacobr): remove this when the dartium JSON parser handles \n correctly.
 String JSONFIXUPHACK(String value) {
   return value.replaceAll("\n", "ZDARTIUMDOESNTESCAPESLASHNJXXXX");
 }
 
 String mozToWebkit(String name) {
-  RegExp regExp = new RegExp("^moz");
-  name = name.replaceFirst(regExp, "webkit");
-  return name;
+  return name.replaceFirst(const RegExp("^moz"), "webkit");
 }
 
 String stripWebkit(String name) {
   return trimPrefix(name, "webkit");
 }
 
+// TODO(jacobr): be more principled about this.
 String fullNameCleanup(String name) {
   int parenIndex = name.indexOf('(');
   if (parenIndex != -1) {
-    // TODO(jacobr): workaround bug in:
-    // name = name.split("(")[0];
     name = name.substring(0, parenIndex);
   }
   name = name.split(" ")[0];
@@ -893,8 +992,8 @@ String fullNameCleanup(String name) {
   return name;
 }
 
-// Less agressive than the full cleanup to avoid overeager matching of
-// everytyhing
+// Less agressive than the full name cleanup to avoid overeager matching.
+// TODO(jacobr): be more principled about this.
 String safeNameCleanup(String name) {
   int parenIndex = name.indexOf('(');
   if (parenIndex != -1 && name.indexOf(")") != -1) {
@@ -914,12 +1013,20 @@ String safeNameCleanup(String name) {
   return name;
 }
 
+/**
+ * Remove h1, h2, and h3 headers.
+ */
 void removeHeaders(DocumentFragment fragment) {
   for (Element e in fragment.queryAll("h1, h2, h3")) {
     e.remove();
   }
 }
 
+/**
+ * Given an [entry] representing a single method or property cleanup the
+ * values performing some simple normalization and only adding the entry to
+ * [members] if it has a valid name.
+ */
 void cleanupEntry(List members, Map entry) {
   if (entry.containsKey('help')) {
     entry['help'] = trimHtml(entry['help']);
@@ -950,10 +1057,6 @@ String trimPrefix(String str, String prefix) {
   }
 }
 
-void resourceLoaded() {
-  if (data != null) run();
-}
-
 String trimStart(String str, String start) {
   if (str.startsWith(start) && str.length > start.length) {
     return str.substring(start.length);
@@ -968,6 +1071,10 @@ String trimEnd(String str, String end) {
   return str;
 }
 
+/**
+ * Extract a section with name [key] using [selector] to find start points for
+ * the section in the document.
+ */
 void extractSection(String selector, String key) {
   for (Element e in document.queryAll(selector)) {
     e = e.parent;
@@ -987,7 +1094,9 @@ void extractSection(String selector, String key) {
 }
 
 void run() {
-  // Inject CSS to insure lines don't wrap unless it was intentional.
+  // Inject CSS to ensure lines don't wrap unless they were intended to.
+  // This is needed to make the logic to determine what is a single line
+  // behave consistently even for very long method names.
   document.head.nodes.add(new Element.html("""
 <style type="text/css">
   body {
@@ -1000,13 +1109,15 @@ void run() {
 
   // TODO(rnystrom): Clean up the page a bunch. Not sure if this is the best
   // place to do this...
+  // TODO(jacobr): move this to right before we extract HTML.
 
   // Remove the "Introduced in HTML <version>" boxes.
   for (Element e in document.queryAll('.htmlVersionHeaderTemplate')) {
     e.remove();
   }
 
-  // Flatten the list of known DOM types into a faster and case-insensitive map.
+  // Flatten the list of known DOM types into a faster and case-insensitive
+  // map.
   domTypes = {};
   for (final domType in domTypesRaw) {
     domTypes[domType.toLowerCase()] = domType;
@@ -1024,7 +1135,8 @@ void run() {
   // TODO(rnystrom): Add rel external to links we didn't fix.
   for (AnchorElement a in document.queryAll('a')) {
     // Get the raw attribute because we *don't* want the browser to fully-
-    // qualify the name for us since it has the wrong base address for the page.
+    // qualify the name for us since it has the wrong base address for the
+    // page.
     var href = a.attributes['href'];
 
     // Ignore busted links.
@@ -1070,20 +1182,22 @@ void run() {
     a.attributes['href'] = href;
   }
 
-  if (title.toLowerCase().indexOf(currentTypeTiny.toLowerCase()) == -1) {
+  if (!title.toLowerCase().contains(currentTypeTiny.toLowerCase())) {
     bool foundMatch = false;
     // Test out if the title is really an HTML tag that matches the
     // current class name.
     for (String tag in [title.split(" ")[0], title.split(".").last()]) {
       try {
         dom.Element element = dom.document.createElement(tag);
+        // TODO(jacobr): this is a really ugly way of doing this that will
+        // stop working at some point soon.
         if (element.typeName == currentType) {
           foundMatch = true;
           break;
         }
       } catch(e) {}
     }
-    if (foundMatch == false) {
+    if (!foundMatch) {
       dbEntry['skipped'] = true;
       dbEntry['cause'] = "Suspect title";
       onEnd();
@@ -1101,6 +1215,9 @@ void run() {
   markRemoved(root.query("#Notes"));
   List members = dbEntry['members'];
 
+  // This is a laundry list of CSS selectors for boilerplate content on the
+  // MDN pages that we should ignore for the purposes of extracting
+  // documentation.
   markRemoved(document.queryAll(".pageToc, footer, header, #nav-toolbar"));
   markRemoved(document.queryAll("#article-nav"));
   markRemoved(document.queryAll(".hideforedit"));
@@ -1109,31 +1226,33 @@ void run() {
   markRemoved(document.queryAll("h1, h2"));
 
   scrapeSection(root, "#Methods", currentType, members, 'methods');
-  scrapeSection(root, "#Constants, #Error_codes, #State_constants", currentType, members, 'constants');
+  scrapeSection(root, "#Constants, #Error_codes, #State_constants",
+      currentType, members, 'constants');
   // TODO(jacobr): infer tables based on multiple matches rather than
   // using a hard coded list of section ids.
   scrapeSection(root,
-      "[id^=Properties], #Notes, [id^=Other_properties], #Attributes, #DOM_properties, #Event_handlers, #Event_Handlers",
+      "[id^=Properties], #Notes, [id^=Other_properties], #Attributes, " +
+      "#DOM_properties, #Event_handlers, #Event_Handlers",
       currentType, members, 'properties');
 
   // Avoid doing this till now to avoid messing up the section scrape.
   markRemoved(document.queryAll("h3"));
 
-  ElementList $examples = root.queryAll("span[id^=example], span[id^=Example]");
+  ElementList examples = root.queryAll("span[id^=example], span[id^=Example]");
 
   extractSection("#See_also", 'seeAlso');
   extractSection("#Specification, #Specifications", "specification");
-  // $("#Methods").parent().remove(); // not safe (e.g. Document)
 
   // TODO(jacobr): actually extract the constructor(s)
   extractSection("#Constructor, #Constructors", 'constructor');
   extractSection("#Browser_compatibility, #Compatibility", 'compatibility');
 
+  // Extract examples.
   List<String> exampleHtml = [];
-  for (Element e in $examples) {
+  for (Element e in examples) {
     e.classes.add(DART_REMOVED);
   }
-  for (Element e in $examples) {
+  for (Element e in examples) {
     String html = filteredHtml(e, root, null,
       (DocumentFragment fragment) {
         removeHeaders(fragment);
@@ -1150,8 +1269,10 @@ void run() {
     dbEntry['examples'] = exampleHtml;
   }
 
+  // Extract the class summary.
+  // Basically everything left over after the #Summary or #Description tag is
+  // safe to include in the summary.
   StringBuffer summary = new StringBuffer();
-
   for (Element e in root.queryAll("#Summary, #Description")) {
     summary.add(filteredHtml(root, e, null, removeHeaders).html);
   }
@@ -1176,6 +1297,7 @@ void run() {
   }
 
   // Inject CSS to aid debugging in the browser.
+  // We could avoid doing this if we know we are not running in a browser..
   document.head.nodes.add(new Element.html(DEBUG_CSS));
 
   onEnd();
@@ -1186,9 +1308,11 @@ void main() {
 }
 
 void documentLoaded(event) {
+  // Load the database of expected methods and properties with an
+  // XMLHttpRequest.
   new XMLHttpRequest.getTEMPNAME('${window.location}.json', (req) {
     data = JSON.parse(req.responseText);
     dbEntry = {'members': [], 'srcUrl': pageUrl};
-    resourceLoaded();
+    run();
   });
 }

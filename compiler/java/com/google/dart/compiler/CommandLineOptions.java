@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -35,9 +35,9 @@ public class CommandLineOptions {
         usage = "Batch mode (for unit testing)")
     private boolean batch = false;
 
-    @Option(name = "--check-only", aliases = { "-check-only" },
-        usage = "Do not generate output, only analyze")
-    private boolean checkOnly = false;
+    @Option(name = "--deprecated-generate-code",
+        usage = "Use deprecated code generation.\n Will be removed 1 March 2012.")
+    private boolean deprecatedGenerateCode = false;
 
     @Option(name = "--expose_core_impl", usage = "Automatic import of dart:coreimpl library")
     private boolean exposeCoreImpl = false;
@@ -54,18 +54,6 @@ public class CommandLineOptions {
         usage = "Turn off type optimizations\n (for debugging)")
     private boolean disableTypeOptimizations = false;
 
-    @Option(name = "--documentation-lib", aliases = { "-documentation-lib" },
-        usage = "Only generate docs for the\n given library")
-    private String documentationLibrary = null;
-
-    @Option(name = "--documentation-out", aliases = { "-documentation-out" },
-        usage = "Directory to write documentation")
-    private String documentationOutputDirectory = "out";
-
-    @Option(name = "--generate-documentation", aliases = { "-generate-documentation" },
-        usage = "Generate docs from source")
-    private boolean generateDocumentation = false;
-
     @Option(name = "--generate-isolate-stubs", aliases = { "-generate-isolate-stubs" },
         usage = "Classes to generate stubs\n (comma-separated list)")
     private String generateIsolateStubs = null;
@@ -73,13 +61,13 @@ public class CommandLineOptions {
     @Option(name = "--generate_source_maps",
         usage = "Generate source maps")
     private boolean generateSourceMaps = false;
-    
+
     @Option(name = "--dump_ast_format",
         usage = "Dump parse tree. Supported formats include console, text or dot")
     private String dumpAST = "";
-    
+
     @Option(name = "--coverage_type",
-        usage = "Add instrumentation probes for collecting coverage. " + 
+        usage = "Add instrumentation probes for collecting coverage. " +
             "Supported types include function, statement, branch and all")
     private String coverage = "";
 
@@ -114,17 +102,6 @@ public class CommandLineOptions {
     @Option(name = "--noincremental", aliases = { "-noincremental" },
         usage = "Disable incremental compilation")
     private boolean noincremental = false;
-
-    private boolean optimize = false;
-
-    /**
-     * Enables optimization of the generated javascript.
-     */
-    @Option(name = "--optimize", aliases = { "-optimize" },
-        usage = "Produce optimized code")
-    public void setOptimize(boolean optimize) {
-      this.optimize = optimize;
-    }
 
     @Option(name = "--out",
         usage = "Write generated JavaScript to a file")
@@ -162,7 +139,8 @@ public class CommandLineOptions {
      * Returns whether the option -check-only is provided.
      */
     public boolean checkOnly() {
-      return checkOnly;
+      return !deprecatedGenerateCode &&
+          getIsolateStubClasses().isEmpty();
     }
 
     /**
@@ -170,28 +148,6 @@ public class CommandLineOptions {
      */
     public boolean shouldExposeCoreImpl() {
       return exposeCoreImpl;
-    }
-
-    /**
-     * Returns whether the option -generate-documentation is provided.
-     */
-    public boolean generateDocumentation() {
-      return generateDocumentation;
-    }
-
-    /**
-     * Returns the library to document. If null is returned generate
-     * documentation for all libraries.
-     */
-    public String getDocumentationLibrary() {
-      return documentationLibrary;
-    }
-
-    /**
-     * Returns the documentation output directory.
-     */
-    public String getDocumentationOutputDirectory() {
-      return documentationOutputDirectory;
     }
 
     /**
@@ -256,11 +212,11 @@ public class CommandLineOptions {
     public boolean generateHumanReadableOutput() {
       return generateHumanReadableOutput;
     }
-    
+
     public String dumpAST(){
       return dumpAST;
     }
-    
+
     public String getCoverageType(){
       return coverage;
     }
@@ -270,13 +226,6 @@ public class CommandLineOptions {
      */
     public File getOutputFilename() {
       return outputFilename;
-    }
-
-    /**
-     * Returns <code>true</code> if optimization is enabled.
-     */
-    public boolean shouldOptimize() {
-      return optimize;
     }
 
     /**
@@ -338,9 +287,6 @@ public class CommandLineOptions {
     @Option(name="--prof", usage = "Enable profiling")
     private boolean prof;
 
-    @Option(name = "--rhino", usage = "Use rhino as the javascript interpreter")
-    private boolean rhino = false;
-
     /**
      * @return <code>true</code> if the program should compile but not execute.
      */
@@ -355,14 +301,6 @@ public class CommandLineOptions {
     @Override
     public boolean shouldProfile() {
       return prof;
-    }
-
-    /**
-     * @return <code>true</code> if rhino should be used as the runtime (default is to invoke d8)
-     */
-    @Override
-    public boolean useRhino() {
-      return rhino;
     }
 
     /**

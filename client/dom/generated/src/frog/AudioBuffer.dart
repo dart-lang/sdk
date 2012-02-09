@@ -1,17 +1,15 @@
 
 class _AudioBufferJs extends _DOMTypeJs implements AudioBuffer native "*AudioBuffer" {
 
-  num get duration() native "return this.duration;";
+  final num duration;
 
-  num get gain() native "return this.gain;";
+  num gain;
 
-  void set gain(num value) native "this.gain = value;";
+  final int length;
 
-  int get length() native "return this.length;";
+  final int numberOfChannels;
 
-  int get numberOfChannels() native "return this.numberOfChannels;";
-
-  num get sampleRate() native "return this.sampleRate;";
+  final num sampleRate;
 
   _Float32ArrayJs getChannelData(int channelIndex) native;
 }

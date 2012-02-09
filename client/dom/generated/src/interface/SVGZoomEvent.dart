@@ -6,13 +6,13 @@
 
 interface SVGZoomEvent extends UIEvent {
 
-  num get newScale();
+  final num newScale;
 
-  SVGPoint get newTranslate();
+  final SVGPoint newTranslate;
 
-  num get previousScale();
+  final num previousScale;
 
-  SVGPoint get previousTranslate();
+  final SVGPoint previousTranslate;
 
-  SVGRect get zoomRectScreen();
+  final SVGRect zoomRectScreen;
 }

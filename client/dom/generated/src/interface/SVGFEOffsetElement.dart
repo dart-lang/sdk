@@ -6,9 +6,9 @@
 
 interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedNumber get dx();
+  final SVGAnimatedNumber dx;
 
-  SVGAnimatedNumber get dy();
+  final SVGAnimatedNumber dy;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 }

@@ -1,7 +1,7 @@
 
 class _StyleSheetListJs extends _DOMTypeJs implements StyleSheetList native "*StyleSheetList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _StyleSheetJs operator[](int index) native "return this[index];";
 

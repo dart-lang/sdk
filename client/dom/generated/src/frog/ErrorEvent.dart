@@ -1,9 +1,9 @@
 
 class _ErrorEventJs extends _EventJs implements ErrorEvent native "*ErrorEvent" {
 
-  String get filename() native "return this.filename;";
+  final String filename;
 
-  int get lineno() native "return this.lineno;";
+  final int lineno;
 
-  String get message() native "return this.message;";
+  final String message;
 }

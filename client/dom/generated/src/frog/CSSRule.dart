@@ -21,13 +21,11 @@ class _CSSRuleJs extends _DOMTypeJs implements CSSRule native "*CSSRule" {
 
   static final int WEBKIT_REGION_RULE = 10;
 
-  String get cssText() native "return this.cssText;";
+  String cssText;
 
-  void set cssText(String value) native "this.cssText = value;";
+  final _CSSRuleJs parentRule;
 
-  _CSSRuleJs get parentRule() native "return this.parentRule;";
+  final _CSSStyleSheetJs parentStyleSheet;
 
-  _CSSStyleSheetJs get parentStyleSheet() native "return this.parentStyleSheet;";
-
-  int get type() native "return this.type;";
+  final int type;
 }

@@ -6,7 +6,7 @@
 
 interface Text extends CharacterData {
 
-  String get wholeText();
+  final String wholeText;
 
   Text replaceWholeText(String content);
 

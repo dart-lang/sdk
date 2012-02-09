@@ -6,7 +6,7 @@
 
 interface SQLResultSetRowList {
 
-  int get length();
+  final int length;
 
   Object item(int index);
 }

@@ -6,7 +6,7 @@
 
 interface SVGNumberList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGNumber appendItem(SVGNumber item);
 

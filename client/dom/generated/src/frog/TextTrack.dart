@@ -7,23 +7,19 @@ class _TextTrackJs extends _DOMTypeJs implements TextTrack native "*TextTrack" {
 
   static final int SHOWING = 2;
 
-  _TextTrackCueListJs get activeCues() native "return this.activeCues;";
+  final _TextTrackCueListJs activeCues;
 
-  _TextTrackCueListJs get cues() native "return this.cues;";
+  final _TextTrackCueListJs cues;
 
-  String get kind() native "return this.kind;";
+  final String kind;
 
-  String get label() native "return this.label;";
+  final String label;
 
-  String get language() native "return this.language;";
+  final String language;
 
-  int get mode() native "return this.mode;";
+  int mode;
 
-  void set mode(int value) native "this.mode = value;";
-
-  EventListener get oncuechange() native "return this.oncuechange;";
-
-  void set oncuechange(EventListener value) native "this.oncuechange = value;";
+  EventListener oncuechange;
 
   void addCue(_TextTrackCueJs cue) native;
 

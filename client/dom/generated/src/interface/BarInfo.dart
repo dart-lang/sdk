@@ -6,7 +6,7 @@
 
 interface BarProp {
 
-  bool get visible();
+  final bool visible;
 }
 
 interface BarInfo extends BarProp {

@@ -13,7 +13,8 @@ static RawClass* CreateTestClass(const char* name) {
   const Array& empty_array = Array::Handle(Array::Empty());
   const String& class_name = String::Handle(String::NewSymbol(name));
   const Script& script = Script::Handle();
-  const Class& cls = Class::Handle(Class::New(class_name, script));
+  const Class& cls =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
   cls.set_interfaces(empty_array);
   cls.SetFunctions(empty_array);
   cls.SetFields(empty_array);
@@ -73,10 +74,14 @@ TEST_CASE(ClassFinalize_Resolve) {
   lib.AddClass(sbb);
   const String& superclass_name = String::Handle(sbb.Name());
   const UnresolvedClass& unresolved = UnresolvedClass::Handle(
-      UnresolvedClass::New(0, LibraryPrefix::Handle(), superclass_name));
+      UnresolvedClass::New(LibraryPrefix::Handle(),
+                           superclass_name,
+                           Scanner::kDummyTokenIndex));
   const TypeArguments& type_arguments = TypeArguments::Handle();
-  rhb.set_super_type(Type::Handle(Type::New(
-      Object::Handle(unresolved.raw()), type_arguments)));
+  rhb.set_super_type(Type::Handle(
+      Type::New(Object::Handle(unresolved.raw()),
+                type_arguments,
+                Scanner::kDummyTokenIndex)));
   ClassFinalizer::AddPendingClasses(classes);
   EXPECT(ClassFinalizer::FinalizePendingClasses());
 }

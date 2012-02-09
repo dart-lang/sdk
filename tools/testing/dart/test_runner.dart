@@ -96,6 +96,10 @@ class TestCase {
 class BrowserTestCase extends TestCase {
   String compilerPath;
   List<String> compilerArguments;
+  /** 
+   * Indicates if this test is a rerun, to compensate for flaky browser tests. 
+   */
+  bool isRerun;
 
   BrowserTestCase(displayName,
                     this.compilerPath,
@@ -118,6 +122,7 @@ class BrowserTestCase extends TestCase {
           '$compilerPath ${Strings.join(compilerArguments, " ")}';
       commandLine = 'compilation command: $compilationCommand\n$commandLine';
     }
+    isRerun = false;
   }
 }
 
@@ -206,7 +211,19 @@ class RunningProcess {
                    stderr, new Date.now().difference(startTime));
     process.close();
     timeoutTimer.cancel();
-    testCase.completed();
+    if (testCase.output.unexpectedOutput && testCase.configuration['verbose']) {
+      print(testCase.output.stdout);
+      print(testCase.output.stderr);
+    }
+    if (testCase is BrowserTestCase && testCase.output.unexpectedOutput && 
+        !testCase.isRerun) {
+      // Selenium tests can be flaky. Try rerunning.
+      testCase.isRerun = true;
+      this.timedOut = false;
+      this.start();
+    } else {
+      testCase.completed();
+    }
   }
 
   void compilerExitHandler(int exitCode) {

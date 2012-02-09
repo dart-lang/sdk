@@ -4,7 +4,7 @@
 
 class _StorageJs extends _DOMTypeJs implements Storage native "*Storage" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   void clear() native;
 

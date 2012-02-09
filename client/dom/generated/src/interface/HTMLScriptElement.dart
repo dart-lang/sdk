@@ -6,35 +6,19 @@
 
 interface HTMLScriptElement extends HTMLElement {
 
-  bool get async();
+  bool async;
 
-  void set async(bool value);
+  String charset;
 
-  String get charset();
+  bool defer;
 
-  void set charset(String value);
+  String event;
 
-  bool get defer();
+  String htmlFor;
 
-  void set defer(bool value);
+  String src;
 
-  String get event();
+  String text;
 
-  void set event(String value);
-
-  String get htmlFor();
-
-  void set htmlFor(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get text();
-
-  void set text(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }

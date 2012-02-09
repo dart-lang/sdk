@@ -8,93 +8,49 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
   WebKitCSSMatrix([String spec]);
 
-  num get a();
+  num a;
 
-  void set a(num value);
+  num b;
 
-  num get b();
+  num c;
 
-  void set b(num value);
+  num d;
 
-  num get c();
+  num e;
 
-  void set c(num value);
+  num f;
 
-  num get d();
+  num m11;
 
-  void set d(num value);
+  num m12;
 
-  num get e();
+  num m13;
 
-  void set e(num value);
+  num m14;
 
-  num get f();
+  num m21;
 
-  void set f(num value);
+  num m22;
 
-  num get m11();
+  num m23;
 
-  void set m11(num value);
+  num m24;
 
-  num get m12();
+  num m31;
 
-  void set m12(num value);
+  num m32;
 
-  num get m13();
+  num m33;
 
-  void set m13(num value);
+  num m34;
 
-  num get m14();
+  num m41;
 
-  void set m14(num value);
+  num m42;
 
-  num get m21();
+  num m43;
 
-  void set m21(num value);
-
-  num get m22();
-
-  void set m22(num value);
-
-  num get m23();
-
-  void set m23(num value);
-
-  num get m24();
-
-  void set m24(num value);
-
-  num get m31();
-
-  void set m31(num value);
-
-  num get m32();
-
-  void set m32(num value);
-
-  num get m33();
-
-  void set m33(num value);
-
-  num get m34();
-
-  void set m34(num value);
-
-  num get m41();
-
-  void set m41(num value);
-
-  num get m42();
-
-  void set m42(num value);
-
-  num get m43();
-
-  void set m43(num value);
-
-  num get m44();
-
-  void set m44(num value);
+  num m44;
 
   WebKitCSSMatrix inverse();
 

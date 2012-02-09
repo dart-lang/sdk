@@ -7,37 +7,25 @@ class _FileWriterJs extends _DOMTypeJs implements FileWriter native "*FileWriter
 
   static final int WRITING = 1;
 
-  _FileErrorJs get error() native "return this.error;";
+  final _FileErrorJs error;
 
-  int get length() native "return this.length;";
+  final int length;
 
-  EventListener get onabort() native "return this.onabort;";
+  EventListener onabort;
 
-  void set onabort(EventListener value) native "this.onabort = value;";
+  EventListener onerror;
 
-  EventListener get onerror() native "return this.onerror;";
+  EventListener onprogress;
 
-  void set onerror(EventListener value) native "this.onerror = value;";
+  EventListener onwrite;
 
-  EventListener get onprogress() native "return this.onprogress;";
+  EventListener onwriteend;
 
-  void set onprogress(EventListener value) native "this.onprogress = value;";
+  EventListener onwritestart;
 
-  EventListener get onwrite() native "return this.onwrite;";
+  final int position;
 
-  void set onwrite(EventListener value) native "this.onwrite = value;";
-
-  EventListener get onwriteend() native "return this.onwriteend;";
-
-  void set onwriteend(EventListener value) native "this.onwriteend = value;";
-
-  EventListener get onwritestart() native "return this.onwritestart;";
-
-  void set onwritestart(EventListener value) native "this.onwritestart = value;";
-
-  int get position() native "return this.position;";
-
-  int get readyState() native "return this.readyState;";
+  final int readyState;
 
   void abort() native;
 

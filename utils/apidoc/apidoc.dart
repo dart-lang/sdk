@@ -16,6 +16,8 @@
 
 HtmlDiff _diff;
 
+final GET_PREFIX = 'get:';
+
 void main() {
   var files = new NodeFileSystem();
   parseOptions('../../frog', [] /* args */, files);
@@ -278,11 +280,14 @@ class Apidoc extends doc.Dartdoc {
 
     final mdnType = mdn[member.declaringType.name];
     if (mdnType == null) return null;
-
+    var nameToFind = member.name;
+    if (nameToFind.startsWith(GET_PREFIX)) {
+      nameToFind = nameToFind.substring(GET_PREFIX.length);
+    }
     var mdnMember = null;
-    for (final thisMember in mdnType['members']) {
-      if (thisMember['name'] == member.name) {
-        mdnMember = thisMember;
+    for (final candidateMember in mdnType['members']) {
+      if (candidateMember['name'] == nameToFind) {
+        mdnMember = candidateMember;
         break;
       }
     }
@@ -299,8 +304,6 @@ class Apidoc extends doc.Dartdoc {
    * different library than [member].
    */
   String _linkMember(Member member) {
-    final GET_PREFIX = 'get:';
-
     final typeName = member.declaringType.name;
     var memberName = '$typeName.${member.name}';
     if (member.isConstructor || member.isFactory) {

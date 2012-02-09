@@ -6,45 +6,25 @@
 
 interface HTMLLinkElement extends HTMLElement {
 
-  String get charset();
+  String charset;
 
-  void set charset(String value);
+  bool disabled;
 
-  bool get disabled();
+  String href;
 
-  void set disabled(bool value);
+  String hreflang;
 
-  String get href();
+  String media;
 
-  void set href(String value);
+  String rel;
 
-  String get hreflang();
+  String rev;
 
-  void set hreflang(String value);
+  final StyleSheet sheet;
 
-  String get media();
+  DOMSettableTokenList sizes;
 
-  void set media(String value);
+  String target;
 
-  String get rel();
-
-  void set rel(String value);
-
-  String get rev();
-
-  void set rev(String value);
-
-  StyleSheet get sheet();
-
-  DOMSettableTokenList get sizes();
-
-  void set sizes(DOMSettableTokenList value);
-
-  String get target();
-
-  void set target(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }

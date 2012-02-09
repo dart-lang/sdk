@@ -1,17 +1,13 @@
 
 class _HTMLProgressElementJs extends _HTMLElementJs implements HTMLProgressElement native "*HTMLProgressElement" {
 
-  _HTMLFormElementJs get form() native "return this.form;";
+  final _HTMLFormElementJs form;
 
-  _NodeListJs get labels() native "return this.labels;";
+  final _NodeListJs labels;
 
-  num get max() native "return this.max;";
+  num max;
 
-  void set max(num value) native "this.max = value;";
+  final num position;
 
-  num get position() native "return this.position;";
-
-  num get value() native "return this.value;";
-
-  void set value(num value) native "this.value = value;";
+  num value;
 }

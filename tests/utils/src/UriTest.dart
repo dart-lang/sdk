@@ -4,7 +4,7 @@
 
 #library('uriTest');
 
-#import('../../../utils/uri/uri.dart');
+#import('../../../lib/uri/uri.dart');
 
 testUri(String uri, bool isAbsolute) {
   Expect.equals(isAbsolute, new Uri.fromString(uri).isAbsolute());

@@ -12,15 +12,15 @@ interface MutationEvent extends Event {
 
   static final int REMOVAL = 3;
 
-  int get attrChange();
+  final int attrChange;
 
-  String get attrName();
+  final String attrName;
 
-  String get newValue();
+  final String newValue;
 
-  String get prevValue();
+  final String prevValue;
 
-  Node get relatedNode();
+  final Node relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
 }

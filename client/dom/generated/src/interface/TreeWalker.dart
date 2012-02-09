@@ -6,17 +6,15 @@
 
 interface TreeWalker {
 
-  Node get currentNode();
+  Node currentNode;
 
-  void set currentNode(Node value);
+  final bool expandEntityReferences;
 
-  bool get expandEntityReferences();
+  final NodeFilter filter;
 
-  NodeFilter get filter();
+  final Node root;
 
-  Node get root();
-
-  int get whatToShow();
+  final int whatToShow;
 
   Node firstChild();
 

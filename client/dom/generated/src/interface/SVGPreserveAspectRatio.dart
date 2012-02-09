@@ -34,11 +34,7 @@ interface SVGPreserveAspectRatio {
 
   static final int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
-  int get align();
+  int align;
 
-  void set align(int value);
-
-  int get meetOrSlice();
-
-  void set meetOrSlice(int value);
+  int meetOrSlice;
 }

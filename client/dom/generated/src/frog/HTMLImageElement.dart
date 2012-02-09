@@ -1,69 +1,41 @@
 
 class _HTMLImageElementJs extends _HTMLElementJs implements HTMLImageElement native "*HTMLImageElement" {
 
-  String get align() native "return this.align;";
+  String align;
 
-  void set align(String value) native "this.align = value;";
+  String alt;
 
-  String get alt() native "return this.alt;";
+  String border;
 
-  void set alt(String value) native "this.alt = value;";
+  final bool complete;
 
-  String get border() native "return this.border;";
+  String crossOrigin;
 
-  void set border(String value) native "this.border = value;";
+  int height;
 
-  bool get complete() native "return this.complete;";
+  int hspace;
 
-  String get crossOrigin() native "return this.crossOrigin;";
+  bool isMap;
 
-  void set crossOrigin(String value) native "this.crossOrigin = value;";
+  String longDesc;
 
-  int get height() native "return this.height;";
+  String lowsrc;
 
-  void set height(int value) native "this.height = value;";
+  String name;
 
-  int get hspace() native "return this.hspace;";
+  final int naturalHeight;
 
-  void set hspace(int value) native "this.hspace = value;";
+  final int naturalWidth;
 
-  bool get isMap() native "return this.isMap;";
+  String src;
 
-  void set isMap(bool value) native "this.isMap = value;";
+  String useMap;
 
-  String get longDesc() native "return this.longDesc;";
+  int vspace;
 
-  void set longDesc(String value) native "this.longDesc = value;";
+  int width;
 
-  String get lowsrc() native "return this.lowsrc;";
+  final int x;
 
-  void set lowsrc(String value) native "this.lowsrc = value;";
-
-  String get name() native "return this.name;";
-
-  void set name(String value) native "this.name = value;";
-
-  int get naturalHeight() native "return this.naturalHeight;";
-
-  int get naturalWidth() native "return this.naturalWidth;";
-
-  String get src() native "return this.src;";
-
-  void set src(String value) native "this.src = value;";
-
-  String get useMap() native "return this.useMap;";
-
-  void set useMap(String value) native "this.useMap = value;";
-
-  int get vspace() native "return this.vspace;";
-
-  void set vspace(int value) native "this.vspace = value;";
-
-  int get width() native "return this.width;";
-
-  void set width(int value) native "this.width = value;";
-
-  int get x() native "return this.x;";
-
-  int get y() native "return this.y;";
+  final int y;
 }

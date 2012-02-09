@@ -6,13 +6,13 @@
 
 interface SVGTextPositioningElement extends SVGTextContentElement {
 
-  SVGAnimatedLengthList get dx();
+  final SVGAnimatedLengthList dx;
 
-  SVGAnimatedLengthList get dy();
+  final SVGAnimatedLengthList dy;
 
-  SVGAnimatedNumberList get rotate();
+  final SVGAnimatedNumberList rotate;
 
-  SVGAnimatedLengthList get x();
+  final SVGAnimatedLengthList x;
 
-  SVGAnimatedLengthList get y();
+  final SVGAnimatedLengthList y;
 }

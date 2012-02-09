@@ -9,13 +9,13 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   static final int PREV_NO_DUPLICATE = 3;
 
-  int get direction() native "return this.direction;";
+  final int direction;
 
-  _IDBKeyJs get key() native "return this.key;";
+  final _IDBKeyJs key;
 
-  _IDBKeyJs get primaryKey() native "return this.primaryKey;";
+  final _IDBKeyJs primaryKey;
 
-  _IDBAnyJs get source() native "return this.source;";
+  final _IDBAnyJs source;
 
   void continueFunction([_IDBKeyJs key = null]) native;
 

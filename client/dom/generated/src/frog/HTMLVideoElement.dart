@@ -1,29 +1,23 @@
 
 class _HTMLVideoElementJs extends _HTMLMediaElementJs implements HTMLVideoElement native "*HTMLVideoElement" {
 
-  int get height() native "return this.height;";
+  int height;
 
-  void set height(int value) native "this.height = value;";
+  String poster;
 
-  String get poster() native "return this.poster;";
+  final int videoHeight;
 
-  void set poster(String value) native "this.poster = value;";
+  final int videoWidth;
 
-  int get videoHeight() native "return this.videoHeight;";
+  final int webkitDecodedFrameCount;
 
-  int get videoWidth() native "return this.videoWidth;";
+  final bool webkitDisplayingFullscreen;
 
-  int get webkitDecodedFrameCount() native "return this.webkitDecodedFrameCount;";
+  final int webkitDroppedFrameCount;
 
-  bool get webkitDisplayingFullscreen() native "return this.webkitDisplayingFullscreen;";
+  final bool webkitSupportsFullscreen;
 
-  int get webkitDroppedFrameCount() native "return this.webkitDroppedFrameCount;";
-
-  bool get webkitSupportsFullscreen() native "return this.webkitSupportsFullscreen;";
-
-  int get width() native "return this.width;";
-
-  void set width(int value) native "this.width = value;";
+  int width;
 
   void webkitEnterFullScreen() native;
 

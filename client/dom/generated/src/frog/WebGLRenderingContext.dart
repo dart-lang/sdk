@@ -595,9 +595,9 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   static final int ZERO = 0;
 
-  int get drawingBufferHeight() native "return this.drawingBufferHeight;";
+  final int drawingBufferHeight;
 
-  int get drawingBufferWidth() native "return this.drawingBufferWidth;";
+  final int drawingBufferWidth;
 
   void activeTexture(int texture) native;
 

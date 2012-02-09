@@ -19,33 +19,27 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   static final int UNSENT = 0;
 
-  bool get asBlob();
+  bool asBlob;
 
-  void set asBlob(bool value);
+  final int readyState;
 
-  int get readyState();
+  final Object response;
 
-  Object get response();
+  final Blob responseBlob;
 
-  Blob get responseBlob();
+  final String responseText;
 
-  String get responseText();
+  String responseType;
 
-  String get responseType();
+  final Document responseXML;
 
-  void set responseType(String value);
+  final int status;
 
-  Document get responseXML();
+  final String statusText;
 
-  int get status();
+  final XMLHttpRequestUpload upload;
 
-  String get statusText();
-
-  XMLHttpRequestUpload get upload();
-
-  bool get withCredentials();
-
-  void set withCredentials(bool value);
+  bool withCredentials;
 
   void abort();
 

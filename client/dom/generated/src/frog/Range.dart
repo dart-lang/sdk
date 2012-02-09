@@ -17,17 +17,17 @@ class _RangeJs extends _DOMTypeJs implements Range native "*Range" {
 
   static final int START_TO_START = 0;
 
-  bool get collapsed() native "return this.collapsed;";
+  final bool collapsed;
 
-  _NodeJs get commonAncestorContainer() native "return this.commonAncestorContainer;";
+  final _NodeJs commonAncestorContainer;
 
-  _NodeJs get endContainer() native "return this.endContainer;";
+  final _NodeJs endContainer;
 
-  int get endOffset() native "return this.endOffset;";
+  final int endOffset;
 
-  _NodeJs get startContainer() native "return this.startContainer;";
+  final _NodeJs startContainer;
 
-  int get startOffset() native "return this.startOffset;";
+  final int startOffset;
 
   _DocumentFragmentJs cloneContents() native;
 

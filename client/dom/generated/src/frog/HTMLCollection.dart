@@ -1,7 +1,7 @@
 
 class _HTMLCollectionJs extends _DOMTypeJs implements HTMLCollection native "*HTMLCollection" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _NodeJs operator[](int index) native "return this[index];";
 

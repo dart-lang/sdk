@@ -3,11 +3,11 @@ class _OperationNotAllowedExceptionJs extends _DOMTypeJs implements OperationNot
 
   static final int NOT_ALLOWED_ERR = 1;
 
-  int get code() native "return this.code;";
+  final int code;
 
-  String get message() native "return this.message;";
+  final String message;
 
-  String get name() native "return this.name;";
+  final String name;
 
   String toString() native;
 }

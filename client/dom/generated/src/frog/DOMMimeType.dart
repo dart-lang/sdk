@@ -1,11 +1,11 @@
 
 class _DOMMimeTypeJs extends _DOMTypeJs implements DOMMimeType native "*DOMMimeType" {
 
-  String get description() native "return this.description;";
+  final String description;
 
-  _DOMPluginJs get enabledPlugin() native "return this.enabledPlugin;";
+  final _DOMPluginJs enabledPlugin;
 
-  String get suffixes() native "return this.suffixes;";
+  final String suffixes;
 
-  String get type() native "return this.type;";
+  final String type;
 }

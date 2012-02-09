@@ -49,8 +49,8 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 
 
 class _FileOutputStream implements OutputStream {
-  _FileOutputStream(File file) {
-    _file = file.openSync(FileMode.WRITE);
+  _FileOutputStream(File file, FileMode mode) {
+    _file = file.openSync(mode);
   }
 
   bool write(List<int> buffer, [bool copyBuffer = false]) {
@@ -647,7 +647,14 @@ class _File implements File {
 
   InputStream openInputStream() => new _FileInputStream(this);
 
-  OutputStream openOutputStream() => new _FileOutputStream(this);
+  OutputStream openOutputStream([FileMode mode = FileMode.WRITE]) {
+    if (mode != FileMode.WRITE &&
+        mode != FileMode.APPEND) {
+      throw new FileIOException(
+          "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
+    }
+    return new _FileOutputStream(this, mode);
+  }
 
   String get name() => _name;
 

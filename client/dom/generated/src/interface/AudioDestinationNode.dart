@@ -6,5 +6,5 @@
 
 interface AudioDestinationNode extends AudioNode {
 
-  int get numberOfChannels();
+  final int numberOfChannels;
 }

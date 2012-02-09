@@ -14,13 +14,13 @@ interface IDBCursor {
 
   static final int PREV_NO_DUPLICATE = 3;
 
-  int get direction();
+  final int direction;
 
-  IDBKey get key();
+  final IDBKey key;
 
-  IDBKey get primaryKey();
+  final IDBKey primaryKey;
 
-  IDBAny get source();
+  final IDBAny source;
 
   void continueFunction([IDBKey key]);
 

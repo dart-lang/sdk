@@ -6,9 +6,9 @@
 
 interface MemoryInfo {
 
-  int get jsHeapSizeLimit();
+  final int jsHeapSizeLimit;
 
-  int get totalJSHeapSize();
+  final int totalJSHeapSize;
 
-  int get usedJSHeapSize();
+  final int usedJSHeapSize;
 }

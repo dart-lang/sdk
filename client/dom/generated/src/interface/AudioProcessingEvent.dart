@@ -6,7 +6,7 @@
 
 interface AudioProcessingEvent extends Event {
 
-  AudioBuffer get inputBuffer();
+  final AudioBuffer inputBuffer;
 
-  AudioBuffer get outputBuffer();
+  final AudioBuffer outputBuffer;
 }

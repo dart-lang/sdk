@@ -8,11 +8,11 @@ interface OperationNotAllowedException {
 
   static final int NOT_ALLOWED_ERR = 1;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }

@@ -6,53 +6,35 @@
 
 interface HTMLButtonElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  bool disabled;
 
-  bool get disabled();
+  final HTMLFormElement form;
 
-  void set disabled(bool value);
+  String formAction;
 
-  HTMLFormElement get form();
+  String formEnctype;
 
-  String get formAction();
+  String formMethod;
 
-  void set formAction(String value);
+  bool formNoValidate;
 
-  String get formEnctype();
+  String formTarget;
 
-  void set formEnctype(String value);
+  final NodeList labels;
 
-  String get formMethod();
+  String name;
 
-  void set formMethod(String value);
+  final String type;
 
-  bool get formNoValidate();
+  final String validationMessage;
 
-  void set formNoValidate(bool value);
+  final ValidityState validity;
 
-  String get formTarget();
+  String value;
 
-  void set formTarget(String value);
-
-  NodeList get labels();
-
-  String get name();
-
-  void set name(String value);
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   bool checkValidity();
 

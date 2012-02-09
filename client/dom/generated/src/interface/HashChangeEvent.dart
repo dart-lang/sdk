@@ -6,9 +6,9 @@
 
 interface HashChangeEvent extends Event {
 
-  String get newURL();
+  final String newURL;
 
-  String get oldURL();
+  final String oldURL;
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
 }

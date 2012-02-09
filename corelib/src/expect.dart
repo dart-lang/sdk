@@ -177,7 +177,7 @@ class Expect {
     }
     String eSnippet = expected.substring(left, eLen - right);
     String aSnippet = actual.substring(left, aLen - right);
-    String diff = '\nDiff:\n...[ $eSnippet} ]...\n...[ $aSnippet ]...';
+    String diff = '\nDiff:\n...[ $eSnippet ]...\n...[ $aSnippet ]...';
     _fail('$defaultMessage$diff');
   }
 

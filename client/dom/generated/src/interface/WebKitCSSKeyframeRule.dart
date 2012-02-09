@@ -6,9 +6,7 @@
 
 interface WebKitCSSKeyframeRule extends CSSRule {
 
-  String get keyText();
+  String keyText;
 
-  void set keyText(String value);
-
-  CSSStyleDeclaration get style();
+  final CSSStyleDeclaration style;
 }

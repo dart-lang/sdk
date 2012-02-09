@@ -455,15 +455,9 @@ CMessageReader::CMessageReader(const uint8_t* buffer,
 }
 
 
-Dart_CMessage* CMessageReader::ReadMessage() {
+Dart_CObject* CMessageReader::ReadMessage() {
   // Read the object out of the message.
-  Dart_CObject* object = ReadObject();
-
-  Dart_CMessage* message =
-      reinterpret_cast<Dart_CMessage*>(alloc_(NULL, 0, sizeof(Dart_CMessage)));
-  if (message == NULL) return NULL;
-  message->root = object;
-  return message;
+  return ReadObject();
 }
 
 intptr_t CMessageReader::LookupInternalClass(intptr_t class_header) {
@@ -697,6 +691,136 @@ void MessageWriter::WriteMessage(intptr_t field_count, intptr_t *data) {
     Write<RawObject*>(Integer::New(data[i]));
   }
 
+  FinalizeBuffer();
+}
+
+
+void MessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
+  // Mark the object as serialized by adding the object id to the
+  // upper bits of the type field in the Dart_CObject structure. Add
+  // an offset for making marking of object id 0 possible.
+  ASSERT(!IsCObjectMarked(object));
+  intptr_t mark_value = object_id + kDartCObjectMarkOffset;
+  object->type = static_cast<Dart_CObject::Type>(
+      ((mark_value) << kDartCObjectTypeBits) | object->type);
+}
+
+
+void MessageWriter::UnmarkCObject(Dart_CObject* object) {
+  ASSERT(IsCObjectMarked(object));
+  object->type = static_cast<Dart_CObject::Type>(
+      object->type & kDartCObjectTypeMask);
+}
+
+
+bool MessageWriter::IsCObjectMarked(Dart_CObject* object) {
+  return (object->type & kDartCObjectMarkMask) != 0;
+}
+
+
+intptr_t MessageWriter::GetMarkedCObjectMark(Dart_CObject* object) {
+  ASSERT(IsCObjectMarked(object));
+  intptr_t mark_value = ((object->type & kDartCObjectMarkMask) >> 3);
+  // An offset was added to object id for making marking object id 0 possible.
+  return mark_value - kDartCObjectMarkOffset;
+}
+
+
+void MessageWriter::UnmarkAllCObjects(Dart_CObject* object) {
+  if (!IsCObjectMarked(object)) return;
+  UnmarkCObject(object);
+  if (object->type == Dart_CObject::kArray) {
+    for (int i = 0; i < object->value.as_array.length; i++) {
+      Dart_CObject* element = object->value.as_array.values[i];
+      UnmarkAllCObjects(element);
+    }
+  }
+}
+
+
+void MessageWriter::WriteSmi(int32_t value) {
+  Write<RawObject*>(Smi::New(value));
+}
+
+
+void MessageWriter::WriteInlinedHeader(Dart_CObject* object) {
+  // Write out the serialization header value for this object.
+  WriteSerializationMarker(kInlined, kMaxPredefinedObjectIds + object_id_);
+  // Mark object with its object id.
+  MarkCObject(object, object_id_);
+  // Advance object id.
+  object_id_++;
+}
+
+
+void MessageWriter::WriteCObject(Dart_CObject* object) {
+  if (IsCObjectMarked(object)) {
+    intptr_t object_id = GetMarkedCObjectMark(object);
+    WriteIndexedObject(kMaxPredefinedObjectIds + object_id);
+    return;
+  }
+
+  switch (object->type) {
+    case Dart_CObject::kNull:
+      WriteIndexedObject(Object::kNullObject);
+      break;
+    case Dart_CObject::kBool:
+      if (object->value.as_bool) {
+        WriteIndexedObject(ObjectStore::kTrueValue);
+      } else {
+        WriteIndexedObject(ObjectStore::kFalseValue);
+      }
+      break;
+    case Dart_CObject::kInt32: {
+      WriteSmi(object->value.as_int32);
+      break;
+    }
+    case Dart_CObject::kDouble:
+      // Write out the serialization header value for this object.
+      WriteInlinedHeader(object);
+      // Write out the class and tags information.
+      WriteObjectHeader(ObjectStore::kDoubleClass, 0);
+      // Write double value.
+      Write<double>(object->value.as_double);
+      break;
+    case Dart_CObject::kString: {
+      // Write out the serialization header value for this object.
+      WriteInlinedHeader(object);
+      // Write out the class and tags information.
+      WriteObjectHeader(ObjectStore::kOneByteStringClass, 0);
+      // Write string length, hash and content
+      char* str = object->value.as_string;
+      intptr_t len = strlen(str);
+      WriteSmi(len);
+      WriteSmi(0);  // TODO(sgjesse): Hash - not written.
+      for (intptr_t i = 0; i < len; i++) {
+        Write<uint8_t>(str[i]);
+      }
+      break;
+    }
+    case Dart_CObject::kArray: {
+      // Write out the serialization header value for this object.
+      WriteInlinedHeader(object);
+      // Write out the class and tags information.
+      WriteObjectHeader(ObjectStore::kArrayClass, 0);
+      WriteSmi(object->value.as_array.length);
+      // Write out the type arguments.
+      WriteIndexedObject(Object::kNullObject);
+      // Write out array elements.
+      for (int i = 0; i < object->value.as_array.length; i++) {
+        WriteCObject(object->value.as_array.values[i]);
+      }
+      break;
+    }
+    default:
+      UNREACHABLE();
+  }
+}
+
+
+void MessageWriter::WriteCMessage(Dart_CObject* object) {
+  WriteCObject(object);
+  UnmarkAllCObjects(object);
   FinalizeBuffer();
 }
 

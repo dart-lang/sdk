@@ -1,11 +1,7 @@
 
 class _HTMLFrameSetElementJs extends _HTMLElementJs implements HTMLFrameSetElement native "*HTMLFrameSetElement" {
 
-  String get cols() native "return this.cols;";
+  String cols;
 
-  void set cols(String value) native "this.cols = value;";
-
-  String get rows() native "return this.rows;";
-
-  void set rows(String value) native "this.rows = value;";
+  String rows;
 }

@@ -6,5 +6,5 @@
 
 interface IDBCursorWithValue extends IDBCursor {
 
-  IDBAny get value();
+  final IDBAny value;
 }

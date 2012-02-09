@@ -3,49 +3,45 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   static final int ALLOW_KEYBOARD_INPUT = 1;
 
-  int get childElementCount() native "return this.childElementCount;";
+  final int childElementCount;
 
-  int get clientHeight() native "return this.clientHeight;";
+  final int clientHeight;
 
-  int get clientLeft() native "return this.clientLeft;";
+  final int clientLeft;
 
-  int get clientTop() native "return this.clientTop;";
+  final int clientTop;
 
-  int get clientWidth() native "return this.clientWidth;";
+  final int clientWidth;
 
-  _ElementJs get firstElementChild() native "return this.firstElementChild;";
+  final _ElementJs firstElementChild;
 
-  _ElementJs get lastElementChild() native "return this.lastElementChild;";
+  final _ElementJs lastElementChild;
 
-  _ElementJs get nextElementSibling() native "return this.nextElementSibling;";
+  final _ElementJs nextElementSibling;
 
-  int get offsetHeight() native "return this.offsetHeight;";
+  final int offsetHeight;
 
-  int get offsetLeft() native "return this.offsetLeft;";
+  final int offsetLeft;
 
-  _ElementJs get offsetParent() native "return this.offsetParent;";
+  final _ElementJs offsetParent;
 
-  int get offsetTop() native "return this.offsetTop;";
+  final int offsetTop;
 
-  int get offsetWidth() native "return this.offsetWidth;";
+  final int offsetWidth;
 
-  _ElementJs get previousElementSibling() native "return this.previousElementSibling;";
+  final _ElementJs previousElementSibling;
 
-  int get scrollHeight() native "return this.scrollHeight;";
+  final int scrollHeight;
 
-  int get scrollLeft() native "return this.scrollLeft;";
+  int scrollLeft;
 
-  void set scrollLeft(int value) native "this.scrollLeft = value;";
+  int scrollTop;
 
-  int get scrollTop() native "return this.scrollTop;";
+  final int scrollWidth;
 
-  void set scrollTop(int value) native "this.scrollTop = value;";
+  final _CSSStyleDeclarationJs style;
 
-  int get scrollWidth() native "return this.scrollWidth;";
-
-  _CSSStyleDeclarationJs get style() native "return this.style;";
-
-  String get tagName() native "return this.tagName;";
+  final String tagName;
 
   void blur() native;
 

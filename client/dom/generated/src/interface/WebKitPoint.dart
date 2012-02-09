@@ -8,11 +8,7 @@ interface WebKitPoint default _WebKitPointFactoryProvider {
 
   WebKitPoint(num x, num y);
 
-  num get x();
+  num x;
 
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }

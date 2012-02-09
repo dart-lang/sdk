@@ -40,7 +40,9 @@
 # ........{frog}/
 # ......uri/
 # ........uri.dart
-# ......(more will come here - io, etc)
+# ......utf8/
+# ........utf8.dart
+# ......(more will come here)
 # ....util/
 # ......(more will come here)
 
@@ -192,23 +194,27 @@ def Main(argv):
     elif filename.endswith('.dart'):
       copyfile(join(frog_src_dir, filename), join(frog_dest_dir, filename))
 
-  copytree(join(frog_src_dir, 'leg'), join(frog_dest_dir, 'leg'), 
+  leg_dest_dir = join(frog_dest_dir, 'leg')
+  copytree(join(frog_src_dir, 'leg'), leg_dest_dir,
            ignore=ignore_patterns('.svn'))
 
-  frog_leg_contents = \
-    open(join(frog_src_dir, 'leg', 'frog_leg.dart')).read()
-  frog_leg_dest = open(join(frog_dest_dir, 'leg', 'frog_leg.dart'), 'w')
-  frog_leg_dest.write( \
-    re.sub("../../utils/uri", "../../uri", frog_leg_contents))
-  frog_leg_dest.close()
+  # Remap imports in frog/leg/* .
+  for filename in os.listdir(leg_dest_dir):
+    if filename.endswith('.dart'):
+      file_contents = open(join(leg_dest_dir, filename)).read()
+      file = open(join(leg_dest_dir, filename), 'w')
+      file.write(re.sub("../../lib", "../..", file_contents))
+      file.close()
 
-  leg_contents = \
-    open(join(frog_src_dir, 'leg', 'leg.dart')).read()
-  leg_dest = open(join(frog_dest_dir, 'leg', 'leg.dart'), 'w')
-  leg_dest.write( \
-    re.sub("../../utils/uri", "../../uri", leg_contents))
-  leg_dest.close()
-
+  # Remap imports in frog/leg/*/* .
+  for (_, subdirs, _) in os.walk(leg_dest_dir):
+    for subdir in subdirs:
+      for filename in os.listdir(join(leg_dest_dir, subdir)):
+        if filename.endswith('.dart'):
+          file_contents = open(join(leg_dest_dir, subdir, filename)).read()
+          file = open(join(leg_dest_dir, subdir, filename), 'w')
+          file.write(re.sub("../../../lib", "../../..", file_contents))
+          file.close()
 
   copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'), 
            ignore=ignore_patterns('.svn'))
@@ -264,16 +270,17 @@ def Main(argv):
                                         '*monkey*'))
 
   # 
-  # Create and populate lib/uri.
+  # Create and populate lib/{uri, utf8} .
   #
 
-  uri_src_dir = join(HOME, 'utils', 'uri')
-  uri_dest_dir = join(LIB, 'uri')
-  os.makedirs(uri_dest_dir)
+  for library in ['uri', 'utf8']:
+    src_dir = join(HOME, 'lib', library)
+    dest_dir = join(LIB, library)
+    os.makedirs(dest_dir)
 
-  for filename in os.listdir(uri_src_dir):
-    if filename.endswith('.dart'):
-      copyfile(join(uri_src_dir, filename), join(uri_dest_dir, filename))
+    for filename in os.listdir(src_dir):
+      if filename.endswith('.dart'):
+        copyfile(join(src_dir, filename), join(dest_dir, filename))
 
   #
   # Create and populate lib/core.

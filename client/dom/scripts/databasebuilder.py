@@ -477,15 +477,45 @@ class DatabaseBuilder(object):
     self._resolve_type_defs(idl_file)
     self._rename_types(idl_file, import_options)
 
+    def enabled(idl_node):
+      return self._is_node_enabled(idl_node, import_options.idl_defines)
+
     for module in idl_file.modules:
       for interface in module.interfaces:
+        if not self._is_node_enabled(interface, import_options.idl_defines):
+          _logger.info('skipping interface %s/%s (source=%s file=%s)'
+            % (module.id, interface.id, import_options.source,
+               file_path))
+          continue
+
         _logger.info('importing interface %s/%s (source=%s file=%s)'
           % (module.id, interface.id, import_options.source,
              file_path))
-        self._imported_interfaces.append(
-          (interface, module.id, import_options))
+        interface.attributes = filter(enabled, interface.attributes)
+        interface.operations = filter(enabled, interface.operations)
+        self._imported_interfaces.append((interface, module.id, import_options))
+
       for implStmt in module.implementsStatements:
         self._impl_stmts.append((implStmt, import_options))
+
+  def _is_node_enabled(self, node, idl_defines):
+    if not 'Conditional' in node.ext_attrs:
+      return True
+
+    def enabled(condition):
+      return 'ENABLE_%s' % condition in idl_defines
+
+    conditional = node.ext_attrs['Conditional']
+    if conditional.find('&') != -1:
+      for condition in conditional.split('&'):
+        if not enabled(condition):
+          return False
+      return True
+
+    for condition in conditional.split('|'):
+      if enabled(condition):
+        return True
+    return False
 
   def import_idl_directory(self, directory_path,
                import_options=DatabaseBuilderOptions()):

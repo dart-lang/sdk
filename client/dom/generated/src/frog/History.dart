@@ -1,7 +1,7 @@
 
 class _HistoryJs extends _DOMTypeJs implements History native "*History" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   void back() native;
 

@@ -6,15 +6,15 @@
 
 interface Entry {
 
-  DOMFileSystem get filesystem();
+  final DOMFileSystem filesystem;
 
-  String get fullPath();
+  final String fullPath;
 
-  bool get isDirectory();
+  final bool isDirectory;
 
-  bool get isFile();
+  final bool isFile;
 
-  String get name();
+  final String name;
 
   void copyTo(DirectoryEntry parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]);
 

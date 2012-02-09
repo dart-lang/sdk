@@ -6,23 +6,23 @@
 
 interface UIEvent extends Event {
 
-  int get charCode();
+  final int charCode;
 
-  int get detail();
+  final int detail;
 
-  int get keyCode();
+  final int keyCode;
 
-  int get layerX();
+  final int layerX;
 
-  int get layerY();
+  final int layerY;
 
-  int get pageX();
+  final int pageX;
 
-  int get pageY();
+  final int pageY;
 
-  DOMWindow get view();
+  final DOMWindow view;
 
-  int get which();
+  final int which;
 
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail);
 }

@@ -14,7 +14,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   static final int BYTES_PER_ELEMENT = 8;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 

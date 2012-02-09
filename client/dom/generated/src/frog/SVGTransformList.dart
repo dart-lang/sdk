@@ -1,7 +1,7 @@
 
 class _SVGTransformListJs extends _DOMTypeJs implements SVGTransformList native "*SVGTransformList" {
 
-  int get numberOfItems() native "return this.numberOfItems;";
+  final int numberOfItems;
 
   _SVGTransformJs appendItem(_SVGTransformJs item) native;
 

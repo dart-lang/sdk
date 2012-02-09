@@ -6,15 +6,11 @@
 
 interface SVGElement extends Element {
 
-  String get id();
+  String id;
 
-  void set id(String value);
+  final SVGSVGElement ownerSVGElement;
 
-  SVGSVGElement get ownerSVGElement();
+  final SVGElement viewportElement;
 
-  SVGElement get viewportElement();
-
-  String get xmlbase();
-
-  void set xmlbase(String value);
+  String xmlbase;
 }

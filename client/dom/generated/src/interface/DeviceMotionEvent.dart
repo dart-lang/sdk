@@ -6,5 +6,5 @@
 
 interface DeviceMotionEvent extends Event {
 
-  num get interval();
+  final num interval;
 }

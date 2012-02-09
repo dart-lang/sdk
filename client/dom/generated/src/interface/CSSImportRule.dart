@@ -6,9 +6,9 @@
 
 interface CSSImportRule extends CSSRule {
 
-  String get href();
+  final String href;
 
-  MediaList get media();
+  final MediaList media;
 
-  CSSStyleSheet get styleSheet();
+  final CSSStyleSheet styleSheet;
 }

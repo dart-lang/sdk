@@ -6,9 +6,9 @@
 
 interface CloseEvent extends Event {
 
-  int get code();
+  final int code;
 
-  String get reason();
+  final String reason;
 
-  bool get wasClean();
+  final bool wasClean;
 }

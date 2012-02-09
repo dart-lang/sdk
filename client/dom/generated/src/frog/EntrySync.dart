@@ -1,15 +1,15 @@
 
 class _EntrySyncJs extends _DOMTypeJs implements EntrySync native "*EntrySync" {
 
-  _DOMFileSystemSyncJs get filesystem() native "return this.filesystem;";
+  final _DOMFileSystemSyncJs filesystem;
 
-  String get fullPath() native "return this.fullPath;";
+  final String fullPath;
 
-  bool get isDirectory() native "return this.isDirectory;";
+  final bool isDirectory;
 
-  bool get isFile() native "return this.isFile;";
+  final bool isFile;
 
-  String get name() native "return this.name;";
+  final String name;
 
   _EntrySyncJs copyTo(_DirectoryEntrySyncJs parent, String name) native;
 

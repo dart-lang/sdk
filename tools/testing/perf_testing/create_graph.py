@@ -68,6 +68,11 @@ def run_cmd(cmd_list, outfile=None, append=False):
     if append:
       mode = 'a'
     out = open(outfile, mode)
+    if append:
+      # Annoying Windows "feature" -- append doesn't actually append unless you 
+      # explicitly go to the end of the file.
+      # http://mail.python.org/pipermail/python-list/2009-October/1221859.html
+      out.seek(0, os.SEEK_END)
   p = subprocess.Popen(cmd_list, stdout = out, stderr = subprocess.PIPE,
       shell=HAS_SHELL)
   output, not_used = p.communicate();

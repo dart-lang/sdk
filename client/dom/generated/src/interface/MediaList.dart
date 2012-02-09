@@ -6,11 +6,9 @@
 
 interface MediaList extends List<String> {
 
-  int get length();
+  final int length;
 
-  String get mediaText();
-
-  void set mediaText(String value);
+  String mediaText;
 
   void appendMedium(String newMedium);
 

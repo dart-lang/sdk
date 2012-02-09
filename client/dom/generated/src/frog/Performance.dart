@@ -1,9 +1,9 @@
 
 class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performance" {
 
-  _MemoryInfoJs get memory() native "return this.memory;";
+  final _MemoryInfoJs memory;
 
-  _PerformanceNavigationJs get navigation() native "return this.navigation;";
+  final _PerformanceNavigationJs navigation;
 
-  _PerformanceTimingJs get timing() native "return this.timing;";
+  final _PerformanceTimingJs timing;
 }

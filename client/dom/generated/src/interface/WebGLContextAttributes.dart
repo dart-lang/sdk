@@ -6,27 +6,15 @@
 
 interface WebGLContextAttributes {
 
-  bool get alpha();
+  bool alpha;
 
-  void set alpha(bool value);
+  bool antialias;
 
-  bool get antialias();
+  bool depth;
 
-  void set antialias(bool value);
+  bool premultipliedAlpha;
 
-  bool get depth();
+  bool preserveDrawingBuffer;
 
-  void set depth(bool value);
-
-  bool get premultipliedAlpha();
-
-  void set premultipliedAlpha(bool value);
-
-  bool get preserveDrawingBuffer();
-
-  void set preserveDrawingBuffer(bool value);
-
-  bool get stencil();
-
-  void set stencil(bool value);
+  bool stencil;
 }

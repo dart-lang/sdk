@@ -1,13 +1,13 @@
 
 class _HTMLFieldSetElementJs extends _HTMLElementJs implements HTMLFieldSetElement native "*HTMLFieldSetElement" {
 
-  _HTMLFormElementJs get form() native "return this.form;";
+  final _HTMLFormElementJs form;
 
-  String get validationMessage() native "return this.validationMessage;";
+  final String validationMessage;
 
-  _ValidityStateJs get validity() native "return this.validity;";
+  final _ValidityStateJs validity;
 
-  bool get willValidate() native "return this.willValidate;";
+  final bool willValidate;
 
   bool checkValidity() native;
 

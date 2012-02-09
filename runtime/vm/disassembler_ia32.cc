@@ -273,6 +273,11 @@ class X86Decoder : public ValueObject {
   void PrintInt(int value);
   void PrintHex(int value);
   void Print(const char* str);
+  const char* GetBranchPrefix(uint8_t** data);
+
+  bool DecodeInstructionType(const InstructionDesc& idesc,
+                             const char* branch_hint,
+                             uint8_t** data);
 
   // Printing of common values.
   void PrintCPURegister(int reg);
@@ -956,89 +961,97 @@ void X86Decoder::CheckPrintStop(uint8_t* data) {
   }
 }
 
-
-int X86Decoder::InstructionDecode(uword pc) {
-  uint8_t* data = reinterpret_cast<uint8_t*>(pc);
-  // Check for hints.
-  const char* branch_hint = NULL;
+const char* X86Decoder::GetBranchPrefix(uint8_t** data) {
   // We use these two prefixes only with branch prediction
-  switch (*data) {
+  switch (**data) {
     case 0x3E:  // ds
-      branch_hint = "predicted taken";
-      data++;
-      break;
+      (*data)++;
+      return "predicted taken";
     case 0x2E:  // cs
-      branch_hint = "predicted not taken";
-      data++;
-      break;
+      (*data)++;
+      return "predicted not taken";
     case 0xF0:  // lock
       Print("lock ");
-      data++;
-      break;
+      (*data)++;
+      return NULL;
     default:  // Ignore all other instructions.
-      break;
+      return NULL;
   }
-  bool processed = true;  // Will be set to false if the current instruction
-  // is not in 'instructions' table.
-  const InstructionDesc& idesc = instruction_table.Get(*data);
+}
+
+
+bool X86Decoder::DecodeInstructionType(const InstructionDesc& idesc,
+                                       const char* branch_hint,
+                                       uint8_t** data) {
   switch (idesc.type) {
     case ZERO_OPERANDS_INSTR:
       Print(idesc.mnem);
-      data++;
-      break;
+      (*data)++;
+      return true;
 
     case TWO_OPERANDS_INSTR:
-      data++;
-      data += PrintOperands(idesc.mnem, idesc.op_order_, data);
-      break;
+      (*data)++;
+      (*data) += PrintOperands(idesc.mnem, idesc.op_order_, *data);
+      return true;
 
     case JUMP_CONDITIONAL_SHORT_INSTR:
-      data += JumpConditionalShort(data, branch_hint);
-      break;
+      (*data) += JumpConditionalShort(*data, branch_hint);
+      return true;
 
     case REGISTER_INSTR:
       Print(idesc.mnem);
       Print(" ");
-      PrintCPURegister(*data & 0x07);
-      data++;
-      break;
+      PrintCPURegister(**data & 0x07);
+      (*data)++;
+      return true;
 
     case MOVE_REG_INSTR: {
-      uword addr = *reinterpret_cast<uword*>(data+1);
+      uword addr = *reinterpret_cast<uword*>(*data+1);
       Print("mov ");
-      PrintCPURegister(*data & 0x07),
+      PrintCPURegister(**data & 0x07),
       Print(",");
       PrintAddress(addr);
-      data += 5;
-      break;
+      (*data) += 5;
+      return true;
     }
 
     case CALL_JUMP_INSTR: {
       uword addr = reinterpret_cast<uword>(data) +
-                   *reinterpret_cast<uword*>(data+1) + 5;
+                   *reinterpret_cast<uword*>(*data+1) + 5;
       Print(idesc.mnem);
       Print(" ");
       PrintAddress(addr);
-      data += 5;
-      break;
+      (*data) += 5;
+      return true;
     }
 
     case SHORT_IMMEDIATE_INSTR: {
-      uword addr = *reinterpret_cast<uword*>(data+1);
+      uword addr = *reinterpret_cast<uword*>(*data+1);
       Print(idesc.mnem);
       Print(" eax, ");
       PrintAddress(addr);
-      data += 5;
-      break;
+      (*data) += 5;
+      return true;
     }
 
     case NO_INSTR:
-      processed = false;
-      break;
+      return false;
 
     default:
       UNIMPLEMENTED();  // This type is not implemented.
+      return false;
   }
+}
+
+
+int X86Decoder::InstructionDecode(uword pc) {
+  uint8_t* data = reinterpret_cast<uint8_t*>(pc);
+  // Check for hints.
+  const char* branch_hint = GetBranchPrefix(&data);
+  const InstructionDesc& idesc = instruction_table.Get(*data);
+  // Will be set to false if the current instruction
+  // is not in 'instructions' table.
+  bool processed = DecodeInstructionType(idesc, branch_hint, &data);
   //----------------------------
   if (!processed) {
     switch (*data) {
@@ -1301,6 +1314,14 @@ int X86Decoder::InstructionDecode(uword pc) {
                      *(data+3) == 0x00) {
             data += 4;
             Print("nop");
+          } else if (*data == 0x50) {
+            Print("movmskpd ");
+            data++;
+            int mod, regop, rm;
+            GetModRm(*data, &mod, &regop, &rm);
+            PrintCPURegister(regop);
+            Print(",");
+            data += PrintRightXmmOperand(data);
           } else {
             UNIMPLEMENTED();
           }

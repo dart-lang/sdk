@@ -6,17 +6,13 @@
 
 interface HTMLProgressElement extends HTMLElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  NodeList get labels();
+  final NodeList labels;
 
-  num get max();
+  num max;
 
-  void set max(num value);
+  final num position;
 
-  num get position();
-
-  num get value();
-
-  void set value(num value);
+  num value;
 }

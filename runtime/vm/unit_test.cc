@@ -23,9 +23,6 @@ namespace dart {
 DECLARE_FLAG(bool, disassemble);
 
 
-static const intptr_t kPos = 1;  // Dummy token index in non-existing source.
-
-
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
 
@@ -125,7 +122,8 @@ uword AssemblerTest::Assemble() {
 
 CodeGenTest::CodeGenTest(const char* name)
   : function_(Function::ZoneHandle()),
-    node_sequence_(new SequenceNode(kPos, new LocalScope(NULL, 0, 0))),
+    node_sequence_(new SequenceNode(Scanner::kDummyTokenIndex,
+                                    new LocalScope(NULL, 0, 0))),
     default_parameter_values_(Array::ZoneHandle()) {
   ASSERT(name != NULL);
   const String& function_name = String::ZoneHandle(String::NewSymbol(name));
@@ -136,7 +134,7 @@ CodeGenTest::CodeGenTest(const char* name)
   // frame walking can be used.
   Class& cls = Class::ZoneHandle();
   const Script& script = Script::Handle();
-  cls = Class::New(function_name, script);
+  cls = Class::New(function_name, script, Scanner::kDummyTokenIndex);
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function_);
   cls.SetFunctions(functions);

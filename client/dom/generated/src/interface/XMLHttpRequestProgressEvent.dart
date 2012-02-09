@@ -6,7 +6,7 @@
 
 interface XMLHttpRequestProgressEvent extends ProgressEvent {
 
-  int get position();
+  final int position;
 
-  int get totalSize();
+  final int totalSize;
 }

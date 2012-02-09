@@ -1,9 +1,9 @@
 
 class _FileWriterSyncJs extends _DOMTypeJs implements FileWriterSync native "*FileWriterSync" {
 
-  int get length() native "return this.length;";
+  final int length;
 
-  int get position() native "return this.position;";
+  final int position;
 
   void seek(int position) native;
 

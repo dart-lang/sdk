@@ -18,8 +18,6 @@
 
 namespace dart {
 
-static const intptr_t kPos = 1;  // Dummy token index in non-existing source.
-
 CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
   SequenceNode* node_seq = test->node_sequence();
   const int num_params = 0;
@@ -28,8 +26,8 @@ CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
       String::ZoneHandle(String::NewSymbol("TestStaticCallPatching"));
   NativeFunction native_function = reinterpret_cast<NativeFunction>(
       NATIVE_ENTRY_FUNCTION(TestStaticCallPatching));
-  node_seq->Add(new ReturnNode(kPos,
-                               new NativeBodyNode(kPos,
+  node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
+                               new NativeBodyNode(Scanner::kDummyTokenIndex,
                                                   native_name,
                                                   native_function,
                                                   num_params,
@@ -38,9 +36,10 @@ CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
 
 CODEGEN_TEST2_GENERATE(PatchStaticCall, function, test) {
   SequenceNode* node_seq = test->node_sequence();
-  ArgumentListNode* arguments = new ArgumentListNode(kPos);
-  node_seq->Add(new ReturnNode(kPos,
-                               new StaticCallNode(kPos, function, arguments)));
+  ArgumentListNode* arguments = new ArgumentListNode(Scanner::kDummyTokenIndex);
+  node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
+                               new StaticCallNode(Scanner::kDummyTokenIndex,
+                                                  function, arguments)));
 }
 
 CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());

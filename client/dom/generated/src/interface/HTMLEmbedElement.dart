@@ -6,29 +6,17 @@
 
 interface HTMLEmbedElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String height;
 
-  String get height();
+  String name;
 
-  void set height(String value);
+  String src;
 
-  String get name();
+  String type;
 
-  void set name(String value);
-
-  String get src();
-
-  void set src(String value);
-
-  String get type();
-
-  void set type(String value);
-
-  String get width();
-
-  void set width(String value);
+  String width;
 
   SVGDocument getSVGDocument();
 }

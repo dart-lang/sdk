@@ -3,6 +3,11 @@ var util = require('util');
 var exec = require('child_process').exec;
 var path = require('path');
 
+// We have numProcesses extraction tasks running simultaneously to improve
+// performance.  If your machine is slow, you may need to dial back the
+// parallelism.
+var numProcesses = 8;
+
 var db = {};
 var metadata = {};
 var USE_VM = false;
@@ -12,9 +17,12 @@ var USE_VM = false;
 var START_DART_MESSAGE = "START_DART_MESSAGE_UNIQUE_IDENTIFIER";
 var END_DART_MESSAGE = "END_DART_MESSAGE_UNIQUE_IDENTIFIER";
 
-var domTypes = JSON.parse(fs.readFileSync('data/domTypes.json', 'utf8').toString());
-var cacheData = JSON.parse(fs.readFileSync('output/crawl/cache.json', 'utf8').toString());
-var dartIdl = JSON.parse(fs.readFileSync('data/dartIdl.json', 'utf8').toString());
+var domTypes = JSON.parse(fs.readFileSync('data/domTypes.json',
+    'utf8').toString());
+var cacheData = JSON.parse(fs.readFileSync('output/crawl/cache.json',
+    'utf8').toString());
+var dartIdl = JSON.parse(fs.readFileSync('data/dartIdl.json',
+    'utf8').toString());
 
 try {
   fs.mkdirSync('output/extract');
@@ -39,9 +47,9 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
   var inputFileRaw = inputFile;
   // Cached pages have multiple DOCTYPE tags.  Strip off the first one so that
   // we have valid HTML.
-  if (inputFile.indexOf("<!DOCTYPE") == 0) {
-    inputFile = inputFile.substr(1);
-    var matchIndex = inputFile.indexOf("<!DOCTYPE");
+  // TODO(jacobr): use a regular expression instead of indexOf.
+  if (inputFile.toLowerCase().indexOf("<!doctype") == 0) {
+    var matchIndex = inputFile.toLowerCase().indexOf("<!doctype", 1);
     if (matchIndex == -1) {
       // not a cached page.
       inputFile = inputFileRaw;
@@ -50,7 +58,7 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
     }
   }
 
-  // Disable all existing javascript in the input file to speedup parsing and
+  // Disable all existing javascript in the input file to speed up parsing and
   // avoid conflicts between our JS and the JS in the file.
   inputFile = inputFile.replace(/<script type="text\/javascript"/g,
       '<script type="text/ignored"');
@@ -62,14 +70,13 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
   }
   if (endBodyIndex == -1) {
     if (inputFile.indexOf("Error 404 (Not Found)") != -1) {
-      console.warn("Skipping 404 file");
+      console.warn("Skipping 404 file: " + file);
       onDone();
       return;
     }
     throw "Unexpected file format for " + file;
   }
 
-  // Remove all easy to remove script tags to speed page load.
   inputFile = inputFile.substring(0, endBodyIndex) +
     '<script type="text/javascript">\n' +
     '  if (window.layoutTestController) {\n' +
@@ -81,6 +88,9 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
     'function receiveMessage(event) {\n' +
      '  if (event.data.indexOf("' + START_DART_MESSAGE + '") != 0) return;\n' +
      '  console.log(event.data + "' + END_DART_MESSAGE + '");\n' +
+     // We feature detect whether the browser supports layoutTestController
+     // so we only clear the document content when running in the test shell
+     // and not when debugging using a normal browser.
      '  if (window.layoutTestController) {\n' +
      '    document.documentElement.textContent = "";\n' +
      '    window.layoutTestController.notifyDone();\n' +
@@ -89,12 +99,12 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
     '</script>\n' +
     (USE_VM ?
       '<script type="application/dart" src="../../extract.dart"></script>' :
-      '<script type="text/javascript" src="../../output/extract.dart.js"></script>') +
+      '<script type="text/javascript" src="../../output/extract.dart.js">' +
+      '</script>') +
       '\n' + inputFile.substring(endBodyIndex);
 
   console.log("Processing: " + file);
-  var dumpFileName = "output/extract/" + file;
-  var absoluteDumpFileName = path.resolve(dumpFileName);
+  var absoluteDumpFileName = path.resolve("output/extract/" + file);
   fs.writeFileSync(absoluteDumpFileName, inputFile, 'utf8');
   var parseArgs = {
     type: type,
@@ -104,26 +114,30 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
   fs.writeFileSync(absoluteDumpFileName + ".json", JSON.stringify(parseArgs),
       'utf8');
 
+  // TODO(jacobr): Make this run on platforms other than OS X.
   var cmd = '../../../client/tests/drt/DumpRenderTree.app/Contents/MacOS/' +
       'DumpRenderTree ' + absoluteDumpFileName;
   console.log(cmd);
-  var child = exec(cmd,
+  exec(cmd,
     function (error, stdout, stderr) {
       var msgIndex = stdout.indexOf(START_DART_MESSAGE);
-      var msg = stdout.substring(msgIndex + START_DART_MESSAGE.length);
-      var msg = msg.substring(0, msg.indexOf(END_DART_MESSAGE));
       console.log('all: ' + stdout);
       console.log('stderr: ' + stderr);
       if (error !== null) {
         console.log('exec error: ' + error);
       }
 
+      // TODO(jacobr): use a regexp.
+      var msg = stdout.substring(msgIndex + START_DART_MESSAGE.length);
+      msg = msg.substring(0, msg.indexOf(END_DART_MESSAGE));
       if (!(type in db)) {
         db[type] = [];
       }
       try {
         db[type][searchResultIndex] = JSON.parse(msg);
       } catch(e) {
+        // Write the errors file every time there is an error so that if the
+        // user aborts the script, the error file is valid.
         console.warn("error parsing result for " + type + " file= "+ file);
         errorFiles.push(file);
         fs.writeFileSync("output/errors.json",
@@ -132,12 +146,9 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
       onDone();
   });
 }
+
 var tasks = [];
 
-var numProcesses = 8;
-// Have numProcesses extraction tasks running simultaneously to improve
-// performance.  If your machine is slow, you may need to dial back the
-// parallelism.
 var numPending = numProcesses;
 
 function processNextTask() {

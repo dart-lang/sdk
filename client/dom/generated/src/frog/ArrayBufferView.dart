@@ -1,9 +1,9 @@
 
 class _ArrayBufferViewJs extends _DOMTypeJs implements ArrayBufferView native "*ArrayBufferView" {
 
-  _ArrayBufferJs get buffer() native "return this.buffer;";
+  final _ArrayBufferJs buffer;
 
-  int get byteLength() native "return this.byteLength;";
+  final int byteLength;
 
-  int get byteOffset() native "return this.byteOffset;";
+  final int byteOffset;
 }

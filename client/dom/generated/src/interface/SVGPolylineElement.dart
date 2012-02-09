@@ -6,7 +6,7 @@
 
 interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGPointList get animatedPoints();
+  final SVGPointList animatedPoints;
 
-  SVGPointList get points();
+  final SVGPointList points;
 }

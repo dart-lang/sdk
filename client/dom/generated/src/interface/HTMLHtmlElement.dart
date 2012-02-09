@@ -6,11 +6,7 @@
 
 interface HTMLHtmlElement extends HTMLElement {
 
-  String get manifest();
+  String manifest;
 
-  void set manifest(String value);
-
-  String get version();
-
-  void set version(String value);
+  String version;
 }

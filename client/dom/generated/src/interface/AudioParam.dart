@@ -6,19 +6,17 @@
 
 interface AudioParam {
 
-  num get defaultValue();
+  final num defaultValue;
 
-  num get maxValue();
+  final num maxValue;
 
-  num get minValue();
+  final num minValue;
 
-  String get name();
+  final String name;
 
-  int get units();
+  final int units;
 
-  num get value();
-
-  void set value(num value);
+  num value;
 
   void cancelScheduledValues(num startTime);
 

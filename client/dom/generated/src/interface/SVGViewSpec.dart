@@ -6,15 +6,15 @@
 
 interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
-  String get preserveAspectRatioString();
+  final String preserveAspectRatioString;
 
-  SVGTransformList get transform();
+  final SVGTransformList transform;
 
-  String get transformString();
+  final String transformString;
 
-  String get viewBoxString();
+  final String viewBoxString;
 
-  SVGElement get viewTarget();
+  final SVGElement viewTarget;
 
-  String get viewTargetString();
+  final String viewTargetString;
 }

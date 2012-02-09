@@ -32,11 +32,6 @@ public interface CompilerConfiguration {
   boolean developerModeChecks();
 
   /**
-   * Returns <code>true</code> if the compiler's output should be optimized.
-   */
-  boolean shouldOptimize();
-
-  /**
    * Returns the {@link CompilerMetrics} instance or <code>null</code> if metrics should not be
    * recorded.
    *
@@ -92,11 +87,6 @@ public interface CompilerConfiguration {
    * Returns the error formatting the compiler should print with
    */
   ErrorFormat printErrorFormat();
-
-  /**
-   * Returns <code>true</code> if the compiler should collect comments.
-   */
-  boolean collectComments();
 
   /**
    * Return the system library corresponding to the specified "dart:<libname>" spec.

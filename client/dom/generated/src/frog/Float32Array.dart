@@ -11,7 +11,7 @@ class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<n
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int get length() native "return this.length;";
+  final int length;
 
   num operator[](int index) native "return this[index];";
 

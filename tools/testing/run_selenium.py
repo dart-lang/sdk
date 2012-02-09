@@ -111,7 +111,10 @@ def Main():
   if browser == 'chrome':
     browser = selenium.webdriver.Chrome()
   elif browser == 'ff':
-    browser = selenium.webdriver.Firefox()
+    profile = selenium.webdriver.firefox.firefox_profile.FirefoxProfile()
+    profile.set_preference('dom.max_script_run_time', 0)
+    profile.set_preference('dom.max_chrome_script_run_time', 0)
+    browser = selenium.webdriver.Firefox(firefox_profile=profile)
   elif browser == 'ie' and platform.system() == 'Windows':
     browser = selenium.webdriver.Ie()
   elif browser == 'safari' and platform.system() == 'Darwin':

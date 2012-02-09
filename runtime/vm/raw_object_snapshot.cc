@@ -51,6 +51,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_type_arguments_instance_field_offset(reader->ReadIntptrValue());
     cls.set_next_field_offset(reader->ReadIntptrValue());
     cls.set_num_native_fields(reader->ReadIntptrValue());
+    cls.set_token_index(reader->ReadIntptrValue());
     cls.set_class_state(reader->Read<int8_t>());
     if (reader->Read<bool>()) {
       cls.set_is_const();
@@ -93,6 +94,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->WriteIntptrValue(ptr()->type_arguments_instance_field_offset_);
     writer->WriteIntptrValue(ptr()->next_field_offset_);
     writer->WriteIntptrValue(ptr()->num_native_fields_);
+    writer->WriteIntptrValue(ptr()->token_index_);
     writer->Write<int8_t>(ptr()->class_state_);
     writer->Write<bool>(ptr()->is_const_);
     writer->Write<bool>(ptr()->is_interface_);
@@ -186,6 +188,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   parameterized_type.set_tags(tags);
 
   // Set all non object fields.
+  parameterized_type.set_token_index(reader->ReadIntptrValue());
   parameterized_type.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -217,6 +220,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kTypeClass, ptr()->tags_);
 
   // Write out all the non object pointer fields.
+  writer->WriteIntptrValue(ptr()->token_index_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -241,6 +245,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   type_parameter.set_index(reader->ReadIntptrValue());
+  type_parameter.set_token_index(reader->ReadIntptrValue());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -269,6 +274,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->index_);
+  writer->WriteIntptrValue(ptr()->token_index_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.

@@ -1,27 +1,27 @@
 
 class _TouchJs extends _DOMTypeJs implements Touch native "*Touch" {
 
-  int get clientX() native "return this.clientX;";
+  final int clientX;
 
-  int get clientY() native "return this.clientY;";
+  final int clientY;
 
-  int get identifier() native "return this.identifier;";
+  final int identifier;
 
-  int get pageX() native "return this.pageX;";
+  final int pageX;
 
-  int get pageY() native "return this.pageY;";
+  final int pageY;
 
-  int get screenX() native "return this.screenX;";
+  final int screenX;
 
-  int get screenY() native "return this.screenY;";
+  final int screenY;
 
-  _EventTargetJs get target() native "return this.target;";
+  final _EventTargetJs target;
 
-  num get webkitForce() native "return this.webkitForce;";
+  final num webkitForce;
 
-  int get webkitRadiusX() native "return this.webkitRadiusX;";
+  final int webkitRadiusX;
 
-  int get webkitRadiusY() native "return this.webkitRadiusY;";
+  final int webkitRadiusY;
 
-  num get webkitRotationAngle() native "return this.webkitRotationAngle;";
+  final num webkitRotationAngle;
 }

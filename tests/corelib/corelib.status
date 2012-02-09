@@ -6,25 +6,14 @@ prefix corelib
 
 [ $component == vm || $component == dartium ]
 UnicodeTest: Fail        # Bug 5163868
+StringSplitRegExpTest: Fail    # Issue 429
 *DartcTest: Skip
 
 [ $arch == ia32 ]
 
 
 [ $component == dartc || $component == chromium ]
-ListSetRangeTest: Fail          # Bug 291
-ConstListLiteralTest: Fail      # Bug 5202940
-ConstListSetRangeTest: Fail     # Bug 5202940
-ConstListRemoveRangeTest: Fail  # Bug 5202940
-RegExp4Test: Fail               # Issue 256
-StringTest: Fail                # Bug 5196164
 *VMTest: Skip
-
-
-# Problems specific to dartc optimized mode.
-[ ($component == dartc || $component == chromium) && $mode == release ]
-CoreRuntimeTypesTest: Fail
-
 
 [ $component == frog || $component == frogsh || $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
@@ -65,3 +54,4 @@ FuturesTest: Fail
 
 [ $arch == arm ]
 *: Skip
+

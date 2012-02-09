@@ -12,21 +12,15 @@ interface IDBTransaction {
 
   static final int VERSION_CHANGE = 2;
 
-  IDBDatabase get db();
+  final IDBDatabase db;
 
-  int get mode();
+  final int mode;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener oncomplete;
 
-  EventListener get oncomplete();
-
-  void set oncomplete(EventListener value);
-
-  EventListener get onerror();
-
-  void set onerror(EventListener value);
+  EventListener onerror;
 
   void abort();
 

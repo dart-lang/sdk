@@ -20,11 +20,11 @@ interface SVGTransform {
 
   static final int SVG_TRANSFORM_UNKNOWN = 0;
 
-  num get angle();
+  final num angle;
 
-  SVGMatrix get matrix();
+  final SVGMatrix matrix;
 
-  int get type();
+  final int type;
 
   void setMatrix(SVGMatrix matrix);
 

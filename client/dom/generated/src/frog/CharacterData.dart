@@ -1,11 +1,9 @@
 
 class _CharacterDataJs extends _NodeJs implements CharacterData native "*CharacterData" {
 
-  String get data() native "return this.data;";
+  String data;
 
-  void set data(String value) native "this.data = value;";
-
-  int get length() native "return this.length;";
+  final int length;
 
   void appendData(String data) native;
 

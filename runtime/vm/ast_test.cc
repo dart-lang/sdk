@@ -12,15 +12,11 @@
 
 namespace dart {
 
-static const intptr_t kPos = 1;  // Dummy token index in non-existing source.
-
-
 TEST_CASE(Ast) {
-  const intptr_t kPos = 1;  // Dummy token index in non-existing source.
-  LocalVariable* v = new LocalVariable(kPos,
+  LocalVariable* v = new LocalVariable(Scanner::kDummyTokenIndex,
                                        String::ZoneHandle(String::New("v")),
                                        Type::ZoneHandle(Type::DynamicType()));
-  AstNode* ll = new LoadLocalNode(kPos, *v);
+  AstNode* ll = new LoadLocalNode(Scanner::kDummyTokenIndex, *v);
   EXPECT(ll->IsLoadLocalNode());
   EXPECT(!ll->IsLiteralNode());
   LoadLocalNode* lln = ll->AsLoadLocalNode();
@@ -28,7 +24,7 @@ TEST_CASE(Ast) {
   v->set_index(1);
   EXPECT_EQ(1, v->index());
 
-  LocalVariable* p = new LocalVariable(kPos,
+  LocalVariable* p = new LocalVariable(Scanner::kDummyTokenIndex,
                                        String::ZoneHandle(String::New("p")),
                                        Type::ZoneHandle(Type::DynamicType()));
   EXPECT(!p->HasIndex());
@@ -36,19 +32,21 @@ TEST_CASE(Ast) {
   EXPECT(p->HasIndex());
   EXPECT_EQ(-1, p->index());
 
-  ReturnNode* r = new ReturnNode(kPos, lln);
+  ReturnNode* r = new ReturnNode(Scanner::kDummyTokenIndex, lln);
   EXPECT_EQ(lln, r->value());
 
-  LiteralNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
+  LiteralNode* l =
+      new LiteralNode(Scanner::kDummyTokenIndex, Smi::ZoneHandle(Smi::New(3)));
   EXPECT(l->literal().IsSmi());
   EXPECT_EQ(Smi::New(3), l->literal().raw());
 
-  BinaryOpNode* b = new BinaryOpNode(kPos, Token::kADD, l, lln);
+  BinaryOpNode* b =
+      new BinaryOpNode(Scanner::kDummyTokenIndex, Token::kADD, l, lln);
   EXPECT_EQ(Token::kADD, b->kind());
   EXPECT_EQ(l, b->left());
   EXPECT_EQ(lln, b->right());
 
-  UnaryOpNode* u = new UnaryOpNode(kPos, Token::kSUB, b);
+  UnaryOpNode* u = new UnaryOpNode(Scanner::kDummyTokenIndex, Token::kSUB, b);
   EXPECT_EQ(Token::kSUB, u->kind());
   EXPECT_EQ(b, u->operand());
 

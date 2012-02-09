@@ -5,11 +5,8 @@
 package com.google.dart.compiler.ast;
 
 import com.google.common.collect.Lists;
-import com.google.dart.compiler.common.GenerateSourceMap;
 import com.google.dart.compiler.common.HasSourceInfo;
-import com.google.dart.compiler.common.SourceMapping;
 import com.google.dart.compiler.util.TextOutput;
-import com.google.debugging.sourcemap.FilePosition;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -21,8 +18,6 @@ import java.util.List;
 public class DartToSourceVisitor extends DartVisitor {
 
   private final TextOutput out;
-  private boolean buildMappings;
-  private List<SourceMapping> mappings = Lists.newArrayList();
   private final boolean isDiet;
 
   public DartToSourceVisitor(TextOutput out) {
@@ -32,42 +27,6 @@ public class DartToSourceVisitor extends DartVisitor {
   public DartToSourceVisitor(TextOutput out, boolean isDiet) {
     this.out = out;
     this.isDiet = isDiet;
-  }
-
-  public void generateSourceMap(boolean generate) {
-    this.buildMappings = generate;
-  }
-
-  public void writeSourceMap(Appendable out, String name) throws IOException {
-    GenerateSourceMap generator = new GenerateSourceMap();
-    for (SourceMapping m : mappings) {
-      generator.addMapping(m.getNode(), m.getStart(), m.getEnd());
-    }
-    generator.appendTo(out, name);
-  }
-
-  @Override
-  public void doTraverse(DartVisitable x, DartContext ctx) {
-    SourceMapping m = null;
-
-    boolean mapThis = shouldMap(x);
-    if (mapThis) {
-      m = new SourceMapping((HasSourceInfo) x, new FilePosition(out.getLine(), out.getColumn()));
-      mappings.add(m);
-    }
-
-    super.doTraverse(x, ctx);
-
-    if (mapThis) {
-      m.setEnd(new FilePosition(out.getLine(), out.getColumn()));
-    }
-  }
-
-  /**
-   * Filter uninteresting AST nodes out of the source map
-   */
-  private boolean shouldMap(DartVisitable x) {
-    return buildMappings && !(x instanceof DartExprStmt);
   }
 
   @Override

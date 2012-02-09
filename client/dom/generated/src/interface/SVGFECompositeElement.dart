@@ -20,17 +20,17 @@ interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAt
 
   static final int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedString get in2();
+  final SVGAnimatedString in2;
 
-  SVGAnimatedNumber get k1();
+  final SVGAnimatedNumber k1;
 
-  SVGAnimatedNumber get k2();
+  final SVGAnimatedNumber k2;
 
-  SVGAnimatedNumber get k3();
+  final SVGAnimatedNumber k3;
 
-  SVGAnimatedNumber get k4();
+  final SVGAnimatedNumber k4;
 
-  SVGAnimatedEnumeration get operator();
+  final SVGAnimatedEnumeration operator;
 }

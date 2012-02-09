@@ -6,7 +6,7 @@
 
 interface DOMFileSystemSync {
 
-  String get name();
+  final String name;
 
-  DirectoryEntrySync get root();
+  final DirectoryEntrySync root;
 }

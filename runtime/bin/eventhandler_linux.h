@@ -30,16 +30,12 @@ enum PortDataFlags {
 
 class SocketData {
  public:
-  explicit SocketData(intptr_t fd) : fd_(fd), port_(0), mask_(0), flags_(0) {
+  explicit SocketData(intptr_t fd)
+      : tracked_by_epoll_(false), fd_(fd), port_(0), mask_(0), flags_(0) {
     ASSERT(fd_ != -1);
   }
 
   intptr_t GetPollEvents();
-
-  void Unregister() {
-    port_ = 0;
-    mask_ = 0;
-  }
 
   void ShutdownRead() {
     shutdown(fd_, SHUT_RD);
@@ -52,7 +48,8 @@ class SocketData {
   }
 
   void Close() {
-    Unregister();
+    port_ = 0;
+    mask_ = 0;
     flags_ = 0;
     close(fd_);
     fd_ = -1;
@@ -66,8 +63,6 @@ class SocketData {
   void MarkClosedRead() { flags_ |= (1 << kClosedRead); }
   void MarkClosedWrite() { flags_ |= (1 << kClosedWrite); }
 
-  bool HasPollEvents() { return mask_ != 0; }
-
   void SetPortAndMask(Dart_Port port, intptr_t mask) {
     ASSERT(fd_ != -1);
     port_ = port;
@@ -77,8 +72,11 @@ class SocketData {
   intptr_t fd() { return fd_; }
   Dart_Port port() { return port_; }
   intptr_t mask() { return mask_; }
+  bool tracked_by_epoll() { return tracked_by_epoll_; }
+  void set_tracked_by_epoll(bool value) { tracked_by_epoll_ = value; }
 
  private:
+  bool tracked_by_epoll_;
   intptr_t fd_;
   Dart_Port port_;
   intptr_t mask_;
@@ -92,7 +90,7 @@ class EventHandlerImplementation {
   ~EventHandlerImplementation();
 
   // Gets the socket data structure for a given file
-  // descriptor. Creates a new one of one is not found.
+  // descriptor. Creates a new one if one is not found.
   SocketData* GetSocketData(intptr_t fd);
   void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
   void StartEventHandler();
@@ -100,14 +98,13 @@ class EventHandlerImplementation {
  private:
   intptr_t GetTimeout();
   bool GetInterruptMessage(InterruptMessage* msg);
-  struct pollfd* GetPollFds(intptr_t* size);
-  void HandleEvents(struct pollfd* pollfds, int pollfds_size, int result_size);
+  void HandleEvents(struct epoll_event* events, int size);
   void HandleTimeout();
   static void Poll(uword args);
   void WakeupHandler(intptr_t id, Dart_Port dart_port, int64_t data);
   void HandleInterruptFd();
   void SetPort(intptr_t fd, Dart_Port dart_port, intptr_t mask);
-  intptr_t GetPollEvents(struct pollfd* pollfd);
+  intptr_t GetPollEvents(intptr_t events, SocketData* sd);
   static void* GetHashmapKeyFromFd(intptr_t fd);
   static uint32_t GetHashmapHashFromFd(intptr_t fd);
 
@@ -115,6 +112,7 @@ class EventHandlerImplementation {
   int64_t timeout_;  // Time for next timeout.
   Dart_Port timeout_port_;
   int interrupt_fds_[2];
+  int epoll_fd_;
 };
 
 

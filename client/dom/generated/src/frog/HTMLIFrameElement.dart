@@ -1,53 +1,31 @@
 
 class _HTMLIFrameElementJs extends _HTMLElementJs implements HTMLIFrameElement native "*HTMLIFrameElement" {
 
-  String get align() native "return this.align;";
+  String align;
 
-  void set align(String value) native "this.align = value;";
+  final _DocumentJs contentDocument;
 
-  _DocumentJs get contentDocument() native "return this.contentDocument;";
+  final _DOMWindowJs contentWindow;
 
-  _DOMWindowJs get contentWindow() native "return this.contentWindow;";
+  String frameBorder;
 
-  String get frameBorder() native "return this.frameBorder;";
+  String height;
 
-  void set frameBorder(String value) native "this.frameBorder = value;";
+  String longDesc;
 
-  String get height() native "return this.height;";
+  String marginHeight;
 
-  void set height(String value) native "this.height = value;";
+  String marginWidth;
 
-  String get longDesc() native "return this.longDesc;";
+  String name;
 
-  void set longDesc(String value) native "this.longDesc = value;";
+  String sandbox;
 
-  String get marginHeight() native "return this.marginHeight;";
+  String scrolling;
 
-  void set marginHeight(String value) native "this.marginHeight = value;";
+  String src;
 
-  String get marginWidth() native "return this.marginWidth;";
-
-  void set marginWidth(String value) native "this.marginWidth = value;";
-
-  String get name() native "return this.name;";
-
-  void set name(String value) native "this.name = value;";
-
-  String get sandbox() native "return this.sandbox;";
-
-  void set sandbox(String value) native "this.sandbox = value;";
-
-  String get scrolling() native "return this.scrolling;";
-
-  void set scrolling(String value) native "this.scrolling = value;";
-
-  String get src() native "return this.src;";
-
-  void set src(String value) native "this.src = value;";
-
-  String get width() native "return this.width;";
-
-  void set width(String value) native "this.width = value;";
+  String width;
 
   _SVGDocumentJs getSVGDocument() native;
 }

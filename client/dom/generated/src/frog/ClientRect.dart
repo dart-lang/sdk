@@ -1,15 +1,15 @@
 
 class _ClientRectJs extends _DOMTypeJs implements ClientRect native "*ClientRect" {
 
-  num get bottom() native "return this.bottom;";
+  final num bottom;
 
-  num get height() native "return this.height;";
+  final num height;
 
-  num get left() native "return this.left;";
+  final num left;
 
-  num get right() native "return this.right;";
+  final num right;
 
-  num get top() native "return this.top;";
+  final num top;
 
-  num get width() native "return this.width;";
+  final num width;
 }

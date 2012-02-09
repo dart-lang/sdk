@@ -6,7 +6,7 @@
 
 interface Notation extends Node {
 
-  String get publicId();
+  final String publicId;
 
-  String get systemId();
+  final String systemId;
 }

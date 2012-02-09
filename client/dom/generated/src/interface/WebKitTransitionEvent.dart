@@ -6,7 +6,7 @@
 
 interface WebKitTransitionEvent extends Event {
 
-  num get elapsedTime();
+  final num elapsedTime;
 
-  String get propertyName();
+  final String propertyName;
 }

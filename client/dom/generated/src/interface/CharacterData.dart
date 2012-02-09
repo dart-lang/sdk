@@ -6,11 +6,9 @@
 
 interface CharacterData extends Node {
 
-  String get data();
+  String data;
 
-  void set data(String value);
-
-  int get length();
+  final int length;
 
   void appendData(String data);
 

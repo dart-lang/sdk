@@ -16,9 +16,9 @@ interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandard
 
   static final int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedEnumeration get type();
+  final SVGAnimatedEnumeration type;
 
-  SVGAnimatedNumberList get values();
+  final SVGAnimatedNumberList values;
 }

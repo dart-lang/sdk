@@ -1,7 +1,7 @@
 
 class _SVGLengthListJs extends _DOMTypeJs implements SVGLengthList native "*SVGLengthList" {
 
-  int get numberOfItems() native "return this.numberOfItems;";
+  final int numberOfItems;
 
   _SVGLengthJs appendItem(_SVGLengthJs item) native;
 

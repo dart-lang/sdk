@@ -106,7 +106,7 @@ interface File default _File {
    * file is created.
    *
    * FileMode.APPEND: same as FileMode.WRITE except that the file is
-   * not truncated.
+   * not truncated and the position is set to the end of the file.
    *
    * By default mode is FileMode.READ.
    */
@@ -135,8 +135,18 @@ interface File default _File {
    * Creates a new independent output stream for the file. The file
    * output stream must be closed when no longer used to free up
    * system resources.
+   *
+   * An output stream can be opened in two modes:
+   *
+   * FileMode.WRITE: create the stream and truncate the underlying
+   * file to length zero.
+   *
+   * FileMode.APPEND: create the stream and set the position to the end of
+   * the underlying file.
+   *
+   * By default the mode is FileMode.WRITE.
    */
-  OutputStream openOutputStream();
+  OutputStream openOutputStream([FileMode mode]);
 
   /**
    * Get the name of the file.

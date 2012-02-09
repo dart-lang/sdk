@@ -1,15 +1,11 @@
 
 class _SVGElementJs extends _ElementJs implements SVGElement native "*SVGElement" {
 
-  String get id() native "return this.id;";
+  String id;
 
-  void set id(String value) native "this.id = value;";
+  final _SVGSVGElementJs ownerSVGElement;
 
-  _SVGSVGElementJs get ownerSVGElement() native "return this.ownerSVGElement;";
+  final _SVGElementJs viewportElement;
 
-  _SVGElementJs get viewportElement() native "return this.viewportElement;";
-
-  String get xmlbase() native "return this.xmlbase;";
-
-  void set xmlbase(String value) native "this.xmlbase = value;";
+  String xmlbase;
 }

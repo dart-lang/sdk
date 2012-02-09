@@ -41,7 +41,7 @@ class _SVGPathSegJs extends _DOMTypeJs implements SVGPathSeg native "*SVGPathSeg
 
   static final int PATHSEG_UNKNOWN = 0;
 
-  int get pathSegType() native "return this.pathSegType;";
+  final int pathSegType;
 
-  String get pathSegTypeAsLetter() native "return this.pathSegTypeAsLetter;";
+  final String pathSegTypeAsLetter;
 }

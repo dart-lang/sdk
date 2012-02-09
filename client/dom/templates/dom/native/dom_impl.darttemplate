@@ -17,4 +17,4 @@
 #source('$AUXILIARY_DIR/_ListIterators.dart');
 #source('$AUXILIARY_DIR/_Lists.dart');
 
-$SOURCES
+$!SOURCES

@@ -6,69 +6,41 @@
 
 interface HTMLImageElement extends HTMLElement {
 
-  String get align();
+  String align;
 
-  void set align(String value);
+  String alt;
 
-  String get alt();
+  String border;
 
-  void set alt(String value);
+  final bool complete;
 
-  String get border();
+  String crossOrigin;
 
-  void set border(String value);
+  int height;
 
-  bool get complete();
+  int hspace;
 
-  String get crossOrigin();
+  bool isMap;
 
-  void set crossOrigin(String value);
+  String longDesc;
 
-  int get height();
+  String lowsrc;
 
-  void set height(int value);
+  String name;
 
-  int get hspace();
+  final int naturalHeight;
 
-  void set hspace(int value);
+  final int naturalWidth;
 
-  bool get isMap();
+  String src;
 
-  void set isMap(bool value);
+  String useMap;
 
-  String get longDesc();
+  int vspace;
 
-  void set longDesc(String value);
+  int width;
 
-  String get lowsrc();
+  final int x;
 
-  void set lowsrc(String value);
-
-  String get name();
-
-  void set name(String value);
-
-  int get naturalHeight();
-
-  int get naturalWidth();
-
-  String get src();
-
-  void set src(String value);
-
-  String get useMap();
-
-  void set useMap(String value);
-
-  int get vspace();
-
-  void set vspace(int value);
-
-  int get width();
-
-  void set width(int value);
-
-  int get x();
-
-  int get y();
+  final int y;
 }

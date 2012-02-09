@@ -6,19 +6,19 @@
 
 interface KeyboardEvent extends UIEvent {
 
-  bool get altGraphKey();
+  final bool altGraphKey;
 
-  bool get altKey();
+  final bool altKey;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  String get keyIdentifier();
+  final String keyIdentifier;
 
-  int get keyLocation();
+  final int keyLocation;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }

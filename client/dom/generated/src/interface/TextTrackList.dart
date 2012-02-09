@@ -6,11 +6,9 @@
 
 interface TextTrackList {
 
-  int get length();
+  final int length;
 
-  EventListener get onaddtrack();
-
-  void set onaddtrack(EventListener value);
+  EventListener onaddtrack;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

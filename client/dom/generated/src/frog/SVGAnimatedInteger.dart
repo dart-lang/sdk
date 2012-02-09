@@ -1,9 +1,7 @@
 
 class _SVGAnimatedIntegerJs extends _DOMTypeJs implements SVGAnimatedInteger native "*SVGAnimatedInteger" {
 
-  int get animVal() native "return this.animVal;";
+  final int animVal;
 
-  int get baseVal() native "return this.baseVal;";
-
-  void set baseVal(int value) native "this.baseVal = value;";
+  int baseVal;
 }

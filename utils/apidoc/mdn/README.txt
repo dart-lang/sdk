@@ -1,6 +1,8 @@
 Here's a rough walkthrough of how this works. The ultimate output file is
 database.filtered.json.
 
+full_run.sh executes all of the scripts in the correct order.
+
 search.js
 - read data/domTypes.json
 - for each dom type:

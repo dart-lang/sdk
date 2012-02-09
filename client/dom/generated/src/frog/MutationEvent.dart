@@ -7,15 +7,15 @@ class _MutationEventJs extends _EventJs implements MutationEvent native "*Mutati
 
   static final int REMOVAL = 3;
 
-  int get attrChange() native "return this.attrChange;";
+  final int attrChange;
 
-  String get attrName() native "return this.attrName;";
+  final String attrName;
 
-  String get newValue() native "return this.newValue;";
+  final String newValue;
 
-  String get prevValue() native "return this.prevValue;";
+  final String prevValue;
 
-  _NodeJs get relatedNode() native "return this.relatedNode;";
+  final _NodeJs relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeJs relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }

@@ -6,9 +6,7 @@
 
 interface SVGAnimatedString {
 
-  String get animVal();
+  final String animVal;
 
-  String get baseVal();
-
-  void set baseVal(String value);
+  String baseVal;
 }

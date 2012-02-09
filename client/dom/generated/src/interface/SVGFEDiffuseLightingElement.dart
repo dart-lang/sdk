@@ -6,13 +6,13 @@
 
 interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedNumber get diffuseConstant();
+  final SVGAnimatedNumber diffuseConstant;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumber get kernelUnitLengthX();
+  final SVGAnimatedNumber kernelUnitLengthX;
 
-  SVGAnimatedNumber get kernelUnitLengthY();
+  final SVGAnimatedNumber kernelUnitLengthY;
 
-  SVGAnimatedNumber get surfaceScale();
+  final SVGAnimatedNumber surfaceScale;
 }

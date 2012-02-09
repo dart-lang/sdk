@@ -6,13 +6,13 @@
 
 interface SVGRadialGradientElement extends SVGGradientElement {
 
-  SVGAnimatedLength get cx();
+  final SVGAnimatedLength cx;
 
-  SVGAnimatedLength get cy();
+  final SVGAnimatedLength cy;
 
-  SVGAnimatedLength get fx();
+  final SVGAnimatedLength fx;
 
-  SVGAnimatedLength get fy();
+  final SVGAnimatedLength fy;
 
-  SVGAnimatedLength get r();
+  final SVGAnimatedLength r;
 }

@@ -12,11 +12,11 @@ interface EventSource extends EventTarget {
 
   static final int OPEN = 1;
 
-  String get URL();
+  final String URL;
 
-  int get readyState();
+  final int readyState;
 
-  String get url();
+  final String url;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

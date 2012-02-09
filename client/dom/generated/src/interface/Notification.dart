@@ -6,13 +6,9 @@
 
 interface Notification extends EventTarget {
 
-  String get dir();
+  String dir;
 
-  void set dir(String value);
-
-  String get replaceId();
-
-  void set replaceId(String value);
+  String replaceId;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

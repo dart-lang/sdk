@@ -42,45 +42,39 @@ interface Node extends EventTarget {
 
   static final int TEXT_NODE = 3;
 
-  NamedNodeMap get attributes();
+  final NamedNodeMap attributes;
 
-  String get baseURI();
+  final String baseURI;
 
-  NodeList get childNodes();
+  final NodeList childNodes;
 
-  Node get firstChild();
+  final Node firstChild;
 
-  Node get lastChild();
+  final Node lastChild;
 
-  String get localName();
+  final String localName;
 
-  String get namespaceURI();
+  final String namespaceURI;
 
-  Node get nextSibling();
+  final Node nextSibling;
 
-  String get nodeName();
+  final String nodeName;
 
-  int get nodeType();
+  final int nodeType;
 
-  String get nodeValue();
+  String nodeValue;
 
-  void set nodeValue(String value);
+  final Document ownerDocument;
 
-  Document get ownerDocument();
+  final Element parentElement;
 
-  Element get parentElement();
+  final Node parentNode;
 
-  Node get parentNode();
+  String prefix;
 
-  String get prefix();
+  final Node previousSibling;
 
-  void set prefix(String value);
-
-  Node get previousSibling();
-
-  String get textContent();
-
-  void set textContent(String value);
+  String textContent;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

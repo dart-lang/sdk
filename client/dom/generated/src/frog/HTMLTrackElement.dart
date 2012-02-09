@@ -9,27 +9,17 @@ class _HTMLTrackElementJs extends _HTMLElementJs implements HTMLTrackElement nat
 
   static final int NONE = 0;
 
-  bool get isDefault() native "return this.isDefault;";
+  bool isDefault;
 
-  void set isDefault(bool value) native "this.isDefault = value;";
+  String kind;
 
-  String get kind() native "return this.kind;";
+  String label;
 
-  void set kind(String value) native "this.kind = value;";
+  final int readyState;
 
-  String get label() native "return this.label;";
+  String src;
 
-  void set label(String value) native "this.label = value;";
+  String srclang;
 
-  int get readyState() native "return this.readyState;";
-
-  String get src() native "return this.src;";
-
-  void set src(String value) native "this.src = value;";
-
-  String get srclang() native "return this.srclang;";
-
-  void set srclang(String value) native "this.srclang = value;";
-
-  _TextTrackJs get track() native "return this.track;";
+  final _TextTrackJs track;
 }

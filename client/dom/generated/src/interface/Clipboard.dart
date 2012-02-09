@@ -6,19 +6,15 @@
 
 interface Clipboard {
 
-  String get dropEffect();
+  String dropEffect;
 
-  void set dropEffect(String value);
+  String effectAllowed;
 
-  String get effectAllowed();
+  final FileList files;
 
-  void set effectAllowed(String value);
+  final DataTransferItemList items;
 
-  FileList get files();
-
-  DataTransferItemList get items();
-
-  List get types();
+  final List types;
 
   void clearData([String type]);
 

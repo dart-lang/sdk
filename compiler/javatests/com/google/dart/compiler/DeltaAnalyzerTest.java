@@ -7,6 +7,7 @@ package com.google.dart.compiler;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.testing.TestCompilerConfiguration;
@@ -34,9 +35,13 @@ public class DeltaAnalyzerTest extends TestCase {
     ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
     assertNotNull(cls);
     assertEquals("Foo", cls.getName());
+    Element element = change.getLibrary().getElement().lookupLocalElement("Foo");
+    assertEquals(cls, element);
     MethodElement method = (MethodElement) change.getTopLevelNodes().get(1).getSymbol();
     assertNotNull(method);
     assertEquals("m", method.getName());
+    element = change.getLibrary().getElement().lookupLocalElement("m");
+    assertSame(method, element);
   }
 
   public void testNoChangeTwoFiles() throws IOException {
@@ -51,10 +56,14 @@ public class DeltaAnalyzerTest extends TestCase {
     ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
     assertNotNull(cls);
     assertEquals("Foo", cls.getName());
+    assertNotNull(change.getLibrary().getElement().lookupLocalElement("Foo"));
     assertEquals("Bar", cls.getSupertype().toString());
+    assertNotNull(change.getLibrary().getElement().lookupLocalElement("Bar"));
     MethodElement method = (MethodElement) change.getTopLevelNodes().get(1).getSymbol();
     assertNotNull(method);
     assertEquals("m", method.getName());
+    Element element = change.getLibrary().getElement().lookupLocalElement("m");
+    assertSame(method, element);
   }
 
   public void testChangeSingleFile() throws IOException {
@@ -66,9 +75,13 @@ public class DeltaAnalyzerTest extends TestCase {
     DartSource sourceAfter = new DartSourceString("after.dart", "class Foo {}");
     DartUnit change = analyze(librarySource, sourceBefore, sourceAfter);
     assertEquals(1, change.getTopLevelNodes().size());
+    Element element = change.getLibrary().getElement().lookupLocalElement("m");
+    assertNull(element);
+    element = change.getLibrary().getElement().lookupLocalElement("Foo");
+    assertNotNull(element);
     ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
-    assertNotNull(cls);
     assertEquals("Foo", cls.getName());
+    assertSame(cls, element);
   }
 
   public void testChangeTwoFiles() throws IOException {
@@ -82,10 +95,13 @@ public class DeltaAnalyzerTest extends TestCase {
     DartSource sourceAfter = new DartSourceString("after.dart", "class Foo extends Bar {}");
     DartUnit change = analyze(librarySource, sourceBefore, sourceAfter);
     assertEquals(1, change.getTopLevelNodes().size());
+    assertNull(change.getLibrary().getElement().lookupLocalElement("m"));
     ClassElement cls = (ClassElement) change.getTopLevelNodes().get(0).getSymbol();
     assertNotNull(cls);
     assertEquals("Foo", cls.getName());
     assertEquals("Bar", cls.getSupertype().toString());
+    Element element = change.getLibrary().getElement().lookupLocalElement("Foo");
+    assertSame(cls, element);
   }
 
   private DartUnit analyzeNoChange(LibrarySource librarySource) throws IOException {

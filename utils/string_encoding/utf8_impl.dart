@@ -130,92 +130,109 @@ List<int> _utf8ToCodepoints(
       Math.min(utf8EncodedBytes.length, offset + length) :
       utf8EncodedBytes.length;
 
-  void addReplacementCodepoint(void f(int v), int replacementCodepoint) {
-    if(replacementCodepoint != null) {
-      f(replacementCodepoint);
-    } else {
-      throw new IllegalArgumentException("Invalid encoding");
-    }
-  }
-
-  void apply(void f(int v)) {
+  void decode(void f(int v)) {
     int i = offset;
     while (i < end) {
       int value = utf8EncodedBytes[i++];
-      if (value >= 0) {
-        if (value <= _UTF8_ONE_BYTE_MAX) {
-          f(value);
-        } else if (value < _UTF8_FIRST_BYTE_OF_TWO_BASE) {
-          addReplacementCodepoint(f, replacementCodepoint);
-          continue;
-        } else {
-          int additionalBytes = 0;
-          if (value < _UTF8_FIRST_BYTE_OF_THREE_BASE) {
-            value -= _UTF8_FIRST_BYTE_OF_TWO_BASE;
-            additionalBytes = 1;
-          } else if (value < _UTF8_FIRST_BYTE_OF_FOUR_BASE) {
-            value -= _UTF8_FIRST_BYTE_OF_THREE_BASE;
-            additionalBytes = 2;
-          } else if (value < _UTF8_FIRST_BYTE_OF_FIVE_BASE) {
-            value -= _UTF8_FIRST_BYTE_OF_FOUR_BASE;
-            additionalBytes = 3;
-          } else if (value < _UTF8_FIRST_BYTE_OF_SIX_BASE) {
-            value -= _UTF8_FIRST_BYTE_OF_FIVE_BASE;
-            additionalBytes = 4;
-          } else if (value < _UTF8_FIRST_BYTE_BOUND_EXCL) {
-            value -= _UTF8_FIRST_BYTE_OF_SIX_BASE;
-            additionalBytes = 5;
-          } else {
-            addReplacementCodepoint(f, replacementCodepoint);
-            continue;
-          }
-          int j = 0;
-          while (j < additionalBytes && i < end) {
-            int nextValue = utf8EncodedBytes[i++];
-            if (nextValue > _UTF8_ONE_BYTE_MAX &&
-                nextValue < _UTF8_FIRST_BYTE_OF_TWO_BASE) {
-              value = (value << 6) | (nextValue & _UTF8_LO_SIX_BIT_MASK);
-            } else {
-              // if sequence-starting code unit, reposition cursor to start here
-              if (nextValue >= _UTF8_FIRST_BYTE_OF_TWO_BASE) {
-                i--;
-              }
-              break;
-            }
-            j++;
-          }
-          if (j == additionalBytes && (
-              value < UNICODE_UTF16_RESERVED_LO ||
-              value > UNICODE_UTF16_RESERVED_HI)) {
-            if ((additionalBytes == 1 && value > _UTF8_ONE_BYTE_MAX) ||
-                (additionalBytes == 2 && value > _UTF8_TWO_BYTE_MAX) ||
-                (additionalBytes == 3 && value > _UTF8_THREE_BYTE_MAX &&
-                  value <= UNICODE_VALID_RANGE_MAX)) {
-              f(value);
-            } else {
-              addReplacementCodepoint(f, replacementCodepoint);
-            }
-          } else {
-            addReplacementCodepoint(f, replacementCodepoint);
-            continue;
-          }
-        }
-      } else {
-        addReplacementCodepoint(f, replacementCodepoint);
+      if (value < 0) {
+        f(null);
         continue;
+      }
+
+      if (value <= _UTF8_ONE_BYTE_MAX) {
+        f(value);
+      } else if (value < _UTF8_FIRST_BYTE_OF_TWO_BASE) {
+        f(null);
+        continue;
+      } else {
+        int additionalBytes = 0;
+        if (value < _UTF8_FIRST_BYTE_OF_THREE_BASE) {
+          value -= _UTF8_FIRST_BYTE_OF_TWO_BASE;
+          additionalBytes = 1;
+        } else if (value < _UTF8_FIRST_BYTE_OF_FOUR_BASE) {
+          value -= _UTF8_FIRST_BYTE_OF_THREE_BASE;
+          additionalBytes = 2;
+        } else if (value < _UTF8_FIRST_BYTE_OF_FIVE_BASE) {
+          value -= _UTF8_FIRST_BYTE_OF_FOUR_BASE;
+          additionalBytes = 3;
+        } else if (value < _UTF8_FIRST_BYTE_OF_SIX_BASE) {
+          value -= _UTF8_FIRST_BYTE_OF_FIVE_BASE;
+          additionalBytes = 4;
+        } else if (value < _UTF8_FIRST_BYTE_BOUND_EXCL) {
+          value -= _UTF8_FIRST_BYTE_OF_SIX_BASE;
+          additionalBytes = 5;
+        } else {
+          f(null);
+          continue;
+        }
+        int j = 0;
+        while (j < additionalBytes && i < end) {
+          int nextValue = utf8EncodedBytes[i++];
+          if (nextValue > _UTF8_ONE_BYTE_MAX &&
+              nextValue < _UTF8_FIRST_BYTE_OF_TWO_BASE) {
+            value = (value << 6) | (nextValue & _UTF8_LO_SIX_BIT_MASK);
+          } else {
+            // if sequence-starting code unit, reposition cursor to start here
+            if (nextValue >= _UTF8_FIRST_BYTE_OF_TWO_BASE) {
+              i--;
+            }
+            break;
+          }
+          j++;
+        }
+        if (j == additionalBytes && (
+            value < UNICODE_UTF16_RESERVED_LO ||
+            value > UNICODE_UTF16_RESERVED_HI)) {
+          if ((additionalBytes == 1 && value > _UTF8_ONE_BYTE_MAX) ||
+              (additionalBytes == 2 && value > _UTF8_TWO_BYTE_MAX) ||
+              (additionalBytes == 3 && value > _UTF8_THREE_BYTE_MAX &&
+                value <= UNICODE_VALID_RANGE_MAX)) {
+            f(value);
+          } else {
+            f(null);
+          }
+        } else {
+          f(null);
+          continue;
+        }
       }
     }
   }
 
+  // First pass through data to 1) size the output buffer and 2) check for 
+  // special case optimization where A) the length stays the same and B)
+  // no special replacement characters are used. If these criteria are met
+  // we can just copy input to the output.
   int codepointBufferLength = 0;
-  apply(void _(int value) {
+  bool hasReplacements = false;
+  decode(void _(int value) {
       codepointBufferLength++;
+      if (value == null) {
+        hasReplacements = true;
+      }
   });
 
+  // If the string calls for replacements, but when the method is called
+  // with replacementCodepoint explicitly set to null, then throw an exception.
+  if (hasReplacements && replacementCodepoint == null) {
+    throw new IllegalArgumentException("Invalid encoding");
+  }
+
+  int _length = end - offset;
   List<int> codepointBuffer = new List<int>(codepointBufferLength);
-  int i = 0;
-  apply(void _(int value) {
-      codepointBuffer[i++] = value;
-  });
+  if (_length == codepointBufferLength && !hasReplacements) {
+    codepointBuffer.setRange(0, _length, utf8EncodedBytes, offset);
+  } else {
+    int i = 0;
+    decode(
+      void _(int value) {
+        if (value != null) {
+          codepointBuffer[i++] = value;
+        } else {
+          codepointBuffer[i++] = replacementCodepoint;
+        }
+      }
+    );
+  }
   return codepointBuffer;
 }

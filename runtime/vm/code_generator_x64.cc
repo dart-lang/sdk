@@ -2299,14 +2299,9 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index) {
     // The type arguments are compile time constants.
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
     // TODO(regis): Temporary type should be allocated in new gen heap.
-    Type& type = Type::Handle(Type::New(instantiator_class, type_arguments));
-    Error& error = Error::Handle();
-    type ^= ClassFinalizer::FinalizeAndCanonicalizeType(instantiator_class,
-                                                        type,
-                                                        &error);
-    if (!error.IsNull()) {
-      ErrorMsg(token_index, error.ToErrorCString());
-    }
+    Type& type = Type::Handle(
+        Type::New(instantiator_class, type_arguments, token_index));
+    type ^= ClassFinalizer::FinalizeType(instantiator_class, type);
     type_arguments = type.arguments();
     __ PushObject(type_arguments);
   } else {

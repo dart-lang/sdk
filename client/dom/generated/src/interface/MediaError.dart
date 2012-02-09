@@ -14,5 +14,5 @@ interface MediaError {
 
   static final int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  int get code();
+  final int code;
 }

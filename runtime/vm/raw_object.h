@@ -336,6 +336,7 @@ class RawClass : public RawObject {
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
   intptr_t next_field_offset_;  // Offset of then next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
+  intptr_t token_index_;
   int8_t class_state_;  // Of type ClassState.
   bool is_const_;
   bool is_interface_;
@@ -388,6 +389,7 @@ class RawType : public RawAbstractType {
   RawObject* type_class_;  // Either resolved class or unresolved class.
   RawAbstractTypeArguments* arguments_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->arguments_); }
+  intptr_t token_index_;
   int8_t type_state_;
 };
 
@@ -400,6 +402,7 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   intptr_t index_;
+  intptr_t token_index_;
   int8_t type_state_;
 };
 

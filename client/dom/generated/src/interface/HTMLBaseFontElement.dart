@@ -6,15 +6,9 @@
 
 interface HTMLBaseFontElement extends HTMLElement {
 
-  String get color();
+  String color;
 
-  void set color(String value);
+  String face;
 
-  String get face();
-
-  void set face(String value);
-
-  int get size();
-
-  void set size(int value);
+  int size;
 }

@@ -16,21 +16,19 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   static final int OPEN = 1;
 
-  String get URL();
+  final String URL;
 
-  String get binaryType();
+  String binaryType;
 
-  void set binaryType(String value);
+  final int bufferedAmount;
 
-  int get bufferedAmount();
+  final String extensions;
 
-  String get extensions();
+  final String protocol;
 
-  String get protocol();
+  final int readyState;
 
-  int get readyState();
-
-  String get url();
+  final String url;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

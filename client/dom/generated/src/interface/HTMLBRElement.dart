@@ -6,7 +6,5 @@
 
 interface HTMLBRElement extends HTMLElement {
 
-  String get clear();
-
-  void set clear(String value);
+  String clear;
 }

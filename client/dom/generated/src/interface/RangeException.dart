@@ -10,11 +10,11 @@ interface RangeException {
 
   static final int INVALID_NODE_TYPE_ERR = 2;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }

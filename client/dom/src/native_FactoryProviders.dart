@@ -6,6 +6,10 @@ class _AudioContextFactoryProvider {
   factory AudioContext() => FactoryProviderImplementation.createAudioContext();
 }
 
+class _DOMParserFactoryProvider {
+  factory DOMParser() => FactoryProviderImplementation.createDOMParser();
+}
+
 class _FileReaderFactoryProvider {
   factory FileReader() => FactoryProviderImplementation.createFileReader();
 }

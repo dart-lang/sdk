@@ -26,9 +26,9 @@ interface SVGPaint extends SVGColor {
 
   static final int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
 
-  int get paintType();
+  final int paintType;
 
-  String get uri();
+  final String uri;
 
   void setPaint(int paintType, String uri, String rgbColor, String iccColor);
 

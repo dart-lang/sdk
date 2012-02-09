@@ -9,9 +9,9 @@ class _ConsoleJs
     implements Console, DOMType
     native "=(typeof console == 'undefined' ? {} : console)" {
 
-  _MemoryInfoJs get memory() native "return this.memory;";
+  final _MemoryInfoJs memory;
 
-  List get profiles() native "return this.profiles;";
+  final List profiles;
 
   void assertCondition(bool condition) native;
 

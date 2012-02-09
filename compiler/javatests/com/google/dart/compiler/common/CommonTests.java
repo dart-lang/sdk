@@ -16,11 +16,7 @@ public class CommonTests extends TestSetup {
 
   public static Test suite() {
     TestSuite suite = new TestSuite("Dart common test suite.");
-
-    suite.addTestSuite(GenerateSourceMapTest.class);
     suite.addTestSuite(LibrarySourceFileTest.class);
-    suite.addTestSuite(NameTest.class);
-    suite.addTestSuite(NameFactoryTest.class);
     return new CommonTests(suite);
   }
 }

@@ -517,11 +517,12 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
             return;
           }
           break;
-        case '\0':
-          ErrorMsg("illegal escape sequence in string");
-          EndStringLiteral();
-          return;
         default:
+          if ((c0_ == '\0') || ((c0_ == '\n') && !string_is_multiline_)) {
+            ErrorMsg("unterminated string literal");
+            EndStringLiteral();
+            return;
+          }
           escape_char = c0_;
           break;
       }

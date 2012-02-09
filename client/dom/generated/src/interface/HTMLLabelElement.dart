@@ -6,11 +6,9 @@
 
 interface HTMLLabelElement extends HTMLElement {
 
-  HTMLElement get control();
+  final HTMLElement control;
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  String get htmlFor();
-
-  void set htmlFor(String value);
+  String htmlFor;
 }

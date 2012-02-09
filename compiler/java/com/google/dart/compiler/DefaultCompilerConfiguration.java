@@ -5,9 +5,7 @@
 package com.google.dart.compiler;
 
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
-import com.google.dart.compiler.backend.doc.DartDocumentationGenerator;
 import com.google.dart.compiler.backend.isolate.DartIsolateStubGenerator;
-import com.google.dart.compiler.backend.js.ClosureJsBackend;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
@@ -45,16 +43,9 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
   private static Backend selectBackend(CompilerOptions compilerOptions)
       throws FileNotFoundException {
-    if (compilerOptions.generateDocumentation()) {
-      return new DartDocumentationGenerator(compilerOptions.getDocumentationOutputDirectory(),
-                                            compilerOptions.getDocumentationLibrary());
-    } else if (!compilerOptions.getIsolateStubClasses().isEmpty()) {
+    if (!compilerOptions.getIsolateStubClasses().isEmpty()) {
       return new DartIsolateStubGenerator(compilerOptions.getIsolateStubClasses(),
                                           compilerOptions.getIsolateStubOutputFile());
-    } else if (compilerOptions.shouldOptimize()) {
-      return new ClosureJsBackend(
-          compilerOptions.developerModeChecks(),
-          compilerOptions.generateHumanReadableOutput());
     } else {
       return new JavascriptBackend();
     }
@@ -138,11 +129,6 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean shouldOptimize() {
-    return compilerOptions.shouldOptimize();
-  }
-
-  @Override
   public CompilerMetrics getCompilerMetrics() {
     return compilerMetrics;
   }
@@ -195,11 +181,6 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   @Override
   public boolean shouldWarnOnNoSuchType() {
     return false;
-  }
-
-  @Override
-  public boolean collectComments() {
-    return compilerOptions.generateDocumentation();
   }
 
   @Override

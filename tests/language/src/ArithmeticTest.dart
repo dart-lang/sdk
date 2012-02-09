@@ -137,6 +137,16 @@ class ArithmeticTest {
     Expect.equals(false, (2.0).isNegative());
     Expect.equals(true, (-2.0).isNegative());
 
+    double negateDouble(double x) {
+      return -x;
+    }
+
+    Expect.isTrue(negateDouble(0.0).isNegative());
+    Expect.isFalse(negateDouble(-0.0).isNegative());
+    Expect.isTrue(negateDouble(3.5e3).isNegative());
+    Expect.isFalse(negateDouble(-3.5e3).isNegative());
+    
+
     // Constants.
     final nan = 0.0/0.0;
     final infinity = 1.0/0.0;

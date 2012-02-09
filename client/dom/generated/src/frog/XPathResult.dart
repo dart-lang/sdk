@@ -21,19 +21,19 @@ class _XPathResultJs extends _DOMTypeJs implements XPathResult native "*XPathRes
 
   static final int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  bool get booleanValue() native "return this.booleanValue;";
+  final bool booleanValue;
 
-  bool get invalidIteratorState() native "return this.invalidIteratorState;";
+  final bool invalidIteratorState;
 
-  num get numberValue() native "return this.numberValue;";
+  final num numberValue;
 
-  int get resultType() native "return this.resultType;";
+  final int resultType;
 
-  _NodeJs get singleNodeValue() native "return this.singleNodeValue;";
+  final _NodeJs singleNodeValue;
 
-  int get snapshotLength() native "return this.snapshotLength;";
+  final int snapshotLength;
 
-  String get stringValue() native "return this.stringValue;";
+  final String stringValue;
 
   _NodeJs iterateNext() native;
 

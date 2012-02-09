@@ -6,7 +6,5 @@
 
 interface HTMLHeadElement extends HTMLElement {
 
-  String get profile();
-
-  void set profile(String value);
+  String profile;
 }

@@ -6,13 +6,9 @@
 
 interface AudioListener {
 
-  num get dopplerFactor();
+  num dopplerFactor;
 
-  void set dopplerFactor(num value);
-
-  num get speedOfSound();
-
-  void set speedOfSound(num value);
+  num speedOfSound;
 
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp);
 

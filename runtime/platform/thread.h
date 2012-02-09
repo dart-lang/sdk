@@ -22,12 +22,21 @@ namespace dart {
 
 class Thread {
  public:
+  static ThreadLocalKey kUnsetThreadLocalKey;
+
   typedef void (*ThreadStartFunction) (uword parameter);
 
   // Start a thread running the specified function. Returns 0 if the
   // thread started successfuly and a system specific error code if
   // the thread failed to start.
   static int Start(ThreadStartFunction function, uword parameters);
+
+  static ThreadLocalKey CreateThreadLocal();
+  static void DeleteThreadLocal(ThreadLocalKey key);
+  static uword GetThreadLocal(ThreadLocalKey key) {
+    return ThreadInlineImpl::GetThreadLocal(key);
+  }
+  static void SetThreadLocal(ThreadLocalKey key, uword value);
 };
 
 

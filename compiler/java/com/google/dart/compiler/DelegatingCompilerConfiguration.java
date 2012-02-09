@@ -39,11 +39,6 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean shouldOptimize() {
-    return delegate.shouldOptimize();
-  }
-
-  @Override
   public CompilerMetrics getCompilerMetrics() {
     return delegate.getCompilerMetrics();
   }
@@ -96,11 +91,6 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   @Override
   public boolean shouldWarnOnNoSuchType() {
     return delegate.shouldWarnOnNoSuchType();
-  }
-
-  @Override
-  public boolean collectComments() {
-    return delegate.collectComments();
   }
 
   @Override

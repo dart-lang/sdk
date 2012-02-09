@@ -1,45 +1,25 @@
 
 class _HTMLLinkElementJs extends _HTMLElementJs implements HTMLLinkElement native "*HTMLLinkElement" {
 
-  String get charset() native "return this.charset;";
+  String charset;
 
-  void set charset(String value) native "this.charset = value;";
+  bool disabled;
 
-  bool get disabled() native "return this.disabled;";
+  String href;
 
-  void set disabled(bool value) native "this.disabled = value;";
+  String hreflang;
 
-  String get href() native "return this.href;";
+  String media;
 
-  void set href(String value) native "this.href = value;";
+  String rel;
 
-  String get hreflang() native "return this.hreflang;";
+  String rev;
 
-  void set hreflang(String value) native "this.hreflang = value;";
+  final _StyleSheetJs sheet;
 
-  String get media() native "return this.media;";
+  _DOMSettableTokenListJs sizes;
 
-  void set media(String value) native "this.media = value;";
+  String target;
 
-  String get rel() native "return this.rel;";
-
-  void set rel(String value) native "this.rel = value;";
-
-  String get rev() native "return this.rev;";
-
-  void set rev(String value) native "this.rev = value;";
-
-  _StyleSheetJs get sheet() native "return this.sheet;";
-
-  _DOMSettableTokenListJs get sizes() native "return this.sizes;";
-
-  void set sizes(_DOMSettableTokenListJs value) native "this.sizes = value;";
-
-  String get target() native "return this.target;";
-
-  void set target(String value) native "this.target = value;";
-
-  String get type() native "return this.type;";
-
-  void set type(String value) native "this.type = value;";
+  String type;
 }

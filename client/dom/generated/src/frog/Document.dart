@@ -1,97 +1,77 @@
 
 class _DocumentJs extends _NodeJs implements Document native "*Document" {
 
-  String get URL() native "return this.URL;";
+  final String URL;
 
-  _HTMLCollectionJs get anchors() native "return this.anchors;";
+  final _HTMLCollectionJs anchors;
 
-  _HTMLCollectionJs get applets() native "return this.applets;";
+  final _HTMLCollectionJs applets;
 
-  _HTMLElementJs get body() native "return this.body;";
+  _HTMLElementJs body;
 
-  void set body(_HTMLElementJs value) native "this.body = value;";
+  final String characterSet;
 
-  String get characterSet() native "return this.characterSet;";
+  String charset;
 
-  String get charset() native "return this.charset;";
+  final String compatMode;
 
-  void set charset(String value) native "this.charset = value;";
+  String cookie;
 
-  String get compatMode() native "return this.compatMode;";
+  final String defaultCharset;
 
-  String get cookie() native "return this.cookie;";
+  final _DOMWindowJs defaultView;
 
-  void set cookie(String value) native "this.cookie = value;";
+  final _DocumentTypeJs doctype;
 
-  String get defaultCharset() native "return this.defaultCharset;";
+  final _ElementJs documentElement;
 
-  _DOMWindowJs get defaultView() native "return this.defaultView;";
+  String documentURI;
 
-  _DocumentTypeJs get doctype() native "return this.doctype;";
+  String domain;
 
-  _ElementJs get documentElement() native "return this.documentElement;";
+  final _HTMLCollectionJs forms;
 
-  String get documentURI() native "return this.documentURI;";
+  final _HTMLHeadElementJs head;
 
-  void set documentURI(String value) native "this.documentURI = value;";
+  final _HTMLCollectionJs images;
 
-  String get domain() native "return this.domain;";
+  final _DOMImplementationJs implementation;
 
-  void set domain(String value) native "this.domain = value;";
+  final String inputEncoding;
 
-  _HTMLCollectionJs get forms() native "return this.forms;";
+  final String lastModified;
 
-  _HTMLHeadElementJs get head() native "return this.head;";
+  final _HTMLCollectionJs links;
 
-  _HTMLCollectionJs get images() native "return this.images;";
+  _LocationJs location;
 
-  _DOMImplementationJs get implementation() native "return this.implementation;";
+  final String preferredStylesheetSet;
 
-  String get inputEncoding() native "return this.inputEncoding;";
+  final String readyState;
 
-  String get lastModified() native "return this.lastModified;";
+  final String referrer;
 
-  _HTMLCollectionJs get links() native "return this.links;";
+  String selectedStylesheetSet;
 
-  _LocationJs get location() native "return this.location;";
+  final _StyleSheetListJs styleSheets;
 
-  void set location(_LocationJs value) native "this.location = value;";
+  String title;
 
-  String get preferredStylesheetSet() native "return this.preferredStylesheetSet;";
+  final _ElementJs webkitCurrentFullScreenElement;
 
-  String get readyState() native "return this.readyState;";
+  final bool webkitFullScreenKeyboardInputAllowed;
 
-  String get referrer() native "return this.referrer;";
+  final bool webkitHidden;
 
-  String get selectedStylesheetSet() native "return this.selectedStylesheetSet;";
+  final bool webkitIsFullScreen;
 
-  void set selectedStylesheetSet(String value) native "this.selectedStylesheetSet = value;";
+  final String webkitVisibilityState;
 
-  _StyleSheetListJs get styleSheets() native "return this.styleSheets;";
+  final String xmlEncoding;
 
-  String get title() native "return this.title;";
+  bool xmlStandalone;
 
-  void set title(String value) native "this.title = value;";
-
-  _ElementJs get webkitCurrentFullScreenElement() native "return this.webkitCurrentFullScreenElement;";
-
-  bool get webkitFullScreenKeyboardInputAllowed() native "return this.webkitFullScreenKeyboardInputAllowed;";
-
-  bool get webkitHidden() native "return this.webkitHidden;";
-
-  bool get webkitIsFullScreen() native "return this.webkitIsFullScreen;";
-
-  String get webkitVisibilityState() native "return this.webkitVisibilityState;";
-
-  String get xmlEncoding() native "return this.xmlEncoding;";
-
-  bool get xmlStandalone() native "return this.xmlStandalone;";
-
-  void set xmlStandalone(bool value) native "this.xmlStandalone = value;";
-
-  String get xmlVersion() native "return this.xmlVersion;";
-
-  void set xmlVersion(String value) native "this.xmlVersion = value;";
+  String xmlVersion;
 
   _NodeJs adoptNode(_NodeJs source) native;
 

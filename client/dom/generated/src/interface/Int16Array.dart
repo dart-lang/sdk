@@ -14,7 +14,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   static final int BYTES_PER_ELEMENT = 2;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 

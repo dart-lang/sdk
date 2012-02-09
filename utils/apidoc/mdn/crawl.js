@@ -1,3 +1,6 @@
+// TODO(jacobr): convert this file to Dart once Dart supports all of the
+// nodejs functionality used here.  For example, search for all occurences of
+// "http." and "fs."
 var http = require('http');
 var fs = require('fs');
 
@@ -17,7 +20,7 @@ function scrape(filename, link) {
   var prefix = 'https://developer.mozilla.org/';
   var notFoundPrefix = 'https://developer.mozilla.org/Article_not_found?uri=';
   if (link.indexOf(prefix) != 0 ) {
-    throw "Unexpected url:" + link;
+    throw "Unexpected url: " + link;
   }
   var scrapePath = "/search?q=cache:" + link;
   // We crawl content from googleusercontent.com so we don't have to worry about

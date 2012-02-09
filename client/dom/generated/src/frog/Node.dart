@@ -37,45 +37,39 @@ class _NodeJs extends _DOMTypeJs implements Node native "*Node" {
 
   static final int TEXT_NODE = 3;
 
-  _NamedNodeMapJs get attributes() native "return this.attributes;";
+  final _NamedNodeMapJs attributes;
 
-  String get baseURI() native "return this.baseURI;";
+  final String baseURI;
 
-  _NodeListJs get childNodes() native "return this.childNodes;";
+  final _NodeListJs childNodes;
 
-  _NodeJs get firstChild() native "return this.firstChild;";
+  final _NodeJs firstChild;
 
-  _NodeJs get lastChild() native "return this.lastChild;";
+  final _NodeJs lastChild;
 
-  String get localName() native "return this.localName;";
+  final String localName;
 
-  String get namespaceURI() native "return this.namespaceURI;";
+  final String namespaceURI;
 
-  _NodeJs get nextSibling() native "return this.nextSibling;";
+  final _NodeJs nextSibling;
 
-  String get nodeName() native "return this.nodeName;";
+  final String nodeName;
 
-  int get nodeType() native "return this.nodeType;";
+  final int nodeType;
 
-  String get nodeValue() native "return this.nodeValue;";
+  String nodeValue;
 
-  void set nodeValue(String value) native "this.nodeValue = value;";
+  final _DocumentJs ownerDocument;
 
-  _DocumentJs get ownerDocument() native "return this.ownerDocument;";
+  final _ElementJs parentElement;
 
-  _ElementJs get parentElement() native "return this.parentElement;";
+  final _NodeJs parentNode;
 
-  _NodeJs get parentNode() native "return this.parentNode;";
+  String prefix;
 
-  String get prefix() native "return this.prefix;";
+  final _NodeJs previousSibling;
 
-  void set prefix(String value) native "this.prefix = value;";
-
-  _NodeJs get previousSibling() native "return this.previousSibling;";
-
-  String get textContent() native "return this.textContent;";
-
-  void set textContent(String value) native "this.textContent = value;";
+  String textContent;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

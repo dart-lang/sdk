@@ -11,6 +11,7 @@ touch/touch_tests: Skip  # Issue 157.
 layout/layout_tests: Fail  # Issue 152.
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
+dom/DOMParserTest: Fail
 dom/DocumentTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail

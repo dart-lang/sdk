@@ -1,45 +1,31 @@
 
 class _HTMLAreaElementJs extends _HTMLElementJs implements HTMLAreaElement native "*HTMLAreaElement" {
 
-  String get alt() native "return this.alt;";
+  String alt;
 
-  void set alt(String value) native "this.alt = value;";
+  String coords;
 
-  String get coords() native "return this.coords;";
+  final String hash;
 
-  void set coords(String value) native "this.coords = value;";
+  final String host;
 
-  String get hash() native "return this.hash;";
+  final String hostname;
 
-  String get host() native "return this.host;";
+  String href;
 
-  String get hostname() native "return this.hostname;";
+  bool noHref;
 
-  String get href() native "return this.href;";
+  final String pathname;
 
-  void set href(String value) native "this.href = value;";
+  String ping;
 
-  bool get noHref() native "return this.noHref;";
+  final String port;
 
-  void set noHref(bool value) native "this.noHref = value;";
+  final String protocol;
 
-  String get pathname() native "return this.pathname;";
+  final String search;
 
-  String get ping() native "return this.ping;";
+  String shape;
 
-  void set ping(String value) native "this.ping = value;";
-
-  String get port() native "return this.port;";
-
-  String get protocol() native "return this.protocol;";
-
-  String get search() native "return this.search;";
-
-  String get shape() native "return this.shape;";
-
-  void set shape(String value) native "this.shape = value;";
-
-  String get target() native "return this.target;";
-
-  void set target(String value) native "this.target = value;";
+  String target;
 }

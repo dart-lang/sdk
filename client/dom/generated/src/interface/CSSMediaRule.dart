@@ -6,9 +6,9 @@
 
 interface CSSMediaRule extends CSSRule {
 
-  CSSRuleList get cssRules();
+  final CSSRuleList cssRules;
 
-  MediaList get media();
+  final MediaList media;
 
   void deleteRule(int index);
 

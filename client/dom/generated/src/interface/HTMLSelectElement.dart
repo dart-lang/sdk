@@ -6,55 +6,37 @@
 
 interface HTMLSelectElement extends HTMLElement {
 
-  bool get autofocus();
+  bool autofocus;
 
-  void set autofocus(bool value);
+  bool disabled;
 
-  bool get disabled();
+  final HTMLFormElement form;
 
-  void set disabled(bool value);
+  final NodeList labels;
 
-  HTMLFormElement get form();
+  int length;
 
-  NodeList get labels();
+  bool multiple;
 
-  int get length();
+  String name;
 
-  void set length(int value);
+  final HTMLOptionsCollection options;
 
-  bool get multiple();
+  bool required;
 
-  void set multiple(bool value);
+  int selectedIndex;
 
-  String get name();
+  int size;
 
-  void set name(String value);
+  final String type;
 
-  HTMLOptionsCollection get options();
+  final String validationMessage;
 
-  bool get required();
+  final ValidityState validity;
 
-  void set required(bool value);
+  String value;
 
-  int get selectedIndex();
-
-  void set selectedIndex(int value);
-
-  int get size();
-
-  void set size(int value);
-
-  String get type();
-
-  String get validationMessage();
-
-  ValidityState get validity();
-
-  String get value();
-
-  void set value(String value);
-
-  bool get willValidate();
+  final bool willValidate;
 
   void add(HTMLElement element, HTMLElement before);
 

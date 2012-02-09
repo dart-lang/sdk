@@ -299,7 +299,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
     String& class_name = String::Handle(cls.Name());
     String& super_class_name = String::Handle(super_class.Name());
     const Script& script = Script::Handle(cls.script());
-    ReportError(script, -1,
+    ReportError(script, cls.token_index(),
                 "class '%s' and superclass '%s' are not "
                 "both classes or both interfaces.\n",
                 class_name.ToCString(),
@@ -337,7 +337,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
         (super_class.raw() == object_store->two_byte_string_class()) ||
         (super_class.raw() == object_store->four_byte_string_class())) {
       const Script& script = Script::Handle(cls.script());
-      ReportError(script, -1,
+      ReportError(script, cls.token_index(),
                   "'%s' is not allowed to extend '%s'\n",
                   String::Handle(cls.Name()).ToCString(),
                   String::Handle(super_class.Name()).ToCString());
@@ -561,7 +561,7 @@ void ClassFinalizer::VerifyUpperBounds(const Class& cls,
           const String& class_name = String::Handle(cls.Name());
           const String& extends_name = String::Handle(type_extends.Name());
           const Script& script = Script::Handle(cls.script());
-          ReportError(script, -1,
+          ReportError(script, type.token_index(),
                       "type argument '%s' of class '%s' "
                       "does not extend type '%s'\n",
                       type_argument_name.ToCString(),
@@ -610,7 +610,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   parameterized_type ^= type.raw();
 
   if (parameterized_type.IsBeingFinalized()) {
-    ReportError("type '%s' illegally refers to itself\n",
+    const Script& script = Script::Handle(cls.script());
+    ReportError(script, parameterized_type.token_index(),
+                "type '%s' illegally refers to itself\n",
                 String::Handle(parameterized_type.Name()).ToCString());
   }
 
@@ -659,8 +661,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Specifying no type arguments indicates a raw type, which is not an error.
   // However, subtyping constraints are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
-    // TODO(regis): We need to store the token_index in each type.
-    ReportError("wrong number of type arguments in type '%s'\n",
+    const Script& script = Script::Handle(cls.script());
+    ReportError(script, type.token_index(),
+                "wrong number of type arguments in type '%s'\n",
                 String::Handle(type.Name()).ToCString());
   }
   // The full type argument vector consists of the type arguments of the
@@ -707,32 +710,6 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     parameterized_type.set_is_finalized();
   }
   return parameterized_type.Canonicalize();
-}
-
-
-RawAbstractType* ClassFinalizer::FinalizeAndCanonicalizeType(
-    const Class& cls,
-    const AbstractType& type,
-    Error* error) {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  LongJump* base = isolate->long_jump_base();
-  LongJump jump;
-  isolate->set_long_jump_base(&jump);
-  if (setjmp(*jump.Set()) == 0) {
-    const AbstractType& finalized_type =
-        AbstractType::Handle(FinalizeType(cls, type));
-    isolate->set_long_jump_base(base);
-    *error = Error::null();
-    return finalized_type.raw();
-  } else {
-    // Error occured: Get the error message.
-    isolate->set_long_jump_base(base);
-    *error = isolate->object_store()->sticky_error();
-    return type.raw();
-  }
-  UNREACHABLE();
-  return NULL;
 }
 
 
@@ -971,7 +948,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   if (!IsSuperCycleFree(cls)) {
     const String& name = String::Handle(cls.Name());
     const Script& script = Script::Handle(cls.script());
-    ReportError(script, -1,
+    ReportError(script, cls.token_index(),
                 "class '%s' has a cycle in its superclass relationship.\n",
                 name.ToCString());
   }
@@ -1023,7 +1000,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
       const String& cls_name = String::Handle(cls.Name());
       const String& lib_name = String::Handle(lib.url());
       const Script& script = Script::Handle(cls.script());
-      ReportError(script, -1,
+      ReportError(script, cls.token_index(),
                   "class '%s' is trying to extend a native fields class, "
                   "but library '%s' has no native resolvers",
                   cls_name.ToCString(), lib_name.ToCString());
@@ -1106,7 +1083,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
       // We have already visited interface class 'cls'. We found a cycle.
       const String& interface_name = String::Handle(cls.Name());
       const Script& script = Script::Handle(cls.script());
-      ReportError(script, -1,
+      ReportError(script, cls.token_index(),
                   "Cyclic reference found for interface '%s'\n",
                   interface_name.ToCString());
     }
@@ -1132,14 +1109,14 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
     ResolveType(cls, interface);
     if (interface.IsTypeParameter()) {
       const Script& script = Script::Handle(cls.script());
-      ReportError(script, -1,
+      ReportError(script, cls.token_index(),
                   "Type parameter '%s' cannot be used as interface\n",
                   String::Handle(interface.Name()).ToCString());
     }
     const Class& interface_class = Class::Handle(interface.type_class());
     if (!interface_class.is_interface()) {
       const Script& script = Script::Handle(cls.script());
-      ReportError(script, -1,
+      ReportError(script, cls.token_index(),
                   "Class '%s' is used where an interface is expected\n",
                   String::Handle(interface_class.Name()).ToCString());
     }
@@ -1156,7 +1133,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
           (interface.IsFunctionInterface() && !cls.IsSignatureClass()) ||
           interface.IsDynamicType()) {
         const Script& script = Script::Handle(cls.script());
-        ReportError(script, -1,
+        ReportError(script, cls.token_index(),
                     "'%s' is not allowed to extend or implement '%s'\n",
                     String::Handle(cls.Name()).ToCString(),
                     String::Handle(interface_class.Name()).ToCString());
@@ -1180,7 +1157,7 @@ void ClassFinalizer::CheckForLegalConstClass(const Class& cls) {
   if (!super.IsNull() && !super.is_const()) {
     String& name = String::Handle(super.Name());
     const Script& script = Script::Handle(cls.script());
-    ReportError(script, -1,
+    ReportError(script, cls.token_index(),
                 "superclass '%s' must be const.\n", name.ToCString());
   }
   const Array& fields_array = Array::Handle(cls.fields());

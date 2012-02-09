@@ -32,11 +32,11 @@ interface IDBDatabaseException {
 
   static final int VER_ERR = 12;
 
-  int get code();
+  final int code;
 
-  String get message();
+  final String message;
 
-  String get name();
+  final String name;
 
   String toString();
 }

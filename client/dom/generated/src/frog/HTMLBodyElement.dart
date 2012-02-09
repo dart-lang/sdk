@@ -1,27 +1,15 @@
 
 class _HTMLBodyElementJs extends _HTMLElementJs implements HTMLBodyElement native "*HTMLBodyElement" {
 
-  String get aLink() native "return this.aLink;";
+  String aLink;
 
-  void set aLink(String value) native "this.aLink = value;";
+  String background;
 
-  String get background() native "return this.background;";
+  String bgColor;
 
-  void set background(String value) native "this.background = value;";
+  String link;
 
-  String get bgColor() native "return this.bgColor;";
+  String text;
 
-  void set bgColor(String value) native "this.bgColor = value;";
-
-  String get link() native "return this.link;";
-
-  void set link(String value) native "this.link = value;";
-
-  String get text() native "return this.text;";
-
-  void set text(String value) native "this.text = value;";
-
-  String get vLink() native "return this.vLink;";
-
-  void set vLink(String value) native "this.vLink = value;";
+  String vLink;
 }

@@ -6,7 +6,7 @@
 
 interface SVGAnimatedTransformList {
 
-  SVGTransformList get animVal();
+  final SVGTransformList animVal;
 
-  SVGTransformList get baseVal();
+  final SVGTransformList baseVal;
 }

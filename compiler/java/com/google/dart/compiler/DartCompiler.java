@@ -29,7 +29,6 @@ import com.google.dart.compiler.metrics.DartEventType;
 import com.google.dart.compiler.metrics.JvmMetrics;
 import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
-import com.google.dart.compiler.parser.CommentPreservingParser;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScannerParserContext;
@@ -128,7 +127,6 @@ public class DartCompiler {
     private final Map<URI, LibraryUnit> libraries = new LinkedHashMap<URI, LibraryUnit>();
     private boolean packageApp = false;
     private final boolean checkOnly;
-    private final boolean collectComments;
     private CoreTypeProvider typeProvider;
     private final boolean incremental;
     private final boolean usePrecompiledDartLibs;
@@ -144,7 +142,6 @@ public class DartCompiler {
       this.backends = config.getBackends();
       this.context = context;
       checkOnly = config.checkOnly();
-      collectComments = config.collectComments();
       for (LibrarySource library : embedded) {
         if (SystemLibraryManager.isDartSpec(library.getName())) {
           embeddedLibraries.add(context.getSystemLibraryFor(library.getName()));
@@ -155,14 +152,8 @@ public class DartCompiler {
       coreLibrarySource = context.getSystemLibraryFor(CORELIB_URL_SPEC);
       embeddedLibraries.add(coreLibrarySource);
 
-      if (config.shouldOptimize()) {
-        // Optimizing turns off incremental compilation.
-        incremental = false;
-        usePrecompiledDartLibs = false;
-      } else {
-        incremental = config.incremental();
-        usePrecompiledDartLibs = true;
-      }
+      incremental = config.incremental();
+      usePrecompiledDartLibs = true;
     }
 
     private void compile() {
@@ -819,9 +810,8 @@ public class DartCompiler {
         if (packageApp) {
           // When there's no entry-point in the application unit,
           // don't attempt to package it. This can happen when
-          // compileUnit() is called on a library. Always package app
-          // when generating documentation.
-          if (context.getApplicationUnit().getEntryNode() == null && !collectComments) {
+          // compileUnit() is called on a library.
+          if (context.getApplicationUnit().getEntryNode() == null) {
             if (config.expectEntryPoint()) {
               context.onError(new DartCompilationError(
                   context.getApplicationUnit().getSource(), Location.NONE,
@@ -865,17 +855,9 @@ public class DartCompiler {
           Closeables.close(r, failed);
         }
 
-        DartParser parser;
-        if (collectComments) {
-          DartScannerParserContext parserContext =
-              CommentPreservingParser.createContext(dartSrc, srcCode, context,
-                  context.getCompilerMetrics());
-          parser = new CommentPreservingParser(parserContext, false);
-        } else {
-          DartScannerParserContext parserContext =
-              new DartScannerParserContext(dartSrc, srcCode, context, context.getCompilerMetrics());
-          parser = new DartParser(parserContext, libraryPrefixes, diet);
-        }
+        DartScannerParserContext parserContext =
+            new DartScannerParserContext(dartSrc, srcCode, context, context.getCompilerMetrics());
+        DartParser parser = new DartParser(parserContext, libraryPrefixes, diet);
         DartUnit unit = parser.parseUnit(dartSrc);
         if (compilerMetrics != null) {
           compilerMetrics.addParseTimeNano(CompilerMetrics.getThreadTime() - parseStart);
@@ -1126,20 +1108,22 @@ public class DartCompiler {
           }
         }
 
-        Reader r = null;
-        try {
-        // HACK: there can be more than one backend.  Since there isn't
-        // an obvious way to tell which one the user meant, for now
-        // just restrict the option to save the output if more than
-        // one is active.
-         r = provider.getArtifactReader(lib, "",
-             config.getBackends().get(0).getAppExtension());
-         String js = CharStreams.toString(r);
-         if (r != null) {
-           Files.write(js, outFile, Charset.defaultCharset());
-         }
-        } finally {
-          Closeables.close(r, true);
+        if (!config.getCompilerOptions().checkOnly()) {
+          Reader r = null;
+          try {
+            // HACK: there can be more than one backend.  Since there isn't
+            // an obvious way to tell which one the user meant, for now
+            // just restrict the option to save the output if more than
+            // one is active.
+            r = provider.getArtifactReader(lib, "",
+                                           config.getBackends().get(0).getAppExtension());
+            String js = CharStreams.toString(r);
+            if (r != null) {
+              Files.write(js, outFile, Charset.defaultCharset());
+            }
+          } finally {
+            Closeables.close(r, true);
+          }
         }
       }
       return errorString;

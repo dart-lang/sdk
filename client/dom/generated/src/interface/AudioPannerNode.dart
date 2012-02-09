@@ -12,41 +12,25 @@ interface AudioPannerNode extends AudioNode {
 
   static final int SOUNDFIELD = 2;
 
-  AudioGain get coneGain();
+  final AudioGain coneGain;
 
-  num get coneInnerAngle();
+  num coneInnerAngle;
 
-  void set coneInnerAngle(num value);
+  num coneOuterAngle;
 
-  num get coneOuterAngle();
+  num coneOuterGain;
 
-  void set coneOuterAngle(num value);
+  final AudioGain distanceGain;
 
-  num get coneOuterGain();
+  int distanceModel;
 
-  void set coneOuterGain(num value);
+  num maxDistance;
 
-  AudioGain get distanceGain();
+  int panningModel;
 
-  int get distanceModel();
+  num refDistance;
 
-  void set distanceModel(int value);
-
-  num get maxDistance();
-
-  void set maxDistance(num value);
-
-  int get panningModel();
-
-  void set panningModel(int value);
-
-  num get refDistance();
-
-  void set refDistance(num value);
-
-  num get rolloffFactor();
-
-  void set rolloffFactor(num value);
+  num rolloffFactor;
 
   void setOrientation(num x, num y, num z);
 

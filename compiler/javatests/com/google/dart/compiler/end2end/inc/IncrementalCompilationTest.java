@@ -9,6 +9,7 @@ import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_AP
 import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_JS;
 
 import com.google.common.collect.Lists;
+import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
+// TODO(zundel): update this test not to rely on code generation
 public class IncrementalCompilationTest extends CompilerTestCase {
 
   private static final String TEST_BASE_PATH = "com/google/dart/compiler/end2end/inc/";
@@ -67,7 +69,15 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
+    CompilerOptions compilerOptions = new CompilerOptions() {
+      // TODO(zundel): Update these tests to run without requiring code generation
+      @Override
+      public boolean checkOnly() {
+        return false;
+      }
+    };
+    config = new DefaultCompilerConfiguration(new JavascriptBackend(),
+                                              compilerOptions) {
       @Override
       public boolean incremental() {
         return true;
@@ -175,7 +185,7 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     compile();
 
     // Test against normalization having an effect on hashcodes
-    // SomeInterface2 is an empty interface that can have an extra default constructor added by 
+    // SomeInterface2 is an empty interface that can have an extra default constructor added by
     // the dartc backend normalization process.  By depending on a class that implements the interface,
     // my.app.dart.deps will transitively depend on the empty interface.  If something changes
     // with how hashcodes are generated, this test should be updated.

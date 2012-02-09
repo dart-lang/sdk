@@ -6,19 +6,19 @@
 
 interface TouchEvent extends UIEvent {
 
-  bool get altKey();
+  final bool altKey;
 
-  TouchList get changedTouches();
+  final TouchList changedTouches;
 
-  bool get ctrlKey();
+  final bool ctrlKey;
 
-  bool get metaKey();
+  final bool metaKey;
 
-  bool get shiftKey();
+  final bool shiftKey;
 
-  TouchList get targetTouches();
+  final TouchList targetTouches;
 
-  TouchList get touches();
+  final TouchList touches;
 
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }

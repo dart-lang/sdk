@@ -6,31 +6,19 @@
 
 interface HTMLMeterElement extends HTMLElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  num get high();
+  num high;
 
-  void set high(num value);
+  final NodeList labels;
 
-  NodeList get labels();
+  num low;
 
-  num get low();
+  num max;
 
-  void set low(num value);
+  num min;
 
-  num get max();
+  num optimum;
 
-  void set max(num value);
-
-  num get min();
-
-  void set min(num value);
-
-  num get optimum();
-
-  void set optimum(num value);
-
-  num get value();
-
-  void set value(num value);
+  num value;
 }

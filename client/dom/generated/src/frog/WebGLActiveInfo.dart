@@ -1,9 +1,9 @@
 
 class _WebGLActiveInfoJs extends _DOMTypeJs implements WebGLActiveInfo native "*WebGLActiveInfo" {
 
-  String get name() native "return this.name;";
+  final String name;
 
-  int get size() native "return this.size;";
+  final int size;
 
-  int get type() native "return this.type;";
+  final int type;
 }

@@ -6,7 +6,5 @@
 
 interface HTMLDetailsElement extends HTMLElement {
 
-  bool get open();
-
-  void set open(bool value);
+  bool open;
 }

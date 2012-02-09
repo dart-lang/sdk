@@ -9,21 +9,23 @@
 
 namespace dart {
 
-static const intptr_t kPos = 1;  // Dummy token index in non-existing source.
-
-
 TEST_CASE(LocalScope) {
   // Allocate a couple of local variables first.
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(String::New("a"));
-  LocalVariable* var_a = new LocalVariable(kPos, a, dynamic_type);
-  LocalVariable* inner_var_a = new LocalVariable(kPos, a, dynamic_type);
+  LocalVariable* var_a =
+      new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
+  LocalVariable* inner_var_a =
+      new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
   const String& b = String::ZoneHandle(String::New("b"));
-  LocalVariable* var_b = new LocalVariable(kPos, b, dynamic_type);
+  LocalVariable* var_b =
+      new LocalVariable(Scanner::kDummyTokenIndex, b, dynamic_type);
   const String& c = String::ZoneHandle(String::New("c"));
-  LocalVariable* var_c = new LocalVariable(kPos, c, dynamic_type);
+  LocalVariable* var_c =
+      new LocalVariable(Scanner::kDummyTokenIndex, c, dynamic_type);
   const String& L = String::ZoneHandle(String::New("L"));
-  SourceLabel* label_L = new SourceLabel(kPos, L, SourceLabel::kFor);
+  SourceLabel* label_L =
+      new SourceLabel(Scanner::kDummyTokenIndex, L, SourceLabel::kFor);
 
   LocalScope* outer_scope = new LocalScope(NULL, 0, 0);
   LocalScope* inner_scope1 = new LocalScope(outer_scope, 0, 0);

@@ -6,7 +6,7 @@
 
 interface TimeRanges {
 
-  int get length();
+  final int length;
 
   num end(int index);
 

@@ -6,7 +6,7 @@
 
 interface CompositionEvent extends UIEvent {
 
-  String get data();
+  final String data;
 
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg);
 }

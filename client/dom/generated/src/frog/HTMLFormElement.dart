@@ -1,45 +1,27 @@
 
 class _HTMLFormElementJs extends _HTMLElementJs implements HTMLFormElement native "*HTMLFormElement" {
 
-  String get acceptCharset() native "return this.acceptCharset;";
+  String acceptCharset;
 
-  void set acceptCharset(String value) native "this.acceptCharset = value;";
+  String action;
 
-  String get action() native "return this.action;";
+  String autocomplete;
 
-  void set action(String value) native "this.action = value;";
+  final _HTMLCollectionJs elements;
 
-  String get autocomplete() native "return this.autocomplete;";
+  String encoding;
 
-  void set autocomplete(String value) native "this.autocomplete = value;";
+  String enctype;
 
-  _HTMLCollectionJs get elements() native "return this.elements;";
+  final int length;
 
-  String get encoding() native "return this.encoding;";
+  String method;
 
-  void set encoding(String value) native "this.encoding = value;";
+  String name;
 
-  String get enctype() native "return this.enctype;";
+  bool noValidate;
 
-  void set enctype(String value) native "this.enctype = value;";
-
-  int get length() native "return this.length;";
-
-  String get method() native "return this.method;";
-
-  void set method(String value) native "this.method = value;";
-
-  String get name() native "return this.name;";
-
-  void set name(String value) native "this.name = value;";
-
-  bool get noValidate() native "return this.noValidate;";
-
-  void set noValidate(bool value) native "this.noValidate = value;";
-
-  String get target() native "return this.target;";
-
-  void set target(String value) native "this.target = value;";
+  String target;
 
   bool checkValidity() native;
 

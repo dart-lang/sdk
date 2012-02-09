@@ -6,11 +6,7 @@
 
 interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference {
 
-  String get format();
+  String format;
 
-  void set format(String value);
-
-  String get glyphRef();
-
-  void set glyphRef(String value);
+  String glyphRef;
 }

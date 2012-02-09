@@ -6,11 +6,11 @@
 
 interface DOMMimeType {
 
-  String get description();
+  final String description;
 
-  DOMPlugin get enabledPlugin();
+  final DOMPlugin enabledPlugin;
 
-  String get suffixes();
+  final String suffixes;
 
-  String get type();
+  final String type;
 }

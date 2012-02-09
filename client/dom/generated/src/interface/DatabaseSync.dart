@@ -6,9 +6,9 @@
 
 interface DatabaseSync {
 
-  String get lastErrorMessage();
+  final String lastErrorMessage;
 
-  String get version();
+  final String version;
 
   void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]);
 

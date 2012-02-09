@@ -6,9 +6,9 @@
 
 interface ImageData {
 
-  CanvasPixelArray get data();
+  final CanvasPixelArray data;
 
-  int get height();
+  final int height;
 
-  int get width();
+  final int width;
 }

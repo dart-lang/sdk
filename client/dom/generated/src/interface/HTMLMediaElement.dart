@@ -36,103 +36,73 @@ interface HTMLMediaElement extends HTMLElement {
 
   static final int SOURCE_OPEN = 1;
 
-  bool get autoplay();
+  bool autoplay;
 
-  void set autoplay(bool value);
+  final TimeRanges buffered;
 
-  TimeRanges get buffered();
+  MediaController controller;
 
-  MediaController get controller();
+  bool controls;
 
-  void set controller(MediaController value);
+  final String currentSrc;
 
-  bool get controls();
+  num currentTime;
 
-  void set controls(bool value);
+  bool defaultMuted;
 
-  String get currentSrc();
+  num defaultPlaybackRate;
 
-  num get currentTime();
+  final num duration;
 
-  void set currentTime(num value);
+  final bool ended;
 
-  bool get defaultMuted();
+  final MediaError error;
 
-  void set defaultMuted(bool value);
+  final num initialTime;
 
-  num get defaultPlaybackRate();
+  bool loop;
 
-  void set defaultPlaybackRate(num value);
+  String mediaGroup;
 
-  num get duration();
+  bool muted;
 
-  bool get ended();
+  final int networkState;
 
-  MediaError get error();
+  final bool paused;
 
-  num get initialTime();
+  num playbackRate;
 
-  bool get loop();
+  final TimeRanges played;
 
-  void set loop(bool value);
+  String preload;
 
-  String get mediaGroup();
+  final int readyState;
 
-  void set mediaGroup(String value);
+  final TimeRanges seekable;
 
-  bool get muted();
+  final bool seeking;
 
-  void set muted(bool value);
+  String src;
 
-  int get networkState();
+  final num startTime;
 
-  bool get paused();
+  final TextTrackList textTracks;
 
-  num get playbackRate();
+  num volume;
 
-  void set playbackRate(num value);
+  final int webkitAudioDecodedByteCount;
 
-  TimeRanges get played();
+  bool webkitClosedCaptionsVisible;
 
-  String get preload();
+  final bool webkitHasClosedCaptions;
 
-  void set preload(String value);
+  final String webkitMediaSourceURL;
 
-  int get readyState();
+  bool webkitPreservesPitch;
 
-  TimeRanges get seekable();
+  final int webkitSourceState;
 
-  bool get seeking();
-
-  String get src();
-
-  void set src(String value);
-
-  num get startTime();
-
-  TextTrackList get textTracks();
-
-  num get volume();
-
-  void set volume(num value);
-
-  int get webkitAudioDecodedByteCount();
-
-  bool get webkitClosedCaptionsVisible();
-
-  void set webkitClosedCaptionsVisible(bool value);
-
-  bool get webkitHasClosedCaptions();
-
-  String get webkitMediaSourceURL();
-
-  bool get webkitPreservesPitch();
-
-  void set webkitPreservesPitch(bool value);
-
-  int get webkitSourceState();
-
-  int get webkitVideoDecodedByteCount();
+  final int webkitVideoDecodedByteCount;
 
   TextTrack addTrack(String kind, [String label, String language]);
 

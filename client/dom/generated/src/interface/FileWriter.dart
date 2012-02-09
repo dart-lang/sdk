@@ -12,37 +12,25 @@ interface FileWriter {
 
   static final int WRITING = 1;
 
-  FileError get error();
+  final FileError error;
 
-  int get length();
+  final int length;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener onerror;
 
-  EventListener get onerror();
+  EventListener onprogress;
 
-  void set onerror(EventListener value);
+  EventListener onwrite;
 
-  EventListener get onprogress();
+  EventListener onwriteend;
 
-  void set onprogress(EventListener value);
+  EventListener onwritestart;
 
-  EventListener get onwrite();
+  final int position;
 
-  void set onwrite(EventListener value);
-
-  EventListener get onwriteend();
-
-  void set onwriteend(EventListener value);
-
-  EventListener get onwritestart();
-
-  void set onwritestart(EventListener value);
-
-  int get position();
-
-  int get readyState();
+  final int readyState;
 
   void abort();
 

@@ -6,13 +6,9 @@
 
 interface HTMLCanvasElement extends HTMLElement {
 
-  int get height();
+  int height;
 
-  void set height(int value);
-
-  int get width();
-
-  void set width(int value);
+  int width;
 
   Object getContext(String contextId);
 

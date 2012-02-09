@@ -6,7 +6,5 @@
 
 interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
 
-  String get type();
-
-  void set type(String value);
+  String type;
 }

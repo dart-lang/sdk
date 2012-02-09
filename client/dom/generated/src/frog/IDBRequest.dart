@@ -5,25 +5,21 @@ class _IDBRequestJs extends _DOMTypeJs implements IDBRequest native "*IDBRequest
 
   static final int LOADING = 1;
 
-  int get errorCode() native "return this.errorCode;";
+  final int errorCode;
 
-  EventListener get onerror() native "return this.onerror;";
+  EventListener onerror;
 
-  void set onerror(EventListener value) native "this.onerror = value;";
+  EventListener onsuccess;
 
-  EventListener get onsuccess() native "return this.onsuccess;";
+  final int readyState;
 
-  void set onsuccess(EventListener value) native "this.onsuccess = value;";
+  final _IDBAnyJs result;
 
-  int get readyState() native "return this.readyState;";
+  final _IDBAnyJs source;
 
-  _IDBAnyJs get result() native "return this.result;";
+  final _IDBTransactionJs transaction;
 
-  _IDBAnyJs get source() native "return this.source;";
-
-  _IDBTransactionJs get transaction() native "return this.transaction;";
-
-  String get webkitErrorMessage() native "return this.webkitErrorMessage;";
+  final String webkitErrorMessage;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

@@ -16,13 +16,13 @@ interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStan
 
   static final int SVG_CHANNEL_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedString get in2();
+  final SVGAnimatedString in2;
 
-  SVGAnimatedNumber get scale();
+  final SVGAnimatedNumber scale;
 
-  SVGAnimatedEnumeration get xChannelSelector();
+  final SVGAnimatedEnumeration xChannelSelector;
 
-  SVGAnimatedEnumeration get yChannelSelector();
+  final SVGAnimatedEnumeration yChannelSelector;
 }

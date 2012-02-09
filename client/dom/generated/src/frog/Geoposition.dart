@@ -1,7 +1,7 @@
 
 class _GeopositionJs extends _DOMTypeJs implements Geoposition native "*Geoposition" {
 
-  _CoordinatesJs get coords() native "return this.coords;";
+  final _CoordinatesJs coords;
 
-  int get timestamp() native "return this.timestamp;";
+  final int timestamp;
 }

@@ -6,31 +6,17 @@
 
 interface SVGPathSegArcAbs extends SVGPathSeg {
 
-  num get angle();
+  num angle;
 
-  void set angle(num value);
+  bool largeArcFlag;
 
-  bool get largeArcFlag();
+  num r1;
 
-  void set largeArcFlag(bool value);
+  num r2;
 
-  num get r1();
+  bool sweepFlag;
 
-  void set r1(num value);
+  num x;
 
-  num get r2();
-
-  void set r2(num value);
-
-  bool get sweepFlag();
-
-  void set sweepFlag(bool value);
-
-  num get x();
-
-  void set x(num value);
-
-  num get y();
-
-  void set y(num value);
+  num y;
 }

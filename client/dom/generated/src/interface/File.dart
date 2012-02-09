@@ -6,13 +6,13 @@
 
 interface File extends Blob {
 
-  String get fileName();
+  final String fileName;
 
-  int get fileSize();
+  final int fileSize;
 
-  Date get lastModifiedDate();
+  final Date lastModifiedDate;
 
-  String get name();
+  final String name;
 
-  String get webkitRelativePath();
+  final String webkitRelativePath;
 }

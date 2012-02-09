@@ -6,15 +6,9 @@
 
 interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
-  String get media();
+  String media;
 
-  void set media(String value);
+  String title;
 
-  String get title();
-
-  void set title(String value);
-
-  String get type();
-
-  void set type(String value);
+  String type;
 }

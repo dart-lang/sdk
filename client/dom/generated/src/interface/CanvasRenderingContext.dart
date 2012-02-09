@@ -6,5 +6,5 @@
 
 interface CanvasRenderingContext {
 
-  HTMLCanvasElement get canvas();
+  final HTMLCanvasElement canvas;
 }

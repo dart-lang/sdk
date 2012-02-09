@@ -1,27 +1,27 @@
 
 class _DOMSelectionJs extends _DOMTypeJs implements DOMSelection native "*DOMSelection" {
 
-  _NodeJs get anchorNode() native "return this.anchorNode;";
+  final _NodeJs anchorNode;
 
-  int get anchorOffset() native "return this.anchorOffset;";
+  final int anchorOffset;
 
-  _NodeJs get baseNode() native "return this.baseNode;";
+  final _NodeJs baseNode;
 
-  int get baseOffset() native "return this.baseOffset;";
+  final int baseOffset;
 
-  _NodeJs get extentNode() native "return this.extentNode;";
+  final _NodeJs extentNode;
 
-  int get extentOffset() native "return this.extentOffset;";
+  final int extentOffset;
 
-  _NodeJs get focusNode() native "return this.focusNode;";
+  final _NodeJs focusNode;
 
-  int get focusOffset() native "return this.focusOffset;";
+  final int focusOffset;
 
-  bool get isCollapsed() native "return this.isCollapsed;";
+  final bool isCollapsed;
 
-  int get rangeCount() native "return this.rangeCount;";
+  final int rangeCount;
 
-  String get type() native "return this.type;";
+  final String type;
 
   void addRange(_RangeJs range) native;
 

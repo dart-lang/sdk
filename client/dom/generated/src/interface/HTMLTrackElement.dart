@@ -14,27 +14,17 @@ interface HTMLTrackElement extends HTMLElement {
 
   static final int NONE = 0;
 
-  bool get isDefault();
+  bool isDefault;
 
-  void set isDefault(bool value);
+  String kind;
 
-  String get kind();
+  String label;
 
-  void set kind(String value);
+  final int readyState;
 
-  String get label();
+  String src;
 
-  void set label(String value);
+  String srclang;
 
-  int get readyState();
-
-  String get src();
-
-  void set src(String value);
-
-  String get srclang();
-
-  void set srclang(String value);
-
-  TextTrack get track();
+  final TextTrack track;
 }

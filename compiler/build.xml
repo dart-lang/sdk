@@ -36,14 +36,11 @@
 
   <property name="test_py" location="../tools/test.py"/>
 
-  <property name="closure_compiler.jar" value="${build.dir}/../closure_out/compiler.jar"/>
-
   <!--
     Define buildtime and runtime classpaths.
   -->
   <path id="classpath.compile">
     <pathelement location="${third_party.dir}/args4j/2.0.12/args4j-2.0.12.jar"/>
-    <pathelement location="${closure_compiler.jar}" />
     <pathelement location="${third_party.dir}/guava/r09/guava-r09.jar"/>
     <pathelement location="${third_party.dir}/json/r2_20080312/json.jar"/>
     <pathelement location="${third_party.dir}/rhino/1_7R3/js.jar"/>
@@ -138,11 +135,6 @@
     <copy file="${dartc.jar}" todir="${dist.dir}/lib"/>
 
     <!--
-      Copy the closure-compiler jar to the lib folder.
-    -->
-    <copy file="${closure_compiler.jar}" tofile="${dist.dir}/lib/closure-compiler.jar"/>
-
-    <!--
       Re-root the classpaths from third_party into the lib folder of the distro.
     -->
     <pathconvert property="dartc.classpath.runtime.unix" targetos="unix" refid="classpath.runtime">
@@ -151,14 +143,14 @@
 
     <copy file="scripts/dartc.sh" tofile="${dist.dir}/bin/dartc">
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/closure-compiler.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:${dartc.classpath.runtime.unix}"/>
       </filterset>
     </copy>
     <chmod file="${dist.dir}/bin/dartc" perm="a+rx"/>
 
     <copy file="scripts/dartc_test.sh" tofile="${dist.dir}/bin/dartc_test">
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/closure-compiler.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:${dartc.classpath.runtime.unix}"/>
         <filter token="D8_EXEC" value="${d8}"/>
       </filterset>
     </copy>
@@ -174,7 +166,7 @@
         <include name="dartc_metrics.sh"/>
       </fileset>
       <filterset>
-        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:$DARTC_LIBS/closure-compiler.jar:${dartc.classpath.runtime.unix}"/>
+        <filter token="CLASSPATH" value="$DARTC_LIBS/dartc.jar:${dartc.classpath.runtime.unix}"/>
       </filterset>
     </copy>
     <chmod file="${build.dir}/dartc_run.sh" perm="a+rx"/>

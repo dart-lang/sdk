@@ -6,9 +6,7 @@
 
 interface SVGAnimatedNumber {
 
-  num get animVal();
+  final num animVal;
 
-  num get baseVal();
-
-  void set baseVal(num value);
+  num baseVal;
 }

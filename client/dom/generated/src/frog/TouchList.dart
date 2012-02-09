@@ -1,7 +1,7 @@
 
 class _TouchListJs extends _DOMTypeJs implements TouchList native "*TouchList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   _TouchJs operator[](int index) native "return this[index];";
 

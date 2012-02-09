@@ -13,35 +13,35 @@ class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulence
 
   static final int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
-  _SVGAnimatedNumberJs get baseFrequencyX() native "return this.baseFrequencyX;";
+  final _SVGAnimatedNumberJs baseFrequencyX;
 
-  _SVGAnimatedNumberJs get baseFrequencyY() native "return this.baseFrequencyY;";
+  final _SVGAnimatedNumberJs baseFrequencyY;
 
-  _SVGAnimatedIntegerJs get numOctaves() native "return this.numOctaves;";
+  final _SVGAnimatedIntegerJs numOctaves;
 
-  _SVGAnimatedNumberJs get seed() native "return this.seed;";
+  final _SVGAnimatedNumberJs seed;
 
-  _SVGAnimatedEnumerationJs get stitchTiles() native "return this.stitchTiles;";
+  final _SVGAnimatedEnumerationJs stitchTiles;
 
-  _SVGAnimatedEnumerationJs get type() native "return this.type;";
+  final _SVGAnimatedEnumerationJs type;
 
   // From SVGFilterPrimitiveStandardAttributes
 
-  _SVGAnimatedLengthJs get height() native "return this.height;";
+  final _SVGAnimatedLengthJs height;
 
-  _SVGAnimatedStringJs get result() native "return this.result;";
+  final _SVGAnimatedStringJs result;
 
-  _SVGAnimatedLengthJs get width() native "return this.width;";
+  final _SVGAnimatedLengthJs width;
 
-  _SVGAnimatedLengthJs get x() native "return this.x;";
+  final _SVGAnimatedLengthJs x;
 
-  _SVGAnimatedLengthJs get y() native "return this.y;";
+  final _SVGAnimatedLengthJs y;
 
   // From SVGStylable
 
-  _SVGAnimatedStringJs get className() native "return this.className;";
+  final _SVGAnimatedStringJs className;
 
-  _CSSStyleDeclarationJs get style() native "return this.style;";
+  final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

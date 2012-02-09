@@ -6,7 +6,7 @@
 
 interface ClientRectList {
 
-  int get length();
+  final int length;
 
   ClientRect item(int index);
 }

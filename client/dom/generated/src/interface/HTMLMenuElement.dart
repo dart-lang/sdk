@@ -6,7 +6,5 @@
 
 interface HTMLMenuElement extends HTMLElement {
 
-  bool get compact();
-
-  void set compact(bool value);
+  bool compact;
 }

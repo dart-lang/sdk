@@ -26,13 +26,11 @@ interface CSSRule {
 
   static final int WEBKIT_REGION_RULE = 10;
 
-  String get cssText();
+  String cssText;
 
-  void set cssText(String value);
+  final CSSRule parentRule;
 
-  CSSRule get parentRule();
+  final CSSStyleSheet parentStyleSheet;
 
-  CSSStyleSheet get parentStyleSheet();
-
-  int get type();
+  final int type;
 }

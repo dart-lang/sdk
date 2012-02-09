@@ -6,9 +6,7 @@
 
 interface DedicatedWorkerGlobalScope extends WorkerContext {
 
-  EventListener get onmessage();
-
-  void set onmessage(EventListener value);
+  EventListener onmessage;
 
   void postMessage(Object message, [List messagePorts]);
 

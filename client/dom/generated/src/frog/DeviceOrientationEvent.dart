@@ -1,13 +1,13 @@
 
 class _DeviceOrientationEventJs extends _EventJs implements DeviceOrientationEvent native "*DeviceOrientationEvent" {
 
-  bool get absolute() native "return this.absolute;";
+  final bool absolute;
 
-  num get alpha() native "return this.alpha;";
+  final num alpha;
 
-  num get beta() native "return this.beta;";
+  final num beta;
 
-  num get gamma() native "return this.gamma;";
+  final num gamma;
 
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 }

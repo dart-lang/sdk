@@ -12,9 +12,9 @@ interface OverflowEvent extends Event {
 
   static final int VERTICAL = 1;
 
-  bool get horizontalOverflow();
+  final bool horizontalOverflow;
 
-  int get orient();
+  final int orient;
 
-  bool get verticalOverflow();
+  final bool verticalOverflow;
 }

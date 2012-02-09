@@ -1,33 +1,25 @@
 
 class _HTMLOutputElementJs extends _HTMLElementJs implements HTMLOutputElement native "*HTMLOutputElement" {
 
-  String get defaultValue() native "return this.defaultValue;";
+  String defaultValue;
 
-  void set defaultValue(String value) native "this.defaultValue = value;";
+  final _HTMLFormElementJs form;
 
-  _HTMLFormElementJs get form() native "return this.form;";
+  _DOMSettableTokenListJs htmlFor;
 
-  _DOMSettableTokenListJs get htmlFor() native "return this.htmlFor;";
+  final _NodeListJs labels;
 
-  void set htmlFor(_DOMSettableTokenListJs value) native "this.htmlFor = value;";
+  String name;
 
-  _NodeListJs get labels() native "return this.labels;";
+  final String type;
 
-  String get name() native "return this.name;";
+  final String validationMessage;
 
-  void set name(String value) native "this.name = value;";
+  final _ValidityStateJs validity;
 
-  String get type() native "return this.type;";
+  String value;
 
-  String get validationMessage() native "return this.validationMessage;";
-
-  _ValidityStateJs get validity() native "return this.validity;";
-
-  String get value() native "return this.value;";
-
-  void set value(String value) native "this.value = value;";
-
-  bool get willValidate() native "return this.willValidate;";
+  final bool willValidate;
 
   bool checkValidity() native;
 

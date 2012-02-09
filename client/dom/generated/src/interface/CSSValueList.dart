@@ -6,7 +6,7 @@
 
 interface CSSValueList extends CSSValue {
 
-  int get length();
+  final int length;
 
   CSSValue item(int index);
 }

@@ -12,13 +12,13 @@ interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   static final int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedEnumeration get operator();
+  final SVGAnimatedEnumeration operator;
 
-  SVGAnimatedNumber get radiusX();
+  final SVGAnimatedNumber radiusX;
 
-  SVGAnimatedNumber get radiusY();
+  final SVGAnimatedNumber radiusY;
 
   void setRadius(num radiusX, num radiusY);
 }

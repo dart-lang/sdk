@@ -14,35 +14,23 @@ interface FileReader default _FileReaderFactoryProvider {
 
   static final int LOADING = 1;
 
-  FileError get error();
+  final FileError error;
 
-  EventListener get onabort();
+  EventListener onabort;
 
-  void set onabort(EventListener value);
+  EventListener onerror;
 
-  EventListener get onerror();
+  EventListener onload;
 
-  void set onerror(EventListener value);
+  EventListener onloadend;
 
-  EventListener get onload();
+  EventListener onloadstart;
 
-  void set onload(EventListener value);
+  EventListener onprogress;
 
-  EventListener get onloadend();
+  final int readyState;
 
-  void set onloadend(EventListener value);
-
-  EventListener get onloadstart();
-
-  void set onloadstart(EventListener value);
-
-  EventListener get onprogress();
-
-  void set onprogress(EventListener value);
-
-  int get readyState();
-
-  Object get result();
+  final Object result;
 
   void abort();
 

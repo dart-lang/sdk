@@ -6,9 +6,7 @@
 
 interface HTMLIsIndexElement extends HTMLInputElement {
 
-  HTMLFormElement get form();
+  final HTMLFormElement form;
 
-  String get prompt();
-
-  void set prompt(String value);
+  String prompt;
 }

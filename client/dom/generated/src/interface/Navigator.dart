@@ -6,35 +6,35 @@
 
 interface Navigator {
 
-  String get appCodeName();
+  final String appCodeName;
 
-  String get appName();
+  final String appName;
 
-  String get appVersion();
+  final String appVersion;
 
-  bool get cookieEnabled();
+  final bool cookieEnabled;
 
-  Geolocation get geolocation();
+  final Geolocation geolocation;
 
-  String get language();
+  final String language;
 
-  DOMMimeTypeArray get mimeTypes();
+  final DOMMimeTypeArray mimeTypes;
 
-  bool get onLine();
+  final bool onLine;
 
-  String get platform();
+  final String platform;
 
-  DOMPluginArray get plugins();
+  final DOMPluginArray plugins;
 
-  String get product();
+  final String product;
 
-  String get productSub();
+  final String productSub;
 
-  String get userAgent();
+  final String userAgent;
 
-  String get vendor();
+  final String vendor;
 
-  String get vendorSub();
+  final String vendorSub;
 
   void getStorageUpdates();
 

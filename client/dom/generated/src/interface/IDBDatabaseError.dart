@@ -6,11 +6,7 @@
 
 interface IDBDatabaseError {
 
-  int get code();
+  int code;
 
-  void set code(int value);
-
-  String get message();
-
-  void set message(String value);
+  String message;
 }

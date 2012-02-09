@@ -1,15 +1,15 @@
 
 class _EntryJs extends _DOMTypeJs implements Entry native "*Entry" {
 
-  _DOMFileSystemJs get filesystem() native "return this.filesystem;";
+  final _DOMFileSystemJs filesystem;
 
-  String get fullPath() native "return this.fullPath;";
+  final String fullPath;
 
-  bool get isDirectory() native "return this.isDirectory;";
+  final bool isDirectory;
 
-  bool get isFile() native "return this.isFile;";
+  final bool isFile;
 
-  String get name() native "return this.name;";
+  final String name;
 
   void copyTo(_DirectoryEntryJs parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
 

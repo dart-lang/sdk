@@ -6,7 +6,7 @@
 
 interface SVGTransformList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGTransform appendItem(SVGTransform item);
 

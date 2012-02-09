@@ -7,11 +7,11 @@ class _EventSourceJs extends _DOMTypeJs implements EventSource native "*EventSou
 
   static final int OPEN = 1;
 
-  String get URL() native "return this.URL;";
+  final String URL;
 
-  int get readyState() native "return this.readyState;";
+  final int readyState;
 
-  String get url() native "return this.url;";
+  final String url;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

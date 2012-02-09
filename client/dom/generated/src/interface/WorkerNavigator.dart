@@ -6,13 +6,13 @@
 
 interface WorkerNavigator {
 
-  String get appName();
+  final String appName;
 
-  String get appVersion();
+  final String appVersion;
 
-  bool get onLine();
+  final bool onLine;
 
-  String get platform();
+  final String platform;
 
-  String get userAgent();
+  final String userAgent;
 }

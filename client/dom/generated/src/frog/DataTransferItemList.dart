@@ -1,7 +1,7 @@
 
 class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList native "*DataTransferItemList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
   void add(var data_OR_file, [String type = null]) native;
 

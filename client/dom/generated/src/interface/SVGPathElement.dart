@@ -6,15 +6,15 @@
 
 interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGPathSegList get animatedNormalizedPathSegList();
+  final SVGPathSegList animatedNormalizedPathSegList;
 
-  SVGPathSegList get animatedPathSegList();
+  final SVGPathSegList animatedPathSegList;
 
-  SVGPathSegList get normalizedPathSegList();
+  final SVGPathSegList normalizedPathSegList;
 
-  SVGAnimatedNumber get pathLength();
+  final SVGAnimatedNumber pathLength;
 
-  SVGPathSegList get pathSegList();
+  final SVGPathSegList pathSegList;
 
   SVGPathSegArcAbs createSVGPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag);
 

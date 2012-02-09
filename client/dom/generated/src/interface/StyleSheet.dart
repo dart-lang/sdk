@@ -6,19 +6,17 @@
 
 interface StyleSheet {
 
-  bool get disabled();
+  bool disabled;
 
-  void set disabled(bool value);
+  final String href;
 
-  String get href();
+  final MediaList media;
 
-  MediaList get media();
+  final Node ownerNode;
 
-  Node get ownerNode();
+  final StyleSheet parentStyleSheet;
 
-  StyleSheet get parentStyleSheet();
+  final String title;
 
-  String get title();
-
-  String get type();
+  final String type;
 }

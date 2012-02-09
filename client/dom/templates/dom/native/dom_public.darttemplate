@@ -19,4 +19,4 @@
 #source('$AUXILIARY_DIR/native_GlobalProperties.dart');
 #source('$AUXILIARY_DIR/native_FactoryProviders.dart');
 
-$SOURCES
+$!SOURCES

@@ -14,7 +14,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   static final int BYTES_PER_ELEMENT = 4;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 

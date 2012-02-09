@@ -441,6 +441,7 @@ class StandardTestSuite implements TestSuite {
           '$filePrefix$dartDir/client/testing/unittest/test_controller.js',
           scriptType,
           filePrefix + scriptPath));
+      htmlTest.flushSync();
       htmlTest.closeSync();
 
       List<String> compilerArgs = TestUtils.standardOptions(configuration);
@@ -448,11 +449,9 @@ class StandardTestSuite implements TestSuite {
       switch (component) {
         case 'chromium':
           compilerArgs.addAll(['--work', tempDir.path]);
-          if (configuration['mode'] ==  'release') {
-            compilerArgs.add('--optimize');
-          }
           compilerArgs.addAll(vmOptions);
           compilerArgs.add('--ignore-unrecognized-flags');
+          // TODO(zundel): remove assumption of generated code from dartc
           compilerArgs.add('--out');
           compilerArgs.add(compiledDartWrapperFilename);
           compilerArgs.add(dartWrapperFilename);
@@ -713,9 +712,6 @@ class StandardTestSuite implements TestSuite {
     if (contents.contains("@compile-error") ||
         contents.contains("@runtime-error")) {
       isNegative = true;
-    } else if (contents.contains("@dynamic-type-error") &&
-               configuration['checked']) {
-      isNegative = true;
     }
 
     bool isMultitest = multiTestRegExp.hasMatch(contents);
@@ -950,7 +946,7 @@ class TestUtils {
         return 'compiler/bin/dartc$suffix';
       case 'frogium':
       case 'webdriver':
-        return 'frog/bin/frogsh$suffix';
+        return 'frog/bin/frog$suffix';
       default:
         throw "Unknown compiler for: ${configuration['component']}";
     }
@@ -1009,13 +1005,9 @@ class TestUtils {
       args.add("--enable_type_checks");
     }
     if (configuration["component"] == "leg") {
+      args.add("--verbose");
       args.add("--enable_leg");
       args.add("--leg_only");
-    }
-    if (configuration["component"] == "dartc") {
-      if (configuration["mode"] == "release") {
-        args.add("--optimize");
-      }
     }
     return args;
   }

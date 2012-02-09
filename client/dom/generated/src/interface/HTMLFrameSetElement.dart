@@ -6,11 +6,7 @@
 
 interface HTMLFrameSetElement extends HTMLElement {
 
-  String get cols();
+  String cols;
 
-  void set cols(String value);
-
-  String get rows();
-
-  void set rows(String value);
+  String rows;
 }

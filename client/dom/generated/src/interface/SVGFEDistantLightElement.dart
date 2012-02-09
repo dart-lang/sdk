@@ -6,7 +6,7 @@
 
 interface SVGFEDistantLightElement extends SVGElement {
 
-  SVGAnimatedNumber get azimuth();
+  final SVGAnimatedNumber azimuth;
 
-  SVGAnimatedNumber get elevation();
+  final SVGAnimatedNumber elevation;
 }

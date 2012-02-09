@@ -6,5 +6,5 @@
 
 interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, SVGExternalResourcesRequired, SVGFilterPrimitiveStandardAttributes {
 
-  SVGAnimatedPreserveAspectRatio get preserveAspectRatio();
+  final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 }

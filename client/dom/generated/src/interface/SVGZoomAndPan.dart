@@ -12,7 +12,5 @@ interface SVGZoomAndPan {
 
   static final int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
-  int get zoomAndPan();
-
-  void set zoomAndPan(int value);
+  int zoomAndPan;
 }

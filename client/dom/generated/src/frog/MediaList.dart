@@ -1,11 +1,9 @@
 
 class _MediaListJs extends _DOMTypeJs implements MediaList native "*MediaList" {
 
-  int get length() native "return this.length;";
+  final int length;
 
-  String get mediaText() native "return this.mediaText;";
-
-  void set mediaText(String value) native "this.mediaText = value;";
+  String mediaText;
 
   String operator[](int index) native "return this[index];";
 

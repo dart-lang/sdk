@@ -6,85 +6,47 @@
 
 interface HTMLAnchorElement extends HTMLElement {
 
-  String get charset();
+  String charset;
 
-  void set charset(String value);
+  String coords;
 
-  String get coords();
+  String download;
 
-  void set coords(String value);
+  String hash;
 
-  String get download();
+  String host;
 
-  void set download(String value);
+  String hostname;
 
-  String get hash();
+  String href;
 
-  void set hash(String value);
+  String hreflang;
 
-  String get host();
+  String name;
 
-  void set host(String value);
+  final String origin;
 
-  String get hostname();
+  String pathname;
 
-  void set hostname(String value);
+  String ping;
 
-  String get href();
+  String port;
 
-  void set href(String value);
+  String protocol;
 
-  String get hreflang();
+  String rel;
 
-  void set hreflang(String value);
+  String rev;
 
-  String get name();
+  String search;
 
-  void set name(String value);
+  String shape;
 
-  String get origin();
+  String target;
 
-  String get pathname();
+  final String text;
 
-  void set pathname(String value);
-
-  String get ping();
-
-  void set ping(String value);
-
-  String get port();
-
-  void set port(String value);
-
-  String get protocol();
-
-  void set protocol(String value);
-
-  String get rel();
-
-  void set rel(String value);
-
-  String get rev();
-
-  void set rev(String value);
-
-  String get search();
-
-  void set search(String value);
-
-  String get shape();
-
-  void set shape(String value);
-
-  String get target();
-
-  void set target(String value);
-
-  String get text();
-
-  String get type();
-
-  void set type(String value);
+  String type;
 
   String toString();
 }

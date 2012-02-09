@@ -6,21 +6,21 @@
 
 interface ValidityState {
 
-  bool get customError();
+  final bool customError;
 
-  bool get patternMismatch();
+  final bool patternMismatch;
 
-  bool get rangeOverflow();
+  final bool rangeOverflow;
 
-  bool get rangeUnderflow();
+  final bool rangeUnderflow;
 
-  bool get stepMismatch();
+  final bool stepMismatch;
 
-  bool get tooLong();
+  final bool tooLong;
 
-  bool get typeMismatch();
+  final bool typeMismatch;
 
-  bool get valid();
+  final bool valid;
 
-  bool get valueMissing();
+  final bool valueMissing;
 }

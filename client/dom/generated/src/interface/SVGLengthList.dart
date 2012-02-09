@@ -6,7 +6,7 @@
 
 interface SVGLengthList {
 
-  int get numberOfItems();
+  final int numberOfItems;
 
   SVGLength appendItem(SVGLength item);
 

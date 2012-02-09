@@ -6,9 +6,9 @@
 
 interface ErrorEvent extends Event {
 
-  String get filename();
+  final String filename;
 
-  int get lineno();
+  final int lineno;
 
-  String get message();
+  final String message;
 }

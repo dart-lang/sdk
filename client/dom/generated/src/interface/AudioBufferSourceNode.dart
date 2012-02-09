@@ -6,21 +6,15 @@
 
 interface AudioBufferSourceNode extends AudioSourceNode {
 
-  AudioBuffer get buffer();
+  AudioBuffer buffer;
 
-  void set buffer(AudioBuffer value);
+  final AudioGain gain;
 
-  AudioGain get gain();
+  bool loop;
 
-  bool get loop();
+  bool looping;
 
-  void set loop(bool value);
-
-  bool get looping();
-
-  void set looping(bool value);
-
-  AudioParam get playbackRate();
+  final AudioParam playbackRate;
 
   void noteGrainOn(num when, num grainOffset, num grainDuration);
 

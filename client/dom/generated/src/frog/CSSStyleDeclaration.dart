@@ -1,13 +1,11 @@
 
 class _CSSStyleDeclarationJs extends _DOMTypeJs implements CSSStyleDeclaration native "*CSSStyleDeclaration" {
 
-  String get cssText() native "return this.cssText;";
+  String cssText;
 
-  void set cssText(String value) native "this.cssText = value;";
+  final int length;
 
-  int get length() native "return this.length;";
-
-  _CSSRuleJs get parentRule() native "return this.parentRule;";
+  final _CSSRuleJs parentRule;
 
   _CSSValueJs getPropertyCSSValue(String propertyName) native;
 

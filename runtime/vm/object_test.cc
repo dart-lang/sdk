@@ -16,7 +16,8 @@ TEST_CASE(Class) {
   // Allocate the class first.
   const String& class_name = String::Handle(String::NewSymbol("MyClass"));
   const Script& script = Script::Handle();
-  const Class& cls = Class::Handle(Class::New(class_name, script));
+  const Class& cls = Class::Handle(
+      Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // Class has no fields.
   const Array& no_fields = Array::Handle(Array::Empty());
@@ -94,10 +95,10 @@ TEST_CASE(Class) {
   Class& interface = Class::Handle();
   String& interface_name = String::Handle();
   interface_name = String::NewSymbol("Harley");
-  interface = Class::New(interface_name, script);
+  interface = Class::New(interface_name, script, Scanner::kDummyTokenIndex);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
   interface_name = String::NewSymbol("Norton");
-  interface = Class::New(interface_name, script);
+  interface = Class::New(interface_name, script, Scanner::kDummyTokenIndex);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
   cls.set_interfaces(interfaces);
   cls.Finalize();
@@ -152,7 +153,8 @@ TEST_CASE(InstanceClass) {
   // Allocate the class first.
   String& class_name = String::Handle(String::NewSymbol("EmptyClass"));
   Script& script = Script::Handle();
-  const Class& empty_class = Class::Handle(Class::New(class_name, script));
+  const Class& empty_class =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // No functions and no super class for the EmptyClass.
   const Array& no_fields = Array::Handle(Array::Empty());
@@ -163,7 +165,8 @@ TEST_CASE(InstanceClass) {
   EXPECT_EQ(empty_class.raw(), instance.clazz());
 
   class_name = String::NewSymbol("OneFieldClass");
-  const Class& one_field_class = Class::Handle(Class::New(class_name, script));
+  const Class& one_field_class =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // No functions and no super class for the OneFieldClass.
   const Array& one_fields = Array::Handle(Array::New(1));
@@ -182,14 +185,15 @@ TEST_CASE(InstanceClass) {
 TEST_CASE(Interface) {
   String& class_name = String::Handle(String::NewSymbol("EmptyClass"));
   Script& script = Script::Handle();
-  const Class& factory_class = Class::Handle(Class::New(class_name, script));
+  const Class& factory_class =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
   const Array& no_fields = Array::Handle(Array::Empty());
   // Finalizes the class.
   factory_class.SetFields(no_fields);
 
   String& interface_name = String::Handle(String::NewSymbol("MyInterface"));
-  const Class& interface =
-      Class::Handle(Class::NewInterface(interface_name, script));
+  const Class& interface = Class::Handle(
+      Class::NewInterface(interface_name, script, Scanner::kDummyTokenIndex));
   EXPECT(interface.is_interface());
   EXPECT(!factory_class.is_interface());
   EXPECT(!interface.HasFactoryClass());
@@ -218,11 +222,11 @@ TEST_CASE(Smi) {
   EXPECT(Smi::IsValid(-15));
   // Upper two bits must be either 00 or 11.
 #if defined(ARCH_IS_64_BIT)
-  EXPECT(!Smi::IsValid(0x7FFFFFFFFFFFFFFF));
+  EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
   EXPECT(Smi::IsValid(0xFFFFFFFFFFFFFFFF));
 #else
-  EXPECT(!Smi::IsValid(0x7FFFFFFF));
+  EXPECT(!Smi::IsValid(kMaxInt32));
   EXPECT(Smi::IsValid(0x3FFFFFFF));
   EXPECT(Smi::IsValid(0xFFFFFFFF));
 #endif
@@ -2055,7 +2059,6 @@ TEST_CASE(Context) {
 
 
 TEST_CASE(ContextScope) {
-  const intptr_t kPos = 1;  // Dummy token index in non-existing source.
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
       new LocalScope(NULL, parent_scope_function_level, 0);
@@ -2066,15 +2069,18 @@ TEST_CASE(ContextScope) {
 
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(String::New("a"));
-  LocalVariable* var_a = new LocalVariable(kPos, a, dynamic_type);
+  LocalVariable* var_a =
+      new LocalVariable(Scanner::kDummyTokenIndex, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(String::New("b"));
-  LocalVariable* var_b = new LocalVariable(kPos, b, dynamic_type);
+  LocalVariable* var_b =
+      new LocalVariable(Scanner::kDummyTokenIndex, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(String::New("c"));
-  LocalVariable* var_c = new LocalVariable(kPos, c, dynamic_type);
+  LocalVariable* var_c =
+      new LocalVariable(Scanner::kDummyTokenIndex, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
@@ -2144,7 +2150,8 @@ TEST_CASE(Closure) {
   // Allocate the class first.
   const String& class_name = String::Handle(String::NewSymbol("MyClass"));
   const Script& script = Script::Handle();
-  const Class& cls = Class::Handle(Class::New(class_name, script));
+  const Class& cls =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
   const Array& functions = Array::Handle(Array::New(1));
 
   const Context& context = Context::Handle(Context::New(0));
@@ -2349,7 +2356,8 @@ TEST_CASE(PcDescriptors) {
 
 static RawClass* CreateTestClass(const char* name) {
   const String& class_name = String::Handle(String::NewSymbol(name));
-  const Class& cls = Class::Handle(Class::New(class_name, Script::Handle()));
+  const Class& cls = Class::Handle(
+      Class::New(class_name, Script::Handle(), Scanner::kDummyTokenIndex));
   return cls.raw();
 }
 

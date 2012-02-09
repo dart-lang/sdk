@@ -6,15 +6,15 @@
 
 interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 
-  SVGElementInstance get animatedInstanceRoot();
+  final SVGElementInstance animatedInstanceRoot;
 
-  SVGAnimatedLength get height();
+  final SVGAnimatedLength height;
 
-  SVGElementInstance get instanceRoot();
+  final SVGElementInstance instanceRoot;
 
-  SVGAnimatedLength get width();
+  final SVGAnimatedLength width;
 
-  SVGAnimatedLength get x();
+  final SVGAnimatedLength x;
 
-  SVGAnimatedLength get y();
+  final SVGAnimatedLength y;
 }

@@ -6,5 +6,5 @@
 
 interface PopStateEvent extends Event {
 
-  Object get state();
+  final Object state;
 }

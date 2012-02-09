@@ -6,7 +6,5 @@
 
 interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
 
-  num get x();
-
-  void set x(num value);
+  num x;
 }

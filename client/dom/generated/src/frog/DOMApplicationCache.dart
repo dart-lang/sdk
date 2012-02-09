@@ -13,7 +13,7 @@ class _DOMApplicationCacheJs extends _DOMTypeJs implements DOMApplicationCache n
 
   static final int UPDATEREADY = 4;
 
-  int get status() native "return this.status;";
+  final int status;
 
   void abort() native;
 

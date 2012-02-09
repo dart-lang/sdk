@@ -14,27 +14,27 @@ interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStand
 
   static final int SVG_EDGEMODE_WRAP = 2;
 
-  SVGAnimatedNumber get bias();
+  final SVGAnimatedNumber bias;
 
-  SVGAnimatedNumber get divisor();
+  final SVGAnimatedNumber divisor;
 
-  SVGAnimatedEnumeration get edgeMode();
+  final SVGAnimatedEnumeration edgeMode;
 
-  SVGAnimatedString get in1();
+  final SVGAnimatedString in1;
 
-  SVGAnimatedNumberList get kernelMatrix();
+  final SVGAnimatedNumberList kernelMatrix;
 
-  SVGAnimatedNumber get kernelUnitLengthX();
+  final SVGAnimatedNumber kernelUnitLengthX;
 
-  SVGAnimatedNumber get kernelUnitLengthY();
+  final SVGAnimatedNumber kernelUnitLengthY;
 
-  SVGAnimatedInteger get orderX();
+  final SVGAnimatedInteger orderX;
 
-  SVGAnimatedInteger get orderY();
+  final SVGAnimatedInteger orderY;
 
-  SVGAnimatedBoolean get preserveAlpha();
+  final SVGAnimatedBoolean preserveAlpha;
 
-  SVGAnimatedInteger get targetX();
+  final SVGAnimatedInteger targetX;
 
-  SVGAnimatedInteger get targetY();
+  final SVGAnimatedInteger targetY;
 }

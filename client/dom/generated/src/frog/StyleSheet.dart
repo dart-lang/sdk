@@ -1,19 +1,17 @@
 
 class _StyleSheetJs extends _DOMTypeJs implements StyleSheet native "*StyleSheet" {
 
-  bool get disabled() native "return this.disabled;";
+  bool disabled;
 
-  void set disabled(bool value) native "this.disabled = value;";
+  final String href;
 
-  String get href() native "return this.href;";
+  final _MediaListJs media;
 
-  _MediaListJs get media() native "return this.media;";
+  final _NodeJs ownerNode;
 
-  _NodeJs get ownerNode() native "return this.ownerNode;";
+  final _StyleSheetJs parentStyleSheet;
 
-  _StyleSheetJs get parentStyleSheet() native "return this.parentStyleSheet;";
+  final String title;
 
-  String get title() native "return this.title;";
-
-  String get type() native "return this.type;";
+  final String type;
 }

@@ -1,9 +1,9 @@
 
 class _MediaQueryListJs extends _DOMTypeJs implements MediaQueryList native "*MediaQueryList" {
 
-  bool get matches() native "return this.matches;";
+  final bool matches;
 
-  String get media() native "return this.media;";
+  final String media;
 
   void addListener(_MediaQueryListListenerJs listener) native;
 

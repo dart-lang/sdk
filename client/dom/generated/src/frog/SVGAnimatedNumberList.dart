@@ -1,7 +1,7 @@
 
 class _SVGAnimatedNumberListJs extends _DOMTypeJs implements SVGAnimatedNumberList native "*SVGAnimatedNumberList" {
 
-  _SVGNumberListJs get animVal() native "return this.animVal;";
+  final _SVGNumberListJs animVal;
 
-  _SVGNumberListJs get baseVal() native "return this.baseVal;";
+  final _SVGNumberListJs baseVal;
 }

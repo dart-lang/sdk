@@ -6,35 +6,25 @@
 
 interface MediaController {
 
-  TimeRanges get buffered();
+  final TimeRanges buffered;
 
-  num get currentTime();
+  num currentTime;
 
-  void set currentTime(num value);
+  num defaultPlaybackRate;
 
-  num get defaultPlaybackRate();
+  final num duration;
 
-  void set defaultPlaybackRate(num value);
+  bool muted;
 
-  num get duration();
+  final bool paused;
 
-  bool get muted();
+  num playbackRate;
 
-  void set muted(bool value);
+  final TimeRanges played;
 
-  bool get paused();
+  final TimeRanges seekable;
 
-  num get playbackRate();
-
-  void set playbackRate(num value);
-
-  TimeRanges get played();
-
-  TimeRanges get seekable();
-
-  num get volume();
-
-  void set volume(num value);
+  num volume;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

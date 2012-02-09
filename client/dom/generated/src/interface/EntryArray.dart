@@ -6,7 +6,7 @@
 
 interface EntryArray {
 
-  int get length();
+  final int length;
 
   Entry item(int index);
 }

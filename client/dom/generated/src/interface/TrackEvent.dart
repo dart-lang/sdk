@@ -6,5 +6,5 @@
 
 interface TrackEvent extends Event {
 
-  Object get track();
+  final Object track;
 }

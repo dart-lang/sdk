@@ -14,7 +14,7 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   static final int BYTES_PER_ELEMENT = 1;
 
-  int get length();
+  final int length;
 
   void setElements(Object array, [int offset]);
 
