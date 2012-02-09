@@ -49,7 +49,7 @@ def Main():
     return exit_code
 
   exit_code = os.system("python %(compiler)s/generate_systemlibrary_list.py "
-                        "jsonlib %(compiler)s/jsonlib_sources ../client/json json.dart"
+                        "jsonlib %(compiler)s/jsonlib_sources ../lib/json json.dart"
                         % locations)
   if exit_code:
     return exit_code

@@ -25,7 +25,7 @@
 
   <property name="htmllib.source.dir" value="${build.dir}/../client/html/"/>
 
-  <property name="jsonlib.source.dir" value="${build.dir}/../client/json/"/>
+  <property name="jsonlib.source.dir" value="${build.dir}/../lib/json/"/>
 
   <property name="build.test.classes.dir" value="${build.dir}/test/classes"/>
 

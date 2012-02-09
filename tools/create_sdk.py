@@ -36,7 +36,8 @@
 # ......htmlimpl/ 
 # ........htmlimpl.dart
 # ......json/
-# ........json_{frog}.dart
+# ........json_frog.dart
+#.........json.dart
 # ........{frog}/
 # ......uri/
 # ........uri.dart
@@ -76,8 +77,6 @@ def Main(argv):
     (eval(open("frog/lib/frog_coreimpl_sources.gypi").read()))['sources']
   coreimpl_runtime_sources = \
     (eval(open("runtime/lib/lib_impl_sources.gypi").read()))['sources']
-  json_frog_sources = \
-    (eval(open("frog/lib/frog_json_sources.gypi").read()))['sources']
 
   HOME = dirname(dirname(realpath(__file__)))
 
@@ -206,18 +205,18 @@ def Main(argv):
       file.write(re.sub("../../lib", "../..", file_contents))
       file.close()
 
-  # Remap imports in frog/leg/*/* .
-  for (_, subdirs, _) in os.walk(leg_dest_dir):
-    for subdir in subdirs:
-      for filename in os.listdir(join(leg_dest_dir, subdir)):
-        if filename.endswith('.dart'):
-          file_contents = open(join(leg_dest_dir, subdir, filename)).read()
-          file = open(join(leg_dest_dir, subdir, filename), 'w')
-          file.write(re.sub("../../../lib", "../../..", file_contents))
-          file.close()
-
   copytree(join(frog_src_dir, 'server'), join(frog_dest_dir, 'server'), 
            ignore=ignore_patterns('.svn'))
+
+  # Remap imports in frog/... .
+  for (dirpath, subdirs, _) in os.walk(frog_dest_dir):
+    for subdir in subdirs:
+      for filename in os.listdir(join(dirpath, subdir)):
+        if filename.endswith('.dart'):
+          file_contents = open(join(dirpath, subdir, filename)).read()
+          file = open(join(dirpath, subdir, filename), 'w')
+          file.write(re.sub("../lib/", "../", file_contents))
+          file.close()
 
   #
   # Create and populate lib/html and lib/htmlimpl.
@@ -242,16 +241,6 @@ def Main(argv):
 
 
   #
-  # Create and populate lib/json.
-  #
-  json_dest_dir = join(LIB, 'json')
-  os.makedirs(json_dest_dir)
-
-  for filename in json_frog_sources:
-    copyfile(join(HOME, 'frog', 'lib', filename), 
-             join(json_dest_dir, filename))
- 
-  #
   # Create and populate lib/dom.
   #
   dom_src_dir = join(HOME, 'client', 'dom')
@@ -270,10 +259,10 @@ def Main(argv):
                                         '*monkey*'))
 
   # 
-  # Create and populate lib/{uri, utf8} .
+  # Create and populate lib/{json, uri, utf8} .
   #
 
-  for library in ['uri', 'utf8']:
+  for library in ['json', 'uri', 'utf8']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
