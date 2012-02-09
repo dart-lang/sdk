@@ -13,8 +13,6 @@ AbstractSyntaxTest/01: Fail
 AbstractSyntaxTest/02: Fail
 ArithmeticTest: Fail
 AssertionTest: Fail
-BadNamedParameters2Test: Fail
-BadNamedParametersTest: Fail
 BitOperationsTest: Fail
 BlackListedTest/01: Fail
 BlackListedTest/05: Fail
@@ -338,7 +336,6 @@ ToplevelCollision2Test/none: Fail
 TryCatchSyntaxTest/08: Fail
 TryCatch2Test: Fail
 TryCatch3Test: Fail
-TryCatchTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeDartcTest: Fail
 TypeVMTest: Fail
