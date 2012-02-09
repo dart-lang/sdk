@@ -83,6 +83,9 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
     case Dart_CObject::kInt64:
       EXPECT_EQ(first->value.as_int64, second->value.as_int64);
       break;
+    case Dart_CObject::kBigint:
+      EXPECT_STREQ(first->value.as_bigint, second->value.as_bigint);
+      break;
     case Dart_CObject::kDouble:
       EXPECT_EQ(first->value.as_double, second->value.as_double);
       break;
@@ -388,13 +391,18 @@ TEST_CASE(SerializeFalse) {
 }
 
 
+static uword allocator(intptr_t size) {
+  return reinterpret_cast<uword>(malloc(size));
+}
+
+
 TEST_CASE(SerializeBigint) {
   Zone zone(Isolate::Current());
 
   // Write snapshot with object content.
   uint8_t* buffer;
   SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
-  const Bigint& bigint = Bigint::Handle(Bigint::New(0xfffffffffLL));
+  const Bigint& bigint = Bigint::Handle(Bigint::New(DART_INT64_C(0xfffffffff)));
   writer.WriteObject(bigint.raw());
   writer.FinalizeBuffer();
 
@@ -405,7 +413,7 @@ TEST_CASE(SerializeBigint) {
   SnapshotReader reader(snapshot, Isolate::Current());
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
-  OS::Print("%lld", BigintOperations::ToInt64(obj));
+
   EXPECT_EQ(BigintOperations::ToInt64(bigint), BigintOperations::ToInt64(obj));
 
   // Read object back from the snapshot into a C structure.
@@ -414,7 +422,71 @@ TEST_CASE(SerializeBigint) {
                                      writer.BytesWritten(),
                                      &zone_allocator);
   // Bigint not supported.
-  EXPECT(root == NULL);
+  EXPECT_NOTNULL(root);
+  EXPECT_EQ(Dart_CObject::kBigint, root->type);
+  EXPECT_STREQ("FFFFFFFFF", root->value.as_bigint);
+  CheckEncodeDecodeMessage(root);
+}
+
+
+Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
+  // Write snapshot with object content.
+  uint8_t* buffer;
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  writer.WriteObject(bigint.raw());
+  writer.FinalizeBuffer();
+
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  Bigint& serialized_bigint = Bigint::Handle();
+  serialized_bigint ^= reader.ReadObject();
+  const char *str1 = BigintOperations::ToDecCString(bigint, allocator);
+  const char *str2 =
+      BigintOperations::ToDecCString(serialized_bigint, allocator);
+  EXPECT_STREQ(str1, str2);
+  free(const_cast<char*>(str1));
+  free(const_cast<char*>(str2));
+
+  // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
+  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
+                                     writer.BytesWritten(),
+                                     &zone_allocator);
+  // Bigint not supported.
+  EXPECT_NOTNULL(root);
+  CheckEncodeDecodeMessage(root);
+  return root;
+}
+
+
+void CheckBigint(const char* bigint_value) {
+  Zone zone(Isolate::Current());
+
+  Bigint& bigint = Bigint::Handle();
+  bigint ^= BigintOperations::NewFromCString(bigint_value);
+  Dart_CObject* bigint_cobject = SerializeAndDeserializeBigint(bigint);
+  EXPECT_EQ(Dart_CObject::kBigint, bigint_cobject->type);
+  if (bigint_value[0] == '0') {
+    EXPECT_STREQ(bigint_value + 2, bigint_cobject->value.as_bigint);
+  } else {
+    EXPECT_EQ('-', bigint_value[0]);
+    EXPECT_EQ('-', bigint_cobject->value.as_bigint[0]);
+    EXPECT_STREQ(bigint_value + 3, bigint_cobject->value.as_bigint + 1);
+  }
+}
+
+
+TEST_CASE(SerializeBigint2) {
+  CheckBigint("0x0");
+  CheckBigint("0x1");
+  CheckBigint("-0x1");
+  CheckBigint("0x11111111111111111111");
+  CheckBigint("-0x11111111111111111111");
+  CheckBigint("0x9876543210987654321098765432109876543210");
+  CheckBigint("-0x9876543210987654321098765432109876543210");
 }
 
 
@@ -1011,6 +1083,9 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       "getSmi() {\n"
       "  return 42;\n"
       "}\n"
+      "getBigint() {\n"
+      "  return -0x424242424242424242424242424242424242;\n"
+      "}\n"
       "getString() {\n"
       "  return \"Hello, world!\";\n"
       "}\n"
@@ -1033,6 +1108,13 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
                                  0,
                                  NULL);
   EXPECT_VALID(smi_result);
+  Dart_Handle bigint_result;
+  bigint_result = Dart_InvokeStatic(lib,
+                                    Dart_NewString(""),
+                                    Dart_NewString("getBigint"),
+                                    0,
+                                    NULL);
+  EXPECT_VALID(bigint_result);
   Dart_Handle string_result;
   string_result = Dart_InvokeStatic(lib,
                                     Dart_NewString(""),
@@ -1062,6 +1144,26 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kInt32, root->type);
       EXPECT_EQ(42, root->value.as_int32);
+      CheckEncodeDecodeMessage(root);
+    }
+    {
+      Zone zone(Isolate::Current());
+      uint8_t* buffer;
+      SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+      Bigint& bigint = Bigint::Handle();
+      bigint ^= Api::UnwrapHandle(bigint_result);
+      writer.WriteObject(bigint.raw());
+      writer.FinalizeBuffer();
+
+      // Read object back from the snapshot into a C structure.
+      ApiNativeScope scope;
+      Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
+                                         writer.BytesWritten(),
+                                         &zone_allocator);
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kBigint, root->type);
+      EXPECT_STREQ("-424242424242424242424242424242424242",
+                   root->value.as_bigint);
       CheckEncodeDecodeMessage(root);
     }
     {

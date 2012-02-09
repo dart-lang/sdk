@@ -573,6 +573,20 @@ void MessageWriter::WriteCObject(Dart_CObject* object) {
     case Dart_CObject::kInt64:
       WriteInt64(object);
       break;
+    case Dart_CObject::kBigint: {
+      // Write out the serialization header value for this object.
+      WriteInlinedHeader(object);
+      // Write out the class and tags information.
+      WriteObjectHeader(ObjectStore::kBigintClass, 0);
+      // Write hex string length and content
+      char* hex_string = object->value.as_bigint;
+      intptr_t len = strlen(hex_string);
+      WriteIntptrValue(len);
+      for (intptr_t i = 0; i < len; i++) {
+        Write<uint8_t>(hex_string[i]);
+      }
+      break;
+    }
     case Dart_CObject::kDouble:
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);

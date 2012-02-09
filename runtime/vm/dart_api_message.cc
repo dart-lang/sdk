@@ -88,6 +88,19 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
 }
 
 
+Dart_CObject* ApiMessageReader::AllocateDartCObjectBigint(intptr_t length) {
+  // Allocate a Dart_CObject structure followed by an array of chars
+  // for the bigint hex string content. The pointer to the bigint
+  // content is set up to this area.
+  Dart_CObject* value =
+      reinterpret_cast<Dart_CObject*>(
+          alloc_(NULL, 0, sizeof(Dart_CObject) + length + 1));
+  value->value.as_bigint = reinterpret_cast<char*>(value) + sizeof(*value);
+  value->type = Dart_CObject::kBigint;
+  return value;
+}
+
+
 Dart_CObject* ApiMessageReader::AllocateDartCObjectDouble(double val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject::kDouble);
   value->value.as_double = val;
@@ -204,6 +217,18 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       } else {
         return AllocateDartCObjectInt64(value);
       }
+      break;
+    }
+    case ObjectStore::kBigintClass: {
+      // Read in the hex string representation of the bigint.
+      intptr_t len = ReadIntptrValue();
+      Dart_CObject* object = AllocateDartCObjectBigint(len);
+      char* p = object->value.as_bigint;
+      for (intptr_t i = 0; i < len; i++) {
+        p[i] = Read<uint8_t>();
+      }
+      p[len] = '\0';
+      return object;
       break;
     }
     case ObjectStore::kDoubleClass: {

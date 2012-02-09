@@ -485,7 +485,7 @@ class MessageWriter : public BaseWriter {
   }
 
  private:
-  static const intptr_t kDartCObjectTypeBits = 3;
+  static const intptr_t kDartCObjectTypeBits = 4;
   static const intptr_t kDartCObjectTypeMask = (1 << kDartCObjectTypeBits) - 1;
   static const intptr_t kDartCObjectMarkMask = ~kDartCObjectTypeMask;
   static const intptr_t kDartCObjectMarkOffset = 1;

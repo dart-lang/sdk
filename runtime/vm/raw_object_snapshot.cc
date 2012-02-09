@@ -1177,8 +1177,19 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   // Write out the bigint value as a HEXCstring.
   ptr()->bn_.d = ptr()->data_;
   const char* str = BigintOperations::ToHexCString(&ptr()->bn_, &ZoneAllocator);
+  bool neg = false;
+  if (*str == '-') {
+    neg = true;
+    str++;
+  }
   intptr_t len = strlen(str);
-  writer->WriteIntptrValue(len-2);
+  ASSERT(len > 2 && str[0] == '0' && str[1] == 'x');
+  if (neg) {
+    writer->WriteIntptrValue(len - 1);  // Include '-' in length.
+    writer->Write<uint8_t>('-');
+  } else {
+    writer->WriteIntptrValue(len - 2);
+  }
   for (intptr_t i = 2; i < len; i++) {
     writer->Write<uint8_t>(str[i]);
   }

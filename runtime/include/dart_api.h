@@ -549,6 +549,7 @@ struct Dart_CObject {
     kBool,
     kInt32,
     kInt64,
+    kBigint,
     kDouble,
     kString,
     kArray,
@@ -562,6 +563,7 @@ struct Dart_CObject {
     int64_t as_int64;
     double as_double;
     char* as_string;
+    char* as_bigint;
     struct {
       int length;
       Dart_CObject** values;
