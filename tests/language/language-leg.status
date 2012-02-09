@@ -160,6 +160,7 @@ InterfaceTest: Fail
 IntrinsifiedMethodsTest: Fail
 IsObjectTest: Fail
 IsOperatorTest: Fail
+Issue1363Test: Fail
 Issue4157508Test: Fail
 Issue4295001Test: Fail
 Issue4515170Test: Fail
