@@ -1006,8 +1006,7 @@ class TestUtils {
     }
     if (configuration["component"] == "leg") {
       args.add("--verbose");
-      args.add("--enable_leg");
-      args.add("--leg_only");
+      args.add("--leg");
     }
     return args;
   }
