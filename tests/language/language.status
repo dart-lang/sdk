@@ -76,6 +76,7 @@ ConstructorDuplicateInitializersTest/02: Fail
 # Issue 1355
 CallOperatorTest: Fail
 
+ConstConstructorSyntaxTest/05: Fail
 GetSetSyntaxTest/04: Fail # Issue 1569
 GetSetSyntaxTest/05: Fail # Issue 1569
 GetSetSyntaxTest/06: Fail # Issue 1569
@@ -106,9 +107,10 @@ GCTest: Skip  # Takes too long.
 
 [ $component == dartc || $component == chromium ]
 AbstractSyntaxTest/01: Fail
+ConstConstructorSyntaxTest/05: Fail
+FinalSyntaxTest/none: Fail
 
 # Marked failed after code generation removed from dartc
-
 ApplicationNegativeTest: Fail    # status change with --check-only
 AssertKeywordNegativeTest: Fail    # status change with --check-only
 AssignInstanceMethodNegativeTest: Fail    # status change with --check-only
@@ -301,6 +303,7 @@ Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
+FinalSyntaxTest/none: Fail
 GetSetSyntaxTest/00: Fail # Issue 1571
 GetSetSyntaxTest/01: Fail # Issue 1571
 GetSetSyntaxTest/02: Fail # Issue 1571
@@ -423,7 +426,6 @@ StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
-TryCatch9NegativeTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
 TypeVariableBoundsTest/10: Fail

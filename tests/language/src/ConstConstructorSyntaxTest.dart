@@ -7,6 +7,7 @@ main() {
   var i0 = const I0(); /// 02: compile-time error
   var c1 = const C1();
   var c2 = const C2(); /// 03: compile-time error
+  var c3 = const C3();
 }
 
 interface I0 default C0 {
@@ -24,4 +25,11 @@ class C1 {
 
 class C2 {
   C2();
+}
+
+class C3 {
+  const C3()
+      : field = new C0() /// 05: compile-time error
+  ;
+  final field = null;
 }

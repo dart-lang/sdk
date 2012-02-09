@@ -49,7 +49,11 @@ ConstInitTest: Fail
 ConstListTest: Fail
 ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
+ConstSyntaxTest/01: Fail
+ConstSyntaxTest/02: Fail
+ConstSyntaxTest/03: Fail
 ConstTest: Fail
+Constructor2NegativeTest: Fail
 Constructor2Test: Fail
 Constructor3Test: Fail
 Constructor4Test: Fail
@@ -112,6 +116,7 @@ Field7aNegativeTest: Fail
 FieldMethodTest: Fail
 FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
+FinalSyntaxTest/none: Fail
 For2Test: Fail
 ForTest: Fail
 FunctionArgumentTest: Fail
