@@ -105,6 +105,7 @@ GCTest: Skip  # Takes too long.
 [ $component == vm && $mode == release ]
 
 [ $component == dartc || $component == chromium ]
+AbstractSyntaxTest/01: Fail
 
 # Marked failed after code generation removed from dartc
 
@@ -322,7 +323,8 @@ PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
 ThirdTest: Fail # Issue 1511
-
+TryCatchSyntaxTest/08: Fail
+TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
 
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
