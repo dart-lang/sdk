@@ -439,16 +439,21 @@ class DartGenerator(object):
       html_system._interface_system = html_interface_system
       self._systems.append(html_system)
 
-    # Render all interfaces into Dart and save them in files.
+
+    # Collect interfaces
+    interfaces = []
     for interface in database.GetInterfaces():
-
-      super_interface = None
-      super_name = interface.id
-
       if not _MatchSourceFilter(source_filter, interface):
         # Skip this interface since it's not present in the required source
         _logger.info('Omitting interface - %s' % interface.id)
         continue
+      interfaces.append(interface)
+
+    # Render all interfaces into Dart and save them in files.
+    for interface in self._PreOrderInterfaces(interfaces):
+
+      super_interface = None
+      super_name = interface.id
 
       if super_name in super_map:
         super_name = super_map[super_name]
@@ -482,6 +487,27 @@ class DartGenerator(object):
 
     for system in self._systems:
       system.Finish()
+
+
+  def _PreOrderInterfaces(self, interfaces):
+    """Returns the interfaces in pre-order, i.e. parents first."""
+    seen = set()
+    ordered = []
+    def visit(interface):
+      if interface.id in seen:
+        return
+      seen.add(interface.id)
+      for parent in interface.parents:
+        if _IsDartCollectionType(parent.type.id):
+          continue
+        if self._database.HasInterface(parent.type.id):
+          parent_interface = self._database.GetInterface(parent.type.id)
+          visit(parent_interface)
+      ordered.append(interface)
+
+    for interface in interfaces:
+      visit(interface)
+    return ordered
 
 
   def _ProcessInterface(self, interface, super_interface_name,
