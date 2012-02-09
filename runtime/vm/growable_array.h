@@ -18,15 +18,14 @@ namespace dart {
 template<typename T, typename B>
 class BaseGrowableArray : public B {
  public:
-  BaseGrowableArray() : length_(0), capacity_(0), data_(NULL), zone_(NULL) {
-    ASSERT(Isolate::Current() != NULL);
-    zone_ = Isolate::Current()->current_zone();
+  explicit BaseGrowableArray(BaseZone* zone)
+      : length_(0), capacity_(0), data_(NULL), zone_(zone) {
+    ASSERT(zone_ != NULL);
   }
 
-  explicit BaseGrowableArray(int initial_capacity)
-      : length_(0), capacity_(0), data_(NULL), zone_(NULL) {
-    ASSERT(Isolate::Current() != NULL);
-    zone_ = Isolate::Current()->current_zone();
+  BaseGrowableArray(int initial_capacity, BaseZone* zone)
+      : length_(0), capacity_(0), data_(NULL), zone_(zone) {
+    ASSERT(zone_ != NULL);
     if (initial_capacity > 0) {
       capacity_ = Utils::RoundUpToPowerOfTwo(initial_capacity);
       data_ = reinterpret_cast<T*>(zone_->Allocate(capacity_ * sizeof(T)));
@@ -76,7 +75,7 @@ class BaseGrowableArray : public B {
   int length_;
   int capacity_;
   T* data_;
-  Zone* zone_;  // Zone in which we are allocating the array.
+  BaseZone* zone_;  // Zone in which we are allocating the array.
 
   void Resize(int new_length);
 
@@ -95,9 +94,6 @@ inline void BaseGrowableArray<T, B>::Sort(
 template<typename T, typename B>
 void BaseGrowableArray<T, B>::Resize(int new_length) {
   if (new_length > capacity_) {
-    ASSERT(Isolate::Current() != NULL);
-    // Check that we allocating in the array's zone.
-    ASSERT(zone_ == Isolate::Current()->current_zone());
     int new_capacity = Utils::RoundUpToPowerOfTwo(new_length);
     T* new_data = reinterpret_cast<T*>(
         zone_->Reallocate(reinterpret_cast<uword>(data_),
@@ -115,8 +111,12 @@ template<typename T>
 class GrowableArray : public BaseGrowableArray<T, ValueObject> {
  public:
   explicit GrowableArray(int initial_capacity)
-      : BaseGrowableArray<T, ValueObject>(initial_capacity) {}
-  GrowableArray() : BaseGrowableArray<T, ValueObject>() {}
+      : BaseGrowableArray<T, ValueObject>(
+          initial_capacity,
+          Isolate::Current()->current_zone()->GetBaseZone()) {}
+  GrowableArray()
+      : BaseGrowableArray<T, ValueObject>(
+          Isolate::Current()->current_zone()->GetBaseZone()) {}
 };
 
 
@@ -124,8 +124,12 @@ template<typename T>
 class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
  public:
   explicit ZoneGrowableArray(int initial_capacity)
-      : BaseGrowableArray<T, ZoneAllocated>(initial_capacity) {}
-  ZoneGrowableArray() : BaseGrowableArray<T, ZoneAllocated>() {}
+      : BaseGrowableArray<T, ZoneAllocated>(
+          initial_capacity,
+          Isolate::Current()->current_zone()->GetBaseZone()) {}
+  ZoneGrowableArray() :
+      BaseGrowableArray<T, ZoneAllocated>(
+          Isolate::Current()->current_zone()->GetBaseZone()) {}
 };
 
 }  // namespace dart

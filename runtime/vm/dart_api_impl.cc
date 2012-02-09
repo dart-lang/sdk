@@ -28,6 +28,8 @@
 
 namespace dart {
 
+ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
+
 const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
     return func + 6;
@@ -234,6 +236,13 @@ uword Api::Reallocate(uword ptr, intptr_t old_size, intptr_t new_size) {
   ApiLocalScope* scope = state->top_scope();
   ASSERT(scope != NULL);
   return scope->zone().Reallocate(ptr, old_size, new_size);
+}
+
+
+void Api::InitOnce() {
+  ASSERT(api_native_key_ == Thread::kUnsetThreadLocalKey);
+  api_native_key_ = Thread::CreateThreadLocal();
+  ASSERT(api_native_key_ != Thread::kUnsetThreadLocalKey);
 }
 
 
@@ -2436,6 +2445,5 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
     *buffer_size = 0;
   }
 }
-
 
 }  // namespace dart

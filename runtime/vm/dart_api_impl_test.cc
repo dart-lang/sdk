@@ -2890,23 +2890,31 @@ TEST_CASE(ImportLibrary5) {
 
 void NewNativePort_send123(Dart_Port dest_port_id,
                            Dart_Port reply_port_id,
-                           uint8_t* data) {
+                           Dart_CObject *message) {
+  // Gets a null message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject::kNull, message->type);
+
   // Post integer value.
-  Dart_CObject object;
-  object.type = Dart_CObject::kInt32;
-  object.value.as_int32 = 123;
-  Dart_PostCObject(reply_port_id, &object);
+  Dart_CObject response;
+  response.type = Dart_CObject::kInt32;
+  response.value.as_int32 = 123;
+  Dart_PostCObject(reply_port_id, &response);
 }
 
 
 void NewNativePort_send321(Dart_Port dest_port_id,
                            Dart_Port reply_port_id,
-                           uint8_t* data) {
+                           Dart_CObject* message) {
+  // Gets a null message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject::kNull, message->type);
+
   // Post integer value.
-  Dart_CObject object;
-  object.type = Dart_CObject::kInt32;
-  object.value.as_int32 = 321;
-  Dart_PostCObject(reply_port_id, &object);
+  Dart_CObject response;
+  response.type = Dart_CObject::kInt32;
+  response.value.as_int32 = 321;
+  Dart_PostCObject(reply_port_id, &response);
 }
 
 

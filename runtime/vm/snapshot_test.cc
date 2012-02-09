@@ -7,6 +7,7 @@
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/snapshot.h"
 #include "vm/unit_test.h"
@@ -55,7 +56,7 @@ static uint8_t* zone_allocator(
 static Dart_CObject* DecodeMessage(uint8_t* message,
                                    intptr_t length,
                                    ReAlloc allocator) {
-  CMessageReader message_reader(message, length, allocator);
+  ApiMessageReader message_reader(message, length, allocator);
   return message_reader.ReadMessage();
 }
 
@@ -107,7 +108,6 @@ static void CheckEncodeDecodeMessage(Dart_CObject* root) {
   MessageWriter writer(&buffer, &malloc_allocator);
   writer.WriteCMessage(root);
 
-  Zone zone(Isolate::Current());
   Dart_CObject* new_root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                          writer.BytesWritten(),
                                          &zone_allocator);
@@ -135,6 +135,7 @@ TEST_CASE(SerializeNull) {
   EXPECT(Equals(null_object, serialized_object));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -163,6 +164,7 @@ TEST_CASE(SerializeSmi1) {
   EXPECT(Equals(smi, serialized_object));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -192,6 +194,7 @@ TEST_CASE(SerializeSmi2) {
   EXPECT(Equals(smi, serialized_object));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -221,6 +224,7 @@ TEST_CASE(SerializeDouble) {
   EXPECT(Equals(dbl, serialized_object));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -267,6 +271,7 @@ TEST_CASE(SerializeTrue) {
   Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -291,6 +296,7 @@ TEST_CASE(SerializeFalse) {
   Snapshot::SetupFromBuffer(buffer);
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -322,6 +328,7 @@ TEST_CASE(SerializeBigint) {
   EXPECT_EQ(BigintOperations::ToInt64(bigint), BigintOperations::ToInt64(obj));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -405,6 +412,7 @@ TEST_CASE(SerializeString) {
   EXPECT(str.Equals(serialized_str));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -440,6 +448,7 @@ TEST_CASE(SerializeArray) {
   EXPECT(array.Equals(serialized_array));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -475,6 +484,7 @@ TEST_CASE(SerializeEmptyArray) {
   EXPECT(array.Equals(serialized_array));
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -803,6 +813,7 @@ TEST_CASE(IntArrayMessage) {
   writer.WriteMessage(len, data);
 
   // Read object back from the snapshot into a C structure.
+  ApiNativeScope scope;
   Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                      writer.BytesWritten(),
                                      &zone_allocator);
@@ -892,6 +903,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       writer.FinalizeBuffer();
 
       // Read object back from the snapshot into a C structure.
+      ApiNativeScope scope;
       Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                          writer.BytesWritten(),
                                          &zone_allocator);
@@ -910,6 +922,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       writer.FinalizeBuffer();
 
       // Read object back from the snapshot into a C structure.
+      ApiNativeScope scope;
       Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
                                          writer.BytesWritten(),
                                          &zone_allocator);
@@ -962,7 +975,7 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
     DARTSCOPE_NOCHECKS(isolate);
     {
       // Generate a list of nulls from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
@@ -974,7 +987,7 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
     }
     {
       // Generate a list of ints from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getIntList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
@@ -987,7 +1000,7 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
     }
     {
       // Generate a list of strings from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
@@ -1001,7 +1014,7 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
     }
     {
       // Generate a list of objects of different types from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
@@ -1072,7 +1085,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
     {
       // Generate a list of strings from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
@@ -1086,7 +1099,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of doubles from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getDoubleList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
@@ -1100,7 +1113,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of objects of different types from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
@@ -1120,7 +1133,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of objects of different types from Dart code.
-      Zone zone(Isolate::Current());
+      ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getSelfRefList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
