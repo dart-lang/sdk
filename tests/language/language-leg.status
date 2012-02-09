@@ -40,6 +40,7 @@ ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
 ClosuresWithComplexParamsTest: Fail
+ConstConstructorSyntaxTest/none: Fail
 ConstEscapeFrogTest: Fail
 ConstFieldNegativeTest: Fail
 ConstInit4NegativeTest: Fail
@@ -49,7 +50,6 @@ ConstListTest: Fail
 ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstTest: Fail
-Constructor2NegativeTest: Fail
 Constructor2Test: Fail
 Constructor3Test: Fail
 Constructor4Test: Fail
