@@ -80,6 +80,9 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
     case Dart_CObject::kInt32:
       EXPECT_EQ(first->value.as_int32, second->value.as_int32);
       break;
+    case Dart_CObject::kInt64:
+      EXPECT_EQ(first->value.as_int64, second->value.as_int64);
+      break;
     case Dart_CObject::kDouble:
       EXPECT_EQ(first->value.as_double, second->value.as_double);
       break;
@@ -210,6 +213,76 @@ TEST_CASE(SerializeSmi2) {
   EXPECT_EQ(Dart_CObject::kInt32, root->type);
   EXPECT_EQ(smi.Value(), root->value.as_int32);
   CheckEncodeDecodeMessage(root);
+}
+
+
+Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
+  // Write snapshot with object content.
+  uint8_t* buffer;
+  SnapshotWriter writer(Snapshot::kMessage, &buffer, &zone_allocator);
+  writer.WriteObject(mint.raw());
+  writer.FinalizeBuffer();
+
+  // Create a snapshot object using the buffer.
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
+
+  // Read object back from the snapshot.
+  SnapshotReader reader(snapshot, Isolate::Current());
+  const Object& serialized_object = Object::Handle(reader.ReadObject());
+  EXPECT(serialized_object.IsMint());
+
+  // Read object back from the snapshot into a C structure.
+  Dart_CObject* root = DecodeMessage(buffer + Snapshot::kHeaderSize,
+                                     writer.BytesWritten(),
+                                     &zone_allocator);
+  EXPECT_NOTNULL(root);
+  CheckEncodeDecodeMessage(root);
+  return root;
+}
+
+
+void CheckMint(int64_t value) {
+  Zone zone(Isolate::Current());
+
+  const Mint& mint = Mint::Handle(Mint::New(value));
+  ApiNativeScope scope;
+  Dart_CObject* mint_cobject = SerializeAndDeserializeMint(mint);
+  // On 64-bit platforms mints always require 64-bits as the smi range
+  // here covers most of the 64-bit range. On 32-bit platforms the smi
+  // range covers most of the 32-bit range and values outside that
+  // range are also represented as mints.
+#if defined(ARCH_IS_64_BIT)
+  EXPECT_EQ(Dart_CObject::kInt64, mint_cobject->type);
+  EXPECT_EQ(value, mint_cobject->value.as_int64);
+#else
+  if (kMinInt32 < value && value < kMaxInt32) {
+    EXPECT_EQ(Dart_CObject::kInt32, mint_cobject->type);
+    EXPECT_EQ(value, mint_cobject->value.as_int32);
+  } else {
+    EXPECT_EQ(Dart_CObject::kInt64, mint_cobject->type);
+    EXPECT_EQ(value, mint_cobject->value.as_int64);
+  }
+#endif
+}
+
+
+TEST_CASE(SerializeMints) {
+  // Min positive mint.
+  CheckMint(Smi::kMaxValue + 1);
+  // Min positive mint + 1.
+  CheckMint(Smi::kMaxValue + 2);
+  // Max negative mint.
+  CheckMint(Smi::kMinValue - 1);
+  // Max negative mint - 1.
+  CheckMint(Smi::kMinValue - 2);
+  // Max positive mint.
+  CheckMint(kMaxInt64);
+  // Max positive mint - 1.
+  CheckMint(kMaxInt64 - 1);
+  // Min negative mint.
+  CheckMint(kMinInt64);
+  // Min negative mint + 1.
+  CheckMint(kMinInt64 + 1);
 }
 
 

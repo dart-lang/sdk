@@ -471,7 +471,7 @@ class MessageWriter : public BaseWriter {
  public:
   MessageWriter(uint8_t** buffer, ReAlloc alloc)
       : BaseWriter(buffer, alloc), object_id_(0) {
-    ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes);
+    ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes - 1);
   }
   ~MessageWriter() { }
 
@@ -496,7 +496,10 @@ class MessageWriter : public BaseWriter {
   intptr_t GetMarkedCObjectMark(Dart_CObject* object);
   void UnmarkAllCObjects(Dart_CObject* object);
 
-  void WriteSmi(int32_t value);
+  void WriteSmi(int64_t value);
+  void WriteMint(Dart_CObject* object, int64_t value);
+  void WriteInt32(Dart_CObject* object);
+  void WriteInt64(Dart_CObject* object);
   void WriteInlinedHeader(Dart_CObject* object);
   void WriteCObject(Dart_CObject* object);
 

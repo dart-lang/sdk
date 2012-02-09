@@ -502,8 +502,40 @@ void MessageWriter::UnmarkAllCObjects(Dart_CObject* object) {
 }
 
 
-void MessageWriter::WriteSmi(int32_t value) {
+void MessageWriter::WriteSmi(int64_t value) {
+  ASSERT(Smi::IsValid64(value));
   Write<RawObject*>(Smi::New(value));
+}
+
+
+void MessageWriter::WriteMint(Dart_CObject* object, int64_t value) {
+  ASSERT(!Smi::IsValid64(value));
+  // Write out the serialization header value for mint object.
+  WriteInlinedHeader(object);
+  // Write out the class and tags information.
+  WriteObjectHeader(ObjectStore::kMintClass, 0);
+  // Write the 64-bit value.
+  Write<int64_t>(value);
+}
+
+
+void MessageWriter::WriteInt32(Dart_CObject* object) {
+  int64_t value = object->value.as_int32;
+  if (Smi::IsValid64(value)) {
+    WriteSmi(value);
+  } else {
+    WriteMint(object, value);
+  }
+}
+
+
+void MessageWriter::WriteInt64(Dart_CObject* object) {
+  int64_t value = object->value.as_int64;
+  if (Smi::IsValid64(value)) {
+    WriteSmi(value);
+  } else {
+    WriteMint(object, value);
+  }
 }
 
 
@@ -535,10 +567,12 @@ void MessageWriter::WriteCObject(Dart_CObject* object) {
         WriteIndexedObject(ObjectStore::kFalseValue);
       }
       break;
-    case Dart_CObject::kInt32: {
-      WriteSmi(object->value.as_int32);
+    case Dart_CObject::kInt32:
+      WriteInt32(object);
       break;
-    }
+    case Dart_CObject::kInt64:
+      WriteInt64(object);
+      break;
     case Dart_CObject::kDouble:
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);

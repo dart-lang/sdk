@@ -81,6 +81,13 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectInt32(int32_t val) {
 }
 
 
+Dart_CObject* ApiMessageReader::AllocateDartCObjectInt64(int64_t val) {
+  Dart_CObject* value = AllocateDartCObject(Dart_CObject::kInt64);
+  value->value.as_int64 = val;
+  return value;
+}
+
+
 Dart_CObject* ApiMessageReader::AllocateDartCObjectDouble(double val) {
   Dart_CObject* value = AllocateDartCObject(Dart_CObject::kDouble);
   value->value.as_double = val;
@@ -188,6 +195,15 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
         value->value.as_array.values[i] = ReadObject();
       }
       return value;
+      break;
+    }
+    case ObjectStore::kMintClass: {
+      int64_t value = Read<int64_t>();
+      if (kMinInt32 <= value && value <= kMaxInt32) {
+        return AllocateDartCObjectInt32(value);
+      } else {
+        return AllocateDartCObjectInt64(value);
+      }
       break;
     }
     case ObjectStore::kDoubleClass: {

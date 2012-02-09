@@ -548,6 +548,7 @@ struct Dart_CObject {
     kNull = 0,
     kBool,
     kInt32,
+    kInt64,
     kDouble,
     kString,
     kArray,
@@ -558,6 +559,7 @@ struct Dart_CObject {
   union {
     bool as_bool;
     int32_t as_int32;
+    int64_t as_int64;
     double as_double;
     char* as_string;
     struct {
@@ -599,6 +601,7 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
  * data references from the message are allocated by the caller and
  * will be reclaimed when returning to it.
  */
+
 typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
                                           Dart_Port reply_port_id,
                                           Dart_CObject* message);
