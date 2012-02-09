@@ -182,7 +182,6 @@ Language/07_Classes/07_Classes_A03_t08: Fail
 Language/07_Classes/07_Classes_A03_t09: Fail
 Language/07_Classes/07_Classes_A03_t10: Fail
 Language/07_Classes/07_Classes_A03_t11: Fail
-Language/07_Classes/07_Classes_A06_t01: Fail
 Language/07_Classes/07_Classes_A07_t01: Fail
 Language/07_Classes/07_Classes_A07_t04: Fail
 Language/07_Classes/07_Classes_A07_t07: Fail
@@ -362,8 +361,6 @@ Language/07_Classes/7_Static_Variables_A06_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t02: Fail
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail
 Language/07_Classes/8_Superclasses_A02_t04: Fail
-Language/07_Classes/9_Superinterfaces_A01_t01: Fail
-Language/07_Classes/9_Superinterfaces_A02_t04: Fail
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail
 Language/07_Classes/9_Superinterfaces_A06_t01: Fail
 Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail
@@ -473,7 +470,6 @@ Language/13_Types/4_Interface_Types_A10_t07: Fail
 Language/13_Types/4_Interface_Types_A10_t08: Fail
 Language/13_Types/4_Interface_Types_A10_t09: Fail
 Language/13_Types/4_Interface_Types_A10_t11: Fail
-Language/13_Types/4_Interface_Types_A11_t03: Fail
 Language/13_Types/4_Interface_Types_A11_t04: Fail
 Language/13_Types/4_Interface_Types_A12_t06: Fail
 Language/13_Types/4_Interface_Types_A12_t07: Fail
