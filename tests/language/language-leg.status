@@ -282,6 +282,8 @@ SavannahTest: Fail
 ScopeNegativeTest: Fail
 Script1NegativeTest: Fail
 ScriptNegativeTest: Fail
+SetterDeclarationNegativeTest: Fail
+SetterDeclaration2NegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
