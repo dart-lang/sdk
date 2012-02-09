@@ -2,13 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("test_runner");
-
-#import("dart:io");
-#import("status_file_parser.dart");
-#import("test_progress.dart");
-#import("test_suite.dart");
-
 /**
  * Classes and methods for executing tests.
  *
@@ -16,10 +9,32 @@
  * - Managing parallel execution of tests, including timeout checks.
  * - Evaluating the output of each test as pass/fail/crash/timeout.
  */
+#library("test_runner");
+
+#import("dart:io");
+#import("status_file_parser.dart");
+#import("test_progress.dart");
+#import("test_suite.dart");
 
 final int NO_TIMEOUT = 0;
 
 
+/**
+ * TestCase contains all the information needed to run a test and evaluate
+ * its output.  Running a test involves starting a separate process, with
+ * the executable and arguments given by the TestCase, and recording its
+ * stdout and stderr output streams, and its exit code.  TestCase only
+ * contains static information about the test; actually running the test is
+ * performed by [ProcessQueue] using a [RunningProcess] object.
+ *
+ * The output information is stored in a [TestOutput] instance contained
+ * in the TestCase. The TestOutput instance is responsible for evaluating
+ * if the test has passed, failed, crashed, or timed out, and the TestCase
+ * has information about what the expected result of the test should be.
+ *
+ * The TestCase has a callback function, [completedHandler], that is run when
+ * the test is completed.
+ */
 class TestCase {
   String executablePath;
   List<String> arguments;
@@ -89,15 +104,21 @@ class TestCase {
 
 
 /**
- * BrowserTestCase has an extra compilation command that is run by
- * RunningProcess.start(), and it checks conditions on the test output
- * in TestOutput.didFail().
+ * BrowserTestCase has an extra compilation command that is run in a separate
+ * process, before the regular test is run as in the base class [TestCase].
+ * If the compilation command fails, then the rest of the test is not run.
  */
 class BrowserTestCase extends TestCase {
+  /**
+   * The executable that is run in a new process in the compilation phase.
+   */
   String compilerPath;
+  /**
+   * The arguments for the compilation command.
+   */
   List<String> compilerArguments;
-  /** 
-   * Indicates if this test is a rerun, to compensate for flaky browser tests. 
+  /**
+   * Indicates if this test is a rerun, to compensate for flaky browser tests.
    */
   bool isRerun;
 
@@ -127,8 +148,13 @@ class BrowserTestCase extends TestCase {
 }
 
 
+/**
+ * TestOutput records the output of a completed test: the process's exit code,
+ * the standard output and standard error, whether the process timed out, and
+ * the time the process took to run.  It also contains a pointer to the
+ * [TestCase] this is the output of.
+ */
 class TestOutput {
-  // The TestCase this is the output from.
   TestCase testCase;
   int exitCode;
   bool timedOut;
@@ -193,7 +219,16 @@ class TestOutput {
   bool get hasFailed() => (testCase.isNegative ? !didFail : didFail);
 }
 
-
+/**
+ * A RunningProcess actually runs a test, getting the command lines from
+ * its [TestCase], starting the test process (and first, a compilation
+ * process if the TestCase is a [BrowserTestCase]), creating a timeout
+ * timer, and recording the results in a new [TestOutput] object, which it
+ * attaches to the TestCase.  The lifetime of the RunningProcess is limited
+ * to the time it takes to start the process, run the process, and record
+ * the result; there are no pointers to it, so it should be available to
+ * be garbage collected as soon as it is done.
+ */
 class RunningProcess {
   Process process;
   TestCase testCase;
@@ -204,7 +239,7 @@ class RunningProcess {
   List<String> stderr;
   List<Function> handlers;
 
-  RunningProcess(this.testCase);
+  RunningProcess(TestCase this.testCase);
 
   void exitHandler(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
@@ -215,7 +250,7 @@ class RunningProcess {
       print(testCase.output.stdout);
       print(testCase.output.stderr);
     }
-    if (testCase is BrowserTestCase && testCase.output.unexpectedOutput && 
+    if (testCase is BrowserTestCase && testCase.output.unexpectedOutput &&
         !testCase.isRerun) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.isRerun = true;
@@ -237,7 +272,7 @@ class RunningProcess {
       runCommand(testCase.executablePath, testCase.arguments, exitHandler);
     }
   }
-      
+
   Function makeReadHandler(StringInputStream source, List<String> destination) {
     return () {
       if (source.closed) return;  // TODO(whesse): Remove when bug is fixed.
@@ -317,7 +352,7 @@ class DartcBatchRunnerProcess {
       _startProcess(() {
         doStartTest(testCase);
       });
-    } else if (testCase.executablePath != _executable) { 
+    } else if (testCase.executablePath != _executable) {
       // Restart this runner with the right executable for this test
       // if needed.
       _executable = testCase.executablePath;
@@ -339,7 +374,7 @@ class DartcBatchRunnerProcess {
         _process.close();
       };
       _process.kill();
-    }  
+    }
   }
 
   void doStartTest(TestCase testCase) {
@@ -410,7 +445,7 @@ class DartcBatchRunnerProcess {
       _process.exitHandler = (exitCode) {
         _process.close();
         _startProcess(() {
-          _reportResult(">>> TEST TIMEOUT");  
+          _reportResult(">>> TEST TIMEOUT");
         });
       };
       _process.kill();
@@ -431,6 +466,20 @@ class DartcBatchRunnerProcess {
 }
 
 
+/**
+ * ProcessQueue is the master control class, responsible for running all
+ * the tests in all the TestSuites that have been registered.  It includes
+ * a rate-limited queue to run a limited number of tests in parallel,
+ * a ProgressIndicator which prints output when tests are started and
+ * and completed, and a summary report when all tests are completed,
+ * and counters to determine when all of the tests in all of the test suites
+ * have completed.
+ *
+ * Because multiple configurations may be run on each test suite, the
+ * ProcessQueue contains a cache in which a test suite may record information
+ * about its list of tests, and may retrieve that information when it is called
+ * upon to enqueue its tests again.
+ */
 class ProcessQueue {
   int _numProcesses = 0;
   int _activeTestListers = 0;
@@ -466,6 +515,9 @@ class ProcessQueue {
     if (!_enqueueMoreWork(this)) _progress.allDone();
   }
 
+  /**
+   * Registers a TestSuite so that all of its tests will be run.
+   */
   void addTestSuite(TestSuite testSuite) {
     _activeTestListers++;
     testSuite.forEachTest(_runTest, _testCache, globalTemporaryDirectory,

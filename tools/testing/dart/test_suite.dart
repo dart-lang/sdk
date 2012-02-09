@@ -2,6 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Classes and methods for enumerating and preparing tests.
+ *
+ * This library includes:
+ *
+ * - Creating tests by listing all the Dart files in certain directories,
+ *   and creating [TestCase]s for those files that meet the relevant criteria.
+ * - Preparing tests, including copying files and frameworks to temporary
+ *   directories, and computing the command line and arguments to be run.
+ */
 #library("test_suite");
 
 #import("dart:io");
@@ -11,7 +21,24 @@
 
 #source("browser_test.dart");
 
+
+/**
+ * A TestSuite represents a collection of tests.  It creates a [TestCase]
+ * object for each test to be run, and passes the test cases to a callback.
+ *
+ * Most TestSuites represent a directory or directory tree containing tests,
+ * and a status file containing the expected results when these tests are run.
+ */
 interface TestSuite {
+  /**
+   * Call the callback function onTest with a [TestCase] argument for each
+   * test in the suite.  When all tests have been processed, call [onDone].
+   *
+   * The [testCache] argument provides a persistent store that can be used to
+   * cache information about the test suite, so that directories do not need
+   * to be listed each time.  If the tests require a temporary directory for
+   * their files, they can get one from [globalTempDir].
+   */
   void forEachTest(Function onTest, Map testCache, String globalTempDir(),
                    [Function onDone]);
 }
@@ -52,6 +79,14 @@ class CCTestListerIsolate extends Isolate {
 }
 
 
+/**
+ * A specialized [TestSuite] that runs tests written in C to unit test
+ * the Dart virtual machine and its API.
+ *
+ * The tests are compiled into a monolithic executable by the build step.
+ * The executable lists its tests when run with the --list command line flag.
+ * Individual tests are run by specifying them on the command line.
+ */
 class CCTestSuite implements TestSuite {
   Map configuration;
   final String suiteName;
@@ -148,6 +183,10 @@ class TestInformation {
 }
 
 
+/**
+ * A standard [TestSuite] implementation that searches for tests in a
+ * directory, and creates [TestCase]s that compile and/or run them.
+ */
 class StandardTestSuite implements TestSuite {
   Map configuration;
   String suiteName;
@@ -168,6 +207,10 @@ class StandardTestSuite implements TestSuite {
                     List<String> this.statusFilePaths)
     : dartDir = TestUtils.dartDir();
 
+  /**
+   * The default implementation assumes a file is a test if
+   * it ends in "Test.dart".
+   */
   bool isTestFile(String filename) => filename.endsWith("Test.dart");
 
   bool listRecursively() => false;
@@ -225,7 +268,7 @@ class StandardTestSuite implements TestSuite {
       if (!exists) {
         print('Directory containing tests not found: $directoryPath');
         directoryListingDone(false);
-      } else {      
+      } else {
         dir.fileHandler = processFile;
         dir.doneHandler = directoryListingDone;
         dir.list(recursive: listRecursively());
@@ -260,7 +303,7 @@ class StandardTestSuite implements TestSuite {
       // find tests in weird ways (testing that they contain "#").
       // They need to be redone.
       // TODO(1058): This does not work on Windows.
-      start = filename.indexOf(directoryPath);      
+      start = filename.indexOf(directoryPath);
       if (start != -1) {
         testName = filename.substring(start + directoryPath.length + 1);
       } else {
@@ -354,6 +397,17 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
+  /**
+   * The [StandardTestSuite] has support for testing components that
+   * compile a test from Dart to Javascript, and then run the resulting
+   * Javascript.  This function creates a working directory to hold the
+   * Javascript version of the test, and copies the appropriate framework
+   * files to that directory.  It creates a [BrowserTestCase], which has
+   * two sequential steps to be run by the [ProcessQueue when] the test is
+   * executed: a compilation
+   * step and an execution step, both with the appropriate executable and
+   * arguments.
+   */
   void enqueueBrowserTest(String filename,
                           String testName,
                           Map optionsFromFile,
@@ -416,7 +470,7 @@ class StandardTestSuite implements TestSuite {
         // the client/samples/dartcombat test to its css file, remove the
         // "../../" from this path, and move this out of the isWebTest guard.
         // Also remove getHtmlName, and just use test.html.
-        // TODO(efortuna): this shortening of htmlFilename is a band-aid until 
+        // TODO(efortuna): this shortening of htmlFilename is a band-aid until
         // the above TODO gets fixed. Windows cannot have paths that are longer
         // than 260 characters, and without this hack, we were running past the
         // the limit.
@@ -480,7 +534,7 @@ class StandardTestSuite implements TestSuite {
 
       List<String> args;
       if (component == 'webdriver') {
-        args = ['$dartDir/tools/testing/run_selenium.py', '--out=$htmlPath', 
+        args = ['$dartDir/tools/testing/run_selenium.py', '--out=$htmlPath',
             '--browser=${configuration["browser"]}'];
       } else {
         args = [
@@ -519,9 +573,23 @@ class StandardTestSuite implements TestSuite {
       configuration['component'] == 'chromium';
 
   /**
-   * Create a directory for the generated test.  Drop the path to the
-   * dart checkout and the final ".dart" from the test path, and replace
-   * all path separators with underscores.
+   * Create a directory for the generated test.  If a Dart language test
+   * needs to be run in a browser, the Dart test needs to be embedded in
+   * an HTML page, with a testing framework based on scripting and DOM events.
+   * These scripts and pages are written to a generated_test directory,
+   * usually inside the build directory of the checkout.
+   *
+   * Some tests, such as those using the dartc compiler, need to be run
+   * with an empty directory as the compiler's work directory.  These
+   * tests are copied to a subdirectory of a system-provided temporary
+   * directory, which is deleted at the end of the test run unless the
+   * --keep-temporary-files flag is given.
+   *
+   * Those tests which are already HTML web applications (web tests), with
+   * resources including CSS files and HTML files, need to be compiled into
+   * a work directory where the relative URLS to the resources work.
+   * We use a subdirectory of the build directory that is the same number
+   * of levels down in the checkout as the original path of the web test.
    */
   Directory createOutputDirectory(String testPath, String optionsName) {
     String testUniqueName =
@@ -588,7 +656,7 @@ class StandardTestSuite implements TestSuite {
   }
 
   String getHtmlName(String filename) {
-    return filename.replaceAll('/', '_').replaceAll(':', '_') 
+    return filename.replaceAll('/', '_').replaceAll(':', '_')
         + configuration['component'] + '.html';
   }
 
@@ -764,7 +832,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     filename = new File(filename).fullPathSync().replaceAll('\\', '/');
     Directory tempDir = createOutputDirectory(filename, 'dartc-test');
     return
-        [ '--fatal-warnings', '--fatal-type-errors', 
+        [ '--fatal-warnings', '--fatal-type-errors',
           '-check-only', '-out', tempDir.path];
   }
 
@@ -995,7 +1063,7 @@ class TestUtils {
   static String dartDir() {
     String scriptPath = new Options().script.replaceAll('\\', '/');
     String toolsDir = scriptPath.substring(0, scriptPath.lastIndexOf('/'));
-    return new File('$toolsDir/..').fullPathSync().replaceAll('\\', '/');    
+    return new File('$toolsDir/..').fullPathSync().replaceAll('\\', '/');
   }
 
   static List<String> standardOptions(Map configuration) {
