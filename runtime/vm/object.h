@@ -477,18 +477,19 @@ class Class : public Object {
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
 
-  // The type parameters are specified as an array of Strings.
-  // TODO(regis): Store them as an array of TypeParameter with token_index.
-  RawArray* type_parameters() const { return raw_ptr()->type_parameters_; }
-  void set_type_parameters(const Array& value) const;
+  // The type parameters are specified as an array of TypeParameter.
+  RawTypeArguments* type_parameters() const {
+      return raw_ptr()->type_parameters_;
+  }
+  void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters() const;
 
-  // Type parameters may optionally extend a Type (Dynamic if no extends).
-  // TODO(regis): Should it be Object instead of Dynamic?
-  RawTypeArguments* type_parameter_extends() const {
-    return raw_ptr()->type_parameter_extends_;
+  // Type parameter bounds (implicitly Dynamic if not explicitly specified) as
+  // an array of AbstractType.
+  RawTypeArguments* type_parameter_bounds() const {
+    return raw_ptr()->type_parameter_bounds_;
   }
-  void set_type_parameter_extends(const TypeArguments& value) const;
+  void set_type_parameter_bounds(const TypeArguments& value) const;
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
@@ -533,7 +534,6 @@ class Class : public Object {
   void set_factory_class(const Object& value) const;
 
   // Interfaces is an array of Types.
-  // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
 
@@ -941,11 +941,6 @@ class Type : public AbstractType {
   // The 'List' interface type.
   static RawType* ListInterface();
 
-  // The least specific valid raw type of the given class.
-  // For example, type A<Dynamic> would be returned for class A<T>, and type
-  // B<Dynamic, A<Dynamic>> would be returned for B<U, V extends A>.
-  static RawType* NewRawType(const Class& type_class, intptr_t token_index);
-
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
 
@@ -1097,7 +1092,7 @@ class AbstractTypeArguments : public Object {
 };
 
 
-// A TypeArguments is simply an array of Types.
+// A TypeArguments is an array of AbstractType.
 class TypeArguments : public AbstractTypeArguments {
  public:
   virtual intptr_t Length() const;

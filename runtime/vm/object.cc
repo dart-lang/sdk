@@ -810,8 +810,6 @@ RawType* Class::SignatureType() const {
     }
   }
   ASSERT(IsSignatureClass());
-  TypeArguments& signature_type_arguments = TypeArguments::Handle();
-  const intptr_t num_type_params = NumTypeParameters();
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
@@ -820,20 +818,8 @@ RawType* Class::SignatureType() const {
   // owner class of its signature function will be prepended to the type
   // argument vector. Therefore, we only need to set the type arguments
   // matching the type parameters here.
-  if (num_type_params > 0) {
-    const Array& type_params = Array::Handle(type_parameters());
-    // TODO(regis): Simply use the type parameters as type arguments, once type
-    // parameters are stored as an array of TypeParameter, rather than String.
-    signature_type_arguments = TypeArguments::New(num_type_params);
-    String& type_param_name = String::Handle();
-    AbstractType& type_param = AbstractType::Handle();
-    for (int i = 0; i < num_type_params; i++) {
-      type_param_name ^= type_params.At(i);
-      // TODO(regis): Use dummy token index 1 for now; see TODO above.
-      type_param = AbstractType::NewTypeParameter(i, type_param_name, 1);
-      signature_type_arguments.SetTypeAt(i, type_param);
-    }
-  }
+  const TypeArguments& signature_type_arguments =
+      TypeArguments::Handle(type_parameters());
   const Type& signature_type = Type::Handle(
       Type::New(*this, signature_type_arguments, token_index()));
 
@@ -927,18 +913,18 @@ void Class::set_library(const Library& value) const {
 }
 
 
-void Class::set_type_parameters(const Array& value) const {
+void Class::set_type_parameters(const TypeArguments& value) const {
   StorePointer(&raw_ptr()->type_parameters_, value.raw());
 }
 
 
-void Class::set_type_parameter_extends(const TypeArguments& value) const {
-  StorePointer(&raw_ptr()->type_parameter_extends_, value.raw());
+void Class::set_type_parameter_bounds(const TypeArguments& value) const {
+  StorePointer(&raw_ptr()->type_parameter_bounds_, value.raw());
 }
 
 
 intptr_t Class::NumTypeParameters() const {
-  const Array& type_params = Array::Handle(type_parameters());
+  const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
   if (type_params.IsNull()) {
     return 0;
   } else {
@@ -1032,13 +1018,17 @@ void Class::set_factory_class(const Object& value) const {
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
                                              intptr_t token_index) const {
   ASSERT(!type_name.IsNull());
-  const Array& type_params = Array::Handle(type_parameters());
+  const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
   if (!type_params.IsNull()) {
     intptr_t num_type_params = type_params.Length();
-    String& type_param = String::Handle();
+    TypeParameter& type_param = TypeParameter::Handle();
+    String& type_param_name = String::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
-      type_param ^= type_params.At(i);
-      if (type_param.Equals(type_name)) {
+      type_param ^= type_params.TypeAt(i);
+      type_param_name = type_param.Name();
+      if (type_param_name.Equals(type_name)) {
+        ASSERT(type_param.IsFinalized() || (type_param.Index() == i));
+        // Create a new TypeParameter with the given token_index.
         return TypeParameter::New(i, type_name, token_index);
       }
     }
@@ -1065,7 +1055,7 @@ void Class::CalculateFieldOffsets() const {
   }
   // If the super class is parameterized, use the same type_arguments field.
   if (type_args_field_offset == kNoTypeArguments) {
-    const Array& type_params = Array::Handle(type_parameters());
+    const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
     if (!type_params.IsNull()) {
       ASSERT(type_params.Length() > 0);
       // The instance needs a type_arguments field.
@@ -1175,8 +1165,8 @@ RawClass* Class::NewSignatureClass(const String& name,
   ASSERT(!signature_function.IsNull());
   const Class& owner_class = Class::Handle(signature_function.owner());
   ASSERT(!owner_class.IsNull());
-  Array& type_parameters = Array::Handle();
-  TypeArguments& type_parameter_extends = TypeArguments::Handle();
+  TypeArguments& type_parameters = TypeArguments::Handle();
+  TypeArguments& type_parameter_bounds = TypeArguments::Handle();
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
@@ -1184,7 +1174,7 @@ RawClass* Class::NewSignatureClass(const String& name,
     if ((owner_class.NumTypeParameters() > 0) &&
         !signature_function.HasInstantiatedSignature()) {
       type_parameters = owner_class.type_parameters();
-      type_parameter_extends = owner_class.type_parameter_extends();
+      type_parameter_bounds = owner_class.type_parameter_bounds();
     }
   }
   const intptr_t token_index = signature_function.token_index();
@@ -1194,7 +1184,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
-  result.set_type_parameter_extends(type_parameter_extends);
+  result.set_type_parameter_bounds(type_parameter_bounds);
   result.SetFields(Array::Handle(Array::Empty()));
   result.SetFunctions(Array::Handle(Array::Empty()));
   // Implements interface "Function".
@@ -1458,10 +1448,8 @@ bool Class::IsMoreSpecificThan(
           // The index of the type parameters is adjusted upon finalization.
           ASSERT(interface.IsFinalized());
           interface_args = interface_args.InstantiateFrom(type_arguments);
-          // TODO(regis): Check the subtyping constraints if any, i.e. if
-          // interface.type_parameter_extends() is not an array of DynamicType.
-          // Should we pass the constraints to InstantiateFrom and it would
-          // return null on failure?
+          // TODO(regis): Do we have to consider the bounds of the type
+          // parameters of the interface?
         }
       }
       if (interface_class.IsMoreSpecificThan(interface_args,
@@ -2175,13 +2163,6 @@ RawType* Type::ListInterface() {
 }
 
 
-RawType* Type::NewRawType(const Class& type_class, intptr_t token_index) {
-  const AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(type_class.type_parameter_extends());
-  return New(Object::Handle(type_class.raw()), type_arguments, token_index);
-}
-
-
 RawType* Type::NewNonParameterizedType(
     const Class& type_class) {
   ASSERT(!type_class.HasTypeArguments());
@@ -2431,9 +2412,14 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   if (!other.IsTypeParameter()) {
     return false;
   }
-  TypeParameter& other_type_parameter = TypeParameter::Handle();
-  other_type_parameter ^= other.raw();
-  return Index() == other_type_parameter.Index();
+  TypeParameter& other_type_param = TypeParameter::Handle();
+  other_type_param ^= other.raw();
+  if (Index() != other_type_param.Index()) {
+    return false;
+  }
+  const String& name = String::Handle(Name());
+  const String& other_type_param_name = String::Handle(other_type_param.Name());
+  return name.Equals(other_type_param_name);
 }
 
 
@@ -2604,8 +2590,12 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 
 
 bool AbstractTypeArguments::Equals(const AbstractTypeArguments& other) const {
+  ASSERT(!IsNull());  // Use AbstractTypeArguments::AreEqual().
   if (this->raw() == other.raw()) {
     return true;
+  }
+  if (other.IsNull()) {
+    return false;
   }
   intptr_t num_types = Length();
   if (num_types != other.Length()) {
@@ -3494,22 +3484,22 @@ RawString* Function::BuildSignature(
     const String& kRAngleBracket = String::Handle(String::NewSymbol(">"));
     const Class& function_class = Class::Handle(owner());
     ASSERT(!function_class.IsNull());
-    const Array& type_parameters = Array::Handle(
+    const TypeArguments& type_parameters = TypeArguments::Handle(
         function_class.type_parameters());
     if (!type_parameters.IsNull()) {
       intptr_t num_type_parameters = type_parameters.Length();
       pieces.Add(&kLAngleBracket);
-      const TypeArguments& type_parameter_extends = TypeArguments::Handle(
-          function_class.type_parameter_extends());
-      AbstractType& parameter_extends = AbstractType::Handle();
+      const TypeArguments& bounds = TypeArguments::Handle(
+          function_class.type_parameter_bounds());
+      AbstractType& type_parameter = AbstractType::Handle();
+      AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
-        String& type_parameter = String::ZoneHandle();
-        type_parameter ^= type_parameters.At(i);
-        pieces.Add(&type_parameter);
-        parameter_extends = type_parameter_extends.TypeAt(i);
-        if (!parameter_extends.IsNull() && !parameter_extends.IsDynamicType()) {
+        type_parameter ^= type_parameters.TypeAt(i);
+        pieces.Add(&String::ZoneHandle(type_parameter.Name()));
+        bound = bounds.TypeAt(i);
+        if (!bound.IsNull() && !bound.IsDynamicType()) {
           pieces.Add(&kSpaceExtendsSpace);
-          pieces.Add(&String::ZoneHandle(parameter_extends.Name()));
+          pieces.Add(&String::ZoneHandle(bound.Name()));
         }
         if (i < num_type_parameters - 1) {
           pieces.Add(&kCommaSpace);
