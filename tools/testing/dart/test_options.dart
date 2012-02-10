@@ -426,6 +426,7 @@ is 'dart file.dart' and you specify special command
         case 'chromium':
         case 'dartium':
         case 'frogium':
+        case 'webdriver':
           timeout *= 4;
           break;
         case 'leg':

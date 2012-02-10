@@ -495,7 +495,6 @@ class StandardTestSuite implements TestSuite {
           '$filePrefix$dartDir/client/testing/unittest/test_controller.js',
           scriptType,
           filePrefix + scriptPath));
-      htmlTest.flushSync();
       htmlTest.closeSync();
 
       List<String> compilerArgs = TestUtils.standardOptions(configuration);
@@ -535,6 +534,7 @@ class StandardTestSuite implements TestSuite {
       List<String> args;
       if (component == 'webdriver') {
         args = ['$dartDir/tools/testing/run_selenium.py', '--out=$htmlPath',
+            '--timeout=${configuration["timeout"] - 2}',
             '--browser=${configuration["browser"]}'];
       } else {
         args = [

@@ -162,10 +162,16 @@ class TestOutput {
   List<String> stdout;
   List<String> stderr;
   Duration time;
+  /** 
+   * Set to true if we encounter a condition in the output that indicates we 
+   * need to rerun this test. 
+   */
+  bool requestRetry;
 
   TestOutput(this.testCase, this.exitCode, this.timedOut, this.stdout,
              this.stderr, this.time) {
     testCase.output = this;
+    requestRetry = false;
   }
 
   String get result() =>
@@ -209,7 +215,8 @@ class TestOutput {
       if (line.contains('Gtk-WARNING **: cannot open display: :99')) {
         // If we get the X server error, return the expected value
         // We cannot restart the test from here.  Issue dart:1135 is filed.
-        return testCase.isNegative;
+        requestRetry = true;
+        return true;
       }
     }
     return true;
@@ -247,14 +254,20 @@ class RunningProcess {
     process.close();
     timeoutTimer.cancel();
     if (testCase.output.unexpectedOutput && testCase.configuration['verbose']) {
-      print(testCase.output.stdout);
-      print(testCase.output.stderr);
+      print(testCase.displayName);
+      for (var line in testCase.output.stderr) print(line);
+      for (var line in testCase.output.stdout) print(line);
     }
     if (testCase is BrowserTestCase && testCase.output.unexpectedOutput &&
         !testCase.isRerun) {
       // Selenium tests can be flaky. Try rerunning.
-      testCase.isRerun = true;
+      testCase.output.requestRetry = true;
+    }
+    if (testCase.output.requestRetry) {
+      testCase.output.requestRetry = false;
       this.timedOut = false;
+      testCase.isRerun = true;
+      print("Potential flake. Re-running " + testCase.displayName);
       this.start();
     } else {
       testCase.completed();
