@@ -58,7 +58,7 @@ class _SocketBase {
 
           // Don't call the in handler if there is no data available
           // after all.
-          if ((i == _IN_EVENT) && (this is _Socket) && (available() == 0)) {
+          if (i == _IN_EVENT && this is _Socket && available() == 0) {
             continue;
           }
           eventHandler();
@@ -132,34 +132,28 @@ class _SocketBase {
   }
 
   void _closeWrite() {
-    if (_id >= 0) {
-      if (_closedRead) {
-        _close();
-      } else {
-        _sendToEventHandler(1 << _SHUTDOWN_WRITE_COMMAND);
-      }
-      _closedWrite = true;
+    if (_closedRead) {
+      _close();
+    } else {
+      _sendToEventHandler(1 << _SHUTDOWN_WRITE_COMMAND);
     }
+    _closedWrite = true;
   }
 
   void _closeRead() {
-    if (_id >= 0) {
-      if (_closedWrite) {
-        _close();
-      } else {
-        _sendToEventHandler(1 << _SHUTDOWN_READ_COMMAND);
-      }
-      _closedRead = true;
+    if (_closedWrite) {
+      _close();
+    } else {
+      _sendToEventHandler(1 << _SHUTDOWN_READ_COMMAND);
     }
+    _closedRead = true;
   }
 
   void _close() {
-    if (_id >= 0) {
-      _sendToEventHandler(1 << _CLOSE_COMMAND);
-      _handler.close();
-      _handler = null;
-      _id = -1;
-    }
+    _sendToEventHandler(1 << _CLOSE_COMMAND);
+    _handler.close();
+    _handler = null;
+    _id = -1;
   }
 
   void _sendToEventHandler(int data) {
@@ -167,7 +161,6 @@ class _SocketBase {
       _handler = new ReceivePort();
       _handler.receive((var message, ignored) { _multiplex(message); });
     }
-    assert(_id >= 0);
     _EventHandler._sendData(_id, _handler, data);
   }
 

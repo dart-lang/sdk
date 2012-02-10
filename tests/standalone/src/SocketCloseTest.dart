@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=
-// VMOptions=--short_socket_read
-// VMOptions=--short_socket_write
-// VMOptions=--short_socket_read --short_socket_write
-//
 // Test socket close events.
 
 #import("dart:io");
@@ -101,15 +96,6 @@ class SocketClose {
       _socket.closeHandler = closeHandler;
       _socket.errorHandler = errorHandler;
 
-      void writeHello() {
-        int bytesWritten = 0;
-        while (bytesWritten != 5) {
-          bytesWritten += _socket.writeList("Hello".charCodes(),
-                                            bytesWritten,
-                                            5 - bytesWritten);
-        }
-      }
-
       _iterations++;
       switch (_mode) {
         case 0:
@@ -117,23 +103,28 @@ class SocketClose {
           proceed();
           break;
         case 1:
-          writeHello();
+          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
+          Expect.equals(5, bytesWritten);
           _socket.close();
           proceed();
           break;
         case 2:
         case 3:
-          writeHello();
+          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
+          Expect.equals(5, bytesWritten);
           break;
         case 4:
-          writeHello();
+          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
+          Expect.equals(5, bytesWritten);
           _socket.close(true);
           break;
         case 5:
-          writeHello();
+          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
+          Expect.equals(5, bytesWritten);
           break;
         case 6:
-          writeHello();
+          int bytesWritten = _socket.writeList("Hello".charCodes(), 0, 5);
+          Expect.equals(5, bytesWritten);
           _socket.close(true);
           break;
         default:
@@ -212,47 +203,35 @@ class SocketCloseServer extends Isolate {
         }
       }
 
-      void writeHello() {
-        int bytesWritten = 0;
-        while (bytesWritten != 5) {
-          bytesWritten += connection.writeList("Hello".charCodes(),
-                                               bytesWritten,
-                                               5 - bytesWritten);
-        }
-      }
-
       void dataHandler() {
+        _dataEvents++;
         switch (_mode) {
           case 0:
             Expect.fail("No data expected");
             break;
           case 1:
-            readBytes(() { _dataEvents++; });
+            readBytes(() { });
             break;
           case 2:
             readBytes(() {
-              _dataEvents++;
               connection.close();
             });
             break;
           case 3:
             readBytes(() {
-              _dataEvents++;
-              writeHello();
+              connection.writeList("Hello".charCodes(), 0, 5);
               connection.close();
             });
             break;
           case 4:
             readBytes(() {
-              _dataEvents++;
-              writeHello();
+              connection.writeList("Hello".charCodes(), 0, 5);
             });
             break;
           case 5:
           case 6:
             readBytes(() {
-              _dataEvents++;
-              writeHello();
+              connection.writeList("Hello".charCodes(), 0, 5);
               connection.close(true);
             });
             break;
