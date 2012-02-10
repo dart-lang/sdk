@@ -138,12 +138,26 @@ void Mutex::Unlock() {
 
 Monitor::Monitor() {
   InitializeCriticalSection(&data_.cs_);
-  InitializeConditionVariable(&data_.cond_);
+  // Create auto-reset event used to implement Notify. Auto-reset
+  // events only wake one thread waiting for them on SetEvent.
+  data_.notify_event_ = CreateEvent(NULL, FALSE, FALSE, NULL);
+  // Create manual-reset event used to implement
+  // NotifyAll. Manual-reset events wake all threads waiting for them
+  // on SetEvent.
+  data_.notify_all_event_ = CreateEvent(NULL, TRUE, FALSE, NULL);
+  if ((data_.notify_event_ == NULL) || (data_.notify_all_event_ == NULL)) {
+    FATAL("Failed allocating event object for monitor");
+  }
+  InitializeCriticalSection(&data_.waiters_cs_);
+  data_.waiters_ = 0;
 }
 
 
 Monitor::~Monitor() {
   DeleteCriticalSection(&data_.cs_);
+  CloseHandle(data_.notify_event_);
+  CloseHandle(data_.notify_all_event_);
+  DeleteCriticalSection(&data_.waiters_cs_);
 }
 
 
@@ -159,38 +173,81 @@ void Monitor::Exit() {
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
   Monitor::WaitResult retval = kNotified;
+
+  // Record the fact that we will start waiting. This is used to only
+  // reset the notify all event when all waiting threads have dealt
+  // with the event.
+  EnterCriticalSection(&data_.waiters_cs_);
+  data_.waiters_++;
+  LeaveCriticalSection(&data_.waiters_cs_);
+
+  // Leave the monitor critical section while waiting.
+  LeaveCriticalSection(&data_.cs_);
+
+  // Perform the actual wait using wait for multiple objects on both
+  // the notify and the notify all events.
+  static const intptr_t kNotifyEventIndex = 0;
+  static const intptr_t kNotifyAllEventIndex = 1;
+  static const intptr_t kNumberOfEvents = 2;
+  HANDLE events[kNumberOfEvents];
+  events[kNotifyEventIndex] = data_.notify_event_;
+  events[kNotifyAllEventIndex] = data_.notify_all_event_;
+
+  DWORD result = WAIT_FAILED;
   if (millis == 0) {
-    // Wait forever.
-    BOOL result = SleepConditionVariableCS(&data_.cond_, &data_.cs_, INFINITE);
-    if (result == 0) {
+    // Wait forever for a Notify or a NotifyAll event.
+    result = WaitForMultipleObjects(2, events, FALSE, INFINITE);
+    if (result == WAIT_FAILED) {
       FATAL("Monitor::Wait failed");
     }
   } else {
-    BOOL result = SleepConditionVariableCS(&data_.cond_, &data_.cs_, millis);
-    if (result == 0) {
-      DWORD error = GetLastError();
-      // Windows condition variables should set error to WAIT_TIMEOUT
-      // but occationally sets it to ERROR_TIMEOUT for timeouts. On
-      // Windows 7 it seems to pretty consistently set it to
-      // ERROR_TIMEOUT.
-      if ((error == WAIT_TIMEOUT) || (error == ERROR_TIMEOUT)) {
-        retval = kTimedOut;
-      } else {
-        FATAL("Monitor::Wait failed");
-      }
+    // Wait for the given period of time for a Notify or a NotifyAll
+    // event.
+    result = WaitForMultipleObjects(2, events, FALSE, millis);
+    if (result == WAIT_FAILED) {
+      FATAL("Monitor::Wait with timeout failed");
+    }
+    if (result == WAIT_TIMEOUT) {
+      retval = kTimedOut;
     }
   }
+
+  // Check if we are the last waiter on a notify all. If we are, reset
+  // the notify all event.
+  EnterCriticalSection(&data_.waiters_cs_);
+  data_.waiters_--;
+  if ((data_.waiters_ == 0) &&
+      (result == (WAIT_OBJECT_0 + kNotifyAllEventIndex))) {
+    ResetEvent(data_.notify_all_event_);
+  }
+  LeaveCriticalSection(&data_.waiters_cs_);
+
+  // Reacquire the monitor critical section before continuing.
+  EnterCriticalSection(&data_.cs_);
+
   return retval;
 }
 
 
 void Monitor::Notify() {
-  WakeConditionVariable(&data_.cond_);
+  // Signal one waiter through the notify auto-reset event if there
+  // are any waiters.
+  EnterCriticalSection(&data_.waiters_cs_);
+  if (data_.waiters_ > 0) {
+    SetEvent(data_.notify_event_);
+  }
+  LeaveCriticalSection(&data_.waiters_cs_);
 }
 
 
 void Monitor::NotifyAll() {
-  WakeAllConditionVariable(&data_.cond_);
+  // Signal all waiters through the notify all manual-reset event if
+  // there are any waiters.
+  EnterCriticalSection(&data_.waiters_cs_);
+  if (data_.waiters_ > 0) {
+    SetEvent(data_.notify_all_event_);
+  }
+  LeaveCriticalSection(&data_.waiters_cs_);
 }
 
 }  // namespace dart

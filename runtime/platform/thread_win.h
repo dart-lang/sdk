@@ -54,11 +54,23 @@ class MonitorData {
   ~MonitorData() {}
 
   CRITICAL_SECTION cs_;
-  // TODO(ager): Condition variables only available since Windows
-  // Vista. Therefore, this is only a temporary solution. We will have
-  // to implement simple condition variables for use in Windows XP and
-  // earlier.
-  CONDITION_VARIABLE cond_;
+
+  // Condition variables are only available since Windows Vista. To
+  // support at least Windows XP, we implement our own condition
+  // variables using SetEvent on Event objects.
+
+  // The notify_event_ is an auto-reset event which means that
+  // SetEvent only wakes up one waiter.
+  HANDLE notify_event_;
+
+  // The notify_all_event_ is a manual-reset event which means that
+  // SetEvent wakes up all waiters.
+  HANDLE notify_all_event_;
+
+  // Counter with protection used to determine the right time to reset
+  // the notify_all_event_.
+  CRITICAL_SECTION waiters_cs_;
+  intptr_t waiters_;
 
   friend class Monitor;
 
