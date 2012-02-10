@@ -43,6 +43,10 @@ UnicodeTest: Fail
 [ $component == webdriver && $browser == safari ]
 FuturesTest: Fail
 
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $component == webdriver && $browser == opera ]
+*: Skip
+
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 

@@ -480,6 +480,10 @@ Prefix15Test: Fail
 ToStringAsFixedTest: Pass,Fail # Passes in 32-bit Safari, but fails in 64-bit Issue #1220
 GCTest: Fail
 
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $component == webdriver && $browser == opera ]
+*: Skip
+
 [ $component == webdriver && $browser == ff ]
 NamingTest: Fail
 StackOverflowTest: Fail

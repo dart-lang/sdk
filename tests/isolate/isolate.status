@@ -47,6 +47,10 @@ PromiseBasedTest: Skip
 [ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
 *: Skip
 
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $component == webdriver && $browser == opera ]
+*: Skip
+
 [ $component == leg ]
 # TODO(ahe): Enable when leg matures.
 *: Skip

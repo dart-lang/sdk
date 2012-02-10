@@ -84,3 +84,7 @@ samples/smoketest/dartWebBase_tests: Fail
 
 [ $component == frogsh ]
 *: Skip
+
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $component == webdriver && $browser == opera ]
+*: Skip
