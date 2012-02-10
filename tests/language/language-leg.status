@@ -15,6 +15,7 @@ ArithmeticTest: Fail
 AssertionTest: Fail
 BitOperationsTest: Fail
 BlackListedTest/01: Fail
+BlackListedTest/03: Fail
 BlackListedTest/05: Fail
 BlackListedTest/07: Fail
 BlackListedTest/09: Fail
@@ -84,7 +85,6 @@ DynamicTest: Fail
 EmptyBlockCaseTest: Fail
 EmptyBodyMemberNegativeTest: Fail
 ExampleConstructorTest: Fail
-ExceptionTest: Fail
 ExecuteFinally1Test: Fail
 ExecuteFinally2Test: Fail
 ExecuteFinally3Test: Fail
@@ -218,6 +218,7 @@ NonParameterizedFactoryTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
+NumberIdentifierNegativeTest: Fail
 NumberSyntaxTest: Fail
 NumbersTest: Fail
 ObjectDynamicMethodTest: Fail
