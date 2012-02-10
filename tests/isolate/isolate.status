@@ -28,7 +28,8 @@ StaticStateTest: Fail         # Bug 5401734
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
 
-[ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari)) ]
+# TODO(jmesserly): investigate why these are flaky on actual browsers
+[ $component == frogium || $component == webdriver ]
 NestedSpawn2Test: Skip
 NestedSpawnTest: Skip
 IsolateNegativeTest: Skip
