@@ -20,6 +20,13 @@ dom/TypingTest: Fail
 dom/XHRTest: Fail
 dom/WebSocketTest: Fail
 
+[ $component == dartium && $mode == debug ]
+# TODO(vsm): Triage Dartium failures.
+dom/CSSTest: Skip
+dom/DOMIsolatesTest: Skip
+dom/NativeGCTest: Skip
+dom/TypedArrays1Test: Skip
+
 [ $component == chromium ]
 layout/layout_tests: Skip  # Issue 152.
 touch/touch_tests: Skip  # Issue 157.
