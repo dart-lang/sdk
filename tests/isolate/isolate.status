@@ -9,6 +9,7 @@ Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 
 [ $component == dartium || $component == vm ]
 SerializationTest: Skip  # DartC test (uses coreimpl).
+*APIv2*: Skip # new api for isolates not implemented in the VM yet.
 
 [ $component == dartc ]
 IsolateNegativeTest: Fail    # status change with --check-only
@@ -27,6 +28,15 @@ StaticStateTest: Fail         # Bug 5401734
 
 [ $arch == chromium ]
 MandelIsolateTest: Skip     # Bug 5353937.
+*APIv2*: Skip # not supported
+
+[ $component == frog || $component == frogsh ]
+*BrowserTest: Skip
+*BrowserNegativeTest: Skip
+
+[ $component == frogium || $component == webdriver ]
+*StandaloneTest: Skip
+*StandaloneNegativeTest: Skip
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
 [ $component == frogium || $component == webdriver ]

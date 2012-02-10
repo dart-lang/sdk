@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Dart core library.
+// TODO(sigmund): move to dart:isolate
 
 /**
  * [SendPort]s are created from [ReceivePort]s. Any message sent through
@@ -110,6 +111,7 @@ interface ReceivePort default ReceivePortFactory {
  * whereas "light" isolates live in the same thread as the isolate which spawned
  * them.
  */
+// TODO(sigmund): delete once we implement the new isolates in the vm
 class Isolate {
 
   /**

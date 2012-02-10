@@ -7,13 +7,13 @@
 #library('NestedSpawnTest');
 #import('TestFramework.dart');
 
-class Isolate1 extends Isolate {
-  Isolate1() : super.heavy();
+class IsolateA extends Isolate {
+  IsolateA() : super.heavy();
 
   void main() {
     this.port.receive((msg, replyTo) {
       Expect.equals("launch nested!", msg);
-      new Isolate2().spawn().then((SendPort p) {
+      new IsolateB().spawn().then((SendPort p) {
         p.call("alive?").receive((msg, ignored) {
           Expect.equals("and kicking", msg);
           replyTo.send(499, null);
@@ -24,8 +24,8 @@ class Isolate1 extends Isolate {
   }
 }
 
-class Isolate2 extends Isolate {
-  Isolate2() : super.heavy();
+class IsolateB extends Isolate {
+  IsolateB() : super.heavy();
 
   void main() {
     this.port.receive((msg, replyTo) {
@@ -37,7 +37,7 @@ class Isolate2 extends Isolate {
 }
 
 test(TestExpectation expect) {
-  expect.completes(new Isolate1().spawn()).then((SendPort port) {
+  expect.completes(new IsolateA().spawn()).then((SendPort port) {
     port.call("launch nested!").receive(expect.runs2((msg, ignored) {
       Expect.equals(499, msg);
       expect.succeeded();
