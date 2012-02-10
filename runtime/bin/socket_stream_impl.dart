@@ -4,6 +4,7 @@
 
 class _SocketInputStream implements SocketInputStream {
   _SocketInputStream(Socket socket) : _socket = socket {
+    if (_socket._id == -1) _closed = true;
     _socket.closeHandler = _closeHandler;
   }
 
@@ -51,7 +52,6 @@ class _SocketInputStream implements SocketInputStream {
   void close() {
     if (!_closed) {
       _socket.close();
-      if (_clientCloseHandler !== null) _clientCloseHandler();
     }
   }
 
@@ -72,7 +72,9 @@ class _SocketInputStream implements SocketInputStream {
 
   void _closeHandler() {
     _closed = true;
-    if (_clientCloseHandler !== null) _clientCloseHandler();
+    if (_clientCloseHandler !== null) {
+      _clientCloseHandler();
+    }
   }
 
   Socket _socket;
@@ -118,10 +120,6 @@ class _SocketOutputStream implements SocketOutputStream {
     if (_noPendingWriteHandler != null) {
       _socket._writeHandler = _writeHandler;
     }
-  }
-
-  void set closeHandler(void callback()) {
-    _socket.closeHandler = callback;
   }
 
   void set errorHandler(void callback()) {
