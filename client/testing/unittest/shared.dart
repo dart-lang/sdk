@@ -11,9 +11,9 @@ String _currentGroup = '';
 /** Tests executed in this suite. */
 List<TestCase> _tests;
 
-/** 
+/**
  * Callback used to run tests. Entrypoints can replace this with their own
- * if they want. 
+ * if they want.
  */
 Function _testRunner;
 
@@ -99,7 +99,7 @@ void serialInvokeAsync(List closures) {
     }
     window.setTimeout(invokeNext, 0);
   }
-} 
+}
 
 /**
  * Creates a new named group of tests. Calls to group() or test() within the
@@ -244,7 +244,7 @@ _ensureInitialized() {
   _currentGroup = '';
   _state = _READY;
   _testRunner = _nextBatch;
-  
+
   _platformInitialize();
 
   // Immediately queue the suite up. It will run after a timeout (i.e. after
@@ -263,8 +263,14 @@ class Expectation {
 
   /** Asserts that the value is equivalent to [expected]. */
   void equals(expected) {
+    // Use the type-specialized versions when appropriate to give better
+    // error messages.
     if (_value is String && expected is String) {
       Expect.stringEquals(expected, _value);
+    } else if (_value is Map && expected is Map) {
+      Expect.mapEquals(expected, _value);
+    } else if (_value is Set && expected is Set) {
+      Expect.setEquals(expected, _value);
     } else {
       Expect.equals(expected, _value);
     }
@@ -338,13 +344,13 @@ class TestCase {
 
   /** Stack trace associated with this test, or null if it succeeded. */
   String stackTrace;
-  
+
   Date startTime;
-  
+
   Duration runningTime;
 
   TestCase(this.id, this.description, this.test, this.callbacks);
-  
+
   bool get isComplete() => result != null;
 
   void pass() {

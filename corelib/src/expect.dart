@@ -116,6 +116,30 @@ class Expect {
     }
   }
 
+  /**
+   * Checks that all [expected] and [actual] have the same set of keys (using
+   * the semantics of [Map.containsKey] to determine what "same" means. For
+   * each key, checks that the values in both maps are equal using [:==:].
+   */
+  static void mapEquals(Map expected, Map actual, [String reason = null]) {
+    String msg = _getMessage(reason);
+
+    // Make sure all of the values are present in both and match.
+    for (final key in expected.getKeys()) {
+      if (!actual.containsKey(key)) {
+        _fail('Expect.mapEquals(missing expected key: <$key>$msg) fails');
+      }
+
+      Expect.equals(expected[key], actual[key]);
+    }
+
+    // Make sure the actual map doesn't have any extra keys.
+    for (final key in actual.getKeys()) {
+      if (!expected.containsKey(key)) {
+        _fail('Expect.mapEquals(unexpected key: <$key>$msg) fails');
+      }
+    }
+  }
 
   /**
    * Specialized equality test for strings. When the strings don't match,

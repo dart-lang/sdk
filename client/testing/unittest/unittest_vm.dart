@@ -5,9 +5,10 @@
 /**
  * A simple unit test library for running tests on the VM.
  */
-#library("unittest");
+#library('unittest');
 
-#source("shared.dart");
+#import('dart:io');
+#source('shared.dart');
 
 _platformInitialize() {
   // Do nothing.
