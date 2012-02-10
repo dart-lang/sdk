@@ -5134,83 +5134,77 @@ RawError* Parser::FormatError(const Script& script,
                               const char* message_header,
                               const char* format,
                               va_list args) {
-  const String& msg = String::Handle(
-      FormatMessage(script, token_index, message_header, format, args));
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
+  FormatMessage(script, token_index, message_header,
+                message_buffer, kMessageBufferSize,
+                format, args);
+  const String& msg = String::Handle(String::New(message_buffer));
   return LanguageError::New(msg);
 }
 
 
-static RawString* VFormatMessageHelper(const char* format, va_list args) {
-  Zone* zone = Isolate::Current()->current_zone();
-  va_list args2;
-  va_copy(args2, args);
-  int msg_len = OS::VSNPrint(NULL, 0, format, args2) + 1;
-  va_end(args2);
-  char* chars = reinterpret_cast<char*>(zone->Allocate(msg_len));
-  OS::VSNPrint(chars, msg_len, format, args);
-  return String::New(chars);
-}
-
-
-static RawString* FormatMessageHelper(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const String& result = String::Handle(VFormatMessageHelper(format, args));
-  va_end(args);
-  return result.raw();
-}
-
-
 // Static.
-RawString* Parser::FormatMessage(const Script& script,
-                                 intptr_t token_index,
-                                 const char* message_header,
-                                 const char* format, va_list args) {
-  Zone* zone = Isolate::Current()->current_zone();
-  String& message = String::Handle();
-
+void Parser::FormatMessage(const Script& script,
+                           intptr_t token_index,
+                           const char* message_header,
+                           char* message_buffer,
+                           intptr_t message_buffer_size,
+                           const char* format, va_list args) {
+  intptr_t msg_len = 0;
   if (!script.IsNull()) {
     const String& script_url = String::CheckedHandle(script.url());
-    String& msg_part = String::Handle();
-    // Prepend the script to the message with the format "'%s'".
-    msg_part = String::New("'");
-    message = String::Concat(msg_part, script_url);
-    message = String::Concat(message, msg_part);
-
     if (token_index >= 0) {
       intptr_t line, column;
       script.GetTokenLocation(token_index, &line, &column);
-      msg_part = FormatMessageHelper(": %s: line %d pos %d: ",
-                                     message_header, line, column);
-      message = String::Concat(message, msg_part);
-
-      // Append the formatted error or warning message.
-      msg_part = VFormatMessageHelper(format, args);
-      message = String::Concat(message, msg_part);
-
-      // Append the source line.
-      const String& script_line = String::Handle(script.GetLine(line));
-      ASSERT(!script_line.IsNull());
-      msg_part = String::New("\n");
-      message = String::Concat(message, msg_part);
-      message = String::Concat(message, script_line);
-      msg_part = FormatMessageHelper("\n%*s\n", column, "^");
-      message = String::Concat(message, msg_part);
+      msg_len += OS::SNPrint(message_buffer + msg_len,
+                             message_buffer_size - msg_len,
+                             "'%s': %s: line %d pos %d: ",
+                             script_url.ToCString(),
+                             message_header,
+                             line,
+                             column);
+      if (msg_len < message_buffer_size) {
+        // Append the formatted error or warning message.
+        msg_len += OS::VSNPrint(message_buffer + msg_len,
+                                message_buffer_size - msg_len,
+                                format,
+                                args);
+        if (msg_len < message_buffer_size) {
+          // Append the source line.
+          const String& script_line = String::Handle(script.GetLine(line));
+          ASSERT(!script_line.IsNull());
+          msg_len += OS::SNPrint(message_buffer + msg_len,
+                                 message_buffer_size - msg_len,
+                                 "\n%s\n%*s\n",
+                                 script_line.ToCString(),
+                                 column,
+                                 "^");
+        }
+      }
     } else {
       // Token position is unknown.
-      msg_part = FormatMessageHelper(": %s: ", message_header);
-      message = String::Concat(message, msg_part);
-
-      // Append the formatted error or warning message.
-      msg_part = VFormatMessageHelper(format, args);
-      message = String::Concat(message, msg_part);
+      msg_len += OS::SNPrint(message_buffer + msg_len,
+                             message_buffer_size - msg_len,
+                             "'%s': %s: ",
+                             script_url.ToCString(),
+                             message_header);
+      if (msg_len < message_buffer_size) {
+        // Append the formatted error or warning message.
+        msg_len += OS::VSNPrint(message_buffer + msg_len,
+                                message_buffer_size - msg_len,
+                                format,
+                                args);
+      }
     }
   } else {
     // Script is unknown.
     // Append the formatted error or warning message.
-    message = VFormatMessageHelper(format, args);
+    msg_len += OS::VSNPrint(message_buffer + msg_len,
+                            message_buffer_size - msg_len,
+                            format,
+                            args);
   }
-  return message.raw();
 }
 
 

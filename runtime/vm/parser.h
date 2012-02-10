@@ -173,11 +173,13 @@ class Parser : ValueObject {
 
   // Format an error or warning message into the message_buffer.
   // A null script means no source and a negative token_index means no position.
-  static RawString* FormatMessage(const Script& script,
-                                  intptr_t token_index,
-                                  const char* message_header,
-                                  const char* format,
-                                  va_list args);
+  static void FormatMessage(const Script& script,
+                            intptr_t token_index,
+                            const char* message_header,
+                            char* message_buffer,
+                            intptr_t message_buffer_size,
+                            const char* format,
+                            va_list args);
 
   // Reports error message at location of current token.
   void ErrorMsg(const char* msg, ...);
