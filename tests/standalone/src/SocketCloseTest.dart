@@ -194,7 +194,7 @@ class SocketClose {
   int _errorEvents;
   int _iterations;
   int _mode;
-  int _donePort;
+  SendPort _donePort;
 }
 
 
