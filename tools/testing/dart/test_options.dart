@@ -165,7 +165,7 @@ is 'dart file.dart' and you specify special command
               'browser',
               'Web browser to use on webdriver tests',
               ['-b', '--browser'],
-              ['ff', 'chrome', 'safari', 'ie'],
+              ['ff', 'chrome', 'safari', 'ie', 'opera'],
               'chrome'),
           new _TestOptionSpecification(
               'frog',
