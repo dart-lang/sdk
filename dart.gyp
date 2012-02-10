@@ -49,13 +49,13 @@
         }],
       ],
       'dependencies': [
-        'frog',
         'runtime',
       ],
       'actions': [
         {
           'action_name': 'create_sdk_py',
           'inputs': [
+            '<!@(["python", "frog/scripts/list_frog_files.py", "frog"])',
             # TODO(dgrove) - change these to dependencies and add dom
             # dependences once issues 754 and 755 are fixed
             'client/html/html.dart',
