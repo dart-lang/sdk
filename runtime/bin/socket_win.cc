@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -61,6 +61,18 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
     return -1;
   }
 
+  linger l;
+  l.l_onoff = 1;
+  l.l_linger = 10;
+  int status = setsockopt(s,
+                          SOL_SOCKET,
+                          SO_LINGER,
+                          reinterpret_cast<char*>(&l),
+                          sizeof(l));
+  if (status != NO_ERROR) {
+    FATAL("Failed setting SO_LINGER on socket");
+  }
+
   struct hostent* server = gethostbyname(host);
   if (server == NULL) {
     fprintf(stderr, "Error CreateConnect: %d\n", WSAGetLastError());
@@ -72,7 +84,7 @@ intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   server_address.sin_family = AF_INET;
   server_address.sin_port = htons(port);
   server_address.sin_addr.s_addr = inet_addr(host);
-  int status = connect(
+  status = connect(
       s,
       reinterpret_cast<struct sockaddr *>(&server_address),
       sizeof(server_address));

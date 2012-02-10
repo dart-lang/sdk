@@ -394,6 +394,17 @@ void ListenSocket::AcceptComplete(IOBuffer* buffer, HANDLE completion_port) {
                         SO_UPDATE_ACCEPT_CONTEXT,
                         reinterpret_cast<char*>(&s), sizeof(s));
     if (rc == NO_ERROR) {
+      linger l;
+      l.l_onoff = 1;
+      l.l_linger = 10;
+      int status = setsockopt(buffer->client(),
+                              SOL_SOCKET,
+                              SO_LINGER,
+                              reinterpret_cast<char*>(&l),
+                              sizeof(l));
+      if (status != NO_ERROR) {
+        FATAL("Failed setting SO_LINGER on socket");
+      }
       // Insert the accepted socket into the list.
       ClientSocket* client_socket = new ClientSocket(buffer->client(), 0);
       client_socket->CreateCompletionPort(completion_port);
