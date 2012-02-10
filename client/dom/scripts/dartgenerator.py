@@ -2250,6 +2250,8 @@ class NativeImplementationSystem(System):
     self._auxiliary_dir = auxiliary_dir
     self._dom_public_files = []
     self._dom_impl_files = []
+    self._cpp_header_files = []
+    self._cpp_impl_files = []
 
   def InterfaceGenerator(self,
                          interface,
@@ -2264,8 +2266,16 @@ class NativeImplementationSystem(System):
     dart_impl_path = self._FilePathForDartImplementation(interface_name)
     self._dom_impl_files.append(dart_impl_path)
 
+    cpp_header_path = self._FilePathForCppHeader(interface_name)
+    self._cpp_header_files.append(cpp_header_path)
+
+    cpp_impl_path = self._FilePathForCppImplementation(interface_name)
+    self._cpp_impl_files.append(cpp_impl_path)
+
     return NativeImplementationGenerator(interface, super_interface_name,
         self._emitters.FileEmitter(dart_impl_path),
+        self._emitters.FileEmitter(cpp_header_path),
+        self._emitters.FileEmitter(cpp_impl_path),
         self._BaseDefines(interface),
         self._templates)
 
@@ -2289,6 +2299,39 @@ class NativeImplementationSystem(System):
         self._dom_impl_files,
         AUXILIARY_DIR=auxiliary_dir);
 
+    # Generate DartDerivedSourcesAll.cpp.
+    cpp_all_in_one_path = os.path.join(self._output_dir,
+        'DartDerivedSourcesAll.cpp')
+
+    includes_emitter = emitter.Emitter()
+    for f in self._cpp_impl_files:
+        path = os.path.relpath(f, os.path.dirname(cpp_all_in_one_path))
+        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+
+    cpp_all_in_one_emitter = self._emitters.FileEmitter(cpp_all_in_one_path)
+    cpp_all_in_one_emitter.Emit(
+        self._templates.Load('cpp_all_in_one.template'),
+        INCLUDES=includes_emitter.Fragments())
+
+    # Generate DartResolver.cpp.
+    cpp_resolver_path = os.path.join(self._output_dir, 'DartResolver.cpp')
+
+    includes_emitter = emitter.Emitter()
+    resolver_body_emitter = emitter.Emitter()
+    for f in self._cpp_header_files:
+      path = os.path.relpath(f, os.path.dirname(cpp_resolver_path))
+      includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+      resolver_body_emitter.Emit(
+          '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
+          '        return func;\n',
+          CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
+
+    cpp_resolver_emitter = self._emitters.FileEmitter(cpp_resolver_path)
+    cpp_resolver_emitter.Emit(
+        self._templates.Load('cpp_resolver.template'),
+        INCLUDES=includes_emitter.Fragments(),
+        RESOLVER_BODY=resolver_body_emitter.Fragments())
+
   def Finish(self):
     pass
 
@@ -2300,13 +2343,20 @@ class NativeImplementationSystem(System):
     return os.path.join(self._output_dir, 'dart',
                         '%sImplementation.dart' % interface_name)
 
+  def _FilePathForCppHeader(self, interface_name):
+    return os.path.join(self._output_dir, 'cpp', 'Dart%s.h' % interface_name)
+
+  def _FilePathForCppImplementation(self, interface_name):
+    return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
+
 
 class NativeImplementationGenerator(WrappingInterfaceGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, interface, super_interface, dart_impl_emitter,
+  def __init__(self, interface, super_interface,
+               dart_impl_emitter, cpp_header_emitter, cpp_impl_emitter,
                base_members, templates):
-    """Generates Dart code for the given interface.
+    """Generates Dart and C++ code for the given interface.
 
     Args:
 
@@ -2317,12 +2367,17 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
          this interface implements, if any.
       dart_impl_emitter: an Emitter for the file containing the Dart
          implementation class.
+      cpp_header_emitter: an Emitter for the file containing the C++ header.
+      cpp_impl_emitter: an Emitter for the file containing the C++
+         implementation.
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
     """
     self._interface = interface
     self._super_interface = super_interface
     self._dart_impl_emitter = dart_impl_emitter
+    self._cpp_header_emitter = cpp_header_emitter
+    self._cpp_impl_emitter = cpp_impl_emitter
     self._base_members = base_members
     self._templates = templates
     self._current_secondary_parent = None
@@ -2331,18 +2386,23 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
     self._class_name = self._ImplClassName(self._interface.id)
     self._members_emitter = emitter.Emitter()
 
-  def _ImplClassName(self, type_name):
-    return type_name + 'Implementation'
+  def _ImplClassName(self, interface_name):
+    return interface_name + 'Implementation'
 
   def FinishInterface(self):
-    interface = self._interface
-    interface_name = interface.id
-
-    base = self._BaseClassName(interface)
+    base = self._BaseClassName(self._interface)
     self._dart_impl_emitter.Emit(
         self._templates.Load('dart_implementation.darttemplate'),
-        CLASS=self._class_name, BASE=base, INTERFACE=interface_name,
+        CLASS=self._class_name, BASE=base, INTERFACE=self._interface.id,
         MEMBERS=self._members_emitter.Fragments())
+
+    self._cpp_header_emitter.Emit(
+        self._templates.Load('cpp_header.template'),
+        INTERFACE=self._interface.id)
+
+    self._cpp_impl_emitter.Emit(
+        self._templates.Load('cpp_implementation.template'),
+        INTERFACE=self._interface.id)
 
   def AddAttribute(self, getter, setter):
     if getter:

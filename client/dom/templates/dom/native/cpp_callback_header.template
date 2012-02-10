@@ -1,0 +1,39 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+#ifndef Dart$(INTERFACE)_h
+#define Dart$(INTERFACE)_h
+
+#include "ActiveDOMCallback.h"
+#include "DartCallback.h"
+#include "DartDOMWrapper.h"
+#include "$(INTERFACE).h"
+
+namespace WebCore {
+
+class Dart$(INTERFACE) : public $(INTERFACE), public ActiveDOMCallback {
+public:
+    typedef $(INTERFACE) NativeType;
+
+    static PassRefPtr<NativeType> toNative(Dart_Handle object, Dart_Handle& exception)
+    {
+        return adoptRef(new Dart$(INTERFACE)(object, exception, DartUtilities::scriptExecutionContext()));
+    }
+$HANDLERS
+
+private:
+    Dart$(INTERFACE)(Dart_Handle object, Dart_Handle& exception, ScriptExecutionContext* context)
+        : ActiveDOMCallback(context)
+        , m_callback(object, exception)
+    {
+    }
+
+    DartCallback m_callback;
+};
+
+}
+
+#endif // Dart$(INTERFACE)_h
