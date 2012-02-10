@@ -76,11 +76,18 @@ class AssignOpTest {
     Expect.equals(323, y);
     y += 3 * 4;
     Expect.equals(335, y);
+
+    var a = [1, 2, 3];
+    var ix = 0;
+    a[ix] |= 12;
+    Expect.equals(13, a[ix]);
   }
 
   static var f;
   var instf;
 }
 main() {
-  AssignOpTest.testMain();
+  for (int i = 0; i < 2000; i++) {
+    AssignOpTest.testMain();
+  }
 }

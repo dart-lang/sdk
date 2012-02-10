@@ -5472,9 +5472,9 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
     // effects.
     if (!IsLocalOrLiteralNode(load_indexed->array())) {
       LocalVariable* temp =
-      CreateTempConstVariable(token_index, token_id, "lia");
+          CreateTempConstVariable(token_index, token_id, "lia");
       AstNode* save =
-      new StoreLocalNode(token_index, *temp, load_indexed->array());
+          new StoreLocalNode(token_index, *temp, load_indexed->array());
       current_block_->statements->Add(save);
       AstNode* load = new LoadLocalNode(token_index, *temp);
       load_indexed = new LoadIndexedNode(token_index,

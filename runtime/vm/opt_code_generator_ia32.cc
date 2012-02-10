@@ -2483,7 +2483,14 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     CodeGenerator::VisitStoreIndexedNode(node);
     return;
   }
-  node->array()->Visit(this);
+  Class& class_of_this_array = Class::Handle();
+  // Load array and release its CodeGenInfo as value may refer to the same
+  // array (e.g. in a[x] += 3). Fixes issue 1570.
+  {
+    CodeGenInfo array_info(node->array());
+    node->array()->Visit(this);
+    class_of_this_array = array_info.is_class()->raw();
+  }
   // TODO(srdjan): Use VisitLoadTwo and check if index is smi (CodeGenInfo).
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Class& object_array_class =
@@ -2497,17 +2504,24 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
     return;
   }
 
-  CodeGenInfo array_info(node->array());
-  CodeGenInfo index_info(node->index_expr());
 
   if (AtIdNodeHasClassAt(node, node->id(), object_array_class, 0)) {
-    VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
+    // Release CodeGenInfo of index quickly as it may be used in the value,
+    // e.g. a[i] += 3. Fixes issue 1570.
+    bool index_is_smi = false;
+    {
+      CodeGenInfo index_info(node->index_expr());
+      node->index_expr()->Visit(this);
+      index_is_smi = index_info.IsClass(smi_class_);
+    }
+    VisitLoadOne(node->value(), ECX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EAX, EBX, ECX, kDeoptStoreIndexed);
+    __ popl(EBX);  // index.
     __ popl(EAX);  // array.
     // ECX: value, EBX:index, EAX: array.
     // Check class of array.
-    if (!array_info.IsClass(object_array_class)) {
+    if (class_of_this_array.raw() != object_array_class.raw()) {
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
       __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
@@ -2516,7 +2530,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
       PropagateBackLocalClass(node->array(), object_array_class);
     }
     // Check class of index.
-    if (!index_info.IsClass(smi_class_)) {
+    if (!index_is_smi) {
       __ testl(EBX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
       PropagateBackLocalClass(node->index_expr(), smi_class_);
@@ -2547,13 +2561,22 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
                                             growable_array_length_field_name);
     intptr_t array_offset = GetFieldOffset(growable_array_class,
                                            growable_array_array_field_name);
-    VisitLoadTwo(node->index_expr(), node->value(), EBX, ECX);
+    bool index_is_smi = false;
+    // Release CodeGenInfo of index quickly as it may be used in the value,
+    // e.g. a[i] += 3. Fixes issue 1570.
+    {
+      CodeGenInfo index_info(node->index_expr());
+      node->index_expr()->Visit(this);
+      index_is_smi = index_info.IsClass(smi_class_);
+    }
+    VisitLoadOne(node->value(), ECX);
     DeoptimizationBlob* deopt_blob =
         AddDeoptimizationBlob(node, EAX, EBX, ECX, kDeoptStoreIndexed);
-    __ popl(EAX);  // Array.
+    __ popl(EBX);  // index.
+    __ popl(EAX);  // array.
     // ECX: value, EBX:index, EAX: array, EDX: scratch.
     // Check class of array.
-    if (!array_info.IsClass(growable_array_class)) {
+    if (class_of_this_array.raw() != growable_array_class.raw()) {
       __ testl(EAX, Immediate(kSmiTagMask));
       __ j(ZERO, deopt_blob->label());  // Array is smi -> deopt.
       __ movl(EDX, FieldAddress(EAX, Object::class_offset()));
@@ -2562,7 +2585,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
       PropagateBackLocalClass(node->array(), growable_array_class);
     }
     // Check class of index.
-    if (!index_info.IsClass(smi_class_)) {
+    if (!index_is_smi) {
       __ testl(EBX, Immediate(kSmiTagMask));
       __ j(NOT_ZERO, deopt_blob->label());  // Index not Smi -> deopt.
       PropagateBackLocalClass(node->index_expr(), smi_class_);
