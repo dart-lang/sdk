@@ -21,7 +21,7 @@ public class DartScanner {
    * Represents a position in a source file, including absolute character position,
    * line, and column.
    */
-  public static class Position implements Cloneable {
+  public static class Position {
     private int pos;
     private int line;
     private int col;
@@ -32,13 +32,8 @@ public class DartScanner {
       this.col = col;
     }
 
-    @Override
-    public Position clone() {
-      try {
-        return (Position) super.clone();
-      } catch (CloneNotSupportedException e) {
-        throw new AssertionError(e);
-      }
+    public Position copy() {
+      return new Position(pos, line, col);
     }
 
     public int getPos() {
@@ -80,7 +75,7 @@ public class DartScanner {
   /**
    * Represents a span of characters in a source file.
    */
-  public static class Location implements Cloneable {
+  public static class Location {
     public static final Location NONE = null;
     private Position begin, end;
 
@@ -91,18 +86,6 @@ public class DartScanner {
 
     public Location(Position begin) {
       this.begin = this.end = begin;
-    }
-
-    @Override
-    public Location clone() {
-      try {
-        Location clone = (Location) super.clone();
-        clone.begin = begin.clone();
-        clone.end = end.clone();
-        return clone;
-      } catch (CloneNotSupportedException e) {
-        throw new AssertionError(e);
-      }
     }
 
     public Position getBegin() {
@@ -414,21 +397,10 @@ public class DartScanner {
     }
   }
 
-  private static class TokenData implements Cloneable {
+  private static class TokenData {
     Token token;
     Location location;
     String value;
-
-    @Override
-    protected TokenData clone() {
-      try {
-        TokenData clone = (TokenData) super.clone();
-        clone.location = location == null ? null : location.clone();
-        return clone;
-      } catch (CloneNotSupportedException e) {
-        throw new AssertionError(e);
-      }
-    }
 
     @Override
     public String toString() {
@@ -684,12 +656,12 @@ public class DartScanner {
   private void advance() {
     for (int i = 0; i < NUM_LOOKAHEAD - 1; ++i) {
       internalState.lookahead[i] = internalState.lookahead[i + 1];
-      internalState.lookaheadPos[i] = internalState.lookaheadPos[i + 1].clone();
+      internalState.lookaheadPos[i] = internalState.lookaheadPos[i + 1].copy();
     }
     if (internalState.nextLookaheadPos.pos < source.length()) {
       int ch = source.codePointAt(internalState.nextLookaheadPos.pos);
       internalState.lookahead[NUM_LOOKAHEAD - 1] = ch;
-      internalState.lookaheadPos[NUM_LOOKAHEAD - 1] = internalState.nextLookaheadPos.clone();
+      internalState.lookaheadPos[NUM_LOOKAHEAD - 1] = internalState.nextLookaheadPos.copy();
       internalState.nextLookaheadPos.advance(ch == '\n');
     } else {
       // Let the last look-ahead position be past the source. This makes
