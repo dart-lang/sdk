@@ -139,7 +139,11 @@ def render(idl_node, indent_str='  '):
       w(node.id)
       w('(')
       w(node.arguments, ', ')
-      wln(');')
+      w(')')
+      if node.raises:
+        w(' raises (%s)' % node.raises.id)
+      wln(';')
+
     elif isinstance(node, IDLArgument):
       w(node.ext_attrs)
       w('in ')

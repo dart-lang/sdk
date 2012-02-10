@@ -449,6 +449,10 @@ class DartGenerator(object):
         continue
       interfaces.append(interface)
 
+    # TODO(sra): Use this list of exception names to generate information to
+    # tell Frog which exceptions can be passed from JS to Dart code.
+    exceptions = self._CollectExceptions(interfaces)
+
     # Render all interfaces into Dart and save them in files.
     for interface in self._PreOrderInterfaces(interfaces):
 
@@ -628,6 +632,21 @@ class DartGenerator(object):
     result = []
     walk(interface.parents[1:])
     return result;
+
+
+  def _CollectExceptions(self, interfaces):
+    """Returns the names of all exception classes raised."""
+    exceptions = set()
+    for interface in interfaces:
+      for attribute in interface.attributes:
+        if attribute.get_raises:
+          exceptions.add(attribute.get_raises.id)
+        if attribute.set_raises:
+          exceptions.add(attribute.set_raises.id)
+      for operation in interface.operations:
+        if operation.raises:
+          exceptions.add(operation.raises.id)
+    return exceptions
 
 
   def Flush(self):
