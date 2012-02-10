@@ -454,6 +454,19 @@ Private3Test: Fail
 StackTraceTest: Fail
 StringInterpolateNPETest: Fail
 
+# For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
+# other browsers don't, so they eventually timeout. See issue 1515.
+# In any case, we shouldn't be relying on SyntaxError.
+Label2NegativeTest: Skip
+Label3NegativeTest: Skip
+Label5NegativeTest: Skip
+Label6NegativeTest: Skip
+LabelTest: Skip
+StringEscape1NegativeTest: Skip
+Switch3NegativeTest: Skip
+Switch4NegativeTest: Skip
+ExecuteFinally6Test: Skip
+
 [ $component == webdriver && $browser == safari ]
 BlockScopeTest: Fail
 ClosureBreak1Test: Fail
@@ -465,7 +478,6 @@ ImplicitClosureTest: Fail
 MethodBindingTest: Fail
 Prefix15Test: Fail
 ToStringAsFixedTest: Pass,Fail # Passes in 32-bit Safari, but fails in 64-bit Issue #1220
-ExecuteFinally6Test: Skip
 GCTest: Fail
 
 [ $component == webdriver && $browser == ff ]
@@ -474,19 +486,6 @@ StackOverflowTest: Fail
 ToStringAsFixedTest: Fail
 ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
-
-# For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
-# other browsers don't, so they eventually timeout.
-# In any case, we shouldn't be relying on SyntaxError.
-[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
-Label2NegativeTest: Skip
-Label3NegativeTest: Skip
-Label5NegativeTest: Skip
-Label6NegativeTest: Skip
-LabelTest: Skip
-StringEscape1NegativeTest: Skip
-Switch3NegativeTest: Skip
-Switch4NegativeTest: Skip
 
 [ $component == webdriver && $browser == ie ]
 ToStringAsFixedTest: Fail
