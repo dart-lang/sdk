@@ -3057,7 +3057,7 @@ void OptimizingCodeGenerator::VisitReturnNode(ReturnNode* node) {
   if (!value_info.result_returned_in_eax()) {
     __ popl(EAX);
   }
-  GenerateReturnEpilog();
+  GenerateReturnEpilog(node);
 }
 
 

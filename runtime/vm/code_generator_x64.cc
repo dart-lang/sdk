@@ -756,7 +756,7 @@ void CodeGenerator::GenerateEntryCode() {
 }
 
 
-void CodeGenerator::GenerateReturnEpilog() {
+void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // Unchain the context(s) up to context level 0.
   int context_level = state()->context_level();
   ASSERT(context_level >= 0);
@@ -787,6 +787,8 @@ void CodeGenerator::GenerateReturnEpilog() {
   }
   __ LeaveFrame();
   __ ret();
+  // TODO(hausner): insert generation of of PcDescriptor::kReturn,
+  // analogous to 32bit version.
 
 #ifdef DEBUG
   __ Bind(&wrong_stack);
@@ -836,7 +838,7 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
           String::ZoneHandle(String::NewSymbol("function result")));
     }
   }
-  GenerateReturnEpilog();
+  GenerateReturnEpilog(node);
 }
 
 

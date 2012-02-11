@@ -4863,10 +4863,11 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case (PcDescriptors::kDeopt) : return "deopt";
-    case (PcDescriptors::kPatchCode) : return "patch";
-    case (PcDescriptors::kIcCall) : return "ic-call";
-    case (PcDescriptors::kOther) : return "other";
+    case PcDescriptors::kDeopt: return "deopt";
+    case PcDescriptors::kPatchCode: return "patch";
+    case PcDescriptors::kIcCall: return "ic-call";
+    case PcDescriptors::kReturn: return "return";
+    case PcDescriptors::kOther: return "other";
   }
   UNREACHABLE();
   return "";
