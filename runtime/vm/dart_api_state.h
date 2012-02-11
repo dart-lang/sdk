@@ -129,14 +129,20 @@ class WeakPersistentHandle {
   static intptr_t raw_offset() { return OFFSET_OF(WeakPersistentHandle, raw_); }
   void* peer() const { return peer_; }
   void set_peer(void* peer) { peer_ = peer; }
-  Dart_PeerFinalizer callback() const { return callback_; }
-  void set_callback(Dart_PeerFinalizer callback) { callback_ = callback; }
+  Dart_WeakPersistentHandleFinalizer callback() const { return callback_; }
+  void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
+    callback_ = callback;
+  }
 
-  void Finalize() {
-    if (callback_ != NULL) {
-      (*callback_)(peer_);
+  static void Finalize(WeakPersistentHandle* handle) {
+    if (handle->callback() != NULL) {
+      Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+      void* peer = handle->peer();
+      handle->Clear();
+      (*callback)(reinterpret_cast<Dart_Handle>(handle), peer);
+    } else {
+      handle->Clear();
     }
-    Clear();
   }
 
  private:
@@ -151,7 +157,7 @@ class WeakPersistentHandle {
     return reinterpret_cast<WeakPersistentHandle*>(callback_);
   }
   void SetNext(WeakPersistentHandle* free_list) {
-    callback_ = reinterpret_cast<Dart_PeerFinalizer>(free_list);
+    callback_ = reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(free_list);
   }
   void FreeHandle(WeakPersistentHandle* free_list) {
     raw_ = NULL;
@@ -166,7 +172,7 @@ class WeakPersistentHandle {
 
   RawObject* raw_;
   void* peer_;
-  Dart_PeerFinalizer callback_;
+  Dart_WeakPersistentHandleFinalizer callback_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(WeakPersistentHandle);
 };

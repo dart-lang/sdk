@@ -1744,7 +1744,10 @@ TEST_CASE(ExternalByteArray) {
   intptr_t data_length = ARRAY_SIZE(data);
 
   const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data, data_length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data,
+                                                       data_length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(data_length, array1.Length());
   EXPECT_EQ(-3, array1.At<int8_t>(0));
@@ -1761,7 +1764,10 @@ TEST_CASE(ExternalByteArray) {
   EXPECT_EQ(2, array1.At<uint8_t>(5));
 
   const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data, data_length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data,
+                                                       data_length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(data_length, array2.Length());
   for (intptr_t i = 0 ; i < array1.Length(); ++i) {
@@ -1781,12 +1787,18 @@ TEST_CASE(ExternalByteArrayAlignedAccess) {
   uint8_t* data = new uint8_t[length];
 
   const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data,
+                                                       length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(length, array1.Length());
 
   const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data,
+                                                       length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array2.IsNull());
   EXPECT_EQ(length, array2.Length());
 
@@ -1823,12 +1835,18 @@ TEST_CASE(ExternalByteArrayUnlignedAccess) {
   uint8_t* data = new uint8_t[length];
 
   const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data,
+                                                       length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(length, array1.Length());
 
   const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data, length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data,
+                                                       length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array2.IsNull());
   EXPECT_EQ(length, array2.Length());
 
@@ -1870,12 +1888,18 @@ TEST_CASE(ExternalByteArraySkewedUnalignedBaseAccess) {
   int skew = 2;
 
   const ExternalByteArray& array1 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data + 3, length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data + 3,
+                                                       length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array1.IsNull());
   EXPECT_EQ(length, array1.Length());
 
   const ExternalByteArray& array2 =
-      ExternalByteArray::Handle(ExternalByteArray::New(data + 1, length));
+      ExternalByteArray::Handle(ExternalByteArray::New(data + 1,
+                                                       length,
+                                                       NULL,
+                                                       NULL));
   EXPECT(!array2.IsNull());
   EXPECT_EQ(length, array2.Length());
 

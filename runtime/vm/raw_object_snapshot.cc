@@ -1490,7 +1490,7 @@ void RawExternalOneByteString::WriteTo(SnapshotWriter* writer,
                 ptr()->tags_,
                 ptr()->length_,
                 ptr()->hash_,
-                ptr()->external_data_->data_);
+                ptr()->external_data_->data());
 }
 
 
@@ -1505,7 +1505,7 @@ void RawExternalTwoByteString::WriteTo(SnapshotWriter* writer,
                 ptr()->tags_,
                 ptr()->length_,
                 ptr()->hash_,
-                ptr()->external_data_->data_);
+                ptr()->external_data_->data());
 }
 
 
@@ -1520,7 +1520,7 @@ void RawExternalFourByteString::WriteTo(SnapshotWriter* writer,
                 ptr()->tags_,
                 ptr()->length_,
                 ptr()->hash_,
-                ptr()->external_data_->data_);
+                ptr()->external_data_->data());
 }
 
 
@@ -1749,7 +1749,7 @@ void RawExternalByteArray::WriteTo(SnapshotWriter* writer,
                    ObjectStore::kInternalByteArrayClass,
                    ptr()->tags_,
                    ptr()->length_,
-                   ptr()->data_);
+                   ptr()->external_data_->data());
 }
 
 

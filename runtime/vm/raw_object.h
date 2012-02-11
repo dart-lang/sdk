@@ -893,13 +893,24 @@ class RawFourByteString : public RawString {
 template<typename T>
 class ExternalStringData {
  public:
-  typedef void Callback(void* peer);
-  ExternalStringData(const T* data, void* peer, Callback* callback) :
+  ExternalStringData(const T* data, void* peer, Dart_PeerFinalizer callback) :
       data_(data), peer_(peer), callback_(callback) {
   }
+  ~ExternalStringData() {
+    if (callback_ != NULL) (*callback_)(peer_);
+  }
+
+  const T* data() {
+    return data_;
+  }
+  void* peer() {
+    return peer_;
+  }
+
+ private:
   const T* data_;
   void* peer_;
-  Callback* callback_;
+  Dart_PeerFinalizer callback_;
 };
 
 
@@ -981,10 +992,35 @@ class RawInternalByteArray : public RawByteArray {
 };
 
 
+class ExternalByteArrayData {
+ public:
+  ExternalByteArrayData(uint8_t* data,
+                        void* peer,
+                        Dart_PeerFinalizer callback) :
+      data_(data), peer_(peer), callback_(callback) {
+  }
+  ~ExternalByteArrayData() {
+    if (callback_ != NULL) (*callback_)(peer_);
+  }
+
+  uint8_t* data() {
+    return data_;
+  }
+  void* peer() {
+    return peer_;
+  }
+
+ private:
+  uint8_t* data_;
+  void* peer_;
+  Dart_PeerFinalizer callback_;
+};
+
+
 class RawExternalByteArray : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalByteArray);
 
-  uint8_t* data_;
+  ExternalByteArrayData* external_data_;
 };
 
 

@@ -95,6 +95,8 @@ typedef unsigned __int64 uint64_t;
  */
 typedef struct _Dart_Handle* Dart_Handle;
 
+typedef void (*Dart_WeakPersistentHandleFinalizer)(Dart_Handle handle,
+                                                   void* peer);
 typedef void (*Dart_PeerFinalizer)(void* peer);
 
 /**
@@ -240,7 +242,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
 DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
-    Dart_PeerFinalizer callback);
+    Dart_WeakPersistentHandleFinalizer callback);
 
 /**
  * Is this object a weak persistent handle?
@@ -1173,12 +1175,40 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 
 // --- Byte Arrays ---
 
-DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
-
 /**
  * Is this object a ByteArray?
  */
 DART_EXPORT bool Dart_IsByteArray(Dart_Handle object);
+
+/**
+ * Returns a ByteArray of the desired length.
+ *
+ * \param length The length of the array.
+ *
+ * \return The ByteArray object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
+
+/**
+ * Returns a ByteArray which references an external array of 8-bit bytes.
+ *
+ * \param value An array of 8-bit bytes. This array must not move.
+ * \param length The length of the array.
+ *
+ * \return The ByteArray object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
+                                                  intptr_t length,
+                                                  void* peer,
+                                                  Dart_PeerFinalizer callback);
+
+/**
+ * Retrieves the peer pointer associated with an external ByteArray.
+ */
+DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
+                                                      void** peer);
 
 // --- Closures ---
 

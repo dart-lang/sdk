@@ -2692,8 +2692,6 @@ class Double : public Number {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  typedef void (*PeerFinalizer)(void *peer);
-
   // We use 30 bits for the hash code so that we consistently use a
   // 32bit Smi representation for the hash code on all architectures.
   static const intptr_t kHashBits = 30;
@@ -2762,17 +2760,17 @@ class String : public Instance {
   static RawString* NewExternal(const uint8_t* characters,
                                 intptr_t len,
                                 void* peer,
-                                PeerFinalizer callback,
+                                Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
   static RawString* NewExternal(const uint16_t* characters,
                                 intptr_t len,
                                 void* peer,
-                                PeerFinalizer callback,
+                                Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
   static RawString* NewExternal(const uint32_t* characters,
                                 intptr_t len,
                                 void* peer,
-                                PeerFinalizer callback,
+                                Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
@@ -3026,7 +3024,7 @@ class ExternalOneByteString : public String {
 
   virtual bool IsExternal() const { return true; }
   virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer_;
+    return raw_ptr()->external_data_->peer();
   }
 
   static intptr_t InstanceSize() {
@@ -3036,19 +3034,21 @@ class ExternalOneByteString : public String {
   static RawExternalOneByteString* New(const uint8_t* characters,
                                        intptr_t len,
                                        void* peer,
-                                       PeerFinalizer callback,
+                                       Dart_PeerFinalizer callback,
                                        Heap::Space space);
 
  private:
   const uint8_t* CharAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data_[index]);
+    return &(raw_ptr()->external_data_->data()[index]);
   }
 
   void SetExternalData(ExternalStringData<uint8_t>* data) {
     raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString, String);
   friend class Class;
@@ -3068,7 +3068,7 @@ class ExternalTwoByteString : public String {
 
   virtual bool IsExternal() const { return true; }
   virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer_;
+    return raw_ptr()->external_data_->peer();
   }
 
   static intptr_t InstanceSize() {
@@ -3078,19 +3078,21 @@ class ExternalTwoByteString : public String {
   static RawExternalTwoByteString* New(const uint16_t* characters,
                                        intptr_t len,
                                        void* peer,
-                                       PeerFinalizer callback,
+                                       Dart_PeerFinalizer callback,
                                        Heap::Space space = Heap::kNew);
 
  private:
   const uint16_t* CharAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data_[index]);
+    return &(raw_ptr()->external_data_->data()[index]);
   }
 
   void SetExternalData(ExternalStringData<uint16_t>* data) {
     raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString, String);
   friend class Class;
@@ -3110,7 +3112,7 @@ class ExternalFourByteString : public String {
 
   virtual bool IsExternal() const { return true; }
   virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer_;
+    return raw_ptr()->external_data_->peer();
   }
 
   static intptr_t InstanceSize() {
@@ -3120,19 +3122,21 @@ class ExternalFourByteString : public String {
   static RawExternalFourByteString* New(const uint32_t* characters,
                                         intptr_t len,
                                         void* peer,
-                                        PeerFinalizer callback,
+                                        Dart_PeerFinalizer callback,
                                         Heap::Space space = Heap::kNew);
 
  private:
   const uint32_t* CharAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data_[index]);
+    return &(raw_ptr()->external_data_->data()[index]);
   }
 
   void SetExternalData(ExternalStringData<uint32_t>* data) {
     raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString, String);
   friend class Class;
@@ -3377,6 +3381,10 @@ class ExternalByteArray : public ByteArray {
     return Smi::Value(raw_ptr()->length_);
   }
 
+  void* GetPeer() const {
+    return raw_ptr()->external_data_->peer();
+  }
+
   template<typename T>
   T At(intptr_t byte_offset) const {
     T* addr = Addr<T>(byte_offset);
@@ -3409,6 +3417,8 @@ class ExternalByteArray : public ByteArray {
 
   static RawExternalByteArray* New(uint8_t* data,
                                    intptr_t len,
+                                   void* peer,
+                                   Dart_PeerFinalizer callback,
                                    Heap::Space space = Heap::kNew);
 
  private:
@@ -3421,7 +3431,7 @@ class ExternalByteArray : public ByteArray {
     intptr_t limit = byte_offset + sizeof(T);
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((byte_offset >= 0) && (limit <= Length()));
-    uint8_t* addr = &raw_ptr()->data_[byte_offset];
+    uint8_t* addr = &raw_ptr()->external_data_->data()[byte_offset];
     return reinterpret_cast<T*>(addr);
   }
 
@@ -3429,9 +3439,11 @@ class ExternalByteArray : public ByteArray {
     raw_ptr()->length_ = Smi::New(value);
   }
 
-  void SetData(uint8_t* data) const {
-    raw_ptr()->data_ = data;
+  void SetExternalData(ExternalByteArrayData* data) {
+    raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalByteArray, ByteArray);
   friend class Class;

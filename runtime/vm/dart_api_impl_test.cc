@@ -557,6 +557,69 @@ TEST_CASE(ExternalStringGetPeer) {
 // Only ia32 and x64 can run execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
+static void ExternalStringCallbackFinalizer(void* peer) {
+  *static_cast<int*>(peer) *= 2;
+}
+
+
+TEST_CASE(ExternalStringCallback) {
+  int peer8 = 40;
+  int peer16 = 41;
+  int peer32 = 42;
+
+  {
+    Dart_EnterScope();
+
+    uint8_t data8[] = { 'h', 'e', 'l', 'l', 'o' };
+    Dart_Handle obj8 = Dart_NewExternalString8(
+        data8,
+        ARRAY_SIZE(data8),
+        &peer8,
+        ExternalStringCallbackFinalizer);
+    EXPECT_VALID(obj8);
+    void* api_peer8 = NULL;
+    EXPECT_VALID(Dart_ExternalStringGetPeer(obj8, &api_peer8));
+    EXPECT_EQ(api_peer8, &peer8);
+
+    uint16_t data16[] = { 'h', 'e', 'l', 'l', 'o' };
+    Dart_Handle obj16 = Dart_NewExternalString16(
+        data16,
+        ARRAY_SIZE(data16),
+        &peer16,
+        ExternalStringCallbackFinalizer);
+    EXPECT_VALID(obj16);
+    void* api_peer16 = NULL;
+    EXPECT_VALID(Dart_ExternalStringGetPeer(obj16, &api_peer16));
+    EXPECT_EQ(api_peer16, &peer16);
+
+    uint32_t data32[] = { 'h', 'e', 'l', 'l', 'o' };
+    Dart_Handle obj32 = Dart_NewExternalString32(
+        data32,
+        ARRAY_SIZE(data32),
+        &peer32,
+        ExternalStringCallbackFinalizer);
+    EXPECT_VALID(obj32);
+    void* api_peer32 = NULL;
+    EXPECT_VALID(Dart_ExternalStringGetPeer(obj32, &api_peer32));
+    EXPECT_EQ(api_peer32, &peer32);
+
+    Dart_ExitScope();
+  }
+
+  EXPECT_EQ(peer8, 40);
+  EXPECT_EQ(peer16, 41);
+  EXPECT_EQ(peer32, 42);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT_EQ(peer8, 40);
+  EXPECT_EQ(peer16, 41);
+  EXPECT_EQ(peer32, 42);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT_EQ(peer8, 80);
+  EXPECT_EQ(peer16, 82);
+  EXPECT_EQ(peer32, 84);
+}
+
+
 TEST_CASE(ListAccess) {
   const char* kScriptChars =
       "class ListAccessTest {"
@@ -675,7 +738,7 @@ TEST_CASE(ListAccess) {
 }
 
 
-TEST_CASE(ByteArray) {
+TEST_CASE(ByteArrayAccess) {
   Dart_Handle byte_array1 = Dart_NewByteArray(10);
   EXPECT_VALID(byte_array1);
   EXPECT(Dart_IsByteArray(byte_array1));
@@ -749,6 +812,88 @@ TEST_CASE(ByteArray) {
     EXPECT_VALID(result);
     EXPECT_EQ(10 - i, value);
   }
+}
+
+
+TEST_CASE(ExternalByteArrayAccess) {
+  uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
+  intptr_t data_length = ARRAY_SIZE(data);
+
+  Dart_Handle obj = Dart_NewExternalByteArray(data, data_length, NULL, NULL);
+  EXPECT_VALID(obj);
+  EXPECT(Dart_IsByteArray(obj));
+  EXPECT(Dart_IsList(obj));
+
+  void* peer = &data;  // just a non-NULL value
+  EXPECT_VALID(Dart_ExternalByteArrayGetPeer(obj, &peer));
+  EXPECT(peer == NULL);
+
+  intptr_t list_length = 0;
+  EXPECT_VALID(Dart_ListLength(obj, &list_length));
+  EXPECT_EQ(data_length, list_length);
+
+  // Load and check values from underlying array and API.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    EXPECT_EQ(11 * i, data[i]);
+    Dart_Handle elt = Dart_ListGetAt(obj, i);
+    EXPECT_VALID(elt);
+    int64_t value = 0;
+    EXPECT_VALID(Dart_IntegerToInt64(elt, &value));
+    EXPECT_EQ(data[i], value);
+  }
+
+  // Write values through the underlying array.
+  for (intptr_t i = 0; i < data_length; ++i) {
+    data[i] *= 2;
+  }
+  // Read them back through the API.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    Dart_Handle elt = Dart_ListGetAt(obj, i);
+    EXPECT_VALID(elt);
+    int64_t value = 0;
+    EXPECT_VALID(Dart_IntegerToInt64(elt, &value));
+    EXPECT_EQ(22 * i, value);
+  }
+
+  // Write values through the API.
+  for (intptr_t i = 0; i < list_length; ++i) {
+    Dart_Handle value = Dart_NewInteger(33 * i);
+    EXPECT_VALID(value);
+    EXPECT_VALID(Dart_ListSetAt(obj, i, value));
+  }
+  // Read them back through the underlying array.
+  for (intptr_t i = 0; i < data_length; ++i) {
+    EXPECT_EQ(33 * i, data[i]);
+  }
+}
+
+
+static void ExternalByteArrayCallbackFinalizer(void* peer) {
+  *static_cast<int*>(peer) = 42;
+}
+
+
+TEST_CASE(ExternalByteArrayCallback) {
+  int peer = 0;
+  {
+    Dart_EnterScope();
+    uint8_t data[] = { 1, 2, 3, 4 };
+    Dart_Handle obj = Dart_NewExternalByteArray(
+        data,
+        ARRAY_SIZE(data),
+        &peer,
+        ExternalByteArrayCallbackFinalizer);
+    EXPECT_VALID(obj);
+    void* api_peer = NULL;
+    EXPECT_VALID(Dart_ExternalByteArrayGetPeer(obj, &api_peer));
+    EXPECT_EQ(api_peer, &peer);
+    Dart_ExitScope();
+  }
+  EXPECT(peer == 0);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  EXPECT(peer == 0);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT(peer == 42);
 }
 
 #endif
@@ -981,7 +1126,7 @@ TEST_CASE(WeakPersistentHandle) {
 }
 
 
-static void WeakPersistentHandlePeerFinalizer(void* peer) {
+static void WeakPersistentHandlePeerFinalizer(Dart_Handle handle, void* peer) {
   *static_cast<int*>(peer) = 42;
 }
 

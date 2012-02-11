@@ -415,19 +415,19 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
-    Dart_PeerFinalizer callback) {
+    Dart_WeakPersistentHandleFinalizer callback) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   DARTSCOPE_NOCHECKS(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  const Object& old_ref = Object::Handle(Api::UnwrapHandle(object));
-  WeakPersistentHandle* new_ref =
+  const Object& ref = Object::Handle(Api::UnwrapHandle(object));
+  WeakPersistentHandle* weak_ref =
       state->weak_persistent_handles().AllocateHandle();
-  new_ref->set_raw(old_ref);
-  new_ref->set_peer(peer);
-  new_ref->set_callback(callback);
-  return reinterpret_cast<Dart_Handle>(new_ref);
+  weak_ref->set_raw(ref);
+  weak_ref->set_peer(peer);
+  weak_ref->set_callback(callback);
+  return reinterpret_cast<Dart_Handle>(weak_ref);
 }
 
 
@@ -1219,6 +1219,14 @@ DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
                                                 void* peer,
                                                 Dart_PeerFinalizer callback) {
   DARTSCOPE(Isolate::Current());
+  if (codepoints == NULL && length != 0) {
+    return Api::NewError("%s expects argument 'codepoints' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (length < 0) {
+    return Api::NewError("%s expects argument 'length' to be greater than 0.",
+                         CURRENT_FUNC);
+  }
   const String& obj =
       String::Handle(String::NewExternal(codepoints, length, peer, callback));
   return Api::NewLocalHandle(obj);
@@ -1230,6 +1238,14 @@ DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
                                                  void* peer,
                                                  Dart_PeerFinalizer callback) {
   DARTSCOPE(Isolate::Current());
+  if (codepoints == NULL && length != 0) {
+    return Api::NewError("%s expects argument 'codepoints' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (length < 0) {
+    return Api::NewError("%s expects argument 'length' to be greater than 0.",
+                         CURRENT_FUNC);
+  }
   const String& obj =
       String::Handle(String::NewExternal(codepoints, length, peer, callback));
   return Api::NewLocalHandle(obj);
@@ -1241,6 +1257,14 @@ DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
                                                  void* peer,
                                                  Dart_PeerFinalizer callback) {
   DARTSCOPE(Isolate::Current());
+  if (codepoints == NULL && length != 0) {
+    return Api::NewError("%s expects argument 'codepoints' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (length < 0) {
+    return Api::NewError("%s expects argument 'length' to be greater than 0.",
+                         CURRENT_FUNC);
+  }
   const String& obj =
       String::Handle(String::NewExternal(codepoints, length, peer, callback));
   return Api::NewLocalHandle(obj);
@@ -1655,6 +1679,45 @@ DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
   const InternalByteArray& obj =
       InternalByteArray::Handle(InternalByteArray::New(length));
   return Api::NewLocalHandle(obj);
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
+                                                  intptr_t length,
+                                                  void* peer,
+                                                  Dart_PeerFinalizer callback) {
+  DARTSCOPE(Isolate::Current());
+  if (data == NULL && length != 0) {
+    return Api::NewError("%s expects argument 'data' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  if (length < 0) {
+    return Api::NewError("%s expects argument 'length' to be greater than 0.",
+                         CURRENT_FUNC);
+  }
+  const ExternalByteArray& obj =
+      ExternalByteArray::Handle(ExternalByteArray::New(data,
+                                                       length,
+                                                       peer,
+                                                       callback));
+  return Api::NewLocalHandle(obj);
+}
+
+
+DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
+                                                      void** peer) {
+  DARTSCOPE(Isolate::Current());
+  const ExternalByteArray& array =
+      Api::UnwrapExternalByteArrayHandle(object);
+  if (array.IsNull()) {
+    RETURN_TYPE_ERROR(object, ExternalByteArray);
+  }
+  if (peer == NULL) {
+    return Api::NewError("%s expects argument 'peer' to be non-null.",
+                         CURRENT_FUNC);
+  }
+  *peer = array.GetPeer();
+  return Api::Success();
 }
 
 
