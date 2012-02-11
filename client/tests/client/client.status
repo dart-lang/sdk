@@ -45,8 +45,6 @@ dom/WindowOpenTest: Fail
 dom/XHRTest: Fail
 
 [ ($component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie))) && $checked ]
-# TODO(vsm): Triage DOM tests.
-dom/EventsTest: Fail
 
 [ $component == webdriver ]
 dom/ImplementationTest: Fail

@@ -1,5 +1,5 @@
 
-class _DOMWindowJs extends _DOMTypeJs implements DOMWindow native "@*DOMWindow" {
+class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWindow" {
 
   static final int PERSISTENT = 1;
 

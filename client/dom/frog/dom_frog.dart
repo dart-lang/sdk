@@ -17,7 +17,7 @@ DOMWindow get window() native "return window;";
 // TODO(vsm): Revert to Dart method when 508 is fixed.
 HTMLDocument get document() native "return window.document;";
 
-class _AbstractWorkerJs extends _DOMTypeJs implements AbstractWorker native "*AbstractWorker" {
+class _AbstractWorkerJs extends _EventTargetJs implements AbstractWorker native "*AbstractWorker" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -922,7 +922,7 @@ class _CustomEventJs extends _EventJs implements CustomEvent native "*CustomEven
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
 }
 
-class _DOMApplicationCacheJs extends _DOMTypeJs implements DOMApplicationCache native "*DOMApplicationCache" {
+class _DOMApplicationCacheJs extends _EventTargetJs implements DOMApplicationCache native "*DOMApplicationCache" {
 
   static final int CHECKING = 2;
 
@@ -1179,7 +1179,7 @@ class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
   void revokeObjectURL(String url) native;
 }
 
-class _DOMWindowJs extends _DOMTypeJs implements DOMWindow native "@*DOMWindow" {
+class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWindow" {
 
   static final int PERSISTENT = 1;
 
@@ -1999,7 +1999,7 @@ class _EventExceptionJs extends _DOMTypeJs implements EventException native "*Ev
   String toString() native;
 }
 
-class _EventSourceJs extends _DOMTypeJs implements EventSource native "*EventSource" {
+class _EventSourceJs extends _EventTargetJs implements EventSource native "*EventSource" {
 
   static final int CLOSED = 2;
 
@@ -4792,7 +4792,7 @@ class _MessageEventJs extends _EventJs implements MessageEvent native "*MessageE
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, _DOMWindowJs sourceArg, List transferables) native;
 }
 
-class _MessagePortJs extends _DOMTypeJs implements MessagePort native "*MessagePort" {
+class _MessagePortJs extends _EventTargetJs implements MessagePort native "*MessagePort" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -5005,7 +5005,7 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
   void registerProtocolHandler(String scheme, String url, String title) native;
 }
 
-class _NodeJs extends _DOMTypeJs implements Node native "*Node" {
+class _NodeJs extends _EventTargetJs implements Node native "*Node" {
 
   static final int ATTRIBUTE_NODE = 2;
 
@@ -5268,7 +5268,7 @@ class _NotationJs extends _NodeJs implements Notation native "*Notation" {
   final String systemId;
 }
 
-class _NotificationJs extends _DOMTypeJs implements Notification native "*Notification" {
+class _NotificationJs extends _EventTargetJs implements Notification native "*Notification" {
 
   String dir;
 
@@ -6156,7 +6156,7 @@ class _SVGElementJs extends _ElementJs implements SVGElement native "*SVGElement
   String xmlbase;
 }
 
-class _SVGElementInstanceJs extends _DOMTypeJs implements SVGElementInstance native "*SVGElementInstance" {
+class _SVGElementInstanceJs extends _EventTargetJs implements SVGElementInstance native "*SVGElementInstance" {
 
   final _SVGElementInstanceListJs childNodes;
 
@@ -10952,7 +10952,7 @@ class _WebKitTransitionEventJs extends _EventJs implements WebKitTransitionEvent
   final String propertyName;
 }
 
-class _WebSocketJs extends _DOMTypeJs implements WebSocket native "*WebSocket" {
+class _WebSocketJs extends _EventTargetJs implements WebSocket native "*WebSocket" {
 
   static final int CLOSED = 3;
 
@@ -11118,7 +11118,7 @@ class _WorkerNavigatorJs extends _DOMTypeJs implements WorkerNavigator native "*
   final String userAgent;
 }
 
-class _XMLHttpRequestJs extends _DOMTypeJs implements XMLHttpRequest native "*XMLHttpRequest" {
+class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native "*XMLHttpRequest" {
 
   static final int DONE = 4;
 
@@ -11195,7 +11195,7 @@ class _XMLHttpRequestProgressEventJs extends _ProgressEventJs implements XMLHttp
   final int totalSize;
 }
 
-class _XMLHttpRequestUploadJs extends _DOMTypeJs implements XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
+class _XMLHttpRequestUploadJs extends _EventTargetJs implements XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

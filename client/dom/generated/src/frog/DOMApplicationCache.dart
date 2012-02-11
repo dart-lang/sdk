@@ -1,5 +1,5 @@
 
-class _DOMApplicationCacheJs extends _DOMTypeJs implements DOMApplicationCache native "*DOMApplicationCache" {
+class _DOMApplicationCacheJs extends _EventTargetJs implements DOMApplicationCache native "*DOMApplicationCache" {
 
   static final int CHECKING = 2;
 

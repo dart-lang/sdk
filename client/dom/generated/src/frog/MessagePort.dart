@@ -1,5 +1,5 @@
 
-class _MessagePortJs extends _DOMTypeJs implements MessagePort native "*MessagePort" {
+class _MessagePortJs extends _EventTargetJs implements MessagePort native "*MessagePort" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

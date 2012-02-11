@@ -1,5 +1,5 @@
 
-class _SVGElementInstanceJs extends _DOMTypeJs implements SVGElementInstance native "*SVGElementInstance" {
+class _SVGElementInstanceJs extends _EventTargetJs implements SVGElementInstance native "*SVGElementInstance" {
 
   final _SVGElementInstanceListJs childNodes;
 

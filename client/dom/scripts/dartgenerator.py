@@ -1988,24 +1988,9 @@ class FrogInterfaceGenerator(object):
     base = None
     if interface.parents:
       supertype = interface.parents[0].type.id
-      # FIXME: We're currently injecting List<..> and EventTarget as
-      # supertypes in dart.idl. We should annotate/preserve as
-      # attributes instead.  For now, this hack lets the interfaces
-      # inherit, but not the classes.
-      if (not _IsDartListType(supertype) and
-          not supertype == 'EventTarget'):
-        base = self._ImplClassName(supertype)
       if _IsDartCollectionType(supertype):
         # List methods are injected in AddIndexer.
         pass
-      elif supertype == 'EventTarget':
-        # Most implementors of EventTarget specify the EventListener operations
-        # again.  If the operations are not specified, try to inherit from the
-        # EventTarget implementation.
-        #
-        # Applies to MessagePort.
-        if not [op for op in interface.operations if op.id == 'addEventListener']:
-          base = self._ImplClassName(supertype)
       else:
         base = self._ImplClassName(supertype)
 

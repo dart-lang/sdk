@@ -1,5 +1,5 @@
 
-class _NodeJs extends _DOMTypeJs implements Node native "*Node" {
+class _NodeJs extends _EventTargetJs implements Node native "*Node" {
 
   static final int ATTRIBUTE_NODE = 2;
 
