@@ -56,6 +56,9 @@ PromiseBasedTest: Skip
 [ $component == webdriver && $browser == ie && $system == win32 ]
 APIv2*: Skip
 
+[ $component == webdriver && $browser == safari && $system == macos ]
+APIv2*: Skip
+
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 
