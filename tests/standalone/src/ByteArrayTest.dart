@@ -54,7 +54,9 @@ void testIndexOutOfRange() {
 }
 
 main() {
-  testCreateByteArray();
-  testSetRange();
-  testIndexOutOfRange();
+  for (int i = 0; i < 2000; i++) {
+    testCreateByteArray();
+    testSetRange();
+    testIndexOutOfRange();
+  }
 }
