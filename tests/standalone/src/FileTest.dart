@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -11,7 +11,7 @@ class FileTest {
   static int numLiveAsyncTests = 0;
 
   static void asyncTestStarted() { ++numLiveAsyncTests; }
-  static void asyncTestDone() {
+  static void asyncTestDone(String name) {
     --numLiveAsyncTests;
     if (numLiveAsyncTests == 0) {
       deleteTempDirectory();
@@ -232,7 +232,7 @@ class FileTest {
                           file4.deleteHandler = () {
                             file4.existsHandler = (exists) {
                               Expect.isFalse(exists);
-                              asyncTestDone();
+                              asyncTestDone("testReadWrite");
                             };
                             file4.exists();
                           };
@@ -293,32 +293,31 @@ class FileTest {
     file.createSync();
     List<int> buffer = content.charCodes();
     OutputStream outStream = file.openOutputStream();
-    outStream.closeHandler = () {
-      File file2 = new File(filename);
-      OutputStream appendingOutput = file2.openOutputStream(FileMode.APPEND);
-      appendingOutput.write(buffer);
-      appendingOutput.closeHandler = () {
-        File file3 = new File(filename);
-        file3.openHandler = (RandomAccessFile openedFile) {
-          openedFile.lengthHandler = (int length) {
-            Expect.equals(content.length * 2, length);
-            openedFile.closeHandler = () {
-              asyncTestDone();
-            };
-            openedFile.close();
-          };
-          openedFile.length();
-        };
-        file3.open();
-      };
-      appendingOutput.close();
-    };
-    asyncTestStarted();
     outStream.write(buffer);
     outStream.close();
+    File file2 = new File(filename);
+    OutputStream appendingOutput = file2.openOutputStream(FileMode.APPEND);
+    appendingOutput.write(buffer);
+    appendingOutput.close();
+    File file3 = new File(filename);
+    file3.openHandler = (RandomAccessFile openedFile) {
+      openedFile.lengthHandler = (int length) {
+        Expect.equals(content.length * 2, length);
+        openedFile.closeHandler = () {
+          file3.deleteHandler = () {
+            asyncTestDone("testOutputStreamWriteAppend");
+          };
+          file3.delete();
+        };
+        openedFile.close();
+      };
+      openedFile.length();
+    };
+    file3.open();
+    asyncTestStarted();
   }
 
-  
+
   static void testReadWriteSync() {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
@@ -382,7 +381,7 @@ class FileTest {
           Expect.isTrue(err.indexOf("failed") != -1);
           openedFile.closeHandler = () {
             file.deleteHandler = () {
-              asyncTestDone();
+              asyncTestDone("testReadEmptyFile");
             };
             file.delete();
           };
@@ -483,7 +482,7 @@ class FileTest {
                 file.deleteHandler = () {
                   file.existsHandler = (exists) {
                     Expect.isFalse(exists);
-                    asyncTestDone();
+                    asyncTestDone("testTruncate");
                   };
                   file.exists();
                 };
@@ -754,7 +753,7 @@ class FileTest {
                       file.deleteHandler = () {
                         file.existsHandler = (exists) {
                           Expect.isFalse(exists);
-                          asyncTestDone();
+                          asyncTestDone("testAppend");
                         };
                         file.exists();
                       };
@@ -810,7 +809,7 @@ class FileTest {
     testPosition();
     testPositionSync();
     testMixedSyncAndAsync();
-    asyncTestStarted();
+
     createTempDirectory(() {
         testReadWrite();
         testReadWriteSync();
@@ -826,7 +825,6 @@ class FileTest {
         testAppendSync();
         testWriteAppend();
         testOutputStreamWriteAppend();
-        asyncTestDone();
       });
   }
 }
