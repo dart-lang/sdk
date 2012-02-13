@@ -9,10 +9,12 @@ prefix language
 
 
 [ $component == leg ]
+AbstractStaticNegativeTest: Fail
 AbstractSyntaxTest/01: Fail
 AbstractSyntaxTest/02: Fail
 ArithmeticTest: Fail
 AssertionTest: Fail
+AssignTopMethodNegativeTest: Fail
 BitOperationsTest: Fail
 BlackListedTest/01: Fail
 BlackListedTest/03: Fail
@@ -32,7 +34,6 @@ ClassCycleNegativeTest: Fail
 ClassExtendsNegativeTest: Fail
 ClassOverrideNegativeTest: Fail
 ClassTest: Fail
-Closure2Test: Fail
 ClosureBreak1Test: Fail
 ClosureBreak2Test: Fail
 ClosureBreakTest: Fail
@@ -66,7 +67,6 @@ ConstructorReturnNegativeTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
-ContextArgsWithDefaultsTest: Fail
 ContextTest: Crash # NPE in Types.isSubtype.
 ContinueTest: Fail
 CyclicTypeVariableTest: Fail
@@ -113,11 +113,11 @@ Field7NegativeTest: Fail
 Field7aNegativeTest: Fail
 FieldMethodTest: Fail
 FinalParamNegativeTest: Fail
-FinalVarNegativeTest: Fail
 FinalSyntaxTest/none: Fail
+FinalVarNegativeTest: Fail
 For2Test: Fail
 ForTest: Fail
-FunctionArgumentTest: Fail
+FunctionArgumentTest: Crash
 FunctionFieldTest: Fail
 FunctionLiterals2Test: Fail
 FunctionLiteralsTest: Fail
@@ -137,9 +137,8 @@ GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail
 GetSetSyntaxTest/none: Fail
-GetterClosureExecutionOrderTest: Crash
+GetterClosureExecutionOrderTest: Fail
 GettersSettersTest: Fail
-GCTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail
 ImplicitClosureTest: Fail
@@ -166,7 +165,6 @@ IsObjectTest: Fail
 IsOperatorTest: Fail
 Issue1363Test: Fail
 Issue4157508Test: Fail
-Issue4295001Test: Fail
 Issue4515170Test: Fail
 LabelTest: Fail
 Library5Test: Fail
@@ -178,7 +176,6 @@ ListLiteral4Test: Fail
 ListLiteralTest: Fail
 ListTest: Fail
 LocalFunction2Test: Fail
-LocalFunction3Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MapLiteral2Test: Fail
@@ -234,9 +231,8 @@ OverrideFieldMethod5NegativeTest: Fail
 OverrideFieldMethod6NegativeTest: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
-OverrideMethodWithFieldTest/01: Fail
-OverrideMethodWithFieldTest/04: Fail
 OverrideMethodWithFieldTest/none: Fail
+OverrideMethodWithFieldTest/01: Fail
 Param2Test: Fail
 ParameterInitializerTest: Fail
 Prefix10Test: Fail
@@ -334,9 +330,9 @@ TopLevelInInitializerTest: Fail
 TopLevelPrefixedDeclarationTest: Fail
 TopLevelVarTest: Fail
 ToplevelCollision2Test/none: Fail
-TryCatchSyntaxTest/08: Fail
 TryCatch2Test: Fail
 TryCatch3Test: Fail
+TryCatchSyntaxTest/08: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeDartcTest: Fail
 TypeVMTest: Fail
@@ -353,3 +349,5 @@ TypeVariableScopeTest/none: Fail
 TypedMessageTest: Fail
 WhileTest: Fail
 
+[ $component == leg && $mode == release]
+AssignTopMethodNegativeTest: Crash
