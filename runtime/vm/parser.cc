@@ -3220,14 +3220,16 @@ void Parser::ParseLibraryName() {
 
 Dart_Handle Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
-                                          const String& url) {
+                                          const String& url,
+                                          const Array& import_map) {
   Dart_LibraryTagHandler handler = Isolate::Current()->library_tag_handler();
   if (handler == NULL) {
     ErrorMsg(token_pos, "no library handler registered");
   }
   Dart_Handle result = handler(tag,
                                Api::NewLocalHandle(library_),
-                               Api::NewLocalHandle(url));
+                               Api::NewLocalHandle(url),
+                               Api::NewLocalHandle(import_map));
   if (Dart_IsError(result)) {
     ErrorMsg(token_pos, "library handler failed: %s", Dart_GetError(result));
   }
@@ -3243,8 +3245,7 @@ void Parser::ParseLibraryImport() {
     if (CurrentToken() != Token::kSTRING) {
       ErrorMsg("library url expected");
     }
-    const String& url = *CurrentLiteral();
-    ConsumeToken();
+    const String& url = *ParseImportStringLiteral();
     String& prefix = String::Handle();
     if (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
@@ -3265,15 +3266,17 @@ void Parser::ParseLibraryImport() {
     }
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
+    const Array& import_map = Array::Handle(library_.import_map());
     Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                import_pos,
-                                               url);
+                                               url,
+                                               import_map);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
     // Lookup the library URL.
     Library& library = Library::Handle(Library::LookupLibrary(canon_url));
     if (library.IsNull()) {
       // Call the library tag handler to load the library.
-      CallLibraryTagHandler(kImportTag, import_pos, canon_url);
+      CallLibraryTagHandler(kImportTag, import_pos, canon_url, import_map);
       // If the library tag handler succeded without registering the
       // library we create an empty library to import.
       library = Library::LookupLibrary(canon_url);
@@ -3298,6 +3301,7 @@ void Parser::ParseLibraryImport() {
 
 
 void Parser::ParseLibraryInclude() {
+  const Array& import_map = Array::Handle(library_.import_map());
   while (CurrentToken() == Token::kSOURCE) {
     const intptr_t source_pos = token_index_;
     ConsumeToken();
@@ -3305,15 +3309,15 @@ void Parser::ParseLibraryInclude() {
     if (CurrentToken() != Token::kSTRING) {
       ErrorMsg("source url expected");
     }
-    const String& url = *CurrentLiteral();
-    ConsumeToken();
+    const String& url = *ParseImportStringLiteral();
     ExpectToken(Token::kRPAREN);
     ExpectToken(Token::kSEMICOLON);
     Dart_Handle handle = CallLibraryTagHandler(kCanonicalizeUrl,
                                                source_pos,
-                                               url);
+                                               url,
+                                               import_map);
     const String& canon_url = String::CheckedHandle(Api::UnwrapHandle(handle));
-    CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
+    CallLibraryTagHandler(kSourceTag, source_pos, canon_url, import_map);
   }
 }
 
@@ -6642,6 +6646,22 @@ AstNode* Parser::ResolveVarOrField(intptr_t ident_pos, const String& ident) {
 }
 
 
+// Resolve variables used in an import string literal.
+// If the variable name cannot be resolved issue an error message.
+// Currently we only resolve against the global map which is passed in
+// when the script is loaded.
+RawString* Parser::ResolveImportVar(intptr_t ident_pos, const String& ident) {
+  TRACE_PARSER("ResolveImportVar");
+  String& map_name = String::Handle(library_.LookupImportMap(ident));
+  if (!map_name.IsNull()) {
+    return map_name.raw();
+  }
+  ErrorMsg(ident_pos, "import variable '%s' has not been defined",
+           ident.ToCString());
+  return String::null();
+}
+
+
 // Parses type = [ident "."] ident ["<" type { "," type } ">"].
 // Returns the class object if the type can be resolved. Otherwise, either give
 // an error if type resolution was required, or return the unresolved name as a
@@ -7319,7 +7339,6 @@ AstNode* Parser::ParseStringLiteral() {
   }
   // String interpolation needed.
   ArrayNode* values = new ArrayNode(token_index_, TypeArguments::ZoneHandle());
-  GrowableArray<const Object*> arg_values;
   while (CurrentToken() == Token::kSTRING) {
     values->AddElement(new LiteralNode(token_index_, *CurrentLiteral()));
     ConsumeToken();
@@ -7352,6 +7371,61 @@ AstNode* Parser::ParseStringLiteral() {
                            kInterpolateName,
                            interpolate_arg);
   return primary;
+}
+
+
+// An import string literal consists of the concatenation of the next n tokens
+// that satisfy the EBNF grammar:
+// literal = kSTRING {{ interpol }+ kSTRING }
+// interpol = kINTERPOL_VAR
+// In other words, the scanner breaks down interpolated strings so that
+// a string literal always begins and ends with a kSTRING token, and
+// there are never two kSTRING tokens next to each other.
+String* Parser::ParseImportStringLiteral() {
+  if ((CurrentToken() == Token::kSTRING) &&
+      (LookaheadToken(1) != Token::kINTERPOL_VAR) &&
+      (LookaheadToken(1) != Token::kINTERPOL_START)) {
+    // Common case: no interpolation.
+    String* result = CurrentLiteral();
+    ConsumeToken();
+    return result;
+  }
+  // String interpolation needed.
+  String& result = String::ZoneHandle(String::New(""));
+  String& resolved_name = String::Handle();
+  while (CurrentToken() == Token::kSTRING) {
+    result = String::Concat(result, *CurrentLiteral());
+    ConsumeToken();
+    if ((CurrentToken() != Token::kINTERPOL_VAR) &&
+        (CurrentToken() != Token::kINTERPOL_START)) {
+      break;
+    }
+    while ((CurrentToken() == Token::kINTERPOL_VAR) ||
+           (CurrentToken() == Token::kINTERPOL_START)) {
+      if (CurrentToken() == Token::kINTERPOL_START) {
+        ConsumeToken();
+        if (IsIdentifier()) {
+          resolved_name = ResolveImportVar(token_index_, *CurrentLiteral());
+          result = String::Concat(result, resolved_name);
+          ConsumeToken();
+          if (CurrentToken() != Token::kINTERPOL_END) {
+            ErrorMsg("'}' expected");
+          }
+          ConsumeToken();
+        } else {
+          ErrorMsg("identifier expected");
+        }
+      } else {
+        ASSERT(CurrentToken() == Token::kINTERPOL_VAR);
+        resolved_name = ResolveImportVar(token_index_, *CurrentLiteral());
+        result = String::Concat(result, resolved_name);
+        ConsumeToken();
+      }
+    }
+    // A string literal always ends with a kSTRING token.
+    ASSERT(CurrentToken() == Token::kSTRING);
+  }
+  return &result;
 }
 
 

@@ -176,7 +176,8 @@ class TestCase : TestCaseBase {
   }
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
-                                     Dart_Handle url);
+                                     Dart_Handle url,
+                                     Dart_Handle import_map);
 
   virtual void Run();
 

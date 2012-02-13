@@ -2248,7 +2248,8 @@ static void CompileSource(Isolate* isolate,
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
-                                        Dart_LibraryTagHandler handler) {
+                                        Dart_LibraryTagHandler handler,
+                                        Dart_Handle import_map) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -2260,6 +2261,10 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(source, String);
   }
+  const Array& mapping_array = Api::UnwrapArrayHandle(import_map);
+  if (mapping_array.IsNull()) {
+    RETURN_TYPE_ERROR(import_map, Array);
+  }
   Library& library = Library::Handle(isolate->object_store()->root_library());
   if (!library.IsNull()) {
     const String& library_url = String::Handle(library.url());
@@ -2268,6 +2273,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
   }
   isolate->set_library_tag_handler(handler);
   library = Library::New(url_str);
+  library.set_import_map(mapping_array);
   library.Register();
   isolate->object_store()->set_root_library(library);
   Dart_Handle result;
@@ -2393,7 +2399,9 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
+DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
+                                         Dart_Handle source,
+                                         Dart_Handle import_map) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -2405,9 +2413,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url, Dart_Handle source) {
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(source, String);
   }
+  const Array& mapping_array = Api::UnwrapArrayHandle(import_map);
+  if (mapping_array.IsNull()) {
+    RETURN_TYPE_ERROR(import_map, Array);
+  }
   Library& library = Library::Handle(Library::LookupLibrary(url_str));
   if (library.IsNull()) {
     library = Library::New(url_str);
+    library.set_import_map(mapping_array);
     library.Register();
   } else if (!library.LoadNotStarted()) {
     // The source for this library has either been loaded or is in the

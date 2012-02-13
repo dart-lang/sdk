@@ -209,7 +209,8 @@ class Parser : ValueObject {
   // Support for parsing libraries.
   Dart_Handle CallLibraryTagHandler(Dart_LibraryTag tag,
                                     intptr_t token_pos,
-                                    const String& url);
+                                    const String& url,
+                                    const Array& import_map);
   void ParseLibraryDefinition();
   void ParseLibraryName();
   void ParseLibraryImport();
@@ -350,6 +351,7 @@ class Parser : ValueObject {
   AstNode* ParsePostfixExpr();
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral();
+  String* ParseImportStringLiteral();
   AstNode* ParseCompoundLiteral();
   AstNode* ParseListLiteral(intptr_t type_pos,
                             bool is_const,
@@ -391,7 +393,8 @@ class Parser : ValueObject {
   AstNode* ResolveIdentInLibraryScope(const Library& lib,
                                       const QualIdent& qual_ident,
                                       bool resolve_locally);
-  AstNode* ResolveVarOrField(intptr_t ident_pos, const String &ident);
+  AstNode* ResolveVarOrField(intptr_t ident_pos, const String& ident);
+  RawString* ResolveImportVar(intptr_t ident_pos, const String& ident);
   AstNode* OptimizeBinaryOpNode(intptr_t op_pos,
                                 Token::Kind binary_op,
                                 AstNode* lhs,

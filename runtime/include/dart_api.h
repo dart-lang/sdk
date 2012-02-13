@@ -1427,7 +1427,8 @@ typedef enum {
 // TODO(turnidge): Document.
 typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle library,
-                                              Dart_Handle url);
+                                              Dart_Handle url,
+                                              Dart_Handle import_map);
 
 /**
  * Loads the root script for the current isolate.
@@ -1436,7 +1437,8 @@ typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
  */
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
-                                        Dart_LibraryTagHandler handler);
+                                        Dart_LibraryTagHandler handler,
+                                        Dart_Handle import_map);
 
 /**
  * Loads the root script for current isolate from a snapshot.
@@ -1474,7 +1476,8 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source);
+                                         Dart_Handle source,
+                                         Dart_Handle import_map);
 
 
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,

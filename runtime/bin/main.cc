@@ -26,6 +26,11 @@ extern const uint8_t* snapshot_buffer;
 static char* canonical_script_name = NULL;
 
 
+// Global state that stores the import URL map specified on the
+// command line.
+static CommandLineOptions* import_map_options = NULL;
+
+
 // Global state that stores a pointer to the application script snapshot.
 static bool use_script_snapshot = false;
 static uint8_t* script_snapshot_buffer = NULL;
@@ -80,6 +85,12 @@ static void ProcessSnapshotOption(const char* snapshot) {
 }
 
 
+static void ProcessImportMapOption(const char* map) {
+  ASSERT(map != NULL);
+  import_map_options->AddArgument(map);
+}
+
+
 static struct {
   const char* option_name;
   void (*process)(const char* option);
@@ -88,6 +99,7 @@ static struct {
   { "--compile_all", ProcessCompileAllOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--use_script_snapshot", ProcessSnapshotOption },
+  { "--import_map=", ProcessImportMapOption },
   { NULL, NULL }
 };
 
@@ -231,7 +243,8 @@ static void DumpPprofSymbolInfo() {
 
 static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                      Dart_Handle library,
-                                     Dart_Handle url) {
+                                     Dart_Handle url,
+                                     Dart_Handle import_map) {
   if (!Dart_IsLibrary(library)) {
     return Dart_Error("not a library");
   }
@@ -261,7 +274,12 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       return Dart_Error("Do not know how to load '%s'", url_string);
     }
   }
-  result = DartUtils::LoadSource(NULL, library, url, tag, url_string);
+  result = DartUtils::LoadSource(NULL,
+                                 library,
+                                 url,
+                                 tag,
+                                 url_string,
+                                 import_map);
   if (!Dart_IsError(result) && (tag == kImportTag)) {
     Builtin::ImportLibrary(result, Builtin::kBuiltinLibrary);
   }
@@ -269,14 +287,33 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-static Dart_Handle LoadScript(const char* script_name) {
+static Dart_Handle LoadScript(const char* script_name,
+                              CommandLineOptions* map) {
   Dart_Handle source = DartUtils::ReadStringFromFile(script_name);
   if (Dart_IsError(source)) {
     return source;
   }
   Dart_Handle url = Dart_NewString(script_name);
-
-  return Dart_LoadScript(url, source, LibraryTagHandler);
+  intptr_t length =  (map == NULL) ? 0 : map->count();
+  Dart_Handle import_map = Dart_NewList(length * 2);
+  for (intptr_t i = 0; i < length; i++) {
+    ASSERT(map->GetArgument(i) != NULL);
+    char* name = strdup(map->GetArgument(i));
+    ASSERT(name != NULL);
+    char* map_name = strchr(name, ',');
+    intptr_t index = i * 2;
+    if (map_name != NULL) {
+      *map_name = '\0';
+      map_name += 1;
+      Dart_ListSetAt(import_map, index, Dart_NewString(name));
+      Dart_ListSetAt(import_map, (index + 1), Dart_NewString(map_name));
+    } else {
+      Dart_ListSetAt(import_map, index, Dart_NewString(name));
+      Dart_ListSetAt(import_map, (index + 1), Dart_NewString(""));
+    }
+    free(name);
+  }
+  return Dart_LoadScript(url, source, LibraryTagHandler, import_map);
 }
 
 
@@ -295,7 +332,7 @@ static bool CreateIsolateAndSetup(const char* name_prefix,
   if (script_snapshot_buffer != NULL) {
     library = Dart_LoadScriptFromSnapshot(script_snapshot_buffer);
   } else {
-    library = LoadScript(canonical_script_name);
+    library = LoadScript(canonical_script_name, import_map_options);
   }
   if (Dart_IsError(library)) {
     *error = strdup(Dart_GetError(library));
@@ -439,6 +476,8 @@ int main(int argc, char** argv) {
   char* script_name;
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
+  CommandLineOptions import_map(argc);
+  import_map_options = &import_map;
 
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
