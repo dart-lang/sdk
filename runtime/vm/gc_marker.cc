@@ -199,7 +199,7 @@ class MarkingWeakVisitor : public HandleVisitor {
     RawObject* raw_obj = handle->raw();
     ASSERT(raw_obj->IsHeapObject());
     if (!raw_obj->IsMarked() && raw_obj->IsOldObject()) {
-      handle->Finalize();
+      WeakPersistentHandle::Finalize(handle);
     }
   }
 

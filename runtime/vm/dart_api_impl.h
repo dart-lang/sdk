@@ -121,6 +121,16 @@ class Api : AllStatic {
 
   // Reallocates space in the local zone.
   static uword Reallocate(uword ptr, intptr_t old_size, intptr_t new_size);
+
+  // Performs one-time initialization needed by the API.
+  static void InitOnce();
+
+ private:
+  // Thread local key used by the API. Currently holds the current
+  // ApiNativeScope if any.
+  static ThreadLocalKey api_native_key_;
+
+  friend class ApiNativeScope;
 };
 
 class IsolateSaver {

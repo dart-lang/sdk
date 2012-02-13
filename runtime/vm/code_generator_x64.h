@@ -125,7 +125,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   virtual void CountBackwardLoop();
 
-  void GenerateReturnEpilog();
+  void GenerateReturnEpilog(ReturnNode* node);
 
  private:
   // TODO(srdjan): Remove the friendship once the two compilers are properly

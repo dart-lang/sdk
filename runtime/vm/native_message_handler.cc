@@ -4,8 +4,10 @@
 
 #include "vm/native_message_handler.h"
 
+#include "vm/dart_api_message.h"
 #include "vm/isolate.h"
 #include "vm/message.h"
+#include "vm/snapshot.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -31,6 +33,14 @@ void NativeMessageHandler::CheckAccess() {
 #endif
 
 
+static uint8_t* zone_allocator(
+    uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  ApiZone* zone = ApiNativeScope::Current()->zone();
+  return reinterpret_cast<uint8_t*>(
+      zone->Reallocate(reinterpret_cast<uword>(ptr), old_size, new_size));
+}
+
+
 static void RunWorker(uword parameter) {
   NativeMessageHandler* handler =
       reinterpret_cast<NativeMessageHandler*>(parameter);
@@ -47,12 +57,19 @@ static void RunWorker(uword parameter) {
         // dispatched to special vm code.  Implement.
         UNIMPLEMENTED();
       }
-      // TODO(sgjesse): Once CMessageReader::ReadObject is committed,
-      // use that here and pass the resulting data object to the
-      // handler instead.
+      // Enter a native scope for handling the message. This will create a
+      // zone for allocating the objects for decoding the message.
+      ApiNativeScope scope;
+
+      int32_t length = reinterpret_cast<int32_t*>(
+          message->data())[Snapshot::kLengthIndex];
+      ApiMessageReader reader(message->data() + Snapshot::kHeaderSize,
+                              length,
+                              zone_allocator);
+      Dart_CObject* object = reader.ReadMessage();
       (*handler->func())(message->dest_port(),
                          message->reply_port(),
-                         message->data());
+                         object);
       delete message;
     }
   }

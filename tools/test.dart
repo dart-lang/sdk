@@ -26,6 +26,7 @@
 #import("../frog/tests/await/test_config.dart");
 #import("../utils/tests/css/test_config.dart");
 #import("../utils/tests/dartdoc/test_config.dart");
+#import("../utils/tests/import_mapper/test_config.dart");
 #import("../utils/tests/peg/test_config.dart");
 
 main() {
@@ -98,6 +99,9 @@ main() {
     }
     if (selectors.containsKey('dartdoc')) {
       queue.addTestSuite(new DartdocTestSuite(conf));
+    }
+    if (selectors.containsKey('import_mapper')) {
+      queue.addTestSuite(new ImportMapperTestSuite(conf));
     }
     if (selectors.containsKey('peg')) {
       queue.addTestSuite(new PegTestSuite(conf));

@@ -1,5 +1,5 @@
 
-class _NotificationJs extends _DOMTypeJs implements Notification native "*Notification" {
+class _NotificationJs extends _EventTargetJs implements Notification native "*Notification" {
 
   String dir;
 

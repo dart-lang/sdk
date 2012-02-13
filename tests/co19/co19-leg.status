@@ -28,22 +28,15 @@ LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
 # Crashes and time outs.
 Language/13_Types/4_Interface_Types_A11_t01: Skip # Times out.
 
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A02_t01: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A02_t02: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A02_t03: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A02_t04: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A03_t01: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t01: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t02: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A06_t01: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A06_t02: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t03: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t04: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t05: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t03: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t04: Fail
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t05: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_A02_t03: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_A02_t04: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_A04_t01: Fail
@@ -87,8 +80,6 @@ LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A03_t01: Fail
 LangGuideTest/02_Language_Constructs/02_7_Abstract_Methods/02_7_Abstract_Methods_A02_t01: Fail
 LangGuideTest/02_Language_Constructs/02_8_Static_Methods/02_8_Static_Methods_A01_t02: Fail
 LangGuideTest/02_Language_Constructs/02_8_Static_Methods/02_8_Static_Methods_A02_t02: Fail
-LangGuideTest/03_Values/03_2_Numbers/03_2_Numbers_A01_t01: Fail
-LangGuideTest/03_Values/03_2_Numbers/03_2_Numbers_A02_t01: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t01: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t02: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t03: Fail
@@ -113,11 +104,7 @@ LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t21: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t22: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t23: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t24: Fail
-LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A03_t01: Fail
-LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A03_t02: Fail
 LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A04_t01: Fail
-LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A05_t01: Fail
-LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A06_t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t03: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A02_t01: Fail
@@ -131,12 +118,9 @@ LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Argument
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A02_t02: Fail
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A03_t01: Fail
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A04_t01: Fail
-LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Regular_Instance_Method_Invocation/Regular_Instance_Method_Invocation_A02_t02: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Static-Field_Assignment/Static-Field_Assignment_A03_t02: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/Variable_Or_Parameter_Assignment_A02_t01: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/Variable_Or_Parameter_Assignment_A03_t04: Fail
-LangGuideTest/08_Expressions/08_5_Logical-Or_Operator/08_5_Logical-Or_Operator_A03_t01: Fail
-LangGuideTest/08_Expressions/08_6_Logical-And_Operator/08_6_Logical-And_Operator_A03_t01: Fail
 Language/05_Variables/05_Variables_A01_t04: Fail
 Language/05_Variables/05_Variables_A01_t05: Fail
 Language/05_Variables/05_Variables_A01_t08: Fail
@@ -151,6 +135,7 @@ Language/05_Variables/05_Variables_A05_t04: Fail
 Language/05_Variables/05_Variables_A06_t01: Fail
 Language/05_Variables/05_Variables_A07_t01: Fail
 Language/05_Variables/05_Variables_A07_t02: Fail
+Language/05_Variables/05_Variables_A08_t02: Fail
 Language/05_Variables/05_Variables_A08_t03: Fail
 Language/06_Functions/06_Functions_A01_t01: Fail
 Language/06_Functions/06_Functions_A01_t02: Fail
@@ -160,7 +145,9 @@ Language/06_Functions/06_Functions_A02_t01: Fail
 Language/06_Functions/06_Functions_A03_t01: Fail
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail
 Language/06_Functions/1_Function_Declaration_A02_t01: Fail
+Language/06_Functions/1_Function_Declaration_A02_t02: Fail
 Language/06_Functions/1_Function_Declaration_A03_t01: Fail
+Language/06_Functions/1_Function_Declaration_A03_t02: Fail
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t04: Fail
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail
@@ -176,13 +163,10 @@ Language/07_Classes/07_Classes_A03_t04: Fail
 Language/07_Classes/07_Classes_A03_t05: Fail
 Language/07_Classes/07_Classes_A03_t06: Fail
 Language/07_Classes/07_Classes_A03_t07: Fail
-Language/07_Classes/07_Classes_A03_t07: Fail
-Language/07_Classes/07_Classes_A03_t08: Fail
 Language/07_Classes/07_Classes_A03_t08: Fail
 Language/07_Classes/07_Classes_A03_t09: Fail
 Language/07_Classes/07_Classes_A03_t10: Fail
 Language/07_Classes/07_Classes_A03_t11: Fail
-Language/07_Classes/07_Classes_A06_t01: Fail
 Language/07_Classes/07_Classes_A07_t01: Fail
 Language/07_Classes/07_Classes_A07_t04: Fail
 Language/07_Classes/07_Classes_A07_t07: Fail
@@ -205,16 +189,6 @@ Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t03: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t04: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A05_t01: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A05_t02: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A05_t03: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A05_t04: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t01: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t02: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t03: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t04: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t05: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t06: Fail
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail
 Language/07_Classes/1_Instance_Methods/2_Operators_A03_t01: Fail
@@ -312,6 +286,7 @@ Language/07_Classes/3_Setters_A04_t04: Fail
 Language/07_Classes/3_Setters_A04_t05: Fail
 Language/07_Classes/3_Setters_A04_t06: Fail
 Language/07_Classes/3_Setters_A04_t07: Fail
+Language/07_Classes/3_Setters_A04_t08: Fail
 Language/07_Classes/4_Instance_Variables_A01_t01: Fail
 Language/07_Classes/4_Instance_Variables_A01_t02: Fail
 Language/07_Classes/4_Instance_Variables_A01_t03: Fail
@@ -362,8 +337,6 @@ Language/07_Classes/7_Static_Variables_A06_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t02: Fail
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail
 Language/07_Classes/8_Superclasses_A02_t04: Fail
-Language/07_Classes/9_Superinterfaces_A01_t01: Fail
-Language/07_Classes/9_Superinterfaces_A02_t04: Fail
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail
 Language/07_Classes/9_Superinterfaces_A06_t01: Fail
 Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail
@@ -455,7 +428,6 @@ Language/13_Types/4_Interface_Types_A01_t01: Fail
 Language/13_Types/4_Interface_Types_A02_t01: Fail
 Language/13_Types/4_Interface_Types_A04_t01: Fail
 Language/13_Types/4_Interface_Types_A04_t02: Fail
-Language/13_Types/4_Interface_Types_A05_t02: Fail
 Language/13_Types/4_Interface_Types_A05_t03: Fail
 Language/13_Types/4_Interface_Types_A05_t04: Fail
 Language/13_Types/4_Interface_Types_A06_t01: Fail
@@ -465,7 +437,6 @@ Language/13_Types/4_Interface_Types_A07_t03: Fail
 Language/13_Types/4_Interface_Types_A08_t01: Fail
 Language/13_Types/4_Interface_Types_A08_t03: Fail
 Language/13_Types/4_Interface_Types_A09_t01: Fail
-Language/13_Types/4_Interface_Types_A10_t01: Fail
 Language/13_Types/4_Interface_Types_A10_t03: Fail
 Language/13_Types/4_Interface_Types_A10_t04: Fail
 Language/13_Types/4_Interface_Types_A10_t06: Fail
@@ -473,7 +444,6 @@ Language/13_Types/4_Interface_Types_A10_t07: Fail
 Language/13_Types/4_Interface_Types_A10_t08: Fail
 Language/13_Types/4_Interface_Types_A10_t09: Fail
 Language/13_Types/4_Interface_Types_A10_t11: Fail
-Language/13_Types/4_Interface_Types_A11_t03: Fail
 Language/13_Types/4_Interface_Types_A11_t04: Fail
 Language/13_Types/4_Interface_Types_A12_t06: Fail
 Language/13_Types/4_Interface_Types_A12_t07: Fail

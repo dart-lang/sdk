@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,8 +7,10 @@
 
 #include "include/dart_api.h"
 
+#include "platform/thread.h"
 #include "vm/dart_api_impl.h"
 #include "vm/flags.h"
+#include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -46,8 +48,11 @@ class ApiZone {
   intptr_t SizeInBytes() const { return zone_.SizeInBytes(); }
 
  private:
+  BaseZone* GetBaseZone() { return &zone_; }
+
   BaseZone zone_;
 
+  template<typename T> friend class ApiGrowableArray;
   DISALLOW_COPY_AND_ASSIGN(ApiZone);
 };
 
@@ -124,14 +129,20 @@ class WeakPersistentHandle {
   static intptr_t raw_offset() { return OFFSET_OF(WeakPersistentHandle, raw_); }
   void* peer() const { return peer_; }
   void set_peer(void* peer) { peer_ = peer; }
-  Dart_PeerFinalizer callback() const { return callback_; }
-  void set_callback(Dart_PeerFinalizer callback) { callback_ = callback; }
+  Dart_WeakPersistentHandleFinalizer callback() const { return callback_; }
+  void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
+    callback_ = callback;
+  }
 
-  void Finalize() {
-    if (callback_ != NULL) {
-      (*callback_)(peer_);
+  static void Finalize(WeakPersistentHandle* handle) {
+    if (handle->callback() != NULL) {
+      Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+      void* peer = handle->peer();
+      handle->Clear();
+      (*callback)(reinterpret_cast<Dart_Handle>(handle), peer);
+    } else {
+      handle->Clear();
     }
-    Clear();
   }
 
  private:
@@ -146,7 +157,7 @@ class WeakPersistentHandle {
     return reinterpret_cast<WeakPersistentHandle*>(callback_);
   }
   void SetNext(WeakPersistentHandle* free_list) {
-    callback_ = reinterpret_cast<Dart_PeerFinalizer>(free_list);
+    callback_ = reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(free_list);
   }
   void FreeHandle(WeakPersistentHandle* free_list) {
     raw_ = NULL;
@@ -161,7 +172,7 @@ class WeakPersistentHandle {
 
   RawObject* raw_;
   void* peer_;
-  Dart_PeerFinalizer callback_;
+  Dart_WeakPersistentHandleFinalizer callback_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
   DISALLOW_COPY_AND_ASSIGN(WeakPersistentHandle);
 };
@@ -506,6 +517,50 @@ class ApiState {
 
   DISALLOW_COPY_AND_ASSIGN(ApiState);
 };
+
+
+class ApiNativeScope {
+ public:
+  ApiNativeScope() {
+    // Currently no support for nesting native scopes.
+    ASSERT(Current() == NULL);
+    Thread::SetThreadLocal(Api::api_native_key_, reinterpret_cast<uword>(this));
+  }
+
+  ~ApiNativeScope() {
+    ASSERT(Current() == this);
+    Thread::SetThreadLocal(Api::api_native_key_, NULL);
+  }
+
+  static inline ApiNativeScope* Current() {
+    return reinterpret_cast<ApiNativeScope*>(
+        Thread::GetThreadLocal(Api::api_native_key_));
+  }
+
+  ApiZone* zone() { return &zone_; }
+
+ private:
+  ApiZone zone_;
+  ThreadLocalKey key_;
+};
+
+
+// Api growable arrays use a zone for allocation. The constructor
+// picks the zone from the current isolate if in an isolate
+// environment. When outside an isolate environment it picks the zone
+// from the current native scope.
+template<typename T>
+class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
+ public:
+  explicit ApiGrowableArray(int initial_capacity)
+      : BaseGrowableArray<T, ValueObject>(
+          initial_capacity,
+          ApiNativeScope::Current()->zone()->GetBaseZone()) {}
+  ApiGrowableArray()
+      : BaseGrowableArray<T, ValueObject>(
+          ApiNativeScope::Current()->zone()->GetBaseZone()) {}
+};
+
 
 }  // namespace dart
 

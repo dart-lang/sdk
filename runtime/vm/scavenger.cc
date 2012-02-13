@@ -146,7 +146,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
       if (IsForwarding(header)) {
         handle->set_raw(RawObject::FromAddr(ForwardedAddr(header)));
       } else {
-        handle->Finalize();
+        WeakPersistentHandle::Finalize(handle);
       }
     }
   }

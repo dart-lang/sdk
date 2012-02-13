@@ -372,41 +372,26 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
   }
   interface.set_factory_class(factory_class);
   ResolveAndFinalizeUpperBounds(factory_class);
-  const intptr_t num_factory_type_params = factory_class.NumTypeParameters();
   const Class& factory_signature_class = Class::Handle(
       unresolved_factory_class.factory_signature_class());
   ASSERT(!factory_signature_class.IsNull());
-  const intptr_t num_default_type_params =
-      factory_signature_class.NumTypeParameters();
   // If a type parameter list is included in the default factory clause (it
   // can be omitted), verify that it matches the list of type parameters of
   // the factory class in number, names, and bounds.
-  if (num_default_type_params > 0) {
+  if (factory_signature_class.NumTypeParameters() > 0) {
     ResolveAndFinalizeUpperBounds(factory_signature_class);
-    String& expected_type_name = String::Handle();
-    String& actual_type_name = String::Handle();
-    AbstractType& expected_type_extends = AbstractType::Handle();
-    AbstractType& actual_type_extends = AbstractType::Handle();
-    const Array& expected_type_names =
-        Array::Handle(factory_signature_class.type_parameters());
-    const Array& actual_type_names =
-        Array::Handle(factory_class.type_parameters());
-    const TypeArguments& expected_extends_array =
-        TypeArguments::Handle(factory_signature_class.type_parameter_extends());
-    const TypeArguments& actual_extends_array =
-        TypeArguments::Handle(factory_class.type_parameter_extends());
-    bool mismatch = num_factory_type_params != num_default_type_params;
-    for (intptr_t i = 0; !mismatch && (i < num_default_type_params); i++) {
-      expected_type_name ^= expected_type_names.At(i);
-      actual_type_name ^= actual_type_names.At(i);
-      expected_type_extends = expected_extends_array.TypeAt(i);
-      actual_type_extends = actual_extends_array.TypeAt(i);
-      if (!expected_type_name.Equals(actual_type_name) ||
-          !expected_type_extends.Equals(actual_type_extends)) {
-        mismatch = true;
-      }
-    }
-    if (mismatch) {
+    const TypeArguments& expected_type_parameters =
+        TypeArguments::Handle(factory_signature_class.type_parameters());
+    const TypeArguments& actual_type_parameters =
+        TypeArguments::Handle(factory_class.type_parameters());
+    const TypeArguments& expected_type_parameter_bounds =
+        TypeArguments::Handle(factory_signature_class.type_parameter_bounds());
+    const TypeArguments& actual_type_parameter_bounds =
+        TypeArguments::Handle(factory_class.type_parameter_bounds());
+    if (!AbstractTypeArguments::AreEqual(expected_type_parameters,
+                                         actual_type_parameters) ||
+        !AbstractTypeArguments::AreEqual(expected_type_parameter_bounds,
+                                         actual_type_parameter_bounds)) {
       const String& interface_name = String::Handle(interface.Name());
       const String& factory_name = String::Handle(factory_class.Name());
       const Script& script = Script::Handle(interface.script());
@@ -420,22 +405,12 @@ void ClassFinalizer::ResolveDefaultClass(const Class& interface) {
   }
   // Verify that the type parameters of the factory class and of the interface
   // have identical names.
-  String& interface_type_param_name = String::Handle();
-  String& factory_type_param_name = String::Handle();
-  const Array& interface_type_param_names =
-      Array::Handle(interface.type_parameters());
-  const Array& factory_type_param_names =
-      Array::Handle(factory_class.type_parameters());
-  const intptr_t num_interface_type_params = interface.NumTypeParameters();
-  bool mismatch = num_interface_type_params != num_factory_type_params;
-  for (intptr_t i = 0; !mismatch && (i < num_factory_type_params); i++) {
-    interface_type_param_name ^= interface_type_param_names.At(i);
-    factory_type_param_name ^= factory_type_param_names.At(i);
-    if (!interface_type_param_name.Equals(factory_type_param_name)) {
-      mismatch = true;
-    }
-  }
-  if (mismatch) {
+  const TypeArguments& interface_type_parameters =
+      TypeArguments::Handle(interface.type_parameters());
+  const TypeArguments& factory_type_parameters =
+      TypeArguments::Handle(factory_class.type_parameters());
+  if (!AbstractTypeArguments::AreEqual(interface_type_parameters,
+                                       factory_type_parameters)) {
     const String& interface_name = String::Handle(interface.Name());
     const String& factory_name = String::Handle(factory_class.Name());
     const Script& script = Script::Handle(interface.script());
@@ -541,32 +516,31 @@ void ClassFinalizer::VerifyUpperBounds(const Class& cls,
   const intptr_t num_type_params = cls.NumTypeParameters();
   const intptr_t offset = cls.NumTypeArguments() - num_type_params;
   AbstractType& type = AbstractType::Handle();
-  AbstractType& type_extends = AbstractType::Handle();
-  const AbstractTypeArguments& extends_array =
-      AbstractTypeArguments::Handle(cls.type_parameter_extends());
-  ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
-         (extends_array.Length() == num_type_params));
+  AbstractType& bound = AbstractType::Handle();
+  const TypeArguments& bounds =
+      TypeArguments::Handle(cls.type_parameter_bounds());
+  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
+         (bounds.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
-    type_extends = extends_array.TypeAt(i);
-    if (!type_extends.IsDynamicType()) {
+    bound = bounds.TypeAt(i);
+    if (!bound.IsDynamicType()) {
       type = arguments.TypeAt(offset + i);
       if (type.IsInstantiated()) {
-        if (!type_extends.IsInstantiated()) {
-          type_extends = type_extends.InstantiateFrom(arguments);
+        if (!bound.IsInstantiated()) {
+          bound = bound.InstantiateFrom(arguments);
         }
-        // TODO(regis): Where do we check the constraints when the type is
-        // generic?
-        if (!type.IsSubtypeOf(type_extends)) {
+        // TODO(regis): Where do we check the bound when the type is generic?
+        if (!type.IsSubtypeOf(bound)) {
           const String& type_argument_name = String::Handle(type.Name());
           const String& class_name = String::Handle(cls.Name());
-          const String& extends_name = String::Handle(type_extends.Name());
+          const String& bound_name = String::Handle(bound.Name());
           const Script& script = Script::Handle(cls.script());
           ReportError(script, type.token_index(),
                       "type argument '%s' of class '%s' "
-                      "does not extend type '%s'\n",
+                      "does not extend bound '%s'\n",
                       type_argument_name.ToCString(),
                       class_name.ToCString(),
-                      extends_name.ToCString());
+                      bound_name.ToCString());
         }
       }
     }
@@ -659,7 +633,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Initialize the type argument vector.
   // Check the number of parsed type arguments, if any.
   // Specifying no type arguments indicates a raw type, which is not an error.
-  // However, subtyping constraints are checked below, even for a raw type.
+  // However, type parameter bounds are checked below, even for a raw type.
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     const Script& script = Script::Handle(cls.script());
     ReportError(script, type.token_index(),
@@ -773,16 +747,16 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
 // Resolve and finalize the upper bounds of the type parameters of class cls.
 void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
   const intptr_t num_type_params = cls.NumTypeParameters();
-  AbstractType& type_extends = AbstractType::Handle();
-  const AbstractTypeArguments& extends_array =
-      AbstractTypeArguments::Handle(cls.type_parameter_extends());
-  ASSERT((extends_array.IsNull() && (num_type_params == 0)) ||
-         (extends_array.Length() == num_type_params));
+  AbstractType& bound = AbstractType::Handle();
+  const AbstractTypeArguments& bounds =
+      AbstractTypeArguments::Handle(cls.type_parameter_bounds());
+  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
+         (bounds.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
-    type_extends = extends_array.TypeAt(i);
-    ResolveType(cls, type_extends);
-    type_extends = FinalizeType(cls, type_extends);
-    extends_array.SetTypeAt(i, type_extends);
+    bound = bounds.TypeAt(i);
+    ResolveType(cls, bound);
+    bound = FinalizeType(cls, bound);
+    bounds.SetTypeAt(i, bound);
   }
 }
 

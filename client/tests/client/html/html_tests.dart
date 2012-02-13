@@ -6,18 +6,18 @@
 
 #import('dart:html');
 #import('dart:htmlimpl');
-#import('../../../base/base.dart');
 #import('../../../testing/unittest/unittest.dart');
-#import('../../../util/utilslib.dart');
 
 #source('CSSStyleDeclarationTests.dart');
 #source('DocumentFragmentTests.dart');
 #source('ElementTests.dart');
 #source('EventTests.dart');
 #source('ListsTests.dart');
+#source('LocalStorageTests.dart');
 #source('MeasurementTests.dart');
 #source('NodeTests.dart');
 #source('SVGElementTests.dart');
+#source('XHRTests.dart');
 
 main() {
   group('CSSStyleDeclaration', testCSSStyleDeclaration);
@@ -25,7 +25,9 @@ main() {
   group('Element', testElement);
   group('Event', testEvents);
   group('Lists', testLists);
+  group('LocalStorage', testLocalStorage);
   group('Measurement', testMeasurement);
   group('Node', testNode);
   group('SVGElement', testSVGElement);
+  group('XHR', testXHR);
 }

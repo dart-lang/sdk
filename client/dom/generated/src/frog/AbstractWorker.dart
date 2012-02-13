@@ -1,5 +1,5 @@
 
-class _AbstractWorkerJs extends _DOMTypeJs implements AbstractWorker native "*AbstractWorker" {
+class _AbstractWorkerJs extends _EventTargetJs implements AbstractWorker native "*AbstractWorker" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

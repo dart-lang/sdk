@@ -312,18 +312,16 @@ class RawClass : public RawObject {
   RawString* name_;
   RawArray* functions_;
   RawArray* fields_;
-  // TODO(srdjan): RawTypeArguments* interfaces_;  // Array of Type.
   RawArray* interfaces_;  // Array of AbstractType.
   RawScript* script_;
   RawLibrary* library_;
-  RawArray* type_parameters_;  // Array of String.
-  RawTypeArguments* type_parameter_extends_;  // DynamicType if no extends.
+  RawTypeArguments* type_parameters_;  // Array of TypeParameter.
+  RawTypeArguments* type_parameter_bounds_;  // DynamicType if no bound.
   RawType* super_type_;
   RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* functions_cache_;  // See class FunctionsCache.
   RawArray* constants_;  // Canonicalized values of this class.
-  // TODO(srdjan): RawTypeArguments* canonical_types_;
   RawArray* canonical_types_;  // Canonicalized types of this class.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
   RawObject** to() {
@@ -895,13 +893,24 @@ class RawFourByteString : public RawString {
 template<typename T>
 class ExternalStringData {
  public:
-  typedef void Callback(void* peer);
-  ExternalStringData(const T* data, void* peer, Callback* callback) :
+  ExternalStringData(const T* data, void* peer, Dart_PeerFinalizer callback) :
       data_(data), peer_(peer), callback_(callback) {
   }
+  ~ExternalStringData() {
+    if (callback_ != NULL) (*callback_)(peer_);
+  }
+
+  const T* data() {
+    return data_;
+  }
+  void* peer() {
+    return peer_;
+  }
+
+ private:
   const T* data_;
   void* peer_;
-  Callback* callback_;
+  Dart_PeerFinalizer callback_;
 };
 
 
@@ -983,10 +992,35 @@ class RawInternalByteArray : public RawByteArray {
 };
 
 
+class ExternalByteArrayData {
+ public:
+  ExternalByteArrayData(uint8_t* data,
+                        void* peer,
+                        Dart_PeerFinalizer callback) :
+      data_(data), peer_(peer), callback_(callback) {
+  }
+  ~ExternalByteArrayData() {
+    if (callback_ != NULL) (*callback_)(peer_);
+  }
+
+  uint8_t* data() {
+    return data_;
+  }
+  void* peer() {
+    return peer_;
+  }
+
+ private:
+  uint8_t* data_;
+  void* peer_;
+  Dart_PeerFinalizer callback_;
+};
+
+
 class RawExternalByteArray : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalByteArray);
 
-  uint8_t* data_;
+  ExternalByteArrayData* external_data_;
 };
 
 

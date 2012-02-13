@@ -73,6 +73,8 @@ DECLARE_FLAG(bool, enable_type_checks);
   V(GrowableObjectArray, get:length, GrowableArray_getLength)                  \
   V(GrowableObjectArray, [], GrowableArray_getIndexed)                         \
   V(GrowableObjectArray, []=, GrowableArray_setIndexed)                        \
+  V(_ByteArrayBase, get:length, ByteArrayBase_getLength)                       \
+  V(_ByteArrayBase, [], ByteArrayBase_getIndexed)                              \
   V(ImmutableArray, [], Array_getIndexed)                                      \
   V(ImmutableArray, get:length, Array_getLength)                               \
   V(Math, sqrt, Math_sqrt)                                                     \
@@ -322,6 +324,50 @@ static bool GrowableArray_setIndexed(Assembler* assembler) {
   __ StoreIntoObject(EAX,
                      FieldAddress(EAX, EBX, TIMES_2, sizeof(RawArray)),
                      EDI);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+// Handles only class InternalByteArray.
+static bool ByteArrayBase_getLength(Assembler* assembler) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
+  __ CompareObject(EBX,
+      Class::ZoneHandle(object_store->internal_byte_array_class()));
+  __ j(NOT_EQUAL, &fall_through);
+  __ movl(EAX, FieldAddress(EAX, InternalByteArray::length_offset()));
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+// Handles only class InternalByteArray.
+static bool ByteArrayBase_getIndexed(Assembler* assembler) {
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ movl(EBX, FieldAddress(EAX, Object::class_offset()));
+  __ CompareObject(EBX,
+      Class::ZoneHandle(object_store->internal_byte_array_class()));
+  __ j(NOT_EQUAL, &fall_through);
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, InternalByteArray::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ SmiUntag(EBX);
+  __ movzxb(EAX,
+      FieldAddress(EAX, EBX, TIMES_1, InternalByteArray::data_offset()));
+  // The values stored in the byte array are regular, untagged values,
+  // therefore they need to be tagged.
+  __ SmiTag(EAX);
   __ ret();
   __ Bind(&fall_through);
   return false;
@@ -1149,14 +1195,53 @@ static bool String_isEmpty(Assembler* assembler) {
 #undef __
 
 
+// Returns true if the function matches function_name and class_name, with
+// special recognition of corelib private classes
+static bool TestFunction(const Function& function,
+                         const char* function_class_name,
+                         const char* function_name,
+                         const char* test_class_name,
+                         const char* test_function_name) {
+  if (strcmp(test_function_name, function_name) != 0) return false;
+
+  if ((function_class_name[0] == '_') && (test_class_name[0] == '_')) {
+    // Check if the private class is member of corelib and matches the
+    // test_class_name.
+    const Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+    String& test_str = String::Handle(String::New(test_class_name));
+    String& test_str_with_key = String::Handle();
+    test_str_with_key =
+        String::Concat(test_str, String::Handle(core_lib.private_key()));
+    if (strcmp(test_str_with_key.ToCString(), function_class_name) == 0) {
+      return true;
+    }
+    test_str_with_key =
+        String::Concat(test_str, String::Handle(core_impl_lib.private_key()));
+    if (strcmp(test_str_with_key.ToCString(), function_class_name) == 0) {
+      return true;
+    }
+  }
+  return strcmp(test_class_name, function_class_name) == 0;
+}
+
+
 bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   if (!FLAG_intrinsify) return false;
   const char* function_name = String::Handle(function.name()).ToCString();
   const Class& function_class = Class::Handle(function.owner());
   const char* class_name = String::Handle(function_class.Name()).ToCString();
+  // Only core library methods can be intrinsified.
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
+  if ((function_class.library() != core_lib.raw()) &&
+      (function_class.library() != core_impl_lib.raw())) {
+    return false;
+  }
 #define FIND_INTRINSICS(test_class_name, test_function_name, destination)      \
-  if ((strcmp(#test_function_name, function_name) == 0) &&                     \
-      (strcmp(#test_class_name, class_name) == 0)) {                           \
+  if (TestFunction(function,                                                   \
+                   class_name, function_name,                                  \
+                   #test_class_name, #test_function_name)) {                   \
     return destination(assembler);                                             \
   }                                                                            \
 

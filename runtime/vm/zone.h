@@ -91,6 +91,7 @@ class BaseZone {
 
   friend class Zone;
   friend class ApiZone;
+  template<typename T, typename B> friend class BaseGrowableArray;
   DISALLOW_COPY_AND_ASSIGN(BaseZone);
 };
 
@@ -127,6 +128,8 @@ class Zone : public StackResource {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
  private:
+  BaseZone* GetBaseZone() { return &zone_; }
+
   BaseZone zone_;
 
   // Structure for managing handles allocation.
@@ -134,6 +137,10 @@ class Zone : public StackResource {
 
   // Used for chaining zones in order to allow unwinding of stacks.
   Zone* previous_;
+
+  template<typename T> friend class GrowableArray;
+  template<typename T> friend class ZoneGrowableArray;
+
   DISALLOW_IMPLICIT_CONSTRUCTORS(Zone);
 };
 

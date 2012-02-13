@@ -76,6 +76,7 @@ ConstructorDuplicateInitializersTest/02: Fail
 # Issue 1355
 CallOperatorTest: Fail
 
+ConstConstructorSyntaxTest/05: Fail
 GetSetSyntaxTest/04: Fail # Issue 1569
 GetSetSyntaxTest/05: Fail # Issue 1569
 GetSetSyntaxTest/06: Fail # Issue 1569
@@ -99,19 +100,20 @@ FunctionTypeAliasNegativeTest: Fail # Bug 5231617
 DefaultFactory2Test/01: Fail # Issue 943
 WrongNumberTypeArgumentsTest: Fail # This test should be negative
 
-[ $component == vm && $mode == debug ]
+[ ($component == vm || $component == dartium) && $mode == debug ]
 GCTest: Skip  # Takes too long.
 
 [ $component == vm && $mode == release ]
 
 [ $component == dartc || $component == chromium ]
+AbstractSyntaxTest/01: Fail
+ConstConstructorSyntaxTest/05: Fail
+FinalSyntaxTest/none: Fail
 
 # Marked failed after code generation removed from dartc
-
 ApplicationNegativeTest: Fail    # status change with --check-only
 AssertKeywordNegativeTest: Fail    # status change with --check-only
 AssignInstanceMethodNegativeTest: Fail    # status change with --check-only
-BitOperationsTest: Pass    # status change with --check-only
 BodyLessConstructorWrongArgNegativeTest: Fail    # status change with --check-only
 CallOperatorTest: Pass    # status change with --check-only
 CallThroughNullGetterTest: Pass    # status change with --check-only
@@ -164,15 +166,13 @@ StaticField2aRunNegativeTest: Fail    # status change with --check-only
 StaticField2RunNegativeTest: Fail    # status change with --check-only
 StringConcatTest: Pass    # status change with --check-only
 Switch3NegativeTest: Fail    # status change with --check-only
-SyntaxTest/29: Fail    # status change with --check-only
-SyntaxTest/30: Fail    # status change with --check-only
+
 TypeChecksInFactoryMethodTest: Pass    # status change with --check-only
 
 
 # Problems traiaged before static analysis-only change
 
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
-BitOperationsTest: Fail      # Uses bignums.
 CTConstTest: Fail            # Bug 5202940, Issue 176
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 CallOperatorTest: Fail # Issue 1355
@@ -250,6 +250,8 @@ StringEscape4NegativeTest: Fail # Issue 1351.
 SuperOperatorTest: Fail      # Bug 4995463.
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
+SyntaxTest/29: Fail          # Issue 1606
+SyntaxTest/30: Fail          # Issue 1606
 SyntaxTest/31: Fail          # Issue 1108
 SyntaxTest/32: Fail          # Issue 1108
 SyntaxTest/33: Fail # Issue 1108
@@ -279,7 +281,7 @@ StringEscape1NegativeTest: Skip
 IntrinsifiedMethodsTest: Fail # Issue 1470
 ArithmeticTest: Fail # Issue 1470
 
-[ $component == frog || $component == frogium ]
+[ $component == frog || $component == frogium || $component == webdriver ]
 ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 
 # This set of four test components (frog, frogsh, frogium, and webdriver) all
@@ -300,6 +302,7 @@ Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
+FinalSyntaxTest/none: Fail
 GetSetSyntaxTest/00: Fail # Issue 1571
 GetSetSyntaxTest/01: Fail # Issue 1571
 GetSetSyntaxTest/02: Fail # Issue 1571
@@ -322,7 +325,8 @@ PseudoKWTest: Fail  # Issue 356
 NamingTest: Fail    # Issue 356
 DuplicateImplementsTest: Skip   # Issue 976
 ThirdTest: Fail # Issue 1511
-
+TryCatchSyntaxTest/08: Fail
+TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
 
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
@@ -421,7 +425,6 @@ StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
-TryCatch9NegativeTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeVariableBoundsTest/00: Fail # these tests would work if the type was constructed
 TypeVariableBoundsTest/10: Fail
@@ -451,6 +454,19 @@ Private3Test: Fail
 StackTraceTest: Fail
 StringInterpolateNPETest: Fail
 
+# For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
+# other browsers don't, so they eventually timeout. See issue 1515.
+# In any case, we shouldn't be relying on SyntaxError.
+Label2NegativeTest: Skip
+Label3NegativeTest: Skip
+Label5NegativeTest: Skip
+Label6NegativeTest: Skip
+LabelTest: Skip
+StringEscape1NegativeTest: Skip
+Switch3NegativeTest: Skip
+Switch4NegativeTest: Skip
+ExecuteFinally6Test: Skip
+
 [ $component == webdriver && $browser == safari ]
 BlockScopeTest: Fail
 ClosureBreak1Test: Fail
@@ -461,32 +477,19 @@ ImplicitClosure1Test: Fail
 ImplicitClosureTest: Fail
 MethodBindingTest: Fail
 Prefix15Test: Fail
-ToStringAsFixedTest: Pass,Fail # Passes in 32-bit Safari, but fails in 64-bit Issue #1220
-ExecuteFinally6Test: Skip
 GCTest: Fail
+
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $component == webdriver && $browser == opera ]
+*: Skip
 
 [ $component == webdriver && $browser == ff ]
 NamingTest: Fail
 StackOverflowTest: Fail
-ToStringAsFixedTest: Fail
 ExecuteFinally7Test: Skip
 StaticFinalField2NegativeTest: Skip
 
-# For these tests Frog generates invalid JS. Chrome throws a SyntaxError, but
-# other browsers don't, so they eventually timeout.
-# In any case, we shouldn't be relying on SyntaxError.
-[ $component == webdriver && ($browser == ff || $browser == safari || $browser == ie) ]
-Label2NegativeTest: Skip
-Label3NegativeTest: Skip
-Label5NegativeTest: Skip
-Label6NegativeTest: Skip
-LabelTest: Skip
-StringEscape1NegativeTest: Skip
-Switch3NegativeTest: Skip
-Switch4NegativeTest: Skip
-
 [ $component == webdriver && $browser == ie ]
-ToStringAsFixedTest: Fail
 StackOverflowTest: Fail
 ObjectDynamicMethodTest: Fail
 NumberSyntaxTest: Fail

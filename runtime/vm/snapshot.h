@@ -404,68 +404,6 @@ class SnapshotReader : public BaseReader {
 };
 
 
-// Use this C structure for reading internal objects in the serialized
-// data. These are objects that we need to process in order to
-// generate the Dart_CObject graph but that we don't want to expose in
-// that graph.
-// TODO(sjesse): Remove this when message serialization format is
-// updated.
-struct Dart_CObject_Internal : public Dart_CObject {
-  enum Type {
-    kTypeArguments = Dart_CObject::kNumberOfTypes,
-    kDynamicType,
-  };
-};
-
-
-// Reads a message snapshot into C structure.
-class CMessageReader : public BaseReader {
- public:
-  CMessageReader(const uint8_t* buffer, intptr_t length, ReAlloc alloc);
-  ~CMessageReader() { }
-
-  Dart_CObject* ReadMessage();
-
- private:
-  // Allocates a Dart_CObject object on the C heap.
-  Dart_CObject* AllocateDartCObject();
-  // Allocates a Dart_CObject object with the specified type on the C heap.
-  Dart_CObject* AllocateDartCObject(Dart_CObject::Type type);
-  // Allocates a Dart_CObject object for the null object on the C heap.
-  Dart_CObject* AllocateDartCObjectNull();
-  // Allocates a Dart_CObject object for a boolean object on the C heap.
-  Dart_CObject* AllocateDartCObjectBool(bool value);
-  // Allocates a Dart_CObject object for for a 32-bit integer on the C heap.
-  Dart_CObject* AllocateDartCObjectInt32(int32_t value);
-  // Allocates a Dart_CObject object for a double on the C heap.
-  Dart_CObject* AllocateDartCObjectDouble(double value);
-  // Allocates a Dart_CObject object for string data on the C heap.
-  Dart_CObject* AllocateDartCObjectString(intptr_t length);
-  // Allocates a C array of Dart_CObject objects on the C heap.
-  Dart_CObject* AllocateDartCObjectArray(intptr_t length);
-
-  intptr_t LookupInternalClass(intptr_t class_header);
-  Dart_CObject* ReadInlinedObject(intptr_t object_id);
-  Dart_CObject* ReadObjectImpl(intptr_t header);
-  Dart_CObject* ReadIndexedObject(intptr_t object_id);
-  Dart_CObject* ReadObject();
-
-  // Add object to backward references.
-  void AddBackwardReference(intptr_t id, Dart_CObject* obj);
-
-  Dart_CObject_Internal* AsInternal(Dart_CObject* object) {
-    ASSERT(object->type >= Dart_CObject::kNumberOfTypes);
-    return reinterpret_cast<Dart_CObject_Internal*>(object);
-  }
-
-  ReAlloc alloc_;
-  GrowableArray<Dart_CObject*> backward_references_;
-
-  Dart_CObject type_arguments_marker;
-  Dart_CObject dynamic_type_marker;
-};
-
-
 class BaseWriter {
  public:
   // Size of the snapshot.
@@ -533,7 +471,7 @@ class MessageWriter : public BaseWriter {
  public:
   MessageWriter(uint8_t** buffer, ReAlloc alloc)
       : BaseWriter(buffer, alloc), object_id_(0) {
-    ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes);
+    ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes - 1);
   }
   ~MessageWriter() { }
 
@@ -547,7 +485,7 @@ class MessageWriter : public BaseWriter {
   }
 
  private:
-  static const intptr_t kDartCObjectTypeBits = 3;
+  static const intptr_t kDartCObjectTypeBits = 4;
   static const intptr_t kDartCObjectTypeMask = (1 << kDartCObjectTypeBits) - 1;
   static const intptr_t kDartCObjectMarkMask = ~kDartCObjectTypeMask;
   static const intptr_t kDartCObjectMarkOffset = 1;
@@ -558,7 +496,10 @@ class MessageWriter : public BaseWriter {
   intptr_t GetMarkedCObjectMark(Dart_CObject* object);
   void UnmarkAllCObjects(Dart_CObject* object);
 
-  void WriteSmi(int32_t value);
+  void WriteSmi(int64_t value);
+  void WriteMint(Dart_CObject* object, int64_t value);
+  void WriteInt32(Dart_CObject* object);
+  void WriteInt64(Dart_CObject* object);
   void WriteInlinedHeader(Dart_CObject* object);
   void WriteCObject(Dart_CObject* object);
 

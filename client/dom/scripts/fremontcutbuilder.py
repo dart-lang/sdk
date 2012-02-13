@@ -118,15 +118,19 @@ def main():
       source='WebKit',
       source_attributes={'revision': webkit_revision},
       type_rename_map={
+        # Some of these are typos in the IDL.
         'float': 'double',
         'BarInfo': 'BarProp',
         'DedicatedWorkerContext': 'DedicatedWorkerGlobalScope',
         'DOMApplicationCache': 'ApplicationCache',
         'DOMCoreException': 'DOMException',
+        'DOMExceptionJSC': 'DOMException', # Node.replaceChild
+        'DomException': 'DOMException',    # Navigator.registerProtocolHandler
         'DOMFormData': 'FormData',
         'DOMObject': 'object',
         'DOMSelection': 'Selection',
         'DOMWindow': 'Window',
+        'Exception': 'DOMException',     # NotificationCenter.createNotification
         'SharedWorkerContext': 'SharedWorkerGlobalScope',
         'WorkerContext': 'WorkerGlobalScope',
       })

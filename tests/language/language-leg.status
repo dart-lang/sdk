@@ -9,13 +9,13 @@ prefix language
 
 
 [ $component == leg ]
-AbstractStaticNegativeTest: Fail
+AbstractSyntaxTest/01: Fail
+AbstractSyntaxTest/02: Fail
 ArithmeticTest: Fail
 AssertionTest: Fail
-BadNamedParameters2Test: Fail
-BadNamedParametersTest: Fail
 BitOperationsTest: Fail
 BlackListedTest/01: Fail
+BlackListedTest/03: Fail
 BlackListedTest/05: Fail
 BlackListedTest/07: Fail
 BlackListedTest/09: Fail
@@ -39,6 +39,7 @@ ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
 ClosuresWithComplexParamsTest: Fail
+ConstConstructorSyntaxTest/none: Fail
 ConstEscapeFrogTest: Fail
 ConstFieldNegativeTest: Fail
 ConstInit4NegativeTest: Fail
@@ -47,6 +48,9 @@ ConstInitTest: Fail
 ConstListTest: Fail
 ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
+ConstSyntaxTest/01: Fail
+ConstSyntaxTest/02: Fail
+ConstSyntaxTest/03: Fail
 ConstTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
@@ -81,7 +85,6 @@ DynamicTest: Fail
 EmptyBlockCaseTest: Fail
 EmptyBodyMemberNegativeTest: Fail
 ExampleConstructorTest: Fail
-ExceptionTest: Fail
 ExecuteFinally1Test: Fail
 ExecuteFinally2Test: Fail
 ExecuteFinally3Test: Fail
@@ -111,6 +114,7 @@ Field7aNegativeTest: Fail
 FieldMethodTest: Fail
 FinalParamNegativeTest: Fail
 FinalVarNegativeTest: Fail
+FinalSyntaxTest/none: Fail
 For2Test: Fail
 ForTest: Fail
 FunctionArgumentTest: Fail
@@ -160,6 +164,7 @@ InterfaceTest: Fail
 IntrinsifiedMethodsTest: Fail
 IsObjectTest: Fail
 IsOperatorTest: Fail
+Issue1363Test: Fail
 Issue4157508Test: Fail
 Issue4295001Test: Fail
 Issue4515170Test: Fail
@@ -213,6 +218,7 @@ NonParameterizedFactoryTest: Fail
 NullPointerExceptionTest: Fail
 NullTest: Fail
 NullToStringTest: Fail
+NumberIdentifierNegativeTest: Fail
 NumberSyntaxTest: Fail
 NumbersTest: Fail
 ObjectDynamicMethodTest: Fail
@@ -275,6 +281,8 @@ SavannahTest: Fail
 ScopeNegativeTest: Fail
 Script1NegativeTest: Fail
 ScriptNegativeTest: Fail
+SetterDeclarationNegativeTest: Fail
+SetterDeclaration2NegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
@@ -326,9 +334,9 @@ TopLevelInInitializerTest: Fail
 TopLevelPrefixedDeclarationTest: Fail
 TopLevelVarTest: Fail
 ToplevelCollision2Test/none: Fail
+TryCatchSyntaxTest/08: Fail
 TryCatch2Test: Fail
 TryCatch3Test: Fail
-TryCatchTest: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeDartcTest: Fail
 TypeVMTest: Fail
@@ -345,6 +353,3 @@ TypeVariableScopeTest/none: Fail
 TypedMessageTest: Fail
 WhileTest: Fail
 
-[ $component == leg && $mode == debug]
-BranchesTest: Crash # VM issue 1570
-IncrOpTest: Crash # VM issue 1570

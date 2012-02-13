@@ -55,6 +55,10 @@ class FutureImpl<T> implements Future<T> {
     _exceptionHandled = false;
   }
 
+  FutureImpl.immediate(T value) : this() {
+    _setValue(value);
+  }
+
   T get value() {
     if (!isComplete) {
       throw new FutureNotCompleteException();
@@ -133,6 +137,48 @@ class FutureImpl<T> implements Future<T> {
     }
     _exception = exception;
     _complete();
+  }
+
+  Future transform(Function transformation) {
+    final completer = new Completer();
+    handleException((e) {
+      completer.completeException(e);
+      return true;
+    });
+    then((v) {
+      var transformed = null;
+      try {
+        transformed = transformation(v);
+      } catch (final e) {
+        completer.completeException(e);
+        return;
+      }
+      completer.complete(transformed);
+    });
+    return completer.future;
+  }
+
+  Future chain(Function transformation) {
+    final completer = new Completer();
+    handleException((e) {
+      completer.completeException(e);
+      return true;
+    });
+    then((v) {
+      var future = null;
+      try {
+        future = transformation(v);
+      } catch (final e) {
+        completer.completeException(e);
+        return;
+      }
+      future.handleException((e) {
+        completer.completeException(e);
+        return true;
+      });
+      future.then((b) => completer.complete(b));
+    });
+    return completer.future;
   }
 }
 

@@ -7,8 +7,6 @@ prefix client
 dom/WebGL1Test: Skip  # Issue 1495
 
 [ $component == dartium ]
-touch/touch_tests: Skip  # Issue 157.
-layout/layout_tests: Fail  # Issue 152.
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
 dom/DOMParserTest: Fail
@@ -20,9 +18,14 @@ dom/TypingTest: Fail
 dom/XHRTest: Fail
 dom/WebSocketTest: Fail
 
+[ $component == dartium && $mode == debug ]
+# TODO(vsm): Triage Dartium failures.
+dom/CSSTest: Skip
+dom/DOMIsolatesTest: Skip
+dom/NativeGCTest: Skip
+dom/TypedArrays1Test: Skip
+
 [ $component == chromium ]
-layout/layout_tests: Skip  # Issue 152.
-touch/touch_tests: Skip  # Issue 157.
 html/html_tests: Skip  # Doesn't recognize SVGElement constructors
 # TODO(vsm): Triage DOM tests.
 dom/AsyncWindowTest: Skip # This test appears to interact badly with other tests.
@@ -33,8 +36,6 @@ dom/TypingTest: Fail
 dom/XHRTest: Fail
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
-touch/touch_tests: Skip  # Issue 157.
-layout/layout_tests: Skip # Issue 152, also seems flaky
 # TODO(vsm): Triage DOM tests.
 dom/DocumentTest: Fail
 dom/DOMIsolatesTest: Fail
@@ -44,8 +45,6 @@ dom/WindowOpenTest: Fail
 dom/XHRTest: Fail
 
 [ ($component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie))) && $checked ]
-# TODO(vsm): Triage DOM tests.
-dom/EventsTest: Fail
 
 [ $component == webdriver ]
 dom/ImplementationTest: Fail
@@ -83,4 +82,8 @@ samples/smoketest/dartWebBase_tests: Fail
 *: Skip
 
 [ $component == frogsh ]
+*: Skip
+
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $component == webdriver && $browser == opera ]
 *: Skip

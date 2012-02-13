@@ -757,7 +757,7 @@ void CodeGenerator::GenerateEntryCode() {
 }
 
 
-void CodeGenerator::GenerateReturnEpilog() {
+void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // Unchain the context(s) up to context level 0.
   int context_level = state()->context_level();
   ASSERT(context_level >= 0);
@@ -788,6 +788,12 @@ void CodeGenerator::GenerateReturnEpilog() {
   }
   __ LeaveFrame();
   __ ret();
+  // Add a NOP to make return code pattern 5 bytes long for patching
+  // in breakpoints during debugging.
+  __ nop(1);
+  AddCurrentDescriptor(PcDescriptors::kReturn,
+                       AstNode::kNoId,
+                       node->token_index());
 
 #ifdef DEBUG
   __ Bind(&wrong_stack);
@@ -837,7 +843,7 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
           String::ZoneHandle(String::NewSymbol("function result")));
     }
   }
-  GenerateReturnEpilog();
+  GenerateReturnEpilog(node);
 }
 
 

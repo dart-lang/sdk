@@ -95,6 +95,8 @@ typedef unsigned __int64 uint64_t;
  */
 typedef struct _Dart_Handle* Dart_Handle;
 
+typedef void (*Dart_WeakPersistentHandleFinalizer)(Dart_Handle handle,
+                                                   void* peer);
 typedef void (*Dart_PeerFinalizer)(void* peer);
 
 /**
@@ -240,7 +242,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
 DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
-    Dart_PeerFinalizer callback);
+    Dart_WeakPersistentHandleFinalizer callback);
 
 /**
  * Is this object a weak persistent handle?
@@ -535,16 +537,78 @@ DART_EXPORT bool Dart_HasLivePorts();
  */
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
 
+// --- Message sending/receiving from native code ----
+
+/**
+ * A Dart_CObject is used for representing Dart objects as native C
+ * data outside the Dart heap. These objects are totally detached from
+ * the Dart heap. Only a subset of the Dart objects have a
+ * representation as a Dart_CObject.
+ */
+struct Dart_CObject {
+  enum Type {
+    kNull = 0,
+    kBool,
+    kInt32,
+    kInt64,
+    kBigint,
+    kDouble,
+    kString,
+    kArray,
+    kByteArray,
+    kNumberOfTypes
+  };
+  Type type;
+  union {
+    bool as_bool;
+    int32_t as_int32;
+    int64_t as_int64;
+    double as_double;
+    char* as_string;
+    char* as_bigint;
+    struct {
+      int length;
+      Dart_CObject** values;
+    } as_array;
+    struct {
+      int length;
+      uint8_t* values;
+    } as_byte_array;
+  } value;
+};
+
+/**
+ * Posts a message on some port. The message will contain the
+ * Dart_CObject object graph rooted in 'message'.
+ *
+ * While the message is being sent the state of the graph of
+ * Dart_CObject structures rooted in 'message' should not be accessed,
+ * as the message generation will make temporary modifications to the
+ * data. When the message has been sent the graph will be fully
+ * restored.
+ *
+ * \param port_id The destination port.
+ * \param message The message to send.
+ *
+ * \return True if the message was posted.
+ */
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
+
 /**
  * A native message handler.
  *
  * This handler is associated with a native port by calling
  * Dart_NewNativePort.
+ *
+ * The message received is decoded into the message structure. The
+ * lifetime of the message data is controlled by the caller. All the
+ * data references from the message are allocated by the caller and
+ * will be reclaimed when returning to it.
  */
+
 typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
                                           Dart_Port reply_port_id,
-                                          uint8_t* data);
-// TODO(turnidge): Make this function take more appropriate arguments.
+                                          Dart_CObject* message);
 
 /**
  * Creates a new native port.  When messages are received on this
@@ -1111,12 +1175,40 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 
 // --- Byte Arrays ---
 
-DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
-
 /**
  * Is this object a ByteArray?
  */
 DART_EXPORT bool Dart_IsByteArray(Dart_Handle object);
+
+/**
+ * Returns a ByteArray of the desired length.
+ *
+ * \param length The length of the array.
+ *
+ * \return The ByteArray object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
+
+/**
+ * Returns a ByteArray which references an external array of 8-bit bytes.
+ *
+ * \param value An array of 8-bit bytes. This array must not move.
+ * \param length The length of the array.
+ *
+ * \return The ByteArray object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
+                                                  intptr_t length,
+                                                  void* peer,
+                                                  Dart_PeerFinalizer callback);
+
+/**
+ * Retrieves the peer pointer associated with an external ByteArray.
+ */
+DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
+                                                      void** peer);
 
 // --- Closures ---
 
@@ -1413,53 +1505,5 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 // dynamically generated code.
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
-
-// --- Message sending/receiving from native code ----
-
-/**
- * A Dart_CObject is used for representing Dart objects as native C
- * data outside the Dart heap. These objects are totally detached from
- * the Dart heap. Only a subset of the Dart objects have a
- * representation as a Dart_CObject.
- */
-struct Dart_CObject {
-  enum Type {
-    kNull = 0,
-    kBool,
-    kInt32,
-    kDouble,
-    kString,
-    kArray,
-    kNumberOfTypes
-  };
-  Type type;
-  union {
-    bool as_bool;
-    int32_t as_int32;
-    double as_double;
-    char* as_string;
-    struct {
-      int length;
-      Dart_CObject** values;
-    } as_array;
-  } value;
-};
-
-/**
- * Posts a message on some port. The message will contain the
- * Dart_CObject object graph rooted in 'message'.
- *
- * While the message is being sent the state of the graph of
- * Dart_CObject structures rooted in 'message' should not be accessed,
- * as the message generation will make temporary modifications to the
- * data. When the message has been sent the graph will be fully
- * restored.
- *
- * \param port_id The destination port.
- * \param message The message to send.
- *
- * \return True if the message was posted.
- */
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
 
 #endif  // INCLUDE_DART_API_H_

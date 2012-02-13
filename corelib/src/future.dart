@@ -21,6 +21,8 @@
  *
  */
 interface Future<T> default FutureImpl<T> {
+  /** A future whose value is immediately available. */
+  Future.immediate(T value);
 
   /**
    * The value this future provided.  (If called when hasValue
@@ -71,6 +73,37 @@ interface Future<T> default FutureImpl<T> {
    * particular Future's value.)
    */
   void handleException(bool onException(Object exception));
+
+  /**
+   * A future representing [transformation] applied to this future's value.
+   *
+   * When this future gets a value, [transformation] will be called on the
+   * value, and the returned future will receive the result.
+   *
+   * If an exception occurs (received by this future, or thrown by
+   * [transformation]) then the returned future will receive the exception.
+   *
+   * You must not add exception handlers to [this] future prior to calling
+   * transform, and any you add afterwards will not be invoked.
+   */
+  Future transform(Function transformation);
+
+   /**
+    * A future representing an asynchronous transformation applied to this
+    * future's value. [transformation] must return a Future.
+    *
+    * When this future gets a value, [transformation] will be called on the
+    * value. When the resulting future gets a value, the returned future
+    * will receive it.
+    *
+    * If an exception occurs (received by this future, thrown by
+    * [transformation], or received by the future returned by [transformation])
+    * then the returned future will receive the exception.
+    *
+    * You must not add exception handlers to [this] future prior to calling
+    * chain, and any you add afterwards will not be invoked.
+    */
+   Future chain(Function transformation);
 }
 
 

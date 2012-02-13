@@ -1,5 +1,5 @@
 
-class _XMLHttpRequestJs extends _DOMTypeJs implements XMLHttpRequest native "*XMLHttpRequest" {
+class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native "*XMLHttpRequest" {
 
   static final int DONE = 4;
 

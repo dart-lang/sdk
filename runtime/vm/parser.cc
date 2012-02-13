@@ -2619,8 +2619,8 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
   TRACE_PARSER("ParseFunctionTypeAlias");
   ExpectToken(Token::kTYPEDEF);
 
-  // Allocate an interface to hold the type parameters and their 'extends'
-  // constraints. Make it the owner of the function type descriptor.
+  // Allocate an interface to hold the type parameters and their bounds.
+  // Make it the owner of the function type descriptor.
   const Class& alias_owner = Class::Handle(
       Class::New(String::Handle(String::NewSymbol(":alias_owner")),
                  Script::Handle(),
@@ -2777,23 +2777,13 @@ void Parser::ParseInterfaceDefinition(GrowableArray<const Class*>* classes) {
     // If a type parameter list is included in the default factory clause (it
     // can be omitted), verify that it matches the list of type parameters of
     // the interface in number and names.
-    const intptr_t num_default_type_params = factory_class.NumTypeParameters();
-    if (num_default_type_params > 0) {
-      String& interface_type_param_name = String::Handle();
-      String& factory_type_param_name = String::Handle();
-      const Array& interface_type_param_names =
-          Array::Handle(interface.type_parameters());
-      const Array& factory_type_param_names =
-          Array::Handle(factory_class.type_parameters());
-      bool mismatch = interface.NumTypeParameters() != num_default_type_params;
-      for (intptr_t i = 0; !mismatch && (i < num_default_type_params); i++) {
-        interface_type_param_name ^= interface_type_param_names.At(i);
-        factory_type_param_name ^= factory_type_param_names.At(i);
-        if (!interface_type_param_name.Equals(factory_type_param_name)) {
-          mismatch = true;
-        }
-      }
-      if (mismatch) {
+    if (factory_class.NumTypeParameters() > 0) {
+      const TypeArguments& interface_type_parameters =
+          TypeArguments::Handle(interface.type_parameters());
+      const TypeArguments& factory_type_parameters =
+          TypeArguments::Handle(factory_class.type_parameters());
+      if (!AbstractTypeArguments::AreEqual(interface_type_parameters,
+                                           factory_type_parameters)) {
         const String& interface_name = String::Handle(interface.Name());
         ErrorMsg(factory_name.ident_pos,
                  "mismatch in number or names of type parameters between "
@@ -2870,22 +2860,26 @@ void Parser::SkipType(bool allow_void) {
 
 void Parser::ParseTypeParameters(const Class& cls) {
   if (CurrentToken() == Token::kLT) {
-    GrowableArray<String*> type_parameters;
-    GrowableArray<AbstractType*> type_parameter_extends;
+    GrowableArray<AbstractType*> type_parameters_array;
+    GrowableArray<AbstractType*> bounds_array;
+    intptr_t index = 0;
     do {
       ConsumeToken();
       if (CurrentToken() != Token::kIDENT) {
         ErrorMsg("type parameter name expected");
       }
       String& type_parameter_name = *CurrentLiteral();
+      AbstractType& type_parameter = TypeParameter::ZoneHandle(
+          TypeParameter::New(index, type_parameter_name, token_index_));
       ConsumeToken();
-      AbstractType& type_extends = Type::ZoneHandle(Type::DynamicType());
+      AbstractType& bound = Type::ZoneHandle(Type::DynamicType());
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
-        type_extends = ParseType(kCanResolve);
+        bound = ParseType(kCanResolve);
       }
-      type_parameters.Add(&type_parameter_name);
-      type_parameter_extends.Add(&type_extends);
+      type_parameters_array.Add(&type_parameter);
+      bounds_array.Add(&bound);
+      index++;
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
     if ((token == Token::kGT) || (token == Token::kSHR)) {
@@ -2893,18 +2887,20 @@ void Parser::ParseTypeParameters(const Class& cls) {
     } else {
       ErrorMsg("right angle bracket expected");
     }
-    cls.set_type_parameters(Array::Handle(NewArray<String>(type_parameters)));
-    const TypeArguments& extends_array =
-        TypeArguments::Handle(NewTypeArguments(type_parameter_extends));
-    cls.set_type_parameter_extends(extends_array);
+    const TypeArguments& type_parameters =
+        TypeArguments::Handle(NewTypeArguments(type_parameters_array));
+    const TypeArguments& bounds =
+        TypeArguments::Handle(NewTypeArguments(bounds_array));
+    cls.set_type_parameters(type_parameters);
+    cls.set_type_parameter_bounds(bounds);
     // Try to resolve the upper bounds, which will at least resolve the
     // referenced type parameters.
-    AbstractType& type_extends = AbstractType::Handle();
-    const intptr_t num_types = extends_array.Length();
+    AbstractType& bound = AbstractType::Handle();
+    const intptr_t num_types = bounds.Length();
     for (intptr_t i = 0; i < num_types; i++) {
-      type_extends = extends_array.TypeAt(i);
-      ResolveTypeFromClass(cls, kCanResolve, &type_extends);
-      extends_array.SetTypeAt(i, type_extends);
+      bound = bounds.TypeAt(i);
+      ResolveTypeFromClass(cls, kCanResolve, &bound);
+      bounds.SetTypeAt(i, bound);
     }
   }
 }
@@ -5476,9 +5472,9 @@ AstNode* Parser::AsSideEffectFreeNode(AstNode* node) {
     // effects.
     if (!IsLocalOrLiteralNode(load_indexed->array())) {
       LocalVariable* temp =
-      CreateTempConstVariable(token_index, token_id, "lia");
+          CreateTempConstVariable(token_index, token_id, "lia");
       AstNode* save =
-      new StoreLocalNode(token_index, *temp, load_indexed->array());
+          new StoreLocalNode(token_index, *temp, load_indexed->array());
       current_block_->statements->Add(save);
       AstNode* load = new LoadLocalNode(token_index, *temp);
       load_indexed = new LoadIndexedNode(token_index,
@@ -6374,7 +6370,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class);
     if (!type_arguments.IsNull()) {
-      // TODO(regis): Where should we check the constraints on type parameters?
+      // TODO(regis): Where should we check the type parameter bounds?
       if (!type_arguments.IsInstantiated()) {
         ErrorMsg("type must be constant in const constructor");
       }

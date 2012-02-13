@@ -477,18 +477,19 @@ class Class : public Object {
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
 
-  // The type parameters are specified as an array of Strings.
-  // TODO(regis): Store them as an array of TypeParameter with token_index.
-  RawArray* type_parameters() const { return raw_ptr()->type_parameters_; }
-  void set_type_parameters(const Array& value) const;
+  // The type parameters are specified as an array of TypeParameter.
+  RawTypeArguments* type_parameters() const {
+      return raw_ptr()->type_parameters_;
+  }
+  void set_type_parameters(const TypeArguments& value) const;
   intptr_t NumTypeParameters() const;
 
-  // Type parameters may optionally extend a Type (Dynamic if no extends).
-  // TODO(regis): Should it be Object instead of Dynamic?
-  RawTypeArguments* type_parameter_extends() const {
-    return raw_ptr()->type_parameter_extends_;
+  // Type parameter bounds (implicitly Dynamic if not explicitly specified) as
+  // an array of AbstractType.
+  RawTypeArguments* type_parameter_bounds() const {
+    return raw_ptr()->type_parameter_bounds_;
   }
-  void set_type_parameter_extends(const TypeArguments& value) const;
+  void set_type_parameter_bounds(const TypeArguments& value) const;
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
@@ -533,7 +534,6 @@ class Class : public Object {
   void set_factory_class(const Object& value) const;
 
   // Interfaces is an array of Types.
-  // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
   void set_interfaces(const Array& value) const;
 
@@ -941,11 +941,6 @@ class Type : public AbstractType {
   // The 'List' interface type.
   static RawType* ListInterface();
 
-  // The least specific valid raw type of the given class.
-  // For example, type A<Dynamic> would be returned for class A<T>, and type
-  // B<Dynamic, A<Dynamic>> would be returned for B<U, V extends A>.
-  static RawType* NewRawType(const Class& type_class, intptr_t token_index);
-
   // The finalized type of the given non-parameterized class.
   static RawType* NewNonParameterizedType(const Class& type_class);
 
@@ -1097,7 +1092,7 @@ class AbstractTypeArguments : public Object {
 };
 
 
-// A TypeArguments is simply an array of Types.
+// A TypeArguments is an array of AbstractType.
 class TypeArguments : public AbstractTypeArguments {
  public:
   virtual intptr_t Length() const;
@@ -1910,6 +1905,7 @@ class PcDescriptors : public Object {
     kDeopt = 0,  // Deoptimization cotinuation point.
     kPatchCode,  // Buffer for patching code entry.
     kIcCall,     // IC call.
+    kReturn,     // Return from function.
     kOther
   };
 
@@ -2696,8 +2692,6 @@ class Double : public Number {
 // String may not be '\0' terminated.
 class String : public Instance {
  public:
-  typedef void (*PeerFinalizer)(void *peer);
-
   // We use 30 bits for the hash code so that we consistently use a
   // 32bit Smi representation for the hash code on all architectures.
   static const intptr_t kHashBits = 30;
@@ -2766,17 +2760,17 @@ class String : public Instance {
   static RawString* NewExternal(const uint8_t* characters,
                                 intptr_t len,
                                 void* peer,
-                                PeerFinalizer callback,
+                                Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
   static RawString* NewExternal(const uint16_t* characters,
                                 intptr_t len,
                                 void* peer,
-                                PeerFinalizer callback,
+                                Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
   static RawString* NewExternal(const uint32_t* characters,
                                 intptr_t len,
                                 void* peer,
-                                PeerFinalizer callback,
+                                Dart_PeerFinalizer callback,
                                 Heap::Space = Heap::kNew);
 
   static void Copy(const String& dst,
@@ -3030,7 +3024,7 @@ class ExternalOneByteString : public String {
 
   virtual bool IsExternal() const { return true; }
   virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer_;
+    return raw_ptr()->external_data_->peer();
   }
 
   static intptr_t InstanceSize() {
@@ -3040,19 +3034,21 @@ class ExternalOneByteString : public String {
   static RawExternalOneByteString* New(const uint8_t* characters,
                                        intptr_t len,
                                        void* peer,
-                                       PeerFinalizer callback,
+                                       Dart_PeerFinalizer callback,
                                        Heap::Space space);
 
  private:
   const uint8_t* CharAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data_[index]);
+    return &(raw_ptr()->external_data_->data()[index]);
   }
 
   void SetExternalData(ExternalStringData<uint8_t>* data) {
     raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalOneByteString, String);
   friend class Class;
@@ -3072,7 +3068,7 @@ class ExternalTwoByteString : public String {
 
   virtual bool IsExternal() const { return true; }
   virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer_;
+    return raw_ptr()->external_data_->peer();
   }
 
   static intptr_t InstanceSize() {
@@ -3082,19 +3078,21 @@ class ExternalTwoByteString : public String {
   static RawExternalTwoByteString* New(const uint16_t* characters,
                                        intptr_t len,
                                        void* peer,
-                                       PeerFinalizer callback,
+                                       Dart_PeerFinalizer callback,
                                        Heap::Space space = Heap::kNew);
 
  private:
   const uint16_t* CharAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data_[index]);
+    return &(raw_ptr()->external_data_->data()[index]);
   }
 
   void SetExternalData(ExternalStringData<uint16_t>* data) {
     raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalTwoByteString, String);
   friend class Class;
@@ -3114,7 +3112,7 @@ class ExternalFourByteString : public String {
 
   virtual bool IsExternal() const { return true; }
   virtual void* GetPeer() const {
-    return raw_ptr()->external_data_->peer_;
+    return raw_ptr()->external_data_->peer();
   }
 
   static intptr_t InstanceSize() {
@@ -3124,19 +3122,21 @@ class ExternalFourByteString : public String {
   static RawExternalFourByteString* New(const uint32_t* characters,
                                         intptr_t len,
                                         void* peer,
-                                        PeerFinalizer callback,
+                                        Dart_PeerFinalizer callback,
                                         Heap::Space space = Heap::kNew);
 
  private:
   const uint32_t* CharAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
-    return &(raw_ptr()->external_data_->data_[index]);
+    return &(raw_ptr()->external_data_->data()[index]);
   }
 
   void SetExternalData(ExternalStringData<uint32_t>* data) {
     raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalFourByteString, String);
   friend class Class;
@@ -3381,6 +3381,10 @@ class ExternalByteArray : public ByteArray {
     return Smi::Value(raw_ptr()->length_);
   }
 
+  void* GetPeer() const {
+    return raw_ptr()->external_data_->peer();
+  }
+
   template<typename T>
   T At(intptr_t byte_offset) const {
     T* addr = Addr<T>(byte_offset);
@@ -3413,6 +3417,8 @@ class ExternalByteArray : public ByteArray {
 
   static RawExternalByteArray* New(uint8_t* data,
                                    intptr_t len,
+                                   void* peer,
+                                   Dart_PeerFinalizer callback,
                                    Heap::Space space = Heap::kNew);
 
  private:
@@ -3425,7 +3431,7 @@ class ExternalByteArray : public ByteArray {
     intptr_t limit = byte_offset + sizeof(T);
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((byte_offset >= 0) && (limit <= Length()));
-    uint8_t* addr = &raw_ptr()->data_[byte_offset];
+    uint8_t* addr = &raw_ptr()->external_data_->data()[byte_offset];
     return reinterpret_cast<T*>(addr);
   }
 
@@ -3433,9 +3439,11 @@ class ExternalByteArray : public ByteArray {
     raw_ptr()->length_ = Smi::New(value);
   }
 
-  void SetData(uint8_t* data) const {
-    raw_ptr()->data_ = data;
+  void SetExternalData(ExternalByteArrayData* data) {
+    raw_ptr()->external_data_ = data;
   }
+
+  static void Finalize(Dart_Handle handle, void* peer);
 
   HEAP_OBJECT_IMPLEMENTATION(ExternalByteArray, ByteArray);
   friend class Class;

@@ -20,6 +20,7 @@ DoubleCompareTest: Fail
 ExceptionImplementationTest: Fail
 ExpressionTest: Fail
 ForInTest: Fail
+FutureTest: Fail
 FuturesTest: Fail
 GrowableObjectArray2VMTest: Fail
 GrowableObjectArrayVMTest: Fail

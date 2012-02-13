@@ -1,5 +1,5 @@
 
-class _XMLHttpRequestUploadJs extends _DOMTypeJs implements XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
+class _XMLHttpRequestUploadJs extends _EventTargetJs implements XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

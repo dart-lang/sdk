@@ -307,8 +307,8 @@ class ProxyBase extends PromiseImpl<bool> {
 
   void send(List message) {
     _marshal(message, (List marshalled) {
-      SendPortImpl port = _promise.value;
-      port._sendNow(marshalled, null);
+      SendPort port = _promise.value;
+      port.send(marshalled, null);
     });
   }
 
@@ -319,8 +319,8 @@ class ProxyBase extends PromiseImpl<bool> {
       final result = new Promise();
       // The promise queue implementation guarantees that promise is
       // resolved at this point.
-      SendPortImpl outgoing = _promise.value;
-      ReceivePort incoming  = outgoing._callNow(marshalled);
+      SendPort outgoing = _promise.value;
+      ReceivePort incoming  = outgoing.call(marshalled);
       incoming.receive((List receiveMessage, replyTo) {
         result.complete(receiveMessage[0]);
       });
