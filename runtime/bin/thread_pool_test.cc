@@ -24,7 +24,7 @@ static uint32_t task_sum = 0;
 void TestTaskHandler(ThreadPool::Task args) {
   MonitorLocker ml(monitor);
   task_count++;
-  task_sum += reinterpret_cast<int>(args);
+  task_sum += reinterpret_cast<intptr_t>(args);
 }
 
 
