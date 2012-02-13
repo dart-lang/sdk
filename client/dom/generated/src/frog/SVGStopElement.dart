@@ -7,7 +7,8 @@ class _SVGStopElementJs extends _SVGElementJs implements SVGStopElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

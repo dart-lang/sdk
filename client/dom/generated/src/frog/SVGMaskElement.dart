@@ -37,7 +37,8 @@ class _SVGMaskElementJs extends _SVGElementJs implements SVGMaskElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

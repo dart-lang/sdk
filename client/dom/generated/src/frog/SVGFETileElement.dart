@@ -19,7 +19,8 @@ class _SVGFETileElementJs extends _SVGElementJs implements SVGFETileElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

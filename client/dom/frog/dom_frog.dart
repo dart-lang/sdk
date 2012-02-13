@@ -2744,7 +2744,8 @@ class _HTMLDocumentJs extends _DocumentJs implements HTMLDocument native "*HTMLD
 
   String bgColor;
 
-  final String compatMode;
+  // Use implementation from Document.
+  // final String compatMode;
 
   String designMode;
 
@@ -3147,7 +3148,8 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
 class _HTMLIsIndexElementJs extends _HTMLInputElementJs implements HTMLIsIndexElement native "*HTMLIsIndexElement" {
 
-  final _HTMLFormElementJs form;
+  // Use implementation from HTMLInputElement.
+  // final _HTMLFormElementJs form;
 
   String prompt;
 }
@@ -3512,7 +3514,9 @@ class _HTMLOptionElementJs extends _HTMLElementJs implements HTMLOptionElement n
 
 class _HTMLOptionsCollectionJs extends _HTMLCollectionJs implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
-  int length;
+  // Shadowing definition.
+  int get length() native "return this.length;";
+  void set length(int value) native "this.length = value;";
 
   int selectedIndex;
 
@@ -5695,7 +5699,8 @@ class _SVGAElementJs extends _SVGElementJs implements SVGAElement native "*SVGAE
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -5923,7 +5928,8 @@ class _SVGCircleElementJs extends _SVGElementJs implements SVGCircleElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -5974,7 +5980,8 @@ class _SVGClipPathElementJs extends _SVGElementJs implements SVGClipPathElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -6098,7 +6105,8 @@ class _SVGDefsElementJs extends _SVGElementJs implements SVGDefsElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -6133,7 +6141,8 @@ class _SVGDescElementJs extends _SVGElementJs implements SVGDescElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6222,7 +6231,8 @@ class _SVGEllipseElementJs extends _SVGElementJs implements SVGEllipseElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -6303,7 +6313,8 @@ class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6342,7 +6353,8 @@ class _SVGFEColorMatrixElementJs extends _SVGElementJs implements SVGFEColorMatr
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6367,7 +6379,8 @@ class _SVGFEComponentTransferElementJs extends _SVGElementJs implements SVGFECom
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6418,7 +6431,8 @@ class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeEl
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6473,7 +6487,8 @@ class _SVGFEConvolveMatrixElementJs extends _SVGElementJs implements SVGFEConvol
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6506,7 +6521,8 @@ class _SVGFEDiffuseLightingElementJs extends _SVGElementJs implements SVGFEDiffu
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6549,7 +6565,8 @@ class _SVGFEDisplacementMapElementJs extends _SVGElementJs implements SVGFEDispl
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6591,7 +6608,8 @@ class _SVGFEDropShadowElementJs extends _SVGElementJs implements SVGFEDropShadow
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6614,7 +6632,8 @@ class _SVGFEFloodElementJs extends _SVGElementJs implements SVGFEFloodElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6657,7 +6676,8 @@ class _SVGFEGaussianBlurElementJs extends _SVGElementJs implements SVGFEGaussian
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6696,7 +6716,8 @@ class _SVGFEImageElementJs extends _SVGElementJs implements SVGFEImageElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6719,7 +6740,8 @@ class _SVGFEMergeElementJs extends _SVGElementJs implements SVGFEMergeElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6763,7 +6785,8 @@ class _SVGFEMorphologyElementJs extends _SVGElementJs implements SVGFEMorphology
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6792,7 +6815,8 @@ class _SVGFEOffsetElementJs extends _SVGElementJs implements SVGFEOffsetElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6832,7 +6856,8 @@ class _SVGFESpecularLightingElementJs extends _SVGElementJs implements SVGFESpec
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6876,7 +6901,8 @@ class _SVGFETileElementJs extends _SVGElementJs implements SVGFETileElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6923,7 +6949,8 @@ class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulence
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6966,7 +6993,8 @@ class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7043,7 +7071,8 @@ class _SVGForeignObjectElementJs extends _SVGElementJs implements SVGForeignObje
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7092,7 +7121,8 @@ class _SVGGElementJs extends _SVGElementJs implements SVGGElement native "*SVGGE
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7140,7 +7170,8 @@ class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7173,7 +7204,8 @@ class _SVGGradientElementJs extends _SVGElementJs implements SVGGradientElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7221,7 +7253,8 @@ class _SVGImageElementJs extends _SVGElementJs implements SVGImageElement native
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7341,7 +7374,8 @@ class _SVGLineElementJs extends _SVGElementJs implements SVGLineElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7447,7 +7481,8 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7496,7 +7531,8 @@ class _SVGMaskElementJs extends _SVGElementJs implements SVGMaskElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7679,7 +7715,8 @@ class _SVGPathElementJs extends _SVGElementJs implements SVGPathElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7985,7 +8022,8 @@ class _SVGPatternElementJs extends _SVGElementJs implements SVGPatternElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8054,7 +8092,8 @@ class _SVGPolygonElementJs extends _SVGElementJs implements SVGPolygonElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8107,7 +8146,8 @@ class _SVGPolylineElementJs extends _SVGElementJs implements SVGPolylineElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8227,7 +8267,8 @@ class _SVGRectElementJs extends _SVGElementJs implements SVGRectElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8365,7 +8406,8 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8418,7 +8460,8 @@ class _SVGStopElementJs extends _SVGElementJs implements SVGStopElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -8492,7 +8535,8 @@ class _SVGSwitchElementJs extends _SVGElementJs implements SVGSwitchElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8531,7 +8575,8 @@ class _SVGSymbolElementJs extends _SVGElementJs implements SVGSymbolElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8617,7 +8662,8 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -8693,7 +8739,8 @@ class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -8817,7 +8864,8 @@ class _SVGUseElementJs extends _SVGElementJs implements SVGUseElement native "*S
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -9745,7 +9793,8 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
 
   static _construct_Uint8ClampedArray(arg) native 'return new Uint8ClampedArray(arg);';
 
-  final int length;
+  // Use implementation from Uint8Array.
+  // final int length;
 
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }

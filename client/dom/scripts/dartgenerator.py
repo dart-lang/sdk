@@ -575,7 +575,7 @@ class DartGenerator(object):
       if isinstance(parent_interface, str):  # _IsDartCollectionType(parent_interface)
         continue
       attributes = [attr for attr in parent_interface.attributes
-                    if not self._DefinesSameAttribute(interface, attr)]
+                    if not _FindMatchingAttribute(interface, attr)]
       for (getter, setter) in _PairUpAttributes(attributes):
         for generator in generators:
           generator.AddSecondaryAttribute(parent_interface, getter, setter)
@@ -606,12 +606,6 @@ class DartGenerator(object):
       if 'EventTarget' in self._AllImplementedInterfaces(interface):
         return True
     return False
-
-  def _DefinesSameAttribute(self, interface, attr1):
-    return any(attr1.id == attr2.id
-               and attr1.is_fc_getter == attr2.is_fc_getter
-               and attr1.is_fc_setter == attr2.is_fc_setter
-               for attr2 in interface.attributes)
 
   def _TransitiveSecondaryParents(self, interface):
     """Returns a list of all non-primary parents.
@@ -710,6 +704,17 @@ def _PairUpAttributes(attributes):
     elif attr.is_fc_setter:
       setters[attr.id] = attr
   return [(getters.get(id), setters.get(id)) for id in names]
+
+
+def _FindMatchingAttribute(interface, attr1):
+  matches = [attr2 for attr2 in interface.attributes
+             if attr1.id == attr2.id
+             and attr1.is_fc_getter == attr2.is_fc_getter
+             and attr1.is_fc_setter == attr2.is_fc_setter]
+  if matches:
+    assert len(matches) == 1
+    return matches[0]
+  return None
 
 
 def _AnalyzeOperation(interface, operations):
@@ -2072,6 +2077,28 @@ class FrogInterfaceGenerator(object):
   def AddAttribute(self, getter, setter):
     output_type = getter and self._NarrowOutputType(getter.type.id)
     input_type = setter and self._NarrowInputType(setter.type.id)
+
+    # If the (getter, setter) pair is shadowing, we can't generate a shadowing
+    # field (Issue 1633).
+    (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter)
+    (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
+    if super_getter or super_setter:
+      if getter and not setter and super_getter and not super_setter:
+        if getter.type.id == super_getter.type.id:
+          # Compatible getter, use the superclass property.  This works because
+          # JavaScript will do its own dynamic dispatch.
+          self._members_emitter.Emit(
+              '\n'
+              '  // Use implementation from $SUPER.\n'
+              '  // final $TYPE $NAME;\n',
+              SUPER=super_getter_interface.id,
+              NAME=getter.id, TYPE=output_type)
+          return
+
+      self._members_emitter.Emit('\n  // Shadowing definition.')
+      self._AddAttributeUsingProperties(getter, setter)
+      return
+
     if getter and setter and input_type == output_type:
       self._members_emitter.Emit(
           '\n  $TYPE $NAME;\n',
@@ -2082,6 +2109,9 @@ class FrogInterfaceGenerator(object):
           '\n  final $TYPE $NAME;\n',
           NAME=getter.id, TYPE=output_type)
       return
+    self._AddAttributeUsingProperties(getter, setter)
+
+  def _AddAttributeUsingProperties(self, getter, setter):
     if getter:
       self._AddGetter(getter)
     if setter:
@@ -2096,8 +2126,27 @@ class FrogInterfaceGenerator(object):
   def _AddSetter(self, attr):
     # TODO(sra): Remove native body when Issue 829 fixed.
     self._members_emitter.Emit(
-        '\n  void set $NAME($TYPE value) native "this.$NAME = value;";\n',
+        '  void set $NAME($TYPE value) native "this.$NAME = value;";\n',
         NAME=attr.id, TYPE=self._NarrowInputType(attr.type.id))
+
+  def _FindShadowedAttribute(self, attr):
+    """Returns (attribute, superinterface) or (None, None)."""
+    def FindInParent(interface):
+      """Returns matching attribute in parent, or None."""
+      if interface.parents:
+        parent = interface.parents[0]
+        if _IsDartCollectionType(parent.type.id):
+          return (None, None)
+        if self._system._database.HasInterface(parent.type.id):
+          parent_interface = self._system._database.GetInterface(parent.type.id)
+          attr2 = _FindMatchingAttribute(parent_interface, attr)
+          if attr2:
+            return (attr2, parent_interface)
+          return FindInParent(parent_interface)
+      return (None, None)
+
+    return FindInParent(self._interface) if attr else (None, None)
+
 
   def AddSecondaryAttribute(self, interface, getter, setter):
     self._SecondaryContext(interface)

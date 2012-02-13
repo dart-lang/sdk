@@ -25,7 +25,8 @@ class _SVGGElementJs extends _SVGElementJs implements SVGGElement native "*SVGGE
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 

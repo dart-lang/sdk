@@ -37,7 +37,8 @@ class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

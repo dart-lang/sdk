@@ -9,7 +9,8 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
 
   static _construct_Uint8ClampedArray(arg) native 'return new Uint8ClampedArray(arg);';
 
-  final int length;
+  // Use implementation from Uint8Array.
+  // final int length;
 
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }
