@@ -5,7 +5,6 @@
 package com.google.dart.compiler;
 
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
-import com.google.dart.compiler.backend.isolate.DartIsolateStubGenerator;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
@@ -41,23 +40,13 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
     this(new JavascriptBackend());
   }
 
-  private static Backend selectBackend(CompilerOptions compilerOptions)
-      throws FileNotFoundException {
-    if (!compilerOptions.getIsolateStubClasses().isEmpty()) {
-      return new DartIsolateStubGenerator(compilerOptions.getIsolateStubClasses(),
-                                          compilerOptions.getIsolateStubOutputFile());
-    } else {
-      return new JavascriptBackend();
-    }
-  }
-
   /**
    * A new instance with the specified {@link CompilerOptions}
    * @throws FileNotFoundException
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions)
       throws FileNotFoundException {
-    this (selectBackend(compilerOptions), compilerOptions);
+    this (new JavascriptBackend(), compilerOptions);
   }
 
   /**
@@ -94,7 +83,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
    */
   public DefaultCompilerConfiguration(CompilerOptions compilerOptions,
       SystemLibraryManager libraryManager) throws FileNotFoundException {
-    this(compilerOptions, libraryManager, selectBackend(compilerOptions));
+    this(compilerOptions, libraryManager, new JavascriptBackend());
   }
 
   /**
@@ -175,11 +164,6 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
   @Override
   public boolean expectEntryPoint() {
-    return false;
-  }
-
-  @Override
-  public boolean shouldWarnOnNoSuchType() {
     return false;
   }
 

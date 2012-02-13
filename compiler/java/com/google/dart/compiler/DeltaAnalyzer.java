@@ -182,11 +182,6 @@ class DeltaAnalyzer {
     }
 
     @Override
-    public boolean shouldWarnOnNoSuchType() {
-      return false;
-    }
-
-    @Override
     public CompilerConfiguration getCompilerConfiguration() {
       return config;
     }

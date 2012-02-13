@@ -1007,9 +1007,7 @@ public class Resolver {
           }
         }
         if (isStaticContextOrInitializer()) {
-          if (!context.shouldWarnOnNoSuchType()) {
-            onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
-          }
+          onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
         }
       } else {
         element = checkResolvedIdentifier(x, isQualifier, scope, name, element);
@@ -1691,9 +1689,7 @@ public class Resolver {
 
     private ConstructorElement checkIsConstructor(DartNewExpression source, Element element) {
       if (!ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
-        if (!context.shouldWarnOnNoSuchType()) {
-          onError(source.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
-        }
+        onError(source.getConstructor(), ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR);
         return null;
       }
       return (ConstructorElement) element;

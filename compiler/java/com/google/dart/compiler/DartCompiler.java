@@ -998,13 +998,7 @@ public class DartCompiler {
       return false;
     }
 
-    CompilerConfiguration config;
-    if (compilerOptions.getIsolateStubClasses().isEmpty()) {
-      config = new DefaultCompilerConfiguration(compilerOptions);
-    } else {
-      config = new DartIsolateStubGeneratorCompilerConfiguration(
-          compilerOptions);
-    }
+    CompilerConfiguration config = new DefaultCompilerConfiguration(compilerOptions);
     return compilerMain(sourceFile, config);
   }
 

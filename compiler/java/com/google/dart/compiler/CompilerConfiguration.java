@@ -81,8 +81,6 @@ public interface CompilerConfiguration {
    */
   boolean expectEntryPoint();
 
-  boolean shouldWarnOnNoSuchType();
-
   /**
    * Returns the error formatting the compiler should print with
    */

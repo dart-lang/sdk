@@ -16,10 +16,7 @@ import org.kohsuke.args4j.Option;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Options that can be specified on the command line.
@@ -54,10 +51,6 @@ public class CommandLineOptions {
         usage = "Turn off type optimizations\n (for debugging)")
     private boolean disableTypeOptimizations = false;
 
-    @Option(name = "--generate-isolate-stubs", aliases = { "-generate-isolate-stubs" },
-        usage = "Classes to generate stubs\n (comma-separated list)")
-    private String generateIsolateStubs = null;
-
     @Option(name = "--generate_source_maps",
         usage = "Generate source maps")
     private boolean generateSourceMaps = false;
@@ -78,10 +71,6 @@ public class CommandLineOptions {
     @Option(name = "--ignore-unrecognized-flags",
         usage = "Ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
-
-    @Option(name = "--isolate-stub-out", aliases = { "-isolate-stub-out" },
-        usage = "File to receive generated stub output")
-    private String isolateStubOutputFile = null;
 
     @Option(name = "--jvm-metrics-detail",
         usage = "Display summary (default) or\n verbose metrics")
@@ -139,8 +128,7 @@ public class CommandLineOptions {
      * Returns whether the option -check-only is provided.
      */
     public boolean checkOnly() {
-      return !deprecatedGenerateCode &&
-          getIsolateStubClasses().isEmpty();
+      return !deprecatedGenerateCode;
     }
 
     /**
@@ -148,21 +136,6 @@ public class CommandLineOptions {
      */
     public boolean shouldExposeCoreImpl() {
       return exposeCoreImpl;
-    }
-
-    /**
-     * Returns the names of classes to generate stubs for.
-     */
-    public Set<String> getIsolateStubClasses() {
-      Set<String> set = new HashSet<String>();
-      if (generateIsolateStubs != null) {
-        set.addAll(Arrays.asList(generateIsolateStubs.split(",")));
-      }
-      return set;
-    }
-
-    public String getIsolateStubOutputFile() {
-      return isolateStubOutputFile;
     }
 
     public String getJvmMetricOptions() {

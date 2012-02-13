@@ -132,11 +132,6 @@ public class TestCompilerContext implements DartCompilerListener, DartCompilerCo
   }
 
   @Override
-  public boolean shouldWarnOnNoSuchType() {
-    return false;
-  }
-
-  @Override
   public CompilerConfiguration getCompilerConfiguration() {
     return compilerConfiguration;
   }

@@ -347,10 +347,6 @@ public class ResolutionContext implements ResolutionErrorListener {
     context.onError(new DartCompilationError(node, errorCode, arguments));
   }
 
-  public boolean shouldWarnOnNoSuchType() {
-    return context.shouldWarnOnNoSuchType();
-  }
-
   class Selector extends DartNodeTraverser<Element> {
     @Override
     public Element visitNode(DartNode node) {
