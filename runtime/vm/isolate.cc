@@ -264,6 +264,22 @@ static int MostCalledFunctionFirst(const Function* const* a,
 }
 
 
+static void AddFunctionsFromClass(const Class& cls,
+                                  GrowableArray<const Function*>* functions) {
+  const Array& class_functions = Array::Handle(cls.functions());
+  // Class 'Dynamic' is allocated/initialized in a special way, leaving
+  // the functions field NULL instead of empty.
+  const int func_len = class_functions.IsNull() ? 0 : class_functions.Length();
+  for (int j = 0; j < func_len; j++) {
+    Function& function = Function::Handle();
+    function ^= class_functions.At(j);
+    if (function.invocation_counter() > 0) {
+      functions->Add(&function);
+    }
+  }
+}
+
+
 void Isolate::PrintInvokedFunctions() {
   ASSERT(this == Isolate::Current());
   Zone zone(this);
@@ -276,17 +292,12 @@ void Isolate::PrintInvokedFunctions() {
     ClassDictionaryIterator iter(library);
     while (iter.HasNext()) {
       cls = iter.GetNextClass();
-      const Array& functions = Array::Handle(cls.functions());
-      // Class 'Dynamic' is allocated/initialized in a special way, leaving
-      // the functions field NULL instead of empty.
-      const int func_len = functions.IsNull() ? 0 : functions.Length();
-      for (int j = 0; j < func_len; j++) {
-        Function& function = Function::Handle();
-        function ^= functions.At(j);
-        if (function.invocation_counter() > 0) {
-          invoked_functions.Add(&function);
-        }
-      }
+      AddFunctionsFromClass(cls, &invoked_functions);
+    }
+    Array& anon_classes = Array::Handle(library.raw_ptr()->anonymous_classes_);
+    for (int i = 0; i < library.raw_ptr()->num_anonymous_; i++) {
+      cls ^= anon_classes.At(i);
+      AddFunctionsFromClass(cls, &invoked_functions);
     }
     library = library.next_registered();
   }

@@ -605,6 +605,8 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   bool corelib_imported_;
   int8_t load_state_;            // Of type LibraryState.
+
+  friend class Isolate;
 };
 
 
