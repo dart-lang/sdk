@@ -322,6 +322,7 @@ Throw3Test: Fail
 Throw4Test: Fail
 Throw5Test: Fail
 Throw6Test: Fail
+Throw7NegativeTest: Fail
 ThrowTest: Fail
 ToStringAsFixedTest: Fail
 TopLevelFuncTest: Fail
