@@ -40,30 +40,29 @@ bool sameType(Type domType, Type htmlType) {
   return htmlTypes != null && htmlTypes.some((t) => t == htmlType);
 }
 
+/** Returns the name of a member, including `get:` if it's a field. */
+String memberName(Member m) => m is FieldMember ? 'get:${m.name}' : m.name;
+
 /**
  * Returns a string describing the name of a member. If [type] is passed, it's
  * used in place of the member's real type name.
  */
-String memberName(Member m, [Type type = null]) {
+String memberDesc(Member m, [Type type = null]) {
   if (type == null) type = m.declaringType;
-  if (m is FieldMember) {
-    return '${type.name}.get:${m.name}';
-  } else {
-    return '${type.name}.${m.name}';
-  }
+  return '${type.name}.${memberName(m)}';
 }
 
 /**
- * Same as [memberName], but if [m] is a `dart:dom` type its `dart:html`
+ * Same as [memberDesc], but if [m] is a `dart:dom` type its `dart:html`
  * typename is used instead.
  */
-String htmlishMemberName(Member m) {
+String htmlishMemberDesc(Member m) {
   var type = m.declaringType;
   final htmlTypes = diff.domTypesToHtml[type];
   if (htmlTypes != null && htmlTypes.length == 1) {
     type = htmlTypes.iterator().next();
   }
-  return memberName(m, type);
+  return memberDesc(m, type);
 }
 
 bool isGetter(Member member) => member.name.startsWith('get:');
@@ -79,7 +78,7 @@ void maybeAddRename(Map<String, String> renamed, Member domMember,
   final htmlMember = htmlMembers.iterator().next();
   if (memberName(domMember) != memberName(htmlMember) &&
     sameType(domMember.returnType, htmlMember.returnType)) {
-    renamed[memberName(domMember)] = memberName(htmlMember);
+    renamed[memberDesc(domMember)] = memberDesc(htmlMember);
   }
 }
 
@@ -116,18 +115,18 @@ void main() {
       for (final member in type.members.getValues()) {
         if (!diff.domToHtml.containsKey(member)) {
           if (member is PropertyMember) {
-            if (member.canGet) removed.add(htmlishMemberName(member.getter));
-            if (member.canSet) removed.add(htmlishMemberName(member.setter));
+            if (member.canGet) removed.add(htmlishMemberDesc(member.getter));
+            if (member.canSet) removed.add(htmlishMemberDesc(member.setter));
           } else {
-            removed.add(htmlishMemberName(member));
+            removed.add(htmlishMemberDesc(member));
           }
         } else if (member is PropertyMember) {
           final htmlMembers = diff.domToHtml[member];
           if (member.canGet && !htmlMembers.some((m) => m.name.startsWith('get:'))) {
-            removed.add(htmlishMemberName(member.getter));
+            removed.add(htmlishMemberDesc(member.getter));
           }
           if (member.canSet && !htmlMembers.some((m) => m.name.startsWith('set:'))) {
-            removed.add(htmlishMemberName(member.setter));
+            removed.add(htmlishMemberDesc(member.setter));
           }
         }
       }
