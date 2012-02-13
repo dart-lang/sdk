@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,11 +42,10 @@ class EventHandler {
     delegate_.SendData(id, dart_port, data);
   }
 
-  static void* AsyncTaskHandler(void* args) {
+  static void AsyncTaskHandler(ThreadPool::Task args) {
     if (Dart_IsVMFlagSet("trace_thread_pool")) {
       printf("Got async task\n");
     }
-    return NULL;
   }
 
   static void Initialize() {

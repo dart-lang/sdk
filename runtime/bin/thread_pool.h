@@ -9,72 +9,70 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 
-typedef void* Task;
-
-
-class TaskQueueEntry {
- public:
-  explicit TaskQueueEntry(Task task) : task_(task), next_(NULL) {}
-
-  Task task() { return task_; }
-
-  TaskQueueEntry* next() { return next_; }
-  void set_next(TaskQueueEntry* value) { next_ = value; }
-
- private:
-  Task task_;
-  TaskQueueEntry* next_;
-};
-
-
-// The task queue is a single linked list. Link direction is from tail
-// to head. New entried are inserted at the tail and entries are
-// removed from the head.
-class TaskQueue {
- public:
-  TaskQueue() : terminate_(false), head_(NULL), tail_(NULL) {}
-
-  void Insert(TaskQueueEntry* task);
-  TaskQueueEntry* Remove();
-  void Shutdown();
-
- private:
-  bool terminate_;
-  TaskQueueEntry* head_;
-  TaskQueueEntry* tail_;
-  dart::Monitor monitor_;
-
-  DISALLOW_COPY_AND_ASSIGN(TaskQueue);
-};
-
-
 class ThreadPool {
  public:
-  typedef void* (*TaskHandler)(void* args);
+  typedef void* Task;
+  typedef void (*TaskHandler)(Task args);
 
-  ThreadPool(TaskHandler task_handler, int initial_size = 4)
-      : terminate_(false),
-        size_(initial_size),
+  enum DrainFlag {
+    kDrain,
+    kDoNotDrain
+  };
+
+  ThreadPool(TaskHandler task_handler, int initial_number_of_threads = 4)
+      : initial_number_of_threads_(initial_number_of_threads),
+        terminate_(false),
+        drain_flag_(kDoNotDrain),
+        number_of_threads_(0),
+        head_(NULL),
+        tail_(NULL),
         task_handler_(task_handler) {}
 
+  // Start the thread pool.
   void Start();
-  void Shutdown();
 
-  void InsertTask(Task task);
+  // Shutdown the thread pool. The drain flags specifies whether all
+  // tasks pending in the queue will be processed. When this function
+  // returns all threads are terminated.
+  void Shutdown(DrainFlag drain_flag = kDoNotDrain);
 
-  void ThreadTerminated();
+  // Insert a new task into the thread pool. Returns true on success.
+  bool InsertTask(Task task);
 
  private:
-  Task WaitForTask();
+  class TaskQueueEntry {
+   public:
+    explicit TaskQueueEntry(Task task) : task_(task), next_(NULL) {}
+
+    Task task() { return task_; }
+    TaskQueueEntry* next() { return next_; }
+    void set_next(TaskQueueEntry* value) { next_ = value; }
+
+   private:
+    Task task_;
+    TaskQueueEntry* next_;
+
+    DISALLOW_COPY_AND_ASSIGN(TaskQueueEntry);
+  };
+
+
+  TaskQueueEntry* WaitForTask();
+  void ThreadTerminated();
 
   static void Main(uword args);
 
-  TaskQueue queue_;
-  // TODO(sgjesse): Move the monitor in TaskQueue to ThreadPool and
-  // obtain it for updating terminate_.
-  dart::Monitor monitor_;
-  bool terminate_;
-  int size_;  // Number of threads.
+  dart::Monitor monitor_;  // Monitor protecting all shared state.
+
+  int initial_number_of_threads_;  // Initial number of threads to start.
+  bool terminate_;  // Set to true when the thread pool is terminating.
+  DrainFlag drain_flag_;  // Queue handling before termination.
+  int number_of_threads_;  // Current number of threads.
+
+  // The task queue is a single linked list. Link direction is from tail
+  // to head. New entries are inserted at the tail and entries are
+  // removed from the head.
+  TaskQueueEntry* head_;
+  TaskQueueEntry* tail_;
   TaskHandler task_handler_;
 
   DISALLOW_COPY_AND_ASSIGN(ThreadPool);
