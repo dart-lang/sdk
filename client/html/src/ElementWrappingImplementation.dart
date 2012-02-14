@@ -540,17 +540,20 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     var temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
+    var element;
     if (temp.childElementCount == 1) {
-      return LevelDom.wrapElement(temp.firstElementChild);     
+      element = LevelDom.wrapElement(temp.firstElementChild);
     } else if (parentTag == 'html' && temp.childElementCount == 2) {
       // Work around for edge case in WebKit and possibly other browsers where
       // both body and head elements are created even though the inner html
       // only contains a head or body element.
-      return LevelDom.wrapElement(temp.children.item(tag == 'head' ? 0 : 1));
+      element = LevelDom.wrapElement(temp.children.item(tag == 'head' ? 0 : 1));
     } else {
       throw new IllegalArgumentException('HTML had ${temp.childElementCount} ' +
           'top level elements but 1 expected');
     }
+    element.remove();
+    return element;
   }
 
   /** @domName Document.createElement */

@@ -29,7 +29,7 @@ class SVGElementWrappingImplementation extends ElementWrappingImplementation imp
     }
 
     parentTag.innerHTML = svg;
-    if (parentTag.elements.length == 1) return parentTag.elements[0];
+    if (parentTag.elements.length == 1) return parentTag.nodes.removeLast();
 
     throw new IllegalArgumentException('SVG had ${parentTag.elements.length} ' +
         'top-level elements but 1 expected');

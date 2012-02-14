@@ -84,6 +84,9 @@ void testElement() {
           (e) => e is IllegalArgumentException);
     });
 
+    test('.html has no parent', () =>
+        Expect.isNull(new Element.html('<br/>').parent));
+
     test('a', () => testConstructorHelper('a', '<a>foo</a>', 'foo',
         (element) => element is AnchorElement));
     test('area', () => testConstructorHelper('area', '<area>foo</area>', '',

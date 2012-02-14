@@ -39,6 +39,9 @@ void testSVGElement() {
         Expect.equals(svg, el.outerHTML);
       });
 
+      test('has no parent', () =>
+        Expect.isNull(new SVGElement.svg('<circle/>').parent));
+
       test('empty', () {
         Expect.throws(() => new SVGElement.svg(""),
             (e) => e is IllegalArgumentException);
