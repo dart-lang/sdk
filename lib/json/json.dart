@@ -396,7 +396,7 @@ class JsonParser {
   }
 
   _parseObject() {
-    Map<String, Object> object = new Map<String, Object>();
+    final object = {};
 
     _parseSequence(JsonToken.RBRACE, (JsonToken token) {
       _assertTokenKind(token, JsonToken.STRING);
@@ -415,7 +415,7 @@ class JsonParser {
   }
 
   _parseList() {
-    List<Object> list = new List<Object>();
+    final list = [];
 
     _parseSequence(JsonToken.RBRACKET, (JsonToken token) {
       final value = _parseValue(token);
