@@ -984,12 +984,14 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     state()->set_root_node(child_node);
     child_node->Visit(this);
   }
-  if (node_sequence->label() != NULL) {
-    __ Bind(node_sequence->label()->break_label());
-  }
   if (num_context_variables > 0) {
     // Unchain the previously allocated context.
     __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+  }
+  // If this node sequence is labeled, a break out of the sequence will have
+  // taken care of unchaining the context.
+  if (node_sequence->label() != NULL) {
+    __ Bind(node_sequence->label()->break_label());
   }
 }
 
@@ -1219,6 +1221,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
   node->operand()->Visit(this);
   if (node->kind() == Token::kADD) {
+    // TODO(srdjan): Remove this as it is not part of Dart language any longer.
     // Unary operator '+' does not exist, it's a NOP, skip it.
     if (!IsResultNeeded(node)) {
       __ popq(RAX);
@@ -1989,17 +1992,28 @@ void CodeGenerator::VisitJumpNode(JumpNode* node) {
   // Unchain the context(s) up to the outer context level of the scope which
   // contains the destination label.
   ASSERT(label->owner() != NULL);
-  LocalScope* outer_context_owner = label->owner()->parent();
-  ASSERT(outer_context_owner != NULL);
   int target_context_level = 0;
-  if (outer_context_owner->HasContextLevel()) {
-    target_context_level = outer_context_owner->context_level();
-    ASSERT(target_context_level >= 0);
-    int context_level = state()->context_level();
-    ASSERT(context_level >= target_context_level);
-    while (context_level-- > target_context_level) {
-      __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+  LocalScope* target_scope = label->owner();
+  if (target_scope->num_context_variables() > 0) {
+    // The scope of the target label allocates a context, therefore its outer
+    // scope is at a lower context level.
+    target_context_level = target_scope->context_level() - 1;
+  } else {
+    // The scope of the target label does not allocate a context, so its outer
+    // scope is at the same context level. Find it.
+    while ((target_scope != NULL) &&
+           (target_scope->num_context_variables() == 0)) {
+      target_scope = target_scope->parent();
     }
+    if (target_scope != NULL) {
+      target_context_level = target_scope->context_level();
+    }
+  }
+  ASSERT(target_context_level >= 0);
+  int context_level = state()->context_level();
+  ASSERT(context_level >= target_context_level);
+  while (context_level-- > target_context_level) {
+    __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
   }
 
   if (node->kind() == Token::kBREAK) {

@@ -166,6 +166,8 @@ class LocalScope : public ZoneAllocated {
   // Check if this scope is nested within the passed in scope.
   bool IsNestedWithin(LocalScope* scope) const;
 
+  // The context level is only set in a scope that is either the owner scope of
+  // a captured variable or that is the owner scope of a context.
   bool HasContextLevel() const {
     return context_level_ != kUnitializedContextLevel_;
   }
