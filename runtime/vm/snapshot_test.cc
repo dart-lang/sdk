@@ -1307,6 +1307,18 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  for (var i = 0; i < kArrayLength; i++) list[i] = s;\n"
       "  return list;\n"
       "}\n"
+      "getMintList() {\n"
+      "  var mint = 0x7FFFFFFFFFFFFFFF;\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = mint;\n"
+      "  return list;\n"
+      "}\n"
+      "getBigintList() {\n"
+      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = bigint;\n"
+      "  return list;\n"
+      "}\n"
       "getDoubleList() {\n"
       "  var d = 3.14;\n"
       "  var list = new List<double>(kArrayLength);\n"
@@ -1357,6 +1369,32 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject::kString, element->type);
         EXPECT_STREQ("Hello, world!", element->value.as_string);
+      }
+    }
+    {
+      // Generate a list of medium ints from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMintList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kInt64, element->type);
+      }
+    }
+    {
+      // Generate a list of bigints from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getBigintList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kBigint, element->type);
       }
     }
     {

@@ -190,7 +190,6 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
         if (type != &dynamic_type_marker) return NULL;
       }
       return &type_arguments_marker;
-      break;
     }
     case ObjectStore::kArrayClass: {
       intptr_t len = ReadSmiValue();
@@ -208,35 +207,35 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
         value->value.as_array.values[i] = ReadObject();
       }
       return value;
-      break;
     }
     case ObjectStore::kMintClass: {
       int64_t value = Read<int64_t>();
+      Dart_CObject* object;
       if (kMinInt32 <= value && value <= kMaxInt32) {
-        return AllocateDartCObjectInt32(value);
+        object = AllocateDartCObjectInt32(value);
       } else {
-        return AllocateDartCObjectInt64(value);
+        object = AllocateDartCObjectInt64(value);
       }
-      break;
+      AddBackwardReference(object_id, object);
+      return object;
     }
     case ObjectStore::kBigintClass: {
       // Read in the hex string representation of the bigint.
       intptr_t len = ReadIntptrValue();
       Dart_CObject* object = AllocateDartCObjectBigint(len);
+      AddBackwardReference(object_id, object);
       char* p = object->value.as_bigint;
       for (intptr_t i = 0; i < len; i++) {
         p[i] = Read<uint8_t>();
       }
       p[len] = '\0';
       return object;
-      break;
     }
     case ObjectStore::kDoubleClass: {
       // Read the double value for the object.
       Dart_CObject* object = AllocateDartCObjectDouble(Read<double>());
       AddBackwardReference(object_id, object);
       return object;
-      break;
     }
     case ObjectStore::kOneByteStringClass: {
       intptr_t len = ReadSmiValue();
@@ -250,16 +249,13 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       }
       p[len] = '\0';
       return object;
-      break;
     }
     case ObjectStore::kTwoByteStringClass:
       // Two byte strings not supported.
       return NULL;
-      break;
     case ObjectStore::kFourByteStringClass:
       // Four byte strings not supported.
       return NULL;
-      break;
     case ObjectStore::kInternalByteArrayClass: {
       intptr_t len = ReadSmiValue();
       Dart_CObject* object = AllocateDartCObjectByteArray(len);
@@ -271,7 +267,6 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
         }
       }
       return object;
-      break;
     }
     default:
       // Everything else not supported.
