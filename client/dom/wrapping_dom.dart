@@ -274,6 +274,7 @@
 #source('generated/src/interface/RangeException.dart');
 #source('generated/src/interface/RealtimeAnalyserNode.dart');
 #source('generated/src/interface/Rect.dart');
+#source('generated/src/interface/RequestAnimationFrameCallback.dart');
 #source('generated/src/interface/SQLError.dart');
 #source('generated/src/interface/SQLException.dart');
 #source('generated/src/interface/SQLResultSet.dart');
@@ -1022,7 +1023,6 @@
 #source('src/KeyLocation.dart');
 #source('src/KeyName.dart');
 #source('src/ReadyState.dart');
-#source('src/RequestAnimationFrameCallback.dart');
 #source('src/TimeoutHandler.dart');
 #source('src/_Collections.dart');
 #source('src/_ListIterators.dart');
