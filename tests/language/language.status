@@ -360,8 +360,6 @@ ExecuteFinally6Test: Fail
 ExpectTest: Fail
 FauxverrideTest/03: Fail
 FauxverrideTest/05: Fail
-FieldOverrideTest/none: Fail  # Issue 743: field shadowing now allowed
-FieldOverrideTest/01: Fail    # Issue 743: field shadowing now allowed
 Field3NegativeTest: Fail  # Issue 729
 FinalParamNegativeTest: Fail
 For2Test: Fail
