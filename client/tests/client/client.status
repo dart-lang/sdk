@@ -17,6 +17,7 @@ dom/NativeGCTest: Fail  # Issue 1448.
 dom/TypingTest: Fail
 dom/XHRTest: Fail
 dom/WebSocketTest: Fail
+dom/XSLTProcessorTest: Fail   # Issue 1642 - implement constructor.
 
 [ $component == dartium && $mode == debug ]
 # TODO(vsm): Triage Dartium failures.

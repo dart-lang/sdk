@@ -22691,7 +22691,9 @@ interface XPathResult {
 
 // WARNING: Do not edit - generated code.
 
-interface XSLTProcessor {
+interface XSLTProcessor default _XSLTProcessorFactoryProvider {
+
+  XSLTProcessor();
 
   void clearParameters();
 
@@ -23450,6 +23452,11 @@ class _WebSocketFactoryProvider {
 class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest() native '''return new XMLHttpRequest();''';
+}
+
+class _XSLTProcessorFactoryProvider {
+
+  factory XSLTProcessor() native '''return new XSLTProcessor();''';
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

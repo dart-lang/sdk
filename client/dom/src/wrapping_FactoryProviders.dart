@@ -101,3 +101,10 @@ class _XMLHttpRequestFactoryProvider {
 
   static XMLHttpRequest create() native;
 }
+
+class _XSLTProcessorFactoryProvider {
+
+  factory XSLTProcessor() { return create(); }
+
+  static XSLTProcessor create() native;
+}
