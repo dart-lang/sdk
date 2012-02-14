@@ -4,8 +4,6 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartStringLiteral;
@@ -39,7 +37,7 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   private volatile Set<InterfaceType> subtypes;
 
   private final List<ConstructorElement> constructors;
-  private final Multimap<String, Element> members;
+  private final ElementMap members;
 
   private final LibraryElement library;
 
@@ -56,7 +54,7 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
     this.nativeName = nativeName;
     this.library = library;
     constructors = new ArrayList<ConstructorElement>();
-    members = LinkedHashMultimap.create();
+    members = new ElementMap();
     interfaces = new ArrayList<InterfaceType>();
     if (node != null) {
       isInterface = node.isInterface();
@@ -200,7 +198,7 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
     if (member.getModifiers().isOperator()) {
       name = "operator " + name;
     }
-    members.put(name, member);
+    members.add(name, member);
   }
 
   void addConstructor(ConstructorElement member) {
@@ -208,7 +206,7 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   }
 
   void addField(FieldElement member) {
-    members.put(member.getName(), member);
+    members.add(member.getName(), member);
   }
 
   void addInterface(InterfaceType type) {
@@ -268,33 +266,15 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
 
   @Override
   public Element lookupLocalElement(String name) {
-    Iterator<Element> iterator = members.get(name).iterator();
-    if (iterator.hasNext()) {
-      return iterator.next();
-    }
-    return null;
+    return members.get(name);
   }
 
   FieldElement lookupLocalField(String name) {
-    Iterator<Element> iterator = members.get(name).iterator();
-    while (iterator.hasNext()) {
-      Element element = iterator.next();
-      if (ElementKind.of(element).equals(ElementKind.FIELD)) {
-        return (FieldElement) element;
-      }
-    }
-    return null;
+    return (FieldElement) members.get(name, ElementKind.FIELD);
   }
 
   MethodElement lookupLocalMethod(String name) {
-    Iterator<Element> iterator = members.get(name).iterator();
-    while (iterator.hasNext()) {
-      Element element = iterator.next();
-      if (ElementKind.of(element).equals(ElementKind.METHOD)) {
-        return (MethodElement) element;
-      }
-    }
-    return null;
+    return (MethodElement) members.get(name, ElementKind.METHOD);
   }
 
   public static ClassElementImplementation fromNode(DartClass node, LibraryElement library) {
