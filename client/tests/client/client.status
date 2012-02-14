@@ -56,9 +56,6 @@ html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
 
-[ $component == webdriver && $browser == safari ]
-samples/smoketest/dartWebBase_tests: Fail
-
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 

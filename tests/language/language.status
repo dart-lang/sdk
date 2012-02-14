@@ -470,12 +470,9 @@ BlockScopeTest: Fail
 ClosureBreak1Test: Fail
 ClosureBreakTest: Fail
 ExecuteFinally7Test: Fail
-FunctionLiteralsTest: Fail
 ImplicitClosure1Test: Fail
-ImplicitClosureTest: Fail
 MethodBindingTest: Fail
 Prefix15Test: Fail
-GCTest: Fail
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $component == webdriver && $browser == opera ]
