@@ -215,7 +215,6 @@ NonConstSuperNegativeTest: Fail
 NonParameterizedFactory2Test: Fail
 NonParameterizedFactoryTest: Fail
 NullPointerExceptionTest: Fail
-NullTest: Fail
 NullToStringTest: Fail
 NumberIdentifierNegativeTest: Fail
 NumberSyntaxTest: Fail
