@@ -248,7 +248,7 @@ Prefix21Test: Fail
 Prefix22Test: Fail
 Prefix23NegativeTest: Fail
 Private3Test: Fail
-PrivateMember3NegativeTest: Crash # NPE in TypeCheckerVisitor.visitSend.
+PrivateMember3NegativeTest: Fail
 PrivateMemberTest: Fail
 PrivateTest: Fail
 PropertyFieldOverrideTest: Fail
@@ -278,8 +278,8 @@ SavannahTest: Fail
 ScopeNegativeTest: Fail
 Script1NegativeTest: Fail
 ScriptNegativeTest: Fail
-SetterDeclarationNegativeTest: Fail
 SetterDeclaration2NegativeTest: Fail
+SetterDeclarationNegativeTest: Fail
 StackOverflowTest: Fail
 StackTraceTest: Fail
 StatementTest: Fail
