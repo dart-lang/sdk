@@ -68,6 +68,7 @@ ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
 ContextTest: Crash # NPE in Types.isSubtype.
+Context2Test: Fail
 ContinueTest: Fail
 CyclicTypeVariableTest: Fail
 DefaultClassImplicitConstructorTest: Fail
