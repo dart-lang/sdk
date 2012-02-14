@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -322,5 +322,23 @@ void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_NewString(path));
     free(path);
   }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = File::OpenStdio(fd);
+  Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File::StdioHandleType type = File::GetStdioHandleType(fd);
+  Dart_SetReturnValue(args, Dart_NewInteger(type));
   Dart_ExitScope();
 }

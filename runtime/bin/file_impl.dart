@@ -10,6 +10,14 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
     _checkScheduleCallbacks();
   }
 
+  _FileInputStream.fromStdio(int fd) {
+    assert(fd == 0);
+    _file = _File._openStdioSync(fd);
+    _length = _file.lengthSync();
+    _streamMarkedClosed = true;
+    _checkScheduleCallbacks();
+  }
+
   int available() {
     return _closed ? 0 : _length - _file.positionSync();
   }
@@ -51,6 +59,11 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 class _FileOutputStream implements OutputStream {
   _FileOutputStream(File file, FileMode mode) {
     _file = file.openSync(mode);
+  }
+
+  _FileOutputStream.fromStdio(int fd) {
+    assert(1 <= fd && fd <= 2);
+    _file = _File._openStdioSync(fd);
   }
 
   bool write(List<int> buffer, [bool copyBuffer = false]) {
@@ -452,6 +465,7 @@ class _FileUtils {
   static bool truncate(int id, int length) native "File_Truncate";
   static int length(int id) native "File_Length";
   static int flush(int id) native "File_Flush";
+  static int openStdio(int fd) native "File_OpenStdio";
 
   static int checkedOpen(String name, int mode) {
     if (name is !String || mode is !int) return 0;
@@ -616,6 +630,14 @@ class _File implements File {
       throw new FileIOException("Cannot open file: $_name");
     }
     return new _RandomAccessFile(id, _name);
+  }
+
+  static RandomAccessFile _openStdioSync(int fd) {
+    var id = _FileUtils.openStdio(fd);
+    if (id == 0) {
+      throw new FileIOException("Cannot open stdio file for: $fd");
+    }
+    return new _RandomAccessFile(id, "");
   }
 
   void fullPath() {

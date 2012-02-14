@@ -97,6 +97,13 @@ class _SocketBase {
 
   void _activateHandlers() {
     if (_canActivateHandlers && (_id >= 0)) {
+      if (_handlerMask == 0) {
+        if (_handler != null) {
+          _handler.close();
+          _handler = null;
+        }
+        return;
+      }
       int data = _handlerMask;
       if (_isListenSocket()) {
         data |= (1 << _LISTENING_SOCKET);

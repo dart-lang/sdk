@@ -123,6 +123,12 @@ File* File::Open(const char* name, FileOpenMode mode) {
 }
 
 
+File* File::OpenStdio(int fd) {
+  UNREACHABLE();
+  return NULL;
+}
+
+
 bool File::Exists(const char* name) {
   struct stat st;
   if (stat(name, &st) == 0) {
@@ -176,4 +182,11 @@ const char* File::PathSeparator() {
 
 const char* File::StringEscapedPathSeparator() {
   return "\\\\";
+}
+
+
+File::StdioHandleType File::GetStdioHandleType(int fd) {
+  // Treat all stdio handles as pipes. The Windows event handler and
+  // socket code will handle the different handle types.
+  return kPipe;
 }

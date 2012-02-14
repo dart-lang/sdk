@@ -2,31 +2,70 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-Socket _stdin;
+final int _STDIO_HANDLE_TYPE_TERMINAL = 0;
+final int _STDIO_HANDLE_TYPE_PIPE = 1;
+final int _STDIO_HANDLE_TYPE_FILE = 2;
+final int _STDIO_HANDLE_TYPE_OTHER = 3;
+
+
+InputStream _stdin;
+OutputStream _stdout;
+OutputStream _stderr;
+
+
+InputStream _getStdioInputStream() {
+  switch (_getStdioHandleType(0)) {
+    case _STDIO_HANDLE_TYPE_TERMINAL:
+    case _STDIO_HANDLE_TYPE_PIPE:
+      Socket s = new _Socket._internalReadOnly();
+      _getStdioHandle(s, 0);
+      return s.inputStream;
+    case _STDIO_HANDLE_TYPE_FILE:
+      return new _FileInputStream.fromStdio(0);
+    default:
+      throw new FileIOException("Unsupported stdin type");
+  }
+}
+
+
+OutputStream _getStdioOutputStream(int fd) {
+  assert(fd == 1 || fd == 2);
+  switch (_getStdioHandleType(fd)) {
+    case _STDIO_HANDLE_TYPE_TERMINAL:
+    case _STDIO_HANDLE_TYPE_PIPE:
+      Socket s = new _Socket._internalWriteOnly();
+      _getStdioHandle(s, fd);
+      return s.outputStream;
+    case _STDIO_HANDLE_TYPE_FILE:
+      return new _FileOutputStream.fromStdio(fd);
+    default:
+      throw new FileIOException("Unsupported stdin type");
+  }
+}
+
+
 InputStream get stdin() {
   if (_stdin == null) {
-    _stdin = new _Socket._internalReadOnly();
-    _getStdioHandle(_stdin, 0);
+    _stdin = _getStdioInputStream();
   }
-  return _stdin.inputStream;
+  return _stdin;
 }
 
-Socket _stdout;
+
 OutputStream get stdout() {
   if (_stdout == null) {
-    _stdout = new _Socket._internalWriteOnly();
-    _getStdioHandle(_stdout, 1);
+    _stdout = _getStdioOutputStream(1);
   }
-  return _stdout.outputStream;
+  return _stdout;
 }
 
-Socket _stderr;
+
 OutputStream get stderr() {
   if (_stderr == null) {
-    _stderr = new _Socket._internalWriteOnly();
-    _getStdioHandle(_stderr, 2);
+    _stderr = _getStdioOutputStream(2);
   }
-  return _stderr.outputStream;
+  return _stderr;
 }
 
 _getStdioHandle(Socket socket, int num) native "Socket_GetStdioHandle";
+_getStdioHandleType(int num) native "File_GetStdioHandleType";

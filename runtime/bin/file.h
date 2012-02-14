@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,6 +27,13 @@ class File {
     kWrite = 1,
     kTruncate = 1 << 2,
     kWriteTruncate = kWrite | kTruncate
+  };
+
+  enum StdioHandleType {
+    kTerminal = 0,
+    kPipe = 1,
+    kFile = 2,
+    kOther = 3
   };
 
   ~File();
@@ -72,6 +79,10 @@ class File {
   // mode contains kTruncate.
   static File* Open(const char* name, FileOpenMode mode);
 
+  // Create a file object for the specified stdio file descriptor
+  // (stdin, stout or stderr).
+  static File* OpenStdio(int fd);
+
   static bool Exists(const char* name);
   static bool Create(const char* name);
   static bool Delete(const char* name);
@@ -79,6 +90,7 @@ class File {
   static char* GetCanonicalPath(const char* name);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
+  static StdioHandleType GetStdioHandleType(int fd);
 
  private:
   File(const char* name, FileHandle* handle) : name_(name), handle_(handle) { }

@@ -85,10 +85,10 @@ class _Process implements Process {
 
     // Setup an exit handler to handle internal cleanup and possible
     // callback when a process terminates.
+    int exitDataRead = 0;
+    final int EXIT_DATA_SIZE = 8;
+    List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
     _exitHandler.inputStream.dataHandler = () {
-      final int EXIT_DATA_SIZE = 8;
-      List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
-      int exitDataRead = 0;
 
       int exitCode(List<int> ints) {
         var code = _intFromBytes(ints, 0);

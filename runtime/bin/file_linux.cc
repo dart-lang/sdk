@@ -126,6 +126,12 @@ File* File::Open(const char* name, FileOpenMode mode) {
 }
 
 
+File* File::OpenStdio(int fd) {
+  if (fd < 0 || 2 < fd) return NULL;
+  return new File(NULL, new FileHandle(fd));
+}
+
+
 bool File::Exists(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
@@ -178,4 +184,18 @@ const char* File::PathSeparator() {
 
 const char* File::StringEscapedPathSeparator() {
   return "/";
+}
+
+
+File::StdioHandleType File::GetStdioHandleType(int fd) {
+  ASSERT(0 <= fd && fd <= 2);
+  struct stat buf;
+  int result = fstat(fd, &buf);
+  if (result == -1) {
+    FATAL2("Failed stat on file descriptor %d: %s", fd, strerror(errno));
+  }
+  if (S_ISCHR(buf.st_mode)) return kTerminal;
+  if (S_ISFIFO(buf.st_mode)) return kPipe;
+  if (S_ISREG(buf.st_mode)) return kFile;
+  return kOther;
 }
