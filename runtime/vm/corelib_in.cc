@@ -8,8 +8,8 @@ namespace dart {
 
 // The string on the next line will be filled in with the contents of the
 // bootstrap dart files.
-const char Bootstrap::corelib_source_[] = {
-  {{DART_SOURCE}}
-};
+const char Bootstrap::corelib_source_[] =
+{{DART_SOURCE}}
+  ;  /* NOLINT */
 
 }  // namespace dart

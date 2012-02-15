@@ -9,6 +9,6 @@
 
 // The string on the next line will be filled in with the contents of
 // the dart files of the dart:io library.
-const char Builtin::io_source_[] = {
-  {{DART_SOURCE}}
-};
+const char Builtin::io_source_[] =
+{{DART_SOURCE}}
+  ; /* NOLINT */
