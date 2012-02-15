@@ -116,10 +116,6 @@ public abstract class UrlSource implements Source {
 
   @Override
   public URI getUri() {
-    return uri;
-  }
-
-  protected URI getAbsoluteUri() {
     return absoluteUri;
   }
 

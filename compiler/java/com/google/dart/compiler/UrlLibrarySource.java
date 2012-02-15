@@ -34,7 +34,7 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
   public DartSource getSourceFor(final String relPath) {
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.
-      URI uri = getAbsoluteUri().resolve(new URI(null, null, relPath, null)).normalize();
+      URI uri = getUri().resolve(new URI(null, null, relPath, null)).normalize();
       return new UrlDartSource(uri, relPath, this, systemLibraryManager);
     } catch (URISyntaxException e) {
       throw new AssertionError(e);
@@ -43,6 +43,6 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
 
   @Override
   public LibrarySource getImportFor(String relPath) {
-    return new UrlLibrarySource(getAbsoluteUri().resolve(relPath).normalize(), systemLibraryManager);
+    return new UrlLibrarySource(getUri().resolve(relPath).normalize(), systemLibraryManager);
   }
 }
