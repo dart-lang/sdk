@@ -668,4 +668,16 @@ public class NegativeParserTest extends CompilerTestCase {
         "}",
         ""));
   }
+
+  /**
+   * We can parse operator "call" declaration.
+   */
+  public void test_operator_call() {
+    parseExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator call() {}",
+        "}",
+        ""));
+  }
 }
