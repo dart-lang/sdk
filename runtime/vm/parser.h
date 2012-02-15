@@ -390,6 +390,8 @@ class Parser : ValueObject {
   AstNode* ResolveIdentInLibraryScope(const Library& lib,
                                       const QualIdent& qual_ident,
                                       bool resolve_locally);
+  AstNode* ResolveIdentInLibraryPrefixScope(const LibraryPrefix& lib_prefix,
+                                            const QualIdent& qual_ident);
   AstNode* ResolveVarOrField(intptr_t ident_pos, const String& ident);
   RawString* ResolveImportVar(intptr_t ident_pos, const String& ident);
   AstNode* OptimizeBinaryOpNode(intptr_t op_pos,

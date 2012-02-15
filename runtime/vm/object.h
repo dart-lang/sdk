@@ -1708,6 +1708,7 @@ class Library : public Object {
   RawClass* LookupClass(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
+  RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
   RawArray* LoadedScripts() const;
 
@@ -1737,6 +1738,8 @@ class Library : public Object {
 
   RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
 
+  RawString* DuplicateDefineErrorString(const String& entry_name,
+                                        const Library& conflicting_lib) const;
   static RawLibrary* LookupLibrary(const String& url);
   static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
@@ -1779,9 +1782,7 @@ class Library : public Object {
   RawObject* LookupObjectFiltered(const String& name,
                                   const Library& filter_lib) const;
   RawLibrary* LookupObjectInImporter(const String& name) const;
-  RawString* DuplicateDefineErrorString(const String& entry_name,
-                                        const Library& conflicting_lib) const;
-  RawString* FindDuplicateDefinition(Library* conflicting_lib) const;
+  RawString* FindDuplicateDefinition() const;
 
   HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
@@ -1794,7 +1795,13 @@ class Library : public Object {
 class LibraryPrefix : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
-  RawLibrary* library() const { return raw_ptr()->library_; }
+  RawArray* libraries() const { return raw_ptr()->libraries_; }
+  intptr_t num_libs() const { return raw_ptr()->num_libs_; }
+
+  RawLibrary* GetLibrary(int index) const;
+  void AddLibrary(const Library& library) const;
+  RawClass* LookupLocalClass(const String& class_name) const;
+  RawString* CheckForDuplicateDefinition() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
@@ -1803,8 +1810,12 @@ class LibraryPrefix : public Object {
   static RawLibraryPrefix* New(const String& name, const Library& lib);
 
  private:
+  static const int kInitialSize = 2;
+  static const int kIncrementSize = 2;
+
   void set_name(const String& value) const;
-  void set_library(const Library& value) const;
+  void set_libraries(const Array& value) const;
+  void set_num_libs(intptr_t value) const;
   static RawLibraryPrefix* New();
 
   HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);

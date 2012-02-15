@@ -3296,12 +3296,14 @@ void Parser::ParseLibraryImport() {
     if (prefix.IsNull() || (prefix.Length() == 0)) {
       library_.AddImport(library);
     } else {
-      if (library_.LookupLocalObject(prefix) != Object::null()) {
-        ErrorMsg(token_index_, "'%s' is already defined", prefix.ToCString());
+      LibraryPrefix& library_prefix = LibraryPrefix::Handle();
+      library_prefix = library_.LookupLocalLibraryPrefix(prefix);
+      if (!library_prefix.IsNull()) {
+        library_prefix.AddLibrary(library);
+      } else {
+        library_prefix = LibraryPrefix::New(prefix, library);
+        library_.AddObject(library_prefix, prefix);
       }
-      const LibraryPrefix& library_prefix =
-          LibraryPrefix::Handle(LibraryPrefix::New(prefix, library));
-      library_.AddObject(library_prefix, prefix);
     }
   }
 }
@@ -6164,7 +6166,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
         UnresolvedClass::Handle(type->unresolved_class());
     const String& unresolved_class_name =
         String::Handle(unresolved_class.ident());
-    Library& lib = Library::Handle();
+    Class& resolved_type_class = Class::Handle();
     if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
       if (!scope_class.IsNull()) {
         // First check if the type is a type parameter of the given scope class.
@@ -6183,18 +6185,13 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           return;
         }
       }
-    } else {
-      LibraryPrefix& lib_prefix =
-          LibraryPrefix::Handle(unresolved_class.library_prefix());
-      lib = lib_prefix.library();
-    }
-    Class& resolved_type_class = Class::Handle();
-    if (lib.IsNull()) {
       // Global lookup in current library.
       resolved_type_class = library_.LookupClass(unresolved_class_name);
     } else {
-      // Local lookup in imported library.
-      resolved_type_class = lib.LookupLocalClass(unresolved_class_name);
+      LibraryPrefix& lib_prefix =
+          LibraryPrefix::Handle(unresolved_class.library_prefix());
+      // Local lookup in library prefix scope.
+      resolved_type_class = lib_prefix.LookupLocalClass(unresolved_class_name);
     }
     if (!resolved_type_class.IsNull()) {
       Object& type_class = Object::Handle(resolved_type_class.raw());
@@ -6558,14 +6555,34 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
                                 *qual_ident.ident);
   }
   if (qual_ident.lib_prefix != NULL) {
+    return NULL;
+  }
+  // Lexically unresolved primary identifiers are referenced by their name.
+  return new PrimaryNode(qual_ident.ident_pos, *qual_ident.ident);
+}
+
+
+// Do a lookup for the identifier in the library prefix scope of the specified
+// library prefix. This would mean trying to resolve it locally in any of the
+// libraries present in the library prefix.
+AstNode* Parser::ResolveIdentInLibraryPrefixScope(const LibraryPrefix& prefix,
+                                                  const QualIdent& qual_ident) {
+  TRACE_PARSER("ResolveIdentInLibraryPrefixScope");
+  Library& lib = Library::Handle();
+  AstNode* result = NULL;
+  for (intptr_t i = 0; ((i < prefix.num_libs()) && (result == NULL)); i++) {
+    lib = prefix.GetLibrary(i);
+    ASSERT(!lib.IsNull());
+    result = ResolveIdentInLibraryScope(lib, qual_ident, kResolveLocally);
+  }
+  if (result == NULL) {
     // This is an unresolved prefixed primary identifier, need to report
     // an error.
     ErrorMsg(qual_ident.ident_pos, "identifier '%s.%s' cannot be resolved",
              String::Handle(qual_ident.lib_prefix->name()).ToCString(),
              qual_ident.ident->ToCString());
   }
-  // Lexically unresolved primary identifiers are referenced by their name.
-  return new PrimaryNode(qual_ident.ident_pos, *qual_ident.ident);
+  return result;
 }
 
 
@@ -7399,10 +7416,8 @@ AstNode* Parser::ParsePrimary() {
       // This is a qualified identifier with a library prefix so resolve
       // the identifier locally in that library (we do not include the
       // libraries imported by that library).
-      const Library& lib = Library::Handle(qual_ident.lib_prefix->library());
-      primary = ResolveIdentInLibraryScope(lib,
-                                           qual_ident,
-                                           kResolveLocally);
+      primary = ResolveIdentInLibraryPrefixScope(*(qual_ident.lib_prefix),
+                                                 qual_ident);
     }
     ASSERT(primary != NULL);
   } else if (CurrentToken() == Token::kTHIS) {

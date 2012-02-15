@@ -4379,13 +4379,16 @@ RawString* Library::DuplicateDefineErrorString(const String& entry_name,
 }
 
 
-RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
+RawString* Library::FindDuplicateDefinition() const {
   DictionaryIterator it(*this);
   Object& obj = Object::Handle();
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
   Field& field = Field::Handle();
   String& entry_name = String::Handle();
+  String& error_message = String::Handle();
+  Library& conflicting_lib = Library::Handle();
+  LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
   while (it.HasNext()) {
     obj = it.GetNext();
     ASSERT(!obj.IsNull());
@@ -4401,15 +4404,25 @@ RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
     } else if (obj.IsField()) {
       field ^= obj.raw();
       entry_name = field.name();
-    } else {
-      // We don't check for library prefixes defined in this library because
-      // they are not visible in the importing scope and hence cannot
-      // cause any duplicate definitions.
+    } else if (obj.IsLibraryPrefix()) {
+      // For library prefix objects we check to make sure there are no
+      // duplicate definitions within the libraries imported using this
+      // prefix.
+      lib_prefix ^= obj.raw();
+      error_message = lib_prefix.CheckForDuplicateDefinition();
+      if (!error_message.IsNull()) {
+        return error_message.raw();
+      }
+      // We don't check library prefixes defined in this library for
+      // conflicts because they are not visible in the importing scope and
+      // hence cannot cause any duplicate definitions.
       continue;
+    } else {
+      UNREACHABLE();
     }
-    *conflicting_lib = LookupObjectInImporter(entry_name);
-    if (!conflicting_lib->IsNull()) {
-      return entry_name.raw();
+    conflicting_lib = LookupObjectInImporter(entry_name);
+    if (!conflicting_lib.IsNull()) {
+      return this->DuplicateDefineErrorString(entry_name, conflicting_lib);
     }
   }
   return String::null();
@@ -4431,6 +4444,15 @@ RawClass* Library::LookupLocalClass(const String& name) const {
     return Class::CheckedHandle(obj.raw()).raw();
   }
   return Class::null();
+}
+
+
+RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
+  Object& obj = Object::Handle(LookupLocalObject(name));
+  if (!obj.IsNull() && obj.IsLibraryPrefix()) {
+    return LibraryPrefix::CheckedHandle(obj.raw()).raw();
+  }
+  return LibraryPrefix::null();
 }
 
 
@@ -4648,12 +4670,11 @@ RawString* Library::CheckForDuplicateDefinition() {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
   lib ^= object_store->registered_libraries();
-  String& entry_name = String::Handle();
-  Library& conflicting_lib = Library::Handle();
+  String& error_message = String::Handle();
   while (!lib.IsNull()) {
-    entry_name = lib.FindDuplicateDefinition(&conflicting_lib);
-    if (!entry_name.IsNull()) {
-      return lib.DuplicateDefineErrorString(entry_name, conflicting_lib);
+    error_message = lib.FindDuplicateDefinition();
+    if (!error_message.IsNull()) {
+      return error_message.raw();
     }
     lib ^= lib.next_registered();
   }
@@ -4723,6 +4744,64 @@ const char* Library::ToCString() const {
 }
 
 
+RawLibrary* LibraryPrefix::GetLibrary(int index) const {
+  Library& lib = Library::Handle();
+  if ((index >= 0) || (index < num_libs())) {
+    Array& libs = Array::Handle(libraries());
+    lib ^= libs.At(index);
+  }
+  return lib.raw();
+}
+
+
+void LibraryPrefix::AddLibrary(const Library& library) const {
+  Library& lib = Library::Handle();
+  intptr_t num_current_libs = num_libs();
+
+  // First check if the library is already in the list of libraries imported.
+  if (num_current_libs > 0) {
+    const String& url = String::Handle(library.url());
+    String& lib_url = String::Handle();
+    for (intptr_t i = 0; i < num_current_libs; i++) {
+      lib = GetLibrary(i);
+      ASSERT(!lib.IsNull());
+      lib_url = lib.url();
+      if (url.Equals(lib_url)) {
+        return;  // Library already imported with same prefix.
+      }
+    }
+  }
+
+  // The library needs to be added to the list.
+  Array& libs = Array::Handle(libraries());
+  const intptr_t length = (libs.IsNull()) ? 0 : libs.Length();
+  // Grow the list if it is full.
+  if (num_current_libs >= length) {
+    const intptr_t new_length = length + kIncrementSize;
+    libs = Array::Grow(libs, new_length, Heap::kOld);
+    set_libraries(libs);
+  }
+  libs.SetAt(num_current_libs, library);
+  set_num_libs(num_current_libs + 1);
+}
+
+
+RawClass* LibraryPrefix::LookupLocalClass(const String& class_name) const {
+  Array& libs = Array::Handle(libraries());
+  Class& resolved_class = Class::Handle();
+  Library& lib = Library::Handle();
+  for (intptr_t i = 0; i < num_libs(); i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    resolved_class = lib.LookupLocalClass(class_name);
+    if (!resolved_class.IsNull()) {
+      return resolved_class.raw();
+    }
+  }
+  return Class::null();
+}
+
+
 RawLibraryPrefix* LibraryPrefix::New() {
   const Class& library_prefix_class =
       Class::Handle(Object::library_prefix_class());
@@ -4736,7 +4815,8 @@ RawLibraryPrefix* LibraryPrefix::New() {
 RawLibraryPrefix* LibraryPrefix::New(const String& name, const Library& lib) {
   const LibraryPrefix& result = LibraryPrefix::Handle(LibraryPrefix::New());
   result.set_name(name);
-  result.set_library(lib);
+  result.set_num_libs(0);
+  result.AddLibrary(lib);
   return result.raw();
 }
 
@@ -4752,14 +4832,68 @@ const char* LibraryPrefix::ToCString() const {
 }
 
 
+RawString* LibraryPrefix::CheckForDuplicateDefinition() const {
+  Library& lib = Library::Handle();
+  Library& conflicting_lib = Library::Handle();
+  Object& obj = Object::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  Field& field = Field::Handle();
+  String& entry_name = String::Handle();
+
+  for (intptr_t i = 0; i < num_libs(); i++) {
+    lib = GetLibrary(i);
+    ASSERT(!lib.IsNull());
+    DictionaryIterator it(lib);
+    while (it.HasNext()) {
+      obj = it.GetNext();
+      ASSERT(!obj.IsNull());
+      if (obj.IsClass()) {
+        cls ^= obj.raw();
+        if (cls.IsCanonicalSignatureClass()) {
+          continue;
+        }
+        entry_name = cls.Name();
+      } else if (obj.IsFunction()) {
+        func ^= obj.raw();
+        entry_name = func.name();
+      } else if (obj.IsField()) {
+        field ^= obj.raw();
+        entry_name = field.name();
+      } else {
+        // We don't check library prefixes defined in this library for
+        // conflicts because they are not visible in the importing scope and
+        // hence cannot cause any duplicate definitions.
+        continue;
+      }
+      for (intptr_t j = i + 1; j < num_libs(); j++) {
+        conflicting_lib = GetLibrary(j);
+        ASSERT(!conflicting_lib.IsNull());
+        // Check if name is found in the local scope of the library.
+        obj = conflicting_lib.LookupLocalObject(entry_name);
+        if (!obj.IsNull()) {
+          return lib.DuplicateDefineErrorString(entry_name, conflicting_lib);
+        }
+      }
+    }
+  }
+  return String::null();
+}
+
+
 void LibraryPrefix::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
 }
 
 
-void LibraryPrefix::set_library(const Library& value) const {
-  StorePointer(&raw_ptr()->library_, value.raw());
+void LibraryPrefix::set_libraries(const Array& value) const {
+  StorePointer(&raw_ptr()->libraries_, value.raw());
+}
+
+
+void LibraryPrefix::set_num_libs(intptr_t value) const {
+  raw_ptr()->num_libs_ = value;
 }
 
 

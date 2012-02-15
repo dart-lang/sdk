@@ -616,10 +616,11 @@ class RawLibraryPrefix : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // library prefix name.
-  RawLibrary* library_;           // library imported with a prefix.
+  RawArray* libraries_;           // libraries imported with this prefix.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->library_);
+    return reinterpret_cast<RawObject**>(&ptr()->libraries_);
   }
+  intptr_t num_libs_;             // Number of library entries in libraries_.
 };
 
 

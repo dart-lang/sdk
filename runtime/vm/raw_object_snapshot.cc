@@ -771,6 +771,9 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
   // Set the object tags.
   prefix.set_tags(tags);
 
+  // Set all non object fields.
+  prefix.raw_ptr()->num_libs_ = reader->ReadIntptrValue();
+
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
   // allocations may happen.
@@ -794,6 +797,9 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
 
   // Write out the class and tags information.
   writer->WriteObjectHeader(Object::kLibraryPrefixClass, ptr()->tags_);
+
+  // Write out all non object fields.
+  writer->WriteIntptrValue(ptr()->num_libs_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

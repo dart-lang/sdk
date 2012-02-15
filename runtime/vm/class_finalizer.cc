@@ -265,13 +265,13 @@ RawClass* ClassFinalizer::ResolveClass(
   Class& resolved_class = Class::Handle();
   if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
     lib = cls.library();
+    ASSERT(!lib.IsNull());
     resolved_class = lib.LookupClass(class_name);
   } else {
     LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
     lib_prefix = unresolved_class.library_prefix();
     ASSERT(!lib_prefix.IsNull());
-    lib = lib_prefix.library();
-    resolved_class = lib.LookupLocalClass(class_name);
+    resolved_class = lib_prefix.LookupLocalClass(class_name);
   }
   if (resolved_class.IsNull()) {
     const Script& script = Script::Handle(cls.script());
