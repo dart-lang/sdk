@@ -27,6 +27,9 @@ bool throwsBecauseOfBadArgument(f) {
     return true;
   } catch(NullPointerException e) {
     return true;
+  } catch (TypeError e) {
+    // In type checked mode.
+    return true;
   }
   return false;
 }
