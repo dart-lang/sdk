@@ -1337,6 +1337,10 @@ TEST_CASE(WeakPersistentHandle) {
 
   Dart_DeletePersistentHandle(weak_new_ref);
   Dart_DeletePersistentHandle(weak_old_ref);
+
+  // garbage collect one last time to revisit deleted handles
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
 }
 
 

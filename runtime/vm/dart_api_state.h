@@ -135,8 +135,8 @@ class WeakPersistentHandle {
   }
 
   static void Finalize(WeakPersistentHandle* handle) {
-    if (handle->callback() != NULL) {
-      Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+    Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+    if (callback != NULL) {
       void* peer = handle->peer();
       handle->Clear();
       (*callback)(reinterpret_cast<Dart_Handle>(handle), peer);
