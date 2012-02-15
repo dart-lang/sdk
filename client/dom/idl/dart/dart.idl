@@ -48,18 +48,27 @@ module html {
   [Supplemental]
   interface Console {
     [Suppressed] void debug();
-    void debug(DOMObject arg);
+    [CustomArgumentHandling] void debug(DOMObject arg);
     [Suppressed] void error();
-    void error(DOMObject arg);
+    [CustomArgumentHandling] void error(DOMObject arg);
     [Suppressed] void info();
-    void info(DOMObject arg);
+    [CustomArgumentHandling] void info(DOMObject arg);
     [Suppressed] void log();
-    void log(DOMObject arg);
+    [CustomArgumentHandling] void log(DOMObject arg);
     [Suppressed] void warn();
-    void warn(DOMObject arg);
+    [CustomArgumentHandling] void warn(DOMObject arg);
     [Suppressed] void trace();
-    void trace(DOMObject arg);
-    [DartName=assertCondition] void assert(in boolean condition);
+    [CustomArgumentHandling] void trace(DOMObject arg);
+    [Suppressed] void assert(in boolean condition);
+    [CustomArgumentHandling] void assertCondition(boolean condition, DOMObject arg);
+    [Suppressed] void timeEnd(in DOMString title);
+    [CustomArgumentHandling] void timeEnd(DOMString title, DOMObject arg);
+    [Suppressed] void timeStamp();
+    [CustomArgumentHandling] void timeStamp(DOMObject arg);
+    [Suppressed] void group();
+    [CustomArgumentHandling] void group(DOMObject arg);
+    [Suppressed] void groupCollapsed();
+    [CustomArgumentHandling] void groupCollapsed(DOMObject arg);
   };
 
   [Supplemental]
@@ -79,10 +88,10 @@ module html {
 module html {
   [Supplemental]
   interface WebGLRenderingContext {
-        
+
     //void         compressedTexImage2D(in unsigned long target, in long level, in unsigned long internalformat, in unsigned long width, in unsigned long height, in long border, in unsigned long imageSize, const void* data);
     //void         compressedTexSubImage2D(in unsigned long target, in long level, in long xoffset, in long yoffset, in unsigned long width, in unsigned long height, in unsigned long format, in unsigned long imageSize, const void* data);
-    
+
     any getBufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
     [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
 
@@ -186,3 +195,9 @@ module html {
   interface VoidCallback {
   };
 };
+
+module svg {
+    interface SVGNumber {
+      [StrictTypeChecking, Custom] attribute double value;
+    };
+}

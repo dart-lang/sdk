@@ -54,8 +54,11 @@ def GenerateDOM(systems, output_dir):
       'DOMStringList': 'List<String>',
       })
   generator.FilterMembersWithUnidentifiedTypes(common_database)
-  generator.ConvertToDartTypes(common_database)
   webkit_database = common_database.Clone()
+  # FIXME: get rid of _original_idl_types map in dartgenerator.py and
+  # call ConvertToDartTypes before cloning.
+  generator.ConvertToDartTypes(common_database)
+  generator.ConvertToDartTypes(webkit_database)
 
   generated_output_dir = os.path.join(output_dir, 'generated')
   if os.path.exists(generated_output_dir):

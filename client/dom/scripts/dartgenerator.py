@@ -285,7 +285,13 @@ class DartGenerator(object):
 
     for interface in database.GetInterfaces():
       for idl_type in interface.all(idlnode.IDLType):
+        original_type_name = idl_type.id
         idl_type.id = ConvertType(interface, idl_type.id)
+        # FIXME: remember original idl types that are needed by native
+        # generator. We should migrate other generators to idl registry and
+        # remove this hack.
+        if original_type_name != idl_type.id:
+          _original_idl_types[idl_type] = original_type_name
 
   def FilterInterfaces(self, database,
                        and_annotations=[],
@@ -439,7 +445,6 @@ class DartGenerator(object):
       html_system._interface_system = html_interface_system
       self._systems.append(html_system)
 
-
     # Collect interfaces
     interfaces = []
     for interface in database.GetInterfaces():
@@ -472,7 +477,6 @@ class DartGenerator(object):
         _logger.info('Skipping %s because %s exists' % (
             interface_name, auxiliary_file))
         continue
-
 
       info = _RecognizeCallback(interface)
       if info:
@@ -525,6 +529,7 @@ class DartGenerator(object):
                                             super_interface_name,
                                             source_filter)
                   for system in self._systems]
+    generators = filter(None, generators)
 
     for generator in generators:
       generator.StartInterface()
@@ -701,7 +706,7 @@ def _PairUpAttributes(attributes):
   for attr in attributes:
     if attr.is_fc_getter:
       getters[attr.id] = attr
-    elif attr.is_fc_setter:
+    elif attr.is_fc_setter and 'Replaceable' not in attr.ext_attrs:
       setters[attr.id] = attr
   return [(getters.get(id), setters.get(id)) for id in names]
 
@@ -2275,6 +2280,174 @@ class HtmlFrogInterfaceGenerator(FrogInterfaceGenerator):
 
 # ------------------------------------------------------------------------------
 
+class IDLTypeInfo(object):
+  def __init__(self, idl_type, native_type=None, ref_counted=True,
+               has_dart_wrapper=True, conversion_template=None,
+               custom_to_dart=False):
+    self._idl_type = idl_type
+    self._native_type = native_type
+    self._ref_counted = ref_counted
+    self._has_dart_wrapper = has_dart_wrapper
+    self._conversion_template = conversion_template
+    self._custom_to_dart = custom_to_dart
+
+  def idl_type(self):
+    return self._idl_type
+
+  def native_type(self):
+    if self._native_type:
+      return self._native_type
+    return self._idl_type
+
+  def parameter_adapter_info(self):
+    native_type = self.native_type()
+    if self._ref_counted:
+      native_type = 'RefPtr< %s >' % native_type
+    if self._has_dart_wrapper:
+      wrapper_type = 'Dart%s' % self.idl_type()
+      adapter_type = 'ParameterAdapter<%s, %s>' % (native_type, wrapper_type)
+      return (adapter_type, wrapper_type)
+    return ('ParameterAdapter< %s >' % native_type, self._idl_type)
+
+  def parameter_type(self):
+    return '%s*' % self.native_type()
+
+  def webcore_include(self):
+    if self._idl_type == 'SVGNumber' or self._idl_type == 'SVGPoint':
+      return None
+    if self._idl_type.startswith('SVGPathSeg'):
+      return self._idl_type.replace('Abs', '').replace('Rel', '')
+    return self._idl_type
+
+  def receiver(self):
+    return 'receiver->'
+
+  def conversion_include(self):
+    return 'Dart%s' % self._idl_type
+
+  def conversion_cast(self, expression):
+    if self._conversion_template:
+      return self._conversion_template % expression
+    return expression
+
+  def custom_to_dart(self):
+    return self._custom_to_dart
+
+class PrimitiveIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, native_type=None, ref_counted=False,
+               conversion_template=None,
+               webcore_getter_name='getAttribute',
+               webcore_setter_name='setAttribute'):
+    super(PrimitiveIDLTypeInfo, self).__init__(idl_type,
+        native_type=native_type, ref_counted=ref_counted,
+        conversion_template=conversion_template)
+    self._webcore_getter_name = webcore_getter_name
+    self._webcore_setter_name = webcore_setter_name
+
+  def parameter_adapter_info(self):
+    native_type = self.native_type()
+    if self._ref_counted:
+      native_type = 'RefPtr< %s >' % native_type
+    return ('ParameterAdapter< %s >' % native_type, None)
+
+  def parameter_type(self):
+    if self.native_type() == 'String':
+      return 'const String&'
+    return self.native_type()
+
+  def conversion_include(self):
+    return None
+
+  def webcore_getter_name(self):
+    return self._webcore_getter_name
+
+  def webcore_setter_name(self):
+    return self._webcore_setter_name
+
+class SVGTearOffIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, native_type='', ref_counted=True):
+    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type,
+                                                native_type=native_type,
+                                                ref_counted=ref_counted)
+
+  def native_type(self):
+    if self._native_type:
+      return self._native_type
+    tear_off_type = 'SVGPropertyTearOff'
+    if self._idl_type.endswith('List'):
+      tear_off_type = 'SVGListPropertyTearOff'
+    return '%s<%s>' % (tear_off_type, self._idl_type)
+
+  def receiver(self):
+    if self._idl_type.endswith('List'):
+      return 'receiver->'
+    return 'receiver->propertyReference().'
+
+
+_idl_type_registry = {
+     # There is GC3Dboolean which is not a bool, but unsigned char for OpenGL compatibility.
+    'boolean': PrimitiveIDLTypeInfo('boolean', native_type='bool',
+                                    conversion_template='static_cast<bool>(%s)',
+                                    webcore_getter_name='hasAttribute',
+                                    webcore_setter_name='setBooleanAttribute'),
+    # Some IDL's unsigned shorts/shorts are mapped to WebCore C++ enums, so we
+    # use a static_cast<int> here not to provide overloads for all enums.
+    'short': PrimitiveIDLTypeInfo('short', native_type='int', conversion_template='static_cast<int>(%s)'),
+    'unsigned short': PrimitiveIDLTypeInfo('unsigned short', native_type='int', conversion_template='static_cast<int>(%s)'),
+    'int': PrimitiveIDLTypeInfo('int'),
+    'unsigned int': PrimitiveIDLTypeInfo('unsigned int', native_type='unsigned'),
+    'long': PrimitiveIDLTypeInfo('long', native_type='int',
+        webcore_getter_name='getIntegralAttribute',
+        webcore_setter_name='setIntegralAttribute'),
+    'unsigned long': PrimitiveIDLTypeInfo('unsigned long', native_type='unsigned',
+        webcore_getter_name='getUnsignedIntegralAttribute',
+        webcore_setter_name='setUnsignedIntegralAttribute'),
+    'long long': PrimitiveIDLTypeInfo('long long'),
+    'unsigned long long': PrimitiveIDLTypeInfo('unsigned long long'),
+    'double': PrimitiveIDLTypeInfo('double'),
+
+    'Date': PrimitiveIDLTypeInfo('Date',  native_type='double'),
+    'DOMString': PrimitiveIDLTypeInfo('DOMString',  native_type='String'),
+    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp'),
+    'object': PrimitiveIDLTypeInfo('object',  native_type='ScriptValue'),
+    'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', ref_counted=True),
+
+    'DOMException': IDLTypeInfo('DOMCoreException'),
+    'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
+    'Element': IDLTypeInfo('Element', custom_to_dart=True),
+    'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
+    'EventTarget': IDLTypeInfo('EventTarget', has_dart_wrapper=False),
+    'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
+    'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
+    'OptionsObject': IDLTypeInfo('OptionsObject', has_dart_wrapper=False),
+    'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
+
+    'SVGAngle': SVGTearOffIDLTypeInfo('SVGAngle'),
+    'SVGLength': SVGTearOffIDLTypeInfo('SVGLength'),
+    'SVGLengthList': SVGTearOffIDLTypeInfo('SVGLengthList', ref_counted=False),
+    'SVGMatrix': SVGTearOffIDLTypeInfo('SVGMatrix'),
+    'SVGNumber': SVGTearOffIDLTypeInfo('SVGNumber', native_type='SVGPropertyTearOff<float>'),
+    'SVGNumberList': SVGTearOffIDLTypeInfo('SVGNumberList', ref_counted=False),
+    'SVGPathSegList': SVGTearOffIDLTypeInfo('SVGPathSegList', native_type='SVGPathSegListPropertyTearOff', ref_counted=False),
+    'SVGPoint': SVGTearOffIDLTypeInfo('SVGPoint', native_type='SVGPropertyTearOff<FloatPoint>'),
+    'SVGPointList': SVGTearOffIDLTypeInfo('SVGPointList', ref_counted=False),
+    'SVGPreserveAspectRatio': SVGTearOffIDLTypeInfo('SVGPreserveAspectRatio'),
+    'SVGRect': SVGTearOffIDLTypeInfo('SVGRect', native_type='SVGPropertyTearOff<FloatRect>'),
+    'SVGStringList': SVGTearOffIDLTypeInfo('SVGStringList', native_type='SVGStaticListPropertyTearOff<SVGStringList>', ref_counted=False),
+    'SVGTransform': SVGTearOffIDLTypeInfo('SVGTransform'),
+    'SVGTransformList': SVGTearOffIDLTypeInfo('SVGTransformList', native_type='SVGTransformListPropertyTearOff', ref_counted=False)
+}
+
+_original_idl_types = {
+}
+
+def GetIDLTypeInfo(idl_type):
+  idl_type_name = _original_idl_types.get(idl_type, idl_type.id)
+  return GetIDLTypeInfoByName(idl_type_name)
+
+def GetIDLTypeInfoByName(idl_type_name):
+  return _idl_type_registry.get(idl_type_name, IDLTypeInfo(idl_type_name))
+
 class NativeImplementationSystem(System):
 
   def __init__(self, templates, database, emitters, auxiliary_dir, output_dir):
@@ -2297,6 +2470,25 @@ class NativeImplementationSystem(System):
     dart_interface_path = self._FilePathForDartInterface(interface_name)
     self._dom_public_files.append(dart_interface_path)
 
+    pure_interfaces = set([
+        'ElementTimeControl',
+        'ElementTraversal',
+        'MediaQueryListListener',
+        'NodeSelector',
+        'SVGExternalResourcesRequired',
+        'SVGFilterPrimitiveStandardAttributes',
+        'SVGFitToViewBox',
+        'SVGLangSpace',
+        'SVGLocatable',
+        'SVGStylable',
+        'SVGTests',
+        'SVGTransformable',
+        'SVGURIReference',
+        'SVGViewSpec',
+        'SVGZoomAndPan'])
+    if interface_name in pure_interfaces:
+      return None
+
     dart_impl_path = self._FilePathForDartImplementation(interface_name)
     self._dom_impl_files.append(dart_impl_path)
 
@@ -2314,7 +2506,61 @@ class NativeImplementationSystem(System):
         self._templates)
 
   def ProcessCallback(self, interface, info):
-    self._dom_public_files.append(self._FilePathForDartInterface(interface.id))
+    self._interface = interface
+
+    dart_interface_path = self._FilePathForDartInterface(self._interface.id)
+    self._dom_public_files.append(dart_interface_path)
+
+    cpp_header_handlers_emitter = emitter.Emitter()
+    cpp_impl_handlers_emitter = emitter.Emitter()
+    class_name = 'Dart%s' % self._interface.id
+    for operation in interface.operations:
+      if operation.type.id == 'void':
+        return_type = 'void'
+        return_prefix = ''
+      else:
+        return_type = 'bool'
+        return_prefix = 'return '
+
+      parameters = []
+      arguments = []
+      for argument in operation.arguments:
+        argument_type_info = GetIDLTypeInfo(argument.type)
+        parameters.append('%s %s' % (argument_type_info.parameter_type(),
+                                     argument.id))
+        arguments.append(argument.id)
+
+      cpp_header_handlers_emitter.Emit(
+          '\n'
+          '    virtual $TYPE handleEvent($PARAMETERS);\n',
+          TYPE=return_type, PARAMETERS=', '.join(parameters))
+
+      cpp_impl_handlers_emitter.Emit(
+          '\n'
+          '$TYPE $CLASS_NAME::handleEvent($PARAMETERS)\n'
+          '{\n'
+          '    $(RETURN_PREFIX)m_callback.handleEvent($ARGUMENTS);\n'
+          '}\n',
+          TYPE=return_type,
+          CLASS_NAME=class_name,
+          PARAMETERS=', '.join(parameters),
+          RETURN_PREFIX=return_prefix,
+          ARGUMENTS=', '.join(arguments))
+
+    cpp_header_path = self._FilePathForCppHeader(self._interface.id)
+    cpp_header_emitter = self._emitters.FileEmitter(cpp_header_path)
+    cpp_header_emitter.Emit(
+        self._templates.Load('cpp_callback_header.template'),
+        INTERFACE=self._interface.id,
+        HANDLERS=cpp_header_handlers_emitter.Fragments())
+
+    cpp_impl_path = self._FilePathForCppImplementation(self._interface.id)
+    self._cpp_impl_files.append(cpp_impl_path)
+    cpp_impl_emitter = self._emitters.FileEmitter(cpp_impl_path)
+    cpp_impl_emitter.Emit(
+        self._templates.Load('cpp_callback_implementation.template'),
+        INTERFACE=self._interface.id,
+        HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
   def GenerateLibraries(self, lib_dir):
     auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
@@ -2359,6 +2605,39 @@ class NativeImplementationSystem(System):
           '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
           '        return func;\n',
           CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
+
+    cpp_resolver_emitter = self._emitters.FileEmitter(cpp_resolver_path)
+    cpp_resolver_emitter.Emit(
+        self._templates.Load('cpp_resolver.template'),
+        INCLUDES=includes_emitter.Fragments(),
+        RESOLVER_BODY=resolver_body_emitter.Fragments())
+
+    # Generate DartDerivedSourcesAll.cpp
+    cpp_all_in_one_path = os.path.join(self._output_dir,
+        'DartDerivedSourcesAll.cpp')
+
+    includes_emitter = emitter.Emitter()
+    for file in self._cpp_impl_files:
+        path = os.path.relpath(file, os.path.dirname(cpp_all_in_one_path))
+        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+
+    cpp_all_in_one_emitter = self._emitters.FileEmitter(cpp_all_in_one_path)
+    cpp_all_in_one_emitter.Emit(
+        self._templates.Load('cpp_all_in_one.template'),
+        INCLUDES=includes_emitter.Fragments())
+
+    # Generate DartResolver.cpp
+    cpp_resolver_path = os.path.join(self._output_dir, 'DartResolver.cpp')
+
+    includes_emitter = emitter.Emitter()
+    resolver_body_emitter = emitter.Emitter()
+    for file in self._cpp_header_files:
+        path = os.path.relpath(file, os.path.dirname(cpp_resolver_path))
+        includes_emitter.Emit('#include "$PATH"\n', PATH=path)
+        resolver_body_emitter.Emit(
+            '    if (Dart_NativeFunction func = $CLASS_NAME::resolver(name, argumentCount))\n'
+            '        return func;\n',
+            CLASS_NAME=os.path.splitext(os.path.basename(path))[0])
 
     cpp_resolver_emitter = self._emitters.FileEmitter(cpp_resolver_path)
     cpp_resolver_emitter.Emit(
@@ -2418,7 +2697,25 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
 
   def StartInterface(self):
     self._class_name = self._ImplClassName(self._interface.id)
+    self._interface_type_info = GetIDLTypeInfoByName(self._interface.id)
     self._members_emitter = emitter.Emitter()
+    self._cpp_declarations_emitter = emitter.Emitter()
+    self._cpp_impl_includes = {}
+    self._cpp_definitions_emitter = emitter.Emitter()
+    self._cpp_resolver_emitter = emitter.Emitter()
+
+    # Generate constructor.
+    # FIXME: add proper support for non-custom constructors.
+    if ('CustomConstructor' in self._interface.ext_attrs or
+        'V8CustomConstructor' in self._interface.ext_attrs or
+        self._interface.id in ['FileReader', 'WebKitCSSMatrix']):
+      self._cpp_resolver_emitter.Emit(
+          '    if (name == "$(INTERFACE_NAME)_constructor_Callback")\n'
+          '        return Dart$(INTERFACE_NAME)Internal::constructorCallback;\n',
+          INTERFACE_NAME=self._interface.id)
+      self._cpp_declarations_emitter.Emit(
+          '\n'
+          'void constructorCallback(Dart_NativeArguments);\n')
 
   def _ImplClassName(self, interface_name):
     return interface_name + 'Implementation'
@@ -2430,49 +2727,155 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
         CLASS=self._class_name, BASE=base, INTERFACE=self._interface.id,
         MEMBERS=self._members_emitter.Fragments())
 
-    self._cpp_header_emitter.Emit(
-        self._templates.Load('cpp_header.template'),
-        INTERFACE=self._interface.id)
+    self._GenerateCppHeader()
 
     self._cpp_impl_emitter.Emit(
         self._templates.Load('cpp_implementation.template'),
-        INTERFACE=self._interface.id)
+        INTERFACE=self._interface.id,
+        INCLUDES=''.join(['#include "%s.h"\n' %
+          k for k in self._cpp_impl_includes.keys()]),
+        CALLBACKS=self._cpp_definitions_emitter.Fragments(),
+        RESOLVER=self._cpp_resolver_emitter.Fragments())
+
+  def _GenerateCppHeader(self):
+    webcore_include = self._interface_type_info.webcore_include()
+    if webcore_include:
+      webcore_include = '#include "%s.h"\n' % webcore_include
+    else:
+      webcore_include = ''
+
+    if ('CustomToJS' in self._interface.ext_attrs or
+        'PureInterface' in self._interface.ext_attrs or
+        self._interface_type_info.custom_to_dart()):
+      to_dart_value_template = (
+          'Dart_Handle toDartValue($(WEBCORE_CLASS_NAME)* value);\n')
+    else:
+      to_dart_value_template = (
+          'inline Dart_Handle toDartValue($(WEBCORE_CLASS_NAME)* value)\n'
+          '{\n'
+          '    return DartDOMWrapper::toDart<Dart$(INTERFACE)>(value);\n'
+          '}\n')
+    to_dart_value_emitter = emitter.Emitter()
+    to_dart_value_emitter.Emit(
+        to_dart_value_template,
+        INTERFACE=self._interface.id,
+        WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
+
+    self._cpp_header_emitter.Emit(
+        self._templates.Load('cpp_header.template'),
+        INTERFACE=self._interface.id,
+        WEBCORE_INCLUDE=webcore_include,
+        ADDITIONAL_INCLUDES='',
+        WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
+        TO_DART_VALUE=to_dart_value_emitter.Fragments(),
+        DECLARATIONS=self._cpp_declarations_emitter.Fragments())
 
   def AddAttribute(self, getter, setter):
+    # FIXME: Dartium does not support attribute event listeners. However, JS
+    # implementation falls back to them when addEventListener is not available.
+    # Make sure addEventListener is available in all EventTargets and remove
+    # this check.
+    if (getter or setter).type.id == 'EventListener':
+      return
+
+    # FIXME: support 'ImplementedBy'.
+    if 'ImplementedBy' in (getter or setter).ext_attrs:
+      return
+
+    # FIXME: these should go away.
+    classes_with_unsupported_custom_getters = [
+        'Clipboard', 'Console', 'Coordinates', 'DeviceMotionEvent',
+        'DeviceOrientationEvent', 'FileReader', 'JavaScriptCallFrame',
+        'HTMLInputElement', 'HTMLOptionsCollection', 'HTMLOutputElement',
+        'ScriptProfileNode', 'WebKitAnimation']
+    if (self._interface.id in classes_with_unsupported_custom_getters and
+        getter and set(['Custom', 'CustomGetter']) & set(getter.ext_attrs)):
+      return
+
     if getter:
       self._AddGetter(getter)
     if setter:
       self._AddSetter(setter)
 
   def _AddGetter(self, attr):
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE get $NAME() native "$(INTERFACE)_$(NAME)_Getter";\n',
-        NAME=attr.id, TYPE=attr.type.id, INTERFACE=self._interface.id)
+    dart_declaration = '%s get %s()' % (attr.type.id, attr.id)
+    is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
+    cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
+        dart_declaration, 'Getter', is_custom)
+    if is_custom:
+      return
+
+    arguments = []
+    if 'Reflect' in attr.ext_attrs:
+      webcore_function_name = GetIDLTypeInfo(attr.type).webcore_getter_name()
+      if 'URL' in attr.ext_attrs:
+        if 'NonEmpty' in attr.ext_attrs:
+          webcore_function_name = 'getNonEmptyURLAttribute'
+        else:
+          webcore_function_name = 'getURLAttribute'
+      arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
+    else:
+      if attr.id == 'operator':
+        webcore_function_name = '_operator'
+      elif attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
+        webcore_function_name = 'svgTarget'
+      else:
+        webcore_function_name = re.sub(r'^(HTML|URL|JS|XML|XSLT|\w)',
+                                       lambda s: s.group(1).lower(),
+                                       attr.id)
+        webcore_function_name = re.sub(r'^(create|exclusive)',
+                                       lambda s: 'is' + s.group(1).capitalize(),
+                                       webcore_function_name)
+      if attr.type.id.startswith('SVGAnimated'):
+        webcore_function_name += 'Animated'
+
+    self._GenerateNativeCallback(cpp_callback_name, attr, '',
+        webcore_function_name, arguments, idl_return_type=attr.type,
+        raises_dart_exceptions=attr.get_raises,
+        raises_dom_exceptions=attr.get_raises)
 
   def _AddSetter(self, attr):
-    self._members_emitter.Emit(
-        '\n'
-        '  void set $NAME($TYPE) native "$(INTERFACE)_$(NAME)_Setter";\n',
-        NAME=attr.id, TYPE=attr.type.id, INTERFACE=self._interface.id)
+    dart_declaration = 'void set %s(%s)' % (attr.id, attr.type.id)
+    is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
+    cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
+        dart_declaration, 'Setter', is_custom)
+    if is_custom:
+      return
+
+    arguments = []
+    if 'Reflect' in attr.ext_attrs:
+      webcore_function_name = GetIDLTypeInfo(attr.type).webcore_setter_name()
+      arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
+    else:
+      webcore_function_name = re.sub(r'^(xml(?=[A-Z])|\w)',
+                                     lambda s: s.group(1).upper(),
+                                     attr.id)
+      webcore_function_name = 'set%s' % webcore_function_name
+      if attr.type.id.startswith('SVGAnimated'):
+        webcore_function_name += 'Animated'
+
+    arguments.append(attr.id)
+    parameter_definitions_emitter = emitter.Emitter()
+    self._GenerateParameterAdapter(parameter_definitions_emitter, attr, 0)
+    parameter_definitions = parameter_definitions_emitter.Fragments()
+    self._GenerateNativeCallback(cpp_callback_name, attr, parameter_definitions,
+        webcore_function_name, arguments, idl_return_type=None,
+        raises_dart_exceptions=True,
+        raises_dom_exceptions=attr.set_raises)
 
   def _HasNativeIndexGetter(self, interface):
     return ('HasCustomIndexGetter' in interface.ext_attrs or
             'HasNumericIndexGetter' in interface.ext_attrs)
 
   def _EmitNativeIndexGetter(self, interface, element_type):
-    native_binding = '%s_numericIndexGetter_Callback' % interface.id
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE operator[](int index) native "$NATIVE_BINDING";\n',
-        TYPE=element_type, NATIVE_BINDING=native_binding)
+    dart_declaration = '%s operator[](int index)' % element_type
+    self._GenerateNativeBinding('numericIndexGetter', 2, dart_declaration,
+        'Callback', True)
 
   def _EmitNativeIndexSetter(self, interface, element_type):
-    native_binding = '%s_numericIndexSetter_Callback' % self._interface.id
-    self._members_emitter.Emit(
-        '\n'
-        '  void operator[]=(int index, $TYPE value) native "$NATIVE_BINDING";\n',
-        TYPE=element_type, NATIVE_BINDING=native_binding)
+    dart_declaration = 'void operator[]=(int index, %s value)' % element_type
+    self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
+        'Callback', True)
 
   def AddOperation(self, info):
     """
@@ -2481,14 +2884,12 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
     """
 
     if 'Custom' in info.overloads[0].ext_attrs:
-        self._members_emitter.Emit(
-            '\n'
-            '  $TYPE $NAME($PARAMETERS) native "$(INTERFACE)_$(NAME)_Callback";\n',
-            TYPE=info.type_name,
-            NAME=info.name,
-            PARAMETERS=info.ParametersImplementationDeclaration(),
-            INTERFACE=self._interface.id)
-        return
+      parameters = info.ParametersImplementationDeclaration()
+      dart_declaration = '%s %s(%s)' % (info.type_name, info.name, parameters)
+      argument_count = 1 + len(info.arg_infos)
+      self._GenerateNativeBinding(info.name, argument_count, dart_declaration,
+          'Callback', True)
+      return
 
     body = self._members_emitter.Emit(
         '\n'
@@ -2508,40 +2909,266 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
     if fallthrough:
       body.Emit('    throw "Incorrect number or type of arguments";\n');
 
-  def GenerateSingleOperation(self,  emitter, info, indent, operation):
+  def GenerateSingleOperation(self,  dispatch_emitter, info, indent, operation):
     """Generates a call to a single operation.
 
     Arguments:
-      emitter: an Emitter for the body of a block of code.
+      dispatch_emitter: an dispatch_emitter for the body of a block of code.
       info: the compound information about the operation and its overloads.
       indent: an indentation string for generated code.
       operation: the IDLOperation to call.
     """
 
-    arg_names = [info.arg_infos[i][0]
-                 for (i, arg) in enumerate(operation.arguments)]
+    # FIXME: support ImplementedBy callbacks.
+    if 'ImplementedBy' in operation.ext_attrs:
+      return
+
+    for op in self._interface.operations:
+      if op.id != operation.id or len(op.arguments) <= len(operation.arguments):
+        continue
+      next_argument = op.arguments[len(operation.arguments)]
+      if next_argument.is_optional and 'Callback' in next_argument.ext_attrs:
+        # FIXME: '[Optional, Callback]' arguments could be non-optional in
+        # webcore. We need to fix overloads handling to generate native
+        # callbacks properly.
+        return
 
     self._native_version += 1
-    native_name = '_%s' % info.name
+    native_name = info.name
     if self._native_version > 1:
       native_name = '%s_%s' % (native_name, self._native_version)
+    argument_list = ', '.join([info.arg_infos[i][0]
+                               for (i, arg) in enumerate(operation.arguments)])
 
-    argument_expressions = ', '.join(arg_names)
+    # Generate dispatcher.
     if info.type_name != 'void':
-      emitter.Emit('$(INDENT)return $NATIVENAME($ARGS);\n',
-                   INDENT=indent,
-                   NATIVENAME=native_name,
-                   ARGS=argument_expressions)
+      dispatch_emitter.Emit('$(INDENT)return _$NATIVENAME($ARGS);\n',
+                            INDENT=indent,
+                            NATIVENAME=native_name,
+                            ARGS=argument_list)
     else:
-      emitter.Emit('$(INDENT)$NATIVENAME($ARGS);\n'
-                   '$(INDENT)return;\n',
-                   INDENT=indent,
-                   NATIVENAME=native_name,
-                   ARGS=argument_expressions)
+      dispatch_emitter.Emit('$(INDENT)_$NATIVENAME($ARGS);\n'
+                            '$(INDENT)return;\n',
+                            INDENT=indent,
+                            NATIVENAME=native_name,
+                            ARGS=argument_list)
+    # Generate binding.
+    dart_declaration = '%s _%s(%s)' % (info.type_name, native_name,
+                                       argument_list)
+    is_custom = 'Custom' in operation.ext_attrs
+    cpp_callback_name = self._GenerateNativeBinding(
+        native_name, 1 + len(operation.arguments), dart_declaration, 'Callback',
+        is_custom)
+    if is_custom:
+      return
 
-    self._members_emitter.Emit('  $TYPE $NATIVE_NAME($PARAMS) native '
-                               '"$(INTERFACE)$(NATIVE_NAME)_Callback";\n',
-                               NATIVE_NAME=native_name,
-                               TYPE=info.type_name,
-                               PARAMS=', '.join(arg_names),
-                               INTERFACE=self._interface.id)
+    # Generate callback.
+    webcore_function_name = operation.id
+    if 'ImplementationFunction' in operation.ext_attrs:
+      webcore_function_name = operation.ext_attrs['ImplementationFunction']
+
+    parameter_definitions_emitter = emitter.Emitter()
+    raises_dart_exceptions = len(operation.arguments) > 0 or operation.raises
+    arguments = []
+
+    # Process 'CallWith' argument.
+    if ('CallWith' in operation.ext_attrs and
+        operation.ext_attrs['CallWith'] == 'ScriptExecutionContext'):
+      parameter_definitions_emitter.Emit(
+          '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
+          '        if (!context)\n'
+          '            return;\n')
+      arguments.append('context')
+
+    # Process Dart arguments.
+    for (i, argument) in enumerate(operation.arguments):
+      if i == len(operation.arguments) - 1 and 'CustomArgumentHandling' in operation.ext_attrs:
+        # FIXME: we are skipping last argument here because it was added in
+        # supplemental dart.idl. Cleanup dart.idl and remove this check.
+        break
+      self._GenerateParameterAdapter(parameter_definitions_emitter, argument, i)
+      arguments.append(argument.id)
+
+    if operation.id in ['addEventListener', 'removeEventListener']:
+      # addEventListener's and removeEventListener's last argument is marked
+      # as optional in idl, but is not optional in webcore implementation.
+      if len(operation.arguments) == 2:
+        arguments.append('false')
+
+    if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty':
+      # CSSStyleDeclaration.setProperty priority parameter is optional in Dart
+      # idl, but is not optional in webcore implementation.
+      if len(operation.arguments) == 2:
+        arguments.append('String()')
+
+    # Process auxiliary arguments.
+    if 'CustomArgumentHandling' in operation.ext_attrs:
+      raises_dart_exceptions = True
+      self._cpp_impl_includes['ScriptArguments'] = 1
+      self._cpp_impl_includes['ScriptCallStack'] = 1
+      self._cpp_impl_includes['V8Proxy'] = 1
+      self._cpp_impl_includes['v8'] = 1
+      parameter_definitions_emitter.Emit(
+          '        v8::HandleScope handleScope;\n'
+          '        v8::Context::Scope scope(V8Proxy::mainWorldContext(DartUtilities::domWindowForCurrentIsolate()->frame()));\n'
+          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
+          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
+          '        if (!scriptArguments)\n'
+          '            goto fail;\n'
+          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
+          '        if (!scriptCallStack->size())\n'
+          '            return;\n',
+          INDEX=len(operation.arguments))
+      arguments.extend(['scriptArguments', 'scriptCallStack'])
+
+    if 'NeedsUserGestureCheck' in operation.ext_attrs:
+      arguments.extend('DartUtilities::processingUserGesture')
+
+    parameter_definitions = parameter_definitions_emitter.Fragments()
+    self._GenerateNativeCallback(cpp_callback_name, operation,
+        parameter_definitions, webcore_function_name, arguments,
+        idl_return_type=operation.type,
+        raises_dart_exceptions=raises_dart_exceptions,
+        raises_dom_exceptions=operation.raises)
+
+  def _GenerateNativeCallback(self, callback_name, idl_node,
+      parameter_definitions, function_name, arguments, idl_return_type,
+      raises_dart_exceptions, raises_dom_exceptions):
+    receiver = self._interface_type_info.receiver()
+    if raises_dom_exceptions:
+      arguments.append('ec')
+    callback = '%s%s(%s)' % (receiver, function_name, ', '.join(arguments))
+
+    nested_templates = []
+    if idl_return_type and idl_return_type.id != 'void':
+      return_type_info = GetIDLTypeInfo(idl_return_type)
+      conversion_cast = return_type_info.conversion_cast('$BODY')
+      if isinstance(return_type_info, SVGTearOffIDLTypeInfo):
+        svg_primitive_types = ['SVGAngle', 'SVGLength', 'SVGMatrix',
+            'SVGNumber', 'SVGPoint', 'SVGRect', 'SVGTransform']
+        conversion_cast = '%s::create($BODY)'
+        if self._interface.id.startswith('SVGAnimated'):
+          conversion_cast = 'static_cast<%s*>($BODY)'
+        elif return_type_info.idl_type() == 'SVGStringList':
+          conversion_cast = '%s::create(receiver, $BODY)'
+        elif self._interface.id.endswith('List'):
+          conversion_cast = 'static_cast<%s*>($BODY.get())'
+        elif return_type_info.idl_type() in svg_primitive_types:
+          conversion_cast = '%s::create($BODY)'
+        else:
+          conversion_cast = 'static_cast<%s*>($BODY)'
+        conversion_cast = conversion_cast % return_type_info.native_type()
+      nested_templates.append(conversion_cast)
+
+      if return_type_info.conversion_include():
+        self._cpp_impl_includes[return_type_info.conversion_include()] = 1
+      if (return_type_info.idl_type() in ['DOMString', 'AtomicString'] and
+          'ConvertNullStringTo' in idl_node.ext_attrs):
+        nested_templates.append('$BODY, ConvertDefaultToNull')
+      nested_templates.append(
+          '        Dart_Handle returnValue = toDartValue($BODY);\n'
+          '        if (returnValue)\n'
+          '            Dart_SetReturnValue(args, returnValue);\n')
+    else:
+      nested_templates.append('        $BODY;\n')
+
+    if raises_dom_exceptions:
+      nested_templates.append(
+          '        ExceptionCode ec = 0;\n'
+          '$BODY'
+          '        if (UNLIKELY(ec)) {\n'
+          '            exception = DartDOMWrapper::exceptionCodeToDartException(ec);\n'
+          '            goto fail;\n'
+          '        }\n')
+
+    nested_templates.append(
+        '    {\n'
+        '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n'
+        '$PARAMETER_DEFINITIONS'
+        '\n'
+        '$BODY'
+        '        return;\n'
+        '    }\n')
+
+    if raises_dart_exceptions:
+      nested_templates.append(
+          '    Dart_Handle exception;\n'
+          '$BODY'
+          '\n'
+          'fail:\n'
+          '    Dart_ThrowException(exception);\n'
+          '    ASSERT_NOT_REACHED();\n')
+
+    nested_templates.append(
+        '\n'
+        'static void $CALLBACK_NAME(Dart_NativeArguments args)\n'
+        '{\n'
+        '    DartApiScope dartApiScope;\n'
+        '$BODY'
+        '}\n')
+
+    template_parameters = {
+        'CALLBACK_NAME': callback_name,
+        'WEBCORE_CLASS_NAME': self._interface_type_info.native_type(),
+        'PARAMETER_DEFINITIONS': parameter_definitions,
+    }
+    for template in nested_templates:
+      template_parameters['BODY'] = callback
+      callback_emitter = emitter.Emitter()
+      callback_emitter.Emit(template, **template_parameters)
+      callback = ''.join(callback_emitter.Fragments())
+
+    self._cpp_definitions_emitter.Emit(callback)
+
+  def _GenerateParameterAdapter(self, emitter, idl_argument, index):
+    type_info = GetIDLTypeInfo(idl_argument.type)
+    (adapter_type, include_name) = type_info.parameter_adapter_info()
+    if include_name:
+      self._cpp_impl_includes[include_name] = 1
+    emitter.Emit(
+        '\n'
+        '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX));\n'
+        '        if (!$NAME.conversionSuccessful()) {\n'
+        '            exception = $NAME.exception();\n'
+        '            goto fail;\n'
+        '        }\n',
+        ADAPTER_TYPE=adapter_type,
+        NAME=idl_argument.id,
+        INDEX=index + 1)
+
+  def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
+      native_suffix, is_custom):
+    native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
+    self._members_emitter.Emit(
+        '\n'
+        '  $DART_DECLARATION native "$NATIVE_BINDING";\n',
+        DART_DECLARATION=dart_declaration, NATIVE_BINDING=native_binding)
+
+    cpp_callback_name = '%s%s' % (idl_name, native_suffix)
+    self._cpp_resolver_emitter.Emit(
+        '    if (argumentCount == $ARGC && name == "$NATIVE_BINDING")\n'
+        '        return Dart$(INTERFACE_NAME)Internal::$CPP_CALLBACK_NAME;\n',
+        ARGC=argument_count,
+        NATIVE_BINDING=native_binding,
+        INTERFACE_NAME=self._interface.id,
+        CPP_CALLBACK_NAME=cpp_callback_name)
+
+    if is_custom:
+      self._cpp_declarations_emitter.Emit(
+          '\n'
+          'void $CPP_CALLBACK_NAME(Dart_NativeArguments);\n',
+          CPP_CALLBACK_NAME=cpp_callback_name)
+
+    return cpp_callback_name
+
+  def _GenerateWebCoreReflectionAttributeName(self, attr):
+    namespace = 'HTMLNames'
+    svg_exceptions = ['class', 'id', 'onabort', 'onclick', 'onerror', 'onload',
+                      'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover',
+                      'onmouseup', 'onresize', 'onscroll', 'onunload']
+    if self._interface.id.startswith('SVG') and not attr.id in svg_exceptions:
+      namespace = 'SVGNames'
+    self._cpp_impl_includes[namespace] = 1
+
+    attribute_name = attr.ext_attrs['Reflect'] or attr.id.lower()
+    return 'WebCore::%s::%sAttr' % (namespace, attribute_name)
