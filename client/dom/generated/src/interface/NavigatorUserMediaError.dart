@@ -4,9 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface NavigatorUserMediaError {
 
-  String createObjectURL(var blob_OR_stream);
+  static final int PERMISSION_DENIED = 1;
 
-  void revokeObjectURL(String url);
+  final int code;
 }

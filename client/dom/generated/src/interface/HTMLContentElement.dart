@@ -4,9 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface HTMLContentElement extends HTMLElement {
 
-  String createObjectURL(var blob_OR_stream);
-
-  void revokeObjectURL(String url);
+  String select;
 }

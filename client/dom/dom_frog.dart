@@ -135,6 +135,7 @@
 #source('generated/src/frog/HTMLButtonElement.dart');
 #source('generated/src/frog/HTMLCanvasElement.dart');
 #source('generated/src/frog/HTMLCollection.dart');
+#source('generated/src/frog/HTMLContentElement.dart');
 #source('generated/src/frog/HTMLDListElement.dart');
 #source('generated/src/frog/HTMLDetailsElement.dart');
 #source('generated/src/frog/HTMLDirectoryElement.dart');
@@ -220,6 +221,7 @@
 #source('generated/src/frog/JavaScriptAudioNode.dart');
 #source('generated/src/frog/JavaScriptCallFrame.dart');
 #source('generated/src/frog/KeyboardEvent.dart');
+#source('generated/src/frog/LocalMediaStream.dart');
 #source('generated/src/frog/Location.dart');
 #source('generated/src/frog/LowPass2FilterNode.dart');
 #source('generated/src/frog/MediaController.dart');
@@ -228,6 +230,11 @@
 #source('generated/src/frog/MediaList.dart');
 #source('generated/src/frog/MediaQueryList.dart');
 #source('generated/src/frog/MediaQueryListListener.dart');
+#source('generated/src/frog/MediaStream.dart');
+#source('generated/src/frog/MediaStreamEvent.dart');
+#source('generated/src/frog/MediaStreamList.dart');
+#source('generated/src/frog/MediaStreamTrack.dart');
+#source('generated/src/frog/MediaStreamTrackList.dart');
 #source('generated/src/frog/MemoryInfo.dart');
 #source('generated/src/frog/MessageChannel.dart');
 #source('generated/src/frog/MessageEvent.dart');
@@ -237,6 +244,7 @@
 #source('generated/src/frog/MutationEvent.dart');
 #source('generated/src/frog/NamedNodeMap.dart');
 #source('generated/src/frog/Navigator.dart');
+#source('generated/src/frog/NavigatorUserMediaError.dart');
 #source('generated/src/frog/Node.dart');
 #source('generated/src/frog/NodeFilter.dart');
 #source('generated/src/frog/NodeIterator.dart');
@@ -252,6 +260,7 @@
 #source('generated/src/frog/OperationNotAllowedException.dart');
 #source('generated/src/frog/OverflowEvent.dart');
 #source('generated/src/frog/PageTransitionEvent.dart');
+#source('generated/src/frog/PeerConnection.dart');
 #source('generated/src/frog/Performance.dart');
 #source('generated/src/frog/PerformanceNavigation.dart');
 #source('generated/src/frog/PerformanceTiming.dart');
@@ -425,6 +434,7 @@
 #source('generated/src/frog/Screen.dart');
 #source('generated/src/frog/ScriptProfile.dart');
 #source('generated/src/frog/ScriptProfileNode.dart');
+#source('generated/src/frog/ShadowRoot.dart');
 #source('generated/src/frog/SharedWorker.dart');
 #source('generated/src/frog/SharedWorkerContext.dart');
 #source('generated/src/frog/SpeechInputEvent.dart');
@@ -637,6 +647,7 @@
 #source('generated/src/interface/HTMLButtonElement.dart');
 #source('generated/src/interface/HTMLCanvasElement.dart');
 #source('generated/src/interface/HTMLCollection.dart');
+#source('generated/src/interface/HTMLContentElement.dart');
 #source('generated/src/interface/HTMLDListElement.dart');
 #source('generated/src/interface/HTMLDetailsElement.dart');
 #source('generated/src/interface/HTMLDirectoryElement.dart');
@@ -722,6 +733,7 @@
 #source('generated/src/interface/JavaScriptAudioNode.dart');
 #source('generated/src/interface/JavaScriptCallFrame.dart');
 #source('generated/src/interface/KeyboardEvent.dart');
+#source('generated/src/interface/LocalMediaStream.dart');
 #source('generated/src/interface/Location.dart');
 #source('generated/src/interface/LowPass2FilterNode.dart');
 #source('generated/src/interface/MediaController.dart');
@@ -730,6 +742,11 @@
 #source('generated/src/interface/MediaList.dart');
 #source('generated/src/interface/MediaQueryList.dart');
 #source('generated/src/interface/MediaQueryListListener.dart');
+#source('generated/src/interface/MediaStream.dart');
+#source('generated/src/interface/MediaStreamEvent.dart');
+#source('generated/src/interface/MediaStreamList.dart');
+#source('generated/src/interface/MediaStreamTrack.dart');
+#source('generated/src/interface/MediaStreamTrackList.dart');
 #source('generated/src/interface/MemoryInfo.dart');
 #source('generated/src/interface/MessageChannel.dart');
 #source('generated/src/interface/MessageEvent.dart');
@@ -740,6 +757,9 @@
 #source('generated/src/interface/MutationEvent.dart');
 #source('generated/src/interface/NamedNodeMap.dart');
 #source('generated/src/interface/Navigator.dart');
+#source('generated/src/interface/NavigatorUserMediaError.dart');
+#source('generated/src/interface/NavigatorUserMediaErrorCallback.dart');
+#source('generated/src/interface/NavigatorUserMediaSuccessCallback.dart');
 #source('generated/src/interface/Node.dart');
 #source('generated/src/interface/NodeFilter.dart');
 #source('generated/src/interface/NodeIterator.dart');
@@ -755,6 +775,7 @@
 #source('generated/src/interface/OperationNotAllowedException.dart');
 #source('generated/src/interface/OverflowEvent.dart');
 #source('generated/src/interface/PageTransitionEvent.dart');
+#source('generated/src/interface/PeerConnection.dart');
 #source('generated/src/interface/Performance.dart');
 #source('generated/src/interface/PerformanceNavigation.dart');
 #source('generated/src/interface/PerformanceTiming.dart');
@@ -936,8 +957,10 @@
 #source('generated/src/interface/Screen.dart');
 #source('generated/src/interface/ScriptProfile.dart');
 #source('generated/src/interface/ScriptProfileNode.dart');
+#source('generated/src/interface/ShadowRoot.dart');
 #source('generated/src/interface/SharedWorker.dart');
 #source('generated/src/interface/SharedWorkerContext.dart');
+#source('generated/src/interface/SignalingCallback.dart');
 #source('generated/src/interface/SpeechInputEvent.dart');
 #source('generated/src/interface/SpeechInputResult.dart');
 #source('generated/src/interface/SpeechInputResultList.dart');

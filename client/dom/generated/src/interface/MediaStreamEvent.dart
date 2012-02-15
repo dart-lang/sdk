@@ -4,9 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface MediaStreamEvent extends Event {
 
-  String createObjectURL(var blob_OR_stream);
-
-  void revokeObjectURL(String url);
+  final MediaStream stream;
 }

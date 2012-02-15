@@ -4,9 +4,11 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface MediaStreamTrack {
 
-  String createObjectURL(var blob_OR_stream);
+  bool enabled;
 
-  void revokeObjectURL(String url);
+  final String kind;
+
+  final String label;
 }

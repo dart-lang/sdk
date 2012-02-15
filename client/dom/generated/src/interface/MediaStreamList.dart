@@ -4,9 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface DOMURL {
+interface MediaStreamList {
 
-  String createObjectURL(var blob_OR_stream);
+  final int length;
 
-  void revokeObjectURL(String url);
+  MediaStream item(int index);
 }

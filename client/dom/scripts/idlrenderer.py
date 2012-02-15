@@ -118,9 +118,9 @@ def render(idl_node, indent_str='  '):
       w('attribute %s %s' % (node.type.id, node.id))
       if node.raises:
         w(' raises (%s)' % node.raises.id)
-      elif node.get_raises:
+      elif node.is_fc_getter and node.get_raises:
         w(' getraises (%s)' % node.get_raises.id)
-      elif node.set_raises:
+      elif node.is_fc_setter and node.set_raises:
         w(' setraises (%s)' % node.set_raises.id)
       wln(';')
     elif isinstance(node, IDLConstant):
@@ -143,7 +143,6 @@ def render(idl_node, indent_str='  '):
       if node.raises:
         w(' raises (%s)' % node.raises.id)
       wln(';')
-
     elif isinstance(node, IDLArgument):
       w(node.ext_attrs)
       w('in ')

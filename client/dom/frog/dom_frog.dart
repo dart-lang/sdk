@@ -1174,7 +1174,7 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
 
-  String createObjectURL(_BlobJs blob) native;
+  String createObjectURL(var blob_OR_stream) native;
 
   void revokeObjectURL(String url) native;
 }
@@ -2712,6 +2712,11 @@ class _HTMLCollectionJs extends _DOMTypeJs implements HTMLCollection native "*HT
   _NodeJs item(int index) native;
 
   _NodeJs namedItem(String name) native;
+}
+
+class _HTMLContentElementJs extends _HTMLElementJs implements HTMLContentElement native "*HTMLContentElement" {
+
+  String select;
 }
 
 class _HTMLDListElementJs extends _HTMLElementJs implements HTMLDListElement native "*HTMLDListElement" {
@@ -4574,6 +4579,11 @@ class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*Keyb
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 
+class _LocalMediaStreamJs extends _MediaStreamJs implements LocalMediaStream native "*LocalMediaStream" {
+
+  void stop() native;
+}
+
 class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
 
   String hash;
@@ -4761,6 +4771,57 @@ class _MediaQueryListJs extends _DOMTypeJs implements MediaQueryList native "*Me
 class _MediaQueryListListenerJs extends _DOMTypeJs implements MediaQueryListListener native "*MediaQueryListListener" {
 
   void queryChanged(_MediaQueryListJs list) native;
+}
+
+class _MediaStreamJs extends _DOMTypeJs implements MediaStream native "*MediaStream" {
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 1;
+
+  final _MediaStreamTrackListJs audioTracks;
+
+  final String label;
+
+  EventListener onended;
+
+  final int readyState;
+
+  final _MediaStreamTrackListJs videoTracks;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+}
+
+class _MediaStreamEventJs extends _EventJs implements MediaStreamEvent native "*MediaStreamEvent" {
+
+  final _MediaStreamJs stream;
+}
+
+class _MediaStreamListJs extends _DOMTypeJs implements MediaStreamList native "*MediaStreamList" {
+
+  final int length;
+
+  _MediaStreamJs item(int index) native;
+}
+
+class _MediaStreamTrackJs extends _DOMTypeJs implements MediaStreamTrack native "*MediaStreamTrack" {
+
+  bool enabled;
+
+  final String kind;
+
+  final String label;
+}
+
+class _MediaStreamTrackListJs extends _DOMTypeJs implements MediaStreamTrackList native "*MediaStreamTrackList" {
+
+  final int length;
+
+  _MediaStreamTrackJs item(int index) native;
 }
 
 class _MemoryInfoJs extends _DOMTypeJs implements MemoryInfo native "*MemoryInfo" {
@@ -5007,6 +5068,15 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
   bool javaEnabled() native;
 
   void registerProtocolHandler(String scheme, String url, String title) native;
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+}
+
+class _NavigatorUserMediaErrorJs extends _DOMTypeJs implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
+
+  static final int PERMISSION_DENIED = 1;
+
+  final int code;
 }
 
 class _NodeJs extends _EventTargetJs implements Node native "*Node" {
@@ -5357,6 +5427,49 @@ class _OverflowEventJs extends _EventJs implements OverflowEvent native "*Overfl
 class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent native "*PageTransitionEvent" {
 
   final bool persisted;
+}
+
+class _PeerConnectionJs extends _DOMTypeJs implements PeerConnection native "*PeerConnection" {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final _MediaStreamListJs localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  final int readyState;
+
+  final _MediaStreamListJs remoteStreams;
+
+  void addEventListener(String type, EventListener listener, bool useCapture) native;
+
+  void addStream(_MediaStreamJs stream) native;
+
+  void close() native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void processSignalingMessage(String message) native;
+
+  void removeEventListener(String type, EventListener listener, bool useCapture) native;
+
+  void removeStream(_MediaStreamJs stream) native;
+
+  void send(String text) native;
 }
 
 class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performance" {
@@ -9002,6 +9115,11 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
   final String url;
 
   final bool visible;
+}
+
+class _ShadowRootJs extends _NodeJs implements ShadowRoot native "*ShadowRoot" {
+
+  final _ElementJs host;
 }
 
 class _SharedWorkerJs extends _AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
@@ -12798,7 +12916,7 @@ interface DOMTokenList {
 
 interface DOMURL {
 
-  String createObjectURL(Blob blob);
+  String createObjectURL(var blob_OR_stream);
 
   void revokeObjectURL(String url);
 }
@@ -14464,6 +14582,16 @@ interface HTMLCollection extends List<Node> {
   Node item(int index);
 
   Node namedItem(String name);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface HTMLContentElement extends HTMLElement {
+
+  String select;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16533,6 +16661,16 @@ interface KeyboardEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
+interface LocalMediaStream extends MediaStream {
+
+  void stop();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface Location {
 
   String hash;
@@ -16682,6 +16820,82 @@ interface MediaQueryList {
 interface MediaQueryListListener {
 
   void queryChanged(MediaQueryList list);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStream {
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 1;
+
+  final MediaStreamTrackList audioTracks;
+
+  final String label;
+
+  EventListener onended;
+
+  final int readyState;
+
+  final MediaStreamTrackList videoTracks;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamEvent extends Event {
+
+  final MediaStream stream;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamList {
+
+  final int length;
+
+  MediaStream item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamTrack {
+
+  bool enabled;
+
+  final String kind;
+
+  final String label;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamTrackList {
+
+  final int length;
+
+  MediaStreamTrack item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16907,7 +17121,35 @@ interface Navigator {
   bool javaEnabled();
 
   void registerProtocolHandler(String scheme, String url, String title);
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface NavigatorUserMediaError {
+
+  static final int PERMISSION_DENIED = 1;
+
+  final int code;
+}
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17259,6 +17501,54 @@ interface OverflowEvent extends Event {
 interface PageTransitionEvent extends Event {
 
   final bool persisted;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface PeerConnection {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  final int readyState;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, bool useCapture);
+
+  void addStream(MediaStream stream);
+
+  void close();
+
+  bool dispatchEvent(Event event);
+
+  void processSignalingMessage(String message);
+
+  void removeEventListener(String type, EventListener listener, bool useCapture);
+
+  void removeStream(MediaStream stream);
+
+  void send(String text);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20338,6 +20628,16 @@ interface ScriptProfileNode {
 
 // WARNING: Do not edit - generated code.
 
+interface ShadowRoot extends Node {
+
+  final Element host;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface SharedWorker extends AbstractWorker {
 
   final MessagePort port;
@@ -20357,6 +20657,13 @@ interface SharedWorkerGlobalScope extends WorkerContext {
 
 interface SharedWorkerContext extends SharedWorkerGlobalScope {
 }
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool SignalingCallback(String message, PeerConnection source);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

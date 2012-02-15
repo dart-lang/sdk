@@ -73,5 +73,17 @@ class _NavigatorWrappingImplementation extends DOMWrapperBase implements Navigat
   }
   static void _registerProtocolHandler(receiver, scheme, url, title) native;
 
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) {
+    if (errorCallback === null) {
+      _webkitGetUserMedia(this, options, successCallback);
+      return;
+    } else {
+      _webkitGetUserMedia_2(this, options, successCallback, errorCallback);
+      return;
+    }
+  }
+  static void _webkitGetUserMedia(receiver, options, successCallback) native;
+  static void _webkitGetUserMedia_2(receiver, options, successCallback, errorCallback) native;
+
   String get typeName() { return "Navigator"; }
 }
