@@ -301,6 +301,7 @@ StringInterpolation7NegativeTest: Fail
 StringJoinTest: Fail
 StringTest: Fail
 SuperAllNamedConstructorTest: Fail
+SuperFieldAccessTest: Fail
 SuperFieldTest: Fail
 SuperFirstConstructorTest: Fail
 SuperImplicitClosureTest: Fail

@@ -24,6 +24,7 @@ ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
+SuperFieldAccessTest: Fail    # Issue 742: field shadowing now allowed
 Prefix22Test: Fail            # Issue 575
 Prefix23Test: Fail            # Issue 575
 PseudoKWIllegalTest/03: Fail  # Issue 356
@@ -328,6 +329,7 @@ ThirdTest: Fail # Issue 1511
 TryCatchSyntaxTest/08: Fail
 TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
+SuperFieldAccessTest: Fail # Issue 1695
 
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 
