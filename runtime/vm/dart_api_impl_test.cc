@@ -752,21 +752,46 @@ TEST_CASE(ByteArrayAccess) {
 
   result = Dart_ListSetAt(byte_array1, -1, Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
-  result = Dart_ListSetAt(byte_array1, 10, Dart_NewInteger(1));
+  result = Dart_ByteArraySetUint8At(byte_array1, -1, 1);
   EXPECT(Dart_IsError(result));
 
+  result = Dart_ListSetAt(byte_array1, 10, Dart_NewInteger(1));
+  EXPECT(Dart_IsError(result));
+  result = Dart_ByteArraySetUint8At(byte_array1, 10, 1);
+  EXPECT(Dart_IsError(result));
+
+  // Set through the List API.
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(byte_array1, i, Dart_NewInteger(i + 1));
-    EXPECT_VALID(result);
+    EXPECT_VALID(Dart_ListSetAt(byte_array1, i, Dart_NewInteger(i + 1)));
+  }
+  for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(i + 1, int64_t_value);
+    // Get through the ByteArray API.
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(i + 1, uint8_t_value);
   }
 
+  // Set through the ByteArray API.
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListGetAt(byte_array1, i);
-    EXPECT_VALID(result);
-    int64_t value = 0;
-    result = Dart_IntegerToInt64(result, &value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(i + 1, value);
+    EXPECT_VALID(Dart_ByteArraySetUint8At(byte_array1, i, i + 2));
+  }
+  for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(i + 2, int64_t_value);
+    // Get through the ByteArray API.
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(i + 2, uint8_t_value);
   }
 
   Dart_Handle byte_array2 = Dart_NewByteArray(10);
@@ -774,31 +799,67 @@ TEST_CASE(ByteArrayAccess) {
   Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
 
+  // Set through the List API.
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(byte_array2, i, Dart_NewInteger(i + 1));
+    result = Dart_ListSetAt(byte_array2, i, Dart_NewInteger(i + 2));
     EXPECT_VALID(result);
   }
-  is_equal = false;
-  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
-  EXPECT(!is_equal);
-
   for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
     Dart_Handle e1 = Dart_ListGetAt(byte_array1, i);
     Dart_Handle e2 = Dart_ListGetAt(byte_array2, i);
     is_equal = false;
     Dart_ObjectEquals(e1, e2, &is_equal);
     EXPECT(is_equal);
+    // Get through the ByteArray API.
+    uint8_t v1 = 0xFF;
+    uint8_t v2 = 0XFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &v1));
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array2, i, &v2));
+    EXPECT_NE(v1, 0xFF);
+    EXPECT_NE(v2, 0xFF);
+    EXPECT_EQ(v1, v2);
+  }
+
+  byte_array2 = Dart_NewByteArray(10);
+  is_equal = false;
+  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
+  EXPECT(!is_equal);
+
+  // Set through the ByteArray API.
+  for (intptr_t i = 0; i < 10; ++i) {
+    result = Dart_ByteArraySetUint8At(byte_array2, i, i + 2);
+    EXPECT_VALID(result);
+  }
+  for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
+    Dart_Handle e1 = Dart_ListGetAt(byte_array1, i);
+    Dart_Handle e2 = Dart_ListGetAt(byte_array2, i);
+    is_equal = false;
+    Dart_ObjectEquals(e1, e2, &is_equal);
+    EXPECT(is_equal);
+    // Get through the ByteArray API.
+    uint8_t v1 = 0xFF;
+    uint8_t v2 = 0XFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &v1));
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array2, i, &v2));
+    EXPECT_NE(v1, 0xFF);
+    EXPECT_NE(v2, 0xFF);
+    EXPECT_EQ(v1, v2);
   }
 
   uint8_t data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   result = Dart_ListSetAsBytes(byte_array1, 0, data, 10);
   EXPECT_VALID(result);
   for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
-    int64_t value;
-    result = Dart_IntegerToInt64(e, &value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(i, value);
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(i, int64_t_value);
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(i, uint8_t_value);
   }
 
   for (intptr_t i = 0; i < 10; ++i) {
@@ -806,13 +867,165 @@ TEST_CASE(ByteArrayAccess) {
   }
   Dart_ListGetAsBytes(byte_array1, 0, data, 10);
   for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
-    EXPECT_VALID(e);
-    int64_t value;
-    result = Dart_IntegerToInt64(e, &value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(10 - i, value);
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(10 - i, int64_t_value);
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(10 - i, uint8_t_value);
   }
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    EXPECT_VALID(Dart_ByteArraySetUint8At(byte_array1, i, 10 + i));
+  }
+  Dart_ListGetAsBytes(byte_array1, 0, data, 10);
+  for (intptr_t i = 0; i < 10; ++i) {
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(10 + i, int64_t_value);
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(10 + i, uint8_t_value);
+  }
+}
+
+
+TEST_CASE(ByteArrayAlignedMultiByteAccess) {
+  intptr_t length = 16;
+  Dart_Handle byte_array = Dart_NewByteArray(length);
+  intptr_t api_length = 0;
+  EXPECT_VALID(Dart_ListLength(byte_array, &api_length));
+  EXPECT_EQ(length, api_length);
+
+  // 4-byte aligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, FLT_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 4, FLT_MAX));
+
+  float float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
+  EXPECT_EQ(FLT_MIN, float_value);
+
+  float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 4, &float_value));
+  EXPECT_EQ(FLT_MAX, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, 0.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
+  EXPECT_EQ(0.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 4, 1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 4, &float_value));
+  EXPECT_EQ(1.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, -1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
+  EXPECT_EQ(-1.0f, float_value);
+
+  // 8-byte aligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 0, DBL_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 8, DBL_MAX));
+
+  double double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 0, &double_value));
+  EXPECT_EQ(DBL_MIN, double_value);
+
+  double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 8, &double_value));
+  EXPECT_EQ(DBL_MAX, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 0, 0.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 0, &double_value));
+  EXPECT_EQ(0.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 8, 1.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 8, &double_value));
+  EXPECT_EQ(1.0, double_value);
+}
+
+
+TEST_CASE(ByteArrayMisalignedMultiByteAccess) {
+  intptr_t length = 17;
+  Dart_Handle byte_array = Dart_NewByteArray(length);
+  intptr_t api_length = 0;
+  EXPECT_VALID(Dart_ListLength(byte_array, &api_length));
+  EXPECT_EQ(length, api_length);
+
+  // 4-byte misaligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, FLT_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, FLT_MAX));
+
+  float float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
+  EXPECT_EQ(FLT_MIN, float_value);
+
+  float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
+  EXPECT_EQ(FLT_MAX, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, 0.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
+  EXPECT_EQ(0.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, -0.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
+  EXPECT_EQ(-0.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, 1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
+  EXPECT_EQ(1.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, -1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
+  EXPECT_EQ(-1.0f, float_value);
+
+  // 8-byte misaligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, DBL_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, DBL_MAX));
+
+  double double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
+  EXPECT_EQ(DBL_MIN, double_value);
+
+  double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
+  EXPECT_EQ(DBL_MAX, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, 0.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
+  EXPECT_EQ(0.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, -0.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
+  EXPECT_EQ(-0.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, 1.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
+  EXPECT_EQ(1.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, -1.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
+  EXPECT_EQ(-1.0, double_value);
 }
 
 
