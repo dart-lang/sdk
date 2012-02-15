@@ -11,6 +11,6 @@
 // builtin.dart file.
 // This string forms the content of builtin functionality which is injected
 // into standalone dart to provide some test/debug functionality.
-const char Builtin::builtin_source_[] =
-{{DART_SOURCE}}
-  ;  /* NOLINT */
+const char Builtin::builtin_source_[] = {
+  {{DART_SOURCE}}
+};

@@ -13,32 +13,21 @@ from optparse import OptionParser
 
 
 def makeString(input_files):
-  printable = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\
-!#$%&'()*+,-./:;<=>?@[]^_`{|}~ "
   result = ' '
-  lineNumber = 1
   for string_file in input_files:
     if string_file.endswith('dart'):
       fileHandle = open(string_file, 'rb')
-      quoted = False
-      result += '\n  // ----- ' + string_file + ' -----\n\n'
+      lineCounter = 0
+      result += ' // ' + string_file + '\n   '
       for byte in fileHandle.read():
-        if not quoted:
-          result += '  "'
-          quoted = True
-        if byte in printable:
-          result += byte
-        elif byte == '\n':
-          if lineNumber % 10 == 0:
-            result += '\\n" /* L%d */\n' % lineNumber
-          else:
-            result += '\\n"\n'
-          lineNumber += 1
-          quoted = False
-        elif byte == '\"':
-          result += '\\"'
-        else:
-          result += '\\x%02x' % ord(byte)
+        result += ' %d,' % ord(byte)
+        lineCounter += 1
+        if lineCounter == 10:
+          result += '\n   '
+          lineCounter = 0
+      if lineCounter != 0:
+        result += '\n   '
+  result += ' // Terminating null character.\n    0'
   return result
 
 
