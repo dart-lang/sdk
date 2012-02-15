@@ -12,8 +12,8 @@ prefix language
 AbstractStaticNegativeTest: Fail
 AbstractSyntaxTest/01: Fail
 AbstractSyntaxTest/02: Fail
-ArithmeticTest: Fail
 Arithmetic2Test: Fail
+ArithmeticTest: Fail
 AssertionTest: Fail
 AssignTopMethodNegativeTest: Fail
 BitOperationsTest: Fail
@@ -107,7 +107,6 @@ Factory2Test: Fail
 Factory3Test: Fail
 Factory4Test: Fail
 FactoryImplementationTest: Fail
-FactoryTest: Fail
 FannkuchTest: Fail
 FauxverrideTest/03: Fail
 FauxverrideTest/05: Fail
@@ -277,6 +276,7 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
+RegEx2Test: Fail
 RegExp2Test: Fail
 RegExp3Test: Fail
 RegExpTest: Fail
@@ -344,15 +344,9 @@ TryCatchSyntaxTest/08: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeDartcTest: Fail
 TypeVMTest: Fail
-TypeVariableBoundsTest/01: Fail
-TypeVariableBoundsTest/02: Fail
-TypeVariableBoundsTest/03: Fail
-TypeVariableBoundsTest/04: Fail
-TypeVariableBoundsTest/05: Fail
-TypeVariableBoundsTest/06: Fail
-TypeVariableBoundsTest/09: Fail
-TypeVariableBoundsTest/10: Fail
-TypeVariableBoundsTest/none: Fail
+TypeVariableBoundsTest/00: Fail
+TypeVariableBoundsTest/07: Fail
+TypeVariableBoundsTest/08: Fail
 TypeVariableScopeTest/00: Fail
 TypeVariableScopeTest/01: Fail
 TypeVariableScopeTest/02: Fail
