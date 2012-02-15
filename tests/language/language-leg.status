@@ -18,10 +18,17 @@ AssertionTest: Fail
 AssignTopMethodNegativeTest: Fail
 BitOperationsTest: Fail
 BlackListedTest/01: Fail
+BlackListedTest/02: Fail
 BlackListedTest/03: Fail
+BlackListedTest/04: Fail
 BlackListedTest/05: Fail
+BlackListedTest/06: Fail
 BlackListedTest/07: Fail
+BlackListedTest/08: Fail
 BlackListedTest/09: Fail
+BlackListedTest/10: Fail
+BlackListedTest/11: fail
+BlackListedTest/12: Fail
 BlockScopeTest: Fail
 BreakTest: Fail
 CTConst3Test: Fail
@@ -69,9 +76,9 @@ ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
 Context2Test: Fail
 ContextTest: Crash # NPE in Types.isSubtype.
+ContextTest: Fail
 ContinueTest: Fail
 DefaultClassImplicitConstructorTest: Fail
-DefaultFactory2Test: Fail
 DefaultFactoryLibraryTest: Fail
 DefaultFactoryTest: Fail
 DefaultImplementationTest: Fail
@@ -95,6 +102,7 @@ ExecuteFinally7Test: Fail
 ExecuteFinally8Test: Fail
 ExecuteFinally9Test: Fail
 ExpectTest: Fail
+Factory2NegativeTest: Fail
 Factory2Test: Fail
 Factory3Test: Fail
 Factory4Test: Fail
@@ -117,7 +125,6 @@ FinalSyntaxTest/none: Fail
 FinalVarNegativeTest: Fail
 For2Test: Fail
 ForTest: Fail
-FunctionArgumentTest: Crash
 FunctionFieldTest: Fail
 FunctionLiterals2Test: Fail
 FunctionLiteralsTest: Fail
@@ -180,8 +187,6 @@ ListLiteral3Test: Fail
 ListLiteral4Test: Fail
 ListLiteralTest: Fail
 ListTest: Fail
-LocalFunction2Test: Crash # NPE in Types.isSubtype.
-LocalFunction2Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
 MapLiteral2Test: Fail
@@ -217,7 +222,6 @@ NewExpressionTypeArgsFrogTest/02: Fail
 NonConstConstructorWithoutBodyTest: Fail
 NonConstSuperNegativeTest: Fail
 NonParameterizedFactory2Test: Fail
-NonParameterizedFactoryTest: Fail
 NullPointerExceptionTest: Fail
 NullToStringTest: Fail
 NumberIdentifierNegativeTest: Fail
@@ -273,7 +277,6 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
-RegEx2Test: Fail
 RegExp2Test: Fail
 RegExp3Test: Fail
 RegExpTest: Fail
@@ -350,7 +353,12 @@ TypeVariableBoundsTest/06: Fail
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 TypeVariableBoundsTest/none: Fail
-TypeVariableScopeTest/none: Fail
+TypeVariableScopeTest/00: Fail
+TypeVariableScopeTest/01: Fail
+TypeVariableScopeTest/02: Fail
+TypeVariableScopeTest/03: Fail
+TypeVariableScopeTest/04: Fail
+TypeVariableScopeTest/05: Fail
 TypedMessageTest: Fail
 WhileTest: Fail
 
