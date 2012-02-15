@@ -377,9 +377,6 @@ class Parser : ValueObject {
                                   const String& field_name,
                                   intptr_t ident_pos);
 
-  RawClass*  LookupClass(const String& class_name);
-  RawObject* LookupTypeClass(const QualIdent& type_name,
-                             TypeResolution type_resolution);
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
   RawClass* TypeParametersScopeClass();

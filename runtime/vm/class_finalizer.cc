@@ -260,18 +260,19 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 // Resolve unresolved_class in the library of cls.
 RawClass* ClassFinalizer::ResolveClass(
     const Class& cls, const UnresolvedClass& unresolved_class) {
+  const String& class_name = String::Handle(unresolved_class.ident());
   Library& lib = Library::Handle();
+  Class& resolved_class = Class::Handle();
   if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
     lib = cls.library();
+    resolved_class = lib.LookupClass(class_name);
   } else {
     LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
     lib_prefix = unresolved_class.library_prefix();
     ASSERT(!lib_prefix.IsNull());
     lib = lib_prefix.library();
+    resolved_class = lib.LookupLocalClass(class_name);
   }
-  ASSERT(!lib.IsNull());
-  const String& class_name = String::Handle(unresolved_class.ident());
-  const Class& resolved_class = Class::Handle(lib.LookupClass(class_name));
   if (resolved_class.IsNull()) {
     const Script& script = Script::Handle(cls.script());
     ReportError(script, unresolved_class.token_index(),
