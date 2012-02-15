@@ -67,10 +67,9 @@ ConstructorReturnNegativeTest: Fail
 ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
-ContextTest: Crash # NPE in Types.isSubtype.
 Context2Test: Fail
+ContextTest: Crash # NPE in Types.isSubtype.
 ContinueTest: Fail
-CyclicTypeVariableTest: Fail
 DefaultClassImplicitConstructorTest: Fail
 DefaultFactory2Test: Fail
 DefaultFactoryLibraryTest: Fail
@@ -123,10 +122,12 @@ FunctionFieldTest: Fail
 FunctionLiterals2Test: Fail
 FunctionLiteralsTest: Fail
 FunctionSyntaxTest: Fail
+FunctionTest: Crash # Assertion failed: nestedClosureData !== null.
 FunctionTest: Fail
 FunctionTypeAlias2Test: Fail
 FunctionTypeAlias3Test: Fail
 FunctionTypeAlias4Test: Fail
+FunctionTypeAliasNegativeTest: Fail
 FunctionTypeAliasTest: Fail
 FunctionTypeParameter2Test: Fail
 FunctionTypeParameterTest: Fail
@@ -137,9 +138,9 @@ GenericParameterizedExtendsTest: Fail
 GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail
-GetterDeclarationNegativeTest: Fail
 GetSetSyntaxTest/none: Fail
 GetterClosureExecutionOrderTest: Fail
+GetterDeclarationNegativeTest: Fail
 GettersSettersTest: Fail
 IfTest: Fail
 ImplicitClosure1Test: Fail
@@ -169,7 +170,9 @@ Issue1363Test: Fail
 Issue4157508Test: Fail
 Issue4515170Test: Fail
 LabelTest: Fail
+Library5NegativeTest: Fail
 Library5Test: Fail
+Library6NegativeTest: Fail
 LibraryPrefixesTest: Fail
 LibrarySameNameUsedTest: Fail
 ListLiteral2Test: Fail
@@ -177,6 +180,7 @@ ListLiteral3Test: Fail
 ListLiteral4Test: Fail
 ListLiteralTest: Fail
 ListTest: Fail
+LocalFunction2Test: Crash # NPE in Types.isSubtype.
 LocalFunction2Test: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
@@ -232,8 +236,8 @@ OverrideFieldMethod5NegativeTest: Fail
 OverrideFieldMethod6NegativeTest: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
-OverrideMethodWithFieldTest/none: Fail
 OverrideMethodWithFieldTest/01: Fail
+OverrideMethodWithFieldTest/none: Fail
 Param2Test: Fail
 ParameterInitializerTest: Fail
 Prefix10Test: Fail
@@ -241,6 +245,7 @@ Prefix11Test: Fail
 Prefix12Test: Fail
 Prefix14Test: Fail
 Prefix15Test: Fail
+Prefix16NegativeTest: Fail
 Prefix17Test: Fail
 Prefix18NegativeTest: Fail
 Prefix20NegativeTest: Fail
@@ -348,6 +353,7 @@ TypeVariableBoundsTest/none: Fail
 TypeVariableScopeTest/none: Fail
 TypedMessageTest: Fail
 WhileTest: Fail
+
 
 [ $component == leg && $mode == release]
 AssignTopMethodNegativeTest: Crash
