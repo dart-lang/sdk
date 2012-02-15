@@ -13,6 +13,7 @@ AbstractStaticNegativeTest: Fail
 AbstractSyntaxTest/01: Fail
 AbstractSyntaxTest/02: Fail
 ArithmeticTest: Fail
+Arithmetic2Test: Fail
 AssertionTest: Fail
 AssignTopMethodNegativeTest: Fail
 BitOperationsTest: Fail

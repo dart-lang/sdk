@@ -45,6 +45,12 @@ class StringConcatTest {
     } catch (TypeError e) {
       // In type checked mode.
       nofExceptions++;
+    } catch (IllegalArgumentException e) {
+      // TODO(floitsch): IllegalArgumentException might not be correct. If
+      // number operations are supposed to be implemented as double-dispatch
+      // then we should get a NoSuchMethodException instead. In frog the
+      // argument is eagerly checked and throws an IllegalArgumentException.
+      nofExceptions++;
     }
 
     // Check that compile time constants are canonicalized.
