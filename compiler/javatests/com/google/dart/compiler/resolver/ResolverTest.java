@@ -34,16 +34,6 @@ public class ResolverTest extends ResolverTestCase {
     return (ClassElement) element;
   }
 
-  private void assertHasSubtypes(ClassElement superElement, ClassElement...expectedSubtypes) {
-    Set<InterfaceType> expectedInterfaceTypes = new LinkedHashSet<InterfaceType>();
-    for (ClassElement expectedSubtype : expectedSubtypes) {
-      expectedInterfaceTypes.add(expectedSubtype.getType());
-    }
-
-    Set<InterfaceType> actualSubtypes = superElement.getSubtypes();
-    assertEquals(expectedInterfaceTypes, actualSubtypes);
-  }
-
   public void testToString() {
     Assert.assertEquals("class Object {\n}", object.toString().trim());
     Assert.assertEquals("class Array<E> extends Object {\n}", array.toString().trim());
@@ -100,12 +90,6 @@ public class ResolverTest extends ResolverTestCase {
     ClassElement elementC = findElementOrFail(libScope, "C");
     ClassElement elementD = findElementOrFail(libScope, "D");
     ClassElement elementE = findElementOrFail(libScope, "E");
-
-    assertHasSubtypes(elementA, elementA, elementB, elementC, elementD, elementE);
-    assertHasSubtypes(elementB, elementB);
-    assertHasSubtypes(elementC, elementC, elementD, elementE);
-    assertHasSubtypes(elementD, elementD);
-    assertHasSubtypes(elementE, elementE);
   }
 
   /**
@@ -142,12 +126,6 @@ public class ResolverTest extends ResolverTestCase {
     ClassElement elementA = findElementOrFail(libScope, "A");
     ClassElement elementB = findElementOrFail(libScope, "B");
 
-    assertHasSubtypes(elementIA, elementIA, elementIB, elementIC, elementID, elementA);
-    assertHasSubtypes(elementIB, elementIA, elementIB, elementIC, elementID, elementA);
-    assertHasSubtypes(elementIC, elementIC);
-    assertHasSubtypes(elementID, elementIA, elementIB, elementIC, elementID, elementA);
-    assertHasSubtypes(elementA, elementA);
-    assertHasSubtypes(elementB, elementB);
     assert(elementIA.getDefaultClass().getElement().getName().equals("B"));
   }
 
@@ -169,8 +147,6 @@ public class ResolverTest extends ResolverTestCase {
 
     ClassElement elementIA = findElementOrFail(libScope, "IA");
     ClassElement elementIB = findElementOrFail(libScope, "IB");
-    assertHasSubtypes(elementIA, elementIA, elementIB);
-    assertHasSubtypes(elementIB, elementIA, elementIB);
   }
 
   /**
@@ -189,8 +165,6 @@ public class ResolverTest extends ResolverTestCase {
     ClassElement elementB = findElementOrFail(libScope, "B");
     ClassElement elementC = findElementOrFail(libScope, "C");
 
-    assertHasSubtypes(elementA, elementA, elementB);
-    assertHasSubtypes(elementC, elementC);
   }
 
   public void testDuplicatedInterfaces() {
@@ -680,7 +654,6 @@ public class ResolverTest extends ResolverTestCase {
     assertEquals(2, superTypes.size()); // Object and A
     superTypes = elementIA.getAllSupertypes();
     assertEquals(3, superTypes.size()); // Object, A, and B
-    assertHasSubtypes(elementA, elementA, elementB, elementIA);
   }
 
   public void testUnresolvedSuper() {

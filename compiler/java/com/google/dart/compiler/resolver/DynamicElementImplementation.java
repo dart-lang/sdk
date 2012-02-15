@@ -20,8 +20,6 @@ import java.util.Set;
  * Dummy element corresponding to {@link DynamicType}.
  */
 class DynamicElementImplementation extends AbstractElement implements DynamicElement {
-  private final Set<InterfaceType> subtypes =
-    Collections.<InterfaceType>singleton(Types.newDynamicType());
 
   private DynamicElementImplementation() {
     super(null, "<dynamic>");
@@ -178,11 +176,6 @@ class DynamicElementImplementation extends AbstractElement implements DynamicEle
   @Override
   public ConstructorElement lookupConstructor(String name) {
     return null;
-  }
-
-  @Override
-  public Set<InterfaceType> getSubtypes() {
-    return subtypes;
   }
 
   @Override

@@ -26,7 +26,6 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   private InterfaceType supertype;
   private InterfaceType defaultClass;
   private List<InterfaceType> interfaces;
-  private Set<InterfaceType> immediateSubtypes = new HashSet<InterfaceType>();
   private final boolean isInterface;
   private final String nativeName;
   private final Modifiers modifiers;
@@ -85,34 +84,6 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
     return getType().getArguments();
   }
 
-  private void computeTransitiveSubtypes(Set<InterfaceType> computedSubtypes) {
-    if (computedSubtypes.addAll(immediateSubtypes)) {
-      for (InterfaceType subtype : immediateSubtypes) {
-        ClassElementImplementation classElement = (ClassElementImplementation) subtype.getElement();
-        classElement.computeTransitiveSubtypes(computedSubtypes);
-      }
-    }
-  }
-
-  @Override
-  public Set<InterfaceType> getSubtypes() {
-    if (subtypes == null) {
-      // add double-checked locking, with subtypes being declared volatile, for
-      // thread-safety
-      synchronized (this) {
-        if (subtypes == null) {
-          // Compute once, this will be an issue when we get to code
-          // generation...
-          HashSet<InterfaceType> newSubtypes = new HashSet<InterfaceType>();
-          newSubtypes.add(getType());
-          computeTransitiveSubtypes(newSubtypes);
-          subtypes = newSubtypes;
-        }
-      }
-    }
-    return subtypes;
-  }
-
   @Override
   public InterfaceType getSupertype() {
     return supertype;
@@ -126,11 +97,6 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
   @Override
   public void setSupertype(InterfaceType supertype) {
     this.supertype = supertype;
-    if (TypeKind.of(supertype) == TypeKind.INTERFACE) {
-      ClassElementImplementation superClassElement =
-        (ClassElementImplementation) supertype.getElement();
-      superClassElement.immediateSubtypes.add(this.getType());
-    }
   }
 
   void setDefaultClass(InterfaceType element) {
@@ -211,11 +177,6 @@ class ClassElementImplementation extends AbstractElement implements ClassElement
 
   void addInterface(InterfaceType type) {
     interfaces.add(type);
-
-    if (TypeKind.of(type) == TypeKind.INTERFACE) {
-      ClassElementImplementation interfaceElement = (ClassElementImplementation) type.getElement();
-      interfaceElement.immediateSubtypes.add(this.getType());
-    }
   }
 
   Element findElement(String name) {

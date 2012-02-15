@@ -30,13 +30,6 @@ public interface ClassElement extends EnclosingElement {
 
   List<InterfaceType> getInterfaces();
 
-  /**
-   * Returns the static subtypes of a declared type including itself.  This method should only be
-   * called once all elements have been built.  The results are cached so subtypes added after
-   * building will not be reflected.
-   */
-  Set<InterfaceType> getSubtypes();
-
   List<InterfaceType> getAllSupertypes()
       throws CyclicDeclarationException, DuplicatedInterfaceException;
 
