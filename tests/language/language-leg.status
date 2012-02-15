@@ -56,7 +56,6 @@ ConstTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
 Constructor3Test: Fail
-Constructor4Test: Fail
 Constructor5Test: Fail
 Constructor6Test: Fail
 ConstructorDefaultTest: Fail
@@ -247,7 +246,6 @@ Prefix20NegativeTest: Fail
 Prefix21Test: Fail
 Prefix22Test: Fail
 Prefix23NegativeTest: Fail
-Private3Test: Fail
 PrivateMember3NegativeTest: Fail
 PrivateMemberTest: Fail
 PrivateTest: Fail
@@ -300,8 +298,6 @@ StringInterpolate2Test: Fail
 StringInterpolateNPETest: Fail
 StringInterpolateTest: Fail
 StringInterpolation7NegativeTest: Fail
-StringInterpolationTest/01: Fail
-StringInterpolationTest/none: Fail
 StringJoinTest: Fail
 StringTest: Fail
 SuperAllNamedConstructorTest: Fail
