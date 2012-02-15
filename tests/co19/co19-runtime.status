@@ -12,9 +12,6 @@ LibTest/core/Proxy/Proxy.forIsolateWithPromise_A01_t01: Skip # Issue co19 - 16
 
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A04_t01: Fail # Issue 392
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/Examples_A02_t01: Fail # Issue 393
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/Shadowing_and_Hiding_Names_A01_t02: Fail # Issue co19 - 18
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/Shadowing_and_Hiding_Names_A02_t01: Fail # Issue co19 - 19
 
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail
@@ -32,8 +29,6 @@ LibTest/core/String/split_A01_t02: Fail # Issue 429
 
 # New failures
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t05: Fail # Issue 430
-LangGuideTest/07_Overriding/07_Overriding_A03_t01: Fail # Issue co19 - 28
-LangGuideTest/07_Overriding/07_Overriding_A03_t02: Fail # Issue co19 - 28
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
 [ $component == vm ]
@@ -63,7 +58,6 @@ LibTest/core/Proxy/local_A01_t01: Fail # Issue co19 - 51
 LibTest/core/Proxy/operator_equality_A01_t01: Fail # Issue co19 - 51
 LibTest/core/Proxy/register_A01_t01: Fail # Issue co19 - 51
 LibTest/core/Proxy/send_A01_t01: Fail # Issue co19 - 51
-LibTest/core/ReceivePort/toSendPort_A02_t01: Fail # Issue co19 - 51
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
@@ -108,8 +102,6 @@ LibTest/core/Queue/add_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/addLast_A01_t01: Skip  # Issue 331
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip  # Issue 331
 LibTest/core/SendPort/send_A02_t01: Fail # Issue co19 - 37
-LibTest/core/double/operator%_A01_t01: Fail # Issue co19 - 36
-LibTest/core/double/operator~div_A01_t07: Fail # Issue co19 - 36
 Language/13_Types/8_Parameterized_Types_A02_t01: Fail  # Issue 441
 
 [ $component == vm && $system == win32 ]

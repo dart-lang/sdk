@@ -10,11 +10,9 @@ prefix co19
 # Marked failed after code generation removed from dartc
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Pass # status change with --check-only
-LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A02_t02: Fail
 LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A02_t01: Pass # status change with --check-only
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t02: Pass # status change with --check-only
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t03: Pass # status change with --check-only
-LangGuideTest/08_Expressions/08_2_Assignment_Operator/Static-Field_Assignment/Static-Field_Assignment_A01_t03: Fail # status change with --check-only
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A02_t01: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Pass # status change with --check-only
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t02: Pass # status change with --check-only
@@ -241,15 +239,9 @@ LibTest/core/int/operator_right_shift_A01_t03: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A04_t01: Fail # Bug 5371670.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_A05_t01: Fail
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/Examples_A02_t01: Fail # Bug 5371670.
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/Shadowing_and_Hiding_Names_A01_t01: Fail
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/Shadowing_and_Hiding_Names_A01_t02: Fail
-LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Shadowing_and_Hiding_Names/Shadowing_and_Hiding_Names_A02_t01: Fail
 LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A02_t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t02: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t03: Fail
-LangGuideTest/07_Overriding/07_Overriding_A03_t01: skip # Invalid test, Issue 1148
-LangGuideTest/07_Overriding/07_Overriding_A03_t02: skip # Invalid test, Issue 1147
 Language/13_Types/4_Interface_Types_A11_t04: Fail
 Language/13_Types/4_Interface_Types_A12_t10: Fail
 Language/13_Types/5_Function_Types_A01_t15: Fail
@@ -334,7 +326,6 @@ LibTest/core/Queue/forEach_A01_t03: Fail
 LibTest/core/Queue/iterator_hasNext_A01_t01: Skip # Timeout
 LibTest/core/Queue/some_A01_t03: Fail
 LibTest/core/ReceivePort/receive_A01_t02: Fail, Pass  # Fails for the wrong reason (open receive ports).
-LibTest/core/ReceivePort/toSendPort_A02_t01: Fail
 LibTest/core/RegExp/RegExp_A01_t03: Fail
 LibTest/core/RegExp/RegExp_A01_t04: Fail
 LibTest/core/RegExp/allMatches_A01_t01: Fail
@@ -398,11 +389,6 @@ LibTest/core/StringBuffer/isEmpty_A01_t01: Fail
 LibTest/core/Strings/concatAll_A03_t01: Fail
 LibTest/core/Strings/join_A02_t01: Fail
 LibTest/core/Strings/join_A03_t01: Fail
-LibTest/core/double/isEven_A01_t02: Fail
-LibTest/core/double/isEven_A01_t03: Fail
-LibTest/core/double/isEven_A01_t04: Fail
-LibTest/core/double/isEven_A01_t05: Fail
-LibTest/core/double/isOdd_A01_t02: Fail
 LibTest/core/double/operator_negate_A01_t01: Fail
 LibTest/core/double/operator_negate_A01_t02: Fail
 LibTest/core/double/operator_negate_A01_t04: Fail
@@ -411,8 +397,6 @@ LibTest/core/double/operator_addition_A02_t01: Fail
 LibTest/core/double/operator_division_A02_t01: Fail
 LibTest/core/double/operator_GE_A02_t01: Fail
 LibTest/core/double/operator_GT_A02_t01: Fail
-LibTest/core/double/operatorLE_A02_t01: Fail
-LibTest/core/double/operatorLT_A02_t01: Fail
 LibTest/core/double/operator_multiplication_A02_t01: Fail
 LibTest/core/double/operator_subtraction_A02_t01: Fail
 LibTest/core/double/operator_truncating_division_A02_t01: Fail
