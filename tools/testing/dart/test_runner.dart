@@ -118,9 +118,10 @@ class BrowserTestCase extends TestCase {
    */
   List<String> compilerArguments;
   /**
-   * Indicates if this test is a rerun, to compensate for flaky browser tests.
+   * Indicates the number of potential retries remaining, to compensate for
+   * flaky browser tests.
    */
-  bool isRerun;
+  bool numRetries;
 
   BrowserTestCase(displayName,
                     this.compilerPath,
@@ -143,7 +144,7 @@ class BrowserTestCase extends TestCase {
           '$compilerPath ${Strings.join(compilerArguments, " ")}';
       commandLine = 'compilation command: $compilationCommand\n$commandLine';
     }
-    isRerun = false;
+    numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
 }
 
@@ -259,14 +260,14 @@ class RunningProcess {
       for (var line in testCase.output.stdout) print(line);
     }
     if (testCase is BrowserTestCase && testCase.output.unexpectedOutput &&
-        !testCase.isRerun) {
+        testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
     if (testCase.output.requestRetry) {
       testCase.output.requestRetry = false;
       this.timedOut = false;
-      testCase.isRerun = true;
+      testCase.dynamic.numRetries--;
       print("Potential flake. Re-running " + testCase.displayName);
       this.start();
     } else {
@@ -510,6 +511,11 @@ class ProcessQueue {
   // configurations there is no need to repeatedly search the file
   // system, generate tests, and search test files for options.
   Map<String, List<TestInformation>> _testCache;
+  /**
+   * String indicating the browser used to run the tests. Empty if no browser 
+   * used.
+   */
+  String browserUsed;
 
   ProcessQueue(int this._maxProcesses,
                String progress,
@@ -526,6 +532,7 @@ class ProcessQueue {
         _batchProcesses = new List<DartcBatchRunnerProcess>(),
         _testCache = new Map<String, List<TestInformation>>() {
     if (!_enqueueMoreWork(this)) _progress.allDone();
+    browserUsed = '';
   }
 
   /**
@@ -555,6 +562,55 @@ class ProcessQueue {
     return _temporaryDirectory;
   }
 
+  /**
+   * Sometimes Webdriver doesn't close every browser window when it's done 
+   * with a test. At the end of all tests we clear out any neglected processes
+   * that are still running. 
+   */
+  void killZombieBrowsers() {
+    String chromeName = 'chrome';
+    if (new Platform().operatingSystem() == 'macos') {
+      chromeName = 'Google\ Chrome';
+    }
+    Map<String, List<String>> processNames = {'ie': ['iexplore'], 'safari': 
+        ['Safari'], 'ff': ['firefox'], 'chrome': ['chromedriver', chromeName]};
+    for (String name in processNames[browserUsed]) {
+      Process process = null;
+      if (new Platform().operatingSystem() == 'windows') {
+        process = new Process.start(
+            'C:\\Windows\\System32\\taskkill.exe', ['/F', '/IM', name + '.exe',
+            '/T']);
+      } else {
+        process = new Process.start('killall', ['-9', name]);
+      }
+
+      if (name == processNames[browserUsed].last()) {
+        process.exitHandler = (exitCode) {
+          process.close();
+          _progress.allDone();
+        };
+        process.errorHandler = (error) {
+          _progress.allDone();
+        };
+      } else {
+        process.exitHandler = (exitCode) {
+          process.close();
+        };
+      }
+    }
+  }
+
+  /**
+   * Perform any cleanup needed once all tests in a TestSuite have completed
+   * and notify our progress indicator that we are done.
+   */
+  void _cleanupAndMarkDone() {
+    if (browserUsed != '') {
+      killZombieBrowsers();
+    } else {
+      _progress.allDone();
+    }
+  }
 
   void _checkDone() {
     // When there are no more active test listers ask for more work
@@ -564,12 +620,12 @@ class ProcessQueue {
       if (_tests.isEmpty() && _numProcesses == 0) {
         _terminateDartcBatchRunners();
         if (_keepGeneratedTests || _temporaryDirectory == null) {
-          _progress.allDone();
+          _cleanupAndMarkDone();
         } else if (!_temporaryDirectory.startsWith('/tmp/') ||
                    _temporaryDirectory.contains('/../')) {
           // Let's be extra careful, since rm -rf is so dangerous.
           print('Temporary directory $_temporaryDirectory unsafe to delete!');
-          _progress.allDone();
+          _cleanupAndMarkDone();
         } else {
           // TODO(dart:1211): Use delete(recursive=true) in Dart when it is
           // implemented, and add Windows support.
@@ -583,7 +639,7 @@ class ProcessQueue {
             } else {
               print('\nDeletion of temp dir $_temporaryDirectory failed.');
             }
-            _progress.allDone();
+            _cleanupAndMarkDone();
           };
         }
       }
@@ -591,6 +647,9 @@ class ProcessQueue {
   }
 
   void _runTest(TestCase test) {
+    if (test.configuration['component'] == 'webdriver') {
+      browserUsed = test.configuration['browser'];
+    }
     _progress.testAdded();
     _tests.add(test);
     _tryRunTest();
