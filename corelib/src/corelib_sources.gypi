@@ -26,7 +26,6 @@
     'options.dart',
     'pattern.dart',
     'promise.dart',
-    'proxy.dart',
     'queue.dart',
     'regexp.dart',
     'set.dart',
