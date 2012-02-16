@@ -50,7 +50,6 @@ third_party/gsutil/*/gsutilc
 /compiler/eclipse.workspace/rhino/output/
 /compiler/eclipse.workspace/tests/output/
 /corelib/tests/corelib/src/generated/
-/corelib/tests/stub-generator/src/generated/
 
 # Fling generated files
 /client/fling/.classpath

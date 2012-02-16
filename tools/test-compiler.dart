@@ -14,7 +14,6 @@
 #import("../tests/isolate/test_config.dart");
 #import("../tests/language/test_config.dart");
 #import("../tests/standalone/test_config.dart");
-#import("../tests/stub-generator/test_config.dart");
 #import("../tests/utils/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
@@ -62,9 +61,6 @@ main() {
     }
     if (selectors.containsKey('isolate')) {
       queue.addTestSuite(new IsolateTestSuite(conf));
-    }
-    if (selectors.containsKey('stub-generator')) {
-      queue.addTestSuite(new StubGeneratorTestSuite(conf));
     }
     if (selectors.containsKey('utils')) {
       queue.addTestSuite(new UtilsTestSuite(conf));
