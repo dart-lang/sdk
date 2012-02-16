@@ -48,7 +48,6 @@ QueueIteratorTest: Fail
 QueueTest: Fail
 RegExp1Test: Fail
 RegExp4Test: Fail
-RegExp5Test: Fail
 RegExpAllMatchesTest: Fail
 RegExpFirstMatchTest: Fail
 RegExpGroupTest: Fail

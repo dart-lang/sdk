@@ -191,6 +191,7 @@ Language/06_Functions/06_Functions_A01_t01: Fail
 Language/06_Functions/06_Functions_A01_t02: Fail
 Language/06_Functions/06_Functions_A01_t03: Fail
 Language/06_Functions/06_Functions_A01_t04: Fail
+Language/06_Functions/06_Functions_A01_t23: Fail
 Language/06_Functions/06_Functions_A02_t01: Fail
 Language/06_Functions/06_Functions_A03_t01: Fail
 Language/06_Functions/1_Function_Declaration_A01_t01: Fail
@@ -338,8 +339,6 @@ Language/07_Classes/4_Instance_Variables_A01_t03: Fail
 Language/07_Classes/4_Instance_Variables_A01_t04: Fail
 Language/07_Classes/4_Instance_Variables_A02_t01: Fail
 Language/07_Classes/4_Instance_Variables_A03_t01: Fail
-Language/07_Classes/4_Instance_Variables_A04_t02: Fail
-Language/07_Classes/4_Instance_Variables_A04_t03: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t02: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t01: Fail
@@ -365,11 +364,7 @@ Language/07_Classes/5_Constructors/2_Factories_A06_t05: Fail
 Language/07_Classes/5_Constructors/2_Factories_A06_t06: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t01: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t04: Fail
-Language/07_Classes/7_Static_Variables_A01_t03: Fail
-Language/07_Classes/7_Static_Variables_A01_t04: Fail
 Language/07_Classes/7_Static_Variables_A02_t02: Fail
-Language/07_Classes/7_Static_Variables_A03_t02: Fail
-Language/07_Classes/7_Static_Variables_A03_t03: Fail
 Language/07_Classes/7_Static_Variables_A04_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t02: Fail
@@ -400,7 +395,6 @@ Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A04_t01: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A04_t03: Fail
-Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail
 Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail
@@ -449,9 +443,10 @@ Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: F
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail
-Language/08_Interfaces/4_Superinterfaces_A03_t02: Fail
 Language/08_Interfaces/Interfaces_A01_t02: Fail
+Language/08_Interfaces/Interfaces_A01_t03: Fail
 Language/08_Interfaces/Interfaces_A02_t01: Fail
+Language/08_Interfaces/Interfaces_A02_t02: Fail
 Language/09_Generics/09_Generics_A01_t05: Fail
 Language/09_Generics/09_Generics_A01_t08: Fail
 Language/09_Generics/09_Generics_A01_t10: Fail
@@ -484,9 +479,7 @@ Language/13_Types/4_Interface_Types_A12_t13: Fail
 Language/13_Types/4_Interface_Types_A12_t14: Fail
 Language/13_Types/4_Interface_Types_A12_t16: Fail
 Language/13_Types/5_Function_Types_A01_t01: Fail
-Language/13_Types/5_Function_Types_A01_t02: Crash # NPE in Types.isSubtype.
 Language/13_Types/5_Function_Types_A01_t02: Fail
-Language/13_Types/5_Function_Types_A01_t03: Crash # NPE in Types.isSubtype.
 Language/13_Types/5_Function_Types_A01_t03: Fail
 Language/13_Types/5_Function_Types_A01_t05: Fail
 Language/13_Types/5_Function_Types_A01_t06: Fail
@@ -523,25 +516,17 @@ LibTest/core/Expect/approxEquals_A01_t04: Fail
 LibTest/core/Expect/approxEquals_A02_t01: Fail
 LibTest/core/Expect/approxEquals_A03_t01: Fail
 LibTest/core/Expect/approxEquals_A04_t01: Fail
-LibTest/core/Expect/equals_A01_t02: Fail
 LibTest/core/Expect/equals_A02_t01: Fail
-LibTest/core/Expect/fail_A01_t01: Fail
 LibTest/core/Expect/fail_A02_t01: Fail
 LibTest/core/Expect/identical_A01_t01: Fail
-LibTest/core/Expect/identical_A01_t02: Fail
 LibTest/core/Expect/identical_A02_t01: Fail
-LibTest/core/Expect/isFalse_A01_t02: Fail
 LibTest/core/Expect/isFalse_A02_t01: Fail
-LibTest/core/Expect/isNotNull_A01_t02: Fail
 LibTest/core/Expect/isNotNull_A02_t01: Fail
-LibTest/core/Expect/isNull_A01_t02: Fail
 LibTest/core/Expect/isNull_A02_t01: Fail
-LibTest/core/Expect/isTrue_A01_t02: Fail
 LibTest/core/Expect/isTrue_A02_t01: Fail
 LibTest/core/Expect/listEquals_A01_t02: Fail
 LibTest/core/Expect/listEquals_A02_t01: Fail
 LibTest/core/Expect/listEquals_A03_t01: Fail
-LibTest/core/Expect/notEquals_A01_t02: Fail
 LibTest/core/Expect/notEquals_A02_t01: Fail
 LibTest/core/Expect/setEquals_A01_t01: Fail
 LibTest/core/Expect/setEquals_A01_t02: Fail

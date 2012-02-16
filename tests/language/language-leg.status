@@ -75,7 +75,6 @@ ConstructorReturnWithArrowNegativeTest: Fail
 ConstructorReturnWithInitAndArrowNegativeTest: Fail
 ConstructorReturnWithInitNegativeTest: Fail
 Context2Test: Fail
-ContextTest: Crash # NPE in Types.isSubtype.
 ContextTest: Fail
 ContinueTest: Fail
 DefaultClassImplicitConstructorTest: Fail
@@ -198,8 +197,7 @@ MethodBindingTest: Fail
 MethodInvocationTest: Fail
 MethodNameTest: Fail
 MethodOverrideTest: Fail
-NamedArgumentInConstCreationTest: Fail  # const expressions are not implemented
-NamedConstructorTest: Fail
+NamedArgumentInConstCreationTest: Fail
 NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
@@ -262,7 +260,6 @@ PrivateMemberTest: Fail
 PrivateTest: Fail
 PropertyFieldOverrideTest: Fail
 PseudoKWIllegalTest/01: Fail
-PseudoKWIllegalTest/02: Fail
 PseudoKWIllegalTest/03: Fail
 PseudoKWIllegalTest/04: Fail
 PseudoKWIllegalTest/05: Fail
@@ -278,9 +275,7 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
-RegEx2Test: Fail
 RegExp2Test: Fail
-RegExp3Test: Fail
 RegExpTest: Fail
 RethrowTest: Fail
 SavannahTest: Fail
@@ -349,6 +344,7 @@ TypeVMTest: Fail
 TypeVariableBoundsTest/00: Fail
 TypeVariableBoundsTest/07: Fail
 TypeVariableBoundsTest/08: Fail
+TypeVariableIdentifierExpressionNegativeTest: Fail
 TypeVariableScopeTest/00: Fail
 TypeVariableScopeTest/01: Fail
 TypeVariableScopeTest/02: Fail
