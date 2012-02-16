@@ -163,9 +163,9 @@ class TestOutput {
   List<String> stdout;
   List<String> stderr;
   Duration time;
-  /** 
-   * Set to true if we encounter a condition in the output that indicates we 
-   * need to rerun this test. 
+  /**
+   * Set to true if we encounter a condition in the output that indicates we
+   * need to rerun this test.
    */
   bool requestRetry;
 
@@ -259,8 +259,8 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (testCase is BrowserTestCase && testCase.output.unexpectedOutput &&
-        testCase.numRetries > 0) {
+    if (testCase.configuration['component'] == 'webdriver' &&
+        testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
@@ -512,7 +512,7 @@ class ProcessQueue {
   // system, generate tests, and search test files for options.
   Map<String, List<TestInformation>> _testCache;
   /**
-   * String indicating the browser used to run the tests. Empty if no browser 
+   * String indicating the browser used to run the tests. Empty if no browser
    * used.
    */
   String browserUsed;
@@ -563,16 +563,16 @@ class ProcessQueue {
   }
 
   /**
-   * Sometimes Webdriver doesn't close every browser window when it's done 
+   * Sometimes Webdriver doesn't close every browser window when it's done
    * with a test. At the end of all tests we clear out any neglected processes
-   * that are still running. 
+   * that are still running.
    */
   void killZombieBrowsers() {
     String chromeName = 'chrome';
     if (new Platform().operatingSystem() == 'macos') {
       chromeName = 'Google\ Chrome';
     }
-    Map<String, List<String>> processNames = {'ie': ['iexplore'], 'safari': 
+    Map<String, List<String>> processNames = {'ie': ['iexplore'], 'safari':
         ['Safari'], 'ff': ['firefox'], 'chrome': ['chromedriver', chromeName]};
     for (String name in processNames[browserUsed]) {
       Process process = null;
