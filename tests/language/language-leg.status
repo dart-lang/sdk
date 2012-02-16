@@ -148,7 +148,6 @@ GetterClosureExecutionOrderTest: Fail
 GetterDeclarationNegativeTest: Fail
 GettersSettersTest: Fail
 IfTest: Fail
-ImplicitClosure1Test: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
