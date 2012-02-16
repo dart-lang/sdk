@@ -99,7 +99,8 @@ public class SyntaxTest extends AbstractParserTest {
   public void testStringsErrors() {
     parseUnitErrors("StringsErrorsNegativeTest.dart",
         "Unexpected token 'ILLEGAL'", 7, 13,
-        "Unexpected token 'ILLEGAL'", 9, 9);
+        "Unexpected token 'ILLEGAL'", 9, 9,
+        "Unexpected token 'ILLEGAL'", 11, 9);
   }
 
   public void testNullAssign() {

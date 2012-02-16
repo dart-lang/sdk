@@ -8,5 +8,7 @@ class StringsWithErrorsTest {
     ; // added to avoid a cascading failure
     x = 'another unterminated string
     ; // added to avoid a cascading failure
+    x = @'unterminated raw string
+    ; // added to avoid a cascading failure
   }
 }
