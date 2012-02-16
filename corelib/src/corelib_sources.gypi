@@ -25,7 +25,6 @@
     'num.dart',
     'options.dart',
     'pattern.dart',
-    'promise.dart',
     'queue.dart',
     'regexp.dart',
     'set.dart',

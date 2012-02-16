@@ -35,8 +35,6 @@ LibTest/core/Date/Date_A01_t03: Pass # status change with --check-only
 LibTest/core/Date/toString_A02_t01: Pass # status change with --check-only
 LibTest/core/Date/weekday_A01_t01: Pass # status change with --check-only
 LibTest/core/Date/year_A01_t01: Pass # status change with --check-only
-LibTest/core/Dispatcher/Dispatcher_Dispatcher_A01_t01: Pass # status change with --check-only
-LibTest/core/Dispatcher/Dispatcher_serve_A01_t01: Pass # status change with --check-only
 LibTest/core/Duration/Duration_A03_t01: Pass # status change with --check-only
 LibTest/core/Expect/approxEquals_A03_t01: Pass # status change with --check-only
 LibTest/core/Expect/fail_A02_t01: Pass # status change with --check-only
@@ -95,24 +93,6 @@ LibTest/core/Math/sin_A01_t03: Pass # status change with --check-only
 LibTest/core/Math/sqrt_A01_t04: Pass # status change with --check-only
 LibTest/core/Math/tan_A01_t01: Pass # status change with --check-only
 LibTest/core/Math/tan_A01_t03: Pass # status change with --check-only
-LibTest/core/Promise/addCancelHandler_A01_t04: Pass # status change with --check-only
-LibTest/core/Promise/addCompleteHandler_A01_t05: Pass # status change with --check-only
-LibTest/core/Promise/addErrorHandler_A01_t05: Pass # status change with --check-only
-LibTest/core/Promise/complete_A01_t04: Pass # status change with --check-only
-LibTest/core/Promise/error_A01_t01: Pass # status change with --check-only
-LibTest/core/Promise/fail_A01_t02: Pass # status change with --check-only
-LibTest/core/Promise/hasValue_A01_t01: Pass # status change with --check-only
-LibTest/core/Promise/value_A01_t02: Pass # status change with --check-only
-LibTest/core/Promise/value_A01_t05: Pass # status change with --check-only
-LibTest/core/Promise/value_A01_t06: Pass # status change with --check-only
-LibTest/core/Promise/waitFor_A01_t04: Pass # status change with --check-only
-LibTest/core/Proxy/Proxy.forPort_A01_t01: Pass # status change with --check-only
-LibTest/core/Proxy/Proxy.forReply_A01_t01: Pass # status change with --check-only
-LibTest/core/Proxy/call_A01_t01: Pass # status change with --check-only
-LibTest/core/Proxy/local_A01_t01: Pass # status change with --check-only
-LibTest/core/Proxy/operator_equality_A01_t01: Pass # status change with --check-only
-LibTest/core/Proxy/register_A01_t01: Pass # status change with --check-only
-LibTest/core/Proxy/send_A01_t01: Pass # status change with --check-only
 LibTest/core/Queue/every_A01_t03: Pass # status change with --check-only
 LibTest/core/Queue/filter_A01_t03: Pass # status change with --check-only
 LibTest/core/Queue/forEach_A01_t03: Pass # status change with --check-only
@@ -259,8 +239,6 @@ LibTest/core/Date/Date_A01_t03: Fail
 LibTest/core/Date/toString_A02_t01: Fail
 LibTest/core/Date/weekday_A01_t01: Fail
 LibTest/core/Date/year_A01_t01: Fail
-LibTest/core/Dispatcher/Dispatcher_Dispatcher_A01_t01: Fail
-LibTest/core/Dispatcher/Dispatcher_serve_A01_t01: Fail
 LibTest/core/Duration/Duration_A03_t01: Fail
 LibTest/core/Expect/approxEquals_A03_t01: Fail
 LibTest/core/Expect/fail_A02_t01: Fail
@@ -302,24 +280,6 @@ LibTest/core/Math/sin_A01_t03: Fail
 LibTest/core/Math/sqrt_A01_t04: Fail
 LibTest/core/Math/tan_A01_t01: Fail
 LibTest/core/Math/tan_A01_t03: Fail
-LibTest/core/Promise/addCancelHandler_A01_t04: Fail
-LibTest/core/Promise/addCompleteHandler_A01_t05: Fail
-LibTest/core/Promise/addErrorHandler_A01_t05: Fail
-LibTest/core/Promise/complete_A01_t04: Fail
-LibTest/core/Promise/error_A01_t01: Fail
-LibTest/core/Promise/fail_A01_t02: Fail
-LibTest/core/Promise/hasValue_A01_t01: Fail
-LibTest/core/Promise/value_A01_t02: Fail
-LibTest/core/Promise/value_A01_t05: Fail
-LibTest/core/Promise/value_A01_t06: Fail
-LibTest/core/Promise/waitFor_A01_t04: Fail
-LibTest/core/Proxy/Proxy.forPort_A01_t01: Fail
-LibTest/core/Proxy/Proxy.forReply_A01_t01: Fail
-LibTest/core/Proxy/call_A01_t01: Fail
-LibTest/core/Proxy/local_A01_t01: Fail
-LibTest/core/Proxy/operator_equality_A01_t01: Fail
-LibTest/core/Proxy/register_A01_t01: Fail
-LibTest/core/Proxy/send_A01_t01: Fail
 LibTest/core/Queue/every_A01_t03: Fail
 LibTest/core/Queue/filter_A01_t03: Fail
 LibTest/core/Queue/forEach_A01_t03: Fail
@@ -508,6 +468,10 @@ Language/07_Classes/3_Setters_A01_t02: Fail
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail
 Language/07_Classes/2_Getters_A01_t02: Fail
 
+# removed from corelib, (co19 issue #79)
+LibTest/core/Promise/*: Skip
+LibTest/core/Proxy/*: Skip
+LibTest/core/Dispatcher/*: Skip
 
 [ $component == dartium ]
 *: Skip

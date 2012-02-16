@@ -30,7 +30,6 @@
 #source("src/math.dart");
 #source("src/num.dart");
 #source("src/pattern.dart");
-#source("src/promise.dart");
 #source("src/queue.dart");
 #source("src/regexp.dart");
 #source("src/set.dart");

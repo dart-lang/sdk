@@ -5,10 +5,12 @@
 prefix co19
 
 
-LibTest/core/Proxy/Proxy.forIsolate_A01_t01: Skip # Issue co19 - 16
-LibTest/core/Proxy/Proxy.forIsolateWithPromise_A01_t01: Skip # Issue co19 - 16
 
 [ $component == vm ]
+
+LibTest/core/Promise/*: Skip    # removed from corelib, (co19 issue #79)
+LibTest/core/Proxy/*: Skip      # removed from corelib, (co19 issue #79)
+LibTest/core/Dispatcher/*: Skip # removed from corelib, (co19 issue #79)
 
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A04_t01: Fail # Issue 392
@@ -34,8 +36,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 [ $component == vm ]
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
-LibTest/core/Dispatcher/Dispatcher_Dispatcher_A01_t01: Fail # Issue co19 - 39
-LibTest/core/Dispatcher/Dispatcher_serve_A01_t01: Fail # Issue co19 - 39
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/Match/pattern_A01_t01: Fail
@@ -43,21 +43,7 @@ LibTest/core/Math/pow_A01_t01: Fail  # Issue co19 - 44
 LibTest/core/Math/pow_A01_t02: Fail  # Issue 447
 LibTest/core/Math/pow_A11_t01: Fail  # Issue 449
 LibTest/core/Math/pow_A13_t01: Fail  # Issue 449
-LibTest/core/Promise/complete_A01_t04: Fail
-LibTest/core/Promise/error_A01_t01: Fail
-LibTest/core/Promise/fail_A01_t02: Fail
-LibTest/core/Promise/hasValue_A01_t01: Fail
-LibTest/core/Promise/value_A01_t02: Fail
-LibTest/core/Promise/value_A01_t05: Fail
-LibTest/core/Promise/value_A01_t06: Fail
-LibTest/core/Promise/waitFor_A01_t04: Fail
-LibTest/core/Proxy/Proxy.forPort_A01_t01: Fail # Issue co19 - 51
-LibTest/core/Proxy/Proxy.forReply_A01_t01: Fail # Issue co19 - 51
-LibTest/core/Proxy/call_A01_t01: Fail # Issue co19 - 51
-LibTest/core/Proxy/local_A01_t01: Fail # Issue co19 - 51
-LibTest/core/Proxy/operator_equality_A01_t01: Fail # Issue co19 - 51
-LibTest/core/Proxy/register_A01_t01: Fail # Issue co19 - 51
-LibTest/core/Proxy/send_A01_t01: Fail # Issue co19 - 51
+LibTest/core/ReceivePort/toSendPort_A02_t01: Fail # Issue co19 - 51
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/firstMatch_A01_t01: Fail

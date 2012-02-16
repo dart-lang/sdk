@@ -173,26 +173,12 @@ class TestExpectation {
     testCase.tearDown();
   }
 
-  Future completes(var future) {
-    if (!(future is Promise || future is Future)) {
-      // TODO(mattsh) - remove this hack once we finish conversion of
-      // Promise to Future
-      throw "must pass Promise or Future to TestFramework.completes";
-    }
+  Future completes(Future future) {
     Completer completer = new Completer();
     future.then(runs1((value) {
       completer.complete(value);
     }));
     return completer.future;
-  }
-
-  Promise completesWithValue(Promise promise, var expected) {
-    Promise promiseResult = new TestPromise(this);
-    promise.then((value) {
-      Expect.equals(expected, value);
-      promiseResult.complete(value);
-    });
-    return promiseResult;
   }
 
   Function runs0(Function fn) {
@@ -284,20 +270,5 @@ class AsynchronousTestCase extends TestCase {
 
   static int running = 0;
   static ReceivePort keepalive = null;
-
-}
-
-// TODO(mattsh) - remove this once we have migrated the rpc system
-class TestPromise<T> extends PromiseImpl<T> {
-
-  TestPromise(this.expect) : super();
-
-  void addCompleteHandler(void completeHandler(T result)) {
-    super.addCompleteHandler(expect.runs1((T result) {
-      completeHandler(result);
-    }));
-  }
-
-  final TestExpectation expect;
 
 }

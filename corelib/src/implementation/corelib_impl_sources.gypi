@@ -12,7 +12,6 @@
     'linked_hash_map.dart',
     'maps.dart',
     'options.dart',
-    'promise_implementation.dart',
     'queue.dart',
     'splay_tree.dart',
     'stopwatch_implementation.dart',
