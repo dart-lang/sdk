@@ -540,7 +540,7 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
     var temp = dom.document.createElement(parentTag);
     temp.innerHTML = html;
 
-    var element;
+    Element element;
     if (temp.childElementCount == 1) {
       element = LevelDom.wrapElement(temp.firstElementChild);
     } else if (parentTag == 'html' && temp.childElementCount == 2) {
