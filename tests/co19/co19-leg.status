@@ -56,7 +56,6 @@ LibTest/core/WrongArgumentCountException/* : Skip
 LibTest/core/double/* : Skip
 LibTest/core/int/* : Skip
 
-
 [ $component == leg && $checked ]
 # Leg does not support checked mode yet.
 *: Skip
@@ -540,3 +539,5 @@ LibTest/core/Expect/throws_A01_t03: Fail
 LibTest/core/Expect/throws_A01_t04: Fail
 LibTest/core/Expect/throws_A01_t05: Fail
 LibTest/core/Expect/throws_A02_t01: Fail
+LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail  # Issue 4.
+LibTest/core/Stopwatch/elapsed_A01_t02: 
