@@ -29,11 +29,25 @@ Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
 
 void Builtin::ImportLibrary(Dart_Handle library, BuiltinLibraryId id) {
   Dart_Handle url;
-  if (id == kBuiltinLibrary) {
-    url = Dart_NewString(DartUtils::kBuiltinLibURL);
-  } else {
-    ASSERT(id == kIOLibrary);
-    url = Dart_NewString(DartUtils::kIOLibURL);
+  switch (id) {
+    case kBuiltinLibrary:
+      url = Dart_NewString(DartUtils::kBuiltinLibURL);
+      break;
+    case kIOLibrary:
+      url = Dart_NewString(DartUtils::kIOLibURL);
+      break;
+    case kJsonLibrary:
+      url = Dart_NewString(DartUtils::kJsonLibURL);
+      break;
+    case kUriLibrary:
+      url = Dart_NewString(DartUtils::kUriLibURL);
+      break;
+    case kUtf8Library:
+      url = Dart_NewString(DartUtils::kUtf8LibURL);
+      break;
+    default:
+      url = Dart_Error("Unknown builtin library requested.");
+      UNREACHABLE();
   }
   Dart_Handle imported_library = Dart_LookupLibrary(url);
   // Import the builtin library into current library.

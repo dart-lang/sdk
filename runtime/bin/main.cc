@@ -267,9 +267,16 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return DartUtils::CanonicalizeURL(NULL, library, url_string);
   }
   if (is_dart_scheme_url) {
-    // Handle imports of dart:io.
-    if (DartUtils::IsDartIOLibURL(url_string) && (tag == kImportTag)) {
+    ASSERT(tag == kImportTag);
+    // Handle imports of other built-in libraries present in the SDK.
+    if (DartUtils::IsDartIOLibURL(url_string)) {
       return Builtin::LoadLibrary(Builtin::kIOLibrary);
+    } else if (DartUtils::IsDartJsonLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kJsonLibrary);
+    } else if (DartUtils::IsDartUriLibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kUriLibrary);
+    } else if (DartUtils::IsDartUtf8LibURL(url_string)) {
+      return Builtin::LoadLibrary(Builtin::kUtf8Library);
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }

@@ -4,9 +4,8 @@
 
 {
   'variables': {
-    'corelib_in_cc_file': 'corelib_in.cc',
+    'builtin_in_cc_file': '../bin/builtin_in.cc',
     'corelib_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_gen.cc',
-    'corelib_impl_in_cc_file': 'corelib_impl_in.cc',
     'corelib_impl_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_impl_gen.cc',
     'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
@@ -118,7 +117,7 @@
           'action_name': 'generate_corelib_cc',
           'inputs': [
             '../tools/create_string_literal.py',
-            '<(corelib_in_cc_file)',
+            '<(builtin_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -128,7 +127,9 @@
             'python',
             'tools/create_string_literal.py',
             '--output', '<(corelib_cc_file)',
-            '--input_cc', '<(corelib_in_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::corelib_source_',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(corelib_cc_file)'' file.'
@@ -161,7 +162,7 @@
           'action_name': 'generate_corelib_impl_cc',
           'inputs': [
             '../tools/create_string_literal.py',
-            '<(corelib_impl_in_cc_file)',
+            '<(builtin_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -171,7 +172,9 @@
             'python',
             'tools/create_string_literal.py',
             '--output', '<(corelib_impl_cc_file)',
-            '--input_cc', '<(corelib_impl_in_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::corelib_impl_source_',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(corelib_impl_cc_file)'' file.'
@@ -202,6 +205,8 @@
             'tools/create_string_literal.py',
             '--output', '<(snapshot_test_dat_file)',
             '--input_cc', '<(snapshot_test_in_dat_file)',
+            '--include', 'INTENTIONALLY_LEFT_BLANK',
+            '--var_name', 'INTENTIONALLY_LEFT_BLANK_TOO',
             '<(snapshot_test_dart_file)',
           ],
           'message': 'Generating ''<(snapshot_test_dat_file)'' file.'

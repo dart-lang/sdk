@@ -204,10 +204,9 @@ static Dart_Handle LoadGenericSnapshotCreationScript(
                           BuiltinLibraryTagHandler,
                           import_map);
   } else {
-    ASSERT(id == Builtin::kIOLibrary);
-    // Load the dart:io library to make it available in the snapshot
+    // Load the builtin library to make it available in the snapshot
     // for importing.
-    lib = Builtin::LoadLibrary(Builtin::kIOLibrary);
+    lib = Builtin::LoadLibrary(id);
   }
   if (!Dart_IsError(lib)) {
     Builtin::SetupLibrary(lib, id);
@@ -286,6 +285,12 @@ int main(int argc, char** argv) {
     library = LoadGenericSnapshotCreationScript(Builtin::kBuiltinLibrary);
     VerifyLoaded(library);
     library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
+    VerifyLoaded(library);
+    library = LoadGenericSnapshotCreationScript(Builtin::kJsonLibrary);
+    VerifyLoaded(library);
+    library = LoadGenericSnapshotCreationScript(Builtin::kUriLibrary);
+    VerifyLoaded(library);
+    library = LoadGenericSnapshotCreationScript(Builtin::kUtf8Library);
     VerifyLoaded(library);
   }
 

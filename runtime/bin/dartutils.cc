@@ -14,6 +14,9 @@ const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
 const char* DartUtils::kIOLibURL = "dart:io";
+const char* DartUtils::kJsonLibURL = "dart:json";
+const char* DartUtils::kUriLibURL = "dart:uri";
+const char* DartUtils::kUtf8LibURL = "dart:utf8";
 
 
 const char* DartUtils::kIdFieldName = "_id";
@@ -105,6 +108,20 @@ bool DartUtils::IsDartIOLibURL(const char* url_name) {
   return (strcmp(url_name, kIOLibURL) == 0);
 }
 
+
+bool DartUtils::IsDartJsonLibURL(const char* url_name) {
+  return (strcmp(url_name, kJsonLibURL) == 0);
+}
+
+
+bool DartUtils::IsDartUriLibURL(const char* url_name) {
+  return (strcmp(url_name, kUriLibURL) == 0);
+}
+
+
+bool DartUtils::IsDartUtf8LibURL(const char* url_name) {
+  return (strcmp(url_name, kUtf8LibURL) == 0);
+}
 
 
 Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,

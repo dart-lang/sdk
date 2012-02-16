@@ -25,18 +25,34 @@ static void SetupCorelibImports(Dart_Handle builtin_lib) {
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
   Dart_Handle source;
-  if (id == kBuiltinLibrary) {
-    source = Dart_NewString(Builtin::builtin_source_);
-  } else {
-    ASSERT(id == kIOLibrary);
-    source = Dart_NewString(Builtin::io_source_);
+  switch (id) {
+    case kBuiltinLibrary:
+      source = Dart_NewString(Builtin::builtin_source_);
+      break;
+    case kIOLibrary:
+      source = Dart_NewString(Builtin::io_source_);
+      break;
+    case kJsonLibrary:
+      source = Dart_NewString(Builtin::json_source_);
+      break;
+    case kUriLibrary:
+      source = Dart_NewString(Builtin::uri_source_);
+      break;
+    case kUtf8Library:
+      source = Dart_NewString(Builtin::utf8_source_);
+      break;
+    default:
+      return Dart_Error("Unknown builtin source requested.");
   }
   return source;
 }
 
 
 void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
-  if (id == kBuiltinLibrary) {
+  if ((id == kJsonLibrary) || (id == kUriLibrary) || (id == kUtf8Library)) {
+    // No native resolver for these pure Dart libraries.
+    return;
+  } else if (id == kBuiltinLibrary) {
     // Setup core lib, builtin import structure.
     SetupCorelibImports(library);
   }
@@ -47,11 +63,24 @@ void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
 
 Dart_Handle Builtin::LoadLibrary(BuiltinLibraryId id) {
   Dart_Handle url;
-  if (id == kBuiltinLibrary) {
-    url = Dart_NewString(DartUtils::kBuiltinLibURL);
-  } else {
-    ASSERT(id == kIOLibrary);
-    url = Dart_NewString(DartUtils::kIOLibURL);
+  switch (id) {
+    case kBuiltinLibrary:
+      url = Dart_NewString(DartUtils::kBuiltinLibURL);
+      break;
+    case kIOLibrary:
+      url = Dart_NewString(DartUtils::kIOLibURL);
+      break;
+    case kJsonLibrary:
+      url = Dart_NewString(DartUtils::kJsonLibURL);
+      break;
+    case kUriLibrary:
+      url = Dart_NewString(DartUtils::kUriLibURL);
+      break;
+    case kUtf8Library:
+      url = Dart_NewString(DartUtils::kUtf8LibURL);
+      break;
+    default:
+      return Dart_Error("Unknown builtin library requested.");
   }
   Dart_Handle library = Dart_LookupLibrary(url);
   if (Dart_IsError(library)) {

@@ -4,8 +4,10 @@
 
 {
   'variables': {
-    'io_in_cc_file': 'io_in.cc',
     'io_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_gen.cc',
+    'json_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_gen.cc',
+    'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
+    'utf8_cc_file': '<(SHARED_INTERMEDIATE_DIR)/utf8_gen.cc',
     'builtin_in_cc_file': 'builtin_in.cc',
     'builtin_cc_file': '<(SHARED_INTERMEDIATE_DIR)/builtin_gen.cc',
     'snapshot_in_cc_file': 'snapshot_in.cc',
@@ -41,6 +43,8 @@
             'tools/create_string_literal.py',
             '--output', '<(builtin_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'bin/builtin.h',
+            '--var_name', 'Builtin::builtin_source_',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(builtin_cc_file)'' file.'
@@ -63,7 +67,7 @@
           'action_name': 'generate_io_cc',
           'inputs': [
             '../tools/create_string_literal.py',
-            '<(io_in_cc_file)',
+            '<(builtin_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -73,10 +77,117 @@
             'python',
             'tools/create_string_literal.py',
             '--output', '<(io_cc_file)',
-            '--input_cc', '<(io_in_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'bin/builtin.h',
+            '--var_name', 'Builtin::io_source_',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(io_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_json_cc_file',
+      'type': 'none',
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
+      ],
+      'includes': [
+        'json_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_json_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(json_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(json_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'bin/builtin.h',
+            '--var_name', 'Builtin::json_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(json_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_uri_cc_file',
+      'type': 'none',
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
+      ],
+      'includes': [
+        'uri_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_uri_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(uri_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(uri_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'bin/builtin.h',
+            '--var_name', 'Builtin::uri_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(uri_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_utf8_cc_file',
+      'type': 'none',
+      'conditions': [
+        ['OS=="win"', {
+          'msvs_cygwin_dirs': ['<(cygwin_dir)'],
+        }],
+      ],
+      'includes': [
+        'utf8_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_utf8_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(utf8_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(utf8_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'bin/builtin.h',
+            '--var_name', 'Builtin::utf8_source_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(utf8_cc_file)'' file.'
         },
       ]
     },
@@ -86,6 +197,9 @@
       'dependencies': [
         'generate_builtin_cc_file',
         'generate_io_cc_file',
+        'generate_json_cc_file',
+        'generate_uri_cc_file',
+        'generate_utf8_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -143,6 +257,9 @@
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',
+        '<(json_cc_file)',
+        '<(uri_cc_file)',
+        '<(utf8_cc_file)',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -227,6 +344,9 @@
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',
+        '<(json_cc_file)',
+        '<(uri_cc_file)',
+        '<(utf8_cc_file)',
         'snapshot_empty.cc',
       ],
       'conditions': [
