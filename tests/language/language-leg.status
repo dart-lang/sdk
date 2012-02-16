@@ -152,8 +152,6 @@ ImplicitClosure1Test: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
-ImportCoreImplNoPrefixTest: Fail
-ImportCoreNoPrefixTest: Fail
 InstFieldInitializer1NegativeTest: Fail
 InstFieldInitializerTest: Fail
 InstanceCompoundAssignmentOperatorTest: Fail
