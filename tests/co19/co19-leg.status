@@ -46,7 +46,6 @@ LibTest/core/RegExp/* : Skip
 LibTest/core/SendPort/* : Skip
 LibTest/core/Set/* : Skip
 LibTest/core/StackOverflowException/* : Skip
-LibTest/core/Stopwatch/* : Skip
 LibTest/core/String/* : Skip
 LibTest/core/StringBuffer/* : Skip
 LibTest/core/Strings/* : Skip
@@ -541,3 +540,4 @@ LibTest/core/Expect/throws_A01_t03: Fail
 LibTest/core/Expect/throws_A01_t04: Fail
 LibTest/core/Expect/throws_A01_t05: Fail
 LibTest/core/Expect/throws_A02_t01: Fail
+LibTest/core/Stopwatch/elapsed_A01_t02: Fail
