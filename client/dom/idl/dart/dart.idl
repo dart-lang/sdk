@@ -48,27 +48,27 @@ module html {
   [Supplemental]
   interface Console {
     [Suppressed] void debug();
-    [CustomArgumentHandling] void debug(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void debug(DOMObject arg);
     [Suppressed] void error();
-    [CustomArgumentHandling] void error(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void error(DOMObject arg);
     [Suppressed] void info();
-    [CustomArgumentHandling] void info(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void info(DOMObject arg);
     [Suppressed] void log();
-    [CustomArgumentHandling] void log(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void log(DOMObject arg);
     [Suppressed] void warn();
-    [CustomArgumentHandling] void warn(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void warn(DOMObject arg);
     [Suppressed] void trace();
-    [CustomArgumentHandling] void trace(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void trace(DOMObject arg);
     [Suppressed] void assert(in boolean condition);
-    [CustomArgumentHandling] void assertCondition(boolean condition, DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void assertCondition(boolean condition, DOMObject arg);
     [Suppressed] void timeEnd(in DOMString title);
-    [CustomArgumentHandling] void timeEnd(DOMString title, DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void timeEnd(DOMString title, DOMObject arg);
     [Suppressed] void timeStamp();
-    [CustomArgumentHandling] void timeStamp(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void timeStamp(DOMObject arg);
     [Suppressed] void group();
-    [CustomArgumentHandling] void group(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void group(DOMObject arg);
     [Suppressed] void groupCollapsed();
-    [CustomArgumentHandling] void groupCollapsed(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void groupCollapsed(DOMObject arg);
   };
 
   [Supplemental]

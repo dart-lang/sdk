@@ -129,7 +129,7 @@ class DatabaseBuilder(object):
         if argument.is_optional:
           if 'Optional' in argument.ext_attrs:
             optional_value = argument.ext_attrs['Optional']
-            if optional_value == 'CallWithDefaultValue':
+            if optional_value:
               if (interface.id, op.id, argument.id) not in optional_argument_whitelist:
                 argument.is_optional = False
                 del argument.ext_attrs['Optional']

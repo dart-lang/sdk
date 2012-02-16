@@ -1769,8 +1769,8 @@ class WrappingInterfaceGenerator(object):
         TYPE=element_type)
 
   def _HasNativeIndexGetter(self, interface):
-    return ('HasIndexGetter' in interface.ext_attrs or
-            'HasNumericIndexGetter' in interface.ext_attrs)
+    return ('IndexedGetter' in interface.ext_attrs or
+            'NumericIndexedGetter' in interface.ext_attrs)
 
   def _EmitNativeIndexGetter(self, interface, element_type):
     method_name = '_index'
@@ -1781,7 +1781,7 @@ class WrappingInterfaceGenerator(object):
         TYPE=element_type, METHOD=method_name)
 
   def _HasNativeIndexSetter(self, interface):
-    return 'HasCustomIndexSetter' in interface.ext_attrs
+    return 'CustomIndexedSetter' in interface.ext_attrs
 
   def _EmitNativeIndexSetter(self, interface, element_type):
     method_name = '_set_index'
@@ -2193,7 +2193,7 @@ class FrogInterfaceGenerator(object):
         '  $TYPE operator[](int index) native "return this[index];";\n',
         TYPE=self._NarrowOutputType(element_type))
 
-    if 'HasCustomIndexSetter' in self._interface.ext_attrs:
+    if 'CustomIndexedSetter' in self._interface.ext_attrs:
       self._members_emitter.Emit(
           '\n'
           '  void operator[]=(int index, $TYPE value) native "this[index] = value";\n',
@@ -2745,7 +2745,9 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
       webcore_include = ''
 
     if ('CustomToJS' in self._interface.ext_attrs or
+        'CustomToJSObject' in self._interface.ext_attrs or
         'PureInterface' in self._interface.ext_attrs or
+        'CPPPureInterface' in self._interface.ext_attrs or
         self._interface_type_info.custom_to_dart()):
       to_dart_value_template = (
           'Dart_Handle toDartValue($(WEBCORE_CLASS_NAME)* value);\n')
@@ -2864,8 +2866,8 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
         raises_dom_exceptions=attr.set_raises)
 
   def _HasNativeIndexGetter(self, interface):
-    return ('HasCustomIndexGetter' in interface.ext_attrs or
-            'HasNumericIndexGetter' in interface.ext_attrs)
+    return ('CustomIndexedGetter' in interface.ext_attrs or
+            'NumericIndexedGetter' in interface.ext_attrs)
 
   def _EmitNativeIndexGetter(self, interface, element_type):
     dart_declaration = '%s operator[](int index)' % element_type
@@ -2964,25 +2966,44 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
 
     # Generate callback.
     webcore_function_name = operation.id
-    if 'ImplementationFunction' in operation.ext_attrs:
-      webcore_function_name = operation.ext_attrs['ImplementationFunction']
+    if 'ImplementedAs' in operation.ext_attrs:
+      webcore_function_name = operation.ext_attrs['ImplementedAs']
 
     parameter_definitions_emitter = emitter.Emitter()
     raises_dart_exceptions = len(operation.arguments) > 0 or operation.raises
     arguments = []
 
     # Process 'CallWith' argument.
-    if ('CallWith' in operation.ext_attrs and
-        operation.ext_attrs['CallWith'] == 'ScriptExecutionContext'):
-      parameter_definitions_emitter.Emit(
-          '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
-          '        if (!context)\n'
-          '            return;\n')
-      arguments.append('context')
+    if 'CallWith' in operation.ext_attrs:
+      call_with = operation.ext_attrs['CallWith']
+      if call_with == 'ScriptExecutionContext':
+        parameter_definitions_emitter.Emit(
+            '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
+            '        if (!context)\n'
+            '            return;\n')
+        arguments.append('context')
+      elif call_with == 'ScriptArguments|CallStack':
+        raises_dart_exceptions = True
+        self._cpp_impl_includes['ScriptArguments'] = 1
+        self._cpp_impl_includes['ScriptCallStack'] = 1
+        self._cpp_impl_includes['V8Proxy'] = 1
+        self._cpp_impl_includes['v8'] = 1
+        parameter_definitions_emitter.Emit(
+            '        v8::HandleScope handleScope;\n'
+            '        v8::Context::Scope scope(V8Proxy::mainWorldContext(DartUtilities::domWindowForCurrentIsolate()->frame()));\n'
+            '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
+            '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
+            '        if (!scriptArguments)\n'
+            '            goto fail;\n'
+            '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
+            '        if (!scriptCallStack->size())\n'
+            '            return;\n',
+            INDEX=len(operation.arguments))
+        arguments.extend(['scriptArguments', 'scriptCallStack'])
 
     # Process Dart arguments.
     for (i, argument) in enumerate(operation.arguments):
-      if i == len(operation.arguments) - 1 and 'CustomArgumentHandling' in operation.ext_attrs:
+      if i == len(operation.arguments) - 1 and self._interface.id == 'Console' and argument.id == 'arg':
         # FIXME: we are skipping last argument here because it was added in
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
@@ -3000,26 +3021,6 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
       # idl, but is not optional in webcore implementation.
       if len(operation.arguments) == 2:
         arguments.append('String()')
-
-    # Process auxiliary arguments.
-    if 'CustomArgumentHandling' in operation.ext_attrs:
-      raises_dart_exceptions = True
-      self._cpp_impl_includes['ScriptArguments'] = 1
-      self._cpp_impl_includes['ScriptCallStack'] = 1
-      self._cpp_impl_includes['V8Proxy'] = 1
-      self._cpp_impl_includes['v8'] = 1
-      parameter_definitions_emitter.Emit(
-          '        v8::HandleScope handleScope;\n'
-          '        v8::Context::Scope scope(V8Proxy::mainWorldContext(DartUtilities::domWindowForCurrentIsolate()->frame()));\n'
-          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
-          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
-          '        if (!scriptArguments)\n'
-          '            goto fail;\n'
-          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
-          '        if (!scriptCallStack->size())\n'
-          '            return;\n',
-          INDEX=len(operation.arguments))
-      arguments.extend(['scriptArguments', 'scriptCallStack'])
 
     if 'NeedsUserGestureCheck' in operation.ext_attrs:
       arguments.extend('DartUtilities::processingUserGesture')
@@ -3063,7 +3064,7 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
       if return_type_info.conversion_include():
         self._cpp_impl_includes[return_type_info.conversion_include()] = 1
       if (return_type_info.idl_type() in ['DOMString', 'AtomicString'] and
-          'ConvertNullStringTo' in idl_node.ext_attrs):
+          'TreatReturnedNullStringAs' in idl_node.ext_attrs):
         nested_templates.append('$BODY, ConvertDefaultToNull')
       nested_templates.append(
           '        Dart_Handle returnValue = toDartValue($BODY);\n'
