@@ -198,6 +198,7 @@ MethodBindingTest: Fail
 MethodInvocationTest: Fail
 MethodNameTest: Fail
 MethodOverrideTest: Fail
+NamedArgumentInConstCreationTest: Fail  # const expressions are not implemented
 NamedConstructorTest: Fail
 NamedParameters2Test: Fail
 NamedParameters3Test: Fail
