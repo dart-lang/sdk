@@ -703,7 +703,7 @@ void CodeGenerator::GenerateEntryCode() {
 
     if (FLAG_trace_functions) {
       __ pushl(EAX);  // Preserve result.
-      __ PushObject(function);
+      __ PushObject(Function::ZoneHandle(function.raw()));
       GenerateCallRuntime(AstNode::kNoId,
                           0,
                           kTraceFunctionExitRuntimeEntry);
