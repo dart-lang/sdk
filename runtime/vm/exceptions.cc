@@ -119,13 +119,14 @@ static void ThrowExceptionHelper(const Instance& exception,
 
 
 void Exceptions::Throw(const Instance& exception) {
+  // Null object is a valid exception object.
   ThrowExceptionHelper(exception, Instance::Handle());
 }
 
 
 void Exceptions::ReThrow(const Instance& exception,
                          const Instance& stacktrace) {
-  ASSERT(!exception.IsNull());
+  // Null object is a valid exception object.
   ThrowExceptionHelper(exception, stacktrace);
 }
 
