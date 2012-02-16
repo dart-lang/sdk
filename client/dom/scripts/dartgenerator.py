@@ -2708,7 +2708,7 @@ class NativeImplementationGenerator(WrappingInterfaceGenerator):
     # FIXME: add proper support for non-custom constructors.
     if ('CustomConstructor' in self._interface.ext_attrs or
         'V8CustomConstructor' in self._interface.ext_attrs or
-        self._interface.id in ['FileReader', 'WebKitCSSMatrix']):
+        self._interface.id in ['FileReader', 'WebKitCSSMatrix', 'XSLTProcessor']):
       self._cpp_resolver_emitter.Emit(
           '    if (name == "$(INTERFACE_NAME)_constructor_Callback")\n'
           '        return Dart$(INTERFACE_NAME)Internal::constructorCallback;\n',
