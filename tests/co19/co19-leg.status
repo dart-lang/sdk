@@ -5,8 +5,57 @@
 prefix co19
 
 [ $component == leg ]
-# Skip library tests for now.
-LibTest/*: Skip
+# Skip most library tests for now.
+LibTest/core/AssertionError/* : Skip
+LibTest/core/BadNumberFormatException/* : Skip
+LibTest/core/Clock/* : Skip
+LibTest/core/ClosureArgumentMismatchException/* : Skip
+LibTest/core/Date/* : Skip
+LibTest/core/Dispatcher/* : Skip
+LibTest/core/Duration/* : Skip
+LibTest/core/EmptyQueueException/* : Skip
+LibTest/core/Exception/* : Skip
+LibTest/core/ExpectException/* : Skip
+LibTest/core/FallThroughError/* : Skip
+LibTest/core/HashMap/* : Skip
+LibTest/core/HashSet/* : Skip
+LibTest/core/IllegalAccessException/* : Skip
+LibTest/core/IllegalArgumentException/* : Skip
+LibTest/core/IllegalJSRegExpException/* : Skip
+LibTest/core/IndexOutOfRangeException/* : Skip
+LibTest/core/IntegerDivisionByZeroException/* : Skip
+LibTest/core/InternalError/* : Skip
+LibTest/core/Isolate/* : Skip
+LibTest/core/LinkedHashMap/* : Skip
+LibTest/core/List/* : Skip
+LibTest/core/Map/* : Skip
+LibTest/core/Match/* : Skip
+LibTest/core/Math/* : Skip
+LibTest/core/NoMoreElementsException/* : Skip
+LibTest/core/NoSuchMethodException/* : Skip
+LibTest/core/NotImplementedException/* : Skip
+LibTest/core/NullPointerException/* : Skip
+LibTest/core/Object/* : Skip
+LibTest/core/ObjectNotClosureException/* : Skip
+LibTest/core/OutOfMemoryException/* : Skip
+LibTest/core/Promise/* : Skip
+LibTest/core/Proxy/* : Skip
+LibTest/core/Queue/* : Skip
+LibTest/core/ReceivePort/* : Skip
+LibTest/core/RegExp/* : Skip
+LibTest/core/SendPort/* : Skip
+LibTest/core/Set/* : Skip
+LibTest/core/StackOverflowException/* : Skip
+LibTest/core/Stopwatch/* : Skip
+LibTest/core/String/* : Skip
+LibTest/core/StringBuffer/* : Skip
+LibTest/core/Strings/* : Skip
+LibTest/core/TimeZone/* : Skip
+LibTest/core/TypeError/* : Skip
+LibTest/core/UnsupportedOperationException/* : Skip
+LibTest/core/WrongArgumentCountException/* : Skip
+LibTest/core/double/* : Skip
+LibTest/core/int/* : Skip
 
 
 [ $component == leg && $checked ]
@@ -22,8 +71,11 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A05_t01: Crash
 Language/13_Types/3_Type_Declarations/1_Typedef_A05_t02: Crash
 Language/13_Types/3_Type_Declarations/1_Typedef_A05_t03: Crash
 
+
 [ $component == leg && $mode == debug ]
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
+LibTest/core/Expect/listEquals_A01_t03: Crash # VM issue 1710.
+
 
 [ $component == leg ]
 # Crashes and time outs.
@@ -465,3 +517,43 @@ Language/13_Types/6_Type_Dynamic_A02_t01: Fail
 Language/13_Types/6_Type_Dynamic_A03_t01: Fail
 Language/13_Types/6_Type_Dynamic_A04_t01: Fail
 Language/13_Types/7_Type_Void_A01_t09: Fail
+LibTest/core/Expect/approxEquals_A01_t01: Fail
+LibTest/core/Expect/approxEquals_A01_t02: Fail
+LibTest/core/Expect/approxEquals_A01_t03: Fail
+LibTest/core/Expect/approxEquals_A01_t04: Fail
+LibTest/core/Expect/approxEquals_A02_t01: Fail
+LibTest/core/Expect/approxEquals_A03_t01: Fail
+LibTest/core/Expect/approxEquals_A04_t01: Fail
+LibTest/core/Expect/equals_A01_t02: Fail
+LibTest/core/Expect/equals_A02_t01: Fail
+LibTest/core/Expect/fail_A01_t01: Fail
+LibTest/core/Expect/fail_A02_t01: Fail
+LibTest/core/Expect/identical_A01_t01: Fail
+LibTest/core/Expect/identical_A01_t02: Fail
+LibTest/core/Expect/identical_A02_t01: Fail
+LibTest/core/Expect/isFalse_A01_t02: Fail
+LibTest/core/Expect/isFalse_A02_t01: Fail
+LibTest/core/Expect/isNotNull_A01_t02: Fail
+LibTest/core/Expect/isNotNull_A02_t01: Fail
+LibTest/core/Expect/isNull_A01_t02: Fail
+LibTest/core/Expect/isNull_A02_t01: Fail
+LibTest/core/Expect/isTrue_A01_t02: Fail
+LibTest/core/Expect/isTrue_A02_t01: Fail
+LibTest/core/Expect/listEquals_A01_t02: Fail
+LibTest/core/Expect/listEquals_A02_t01: Fail
+LibTest/core/Expect/listEquals_A03_t01: Fail
+LibTest/core/Expect/notEquals_A01_t02: Fail
+LibTest/core/Expect/notEquals_A02_t01: Fail
+LibTest/core/Expect/setEquals_A01_t01: Fail
+LibTest/core/Expect/setEquals_A01_t02: Fail
+LibTest/core/Expect/setEquals_A02_t01: Fail
+LibTest/core/Expect/setEquals_A03_t01: Fail
+LibTest/core/Expect/stringEquals_A01_t01: Fail
+LibTest/core/Expect/stringEquals_A01_t02: Fail
+LibTest/core/Expect/stringEquals_A02_t01: Fail
+LibTest/core/Expect/throws_A01_t01: Fail
+LibTest/core/Expect/throws_A01_t02: Fail
+LibTest/core/Expect/throws_A01_t03: Fail
+LibTest/core/Expect/throws_A01_t04: Fail
+LibTest/core/Expect/throws_A01_t05: Fail
+LibTest/core/Expect/throws_A02_t01: Fail
