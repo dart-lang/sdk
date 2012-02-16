@@ -28,7 +28,7 @@ public class DartLibrarySourceTest extends SourceTest implements LibrarySource {
 
   @Override
   public LibrarySource getImportFor(String relPath) throws IOException {
-    throw new RuntimeException("Unimplemented");
+    return null;
   }
 
   @Override

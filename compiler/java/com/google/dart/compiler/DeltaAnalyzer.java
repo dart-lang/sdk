@@ -123,12 +123,12 @@ class DeltaAnalyzer {
 
       @Override
       public DartSource getSourceFor(String relPath) {
-        throw new AssertionError();
+        return null;
       }
 
       @Override
       public LibrarySource getImportFor(String relPath) {
-        throw new AssertionError();
+        return null;
       }
     };
   }

@@ -7,6 +7,7 @@ package com.google.dart.compiler;
 import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -28,7 +29,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +38,27 @@ import java.util.Map;
 public abstract class CompilerTestCase extends TestCase {
 
   private static final String UTF8 = "UTF-8";
+
+  /**
+   * Instance of {@link CompilerConfiguration} for incremental check-only compilation.
+   */
+  protected static final CompilerConfiguration CHECK_ONLY_CONFIGURATION =
+      new DefaultCompilerConfiguration(new CompilerOptions()) {
+        @Override
+        public boolean checkOnly() {
+          return true;
+        }
+
+        @Override
+        public boolean incremental() {
+          return true;
+        }
+
+        @Override
+        public boolean resolveDespiteParseErrors() {
+          return true;
+        }
+      };
 
   /**
    * Read a resource from the given URL.
@@ -162,32 +183,25 @@ public abstract class CompilerTestCase extends TestCase {
    */
   protected AnalyzeLibraryResult analyzeLibrary(String name, String code)
       throws Exception {
-    MockLibrarySource lib = new MockLibrarySource();
-    DartSourceTest src = new DartSourceTest(name, code, lib);
-    lib.addSource(src);
-    final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions()) {
-      @Override
-      public boolean checkOnly() {
-        return true;
-      }
-
-      @Override
-      public boolean incremental() {
-        return true;
-      }
-
-      @Override
-      public boolean resolveDespiteParseErrors() {
-        return true;
-      }
-    };
     AnalyzeLibraryResult result = new AnalyzeLibraryResult();
-    Map<URI, DartUnit> testUnits = new HashMap<URI, DartUnit>();
-    ParserContext context = makeParserContext(src, code, result);
-    DartUnit unit = makeParser(context).parseUnit(src);
-    testUnits.put(src.getUri(), unit);
+    // Prepare library.
+    MockLibrarySource lib = new MockLibrarySource();
+    // Prepare unit.
+    Map<URI, DartUnit> testUnits =  Maps.newHashMap();
+    {
+      DartSourceTest src = new DartSourceTest(name, code, lib);
+      ParserContext context = makeParserContext(src, code, result);
+      DartUnit unit = makeParser(context).parseUnit(src);
+      // Remember unit.
+      lib.addSource(src);
+      testUnits.put(src.getUri(), unit);
+    }
     DartArtifactProvider provider = new MockArtifactProvider();
-    result.setLibraryUnitResult(DartCompiler.analyzeLibrary(lib, testUnits, config, provider,
+    result.setLibraryUnitResult(DartCompiler.analyzeLibrary(
+        lib,
+        testUnits,
+        CHECK_ONLY_CONFIGURATION,
+        provider,
         result));
     // TODO(zundel): One day, we want all AST nodes that are identifiers to point to
     // elements if they are resolved.  Uncommenting this line helps track missing elements

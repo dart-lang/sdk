@@ -44,8 +44,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
    * A new instance with the specified {@link CompilerOptions}
    * @throws FileNotFoundException
    */
-  public DefaultCompilerConfiguration(CompilerOptions compilerOptions)
-      throws FileNotFoundException {
+  public DefaultCompilerConfiguration(CompilerOptions compilerOptions) {
     this (new JavascriptBackend(), compilerOptions);
   }
 

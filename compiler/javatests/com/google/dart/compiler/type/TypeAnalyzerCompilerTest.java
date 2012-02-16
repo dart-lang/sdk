@@ -8,8 +8,16 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.DartCompiler;
+import com.google.dart.compiler.DartCompilerErrorCode;
+import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.MockArtifactProvider;
+import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -35,6 +43,9 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -761,5 +772,60 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     Symbol symbol = invocation.getTarget().getSymbol();
     assertNotNull(symbol);
     assertSame(unit, symbol.getNode().getParent());
+  }
+
+  /**
+   * If there was <code>#import</code> with invalid {@link URI}, it should be reported as error, not
+   * as an exception.
+   */
+  public void test_invalidImportUri() throws Exception {
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('test');",
+            "#import('badURI');",
+            ""));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+  }
+
+  /**
+   * If there was <code>#source</code> with invalid {@link URI}, it should be reported as error, not
+   * as an exception.
+   */
+  public void test_invalidSourceUri() throws Exception {
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('test');",
+            "#source('badURI');",
+            ""));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+  }
+
+  /**
+   * Analyzes source for given library and returns {@link DartCompilationError}s.
+   */
+  private static List<DartCompilationError> analyzeLibrarySourceErrors(final String code)
+      throws Exception {
+    MockLibrarySource lib = new MockLibrarySource() {
+      @Override
+      public Reader getSourceReader() {
+        return new StringReader(code);
+      }
+    };
+    DartArtifactProvider provider = new MockArtifactProvider();
+    final List<DartCompilationError> errors = Lists.newArrayList();
+    DartCompiler.analyzeLibrary(
+        lib,
+        Maps.<URI, DartUnit>newHashMap(),
+        CHECK_ONLY_CONFIGURATION,
+        provider,
+        new DartCompilerListener.Empty() {
+          @Override
+          public void onError(DartCompilationError event) {
+            errors.add(event);
+          }
+        });
+    return errors;
   }
 }

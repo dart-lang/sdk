@@ -46,7 +46,7 @@ public class MockLibrarySource extends SourceTest implements LibrarySource {
         return lib;
       }
     }
-    throw new RuntimeException("Cannot find import for " + relPath);
+    return null;
   }
 
   @Override
@@ -59,7 +59,7 @@ public class MockLibrarySource extends SourceTest implements LibrarySource {
         return source;
       }
     }
-    throw new RuntimeException("Cannot find source for " + relPath);
+    return null;
   }
 
   public void addSource(DartSource src) {

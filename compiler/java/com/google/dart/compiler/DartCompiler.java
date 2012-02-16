@@ -110,12 +110,12 @@ public class DartCompiler {
 
     @Override
     public LibrarySource getImportFor(String relPath) {
-      throw new AssertionError();
+      return null;
     }
 
     @Override
     public DartSource getSourceFor(String relPath) {
-      throw new AssertionError();
+      return null;
     }
   }
 
@@ -249,12 +249,9 @@ public class DartCompiler {
             final DartSource dartSrc = libSrc.getSourceFor(relPath);
             if (dartSrc == null || !dartSrc.exists()) {
               // Dart Editor needs to have all missing files reported as compilation errors.
-              // In addition, continue allows lib.populateTopLevelNodes() to be called so that the
-              // top level elements are populated preventing an NPE later on.
               reportMissingSource(context, libSrc, libNode);
               continue;
             }
-
 
             if (!incremental
                 || (libIsDartUri && !usePrecompiledDartLibs)
@@ -407,12 +404,7 @@ public class DartCompiler {
           if (SystemLibraryManager.isDartSpec(libSpec)) {
             dep = context.getSystemLibraryFor(libSpec);
           } else {
-            try {
-              dep = libSrc.getImportFor(libSpec);
-            } catch (IllegalArgumentException ex) {
-              reportImportError(context, libSrc, libNode);
-              continue;
-            }
+            dep = libSrc.getImportFor(libSpec);
           }
           if (dep == null || !dep.exists()) {
             reportMissingSource(context, libSrc, libNode);
@@ -880,15 +872,6 @@ public class DartCompiler {
       DartCompilationError event = new DartCompilationError(libNode,
                                                             DartCompilerErrorCode.MISSING_SOURCE,
                                                             libNode.getText());
-      event.setSource(libSrc);
-      context.onError(event);
-    }
-
-    private void reportImportError(DartCompilerContext context,
-                                   LibrarySource libSrc,
-                                   LibraryNode libNode) {
-      DartCompilationError event = new DartCompilationError(libNode,
-          DartCompilerErrorCode.COULD_NOT_PARSE_IMPORT, libNode.getText());
       event.setSource(libSrc);
       context.onError(event);
     }
