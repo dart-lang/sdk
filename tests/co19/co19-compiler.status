@@ -43,8 +43,8 @@ LibTest/core/Expect/stringEquals_A02_t01: Pass # status change with --check-only
 LibTest/core/Expect/throws_A02_t01: Pass # status change with --check-only
 LibTest/core/Isolate/spawn_A01_t03: Pass # status change with --check-only
 LibTest/core/List/List_A04_t01: Pass # status change with --check-only
-LibTest/core/List/every_A03_t01: Pass # status change with --check-only
-LibTest/core/List/filter_A03_t01: Pass # status change with --check-only
+LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
+LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
 LibTest/core/List/forEach_A02_t01: Pass # status change with --check-only
 LibTest/core/List/insertRange_A02_t01: Pass # status change with --check-only
 LibTest/core/List/lastIndexOf_A01_t01: Pass # status change with --check-only
@@ -62,7 +62,7 @@ LibTest/core/List/setRange_A03_t01: Pass # status change with --check-only
 LibTest/core/List/setRange_A03_t02: Pass # status change with --check-only
 LibTest/core/List/setRange_A04_t01: Pass # status change with --check-only
 LibTest/core/List/setRange_A06_t01: Pass # status change with --check-only
-LibTest/core/List/some_A03_t01: Pass # status change with --check-only
+LibTest/core/List/some_A03_t01: Skip # status change with --check-only, Promise removed (co19 issue #79)
 LibTest/core/Map/forEach_A01_t02: Pass # status change with --check-only
 LibTest/core/Map/putIfAbsent_A01_t06: Pass # status change with --check-only
 LibTest/core/Map/putIfAbsent_A01_t08: Pass # status change with --check-only
