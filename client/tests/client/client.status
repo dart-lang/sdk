@@ -16,7 +16,6 @@ dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
 dom/TypingTest: Fail
 dom/XHRTest: Fail
-dom/WebSocketTest: Fail
 
 [ $component == dartium && $mode == debug ]
 # TODO(vsm): Triage Dartium failures.
