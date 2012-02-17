@@ -264,7 +264,8 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (allowRetries && testCase.configuration['component'] == 'webdriver' &&
+    if (allowRetries != null && allowRetries 
+        && testCase.configuration['component'] == 'webdriver' &&
         testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
