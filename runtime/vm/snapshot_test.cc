@@ -1539,7 +1539,7 @@ UNIT_TEST_CASE(PostCObject) {
       reinterpret_cast<Dart_CObject*>(
           Dart_ScopeAllocate(
               sizeof(Dart_CObject) + sizeof(Dart_CObject*) * kArrayLength));  // NOLINT
-  array->type = Dart_CObject::Dart_CObject::kArray;
+  array->type = Dart_CObject::kArray;
   array->value.as_array.length = kArrayLength;
   array->value.as_array.values =
       reinterpret_cast<Dart_CObject**>(array + 1);
