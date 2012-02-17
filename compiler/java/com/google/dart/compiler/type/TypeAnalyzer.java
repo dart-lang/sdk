@@ -1113,8 +1113,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       // specified <V> where V is the type of the value.
       checkAssignable(node, type, defaultLiteralMapType);
 
-      Type valueType = type.getArguments().get(1);
       // Check the map literal entries against the return type.
+      Type valueType = type.getArguments().get(1);
       for (DartMapLiteralEntry literalEntry : node.getEntries()) {
         boolean result = checkAssignable(literalEntry, typeOf(literalEntry), valueType);
         if (developerModeChecks == true && result == false) {
@@ -1122,6 +1122,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
                     valueType.toString());
         }
       }
+
+      // Check that each key literal is unique.
+      Set<String> keyValues = Sets.newHashSet();
+      for (DartMapLiteralEntry literalEntry : node.getEntries()) {
+        if (literalEntry.getKey() instanceof DartStringLiteral) {
+          DartStringLiteral keyLiteral = (DartStringLiteral) literalEntry.getKey();
+          String keyValue = keyLiteral.getValue();
+          if (keyValues.contains(keyValue)) {
+            typeError(keyLiteral, TypeErrorCode.MAP_LITERAL_KEY_UNIQUE);
+          }
+          keyValues.add(keyValue);
+        }
+      }
+
       return type;
     }
 

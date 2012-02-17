@@ -828,4 +828,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         });
     return errors;
   }
+
+  public void test_mapLiteralKeysUnique() throws Exception {
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var m = {'a' : 0, 'b': 1, 'a': 2};",
+            ""));
+    assertErrors(errors, errEx(TypeErrorCode.MAP_LITERAL_KEY_UNIQUE, 2, 27, 3));
+  }
 }
