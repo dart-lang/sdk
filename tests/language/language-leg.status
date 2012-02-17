@@ -45,7 +45,6 @@ ClassTest: Fail
 ClosureBreak1Test: Fail
 ClosureBreak2Test: Fail
 ClosureBreakTest: Fail
-ClosureSharedStateTest: Fail
 ClosureTest: Fail
 ConstConstructorSyntaxTest/01: Fail
 ConstConstructorSyntaxTest/02: Fail
@@ -119,7 +118,6 @@ Field7aNegativeTest: Fail
 FinalParamNegativeTest: Fail
 FinalSyntaxTest/none: Fail
 FinalVarNegativeTest: Fail
-For2Test: Fail
 ForTest: Fail
 FunctionLiterals2Test: Fail
 FunctionLiteralsTest: Fail
@@ -141,7 +139,6 @@ GenericSyntaxTest: Fail
 GenericTest: Fail
 GenericsTest: Fail
 GetSetSyntaxTest/none: Fail
-GetterClosureExecutionOrderTest: Fail
 GetterDeclarationNegativeTest: Fail
 GettersSettersTest: Fail
 IfTest: Fail
@@ -282,8 +279,6 @@ StaticFieldTest: Fail
 StaticFinalField2NegativeTest: Fail
 StaticFinalFieldNegativeTest: Fail
 StaticFinalFieldTest: Fail
-StaticImplicitClosureTest: Fail
-StaticImplicitClosureTest: Fail
 StaticTopLevelTest/00: Fail
 StaticTopLevelTest/01: Fail
 StaticTopLevelTest/02: Fail
@@ -321,7 +316,6 @@ Throw7NegativeTest: Fail
 ThrowTest: Fail
 ToStringAsFixedTest: Fail
 TopLevelFuncTest: Fail
-TopLevelGetterArrowSyntaxTest: Fail
 TopLevelPrefixedDeclarationTest: Fail
 TopLevelVarTest: Fail
 ToplevelCollision2Test/none: Fail

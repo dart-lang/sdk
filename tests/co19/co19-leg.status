@@ -897,6 +897,7 @@ LibTest/core/RegExp/pattern_A01_t01: Fail
 LibTest/core/RegExp/stringMatch_A01_t01: Fail
 LibTest/core/RegExp/stringMatch_A02_t01: Fail
 LibTest/core/SendPort/call_A01_t01: Fail
+LibTest/core/SendPort/call/SendPort_call_A01_t01: Fail
 LibTest/core/SendPort/hashCode_A01_t01: Fail
 LibTest/core/SendPort/operator_equality_A01_t01: Fail
 LibTest/core/SendPort/send_A01_t01: Fail
