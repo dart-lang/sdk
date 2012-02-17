@@ -86,11 +86,13 @@ class FailedTest extends _ExceptionResult implements TestResult {
 }
 
 class TestError extends _ExceptionResult implements TestResult {
-  TestError(String testDescription, var exception) :
+  TestError(String testDescription, var exception, var this.stacktrace) :
       super(testDescription, exception);
 
   String toString() => ">>> Test error caught in " +
-      "${_testDescription} with:\n${exception}\n";
+      "${_testDescription} with:\n${exception}\n$stacktrace\n";
+
+  var stacktrace;
 }
 
 class TestClass {
@@ -104,9 +106,9 @@ class TestClass {
       } catch (ExpectException x) {
         tearDown();
         return new FailedTest(description, x);
-      } catch (var x) {
+      } catch (var x, var stacktrace) {
         tearDown();
-        return new TestError(description, x);
+        return new TestError(description, x, stacktrace);
       }
     });
   }
