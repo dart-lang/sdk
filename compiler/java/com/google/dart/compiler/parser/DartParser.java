@@ -13,6 +13,7 @@ import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.InternalCompilerException;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.SystemLibraryManager;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartAssertion;
@@ -109,9 +110,10 @@ import java.util.Set;
  */
 public class DartParser extends CompletionHooksParserBase {
 
+  private final boolean isDietParse;
+  private final Set<String> prefixes;
+  private final boolean corelibParse;
   private Set<Integer> errorHistory = new HashSet<Integer>();
-  private Set<String> prefixes;
-  private boolean isDietParse;
   private boolean isParsingInterface;
   private boolean isTopLevelAbstract;
   private DartScanner.Position topLevelAbstractModifierPosition;
@@ -182,6 +184,10 @@ public class DartParser extends CompletionHooksParserBase {
     super(ctx);
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
+    {
+      Source source = ctx.getSource();
+      this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
+    }
   }
 
   private DartParser(Source source, DartCompilerListener listener) throws IOException {
@@ -609,13 +615,19 @@ public class DartParser extends CompletionHooksParserBase {
 
     // Deal with native clause for classes.
     DartStringLiteral nativeName = null;
-    if (!isParsingInterface && optionalPseudoKeyword(NATIVE_KEYWORD)) {
+    if (optionalPseudoKeyword(NATIVE_KEYWORD)) {
+      if (superType != null) {
+        reportError(position(), ParserErrorCode.NATIVE_MUST_NOT_EXTEND);
+      }
+      if (isParsingInterface) {
+        reportError(position(), ParserErrorCode.NATIVE_ONLY_CLASS);
+      }
+      if (!corelibParse) {
+        reportError(position(), ParserErrorCode.NATIVE_ONLY_CORE_LIB);
+      }
       beginLiteral();
       if (expect(Token.STRING)) {
         nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
-      }
-      if (superType != null) {
-        reportError(position(), ParserErrorCode.EXTENDED_NATIVE_CLASS);
       }
     }
 
@@ -1196,6 +1208,9 @@ public class DartParser extends CompletionHooksParserBase {
     beginNativeBody();
     if (!optionalPseudoKeyword(NATIVE_KEYWORD)) {
       throw new AssertionError();
+    }
+    if (!corelibParse) {
+      reportError(position(), ParserErrorCode.NATIVE_ONLY_CORE_LIB);
     }
     if (optional(Token.SEMICOLON)) {
       return done(new DartNativeBlock());

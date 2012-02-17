@@ -680,4 +680,73 @@ public class NegativeParserTest extends CompilerTestCase {
         "}",
         ""));
   }
+
+  /**
+   * "native" can be specified only for classes.
+   */
+  public void test_native_inInterace() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface A native 'N' {",
+            "}",
+            ""),
+        errEx(ParserErrorCode.NATIVE_ONLY_CLASS, 2, 13, 6));
+  }
+
+  /**
+   * "native" can be specified only for classes without "extends".
+   */
+  public void test_native_classWithExtends() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "}",
+            "class B extends A native 'N' {",
+            "}",
+            ""),
+        errEx(ParserErrorCode.NATIVE_MUST_NOT_EXTEND, 4, 19, 6));
+  }
+
+  /**
+   * "native" can be specified only in "corelib".
+   */
+  public void test_native_onlyCoreLib() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A native 'N' {",
+            "}",
+            ""),
+        errEx(ParserErrorCode.NATIVE_ONLY_CORE_LIB, 2, 9, 6));
+  }
+
+  /**
+   * "native" can be specified only in "corelib".
+   */
+  public void test_native_onlyCoreLib_factory() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  factory A() native;",
+            "}",
+            ""),
+        errEx(ParserErrorCode.NATIVE_ONLY_CORE_LIB, 3, 15, 6));
+  }
+
+  /**
+   * "native" can be specified only in "corelib".
+   */
+  public void test_native_onlyCoreLib_method() {
+    parseExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  factory A() native;",
+            "}",
+            ""),
+        errEx(ParserErrorCode.NATIVE_ONLY_CORE_LIB, 3, 15, 6));
+  }
 }

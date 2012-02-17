@@ -186,11 +186,6 @@ StringEscape4NegativeTest: Fail # Issue 1351.
 SuperOperatorTest: Fail      # Bug 4995463.
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
-SyntaxTest/29: Fail          # Issue 1606
-SyntaxTest/30: Fail          # Issue 1606
-SyntaxTest/31: Fail          # Issue 1108
-SyntaxTest/32: Fail          # Issue 1108
-SyntaxTest/33: Fail # Issue 1108
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
 

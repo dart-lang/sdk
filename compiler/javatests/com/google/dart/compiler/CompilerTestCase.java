@@ -234,7 +234,7 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parse a single compilation unit for the given input file.
    */
-  protected final DartUnit parseUnit(final String path) {
+  protected final DartUnit parseUnit(String path) {
     // final because we delegate to the method below, and only that one should
     // be overriden to do extra checks.
     URL url = inputUrlFor(getClass(), path);
@@ -245,11 +245,10 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parse a single compilation unit for the name and source.
    */
-  protected DartUnit parseUnit(final String srcName, final String sourceCode) {
+  protected DartUnit parseUnit(String srcName, String sourceCode) {
     // TODO(jgw): We'll need to fill in the library parameter when testing multiple units.
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
-    ParserContext context = makeParserContext(src, sourceCode,
-        new DartCompilerListenerTest(srcName));
+    ParserContext context = makeParserContext(src, sourceCode, DartCompilerListener.EMPTY);
     return makeParser(context).parseUnit(src);
   }
 

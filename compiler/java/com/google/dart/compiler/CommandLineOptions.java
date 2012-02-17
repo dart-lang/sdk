@@ -125,7 +125,7 @@ public class CommandLineOptions {
     private final List<String> sourceFiles = new ArrayList<String>();
 
     /**
-     * Returns whether the option -check-only is provided.
+     * Returns whether the only analysis should be done, without code generation.
      */
     public boolean checkOnly() {
       return !deprecatedGenerateCode;
