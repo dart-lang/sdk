@@ -250,9 +250,9 @@ class RunningProcess {
   List<String> stdout;
   List<String> stderr;
   List<Function> handlers;
-  bool allowRetries;
+  bool allowRetries = false;
 
-  RunningProcess(TestCase this.testCase, this.allowRetries);
+  RunningProcess(TestCase this.testCase, [this.allowRetries]);
 
   void exitHandler(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
