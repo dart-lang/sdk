@@ -224,7 +224,7 @@ uword Api::Allocate(intptr_t size) {
   ASSERT(state != NULL);
   ApiLocalScope* scope = state->top_scope();
   ASSERT(scope != NULL);
-  return scope->zone().Allocate(size);
+  return scope->zone()->Allocate(size);
 }
 
 
@@ -235,7 +235,7 @@ uword Api::Reallocate(uword ptr, intptr_t old_size, intptr_t new_size) {
   ASSERT(state != NULL);
   ApiLocalScope* scope = state->top_scope();
   ASSERT(scope != NULL);
-  return scope->zone().Reallocate(ptr, old_size, new_size);
+  return scope->zone()->Reallocate(ptr, old_size, new_size);
 }
 
 
@@ -833,6 +833,23 @@ DART_EXPORT void Dart_ExitScope() {
 
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
   delete scope;  // Free up the old scope which we have just exited.
+}
+
+
+DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size) {
+  ApiZone* zone;
+  Isolate* isolate = Isolate::Current();
+  if (isolate != NULL) {
+    ApiState* state = isolate->api_state();
+    if (state == NULL) return NULL;
+    ApiLocalScope* scope = state->top_scope();
+    zone = scope->zone();
+  } else {
+    ApiNativeScope* scope = ApiNativeScope::Current();
+    if (scope == NULL) return NULL;
+    zone = scope->zone();
+  }
+  return reinterpret_cast<uint8_t*>(zone->Allocate(size));
 }
 
 

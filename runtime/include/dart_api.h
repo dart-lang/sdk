@@ -673,6 +673,30 @@ DART_EXPORT void Dart_EnterScope();
  */
 DART_EXPORT void Dart_ExitScope();
 
+/**
+ * The Dart VM uses "zone allocation" for temporary structures. Zones
+ * support very fast allocation of small chunks of memory. The chunks
+ * cannot be deallocated individually, but instead zones support
+ * deallocating all chunks in one fast operation.
+ *
+ * This function makes it possible for the embedder to allocate
+ * temporary data in the VMs zone allocator.
+ *
+ * Zone allocation is possible:
+ *   1. when inside a scope where local handles can be allocated
+ *   2. when processing a message from a native port in a native port
+ *      handler
+ *
+ * All the memory allocated this way will be reclaimed either on the
+ * next call to Dart_ExitScope or when the native port handler exits.
+ *
+ * \param size Size of the memory to allocate.
+ *
+ * \return A pointer to the allocated memory. NULL if allocation
+ *   failed. Failure might due to is no current VM zone.
+ */
+DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size);
+
 // --- Objects ----
 
 /**

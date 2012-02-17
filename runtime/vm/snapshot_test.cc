@@ -1473,9 +1473,16 @@ UNIT_TEST_CASE(PostCObject) {
       "  var exception = '';\n"
       "  var port = new ReceivePort();\n"
       "  port.receive((message, replyTo) {\n"
-      "    exception += message.toString();\n"
+      "    if (messageCount < 7) {\n"
+      "      exception += message.toString();\n"
+      "    } else {\n"
+      "      exception += message.length;\n"
+      "      for (int i = 0; i < message.length; i++) {\n"
+      "        exception += message[i];\n"
+      "      }\n"
+      "    }\n"
       "    messageCount++;\n"
-      "    if (messageCount == 7) throw new Exception(exception);\n"
+      "    if (messageCount == 8) throw new Exception(exception);\n"
       "  });\n"
       "  return port.toSendPort();\n"
       "}\n";
@@ -1527,10 +1534,29 @@ UNIT_TEST_CASE(PostCObject) {
   object.value.as_array.length = 0;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
+  static const int kArrayLength = 10;
+  Dart_CObject* array =
+      reinterpret_cast<Dart_CObject*>(
+          Dart_ScopeAllocate(
+              sizeof(Dart_CObject) + sizeof(Dart_CObject*) * kArrayLength));  // NOLINT
+  array->type = Dart_CObject::Dart_CObject::kArray;
+  array->value.as_array.length = kArrayLength;
+  array->value.as_array.values =
+      reinterpret_cast<Dart_CObject**>(array + 1);
+  for (int i = 0; i < kArrayLength; i++) {
+    Dart_CObject* element =
+        reinterpret_cast<Dart_CObject*>(
+            Dart_ScopeAllocate(sizeof(Dart_CObject)));
+    element->type = Dart_CObject::kInt32;
+    element->value.as_int32 = i;
+    array->value.as_array.values[i] = element;
+  }
+  EXPECT(Dart_PostCObject(send_port_id, array));
+
   result = Dart_RunLoop();
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
-  EXPECT_SUBSTRING("Exception: nulltruefalse1234563.14[]\n",
+  EXPECT_SUBSTRING("Exception: nulltruefalse1234563.14[]100123456789\n",
                    Dart_GetError(result));
 
   Dart_ExitScope();

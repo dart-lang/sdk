@@ -362,7 +362,7 @@ class ApiLocalScope {
   uword stack_marker() const { return stack_marker_; }
   void set_previous(ApiLocalScope* value) { previous_ = value; }
   LocalHandles* local_handles() { return &local_handles_; }
-  ApiZone& zone() { return zone_; }
+  ApiZone* zone() { return &zone_; }
 
  private:
   ApiLocalScope* previous_;
@@ -469,7 +469,7 @@ class ApiState {
     int total = 0;
     ApiLocalScope* scope = top_scope_;
     while (scope != NULL) {
-      total += scope->zone().SizeInBytes();
+      total += scope->zone()->SizeInBytes();
       scope = scope->previous();
     }
     return total;

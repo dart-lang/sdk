@@ -3390,10 +3390,11 @@ void NewNativePort_send123(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_CObject::kNull, message->type);
 
   // Post integer value.
-  Dart_CObject response;
-  response.type = Dart_CObject::kInt32;
-  response.value.as_int32 = 123;
-  Dart_PostCObject(reply_port_id, &response);
+  Dart_CObject* response =
+      reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
+  response->type = Dart_CObject::kInt32;
+  response->value.as_int32 = 123;
+  Dart_PostCObject(reply_port_id, response);
 }
 
 
@@ -3405,10 +3406,11 @@ void NewNativePort_send321(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_CObject::kNull, message->type);
 
   // Post integer value.
-  Dart_CObject response;
-  response.type = Dart_CObject::kInt32;
-  response.value.as_int32 = 321;
-  Dart_PostCObject(reply_port_id, &response);
+  Dart_CObject* response =
+      reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
+  response->type = Dart_CObject::kInt32;
+  response->value.as_int32 = 321;
+  Dart_PostCObject(reply_port_id, response);
 }
 
 
