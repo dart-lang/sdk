@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -59,55 +59,4 @@ class Maps {
   static int length(Map map) => map.getKeys().length;
 
   static bool isEmpty(Map map) => length(map) == 0;
-
-  /**
-   * Returns a string representing the specified map. The returned string
-   * looks like this: [:'{key0: value0, key1: value1, ... keyN: valueN}':].
-   * The value returned by its [toString] method is used to represent each
-   * key or value.
-   *
-   * If the map collection contains a reference to itself, either
-   * directly as a key or value, or indirectly through other collections
-   * or maps, the contained reference is rendered as [:'{...}':]. This
-   * prevents the infinite regress that would otherwise occur. So, for example,
-   * calling this method on a map whose sole entry maps the string key 'me'
-   * to a reference to the map would return [:'{me: {...}}':].
-   *
-   * A typical implementation of a map's [toString] method will
-   * simply return the results of this method applied to the collection.
-   */
-  static String mapToString(Map m) {
-    var result = new StringBuffer();
-    _emitMap(m, result, new List());
-    return result.toString();
-  }
-
-  /**
-   * Appends a string representing the specified map to the specified
-   * string buffer. The string is formatted as per [mapToString].
-   * The [:visiting:] list contains references to all of the enclosing
-   * collections and maps (which are currently in the process of being
-   * emitted into [:result:]). The [:visiting:] parameter allows this method
-   * to generate a [:'[...]':] or [:'{...}':] where required. In other words,
-   * it allows this method and [_emitCollection] to identify recursive maps
-   * and collections.
-   */
-  static void _emitMap(Map m, StringBuffer result, List visiting) {
-    visiting.add(m);
-    result.add('{');
-
-    bool first = true;
-    m.forEach((k, v) {
-      if (!first) {
-        result.add(', ');
-      }
-      first = false;
-      Collections._emitObject(k, result, visiting);
-      result.add(': ');
-      Collections._emitObject(v, result, visiting);
-    });
-
-    result.add('}');
-    visiting.removeLast();
-  }
 }

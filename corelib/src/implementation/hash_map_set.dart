@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -268,10 +268,6 @@ class HashMapImplementation<K extends Hashable, V> implements HashMap<K, V> {
     }
     return false;
   }
-
-  String toString() {
-    return Maps.mapToString(this);
-  }
 }
 
 class HashSetImplementation<E extends Hashable> implements HashSet<E> {
@@ -378,10 +374,6 @@ class HashSetImplementation<E extends Hashable> implements HashSet<E> {
 
   Iterator<E> iterator() {
     return new HashSetIterator<E>(this);
-  }
-
-  String toString() {
-    return Collections.collectionToString(this);
   }
 
   // The map backing this set. The associations in this map are all

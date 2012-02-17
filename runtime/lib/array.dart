@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -31,7 +31,7 @@ class ObjectArray<E> implements List<E> {
   void operator []=(int index, E value) native "ObjectArray_setIndexed";
 
   String toString() {
-    return Collections.collectionToString(this);
+    return Arrays.asString(this);
   }
 
   int get length() native "ObjectArray_getLength";
@@ -238,7 +238,7 @@ class ImmutableArray<E> implements List<E> {
   }
 
   String toString() {
-    return Collections.collectionToString(this);
+    return Arrays.asString(this);
   }
 
   int indexOf(E element, [int start = 0]) {
