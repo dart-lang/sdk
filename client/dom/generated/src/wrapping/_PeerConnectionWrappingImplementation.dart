@@ -44,17 +44,29 @@ class _PeerConnectionWrappingImplementation extends DOMWrapperBase implements Pe
   void set onremovestream(EventListener value) { _set_onremovestream(this, value); }
   static void _set_onremovestream(var _this, EventListener value) native;
 
+  EventListener get onstatechange() { return _get_onstatechange(this); }
+  static EventListener _get_onstatechange(var _this) native;
+
+  void set onstatechange(EventListener value) { _set_onstatechange(this, value); }
+  static void _set_onstatechange(var _this, EventListener value) native;
+
   int get readyState() { return _get_readyState(this); }
   static int _get_readyState(var _this) native;
 
   MediaStreamList get remoteStreams() { return _get_remoteStreams(this); }
   static MediaStreamList _get_remoteStreams(var _this) native;
 
-  void addEventListener(String type, EventListener listener, bool useCapture) {
-    _addEventListener(this, type, listener, useCapture);
-    return;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _addEventListener(this, type, listener);
+      return;
+    } else {
+      _addEventListener_2(this, type, listener, useCapture);
+      return;
+    }
   }
-  static void _addEventListener(receiver, type, listener, useCapture) native;
+  static void _addEventListener(receiver, type, listener) native;
+  static void _addEventListener_2(receiver, type, listener, useCapture) native;
 
   void addStream(MediaStream stream) {
     _addStream(this, stream);
@@ -79,11 +91,17 @@ class _PeerConnectionWrappingImplementation extends DOMWrapperBase implements Pe
   }
   static void _processSignalingMessage(receiver, message) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) {
-    _removeEventListener(this, type, listener, useCapture);
-    return;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) {
+    if (useCapture === null) {
+      _removeEventListener(this, type, listener);
+      return;
+    } else {
+      _removeEventListener_2(this, type, listener, useCapture);
+      return;
+    }
   }
-  static void _removeEventListener(receiver, type, listener, useCapture) native;
+  static void _removeEventListener(receiver, type, listener) native;
+  static void _removeEventListener_2(receiver, type, listener, useCapture) native;
 
   void removeStream(MediaStream stream) {
     _removeStream(this, stream);

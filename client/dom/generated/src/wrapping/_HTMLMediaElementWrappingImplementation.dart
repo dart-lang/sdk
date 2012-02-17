@@ -158,23 +158,23 @@ class _HTMLMediaElementWrappingImplementation extends _HTMLElementWrappingImplem
   int get webkitVideoDecodedByteCount() { return _get_webkitVideoDecodedByteCount(this); }
   static int _get_webkitVideoDecodedByteCount(var _this) native;
 
-  TextTrack addTrack(String kind, [String label = null, String language = null]) {
+  TextTrack addTextTrack(String kind, [String label = null, String language = null]) {
     if (label === null) {
       if (language === null) {
-        return _addTrack(this, kind);
+        return _addTextTrack(this, kind);
       }
     } else {
       if (language === null) {
-        return _addTrack_2(this, kind, label);
+        return _addTextTrack_2(this, kind, label);
       } else {
-        return _addTrack_3(this, kind, label, language);
+        return _addTextTrack_3(this, kind, label, language);
       }
     }
     throw "Incorrect number or type of arguments";
   }
-  static TextTrack _addTrack(receiver, kind) native;
-  static TextTrack _addTrack_2(receiver, kind, label) native;
-  static TextTrack _addTrack_3(receiver, kind, label, language) native;
+  static TextTrack _addTextTrack(receiver, kind) native;
+  static TextTrack _addTextTrack_2(receiver, kind, label) native;
+  static TextTrack _addTextTrack_3(receiver, kind, label, language) native;
 
   String canPlayType(String type) {
     return _canPlayType(this, type);

@@ -299,8 +299,6 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   static final int NO_ERROR = 0;
 
-  static final int NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
-
   static final int ONE = 1;
 
   static final int ONE_MINUS_CONSTANT_ALPHA = 0x8004;

@@ -77,6 +77,9 @@ class _ElementWrappingImplementation extends _NodeWrappingImplementation impleme
   String get tagName() { return _get_tagName(this); }
   static String _get_tagName(var _this) native;
 
+  String get webkitRegionOverflow() { return _get_webkitRegionOverflow(this); }
+  static String _get_webkitRegionOverflow(var _this) native;
+
   void blur() {
     _blur(this);
     return;

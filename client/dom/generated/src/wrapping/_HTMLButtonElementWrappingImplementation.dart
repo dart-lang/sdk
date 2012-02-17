@@ -88,12 +88,6 @@ class _HTMLButtonElementWrappingImplementation extends _HTMLElementWrappingImple
   }
   static bool _checkValidity(receiver) native;
 
-  void click() {
-    _click(this);
-    return;
-  }
-  static void _click(receiver) native;
-
   void setCustomValidity(String error) {
     _setCustomValidity(this, error);
     return;

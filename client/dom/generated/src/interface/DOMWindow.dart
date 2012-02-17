@@ -8,11 +8,11 @@ interface Window extends EventTarget {
 
   final DOMApplicationCache applicationCache;
 
-  Navigator clientInformation;
+  final Navigator clientInformation;
 
   final bool closed;
 
-  Console console;
+  final Console console;
 
   final Crypto crypto;
 
@@ -20,91 +20,89 @@ interface Window extends EventTarget {
 
   String defaultstatus;
 
-  num devicePixelRatio;
+  final num devicePixelRatio;
 
   final Document document;
 
-  Event event;
+  final Event event;
 
   final Element frameElement;
 
-  DOMWindow frames;
+  final DOMWindow frames;
 
-  History history;
+  final History history;
 
-  int innerHeight;
+  final int innerHeight;
 
-  int innerWidth;
+  final int innerWidth;
 
-  int length;
+  final int length;
 
   final Storage localStorage;
 
   Location location;
 
-  BarInfo locationbar;
+  final BarInfo locationbar;
 
-  BarInfo menubar;
+  final BarInfo menubar;
 
   String name;
 
-  Navigator navigator;
+  final Navigator navigator;
 
-  bool offscreenBuffering;
+  final bool offscreenBuffering;
 
-  DOMWindow opener;
+  final DOMWindow opener;
 
-  int outerHeight;
+  final int outerHeight;
 
-  int outerWidth;
+  final int outerWidth;
 
   final int pageXOffset;
 
   final int pageYOffset;
 
-  DOMWindow parent;
+  final DOMWindow parent;
 
-  Performance performance;
+  final Performance performance;
 
-  BarInfo personalbar;
+  final BarInfo personalbar;
 
-  Screen screen;
+  final Screen screen;
 
-  int screenLeft;
+  final int screenLeft;
 
-  int screenTop;
+  final int screenTop;
 
-  int screenX;
+  final int screenX;
 
-  int screenY;
+  final int screenY;
 
-  int scrollX;
+  final int scrollX;
 
-  int scrollY;
+  final int scrollY;
 
-  BarInfo scrollbars;
+  final BarInfo scrollbars;
 
-  DOMWindow self;
+  final DOMWindow self;
 
   final Storage sessionStorage;
 
   String status;
 
-  BarInfo statusbar;
+  final BarInfo statusbar;
 
   final StyleMedia styleMedia;
 
-  BarInfo toolbar;
+  final BarInfo toolbar;
 
-  DOMWindow top;
+  final DOMWindow top;
 
   final IDBFactory webkitIndexedDB;
 
   final NotificationCenter webkitNotifications;
 
   final StorageInfo webkitStorageInfo;
-
-  final DOMURL webkitURL;
 
   final DOMWindow window;
 

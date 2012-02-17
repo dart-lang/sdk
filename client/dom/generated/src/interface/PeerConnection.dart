@@ -26,11 +26,13 @@ interface PeerConnection {
 
   EventListener onremovestream;
 
+  EventListener onstatechange;
+
   final int readyState;
 
   final MediaStreamList remoteStreams;
 
-  void addEventListener(String type, EventListener listener, bool useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void addStream(MediaStream stream);
 
@@ -40,7 +42,7 @@ interface PeerConnection {
 
   void processSignalingMessage(String message);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void removeStream(MediaStream stream);
 

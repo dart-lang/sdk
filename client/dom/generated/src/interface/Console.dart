@@ -10,7 +10,7 @@ interface Console {
 
   final List profiles;
 
-  void assertCondition(bool condition);
+  void assertCondition(bool condition, Object arg);
 
   void count();
 
@@ -22,9 +22,9 @@ interface Console {
 
   void error(Object arg);
 
-  void group();
+  void group(Object arg);
 
-  void groupCollapsed();
+  void groupCollapsed(Object arg);
 
   void groupEnd();
 
@@ -40,9 +40,9 @@ interface Console {
 
   void time(String title);
 
-  void timeEnd(String title);
+  void timeEnd(String title, Object arg);
 
-  void timeStamp();
+  void timeStamp(Object arg);
 
   void trace(Object arg);
 

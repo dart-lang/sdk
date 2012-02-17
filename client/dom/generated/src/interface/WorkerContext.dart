@@ -6,19 +6,17 @@
 
 interface WorkerGlobalScope {
 
-  WorkerLocation location;
+  final WorkerLocation location;
 
-  WorkerNavigator navigator;
+  final WorkerNavigator navigator;
 
   EventListener onerror;
 
-  WorkerContext self;
+  final WorkerContext self;
 
   final IDBFactory webkitIndexedDB;
 
   final NotificationCenter webkitNotifications;
-
-  final DOMURL webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

@@ -11,6 +11,12 @@ class _SVGStyleElementWrappingImplementation extends _SVGElementWrappingImplemen
     return new _SVGStyleElementWrappingImplementation();
   }
 
+  bool get disabled() { return _get_disabled(this); }
+  static bool _get_disabled(var _this) native;
+
+  void set disabled(bool value) { _set_disabled(this, value); }
+  static void _set_disabled(var _this, bool value) native;
+
   String get media() { return _get_media(this); }
   static String _get_media(var _this) native;
 

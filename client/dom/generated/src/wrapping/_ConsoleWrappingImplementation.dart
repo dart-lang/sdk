@@ -17,11 +17,11 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
   List get profiles() { return _get_profiles(this); }
   static List _get_profiles(var _this) native;
 
-  void assertCondition(bool condition) {
-    _assertCondition(this, condition);
+  void assertCondition(bool condition, Object arg) {
+    _assertCondition(this, condition, arg);
     return;
   }
-  static void _assertCondition(receiver, condition) native;
+  static void _assertCondition(receiver, condition, arg) native;
 
   void count() {
     _count(this);
@@ -53,17 +53,17 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
   }
   static void _error(receiver, arg) native;
 
-  void group() {
-    _group(this);
+  void group(Object arg) {
+    _group(this, arg);
     return;
   }
-  static void _group(receiver) native;
+  static void _group(receiver, arg) native;
 
-  void groupCollapsed() {
-    _groupCollapsed(this);
+  void groupCollapsed(Object arg) {
+    _groupCollapsed(this, arg);
     return;
   }
-  static void _groupCollapsed(receiver) native;
+  static void _groupCollapsed(receiver, arg) native;
 
   void groupEnd() {
     _groupEnd(this);
@@ -107,17 +107,17 @@ class _ConsoleWrappingImplementation extends DOMWrapperBase implements Console {
   }
   static void _time(receiver, title) native;
 
-  void timeEnd(String title) {
-    _timeEnd(this, title);
+  void timeEnd(String title, Object arg) {
+    _timeEnd(this, title, arg);
     return;
   }
-  static void _timeEnd(receiver, title) native;
+  static void _timeEnd(receiver, title, arg) native;
 
-  void timeStamp() {
-    _timeStamp(this);
+  void timeStamp(Object arg) {
+    _timeStamp(this, arg);
     return;
   }
-  static void _timeStamp(receiver) native;
+  static void _timeStamp(receiver, arg) native;
 
   void trace(Object arg) {
     _trace(this, arg);

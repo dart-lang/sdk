@@ -4,9 +4,5 @@
 
 // WARNING: Do not edit - generated code.
 
-interface HTMLIsIndexElement extends HTMLInputElement {
-
-  final HTMLFormElement form;
-
-  String prompt;
+interface HTMLShadowElement extends HTMLElement {
 }

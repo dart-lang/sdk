@@ -39,6 +39,8 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
 
   String webkitdropzone;
 
+  void click() native;
+
   _ElementJs insertAdjacentElement(String where, _ElementJs element) native;
 
   void insertAdjacentHTML(String where, String html) native;

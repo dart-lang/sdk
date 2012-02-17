@@ -104,7 +104,7 @@ interface HTMLMediaElement extends HTMLElement {
 
   final int webkitVideoDecodedByteCount;
 
-  TextTrack addTrack(String kind, [String label, String language]);
+  TextTrack addTextTrack(String kind, [String label, String language]);
 
   String canPlayType(String type);
 

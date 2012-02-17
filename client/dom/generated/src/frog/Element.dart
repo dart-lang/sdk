@@ -43,6 +43,8 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   final String tagName;
 
+  final String webkitRegionOverflow;
+
   void blur() native;
 
   void focus() native;

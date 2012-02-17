@@ -13,7 +13,7 @@ class _ConsoleJs
 
   final List profiles;
 
-  void assertCondition(bool condition) native;
+  void assertCondition(bool condition, Object arg) native;
 
   void count() native;
 
@@ -25,9 +25,9 @@ class _ConsoleJs
 
   void error(Object arg) native;
 
-  void group() native;
+  void group(Object arg) native;
 
-  void groupCollapsed() native;
+  void groupCollapsed(Object arg) native;
 
   void groupEnd() native;
 
@@ -43,9 +43,9 @@ class _ConsoleJs
 
   void time(String title) native;
 
-  void timeEnd(String title) native;
+  void timeEnd(String title, Object arg) native;
 
-  void timeStamp() native;
+  void timeStamp(Object arg) native;
 
   void trace(Object arg) native;
 

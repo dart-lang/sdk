@@ -187,7 +187,13 @@ class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native 
 
   static final int EQUALPOWER = 0;
 
+  static final int EXPONENTIAL_DISTANCE = 2;
+
   static final int HRTF = 1;
+
+  static final int INVERSE_DISTANCE = 1;
+
+  static final int LINEAR_DISTANCE = 0;
 
   static final int SOUNDFIELD = 2;
 
@@ -430,9 +436,9 @@ class _CSSRuleJs extends _DOMTypeJs implements CSSRule native "*CSSRule" {
 
   static final int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 8;
+  static final int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 9;
+  static final int WEBKIT_KEYFRAME_RULE = 8;
 
   static final int WEBKIT_REGION_RULE = 10;
 
@@ -833,7 +839,7 @@ class _ConsoleJs
 
   final List profiles;
 
-  void assertCondition(bool condition) native;
+  void assertCondition(bool condition, Object arg) native;
 
   void count() native;
 
@@ -845,9 +851,9 @@ class _ConsoleJs
 
   void error(Object arg) native;
 
-  void group() native;
+  void group(Object arg) native;
 
-  void groupCollapsed() native;
+  void groupCollapsed(Object arg) native;
 
   void groupEnd() native;
 
@@ -863,9 +869,9 @@ class _ConsoleJs
 
   void time(String title) native;
 
-  void timeEnd(String title) native;
+  void timeEnd(String title, Object arg) native;
 
-  void timeStamp() native;
+  void timeStamp(Object arg) native;
 
   void trace(Object arg) native;
 
@@ -1173,10 +1179,6 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 }
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
-
-  String createObjectURL(var blob_OR_stream) native;
-
-  void revokeObjectURL(String url) native;
 }
 
 class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWindow" {
@@ -1187,11 +1189,11 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   final _DOMApplicationCacheJs applicationCache;
 
-  _NavigatorJs clientInformation;
+  final _NavigatorJs clientInformation;
 
   final bool closed;
 
-  _ConsoleJs console;
+  final _ConsoleJs console;
 
   final _CryptoJs crypto;
 
@@ -1199,91 +1201,89 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   String defaultstatus;
 
-  num devicePixelRatio;
+  final num devicePixelRatio;
 
   final _DocumentJs document;
 
-  _EventJs event;
+  final _EventJs event;
 
   final _ElementJs frameElement;
 
-  _DOMWindowJs frames;
+  final _DOMWindowJs frames;
 
-  _HistoryJs history;
+  final _HistoryJs history;
 
-  int innerHeight;
+  final int innerHeight;
 
-  int innerWidth;
+  final int innerWidth;
 
-  int length;
+  final int length;
 
   final _StorageJs localStorage;
 
   _LocationJs location;
 
-  _BarInfoJs locationbar;
+  final _BarInfoJs locationbar;
 
-  _BarInfoJs menubar;
+  final _BarInfoJs menubar;
 
   String name;
 
-  _NavigatorJs navigator;
+  final _NavigatorJs navigator;
 
-  bool offscreenBuffering;
+  final bool offscreenBuffering;
 
-  _DOMWindowJs opener;
+  final _DOMWindowJs opener;
 
-  int outerHeight;
+  final int outerHeight;
 
-  int outerWidth;
+  final int outerWidth;
 
   final int pageXOffset;
 
   final int pageYOffset;
 
-  _DOMWindowJs parent;
+  final _DOMWindowJs parent;
 
-  _PerformanceJs performance;
+  final _PerformanceJs performance;
 
-  _BarInfoJs personalbar;
+  final _BarInfoJs personalbar;
 
-  _ScreenJs screen;
+  final _ScreenJs screen;
 
-  int screenLeft;
+  final int screenLeft;
 
-  int screenTop;
+  final int screenTop;
 
-  int screenX;
+  final int screenX;
 
-  int screenY;
+  final int screenY;
 
-  int scrollX;
+  final int scrollX;
 
-  int scrollY;
+  final int scrollY;
 
-  _BarInfoJs scrollbars;
+  final _BarInfoJs scrollbars;
 
-  _DOMWindowJs self;
+  final _DOMWindowJs self;
 
   final _StorageJs sessionStorage;
 
   String status;
 
-  _BarInfoJs statusbar;
+  final _BarInfoJs statusbar;
 
   final _StyleMediaJs styleMedia;
 
-  _BarInfoJs toolbar;
+  final _BarInfoJs toolbar;
 
-  _DOMWindowJs top;
+  final _DOMWindowJs top;
 
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
 
   final _StorageInfoJs webkitStorageInfo;
-
-  final _DOMURLJs webkitURL;
 
   final _DOMWindowJs window;
 
@@ -1744,6 +1744,8 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
   final _CSSStyleDeclarationJs style;
 
   final String tagName;
+
+  final String webkitRegionOverflow;
 
   void blur() native;
 
@@ -2616,8 +2618,6 @@ class _HTMLButtonElementJs extends _HTMLElementJs implements HTMLButtonElement n
 
   bool checkValidity() native;
 
-  void click() native;
-
   void setCustomValidity(String error) native;
 }
 
@@ -2824,6 +2824,8 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
   String title;
 
   String webkitdropzone;
+
+  void click() native;
 
   _ElementJs insertAdjacentElement(String where, _ElementJs element) native;
 
@@ -3138,8 +3140,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
   bool checkValidity() native;
 
-  void click() native;
-
   void select() native;
 
   void setCustomValidity(String error) native;
@@ -3149,14 +3149,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
   void stepDown([int n = null]) native;
 
   void stepUp([int n = null]) native;
-}
-
-class _HTMLIsIndexElementJs extends _HTMLInputElementJs implements HTMLIsIndexElement native "*HTMLIsIndexElement" {
-
-  // Use implementation from HTMLInputElement.
-  // final _HTMLFormElementJs form;
-
-  String prompt;
 }
 
 class _HTMLKeygenElementJs extends _HTMLElementJs implements HTMLKeygenElement native "*HTMLKeygenElement" {
@@ -3372,7 +3364,7 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   final int webkitVideoDecodedByteCount;
 
-  _TextTrackJs addTrack(String kind, [String label = null, String language = null]) native;
+  _TextTrackJs addTextTrack(String kind, [String label = null, String language = null]) native;
 
   String canPlayType(String type) native;
 
@@ -3660,6 +3652,9 @@ class _HTMLSelectElementJs extends _HTMLElementJs implements HTMLSelectElement n
   void remove(var index_OR_option) native;
 
   void setCustomValidity(String error) native;
+}
+
+class _HTMLShadowElementJs extends _HTMLElementJs implements HTMLShadowElement native "*HTMLShadowElement" {
 }
 
 class _HTMLSourceElementJs extends _HTMLElementJs implements HTMLSourceElement native "*HTMLSourceElement" {
@@ -3970,6 +3965,8 @@ class _HighPass2FilterNodeJs extends _AudioNodeJs implements HighPass2FilterNode
 class _HistoryJs extends _DOMTypeJs implements History native "*History" {
 
   final int length;
+
+  final Dynamic state;
 
   void back() native;
 
@@ -5451,11 +5448,13 @@ class _PeerConnectionJs extends _DOMTypeJs implements PeerConnection native "*Pe
 
   EventListener onremovestream;
 
+  EventListener onstatechange;
+
   final int readyState;
 
   final _MediaStreamListJs remoteStreams;
 
-  void addEventListener(String type, EventListener listener, bool useCapture) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void addStream(_MediaStreamJs stream) native;
 
@@ -5465,7 +5464,7 @@ class _PeerConnectionJs extends _DOMTypeJs implements PeerConnection native "*Pe
 
   void processSignalingMessage(String message) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void removeStream(_MediaStreamJs stream) native;
 
@@ -8609,6 +8608,8 @@ class _SVGStylableJs extends _DOMTypeJs implements SVGStylable native "*SVGStyla
 
 class _SVGStyleElementJs extends _SVGElementJs implements SVGStyleElement native "*SVGStyleElement" {
 
+  bool disabled;
+
   String media;
 
   String title;
@@ -9117,9 +9118,17 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
   final bool visible;
 }
 
-class _ShadowRootJs extends _NodeJs implements ShadowRoot native "*ShadowRoot" {
+class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*ShadowRoot" {
 
   final _ElementJs host;
+
+  _ElementJs getElementById(String elementId) native;
+
+  _NodeListJs getElementsByClassName(String className) native;
+
+  _NodeListJs getElementsByTagName(String tagName) native;
+
+  _NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native;
 }
 
 class _SharedWorkerJs extends _AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
@@ -9955,23 +9964,15 @@ class _WebGLActiveInfoJs extends _DOMTypeJs implements WebGLActiveInfo native "*
 class _WebGLBufferJs extends _DOMTypeJs implements WebGLBuffer native "*WebGLBuffer" {
 }
 
-class _WebGLCompressedTexturesJs extends _DOMTypeJs implements WebGLCompressedTextures native "*WebGLCompressedTextures" {
-
-  static final int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
+class _WebGLCompressedTextureS3TCJs extends _DOMTypeJs implements WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
+  static final int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
+
   static final int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
-  static final int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
-
   static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
-
-  static final int ETC1_RGB8_OES = 0x8D64;
-
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, _ArrayBufferViewJs data) native;
-
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, _ArrayBufferViewJs data) native;
 }
 
 class _WebGLContextAttributesJs extends _DOMTypeJs implements WebGLContextAttributes native "*WebGLContextAttributes" {
@@ -10321,8 +10322,6 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
   static final int NOTEQUAL = 0x0205;
 
   static final int NO_ERROR = 0;
-
-  static final int NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
 
   static final int ONE = 1;
 
@@ -11206,19 +11205,17 @@ class _WorkerContextJs extends _DOMTypeJs implements WorkerContext native "*Work
 
   static final int TEMPORARY = 0;
 
-  _WorkerLocationJs location;
+  final _WorkerLocationJs location;
 
-  _WorkerNavigatorJs navigator;
+  final _WorkerNavigatorJs navigator;
 
   EventListener onerror;
 
-  _WorkerContextJs self;
+  final _WorkerContextJs self;
 
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
-
-  final _DOMURLJs webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -11724,7 +11721,13 @@ interface AudioPannerNode extends AudioNode {
 
   static final int EQUALPOWER = 0;
 
+  static final int EXPONENTIAL_DISTANCE = 2;
+
   static final int HRTF = 1;
+
+  static final int INVERSE_DISTANCE = 1;
+
+  static final int LINEAR_DISTANCE = 0;
 
   static final int SOUNDFIELD = 2;
 
@@ -12045,9 +12048,9 @@ interface CSSRule {
 
   static final int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 8;
+  static final int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 9;
+  static final int WEBKIT_KEYFRAME_RULE = 8;
 
   static final int WEBKIT_REGION_RULE = 10;
 
@@ -12469,7 +12472,7 @@ interface Console {
 
   final List profiles;
 
-  void assertCondition(bool condition);
+  void assertCondition(bool condition, Object arg);
 
   void count();
 
@@ -12481,9 +12484,9 @@ interface Console {
 
   void error(Object arg);
 
-  void group();
+  void group(Object arg);
 
-  void groupCollapsed();
+  void groupCollapsed(Object arg);
 
   void groupEnd();
 
@@ -12499,9 +12502,9 @@ interface Console {
 
   void time(String title);
 
-  void timeEnd(String title);
+  void timeEnd(String title, Object arg);
 
-  void timeStamp();
+  void timeStamp(Object arg);
 
   void trace(Object arg);
 
@@ -12915,10 +12918,6 @@ interface DOMTokenList {
 // WARNING: Do not edit - generated code.
 
 interface DOMURL {
-
-  String createObjectURL(var blob_OR_stream);
-
-  void revokeObjectURL(String url);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12930,11 +12929,11 @@ interface Window extends EventTarget {
 
   final DOMApplicationCache applicationCache;
 
-  Navigator clientInformation;
+  final Navigator clientInformation;
 
   final bool closed;
 
-  Console console;
+  final Console console;
 
   final Crypto crypto;
 
@@ -12942,91 +12941,89 @@ interface Window extends EventTarget {
 
   String defaultstatus;
 
-  num devicePixelRatio;
+  final num devicePixelRatio;
 
   final Document document;
 
-  Event event;
+  final Event event;
 
   final Element frameElement;
 
-  DOMWindow frames;
+  final DOMWindow frames;
 
-  History history;
+  final History history;
 
-  int innerHeight;
+  final int innerHeight;
 
-  int innerWidth;
+  final int innerWidth;
 
-  int length;
+  final int length;
 
   final Storage localStorage;
 
   Location location;
 
-  BarInfo locationbar;
+  final BarInfo locationbar;
 
-  BarInfo menubar;
+  final BarInfo menubar;
 
   String name;
 
-  Navigator navigator;
+  final Navigator navigator;
 
-  bool offscreenBuffering;
+  final bool offscreenBuffering;
 
-  DOMWindow opener;
+  final DOMWindow opener;
 
-  int outerHeight;
+  final int outerHeight;
 
-  int outerWidth;
+  final int outerWidth;
 
   final int pageXOffset;
 
   final int pageYOffset;
 
-  DOMWindow parent;
+  final DOMWindow parent;
 
-  Performance performance;
+  final Performance performance;
 
-  BarInfo personalbar;
+  final BarInfo personalbar;
 
-  Screen screen;
+  final Screen screen;
 
-  int screenLeft;
+  final int screenLeft;
 
-  int screenTop;
+  final int screenTop;
 
-  int screenX;
+  final int screenX;
 
-  int screenY;
+  final int screenY;
 
-  int scrollX;
+  final int scrollX;
 
-  int scrollY;
+  final int scrollY;
 
-  BarInfo scrollbars;
+  final BarInfo scrollbars;
 
-  DOMWindow self;
+  final DOMWindow self;
 
   final Storage sessionStorage;
 
   String status;
 
-  BarInfo statusbar;
+  final BarInfo statusbar;
 
   final StyleMedia styleMedia;
 
-  BarInfo toolbar;
+  final BarInfo toolbar;
 
-  DOMWindow top;
+  final DOMWindow top;
 
   final IDBFactory webkitIndexedDB;
 
   final NotificationCenter webkitNotifications;
 
   final StorageInfo webkitStorageInfo;
-
-  final DOMURL webkitURL;
 
   final DOMWindow window;
 
@@ -13594,6 +13591,8 @@ interface Element extends Node, NodeSelector, ElementTraversal {
   final CSSStyleDeclaration style;
 
   final String tagName;
+
+  final String webkitRegionOverflow;
 
   void blur();
 
@@ -14549,8 +14548,6 @@ interface HTMLButtonElement extends HTMLElement {
 
   bool checkValidity();
 
-  void click();
-
   void setCustomValidity(String error);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14728,6 +14725,8 @@ interface HTMLElement extends Element {
   String title;
 
   String webkitdropzone;
+
+  void click();
 
   Element insertAdjacentElement(String where, Element element);
 
@@ -15107,8 +15106,6 @@ interface HTMLInputElement extends HTMLElement {
 
   bool checkValidity();
 
-  void click();
-
   void select();
 
   void setCustomValidity(String error);
@@ -15118,18 +15115,6 @@ interface HTMLInputElement extends HTMLElement {
   void stepDown([int n]);
 
   void stepUp([int n]);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface HTMLIsIndexElement extends HTMLInputElement {
-
-  final HTMLFormElement form;
-
-  String prompt;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15385,7 +15370,7 @@ interface HTMLMediaElement extends HTMLElement {
 
   final int webkitVideoDecodedByteCount;
 
-  TextTrack addTrack(String kind, [String label, String language]);
+  TextTrack addTextTrack(String kind, [String label, String language]);
 
   String canPlayType(String type);
 
@@ -15756,6 +15741,14 @@ interface HTMLSelectElement extends HTMLElement {
   void remove(var index_OR_option);
 
   void setCustomValidity(String error);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface HTMLShadowElement extends HTMLElement {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16156,6 +16149,8 @@ interface HighPass2FilterNode extends AudioNode {
 interface History {
 
   final int length;
+
+  final Dynamic state;
 
   void back();
 
@@ -17530,11 +17525,13 @@ interface PeerConnection {
 
   EventListener onremovestream;
 
+  EventListener onstatechange;
+
   final int readyState;
 
   final MediaStreamList remoteStreams;
 
-  void addEventListener(String type, EventListener listener, bool useCapture);
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
 
   void addStream(MediaStream stream);
 
@@ -17544,7 +17541,7 @@ interface PeerConnection {
 
   void processSignalingMessage(String message);
 
-  void removeEventListener(String type, EventListener listener, bool useCapture);
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 
   void removeStream(MediaStream stream);
 
@@ -20214,6 +20211,8 @@ interface SVGStylable {
 
 interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
+  bool disabled;
+
   String media;
 
   String title;
@@ -20628,9 +20627,17 @@ interface ScriptProfileNode {
 
 // WARNING: Do not edit - generated code.
 
-interface ShadowRoot extends Node {
+interface ShadowRoot extends DocumentFragment {
 
   final Element host;
+
+  Element getElementById(String elementId);
+
+  NodeList getElementsByClassName(String className);
+
+  NodeList getElementsByTagName(String tagName);
+
+  NodeList getElementsByTagNameNS(String namespaceURI, String localName);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21287,23 +21294,15 @@ interface WebGLBuffer {
 
 // WARNING: Do not edit - generated code.
 
-interface WebGLCompressedTextures {
-
-  static final int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
+interface WebGLCompressedTextureS3TC {
 
   static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
+  static final int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
+
   static final int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
-  static final int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
-
   static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
-
-  static final int ETC1_RGB8_OES = 0x8D64;
-
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data);
-
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21698,8 +21697,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int NOTEQUAL = 0x0205;
 
   static final int NO_ERROR = 0;
-
-  static final int NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
 
   static final int ONE = 1;
 
@@ -22685,19 +22682,17 @@ interface Worker extends AbstractWorker {
 
 interface WorkerGlobalScope {
 
-  WorkerLocation location;
+  final WorkerLocation location;
 
-  WorkerNavigator navigator;
+  final WorkerNavigator navigator;
 
   EventListener onerror;
 
-  WorkerContext self;
+  final WorkerContext self;
 
   final IDBFactory webkitIndexedDB;
 
   final NotificationCenter webkitNotifications;
-
-  final DOMURL webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 

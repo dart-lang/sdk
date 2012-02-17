@@ -100,8 +100,6 @@ interface HTMLInputElement extends HTMLElement {
 
   bool checkValidity();
 
-  void click();
-
   void select();
 
   void setCustomValidity(String error);

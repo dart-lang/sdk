@@ -48,6 +48,8 @@ interface Element extends Node, NodeSelector, ElementTraversal {
 
   final String tagName;
 
+  final String webkitRegionOverflow;
+
   void blur();
 
   void focus();

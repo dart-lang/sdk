@@ -8,6 +8,8 @@ interface History {
 
   final int length;
 
+  final Dynamic state;
+
   void back();
 
   void forward();

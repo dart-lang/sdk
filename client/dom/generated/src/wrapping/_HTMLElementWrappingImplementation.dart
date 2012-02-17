@@ -116,6 +116,12 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   void set webkitdropzone(String value) { _set_webkitdropzone(this, value); }
   static void _set_webkitdropzone(var _this, String value) native;
 
+  void click() {
+    _click(this);
+    return;
+  }
+  static void _click(receiver) native;
+
   Element insertAdjacentElement(String where, Element element) {
     return _insertAdjacentElement(this, where, element);
   }

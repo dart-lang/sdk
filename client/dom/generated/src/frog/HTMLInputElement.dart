@@ -95,8 +95,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
   bool checkValidity() native;
 
-  void click() native;
-
   void select() native;
 
   void setCustomValidity(String error) native;

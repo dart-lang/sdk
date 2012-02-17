@@ -274,12 +274,6 @@ class _HTMLInputElementWrappingImplementation extends _HTMLElementWrappingImplem
   }
   static bool _checkValidity(receiver) native;
 
-  void click() {
-    _click(this);
-    return;
-  }
-  static void _click(receiver) native;
-
   void select() {
     _select(this);
     return;

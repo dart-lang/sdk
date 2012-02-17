@@ -38,7 +38,5 @@ interface HTMLButtonElement extends HTMLElement {
 
   bool checkValidity();
 
-  void click();
-
   void setCustomValidity(String error);
 }

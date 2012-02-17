@@ -99,7 +99,7 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   final int webkitVideoDecodedByteCount;
 
-  _TextTrackJs addTrack(String kind, [String label = null, String language = null]) native;
+  _TextTrackJs addTextTrack(String kind, [String label = null, String language = null]) native;
 
   String canPlayType(String type) native;
 

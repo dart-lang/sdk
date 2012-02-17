@@ -4,7 +4,15 @@
 
 // WARNING: Do not edit - generated code.
 
-interface ShadowRoot extends Node {
+interface ShadowRoot extends DocumentFragment {
 
   final Element host;
+
+  Element getElementById(String elementId);
+
+  NodeList getElementsByClassName(String className);
+
+  NodeList getElementsByTagName(String tagName);
+
+  NodeList getElementsByTagNameNS(String namespaceURI, String localName);
 }

@@ -7,11 +7,11 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   final _DOMApplicationCacheJs applicationCache;
 
-  _NavigatorJs clientInformation;
+  final _NavigatorJs clientInformation;
 
   final bool closed;
 
-  _ConsoleJs console;
+  final _ConsoleJs console;
 
   final _CryptoJs crypto;
 
@@ -19,91 +19,89 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   String defaultstatus;
 
-  num devicePixelRatio;
+  final num devicePixelRatio;
 
   final _DocumentJs document;
 
-  _EventJs event;
+  final _EventJs event;
 
   final _ElementJs frameElement;
 
-  _DOMWindowJs frames;
+  final _DOMWindowJs frames;
 
-  _HistoryJs history;
+  final _HistoryJs history;
 
-  int innerHeight;
+  final int innerHeight;
 
-  int innerWidth;
+  final int innerWidth;
 
-  int length;
+  final int length;
 
   final _StorageJs localStorage;
 
   _LocationJs location;
 
-  _BarInfoJs locationbar;
+  final _BarInfoJs locationbar;
 
-  _BarInfoJs menubar;
+  final _BarInfoJs menubar;
 
   String name;
 
-  _NavigatorJs navigator;
+  final _NavigatorJs navigator;
 
-  bool offscreenBuffering;
+  final bool offscreenBuffering;
 
-  _DOMWindowJs opener;
+  final _DOMWindowJs opener;
 
-  int outerHeight;
+  final int outerHeight;
 
-  int outerWidth;
+  final int outerWidth;
 
   final int pageXOffset;
 
   final int pageYOffset;
 
-  _DOMWindowJs parent;
+  final _DOMWindowJs parent;
 
-  _PerformanceJs performance;
+  final _PerformanceJs performance;
 
-  _BarInfoJs personalbar;
+  final _BarInfoJs personalbar;
 
-  _ScreenJs screen;
+  final _ScreenJs screen;
 
-  int screenLeft;
+  final int screenLeft;
 
-  int screenTop;
+  final int screenTop;
 
-  int screenX;
+  final int screenX;
 
-  int screenY;
+  final int screenY;
 
-  int scrollX;
+  final int scrollX;
 
-  int scrollY;
+  final int scrollY;
 
-  _BarInfoJs scrollbars;
+  final _BarInfoJs scrollbars;
 
-  _DOMWindowJs self;
+  final _DOMWindowJs self;
 
   final _StorageJs sessionStorage;
 
   String status;
 
-  _BarInfoJs statusbar;
+  final _BarInfoJs statusbar;
 
   final _StyleMediaJs styleMedia;
 
-  _BarInfoJs toolbar;
+  final _BarInfoJs toolbar;
 
-  _DOMWindowJs top;
+  final _DOMWindowJs top;
 
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
 
   final _StorageInfoJs webkitStorageInfo;
-
-  final _DOMURLJs webkitURL;
 
   final _DOMWindowJs window;
 

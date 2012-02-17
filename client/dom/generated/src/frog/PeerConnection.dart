@@ -21,11 +21,13 @@ class _PeerConnectionJs extends _DOMTypeJs implements PeerConnection native "*Pe
 
   EventListener onremovestream;
 
+  EventListener onstatechange;
+
   final int readyState;
 
   final _MediaStreamListJs remoteStreams;
 
-  void addEventListener(String type, EventListener listener, bool useCapture) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void addStream(_MediaStreamJs stream) native;
 
@@ -35,7 +37,7 @@ class _PeerConnectionJs extends _DOMTypeJs implements PeerConnection native "*Pe
 
   void processSignalingMessage(String message) native;
 
-  void removeEventListener(String type, EventListener listener, bool useCapture) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
   void removeStream(_MediaStreamJs stream) native;
 

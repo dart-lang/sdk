@@ -155,7 +155,6 @@
 #source('generated/src/frog/HTMLIFrameElement.dart');
 #source('generated/src/frog/HTMLImageElement.dart');
 #source('generated/src/frog/HTMLInputElement.dart');
-#source('generated/src/frog/HTMLIsIndexElement.dart');
 #source('generated/src/frog/HTMLKeygenElement.dart');
 #source('generated/src/frog/HTMLLIElement.dart');
 #source('generated/src/frog/HTMLLabelElement.dart');
@@ -181,6 +180,7 @@
 #source('generated/src/frog/HTMLQuoteElement.dart');
 #source('generated/src/frog/HTMLScriptElement.dart');
 #source('generated/src/frog/HTMLSelectElement.dart');
+#source('generated/src/frog/HTMLShadowElement.dart');
 #source('generated/src/frog/HTMLSourceElement.dart');
 #source('generated/src/frog/HTMLSpanElement.dart');
 #source('generated/src/frog/HTMLStyleElement.dart');
@@ -468,7 +468,7 @@
 #source('generated/src/frog/WaveShaperNode.dart');
 #source('generated/src/frog/WebGLActiveInfo.dart');
 #source('generated/src/frog/WebGLBuffer.dart');
-#source('generated/src/frog/WebGLCompressedTextures.dart');
+#source('generated/src/frog/WebGLCompressedTextureS3TC.dart');
 #source('generated/src/frog/WebGLContextAttributes.dart');
 #source('generated/src/frog/WebGLContextEvent.dart');
 #source('generated/src/frog/WebGLDebugRendererInfo.dart');
@@ -667,7 +667,6 @@
 #source('generated/src/interface/HTMLIFrameElement.dart');
 #source('generated/src/interface/HTMLImageElement.dart');
 #source('generated/src/interface/HTMLInputElement.dart');
-#source('generated/src/interface/HTMLIsIndexElement.dart');
 #source('generated/src/interface/HTMLKeygenElement.dart');
 #source('generated/src/interface/HTMLLIElement.dart');
 #source('generated/src/interface/HTMLLabelElement.dart');
@@ -693,6 +692,7 @@
 #source('generated/src/interface/HTMLQuoteElement.dart');
 #source('generated/src/interface/HTMLScriptElement.dart');
 #source('generated/src/interface/HTMLSelectElement.dart');
+#source('generated/src/interface/HTMLShadowElement.dart');
 #source('generated/src/interface/HTMLSourceElement.dart');
 #source('generated/src/interface/HTMLSpanElement.dart');
 #source('generated/src/interface/HTMLStyleElement.dart');
@@ -997,7 +997,7 @@
 #source('generated/src/interface/WaveShaperNode.dart');
 #source('generated/src/interface/WebGLActiveInfo.dart');
 #source('generated/src/interface/WebGLBuffer.dart');
-#source('generated/src/interface/WebGLCompressedTextures.dart');
+#source('generated/src/interface/WebGLCompressedTextureS3TC.dart');
 #source('generated/src/interface/WebGLContextAttributes.dart');
 #source('generated/src/interface/WebGLContextEvent.dart');
 #source('generated/src/interface/WebGLDebugRendererInfo.dart');
