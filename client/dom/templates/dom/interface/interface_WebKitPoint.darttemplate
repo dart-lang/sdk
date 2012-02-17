@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitPoint$!EXTENDS default _WebKitPointFactoryProvider {
+interface WebKitPoint$EXTENDS default _WebKitPointFactoryProvider {
 
   WebKitPoint(num x, num y);
 $!MEMBERS}

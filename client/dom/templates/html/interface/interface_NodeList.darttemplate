@@ -4,7 +4,13 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitCSSMatrix$EXTENDS default _WebKitCSSMatrixFactoryProvider {
+interface $ID$EXTENDS {
 
-  WebKitCSSMatrix([String spec]);
-$!MEMBERS}
+  NodeList filter(bool f(Node element));
+
+  NodeList getRange(int start, int length);
+
+  Node get first();
+
+$!MEMBERS
+}

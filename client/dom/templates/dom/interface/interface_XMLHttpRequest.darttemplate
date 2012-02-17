@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface XMLHttpRequest$!EXTENDS default _XMLHttpRequestFactoryProvider {
+interface XMLHttpRequest$EXTENDS default _XMLHttpRequestFactoryProvider {
 
   XMLHttpRequest();
 

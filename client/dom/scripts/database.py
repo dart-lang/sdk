@@ -6,6 +6,7 @@
 """Module to manage IDL files."""
 
 import copy
+import pickle
 import logging
 import os
 import os.path
@@ -119,6 +120,21 @@ class Database(object):
     # FIXME: Speed this up by multi-threading.
     for (interface_name) in self._ScanForInterfaces():
       self._LoadInterfaceFile(interface_name)
+    self.Cache()
+
+  def Cache(self):
+    """Serialize the database using pickle for faster startup in the future
+    """
+    output_file = open('../database/cache.pickle', 'wb')
+    pickle.dump(self._all_interfaces, output_file)
+    pickle.dump(self._interfaces_to_delete, output_file)
+
+  def LoadFromCache(self):
+    """Deserialize the database using pickle for fast startup
+    """
+    input_file = open('../database/cache.pickle', 'rb')
+    self._all_interfaces = pickle.load(input_file)
+    self._interfaces_to_delete = pickle.load(input_file)
 
   def Save(self):
     """Saves all in-memory interfaces into files."""

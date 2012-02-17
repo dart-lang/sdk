@@ -8,24 +8,22 @@
 #library("html");
 
 $!GENERATED_DART_FILES
-#source('src/EventListener.dart');
-#source('src/KeyLocation.dart');
-#source('src/KeyName.dart');
-#source('src/ReadyState.dart');
-#source('src/TimeoutHandler.dart');
-#source('src/_Collections.dart');
-#source('src/frog_FactoryProviders.dart');
-#source('src/_ListIterators.dart');
-#source('src/_Lists.dart');
 
-// TODO(jmesserly): do we still need these?
-interface DOMType {}
-class _DOMTypeJs implements DOMType native '*DOMType' {}
-
+#source('../dom/src/EventListener.dart');
+#source('../dom/src/KeyLocation.dart');
+#source('../dom/src/KeyName.dart');
+#source('../dom/src/ReadyState.dart');
+#source('../dom/src/TimeoutHandler.dart');
+#source('../dom/src/_Collections.dart');
+#source('../html/src/frog_FactoryProviders.dart');
+#source('../html/src/Device.dart');
+#source('../dom/src/_ListIterators.dart');
+#source('../dom/src/_Lists.dart');
 
 // TODO(sra): What 'window' do we get in a worker?  Perhaps this
 // should return the interface type.
-DOMWindow get window() native "return window;";
+Window get window() native "return window;";
+_WindowJs get _window() native "return window;";
 
-// TODO(vsm): Revert to Dart method when 508 is fixed.
-HTMLDocument get document() native "return window.document;";
+Document get document() native "return window.document.documentElement;";
+_DocumentJs get _document() native "return window.document.documentElement;";

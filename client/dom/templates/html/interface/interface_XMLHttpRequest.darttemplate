@@ -4,7 +4,11 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitCSSMatrix$EXTENDS default _WebKitCSSMatrixFactoryProvider {
+interface $ID$EXTENDS default _$(ID)FactoryProvider {
 
-  WebKitCSSMatrix([String spec]);
+  $ID();
+
+  // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
+  // not correctly implemented yet. (b/4970173)
+  $ID.getTEMPNAME(String url, onSuccess($ID request));
 $!MEMBERS}

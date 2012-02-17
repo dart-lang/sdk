@@ -1,0 +1,14 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface Document extends HtmlElement {
+
+  // TODO(jacobr): remove these methods and let them be generated automatically
+  // once dart supports defining fields with the same name in an interface and
+  // its parent interface.
+  String get title();
+  void set title(String value);
+
+$!MEMBERS
+}

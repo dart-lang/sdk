@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface XSLTProcessor$!EXTENDS default _XSLTProcessorFactoryProvider {
+interface XSLTProcessor$EXTENDS default _XSLTProcessorFactoryProvider {
 
   XSLTProcessor();
 $!MEMBERS}

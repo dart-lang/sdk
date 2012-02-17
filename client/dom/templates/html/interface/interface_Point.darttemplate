@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitCSSMatrix$EXTENDS default _WebKitCSSMatrixFactoryProvider {
+interface $ID$EXTENDS default _$(ID)FactoryProvider {
 
-  WebKitCSSMatrix([String spec]);
+  $ID(num x, num y);
 $!MEMBERS}

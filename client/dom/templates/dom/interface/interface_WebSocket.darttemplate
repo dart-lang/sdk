@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebSocket$!EXTENDS default _WebSocketFactoryProvider {
+interface WebSocket$EXTENDS default _WebSocketFactoryProvider {
 
   WebSocket(String url);
 $!MEMBERS}

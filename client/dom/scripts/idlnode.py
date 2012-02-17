@@ -351,6 +351,13 @@ class IDLInterface(IDLNode):
     self.is_supplemental = 'Supplemental' in self.ext_attrs
     self.is_no_interface_object = 'NoInterfaceObject' in self.ext_attrs
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
+    self.javascript_binding_name = self.id
+
+  def has_attribute(self, candidate):
+    for attribute in self.attributes:
+      if attribute.id == candidate.id and attribute.is_fc_getter == candidate.is_fc_getter and attribute.is_fc_setter == candidate.is_fc_setter:
+        return True
+    return False
 
 
 class IDLParentInterface(IDLNode):

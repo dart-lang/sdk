@@ -12,132 +12,21 @@ import multiemitter
 import os
 import re
 import shutil
+from generator import *
+from systembase import *
+from systemfrog import *
+from systemhtml import *
+from systeminterface import *
 
 _logger = logging.getLogger('dartgenerator')
 
-# IDL->Dart primitive types conversion.
-_idl_to_dart_type_conversions = {
-    'any': 'Object',
-    'any[]': 'List',
-    'custom': 'Dynamic',
-    'boolean': 'bool',
-    'DOMObject': 'Object',
-    'DOMString': 'String',
-    'DOMStringList': 'List<String>',
-    'DOMTimeStamp': 'int',
-    'Date': 'Date',
-    # Map to num to enable callers to pass in Dart int, rational
-    # types.  Our implementations will need to convert these to
-    # doubles or floats as needed.
-    'double': 'num',
-    'float': 'num',
-    'int': 'int',
-    # Map to extra precision - int is a bignum in Dart.
-    'long': 'int',
-    'long long': 'int',
-    'object': 'Object',
-    # Map to extra precision - int is a bignum in Dart.
-    'short': 'int',
-    'string': 'String',
-    'void': 'void',
-    'Array': 'List',
-    'sequence': 'List',
-    # TODO(sra): Come up with some meaningful name so that where this appears in
-    # the documentation, the user is made aware that only a limited subset of
-    # serializable types are actually permitted.
-    'SerializedScriptValue': 'Dynamic',
-    # TODO(vsm): Automatically recognize types defined in src.
-    'TimeoutHandler': 'TimeoutHandler',
-    'RequestAnimationFrameCallback': 'RequestAnimationFrameCallback',
+def MergeNodes(node, other):
+  node.operations.extend(other.operations)
+  for attribute in other.attributes:
+    if not node.has_attribute(attribute):
+      node.attributes.append(attribute)
 
-    # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
-    # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
-    'WebKitFlags': 'Object',
-    }
-
-_dart_to_idl_type_conversions = dict((v,k) for k, v in
-                                     _idl_to_dart_type_conversions.iteritems())
-
-
-#
-# Identifiers that are used in the IDL than need to be treated specially because
-# *some* JavaScript processors forbid them as properties.
-#
-_javascript_keywords = ['delete', 'continue']
-
-#
-# Interface version of the DOM needs to delegate typed array constructors to a
-# factory provider.
-#
-_interface_factories = {
-    'Float32Array': '_TypedArrayFactoryProvider',
-    'Float64Array': '_TypedArrayFactoryProvider',
-    'Int8Array': '_TypedArrayFactoryProvider',
-    'Int16Array': '_TypedArrayFactoryProvider',
-    'Int32Array': '_TypedArrayFactoryProvider',
-    'Uint8Array': '_TypedArrayFactoryProvider',
-    'Uint16Array': '_TypedArrayFactoryProvider',
-    'Uint32Array': '_TypedArrayFactoryProvider',
-    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
-}
-
-#
-# Custom methods that must be implemented by hand.
-#
-_custom_methods = set([
-    ('DOMWindow', 'setInterval'),
-    ('DOMWindow', 'setTimeout'),
-    ('WorkerContext', 'setInterval'),
-    ('WorkerContext', 'setTimeout'),
-    ('CanvasRenderingContext2D', 'setFillStyle'),
-    ('CanvasRenderingContext2D', 'setStrokeStyle'),
-    ('CanvasRenderingContext2D', 'setFillStyle'),
-    ])
-
-#
-# Custom getters that must be implemented by hand.
-#
-_custom_getters = set([
-    ('DOMWindow', 'localStorage'),
-    ])
-
-#
-# Custom native specs for the Frog dom.
-#
-_frog_dom_custom_native_specs = {
-    # Decorate the singleton Console object, if present (workers do not have a
-    # console).
-    'Console': "=(typeof console == 'undefined' ? {} : console)",
-
-    # DOMWindow aliased with global scope.
-    'DOMWindow': '@*DOMWindow',
-}
-
-#
-# Simple method substitution when one method had different names on different
-# browsers, but are otherwise identical.  The alternates are tried in order and
-# the first one defined is used.
-#
-# This can be probably be removed when Chrome renames initWebKitWheelEvent to
-# initWheelEvent.
-#
-_alternate_methods = {
-    ('WheelEvent', 'initWheelEvent'): ['initWebKitWheelEvent', 'initWheelEvent']
-}
-
-
-def _MatchSourceFilter(filter, thing):
-  if not filter:
-    return True
-  else:
-    return any(token in thing.annotations for token in filter)
-
-def _IsDartListType(type):
-  return type == 'List' or type.startswith('List<')
-
-def _IsDartCollectionType(type):
-  return _IsDartListType(type)
-
+  node.constants.extend(other.constants)
 
 class DartGenerator(object):
   """Utilities to generate Dart APIs and corresponding JavaScript."""
@@ -162,12 +51,8 @@ class DartGenerator(object):
   def _StripModules(self, type_name):
     return type_name.split('::')[-1]
 
-  def _IsPrimitiveType(self, type_name):
-    return (self._ConvertPrimitiveType(type_name) is not None or
-            type_name in _dart_to_idl_type_conversions)
-
   def _IsCompoundType(self, database, type_name):
-    if self._IsPrimitiveType(type_name):
+    if IsPrimitiveType(type_name):
       return True
 
     striped_type_name = self._StripModules(type_name)
@@ -186,15 +71,6 @@ class DartGenerator(object):
   def _IsDartType(self, type_name):
     return '.' in type_name
 
-  def _ConvertPrimitiveType(self, type_name):
-    if type_name.startswith('unsigned '):
-      type_name = type_name[len('unsigned '):]
-
-    if type_name in _idl_to_dart_type_conversions:
-      # Primitive type conversion
-      return _idl_to_dart_type_conversions[type_name]
-    return None
-
   def LoadAuxiliary(self):
     def Visitor(_, dirname, names):
       for name in names:
@@ -203,7 +79,7 @@ class DartGenerator(object):
         self._auxiliary_files[name] = os.path.join(dirname, name)
     os.path.walk(self._auxiliary_dir, Visitor, None)
 
-  def RenameTypes(self, database, conversion_table=None):
+  def RenameTypes(self, database, conversion_table, rename_javascript_binding_names):
     """Renames interfaces using the given conversion table.
 
     References through all interfaces will be renamed as well.
@@ -215,18 +91,23 @@ class DartGenerator(object):
 
     if conversion_table is None:
       conversion_table = {}
-
+     
     # Rename interfaces:
     for old_name, new_name in conversion_table.items():
       if database.HasInterface(old_name):
-        _logger.info('renaming interface %s to %s' %
-                     (old_name, new_name))
+        _logger.info('renaming interface %s to %s' % (old_name, new_name))
         interface = database.GetInterface(old_name)
         database.DeleteInterface(old_name)
         if not database.HasInterface(new_name):
           interface.id = new_name
           database.AddInterface(interface)
-
+        else:
+          new_interface = database.GetInterface(new_name)
+          MergeNodes(new_interface, interface)
+        
+        interface.javascript_binding_name = (old_name if rename_javascript_binding_names
+            else new_name)
+ 
     # Fix references:
     for interface in database.GetInterfaces():
       for idl_type in interface.all(idlnode.IDLType):
@@ -265,8 +146,8 @@ class DartGenerator(object):
     def ConvertType(interface, type_name):
       """Helper method for converting a type name to the proper
       Dart name"""
-      if self._IsPrimitiveType(type_name):
-        return self._ConvertPrimitiveType(type_name)
+      if IsPrimitiveType(type_name):
+        return ConvertPrimitiveType(type_name)
 
       if self._IsDartType(type_name):
         # This is for when dart qualified names are explicitly
@@ -355,7 +236,7 @@ class DartGenerator(object):
   def Generate(self, database, output_dir,
                module_source_preference=[], source_filter=None,
                super_database=None, common_prefix=None, super_map={},
-               lib_dir=None, systems=[]):
+               html_map={}, lib_dir=None, systems=[]):
     """Generates Dart and JS files for the loaded interfaces.
 
     Args:
@@ -373,7 +254,7 @@ class DartGenerator(object):
       lib_file_path -- filename for generated .lib file, None if not required.
       lib_template -- template file in this directory for generated lib file.
     """
-
+  
     self._emitters = multiemitter.MultiEmitter()
     self._database = database
     self._output_dir = output_dir
@@ -383,15 +264,16 @@ class DartGenerator(object):
     self._systems = []
 
     # TODO(jmesserly): only create these if needed
-    interface_system = InterfacesSystem(
-        TemplateLoader(self._template_dir, ['dom/interface', 'dom', '']),
-        self._database, self._emitters, self._output_dir)
-    self._systems.append(interface_system)
-
-    html_interface_system = HtmlInterfacesSystem(
-        TemplateLoader(self._template_dir, ['html/interface', 'html', '']),
-        self._database, self._emitters, self._output_dir)
-    self._systems.append(html_interface_system)
+    if ('htmlfrog' in systems) or ('htmldartium' in systems):
+      html_interface_system = HtmlInterfacesSystem(
+          TemplateLoader(self._template_dir, ['html/interface', 'html', '']),
+          self._database, self._emitters, self._output_dir, self)
+      self._systems.append(html_interface_system)
+    else:
+      interface_system = InterfacesSystem(
+          TemplateLoader(self._template_dir, ['dom/interface', 'dom', '']),
+          self._database, self._emitters, self._output_dir)
+      self._systems.append(interface_system)
 
     if 'native' in systems:
       native_system = NativeImplementationSystem(
@@ -432,7 +314,7 @@ class DartGenerator(object):
     if 'htmlfrog' in systems:
       html_system = HtmlFrogSystem(
           TemplateLoader(self._template_dir, ['html/frog', 'html', '']),
-          self._database, self._emitters, self._output_dir)
+          self._database, self._emitters, self._output_dir, self)
 
       html_system._interface_system = html_interface_system
       self._systems.append(html_system)
@@ -440,7 +322,7 @@ class DartGenerator(object):
     if 'htmldartium' in systems:
       html_system = HtmlDartiumSystem(
           TemplateLoader(self._template_dir, ['html/dartium', 'html', '']),
-          self._database, self._emitters, self._output_dir)
+          self._database, self._emitters, self._output_dir, self)
 
       html_system._interface_system = html_interface_system
       self._systems.append(html_system)
@@ -448,7 +330,7 @@ class DartGenerator(object):
     # Collect interfaces
     interfaces = []
     for interface in database.GetInterfaces():
-      if not _MatchSourceFilter(source_filter, interface):
+      if not MatchSourceFilter(source_filter, interface):
         # Skip this interface since it's not present in the required source
         _logger.info('Omitting interface - %s' % interface.id)
         continue
@@ -478,7 +360,7 @@ class DartGenerator(object):
             interface_name, auxiliary_file))
         continue
 
-      info = _RecognizeCallback(interface)
+      info = RecognizeCallback(interface)
       if info:
         for system in self._systems:
           system.ProcessCallback(interface, info)
@@ -506,7 +388,7 @@ class DartGenerator(object):
         return
       seen.add(interface.id)
       for parent in interface.parents:
-        if _IsDartCollectionType(parent.type.id):
+        if IsDartCollectionType(parent.type.id):
           continue
         if self._database.HasInterface(parent.type.id):
           parent_interface = self._database.GetInterface(parent.type.id)
@@ -544,8 +426,9 @@ class DartGenerator(object):
       for generator in generators:
         generator.AddAttribute(getter, setter)
 
-    events = _PairUpAttributes([attr for attr in interface.attributes
+    events = set([attr for attr in interface.attributes
                   if self._IsEventAttribute(interface, attr)])
+
     if events:
       for generator in generators:
         generator.AddEventAttributes(events)
@@ -556,7 +439,6 @@ class DartGenerator(object):
     if element_type:
       for generator in generators:
         generator.AddIndexer(element_type)
-
     # Group overloaded operations by id
     operationsById = {}
     for operation in interface.operations:
@@ -567,7 +449,7 @@ class DartGenerator(object):
     # Generate operations
     for id in sorted(operationsById.keys()):
       operations = operationsById[id]
-      info = _AnalyzeOperation(interface, operations)
+      info = AnalyzeOperation(interface, operations)
       for generator in generators:
         generator.AddOperation(info)
 
@@ -577,10 +459,10 @@ class DartGenerator(object):
     # avoid making a duplicate definition and pray that the signatures match.
 
     for parent_interface in self._TransitiveSecondaryParents(interface):
-      if isinstance(parent_interface, str):  # _IsDartCollectionType(parent_interface)
+      if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
         continue
       attributes = [attr for attr in parent_interface.attributes
-                    if not _FindMatchingAttribute(interface, attr)]
+                    if not FindMatchingAttribute(interface, attr)]
       for (getter, setter) in _PairUpAttributes(attributes):
         for generator in generators:
           generator.AddSecondaryAttribute(parent_interface, getter, setter)
@@ -596,7 +478,7 @@ class DartGenerator(object):
       for id in sorted(operationsById.keys()):
         if not any(op.id == id for op in interface.operations):
           operations = operationsById[id]
-          info = _AnalyzeOperation(interface, operations)
+          info = AnalyzeOperation(interface, operations)
           for generator in generators:
             generator.AddSecondaryOperation(parent_interface, info)
 
@@ -607,10 +489,8 @@ class DartGenerator(object):
   def _IsEventAttribute(self, interface, attr):
     # Remove EventListener attributes like 'onclick' when addEventListener
     # is available.
-    if attr.type.id == 'EventListener':
-      if 'EventTarget' in self._AllImplementedInterfaces(interface):
-        return True
-    return False
+    return (attr.type.id == 'EventListener' and
+        'EventTarget' in self._AllImplementedInterfaces(interface))
 
   def _TransitiveSecondaryParents(self, interface):
     """Returns a list of all non-primary parents.
@@ -620,7 +500,7 @@ class DartGenerator(object):
     """
     def walk(parents):
       for parent in parents:
-        if _IsDartCollectionType(parent.type.id):
+        if IsDartCollectionType(parent.type.id):
           result.append(parent.type.id)
           continue
         if self._database.HasInterface(parent.type.id):
@@ -683,18 +563,6 @@ class DartGenerator(object):
     """
     return self._inheritance_closure[interface.id]
 
-
-def _RecognizeCallback(interface):
-  """Returns the info for the callback method if the interface smells like a
-  callback.
-  """
-  if 'Callback' not in interface.ext_attrs: return None
-  handlers = [op for op in interface.operations if op.id == 'handleEvent']
-  if not handlers: return None
-  if not (handlers == interface.operations): return None
-  return _AnalyzeOperation(interface, handlers)
-
-
 def _PairUpAttributes(attributes):
   """Returns a list of (getter, setter) pairs sorted by name.
 
@@ -709,186 +577,6 @@ def _PairUpAttributes(attributes):
     elif attr.is_fc_setter and 'Replaceable' not in attr.ext_attrs:
       setters[attr.id] = attr
   return [(getters.get(id), setters.get(id)) for id in names]
-
-
-def _FindMatchingAttribute(interface, attr1):
-  matches = [attr2 for attr2 in interface.attributes
-             if attr1.id == attr2.id
-             and attr1.is_fc_getter == attr2.is_fc_getter
-             and attr1.is_fc_setter == attr2.is_fc_setter]
-  if matches:
-    assert len(matches) == 1
-    return matches[0]
-  return None
-
-
-def _AnalyzeOperation(interface, operations):
-  """Makes operation calling convention decision for a set of overloads.
-
-  Returns: An OperationInfo object.
-  """
-
-  # Zip together arguments from each overload by position, then convert
-  # to a dart argument.
-
-  # Given a list of overloaded arguments, choose a suitable name.
-  def OverloadedName(args):
-    return '_OR_'.join(sorted(set(arg.id for arg in args)))
-
-  # Given a list of overloaded arguments, choose a suitable type.
-  def OverloadedType(args):
-    typeIds = sorted(set(arg.type.id for arg in args))
-    if len(typeIds) == 1:
-      return typeIds[0]
-    else:
-      return TypeName(typeIds, interface)
-
-  # Given a list of overloaded arguments, render a dart argument.
-  def DartArg(args):
-    filtered = filter(None, args)
-    optional = any(not arg or arg.is_optional for arg in args)
-    type = OverloadedType(filtered)
-    name = OverloadedName(filtered)
-    if optional:
-      return (name, type, 'null')
-    else:
-      return (name, type, None)
-
-  args = map(lambda *args: DartArg(args),
-             *(op.arguments for op in operations))
-
-  info = OperationInfo()
-  info.overloads = operations
-  info.declared_name = operations[0].id
-  info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
-  info.js_name = info.declared_name
-  info.type_name = operations[0].type.id   # TODO: widen.
-  info.arg_infos = args
-  return info
-
-
-class OperationInfo(object):
-  """Holder for various derived information from a set of overloaded operations.
-
-  Attributes:
-    overloads: A list of IDL operation overloads with the same name.
-    name: A string, the simple name of the operation.
-    type_name: A string, the name of the return type of the operation.
-    arg_infos: A list of (name, type, default_value) tuples.
-        default_value is None for mandatory arguments.
-  """
-
-  def ParametersInterfaceDeclaration(self):
-    """Returns a formatted string declaring the parameters for the interface."""
-    return self._FormatArgs(self.arg_infos, True)
-
-  def ParametersImplementationDeclaration(self, rename_type=None):
-    """Returns a formatted string declaring the parameters for the
-    implementation.
-
-    Args:
-      rename_type: A function that allows the types to be renamed.
-    """
-    args = self.arg_infos
-    if rename_type:
-      args = [(name, rename_type(type), default)
-              for (name, type, default) in args]
-    return self._FormatArgs(args, False)
-
-
-  def _FormatArgs(self, args, is_interface):
-    def FormatArg(arg_info):
-      """Returns an argument declaration fragment for an argument info tuple."""
-      (name, type, default) = arg_info
-      if default:
-        return '%s %s = %s' % (type, name, default)
-      else:
-        return '%s %s' % (type, name)
-
-    required = []
-    optional = []
-    for (name, type, default) in args:
-      if default:
-        if is_interface:
-          optional.append((name, type, None))  # Default values illegal.
-        else:
-          optional.append((name, type, default))
-      else:
-        if optional:
-          raise Exception('Optional arguments cannot precede required ones: '
-                          + str(args))
-        required.append((name, type, None))
-    argtexts = map(FormatArg, required)
-    if optional:
-      argtexts.append('[' + ', '.join(map(FormatArg, optional)) + ']')
-    return ', '.join(argtexts)
-
-
-def MaybeListElementTypeName(type_name):
-  """Returns the List element type T from string of form "List<T>", or None."""
-  match = re.match(r'List<(\w*)>$', type_name)
-  if match:
-    return match.group(1)
-  return None
-
-def MaybeListElementType(interface):
-  """Returns the List element type T, or None in interface does not implement
-  List<T>.
-  """
-  for parent in interface.parents:
-    element_type = MaybeListElementTypeName(parent.type.id)
-    if element_type:
-      return element_type
-  return None
-
-def MaybeTypedArrayElementType(interface):
-  """Returns the typed array element type, or None in interface is not a
-  TypedArray.
-  """
-  # Typed arrays implement ArrayBufferView and List<T>.
-  for parent in interface.parents:
-    if  parent.type.id == 'ArrayBufferView':
-      return MaybeListElementType(interface)
-    if  parent.type.id == 'Uint8Array':
-      return 'int'
-  return None
-
-
-def AttributeOutputOrder(a, b):
-  """Canonical output ordering for attributes."""
-    # Getters before setters:
-  if a.id < b.id: return -1
-  if a.id > b.id: return 1
-  if a.is_fc_setter < b.is_fc_setter: return -1
-  if a.is_fc_setter > b.is_fc_setter: return 1
-  return 0
-
-def ConstantOutputOrder(a, b):
-  """Canonical output ordering for constants."""
-  if a.id < b.id: return -1
-  if a.id > b.id: return 1
-  return 0
-
-
-def _FormatNameList(names):
-  """Returns JavaScript array literal expression with one name per line."""
-  #names = sorted(names)
-  if len(names) <= 1:
-    expression_string = str(names)  # e.g.  ['length']
-  else:
-    expression_string = ',\n   '.join(str(names).split(','))
-    expression_string = expression_string.replace('[', '[\n    ')
-  return expression_string
-
-
-def IndentText(text, indent):
-  """Format lines of text with indent."""
-  def FormatLine(line):
-    if line.strip():
-      return '%s%s\n' % (indent, line)
-    else:
-      return '\n'
-  return ''.join(FormatLine(line) for line in text.split('\n'))
 
 # ------------------------------------------------------------------------------
 
@@ -927,190 +615,6 @@ class TemplateLoader(object):
       return template
     raise Exception("Could not find template '%s' on %s / %s" % (
         name, self._root, self._subpaths))
-
-
-# ------------------------------------------------------------------------------
-
-class System(object):
-  """Generates all the files for one implementation."""
-
-  def __init__(self, templates, database, emitters, output_dir):
-    self._templates = templates
-    self._database = database
-    self._emitters = emitters
-    self._output_dir = output_dir
-    self._dart_callback_file_paths = []
-
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    """Returns an interface generator for |interface|."""
-    return None
-
-  def ProcessCallback(self, interface, info):
-    pass
-
-  def GenerateLibraries(self, lib_dir):
-    pass
-
-  def Finish(self):
-    pass
-
-
-  def _ProcessCallback(self, interface, info, file_path):
-    """Generates a typedef for the callback interface."""
-    self._dart_callback_file_paths.append(file_path)
-    code = self._emitters.FileEmitter(file_path)
-
-    code.Emit(self._templates.Load('callback.darttemplate'))
-    code.Emit('typedef $TYPE $NAME($PARAMS);\n',
-              NAME=interface.id,
-              TYPE=info.type_name,
-              PARAMS=info.ParametersImplementationDeclaration())
-
-  def _GenerateLibFile(self, lib_template, lib_file_path, file_paths,
-                       **template_args):
-    """Generates a lib file from a template and a list of files.
-
-    Additional keyword arguments are passed to the template.
-    """
-    # Load template.
-    template = self._templates.Load(lib_template)
-    # Generate the .lib file.
-    lib_file_contents = self._emitters.FileEmitter(lib_file_path)
-
-    # Emit the list of #source directives.
-    list_emitter = lib_file_contents.Emit(template, **template_args)
-    lib_file_dir = os.path.dirname(lib_file_path)
-    for path in sorted(file_paths):
-      relpath = os.path.relpath(path, lib_file_dir)
-      list_emitter.Emit("#source('$PATH');\n", PATH=relpath)
-
-
-  def _BaseDefines(self, interface):
-    """Returns a set of names (strings) for members defined in a base class.
-    """
-    def WalkParentChain(interface):
-      if interface.parents:
-        # Only consider primary parent, secondary parents are not on the
-        # implementation class inheritance chain.
-        parent = interface.parents[0]
-        if _IsDartCollectionType(parent.type.id):
-          return
-        if self._database.HasInterface(parent.type.id):
-          parent_interface = self._database.GetInterface(parent.type.id)
-          for attr in parent_interface.attributes:
-            result.add(attr.id)
-          for op in parent_interface.operations:
-            result.add(op.id)
-          WalkParentChain(parent_interface)
-
-    result = set()
-    WalkParentChain(interface)
-    return result;
-
-
-# ------------------------------------------------------------------------------
-
-class InterfacesSystem(System):
-
-  def __init__(self, templates, database, emitters, output_dir):
-    super(InterfacesSystem, self).__init__(
-        templates, database, emitters, output_dir)
-    self._dart_interface_file_paths = []
-
-
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    """."""
-    interface_name = interface.id
-    dart_interface_file_path = self._FilePathForDartInterface(interface_name)
-
-    self._dart_interface_file_paths.append(dart_interface_file_path)
-
-    dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
-
-    template_file = 'interface_%s.darttemplate' % interface_name
-    template = self._templates.TryLoad(template_file)
-    if not template:
-      template = self._templates.Load('interface.darttemplate')
-
-    return DartInterfaceGenerator(
-        interface, dart_interface_code,
-        template,
-        common_prefix, super_interface_name,
-        source_filter)
-
-  def ProcessCallback(self, interface, info):
-    """Generates a typedef for the callback interface."""
-    interface_name = interface.id
-    file_path = self._FilePathForDartInterface(interface_name)
-    self._ProcessCallback(interface, info, file_path)
-
-  def GenerateLibraries(self, lib_dir):
-    pass
-
-
-  def _FilePathForDartInterface(self, interface_name):
-    """Returns the file path of the Dart interface definition."""
-    return os.path.join(self._output_dir, 'src', 'interface',
-                        '%s.dart' % interface_name)
-
-
-# ------------------------------------------------------------------------------
-
-class HtmlInterfacesSystem(System):
-
-  def __init__(self, templates, database, emitters, output_dir):
-    super(HtmlInterfacesSystem, self).__init__(
-        templates, database, emitters, output_dir)
-    self._dart_interface_file_paths = []
-
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    """."""
-    interface_name = interface.id
-    dart_interface_file_path = self._FilePathForDartInterface(interface_name)
-
-    self._dart_interface_file_paths.append(dart_interface_file_path)
-
-    dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
-
-    template_file = 'interface_%s.darttemplate' % interface_name
-    template = self._templates.TryLoad(template_file)
-    if not template:
-      template = self._templates.Load('interface.darttemplate')
-
-    return HtmlDartInterfaceGenerator(
-        interface, dart_interface_code,
-        template,
-        common_prefix, super_interface_name,
-        source_filter)
-
-  def ProcessCallback(self, interface, info):
-    """Generates a typedef for the callback interface."""
-    interface_name = interface.id
-    file_path = self._FilePathForDartInterface(interface_name)
-    self._ProcessCallback(interface, info, file_path)
-
-  def GenerateLibraries(self, lib_dir):
-    pass
-
-
-  def _FilePathForDartInterface(self, interface_name):
-    """Returns the file path of the Dart interface definition."""
-    # TODO(jmesserly): is this the right path
-    return os.path.join(self._output_dir, 'html', 'interface',
-                        '%s.dart' % interface_name)
-
 
 # ------------------------------------------------------------------------------
 
@@ -1201,270 +705,6 @@ class WrappingImplementationSystem(System):
     """Returns the file path of the Dart wrapping implementation."""
     return os.path.join(self._output_dir, 'src', 'wrapping',
                         '_%sWrappingImplementation.dart' % interface_name)
-
-# ------------------------------------------------------------------------------
-
-class FrogSystem(System):
-
-  def __init__(self, templates, database, emitters, output_dir):
-    super(FrogSystem, self).__init__(
-        templates, database, emitters, output_dir)
-    self._dart_frog_file_paths = []
-
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    """."""
-    dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
-    self._dart_frog_file_paths.append(dart_frog_file_path)
-
-    template_file = 'impl_%s.darttemplate' % interface.id
-    template = self._templates.TryLoad(template_file)
-    if not template:
-      template = self._templates.Load('frog_impl.darttemplate')
-
-    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
-    return FrogInterfaceGenerator(self, interface, template,
-                                  super_interface_name, dart_code)
-
-  def GenerateLibraries(self, lib_dir):
-    self._GenerateLibFile(
-        'frog_dom.darttemplate',
-        os.path.join(lib_dir, 'dom_frog.dart'),
-        (self._interface_system._dart_interface_file_paths +
-         self._interface_system._dart_callback_file_paths +
-         self._dart_frog_file_paths))
-
-  def Finish(self):
-    pass
-
-  def _FilePathForFrogImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
-    return os.path.join(self._output_dir, 'src', 'frog',
-                        '%s.dart' % interface_name)
-
-
-# ------------------------------------------------------------------------------
-
-class HtmlFrogSystem(System):
-
-  def __init__(self, templates, database, emitters, output_dir):
-    super(HtmlFrogSystem, self).__init__(
-        templates, database, emitters, output_dir)
-    self._dart_frog_file_paths = []
-
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    """."""
-    dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
-    self._dart_frog_file_paths.append(dart_frog_file_path)
-
-    template_file = 'impl_%s.darttemplate' % interface.id
-    template = self._templates.TryLoad(template_file)
-    if not template:
-      template = self._templates.Load('frog_impl.darttemplate')
-
-    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
-    return HtmlFrogInterfaceGenerator(self, interface, template,
-                                  super_interface_name, dart_code)
-
-  def GenerateLibraries(self, lib_dir):
-    self._GenerateLibFile(
-        'html_frog.darttemplate',
-        os.path.join(lib_dir, 'html_frog.dart'),
-        (self._interface_system._dart_interface_file_paths +
-         self._interface_system._dart_callback_file_paths +
-         self._dart_frog_file_paths))
-
-  def Finish(self):
-    pass
-
-  def _FilePathForFrogImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
-    # TODO(jmesserly): is this the right path
-    return os.path.join(self._output_dir, 'html', 'frog',
-                        '%s.dart' % interface_name)
-
-# ------------------------------------------------------------------------------
-
-class DartInterfaceGenerator(object):
-  """Generates Dart Interface definition for one DOM IDL interface."""
-
-  def __init__(self, interface, emitter, template,
-               common_prefix, super_interface, source_filter):
-    """Generates Dart code for the given interface.
-
-    Args:
-      interface -- an IDLInterface instance. It is assumed that all types have
-        been converted to Dart types (e.g. int, String), unless they are in the
-        same package as the interface.
-      common_prefix -- the prefix for the common library, if any.
-      super_interface -- the name of the common interface that this interface
-        implements, if any.
-      source_filter -- if specified, rewrites the names of any superinterfaces
-        that are not from these sources to use the common prefix.
-    """
-    self._interface = interface
-    self._emitter = emitter
-    self._template = template
-    self._common_prefix = common_prefix
-    self._super_interface = super_interface
-    self._source_filter = source_filter
-
-
-  def StartInterface(self):
-    if self._super_interface:
-      typename = self._super_interface
-    else:
-      typename = self._interface.id
-
-    # TODO(vsm): Add appropriate package / namespace syntax.
-    (extends_emitter,
-     self._members_emitter,
-     self._top_level_emitter) = self._emitter.Emit(
-         self._template + '$!TOP_LEVEL',
-         ID=typename)
-
-    extends = []
-    suppressed_extends = []
-
-    for parent in self._interface.parents:
-      # TODO(vsm): Remove source_filter.
-      if _MatchSourceFilter(self._source_filter, parent):
-        # Parent is a DOM type.
-        extends.append(parent.type.id)
-      elif '<' in parent.type.id:
-        # Parent is a Dart collection type.
-        # TODO(vsm): Make this check more robust.
-        extends.append(parent.type.id)
-      else:
-        suppressed_extends.append('%s.%s' %
-                                  (self._common_prefix, parent.type.id))
-
-    comment = ' extends'
-    if extends:
-      extends_emitter.Emit(' extends $SUPERS', SUPERS=', '.join(extends))
-      comment = ','
-    if suppressed_extends:
-      extends_emitter.Emit(' /*$COMMENT $SUPERS */',
-                           COMMENT=comment,
-                           SUPERS=', '.join(suppressed_extends))
-
-    if typename in _interface_factories:
-      extends_emitter.Emit(' default $F', F=_interface_factories[typename])
-
-    element_type = MaybeTypedArrayElementType(self._interface)
-    if element_type:
-      self._members_emitter.Emit(
-          '\n'
-          '  $CTOR(int length);\n'
-          '\n'
-          '  $CTOR.fromList(List<$TYPE> list);\n'
-          '\n'
-          '  $CTOR.fromBuffer(ArrayBuffer buffer);\n',
-        CTOR=self._interface.id,
-        TYPE=element_type)
-
-
-  def FinishInterface(self):
-    # TODO(vsm): Use typedef if / when that is supported in Dart.
-    # Define variant as subtype.
-    if (self._super_interface and
-        self._interface.id is not self._super_interface):
-      consts_emitter = self._top_level_emitter.Emit(
-          '\n'
-          'interface $NAME extends $BASE {\n'
-          '$!CONSTS'
-          '}\n',
-          NAME=self._interface.id,
-          BASE=self._super_interface)
-      for const in sorted(self._interface.constants, ConstantOutputOrder):
-        self._EmitConstant(consts_emitter, const)
-
-  def AddConstant(self, constant):
-    if (not self._super_interface or
-        self._interface.id is self._super_interface):
-      self._EmitConstant(self._members_emitter, constant)
-
-  def _EmitConstant(self, emitter, constant):
-    emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
-                 NAME=constant.id,
-                 TYPE=constant.type.id,
-                 VALUE=constant.value)
-
-  def AddAttribute(self, getter, setter):
-    if getter and setter and getter.type.id == setter.type.id:
-      self._members_emitter.Emit('\n  $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=getter.type.id);
-      return
-    if getter and not setter:
-      self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=getter.type.id);
-      return
-    raise Exception('Unexpected getter/setter combination %s %s' %
-                    (getter, setter))
-
-  def AddIndexer(self, element_type):
-    # Interface inherits all operations from List<element_type>.
-    pass
-
-  def AddOperation(self, info):
-    """
-    Arguments:
-      operations - contains the overloads, one or more operations with the same
-        name.
-    """
-    self._members_emitter.Emit('\n'
-                               '  $TYPE $NAME($PARAMS);\n',
-                               TYPE=info.type_name,
-                               NAME=info.name,
-                               PARAMS=info.ParametersInterfaceDeclaration())
-
-  # Interfaces get secondary members directly via the superinterfaces.
-  def AddSecondaryAttribute(self, interface, getter, setter):
-    pass
-
-  def AddSecondaryOperation(self, interface, attr):
-    pass
-
-  def AddEventAttributes(self, event_attrs):
-    pass
-
-# Given a sorted sequence of type identifiers, return an appropriate type
-# name
-def TypeName(typeIds, interface):
-  # Dynamically type this field for now.
-  return 'var'
-
-# ------------------------------------------------------------------------------
-
-# TODO(jmesserly): inheritance is probably not the right way to factor this long
-# term, but it makes merging better for now.
-class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
-  """Generates Dart Interface definition for one DOM IDL interface."""
-
-  def __init__(self, interface, emitter, template,
-               common_prefix, super_interface, source_filter):
-    super(HtmlDartInterfaceGenerator, self).__init__(interface,
-      emitter, template, common_prefix, super_interface, source_filter)
-
-  def AddEventAttributes(self, event_attrs):
-    events_interface = self._interface.id + 'Events'
-    self._members_emitter.Emit('\n  $TYPE get on();\n',
-                               TYPE=events_interface)
-    events_members = self._emitter.Emit(
-        '\ninterface $INTERFACE {\n$!MEMBERS}\n',
-        INTERFACE=events_interface)
-
-    for getter, setter in event_attrs:
-      event = getter or setter
-      events_members.Emit('\n  EventListenerList get $NAME();\n', NAME=event.id)
-
 
 # ------------------------------------------------------------------------------
 
@@ -1569,7 +809,7 @@ class WrappingInterfaceGenerator(object):
     # attributes instead.  For now, this hack lets the interfaces
     # inherit, but not the classes.
     # List methods are injected in AddIndexer.
-    if _IsDartListType(supertype) or _IsDartCollectionType(supertype):
+    if IsDartListType(supertype) or IsDartCollectionType(supertype):
       return 'DOMWrapperBase'
 
     if supertype == 'EventTarget':
@@ -1960,323 +1200,6 @@ class WrappingInterfaceGenerator(object):
     self.GenerateDispatch(
         true_code, info, indent + '  ', position + 1, positive)
     return True
-
-
-# ------------------------------------------------------------------------------
-
-class FrogInterfaceGenerator(object):
-  """Generates a Frog class for a DOM IDL interface."""
-
-  def __init__(self, system, interface, template, super_interface, dart_code):
-    """Generates Dart code for the given interface.
-
-    Args:
-
-      interface: an IDLInterface instance. It is assumed that all types have
-          been converted to Dart types (e.g. int, String), unless they are in
-          the same package as the interface.
-      template: A string template.
-      super_interface: A string or None, the name of the common interface that
-          this interface implements, if any.
-      dart_code: an Emitter for the file containing the Dart implementation
-          class.
-    """
-    self._system = system
-    self._interface = interface
-    self._template = template
-    self._super_interface = super_interface
-    self._dart_code = dart_code
-    self._current_secondary_parent = None
-
-
-  def StartInterface(self):
-    interface = self._interface
-    interface_name = interface.id
-
-    self._class_name = self._ImplClassName(interface_name)
-
-    base = None
-    if interface.parents:
-      supertype = interface.parents[0].type.id
-      if _IsDartCollectionType(supertype):
-        # List methods are injected in AddIndexer.
-        pass
-      else:
-        base = self._ImplClassName(supertype)
-
-    if interface_name in _frog_dom_custom_native_specs:
-      native_spec = _frog_dom_custom_native_specs[interface_name]
-    else:
-      # Make the class 'hidden' so it is dynamically patched at runtime.  This
-      # is useful not only for browser compat, but to allow code that links
-      # against dart:dom to load in a worker isolate.
-      native_spec = '*' + interface_name
-
-    if base:
-      extends = ' extends ' + base
-    elif native_spec[0] == '=':
-      # The implementation is a singleton with no prototype.
-      extends = ''
-    else:
-      extends = ' extends _DOMTypeJs'
-
-    # TODO: Include all implemented interfaces, including other Lists.
-    implements = [interface_name]
-    element_type = MaybeTypedArrayElementType(self._interface)
-    if element_type:
-      implements.append('List<' + element_type + '>')
-
-    self._members_emitter = self._dart_code.Emit(
-        self._template,
-        #class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-        #$!MEMBERS
-        #}
-        CLASSNAME=self._class_name,
-        EXTENDS=extends,
-        IMPLEMENTS=' implements ' + ', '.join(implements),
-        NATIVESPEC=' native "' + native_spec + '"')
-
-    element_type = MaybeTypedArrayElementType(interface)
-    if element_type:
-      self.AddTypedArrayConstructors(element_type)
-
-
-  def FinishInterface(self):
-    """."""
-    pass
-
-  def _ImplClassName(self, type_name):
-    return '_' + type_name + 'Js'
-
-  def _NarrowToImplementationType(self, type_name):
-    # TODO(sra): Move into the 'system' and cache the result.
-    if type_name == 'EventListener':
-      # Callbacks are typedef functions so don't have a class.
-      return type_name
-    if self._system._database.HasInterface(type_name):
-      interface = self._system._database.GetInterface(type_name)
-      if _RecognizeCallback(interface):
-        # Callbacks are typedef functions so don't have a class.
-        return type_name
-      else:
-        return self._ImplClassName(type_name)
-    return type_name
-
-  def _NarrowInputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
-
-  def _NarrowOutputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
-
-  def AddConstant(self, constant):
-    # Since we are currently generating native classes without interfaces,
-    # generate the constants as part of the class.  This will need to go away
-    # if we revert back to generating interfaces.
-    self._members_emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
-                               NAME=constant.id,
-                               TYPE=constant.type.id,
-                               VALUE=constant.value)
-
-    pass
-
-  def AddAttribute(self, getter, setter):
-    output_type = getter and self._NarrowOutputType(getter.type.id)
-    input_type = setter and self._NarrowInputType(setter.type.id)
-
-    # If the (getter, setter) pair is shadowing, we can't generate a shadowing
-    # field (Issue 1633).
-    (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter)
-    (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
-    if super_getter or super_setter:
-      if getter and not setter and super_getter and not super_setter:
-        if getter.type.id == super_getter.type.id:
-          # Compatible getter, use the superclass property.  This works because
-          # JavaScript will do its own dynamic dispatch.
-          self._members_emitter.Emit(
-              '\n'
-              '  // Use implementation from $SUPER.\n'
-              '  // final $TYPE $NAME;\n',
-              SUPER=super_getter_interface.id,
-              NAME=getter.id, TYPE=output_type)
-          return
-
-      self._members_emitter.Emit('\n  // Shadowing definition.')
-      self._AddAttributeUsingProperties(getter, setter)
-      return
-
-    if getter and setter and input_type == output_type:
-      self._members_emitter.Emit(
-          '\n  $TYPE $NAME;\n',
-          NAME=getter.id, TYPE=output_type)
-      return
-    if getter and not setter:
-      self._members_emitter.Emit(
-          '\n  final $TYPE $NAME;\n',
-          NAME=getter.id, TYPE=output_type)
-      return
-    self._AddAttributeUsingProperties(getter, setter)
-
-  def _AddAttributeUsingProperties(self, getter, setter):
-    if getter:
-      self._AddGetter(getter)
-    if setter:
-      self._AddSetter(setter)
-
-  def _AddGetter(self, attr):
-    # TODO(sra): Remove native body when Issue 829 fixed.
-    self._members_emitter.Emit(
-        '\n  $TYPE get $NAME() native "return this.$NAME;";\n',
-        NAME=attr.id, TYPE=self._NarrowOutputType(attr.type.id))
-
-  def _AddSetter(self, attr):
-    # TODO(sra): Remove native body when Issue 829 fixed.
-    self._members_emitter.Emit(
-        '  void set $NAME($TYPE value) native "this.$NAME = value;";\n',
-        NAME=attr.id, TYPE=self._NarrowInputType(attr.type.id))
-
-  def _FindShadowedAttribute(self, attr):
-    """Returns (attribute, superinterface) or (None, None)."""
-    def FindInParent(interface):
-      """Returns matching attribute in parent, or None."""
-      if interface.parents:
-        parent = interface.parents[0]
-        if _IsDartCollectionType(parent.type.id):
-          return (None, None)
-        if self._system._database.HasInterface(parent.type.id):
-          parent_interface = self._system._database.GetInterface(parent.type.id)
-          attr2 = _FindMatchingAttribute(parent_interface, attr)
-          if attr2:
-            return (attr2, parent_interface)
-          return FindInParent(parent_interface)
-      return (None, None)
-
-    return FindInParent(self._interface) if attr else (None, None)
-
-
-  def AddSecondaryAttribute(self, interface, getter, setter):
-    self._SecondaryContext(interface)
-    self.AddAttribute(getter, setter)
-
-  def AddSecondaryOperation(self, interface, info):
-    self._SecondaryContext(interface)
-    self.AddOperation(info)
-
-  def AddEventAttributes(self, event_attrs):
-    pass
-
-  def _SecondaryContext(self, interface):
-    if interface is not self._current_secondary_parent:
-      self._current_secondary_parent = interface
-      self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)
-
-  def AddIndexer(self, element_type):
-    """Adds all the methods required to complete implementation of List."""
-    # We would like to simply inherit the implementation of everything except
-    # get length(), [], and maybe []=.  It is possible to extend from a base
-    # array implementation class only when there is no other implementation
-    # inheritance.  There might be no implementation inheritance other than
-    # DOMBaseWrapper for many classes, but there might be some where the
-    # array-ness is introduced by a non-root interface:
-    #
-    #   interface Y extends X, List<T> ...
-    #
-    # In the non-root case we have to choose between:
-    #
-    #   class YImpl extends XImpl { add List<T> methods; }
-    #
-    # and
-    #
-    #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
-    #
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE operator[](int index) native "return this[index];";\n',
-        TYPE=self._NarrowOutputType(element_type))
-
-    if 'CustomIndexedSetter' in self._interface.ext_attrs:
-      self._members_emitter.Emit(
-          '\n'
-          '  void operator[]=(int index, $TYPE value) native "this[index] = value";\n',
-          TYPE=self._NarrowInputType(element_type))
-    else:
-      self._members_emitter.Emit(
-          '\n'
-          '  void operator[]=(int index, $TYPE value) {\n'
-          '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
-          '  }\n',
-          TYPE=self._NarrowInputType(element_type))
-
-    # TODO(sra): Use separate mixins for mutable implementations of List<T>.
-    # TODO(sra): Use separate mixins for typed array implementations of List<T>.
-    template_file = 'immutable_list_mixin.darttemplate'
-    template = self._system._templates.Load(template_file)
-    self._members_emitter.Emit(template, E=element_type)
-
-
-  def AddTypedArrayConstructors(self, element_type):
-    self._members_emitter.Emit(
-        '\n'
-        '  factory $CTOR(int length) =>  _construct_$CTOR(length);\n'
-        '\n'
-        '  factory $CTOR.fromList(List<$TYPE> list) => _construct_$CTOR(list);\n'
-        '\n'
-        '  factory $CTOR.fromBuffer(ArrayBuffer buffer) => _construct_$CTOR(buffer);\n'
-        '\n'
-        '  static _construct_$CTOR(arg) native \'return new $CTOR(arg);\';\n',
-        CTOR=self._interface.id,
-        TYPE=element_type)
-
-
-  def AddOperation(self, info):
-    """
-    Arguments:
-      info: An OperationInfo object.
-    """
-    # TODO(vsm): Handle overloads.
-    self._members_emitter.Emit(
-        '\n'
-        '  $TYPE $NAME($PARAMS) native;\n',
-        TYPE=self._NarrowOutputType(info.type_name),
-        NAME=info.name,
-        PARAMS=info.ParametersImplementationDeclaration(
-            lambda type_name: self._NarrowInputType(type_name)))
-
-
-# ------------------------------------------------------------------------------
-
-# TODO(jmesserly): inheritance is probably not the right way to factor this long
-# term, but it makes merging better for now.
-class HtmlFrogInterfaceGenerator(FrogInterfaceGenerator):
-  """Generates a Frog class for the dart:html library from a DOM IDL
-  interface.
-  """
-
-  def __init__(self, system, interface, template, super_interface, dart_code):
-    super(HtmlFrogInterfaceGenerator, self).__init__(
-        system, interface, template, super_interface, dart_code)
-
-  def AddEventAttributes(self, event_attrs):
-    events_class = self._interface.id + 'EventsImpl'
-    events_interface = self._interface.id + 'Events'
-    self._members_emitter.Emit('\n  $TYPE get on() =>\n    new $TYPE(this);\n',
-                               TYPE=events_class)
-
-    events_members = self._dart_code.Emit(
-        '\n'
-        'class $CLASSNAME extends EventsImplementation '
-            'implements $INTERFACE {\n'
-        '  $CLASSNAME(_ptr) : super._wrap(_ptr);\n'
-        '$!MEMBERS}\n',
-        CLASSNAME=events_class,
-        INTERFACE=events_interface)
-
-    for getter, setter in event_attrs:
-      event = getter or setter
-      events_members.Emit(
-          "\n"
-          "EventListenerList get $NAME() => _get('$NAME');\n",
-          NAME=event.id)
-
 
 # ------------------------------------------------------------------------------
 

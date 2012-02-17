@@ -1,0 +1,47 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME extends _ElementJs
+    implements Document
+    native "*HTMLHtmlElement" {
+$!MEMBERS
+
+  // We execute query selectors off the traditional document rather than the
+  // HTMLHtmlElement to make the result of query and queryAll less surprising.
+  // Note: this means that document.query('html') will return the Document.
+  _ElementJs query(String selectors) native "return this.parentNode.querySelector(selectors);";
+  ElementList queryAll(String selectors) native "return this.parentNode.querySelectorAll(selectors);";
+
+  // TODO(jacobr): remove these methods and let them be generated automatically
+  // once dart supports defining fields with the same name in an interface and
+  // its parent interface.
+  String get title() native "return this.parentNode.title;";
+  void set title(String value) native "this.parentNode.title = value;";
+
+
+  // For efficiency and simplicity, we always use the HtmlElement as the
+  // Document but sometimes internally we need the real JS document object.
+  _NodeJs get _jsDocument() native "return this.parentNode;";
+
+  // The document doesn't have a parent element.
+  _ElementJs get parent() => null;
+}
+
+// This class should not be externally visible.  If a user ever gets access to
+// a _SecretHtmlDocumentJs object that is a bug.  This object is hidden by
+// adding checks to all methods that could an HTMLDocument.  We believe that
+// list is limited to Event.target, and HTMLHtmlElement.parent.
+class _SecretHtmlDocumentJs extends _NodeJs implements Node
+    native "*HTMLDocument" {
+  _DocumentJs get _documentElement() native "return this.documentElement;";
+}
+
+EventTarget _FixHtmlDocumentReference(EventTarget eventTarget) {
+  if (eventTarget is _SecretHtmlDocumentJs) {
+    _SecretHtmlDocumentJs secretDocument = eventTarget;
+    return secretDocument._documentElement;
+  } else {
+    return eventTarget;
+  }
+}

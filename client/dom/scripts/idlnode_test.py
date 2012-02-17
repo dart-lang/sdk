@@ -67,7 +67,7 @@ AST   :
     self._run_test(
       None,
       'module TestModule { interface Interface1 {}; };',
-      {'modules': [{'interfaces': [{'id': 'Interface1'}], 'id': 'TestModule'}]})
+      {'modules': [{'interfaces': [{'javascript_binding_name': 'Interface1', 'id': 'Interface1'}], 'id': 'TestModule'}]})
 
   def test_gcc_preprocessor(self):
     self._run_test(
@@ -79,7 +79,7 @@ AST   :
     self._run_test(
       idlparser.WEBKIT_SYNTAX,
       'module M { interface [ExAt1, ExAt2] I {};};',
-      {'modules': [{'interfaces': [{'id': 'I', 'ext_attrs': {'ExAt1': None, 'ExAt2': None}}], 'id': 'M'}]})
+      {'modules': [{'interfaces': [{'javascript_binding_name': 'I', 'ext_attrs': {'ExAt1': None, 'ExAt2': None}, 'id': 'I'}], 'id': 'M'}]})
 
   def test_implements_statement(self):
     self._run_test(
@@ -95,7 +95,7 @@ AST   :
         readonly attribute DOMString a2;
         attribute any a3;
       };''',
-      {'interfaces': [{'attributes': [{'type': {'id': 'long'}, 'id': 'a1'}, {'type': {'id': 'DOMString'}, 'is_read_only': True, 'id': 'a2'}, {'type': {'id': 'any'}, 'id': 'a3'}], 'id': 'I'}]})
+      {'interfaces': [{'javascript_binding_name': 'I', 'attributes': [{'type': {'id': 'long'}, 'id': 'a1'}, {'type': {'id': 'DOMString'}, 'is_read_only': True, 'id': 'a2'}, {'type': {'id': 'any'}, 'id': 'a3'}], 'id': 'I'}]})
 
   def test_operations(self):
     self._run_test(
@@ -106,7 +106,7 @@ AST   :
         getter any item(in long index);
         stringifier name();
       };''',
-      {'interfaces': [{'operations': [{'type': {'id': 't1'}, 'id': 'op1', 'ext_attrs': {'ExAttr': None}}, {'type': {'id': 't2'}, 'id': 'op2', 'arguments': [{'type': {'id': 'int'}, 'id': 'arg1'}, {'type': {'id': 'long'}, 'id': 'arg2'}]}, {'specials': ['getter'], 'type': {'id': 'any'}, 'id': 'item', 'arguments': [{'type': {'id': 'long'}, 'id': 'index'}]}, {'is_stringifier': True, 'type': {'id': 'name'}}], 'id': 'I'}]})
+      {'interfaces': [{'operations': [{'type': {'id': 't1'}, 'ext_attrs': {'ExAttr': None}, 'id': 'op1'}, {'type': {'id': 't2'}, 'id': 'op2', 'arguments': [{'type': {'id': 'int'}, 'id': 'arg1'}, {'type': {'id': 'long'}, 'id': 'arg2'}]}, {'specials': ['getter'], 'type': {'id': 'any'}, 'id': 'item', 'arguments': [{'type': {'id': 'long'}, 'id': 'index'}]}, {'is_stringifier': True, 'type': {'id': 'name'}}], 'javascript_binding_name': 'I', 'id': 'I'}]})
 
   def test_constants(self):
     self._run_test(
@@ -119,13 +119,13 @@ AST   :
         const boolean b1 = false;
         const boolean b2 = true;
       };''',
-      {'interfaces': [{'id': 'I', 'constants': [{'type': {'id': 'long'}, 'id': 'c1', 'value': '0'}, {'type': {'id': 'long'}, 'id': 'c2', 'value': '1'}, {'type': {'id': 'long'}, 'id': 'c3', 'value': '0x01'}, {'type': {'id': 'long'}, 'id': 'c4', 'value': '10'}, {'type': {'id': 'boolean'}, 'id': 'b1', 'value': 'false'}, {'type': {'id': 'boolean'}, 'id': 'b2', 'value': 'true'}]}]})
+      {'interfaces': [{'javascript_binding_name': 'I', 'id': 'I', 'constants': [{'type': {'id': 'long'}, 'id': 'c1', 'value': '0'}, {'type': {'id': 'long'}, 'id': 'c2', 'value': '1'}, {'type': {'id': 'long'}, 'id': 'c3', 'value': '0x01'}, {'type': {'id': 'long'}, 'id': 'c4', 'value': '10'}, {'type': {'id': 'boolean'}, 'id': 'b1', 'value': 'false'}, {'type': {'id': 'boolean'}, 'id': 'b2', 'value': 'true'}]}]})
 
   def test_annotations(self):
     self._run_test(
       idlparser.FREMONTCUT_SYNTAX,
       '@Ano1 @Ano2() @Ano3(x=1) @Ano4(x,y=2) interface I {};',
-      {'interfaces': [{'id': 'I', 'annotations': {'Ano4': {'y': '2', 'x': None}, 'Ano1': {}, 'Ano2': {}, 'Ano3': {'x': '1'}}}]})
+      {'interfaces': [{'javascript_binding_name': 'I', 'id': 'I', 'annotations': {'Ano4': {'y': '2', 'x': None}, 'Ano1': {}, 'Ano2': {}, 'Ano3': {'x': '1'}}}]})
     self._run_test(
       idlparser.FREMONTCUT_SYNTAX,
       '''interface I : @Ano1 J {
@@ -133,13 +133,13 @@ AST   :
         @Ano3 void someOp();
         @Ano3 const int someConst = 0;
       };''',
-      {'interfaces': [{'operations': [{'type': {'id': 'void'}, 'id': 'someOp', 'annotations': {'Ano3': {}}}], 'attributes': [{'type': {'id': 'int'}, 'id': 'someAttr', 'annotations': {'Ano2': {}}}], 'parents': [{'type': {'id': 'J'}, 'annotations': {'Ano1': {}}}], 'id': 'I', 'constants': [{'type': {'id': 'int'}, 'annotations': {'Ano3': {}}, 'value': '0', 'id': 'someConst'}]}]})
+      {'interfaces': [{'operations': [{'type': {'id': 'void'}, 'id': 'someOp', 'annotations': {'Ano3': {}}}], 'javascript_binding_name': 'I', 'parents': [{'type': {'id': 'J'}, 'annotations': {'Ano1': {}}}], 'attributes': [{'type': {'id': 'int'}, 'id': 'someAttr', 'annotations': {'Ano2': {}}}], 'id': 'I', 'constants': [{'type': {'id': 'int'}, 'id': 'someConst', 'value': '0', 'annotations': {'Ano3': {}}}]}]})
 
   def test_inheritance(self):
     self._run_test(
       None,
       'interface Shape {}; interface Rectangle : Shape {}; interface Square : Rectangle, Shape {};',
-      {'interfaces': [{'id': 'Shape'}, {'parents': [{'type': {'id': 'Shape'}}], 'id': 'Rectangle'}, {'parents': [{'type': {'id': 'Rectangle'}}, {'type': {'id': 'Shape'}}], 'id': 'Square'}]})
+      {'interfaces': [{'javascript_binding_name': 'Shape', 'id': 'Shape'}, {'javascript_binding_name': 'Rectangle', 'parents': [{'type': {'id': 'Shape'}}], 'id': 'Rectangle'}, {'javascript_binding_name': 'Square', 'parents': [{'type': {'id': 'Rectangle'}}, {'type': {'id': 'Shape'}}], 'id': 'Square'}]})
 
 if __name__ == "__main__":
   logging.config.fileConfig("logging.conf")

@@ -179,7 +179,7 @@ FILE CONTENT:
   def testTypeRenames(self):
     self._database.Load()
     # Translate 'Shape' to spanish:
-    self._generator.RenameTypes(self._database, {'Shape': 'Forma'})
+    self._generator.RenameTypes(self._database, {'Shape': 'Forma'}, False)
     self._generator.Generate(self._database, self._output_dir)
     self._generator.Flush()
 

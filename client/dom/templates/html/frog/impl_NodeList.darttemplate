@@ -1,0 +1,89 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  _NodeJs _parent;
+
+  int get length() native "return this.length;";
+
+  _NodeJs operator[](int index) native "return this[index];";
+
+  void operator[]=(int index, _NodeJs value) {
+    throw new UnsupportedOperationException("Cannot assign element of immutable List.");
+  }
+  // -- start List<Node> mixins.
+  // Node is the element type.
+
+  // From Iterable<Node>:
+
+  Iterator<Node> iterator() {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new _FixedSizeListIterator<Node>(this);
+  }
+
+  // From Collection<Node>:
+
+  void add(_NodeJs value) {
+    _parent._appendChild(value);
+  }
+
+  void addLast(_NodeJs value) {
+    _parent._appendChild(value);
+  }
+
+  void addAll(Collection<_NodeJs> collection) {
+    for (_NodeJs node in collection) {
+      _parent._appendChild(node);      
+    }
+  }
+
+  void forEach(void f(Node element)) => _Collections.forEach(this, f);
+
+  Collection map(f(Node element)) => _Collections.map(this, [], f);
+
+  Collection<Node> filter(bool f(Node element)) =>
+     _Collections.filter(this, <Node>[], f);
+
+  bool every(bool f(Node element)) => _Collections.every(this, f);
+
+  bool some(bool f(Node element)) => _Collections.some(this, f);
+
+  bool isEmpty() => this.length == 0;
+
+  // From List<Node>:
+
+  void sort(int compare(Node a, Node b)) {
+    throw new UnsupportedOperationException("Cannot sort immutable List.");
+  }
+
+  int indexOf(Node element, [int start = 0]) =>
+      _Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Node element, [int start = 0]) =>
+      _Lists.lastIndexOf(this, element, start);
+
+  Node last() => this[length - 1];
+
+  // FIXME: implement thesee.
+  void setRange(int start, int length, List<Node> from, [int startFrom]) {
+    throw new UnsupportedOperationException("Cannot setRange on immutable List.");
+  }
+  void removeRange(int start, int length) {
+    throw new UnsupportedOperationException("Cannot removeRange on immutable List.");
+  }
+  void insertRange(int start, int length, [Node initialValue]) {
+    throw new UnsupportedOperationException("Cannot insertRange on immutable List.");
+  }
+  List<Node> getRange(int start, int length) =>
+      _Lists.getRange(this, start, length, <Node>[]);
+
+  // -- end List<Node> mixins.
+
+/*
+Ignore members. TODO(jacobr): find a cleaner solution.
+$!MEMBERS
+*/
+}

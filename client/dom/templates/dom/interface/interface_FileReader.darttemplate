@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface FileReader$!EXTENDS default _FileReaderFactoryProvider {
+interface FileReader$EXTENDS default _FileReaderFactoryProvider {
 
   FileReader();
 $!MEMBERS}

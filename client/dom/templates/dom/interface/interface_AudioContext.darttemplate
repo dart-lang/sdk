@@ -4,7 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface AudioContext$!EXTENDS default _AudioContextFactoryProvider {
+interface AudioContext$EXTENDS default _AudioContextFactoryProvider {
 
   AudioContext();
 $!MEMBERS}
