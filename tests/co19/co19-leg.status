@@ -30,7 +30,6 @@ LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
 
 [ $component == leg ]
 # Crashes and time outs.
-Language/13_Types/4_Interface_Types_A11_t01: Skip # Times out.
 LibTest/core/List/sort_A01_t04: Skip # Times out.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
 LibTest/core/List/sort_A01_t06: Skip # Times out.
@@ -59,7 +58,6 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_A04_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_A05_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Canonicalization/02_1_Class_Canonicalization_A01_t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Canonicalization/02_1_Class_Canonicalization_A01_t03: Fail
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A01_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A01_t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A02_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A03_t01: Fail
@@ -71,7 +69,6 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Cla
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A02_t04: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A03_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A11_t01: Fail
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A12_t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A15_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A20_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A21_t01: Fail
@@ -158,6 +155,9 @@ Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t04: Fail
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail
 Language/06_Functions/3_Type_of_a_Function_A01_t01: Fail
 Language/07_Classes/07_Classes_A02_t01: Fail
+Language/07_Classes/07_Classes_A02_t02: Fail
+Language/07_Classes/07_Classes_A02_t04: Fail
+Language/07_Classes/07_Classes_A02_t05: Fail
 Language/07_Classes/07_Classes_A02_t07: Fail
 Language/07_Classes/07_Classes_A02_t09: Fail
 Language/07_Classes/07_Classes_A02_t10: Fail
@@ -298,7 +298,6 @@ Language/07_Classes/4_Instance_Variables_A03_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t02: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t01: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A04_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail
@@ -310,8 +309,17 @@ Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail
 Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t01: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t03: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t01: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t02: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t03: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t04: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail
 Language/07_Classes/7_Static_Variables_A02_t02: Fail
 Language/07_Classes/7_Static_Variables_A06_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t02: Fail
@@ -553,8 +561,6 @@ LibTest/core/Expect/stringEquals_A02_t01: Fail
 LibTest/core/Expect/throws_A01_t01: Fail
 LibTest/core/Expect/throws_A02_t01: Fail
 LibTest/core/ExpectException/toString_A01_t01: Fail
-LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail
-LibTest/core/FallThroughError/toString_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t02: Fail
 LibTest/core/HashMap/HashMap.from_A01_t01: Fail
 LibTest/core/HashMap/HashMap.from_A02_t01: Fail
@@ -649,7 +655,6 @@ LibTest/core/List/length_A04_t01: Fail
 LibTest/core/List/length_A05_t01: Fail
 LibTest/core/List/length_A06_t01: Fail
 LibTest/core/List/length_A08_t01: Fail
-LibTest/core/List/operator_subscript_A01_t01: Fail
 LibTest/core/List/operator_subscript_A01_t02: Fail
 LibTest/core/List/operator_subscript_A02_t01: Fail
 LibTest/core/List/operator_subscript_A03_t01: Fail
@@ -798,39 +803,21 @@ LibTest/core/Math/tan_A01_t01: Fail
 LibTest/core/Math/tan_A01_t02: Fail
 LibTest/core/Math/tan_A01_t03: Fail
 LibTest/core/NoSuchMethodException/toString_A01_t01: Fail
-LibTest/core/Object/Object_A01_t01: Fail
 LibTest/core/Object/dynamic_A01_t01: Fail
 LibTest/core/Object/operator_equality_A01_t01: Fail
 LibTest/core/Object/toString_A01_t01: Fail
 LibTest/core/Queue/Queue.from_A01_t01: Fail
 LibTest/core/Queue/Queue.from_A01_t02: Fail
 LibTest/core/Queue/Queue.from_A02_t01: Fail
-LibTest/core/Queue/addFirst_A01_t01: Fail
-LibTest/core/Queue/addLast_A01_t01: Fail
-LibTest/core/Queue/add_A01_t01: Fail
 LibTest/core/Queue/every_A01_t03: Fail
 LibTest/core/Queue/every_A01_t04: Fail
 LibTest/core/Queue/every_A01_t06: Fail
-LibTest/core/Queue/filter_A01_t01: Fail
 LibTest/core/Queue/filter_A01_t03: Fail
 LibTest/core/Queue/filter_A01_t04: Fail
 LibTest/core/Queue/filter_A01_t06: Fail
-LibTest/core/Queue/first_A01_t01: Fail
-LibTest/core/Queue/first_A02_t01: Fail
 LibTest/core/Queue/forEach_A01_t03: Fail
 LibTest/core/Queue/forEach_A01_t04: Fail
-LibTest/core/Queue/isEmpty_A01_t01: Fail
 LibTest/core/Queue/iterator_A01_t01: Fail
-LibTest/core/Queue/iterator_hasNext_A01_t01: Fail
-LibTest/core/Queue/iterator_hasNext_A01_t02: Fail
-LibTest/core/Queue/iterator_next_A01_t02: Fail
-LibTest/core/Queue/iterator_next_A02_t01: Fail
-LibTest/core/Queue/last_A01_t01: Fail
-LibTest/core/Queue/last_A02_t01: Fail
-LibTest/core/Queue/removeFirst_A01_t01: Fail
-LibTest/core/Queue/removeFirst_A02_t01: Fail
-LibTest/core/Queue/removeLast_A01_t01: Fail
-LibTest/core/Queue/removeLast_A02_t01: Fail
 LibTest/core/Queue/some_A01_t01: Fail
 LibTest/core/Queue/some_A01_t03: Fail
 LibTest/core/Queue/some_A01_t04: Fail
@@ -1217,7 +1204,7 @@ LibTest/core/int/remainder_A01_t01: Fail
 LibTest/core/int/remainder_A01_t02: Fail
 LibTest/core/int/remainder_A01_t03: Fail
 LibTest/core/int/round_A01_t01: Fail
-LibTest/core/int/toDouble_A01_t01: Fail
+LibTest/core/int/toDouble_A01_t01: Fail, Crash
 LibTest/core/int/toInt_A01_t01: Fail
 LibTest/core/int/toRadixString_A01_t01: Fail
 LibTest/core/int/toStringAsExponential_A01_t01: Fail

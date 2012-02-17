@@ -47,8 +47,14 @@ ClosureBreak2Test: Fail
 ClosureBreakTest: Fail
 ClosureSharedStateTest: Fail
 ClosureTest: Fail
-ConstConstructorSyntaxTest/none: Fail
+ConstConstructorSyntaxTest/01: Fail
+ConstConstructorSyntaxTest/02: Fail
+ConstConstructorSyntaxTest/03: Fail
+ConstConstructorSyntaxTest/04: Fail
+ConstConstructorSyntaxTest/05: Fail
+ConstCounterNegativeTest: Crash # Assertion failed: nestedClosureData !== null
 ConstEscapeFrogTest: Fail
+ConstFactoryNegativeTest: Fail
 ConstFieldNegativeTest: Fail
 ConstInit4NegativeTest: Fail
 ConstInitNegativeTest: Fail
@@ -59,7 +65,6 @@ ConstObjectsAreImmutableTest: Fail
 ConstSyntaxTest/01: Fail
 ConstSyntaxTest/02: Fail
 ConstSyntaxTest/03: Fail
-ConstTest: Fail
 Constructor2NegativeTest: Fail
 Constructor2Test: Fail
 Constructor3Test: Fail
@@ -97,7 +102,6 @@ ExecuteFinally8Test: Fail
 ExecuteFinally9Test: Fail
 ExpectTest: Fail
 Factory2NegativeTest: Fail
-Factory2Test: Fail
 Factory3Test: Fail
 Factory4Test: Fail
 FactoryImplementationTest: Fail
@@ -160,7 +164,6 @@ IntrinsifiedMethodsTest: Fail
 IsObjectTest: Fail
 IsOperatorTest: Fail
 Issue1363Test: Fail
-Issue4157508Test: Fail
 Issue4515170Test: Fail
 LabelTest: Fail
 Library5NegativeTest: Fail
@@ -168,10 +171,11 @@ Library5Test: Fail
 Library6NegativeTest: Fail
 LibraryPrefixesTest: Fail
 LibrarySameNameUsedTest: Fail
+ListLiteral1NegativeTest: Fail
+ListLiteral2NegativeTest: Fail
 ListLiteral2Test: Fail
 ListLiteral3Test: Fail
 ListLiteral4Test: Fail
-ListLiteralTest: Fail
 ListTest: Fail
 LocalFunctionTest: Fail
 ManyGenericInstanceofTest: Fail
@@ -180,7 +184,6 @@ MapLiteral3Test: Fail
 MapLiteral4Test: Fail
 MapLiteralTest: Fail
 MapTest: Fail
-MathVMTest: Fail
 MethodBindingTest: Fail
 MethodInvocationTest: Fail
 MethodNameTest: Fail
