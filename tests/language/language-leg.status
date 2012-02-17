@@ -77,10 +77,7 @@ ConstructorReturnWithInitNegativeTest: Fail
 Context2Test: Fail
 ContextTest: Fail
 ContinueTest: Fail
-DefaultClassImplicitConstructorTest: Fail
 DefaultFactoryLibraryTest: Fail
-DefaultFactoryTest: Fail
-DefaultImplementationTest: Fail
 DefaultInitTest: Fail
 DeoptNoFeedbackTest: Fail
 DivByZeroTest: Fail
@@ -158,11 +155,9 @@ InstanceofTest: Fail
 InstantiateTypeVariableNegativeTest: Pass  # For the wrong reason.
 IntTest: Fail
 InterfaceCycleNegativeTest: Fail
+InterfaceFactory3NegativeTest: Fail
 InterfaceFactoryConstructorNegativeTest: Fail
-InterfaceFactoryMultiTest: Fail
-InterfaceFactoryTest: Fail
 InterfaceStaticMethodNegativeTest: Fail
-InterfaceTest: Fail
 IntrinsifiedMethodsTest: Fail
 IsObjectTest: Fail
 IsOperatorTest: Fail
@@ -197,7 +192,6 @@ NamedParameters2Test: Fail
 NamedParameters3Test: Fail
 NamedParameters4Test: Fail
 NamedParametersPassingFalsyTest: Fail
-NamedParametersTest: Fail
 NamedParametersTypeTest: Fail
 NamedParametersWithDollarsTest: Fail
 NamingTest: Fail
@@ -236,8 +230,8 @@ OverrideMethodWithFieldTest/01: Fail
 OverrideMethodWithFieldTest/none: Fail
 Param2Test: Fail
 ParameterInitializerTest: Fail
-Prefix10Test: Fail
 Prefix101Test: Fail
+Prefix10Test: Fail
 Prefix11Test: Fail
 Prefix12Test: Fail
 Prefix14Test: Fail
@@ -269,7 +263,9 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
+RegEx2Test: Fail
 RegExp2Test: Fail
+RegExp3Test: Fail
 RegExpTest: Fail
 RethrowTest: Fail
 SavannahTest: Fail

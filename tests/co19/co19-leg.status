@@ -106,14 +106,11 @@ LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Cla
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A11_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A12_t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A15_t01: Fail
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A16_t02: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A18_t01: Fail
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A19_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A20_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A21_t01: Fail
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Construction/02_1_Class_Construction_A22_t01: Fail
 LangGuideTest/02_Language_Constructs/02_2_Interface/02_2_Interface_A02_t01: Fail
-LangGuideTest/02_Language_Constructs/02_2_Interface/02_2_Interface_A02_t02: Fail
 LangGuideTest/02_Language_Constructs/02_2_Interface/02_2_Interface_A02_t03: Fail
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/02_5_Meaning_of_Names_A02_t01: Fail
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/Examples/Examples_A03_t01: Fail
@@ -347,8 +344,6 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t03: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A13_t01: Fail
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A14_t03: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t01: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t02: Fail
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail
@@ -366,7 +361,6 @@ Language/07_Classes/7_Static_Variables_A04_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t02: Fail
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail
-Language/07_Classes/8_Superclasses_A02_t04: Fail
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail
 Language/07_Classes/9_Superinterfaces_A06_t01: Fail
 Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail
@@ -411,12 +405,6 @@ Language/08_Interfaces/3_Factories_and_Constructors_A03_t01: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t02: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A03_t03: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A04_t01: Fail
-Language/08_Interfaces/3_Factories_and_Constructors_A04_t02: Fail
-Language/08_Interfaces/3_Factories_and_Constructors_A04_t03: Fail
-Language/08_Interfaces/3_Factories_and_Constructors_A05_t01: Fail
-Language/08_Interfaces/3_Factories_and_Constructors_A05_t02: Fail
-Language/08_Interfaces/3_Factories_and_Constructors_A05_t03: Fail
-Language/08_Interfaces/3_Factories_and_Constructors_A05_t04: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t01: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t02: Fail
 Language/08_Interfaces/3_Factories_and_Constructors_A06_t03: Fail
@@ -458,6 +446,7 @@ Language/13_Types/3_Type_Declarations/1_Typedef_A02_t03: Fail
 Language/13_Types/3_Type_Declarations/1_Typedef_A03_t01: Fail
 Language/13_Types/3_Type_Declarations/1_Typedef_A04_t01: Fail
 Language/13_Types/3_Type_Declarations/1_Typedef_A04_t02: Fail
+Language/13_Types/4_Interface_Types_A02_t01: Fail
 Language/13_Types/4_Interface_Types_A04_t02: Fail
 Language/13_Types/4_Interface_Types_A05_t03: Fail
 Language/13_Types/4_Interface_Types_A05_t04: Fail
@@ -539,3 +528,4 @@ LibTest/core/Expect/throws_A01_t04: Fail
 LibTest/core/Expect/throws_A01_t05: Fail
 LibTest/core/Expect/throws_A02_t01: Fail
 LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail  # Issue 4.
+LibTest/core/Stopwatch/start_A01_t02: Fail

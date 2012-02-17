@@ -17,7 +17,6 @@ ConstListSetRangeTest: Fail
 CoreRuntimeTypesTest: Fail
 DateTimeTest: Fail
 DoubleCompareTest: Fail
-ExceptionImplementationTest: Fail
 ExpressionTest: Fail
 ForInTest: Fail
 FutureTest: Fail
@@ -48,6 +47,7 @@ QueueIteratorTest: Fail
 QueueTest: Fail
 RegExp1Test: Fail
 RegExp4Test: Fail
+RegExp5Test: Fail
 RegExpAllMatchesTest: Fail
 RegExpFirstMatchTest: Fail
 RegExpGroupTest: Fail
