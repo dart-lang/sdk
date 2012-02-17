@@ -200,6 +200,20 @@ class TestOutput {
     if (testCase is !BrowserTestCase) return (exitCode != 0 && !hasCrashed);
 
     // Browser case:
+    // If the browser test failed, it may have been because DumpRenderTree
+    // and the virtual framebuffer X server didn't hook up, or DRT crashed with
+    // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
+    // so we have to do this check first.
+    for (String line in stderr) {
+      if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
+        line.contains('Failed to run command. return code=1')) {
+        // If we get the X server error, or DRT crashes with a core dump, retry
+        // the test. 
+        requestRetry = true;
+        return true;
+      }
+    }
+
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain\nPASS'.
     String previous_line = '';
@@ -210,18 +224,6 @@ class TestOutput {
       previous_line = line;
     }
 
-    // If the browser test failed, it may have been because DumpRenderTree
-    // and the virtual framebuffer X server didn't hook up, or DRT crashed with
-    // a core dump.
-    for (String line in stderr) {
-      if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
-        line.contains('Failed to run command. return code=1')) {
-        // If we get the X server error, or DRT crashes with a core dump, retry
-        // the test. 
-        requestRetry = true;
-        return true;
-      }
-    }
     return true;
   }
 
@@ -248,8 +250,9 @@ class RunningProcess {
   List<String> stdout;
   List<String> stderr;
   List<Function> handlers;
+  bool allowRetries;
 
-  RunningProcess(TestCase this.testCase);
+  RunningProcess(TestCase this.testCase, this.allowRetries);
 
   void exitHandler(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
@@ -261,7 +264,7 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (testCase.configuration['component'] == 'webdriver' &&
+    if (allowRetries && testCase.configuration['component'] == 'webdriver' &&
         testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
@@ -500,6 +503,8 @@ class ProcessQueue {
   int _numProcesses = 0;
   int _activeTestListers = 0;
   int _maxProcesses;
+  /** The number of tests we allow to actually fail before we stop retrying. */
+  int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
   bool _keepGeneratedTests;
@@ -704,7 +709,15 @@ class ProcessQueue {
         _ensureDartcBatchRunnersStarted(test.executablePath);
         _getDartcBatchRunnerProcess().startTest(test);
       } else {
-        new RunningProcess(test).start();
+        // Once we've actually failed a test, technically, we wouldn't need to
+        // bother retrying any subsequent tests since the bot is already red. 
+        // However, we continue to retry tests until we have actually failed 
+        // four tests (arbitrarily chosen) for more debugable output, so that 
+        // the developer doesn't waste his or her time trying to fix a bunch of 
+        // tests that appear to be broken but were actually just flakes that 
+        // didn't get retried because there had already been one failure.
+        new RunningProcess(test, 
+            _MAX_FAILED_NO_RETRY > _progress.numFailedTests).start();
       }
       _numProcesses++;
     }
