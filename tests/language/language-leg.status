@@ -117,13 +117,11 @@ Field6NegativeTest: Fail
 Field6aNegativeTest: Fail
 Field7NegativeTest: Fail
 Field7aNegativeTest: Fail
-FieldMethodTest: Fail
 FinalParamNegativeTest: Fail
 FinalSyntaxTest/none: Fail
 FinalVarNegativeTest: Fail
 For2Test: Fail
 ForTest: Fail
-FunctionFieldTest: Fail
 FunctionLiterals2Test: Fail
 FunctionLiteralsTest: Fail
 FunctionSyntaxTest: Fail
@@ -201,7 +199,6 @@ NamedParameters4Test: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTest: Fail
 NamedParametersTypeTest: Fail
-NamedParametersWithConversionsTest: Fail
 NamedParametersWithDollarsTest: Fail
 NamingTest: Fail
 NativeClassInheritance1FrogTest: Fail
@@ -328,7 +325,6 @@ ThrowTest: Fail
 ToStringAsFixedTest: Fail
 TopLevelFuncTest: Fail
 TopLevelGetterArrowSyntaxTest: Fail
-TopLevelInInitializerTest: Fail
 TopLevelPrefixedDeclarationTest: Fail
 TopLevelVarTest: Fail
 ToplevelCollision2Test/none: Fail
