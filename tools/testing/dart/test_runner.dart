@@ -211,11 +211,13 @@ class TestOutput {
     }
 
     // If the browser test failed, it may have been because DumpRenderTree
-    // and the virtual framebuffer X server didn't hook up.
+    // and the virtual framebuffer X server didn't hook up, or DRT crashed with
+    // a core dump.
     for (String line in stderr) {
-      if (line.contains('Gtk-WARNING **: cannot open display: :99')) {
-        // If we get the X server error, return the expected value
-        // We cannot restart the test from here.  Issue dart:1135 is filed.
+      if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
+        line.contains('Failed to run command. return code=1')) {
+        // If we get the X server error, or DRT crashes with a core dump, retry
+        // the test. 
         requestRetry = true;
         return true;
       }
