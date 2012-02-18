@@ -54,7 +54,6 @@ TestRunnerTest: Skip # Uses Process
 FileInvalidArgumentsTest: Skip # Uses File
 PlatformTest: Skip # Uses Platform
 ChunkedStreamTest: Skip # Uses InputStream
-OutOfMemoryTest: Skip # Issue 1640
 DartStdIOPipeTest: Skip # Uses dart:io
 
 [ $component == dartc || $component == chromium ]
