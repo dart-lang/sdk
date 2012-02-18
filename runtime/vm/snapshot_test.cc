@@ -119,7 +119,7 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
 static void CheckEncodeDecodeMessage(Dart_CObject* root) {
   // Encode and decode the message.
   uint8_t* buffer = NULL;
-  MessageWriter writer(&buffer, &malloc_allocator);
+  ApiMessageWriter writer(&buffer, &malloc_allocator);
   writer.WriteCMessage(root);
 
   Dart_CObject* new_root = DecodeMessage(buffer + Snapshot::kHeaderSize,
@@ -1031,7 +1031,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 TEST_CASE(IntArrayMessage) {
   Zone zone(Isolate::Current());
   uint8_t* buffer = NULL;
-  MessageWriter writer(&buffer, &zone_allocator);
+  ApiMessageWriter writer(&buffer, &zone_allocator);
 
   static const int kArrayLength = 2;
   intptr_t data[kArrayLength] = {1, 2};

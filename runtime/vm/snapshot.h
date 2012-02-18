@@ -467,48 +467,6 @@ class BaseWriter {
 };
 
 
-class MessageWriter : public BaseWriter {
- public:
-  MessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : BaseWriter(buffer, alloc), object_id_(0) {
-    ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes - 1);
-  }
-  ~MessageWriter() { }
-
-  // Writes a message of integers.
-  void WriteMessage(intptr_t field_count, intptr_t *data);
-
-  void WriteCMessage(Dart_CObject* object);
-
-  void FinalizeBuffer() {
-    BaseWriter::FinalizeBuffer(Snapshot::kMessage);
-  }
-
- private:
-  static const intptr_t kDartCObjectTypeBits = 4;
-  static const intptr_t kDartCObjectTypeMask = (1 << kDartCObjectTypeBits) - 1;
-  static const intptr_t kDartCObjectMarkMask = ~kDartCObjectTypeMask;
-  static const intptr_t kDartCObjectMarkOffset = 1;
-
-  void MarkCObject(Dart_CObject* object, intptr_t object_id);
-  void UnmarkCObject(Dart_CObject* object);
-  bool IsCObjectMarked(Dart_CObject* object);
-  intptr_t GetMarkedCObjectMark(Dart_CObject* object);
-  void UnmarkAllCObjects(Dart_CObject* object);
-
-  void WriteSmi(int64_t value);
-  void WriteMint(Dart_CObject* object, int64_t value);
-  void WriteInt32(Dart_CObject* object);
-  void WriteInt64(Dart_CObject* object);
-  void WriteInlinedHeader(Dart_CObject* object);
-  void WriteCObject(Dart_CObject* object);
-
-  intptr_t object_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(MessageWriter);
-};
-
-
 class SnapshotWriter : public BaseWriter {
  public:
   SnapshotWriter(Snapshot::Kind kind, uint8_t** buffer, ReAlloc alloc)

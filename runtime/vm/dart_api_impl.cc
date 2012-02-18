@@ -9,6 +9,7 @@
 #include "vm/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debuginfo.h"
@@ -21,7 +22,6 @@
 #include "vm/object_store.h"
 #include "vm/port.h"
 #include "vm/resolver.h"
-#include "vm/snapshot.h"
 #include "vm/stack_frame.h"
 #include "vm/timer.h"
 #include "vm/verifier.h"
@@ -689,7 +689,7 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
                                    intptr_t len,
                                    intptr_t* data) {
   uint8_t* buffer = NULL;
-  MessageWriter writer(&buffer, &allocator);
+  ApiMessageWriter writer(&buffer, &allocator);
 
   writer.WriteMessage(len, data);
 
@@ -701,7 +701,7 @@ DART_EXPORT bool Dart_PostIntArray(Dart_Port port_id,
 
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
-  MessageWriter writer(&buffer, allocator);
+  ApiMessageWriter writer(&buffer, allocator);
 
   writer.WriteCMessage(message);
 
