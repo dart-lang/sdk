@@ -125,14 +125,14 @@ class Database(object):
   def Cache(self):
     """Serialize the database using pickle for faster startup in the future
     """
-    output_file = open('../database/cache.pickle', 'wb')
+    output_file = open(os.path.join(self._root_dir, 'cache.pickle'), 'wb')
     pickle.dump(self._all_interfaces, output_file)
     pickle.dump(self._interfaces_to_delete, output_file)
 
   def LoadFromCache(self):
     """Deserialize the database using pickle for fast startup
     """
-    input_file = open('../database/cache.pickle', 'rb')
+    input_file = open(os.path.join(self._root_dir, 'cache.pickle'), 'rb')
     self._all_interfaces = pickle.load(input_file)
     self._interfaces_to_delete = pickle.load(input_file)
 
