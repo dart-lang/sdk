@@ -203,7 +203,6 @@ NativeNamedConstructors1FrogTest: Fail
 NativeNamedConstructors2FrogTest: Fail
 NativePropertyFrogTest: Fail
 NewExpressionTypeArgsFrogTest/02: Fail
-NonConstConstructorWithoutBodyTest: Fail
 NonConstSuperNegativeTest: Fail
 NonParameterizedFactory2Test: Fail
 NullPointerExceptionTest: Fail
@@ -295,7 +294,6 @@ StringTest: Fail
 SuperAllNamedConstructorTest: Fail
 SuperFieldAccessTest: Fail
 SuperFieldTest: Fail
-SuperFirstConstructorTest: Fail
 SuperImplicitClosureTest: Fail
 SuperOperatorTest: Fail
 SuperSetterTest: Fail
