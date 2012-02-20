@@ -9,7 +9,6 @@ dom/WebGL1Test: Skip  # Issue 1495
 [ $component == dartium ]
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
-dom/DOMParserTest: Fail
 dom/DocumentTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
