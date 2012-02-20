@@ -23,7 +23,6 @@ FuturesTest: Fail
 GrowableObjectArray2VMTest: Fail
 GrowableObjectArrayVMTest: Fail
 HashMapTest: Fail
-IndexOutOfRangeExceptionTest: Fail
 IndexedListAccessTest: Fail
 LinkedHashMapTest: Fail
 ListGetRangeTest: Fail

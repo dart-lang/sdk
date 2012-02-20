@@ -18,10 +18,6 @@ LibTest/core/Dispatcher/*: Skip
 
 [ $component == leg && $mode == release ]
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Crash
-Language/13_Types/3_Type_Declarations/1_Typedef_A01_t04: Crash
-Language/13_Types/3_Type_Declarations/1_Typedef_A05_t01: Crash
-Language/13_Types/3_Type_Declarations/1_Typedef_A05_t02: Crash
-Language/13_Types/3_Type_Declarations/1_Typedef_A05_t03: Crash
 
 
 [ $component == leg && $mode == debug ]
@@ -581,7 +577,6 @@ LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail
 LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail
 LibTest/core/List/List.from_A01_t01: Fail
 LibTest/core/List/List.from_A03_t01: Fail
-LibTest/core/List/List_A01_t01: Fail
 LibTest/core/List/List_A01_t02: Fail
 LibTest/core/List/List_A02_t01: Fail
 LibTest/core/List/List_A03_t01: Fail
@@ -654,7 +649,6 @@ LibTest/core/List/length_A08_t01: Fail
 LibTest/core/List/operator_subscript_A01_t02: Fail
 LibTest/core/List/operator_subscript_A02_t01: Fail
 LibTest/core/List/operator_subscript_A03_t01: Fail
-LibTest/core/List/operator_subscript_A04_t01: Fail
 LibTest/core/List/operator_subscripted_assignment_A01_t02: Fail
 LibTest/core/List/operator_subscripted_assignment_A02_t01: Fail
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail
