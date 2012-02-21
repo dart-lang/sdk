@@ -105,9 +105,20 @@ def render(idl_node, indent_str='  '):
           w(k)
           v = node[k]
           if v is not None:
-            w('=%s' % v.__str__())
+            if isinstance(v, IDLExtAttrFunctionValue):
+              if v.id:
+                w('=')
+              w(v)
+            else:
+              w('=%s' % v.__str__())
           i += 1
         w('] ')
+    elif isinstance(node, IDLExtAttrFunctionValue):
+      if node.id:
+        w(node.id)
+      w('(')
+      w(node.arguments, ', ')
+      w(')')
     elif isinstance(node, IDLAttribute):
       w(node.annotations)
       w(node.ext_attrs)

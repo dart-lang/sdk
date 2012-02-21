@@ -30,7 +30,7 @@ ACTUAL  :
   def test_rendering(self):
     input_text = \
 '''module M {
-  interface I : @A J, K {
+  [Constructor(long x)] interface I : @A J, K {
     attribute int attr;
     readonly attribute long attr2;
     getter attribute int get_attr;
@@ -47,7 +47,7 @@ ACTUAL  :
 
     expected_text = \
 '''module M {
-  interface I :
+  [Constructor(in long x)] interface I :
     @A J,
     K {
 

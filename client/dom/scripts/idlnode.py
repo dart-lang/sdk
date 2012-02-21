@@ -57,7 +57,7 @@ class IDLNode(object):
     res = []
     if type_filter is None or isinstance(self, type_filter):
       res.append(self)
-    for (k, v) in self.__dict__.items():
+    for v in self._all_subnodes():
       if isinstance(v, IDLNode):
         res.extend(v.all(type_filter))
       elif isinstance(v, list):
@@ -65,6 +65,10 @@ class IDLNode(object):
           if isinstance(item, IDLNode):
             res.extend(item.all(type_filter))
     return res
+
+  def _all_subnodes(self):
+    """Accessor used by all() to find subnodes."""
+    return self.__dict__.values()
 
   def to_dict(self):
     """Converts the IDLNode and its children into a dictionary.
@@ -230,10 +234,8 @@ class IDLDictNode(IDLNode):
       res[k] = v
     return res
 
-  def all(self, node_filter):
-    """Overrides the default IDLNode.all recursive operator."""
-    if node_filter is None or isinstance(self, node_filter):
-      return [self]
+  def _all_subnodes(self):
+    # Usually an IDLDictNode does not contain further IDLNodes.
     return []
 
 
@@ -274,13 +276,33 @@ class IDLExtAttrs(IDLDictNode):
     for ext_attr in self._find_all(ext_attrs_ast, 'ExtAttr'):
       name = self._find_first(ext_attr, 'Id')
       value = self._find_first(ext_attr, 'ExtAttrValue')
+
       func_value = self._find_first(value, 'ExtAttrFunctionValue')
       if func_value:
-        # TODO: Parse ExtAttrFunctionValue.  It is used only for
-        # NamedConstructor which is ignored.
-        pass
-      else:
-        self[name] = value
+        # E.g. NamedConstructor=Audio(in [Optional] DOMString src)
+        self[name] = IDLExtAttrFunctionValue(
+            func_value,
+            self._find_first(func_value, 'ExtAttrArgList'))
+        continue
+
+      ctor_args = not value and self._find_first(ext_attr, 'ExtAttrArgList')
+      if ctor_args:
+        # E.g. Constructor(Element host)
+        self[name] = IDLExtAttrFunctionValue(None, ctor_args)
+        continue
+
+      self[name] = value
+
+  def _all_subnodes(self):
+    # Extended attributes may contain IDLNodes, e.g. IDLExtAttrFunctionValue
+    return self.values()
+
+
+class IDLExtAttrFunctionValue(IDLNode):
+  """IDLExtAttrFunctionValue."""
+  def __init__(self, func_value_ast, arg_list_ast):
+    IDLNode.__init__(self, func_value_ast)
+    self.arguments = self._convert_all(arg_list_ast, 'Argument', IDLArgument)
 
 
 class IDLType(IDLNode):
