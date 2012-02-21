@@ -30,10 +30,7 @@ static void SetOsErrorMessage(char* os_error_message,
 // Forward declarations.
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
-                            Dart_Port dir_port,
-                            Dart_Port file_port,
-                            Dart_Port done_port,
-                            Dart_Port error_port);
+                            DirectoryListing* listing);
 static bool DeleteRecursively(const char* dir_name);
 
 
@@ -64,10 +61,7 @@ static bool HandleDir(char* dir_name,
                       char* path,
                       int path_length,
                       bool recursive,
-                      Dart_Port dir_port,
-                      Dart_Port file_port,
-                      Dart_Port done_port,
-                      Dart_Port error_port) {
+                      DirectoryListing *listing) {
   if (strcmp(dir_name, ".") != 0 &&
       strcmp(dir_name, "..") != 0) {
     size_t written = snprintf(path + path_length,
@@ -77,17 +71,10 @@ static bool HandleDir(char* dir_name,
     if (written != strlen(dir_name)) {
       return false;
     }
-    if (dir_port != 0) {
-      Dart_Handle name = Dart_NewString(path);
-      Dart_Post(dir_port, name);
-    }
+    bool ok = listing->HandleDirectory(dir_name);
+    if (!ok) return ok;
     if (recursive) {
-      return ListRecursively(path,
-                             recursive,
-                             dir_port,
-                             file_port,
-                             done_port,
-                             error_port);
+      return ListRecursively(path, recursive, listing);
     }
   }
   return true;
@@ -97,57 +84,52 @@ static bool HandleDir(char* dir_name,
 static bool HandleFile(char* file_name,
                        char* path,
                        int path_length,
-                       Dart_Port file_port) {
-  if (file_port != 0) {
-    size_t written = snprintf(path + path_length,
-                              PATH_MAX - path_length,
-                              "%s",
-                              file_name);
-    if (written != strlen(file_name)) {
-      return false;
-    }
-    Dart_Handle name = Dart_NewString(path);
-    Dart_Post(file_port, name);
+                       DirectoryListing *listing) {
+  // TODO(sgjesse): Pass flags to indicate whether file responses are
+  // needed.
+  size_t written = snprintf(path + path_length,
+                            PATH_MAX - path_length,
+                            "%s",
+                            file_name);
+  if (written != strlen(file_name)) {
+    return false;
   }
-  return true;
+  return listing->HandleFile(path);
 }
 
 
-static void PostError(Dart_Port error_port,
+static void PostError(DirectoryListing *listing,
                       const char* prefix,
                       const char* suffix,
                       int error_code) {
-  if (error_port != 0) {
-    char* error_str = Platform::StrError(error_code);
-    int error_message_size =
-        strlen(prefix) + strlen(suffix) + strlen(error_str) + 3;
-    char* message = static_cast<char*>(malloc(error_message_size + 1));
-    int written = snprintf(message,
-                           error_message_size + 1,
-                           "%s%s (%s)",
-                           prefix,
-                           suffix,
-                           error_str);
-    ASSERT(written == error_message_size);
-    free(error_str);
-    Dart_Post(error_port, Dart_NewString(message));
-    free(message);
-  }
+  // TODO(sgjesse): Pass flags to indicate whether error response is
+  // needed.
+  char* error_str = Platform::StrError(error_code);
+  int error_message_size =
+      strlen(prefix) + strlen(suffix) + strlen(error_str) + 3;
+  char* message = static_cast<char*>(malloc(error_message_size + 1));
+  int written = snprintf(message,
+                         error_message_size + 1,
+                         "%s%s (%s)",
+                         prefix,
+                         suffix,
+                         error_str);
+  ASSERT(written == error_message_size);
+  free(error_str);
+  listing->HandleError(message);
+  free(message);
 }
 
 
 static bool ListRecursively(const char* dir_name,
                             bool recursive,
-                            Dart_Port dir_port,
-                            Dart_Port file_port,
-                            Dart_Port done_port,
-                            Dart_Port error_port) {
+                            DirectoryListing *listing) {
   DIR* dir_pointer;
   do {
     dir_pointer = opendir(dir_name);
   } while (dir_pointer == NULL && errno == EINTR);
   if (dir_pointer == NULL) {
-    PostError(error_port, "Directory listing failed for: ", dir_name, errno);
+    PostError(listing, "Directory listing failed for: ", dir_name, errno);
     return false;
   }
 
@@ -162,7 +144,7 @@ static bool ListRecursively(const char* dir_name,
   bool valid = ComputeFullPath(dir_name, path, &path_length);
   if (!valid) {
     free(path);
-    PostError(error_port, "Directory listing failed for: ", dir_name, errno);
+    PostError(listing, "Directory listing failed for: ", dir_name, errno);
     return false;
   }
 
@@ -183,16 +165,13 @@ static bool ListRecursively(const char* dir_name,
                                        path,
                                        path_length,
                                        recursive,
-                                       dir_port,
-                                       file_port,
-                                       done_port,
-                                       error_port);
+                                       listing);
         break;
       case DT_REG:
         success = success && HandleFile(entry.d_name,
                                         path,
                                         path_length,
-                                        file_port);
+                                        listing);
         break;
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
@@ -210,7 +189,7 @@ static bool ListRecursively(const char* dir_name,
         int lstat_success = TEMP_FAILURE_RETRY(lstat(path, &entry_info));
         if (lstat_success == -1) {
           success = false;
-          PostError(error_port, "Directory listing failed for: ", path, errno);
+          PostError(listing, "Directory listing failed for: ", path, errno);
           break;
         }
         if ((entry_info.st_mode & S_IFMT) == S_IFDIR) {
@@ -218,15 +197,12 @@ static bool ListRecursively(const char* dir_name,
                                          path,
                                          path_length,
                                          recursive,
-                                         dir_port,
-                                         file_port,
-                                         done_port,
-                                         error_port);
+                                         listing);
         } else if ((entry_info.st_mode & S_IFMT) == S_IFREG) {
           success = success && HandleFile(entry.d_name,
                                           path,
                                           path_length,
-                                          file_port);
+                                          listing);
         }
         break;
       }
@@ -237,11 +213,11 @@ static bool ListRecursively(const char* dir_name,
 
   if (read != 0) {
     success = false;
-    PostError(error_port, "Directory listing failed", "", read);
+    PostError(listing, "Directory listing failed", "", read);
   }
 
   if (closedir(dir_pointer) == -1) {
-    PostError(error_port, "Failed to close directory", "", errno);
+    PostError(listing, "Failed to close directory", "", errno);
   }
   free(path);
 
@@ -364,22 +340,11 @@ static bool DeleteRecursively(const char* dir_name) {
 }
 
 
-void Directory::List(const char* dir_name,
+bool Directory::List(const char* dir_name,
                      bool recursive,
-                     Dart_Port dir_port,
-                     Dart_Port file_port,
-                     Dart_Port done_port,
-                     Dart_Port error_port) {
-  bool completed = ListRecursively(dir_name,
-                                   recursive,
-                                   dir_port,
-                                   file_port,
-                                   done_port,
-                                   error_port);
-  if (done_port != 0) {
-    Dart_Handle value = Dart_NewBoolean(completed);
-    Dart_Post(done_port, value);
-  }
+                     DirectoryListing *listing) {
+  bool completed = ListRecursively(dir_name, recursive, listing);
+  return completed;
 }
 
 

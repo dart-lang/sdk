@@ -10,167 +10,30 @@ class _OSStatus {
 }
 
 
-class _DirectoryListingIsolate extends Isolate {
-
-  _DirectoryListingIsolate() : super.heavy();
-
-  void main() {
-    port.receive((message, replyTo) {
-      bool started = _list(message['dir'],
-                           message['recursive'],
-                           message['dirPort'],
-                           message['filePort'],
-                           message['donePort'],
-                           message['errorPort']);
-      replyTo.send(started);
-      port.close();
-    });
-  }
-
-  bool _list(String dir,
-             bool recursive,
-             SendPort dirPort,
-             SendPort filePort,
-             SendPort donePort,
-             SendPort errorPort) native "Directory_List";
-}
-
-
-class _DirectoryOperation {
-  abstract void execute(ReceivePort port);
-
-  void set replyPort(SendPort port) {
-    _replyPort = port;
-  }
-
-  SendPort _replyPort;
-}
-
-
-class _DirExitOperation extends _DirectoryOperation {
-  void execute(ReceivePort port) {
-    port.close();
-  }
-}
-
-
-class _DirExistsOperation extends _DirectoryOperation {
-  _DirExistsOperation(String this._path);
-
-  void execute(ReceivePort port) {
-    _replyPort.send(_Directory._exists(_path), port.toSendPort());
-  }
-
-  String _path;
-}
-
-
-class _DirCreateOperation extends _DirectoryOperation {
-  _DirCreateOperation(String this._path);
-
-  void execute(ReceivePort port) {
-    _replyPort.send(_Directory._create(_path), port.toSendPort());
-  }
-
-  String _path;
-}
-
-
-class _DirCreateTempOperation extends _DirectoryOperation {
-  _DirCreateTempOperation(String this._path);
-
-  void execute(ReceivePort port) {
-    var status = new _OSStatus();
-    var result = _Directory._createTemp(_path, status);
-    if (result == null) {
-      _replyPort.send(status, port.toSendPort());
-    } else {
-      _replyPort.send(result, port.toSendPort());
-    }
-  }
-
-  String _path;
-}
-
-
-class _DirDeleteOperation extends _DirectoryOperation {
-  _DirDeleteOperation(String this._path, bool this._recursive);
-
-  void execute(ReceivePort port) {
-    _replyPort.send(_Directory._delete(_path, _recursive), port.toSendPort());
-  }
-
-  String _path;
-  bool _recursive;
-}
-
-
-class _DirectoryOperationIsolate extends Isolate {
-  _DirectoryOperationIsolate() : super.heavy();
-
-  void handleOperation(_DirectoryOperation message, SendPort ignored) {
-    message.execute(port);
-    port.receive(handleOperation);
-  }
-
-  void main() {
-    port.receive(handleOperation);
-  }
-}
-
-
-class _DirectoryOperationScheduler {
-  _DirectoryOperationScheduler() : _queue = new Queue();
-
-  void schedule(SendPort port) {
-    assert(_isolate != null);
-    if (_queue.isEmpty()) {
-      port.send(new _DirExitOperation());
-      _isolate = null;
-    } else {
-      port.send(_queue.removeFirst());
-    }
-  }
-
-  void scheduleWrap(void callback(result, ignored)) {
-    return (result, replyTo) {
-      callback(result, replyTo);
-      schedule(replyTo);
-    };
-  }
-
-  void enqueue(_DirectoryOperation operation, void callback(result, ignored)) {
-    ReceivePort replyPort = new ReceivePort.singleShot();
-    replyPort.receive(scheduleWrap(callback));
-    operation.replyPort = replyPort.toSendPort();
-    _queue.addLast(operation);
-    if (_isolate == null) {
-      _isolate = new _DirectoryOperationIsolate();
-      _isolate.spawn().then((port) {
-        schedule(port);
-      });
-    }
-  }
-
-  Queue<_DirectoryOperation> _queue;
-  _DirectoryOperationIsolate _isolate;
-}
-
-
 class _Directory implements Directory {
+  static final kCreateRequest = 0;
+  static final kDeleteRequest = 1;
+  static final kExistsRequest = 2;
+  static final kCreateTempRequest = 3;
+  static final kListRequest = 4;
 
-  _Directory(String this._path)
-      : _scheduler = new _DirectoryOperationScheduler();
+  _Directory(String this._path);
 
   static String _createTemp(String template,
                             _OSStatus status) native "Directory_CreateTemp";
   static int _exists(String path) native "Directory_Exists";
   static bool _create(String path) native "Directory_Create";
   static bool _delete(String path, bool recursive) native "Directory_Delete";
+  static SendPort _newServicePort() native "Directory_NewServicePort";
 
   void exists() {
-    var operation = new _DirExistsOperation(_path);
-    _scheduler.enqueue(operation, (result, ignored) {
+    if (_directoryService == null) {
+      _directoryService = _newServicePort();
+    }
+    List request = new List(2);
+    request[0] = kExistsRequest;
+    request[1] = _path;
+    _directoryService.call(request).receive((result, replyTo) {
       var handler =
           (_existsHandler != null) ? _existsHandler : (result) => null;
       if (result < 0) {
@@ -192,11 +55,15 @@ class _Directory implements Directory {
   }
 
   void create() {
-    var operation = new _DirCreateOperation(_path);
-    _scheduler.enqueue(operation, (result, ignored) {
-      var handler = (_createHandler != null) ? _createHandler : () => null;
+    if (_directoryService == null) {
+      _directoryService = _newServicePort();
+    }
+    List request = new List(2);
+    request[0] = kCreateRequest;
+    request[1] = _path;
+    _directoryService.call(request).receive((result, replyTo) {
       if (result) {
-        handler();
+        if (_createHandler != null) _createHandler();
       } else if (_errorHandler != null) {
         _errorHandler("Directory creation failed: $_path");
       }
@@ -210,16 +77,19 @@ class _Directory implements Directory {
   }
 
   void createTemp() {
-    var operation = new _DirCreateTempOperation(_path);
-    _scheduler.enqueue(operation, (result, ignored) {
-      var handler =
-          (_createTempHandler != null) ? _createTempHandler : () => null;
-      if (result is !_OSStatus) {
+    if (_directoryService == null) {
+      _directoryService = _newServicePort();
+    }
+    List request = new List(2);
+    request[0] = kCreateTempRequest;
+    request[1] = _path;
+    _directoryService.call(request).receive((result, replyTo) {
+      if (result is !List) {
         _path = result;
-        handler();
-      } else if (_errorHandler !== null) {
+        if (_createTempHandler != null) _createTempHandler();
+      } else if (_errorHandler != null) {
         _errorHandler("Could not create temporary directory [$_path]: " +
-                      "${result._errorMessage}");
+                      "${result[1]}");
       }
     });
   }
@@ -238,11 +108,16 @@ class _Directory implements Directory {
   }
 
   void delete([bool recursive = false]) {
-    var operation = new _DirDeleteOperation(_path, recursive);
-    _scheduler.enqueue(operation, (result, ignored) {
-      var handler = (_deleteHandler != null) ? _deleteHandler : () => null;
+    if (_directoryService == null) {
+      _directoryService = _newServicePort();
+    }
+    List request = new List(3);
+    request[0] = kDeleteRequest;
+    request[1] = _path;
+    request[2] = recursive;
+    _directoryService.call(request).receive((result, replyTo) {
       if (result) {
-        handler();
+        if (_deleteHandler != null) _deleteHandler();
       } else if (_errorHandler != null) {
         if (recursive) {
           _errorHandler("Recursive directory deletion failed: $_path");
@@ -260,66 +135,40 @@ class _Directory implements Directory {
   }
 
   void list([bool recursive = false]) {
-    new _DirectoryListingIsolate().spawn().then((port) {
-      // Build a map of parameters to the directory listing isolate.
-      Map listingParameters = new Map();
-      listingParameters['dir'] = _path;
-      listingParameters['recursive'] = recursive;
+    final int kListDirectory = 0;
+    final int kListFile = 1;
+    final int kListError = 2;
+    final int kListDone = 3;
 
-      // Setup ports to receive messages from listing.
-      // TODO(ager): Do not explicitly transform to send ports when
-      // implicit conversions are implemented.
-      ReceivePort dirPort;
-      ReceivePort filePort;
-      ReceivePort donePort;
-      ReceivePort errorPort;
-      if (_dirHandler !== null) {
-        dirPort = new ReceivePort();
-        dirPort.receive((String dir, ignored) {
-          _dirHandler(dir);
-        });
-        listingParameters['dirPort'] = dirPort.toSendPort();
+    List request = new List(3);
+    request[0] = kListRequest;
+    request[1] = _path;
+    request[2] = recursive;
+    ReceivePort responsePort = new ReceivePort();
+    // Use a separate directory service port for each listing as
+    // listing operations on the same directory can run in parallel.
+    _newServicePort().send(request, responsePort.toSendPort());
+    responsePort.receive((message, replyTo) {
+      if (message is !List || message[0] is !int) {
+        responsePort.close();
+        if (_errorHandler != null) _errorHandler("Internal error");
+        return;
       }
-      if (_fileHandler !== null) {
-        filePort = new ReceivePort();
-        filePort.receive((String file, ignored) {
-          _fileHandler(file);
-        });
-        listingParameters['filePort'] = filePort.toSendPort();
+      switch (message[0]) {
+        case kListDirectory:
+          if (_dirHandler != null) _dirHandler(message[1]);
+          break;
+        case kListFile:
+          if (_fileHandler != null) _fileHandler(message[1]);
+          break;
+        case kListError:
+          if (_errorHandler != null) _errorHandler(message[1]);
+          break;
+        case kListDone:
+          responsePort.close();
+          if (_doneHandler != null) _doneHandler(message[1]);
+          break;
       }
-      if (_doneHandler !== null) {
-        donePort = new ReceivePort.singleShot();
-        donePort.receive((bool completed, ignored) {
-          _doneHandler(completed);
-        });
-        listingParameters['donePort'] = donePort.toSendPort();
-      }
-      if (_errorHandler !== null) {
-        errorPort = new ReceivePort.singleShot();
-        errorPort.receive((String error, ignored) {
-          _errorHandler(error);
-        });
-        listingParameters['errorPort'] = errorPort.toSendPort();
-      }
-
-      // Close ports when listing is done.
-      ReceivePort closePortsPort = new ReceivePort();
-      closePortsPort.receive((message, replyTo) {
-        if (!message) {
-          errorPort.toSendPort().send(
-              "Failed to list directory: $_path recursive: $recursive");
-          donePort.toSendPort().send(false);
-        } else {
-          _closePort(errorPort);
-          _closePort(donePort);
-        }
-        _closePort(dirPort);
-        _closePort(filePort);
-        _closePort(closePortsPort);
-      });
-
-      // Send the listing parameters to the isolate.
-      port.send(listingParameters, closePortsPort.toSendPort());
     });
   }
 
@@ -373,5 +222,5 @@ class _Directory implements Directory {
   var _errorHandler;
 
   String _path;
-  _DirectoryOperationScheduler _scheduler;
+  SendPort _directoryService;
 }
