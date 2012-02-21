@@ -10,8 +10,10 @@ import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -568,6 +570,26 @@ public class NegativeParserTest extends CompilerTestCase {
     assertTrue(names.contains("topLevelGetter"));
     assertTrue(names.contains("topLevelSetter"));
     assertTrue(names.contains("MyTypeDef"));
+  }
+
+  /**
+   * Test for {@link DartUnit#getTopDeclarationNames()} and qualified top-level method name.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=1738
+   */
+  public void test_getTopDeclarationNames_badName() throws Exception {
+    DartParserRunner parserRunner =
+        parseSource(Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "void my.method() {}",
+            ""));
+    DartUnit unit = parserRunner.getDartUnit();
+    // We have top-level node...
+    List<DartNode> topLevelNodes = unit.getTopLevelNodes();
+    assertEquals(1, topLevelNodes.size());
+    // ...but it has wrong name, so ignored.
+    Set<String> names = unit.getTopDeclarationNames();
+    assertEquals(0, names.size());
   }
 
   /**

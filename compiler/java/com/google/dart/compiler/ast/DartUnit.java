@@ -160,7 +160,9 @@ public class DartUnit extends DartNode {
       }
       if (node instanceof DartMethodDefinition) {
         DartExpression name = ((DartMethodDefinition) node).getName();
-        topLevelSymbols.add(((DartIdentifier) name).getTargetName());
+        if (name instanceof DartIdentifier) {
+          topLevelSymbols.add(((DartIdentifier) name).getTargetName());
+        }
       }
       if (node instanceof DartFieldDefinition) {
         DartFieldDefinition fieldDefinition = (DartFieldDefinition) node;
