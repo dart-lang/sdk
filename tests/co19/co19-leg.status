@@ -18,10 +18,12 @@ LibTest/core/Dispatcher/*: Skip
 
 [ $component == leg && $mode == release ]
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Crash
+Language/06_Functions/06_Functions_A01_t01: Crash
 
 
 [ $component == leg && $mode == debug ]
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
+Language/06_Functions/06_Functions_A01_t01: Fail
 
 
 [ $component == leg ]
@@ -30,7 +32,6 @@ LibTest/core/List/sort_A01_t04: Skip # Times out.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
 LibTest/core/List/sort_A01_t06: Skip # Times out.
 LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out.
-Language/06_Functions/06_Functions_A01_t01: Crash
 LibTest/core/List/List.from_A02_t01: Crash
 LibTest/core/List/addAll_A01_t01: Crash
 LibTest/core/Queue/addAll_A01_t01: Crash
