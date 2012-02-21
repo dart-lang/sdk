@@ -74,7 +74,7 @@ static bool HandleFile(char* file_name,
   if (written != strlen(file_name)) {
     return false;
   };
-  return listing->HandleFile(file_name);
+  return listing->HandleFile(path);
 }
 
 
