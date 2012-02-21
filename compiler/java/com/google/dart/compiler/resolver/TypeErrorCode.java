@@ -13,6 +13,7 @@ import com.google.dart.compiler.SubSystem;
 public enum TypeErrorCode implements ErrorCode {
   ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER(
       "%s is an abstract class because it does not implement the inherited abstract members: %s"),
+  ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),

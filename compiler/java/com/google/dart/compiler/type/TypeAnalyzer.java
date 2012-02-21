@@ -760,14 +760,15 @@ public class TypeAnalyzer implements DartCompilationPhase {
         case FUNCTION:
           FunctionType ftype = (FunctionType) condition;
           Type returnType = ftype.getReturnType();
-          if (returnType.getKind().equals(TypeKind.VOID)) {
-            typeError(conditionNode, TypeErrorCode.VOID);
+          if (!types.isAssignable(boolType, returnType) || !ftype.getParameterTypes().isEmpty()) {
+            typeError(node, TypeErrorCode.ASSERT_BOOL);
           }
-          checkAssignable(conditionNode, boolType, returnType);
           break;
 
         default:
-          checkAssignable(conditionNode, boolType, condition);
+          if (!types.isAssignable(boolType, condition)) {
+            typeError(node, TypeErrorCode.ASSERT_BOOL);
+          }
           break;
       }
       return voidType;
