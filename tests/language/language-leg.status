@@ -100,6 +100,7 @@ ExecuteFinally7Test: Fail
 ExecuteFinally8Test: Fail
 ExecuteFinally9Test: Fail
 ExpectTest: Fail
+ExceptionTest: Fail
 Factory2NegativeTest: Fail
 Factory3Test: Fail
 Factory4Test: Fail
