@@ -6,9 +6,11 @@ package com.google.dart.compiler.type;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
@@ -1835,7 +1837,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         for (InterfaceType supertype : supertypes) {
           for (Element member : supertype.getElement().getMembers()) {
             String name = member.getName();
-            if (name.startsWith("_")) {
+            if (DartIdentifier.isPrivateName(name)) {
               if (currentLibrary != member.getEnclosingElement().getEnclosingElement()) {
                 continue;
               }
@@ -1968,63 +1970,85 @@ public class TypeAnalyzer implements DartCompilationPhase {
         String name = member.getName();
         Type superMember = typeAsMemberOf(superElement, currentClass);
         if (member.getKind() == ElementKind.METHOD && superElement.getKind() == ElementKind.METHOD) {
-          MethodElement method = (MethodElement)member;
+          MethodElement method = (MethodElement) member;
           MethodElement superMethod = (MethodElement) superElement;
-
-          // Compare the # of parameters
-          List<VariableElement> parameters = method.getParameters();
-          List<VariableElement> superParameters = superMethod
-              .getParameters();
-          if (superParameters.size() != parameters.size()) {
-            onError(node,
-                    ResolverErrorCode.CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS,
-                    member.getName());
-          } else {
-            // Make sure that named parameters match
-            List<VariableElement> named = new ArrayList<VariableElement>();
-            for (VariableElement v : parameters) {
-              if (v.isNamed()) {
-                named.add(v);
-              }
-            }
-            List<VariableElement> superNamed = new ArrayList<VariableElement>();
-            for (VariableElement v : superParameters) {
-              if (v.isNamed()) {
-                superNamed.add(v);
-              }
-            }
-            if (named.size() != superNamed.size()) {
-              onError(node,
-                      ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS,
-                      member.getName());
-            } else {
-              boolean errorFound = false;
-              while (!named.isEmpty()) {
-                VariableElement v1 = named.remove(0);
-                VariableElement v2 = superNamed.remove(0);
-                if (!v1.getName().equals(v2.getName())) {
-                  onError(v1.getNode(),
-                          ResolverErrorCode.CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS,
-                          member.getName());
-                  errorFound = true;
-                  break;
-                }
-              }
-              if (!errorFound && !types.isSubtype(member.getType(), superMember)) {
-                // Wrong # of parameters is a compile-time error and has already
-                // been checked.
-                if (method.getParameters().size() == superMethod.getParameters().size()) {
-                  typeError(node, TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE, name, superElement
-                      .getEnclosingElement().getName(), member.getType(), superMember);
-                }
-              }
-
+          if (hasLegalMethodOverrideSignature(node, method, superMethod)) {
+            if (!types.isSubtype(member.getType(), superMember)) {
+              typeError(node,
+                        TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
+                        name,
+                        superElement.getEnclosingElement().getName(),
+                        member.getType(),
+                        superMember);
             }
           }
         } else if (!types.isAssignable(superMember, member.getType())) {
-          typeError(node, TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, name, superElement
-              .getEnclosingElement().getName(), member.getType(), superMember);
+          typeError(node,
+                    TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER,
+                    name,
+                    superElement.getEnclosingElement().getName(),
+                    member.getType(),
+                    superMember);
         }
+      }
+
+      /**
+       * @return <code>true</code> if given "method" has signature compatible with "superMethod".
+       */
+      private boolean hasLegalMethodOverrideSignature(DartNode node,
+                                                      MethodElement method,
+                                                      MethodElement superMethod) {
+        // Prepare parameters.
+        List<VariableElement> parameters = method.getParameters();
+        List<VariableElement> superParameters = superMethod.getParameters();
+        // Number of required parameters should be same.
+        {
+          int numRequired = getNumRequiredParameters(parameters);
+          int superNumRequired = getNumRequiredParameters(superParameters);
+          if (numRequired != superNumRequired) {
+            onError(node,
+                    ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS,
+                    method.getName());
+            return false;
+          }
+        }
+        // "method" should have at least all named parameters of "superMethod" in the same order.
+        List<VariableElement> named = getNamedParameters(parameters);
+        List<VariableElement> superNamed = getNamedParameters(superParameters);
+        Iterator<VariableElement> namedIterator = named.iterator();
+        Iterator<VariableElement> superNamedIterator = superNamed.iterator();
+        while (superNamedIterator.hasNext()) {
+          VariableElement superParameter = superNamedIterator.next();
+          if (namedIterator.hasNext()) {
+            VariableElement parameter = namedIterator.next();
+            if (Objects.equal(parameter.getName(), superParameter.getName())) {
+              continue;
+            }
+          }
+          onError(node, ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, method.getName());
+          return false;
+        }
+        return true;
+      }
+
+      private int getNumRequiredParameters(List<VariableElement> parameters) {
+        int numRequired = 0;
+        for (VariableElement parameter : parameters) {
+          if (!parameter.isNamed()) {
+            numRequired++;
+          }
+        }
+        return numRequired;
+      }
+
+      private List<VariableElement> getNamedParameters(List<VariableElement> parameters) {
+        List<VariableElement> named = Lists.newArrayList();
+        for (VariableElement v : parameters) {
+          if (v.isNamed()) {
+            named.add(v);
+          }
+        }
+        return named;
       }
     }
   }

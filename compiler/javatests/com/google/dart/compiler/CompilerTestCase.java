@@ -106,19 +106,15 @@ public abstract class CompilerTestCase extends TestCase {
    * Collects the results of running analyzeLibrary.
    */
   protected static class AnalyzeLibraryResult extends DartCompilerListener.Empty {
-    private final List<DartCompilationError> compilationErrors;
-    private final List<DartCompilationError> compilationWarnings;
-    private final List<DartCompilationError> typeErrors;
+    private final List<DartCompilationError> errors = Lists.newArrayList();
+    private final List<DartCompilationError> compilationErrors = Lists.newArrayList();
+    private final List<DartCompilationError> compilationWarnings = Lists.newArrayList();
+    private final List<DartCompilationError> typeErrors = Lists.newArrayList();
     private LibraryUnit result;
-
-    public AnalyzeLibraryResult() {
-      compilationErrors = Lists.newArrayList();
-      compilationWarnings = Lists.newArrayList();
-      typeErrors = Lists.newArrayList();
-    }
 
     @Override
     public void onError(DartCompilationError event) {
+      errors.add(event);
       if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
         typeErrors.add(event);
       } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
@@ -126,6 +122,10 @@ public abstract class CompilerTestCase extends TestCase {
       }   else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
         compilationWarnings.add(event);
       }
+    }
+
+    public List<DartCompilationError> getErrors() {
+      return errors;
     }
 
     public List<DartCompilationError> getTypeErrors() {

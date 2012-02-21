@@ -32,8 +32,8 @@ Language/05_Variables/05_Variables_A08_t02: Fail
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail
 Language/07_Classes/07_Classes_A02_t06: Fail
 Language/07_Classes/07_Classes_A02_t08: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t06: Fail
-Language/07_Classes/1_Instance_Methods_A04_t06: Fail
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t02: Fail # https://code.google.com/p/co19/issues/detail?id=76
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t03: Fail # https://code.google.com/p/co19/issues/detail?id=77
 Language/07_Classes/2_Getters_A04_t03: Fail
 Language/07_Classes/2_Getters_A04_t05: Fail
 Language/07_Classes/2_Getters_A04_t04: Fail

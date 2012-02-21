@@ -837,4 +837,117 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             ""));
     assertErrors(errors, errEx(TypeErrorCode.MAP_LITERAL_KEY_UNIQUE, 2, 27, 3));
   }
+
+  /**
+   * No required parameter "x".
+   */
+  public void test_implementsAndOverrides_noRequiredParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo(x);",
+            "}",
+            "class C implements I {",
+            "  foo() {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS, 5, 3, 3));
+  }
+
+  /**
+   * It is OK to add more named parameters, if list prefix is same as in "super".
+   */
+  public void test_implementsAndOverrides_additionalNamedParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo([x]);",
+            "}",
+            "class C implements I {",
+            "  foo([x,y]) {}",
+            "}");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * We override "foo" with method that has named parameter. So, this method is not abstract and
+   * class is not abstract too, so no warning.
+   */
+  public void test_implementsAndOverrides_additionalNamedParameter_notAbstract() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "class A {",
+            "  abstract foo();",
+            "}",
+            "class B extends A {",
+            "  foo([x]) {}",
+            "}",
+            "bar() {",
+            "  new B();",
+            "}",
+            "");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * No required parameter "x". Named parameter "x" is not enough.
+   */
+  public void test_implementsAndOverrides_extraRequiredParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo();",
+            "}",
+            "class C implements I {",
+            "  foo(x) {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS, 5, 3, 3));
+  }
+
+  /**
+   * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
+   * not declare all the named parameters declared by m2 in the same order.
+   * <p>
+   * Here: no "y" parameter.
+   */
+  public void test_implementsAndOverrides_noNamedParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo([x,y]);",
+            "}",
+            "class C implements I {",
+            "  foo([x]) {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
+  }
+
+  /**
+   * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
+   * not declare all the named parameters declared by m2 in the same order.
+   * <p>
+   * Here: wrong order.
+   */
+  public void testImplementsAndOverrides5() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo([y,x]);",
+            "}",
+            "class C implements I {",
+            "  foo([x,y]) {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
+  }
+
+  private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
+    return analyzeLibrary(getName(), makeCode(lines));
+  }
 }
