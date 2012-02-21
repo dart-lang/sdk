@@ -509,7 +509,6 @@ class ElementWrappingImplementation extends NodeWrappingImplementation implement
       'head' : 'html',
       'caption' : 'table',
       'td': 'tr',
-      'tbody': 'table',
       'colgroup': 'table',
       'col' : 'colgroup',
       'tr' : 'tbody',

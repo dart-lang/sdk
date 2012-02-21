@@ -305,7 +305,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     'head' : 'html',
     'caption' : 'table',
     'td': 'tr',
-    'tbody': 'table',
     'colgroup': 'table',
     'col' : 'colgroup',
     'tr' : 'tbody',
