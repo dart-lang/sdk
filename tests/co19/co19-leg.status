@@ -6,9 +6,12 @@ prefix co19
 
 [ $component == leg ]
 # These classes have been removed, co19 issue 79.
+LibTest/core/Dispatcher/*: Skip
+LibTest/core/List/every_A03_t01: Skip
+LibTest/core/List/filter_A03_t01: Skip
+LibTest/core/List/some_A03_t01: Skip
 LibTest/core/Promise/*: Skip
 LibTest/core/Proxy/*: Skip
-LibTest/core/Dispatcher/*: Skip
 
 
 [ $component == leg && $checked ]
@@ -39,6 +42,44 @@ LibTest/core/Queue/addAll_A01_t02: Crash
 LibTest/core/Queue/addAll_A02_t01: Crash
 LibTest/core/Queue/iterator_A01_t02: Crash
 LibTest/core/Queue/iterator_next_A01_t01: Crash
+
+
+LibTest/core/List/List.from_A01_t01: Fail # Cannot find value.
+LibTest/core/List/every_A01_t01: Fail # Duplicate definition.
+LibTest/core/List/every_A01_t02: Fail # Cannot find value.
+LibTest/core/List/every_A02_t01: Fail # Duplicate definition.
+LibTest/core/List/every_A02_t02: Fail # Cannot find value.
+LibTest/core/List/every_A04_t01: Fail # Cannot find value.
+LibTest/core/List/filter_A01_t01: Fail # Cannot find value.
+LibTest/core/List/filter_A01_t02: Fail # Cannot find value.
+LibTest/core/List/filter_A02_t01: Fail # Duplicate definition.
+LibTest/core/List/filter_A04_t01: Fail # Cannot find value.
+LibTest/core/List/forEach_A01_t01: Fail # Cannot find value.
+LibTest/core/List/forEach_A03_t01: Fail # Cannot find value.
+LibTest/core/List/some_A01_t01: Fail # Duplicate definition.
+LibTest/core/List/some_A01_t02: Fail # Cannot find value.
+LibTest/core/List/sort_A01_t01: Fail # visitContinueStatement not implemented
+LibTest/core/List/sort_A01_t02: Fail # non-empty instruction stack
+LibTest/core/List/sort_A01_t03: Fail # Cannot find value.
+
+
+LibTest/core/List/addLast_A01_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/List/addLast_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/List/addLast_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/List/addLast_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/List/forEach_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/List/forEach_A02_t01: Fail # Adding interceptor crashes Leg.
+
+
+LibTest/core/List/List_A01_t02: Fail # Fixed length array.
+LibTest/core/List/addAll_A02_t01: Fail # Fixed length array.
+LibTest/core/List/add_A02_t01: Fail # Fixed length array.
+LibTest/core/List/clear_A02_t01: Fail # Fixed length array.
+LibTest/core/List/insertRange_A02_t01: Fail # Fixed length array.
+LibTest/core/List/length_A04_t01: Fail # Fixed length array.
+LibTest/core/List/removeLast_A02_t01: Fail # Fixed length array.
+LibTest/core/List/removeRange_A02_t01: Fail # Fixed length array.
+
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Fail
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t01: Fail
@@ -577,108 +618,6 @@ LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail
 LibTest/core/LinkedHashMap/LinkedHashMap.from_A02_t01: Fail
 LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail
 LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail
-LibTest/core/List/List.from_A01_t01: Fail
-LibTest/core/List/List.from_A03_t01: Fail
-LibTest/core/List/List_A01_t02: Fail
-LibTest/core/List/List_A02_t01: Fail
-LibTest/core/List/List_A03_t01: Fail
-LibTest/core/List/List_A04_t01: Fail
-LibTest/core/List/addAll_A01_t02: Fail
-LibTest/core/List/addAll_A02_t01: Fail
-LibTest/core/List/addAll_A03_t01: Fail
-LibTest/core/List/addLast_A01_t01: Fail
-LibTest/core/List/addLast_A01_t02: Fail
-LibTest/core/List/addLast_A01_t03: Fail
-LibTest/core/List/addLast_A02_t01: Fail
-LibTest/core/List/add_A01_t01: Fail
-LibTest/core/List/add_A02_t01: Fail
-LibTest/core/List/clear_A01_t01: Fail
-LibTest/core/List/clear_A02_t01: Fail
-LibTest/core/List/every_A01_t01: Fail
-LibTest/core/List/every_A01_t02: Fail
-LibTest/core/List/every_A02_t01: Fail
-LibTest/core/List/every_A02_t02: Fail
-LibTest/core/List/every_A03_t01: Fail
-LibTest/core/List/every_A04_t01: Fail
-LibTest/core/List/filter_A01_t01: Fail
-LibTest/core/List/filter_A01_t02: Fail
-LibTest/core/List/filter_A02_t01: Fail
-LibTest/core/List/filter_A03_t01: Fail
-LibTest/core/List/filter_A04_t01: Fail
-LibTest/core/List/forEach_A01_t01: Fail
-LibTest/core/List/forEach_A01_t02: Fail
-LibTest/core/List/forEach_A02_t01: Fail
-LibTest/core/List/forEach_A03_t01: Fail
-LibTest/core/List/getRange_A01_t01: Fail
-LibTest/core/List/getRange_A02_t01: Fail
-LibTest/core/List/getRange_A03_t01: Fail
-LibTest/core/List/getRange_A04_t01: Fail
-LibTest/core/List/getRange_A05_t01: Fail
-LibTest/core/List/getRange_A06_t01: Fail
-LibTest/core/List/indexOf_A01_t01: Fail
-LibTest/core/List/indexOf_A02_t01: Fail
-LibTest/core/List/indexOf_A03_t01: Fail
-LibTest/core/List/indexOf_A04_t01: Fail
-LibTest/core/List/indexOf_A05_t01: Fail
-LibTest/core/List/indexOf_A06_t01: Fail
-LibTest/core/List/insertRange_A01_t01: Fail
-LibTest/core/List/insertRange_A02_t01: Fail
-LibTest/core/List/insertRange_A03_t01: Fail
-LibTest/core/List/insertRange_A04_t01: Fail
-LibTest/core/List/insertRange_A05_t01: Fail
-LibTest/core/List/insertRange_A06_t01: Fail
-LibTest/core/List/insertRange_A07_t01: Fail
-LibTest/core/List/insertRange_A08_t01: Fail
-LibTest/core/List/isEmpty_A01_t01: Fail
-LibTest/core/List/iterator_A01_t01: Fail
-LibTest/core/List/iterator_hasNext_A01_t01: Fail
-LibTest/core/List/iterator_next_A01_t01: Fail
-LibTest/core/List/iterator_next_A02_t01: Fail
-LibTest/core/List/lastIndexOf_A01_t01: Fail
-LibTest/core/List/lastIndexOf_A02_t01: Fail
-LibTest/core/List/lastIndexOf_A03_t01: Fail
-LibTest/core/List/lastIndexOf_A04_t01: Fail
-LibTest/core/List/lastIndexOf_A05_t01: Fail
-LibTest/core/List/last_A01_t01: Fail
-LibTest/core/List/last_A02_t01: Fail
-LibTest/core/List/length_A01_t01: Fail
-LibTest/core/List/length_A02_t01: Fail
-LibTest/core/List/length_A03_t01: Fail
-LibTest/core/List/length_A04_t01: Fail
-LibTest/core/List/length_A05_t01: Fail
-LibTest/core/List/length_A06_t01: Fail
-LibTest/core/List/length_A08_t01: Fail
-LibTest/core/List/operator_subscript_A01_t02: Fail
-LibTest/core/List/operator_subscript_A02_t01: Fail
-LibTest/core/List/operator_subscript_A03_t01: Fail
-LibTest/core/List/operator_subscripted_assignment_A01_t02: Fail
-LibTest/core/List/operator_subscripted_assignment_A02_t01: Fail
-LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail
-LibTest/core/List/removeLast_A01_t01: Fail
-LibTest/core/List/removeLast_A01_t02: Fail
-LibTest/core/List/removeLast_A02_t01: Fail
-LibTest/core/List/removeRange_A01_t01: Fail
-LibTest/core/List/removeRange_A02_t01: Fail
-LibTest/core/List/removeRange_A03_t01: Fail
-LibTest/core/List/removeRange_A04_t01: Fail
-LibTest/core/List/removeRange_A05_t01: Fail
-LibTest/core/List/removeRange_A06_t01: Fail
-LibTest/core/List/setRange_A01_t01: Fail
-LibTest/core/List/setRange_A01_t02: Fail
-LibTest/core/List/setRange_A02_t01: Fail
-LibTest/core/List/setRange_A02_t02: Fail
-LibTest/core/List/setRange_A03_t01: Fail
-LibTest/core/List/setRange_A03_t02: Fail
-LibTest/core/List/setRange_A04_t01: Fail
-LibTest/core/List/setRange_A05_t01: Fail
-LibTest/core/List/setRange_A06_t01: Fail
-LibTest/core/List/some_A01_t01: Fail
-LibTest/core/List/some_A01_t02: Fail
-LibTest/core/List/some_A02_t01: Fail
-LibTest/core/List/some_A03_t01: Fail
-LibTest/core/List/sort_A01_t01: Fail
-LibTest/core/List/sort_A01_t02: Fail
-LibTest/core/List/sort_A01_t03: Fail
 LibTest/core/Map/Map_class_A01_t01: Fail
 LibTest/core/Map/Map_class_A01_t02: Fail
 LibTest/core/Map/Map_class_A01_t03: Fail
@@ -800,7 +739,6 @@ LibTest/core/Object/operator_equality_A01_t01: Fail
 LibTest/core/Object/toString_A01_t01: Fail
 LibTest/core/Queue/Queue.from_A01_t01: Fail
 LibTest/core/Queue/Queue.from_A01_t02: Fail
-LibTest/core/Queue/Queue.from_A02_t01: Fail
 LibTest/core/Queue/every_A01_t03: Fail
 LibTest/core/Queue/every_A01_t04: Fail
 LibTest/core/Queue/every_A01_t06: Fail
@@ -1043,7 +981,6 @@ LibTest/core/double/ceil_A01_t05: Fail
 LibTest/core/double/ceil_A01_t06: Fail
 LibTest/core/double/ceil_A01_t07: Fail
 LibTest/core/double/ceil_A01_t08: Fail
-LibTest/core/double/compareTo_A01_t01: Fail
 LibTest/core/double/compareTo_A01_t02: Fail
 LibTest/core/double/compareTo_A01_t03: Fail
 LibTest/core/double/double_class_A01_t01: Fail
@@ -1057,11 +994,8 @@ LibTest/core/double/floor_A01_t07: Fail
 LibTest/core/double/isInfinite_A01_t01: Fail
 LibTest/core/double/isInfinite_A01_t02: Fail
 LibTest/core/double/isInfinite_A01_t03: Fail
-LibTest/core/double/isNaN_A01_t01: Fail
 LibTest/core/double/isNaN_A01_t02: Fail
-LibTest/core/double/isNaN_A01_t03: Fail
 LibTest/core/double/isNegative_A01_t01: Fail
-LibTest/core/double/isNegative_A01_t02: Fail
 LibTest/core/double/operator_GE_A01_t01: Fail
 LibTest/core/double/operator_GE_A01_t02: Fail
 LibTest/core/double/operator_GE_A01_t03: Fail
@@ -1089,7 +1023,6 @@ LibTest/core/double/operator_division_A01_t02: Fail
 LibTest/core/double/operator_division_A01_t03: Fail
 LibTest/core/double/operator_division_A01_t04: Fail
 LibTest/core/double/operator_division_A01_t05: Fail
-LibTest/core/double/operator_division_A01_t06: Fail
 LibTest/core/double/operator_division_A01_t07: Fail
 LibTest/core/double/operator_division_A01_t08: Fail
 LibTest/core/double/operator_division_A01_t09: Fail
@@ -1124,7 +1057,6 @@ LibTest/core/double/operator_truncating_division_A01_t02: Fail
 LibTest/core/double/operator_truncating_division_A01_t03: Fail
 LibTest/core/double/operator_truncating_division_A01_t04: Fail
 LibTest/core/double/operator_truncating_division_A01_t05: Fail
-LibTest/core/double/operator_truncating_division_A01_t06: Fail
 LibTest/core/double/operator_truncating_division_A01_t08: Fail
 LibTest/core/double/operator_truncating_division_A02_t01: Fail
 LibTest/core/double/remainder_A01_t01: Fail
@@ -1173,8 +1105,6 @@ LibTest/core/int/floor_A01_t01: Fail
 LibTest/core/int/hashCode_A01_t01: Fail
 LibTest/core/int/isEven_A01_t01: Fail
 LibTest/core/int/isInfinite_A01_t01: Fail
-LibTest/core/int/isNaN_A01_t01: Fail
-LibTest/core/int/isNegative_A01_t01: Fail
 LibTest/core/int/isOdd_A01_t01: Fail
 LibTest/core/int/operator_GE_A01_t01: Fail
 LibTest/core/int/operator_GT_A01_t01: Fail
@@ -1185,11 +1115,8 @@ LibTest/core/int/operator_addition_A01_t01: Fail
 LibTest/core/int/operator_division_A01_t01: Fail
 LibTest/core/int/operator_division_A01_t02: Fail
 LibTest/core/int/operator_left_shift_A01_t01: Fail
-LibTest/core/int/operator_left_shift_A01_t03: Fail
 LibTest/core/int/operator_negate_A01_t01: Fail
 LibTest/core/int/operator_remainder_A01_t02: Fail
-LibTest/core/int/operator_remainder_A01_t03: Fail
-LibTest/core/int/operator_right_shift_A01_t03: Fail
 LibTest/core/int/operator_subtraction_A01_t01: Fail
 LibTest/core/int/operator_truncating_division_A01_t01: Fail
 LibTest/core/int/operator_truncating_division_A01_t02: Fail

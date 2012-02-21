@@ -225,7 +225,6 @@ OverrideFieldMethod6NegativeTest: Fail
 OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
 OverrideMethodWithFieldTest/01: Fail
-OverrideMethodWithFieldTest/none: Fail
 Param2Test: Fail
 ParameterInitializerTest: Fail
 Prefix101Test: Fail
