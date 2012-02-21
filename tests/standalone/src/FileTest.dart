@@ -735,6 +735,22 @@ class FileTest {
     f.exists();
   }
 
+  static void testOpenDirectoryAsFile() {
+    var f = new File('.');
+    f.open();
+    f.openHandler = (r) => Expect.fail('Directory opened as file');
+  }
+
+  static void testOpenDirectoryAsFileSync() {
+    var f = new File('.');
+    try {
+      f.openSync();
+      Expect.fail("Expected exception opening directory as file");
+    } catch (var e) {
+      Expect.isTrue(e is FileIOException);
+    }
+  }
+
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
@@ -809,6 +825,8 @@ class FileTest {
     testPosition();
     testPositionSync();
     testMixedSyncAndAsync();
+    testOpenDirectoryAsFile();
+    testOpenDirectoryAsFileSync();
 
     createTempDirectory(() {
         testReadWrite();

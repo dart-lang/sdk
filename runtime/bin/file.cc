@@ -59,7 +59,14 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   if (mode == kAppend) {
     file_mode = File::kWrite;
   }
-  File* file = File::Open(filename, file_mode);
+  // Check that the file exists before opening it only for
+  // reading. This is to prevent the opening of directories as
+  // files. Directories can be opened for reading using the posix
+  // 'open' call.
+  File* file = NULL;
+  if (((file_mode & File::kWrite) != 0) || File::Exists(filename)) {
+    file = File::Open(filename, file_mode);
+  }
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }
