@@ -423,6 +423,8 @@ class Parser : ValueObject {
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
 
   void CheckFunctionIsCallable(intptr_t token_index, const Function& function);
+  void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);
+
 
   const Script& script_;
   const TokenStream& tokens_;
