@@ -106,6 +106,7 @@ class PersistentHandle {
   }
   void SetNext(PersistentHandle* free_list) {
     raw_ = reinterpret_cast<RawObject*>(free_list);
+    ASSERT(!raw_->IsHeapObject());
   }
   void FreeHandle(PersistentHandle* free_list) {
     SetNext(free_list);
@@ -151,16 +152,16 @@ class WeakPersistentHandle {
   WeakPersistentHandle() : raw_(NULL), peer_(NULL), callback_(NULL) { }
   ~WeakPersistentHandle() { }
 
-  // Overload the callback_ field as a next pointer when adding freed
+  // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
   WeakPersistentHandle* Next() {
-    return reinterpret_cast<WeakPersistentHandle*>(callback_);
+    return reinterpret_cast<WeakPersistentHandle*>(raw_);
   }
   void SetNext(WeakPersistentHandle* free_list) {
-    callback_ = reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(free_list);
+    raw_ = reinterpret_cast<RawObject*>(free_list);
+    ASSERT(!raw_->IsHeapObject());
   }
   void FreeHandle(WeakPersistentHandle* free_list) {
-    raw_ = NULL;
     SetNext(free_list);
   }
 
