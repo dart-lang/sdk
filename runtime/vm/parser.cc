@@ -6412,7 +6412,6 @@ RawObject* Parser::EvaluateConstConstructorCall(
   if (!constructor.IsFactory()) {
     instance = Instance::New(type_class);
     if (!type_arguments.IsNull()) {
-      // TODO(regis): Where should we check the type parameter bounds?
       if (!type_arguments.IsInstantiated()) {
         ErrorMsg("type must be constant in const constructor");
       }

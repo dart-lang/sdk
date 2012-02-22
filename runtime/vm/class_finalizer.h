@@ -82,8 +82,6 @@ class ClassFinalizer : public AllStatic {
                                     const AbstractTypeArguments& arguments);
   static void ResolveType(const Class& cls, const AbstractType& type);
   static void ResolveAndFinalizeUpperBounds(const Class& cls);
-  static void VerifyUpperBounds(const Class& cls,
-                                const AbstractTypeArguments& arguments);
   static void ResolveAndFinalizeSignature(const Class& cls,
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);

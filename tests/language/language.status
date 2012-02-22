@@ -46,11 +46,7 @@ Constructor6Test: Fail          # (Discussion ongoing)
 
 ConstInit6NegativeTest: Fail       # Issue 811
 
-# Issue 905.
-TypeVariableBoundsTest/01: Fail
-TypeVariableBoundsTest/02: Fail
-TypeVariableBoundsTest/05: Fail
-TypeVariableBoundsTest/06: Fail
+# Issue 441.
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 
@@ -101,7 +97,6 @@ FunctionTypeAliasNegativeTest: Fail # Bug 5231617
 
 [ ($component == vm || $component == dartium) && $checked ]
 
-DefaultFactory2Test/01: Fail # Issue 943
 WrongNumberTypeArgumentsTest: Fail # This test should be negative
 
 [ ($component == vm || $component == dartium) && $mode == debug ]

@@ -509,52 +509,6 @@ void ClassFinalizer::FinalizeTypeArguments(
 }
 
 
-// Verify the upper bounds of the type arguments of class cls.
-void ClassFinalizer::VerifyUpperBounds(const Class& cls,
-                                       const AbstractTypeArguments& arguments) {
-  ASSERT(FLAG_enable_type_checks);
-  ASSERT(arguments.Length() >= cls.NumTypeArguments());
-  const intptr_t num_type_params = cls.NumTypeParameters();
-  const intptr_t offset = cls.NumTypeArguments() - num_type_params;
-  AbstractType& type = AbstractType::Handle();
-  AbstractType& bound = AbstractType::Handle();
-  const TypeArguments& bounds =
-      TypeArguments::Handle(cls.type_parameter_bounds());
-  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
-         (bounds.Length() == num_type_params));
-  for (intptr_t i = 0; i < num_type_params; i++) {
-    bound = bounds.TypeAt(i);
-    if (!bound.IsDynamicType()) {
-      type = arguments.TypeAt(offset + i);
-      if (type.IsInstantiated()) {
-        if (!bound.IsInstantiated()) {
-          bound = bound.InstantiateFrom(arguments);
-        }
-        // TODO(regis): Where do we check the bound when the type is generic?
-        if (!type.IsSubtypeOf(bound)) {
-          const String& type_argument_name = String::Handle(type.Name());
-          const String& class_name = String::Handle(cls.Name());
-          const String& bound_name = String::Handle(bound.Name());
-          const Script& script = Script::Handle(cls.script());
-          ReportError(script, type.token_index(),
-                      "type argument '%s' of class '%s' "
-                      "does not extend bound '%s'\n",
-                      type_argument_name.ToCString(),
-                      class_name.ToCString(),
-                      bound_name.ToCString());
-        }
-      }
-    }
-  }
-  const Type& super_type = Type::Handle(cls.super_type());
-  if (!super_type.IsNull()) {
-    ASSERT(super_type.IsFinalized());
-    const Class& super_class = Class::Handle(super_type.type_class());
-    VerifyUpperBounds(super_class, arguments);
-  }
-}
-
-
 RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                               const AbstractType& type) {
   ASSERT(type.IsResolved());
@@ -678,9 +632,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     parameterized_type.set_is_finalized();
 
     ResolveAndFinalizeUpperBounds(type_class);
-    if (FLAG_enable_type_checks) {
-      VerifyUpperBounds(type_class, full_arguments);
-    }
+    // No need to verify the upper bounds of the finalized type arguments, since
+    // bound errors are static type errors, which are not reported by the VM.
   } else {
     parameterized_type.set_is_finalized();
   }
