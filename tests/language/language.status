@@ -267,6 +267,7 @@ TryCatchSyntaxTest/08: Fail
 TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
 SuperFieldAccessTest: Fail # Issue 1695
+CompileTimeConstant6Test: Fail
 
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 
