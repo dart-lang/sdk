@@ -51,9 +51,6 @@
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
           ],
-          'link_settings': {
-            'libraries': [ '-llibeay32MT.lib' ],
-          },
        }]],
     },
     {
