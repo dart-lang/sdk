@@ -215,6 +215,7 @@ class Parser : ValueObject {
   void ParseLibraryName();
   void ParseLibraryImport();
   void ParseLibraryInclude();
+  void ParseLibraryResource();
 
   enum TypeResolution {
     kIgnore,  // Parsed type is ignored and replaced by Dynamic.

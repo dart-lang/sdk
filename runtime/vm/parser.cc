@@ -3376,6 +3376,23 @@ void Parser::ParseLibraryInclude() {
 }
 
 
+void Parser::ParseLibraryResource() {
+  TRACE_PARSER("ParseLibraryResource");
+  while (CurrentToken() == Token::kRESOURCE) {
+    // Currently the VM does ignore #resource library tags. They are only used
+    // by the IDE.
+    ConsumeToken();
+    ExpectToken(Token::kLPAREN);
+    if (CurrentToken() != Token::kSTRING) {
+      ErrorMsg("resource url expected");
+    }
+    ConsumeToken();
+    ExpectToken(Token::kRPAREN);
+    ExpectToken(Token::kSEMICOLON);
+  }
+}
+
+
 void Parser::ParseLibraryDefinition() {
   TRACE_PARSER("ParseLibraryDefinition");
   // Handle the script tag.
@@ -3387,6 +3404,7 @@ void Parser::ParseLibraryDefinition() {
   ParseLibraryName();
   ParseLibraryImport();
   ParseLibraryInclude();
+  ParseLibraryResource();
 }
 
 
