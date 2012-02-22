@@ -4,6 +4,7 @@
 
 main() {
   forLayoutTests();
+
   test('NodeList', () {
     List<Node> asList = window.document.getElementsByTagName('body');
     // Check it's Iterable
@@ -16,6 +17,7 @@ main() {
     window.document.getElementsByTagName('body').forEach((e) { counter++; });
     Expect.equals(1, counter);
   });
+
   test('StyleSheetList', () {
     List<StyleSheet> asList = window.document.styleSheets;
     // Check it's Iterable.
@@ -23,6 +25,8 @@ main() {
     for (StyleSheet styleSheet in window.document.styleSheets) {
       counter++;
     }
-    Expect.equals(0, counter);
+
+    // There is one style sheet from the unittest framework.
+    Expect.equals(1, counter);
   });
 }

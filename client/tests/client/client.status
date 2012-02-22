@@ -9,11 +9,10 @@ dom/WebGL1Test: Skip  # Issue 1495
 [ $component == dartium ]
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
-dom/DocumentTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
-dom/TypingTest: Fail
+dom/TypingTest: Fail    # StyleSheetList.item not implemented
 
 [ $component == dartium && $mode == debug ]
 # TODO(vsm): Triage Dartium failures.
@@ -24,10 +23,8 @@ dom/TypedArrays1Test: Skip
 
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 # TODO(vsm): Triage DOM tests.
-dom/DocumentTest: Fail
 dom/DOMIsolatesTest: Fail
 dom/HTMLElementTest: Fail
-dom/TypingTest: Fail
 dom/WindowOpenTest: Fail
 
 [ ($component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie))) && $checked ]
