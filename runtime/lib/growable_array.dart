@@ -144,12 +144,12 @@ class GrowableObjectArray<T> implements List<T> {
     backingArray = newArray;
   }
 
-  int add(T value) {
+  void add(T value) {
     if (_length == backingArray.length) {
       grow(_length * 2);
     }
     backingArray[_length] = value;
-    return ++_length;
+    ++_length;
   }
 
   void addLast(T element) {
