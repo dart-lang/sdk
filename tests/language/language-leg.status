@@ -16,7 +16,7 @@ FunctionTest: Crash
 # Compilation errors.
 Arithmetic2Test: Fail # map not implemented
 ArithmeticTest: Fail # Internal Error: Cannot find value
-BreakTest: Fail # visitBreakStatement not implemented
+BreakTest: Fail # SsaBuilder for loop with aborting body not implemented
 CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
 CTConstTest: Fail # map not implemented
 CallOperatorTest: Fail # Unexpected token 'call'
@@ -47,7 +47,7 @@ ExecuteFinally6Test: Fail # SsaBuilder.visitLabelledStatement not implemented
 ExecuteFinally8Test: Fail # visitLabelledStatement not implemented
 ExecuteFinally9Test: Fail # visitLabelledStatement not implemented
 Factory4Test: Fail # named constructors with type arguments are not implemented
-FannkuchTest: Fail # visitBreakStatement not implemented
+FannkuchTest: Fail # Expect.equals(expected: <49>, actual: <0>) fails.
 FinalSyntaxTest/none: Fail # CompileTimeConstantEvaluator not implemented
 ForTest: Fail # SsaBuilder for loop without condition not implemented
 FunctionLiterals2Test: Fail # Internal Error: Cannot find value
@@ -96,7 +96,6 @@ NamingTest: Fail # Internal Error: Cannot find value
 NonParameterizedFactory2Test: Fail # named constructors with type arguments are not implemented
 NumbersTest: Fail # cannot resolve type Smi
 ObjectDynamicMethodTest: Fail # map not implemented
-OptimizationTest: Fail # SsaBuilder.visitBreakStatement not implemented
 OptimizedSetterTest: Fail # Internal Error: Cannot find value
 OrderedMapsTest: Fail # map not implemented
 Param2Test: Fail # Internal Error: Cannot find value
@@ -119,7 +118,7 @@ StaticFieldTest: Fail # cannot resolve setValues
 StaticFinalFieldTest: Fail # map not implemented
 StringConcatTest: Fail # CompileTimeConstantEvaluator not implemented
 StringInterpolate2Test: Fail # map not implemented
-StringInterpolateNPETest: Fail # SsaBuilder.visitBreakStatement not implemented
+StringInterpolateNPETest: Fail # TypeError: Cannot call method 'get$name' of undefined
 StringInterpolateTest: Fail # CompileTimeConstantEvaluator not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this

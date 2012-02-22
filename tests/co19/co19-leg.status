@@ -158,10 +158,9 @@ LibTest/core/double/truncate_A01_t01: Fail, OK # VM handling of double literals.
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t01: Fail # SsaBuilder: throw without expression not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t02: Fail # SsaBuilder: throw without expression not implemented
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t03: Fail # SsaBuilder.visitBreakStatement not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t04: Fail # SsaBuilder.visitContinueStatement not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t05: Fail # SsaBuilder: throw without expression not implemented
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t03: Fail # SsaBuilder.visitBreakStatement not implemented
+LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t03: Fail # SsaBuilder for loop with aborting body not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t04: Fail # SsaBuilder.visitContinueStatement not implemented
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/02_5_Meaning_of_Names_A02_t01: Fail # SsaBuilder.visitIdentifier on non-this
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A02_t01: Fail # Cannot find value
@@ -218,15 +217,12 @@ LibTest/core/Expect/listEquals_A03_t01: Fail # CompileTimeConstantEvaluator not 
 LibTest/core/Expect/setEquals_A01_t01: Fail # Cannot find value
 LibTest/core/Expect/setEquals_A01_t02: Fail # Cannot find value
 LibTest/core/Expect/setEquals_A03_t01: Fail # Cannot find value
-LibTest/core/Expect/stringEquals_A01_t01: Fail # SsaBuilder.visitBreakStatement
-LibTest/core/Expect/stringEquals_A01_t02: Fail # SsaBuilder.visitBreakStatement
-LibTest/core/Expect/stringEquals_A02_t01: Fail # SsaBuilder.visitBreakStatement
 LibTest/core/Expect/throws_A02_t01: Fail # Bad code generation.
 LibTest/core/FallThroughError/toString_A01_t02: Fail # switch cases are not implemented
 LibTest/core/HashMap/HashMap.from_A02_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/HashMap/HashMap_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/HashSet/HashSet.from_A01_t01: Fail # Cannot find value
-LibTest/core/HashSet/HashSet.from_A02_t01: Fail # SsaBuilder.visitBreakStatement not implemented
+LibTest/core/HashSet/HashSet.from_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/HashSet/HashSet_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Isolate/port_A01_t01: Fail # Cannot find value
 LibTest/core/Isolate/spawn_A01_t01: Fail # Cannot find value
@@ -286,7 +282,7 @@ LibTest/core/Map/putIfAbsent_A01_t09: Fail # SsaBuilder.visitContinueStatement n
 LibTest/core/Map/putIfAbsent_A01_t10: Fail # non-empty instruction stack
 LibTest/core/Map/remove_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Map/remove_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
-LibTest/core/Match/str_A01_t01: Fail # SsaBuilder.visitBreakStatement not implemented
+LibTest/core/Match/str_A01_t01: Fail # NoSuchMethodException : method not found: 'get length'
 LibTest/core/Math/atan2_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Math/atan2_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Math/cos_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
@@ -311,7 +307,7 @@ LibTest/core/Math/pow_A19_t01: Fail # CompileTimeConstantEvaluator not implement
 LibTest/core/Math/sin_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Math/sqrt_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Math/tan_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Queue/Queue.from_A01_t01: Fail # SsaBuilder.visitBreakStatement
+LibTest/core/Queue/Queue.from_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # CompileTimeConstantEvaluator not implemented
@@ -327,10 +323,9 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/RegExp/pattern_A01_t01: Fail # SsaBuilder.visitBreakStatement not implemented
 LibTest/core/Set/Set.from_A01_t01: Fail # Cannot find value
 LibTest/core/Set/Set.from_A01_t02: Fail # Cannot find value
-LibTest/core/Set/Set.from_A02_t01: Fail # SsaBuilder.visitBreakStatement not implemented
+LibTest/core/Set/Set.from_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Set/Set_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Set/addAll_A01_t01: Fail # Cannot find value
 LibTest/core/Set/addAll_A01_t02: Fail # Cannot find value
@@ -378,8 +373,6 @@ LibTest/core/Set/remove_A01_t05: Fail # SsaBuilder.visitContinueStatement not im
 LibTest/core/Set/some_A01_t01: Fail # Cannot find value
 LibTest/core/Set/some_A01_t02: Fail # Cannot find value
 LibTest/core/Set/some_A01_t03: Fail # Cannot find value
-LibTest/core/Stopwatch/stop_A01_t01: Fail # visitBreakStatement not implemented
-LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
 LibTest/core/double/INFINITY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/NAN_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
@@ -433,7 +426,8 @@ LibTest/core/int/operator_addition_A01_t01: Fail # CompileTimeConstantEvaluator 
 LibTest/core/int/operator_division_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/int/operator_remainder_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/int/operator_subtraction_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/toRadixString_A01_t01: Fail # SsaBuilder.visitBreakStatement.
+LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>", <6a>) fails
+
 
 
 LibTest/core/List/List_A01_t02: Fail # Fixed length array.

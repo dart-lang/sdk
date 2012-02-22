@@ -18,10 +18,10 @@ CollectionFromTest: Fail # named constructors with type arguments are not implem
 CollectionToStringTest: Fail # visitContinueStatement not implemented
 ConstListLiteralTest: Fail # visitContinueStatement not implemented
 CoreRuntimeTypesTest: Fail # map not implemented
-DateTimeTest: Fail # SsaBuilder.visitBreakStatement not implemented
+DateTimeTest: Fail # CompileTimeConstantEvaluator not implemented
 ForInTest: Fail # visitContinueStatement not implemented
 FutureTest: Fail # named constructors with type arguments are not implemented
-FuturesTest: Fail # visitBreakStatement not implemented
+FuturesTest: Fail # factory ReceivePort is not implemented
 HashMapTest: Fail # SsaBuilder.visitContinueStatement not implemented
 LinkedHashMapTest: Fail # Internal Error: Cannot find value
 ListGetRangeTest: Fail # Bad code for Expect.throws.
@@ -33,11 +33,9 @@ MapsTest: Fail # Internal Error: Cannot find value
 NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
 PortTest: Fail # SsaBuilder.visitContinueStatement not implemented
 QueueTest: Fail # Internal Error: Cannot find value
-SetIteratorTest: Fail # SsaBuilder.visitBreakStatement not implemented
+SetIteratorTest: Fail # CompileTimeConstantEvaluator not implemented
 SetTest: Fail # Internal Error: Cannot find value
 SortTest: Fail # visitContinueStatement not implemented
-SplayTreeTest: Fail # SsaBuilder.visitBreakStatement not implemented
-StopwatchTest: Fail # visitBreakStatement not implemented
 StringPatternTest: Fail # Bad bailout code related to for-in.
 StringTest: Fail # Internal Error: Cannot find value
 
