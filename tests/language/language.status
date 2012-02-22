@@ -19,7 +19,7 @@ prefix language
 
 
 [ $component == vm || $component == dartium ]
-ResourceTest: Fail # Issue 732
+DynamicFieldTest: Fail # Issue 1805
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
@@ -231,6 +231,7 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.
 [ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
+ResourceTest: Fail # Issue 1807
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
