@@ -380,6 +380,8 @@ NamedParameters4Test: Fail
 
 StringEscape4NegativeTest: Fail # Issue 1352
 
+[ $component == frogium || $component == webdriver ]
+ResourceTest: Fail  # browser tests are #sourcing the test, causing frog to (correctly) issue the error that directives cannot be used in #sourced files
 
 [ $component == webdriver && $browser == chrome ]
 StringEscape1NegativeTest: Skip
