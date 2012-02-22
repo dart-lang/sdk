@@ -14,6 +14,9 @@ LibTest/core/Dispatcher/*: Skip # removed from corelib, (co19 issue #79)
 LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/some_A03_t01: Skip # Promise removed (co19 issue #79)
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: Skip # Times out. See CL 9416065.
+LibTest/core/Stopwatch/start_A01_t02: Fail # Fixed in CL  9416065.
+LibTest/core/Stopwatch/elapsed_A01_t02: Skip # Times out. See CL 9416065.
 
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A04_t01: Fail # Issue 392
@@ -24,7 +27,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A01_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail
 LibTest/core/String/replaceAll_A01_t01: Fail # Issue 429
 LibTest/core/String/split_A01_t01: Fail # Issue 429
@@ -49,7 +51,6 @@ LibTest/core/ReceivePort/toSendPort_A02_t01: Fail # Issue co19 - 51
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
-LibTest/core/RegExp/hasMatch_A01_t02: Fail
 LibTest/core/String/replaceFirst_A01_t01: Fail # Issue 429
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/double/toStringAsExponential_A01_t01: Fail # Issue 463
@@ -118,8 +119,6 @@ Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t02: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t03: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t02: Fail
@@ -181,10 +180,8 @@ LibTest/core/FallThroughError/toString_A01_t01: Fail
 LibTest/core/List/lastIndexOf_A03_t01: Fail
 LibTest/core/ReceivePort/receive_A01_t02: Fail
 LibTest/core/SendPort/send_A02_t01: Fail
-LibTest/core/Stopwatch/start_A01_t02: Fail
 LibTest/core/String/contains_A01_t02: Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail
-LibTest/core/Stopwatch/elapsed_A01_t02: Skip # Flaky test.
 
 
 [ $component == vm && $unchecked ]
