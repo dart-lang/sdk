@@ -188,7 +188,6 @@ NamedParameters3Test: Fail
 NamedParameters4Test: Fail
 NamedParametersPassingFalsyTest: Fail
 NamedParametersTypeTest: Fail
-NamedParametersWithDollarsTest: Fail
 NamingTest: Fail
 NativeClassInheritance1FrogTest: Fail
 NativeClassInheritance2FrogTest: Fail
@@ -285,7 +284,6 @@ StringInterpolate2Test: Fail
 StringInterpolateNPETest: Fail
 StringInterpolateTest: Fail
 StringInterpolation7NegativeTest: Fail
-StringJoinTest: Fail
 StringTest: Fail
 SuperAllNamedConstructorTest: Fail
 SuperFieldAccessTest: Fail

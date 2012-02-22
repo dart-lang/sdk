@@ -53,12 +53,10 @@ StopwatchTest: Fail
 StringBaseVMTest: Fail
 StringBufferTest: Fail
 StringCaseTest: Fail
-StringFromListTest: Fail
 StringPatternTest: Fail
 StringReplaceTest: Fail
 StringSplitRegExpTest: Fail
 StringSplitTest: Fail
 StringSubstringTest: Fail
 StringTest: Fail
-StringsTest: Fail
 UnicodeTest: Fail

@@ -949,10 +949,7 @@ LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail
 LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail
 LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail  # Issue 4.
 LibTest/core/Stopwatch/start_A01_t02: Fail
-LibTest/core/Stopwatch/stop_A01_t01: Fail
-LibTest/core/String/String.fromCharCodes_A01_t01: Fail
 LibTest/core/String/String.fromCharCodes_A02_t01: Fail
-LibTest/core/String/String.fromCharCodes_A03_t01: Fail
 LibTest/core/String/String_class_A01_t01: Fail
 LibTest/core/String/String_class_A02_t01: Fail
 LibTest/core/String/String_class_A03_t01: Fail
@@ -1017,11 +1014,3 @@ LibTest/core/StringBuffer/clear_A02_t01: Fail
 LibTest/core/StringBuffer/isEmpty_A01_t01: Fail
 LibTest/core/StringBuffer/length_A01_t01: Fail
 LibTest/core/StringBuffer/toString_A01_t01: Fail
-LibTest/core/Strings/concatAll_A01_t01: Fail
-LibTest/core/Strings/concatAll_A02_t01: Fail
-LibTest/core/Strings/concatAll_A03_t01: Fail
-LibTest/core/Strings/concatAll_A04_t01: Fail
-LibTest/core/Strings/join_A01_t01: Fail
-LibTest/core/Strings/join_A02_t01: Fail
-LibTest/core/Strings/join_A03_t01: Fail
-LibTest/core/Strings/join_A04_t01: Fail
