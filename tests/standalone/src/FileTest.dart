@@ -27,12 +27,15 @@ class FileTest {
 
   static void createTempDirectory(Function doNext) {
     tempDirectory = new Directory('');
+    tempDirectory.errorHandler = (e) {
+      Expect.fail("Failed creating temporary directory");
+    };
     tempDirectory.createTempHandler = doNext;
     tempDirectory.createTemp();
   }
 
   static void deleteTempDirectory() {
-    tempDirectory.deleteSync();
+    tempDirectory.deleteSync(recursive: true);
   }
 
   // Test for file read functionality.
@@ -404,6 +407,7 @@ class FileTest {
 
   // Test for file write of different types of lists.
   static void testWriteVariousLists() {
+    asyncTestStarted();
     final String fileName = "${tempDirectory.path}/testWriteVariousLists";
     final File file = new File(fileName);
     file.create();
@@ -443,6 +447,7 @@ class FileTest {
           }
           openedFile2.closeSync();
           file2.deleteSync();
+          asyncTestDone("testWriteVariousLists");
         };
       };
       file.errorHandler = (s) {
@@ -452,12 +457,17 @@ class FileTest {
   }
 
   static void testDirectory() {
+    asyncTestStarted();
+
     // Port to verify that the test completes.
     var port = new ReceivePort.singleShot();
-    port.receive((message, replyTo) => Expect.equals(1, message));
+    port.receive((message, replyTo) {
+      Expect.equals(1, message);
+      asyncTestDone("testDirectory");
+    });
 
     var tempDir = tempDirectory.path;
-    var file = new File("${tempDir}/file");
+    var file = new File("${tempDir}/testDirectory");
     var errors = 0;
     file.directory();
     file.directoryHandler = (d) => Expect.fail("non-existing file");
@@ -498,7 +508,7 @@ class FileTest {
 
   static void testDirectorySync() {
     var tempDir = tempDirectory.path;
-    var file = new File("${tempDir}/file");
+    var file = new File("${tempDir}/testDirectorySync");
     // Non-existing file should throw exception.
     Expect.throws(file.directorySync, (e) { return e is FileIOException; });
     file.createSync();
