@@ -197,7 +197,6 @@ StringTest: Fail # TypeError: Object Hello has no method 'operator$indexSet$2'
 
 # Bad code.
 InstanceofTest: Fail # SyntaxError: Unexpected identifier
-NumberSyntaxTest: Fail # SyntaxError: Unexpected identifier
 
 
 #

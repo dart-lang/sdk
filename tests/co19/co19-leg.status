@@ -333,13 +333,12 @@ LibTest/core/Date/value_A01_t01: Fail # Should throw NoSuchMethodException.
 LibTest/core/Duration/compareTo_A01_t01: Fail # Fail is Comparable test.
 LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
 LibTest/core/String/String_class_A03_t01: Fail # Implement is-checks.
+LibTest/core/Queue/iterator_A01_t01: Fail # Implement is-checks.
 
 
 LibTest/core/String/String_class_A02_t01: Fail # Unhandled non-BMP character: U+10000.
 LibTest/core/String/charCodeAt_A01_t01: Fail # Unhandled non-BMP character: U+10000.
 LibTest/core/String/charCodes_A01_t01: Fail # Unhandled non-BMP character: U+10000.
-
-
 
 
 # TODO(floitsch): Please review these.
@@ -484,18 +483,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t01: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A08_t02: Fail # map not implemented
 Language/09_Generics/09_Generics_A04_t03: Fail # named constructors with type arguments are not implemented
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # no method named foo in class I
-
-
-
-LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_A04_t01: Fail # uncaught exception in toString
-LibTest/core/Object/dynamic_A01_t01: Fail # uncaught exception in toString
-LibTest/core/Object/toString_A01_t01: Fail # uncaught exception in toString
-
-
-LibTest/core/List/forEach_A02_t01: Fail # ObjectNotClosureException expected.
-
-
-LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
 
 
 #
