@@ -14,12 +14,6 @@ LibTest/core/Promise/*: Fail, OK
 LibTest/core/Proxy/*: Fail, OK
 
 
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail # See CL 9416065.
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail # See CL 9416065.
-LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail # See CL 9416065.
-LibTest/core/Stopwatch/start_A01_t02: Fail # See CL 9416065.
-
-
 [ $component == leg && $checked ]
 # Leg does not support checked mode yet.
 *: Skip

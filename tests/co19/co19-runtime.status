@@ -14,10 +14,6 @@ LibTest/core/Dispatcher/*: Skip # removed from corelib, (co19 issue #79)
 LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/some_A03_t01: Skip # Promise removed (co19 issue #79)
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: Skip # Times out. See CL 9416065.
-LibTest/core/Stopwatch/start_A01_t02: Fail # Fixed in CL  9416065.
-LibTest/core/Stopwatch/elapsed_A01_t02: Skip # Times out. See CL 9416065.
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: Skip # Times out. See CL 9416065.
 
 
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Const_Expressions/02_1_Class_Const_Expressions_A04_t01: Fail # Issue 392
