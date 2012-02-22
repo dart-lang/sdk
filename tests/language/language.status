@@ -231,7 +231,6 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.
 [ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
-ResourceTest: Fail # Issue 1807
 ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
@@ -381,7 +380,7 @@ NamedParameters4Test: Fail
 StringEscape4NegativeTest: Fail # Issue 1352
 
 [ $component == frogium || $component == webdriver ]
-ResourceTest: Fail  # browser tests are #sourcing the test, causing frog to (correctly) issue the error that directives cannot be used in #sourced files
+ResourceTest: Fail  # browser tests are #sourcing the test, causing frog to (correctly) issue the error that directives cannot be used in #sourced files, see issue 1807
 
 [ $component == webdriver && $browser == chrome ]
 StringEscape1NegativeTest: Skip
