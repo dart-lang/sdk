@@ -200,7 +200,6 @@ NativePropertyFrogTest: Fail
 NewExpressionTypeArgsFrogTest/02: Fail
 NonConstSuperNegativeTest: Fail
 NonParameterizedFactory2Test: Fail
-NullPointerExceptionTest: Fail
 NullToStringTest: Fail
 NumberIdentifierNegativeTest: Fail
 NumberSyntaxTest: Fail

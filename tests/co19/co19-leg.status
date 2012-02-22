@@ -223,6 +223,7 @@ LibTest/core/List/removeRange_A02_t01: Fail # Fixed length array.
 LibTest/core/Date/compareTo_A01_t01: Fail # Fail is Comparable test.
 LibTest/core/Date/timeZone_A01_t01: Fail # Should throw NoSuchMethodException.
 LibTest/core/Date/value_A01_t01: Fail # Should throw NoSuchMethodException.
+LibTest/core/Duration/compareTo_A01_t01: Fail # Fail is Comparable test.
 LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
 LibTest/core/String/String_class_A01_t01: Fail # String.replaceAll is not implemented.
 LibTest/core/String/String_class_A03_t01: Fail # Implement is-checks.
@@ -524,7 +525,6 @@ Language/07_Classes/7_Static_Variables_A06_t02: Fail
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail
 Language/07_Classes/9_Superinterfaces_A06_t01: Fail
-Language/08_Interfaces/1_Methods/1_Operators_A01_t01: Fail
 Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail
 Language/08_Interfaces/1_Methods_A01_t01: Fail
 Language/08_Interfaces/1_Methods_A02_t01: Fail
@@ -665,7 +665,6 @@ LibTest/core/Duration/SECONDS_PER_DAY_A01_t01: Fail
 LibTest/core/Duration/SECONDS_PER_HOUR_A01_t01: Fail
 LibTest/core/Duration/compareTo_A01_t01: Fail
 LibTest/core/Expect/approxEquals_A01_t04: Fail
-LibTest/core/Expect/approxEquals_A03_t01: Fail
 LibTest/core/Expect/approxEquals_A04_t01: Fail
 LibTest/core/Expect/equals_A02_t01: Fail
 LibTest/core/Expect/fail_A02_t01: Fail
