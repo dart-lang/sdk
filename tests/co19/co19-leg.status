@@ -44,9 +44,25 @@ LibTest/core/Queue/iterator_A01_t02: Crash
 LibTest/core/Queue/iterator_next_A01_t01: Crash
 
 
+# Issues with co19 test suite.
+LibTest/core/double/operator_truncating_division_A01_t06: Fail # Conflicts with int semantics.
 LibTest/core/double/toRadixString_A01_t01: Fail # Unimplemented test stub.
 LibTest/core/double/toStringAsExponential_A01_t01: Fail # Unimplemented test stub.
 LibTest/core/double/toStringAsPrecision_A01_t01: Fail # Unimplemented test stub.
+LibTest/core/int/compareTo_A01_t01: Fail # Requires big int.
+LibTest/core/int/hashCode_A01_t01: Fail # co19 testing missing assertion.
+LibTest/core/int/isEven_A01_t01: Fail # Not in API.
+LibTest/core/int/isOdd_A01_t01: Fail # Not in API.
+LibTest/core/int/operator_NOT_A01_t01: Fail # Requires big int.
+LibTest/core/int/operator_left_shift_A01_t01: Fail # Requires big int.
+LibTest/core/int/operator_truncating_division_A01_t01: Fail # Requires big int.
+LibTest/core/int/remainder_A01_t01: Fail # TODO(floitsch): Review.
+LibTest/core/int/remainder_A01_t02: Fail # TODO(floitsch): Review.
+LibTest/core/int/toDouble_A01_t01: Fail # Requires big int.
+LibTest/core/int/toInt_A01_t01: Fail # Requires big int.
+LibTest/core/int/toStringAsExponential_A01_t01: Fail # TODO(floitsch): Review.
+LibTest/core/int/toStringAsFixed_A01_t01: Fail # TODO(floitsch): Review.
+LibTest/core/int/toStringAsPrecision_A01_t01: Fail # TODO(floitsch): Review.
 
 
 LibTest/core/double/abs_A01_t02: Fail # VM handling of double literals.
@@ -56,9 +72,13 @@ LibTest/core/double/ceil_A01_t07: Fail # VM handling of double literals.
 LibTest/core/double/compareTo_A01_t02: Fail # VM handling of double literals.
 LibTest/core/double/floor_A01_t02: Fail # VM handling of double literals.
 LibTest/core/double/isNegative_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/operator_GE_A01_t01: Fail # VM handling of double literals.
 LibTest/core/double/operator_GE_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/operator_GT_A01_t01: Fail # VM handling of double literals.
 LibTest/core/double/operator_GT_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/operator_LE_A01_t01: Fail # VM handling of double literals.
 LibTest/core/double/operator_LE_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/operator_LT_A01_t01: Fail # VM handling of double literals.
 LibTest/core/double/operator_LT_A01_t02: Fail # VM handling of double literals.
 LibTest/core/double/remainder_A01_t01: Fail # VM handling of double literals.
 LibTest/core/double/remainder_A01_t07: Fail # VM handling of double literals.
@@ -69,10 +89,6 @@ LibTest/core/double/toInt_A01_t05: Fail # VM handling of double literals.
 LibTest/core/double/toStringAsFixed_A01_t04: Fail # VM handling of double literals.
 LibTest/core/double/toStringAsFixed_A01_t07: Fail # VM handling of double literals.
 LibTest/core/double/truncate_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_LT_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_LE_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_GT_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_GE_A01_t01: Fail # VM handling of double literals.
 
 
 LibTest/core/List/List.from_A01_t01: Fail # Cannot find value.
@@ -92,6 +108,7 @@ LibTest/core/List/some_A01_t02: Fail # Cannot find value.
 LibTest/core/List/sort_A01_t01: Fail # visitContinueStatement not implemented
 LibTest/core/List/sort_A01_t02: Fail # non-empty instruction stack
 LibTest/core/List/sort_A01_t03: Fail # Cannot find value.
+LibTest/core/int/toRadixString_A01_t01: Fail # SsaBuilder.visitBreakStatement.
 
 
 LibTest/core/List/addLast_A01_t01: Fail # Adding interceptor crashes Leg.
@@ -1007,19 +1024,3 @@ LibTest/core/Strings/join_A01_t01: Fail
 LibTest/core/Strings/join_A02_t01: Fail
 LibTest/core/Strings/join_A03_t01: Fail
 LibTest/core/Strings/join_A04_t01: Fail
-LibTest/core/int/compareTo_A01_t01: Fail
-LibTest/core/int/hashCode_A01_t01: Fail
-LibTest/core/int/isEven_A01_t01: Fail
-LibTest/core/int/isOdd_A01_t01: Fail
-LibTest/core/int/operator_NOT_A01_t01: Fail
-LibTest/core/int/operator_left_shift_A01_t01: Fail
-LibTest/core/int/operator_truncating_division_A01_t01: Fail
-LibTest/core/int/operator_truncating_division_A01_t02: Fail
-LibTest/core/int/remainder_A01_t01: Fail
-LibTest/core/int/remainder_A01_t03: Fail
-LibTest/core/int/toDouble_A01_t01: Fail, Crash
-LibTest/core/int/toInt_A01_t01: Fail
-LibTest/core/int/toRadixString_A01_t01: Fail
-LibTest/core/int/toStringAsExponential_A01_t01: Fail
-LibTest/core/int/toStringAsFixed_A01_t01: Fail
-LibTest/core/int/toStringAsPrecision_A01_t01: Fail

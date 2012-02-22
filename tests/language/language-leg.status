@@ -81,7 +81,6 @@ ContinueTest: Fail
 DefaultFactoryLibraryTest: Fail
 DefaultInitTest: Fail
 DeoptNoFeedbackTest: Fail
-DivByZeroTest: Fail
 DoWhileTest: Fail
 DuplicateConstructorTest/01: Fail
 DuplicateImplementsTest: Skip
