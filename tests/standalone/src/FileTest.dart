@@ -6,6 +6,13 @@
 
 #import("dart:io");
 
+class MyListOfOneElement implements List {
+  int _value;
+  MyListOfOneElement(this._value);
+  int get length() => 1;
+  operator [](int index) => _value;
+}
+
 class FileTest {
   static Directory tempDirectory;
   static int numLiveAsyncTests = 0;
@@ -393,6 +400,55 @@ class FileTest {
     };
     asyncTestStarted();
     file.create();
+  }
+
+  // Test for file write of different types of lists.
+  static void testWriteVariousLists() {
+    final String fileName = "${tempDirectory.path}/testWriteVariousLists";
+    final File file = new File(fileName);
+    file.create();
+    file.createHandler = () {
+      file.open(FileMode.WRITE);
+      file.openHandler = (RandomAccessFile openedFile) {
+        // Write bytes from 0 to 7.
+        openedFile.writeList([0], 0, 1);
+        openedFile.writeList(const [1], 0, 1);
+        openedFile.writeList(new MyListOfOneElement(2), 0, 1);
+        var x = 12345678901234567890123456789012345678901234567890;
+        var y = 12345678901234567890123456789012345678901234567893;
+        openedFile.writeList([y - x], 0, 1);
+        openedFile.writeList([260], 0, 1);  // 260 = 256 + 4 = 0x104.
+        openedFile.writeList(const [261], 0, 1);
+        openedFile.writeList(new MyListOfOneElement(262), 0, 1);
+        x = 12345678901234567890123456789012345678901234567890;
+        y = 12345678901234567890123456789012345678901234568153;
+        openedFile.writeList([y - x], 0, 1);
+
+        openedFile.errorHandler = (s) {
+          Expect.fail("No errors expected : $s");
+        };
+        openedFile.noPendingWriteHandler = () {
+          openedFile.close();
+        };
+        openedFile.closeHandler = () {
+          // Check the written bytes.
+          final File file2 = new File(fileName);
+          var openedFile2 = file2.openSync();
+          var length = openedFile2.lengthSync();
+          Expect.equals(8, length);
+          List data = new List(length);
+          openedFile2.readListSync(data, 0, length);
+          for (var i = 0; i < data.length; i++) {
+            Expect.equals(i, data[i]);
+          }
+          openedFile2.closeSync();
+          file2.deleteSync();
+        };
+      };
+      file.errorHandler = (s) {
+        Expect.fail("No errors expected : $s");
+      };
+    };
   }
 
   // Test for file length functionality.
@@ -843,6 +899,7 @@ class FileTest {
         testAppendSync();
         testWriteAppend();
         testOutputStreamWriteAppend();
+        testWriteVariousLists();
       });
   }
 }
