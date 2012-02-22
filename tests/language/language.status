@@ -205,6 +205,7 @@ Throw7NegativeTest: Fail     # Bug 4208459.
 RichardsTest: Fail
 TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
+GCTest: Skip # Issue 1487
 
 
 [ $component == frogsh ]
