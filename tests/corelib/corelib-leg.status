@@ -11,6 +11,7 @@ prefix corelib
 [ $component == leg ]
 BigIntegerVMTest: Fail
 CollectionFromTest: Fail
+CollectionToStringTest: Fail # continue not implemented
 ConstListRemoveRangeTest: Fail
 ConstListSetRangeTest: Fail
 CoreRuntimeTypesTest: Fail

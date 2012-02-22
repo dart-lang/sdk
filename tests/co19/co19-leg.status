@@ -223,8 +223,6 @@ Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t01: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t02: Fail
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t03: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t04: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Fail
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail
@@ -357,6 +355,7 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t04: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail
 Language/07_Classes/7_Static_Variables_A02_t02: Fail
+Language/07_Classes/7_Static_Variables_A04_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t01: Fail
 Language/07_Classes/7_Static_Variables_A06_t02: Fail
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail
@@ -600,6 +599,7 @@ LibTest/core/ExpectException/toString_A01_t01: Fail
 LibTest/core/FallThroughError/toString_A01_t02: Fail
 LibTest/core/HashMap/HashMap.from_A01_t01: Fail
 LibTest/core/HashMap/HashMap.from_A02_t01: Fail
+LibTest/core/HashMap/HashMap_A01_t01: Fail
 LibTest/core/HashSet/HashSet.from_A01_t01: Fail
 LibTest/core/HashSet/HashSet.from_A02_t01: Fail
 LibTest/core/HashSet/HashSet_A01_t01: Fail
@@ -886,8 +886,11 @@ LibTest/core/Set/remove_A01_t05: Fail
 LibTest/core/Set/some_A01_t01: Fail
 LibTest/core/Set/some_A01_t02: Fail
 LibTest/core/Set/some_A01_t03: Fail
+LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail
+LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail
 LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail  # Issue 4.
 LibTest/core/Stopwatch/start_A01_t02: Fail
+LibTest/core/Stopwatch/stop_A01_t01: Fail
 LibTest/core/String/String.fromCharCodes_A01_t01: Fail
 LibTest/core/String/String.fromCharCodes_A02_t01: Fail
 LibTest/core/String/String.fromCharCodes_A03_t01: Fail
