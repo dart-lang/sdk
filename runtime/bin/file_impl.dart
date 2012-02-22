@@ -404,6 +404,24 @@ class _DeleteOperation extends _FileOperation {
 }
 
 
+class _DirectoryOperation extends _FileOperation {
+  _DirectoryOperation(String this._name);
+
+  void execute(ReceivePort port) {
+    if (_name is String) {
+      if (_FileUtils.exists(_name)) {
+        _replyPort.send(_FileUtils.directory(_name), port.toSendPort());
+        return;
+      }
+    }
+    // Either _name is not a string or the file does not exist.
+    _replyPort.send(null, port.toSendPort());
+  }
+
+  String _name;
+}
+
+
 class _ExitOperation extends _FileOperation {
   void execute(ReceivePort port) {
     port.close();
@@ -479,6 +497,7 @@ class _FileUtils {
   static int open(String name, int mode) native "File_Open";
   static bool create(String name) native "File_Create";
   static bool delete(String name) native "File_Delete";
+  static String directory(String name) native "File_Directory";
   static String fullPath(String name) native "File_FullPath";
   static int close(int id) native "File_Close";
   static int readByte(int id) native "File_ReadByte";
@@ -635,6 +654,32 @@ class _File implements File {
     if (!deleted) {
       throw new FileIOException("Cannot delete file: $_name");
     }
+  }
+
+  void directory() {
+    _asyncUsed = true;
+    var handleDirectoryResult = (path, ignored) {
+      var handler =
+          (_directoryHandler != null) ? _directoryHandler : (s) => null;
+      if (path != null) {
+        handler(new Directory(path));
+      } else if (_errorHandler != null) {
+        _errorHandler("Cannot get containing directory for: ${_name}");
+      }
+    };
+    var operation = new _DirectoryOperation(_name);
+    _scheduler.enqueue(operation, handleDirectoryResult);
+  }
+
+  void directorySync() {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    if (!existsSync()) {
+      throw new FileIOException("Cannot get directory for: $_name");
+    }
+    return new Directory(_FileUtils.directory(_name));
   }
 
   void open([FileMode mode = FileMode.READ]) {
@@ -796,6 +841,10 @@ class _File implements File {
     _deleteHandler = handler;
   }
 
+  void set directoryHandler(void handler(Directory directory)) {
+    _directoryHandler = handler;
+  }
+
   void set openHandler(void handler(RandomAccessFile file)) {
     _openHandler = handler;
   }
@@ -824,6 +873,7 @@ class _File implements File {
   Function _existsHandler;
   Function _createHandler;
   Function _deleteHandler;
+  Function _directoryHandler;
   Function _openHandler;
   Function _inputStreamHandler;
   Function _outputStreamHandler;

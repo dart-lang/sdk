@@ -451,6 +451,69 @@ class FileTest {
     };
   }
 
+  static void testDirectory() {
+    // Port to verify that the test completes.
+    var port = new ReceivePort.singleShot();
+    port.receive((message, replyTo) => Expect.equals(1, message));
+
+    var tempDir = tempDirectory.path;
+    var file = new File("${tempDir}/file");
+    var errors = 0;
+    file.directory();
+    file.directoryHandler = (d) => Expect.fail("non-existing file");
+    file.errorHandler = (s) {
+      file.errorHandler = (s) => Expect.fail("no error expected");
+      file.create();
+      file.createHandler = () {
+        file.directory();
+        file.directoryHandler = (Directory d) {
+          d.exists();
+          d.errorHandler = (s) => Expect.fail("no error expected");
+          d.existsHandler = (exists) {
+            Expect.isTrue(exists);
+            Expect.equals(tempDir, d.path);
+            file.delete();
+            file.deleteHandler = () {
+              var file_dir = new File(".");
+              file_dir.directory();
+              file_dir.directoryHandler = (d) {
+                Expect.fail("non-existing file");
+              };
+              file_dir.errorHandler = (s) {
+                var file_dir = new File(tempDir);
+                file_dir.directory();
+                file_dir.directoryHandler = (d) {
+                  Expect.fail("non-existing file");
+                };
+                file_dir.errorHandler = (s) {
+                  port.toSendPort().send(1);
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  }
+
+  static void testDirectorySync() {
+    var tempDir = tempDirectory.path;
+    var file = new File("${tempDir}/file");
+    // Non-existing file should throw exception.
+    Expect.throws(file.directorySync, (e) { return e is FileIOException; });
+    file.createSync();
+    // Check that the path of the returned directory is the temp directory.
+    Directory d = file.directorySync();
+    Expect.isTrue(d.existsSync());
+    Expect.equals(tempDir, d.path);
+    file.deleteSync();
+    // Directories should throw exception.
+    var file_dir = new File(".");
+    Expect.throws(file_dir.directorySync, (e) { return e is FileIOException; });
+    file_dir = new File(tempDir);
+    Expect.throws(file_dir.directorySync, (e) { return e is FileIOException; });
+  }
+
   // Test for file length functionality.
   static void testLength() {
     String filename = getFilename("tests/vm/data/fixed_length_file");
@@ -807,6 +870,7 @@ class FileTest {
     }
   }
 
+
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
@@ -885,22 +949,24 @@ class FileTest {
     testOpenDirectoryAsFileSync();
 
     createTempDirectory(() {
-        testReadWrite();
-        testReadWriteSync();
-        testReadWriteStream();
-        testReadEmptyFileSync();
-        testReadEmptyFile();
-        testTruncate();
-        testTruncateSync();
-        testCloseException();
-        testCloseExceptionStream();
-        testBufferOutOfBoundsException();
-        testAppend();
-        testAppendSync();
-        testWriteAppend();
-        testOutputStreamWriteAppend();
-        testWriteVariousLists();
-      });
+      testReadWrite();
+      testReadWriteSync();
+      testReadWriteStream();
+      testReadEmptyFileSync();
+      testReadEmptyFile();
+      testTruncate();
+      testTruncateSync();
+      testCloseException();
+      testCloseExceptionStream();
+      testBufferOutOfBoundsException();
+      testAppend();
+      testAppendSync();
+      testWriteAppend();
+      testOutputStreamWriteAppend();
+      testWriteVariousLists();
+      testDirectory();
+      testDirectorySync();
+    });
   }
 }
 

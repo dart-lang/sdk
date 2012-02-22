@@ -184,6 +184,15 @@ char* File::GetCanonicalPath(const char* pathname) {
 }
 
 
+char* File::GetContainingDirectory(char* pathname) {
+  char* path = NULL;
+  do {
+    path = dirname(pathname);
+  } while (path == NULL && errno == EINTR);
+  return GetCanonicalPath(path);
+}
+
+
 const char* File::PathSeparator() {
   return "/";
 }

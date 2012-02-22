@@ -88,6 +88,7 @@ class File {
   static bool Delete(const char* name);
   static bool IsAbsolutePath(const char* pathname);
   static char* GetCanonicalPath(const char* name);
+  static char* GetContainingDirectory(char* name);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
   static StdioHandleType GetStdioHandleType(int fd);

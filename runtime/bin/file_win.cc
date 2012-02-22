@@ -175,6 +175,20 @@ char* File::GetCanonicalPath(const char* pathname) {
 }
 
 
+char* File::GetContainingDirectory(char* pathname) {
+  int required_size = GetFullPathName(pathname, 0, NULL, NULL);
+  char* path = static_cast<char*>(malloc(required_size));
+  char* file_part = NULL;
+  int written = GetFullPathName(pathname, required_size, path, &file_part);
+  ASSERT(written == (required_size - 1));
+  ASSERT(file_part != NULL);
+  ASSERT(file_part > path);
+  ASSERT(file_part[-1] == '\\');
+  file_part[-1] = '\0';
+  return path;
+}
+
+
 const char* File::PathSeparator() {
   return "\\";
 }

@@ -320,6 +320,21 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_Directory)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  char* str_copy = strdup(str);
+  char* path = File::GetContainingDirectory(str_copy);
+  if (path != NULL) {
+    Dart_SetReturnValue(args, Dart_NewString(path));
+  }
+  free(str_copy);
+  free(path);
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =

@@ -68,6 +68,20 @@ interface File default _File {
   void deleteSync();
 
   /**
+   * Get a Directory object for the directory containing this file. If
+   * the file does not exist the [errorHandler] is called. When the
+   * operation completes the [directoryHandler] is called with the
+   * result.
+   */
+  void directory();
+
+  /**
+   * Synchronously get a Directory object for the directory containing
+   * this file.
+   */
+  Directory directorySync();
+
+  /**
    * Open the file for random access operations. When the file is
    * opened the [openHandler] is called with the resulting
    * RandomAccessFile. RandomAccessFiles must be closed using the
@@ -183,6 +197,12 @@ interface File default _File {
    * completes.
    */
   void set deleteHandler(void handler());
+
+  /**
+   * Sets the handler that gets called when a [directory] operation
+   * completes.
+   */
+  void set directoryHandler(void handler(Directory directory));
 
   /**
    * Sets the handler that gets called when an [open] operation
