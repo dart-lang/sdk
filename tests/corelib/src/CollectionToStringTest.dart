@@ -254,7 +254,7 @@ Map populateRandomMap(int size, bool exact, StringBuffer stringRep,
  * If exact is true, the returned element will not be, and will not contain
  * a collection with ill-defined iteration order (i.e., a HashSet or HashMap).
  */
-void randomElement(int size, bool exact, StringBuffer stringRep,
+Object randomElement(int size, bool exact, StringBuffer stringRep,
     List beingMade) {
   Object result;
   double elementTypeFrac = Math.random();
