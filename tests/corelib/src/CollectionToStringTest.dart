@@ -26,6 +26,7 @@ void smokeTest() {
   Expect.equals([].toString(), '[]');
   Expect.equals([1].toString(), '[1]');
   Expect.equals(['Elvis'].toString(), '[Elvis]');
+  Expect.equals([null].toString(), '[null]');
   Expect.equals([1, 2].toString(), '[1, 2]');
   Expect.equals(['I', 'II'].toString(), '[I, II]');
   Expect.equals([[1, 2], [3, 4], [5, 6]].toString(), '[[1, 2], [3, 4], [5, 6]]');
@@ -34,6 +35,7 @@ void smokeTest() {
   Expect.equals((const[]).toString(), '[]');
   Expect.equals((const[1]).toString(), '[1]');
   Expect.equals((const['Elvis']).toString(), '[Elvis]');
+  Expect.equals((const[null]).toString(), '[null]');
   Expect.equals((const[1, 2]).toString(), '[1, 2]');
   Expect.equals((const['I', 'II']).toString(), '[I, II]');
   Expect.equals((const[const[1, 2], const[3, 4], const[5, 6]]).toString(),
@@ -42,6 +44,7 @@ void smokeTest() {
   // Non-const maps - Note that all keys are strings; the spec currently demands this
   Expect.equals({}.toString(), '{}');
   Expect.equals({'Elvis': 'King'}.toString(), '{Elvis: King}');
+  Expect.equals({'Elvis': null}.toString(), '{Elvis: null}');
   Expect.equals({'I': 1, 'II': 2}.toString(), '{I: 1, II: 2}');
   Expect.equals({'X':{'I':1, 'II':2}, 'Y':{'III':3, 'IV':4}, 'Z':{'V':5, 'VI':6}}.toString(),
       '{X: {I: 1, II: 2}, Y: {III: 3, IV: 4}, Z: {V: 5, VI: 6}}');
@@ -49,6 +52,7 @@ void smokeTest() {
   // Const maps
   Expect.equals(const{}.toString(), '{}');
   Expect.equals(const{'Elvis': 'King'}.toString(), '{Elvis: King}');
+  Expect.equals({'Elvis': null}.toString(), '{Elvis: null}');
   Expect.equals(const{'I': 1, 'II': 2}.toString(), '{I: 1, II: 2}');
   Expect.equals(const{'X': const{'I': 1, 'II': 2}, 'Y': const{'III': 3, 'IV': 4},
       'Z': const{'V': 5, 'VI': 6}}.toString(),
