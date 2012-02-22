@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,7 +21,7 @@ ASSEMBLER_TEST_GENERATE(Call, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Call, entry) {
-  Call call(entry);
+  CallPattern call(entry);
   EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(), call.TargetAddress());
 }
 
@@ -34,10 +34,10 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Jump, entry) {
-  Jump jump1(entry);
+  JumpPattern jump1(entry);
   EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(),
             jump1.TargetAddress());
-  Jump jump2(entry + jump1.pattern_length_in_bytes());
+  JumpPattern jump2(entry + jump1.pattern_length_in_bytes());
   EXPECT_EQ(StubCode::OptimizeInvokedFunctionLabel().address(),
             jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();

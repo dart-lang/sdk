@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -180,11 +180,11 @@ static void SwapCode(intptr_t num_bytes, char* a, char* b) {
 // The patch code buffer contains the jmp code which will be inserted at
 // entry point.
 void CodePatcher::PatchEntry(const Code& code) {
-  Jump jmp_entry(code.EntryPoint());
+  JumpPattern jmp_entry(code.EntryPoint());
   ASSERT(!jmp_entry.IsValid());
   const uword patch_buffer = code.GetPatchCodePc();
   ASSERT(patch_buffer != 0);
-  Jump jmp_patch(patch_buffer);
+  JumpPattern jmp_patch(patch_buffer);
   ASSERT(jmp_patch.IsValid());
   const uword jump_target = jmp_patch.TargetAddress();
   SwapCode(jmp_patch.pattern_length_in_bytes(),
@@ -197,13 +197,13 @@ void CodePatcher::PatchEntry(const Code& code) {
 // The entry point is a jmp instruction, the patch code buffer contains
 // original code, the entry point contains the jump instruction.
 void CodePatcher::RestoreEntry(const Code& code) {
-  Jump jmp_entry(code.EntryPoint());
+  JumpPattern jmp_entry(code.EntryPoint());
   ASSERT(jmp_entry.IsValid());
   const uword jump_target = jmp_entry.TargetAddress();
   const uword patch_buffer = code.GetPatchCodePc();
   ASSERT(patch_buffer != 0);
   // 'patch_buffer' contains original entry code.
-  Jump jmp_patch(patch_buffer);
+  JumpPattern jmp_patch(patch_buffer);
   ASSERT(!jmp_patch.IsValid());
   SwapCode(jmp_patch.pattern_length_in_bytes(),
            reinterpret_cast<char*>(code.EntryPoint()),
@@ -214,7 +214,7 @@ void CodePatcher::RestoreEntry(const Code& code) {
 
 
 bool CodePatcher::CodeIsPatchable(const Code& code) {
-  Jump jmp_entry(code.EntryPoint());
+  JumpPattern jmp_entry(code.EntryPoint());
   if (code.Size() < (jmp_entry.pattern_length_in_bytes() * 2)) {
     return false;
   }

@@ -247,7 +247,7 @@ class CloneContextNode : public AstNode {
 };
 
 
-class  ArgumentListNode : public AstNode {
+class ArgumentListNode : public AstNode {
  public:
   explicit ArgumentListNode(intptr_t token_index)
      : AstNode(token_index),

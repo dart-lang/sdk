@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,6 +13,7 @@
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/flow_graph_builder.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -29,6 +30,8 @@ DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
+DEFINE_FLAG(bool, use_new_compiler, false,
+    "Try to use the new compiler backend.");
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -113,6 +116,11 @@ static RawError* CompileFunctionHelper(const Function& function,
                 function.token_index());
     }
     Parser::ParseFunction(&parsed_function);
+    if (FLAG_use_new_compiler) {
+      FlowGraphBuilder graph_builder(parsed_function);
+      graph_builder.BuildGraph();
+      // Currently, always fails and falls through to the old compiler.
+    }
     CodeIndexTable* code_index_table = isolate->code_index_table();
     ASSERT(code_index_table != NULL);
     Assembler assembler;

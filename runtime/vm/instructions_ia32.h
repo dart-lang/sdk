@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Classes that describe assembly patterns as used by inline caches.
@@ -20,12 +20,12 @@ class Immediate;
 class RawObject;
 
 // Abstract class for all instruction pattern classes.
-class Instruction : public ValueObject {
+class InstructionPattern : public ValueObject {
  public:
-  explicit Instruction(uword pc) : start_(pc) {
+  explicit InstructionPattern(uword pc) : start_(pc) {
     ASSERT(pc != 0);
   }
-  virtual ~Instruction() {}
+  virtual ~InstructionPattern() {}
 
   // Call to check if the instruction pattern at 'pc' match the instruction.
   virtual bool IsValid() const {
@@ -48,11 +48,11 @@ class Instruction : public ValueObject {
 
   const uword start_;
 
-  DISALLOW_COPY_AND_ASSIGN(Instruction);
+  DISALLOW_COPY_AND_ASSIGN(InstructionPattern);
 };
 
 
-class CallOrJump : public Instruction {
+class CallOrJumpPattern : public InstructionPattern {
  public:
   virtual int pattern_length_in_bytes() const {
     return kLengthInBytes;
@@ -61,17 +61,17 @@ class CallOrJump : public Instruction {
   void SetTargetAddress(uword new_target) const;
 
  protected:
-  explicit CallOrJump(uword pc) : Instruction(pc) {}
+  explicit CallOrJumpPattern(uword pc) : InstructionPattern(pc) {}
   static const int kLengthInBytes = 5;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(CallOrJump);
+  DISALLOW_COPY_AND_ASSIGN(CallOrJumpPattern);
 };
 
 
-class Call : public CallOrJump {
+class CallPattern : public CallOrJumpPattern {
  public:
-  explicit Call(uword pc) : CallOrJump(pc) {}
+  explicit CallPattern(uword pc) : CallOrJumpPattern(pc) {}
   static int InstructionLength() {
     return kLengthInBytes;
   }
@@ -79,18 +79,18 @@ class Call : public CallOrJump {
  private:
   virtual const int* pattern() const;
 
-  DISALLOW_COPY_AND_ASSIGN(Call);
+  DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
 
-class Jump : public CallOrJump {
+class JumpPattern : public CallOrJumpPattern {
  public:
-  explicit Jump(uword pc) : CallOrJump(pc) {}
+  explicit JumpPattern(uword pc) : CallOrJumpPattern(pc) {}
 
  private:
   virtual const int* pattern() const;
 
-  DISALLOW_COPY_AND_ASSIGN(Jump);
+  DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };
 
 
