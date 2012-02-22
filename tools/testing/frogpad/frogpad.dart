@@ -104,7 +104,7 @@ class HtmlFileSystem implements FileSystem {
    *
    *   <script type=application/inert id="frog_lang_dart">
    *      ... contents of file lang.dart placed here ...
-   *   </script>
+   *   etc.
    */    
   String idOfFilename(String filename) {
     List<String> components = filename.split("/");
