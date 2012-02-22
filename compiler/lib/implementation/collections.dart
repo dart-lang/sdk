@@ -51,4 +51,7 @@ class Collections {
   }
 
   static String collectionToString(Collection c) => c.toString();
+
+  static void _emitObject(Object o, StringBuffer result, List visiting) {
+  }
 }
