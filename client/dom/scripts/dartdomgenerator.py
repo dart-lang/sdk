@@ -162,7 +162,7 @@ def main():
                     default=None,
                     help='Directory to put the generated files')
   parser.add_option('--use-database-cache', dest='use_database_cache',
-                    action='store',
+                    action='store_true',
                     default=False,
                     help='''Use the cached database from the previous run to
                     improve startup performance''')

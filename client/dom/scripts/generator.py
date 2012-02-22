@@ -51,6 +51,26 @@ _idl_to_dart_type_conversions = {
 _dart_to_idl_type_conversions = dict((v,k) for k, v in
                                      _idl_to_dart_type_conversions.iteritems())
 
+_pure_interfaces = set([
+    'ElementTimeControl',
+    'ElementTraversal',
+    'MediaQueryListListener',
+    'NodeSelector',
+    'SVGExternalResourcesRequired',
+    'SVGFilterPrimitiveStandardAttributes',
+    'SVGFitToViewBox',
+    'SVGLangSpace',
+    'SVGLocatable',
+    'SVGStylable',
+    'SVGTests',
+    'SVGTransformable',
+    'SVGURIReference',
+    'SVGViewSpec',
+    'SVGZoomAndPan'])
+
+def IsPureInterface(interface_name):
+  return interface_name in _pure_interfaces
+
 #
 # Identifiers that are used in the IDL than need to be treated specially because
 # *some* JavaScript processors forbid them as properties.
@@ -349,3 +369,172 @@ def TypeName(typeIds, interface):
   # Dynamically type this field for now.
   return 'var'
 
+# ------------------------------------------------------------------------------
+
+class IDLTypeInfo(object):
+  def __init__(self, idl_type, native_type=None, ref_counted=True,
+               has_dart_wrapper=True, conversion_template=None,
+               custom_to_dart=False):
+    self._idl_type = idl_type
+    self._native_type = native_type
+    self._ref_counted = ref_counted
+    self._has_dart_wrapper = has_dart_wrapper
+    self._conversion_template = conversion_template
+    self._custom_to_dart = custom_to_dart
+
+  def idl_type(self):
+    return self._idl_type
+
+  def native_type(self):
+    if self._native_type:
+      return self._native_type
+    return self._idl_type
+
+  def parameter_adapter_info(self):
+    native_type = self.native_type()
+    if self._ref_counted:
+      native_type = 'RefPtr< %s >' % native_type
+    if self._has_dart_wrapper:
+      wrapper_type = 'Dart%s' % self.idl_type()
+      adapter_type = 'ParameterAdapter<%s, %s>' % (native_type, wrapper_type)
+      return (adapter_type, wrapper_type)
+    return ('ParameterAdapter< %s >' % native_type, self._idl_type)
+
+  def parameter_type(self):
+    return '%s*' % self.native_type()
+
+  def webcore_include(self):
+    if self._idl_type == 'SVGNumber' or self._idl_type == 'SVGPoint':
+      return None
+    if self._idl_type.startswith('SVGPathSeg'):
+      return self._idl_type.replace('Abs', '').replace('Rel', '')
+    return self._idl_type
+
+  def receiver(self):
+    return 'receiver->'
+
+  def conversion_include(self):
+    return 'Dart%s' % self._idl_type
+
+  def conversion_cast(self, expression):
+    if self._conversion_template:
+      return self._conversion_template % expression
+    return expression
+
+  def custom_to_dart(self):
+    return self._custom_to_dart
+
+class PrimitiveIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, native_type=None, ref_counted=False,
+               conversion_template=None,
+               webcore_getter_name='getAttribute',
+               webcore_setter_name='setAttribute'):
+    super(PrimitiveIDLTypeInfo, self).__init__(idl_type,
+        native_type=native_type, ref_counted=ref_counted,
+        conversion_template=conversion_template)
+    self._webcore_getter_name = webcore_getter_name
+    self._webcore_setter_name = webcore_setter_name
+
+  def parameter_adapter_info(self):
+    native_type = self.native_type()
+    if self._ref_counted:
+      native_type = 'RefPtr< %s >' % native_type
+    return ('ParameterAdapter< %s >' % native_type, None)
+
+  def parameter_type(self):
+    if self.native_type() == 'String':
+      return 'const String&'
+    return self.native_type()
+
+  def conversion_include(self):
+    return None
+
+  def webcore_getter_name(self):
+    return self._webcore_getter_name
+
+  def webcore_setter_name(self):
+    return self._webcore_setter_name
+
+class SVGTearOffIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, native_type='', ref_counted=True):
+    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type,
+                                                native_type=native_type,
+                                                ref_counted=ref_counted)
+
+  def native_type(self):
+    if self._native_type:
+      return self._native_type
+    tear_off_type = 'SVGPropertyTearOff'
+    if self._idl_type.endswith('List'):
+      tear_off_type = 'SVGListPropertyTearOff'
+    return '%s<%s>' % (tear_off_type, self._idl_type)
+
+  def receiver(self):
+    if self._idl_type.endswith('List'):
+      return 'receiver->'
+    return 'receiver->propertyReference().'
+
+
+_idl_type_registry = {
+     # There is GC3Dboolean which is not a bool, but unsigned char for OpenGL compatibility.
+    'boolean': PrimitiveIDLTypeInfo('boolean', native_type='bool',
+                                    conversion_template='static_cast<bool>(%s)',
+                                    webcore_getter_name='hasAttribute',
+                                    webcore_setter_name='setBooleanAttribute'),
+    # Some IDL's unsigned shorts/shorts are mapped to WebCore C++ enums, so we
+    # use a static_cast<int> here not to provide overloads for all enums.
+    'short': PrimitiveIDLTypeInfo('short', native_type='int', conversion_template='static_cast<int>(%s)'),
+    'unsigned short': PrimitiveIDLTypeInfo('unsigned short', native_type='int', conversion_template='static_cast<int>(%s)'),
+    'int': PrimitiveIDLTypeInfo('int'),
+    'unsigned int': PrimitiveIDLTypeInfo('unsigned int', native_type='unsigned'),
+    'long': PrimitiveIDLTypeInfo('long', native_type='int',
+        webcore_getter_name='getIntegralAttribute',
+        webcore_setter_name='setIntegralAttribute'),
+    'unsigned long': PrimitiveIDLTypeInfo('unsigned long', native_type='unsigned',
+        webcore_getter_name='getUnsignedIntegralAttribute',
+        webcore_setter_name='setUnsignedIntegralAttribute'),
+    'long long': PrimitiveIDLTypeInfo('long long'),
+    'unsigned long long': PrimitiveIDLTypeInfo('unsigned long long'),
+    'double': PrimitiveIDLTypeInfo('double'),
+
+    'Date': PrimitiveIDLTypeInfo('Date',  native_type='double'),
+    'DOMString': PrimitiveIDLTypeInfo('DOMString',  native_type='String'),
+    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp'),
+    'object': PrimitiveIDLTypeInfo('object',  native_type='ScriptValue'),
+    'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', ref_counted=True),
+
+    'DOMException': IDLTypeInfo('DOMCoreException'),
+    'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
+    'Element': IDLTypeInfo('Element', custom_to_dart=True),
+    'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
+    'EventTarget': IDLTypeInfo('EventTarget', has_dart_wrapper=False),
+    'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
+    'MediaQueryListListener': IDLTypeInfo('MediaQueryListListener', has_dart_wrapper=False),
+    'OptionsObject': IDLTypeInfo('OptionsObject', has_dart_wrapper=False),
+    'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
+
+    'SVGAngle': SVGTearOffIDLTypeInfo('SVGAngle'),
+    'SVGLength': SVGTearOffIDLTypeInfo('SVGLength'),
+    'SVGLengthList': SVGTearOffIDLTypeInfo('SVGLengthList', ref_counted=False),
+    'SVGMatrix': SVGTearOffIDLTypeInfo('SVGMatrix'),
+    'SVGNumber': SVGTearOffIDLTypeInfo('SVGNumber', native_type='SVGPropertyTearOff<float>'),
+    'SVGNumberList': SVGTearOffIDLTypeInfo('SVGNumberList', ref_counted=False),
+    'SVGPathSegList': SVGTearOffIDLTypeInfo('SVGPathSegList', native_type='SVGPathSegListPropertyTearOff', ref_counted=False),
+    'SVGPoint': SVGTearOffIDLTypeInfo('SVGPoint', native_type='SVGPropertyTearOff<FloatPoint>'),
+    'SVGPointList': SVGTearOffIDLTypeInfo('SVGPointList', ref_counted=False),
+    'SVGPreserveAspectRatio': SVGTearOffIDLTypeInfo('SVGPreserveAspectRatio'),
+    'SVGRect': SVGTearOffIDLTypeInfo('SVGRect', native_type='SVGPropertyTearOff<FloatRect>'),
+    'SVGStringList': SVGTearOffIDLTypeInfo('SVGStringList', native_type='SVGStaticListPropertyTearOff<SVGStringList>', ref_counted=False),
+    'SVGTransform': SVGTearOffIDLTypeInfo('SVGTransform'),
+    'SVGTransformList': SVGTearOffIDLTypeInfo('SVGTransformList', native_type='SVGTransformListPropertyTearOff', ref_counted=False)
+}
+
+original_idl_types = {
+}
+
+def GetIDLTypeInfo(idl_type):
+  idl_type_name = original_idl_types.get(idl_type, idl_type.id)
+  return GetIDLTypeInfoByName(idl_type_name)
+
+def GetIDLTypeInfoByName(idl_type_name):
+  return _idl_type_registry.get(idl_type_name, IDLTypeInfo(idl_type_name))
