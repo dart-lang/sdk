@@ -6,10 +6,11 @@
 """This module providesfunctionality for systems to generate
 Dart interfaces from the IDL database."""
 
+import os
+import systembase
 from generator import *
-from systembase import *
 
-class InterfacesSystem(System):
+class InterfacesSystem(systembase.System):
 
   def __init__(self, templates, database, emitters, output_dir):
     super(InterfacesSystem, self).__init__(
