@@ -40,7 +40,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
-    InputStream input = file.openInputStream();
+    InputStream input = file.openInputStreamSync();
     List<int> buffer = new List<int>(42);
     int bytesRead = input.readInto(buffer, 0, 12);
     Expect.equals(12, bytesRead);
@@ -71,7 +71,7 @@ class FileTest {
 
     // Test reading all using readInto.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     List<int> buffer1 = new List<int>(42);
     bytesRead = input.readInto(buffer1, 0, 42);
     Expect.equals(42, bytesRead);
@@ -79,7 +79,7 @@ class FileTest {
 
     // Test reading all using readInto and read.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     bytesRead = input.readInto(buffer1, 0, 21);
     Expect.equals(21, bytesRead);
     buffer1 = input.read();
@@ -88,7 +88,7 @@ class FileTest {
 
     // Test reading all using read and readInto.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     buffer1 = input.read(21);
     Expect.equals(21, buffer1.length);
     bytesRead = input.readInto(buffer1, 0, 21);
@@ -97,7 +97,7 @@ class FileTest {
 
     // Test reading all using read.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     buffer1 = input.read();
     Expect.equals(42, buffer1.length);
     Expect.isTrue(input.closed);
@@ -105,7 +105,7 @@ class FileTest {
     // Write the contents of the file just read into another file.
     String outFilename = tempDirectory.path + "/out_read_write_stream";
     file = new File(outFilename);
-    OutputStream output = file.openOutputStream();
+    OutputStream output = file.openOutputStreamSync();
     bool writeDone = output.writeFrom(buffer1, 0, 42);
     Expect.equals(true, writeDone);
     output.close();
@@ -113,7 +113,7 @@ class FileTest {
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(42);
     file = new File(outFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     bytesRead = input.readInto(buffer2, 0, 42);
     Expect.isTrue(input.closed);
     Expect.equals(42, bytesRead);
@@ -299,11 +299,11 @@ class FileTest {
     File file = new File(filename);
     file.createSync();
     List<int> buffer = content.charCodes();
-    OutputStream outStream = file.openOutputStream();
+    OutputStream outStream = file.openOutputStreamSync();
     outStream.write(buffer);
     outStream.close();
     File file2 = new File(filename);
-    OutputStream appendingOutput = file2.openOutputStream(FileMode.APPEND);
+    OutputStream appendingOutput = file2.openOutputStreamSync(FileMode.APPEND);
     appendingOutput.write(buffer);
     appendingOutput.close();
     File file3 = new File(filename);
@@ -667,10 +667,10 @@ class FileTest {
     List<int> buffer = new List<int>(42);
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
-    InputStream input = file.openInputStream();
+    InputStream input = file.openInputStreamSync();
     Expect.isTrue(input.closed);
     Expect.isNull(input.readInto(buffer, 0, 12));
-    OutputStream output = file.openOutputStream();
+    OutputStream output = file.openOutputStreamSync();
     output.close();
     Expect.throws(( ) => output.writeFrom(buffer, 0, 12),
                   (e) => e is FileIOException);

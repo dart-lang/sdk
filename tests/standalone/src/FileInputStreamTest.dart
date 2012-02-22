@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
@@ -14,7 +14,7 @@ void testStringInputStreamSync() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
-  StringInputStream x = new StringInputStream(file.openInputStream());
+  StringInputStream x = new StringInputStream(file.openInputStreamSync());
   x.lineHandler = () {
     // The file input stream is known (for now) to have read the whole
     // file when the data handler is called.
@@ -29,7 +29,7 @@ void testInputStreamAsync() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   var expected = "Hello Dart\nwassup!\n".charCodes();
-  InputStream x = (new File(fileName)).openInputStream();
+  InputStream x = (new File(fileName)).openInputStreamSync();
   var byteCount = 0;
   x.dataHandler = () {
     Expect.equals(expected[byteCount],  x.read(1)[0]);
@@ -46,7 +46,7 @@ void testStringInputStreamAsync(String name, int length) {
   // File contains 10 lines.
   File file = new File(fileName);
   Expect.equals(length, file.openSync().lengthSync());
-  StringInputStream x = new StringInputStream(file.openInputStream());
+  StringInputStream x = new StringInputStream(file.openInputStreamSync());
   int lineCount = 0;
   x.lineHandler = () {
     var line = x.readLine();
@@ -66,7 +66,7 @@ void testChunkedInputStream() {
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains 19 bytes ("Hello Dart\nwassup!")
   File file = new File(fileName);
-  ChunkedInputStream x = new ChunkedInputStream(file.openInputStream());
+  ChunkedInputStream x = new ChunkedInputStream(file.openInputStreamSync());
   x.chunkSize = 9;
   List<int> chunk = x.read();
   Expect.equals(9, chunk.length);
@@ -80,6 +80,33 @@ void testChunkedInputStream() {
 }
 
 
+void testOpenInputStreamAsync() {
+  // Create a port for waiting on the final result of this test.
+  ReceivePort done = new ReceivePort();
+  done.receive((message, replyTo) {
+    done.close();
+  });
+
+  // Test using the asynchronous way of opening an input stream.
+  String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
+  File file = new File(fileName);
+  file.exists();
+  file.existsHandler = (exists) {
+    if (exists) {
+      file.openInputStream();
+    } else {
+      Expect.fail("Test file not found");
+    }
+  };
+  file.inputStreamHandler = (InputStream stream) {
+    done.toSendPort().send("Got an InputStream");
+  };
+  file.errorHandler = (String error) {
+    Expect.fail("Error $error");
+  };
+}
+
+
 main() {
   testStringInputStreamSync();
   testInputStreamAsync();
@@ -89,4 +116,5 @@ main() {
   testStringInputStreamAsync("readline_test1.dat", 111);
   testStringInputStreamAsync("readline_test2.dat", 114);
   testChunkedInputStream();
+  testOpenInputStreamAsync();
 }

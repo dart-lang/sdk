@@ -96,19 +96,7 @@ interface File default _File {
    * can be performed. Opened RandomAccessFiles must be closed using
    * the [close] method.
    *
-   * Files can be opened in three modes:
-   *
-   * FileMode.READ: open the file for reading. If the file does not
-   * exist the [errorHandler] is called.
-   *
-   * FileMode.WRITE: open the file for both reading and writing and
-   * truncate the file to length zero. If the file does not exist the
-   * file is created.
-   *
-   * FileMode.APPEND: same as FileMode.WRITE except that the file is
-   * not truncated and the position is set to the end of the file.
-   *
-   * By default mode is FileMode.READ.
+   * See [open] for information on the [:mode:] argument.
    */
   RandomAccessFile openSync([FileMode mode]);
 
@@ -126,10 +114,22 @@ interface File default _File {
 
   /**
    * Create a new independent input stream for the file. The file
-   * input stream must be closed when no longer used to free up
-   * system resources.
+   * input stream must be closed when no longer used to free up system
+   * resources.  The [inputStreamHandler] is called with the result
+   * when the openInputStream operation completes.
    */
   InputStream openInputStream();
+
+  /**
+   * Synchronously create a new independent input stream for the
+   * file. The file input stream must be closed when no longer used to
+   * free up system resources.
+   *
+   * Even though this call to open the input stream is synchronous the
+   * input stream itself is asynchronous as is the case for all input
+   * streams.
+   */
+  InputStream openInputStreamSync();
 
   /**
    * Creates a new independent output stream for the file. The file
@@ -147,6 +147,19 @@ interface File default _File {
    * By default the mode is FileMode.WRITE.
    */
   OutputStream openOutputStream([FileMode mode]);
+
+  /**
+   * Synchronously creates a new independent output stream for the
+   * file. The file output stream must be closed when no longer used
+   * to free up system resources.
+   *
+   * See [openOutputStream] for information on the [:mode:] argument.
+   *
+   * Even though this call to open the output stream is synchronous
+   * the output stream itself is asynchronous as is the case for all
+   * output streams.
+   */
+  OutputStream openOutputStreamSync([FileMode mode]);
 
   /**
    * Get the name of the file.
@@ -176,6 +189,18 @@ interface File default _File {
    * completes.
    */
   void set openHandler(void handler(RandomAccessFile openedFile));
+
+  /**
+   * Sets the handler that gets called when an [openInputStream]
+   * operation completes.
+   */
+  void set inputStreamHandler(void handler(InputStream stream));
+
+  /**
+   * Sets the handler that gets called when an [openOutputStream]
+   * operation completes.
+   */
+  void set outputStreamHandler(void handler(OutputStream stream));
 
   /**
    * Sets the handler that gets called when a [fullPath] operation
