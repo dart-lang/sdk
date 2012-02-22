@@ -49,4 +49,6 @@ class Collections {
   static bool isEmpty(Iterable<Object> iterable) {
     return !iterable.iterator().hasNext();
   }
+
+  static String collectionToString(Collection c) => c.toString();
 }
