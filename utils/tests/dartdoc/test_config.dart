@@ -13,5 +13,14 @@ class DartdocTestSuite extends StandardTestSuite {
               "utils/tests/dartdoc/src",
               ["utils/tests/dartdoc/dartdoc.status"]);
 
+  List<String> additionalOptions(String filename) {
+    if (configuration['component'].startsWith('frog')) {
+      return ['--js_cmd=node --crankshaft'];
+    } else {
+      return [];
+    }
+  }
+
+
   bool isTestFile(String filename) => filename.endsWith("_tests.dart");
 }
