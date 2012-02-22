@@ -55,6 +55,7 @@ FileInvalidArgumentsTest: Skip # Uses File
 PlatformTest: Skip # Uses Platform
 ChunkedStreamTest: Skip # Uses InputStream
 DartStdIOPipeTest: Skip # Uses dart:io
+FileOutputStreamTest: Skip # Uses dart:io
 
 [ $component == dartc || $component == chromium ]
 *: Skip
