@@ -96,11 +96,12 @@ LibTest/core/int/operator_left_shift_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/remainder_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/remainder_A01_t02: Fail, OK # TODO(floitsch): Review.
-LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
+
+LibTest/core/int/toDouble_A01_t01: Crash # nodes.dart: Failed assertion: line 308 pos 12: 'contains(instruction)' is not true
 
 
 LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
@@ -183,6 +184,8 @@ LibTest/core/Date/add_A01_t01: Fail # CompileTimeConstantEvaluator not implement
 LibTest/core/Date/add_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Date/add_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Date/add_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
+LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
+LibTest/core/Date/Date.fromString_A05_t01: Fail # Expect.fail('Some exception is expected')
 LibTest/core/Date/difference_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Date/difference_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Date/difference_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
@@ -218,7 +221,6 @@ LibTest/core/Expect/setEquals_A03_t01: Fail # Cannot find value
 LibTest/core/Expect/stringEquals_A01_t01: Fail # SsaBuilder.visitBreakStatement
 LibTest/core/Expect/stringEquals_A01_t02: Fail # SsaBuilder.visitBreakStatement
 LibTest/core/Expect/stringEquals_A02_t01: Fail # SsaBuilder.visitBreakStatement
-LibTest/core/Expect/throws_A01_t01: Fail # Bad code generation.
 LibTest/core/Expect/throws_A02_t01: Fail # Bad code generation.
 LibTest/core/FallThroughError/toString_A01_t02: Fail # switch cases are not implemented
 LibTest/core/HashMap/HashMap.from_A02_t01: Fail # SsaBuilder.visitContinueStatement not implemented
@@ -245,6 +247,7 @@ LibTest/core/List/filter_A01_t02: Fail # Cannot find value.
 LibTest/core/List/filter_A02_t01: Fail # Duplicate definition.
 LibTest/core/List/filter_A04_t01: Fail # Cannot find value.
 LibTest/core/List/forEach_A01_t01: Fail # Cannot find value.
+LibTest/core/List/forEach_A02_t01: Fail # TypeError: Object 123 has no method '$call$1'
 LibTest/core/List/forEach_A03_t01: Fail # Cannot find value.
 LibTest/core/List/some_A01_t01: Fail # Duplicate definition.
 LibTest/core/List/some_A01_t02: Fail # Cannot find value.
@@ -318,6 +321,9 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: F
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail # switch cases are not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # switch cases are not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # SsaBuilder.visitContinueStatement not implemented
+LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05.: Fail #  Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
@@ -373,6 +379,7 @@ LibTest/core/Set/some_A01_t01: Fail # Cannot find value
 LibTest/core/Set/some_A01_t02: Fail # Cannot find value
 LibTest/core/Set/some_A01_t03: Fail # Cannot find value
 LibTest/core/Stopwatch/stop_A01_t01: Fail # visitBreakStatement not implemented
+LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
 LibTest/core/double/INFINITY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/NAN_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented

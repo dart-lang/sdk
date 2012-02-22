@@ -147,6 +147,7 @@ WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
 
 # Implementation errors (library or generated code).
 AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
+BadNamedParametersTest: Fail # NullPointerException
 BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
 CallThroughNullGetterTest: Fail # Expect.fail('Wrong exception.  Expected: ObjectNotClosureException got: null')
 ConstEscapeFrogTest: Fail # Expect.equals(expected: <null>, actual: <Instance of 'Bar'>) fails.
@@ -154,11 +155,6 @@ ConstListTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 Constructor2Test: Fail # Expect.equals(expected: <1-2-3-4-5-6-7->, actual: <1-2-3-5-4-6-7->) fails.
 Constructor3Test: Fail # Expect.equals(expected: <1-2-3-4-5-6->, actual: <1-2-4-3-5-6->) fails.
 ExampleConstructorTest: Fail # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 1 3 4 2 5 6 >) fails.
-ExecuteFinally1Test: Fail # Expect.equals(expected: <1>, actual: <1001>) fails.
-ExecuteFinally2Test: Fail # Expect.equals(expected: <1>, actual: <1002>) fails.
-ExecuteFinally4Test: Fail # Expect.equals(expected: <211>, actual: <null>) fails.
-ExecuteFinally5Test: Fail # Expect.equals(expected: <1>, actual: <1002>) fails.
-ExecuteFinally7Test: Fail # Expect.equals(expected: <1171>, actual: <null>) fails.
 ExpectTest: Fail # Expect.identical did not fail
 FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
 GenericDeepTest: Fail # Expect.isTrue(false) fails.
@@ -171,19 +167,14 @@ InstanceFieldInitializerTest: Fail # Expect.equals(expected: <1>, actual: <null>
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 IntrinsifiedMethodsTest: Fail # Expect.isTrue(false) fails.
 IsOperatorTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
 PrivateMemberTest: Fail # uncaught exception in toString
+Private3Test: Fail # Expect.equals(expected: <-1>, actual: <The Ring>) fails.
 PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
 PropertyFieldOverrideTest: Fail # Expect.equals(expected: <3>, actual: <null>) fails.
-Throw1Test: Fail # Expect.equals(expected: <850>, actual: <null>) fails.
-Throw2Test: Fail # Expect.equals(expected: <850>, actual: <null>) fails.
-Throw4Test: Fail # Expect.equals(expected: <1900>, actual: <null>) fails.
-Throw5Test: Fail # Expect.equals(expected: <900>, actual: <null>) fails.
-Throw6Test: Fail # Expect.equals(expected: <1900>, actual: <null>) fails.
-ThrowTest: Fail # Expect.equals(expected: <900>, actual: <null>) fails.
 ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
-TryCatch2Test: Fail # Expect.equals(expected: <3>, actual: <null>) fails.
 TypedMessageTest: Fail # SyntaxError: Unexpected token this
 
 
