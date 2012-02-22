@@ -118,7 +118,12 @@ class IntegerImplementation {
   double toDouble() { return new Double.fromInteger(this); }
 
   int pow(int exponent) {
-    throw "IntegerImplementation.pow not implemented";
+    double res = this.toDouble().pow(exponent);
+    if (res.isInfinite()) {
+      // Use Bigint instead.
+      throw "IntegerImplementation.pow not implemented for large integers.";
+    }
+    return res.toInt();
   }
 
   String toStringAsFixed(int fractionDigits) {
@@ -218,5 +223,9 @@ class Bigint extends IntegerImplementation implements int {
   }
   int shlFromInt(int other) {
     throw const OutOfMemoryException();
+  }
+
+  int pow(int exponent) {
+    throw "Bigint.pow not implemented";
   }
 }
