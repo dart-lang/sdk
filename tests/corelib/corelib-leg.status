@@ -52,11 +52,6 @@ SplayTreeTest: Crash
 StopwatchTest: Fail
 StringBaseVMTest: Fail
 StringBufferTest: Fail
-StringCaseTest: Fail
 StringPatternTest: Fail
-StringReplaceTest: Fail
 StringSplitRegExpTest: Fail
-StringSplitTest: Fail
-StringSubstringTest: Fail
 StringTest: Fail
-UnicodeTest: Fail

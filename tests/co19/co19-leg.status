@@ -70,6 +70,7 @@ LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/sin_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/sqrt_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/tan_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.
 LibTest/core/double/operator_truncating_division_A01_t06: Fail, OK # Conflicts with int semantics.
 LibTest/core/double/toRadixString_A01_t01: Fail, OK # Unimplemented test stub.
 LibTest/core/double/toStringAsExponential_A01_t01: Fail, OK # Unimplemented test stub.
@@ -88,6 +89,7 @@ LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail  # Issue 4.
 
 
 LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
@@ -214,6 +216,25 @@ LibTest/core/List/removeRange_A02_t01: Fail # Fixed length array.
 
 
 LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
+LibTest/core/String/String_class_A01_t01: Fail # String.replaceAll is not implemented.
+LibTest/core/String/String_class_A03_t01: Fail # Implement is-checks.
+
+
+LibTest/core/String/String_class_A02_t01: Fail # Unhandled non-BMP character: U+10000.
+LibTest/core/String/charCodeAt_A01_t01: Fail # Unhandled non-BMP character: U+10000.
+LibTest/core/String/charCodes_A01_t01: Fail # Unhandled non-BMP character: U+10000.
+
+
+LibTest/core/String/contains_A01_t01: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/contains_A01_t02: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/contains_A01_t03: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/replaceAll_A01_t01: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/replaceAll_A02_t01: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/replaceFirst_A01_t01: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/replaceFirst_A02_t01: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/split_A01_t01: Fail # JSSyntaxRegExp is not implemented.
+LibTest/core/String/split_A01_t02: Fail # JSSyntaxRegExp is not implemented.
+
 
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Fail
@@ -295,6 +316,8 @@ LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Argument
 LangGuideTest/08_Expressions/08_17_Function_Invocation_Expression/Named_Arguments/Named_Arguments_A04_t01: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Static-Field_Assignment/Static-Field_Assignment_A03_t02: Fail
 LangGuideTest/08_Expressions/08_2_Assignment_Operator/Variable_Or_Parameter_Assignment/Variable_Or_Parameter_Assignment_A02_t01: Fail
+
+
 Language/05_Variables/05_Variables_A01_t04: Fail
 Language/05_Variables/05_Variables_A01_t05: Fail
 Language/05_Variables/05_Variables_A01_t08: Fail
@@ -624,6 +647,8 @@ Language/13_Types/6_Type_Dynamic_A02_t01: Fail
 Language/13_Types/6_Type_Dynamic_A03_t01: Fail
 Language/13_Types/6_Type_Dynamic_A04_t01: Fail
 Language/13_Types/7_Type_Void_A01_t09: Fail
+
+
 LibTest/core/Date/Date.fromEpoch_A01_t01: Fail
 LibTest/core/Date/Date.fromEpoch_A01_t03: Fail
 LibTest/core/Date/Date.fromEpoch_A03_t01: Fail
@@ -945,61 +970,7 @@ LibTest/core/Set/remove_A01_t05: Fail
 LibTest/core/Set/some_A01_t01: Fail
 LibTest/core/Set/some_A01_t02: Fail
 LibTest/core/Set/some_A01_t03: Fail
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: Fail
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: Fail
-LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail  # Issue 4.
 LibTest/core/Stopwatch/start_A01_t02: Fail
-LibTest/core/String/String.fromCharCodes_A02_t01: Fail
-LibTest/core/String/String_class_A01_t01: Fail
-LibTest/core/String/String_class_A02_t01: Fail
-LibTest/core/String/String_class_A03_t01: Fail
-LibTest/core/String/charCodeAt_A01_t01: Fail
-LibTest/core/String/charCodeAt_A02_t01: Fail
-LibTest/core/String/charCodeAt_A03_t01: Fail
-LibTest/core/String/charCodes_A01_t01: Fail
-LibTest/core/String/compareTo_A01_t01: Fail
-LibTest/core/String/concat_A01_t01: Fail
-LibTest/core/String/concat_A02_t01: Fail
-LibTest/core/String/contains_A01_t01: Fail
-LibTest/core/String/contains_A01_t02: Fail
-LibTest/core/String/contains_A01_t03: Fail
-LibTest/core/String/contains_A02_t01: Fail
-LibTest/core/String/endsWith_A01_t01: Fail
-LibTest/core/String/endsWith_A01_t02: Fail
-LibTest/core/String/endsWith_A01_t03: Fail
-LibTest/core/String/endsWith_A02_t01: Fail
-LibTest/core/String/hashCode_A01_t01: Fail
-LibTest/core/String/indexOf_A01_t01: Fail
-LibTest/core/String/indexOf_A01_t02: Fail
-LibTest/core/String/indexOf_A02_t01: Fail
-LibTest/core/String/indexOf_A03_t01: Fail
-LibTest/core/String/lastIndexOf_A01_t01: Fail
-LibTest/core/String/lastIndexOf_A01_t02: Fail
-LibTest/core/String/lastIndexOf_A02_t01: Fail
-LibTest/core/String/lastIndexOf_A03_t01: Fail
-LibTest/core/String/operator_subscript_A02_t01: Fail
-LibTest/core/String/replaceAll_A01_t01: Fail
-LibTest/core/String/replaceAll_A02_t01: Fail
-LibTest/core/String/replaceFirst_A01_t01: Fail
-LibTest/core/String/replaceFirst_A02_t01: Fail
-LibTest/core/String/splitChars_A01_t01: Fail
-LibTest/core/String/split_A01_t01: Fail
-LibTest/core/String/split_A01_t02: Fail
-LibTest/core/String/split_A02_t01: Fail
-LibTest/core/String/startsWith_A01_t01: Fail
-LibTest/core/String/startsWith_A01_t02: Fail
-LibTest/core/String/startsWith_A01_t03: Fail
-LibTest/core/String/startsWith_A02_t01: Fail
-LibTest/core/String/substring_A01_t01: Fail
-LibTest/core/String/substring_A02_t01: Fail
-LibTest/core/String/toLowerCase_A01_t01: Fail
-LibTest/core/String/toLowerCase_A01_t02: Fail
-LibTest/core/String/toLowerCase_A01_t03: Fail
-LibTest/core/String/toLowerCase_A01_t04: Fail
-LibTest/core/String/toUpperCase_A01_t01: Fail
-LibTest/core/String/toUpperCase_A01_t02: Fail
-LibTest/core/String/toUpperCase_A01_t03: Fail
-LibTest/core/String/toUpperCase_A01_t04: Fail
 LibTest/core/StringBuffer/StringBuffer_A01_t01: Fail
 LibTest/core/StringBuffer/StringBuffer_A01_t02: Fail
 LibTest/core/StringBuffer/addAll_A01_t01: Fail
