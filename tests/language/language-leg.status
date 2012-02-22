@@ -29,7 +29,6 @@ BlackListedTest/09: Fail
 BlackListedTest/10: Fail
 BlackListedTest/11: fail
 BlackListedTest/12: Fail
-BlockScopeTest: Fail
 BreakTest: Fail
 CTConst3Test: Fail
 CTConstTest: Fail
@@ -142,7 +141,6 @@ GenericsTest: Fail
 GetSetSyntaxTest/none: Fail
 GetterDeclarationNegativeTest: Fail
 GettersSettersTest: Fail
-IfTest: Fail
 ImplicitClosureTest: Fail
 ImplicitScopeTest: Fail
 ImpliedInterfaceTest: Fail
@@ -153,7 +151,6 @@ InstanceFieldInitializerTest: Fail
 Instanceof2Test: Fail
 InstanceofTest: Fail
 InstantiateTypeVariableNegativeTest: Pass  # For the wrong reason.
-IntTest: Fail
 InterfaceCycleNegativeTest: Fail
 InterfaceFactory3NegativeTest: Fail
 InterfaceFactoryConstructorNegativeTest: Fail

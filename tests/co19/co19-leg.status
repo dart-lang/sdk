@@ -44,6 +44,37 @@ LibTest/core/Queue/iterator_A01_t02: Crash
 LibTest/core/Queue/iterator_next_A01_t01: Crash
 
 
+LibTest/core/double/toRadixString_A01_t01: Fail # Unimplemented test stub.
+LibTest/core/double/toStringAsExponential_A01_t01: Fail # Unimplemented test stub.
+LibTest/core/double/toStringAsPrecision_A01_t01: Fail # Unimplemented test stub.
+
+
+LibTest/core/double/abs_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/ceil_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/ceil_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/ceil_A01_t07: Fail # VM handling of double literals.
+LibTest/core/double/compareTo_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/floor_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/isNegative_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/operator_GE_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/operator_GT_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/operator_LE_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/operator_LT_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/remainder_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/remainder_A01_t07: Fail # VM handling of double literals.
+LibTest/core/double/round_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/toInt_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/toInt_A01_t02: Fail # VM handling of double literals.
+LibTest/core/double/toInt_A01_t05: Fail # VM handling of double literals.
+LibTest/core/double/toStringAsFixed_A01_t04: Fail # VM handling of double literals.
+LibTest/core/double/toStringAsFixed_A01_t07: Fail # VM handling of double literals.
+LibTest/core/double/truncate_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/operator_LT_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/operator_LE_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/operator_GT_A01_t01: Fail # VM handling of double literals.
+LibTest/core/double/operator_GE_A01_t01: Fail # VM handling of double literals.
+
+
 LibTest/core/List/List.from_A01_t01: Fail # Cannot find value.
 LibTest/core/List/every_A01_t01: Fail # Duplicate definition.
 LibTest/core/List/every_A01_t02: Fail # Cannot find value.
@@ -69,6 +100,56 @@ LibTest/core/List/addLast_A01_t03: Fail # Adding interceptor crashes Leg.
 LibTest/core/List/addLast_A02_t01: Fail # Adding interceptor crashes Leg.
 LibTest/core/List/forEach_A01_t02: Fail # Adding interceptor crashes Leg.
 LibTest/core/List/forEach_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/compareTo_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_GE_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_GE_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_GT_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_GT_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_LE_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_LE_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_LT_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_LT_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_addition_A01_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_addition_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_addition_A01_t07: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_addition_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A01_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A01_t05: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A01_t07: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A01_t08: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A01_t11: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_division_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_multiplication_A01_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_multiplication_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_multiplication_A01_t06: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_multiplication_A01_t08: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_multiplication_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_remainder_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_remainder_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_remainder_A01_t04: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_remainder_A01_t05: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_remainder_A01_t06: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_remainder_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_subtraction_A01_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_subtraction_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_subtraction_A01_t07: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_subtraction_A01_t08: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_subtraction_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_truncating_division_A01_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_truncating_division_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_truncating_division_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_truncating_division_A01_t05: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_truncating_division_A01_t08: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/operator_truncating_division_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/remainder_A01_t02: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/remainder_A01_t03: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/remainder_A01_t04: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/remainder_A01_t05: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/remainder_A01_t06: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/remainder_A02_t01: Fail # Adding interceptor crashes Leg.
+LibTest/core/double/toStringAsFixed_A02_t01: Fail # Adding interceptor crashes Leg.
 
 
 LibTest/core/List/List_A01_t02: Fail # Fixed length array.
@@ -147,12 +228,10 @@ LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t21: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t22: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t23: Fail
 LangGuideTest/04_Operators/04_1_Overview/04_1_Overview_A01_t24: Fail
-LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A04_t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t01: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t03: Fail
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A02_t01: Fail
 LangGuideTest/05_Equality/05_2_Value_Equality/05_2_Value_Equality_A01_t01: Fail
-LangGuideTest/05_Equality/05_2_Value_Equality/05_2_Value_Equality_A01_t04: Fail
 LangGuideTest/07_Overriding/07_Overriding_A02_t01: Fail
 LangGuideTest/07_Overriding/07_Overriding_A02_t02: Fail
 LangGuideTest/07_Overriding/07_Overriding_A03_t03: Fail
@@ -567,11 +646,7 @@ LibTest/core/Duration/inHours_A01_t01: Fail
 LibTest/core/Duration/inMilliseconds_A01_t01: Fail
 LibTest/core/Duration/inMinutes_A01_t01: Fail
 LibTest/core/Duration/inSeconds_A01_t01: Fail
-LibTest/core/Expect/approxEquals_A01_t01: Fail
-LibTest/core/Expect/approxEquals_A01_t02: Fail
-LibTest/core/Expect/approxEquals_A01_t03: Fail
 LibTest/core/Expect/approxEquals_A01_t04: Fail
-LibTest/core/Expect/approxEquals_A02_t01: Fail
 LibTest/core/Expect/approxEquals_A03_t01: Fail
 LibTest/core/Expect/approxEquals_A04_t01: Fail
 LibTest/core/Expect/equals_A02_t01: Fail
@@ -582,7 +657,6 @@ LibTest/core/Expect/isFalse_A02_t01: Fail
 LibTest/core/Expect/isNotNull_A02_t01: Fail
 LibTest/core/Expect/isNull_A02_t01: Fail
 LibTest/core/Expect/isTrue_A02_t01: Fail
-LibTest/core/Expect/listEquals_A01_t02: Fail
 LibTest/core/Expect/listEquals_A02_t01: Fail
 LibTest/core/Expect/listEquals_A03_t01: Fail
 LibTest/core/Expect/notEquals_A02_t01: Fail
@@ -665,53 +739,27 @@ LibTest/core/Match/pattern_A01_t01: Fail
 LibTest/core/Match/start_A01_t01: Fail
 LibTest/core/Match/str_A01_t01: Fail
 LibTest/core/Math/acos_A01_t01: Fail
-LibTest/core/Math/acos_A01_t02: Fail
 LibTest/core/Math/acos_A01_t03: Fail
-LibTest/core/Math/acos_A01_t04: Fail
 LibTest/core/Math/asin_A01_t01: Fail
-LibTest/core/Math/asin_A01_t02: Fail
 LibTest/core/Math/asin_A01_t03: Fail
-LibTest/core/Math/asin_A01_t04: Fail
 LibTest/core/Math/atan2_A01_t01: Fail
 LibTest/core/Math/atan2_A01_t02: Fail
 LibTest/core/Math/atan2_A01_t03: Fail
 LibTest/core/Math/atan2_A01_t04: Fail
 LibTest/core/Math/atan_A01_t01: Fail
 LibTest/core/Math/atan_A01_t02: Fail
-LibTest/core/Math/atan_A01_t03: Fail
 LibTest/core/Math/cos_A01_t01: Fail
-LibTest/core/Math/cos_A01_t02: Fail
-LibTest/core/Math/cos_A01_t03: Fail
 LibTest/core/Math/exp_A01_t01: Fail
-LibTest/core/Math/exp_A01_t02: Fail
-LibTest/core/Math/exp_A01_t03: Fail
 LibTest/core/Math/log_A01_t01: Fail
-LibTest/core/Math/log_A01_t02: Fail
-LibTest/core/Math/log_A01_t03: Fail
-LibTest/core/Math/log_A01_t04: Fail
-LibTest/core/Math/max_A01_t01: Fail
-LibTest/core/Math/max_A01_t02: Fail
 LibTest/core/Math/max_A01_t03: Fail
-LibTest/core/Math/min_A01_t01: Fail
-LibTest/core/Math/min_A01_t02: Fail
 LibTest/core/Math/min_A01_t03: Fail
 LibTest/core/Math/parseDouble_A01_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 LibTest/core/Math/parseInt_A01_t01: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/pow_A01_t01: Fail
-LibTest/core/Math/pow_A01_t02: Fail
-LibTest/core/Math/pow_A01_t03: Fail
-LibTest/core/Math/pow_A01_t04: Fail
-LibTest/core/Math/pow_A02_t01: Fail
-LibTest/core/Math/pow_A03_t01: Fail
-LibTest/core/Math/pow_A04_t01: Fail
-LibTest/core/Math/pow_A05_t01: Fail
-LibTest/core/Math/pow_A06_t01: Fail
-LibTest/core/Math/pow_A07_t01: Fail
 LibTest/core/Math/pow_A08_t01: Fail
 LibTest/core/Math/pow_A09_t01: Fail
-LibTest/core/Math/pow_A10_t01: Fail
 LibTest/core/Math/pow_A11_t01: Fail
 LibTest/core/Math/pow_A12_t01: Fail
 LibTest/core/Math/pow_A13_t01: Fail
@@ -719,20 +767,11 @@ LibTest/core/Math/pow_A14_t01: Fail
 LibTest/core/Math/pow_A15_t01: Fail
 LibTest/core/Math/pow_A16_t01: Fail
 LibTest/core/Math/pow_A17_t01: Fail
-LibTest/core/Math/pow_A18_t01: Fail
-LibTest/core/Math/pow_A19_t01: Fail
 LibTest/core/Math/random_A01_t01: Fail
 LibTest/core/Math/sin_A01_t01: Fail
-LibTest/core/Math/sin_A01_t02: Fail
-LibTest/core/Math/sin_A01_t03: Fail
-LibTest/core/Math/sin_A01_t04: Fail
 LibTest/core/Math/sqrt_A01_t01: Fail
-LibTest/core/Math/sqrt_A01_t02: Fail
 LibTest/core/Math/sqrt_A01_t03: Fail
-LibTest/core/Math/sqrt_A01_t04: Fail
 LibTest/core/Math/tan_A01_t01: Fail
-LibTest/core/Math/tan_A01_t02: Fail
-LibTest/core/Math/tan_A01_t03: Fail
 LibTest/core/NoSuchMethodException/toString_A01_t01: Fail
 LibTest/core/Object/dynamic_A01_t01: Fail
 LibTest/core/Object/operator_equality_A01_t01: Fail
@@ -826,8 +865,8 @@ LibTest/core/RegExp/multiLine_A01_t01: Fail
 LibTest/core/RegExp/pattern_A01_t01: Fail
 LibTest/core/RegExp/stringMatch_A01_t01: Fail
 LibTest/core/RegExp/stringMatch_A02_t01: Fail
-LibTest/core/SendPort/call_A01_t01: Fail
 LibTest/core/SendPort/call/SendPort_call_A01_t01: Fail
+LibTest/core/SendPort/call_A01_t01: Fail
 LibTest/core/SendPort/hashCode_A01_t01: Fail
 LibTest/core/SendPort/operator_equality_A01_t01: Fail
 LibTest/core/SendPort/send_A01_t01: Fail
@@ -968,169 +1007,19 @@ LibTest/core/Strings/join_A01_t01: Fail
 LibTest/core/Strings/join_A02_t01: Fail
 LibTest/core/Strings/join_A03_t01: Fail
 LibTest/core/Strings/join_A04_t01: Fail
-LibTest/core/double/INFINITY_A01_t01: Fail
-LibTest/core/double/NAN_A01_t01: Fail
-LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail
-LibTest/core/double/abs_A01_t01: Fail
-LibTest/core/double/abs_A01_t02: Fail
-LibTest/core/double/abs_A01_t03: Fail
-LibTest/core/double/abs_A01_t04: Fail
-LibTest/core/double/abs_A01_t05: Fail
-LibTest/core/double/ceil_A01_t01: Fail
-LibTest/core/double/ceil_A01_t02: Fail
-LibTest/core/double/ceil_A01_t03: Fail
-LibTest/core/double/ceil_A01_t04: Fail
-LibTest/core/double/ceil_A01_t05: Fail
-LibTest/core/double/ceil_A01_t06: Fail
-LibTest/core/double/ceil_A01_t07: Fail
-LibTest/core/double/ceil_A01_t08: Fail
-LibTest/core/double/compareTo_A01_t02: Fail
-LibTest/core/double/compareTo_A01_t03: Fail
-LibTest/core/double/double_class_A01_t01: Fail
-LibTest/core/double/floor_A01_t01: Fail
-LibTest/core/double/floor_A01_t02: Fail
-LibTest/core/double/floor_A01_t03: Fail
-LibTest/core/double/floor_A01_t04: Fail
-LibTest/core/double/floor_A01_t05: Fail
-LibTest/core/double/floor_A01_t06: Fail
-LibTest/core/double/floor_A01_t07: Fail
-LibTest/core/double/isInfinite_A01_t01: Fail
-LibTest/core/double/isInfinite_A01_t02: Fail
-LibTest/core/double/isInfinite_A01_t03: Fail
-LibTest/core/double/isNaN_A01_t02: Fail
-LibTest/core/double/isNegative_A01_t01: Fail
-LibTest/core/double/operator_GE_A01_t01: Fail
-LibTest/core/double/operator_GE_A01_t02: Fail
-LibTest/core/double/operator_GE_A01_t03: Fail
-LibTest/core/double/operator_GE_A02_t01: Fail
-LibTest/core/double/operator_GT_A01_t01: Fail
-LibTest/core/double/operator_GT_A01_t02: Fail
-LibTest/core/double/operator_GT_A01_t03: Fail
-LibTest/core/double/operator_GT_A02_t01: Fail
-LibTest/core/double/operator_LE_A01_t01: Fail
-LibTest/core/double/operator_LE_A01_t02: Fail
-LibTest/core/double/operator_LE_A01_t03: Fail
-LibTest/core/double/operator_LE_A02_t01: Fail
-LibTest/core/double/operator_LT_A01_t01: Fail
-LibTest/core/double/operator_LT_A01_t02: Fail
-LibTest/core/double/operator_LT_A01_t03: Fail
-LibTest/core/double/operator_LT_A02_t01: Fail
-LibTest/core/double/operator_addition_A01_t01: Fail
-LibTest/core/double/operator_addition_A01_t02: Fail
-LibTest/core/double/operator_addition_A01_t03: Fail
-LibTest/core/double/operator_addition_A01_t04: Fail
-LibTest/core/double/operator_addition_A01_t07: Fail
-LibTest/core/double/operator_addition_A02_t01: Fail
-LibTest/core/double/operator_division_A01_t01: Fail
-LibTest/core/double/operator_division_A01_t02: Fail
-LibTest/core/double/operator_division_A01_t03: Fail
-LibTest/core/double/operator_division_A01_t04: Fail
-LibTest/core/double/operator_division_A01_t05: Fail
-LibTest/core/double/operator_division_A01_t07: Fail
-LibTest/core/double/operator_division_A01_t08: Fail
-LibTest/core/double/operator_division_A01_t09: Fail
-LibTest/core/double/operator_division_A01_t11: Fail
-LibTest/core/double/operator_division_A02_t01: Fail
-LibTest/core/double/operator_multiplication_A01_t01: Fail
-LibTest/core/double/operator_multiplication_A01_t02: Fail
-LibTest/core/double/operator_multiplication_A01_t03: Fail
-LibTest/core/double/operator_multiplication_A01_t04: Fail
-LibTest/core/double/operator_multiplication_A01_t06: Fail
-LibTest/core/double/operator_multiplication_A01_t08: Fail
-LibTest/core/double/operator_multiplication_A02_t01: Fail
-LibTest/core/double/operator_negate_A01_t01: Fail
-LibTest/core/double/operator_negate_A01_t02: Fail
-LibTest/core/double/operator_negate_A01_t03: Fail
-LibTest/core/double/operator_negate_A01_t04: Fail
-LibTest/core/double/operator_remainder_A01_t02: Fail
-LibTest/core/double/operator_remainder_A01_t03: Fail
-LibTest/core/double/operator_remainder_A01_t04: Fail
-LibTest/core/double/operator_remainder_A01_t05: Fail
-LibTest/core/double/operator_remainder_A01_t06: Fail
-LibTest/core/double/operator_remainder_A02_t01: Fail
-LibTest/core/double/operator_subtraction_A01_t01: Fail
-LibTest/core/double/operator_subtraction_A01_t02: Fail
-LibTest/core/double/operator_subtraction_A01_t03: Fail
-LibTest/core/double/operator_subtraction_A01_t04: Fail
-LibTest/core/double/operator_subtraction_A01_t07: Fail
-LibTest/core/double/operator_subtraction_A01_t08: Fail
-LibTest/core/double/operator_subtraction_A02_t01: Fail
-LibTest/core/double/operator_truncating_division_A01_t01: Fail
-LibTest/core/double/operator_truncating_division_A01_t02: Fail
-LibTest/core/double/operator_truncating_division_A01_t03: Fail
-LibTest/core/double/operator_truncating_division_A01_t04: Fail
-LibTest/core/double/operator_truncating_division_A01_t05: Fail
-LibTest/core/double/operator_truncating_division_A01_t08: Fail
-LibTest/core/double/operator_truncating_division_A02_t01: Fail
-LibTest/core/double/remainder_A01_t01: Fail
-LibTest/core/double/remainder_A01_t02: Fail
-LibTest/core/double/remainder_A01_t03: Fail
-LibTest/core/double/remainder_A01_t04: Fail
-LibTest/core/double/remainder_A01_t05: Fail
-LibTest/core/double/remainder_A01_t06: Fail
-LibTest/core/double/remainder_A01_t07: Fail
-LibTest/core/double/remainder_A02_t01: Fail
-LibTest/core/double/round_A01_t01: Fail
-LibTest/core/double/round_A01_t02: Fail
-LibTest/core/double/round_A01_t03: Fail
-LibTest/core/double/round_A01_t04: Fail
-LibTest/core/double/round_A01_t05: Fail
-LibTest/core/double/round_A01_t06: Fail
-LibTest/core/double/toDouble_A01_t01: Fail
-LibTest/core/double/toDouble_A01_t02: Fail
-LibTest/core/double/toDouble_A01_t03: Fail
-LibTest/core/double/toInt_A01_t01: Fail
-LibTest/core/double/toInt_A01_t02: Fail
-LibTest/core/double/toInt_A01_t03: Fail
-LibTest/core/double/toInt_A01_t04: Fail
-LibTest/core/double/toInt_A01_t05: Fail
-LibTest/core/double/toInt_A01_t06: Fail
-LibTest/core/double/toRadixString_A01_t01: Fail
-LibTest/core/double/toStringAsExponential_A01_t01: Fail
-LibTest/core/double/toStringAsFixed_A01_t01: Fail
-LibTest/core/double/toStringAsFixed_A01_t02: Fail
-LibTest/core/double/toStringAsFixed_A01_t03: Fail
-LibTest/core/double/toStringAsFixed_A01_t04: Fail
-LibTest/core/double/toStringAsFixed_A01_t07: Fail
-LibTest/core/double/toStringAsFixed_A02_t01: Fail
-LibTest/core/double/toStringAsPrecision_A01_t01: Fail
-LibTest/core/double/truncate_A01_t01: Fail
-LibTest/core/double/truncate_A01_t02: Fail
-LibTest/core/double/truncate_A01_t03: Fail
-LibTest/core/double/truncate_A01_t04: Fail
-LibTest/core/double/truncate_A01_t05: Fail
-LibTest/core/double/truncate_A01_t06: Fail
-LibTest/core/int/abs_A01_t01: Fail
-LibTest/core/int/ceil_A01_t01: Fail
 LibTest/core/int/compareTo_A01_t01: Fail
-LibTest/core/int/compareTo_A01_t02: Fail
-LibTest/core/int/floor_A01_t01: Fail
 LibTest/core/int/hashCode_A01_t01: Fail
 LibTest/core/int/isEven_A01_t01: Fail
-LibTest/core/int/isInfinite_A01_t01: Fail
 LibTest/core/int/isOdd_A01_t01: Fail
-LibTest/core/int/operator_GE_A01_t01: Fail
-LibTest/core/int/operator_GT_A01_t01: Fail
-LibTest/core/int/operator_LE_A01_t01: Fail
-LibTest/core/int/operator_LT_A01_t01: Fail
 LibTest/core/int/operator_NOT_A01_t01: Fail
-LibTest/core/int/operator_addition_A01_t01: Fail
-LibTest/core/int/operator_division_A01_t01: Fail
-LibTest/core/int/operator_division_A01_t02: Fail
 LibTest/core/int/operator_left_shift_A01_t01: Fail
-LibTest/core/int/operator_negate_A01_t01: Fail
-LibTest/core/int/operator_remainder_A01_t02: Fail
-LibTest/core/int/operator_subtraction_A01_t01: Fail
 LibTest/core/int/operator_truncating_division_A01_t01: Fail
 LibTest/core/int/operator_truncating_division_A01_t02: Fail
 LibTest/core/int/remainder_A01_t01: Fail
-LibTest/core/int/remainder_A01_t02: Fail
 LibTest/core/int/remainder_A01_t03: Fail
-LibTest/core/int/round_A01_t01: Fail
 LibTest/core/int/toDouble_A01_t01: Fail, Crash
 LibTest/core/int/toInt_A01_t01: Fail
 LibTest/core/int/toRadixString_A01_t01: Fail
 LibTest/core/int/toStringAsExponential_A01_t01: Fail
 LibTest/core/int/toStringAsFixed_A01_t01: Fail
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail
-LibTest/core/int/truncate_A01_t01: Fail

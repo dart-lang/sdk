@@ -32,7 +32,6 @@ MapFromTest: Fail
 MapTest: Fail
 MapsTest: Fail
 MathTest: Fail
-NanInfinityTest: Fail
 PortTest: Fail
 PromiseTest: Fail
 QueueTest: Fail
