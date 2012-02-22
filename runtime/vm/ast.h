@@ -864,7 +864,7 @@ class IncrOpIndexedNode : public AstNode {
     }
   }
 
-  virtual void SetIcDataArrayAtId(intptr_t node_id, const ICData& value) {
+  virtual void SetIcDataAtId(intptr_t node_id, const ICData& value) {
     ASSERT(HasId(node_id));
     if (node_id == load_id()) {
       set_ic_data(value);
