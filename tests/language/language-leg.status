@@ -253,9 +253,6 @@ PseudoKWIllegalTest/14: Fail
 PseudoKWIllegalTest/15: Fail
 PseudoKWIllegalTest/16: Fail
 PseudoKWTest: Fail
-RegEx2Test: Fail
-RegExp2Test: Fail
-RegExp3Test: Fail
 RegExpTest: Fail
 RethrowTest: Fail
 SavannahTest: Fail
@@ -314,7 +311,6 @@ TryCatch3Test: Fail
 TryCatchSyntaxTest/08: Fail
 TypeChecksInFactoryMethodTest: Fail # Issue 925
 TypeDartcTest: Fail
-TypeVMTest: Fail
 TypeVariableBoundsTest/00: Fail
 TypeVariableBoundsTest/07: Fail
 TypeVariableBoundsTest/08: Fail
@@ -327,6 +323,9 @@ TypeVariableScopeTest/04: Fail
 TypeVariableScopeTest/05: Fail
 TypedMessageTest: Fail
 WhileTest: Fail
+
+
+TypeVMTest: Fail, OK # VM specific test.
 
 
 [ $component == leg && $mode == release]

@@ -9,7 +9,6 @@ prefix corelib
 
 
 [ $component == leg ]
-BigIntegerVMTest: Fail
 CollectionFromTest: Fail
 CollectionToStringTest: Fail # continue not implemented
 ConstListRemoveRangeTest: Fail
@@ -21,8 +20,6 @@ ExpressionTest: Fail
 ForInTest: Fail
 FutureTest: Fail
 FuturesTest: Fail
-GrowableObjectArray2VMTest: Fail
-GrowableObjectArrayVMTest: Fail
 HashMapTest: Fail
 LinkedHashMapTest: Fail
 ListGetRangeTest: Fail
@@ -36,21 +33,18 @@ PortTest: Fail
 PromiseTest: Fail
 QueueTest: Fail
 RegExp1Test: Fail
-RegExp4Test: Fail
-RegExp5Test: Fail
 RegExpAllMatchesTest: Fail
-RegExpFirstMatchTest: Fail
-RegExpGroupTest: Fail
-RegExpGroupsTest: Fail
-RegExpHasMatchTest: Fail
-RegExpStartEndTest: Fail
-RegExpStringMatchTest: Fail
 SetIteratorTest: Fail
 SetTest: Fail
 SortTest: Fail
 SplayTreeTest: Fail
 StopwatchTest: Fail
-StringBaseVMTest: Fail
 StringPatternTest: Fail
 StringSplitRegExpTest: Fail
 StringTest: Fail
+
+
+BigIntegerVMTest: Fail, OK # VM specific test.
+GrowableObjectArray2VMTest: Fail, OK # VM specific test.
+GrowableObjectArrayVMTest: Fail, OK # VM specific test.
+StringBaseVMTest: Fail, OK # VM specific test.

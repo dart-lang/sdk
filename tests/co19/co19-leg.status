@@ -89,6 +89,7 @@ LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 
 
 LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
@@ -332,83 +333,6 @@ LibTest/core/String/charCodeAt_A01_t01: Fail # Unhandled non-BMP character: U+10
 LibTest/core/String/charCodes_A01_t01: Fail # Unhandled non-BMP character: U+10000.
 
 
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/end_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/groupCount_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/group_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/group_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/groups_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/groups_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/operator_subscript_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/operator_subscript_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/pattern_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/Match/start_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A05_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A05_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A03_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A04_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A05_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A09_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t03: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t04: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t03: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A04_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A05_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A06_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/RegExp_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/RegExp_A01_t02: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/RegExp_A01_t03: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/RegExp_A01_t04: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/allMatches_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/allMatches_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/firstMatch_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/firstMatch_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/firstMatch_A03_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/hasMatch_A01_t01: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/RegExp/hasMatch_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/ignoreCase_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/multiLine_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/stringMatch_A01_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/RegExp/stringMatch_A02_t01: Fail # JSSyntaxRegExp is not implemented
-LibTest/core/String/contains_A01_t01: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/contains_A01_t02: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/contains_A01_t03: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/replaceAll_A01_t01: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/replaceAll_A02_t01: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/replaceFirst_A01_t01: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/replaceFirst_A02_t01: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/split_A01_t01: Fail # JSSyntaxRegExp is not implemented.
-LibTest/core/String/split_A01_t02: Fail # JSSyntaxRegExp is not implemented.
 
 
 # TODO(floitsch): Please review these.
@@ -463,6 +387,7 @@ Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t02: F
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t03: Fail # TypeError: Cannot call method 'foo$2' of undefined
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t04: Fail # TypeError: Cannot call method 'foo$3' of undefined
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail # TypeError: Cannot call method 'get$variable' of undefined
+Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t01: Fail # TypeError: Cannot call method 'm$2' of undefined
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t02: Fail # TypeError: Cannot call method 'get$gett0r' of undefined
 Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A03_t03: Fail # TypeError: Cannot call method 'set$sett0r' of undefined
 Language/13_Types/6_Type_Dynamic_A03_t01: Fail # TypeError: Cannot call method 'wakeUp$1' of undefined
@@ -566,6 +491,46 @@ LibTest/core/List/forEach_A02_t01: Fail # ObjectNotClosureException expected.
 LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
 
 
+LibTest/core/Match/end_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/Match/groupCount_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/Match/group_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/Match/groups_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/Match/operator_subscript_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A05_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A04_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A05_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A06_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A02_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/allMatches_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/allMatches_A02_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/RegExp/firstMatch_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/contains_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/contains_A01_t02: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/contains_A01_t03: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/replaceAll_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/replaceAll_A02_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/replaceFirst_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/replaceFirst_A02_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/split_A01_t01: Fail # RegExp implemented wrong or bad test.
+LibTest/core/String/split_A01_t02: Fail # RegExp implemented wrong or bad test.
 
 
 #
