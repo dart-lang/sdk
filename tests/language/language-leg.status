@@ -9,320 +9,330 @@ prefix language
 
 
 [ $component == leg ]
-AbstractStaticNegativeTest: Fail
-AbstractSyntaxTest/01: Fail
-AbstractSyntaxTest/02: Fail
-Arithmetic2Test: Fail
-ArithmeticTest: Fail
-AssertionTest: Fail
-AssignTopMethodNegativeTest: Fail
-BitOperationsTest: Fail
-BlackListedTest/01: Fail
-BlackListedTest/02: Fail
-BlackListedTest/03: Fail
-BlackListedTest/04: Fail
-BlackListedTest/05: Fail
-BlackListedTest/06: Fail
-BlackListedTest/07: Fail
-BlackListedTest/08: Fail
-BlackListedTest/09: Fail
-BlackListedTest/10: Fail
-BlackListedTest/11: fail
-BlackListedTest/12: Fail
-BreakTest: Fail
-CTConst3Test: Fail
-CTConstTest: Fail
-CallOperatorTest: Fail
-CallThroughGetterTest: Fail
-CallThroughNullGetterTest: Fail
-CanonicalConstTest: Fail
-CharEscapeTest: Fail
-ClassCycleNegativeTest: Fail
-ClassExtendsNegativeTest: Fail
-ClassOverrideNegativeTest: Fail
-ClassTest: Fail
-ClosureBreak1Test: Fail
-ClosureBreak2Test: Fail
-ClosureBreakTest: Fail
-ClosureTest: Fail
-ConstConstructorSyntaxTest/01: Fail
-ConstConstructorSyntaxTest/02: Fail
-ConstConstructorSyntaxTest/03: Fail
-ConstConstructorSyntaxTest/04: Fail
-ConstConstructorSyntaxTest/05: Fail
-ConstCounterNegativeTest: Crash # Assertion failed: nestedClosureData !== null
-ConstEscapeFrogTest: Fail
-ConstFactoryNegativeTest: Fail
-ConstFieldNegativeTest: Fail
-ConstInit4NegativeTest: Fail
-ConstInitNegativeTest: Fail
-ConstInitTest: Fail
-ConstListTest: Fail
-ConstObjectsAreImmutableTest: Fail
-ConstSyntaxTest/01: Fail
-ConstSyntaxTest/02: Fail
-ConstSyntaxTest/03: Fail
-Constructor2NegativeTest: Fail
-Constructor2Test: Fail
-Constructor3Test: Fail
-Constructor5Test: Fail
 Constructor6Test: Crash
-ConstructorDuplicateInitializersTest/02: Fail
+FunctionTest: Crash
+
+
+# Compilation errors.
+Arithmetic2Test: Fail # map not implemented
+ArithmeticTest: Fail # Internal Error: Cannot find value
+BreakTest: Fail # visitBreakStatement not implemented
+CTConst3Test: Fail # CompileTimeConstantEvaluator not implemented
+CTConstTest: Fail # map not implemented
+CallOperatorTest: Fail # Unexpected token 'call'
+CallThroughGetterTest: Fail # Internal Error: Cannot find value
+CanonicalConstTest: Fail # map not implemented
+CharEscapeTest: Fail # Unhandled non-BMP character: U+10000
+ClassTest: Fail # Internal Error: Cannot find value
+ClosureBreak1Test: Fail # SsaBuilder.visitLabelledStatement not implemented
+ClosureBreak2Test: Fail # SsaBuilder.visitLabelledStatement not implemented
+ClosureBreakTest: Fail # SsaBuilder.visitLabelledStatement not implemented
+ClosureTest: Fail # Internal Error: Cannot find value
+ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
+ConstObjectsAreImmutableTest: Fail # map not implemented
+Constructor5Test: Fail # no matching constructor found
+ConstructorRedirectTest: Fail # staticFun(x, y) is only available in instance methods
+Context2Test: Fail # switch cases are not implemented
+ContextTest: Fail # Internal Error: Cannot find value
+ContinueTest: Fail # switch cases are not implemented
+DefaultFactoryLibraryTest: Fail # lib is not a type
+DefaultInitTest: Fail # CompileTimeConstantHandler with fields not implemented
+DeoptNoFeedbackTest: Fail # Internal Error: Cannot find value
+DoWhileTest: Fail # SsaBuilder for loop with aborting body not implemented
+DynamicTest: Fail # cannot resolve type F1
+EmptyBlockCaseTest: Fail # switch cases are not implemented
+ExecuteFinally3Test: Fail # SsaBuilder.visitLabelledStatement not implemented
+ExecuteFinally6Test: Fail # SsaBuilder.visitLabelledStatement not implemented
+ExecuteFinally8Test: Fail # visitLabelledStatement not implemented
+ExecuteFinally9Test: Fail # visitLabelledStatement not implemented
+Factory4Test: Fail # named constructors with type arguments are not implemented
+FannkuchTest: Fail # visitBreakStatement not implemented
+FinalSyntaxTest/none: Fail # CompileTimeConstantEvaluator not implemented
+ForTest: Fail # SsaBuilder for loop without condition not implemented
+FunctionLiterals2Test: Fail # Internal Error: Cannot find value
+FunctionLiteralsTest: Fail # duplicate definition of _(int x)=> x
+FunctionSyntaxTest: Fail # Internal Error: Cannot find value
+FunctionTypeAlias2Test: Fail # cannot resolve type f1
+FunctionTypeAlias3Test: Fail # cannot resolve type F
+FunctionTypeAlias4Test: Fail # cannot resolve type F
+FunctionTypeAliasTest: Fail # cannot resolve type Fun
+FunctionTypeParameter2Test: Fail # Internal Error: expected expected optional parameters
+FunctionTypeParameterTest: Fail # Internal Error: expected expected optional parameters
+GenericInstanceofTest: Fail # cannot resolve type T
+GenericSyntaxTest: Fail # duplicate definition of A<B, C, D, E, F> g(){return h;}
+GenericTest: Fail # cannot resolve type T
+GenericsTest: Fail # duplicate definition of Map<int, int> _(int a){Expect.equals(2, a); return null;}
+GetSetSyntaxTest/none: Fail # Unexpected token ';'
+GettersSettersTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+ImplicitClosureTest: Fail # Internal Error: Cannot find value
+ImplicitClosureTest: Fail # Internal Error: Cannot find value
+ImplicitScopeTest: Fail # duplicate definition of a="bar"
+IsObjectTest: Fail # Internal Error: Cannot find value
+Issue1363Test: Fail # lib is not a type
+Issue4515170Test: Fail # cannot resolve VAL
+LabelTest: Fail # switch cases are not implemented
+Library5Test: Fail # library prefixes not handled
+LibraryPrefixesTest: Fail # other is not a type
+LibrarySameNameUsedTest: Fail # lib2 is not a type
+ListTest: Fail # named constructors with type arguments are not implemented
+LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
+ManyGenericInstanceofTest: Fail # cannot resolve type T
+MapLiteral2Test: Fail # expected a constant string
+MapLiteral3Test: Fail # map not implemented
+MapLiteral4Test: Fail # map not implemented
+MapLiteralTest: Fail # Unexpected token ','
+MapTest: Fail # Internal Error: Cannot find value
+MethodBindingTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+MethodNameTest: Fail # Unexpected token '('
+MethodOverrideTest: Fail # cannot resolve type GetKeysFunctionType
+NamedArgumentInConstCreationTest: Fail # CompileTimeConstantEvaluator not implemented
+NamedParameters2Test: Fail # Unimplemented non-matching static call
+NamedParameters3Test: Fail # Unimplemented non-matching static call
+NamedParameters4Test: Fail # Unimplemented non-matching static call
+NamedParametersTypeTest: Fail # Internal Error: Cannot find value
+NamingTest: Fail # Internal Error: Cannot find value
+NonConstConstructorWithoutBodyTest: Fail # SsaBuilder.buildFactory redirect not implemented
+NonParameterizedFactory2Test: Fail # named constructors with type arguments are not implemented
+NumbersTest: Fail # cannot resolve type Smi
+ObjectDynamicMethodTest: Fail # map not implemented
+OptimizationTest: Fail # SsaBuilder.visitBreakStatement not implemented
+OptimizedSetterTest: Fail # Internal Error: Cannot find value
+OrderedMapsTest: Fail # map not implemented
+Param2Test: Fail # Internal Error: Cannot find value
+ParameterInitializerTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+Prefix101Test: Fail # duplicate definition
+Prefix10Test: Fail # lib11 is not a type
+Prefix11Test: Fail # lib11 is not a type
+Prefix12Test: Fail # named constructors with type arguments are not implemented
+Prefix14Test: Fail # prefixes not implemented
+Prefix15Test: Fail # lib12 is not a type
+Prefix17Test: Fail # lib12 is not a type
+Prefix21Test: Fail # Internal Error: Element.computeType.
+Prefix22Test: Fail # library prefixes not handled
+PseudoKWTest: Fail # Unexpected token '('
+RegExpTest: Fail # named constructors with type arguments are not implemented
+RethrowTest: Fail # SsaBuilder: throw without expression not implemented
+SavannahTest: Fail # SsaBuilder.visitContinueStatement not implemented
+StatementTest: Fail # switch cases are not implemented
+StaticFieldTest: Fail # cannot resolve setValues
+StaticFinalFieldTest: Fail # map not implemented
+StringConcatTest: Fail # CompileTimeConstantEvaluator not implemented
+StringInterpolate2Test: Fail # map not implemented
+StringInterpolateNPETest: Fail # SsaBuilder.visitBreakStatement not implemented
+SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
+SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+SuperFieldTest: Fail # no method named city in class B
+SuperFirstConstructorTest: Fail # SsaBuilder.buildFactory redirect not implemented
+SuperImplicitClosureTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+SuperOperatorTest: Fail # no method named + in class A
+SuperSetterTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
+SuperTest: Fail # cannot find tokens to produce error message for i++.
+Switch6Test: Fail # switch cases are not implemented
+SwitchFallthruTest: Fail # switch cases are not implemented
+SwitchLabelTest: Fail # switch cases are not implemented
+SwitchScopeTest: Fail # switch cases are not implemented
+SwitchTest: Fail # switch cases are not implemented
+SyntaxTest/none: Fail # non-empty instruction stack
+Throw3Test: Fail # SsaBuilder: throw without expression not implemented
+TopLevelFuncTest: Fail # cannot find tokens to produce error message for ()=> k++.
+TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
+ToplevelCollision2Test/none: Fail # duplicate definition
+TryCatch3Test: Fail # Internal Error: Cannot find value
+TypeChecksInFactoryMethodTest: Fail # named constructors with type arguments are not implemented
+TypeDartcTest: Fail # non-empty instruction stack
+TypedMessageTest: Fail # SsaBuilder.buildFactory redirect not implemented
+WhileTest: Fail # SsaBuilder for loop with aborting body not implemented
+
+
+# Implementation errors (library or generated code).
+AssertionTest: Fail # Expect.equals(expected: <0>, actual: <null>) fails.
+BitOperationsTest: Fail # Expect.equals(expected: <18446744073709552000>, actual: <1>) fails.
+CallThroughNullGetterTest: Fail # Expect.fail('Wrong exception.  Expected: ObjectNotClosureException got: null')
+ConstEscapeFrogTest: Fail # Expect.equals(expected: <null>, actual: <Instance of 'Bar'>) fails.
+ConstListTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+Constructor2Test: Fail # Expect.equals(expected: <1-2-3-4-5-6-7->, actual: <1-2-3-5-4-6-7->) fails.
+Constructor3Test: Fail # Expect.equals(expected: <1-2-3-4-5-6->, actual: <1-2-4-3-5-6->) fails.
+ExampleConstructorTest: Fail # Expect.equals(expected: <0 1 2 3 4 5 6 >, actual: <0 1 3 4 2 5 6 >) fails.
+ExecuteFinally1Test: Fail # Expect.equals(expected: <1>, actual: <1001>) fails.
+ExecuteFinally2Test: Fail # Expect.equals(expected: <1>, actual: <1002>) fails.
+ExecuteFinally4Test: Fail # Expect.equals(expected: <211>, actual: <null>) fails.
+ExecuteFinally5Test: Fail # Expect.equals(expected: <1>, actual: <1002>) fails.
+ExecuteFinally7Test: Fail # Expect.equals(expected: <1171>, actual: <null>) fails.
+ExpectTest: Fail # Expect.identical did not fail
+FactoryImplementationTest: Fail # Expect.equals(expected: <1>, actual: <0>) fails.
+GenericDeepTest: Fail # Expect.isTrue(false) fails.
+GenericInheritanceTest: Fail # Expect.isTrue(false) fails.
+GenericParameterizedExtendsTest: Fail # Expect.isTrue(false) fails.
+ImpliedInterfaceTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+InstFieldInitializerTest: Fail # Expect.equals(expected: <>, actual: <null>) fails.
+InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actual: <5>) fails.
+InstanceFieldInitializerTest: Fail # Expect.equals(expected: <1>, actual: <null>) fails.
+Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+IntrinsifiedMethodsTest: Fail # Expect.isTrue(false) fails.
+IsOperatorTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
+ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
+PrivateMemberTest: Fail # uncaught exception in toString
+PrivateTest: Fail # Expect.equals(expected: <99>, actual: <499>) fails.
+PropertyFieldOverrideTest: Fail # Expect.equals(expected: <3>, actual: <null>) fails.
+Throw1Test: Fail # Expect.equals(expected: <850>, actual: <null>) fails.
+Throw2Test: Fail # Expect.equals(expected: <850>, actual: <null>) fails.
+Throw4Test: Fail # Expect.equals(expected: <1900>, actual: <null>) fails.
+Throw5Test: Fail # Expect.equals(expected: <900>, actual: <null>) fails.
+Throw6Test: Fail # Expect.equals(expected: <1900>, actual: <null>) fails.
+ThrowTest: Fail # Expect.equals(expected: <900>, actual: <null>) fails.
+ToStringAsFixedTest: Fail # Expect.equals(expected: <0.0000006>, actual: <0.0000010>) fails.
+TryCatch2Test: Fail # Expect.equals(expected: <3>, actual: <null>) fails.
+
+
+# Mapping of JS errors to Dart exceptions.
+Factory3Test: Fail # TypeError: Cannot call method 'prepend$1' of undefined
+MethodInvocationTest: Fail # TypeError: Cannot call method 'foo$0' of undefined
+NamedParametersPassingFalsyTest: Fail # TypeError: Object Instance of 'BoundClosure' has no method '$call$13'
+NullToStringTest: Fail # TypeError: Cannot call method 'get$toString' of undefined
+StackOverflowTest: Fail # RangeError: Maximum call stack size exceeded
+StackTraceTest: Fail # ReferenceError: stacktrace is not defined
+StringTest: Fail # TypeError: Object Hello has no method 'operator$indexSet$2'
+
+
+# Bad code.
+InstanceofTest: Fail # SyntaxError: Unexpected identifier
+NumberSyntaxTest: Fail # SyntaxError: Unexpected identifier
+
+
+#
+# The following tests are all semantic tests that we can rely on dartc
+# catching for now.
+#
+AbstractStaticNegativeTest: Fail, OK # Negative language test.
+AbstractSyntaxTest/01: Fail, OK # Negative language test.
+AbstractSyntaxTest/02: Fail, OK # Negative language test.
+AssignTopMethodNegativeTest: Fail, OK # Negative language test.
+BlackListedTest/01: Fail, OK # Negative language test.
+BlackListedTest/02: Fail, OK # Negative language test.
+BlackListedTest/03: Fail, OK # Negative language test.
+BlackListedTest/04: Fail, OK # Negative language test.
+BlackListedTest/05: Fail, OK # Negative language test.
+BlackListedTest/06: Fail, OK # Negative language test.
+BlackListedTest/07: Fail, OK # Negative language test.
+BlackListedTest/08: Fail, OK # Negative language test.
+BlackListedTest/09: Fail, OK # Negative language test.
+BlackListedTest/10: Fail, OK # Negative language test.
+BlackListedTest/11: Fail, OK # Negative language test.
+BlackListedTest/12: Fail, OK # Negative language test.
+ClassCycleNegativeTest: Fail, OK # Negative language test.
+ClassExtendsNegativeTest: Fail, OK # Negative language test.
+ClassOverrideNegativeTest: Fail, OK # Negative language test.
+ConstConstructorSyntaxTest/01: Fail, OK # Negative language test.
+ConstConstructorSyntaxTest/02: Fail, OK # Negative language test.
+ConstConstructorSyntaxTest/03: Fail, OK # Negative language test.
+ConstConstructorSyntaxTest/04: Fail, OK # Negative language test.
+ConstConstructorSyntaxTest/05: Fail, OK # Negative language test.
+ConstCounterNegativeTest: Crash # Assertion failed: nestedClosureData !== null
+ConstFactoryNegativeTest: Fail, OK # Negative language test.
+ConstFieldNegativeTest: Fail, OK # Negative language test.
+ConstInit4NegativeTest: Fail, OK # Negative language test.
+ConstInitNegativeTest: Fail, OK # Negative language test.
+ConstSyntaxTest/01: Fail, OK # Negative language test.
+ConstSyntaxTest/02: Fail, OK # Negative language test.
+ConstSyntaxTest/03: Fail, OK # Negative language test.
+Constructor2NegativeTest: Fail, OK # Negative language test.
+ConstructorDuplicateInitializersTest/02: Fail, OK # Negative language test.
 ConstructorNegativeTest: Pass # For the wrong reason.
-ConstructorRedirectTest: Fail
-ConstructorReturnNegativeTest: Fail
-ConstructorReturnWithArrowNegativeTest: Fail
-ConstructorReturnWithInitAndArrowNegativeTest: Fail
-ConstructorReturnWithInitNegativeTest: Fail
-Context2Test: Fail
-ContextTest: Fail
-ContinueTest: Fail
-DefaultFactoryLibraryTest: Fail
-DefaultInitTest: Fail
-DeoptNoFeedbackTest: Fail
-DoWhileTest: Fail
-DuplicateConstructorTest/01: Fail
-DuplicateImplementsTest: Skip
-DynamicTest: Fail
-EmptyBlockCaseTest: Fail
-EmptyBodyMemberNegativeTest: Fail
-ExampleConstructorTest: Fail
-ExecuteFinally1Test: Fail
-ExecuteFinally2Test: Fail
-ExecuteFinally3Test: Fail
-ExecuteFinally4Test: Fail
-ExecuteFinally5Test: Fail
-ExecuteFinally6Test: Fail
-ExecuteFinally7Test: Fail
-ExecuteFinally8Test: Fail
-ExecuteFinally9Test: Fail
-ExpectTest: Fail
-ExceptionTest: Fail
-Factory2NegativeTest: Fail
-Factory3Test: Fail
-Factory4Test: Fail
-FactoryImplementationTest: Fail
-FannkuchTest: Fail
-FauxverrideTest/03: Fail
-FauxverrideTest/05: Fail
-Field1NegativeTest: Fail
-Field2NegativeTest: Fail
-Field4NegativeTest: Fail
-Field5NegativeTest: Fail
-Field6NegativeTest: Fail
-Field6aNegativeTest: Fail
-Field7NegativeTest: Fail
-Field7aNegativeTest: Fail
-FinalParamNegativeTest: Fail
-FinalSyntaxTest/none: Fail
-FinalVarNegativeTest: Fail
-ForTest: Fail
-FunctionLiterals2Test: Fail
-FunctionLiteralsTest: Fail
-FunctionSyntaxTest: Fail
-FunctionTest: Crash # Assertion failed: nestedClosureData !== null.
-FunctionTest: Fail
-FunctionTypeAlias2Test: Fail
-FunctionTypeAlias3Test: Fail
-FunctionTypeAlias4Test: Fail
-FunctionTypeAliasNegativeTest: Fail
-FunctionTypeAliasTest: Fail
-FunctionTypeParameter2Test: Fail
-FunctionTypeParameterTest: Fail
-GenericDeepTest: Fail
-GenericInheritanceTest: Fail
-GenericInstanceofTest: Fail
-GenericParameterizedExtendsTest: Fail
-GenericSyntaxTest: Fail
-GenericTest: Fail
-GenericsTest: Fail
-GetSetSyntaxTest/none: Fail
-GetterDeclarationNegativeTest: Fail
-GettersSettersTest: Fail
-ImplicitClosureTest: Fail
-ImplicitScopeTest: Fail
-ImpliedInterfaceTest: Fail
-InstFieldInitializer1NegativeTest: Fail
-InstFieldInitializerTest: Fail
-InstanceCompoundAssignmentOperatorTest: Fail
-InstanceFieldInitializerTest: Fail
-Instanceof2Test: Fail
-InstanceofTest: Fail
+ConstructorReturnNegativeTest: Fail, OK # Negative language test.
+ConstructorReturnWithArrowNegativeTest: Fail, OK # Negative language test.
+ConstructorReturnWithInitAndArrowNegativeTest: Fail, OK # Negative language test.
+ConstructorReturnWithInitNegativeTest: Fail, OK # Negative language test.
+DuplicateConstructorTest/01: Fail, OK # Negative language test.
+DuplicateImplementsTest/01: Fail, OK # Negative language test.
+DuplicateImplementsTest/02: Fail, OK # Negative language test.
+DuplicateImplementsTest/03: Fail, OK # Negative language test.
+DuplicateImplementsTest/04: Fail, OK # Negative language test.
+EmptyBodyMemberNegativeTest: Fail, OK # Negative language test.
+Factory2NegativeTest: Fail, OK # Negative language test.
+FauxverrideTest/03: Fail, OK # Negative language test.
+FauxverrideTest/05: Fail, OK # Negative language test.
+Field1NegativeTest: Fail, OK # Negative language test.
+Field2NegativeTest: Fail, OK # Negative language test.
+Field4NegativeTest: Fail, OK # Negative language test.
+Field5NegativeTest: Fail, OK # Negative language test.
+Field6NegativeTest: Fail, OK # Negative language test.
+Field6aNegativeTest: Fail, OK # Negative language test.
+Field7NegativeTest: Fail, OK # Negative language test.
+Field7aNegativeTest: Fail, OK # Negative language test.
+FinalParamNegativeTest: Fail, OK # Negative language test.
+FinalVarNegativeTest: Fail, OK # Negative language test.
+FunctionTypeAliasNegativeTest: Fail, OK # Negative language test.
+GetterDeclarationNegativeTest: Fail, OK # Negative language test.
+InstFieldInitializer1NegativeTest: Fail, OK # Negative language test.
 InstantiateTypeVariableNegativeTest: Pass  # For the wrong reason.
-InterfaceCycleNegativeTest: Fail
-InterfaceFactory3NegativeTest: Fail
-InterfaceFactoryConstructorNegativeTest: Fail
-InterfaceStaticMethodNegativeTest: Fail
-IntrinsifiedMethodsTest: Fail
-IsObjectTest: Fail
-IsOperatorTest: Fail
-Issue1363Test: Fail
-Issue4515170Test: Fail
-LabelTest: Fail
-Library5NegativeTest: Fail
-Library5Test: Fail
-Library6NegativeTest: Fail
-LibraryPrefixesTest: Fail
-LibrarySameNameUsedTest: Fail
-ListLiteral1NegativeTest: Fail
-ListLiteral2NegativeTest: Fail
-ListLiteral2Test: Fail
-ListLiteral3Test: Fail
-ListLiteral4Test: Fail
-ListTest: Fail
-LocalFunctionTest: Fail
-ManyGenericInstanceofTest: Fail
-MapLiteral2Test: Fail
-MapLiteral3Test: Fail
-MapLiteral4Test: Fail
-MapLiteralTest: Fail
-MapTest: Fail
-MethodBindingTest: Fail
-MethodInvocationTest: Fail
-MethodNameTest: Fail
-MethodOverrideTest: Fail
-NamedArgumentInConstCreationTest: Fail
-NamedParameters2Test: Fail
-NamedParameters3Test: Fail
-NamedParameters4Test: Fail
-NamedParametersPassingFalsyTest: Fail
-NamedParametersTypeTest: Fail
-NamingTest: Fail
-NativeClassInheritance1FrogTest: Fail
-NativeClassInheritance2FrogTest: Fail
-NativeClassInheritance3FrogTest: Fail
-NativeClassIsCheck1FrogTest: Fail
-NativeClassIsCheck2FrogTest: Fail
-NativeLibrarySameNameUsedFrogTest: Fail
-NativeNamedConstructors1FrogTest: Fail
-NativeNamedConstructors2FrogTest: Fail
-NativePropertyFrogTest: Fail
-NewExpressionTypeArgsFrogTest/02: Fail
-NonConstSuperNegativeTest: Fail
-NonParameterizedFactory2Test: Fail
-NullToStringTest: Fail
-NumberIdentifierNegativeTest: Fail
-NumberSyntaxTest: Fail
-NumbersTest: Fail
-ObjectDynamicMethodTest: Fail
-Operator1NegativeTest: Fail
-OptimizationTest: Fail
-OptimizedSetterTest: Fail
-OrderedMapsTest: Fail
-OverrideFieldMethod1NegativeTest: Fail
-OverrideFieldMethod2NegativeTest: Fail
-OverrideFieldMethod3NegativeTest: Fail
-OverrideFieldMethod4NegativeTest: Fail
-OverrideFieldMethod5NegativeTest: Fail
-OverrideFieldMethod6NegativeTest: Fail
-OverrideFieldTest/01: Fail
-OverrideFieldTest/04: Fail
-OverrideMethodWithFieldTest/01: Fail
-Param2Test: Fail
-ParameterInitializerTest: Fail
-Prefix101Test: Fail
-Prefix10Test: Fail
-Prefix11Test: Fail
-Prefix12Test: Fail
-Prefix14Test: Fail
-Prefix15Test: Fail
-Prefix16NegativeTest: Fail
-Prefix17Test: Fail
-Prefix18NegativeTest: Fail
-Prefix20NegativeTest: Fail
-Prefix21Test: Fail
-Prefix22Test: Fail
-Prefix23NegativeTest: Fail
-PrivateMember3NegativeTest: Fail
-PrivateMemberTest: Fail
-PrivateTest: Fail
-PropertyFieldOverrideTest: Fail
-PseudoKWIllegalTest/01: Fail
-PseudoKWIllegalTest/03: Fail
-PseudoKWIllegalTest/04: Fail
-PseudoKWIllegalTest/05: Fail
-PseudoKWIllegalTest/06: Fail
-PseudoKWIllegalTest/07: Fail
-PseudoKWIllegalTest/08: Fail
-PseudoKWIllegalTest/09: Fail
-PseudoKWIllegalTest/10: Fail
-PseudoKWIllegalTest/11: Fail
-PseudoKWIllegalTest/12: Fail
-PseudoKWIllegalTest/13: Fail
-PseudoKWIllegalTest/14: Fail
-PseudoKWIllegalTest/15: Fail
-PseudoKWIllegalTest/16: Fail
-PseudoKWTest: Fail
-RegExpTest: Fail
-RethrowTest: Fail
-SavannahTest: Fail
-ScopeNegativeTest: Fail
-Script1NegativeTest: Fail
-ScriptNegativeTest: Fail
-SetterDeclaration2NegativeTest: Fail
-SetterDeclarationNegativeTest: Fail
-StackOverflowTest: Fail
-StackTraceTest: Fail
-StatementTest: Fail
-StaticFieldTest: Fail
-StaticFinalField2NegativeTest: Fail
-StaticFinalFieldNegativeTest: Fail
-StaticFinalFieldTest: Fail
-StaticTopLevelTest/00: Fail
-StaticTopLevelTest/01: Fail
-StaticTopLevelTest/02: Fail
-StaticTopLevelTest/03: Fail
-StaticTopLevelTest/04: Fail
-StaticTopLevelTest/05: Fail
-StringConcatTest: Fail
-StringInterpolate2Test: Fail
-StringInterpolateNPETest: Fail
-StringInterpolateTest: Fail
-StringInterpolation7NegativeTest: Fail
-StringTest: Fail
-SuperAllNamedConstructorTest: Fail
-SuperFieldAccessTest: Fail
-SuperFieldTest: Fail
-SuperImplicitClosureTest: Fail
-SuperOperatorTest: Fail
-SuperSetterTest: Fail
-SuperTest: Fail
-Switch6Test: Fail
-SwitchFallthruTest: Fail
-SwitchLabelTest: Fail
-SwitchScopeTest: Fail
-SwitchTest: Fail
-SyntaxTest/none: Fail
-Throw1Test: Fail
-Throw2Test: Fail
-Throw3Test: Fail
-Throw4Test: Fail
-Throw5Test: Fail
-Throw6Test: Fail
-Throw7NegativeTest: Fail
-ThrowTest: Fail
-ToStringAsFixedTest: Fail
-TopLevelFuncTest: Fail
-TopLevelPrefixedDeclarationTest: Fail
-TopLevelVarTest: Fail
-ToplevelCollision2Test/none: Fail
-TryCatch2Test: Fail
-TryCatch3Test: Fail
-TryCatchSyntaxTest/08: Fail
-TypeChecksInFactoryMethodTest: Fail # Issue 925
-TypeDartcTest: Fail
-TypeVariableBoundsTest/00: Fail
-TypeVariableBoundsTest/07: Fail
-TypeVariableBoundsTest/08: Fail
-TypeVariableIdentifierExpressionNegativeTest: Fail
-TypeVariableScopeTest/00: Fail
-TypeVariableScopeTest/01: Fail
-TypeVariableScopeTest/02: Fail
-TypeVariableScopeTest/03: Fail
-TypeVariableScopeTest/04: Fail
-TypeVariableScopeTest/05: Fail
-TypedMessageTest: Fail
-WhileTest: Fail
+InterfaceCycleNegativeTest: Fail, OK # Negative language test.
+InterfaceFactory3NegativeTest: Fail, OK # Negative language test.
+InterfaceFactoryConstructorNegativeTest: Fail, OK # Negative language test.
+InterfaceStaticMethodNegativeTest: Fail, OK # Negative language test.
+Library5NegativeTest: Fail, OK # Negative language test.
+Library6NegativeTest: Fail, OK # Negative language test.
+ListLiteral1NegativeTest: Fail, OK # Negative language test.
+ListLiteral2NegativeTest: Fail, OK # Negative language test.
+NewExpressionTypeArgsFrogTest/02: Fail, OK # Negative language test.
+NonConstSuperNegativeTest: Fail, OK # Negative language test.
+NumberIdentifierNegativeTest: Fail, OK # Negative language test.
+Operator1NegativeTest: Fail, OK # Negative language test.
+OverrideFieldMethod1NegativeTest: Fail, OK # Negative language test.
+OverrideFieldMethod2NegativeTest: Fail, OK # Negative language test.
+OverrideFieldMethod3NegativeTest: Fail, OK # Negative language test.
+OverrideFieldMethod4NegativeTest: Fail, OK # Negative language test.
+OverrideFieldMethod5NegativeTest: Fail, OK # Negative language test.
+OverrideFieldMethod6NegativeTest: Fail, OK # Negative language test.
+OverrideFieldTest/01: Fail, OK # Negative language test.
+OverrideFieldTest/04: Fail, OK # Negative language test.
+OverrideMethodWithFieldTest/01: Fail, OK # Negative language test.
+Prefix16NegativeTest: Fail, OK # Negative language test.
+Prefix18NegativeTest: Fail, OK # Negative language test.
+Prefix20NegativeTest: Fail, OK # Negative language test.
+Prefix23NegativeTest: Fail, OK # Negative language test.
+PrivateMember3NegativeTest: Fail, OK # Negative language test.
+PseudoKWIllegalTest/01: Fail, OK # Negative language test.
+PseudoKWIllegalTest/03: Fail, OK # Negative language test.
+PseudoKWIllegalTest/04: Fail, OK # Negative language test.
+PseudoKWIllegalTest/05: Fail, OK # Negative language test.
+PseudoKWIllegalTest/06: Fail, OK # Negative language test.
+PseudoKWIllegalTest/07: Fail, OK # Negative language test.
+PseudoKWIllegalTest/08: Fail, OK # Negative language test.
+PseudoKWIllegalTest/09: Fail, OK # Negative language test.
+PseudoKWIllegalTest/10: Fail, OK # Negative language test.
+PseudoKWIllegalTest/11: Fail, OK # Negative language test.
+PseudoKWIllegalTest/12: Fail, OK # Negative language test.
+PseudoKWIllegalTest/13: Fail, OK # Negative language test.
+PseudoKWIllegalTest/14: Fail, OK # Negative language test.
+PseudoKWIllegalTest/15: Fail, OK # Negative language test.
+PseudoKWIllegalTest/16: Fail, OK # Negative language test.
+ScopeNegativeTest: Fail, OK # Negative language test.
+Script1NegativeTest: Fail, OK # Negative language test.
+ScriptNegativeTest: Fail, OK # Negative language test.
+SetterDeclaration2NegativeTest: Fail, OK # Negative language test.
+SetterDeclarationNegativeTest: Fail, OK # Negative language test.
+StaticFinalField2NegativeTest: Fail, OK # Negative language test.
+StaticFinalFieldNegativeTest: Fail, OK # Negative language test.
+StaticTopLevelTest/00: Fail, OK # Negative language test.
+StaticTopLevelTest/01: Fail, OK # Negative language test.
+StaticTopLevelTest/02: Fail, OK # Negative language test.
+StaticTopLevelTest/03: Fail, OK # Negative language test.
+StaticTopLevelTest/04: Fail, OK # Negative language test.
+StaticTopLevelTest/05: Fail, OK # Negative language test.
+StringInterpolation7NegativeTest: Fail, OK # Negative language test.
+Throw7NegativeTest: Fail, OK # Negative language test.
+TryCatchSyntaxTest/08: Fail, OK # Negative language test.
+TypeVariableBoundsTest/00: Fail, OK # Negative language test.
+TypeVariableBoundsTest/07: Fail, OK # Negative language test.
+TypeVariableBoundsTest/08: Fail, OK # Negative language test.
+TypeVariableIdentifierExpressionNegativeTest: Fail, OK # Negative language test.
+TypeVariableScopeTest/00: Fail, OK # Negative language test.
+TypeVariableScopeTest/01: Fail, OK # Negative language test.
+TypeVariableScopeTest/02: Fail, OK # Negative language test.
+TypeVariableScopeTest/03: Fail, OK # Negative language test.
+TypeVariableScopeTest/04: Fail, OK # Negative language test.
+TypeVariableScopeTest/05: Fail, OK # Negative language test.
 
 
 TypeVMTest: Fail, OK # VM specific test.
