@@ -141,6 +141,10 @@ class _ByteArrayBase {
     return this[length - 1];
   }
 
+  String toString() {
+    return Collections.collectionToString(this);
+  }
+
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (length < 0) {
       throw new IllegalArgumentException("negative length $length");

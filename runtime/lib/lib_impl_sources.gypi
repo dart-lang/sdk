@@ -10,7 +10,6 @@
     'array.dart',
     'arrays.dart',
     'bool.dart',
-    'collections.dart',
     'date.cc',
     'date.dart',
     'double.cc',

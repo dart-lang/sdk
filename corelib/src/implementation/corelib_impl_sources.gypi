@@ -4,6 +4,7 @@
 
 {
   'sources': [
+    'collections.dart',
     'dual_pivot_quicksort.dart',
     'duration_implementation.dart',
     'exceptions.dart',
