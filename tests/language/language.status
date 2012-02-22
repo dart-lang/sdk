@@ -19,6 +19,7 @@ prefix language
 
 
 [ $component == vm || $component == dartium ]
+ResourceTest: Fail # Issue 732
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
@@ -60,12 +61,6 @@ CyclicTypeVariableTest/03: Fail
 CyclicTypeVariableTest/04: Fail
 CyclicTypeVariableTest/05: Fail
 
-# DartC or Frog specific tests that should not be run by the VM
-*DartcTest: Skip
-*DartcNegativeTest: Skip
-*FrogTest: Skip
-*FrogNegativeTest: Skip
-
 # Issue 1034
 ConstructorDuplicateInitializersTest/01: Fail
 ConstructorDuplicateInitializersTest/02: Fail
@@ -89,6 +84,12 @@ GetSetSyntaxTest/15: Fail # Issue 1569
 
 CompileTimeConstant3Test: Fail # Issue 1780
 CompileTimeConstant6Test: Fail # Issue 1794
+
+# DartC or Frog specific tests that should not be run by the VM
+*DartcTest: Skip
+*DartcNegativeTest: Skip
+*FrogTest: Skip
+*FrogNegativeTest: Skip
 
 [ ($component == vm || $component == dartium) && $unchecked ]
 
@@ -137,7 +138,7 @@ StaticField2RunNegativeTest: Fail  # issue 1662
 Switch3NegativeTest: Fail # issue 1663
 
 
-# Problems traiaged before static analysis-only change
+# Problems triaged before static analysis-only change
 
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 CallOperatorTest: Pass # Issue 1355
