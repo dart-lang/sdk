@@ -194,6 +194,10 @@ class Expect {
         _fail('$defaultMessage\nDiff:\n[  ]...\n[ $snippet ]...');
         return;
       }
+      // stop scanning if we've reached the end of the left-to-right match
+      if (eLen - right <= left || aLen - right <= left) {
+        break;
+      }
       if (expected[eLen - right - 1] != actual[aLen - right - 1]) {
         break;
       }
