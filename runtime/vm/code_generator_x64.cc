@@ -24,7 +24,7 @@ namespace dart {
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
-DEFINE_FLAG(int, optimization_invocation_threshold, -1,
+DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
     "number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_invocation_count);
@@ -283,6 +283,7 @@ void CodeGenerator::GeneratePreEntryCode() {
   // - function is marked as non-optimizable.
   // - type checks are enabled.
   const bool may_optimize =
+      false &&   // TODO(srdjan): Remove once the optimizer is enabled on x64.
       !FLAG_report_invocation_count &&
       (FLAG_optimization_invocation_threshold >= 0) &&
       !Isolate::Current()->debugger()->IsActive() &&
