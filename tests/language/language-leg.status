@@ -29,7 +29,6 @@ ClosureBreak2Test: Fail # SsaBuilder.visitLabelledStatement not implemented
 ClosureBreakTest: Fail # SsaBuilder.visitLabelledStatement not implemented
 ClosureTest: Fail # Internal Error: Cannot find value
 ConstInitTest: Fail # CompileTimeConstantHandler with arguments not implemented
-ConstNamedTest: Fail # CompileTimeConstantEvaluator not implemented
 ConstObjectsAreImmutableTest: Fail # map not implemented
 Constructor5Test: Fail # no matching constructor found
 ConstructorRedirectTest: Fail # staticFun(x, y) is only available in instance methods
@@ -116,10 +115,8 @@ SavannahTest: Fail # SsaBuilder.visitContinueStatement not implemented
 StatementTest: Fail # switch cases are not implemented
 StaticFieldTest: Fail # cannot resolve setValues
 StaticFinalFieldTest: Fail # map not implemented
-StringConcatTest: Fail # CompileTimeConstantEvaluator not implemented
 StringInterpolate2Test: Fail # map not implemented
 StringInterpolateNPETest: Fail # TypeError: Cannot call method 'get$name' of undefined
-StringInterpolateTest: Fail # CompileTimeConstantEvaluator not implemented
 SuperAllNamedConstructorTest: Fail # Internal Error: Cannot find value
 SuperFieldAccessTest: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 SuperFieldTest: Fail # no method named city in class B
@@ -136,7 +133,6 @@ SyntaxTest/none: Fail # non-empty instruction stack
 Throw3Test: Fail # SsaBuilder: throw without expression not implemented
 TopLevelFuncTest: Fail # cannot find tokens to produce error message for ()=> k++.
 TopLevelPrefixedDeclarationTest: Fail # library prefixes not handled
-TopLevelVarTest: Fail # CompileTimeConstantEvaluator not implemented
 ToplevelCollision2Test/none: Fail # duplicate definition
 TryCatch3Test: Fail # Internal Error: Cannot find value
 TypeChecksInFactoryMethodTest: Fail # named constructors with type arguments are not implemented

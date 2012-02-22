@@ -100,10 +100,6 @@ LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
-
-LibTest/core/int/toDouble_A01_t01: Crash # nodes.dart: Failed assertion: line 308 pos 12: 'contains(instruction)' is not true
-
-
 LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
 LibTest/core/Math/pow_A08_t01: Fail, OK # VM handling of double literals.
 LibTest/core/Math/pow_A09_t01: Fail, OK # VM handling of double literals.
@@ -165,55 +161,18 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t04: 
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/02_5_Meaning_of_Names_A02_t01: Fail # SsaBuilder.visitIdentifier on non-this
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A02_t01: Fail # Cannot find value
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A03_t01: Fail # Cannot find value
-LangGuideTest/04_Operators/04_2_Operations_on_basic_types/04_2_Operations_on_basic_types_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
-LangGuideTest/05_Equality/05_2_Value_Equality/05_2_Value_Equality_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
-Language/05_Variables/05_Variables_A04_t02: Fail # CompileTimeConstantEvaluator not implemented
 Language/06_Functions/06_Functions_A01_t02: Fail # non-empty instruction stack
 Language/06_Functions/06_Functions_A01_t04: Fail # switch cases are not implemented
 Language/06_Functions/06_Functions_A02_t01: Fail # Cannot find value
 Language/06_Functions/06_Functions_A03_t01: Fail # Cannot find value
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t01: Fail # CompileTimeConstantHandler non-primitive list-entries not implemented
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A04_t04: Fail # CompileTimeConstantEvaluator not implemented
 Language/07_Classes/7_Static_Variables_A04_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 Language/07_Classes/8_Superclasses/1_Inheritance_and_Overriding_A02_t03: Fail # SsaBuilder.visitIdentifier on non-this
 Language/13_Types/4_Interface_Types_A09_t01: Fail # Cannot find value
 Language/13_Types/5_Function_Types_A02_t03: Fail # Cannot find value
 Language/13_Types/5_Function_Types_A02_t05: Fail # Cannot find value
-LibTest/core/Date/add_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/add_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/add_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/add_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Expect.fail('Exception expected with the passed null value of the timeZone')
 LibTest/core/Date/Date.fromString_A05_t01: Fail # Expect.fail('Some exception is expected')
-LibTest/core/Date/difference_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/difference_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/difference_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/subtract_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/subtract_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/subtract_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Date/subtract_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/Duration_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/Duration_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/Duration_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/MILLISECONDS_PER_DAY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/MILLISECONDS_PER_HOUR_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/MILLISECONDS_PER_MINUTE_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/MINUTES_PER_DAY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/SECONDS_PER_DAY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/SECONDS_PER_HOUR_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/compareTo_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/inDays_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/inHours_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/inMilliseconds_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/inMinutes_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Duration/inSeconds_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Expect/approxEquals_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Expect/approxEquals_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Expect/approxEquals_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Expect/approxEquals_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Expect/approxEquals_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Expect/listEquals_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Expect/listEquals_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Expect/setEquals_A01_t01: Fail # Cannot find value
 LibTest/core/Expect/setEquals_A01_t02: Fail # Cannot find value
 LibTest/core/Expect/setEquals_A03_t01: Fail # Cannot find value
@@ -283,35 +242,7 @@ LibTest/core/Map/putIfAbsent_A01_t10: Fail # non-empty instruction stack
 LibTest/core/Map/remove_A01_t01: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Map/remove_A01_t02: Fail # SsaBuilder.visitContinueStatement not implemented
 LibTest/core/Match/str_A01_t01: Fail # NoSuchMethodException : method not found: 'get length'
-LibTest/core/Math/atan2_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/atan2_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/cos_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/exp_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/log_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/log_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/max_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/max_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/max_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/min_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/min_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/min_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A05_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A06_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A07_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A18_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/pow_A19_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/sin_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/sqrt_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/Math/tan_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Queue/Queue.from_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # switch cases are not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail # switch cases are not implemented
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A05_t01: Fail # switch cases are not implemented
@@ -320,9 +251,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail #
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail # Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail #  Expect.fail('Some exception expected')
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Expect.fail('Some exception expected')
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/Set/Set.from_A01_t01: Fail # Cannot find value
 LibTest/core/Set/Set.from_A01_t02: Fail # Cannot find value
 LibTest/core/Set/Set.from_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
@@ -373,9 +301,6 @@ LibTest/core/Set/remove_A01_t05: Fail # SsaBuilder.visitContinueStatement not im
 LibTest/core/Set/some_A01_t01: Fail # Cannot find value
 LibTest/core/Set/some_A01_t02: Fail # Cannot find value
 LibTest/core/Set/some_A01_t03: Fail # Cannot find value
-LibTest/core/double/INFINITY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/NAN_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/NEGATIVE_INFINITY_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_GE_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_GE_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_GT_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
@@ -386,46 +311,28 @@ LibTest/core/double/operator_LT_A01_t03: Fail # CompileTimeConstantEvaluator not
 LibTest/core/double/operator_LT_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_addition_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_addition_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_addition_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_addition_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_addition_A01_t07: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_addition_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_division_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_division_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_division_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_division_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_division_A01_t08: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_division_A01_t09: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_division_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_multiplication_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_multiplication_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_multiplication_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_multiplication_A01_t06: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_multiplication_A01_t08: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_multiplication_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_remainder_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_subtraction_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_subtraction_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_subtraction_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_subtraction_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_subtraction_A01_t07: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_subtraction_A01_t08: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_subtraction_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_truncating_division_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_truncating_division_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/operator_truncating_division_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/remainder_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/remainder_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/double/toStringAsFixed_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/compareTo_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_GE_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_GT_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_LE_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_LT_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_addition_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_division_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_remainder_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/int/operator_subtraction_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>", <6a>) fails
 
 
@@ -578,6 +485,7 @@ LibTest/core/ReceivePort/close_A02_t01: Fail # factory ReceivePort is not implem
 LibTest/core/ReceivePort/receive_A01_t01: Fail # factory ReceivePort is not implemented
 LibTest/core/ReceivePort/receive_A01_t02: Fail # factory ReceivePort is not implemented
 LibTest/core/ReceivePort/toSendPort_A01_t01: Fail # factory ReceivePort is not implemented
+LibTest/core/SendPort/call/SendPort_call_A01_t01: Fail
 LibTest/core/SendPort/hashCode_A01_t01: Fail # factory ReceivePort is not implemented
 LibTest/core/SendPort/operator_equality_A01_t01: Fail # factory ReceivePort is not implemented
 LibTest/core/SendPort/send_A01_t01: Fail # factory ReceivePort is not implemented

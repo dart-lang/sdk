@@ -91,6 +91,9 @@ GetSetSyntaxTest/13: Fail # Issue 1569
 GetSetSyntaxTest/14: Fail # Issue 1569
 GetSetSyntaxTest/15: Fail # Issue 1569
 
+CompileTimeConstant3Test: Fail # Issue 1780
+CompileTimeConstant6Test: Fail # Issue 1794
+
 [ ($component == vm || $component == dartium) && $unchecked ]
 
 Prefix16NegativeTest: Fail    # Bug 5532534
@@ -110,6 +113,8 @@ GCTest: Skip  # Takes too long.
 AbstractSyntaxTest/01: Fail
 ConstConstructorSyntaxTest/05: Fail
 FinalSyntaxTest/none: Fail
+
+CompileTimeConstant3Test: Fail # Issue 1780
 
 # Marked failed after code generation removed from dartc
 ApplicationNegativeTest: Fail

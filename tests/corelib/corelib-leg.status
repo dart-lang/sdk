@@ -30,7 +30,6 @@ ListTest: Fail # Internal Error: Cannot find value
 MapFromTest: Fail # map not implemented
 MapTest: Fail # map not implemented
 MapsTest: Fail # Internal Error: Cannot find value
-NanInfinityTest: Fail # CompileTimeConstantEvaluator not implemented
 PortTest: Fail # SsaBuilder.visitContinueStatement not implemented
 QueueTest: Fail # Internal Error: Cannot find value
 SetIteratorTest: Fail # CompileTimeConstantEvaluator not implemented
