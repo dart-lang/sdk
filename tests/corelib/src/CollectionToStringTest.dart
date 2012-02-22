@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--optimization_invocation_threshold=100
 
 /**
  * Tests for the toString methods on collections (including maps).
@@ -8,7 +9,7 @@
 
 // TODO(jjb): seed random number generator when API allows it
 
-final int NUM_TESTS = 3000;
+final int NUM_TESTS = 300;
 final int MAX_COLLECTION_SIZE = 7;
 
 main() {
