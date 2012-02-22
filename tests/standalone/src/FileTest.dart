@@ -471,7 +471,7 @@ class FileTest {
           d.errorHandler = (s) => Expect.fail("no error expected");
           d.existsHandler = (exists) {
             Expect.isTrue(exists);
-            Expect.equals(tempDir, d.path);
+            Expect.isTrue(d.path.endsWith(tempDir));
             file.delete();
             file.deleteHandler = () {
               var file_dir = new File(".");
@@ -505,7 +505,7 @@ class FileTest {
     // Check that the path of the returned directory is the temp directory.
     Directory d = file.directorySync();
     Expect.isTrue(d.existsSync());
-    Expect.equals(tempDir, d.path);
+    Expect.isTrue(d.path.endsWith(tempDir));
     file.deleteSync();
     // Directories should throw exception.
     var file_dir = new File(".");
