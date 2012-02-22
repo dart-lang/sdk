@@ -34,7 +34,10 @@ Language/06_Functions/06_Functions_A01_t01: Fail
 LibTest/core/List/sort_A01_t04: Skip # Times out.
 LibTest/core/List/sort_A01_t05: Skip # Times out.
 LibTest/core/List/sort_A01_t06: Skip # Times out.
-LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out.
+
+
+# This test should not time out. It is not that big.
+LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out. Also, issue co19 81.
 
 
 # Fail type assertion on VM, cancels otherwise.
@@ -49,6 +52,7 @@ LibTest/core/Date/Date.fromString_A01_t03: Fail, OK # Undocumented behavior.
 LibTest/core/Date/Date.fromString_A01_t04: Fail, OK # Undocumented behavior.
 LibTest/core/Date/Date_A01_t01: Fail, OK # Generates bad date and expect exact print string.
 LibTest/core/Date/year_A01_t01: Fail, OK # Requires big int.
+LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Math/acos_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/acos_A01_t03: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/asin_A01_t01: Fail, OK # TODO(floitsch): Review.
@@ -69,6 +73,11 @@ LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/sin_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/sqrt_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/tan_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A01_t01: Fail, OK # co19 issue 81.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail, OK # This is not rejected by V8.
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: Fail, OK # co19 issue 81.
+LibTest/core/RegExp/allMatches_A01_t01: Fail, OK #  Bad test, allMatches return an Iterable.
+LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # Bad test, use Match.regexp, not Match.pattern.
 LibTest/core/Stopwatch/elapsed_A01_t02: Pass, Fail  # Issue 4.
 LibTest/core/String/hashCode_A01_t01: Fail, OK # Bad test closurizes hashCode.
 LibTest/core/double/operator_truncating_division_A01_t06: Fail, OK # Conflicts with int semantics.
@@ -89,7 +98,6 @@ LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
-LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 
 
 LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
@@ -324,7 +332,6 @@ LibTest/core/Date/timeZone_A01_t01: Fail # Should throw NoSuchMethodException.
 LibTest/core/Date/value_A01_t01: Fail # Should throw NoSuchMethodException.
 LibTest/core/Duration/compareTo_A01_t01: Fail # Fail is Comparable test.
 LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
-LibTest/core/String/String_class_A01_t01: Fail # String.replaceAll is not implemented.
 LibTest/core/String/String_class_A03_t01: Fail # Implement is-checks.
 
 
@@ -489,48 +496,6 @@ LibTest/core/List/forEach_A02_t01: Fail # ObjectNotClosureException expected.
 
 
 LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
-
-
-LibTest/core/Match/end_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/Match/groupCount_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/Match/group_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/Match/groups_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/Match/operator_subscript_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_AtomEscape_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A05_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A02_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A04_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A05_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A06_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A02_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/allMatches_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/allMatches_A02_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/RegExp/firstMatch_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/contains_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/contains_A01_t02: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/contains_A01_t03: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/replaceAll_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/replaceAll_A02_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/replaceFirst_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/replaceFirst_A02_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/split_A01_t01: Fail # RegExp implemented wrong or bad test.
-LibTest/core/String/split_A01_t02: Fail # RegExp implemented wrong or bad test.
 
 
 #

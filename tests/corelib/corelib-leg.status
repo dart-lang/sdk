@@ -31,6 +31,7 @@ SortTest: Fail # visitContinueStatement not implemented
 SplayTreeTest: Fail # SsaBuilder.visitBreakStatement not implemented
 StopwatchTest: Fail # visitBreakStatement not implemented
 StringTest: Fail # Internal Error: Cannot find value
+StringPatternTest: Fail # Bad bailout code related to for-in.
 
 
 # Implementation errors.
@@ -40,9 +41,6 @@ DoubleCompareTest: Fail # Expect.isTrue(false) fails.
 ExpressionTest: Fail # Expect.equals(expected: <2>, actual: <null>) fails.
 ListGetRangeTest: Fail # Expect.isTrue(false) fails.
 MathTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
-RegExp1Test: Fail # Expect.equals(expected: <false>, actual: <null>) fails.
-StringPatternTest: Fail # String.allMatches is not implemented
-StringSplitRegExpTest: Fail # Illegal argument(s): Instance of 'JSSyntaxRegExp'
 
 
 # Bad test, assumes RegExp.allMatches returns a Collection.
