@@ -156,7 +156,6 @@ LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t01: 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A05_t02: Fail # SsaBuilder: throw without expression not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t04: Fail # SsaBuilder.visitContinueStatement not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A08_t05: Fail # SsaBuilder: throw without expression not implemented
-LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t03: Fail # SsaBuilder for loop with aborting body not implemented
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A09_t04: Fail # SsaBuilder.visitContinueStatement not implemented
 LangGuideTest/02_Language_Constructs/02_5_Meaning_of_Names/02_5_Meaning_of_Names_A02_t01: Fail # SsaBuilder.visitIdentifier on non-this
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A02_t01: Fail # Cannot find value
@@ -367,28 +366,30 @@ LibTest/core/Expect/approxEquals_A01_t04: Fail # Unknown issue with doubles.
 LibTest/core/Expect/identical_A01_t01: Fail # Is NaN identical to NaN?
 
 
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t01: Fail # Expect.equals(expected: <1>, actual: <null>, 'Instance variable should already be initialized!') fails.
-Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
-Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t02: Fail # Expect.fail('NoSuchMethodException expected when calling abstract method or superclass.')
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Fail # Expect.fail('NoSuchMethodException expected when calling an abstract method.')
-Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t13: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t14: Fail # Expect.isFalse(true) fails.
-Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Canonicalization/02_1_Class_Canonicalization_A01_t02: Fail # Expect.isTrue(false) fails.
 LangGuideTest/02_Language_Constructs/02_1_Class/02_1_Class_Canonicalization/02_1_Class_Canonicalization_A01_t03: Fail # Expect.isTrue(false) fails.
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t01: Fail # Expect.isTrue(false) fails.
 LangGuideTest/05_Equality/05_1_Object_Identity_Equality/05_1_Object_Identity_Equality_A01_t03: Fail # Expect.isTrue(false) fails.
 LangGuideTest/05_Equality/05_2_Value_Equality/05_2_Value_Equality_A01_t01: Fail # Expect.isTrue(false) fails.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t01: Fail # Expect.fail('NoSuchMethodException expected when calling an abstract method.')
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A02_t02: Fail # Expect.fail('NoSuchMethodException expected when calling abstract method or superclass.')
+Language/07_Classes/4_Instance_Variables_A02_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
+Language/07_Classes/4_Instance_Variables_A03_t01: Fail # Expect.equals(expected: <bar>, actual: <null>) fails.
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t01: Fail # Expect.equals(expected: <1>, actual: <null>, 'Instance variable should already be initialized!') fails.
 Language/13_Types/4_Interface_Types_A02_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A04_t02: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A05_t03: Fail # Expect.isTrue(false) fails.
 Language/13_Types/4_Interface_Types_A11_t04: Fail # Expect.isTrue(false) fails.
+Language/13_Types/4_Interface_Types_A12_t09: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t13: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t14: Fail # Expect.isFalse(true) fails.
+Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 Language/13_Types/5_Function_Types_A02_t01: Fail # Expect.isTrue(false) fails.
 Language/13_Types/5_Function_Types_A02_t02: Fail # Expect.isTrue(false) fails.
 LibTest/core/Object/operator_equality_A01_t01: Fail # Expect.isTrue(false) fails.
+LibTest/core/String/contains_A01_t02: Fail # Expect.fail('IndexOutOfRangeException expected!')
+LibTest/core/int/toDouble_A01_t01: Fail # Expect.equals(expected: <Infinity>, actual: <1>) fails
 
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Fail # ReferenceError: trace is not defined
