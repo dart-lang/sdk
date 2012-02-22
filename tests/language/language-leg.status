@@ -58,7 +58,6 @@ ConstInit4NegativeTest: Fail
 ConstInitNegativeTest: Fail
 ConstInitTest: Fail
 ConstListTest: Fail
-ConstNamedTest: Fail
 ConstObjectsAreImmutableTest: Fail
 ConstSyntaxTest/01: Fail
 ConstSyntaxTest/02: Fail
