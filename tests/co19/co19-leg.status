@@ -6,12 +6,12 @@ prefix co19
 
 [ $component == leg ]
 # These classes have been removed, co19 issue 79.
-LibTest/core/Dispatcher/*: Skip
-LibTest/core/List/every_A03_t01: Skip
-LibTest/core/List/filter_A03_t01: Skip
-LibTest/core/List/some_A03_t01: Skip
-LibTest/core/Promise/*: Skip
-LibTest/core/Proxy/*: Skip
+LibTest/core/Dispatcher/*: Fail, OK
+LibTest/core/List/every_A03_t01: Fail, OK
+LibTest/core/List/filter_A03_t01: Fail, OK
+LibTest/core/List/some_A03_t01: Fail, OK
+LibTest/core/Promise/*: Fail, OK
+LibTest/core/Proxy/*: Fail, OK
 
 
 [ $component == leg && $checked ]
@@ -37,58 +37,92 @@ LibTest/core/List/sort_A01_t06: Skip # Times out.
 LibTest/core/RegExp/hasMatch_A01_t02: Skip # Times out.
 LibTest/core/List/List.from_A02_t01: Crash
 LibTest/core/List/addAll_A01_t01: Crash
-LibTest/core/Queue/addAll_A01_t01: Crash
 LibTest/core/Queue/addAll_A01_t02: Crash
 LibTest/core/Queue/addAll_A02_t01: Crash
 LibTest/core/Queue/iterator_A01_t02: Crash
 LibTest/core/Queue/iterator_next_A01_t01: Crash
 
 
+# Fail type assertion on VM, cancels otherwise.
+LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail, Crash
+Language/06_Functions/06_Functions_A01_t01: Fail, Crash
+LibTest/core/Queue/addAll_A01_t01: Fail, Crash
+
+
 # Issues with co19 test suite.
-LibTest/core/double/operator_truncating_division_A01_t06: Fail # Conflicts with int semantics.
-LibTest/core/double/toRadixString_A01_t01: Fail # Unimplemented test stub.
-LibTest/core/double/toStringAsExponential_A01_t01: Fail # Unimplemented test stub.
-LibTest/core/double/toStringAsPrecision_A01_t01: Fail # Unimplemented test stub.
-LibTest/core/int/compareTo_A01_t01: Fail # Requires big int.
-LibTest/core/int/hashCode_A01_t01: Fail # co19 testing missing assertion.
-LibTest/core/int/isEven_A01_t01: Fail # Not in API.
-LibTest/core/int/isOdd_A01_t01: Fail # Not in API.
-LibTest/core/int/operator_NOT_A01_t01: Fail # Requires big int.
-LibTest/core/int/operator_left_shift_A01_t01: Fail # Requires big int.
-LibTest/core/int/operator_truncating_division_A01_t01: Fail # Requires big int.
-LibTest/core/int/remainder_A01_t01: Fail # TODO(floitsch): Review.
-LibTest/core/int/remainder_A01_t02: Fail # TODO(floitsch): Review.
-LibTest/core/int/toDouble_A01_t01: Fail # Requires big int.
-LibTest/core/int/toInt_A01_t01: Fail # Requires big int.
-LibTest/core/int/toStringAsExponential_A01_t01: Fail # TODO(floitsch): Review.
-LibTest/core/int/toStringAsFixed_A01_t01: Fail # TODO(floitsch): Review.
-LibTest/core/int/toStringAsPrecision_A01_t01: Fail # TODO(floitsch): Review.
+LibTest/core/Math/acos_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/acos_A01_t03: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/asin_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/asin_A01_t03: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/atan2_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/atan2_A01_t03: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/atan_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/atan_A01_t02: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/cos_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/exp_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/log_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/parseInt_A01_t01: Fail, OK # Requires big int.
+LibTest/core/Math/pow_A01_t01: Fail, OK # Bad test (uses x.pow(y), not Math.pow(x, y)).
+LibTest/core/Math/pow_A11_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/sin_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/sqrt_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/tan_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/double/operator_truncating_division_A01_t06: Fail, OK # Conflicts with int semantics.
+LibTest/core/double/toRadixString_A01_t01: Fail, OK # Unimplemented test stub.
+LibTest/core/double/toStringAsExponential_A01_t01: Fail, OK # Unimplemented test stub.
+LibTest/core/double/toStringAsPrecision_A01_t01: Fail, OK # Unimplemented test stub.
+LibTest/core/int/compareTo_A01_t01: Fail, OK # Requires big int.
+LibTest/core/int/hashCode_A01_t01: Fail, OK # co19 testing missing assertion.
+LibTest/core/int/isEven_A01_t01: Fail, OK # Not in API.
+LibTest/core/int/isOdd_A01_t01: Fail, OK # Not in API.
+LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Requires big int.
+LibTest/core/int/operator_left_shift_A01_t01: Fail, OK # Requires big int.
+LibTest/core/int/operator_truncating_division_A01_t01: Fail, OK # Requires big int.
+LibTest/core/int/remainder_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/int/remainder_A01_t02: Fail, OK # TODO(floitsch): Review.
+LibTest/core/int/toDouble_A01_t01: Fail, OK # Requires big int.
+LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
+LibTest/core/int/toStringAsExponential_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/int/toStringAsFixed_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/int/toStringAsPrecision_A01_t01: Fail, OK # TODO(floitsch): Review.
 
 
-LibTest/core/double/abs_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/ceil_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/ceil_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/ceil_A01_t07: Fail # VM handling of double literals.
-LibTest/core/double/compareTo_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/floor_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/isNegative_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_GE_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_GE_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/operator_GT_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_GT_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/operator_LE_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_LE_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/operator_LT_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/operator_LT_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/remainder_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/remainder_A01_t07: Fail # VM handling of double literals.
-LibTest/core/double/round_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/toInt_A01_t01: Fail # VM handling of double literals.
-LibTest/core/double/toInt_A01_t02: Fail # VM handling of double literals.
-LibTest/core/double/toInt_A01_t05: Fail # VM handling of double literals.
-LibTest/core/double/toStringAsFixed_A01_t04: Fail # VM handling of double literals.
-LibTest/core/double/toStringAsFixed_A01_t07: Fail # VM handling of double literals.
-LibTest/core/double/truncate_A01_t01: Fail # VM handling of double literals.
+LibTest/core/Math/parseDouble_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/pow_A08_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/pow_A09_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/pow_A12_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/pow_A14_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/pow_A15_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/pow_A16_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/pow_A17_t01: Fail, OK # VM handling of double literals.
+LibTest/core/Math/sqrt_A01_t03: Fail, OK # VM handling of double literals.
+LibTest/core/double/abs_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/ceil_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/ceil_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/ceil_A01_t07: Fail, OK # VM handling of double literals.
+LibTest/core/double/compareTo_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/floor_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/isNegative_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_GE_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_GE_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_GT_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_GT_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_LE_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_LE_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_LT_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/operator_LT_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/remainder_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/remainder_A01_t07: Fail, OK # VM handling of double literals.
+LibTest/core/double/round_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/toInt_A01_t01: Fail, OK # VM handling of double literals.
+LibTest/core/double/toInt_A01_t02: Fail, OK # VM handling of double literals.
+LibTest/core/double/toInt_A01_t05: Fail, OK # VM handling of double literals.
+LibTest/core/double/toStringAsFixed_A01_t04: Fail, OK # VM handling of double literals.
+LibTest/core/double/toStringAsFixed_A01_t07: Fail, OK # VM handling of double literals.
+LibTest/core/double/truncate_A01_t01: Fail, OK # VM handling of double literals.
 
 
 LibTest/core/List/List.from_A01_t01: Fail # Cannot find value.
@@ -177,6 +211,9 @@ LibTest/core/List/insertRange_A02_t01: Fail # Fixed length array.
 LibTest/core/List/length_A04_t01: Fail # Fixed length array.
 LibTest/core/List/removeLast_A02_t01: Fail # Fixed length array.
 LibTest/core/List/removeRange_A02_t01: Fail # Fixed length array.
+
+
+LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.
 
 
 LangGuideTest/02_Language_Constructs/02_11_Exceptions/02_11_Exceptions_A04_t01: Fail
@@ -755,40 +792,6 @@ LibTest/core/Match/operator_subscript_A02_t01: Fail
 LibTest/core/Match/pattern_A01_t01: Fail
 LibTest/core/Match/start_A01_t01: Fail
 LibTest/core/Match/str_A01_t01: Fail
-LibTest/core/Math/acos_A01_t01: Fail
-LibTest/core/Math/acos_A01_t03: Fail
-LibTest/core/Math/asin_A01_t01: Fail
-LibTest/core/Math/asin_A01_t03: Fail
-LibTest/core/Math/atan2_A01_t01: Fail
-LibTest/core/Math/atan2_A01_t02: Fail
-LibTest/core/Math/atan2_A01_t03: Fail
-LibTest/core/Math/atan2_A01_t04: Fail
-LibTest/core/Math/atan_A01_t01: Fail
-LibTest/core/Math/atan_A01_t02: Fail
-LibTest/core/Math/cos_A01_t01: Fail
-LibTest/core/Math/exp_A01_t01: Fail
-LibTest/core/Math/log_A01_t01: Fail
-LibTest/core/Math/max_A01_t03: Fail
-LibTest/core/Math/min_A01_t03: Fail
-LibTest/core/Math/parseDouble_A01_t01: Fail
-LibTest/core/Math/parseDouble_A02_t01: Fail
-LibTest/core/Math/parseInt_A01_t01: Fail
-LibTest/core/Math/parseInt_A02_t01: Fail
-LibTest/core/Math/pow_A01_t01: Fail
-LibTest/core/Math/pow_A08_t01: Fail
-LibTest/core/Math/pow_A09_t01: Fail
-LibTest/core/Math/pow_A11_t01: Fail
-LibTest/core/Math/pow_A12_t01: Fail
-LibTest/core/Math/pow_A13_t01: Fail
-LibTest/core/Math/pow_A14_t01: Fail
-LibTest/core/Math/pow_A15_t01: Fail
-LibTest/core/Math/pow_A16_t01: Fail
-LibTest/core/Math/pow_A17_t01: Fail
-LibTest/core/Math/random_A01_t01: Fail
-LibTest/core/Math/sin_A01_t01: Fail
-LibTest/core/Math/sqrt_A01_t01: Fail
-LibTest/core/Math/sqrt_A01_t03: Fail
-LibTest/core/Math/tan_A01_t01: Fail
 LibTest/core/NoSuchMethodException/toString_A01_t01: Fail
 LibTest/core/Object/dynamic_A01_t01: Fail
 LibTest/core/Object/operator_equality_A01_t01: Fail
@@ -1000,8 +1003,6 @@ LibTest/core/String/toUpperCase_A01_t01: Fail
 LibTest/core/String/toUpperCase_A01_t02: Fail
 LibTest/core/String/toUpperCase_A01_t03: Fail
 LibTest/core/String/toUpperCase_A01_t04: Fail
-LibTest/core/String/trim_A01_t01: Fail
-LibTest/core/String/trim_A01_t02: Fail
 LibTest/core/StringBuffer/StringBuffer_A01_t01: Fail
 LibTest/core/StringBuffer/StringBuffer_A01_t02: Fail
 LibTest/core/StringBuffer/addAll_A01_t01: Fail
