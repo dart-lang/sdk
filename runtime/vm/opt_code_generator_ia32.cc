@@ -324,7 +324,7 @@ static const ZoneGrowableArray<const Class*>*
   if (ic_data.NumberOfChecks() == 0) {
     return result;
   }
-  ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+  ASSERT(ic_data.num_args_tested() == 1);
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     Class& cls = Class::ZoneHandle();
@@ -637,7 +637,7 @@ static bool AtIdNodeHasClassAt(AstNode* node,
   if (ic_data.NumberOfChecks() == 0) {
     return false;
   }
-  ASSERT(ic_data.NumberOfArgumentsChecked() > arg_index);
+  ASSERT(ic_data.num_args_tested() > arg_index);
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<const Class*> classes;
     Function& target = Function::Handle();
@@ -662,7 +662,7 @@ static bool AtIdNodeHasTwoClasses(AstNode* node,
   ASSERT(node != NULL);
   ASSERT(!cls0.IsNull() && !cls1.IsNull());
   const ICData& ic_data = node->ICDataAtId(id);
-  ASSERT(ic_data.NumberOfArgumentsChecked() == 2);
+  ASSERT(ic_data.num_args_tested() == 2);
   if (ic_data.NumberOfChecks() != 1) {
     return false;
   }
@@ -796,7 +796,7 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
 // Implement Token::kSUB and Token::kBIT_NOT.
 void OptimizingCodeGenerator::GenerateSmiUnaryOp(UnaryOpNode* node) {
   const ICData& ic_data = node->ICDataAtId(node->id());
-  ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+  ASSERT(ic_data.num_args_tested() == 1);
   DeoptReasonId deopt_reason_id = ic_data.NumberOfChecks() == 0 ?
       kDeoptNoTypeFeedback : kDeoptUnaryOp;
   DeoptimizationBlob* deopt_blob =
@@ -900,7 +900,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
     TraceOpt(node, kOptMessage);
     // Check if both arguments are expected to be Smi.
     const ICData& ic_data = node->ICDataAtId(node->id());
-    ASSERT(ic_data.NumberOfArgumentsChecked() == 2);
+    ASSERT(ic_data.num_args_tested() == 2);
     ASSERT(ic_data.NumberOfChecks() > 0);
     Function& target = Function::Handle();
     GrowableArray<const Class*> classes;
@@ -1358,7 +1358,7 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
     return;
   }
 
-  ASSERT(ic_data.NumberOfArgumentsChecked() == 2);
+  ASSERT(ic_data.num_args_tested() == 2);
 
   if (AtIdNodeHasTwoClasses(node, node->id(), smi_class_, smi_class_)) {
     GenerateSmiBinaryOp(node);
@@ -1467,11 +1467,11 @@ static bool HaveSameClassesInICData(const ICData& a, const ICData& b) {
   if (a.NumberOfChecks() == 0) {
     return true;
   }
-  if (a.NumberOfArgumentsChecked() != b.NumberOfArgumentsChecked()) {
+  if (a.num_args_tested() != b.num_args_tested()) {
     return false;
   }
   // Only one-argument checks implemented.
-  ASSERT(a.NumberOfArgumentsChecked() == 1);
+  ASSERT(a.num_args_tested() == 1);
   Function& a_target = Function::Handle();
   Function& b_target = Function::Handle();
   Class& a_class = Class::Handle();
@@ -1835,7 +1835,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   {
     const ICData& ic_data = node->ICDataAtId(id);
     ASSERT(ic_data.NumberOfChecks() > 0);
-    ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+    ASSERT(ic_data.num_args_tested() == 1);
     for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
       Class& cls = Class::ZoneHandle();
       Function& target = Function::ZoneHandle();
@@ -2759,7 +2759,7 @@ void OptimizingCodeGenerator::GenerateInlineCacheCall(
     const ICData& ic_data,
     intptr_t num_args,
     const Array& optional_arguments_names) {
-  __ LoadObject(ECX, Array::ZoneHandle(ic_data.data()));
+  __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, ArgumentsDescriptor(num_args, optional_arguments_names));
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
@@ -2819,7 +2819,7 @@ void OptimizingCodeGenerator::NormalizeClassChecks(
 }
 
 
-// Use ICData in 'node' to issues checks and calls.
+// Use IC data in 'node' to issues checks and calls.
 // IC data can contain one or more argument checks.
 void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     AstNode* node,
@@ -2848,7 +2848,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
       optional_arguments_names.IsNull() ? 0 : optional_arguments_names.Length();
   target_for_null = Resolver::ResolveDynamicForReceiverClass(
       Class::Handle(object_store->object_class()),
-      String::Handle(ic_data.FunctionName()),
+      String::Handle(ic_data.target_name()),
       num_args,
       num_optional_args);
   GrowableArray<const Class*> classes;
@@ -3132,7 +3132,7 @@ void OptimizingCodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   if ((node->kind() == Token::kSUB) || (node->kind() == Token::kBIT_NOT)) {
     if (AtIdNodeHasClassAt(node, node->id(), smi_class_, 0)) {
       const ICData& ic_data = node->ICDataAtId(node->id());
-      ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+      ASSERT(ic_data.num_args_tested() == 1);
       GenerateSmiUnaryOp(node);
       return;
     }
@@ -3140,7 +3140,7 @@ void OptimizingCodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   if (node->kind() == Token::kSUB) {
     if (AtIdNodeHasClassAt(node, node->id(), double_class_, 0)) {
       const ICData& ic_data = node->ICDataAtId(node->id());
-      ASSERT(ic_data.NumberOfArgumentsChecked() == 1);
+      ASSERT(ic_data.num_args_tested() == 1);
       GenerateDoubleUnaryOp(node);
       return;
     }

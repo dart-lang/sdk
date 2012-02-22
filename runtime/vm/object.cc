@@ -21,7 +21,6 @@
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
-#include "vm/ic_data.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -87,6 +86,7 @@ RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unhandled_exception_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
@@ -147,6 +147,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kUnhandledExceptionClass;
   } else if (raw_class == unwind_error_class()) {
     return kUnwindErrorClass;
+  } else if (raw_class == icdata_class()) {
+    return kICDataClass;
   }
   return kInvalidIndex;
 }
@@ -183,6 +185,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kLanguageErrorClass: return language_error_class();
     case kUnhandledExceptionClass: return unhandled_exception_class();
     case kUnwindErrorClass: return unwind_error_class();
+    case kICDataClass: return icdata_class();
     default: break;
   }
   UNREACHABLE();
@@ -374,6 +377,9 @@ void Object::InitOnce() {
 
   cls = Class::New<UnwindError>();
   unwind_error_class_ = cls.raw();
+
+  cls = Class::New<ICData>();
+  icdata_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 }
@@ -5214,7 +5220,6 @@ RawCode* Code::New(int pointer_offsets_length) {
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
   }
-  result.raw_ptr()->ic_data_ = Array::Empty();
   return result.raw();
 }
 
@@ -5286,16 +5291,6 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
 }
 
 
-RawArray* Code::ic_data() const {
-  return raw_ptr()->ic_data_;
-}
-
-
-void Code::set_ic_data(const Array& ic_data) const {
-  ASSERT(!ic_data.IsNull());
-  StorePointer(&raw_ptr()->ic_data_, ic_data.raw());
-}
-
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   intptr_t token_index = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
@@ -5355,15 +5350,15 @@ bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
 
 void Code::ExtractIcDataArraysAtCalls(
     GrowableArray<intptr_t>* node_ids,
-    GrowableArray<const Array*>* arrays) const {
+    GrowableArray<const ICData*>* ic_data_objs) const {
   ASSERT(node_ids != NULL);
-  ASSERT(arrays != NULL);
+  ASSERT(ic_data_objs != NULL);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
       node_ids->Add(descriptors.NodeId(i));
-      arrays->Add(&Array::ZoneHandle(
+      ic_data_objs->Add(&ICData::ZoneHandle(
           CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
     }
   }
@@ -8198,6 +8193,119 @@ const char* JSRegExp::ToCString() const {
       Isolate::Current()->current_zone()->Allocate(len + 1));
   OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
   return chars;
+}
+
+
+const char* ICData::ToCString() const {
+  return "ICData";
+}
+
+
+void ICData::set_function(const Function& value) const {
+  raw_ptr()->function_ = value.raw();
+}
+
+
+void ICData::set_target_name(const String& value) const {
+  raw_ptr()->target_name_ = value.raw();
+}
+
+
+void ICData::set_id(intptr_t value) const {
+  raw_ptr()->id_ = value;
+}
+
+
+void ICData::set_num_args_tested(intptr_t value) const {
+  raw_ptr()->num_args_tested_ = value;
+}
+
+
+void ICData::set_ic_data(const Array& value) const {
+  raw_ptr()->ic_data_ = value.raw();
+}
+
+
+intptr_t ICData::TestEntryLength() const {
+  return num_args_tested() + 1 /* target function*/;
+}
+
+
+intptr_t ICData::NumberOfChecks() const {
+  // Do not count the sentinel;
+  return (Array::Handle(ic_data()).Length() / TestEntryLength()) - 1;
+}
+
+
+void ICData::AddCheck(const GrowableArray<const Class*>& classes,
+                      const Function& target) const {
+  ASSERT(classes.length() == num_args_tested());
+  intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  for (intptr_t i = 0; i < classes.length(); i++) {
+    // Null is used as terminating value, do not add it.
+    ASSERT(!classes[i]->IsNull());
+    data.SetAt(data_pos++, *(classes[i]));
+  }
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos, target);
+}
+
+
+void ICData::GetCheckAt(intptr_t index,
+                        GrowableArray<const Class*>* classes,
+                        Function* target) const {
+  ASSERT(classes != NULL);
+  ASSERT(target != NULL);
+  classes->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < num_args_tested(); i++) {
+    Class& cls = Class::ZoneHandle();
+    cls ^= data.At(data_pos++);
+    classes->Add(&cls);
+  }
+  (*target) ^= data.At(data_pos);
+}
+
+
+void ICData::GetOneClassCheckAt(
+    int index, Class* cls, Function* target) const {
+  ASSERT(num_args_tested() == 1);
+  GrowableArray<const Class*> classes;
+  GetCheckAt(index, &classes, target);
+  *cls = classes[0]->raw();
+}
+
+
+RawICData* ICData::New(const Function& function,
+                       const String& target_name,
+                       intptr_t id,
+                       intptr_t num_args_tested) {
+  const Class& cls = Class::Handle(Object::icdata_class());
+  ASSERT(!cls.IsNull());
+  ICData& result = ICData::Handle();
+  {
+    // IC data objects ar long living objects, allocate them in old generation.
+    RawObject* raw =
+        Object::Allocate(cls, ICData::InstanceSize(), Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_function(function);
+  result.set_target_name(target_name);
+  result.set_id(id);
+  result.set_num_args_tested(num_args_tested);
+  // Number of array elements in one test entry (num_args_tested + 1)
+  intptr_t len = num_args_tested + 1;
+  // IC data array must be null terminated (sentinel entry).
+  Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
+  result.set_ic_data(ic_data);
+  return result.raw();
 }
 
 }  // namespace dart

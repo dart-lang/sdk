@@ -12,7 +12,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/ic_data.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -449,8 +448,12 @@ void CodeGenerator::GenerateInstanceCall(
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
-  ICData ic_data(function_name, num_args_checked);
-  __ LoadObject(RBX, Array::ZoneHandle(ic_data.data()));
+  ICData& ic_data = ICData::ZoneHandle();
+  ic_data = ICData::New(parsed_function().function(),
+                        function_name,
+                        node_id,
+                        num_args_checked);
+  __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
   uword label_address = 0;
@@ -689,13 +692,18 @@ void CodeGenerator::GenerateEntryCode() {
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
-      ICData ic_data(String::Handle(function.name()), 1);
-      __ LoadObject(RBX, Array::ZoneHandle(ic_data.data()));
+      const int kNumArgsChecked = 1;
+      ICData& ic_data = ICData::ZoneHandle();
+      ic_data = ICData::New(parsed_function().function(),
+                            String::Handle(function.name()),
+                            AstNode::kNoId,
+                            kNumArgsChecked);
+      __ LoadObject(RBX, ic_data);
       // RBP : points to previous frame pointer.
       // RBP + 8 : points to return address.
       // RBP + 16 : address of last argument (arg n-1).
       // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
-      // RBX : ic-data array.
+      // RBX : ic-data.
       // R10 : arguments descriptor array.
       __ call(&StubCode::CallNoSuchMethodFunctionLabel());
     }

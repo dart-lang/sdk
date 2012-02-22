@@ -1824,8 +1824,8 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 
 
 void RawJSRegExp::WriteTo(SnapshotWriter* writer,
-                            intptr_t object_id,
-                            Snapshot::Kind kind) {
+                          intptr_t object_id,
+                          Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(kind == Snapshot::kMessage);
 
@@ -1846,5 +1846,22 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
 
   // Do not write out the data part which is native.
 }
+
+
+RawICData* ICData::ReadFrom(SnapshotReader* reader,
+                            intptr_t object_id,
+                            intptr_t tags,
+                            Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void RawICData::WriteTo(SnapshotWriter* writer,
+                        intptr_t object_id,
+                        Snapshot::Kind kind) {
+  UNIMPLEMENTED();
+}
+
 
 }  // namespace dart

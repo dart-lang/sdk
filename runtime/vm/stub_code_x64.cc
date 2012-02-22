@@ -7,7 +7,6 @@
 
 #include "vm/code_generator.h"
 #include "vm/compiler.h"
-#include "vm/ic_data.h"
 #include "vm/object_store.h"
 #include "vm/pages.h"
 #include "vm/resolver.h"
@@ -322,7 +321,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 // Lookup for [function-name, arg count] in 'functions_map_'.
 // Input parameters (to be treated as read only, unless calling to target!):
-//   RBX: ic-data array.
+//   RBX: ic-data.
 //   R10: arguments descriptor array (num_args is first Smi element).
 //   Stack: return address, arguments.
 // If the lookup succeeds we jump to the target method from here, otherwise
@@ -371,8 +370,7 @@ static void MegamorphicLookup(Assembler* assembler) {
   __ cmpq(R13, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
 
-  ASSERT(ICData::kNameIndex == 0);
-  __ cmpq(R13, FieldAddress(RBX, Array::data_offset()));
+  __ cmpq(R13, FieldAddress(RBX, ICData::target_name_offset()));
   __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
 
   // Name found, check total argument count and named argument count.
@@ -434,7 +432,7 @@ static void PushArgumentsArray(Assembler* assembler, intptr_t arg_offset) {
 
 
 // Input parameters:
-//   RBX: ic-data array.
+//   RBX: ic-data.
 //   R10: arguments descriptor array (num_args is first Smi element).
 // Note: The receiver object is the first argument to the function being
 //       called, the stub accesses the receiver from this location directly
@@ -462,7 +460,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ movq(RAX, Address(RSP, RAX, TIMES_4, kWordSize));  // Get receiver.
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RAX);  // Preserve receiver.
-  __ pushq(RBX);  // Preserve ic-data array.
+  __ pushq(RBX);  // Preserve ic-data.
   // First resolve the function to get the function object.
 
   __ pushq(raw_null);  // Setup space on stack for return value.
@@ -471,7 +469,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   __ popq(RAX);  // Remove receiver pushed earlier.
   __ popq(RBX);  // Pop returned code object into RBX.
   // Pop preserved values
-  __ popq(R10);  // Restore ic-data array.
+  __ popq(R10);  // Restore ic-data.
   __ popq(RAX);  // Restore receiver.
   __ popq(R13);  // Restore arguments descriptor array.
 
@@ -489,7 +487,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ Bind(&check_implicit_closure);
   // RAX: receiver.
-  // R10: ic-data array.
+  // R10: ic-data.
   // RBX: raw_null.
   // R13: arguments descriptor array.
   // The target function was not found.
@@ -497,7 +495,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // trying to create a closure of an instance function.
   // Push values that need to be preserved across runtime call.
   __ pushq(RAX);  // Preserve receiver.
-  __ pushq(R10);  // Preserve ic-data array.
+  __ pushq(R10);  // Preserve ic-data.
   __ pushq(R13);  // Preserve arguments descriptor array.
 
   __ pushq(raw_null);  // Setup space on stack for return value.
@@ -510,7 +508,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   // Pop preserved values.
   __ popq(R13);  // Restore arguments descriptor array.
-  __ popq(R10);  // Restore ic-data array.
+  __ popq(R10);  // Restore ic-data.
   __ popq(RAX);  // Restore receiver.
 
   __ cmpq(RBX, raw_null);
@@ -524,7 +522,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   __ Bind(&check_implicit_closure_through_getter);
   // RAX: receiver.
-  // R10: ic-data array.
+  // R10: ic-data.
   // RBX: raw_null.
   // R13: arguments descriptor array.
   // This is not the case of an instance so invoke the getter of the
@@ -532,7 +530,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // supposed to invoke.
   // Push values that need to be preserved across runtime call.
   __ pushq(RAX);  // Preserve receiver.
-  __ pushq(R10);  // Preserve ic-data array.
+  __ pushq(R10);  // Preserve ic-data.
   __ pushq(R13);  // Preserve arguments descriptor array.
 
   __ pushq(raw_null);  // Setup space on stack for return value.
@@ -545,7 +543,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 
   // Pop preserved values.
   __ popq(R13);  // Restore arguments descriptor array.
-  __ popq(R10);  // Restore ic-data array.
+  __ popq(R10);  // Restore ic-data.
   __ popq(RAX);  // Restore receiver.
 
   __ cmpq(RBX, raw_null);
@@ -586,7 +584,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
   // The target function was not found, so invoke method
   // "void noSuchMethod(function_name, args_array)".
   //   RAX: receiver.
-  //   R10: ic-data array.
+  //   R10: ic-data.
   //   RBX: raw_null.
   //   R13: argument descriptor array.
 
@@ -1481,7 +1479,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 //   RBP + 8 : points to return address.
 //   RBP + 16 : address of last argument (arg n-1).
 //   RBP + 16 + 8*(n-1) : address of first argument (arg 0).
-//   RBX : ic-data array.
+//   RBX : ic-data.
 //   R10 : arguments descriptor array.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // The target function was not found, so invoke method
@@ -1537,7 +1535,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
 
 // Generate inline cache check for 'num_args'.
-//  RBX: Inline cache data array.
+//  RBX: Inline cache data object.
 //  R10: Arguments array.
 //  TOS(0): return address
 // Control flow:
@@ -1552,7 +1550,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   ASSERT(num_args > 0);
   // Get receiver.
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));
-  __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX is Smi.
+  __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
 
   Label get_class, ic_miss;
   __ call(&get_class);
@@ -1562,11 +1560,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 #if defined(DEBUG)
   { Label ok;
     // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
-    __ movq(RCX, FieldAddress(RBX,
-        Array::data_offset() + ICData::kNumArgsCheckedIndex * kWordSize));
-    const Immediate value =
-        Immediate(reinterpret_cast<int64_t>(Smi::New(num_args)));
-    __ cmpq(RCX, value);
+    // 'num_args_tested' is stored as an untagged int.
+    __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
+    __ cmpq(RCX, Immediate(num_args));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Incorrect stub for IC data");
     __ Bind(&ok);
@@ -1575,10 +1571,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 
   // Loop that checks if there is an IC data match.
   // RAX: receiver's class.
-  // RBX: IC data array (preserved).
-  __ leaq(R12, FieldAddress(RBX,
-      Array::data_offset() + ICData::kChecksStartIndex * kWordSize));
-  // R12: pointing to a class to check against (into IC data array).
+  // RBX: IC data object (preserved).
+  __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
+  // R12: ic_data_array with check entries: classes and target functions.
+  __ leaq(R12, FieldAddress(R12, Array::data_offset()));
+  // R12: points directly to the first ic data array element.
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label loop, found;

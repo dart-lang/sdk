@@ -9,7 +9,6 @@
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
-#include "vm/ic_data.h"
 #include "vm/instructions.h"
 #include "vm/native_entry.h"
 #include "vm/native_entry_test.h"
@@ -47,10 +46,16 @@ CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
-  const String& function_name = String::Handle(String::New("Vermicelles"));
-  ICData ic_data(function_name, 1);
-  EXPECT(!Array::Handle(ic_data.data()).IsNull());
-  __ LoadObject(RBX, Array::ZoneHandle(ic_data.data()));
+  const String& function_name =
+      String::ZoneHandle(String::NewSymbol("callerFunction"));
+  const Function& function = Function::ZoneHandle(
+      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+
+  const String& target_name = String::Handle(String::New("targetFunction"));
+  ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(function, target_name, 15, 1));
+
+  __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, CodeGenerator::ArgumentsDescriptor(1, Array::Handle()));
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
@@ -61,23 +66,12 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
 
 ASSEMBLER_TEST_RUN(IcDataAccess, entry) {
   uword return_address = entry + CodePatcher::InstanceCallSizeInBytes();
-  const Array& array = Array::Handle(
+  const ICData& ic_data = ICData::Handle(
       CodePatcher::GetInstanceCallIcDataAt(return_address));
-  EXPECT(!array.IsNull());
-  ICData ic_data(array);
-  EXPECT_STREQ("Vermicelles",
-      String::Handle(ic_data.FunctionName()).ToCString());
-  EXPECT_EQ(1, ic_data.NumberOfArgumentsChecked());
+  EXPECT_STREQ("targetFunction",
+      String::Handle(ic_data.target_name()).ToCString());
+  EXPECT_EQ(1, ic_data.num_args_tested());
   EXPECT_EQ(0, ic_data.NumberOfChecks());
-  const String& new_function_name = String::Handle(String::New("Rigi"));
-  ICData new_ic_data(new_function_name, 1);
-  EXPECT_STREQ("Rigi", String::Handle(new_ic_data.FunctionName()).ToCString());
-  CodePatcher::SetInstanceCallIcDataAt(return_address,
-                                       Array::ZoneHandle(new_ic_data.data()));
-  const Array& new_array = Array::Handle(
-      CodePatcher::GetInstanceCallIcDataAt(return_address));
-  ICData test_ic_data(new_array);
-  EXPECT_STREQ("Rigi", String::Handle(test_ic_data.FunctionName()).ToCString());
 }
 
 }  // namespace dart

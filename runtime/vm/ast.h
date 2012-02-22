@@ -8,7 +8,6 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
-#include "vm/ic_data.h"
 #include "vm/scopes.h"
 #include "vm/object.h"
 #include "vm/native_entry.h"
@@ -103,21 +102,21 @@ class AstNode : public ZoneAllocated {
   explicit AstNode(intptr_t token_index)
       : token_index_(token_index),
         id_(GetNextId()),
-        ic_data_(Array::ZoneHandle()),
+        ic_data_(ICData::ZoneHandle()),
         info_(NULL) {
     ASSERT(token_index >= 0);
   }
 
   intptr_t token_index() const { return token_index_; }
 
-  virtual void SetIcDataArrayAtId(intptr_t node_id, const Array& value) {
+  virtual void SetIcDataAtId(intptr_t node_id, const ICData& value) {
     ASSERT(id() == node_id);
-    set_ic_data_array(value);
+    set_ic_data(value);
   }
 
   virtual const ICData& ICDataAtId(intptr_t node_id) const {
     ASSERT(id() == node_id);
-    return ic_data();
+    return ic_data_;
   }
 
   virtual bool HasId(intptr_t value) const { return id_ == value; }
@@ -175,11 +174,10 @@ NODE_LIST(AST_TYPE_CHECK)
   virtual const Instance* EvalConstExpr() const { return NULL; }
 
  protected:
-  void set_ic_data_array(const Array& value) {
-    ic_data_.set_data(value);
-  }
-
   const ICData& ic_data() const { return ic_data_; }
+  void set_ic_data(const ICData& value) {
+    ic_data_ = value.raw();
+  }
 
   static intptr_t GetNextId() {
     Isolate* isolate = Isolate::Current();
@@ -193,7 +191,7 @@ NODE_LIST(AST_TYPE_CHECK)
   // Unique id per function compiled, used to match AST node to a PC.
   const intptr_t id_;
   // IC data collected for this node.
-  ICData ic_data_;
+  ICData& ic_data_;
   // Used by optimizing compiler.
   CodeGenInfo* info_;
   DISALLOW_COPY_AND_ASSIGN(AstNode);
@@ -693,8 +691,8 @@ class IncrOpInstanceFieldNode : public AstNode {
         field_name_(field_name),
         operator_id_(AstNode::GetNextId()),
         setter_id_(AstNode::GetNextId()),
-        operator_ic_data_(Array::ZoneHandle()),
-        setter_ic_data_(Array::ZoneHandle()) {
+        operator_ic_data_(ICData::ZoneHandle()),
+        setter_ic_data_(ICData::ZoneHandle()) {
     ASSERT(receiver_ != NULL);
     ASSERT(field_name_.IsZoneHandle());
     ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
@@ -715,15 +713,15 @@ class IncrOpInstanceFieldNode : public AstNode {
            (setter_id() == value);
   }
 
-  virtual void SetIcDataArrayAtId(intptr_t node_id, const Array& value) {
+  virtual void SetIcDataAtId(intptr_t node_id, const ICData& value) {
     ASSERT(HasId(node_id));
     if (node_id == getter_id()) {
-      set_ic_data_array(value);
+      set_ic_data(value);
     } else if (node_id == operator_id()) {
-      operator_ic_data_.set_data(value);
+      operator_ic_data_ = value.raw();
     } else {
       ASSERT(node_id == setter_id());
-      setter_ic_data_.set_data(value);
+      setter_ic_data_ = value.raw();
     }
   }
 
@@ -754,8 +752,8 @@ class IncrOpInstanceFieldNode : public AstNode {
   const String& field_name_;
   const intptr_t operator_id_;
   const intptr_t setter_id_;
-  ICData operator_ic_data_;
-  ICData setter_ic_data_;
+  ICData& operator_ic_data_;
+  ICData& setter_ic_data_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(IncrOpInstanceFieldNode);
 };
@@ -832,8 +830,8 @@ class IncrOpIndexedNode : public AstNode {
         index_(index),
         operator_id_(AstNode::GetNextId()),
         store_id_(AstNode::GetNextId()),
-        operator_ic_data_(Array::ZoneHandle()),
-        store_ic_data_(Array::ZoneHandle()) {
+        operator_ic_data_(ICData::ZoneHandle()),
+        store_ic_data_(ICData::ZoneHandle()) {
     ASSERT(kind_ == Token::kINCR || kind_ == Token::kDECR);
     ASSERT(array_ != NULL);
     ASSERT(index_ != NULL);
@@ -866,15 +864,15 @@ class IncrOpIndexedNode : public AstNode {
     }
   }
 
-  virtual void SetIcDataArrayAtId(intptr_t node_id, const Array& value) {
+  virtual void SetIcDataArrayAtId(intptr_t node_id, const ICData& value) {
     ASSERT(HasId(node_id));
     if (node_id == load_id()) {
-      set_ic_data_array(value);
+      set_ic_data(value);
     } else if (node_id == operator_id()) {
-      operator_ic_data_.set_data(value);
+      operator_ic_data_ = value.raw();
     } else {
       ASSERT(node_id == store_id());
-      store_ic_data_.set_data(value);
+      store_ic_data_ = value.raw();
     }
   }
 
@@ -894,8 +892,8 @@ class IncrOpIndexedNode : public AstNode {
   AstNode* index_;
   const intptr_t operator_id_;
   const intptr_t store_id_;
-  ICData operator_ic_data_;
-  ICData store_ic_data_;
+  ICData& operator_ic_data_;
+  ICData& store_ic_data_;
 };
 
 

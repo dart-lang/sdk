@@ -57,15 +57,9 @@ bool CodePatcher::CodeIsPatchable(const Code& code) {
 }
 
 
-RawArray* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
+RawICData* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
   UNIMPLEMENTED();
   return NULL;
-}
-
-
-void CodePatcher::SetInstanceCallIcDataAt(uword return_address,
-                                         const Array& ic_data) {
-  UNIMPLEMENTED();
 }
 
 }  // namespace dart

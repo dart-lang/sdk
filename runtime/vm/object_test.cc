@@ -2417,6 +2417,79 @@ TEST_CASE(ClassDictionaryIterator) {
   ASSERT(count == 2);
 }
 
+
+static RawFunction* GetDummyTarget(const char* name) {
+  const String& function_name = String::Handle(String::NewSymbol(name));
+  const bool is_static = false;
+  const bool is_const = false;
+  return Function::New(function_name,
+                       RawFunction::kFunction,
+                       is_static,
+                       is_const,
+                       0);
+}
+
+
+TEST_CASE(ICData) {
+  Function& function = Function::Handle(GetDummyTarget("Bern"));
+  const intptr_t id = 12;
+  const intptr_t num_args_tested = 1;
+  const String& target_name = String::Handle(String::New("Thun"));
+  ICData& o1 = ICData::Handle();
+  o1 = ICData::New(function, target_name, id, num_args_tested);
+  EXPECT_EQ(1, o1.num_args_tested());
+  EXPECT_EQ(id, o1.id());
+  EXPECT_EQ(function.raw(), o1.function());
+  EXPECT_EQ(0, o1.NumberOfChecks());
+  EXPECT_EQ(target_name.raw(), o1.target_name());
+
+  const Function& target1 = Function::Handle(GetDummyTarget("Thun"));
+  GrowableArray<const Class*> classes;
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  const Class& smi_class = Class::ZoneHandle(object_store->smi_class());
+  classes.Add(&smi_class);
+  o1.AddCheck(classes, target1);
+  EXPECT_EQ(1, o1.NumberOfChecks());
+  Class& test_class = Class::Handle();
+  Function& test_target = Function::Handle();
+  o1.GetOneClassCheckAt(0, &test_class, &test_target);
+  EXPECT_EQ(smi_class.raw(), test_class.raw());
+  EXPECT_EQ(target1.raw(), test_target.raw());
+  GrowableArray<const Class*> test_classes;
+  o1.GetCheckAt(0, &test_classes, &test_target);
+  EXPECT_EQ(1, test_classes.length());
+  EXPECT_EQ(smi_class.raw(), test_classes[0]->raw());
+  EXPECT_EQ(target1.raw(), test_target.raw());
+
+  classes.Clear();
+  const Function& target2 = Function::Handle(GetDummyTarget("Thun"));
+  const Class& double_class = Class::ZoneHandle(object_store->double_class());
+  classes.Add(&double_class);
+  o1.AddCheck(classes, target2);
+  EXPECT_EQ(2, o1.NumberOfChecks());
+  o1.GetOneClassCheckAt(1, &test_class, &test_target);
+  EXPECT_EQ(double_class.raw(), test_class.raw());
+  EXPECT_EQ(target2.raw(), test_target.raw());
+
+  ICData& o2 = ICData::Handle();
+  o2 = ICData::New(function, target_name, 57, 2);
+  EXPECT_EQ(2, o2.num_args_tested());
+  EXPECT_EQ(57, o2.id());
+  EXPECT_EQ(function.raw(), o2.function());
+  EXPECT_EQ(0, o2.NumberOfChecks());
+  classes.Clear();
+  classes.Add(&smi_class);
+  classes.Add(&smi_class);
+  o2.AddCheck(classes, target1);
+  EXPECT_EQ(1, o2.NumberOfChecks());
+  o2.GetCheckAt(0, &test_classes, &test_target);
+  EXPECT_EQ(2, test_classes.length());
+  EXPECT_EQ(smi_class.raw(), test_classes[0]->raw());
+  EXPECT_EQ(smi_class.raw(), test_classes[1]->raw());
+  EXPECT_EQ(target1.raw(), test_target.raw());
+}
+
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

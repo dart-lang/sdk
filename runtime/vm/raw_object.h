@@ -65,6 +65,7 @@ namespace dart {
     V(Closure)                                                                 \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
+    V(ICData)                                                                  \
 
 #define CLASS_LIST(V)                                                          \
   V(Object)                                                                    \
@@ -635,10 +636,8 @@ class RawCode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   RawLocalVarDescriptors* var_descriptors_;
-  // Ongoing redesign of inline caches may soon remove the need for 'ic_data_'.
-  RawArray* ic_data_;  // Used to store IC stub data (see class ICData).
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+    return reinterpret_cast<RawObject**>(&ptr()->var_descriptors_);
   }
 
   intptr_t pointer_offsets_length_;
@@ -1082,6 +1081,26 @@ class RawJSRegExp : public RawInstance {
   // Variable length data follows here.
   uint8_t data_[0];
 };
+
+
+class RawICData : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->function_);
+  }
+
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+  }
+
+  RawFunction* function_;  // Parent/calling function of this IC.
+  RawString* target_name_;  // Name of target function.
+  RawArray* ic_data_;  // Contains test classes and target function.
+  intptr_t id_;  // Parser node id corresponding to this IC.
+  intptr_t num_args_tested_;  // Number of arguments tested in IC.
+};
+
 
 }  // namespace dart
 
