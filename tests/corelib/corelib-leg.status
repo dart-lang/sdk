@@ -48,7 +48,7 @@ RegExpStringMatchTest: Fail
 SetIteratorTest: Fail
 SetTest: Fail
 SortTest: Fail
-SplayTreeTest: Crash
+SplayTreeTest: Fail
 StopwatchTest: Fail
 StringBaseVMTest: Fail
 StringBufferTest: Fail
