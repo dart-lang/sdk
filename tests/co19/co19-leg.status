@@ -27,6 +27,18 @@ Language/06_Functions/06_Functions_A01_t01: Crash
 [ $component == leg && $mode == debug ]
 LangGuideTest/02_Language_Constructs/02_6_Functions/02_6_Functions_A01_t07: Fail
 Language/06_Functions/06_Functions_A01_t01: Fail
+LibTest/core/List/indexOf_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/List/lastIndexOf_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/Match/groups_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/Match/str_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/Math/atan2_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/Math/pow_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/RegExp/allMatches_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/Set/add_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/Set/add_A01_t03: Crash # VM assertion issue 1804.
+LibTest/core/Set/contains_A01_t01: Crash # VM assertion issue 1804.
+LibTest/core/Set/contains_A01_t02: Crash # VM assertion issue 1804.
+LibTest/core/Set/contains_A01_t03: Crash # VM assertion issue 1804.
 
 
 [ $component == leg ]

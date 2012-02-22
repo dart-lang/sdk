@@ -52,3 +52,9 @@ BigIntegerVMTest: Fail, OK # VM specific test.
 GrowableObjectArray2VMTest: Fail, OK # VM specific test.
 GrowableObjectArrayVMTest: Fail, OK # VM specific test.
 StringBaseVMTest: Fail, OK # VM specific test.
+
+
+[ $component == leg && $mode == debug ]
+DateTimeTest: Crash # VM assertion issue 1804.
+ListSetRangeTest: Crash # VM assertion issue 1804.
+RegExpAllMatchesTest: Crash # VM assertion issue 1804.

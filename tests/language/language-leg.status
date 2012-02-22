@@ -330,5 +330,9 @@ ExecuteFinally3Test: Fail
 ExecuteFinally9Test: Fail
 
 
-[ $component == leg && $mode == release]
+[ $component == leg && $mode == release ]
 AssignTopMethodNegativeTest: Crash
+
+
+[ $component == leg && $mode == debug ]
+OperatorTest: Crash # VM assertion issue 1804.
