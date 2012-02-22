@@ -57,9 +57,9 @@ LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/double/toStringAsExponential_A01_t01: Fail # Issue 463
 LibTest/core/double/toStringAsPrecision_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
-LibTest/core/int/toStringAsExponential_A01_t01: Fail # Issue 460
+LibTest/core/int/toStringAsExponential_A01_t01: Fail, Crash # Issue 460
 LibTest/core/int/toStringAsFixed_A01_t01: Fail # Issue 460
-LibTest/core/int/toStringAsPrecision_A01_t01: Fail # Issue 460
+LibTest/core/int/toStringAsPrecision_A01_t01: Fail, Crash # Issue 460
 
 [ $component == vm && $system == macos ]
 LibTest/core/Math/acos_A01_t01: Fail # Issue co19 - 44

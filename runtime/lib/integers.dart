@@ -127,16 +127,13 @@ class IntegerImplementation {
   }
 
   String toStringAsFixed(int fractionDigits) {
-    // Issue 460.
-    throw "IntegerImplementation.toStringAsFixed not implemented";
+    return this.toDouble().toStringAsFixed(fractionDigits);
   }
   String toStringAsExponential(int fractionDigits) {
-    // Issue 460.
-    throw "IntegerImplementation.toStringAsExponential not implemented";
+    return this.toDouble().toStringAsExponential(fractionDigits);
   }
   String toStringAsPrecision(int precision) {
-    // Issue 460.
-    throw "IntegerImplementation.toStringAsPrecision not implemented";
+    return this.toDouble().toStringAsPrecision(precision);
   }
   String toRadixString(int radix) {
     final table = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
