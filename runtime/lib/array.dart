@@ -216,6 +216,10 @@ class ImmutableArray<E> implements List<E> {
     Collections.forEach(this, f);
   }
 
+  Collection map(f(E element)) {
+    return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
+  }
+
   Collection<E> filter(bool f(E element)) {
     return Collections.filter(this, new GrowableObjectArray<E>(), f);
   }
