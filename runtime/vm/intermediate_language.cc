@@ -60,131 +60,89 @@ void ConstantValue::Print() const {
 }
 
 
-void Instruction::PrintGotoSuccessor(
-    Instruction* successor,
-    intptr_t instruction_index,
-    const GrowableArray<Instruction*>& instruction_list) const {
-  if ((instruction_index == 0) ||
-      (instruction_list[instruction_index - 1] != successor)) {
-    // Linear search of the instruction list for the successor's index.
-    for (intptr_t i = 0; i < instruction_list.length(); ++i) {
-      if (instruction_list[i] == successor) {
-        intptr_t instruction_number = instruction_list.length() - i;
-        OS::Print(" goto %d", instruction_number);
-        break;
-      }
-    }
-  }
-}
-
-
-void DoInstr::Print(intptr_t instruction_index,
-                    const GrowableArray<Instruction*>& instruction_list) const {
+Instruction* DoInstr::Print() const {
+  OS::Print("    ");
   computation_->Print();
-  PrintGotoSuccessor(successor_, instruction_index, instruction_list);
+  return successor_;
 }
 
 
-void BindInstr::Print(
-    intptr_t instruction_index,
-    const GrowableArray<Instruction*>& instruction_list) const {
-  OS::Print("t%d <-", temp_index_);
+Instruction* BindInstr::Print() const {
+  OS::Print("    t%d <-", temp_index_);
   computation_->Print();
-  PrintGotoSuccessor(successor_, instruction_index, instruction_list);
+  return successor_;
 }
 
 
-void ReturnInstr::Print(
-    intptr_t instruction_index,
-    const GrowableArray<Instruction*>& instruction_list) const {
-  OS::Print("return ");
+Instruction* ReturnInstr::Print() const {
+  OS::Print("    return ");
   value_->Print();
+  return NULL;
 }
 
 
-void BranchInstr::Print(
-    intptr_t instruction_index,
-    const GrowableArray<Instruction*>& instruction_list) const {
-  OS::Print("if ");
+Instruction* BranchInstr::Print() const {
+  OS::Print("    if ");
   value_->Print();
-  // Linear search for the instruction numbers of the successors.
-  intptr_t true_successor_number = -1;
-  intptr_t false_successor_number = -1;
-  for (intptr_t i = 0; i < instruction_list.length(); ++i) {
-    if (instruction_list[i] == true_successor_) {
-      true_successor_number = instruction_list.length() - i;
-      if (false_successor_number >= 0) break;
-    }
-    if (instruction_list[i] == false_successor_) {
-      false_successor_number = instruction_list.length() - i;
-      if (true_successor_number >= 0) break;
-    }
-  }
-  OS::Print(" goto(%d, %d)", true_successor_number, false_successor_number);
+  OS::Print(" goto(%d, %d)", true_successor_->GetBlockNumber(),
+            false_successor_->GetBlockNumber());
+  return NULL;
 }
 
 
-void JoinEntryInstr::Print(
-    intptr_t instruction_index,
-    const GrowableArray<Instruction*>& instruction_list) const {
-  OS::Print("[join]");
-  PrintGotoSuccessor(successor_, instruction_index, instruction_list);
+Instruction* JoinEntryInstr::Print() const {
+  OS::Print("%2d: [join]", block_number_);
+  return successor_;
 }
 
 
-void TargetEntryInstr::Print(
-    intptr_t instruction_index,
-    const GrowableArray<Instruction*>& instruction_list) const {
-  OS::Print("[target]");
-  PrintGotoSuccessor(successor_, instruction_index, instruction_list);
+Instruction* TargetEntryInstr::Print() const {
+  OS::Print("%2d: [target]", block_number_);
+  return successor_;
 }
 
 
-void DoInstr::Postorder(GrowableArray<Instruction*>* visited) {
+void DoInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
   flip_mark();
-  if (successor_->mark() != mark()) successor_->Postorder(visited);
-  visited->Add(this);
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 
 
-void BindInstr::Postorder(GrowableArray<Instruction*>* visited) {
+void BindInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
   flip_mark();
-  if (successor_->mark() != mark()) successor_->Postorder(visited);
-  visited->Add(this);
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 
 
-void ReturnInstr::Postorder(GrowableArray<Instruction*>* visited) {
+void ReturnInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
   flip_mark();
-  visited->Add(this);
 }
 
 
-void BranchInstr::Postorder(GrowableArray<Instruction*>* visited) {
+void BranchInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
   flip_mark();
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder.
   if (false_successor_->mark() != mark()) {
-    false_successor_->Postorder(visited);
+    false_successor_->Postorder(block_entries);
   }
   if (true_successor_->mark() != mark()) {
-    true_successor_->Postorder(visited);
+    true_successor_->Postorder(block_entries);
   }
-  visited->Add(this);
 }
 
 
-void JoinEntryInstr::Postorder(GrowableArray<Instruction*>* visited) {
+void JoinEntryInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
   flip_mark();
-  if (successor_->mark() != mark()) successor_->Postorder(visited);
-  visited->Add(this);
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  block_entries->Add(this);
 }
 
 
-void TargetEntryInstr::Postorder(GrowableArray<Instruction*>* visited) {
+void TargetEntryInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
   flip_mark();
-  if (successor_->mark() != mark()) successor_->Postorder(visited);
-  visited->Add(this);
+  if (successor_->mark() != mark()) successor_->Postorder(block_entries);
+  block_entries->Add(this);
 }
 
 

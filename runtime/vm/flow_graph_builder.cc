@@ -22,7 +22,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
     entry_ = other_fragment.entry();
     exit_ = other_fragment.exit();
   } else {
-    exit()->set_successor(other_fragment.entry());
+    exit()->SetSuccessor(other_fragment.entry());
     exit_ = other_fragment.exit();
   }
 }
@@ -33,7 +33,7 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   if (is_empty()) {
     entry_ = exit_ = instruction;
   } else {
-    exit()->set_successor(instruction);
+    exit()->SetSuccessor(instruction);
     exit_ = instruction;
   }
 }
@@ -58,18 +58,18 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     Instruction* false_exit = NULL;
     TargetEntryInstr* true_entry = new TargetEntryInstr();
     *test_fragment.true_successor_address() = true_entry;
-    true_entry->set_successor(true_fragment.entry());
+    true_entry->SetSuccessor(true_fragment.entry());
     true_exit = true_fragment.is_empty() ? true_entry : true_fragment.exit();
 
     TargetEntryInstr* false_entry = new TargetEntryInstr();
     *test_fragment.false_successor_address() = false_entry;
-    false_entry->set_successor(false_fragment.entry());
+    false_entry->SetSuccessor(false_fragment.entry());
     false_exit =
         false_fragment.is_empty() ? false_entry : false_fragment.exit();
 
     exit_ = new JoinEntryInstr();
-    true_exit->set_successor(exit_);
-    false_exit->set_successor(exit_);
+    true_exit->SetSuccessor(exit_);
+    false_exit->SetSuccessor(exit_);
   }
 }
 
@@ -88,7 +88,7 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
   if (test_fragment.can_be_true()) {
     TargetEntryInstr* body_entry = new TargetEntryInstr();
     *test_fragment.true_successor_address() = body_entry;
-    body_entry->set_successor(body_fragment.entry());
+    body_entry->SetSuccessor(body_fragment.entry());
     body_exit = body_fragment.is_empty() ? body_entry : body_fragment.exit();
   }
 
@@ -99,8 +99,8 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
   } else {
     JoinEntryInstr* join = new JoinEntryInstr();
     AddInstruction(join);
-    join->set_successor(test_fragment.entry());
-    body_exit->set_successor(join);
+    join->SetSuccessor(test_fragment.entry());
+    body_exit->SetSuccessor(join);
   }
 
   // 3. Set the exit to the graph to be empty or a fresh target node
@@ -871,21 +871,35 @@ void FlowGraphBuilder::PrintGraph() const {
   OS::Print("==== %s\n",
             parsed_function().function().ToFullyQualifiedCString());
 
-  for (intptr_t i = postorder_.length() - 1; i >= 0; --i) {
-    OS::Print("%8d: ", postorder_.length() - i);
-    postorder_[i]->Print(i, postorder_);
+  for (intptr_t i = postorder_block_entries_.length() - 1; i >= 0; --i) {
+    // Print the block entry.
+    Instruction* current = postorder_block_entries_[i]->Print();
+    // And all the successors until an exit, branch, or a block entry.
+    while ((current != NULL) && !current->IsBlockEntry()) {
+      OS::Print("\n");
+      current = current->Print();
+    }
+    if (current != NULL && current->IsBlockEntry()) {
+      OS::Print(" goto %d", current->GetBlockNumber());
+    }
     OS::Print("\n");
   }
-  OS::Print("\n");
 }
 
 
 void FlowGraphBuilder::BuildGraph() {
   EffectGraphVisitor for_effect(this, 0);
+  for_effect.AddInstruction(new TargetEntryInstr());
   parsed_function().node_sequence()->Visit(&for_effect);
   TraceBailout();
   if (!HasBailedOut() && (for_effect.entry() != NULL)) {
-    for_effect.entry()->Postorder(&postorder_);
+    // Accumulate basic block entries via postorder traversal.
+    for_effect.entry()->Postorder(&postorder_block_entries_);
+    // Number the blocks in reverse postorder starting with 0.
+    intptr_t last_index = postorder_block_entries_.length() - 1;
+    for (intptr_t i = last_index; i >= 0; --i) {
+      postorder_block_entries_[i]->SetBlockNumber(last_index - i);
+    }
   }
   PrintGraph();
 }

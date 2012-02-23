@@ -21,7 +21,7 @@ class FlowGraphBuilder: public ValueObject {
   explicit FlowGraphBuilder(const ParsedFunction& parsed_function)
       : parsed_function_(parsed_function),
         bailout_reason_(NULL),
-        postorder_() { }
+        postorder_block_entries_() { }
 
   void BuildGraph();
 
@@ -39,7 +39,7 @@ class FlowGraphBuilder: public ValueObject {
  private:
   const ParsedFunction& parsed_function_;
   const char* bailout_reason_;
-  GrowableArray<Instruction*> postorder_;
+  GrowableArray<Instruction*> postorder_block_entries_;
 };
 
 

@@ -160,32 +160,30 @@ class Instruction : public ZoneAllocated {
  public:
   Instruction() : mark_(false) { }
 
-  virtual void set_successor(Instruction* instr) = 0;
+  virtual void SetSuccessor(Instruction* instr) = 0;
+  virtual bool IsBlockEntry() const { return false; }
+  virtual void SetBlockNumber(intptr_t number) { UNREACHABLE(); }
+  virtual intptr_t GetBlockNumber() const {
+    UNREACHABLE();
+    return -1;
+  }
 
   // Perform a postorder traversal of the instruction graph reachable from
-  // this instruction.  Append the result to the end of the in/out parameter
-  // visited.
-  virtual void Postorder(GrowableArray<Instruction*>* visited) = 0;
+  // this instruction.  Accumulate basic block entries in the order visited
+  // in the in/out parameter 'block_entries'.
+  virtual void Postorder(GrowableArray<Instruction*>* block_entries) = 0;
 
-  // Print an instruction without indentation, instruction number, or a
-  // trailing newline.
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const = 0;
+  // Print an instruction without a four space indent, and no trailing
+  // newline.  Basic block entries are labeled with their block number.
+  // Return the instruction's successor if there is a single successor
+  // otherwise NULL.
+  virtual Instruction* Print() const = 0;
 
   // Mark bit to support non-reentrant recursive traversal (i.e.,
   // identification of cycles).  Before and after a traversal, all the nodes
   // must have the same mark.
   bool mark() const { return mark_; }
   void flip_mark() { mark_ = !mark_; }
-
- protected:
-  // Helper for print handling of successors of nodes with a single successor.
-  // "goto %d" is printed if the successor is not the next instruction.
-  void PrintGotoSuccessor(
-      Instruction* successor,
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
 
  private:
   bool mark_;
@@ -197,16 +195,14 @@ class DoInstr : public Instruction {
   explicit DoInstr(Computation* comp)
       : Instruction(), computation_(comp), successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) {
+  virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  virtual void Postorder(GrowableArray<Instruction*>* block_entries);
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual Instruction* Print() const;
 
  private:
   Computation* computation_;
@@ -222,16 +218,14 @@ class BindInstr : public Instruction {
         computation_(computation),
         successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) {
+  virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  virtual void Postorder(GrowableArray<Instruction*>* block_entries);
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual Instruction* Print() const;
 
  private:
   const intptr_t temp_index_;
@@ -242,40 +236,46 @@ class BindInstr : public Instruction {
 
 class JoinEntryInstr : public Instruction {
  public:
-  JoinEntryInstr() : Instruction(), successor_(NULL) { }
+  JoinEntryInstr() : Instruction(), block_number_(-1), successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) {
+  virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  virtual bool IsBlockEntry() const { return true; }
+  virtual void SetBlockNumber(intptr_t number) { block_number_ = number; }
+  virtual intptr_t GetBlockNumber() const { return block_number_; }
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual void Postorder(GrowableArray<Instruction*>* block_entries);
+
+  virtual Instruction* Print() const;
 
  private:
+  intptr_t block_number_;
   Instruction* successor_;
 };
 
 
 class TargetEntryInstr : public Instruction {
  public:
-  TargetEntryInstr() : Instruction(), successor_(NULL) { }
+  TargetEntryInstr() : Instruction(), block_number_(-1), successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) {
+  virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  virtual bool IsBlockEntry() const { return true; }
+  virtual void SetBlockNumber(intptr_t number) { block_number_ = number; }
+  virtual intptr_t GetBlockNumber() const { return block_number_; }
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual void Postorder(GrowableArray<Instruction*>* block_entries);
+
+  virtual Instruction* Print() const;
 
  private:
+  intptr_t block_number_;
   Instruction* successor_;
 };
 
@@ -284,13 +284,11 @@ class ReturnInstr : public Instruction {
  public:
   explicit ReturnInstr(Value* value) : Instruction(), value_(value) { }
 
-  virtual void set_successor(Instruction* instr) { UNREACHABLE(); }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  virtual void Postorder(GrowableArray<Instruction*>* block_entries);
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual Instruction* Print() const;
 
  private:
   Value* value_;
@@ -305,16 +303,14 @@ class BranchInstr : public Instruction {
         true_successor_(NULL),
         false_successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) { UNREACHABLE(); }
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
   TargetEntryInstr** true_successor_address() { return &true_successor_; }
   TargetEntryInstr** false_successor_address() { return &false_successor_; }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  virtual void Postorder(GrowableArray<Instruction*>* block_entries);
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual Instruction* Print() const;
 
  private:
   Value* value_;
