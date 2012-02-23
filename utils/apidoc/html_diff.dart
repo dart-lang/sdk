@@ -164,7 +164,10 @@ class HtmlDiff {
     if (implMember.isConstructor || implMember.isFactory) {
       var constructor = htmlType.constructors[implMember.name];
       if (constructor != null) return constructor;
-      return htmlType.factories[implMember.name];
+
+      // Look for a factory constructor whose type and name matches the member.
+      return htmlType.factories.getFactoriesFor(implMember.name)[
+          implMember.constructorName];
     } else if ((getter = implMember.name.startsWith('get:')) ||
         (setter = implMember.name.startsWith('set:'))) {
       // Use getMember to follow interface inheritance chains.
