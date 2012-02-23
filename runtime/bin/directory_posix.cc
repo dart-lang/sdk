@@ -71,7 +71,7 @@ static bool HandleDir(char* dir_name,
     if (written != strlen(dir_name)) {
       return false;
     }
-    bool ok = listing->HandleDirectory(dir_name);
+    bool ok = listing->HandleDirectory(path);
     if (!ok) return ok;
     if (recursive) {
       return ListRecursively(path, recursive, listing);
