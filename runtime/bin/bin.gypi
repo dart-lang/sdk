@@ -219,8 +219,12 @@
         ['OS=="win"', {'sources/' : [
           ['exclude', 'fdutils.h'],
         ]}],
-        ['OS=="linux"',
-         {'ldflags': ['-ldl',],
+        ['OS=="linux"', {
+          'link_settings': {
+            'libraries': [
+              '-ldl',
+            ],
+          },
         }],
       ],
     },
