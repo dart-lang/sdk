@@ -53,9 +53,9 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
 
   // 2. Connect the true and false bodies to the test if they are reachable,
   // and if so record their exits (if any).
+  Instruction* true_exit = NULL;
+  Instruction* false_exit = NULL;
   if (test_fragment.can_be_true()) {
-    Instruction* true_exit = NULL;
-    Instruction* false_exit = NULL;
     TargetEntryInstr* true_entry = new TargetEntryInstr();
     *test_fragment.true_successor_address() = true_entry;
     true_entry->SetSuccessor(true_fragment.entry());
@@ -66,7 +66,14 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     false_entry->SetSuccessor(false_fragment.entry());
     false_exit =
         false_fragment.is_empty() ? false_entry : false_fragment.exit();
+  }
 
+  // 3. Add a join or select one (or neither) of the arms as exit.
+  if (true_exit == NULL) {
+    exit_ = false_exit;  // May be NULL.
+  } else if (false_exit == NULL) {
+    exit_ = true_exit;
+  } else {
     exit_ = new JoinEntryInstr();
     true_exit->SetSuccessor(exit_);
     false_exit->SetSuccessor(exit_);
@@ -422,7 +429,6 @@ void TestGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
 void EffectGraphVisitor::VisitIfNode(IfNode* node) {
   TestGraphVisitor for_test(owner(), temp_index());
   node->condition()->Visit(&for_test);
-  Append(for_test);
 
   EffectGraphVisitor for_true(owner(), temp_index());
   EffectGraphVisitor for_false(owner(), temp_index());
