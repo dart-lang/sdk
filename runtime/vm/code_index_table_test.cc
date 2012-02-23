@@ -7,6 +7,7 @@
 #include "vm/code_index_table.h"
 #include "vm/compiler.h"
 #include "vm/object.h"
+#include "vm/pages.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -65,24 +66,21 @@ TEST_CASE(CodeIndexTable) {
   // Now load up class B with 1024 functions.
   written = OS::SNPrint(scriptChars, kScriptSize, "class B {");
   // Create one large function.
-  OS::SNPrint(buffer, sizeof(buffer), "static moo0([int i=1]) { return ");
+  OS::SNPrint(buffer, sizeof(buffer), "static moo0([int i=1]) { ");
   written += OS::SNPrint((scriptChars + written),
                          (kScriptSize - written),
                          "%s",
                          buffer);
-  // Currently this causes about 750KB of code to be allocated.  The
-  // nesting level of binary operations is reduced from 50000 so this
-  // test will pass on Windows. Larger nesting leads to stack overflow
-  // in debug mode in the code generation visitor even when the stack
-  // reserved size is set to 2MB.
-  for (int i = 0; i < 35000; i++) {
-    OS::SNPrint(buffer, sizeof(buffer), "i+");
+  // Generate a large function so that the code for this function when
+  // compiled will reside in a large page.
+  for (int i = 0; i < 50000; i++) {
+    OS::SNPrint(buffer, sizeof(buffer), "i = i+i;");
     written += OS::SNPrint((scriptChars + written),
                            (kScriptSize - written),
                            "%s",
                            buffer);
   }
-  OS::SNPrint(buffer, sizeof(buffer), "i; }");
+  OS::SNPrint(buffer, sizeof(buffer), "return i; }");
   written += OS::SNPrint((scriptChars + written),
                          (kScriptSize - written),
                          "%s",
@@ -144,10 +142,11 @@ TEST_CASE(CodeIndexTable) {
   code = function.code();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
+  EXPECT(code.Size() > PageSpace::kPageSize);
   EXPECT(code_index_table->LookupFunction(pc) == function.raw());
   EXPECT(code_index_table->LookupCode(pc) == code.raw());
-  EXPECT(code.Size() > 750 * KB);
-  pc = code.EntryPoint() + 750 * KB;
+  EXPECT(code.Size() > (1 * MB));
+  pc = code.EntryPoint() + (1 * MB);
   EXPECT(code_index_table->LookupFunction(pc) == function.raw());
   EXPECT(code_index_table->LookupCode(pc) == code.raw());
 }
