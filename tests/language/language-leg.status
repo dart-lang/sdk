@@ -155,7 +155,6 @@ InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actu
 InstanceFieldInitializerTest: Fail # Expect.equals(expected: <1>, actual: <null>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 IntrinsifiedMethodsTest: Fail # Expect.isTrue(false) fails.
-IsOperatorTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
@@ -175,10 +174,6 @@ NullToStringTest: Fail # TypeError: Cannot call method 'get$toString' of undefin
 StackOverflowTest: Fail # RangeError: Maximum call stack size exceeded
 StackTraceTest: Fail # ReferenceError: stacktrace is not defined
 StringTest: Fail # TypeError: Object Hello has no method 'operator$indexSet$2'
-
-
-# Bad code.
-InstanceofTest: Fail # SyntaxError: Unexpected identifier
 
 
 #
