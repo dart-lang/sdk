@@ -84,14 +84,14 @@ Instruction* ReturnInstr::Print() const {
 Instruction* BranchInstr::Print() const {
   OS::Print("    if ");
   value_->Print();
-  OS::Print(" goto(%d, %d)", true_successor_->GetBlockNumber(),
-            false_successor_->GetBlockNumber());
+  OS::Print(" goto(%d, %d)", true_successor_->block_number(),
+            false_successor_->block_number());
   return NULL;
 }
 
 
 Instruction* JoinEntryInstr::Print() const {
-  OS::Print("%2d: [join]", block_number_);
+  OS::Print("%2d: [join]", block_number());
   return successor_;
 }
 
@@ -102,24 +102,24 @@ Instruction* TargetEntryInstr::Print() const {
 }
 
 
-void DoInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
+void DoInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 
 
-void BindInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
+void BindInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
 }
 
 
-void ReturnInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
+void ReturnInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
 }
 
 
-void BranchInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
+void BranchInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder.
@@ -132,14 +132,15 @@ void BranchInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
 }
 
 
-void JoinEntryInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
+void JoinEntryInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
   block_entries->Add(this);
 }
 
 
-void TargetEntryInstr::Postorder(GrowableArray<Instruction*>* block_entries) {
+void TargetEntryInstr::Postorder(
+    GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
   block_entries->Add(this);

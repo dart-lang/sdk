@@ -31,7 +31,7 @@ class FlowGraphBuilder: public ValueObject {
 
  private:
   const ParsedFunction& parsed_function_;
-  GrowableArray<Instruction*> postorder_block_entries_;
+  GrowableArray<BlockEntryInstr*> postorder_block_entries_;
 };
 
 

@@ -891,8 +891,8 @@ void FlowGraphBuilder::PrintGraph() const {
       OS::Print("\n");
       current = current->Print();
     }
-    if (current != NULL && current->IsBlockEntry()) {
-      OS::Print(" goto %d", current->GetBlockNumber());
+    if ((current != NULL) && current->IsBlockEntry()) {
+      OS::Print(" goto %d", BlockEntryInstr::cast(current)->block_number());
     }
     OS::Print("\n");
   }
@@ -909,7 +909,7 @@ void FlowGraphBuilder::BuildGraph() {
     // Number the blocks in reverse postorder starting with 0.
     intptr_t last_index = postorder_block_entries_.length() - 1;
     for (intptr_t i = last_index; i >= 0; --i) {
-      postorder_block_entries_[i]->SetBlockNumber(last_index - i);
+      postorder_block_entries_[i]->set_block_number(last_index - i);
     }
   }
   if (FLAG_print_flow_graph) {
