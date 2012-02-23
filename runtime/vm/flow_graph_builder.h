@@ -27,7 +27,6 @@ class FlowGraphBuilder: public ValueObject {
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
   void Bailout(const char* reason);
-  void PrintGraph() const;
 
  private:
   const ParsedFunction& parsed_function_;

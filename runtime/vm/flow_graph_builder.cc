@@ -879,23 +879,86 @@ void TestGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
-void FlowGraphBuilder::PrintGraph() const {
-  OS::Print("==== %s\n",
-            parsed_function().function().ToFullyQualifiedCString());
+// Graph printing.
+class FlowGraphPrinter : public InstructionVisitor {
+ public:
+  explicit FlowGraphPrinter(const Function& function) : function_(function) { }
 
-  for (intptr_t i = postorder_block_entries_.length() - 1; i >= 0; --i) {
+  virtual ~FlowGraphPrinter() {}
+
+  // Print the instructions in a block terminated by newlines.  Add "goto N"
+  // to the end of the block if it ends with an unconditional jump to
+  // another block and that block is not next in reverse postorder.
+  void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
+
+  // Each visit function prints an instruction with a four space
+  // indent and no trailing newline.  Basic block entries are labeled
+  // with their block number.
+#define DECLARE_VISIT(type)                             \
+  virtual void Visit##type(type##Instr* instr);
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
+#undef DECLARE_VISIT
+
+ private:
+  const Function& function_;
+
+  DISALLOW_COPY_AND_ASSIGN(FlowGraphPrinter);
+};
+
+
+void FlowGraphPrinter::VisitBlocks(
+    const GrowableArray<BlockEntryInstr*>& block_order) {
+  OS::Print("==== %s\n", function_.ToFullyQualifiedCString());
+
+  for (intptr_t i = block_order.length() - 1; i >= 0; --i) {
     // Print the block entry.
-    Instruction* current = postorder_block_entries_[i]->Print();
+    Instruction* current = block_order[i]->Accept(this);
     // And all the successors until an exit, branch, or a block entry.
     while ((current != NULL) && !current->IsBlockEntry()) {
       OS::Print("\n");
-      current = current->Print();
+      current = current->Accept(this);
     }
     if ((current != NULL) && current->IsBlockEntry()) {
       OS::Print(" goto %d", BlockEntryInstr::cast(current)->block_number());
     }
     OS::Print("\n");
   }
+}
+
+
+void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
+  OS::Print("%2d: [join]", instr->block_number());
+}
+
+
+void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
+  OS::Print("%2d: [target]", instr->block_number());
+}
+
+
+void FlowGraphPrinter::VisitDo(DoInstr* instr) {
+  OS::Print("    ");
+  instr->computation()->Print();
+}
+
+
+void FlowGraphPrinter::VisitBind(BindInstr* instr) {
+  OS::Print("    t%d <-", instr->temp_index());
+  instr->computation()->Print();
+}
+
+
+void FlowGraphPrinter::VisitReturn(ReturnInstr* instr) {
+  OS::Print("    return ");
+  instr->value()->Print();
+}
+
+
+void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
+  OS::Print("    if ");
+  instr->value()->Print();
+  OS::Print(" goto(%d, %d)", instr->true_successor()->block_number(),
+            instr->false_successor()->block_number());
 }
 
 
@@ -913,7 +976,8 @@ void FlowGraphBuilder::BuildGraph() {
     }
   }
   if (FLAG_print_flow_graph) {
-    PrintGraph();
+    FlowGraphPrinter printer(parsed_function().function());
+    printer.VisitBlocks(postorder_block_entries_);
   }
 }
 

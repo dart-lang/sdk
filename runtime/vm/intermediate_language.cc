@@ -60,48 +60,56 @@ void ConstantValue::Print() const {
 }
 
 
-Instruction* DoInstr::Print() const {
-  OS::Print("    ");
-  computation_->Print();
+// ==== Support for visiting instructions.
+Instruction* JoinEntryInstr::Accept(InstructionVisitor* visitor) {
+  visitor->VisitJoinEntry(this);
   return successor_;
 }
 
 
-Instruction* BindInstr::Print() const {
-  OS::Print("    t%d <-", temp_index_);
-  computation_->Print();
+Instruction* TargetEntryInstr::Accept(InstructionVisitor* visitor) {
+  visitor->VisitTargetEntry(this);
   return successor_;
 }
 
 
-Instruction* ReturnInstr::Print() const {
-  OS::Print("    return ");
-  value_->Print();
+Instruction* DoInstr::Accept(InstructionVisitor* visitor) {
+  visitor->VisitDo(this);
+  return successor_;
+}
+
+
+Instruction* BindInstr::Accept(InstructionVisitor* visitor) {
+  visitor->VisitBind(this);
+  return successor_;
+}
+
+
+Instruction* ReturnInstr::Accept(InstructionVisitor* visitor) {
+  visitor->VisitReturn(this);
   return NULL;
 }
 
 
-Instruction* BranchInstr::Print() const {
-  OS::Print("    if ");
-  value_->Print();
-  OS::Print(" goto(%d, %d)", true_successor_->block_number(),
-            false_successor_->block_number());
+Instruction* BranchInstr::Accept(InstructionVisitor* visitor) {
+  visitor->VisitBranch(this);
   return NULL;
 }
 
 
-Instruction* JoinEntryInstr::Print() const {
-  OS::Print("%2d: [join]", block_number());
-  return successor_;
+// Default implementation of visiting basic blocks.  Can be overridden.
+void InstructionVisitor::VisitBlocks(
+    const GrowableArray<BlockEntryInstr*>& block_order) {
+  for (intptr_t i = block_order.length() - 1; i >= 0; --i) {
+    Instruction* current = block_order[i]->Accept(this);
+    while ((current != NULL) && !current->IsBlockEntry()) {
+      current = current->Accept(this);
+    }
+  }
 }
 
 
-Instruction* TargetEntryInstr::Print() const {
-  OS::Print("%2d: [target]", block_number_);
-  return successor_;
-}
-
-
+// ==== Postorder graph traversal.
 void DoInstr::Postorder(GrowableArray<BlockEntryInstr*>* block_entries) {
   flip_mark();
   if (successor_->mark() != mark()) successor_->Postorder(block_entries);
