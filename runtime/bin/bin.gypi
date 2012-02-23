@@ -418,6 +418,9 @@
           'defines': [
             'DART_SHARED_LIB',
           ],
+          'ldflags': [
+            '-ldl',
+          ],
         },
       ],
     }],
