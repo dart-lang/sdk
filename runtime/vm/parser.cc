@@ -6043,6 +6043,54 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
 }
 
 
+AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
+  if (!node->IsPrimaryNode()) {
+    return node;
+  }
+  PrimaryNode* primary = node->AsPrimaryNode();
+  if (primary->primary().IsString()) {
+    // In a static method, an unresolved identifier is an error.
+    // In an instance method, we convert this into a getter call
+    // for a field (which may be defined in a subclass.)
+    String& name = String::CheckedZoneHandle(primary->primary().raw());
+    if (current_function().is_static() ||
+        current_function().IsInFactoryScope()) {
+      ErrorMsg(primary->token_index(),
+               "identifier '%s' is not declared in this scope",
+               name.ToCString());
+    } else {
+      AstNode* receiver = LoadReceiver(primary->token_index());
+      return CallGetter(node->token_index(), receiver, name);
+    }
+  }
+  return primary;
+}
+
+
+AstNode* Parser::LoadClosure(PrimaryNode* primary) {
+  ASSERT(primary->primary().IsFunction());
+  AstNode* closure = NULL;
+  const Function& func =
+      Function::CheckedZoneHandle(primary->primary().raw());
+  const String& funcname = String::ZoneHandle(func.name());
+  if (func.is_static()) {
+    // Static function access.
+    closure = CreateImplicitClosureNode(func, primary->token_index(), NULL);
+  } else {
+    // Instance function access.
+    if (current_function().is_static() ||
+        current_function().IsInFactoryScope()) {
+      ErrorMsg(primary->token_index(),
+               "cannot access instance method '%s' from static method",
+               funcname.ToCString());
+    }
+    AstNode* receiver = LoadReceiver(primary->token_index());
+    closure = CallGetter(primary->token_index(), receiver, funcname);
+  }
+  return closure;
+}
+
+
 AstNode* Parser::ParsePostfixExpr() {
   TRACE_PARSER("ParsePostfixExpr");
   const intptr_t postfix_expr_pos = token_index_;
@@ -6052,6 +6100,13 @@ AstNode* Parser::ParsePostfixExpr() {
     AstNode* left = postfix_expr;
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
+      if (left->IsPrimaryNode()) {
+        if (left->AsPrimaryNode()->primary().IsFunction()) {
+          left = LoadClosure(left->AsPrimaryNode());
+        } else {
+          left = LoadFieldIfUnresolved(left);
+        }
+      }
       const intptr_t ident_pos = token_index_;
       String* ident = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kLPAREN) {
@@ -6087,6 +6142,7 @@ AstNode* Parser::ParsePostfixExpr() {
     } else if (CurrentToken() == Token::kLBRACK) {
       const intptr_t bracket_pos = token_index_;
       ConsumeToken();
+      left = LoadFieldIfUnresolved(left);
       const bool saved_mode = SetAllowFunctionLiterals(true);
       AstNode* index = ParseExpr(kAllowConst);
       SetAllowFunctionLiterals(saved_mode);
@@ -6095,24 +6151,11 @@ AstNode* Parser::ParsePostfixExpr() {
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary = left->AsPrimaryNode();
         if (primary->primary().IsFunction()) {
-          ErrorMsg(bracket_pos, "cannot apply index operator to function");
+          array = LoadClosure(primary);
         } else if (primary->primary().IsClass()) {
           ErrorMsg(bracket_pos, "cannot apply index operator to class");
-        } else if (primary->primary().IsString()) {
-          // Primary is an unresolved name.
-          String& name = String::CheckedZoneHandle(primary->primary().raw());
-          if (current_function().is_static()) {
-            ErrorMsg(primary->token_index(),
-                     "identifier '%s' is not declared in this scope",
-                     name.ToCString());
-          } else {
-            // Treat as call to unresolved (instance) method.
-            AstNode* receiver = LoadReceiver(primary->token_index());
-            selector = ParseInstanceCall(receiver, name);
-          }
         } else {
-          // Internal parser error.
-          UNREACHABLE();
+          UNREACHABLE();  // Internal parser error.
         }
       }
       selector = new LoadIndexedNode(bracket_pos, array, index);
@@ -6153,8 +6196,7 @@ AstNode* Parser::ParsePostfixExpr() {
           ErrorMsg(left->token_index(),
                    "must use 'new' or 'const' to construct new instance");
         } else {
-          // Internal parser error.
-          UNREACHABLE();
+          UNREACHABLE();  // Internal parser error.
         }
       } else {
         // Left is not a primary node; this must be a closure call.
@@ -6163,50 +6205,24 @@ AstNode* Parser::ParsePostfixExpr() {
       }
     } else {
       // No (more) selector to parse.
+      left = LoadFieldIfUnresolved(left);
       if (left->IsPrimaryNode()) {
-        if (left->AsPrimaryNode()->primary().IsString()) {
-          PrimaryNode* primary = left->AsPrimaryNode();
-          const String& ident =
-              String::CheckedZoneHandle(primary->primary().raw());
-          // An unresolved identifier that is not followed by a selector token
-          // . or [ or (.
-          // If we are in a static method, this is an error.
-          // If we are compiling an instance method, convert this into
-          // a runtime lookup for a field (which may be defined in a
-          // subclass.)
-          if (current_function().is_static()) {
-            ErrorMsg(primary->token_index(),
-                     "identifier '%s' is not declared in this scope",
-                     ident.ToCString());
-          } else {
-            // Treat as call to unresolved (instance) field.
-            AstNode* receiver = LoadReceiver(primary->token_index());
-            postfix_expr = ParseInstanceFieldAccess(receiver, ident);
-          }
-        } else if (left->AsPrimaryNode()->primary().IsFunction()) {
+        PrimaryNode* primary = left->AsPrimaryNode();
+        if (primary->primary().IsFunction()) {
           // Treat as implicit closure.
-          PrimaryNode* primary = left->AsPrimaryNode();
-          const Function& func =
-              Function::CheckedZoneHandle(primary->primary().raw());
-          const String& funcname = String::ZoneHandle(func.name());
-          if (func.is_static()) {
-            // Static function access.
-            postfix_expr = CreateImplicitClosureNode(func,
-                                                     primary->token_index(),
-                                                     NULL);
-          } else {
-            // Instance function access.
-            if (current_function().is_static() ||
-                current_function().IsInFactoryScope()) {
-              ErrorMsg(primary->token_index(),
-                       "illegal use of method '%s'",
-                       funcname.ToCString());
-            }
-            AstNode* receiver = LoadReceiver(primary->token_index());
-            postfix_expr = ParseInstanceFieldAccess(receiver, funcname);
-          }
+          left = LoadClosure(primary);
+        } else if (left->AsPrimaryNode()->primary().IsClass()) {
+          Class& cls = Class::CheckedHandle(
+              left->AsPrimaryNode()->primary().raw());
+          String& cls_name = String::Handle(cls.Name());
+          ErrorMsg(left->token_index(),
+                   "illegal use of class name '%s'",
+                   cls_name.ToCString());
+        } else {
+          UNREACHABLE();  // Internal parser error.
         }
       }
+      postfix_expr = left;
       // Done parsing selectors.
       break;
     }
@@ -7496,8 +7512,23 @@ AstNode* Parser::ParsePrimary() {
       if (!ResolveIdentInLocalScope(qual_ident.ident_pos,
                                     *qual_ident.ident,
                                     &primary)) {
-        // This is a non-local unqualified identifier so resolve the identifier
-        // locally in the main app library and all libraries imported by it.
+        // Check whether the identifier is a type parameter. Type parameters
+        // can never be used as part of primary expressions.
+        const Class& scope_class = Class::Handle(TypeParametersScopeClass());
+        if (!scope_class.IsNull()) {
+          TypeParameter& type_param = TypeParameter::ZoneHandle(
+              scope_class.LookupTypeParameter(*(qual_ident.ident),
+                                              token_index_));
+          if (!type_param.IsNull()) {
+            String& type_param_name = String::Handle(type_param.Name());
+            ErrorMsg(qual_ident.ident_pos,
+                     "illegal use of type parameter %s",
+                     type_param_name.ToCString());
+          }
+        }
+        // This is a non-local unqualified identifier so resolve the
+        // identifier locally in the main app library and all libraries
+        // imported by it.
         primary = ResolveIdentInLibraryScope(library_,
                                              qual_ident,
                                              kResolveIncludingImports);

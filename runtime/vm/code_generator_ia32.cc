@@ -922,8 +922,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
 
 void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
   // PrimaryNodes are temporary during parsing.
-  ErrorMsg(node->token_index(),
-      "Unresolved identifier '%s'", node->primary().ToCString());
+  UNREACHABLE();
 }
 
 
