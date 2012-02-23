@@ -315,10 +315,18 @@ class FrogInterfaceGenerator(object):
       info: An OperationInfo object.
     """
     # TODO(vsm): Handle overloads.
+    params = info.ParametersImplementationDeclaration(
+        lambda type_name: self._NarrowInputType(type_name))
+
+    native_body = dom_frog_native_bodies.get(
+        self._interface.id + '.' + info.name, '')
+    if native_body:
+      native_body = " '''" + native_body + "'''"
+
     self._members_emitter.Emit(
         '\n'
-        '  $TYPE $NAME($PARAMS) native;\n',
+        '  $TYPE $NAME($PARAMS) native$NATIVESTRING;\n',
         TYPE=self._NarrowOutputType(info.type_name),
         NAME=info.name,
-        PARAMS=info.ParametersImplementationDeclaration(
-            lambda type_name: self._NarrowInputType(type_name)))
+        PARAMS=params,
+        NATIVESTRING=native_body)

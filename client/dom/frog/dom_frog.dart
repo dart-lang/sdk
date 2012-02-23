@@ -2320,7 +2320,9 @@ class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<n
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Float32ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -2410,7 +2412,9 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Float64ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -4000,7 +4004,10 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   final _IDBAnyJs source;
 
-  void continueFunction([_IDBKeyJs key = null]) native;
+  void continueFunction([_IDBKeyJs key = null]) native '''
+if (key == null) return this['continue']();
+return this['continue'](key);
+''';
 
   _IDBRequestJs delete() native;
 
@@ -4110,7 +4117,7 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   _IDBRequestJs count([_IDBKeyRangeJs range = null]) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native;
+  _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
 
   _IDBRequestJs getKey(_IDBKeyJs key) native;
 
@@ -4161,7 +4168,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   void deleteIndex(String name) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native;
+  _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
 
   _IDBIndexJs index(String name) native;
 
@@ -4332,7 +4339,9 @@ class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Int16ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -4422,7 +4431,9 @@ class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Int32ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -4512,7 +4523,9 @@ class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> na
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Int8ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -9725,7 +9738,9 @@ class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Uint16ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -9815,7 +9830,9 @@ class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Uint32ArrayJs subarray(int start, [int end = null]) native;
 }
@@ -9905,7 +9922,9 @@ class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Uint8ArrayJs subarray(int start, [int end = null]) native;
 }

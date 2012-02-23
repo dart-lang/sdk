@@ -84,7 +84,9 @@ class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Uint8ArrayJs subarray(int start, [int end = null]) native;
 }
