@@ -6,10 +6,13 @@
 #
 
 """
-Generates an html file (frogpad.html) that can be used to execute the frog
-compiler in a web browser or DumpRenderTree,
+Frogpad is used to compile .dart files to javascript.
 
-The generated frogpad.html will contain:
+This is accomplished by first creating an html file (usually called
+<something>.frogpad.html) that can be used to execute the frog compiler in
+a web browser (or DumpRenderTree).
+
+The generated frogpad.html contains:
 
   1. all the dart files that compose a dart program
   2. all the dart files of dart:core and other standard dart libraries
@@ -17,12 +20,12 @@ The generated frogpad.html will contain:
 
 The contents of each dart file is placed in a separate <script> tag.
 
-When the html page is loaded by a browser, the frog compiler will be invoked
-and the user's dart program will be compiled to javascript.  The generated
-javascript will be placed in the <pre> element with id "output".
+When the html page is loaded by a browser, the frog compiler is invoked
+and the dart program is compiled to javascript.  The generated javascript is
+placed in a <pre> element with id "output".
 
-If using DumpRenderTree, the output javascript can be obtained by dumping
-the page as text and looking for the contents of the output textarea.
+When the html page is passed to DumpRenderTree, the dumped output will
+have the generated javascript.
 """
 
 import logging
@@ -31,6 +34,7 @@ import os.path
 import re
 import subprocess
 import sys
+
 
 class FileNotFoundException(Exception):
   def __init__(self, file_name):
@@ -98,6 +102,11 @@ HTML = """<html>
 </html>
 """
 
+# This finds everything after the word "Output:" in the html page.
+# (Note, because the javascript we're fishing out spans multiple lines
+# we need to use the DOTALL switch here.)
+OUTPUT_JAVASCRIPT_REGEX = re.compile(".*\nOutput:(.*)#EOF", re.DOTALL)
+
 # We use "application/inert" here to make the browser ignore the
 # these script tags.  (frogpad.dart will fish out the contents as needed.)
 #
@@ -132,15 +141,25 @@ class Pad(object):
   """
 
   def __init__(self, argv):
-    parser = optparse.OptionParser()
+    parser = optparse.OptionParser(usage=
+      "%prog [options] file_to_compile.dart"
+    )
     parser.add_option("-r", "--rebuild",  action="store_true",
-        help="forces rebuild of frogpad_js")
+        help="forces rebuild of the frogpad javascript")
     parser.add_option("-o", "--out",
         help="name of javascript output file")
+    parser.add_option("-v", "--verbose", action="store_true",
+        help="more verbose logging")
     (options, args) = parser.parse_args(argv)
 
+    log_level = logging.INFO
+    if options.verbose:
+      log_level = logging.DEBUG
+    logging.basicConfig(level=log_level)
+
     if len(args) < 2:
-      usage()
+      parser.print_help()
+      sys.exit(1)
 
     self.main_file = os.path.abspath(args[1])
 
@@ -195,10 +214,10 @@ class Pad(object):
     write_file(self.html_file, html)
 
     js = self.generate_js()
-    logging.debug("found javascript in drt output (%d lines)",
-        len(js.splitlines()))
     write_file(self.js_file, js)
-    logging.info("generated '%s'", self.js_file)
+
+    line_count = len(js.splitlines())
+    logging.info("generated '%s' (%d lines)", self.js_file, line_count)
 
   def build_frogpad_js(self):
     dart_vm = os.path.join(self.dart_dir, "out/Release_ia32/dart")
@@ -253,7 +272,7 @@ class Pad(object):
     args.append(self.html_file)
 
     stdout = run_command(args)
-    match = re.match("(?s).*Output:(.*)#EOF", stdout)
+    match = OUTPUT_JAVASCRIPT_REGEX.match(stdout)
     if not match:
       raise Exception("can't find regex in DumpRenderTree output")
     return match.group(1)
@@ -262,6 +281,7 @@ class Pad(object):
   def _create_tag(id, contents):
     s = SCRIPT_TAG
     s = s.replace("{{id}}", id)
+    # TODO(mattsh) - need to html escape here
     s = s.replace("{{contents}}", contents)
     return s
 
@@ -374,16 +394,7 @@ def run_command(args):
   return stdout
 
 
-def usage():
-  print("""
-    Usage:
-    frogpad.py --out hello.js hello.dart
-  """)
-  sys.exit(1)
-
-
 def main(argv):
-  logging.basicConfig(level=logging.INFO)
   Pad(argv)
 
 if __name__ == "__main__":
