@@ -32,6 +32,7 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     " certain optimizations");
 DEFINE_FLAG(bool, use_new_compiler, false,
     "Try to use the new compiler backend.");
+DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from new compiler.");
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -117,8 +118,22 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
     Parser::ParseFunction(&parsed_function);
     if (FLAG_use_new_compiler) {
-      FlowGraphBuilder graph_builder(parsed_function);
-      graph_builder.BuildGraph();
+      LongJump* old_base = isolate->long_jump_base();
+      LongJump bailout_jump;
+      isolate->set_long_jump_base(&bailout_jump);
+      if (setjmp(*bailout_jump.Set()) == 0) {
+        FlowGraphBuilder graph_builder(parsed_function);
+        graph_builder.BuildGraph();
+      } else {
+        // We bailed out.
+        Error& bailout_error = Error::Handle(
+            isolate->object_store()->sticky_error());
+        isolate->object_store()->clear_sticky_error();
+        if (FLAG_trace_bailout) {
+          OS::Print("%s\n", bailout_error.ToErrorCString());
+        }
+      }
+      isolate->set_long_jump_base(old_base);
       // Currently, always fails and falls through to the old compiler.
     }
     CodeIndexTable* code_index_table = isolate->code_index_table();

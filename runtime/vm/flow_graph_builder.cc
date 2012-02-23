@@ -6,12 +6,12 @@
 
 #include "vm/flags.h"
 #include "vm/intermediate_language.h"
+#include "vm/longjump.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from graph builder.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DECLARE_FLAG(bool, enable_type_checks);
 
@@ -123,9 +123,6 @@ void TestGraphVisitor::BranchOnValue(Value* value) {
 
 
 void EffectGraphVisitor::Bailout(const char* reason) {
-  if (FLAG_trace_bailout) {
-    OS::Print("Flow Graph Bailout: %s\n", reason);
-  }
   owner()->Bailout(reason);
 }
 
@@ -133,7 +130,7 @@ void EffectGraphVisitor::Bailout(const char* reason) {
 // 'bailout' is a statement (without a semicolon), typically a return.
 #define CHECK_ALIVE(bailout)                            \
   do {                                                  \
-    if (owner()->HasBailedOut() || !is_open()) {        \
+    if (!is_open()) {                                   \
       bailout;                                          \
     }                                                   \
   } while (false)
@@ -237,9 +234,10 @@ void TestGraphVisitor::VisitAssignableNode(AssignableNode* node) {
 //                            right: <Expression> }
 InstanceCallComp* EffectGraphVisitor::TranslateBinaryOp(
     const BinaryOpNode& node) {
+  // Operators "&&" and "||" cannot be overloaded therefore do not call
+  // operator.
   if ((node.kind() == Token::kAND) || (node.kind() == Token::kOR)) {
-    Bailout("EffectGraphVisitor::VisitBinaryOpNode");
-    return NULL;
+    Bailout("EffectGraphVisitor::VisitBinaryOpNode AND/OR");
   }
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node.left()->Visit(&for_left_value);
@@ -328,14 +326,33 @@ void TestGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
 }
 
 
+
+InstanceCallComp* EffectGraphVisitor::TranslateUnaryOp(
+    const UnaryOpNode& node) {
+  // "!" cannot be overloaded, therefore do not call operator.
+  if (node.kind() == Token::kNOT) {
+    Bailout("EffectGraphVisitor::VisitUnaryOpNode NOT");
+  }
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node.operand()->Visit(&for_value);
+  Append(for_value);
+  ZoneGrowableArray<Value*>* argument = new ZoneGrowableArray<Value*>(1);
+  argument->Add(for_value.value());
+  return new InstanceCallComp(node.Name(), argument);
+}
+
+
 void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
-  Bailout("EffectGraphVisitor::VisitUnaryOpNode");
+  InstanceCallComp* call = TranslateUnaryOp(*node);
+  DoComputation(call);
 }
 void ValueGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
-  Bailout("ValueGraphVisitor::VisitUnaryOpNode");
+  InstanceCallComp* call = TranslateUnaryOp(*node);
+  ReturnValueOf(call);
 }
 void TestGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
-  Bailout("TestGraphVisitor::VisitUnaryOpNode");
+  InstanceCallComp* call = TranslateUnaryOp(*node);
+  BranchOnValueOf(call);
 }
 
 
@@ -856,18 +873,7 @@ void TestGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
-void FlowGraphBuilder::TraceBailout() const {
-  if (FLAG_trace_bailout && HasBailedOut()) {
-    OS::Print("Failed: %s in %s\n",
-              bailout_reason_,
-              parsed_function().function().ToFullyQualifiedCString());
-  }
-}
-
-
 void FlowGraphBuilder::PrintGraph() const {
-  if (!FLAG_print_flow_graph || HasBailedOut()) return;
-
   OS::Print("==== %s\n",
             parsed_function().function().ToFullyQualifiedCString());
 
@@ -891,8 +897,7 @@ void FlowGraphBuilder::BuildGraph() {
   EffectGraphVisitor for_effect(this, 0);
   for_effect.AddInstruction(new TargetEntryInstr());
   parsed_function().node_sequence()->Visit(&for_effect);
-  TraceBailout();
-  if (!HasBailedOut() && (for_effect.entry() != NULL)) {
+  if (for_effect.entry() != NULL) {
     // Accumulate basic block entries via postorder traversal.
     for_effect.entry()->Postorder(&postorder_block_entries_);
     // Number the blocks in reverse postorder starting with 0.
@@ -901,7 +906,22 @@ void FlowGraphBuilder::BuildGraph() {
       postorder_block_entries_[i]->SetBlockNumber(last_index - i);
     }
   }
-  PrintGraph();
+  if (FLAG_print_flow_graph) {
+    PrintGraph();
+  }
 }
+
+
+void FlowGraphBuilder::Bailout(const char* reason) {
+  const char* kFormat = "FlowGraphBuilder Bailout: %s";
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, reason) + 1;
+  char* chars = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len));
+  OS::SNPrint(chars, len, kFormat, reason);
+  const Error& error = Error::Handle(
+      LanguageError::New(String::Handle(String::New(chars))));
+  Isolate::Current()->long_jump_base()->Jump(1, error);
+}
+
 
 }  // namespace dart
