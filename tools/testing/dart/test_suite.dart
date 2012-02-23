@@ -388,6 +388,7 @@ class StandardTestSuite implements TestSuite {
     if (optionsFromFile['isMultitest']) {
       testGeneratorStarted();
       DoMultitest(filename,
+                  configuration['component'],
                   TestUtils.buildDir(configuration),
                   directoryPath,
                   createTestCase,

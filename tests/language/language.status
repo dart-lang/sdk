@@ -112,8 +112,6 @@ FinalSyntaxTest/none: Fail
 
 CompileTimeConstant3Test: Fail # Issue 1780
 
-CodeAfterTryIsExecutedTest/01: Fail # Issue 1799.
-
 # Marked failed after code generation removed from dartc
 ApplicationNegativeTest: Fail
 AssertKeywordNegativeTest: Fail
