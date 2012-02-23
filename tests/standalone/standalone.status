@@ -15,10 +15,15 @@ ManyEchoServerTest: Skip        # Bug 5103754
 # These tests fail, crash, and timeout to test the testing infrastructure.
 FailTest: Fail
 TimeoutTest: Skip  # Uses too much time to test on many platforms, for no gain.
+TestExtensionTest: Fail  # shared library in wrong place (issue 1817)
 
 [ $component == vm && $system == macos]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 SocketManyConnectionsTest: Skip
+TestExtensionTest: Skip  # Extensions not implemented on MacOS
+
+[ $component == vm && $system == win32]
+TestExtensionTest: Skip  # Extensions not implemented on Windows
 
 [ $component == dartium ]
 # Server specific tests OK to fail in the browser
@@ -56,6 +61,7 @@ PlatformTest: Skip # Uses Platform
 ChunkedStreamTest: Skip # Uses InputStream
 DartStdIOPipeTest: Skip # Uses dart:io
 FileOutputStreamTest: Skip # Uses dart:io
+TestExtensionTest: Skip # Extensions implemented only in Dart shell.
 
 [ $component == dartc || $component == chromium ]
 *: Skip

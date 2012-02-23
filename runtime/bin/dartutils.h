@@ -68,6 +68,7 @@ class DartUtils {
                                      const char* name,
                                      const char* val);
   static bool IsDartSchemeURL(const char* url_name);
+  static bool IsDartExtensionSchemeURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
   static bool IsDartJsonLibURL(const char* url_name);
   static bool IsDartUriLibURL(const char* url_name);
@@ -86,6 +87,7 @@ class DartUtils {
   static bool PostInt32(Dart_Port port_id, int32_t value);
 
   static const char* kDartScheme;
+  static const char* kDartExtensionScheme;
   static const char* kBuiltinLibURL;
   static const char* kCoreLibURL;
   static const char* kCoreImplLibURL;

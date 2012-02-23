@@ -10,6 +10,7 @@
 #include "platform/globals.h"
 
 const char* DartUtils::kDartScheme = "dart:";
+const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
@@ -101,6 +102,15 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   // If the URL starts with "dart:" then it is considered as a special
   // library URL which is handled differently from other URLs.
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
+}
+
+
+bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
+  static const intptr_t kDartExtensionSchemeLen = strlen(kDartExtensionScheme);
+  // If the URL starts with "dartext:" then it is considered as a special
+  // extension library URL which is handled differently from other URLs.
+  return
+      (strncmp(url_name, kDartExtensionScheme, kDartExtensionSchemeLen) == 0);
 }
 
 

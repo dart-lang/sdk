@@ -308,7 +308,7 @@
       'target_name': 'dart',
       'type': 'executable',
       'dependencies': [
-        'libdart',
+        'libdart_export',
         'libdart_builtin',
         'generate_snapshot_file',
       ],
@@ -401,4 +401,26 @@
       ],
     },
   ],
+  'conditions': [
+    ['OS=="linux"', {
+      'targets': [
+        {
+          'target_name': 'test_extension',
+          'type': 'shared_library',
+          'dependencies': [
+          ],
+          'include_dirs': [
+            '.',
+          ],
+          'sources': [
+            'test_extension_linux.cc',
+          ],
+          'defines': [
+            'DART_SHARED_LIB',
+          ],
+        },
+      ],
+    }],
+  ],
 }
+
