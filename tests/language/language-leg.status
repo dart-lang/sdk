@@ -103,6 +103,7 @@ Prefix21Test: Fail # Internal Error: Element.computeType.
 Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
 RegExpTest: Fail # named constructors with type arguments are not implemented
+ResourceTest: Fail # #resource tag not recognized - issue 1807
 RethrowTest: Fail # SsaBuilder: throw without expression not implemented
 SavannahTest: Fail # SsaBuilder.visitContinueStatement not implemented
 StatementTest: Fail # switch cases are not implemented
@@ -332,7 +333,3 @@ ExecuteFinally9Test: Fail
 
 [ $component == leg && $mode == release ]
 AssignTopMethodNegativeTest: Crash
-
-
-[ $component == leg && $mode == debug ]
-OperatorTest: Crash # VM assertion issue 1804.
