@@ -16,7 +16,8 @@
           '-Wvla',
           # TODO(v8-team): Fix V8 build.
           #'-Woverloaded-virtual',
-          '-g',
+          '-g3',
+          '-ggdb3',
           '-ansi',
           '-fno-rtti',
           '-fno-exceptions',
@@ -58,7 +59,7 @@
       },
 
       'Dart_Debug': {
-        'cflags': [ '-O0', ],
+        'cflags': [ '-O2' ],
       },
 
       'Dart_Release': {
