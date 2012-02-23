@@ -405,10 +405,6 @@ Switch4NegativeTest: Skip
 ExecuteFinally6Test: Skip
 
 [ $component == webdriver && $browser == safari ]
-BlockScopeTest: Fail
-ClosureBreak1Test: Fail
-ClosureBreakTest: Fail
-ExecuteFinally7Test: Fail
 ImplicitClosure1Test: Fail
 MethodBindingTest: Fail
 Prefix15Test: Fail
