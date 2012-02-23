@@ -52,7 +52,15 @@ cp static/* docs
 # Ditch the first arg so we can pass any extra arguments to dartdoc.
 shift
 
+# Figure out where the dart VM executable is.
+
 # Generate the user's docs.
-../../frog/minfrog --libdir=../../frog/lib ../apidoc/apidoc.dart
+if [ -a "../../out/Release_ia32/dart" ]; then
+  ../../out/Release_ia32/dart ../apidoc/apidoc.dart
+elif [ -a "../../xcodebuild/Release_ia32/dart" ]; then
+  ../../xcodebuild/Release_ia32/dart ../apidoc/apidoc.dart
+else
+  echo "Could not find the Dart VM. Did you run 'tools/build.py -m release'?"
+fi
 
 popd >>/dev/null
