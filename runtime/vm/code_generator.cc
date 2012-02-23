@@ -342,6 +342,12 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 3) {
                 String::Handle(instantiated_type.Name()).ToCString(),
                 String::Handle(type.Name()).ToCString());
     }
+    DartFrameIterator iterator;
+    DartFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    const Function& function = Function::Handle(
+        caller_frame->LookupDartFunction());
+    OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
   arguments.SetReturn(result);
 }
