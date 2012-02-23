@@ -322,6 +322,14 @@ Dart_CObject* CObject::NewInt64(int64_t value) {
 }
 
 
+Dart_CObject* CObject::NewIntptr(intptr_t value) {
+  // Pointer values passed as intptr_t are always send as int64_t.
+  Dart_CObject* cobject = New(Dart_CObject::kInt64);
+  cobject->value.as_int64 = value;
+  return cobject;
+}
+
+
 Dart_CObject* CObject::NewDouble(double value) {
   Dart_CObject* cobject = New(Dart_CObject::kDouble);
   cobject->value.as_double = value;
@@ -350,5 +358,13 @@ Dart_CObject* CObject::NewArray(int length) {
   cobject->value.as_array.length = length;
   cobject->value.as_array.values =
       reinterpret_cast<Dart_CObject**>(cobject + 1);
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewByteArray(int length) {
+  Dart_CObject* cobject = New(Dart_CObject::kByteArray, length);
+  cobject->value.as_byte_array.length = length;
+  cobject->value.as_byte_array.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;
 }

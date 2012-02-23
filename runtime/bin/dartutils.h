@@ -114,6 +114,8 @@ class CObject {
   bool IsBool() { return type() == Dart_CObject::kBool; }
   bool IsInt32() { return type() == Dart_CObject::kInt32; }
   bool IsInt64() { return type() == Dart_CObject::kInt64; }
+  bool IsInt32OrInt64() { return IsInt32() || IsInt64(); }
+  bool IsIntptr() { return IsInt32OrInt64(); }
   bool IsBigint() { return type() == Dart_CObject::kBigint; }
   bool IsDouble() { return type() == Dart_CObject::kDouble; }
   bool IsString() { return type() == Dart_CObject::kString; }
@@ -138,12 +140,13 @@ class CObject {
   static CObject* Bool(bool value);
   static Dart_CObject* NewInt32(int32_t value);
   static Dart_CObject* NewInt64(int64_t value);
+  static Dart_CObject* NewIntptr(intptr_t value);
   // TODO(sgjesse): Add support for kBigint.
   static Dart_CObject* NewDouble(double value);
   static Dart_CObject* NewString(int length);
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(int length);
-  // TODO(sgjesse): Add support for kByteArray.
+  static Dart_CObject* NewByteArray(int length);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
 
@@ -199,6 +202,31 @@ class CObjectInt64 : public CObject {
 };
 
 
+class CObjectIntptr : public CObject {
+ public:
+  explicit CObjectIntptr(Dart_CObject *cobject) : CObject(cobject) {
+    ASSERT(type() == Dart_CObject::kInt32 || type() == Dart_CObject::kInt64);
+    cobject_ = cobject;
+  }
+  explicit CObjectIntptr(CObject* cobject) : CObject() {
+    ASSERT(cobject != NULL);
+    ASSERT(cobject->type() == Dart_CObject::kInt64 ||
+           cobject->type() == Dart_CObject::kInt32);
+    cobject_ = cobject->AsApiCObject();
+  }
+
+  intptr_t Value()  {
+    intptr_t result;
+    if (type() == Dart_CObject::kInt32) {
+      result = cobject_->value.as_int32;
+    } else {
+      result = cobject_->value.as_int64;
+    }
+    return result;
+  }
+};
+
+
 class CObjectBigint : public CObject {
  public:
   DECLARE_COBJECT_CONSTRUCTORS(Bigint)
@@ -235,6 +263,15 @@ class CObjectArray : public CObject {
   void SetAt(int index, CObject* value) {
     cobject_->value.as_array.values[index] = value->AsApiCObject();
   }
+};
+
+
+class CObjectByteArray : public CObject {
+ public:
+  DECLARE_COBJECT_CONSTRUCTORS(ByteArray)
+
+  int Length() const { return cobject_->value.as_byte_array.length; }
+  uint8_t* Buffer() const { return cobject_->value.as_byte_array.values; }
 };
 
 #endif  // BIN_DARTUTILS_H_
