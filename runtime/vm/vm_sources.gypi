@@ -140,6 +140,7 @@
     'instructions_x64_test.cc',
     'intermediate_language.cc',
     'intermediate_language.h',
+    'intermediate_language_test.cc',
     'intrinsifier.h',
     'intrinsifier_arm.cc',
     'intrinsifier_ia32.cc',

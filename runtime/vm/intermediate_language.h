@@ -159,12 +159,12 @@ class ConstantValue: public Value {
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
 // concatenated.
-#define FOR_EACH_INSTRUCTION(M)                 \
-  M(JoinEntry)                                  \
-  M(TargetEntry)                                \
-  M(Do)                                         \
-  M(Bind)                                       \
-  M(Return)                                     \
+#define FOR_EACH_INSTRUCTION(M)                                                \
+  M(JoinEntry)                                                                 \
+  M(TargetEntry)                                                               \
+  M(Do)                                                                        \
+  M(Bind)                                                                      \
+  M(Return)                                                                    \
   M(Branch)
 
 
@@ -177,38 +177,17 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 
 // Functions required in all concrete instruction classes.
-#define DECLARE_INSTRUCTION(type)                               \
-  virtual Tag tag() const { return k##type; }                   \
-  static type##Instr* cast(Instruction* instr) {                \
-    ASSERT(instr->Is##type());                                  \
-    return reinterpret_cast<type##Instr*>(instr);               \
-  }                                                             \
-  virtual Instruction* Accept(InstructionVisitor* visitor);
+#define DECLARE_INSTRUCTION(type)                                              \
+  virtual Instruction* Accept(InstructionVisitor* visitor);                    \
+  virtual bool Is##type() const { return true; }                               \
+  virtual type##Instr* As##type() { return this; }                             \
 
 
 class Instruction : public ZoneAllocated {
  public:
-  // Declare a tag for each concrete instruction type.
-#define DECLARE_TAG(type) k##type,
-  enum Tag {
-    FOR_EACH_INSTRUCTION(DECLARE_TAG)
-    kInstructionCount  // To follow the trailing comma from the macro.
-  };
-#undef DECLARE_TAG
-
   Instruction() : mark_(false) { }
 
-  // Pure virtual tag accessor.
-  virtual Tag tag() const = 0;
-
-  // Non-virtual type testing functions.
-#define DEFINE_TYPE_FUNCTIONS(type)                             \
-  bool Is##type() const { return tag() == k##type; }
-  FOR_EACH_INSTRUCTION(DEFINE_TYPE_FUNCTIONS)
-#undef DEFINE_TYPE_FUNCTIONS
-
-  // Type testing and conversions for other classes of instructions.
-  bool IsBlockEntry() const { return IsJoinEntry() || IsTargetEntry(); }
+  virtual bool IsBlockEntry() const { return false; }
 
   // Visiting support.
   virtual Instruction* Accept(InstructionVisitor* visitor) = 0;
@@ -225,6 +204,12 @@ class Instruction : public ZoneAllocated {
   bool mark() const { return mark_; }
   void flip_mark() { mark_ = !mark_; }
 
+#define INSTRUCTION_TYPE_CHECK(type)                                           \
+  virtual bool Is##type() const { return false; }                              \
+  virtual type##Instr* As##type() { return NULL; }
+FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
+#undef INSTRUCTION_TYPE_CHECK
+
  private:
   bool mark_;
 };
@@ -236,7 +221,7 @@ class Instruction : public ZoneAllocated {
 // of branches.
 class BlockEntryInstr : public Instruction {
  public:
-  BlockEntryInstr() : Instruction(), block_number_(-1) { }
+  virtual bool IsBlockEntry() const { return true; }
 
   static BlockEntryInstr* cast(Instruction* instr) {
     ASSERT(instr->IsBlockEntry());
@@ -245,6 +230,9 @@ class BlockEntryInstr : public Instruction {
 
   intptr_t block_number() const { return block_number_; }
   void set_block_number(intptr_t number) { block_number_ = number; }
+
+ protected:
+  BlockEntryInstr() : Instruction(), block_number_(-1) { }
 
  private:
   intptr_t block_number_;
