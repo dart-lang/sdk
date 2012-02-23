@@ -67,7 +67,6 @@ LabelTest: Fail # switch cases are not implemented
 Library5Test: Fail # library prefixes not handled
 LibraryPrefixesTest: Fail # other is not a type
 LibrarySameNameUsedTest: Fail # lib2 is not a type
-ListLiteral2Test: Fail # CompileTimeConstantEvaluator not implemented
 ListTest: Fail # named constructors with type arguments are not implemented
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T

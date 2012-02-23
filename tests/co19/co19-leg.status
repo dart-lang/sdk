@@ -294,38 +294,6 @@ LibTest/core/Set/remove_A01_t05: Fail # SsaBuilder.visitContinueStatement not im
 LibTest/core/Set/some_A01_t01: Fail # Cannot find value
 LibTest/core/Set/some_A01_t02: Fail # Cannot find value
 LibTest/core/Set/some_A01_t03: Fail # Cannot find value
-LibTest/core/double/operator_GE_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_GE_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_GT_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_GT_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_LE_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_LE_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_LT_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_LT_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_addition_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_addition_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_addition_A01_t07: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_addition_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_division_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_division_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_division_A01_t03: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_division_A01_t08: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_division_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_multiplication_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_multiplication_A01_t06: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_multiplication_A01_t08: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_multiplication_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_remainder_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_subtraction_A01_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_subtraction_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_subtraction_A01_t07: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_subtraction_A01_t08: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_subtraction_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_truncating_division_A01_t02: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/operator_truncating_division_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/remainder_A01_t04: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/remainder_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
-LibTest/core/double/toStringAsFixed_A02_t01: Fail # CompileTimeConstantEvaluator not implemented
 LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>", <6a>) fails
 
 
