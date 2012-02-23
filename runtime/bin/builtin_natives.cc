@@ -15,11 +15,11 @@
 // List all native functions implemented in standalone dart that is used
 // to inject additional functionality e.g: Logger, file I/O, socket I/O etc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
-  V(Directory_List, 7)                                                         \
   V(Directory_Exists, 1)                                                       \
   V(Directory_Create, 1)                                                       \
   V(Directory_CreateTemp, 2)                                                   \
   V(Directory_Delete, 2)                                                       \
+  V(Directory_NewServicePort, 0)                                               \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
   V(Exit, 1)                                                                   \
@@ -38,7 +38,10 @@
   V(File_Flush, 1)                                                             \
   V(File_Create, 1)                                                            \
   V(File_Delete, 1)                                                            \
+  V(File_Directory, 1)                                                         \
   V(File_FullPath, 1)                                                          \
+  V(File_OpenStdio, 1)                                                         \
+  V(File_GetStdioHandleType, 1)                                                \
   V(Logger_PrintString, 1)                                                     \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \

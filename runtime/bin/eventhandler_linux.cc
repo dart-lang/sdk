@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/epoll.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -87,7 +88,7 @@ static void UpdateEpollInstance(intptr_t epoll_fd_, SocketData* sd) {
       sd->set_tracked_by_epoll(true);
     }
     if (status == -1) {
-      FATAL("Failed updating epoll instance");
+      FATAL1("Failed updating epoll instance: %s", strerror(errno));
     }
   }
 }

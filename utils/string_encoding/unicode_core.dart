@@ -46,21 +46,10 @@ final int UNICODE_UTF16_LO_MASK = 0x3ff;
 List<int> codepointsToUtf16CodeUnits(
     List<int> codepoints, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  if (!(offset >= 0)) {
-    throw new IllegalArgumentException("offset");
-  }
 
-  if (!(length == null || length >= 0)) {
-    throw new IllegalArgumentException("length");
-  }
-
-  int end = length != null ?
-      Math.min(codepoints.length, offset + length) :
-      codepoints.length;
-
+  ListRange<int> listRange = new ListRange<int>(codepoints, offset, length);
   int encodedLength = 0;
-  for (int i = offset; i < end; i++) {
-    int value = codepoints[i];
+  for (int value in listRange) {
     if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
         (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
       encodedLength++;
@@ -72,19 +61,9 @@ List<int> codepointsToUtf16CodeUnits(
     }
   }
 
-  void addReplacementCodepoint(List<int> codepointBuffer, int offset,
-      int replacementCodepoint) {
-    if (replacementCodepoint != null) {
-      codepointBuffer[offset] = replacementCodepoint;
-    } else {
-      throw new IllegalArgumentException("Invalid encoding");
-    }
-  }
-
   List<int> codeUnitsBuffer = new List<int>(encodedLength);
   int j = 0;
-  for (int i = offset; i < end; i++) {
-    int value = codepoints[i];
+  for (int value in listRange) {
     if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
         (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
       codeUnitsBuffer[j++] = value;
@@ -95,8 +74,10 @@ List<int> codepointsToUtf16CodeUnits(
           ((base & UNICODE_UTF16_HI_MASK) >> 10);
       codeUnitsBuffer[j++] = UNICODE_UTF16_SURROGATE_UNIT_1_BASE +
           (base & UNICODE_UTF16_LO_MASK);
+    } else if (replacementCodepoint != null) {
+      codeUnitsBuffer[j++] = replacementCodepoint;
     } else {
-      addReplacementCodepoint(codeUnitsBuffer, j++, replacementCodepoint);
+      throw new IllegalArgumentException("Invalid encoding");
     }
   }
   return codeUnitsBuffer;
@@ -108,93 +89,152 @@ List<int> codepointsToUtf16CodeUnits(
 List<int> utf16CodeUnitsToCodepoints(
     List<int> utf16CodeUnits, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  if (!(offset >= 0)) {
-    throw new IllegalArgumentException("offset");
+  ListRangeIterator<int> source =
+      (new ListRange<int>(utf16CodeUnits, offset, length)).iterator();
+  Utf16CodeUnitDecoder decoder = new Utf16CodeUnitDecoder
+      .fromListRangeIterator(source, replacementCodepoint);
+  List<int> codepoints = new List<int>(source.remaining);
+  int i = 0;
+  while (decoder.hasNext()) {
+    codepoints[i++] = decoder.next();
   }
-
-  if (!(length == null || length >= 0)) {
-    throw new IllegalArgumentException("length");
-  }
-
-  int end = length != null ?
-      Math.min(utf16CodeUnits.length, offset + length) :
-      utf16CodeUnits.length;
-
-  void decode(void f(int v)) {
-    int i = offset;
-    // skip the first entry if it is a BOM.
-    if (end > 0 && utf16CodeUnits[0] == UNICODE_BOM) {
-      i++;
-    }
-    while (i < end) {
-      int value = utf16CodeUnits[i++];
-      if (value < 0) {
-        f(null);
-        continue;
-      }
-      if (value < UNICODE_UTF16_RESERVED_LO ||
-          (value > UNICODE_UTF16_RESERVED_HI &&
-          value <= UNICODE_PLANE_ONE_MAX)) {
-        // transfer directly
-        f(value);
-      } else if (value < UNICODE_UTF16_SURROGATE_UNIT_1_BASE && i < end) {
-        // merge surrogate pair
-        int nextValue = utf16CodeUnits[i++];
-        if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
-            nextValue <= UNICODE_UTF16_RESERVED_HI) {
-          value = (value - UNICODE_UTF16_SURROGATE_UNIT_0_BASE) << 10;
-          value += UNICODE_UTF16_OFFSET +
-              (nextValue - UNICODE_UTF16_SURROGATE_UNIT_1_BASE);
-          f(value);
-        } else {
-          if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_0_BASE &&
-             nextValue < UNICODE_UTF16_SURROGATE_UNIT_1_BASE) {
-            i--;
-          }
-          f(null);
-          continue;
-        }
-      } else {
-        f(null);
-        continue;
-      }
-    }
-  }
-
-  // First pass through data to 1) size the output buffer and 2) check for 
-  // special case optimization where A) the length stays the same and B)
-  // no special replacement characters are used. If these criteria are met
-  // we can just copy input to the output.
-  int codepointBufferLength = 0;
-  bool hasReplacements = false;
-  decode(void _(int value) {
-      codepointBufferLength++;
-      if (value == null) {
-        hasReplacements = true;
-      }
-  });
-
-  // If the string calls for replacements, but when the method is called
-  // with replacementCodepoint explicitly set to null, then throw an exception.
-  if (hasReplacements && replacementCodepoint == null) {
-    throw new IllegalArgumentException("Invalid encoding");
-  }
-
-  int _length = end - offset;
-  List<int> codepointBuffer = new List<int>(codepointBufferLength);
-  if (_length == codepointBufferLength && !hasReplacements) {
-    codepointBuffer.setRange(0, _length, utf16CodeUnits, offset);
+  if (i == codepoints.length) {
+    return codepoints;
   } else {
-    int i = 0;
-    decode(
-      void _(int value) {
-        if (value != null) {
-          codepointBuffer[i++] = value;
+    List<int> codepointTrunc = new List<int>(i);
+    codepointTrunc.setRange(0, i, codepoints);
+    return codepointTrunc;
+  }
+}
+
+/**
+ * An Iterator<int> of codepoints built on an Iterator of UTF-16 code units.
+ * The parameters can override the default Unicode replacement character. Set
+ * the replacementCharacter to null to throw an IllegalArgumentException
+ * rather than replace the bad value.
+ */
+class Utf16CodeUnitDecoder implements Iterator<int> {
+  final ListRangeIterator<int> utf16CodeUnitIterator;
+  final int replacementCodepoint;
+
+  Utf16CodeUnitDecoder(List<int> utf16CodeUnits, [int offset = 0, int length,
+      int this.replacementCodepoint =
+      UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
+      utf16CodeUnitIterator = (new ListRange(utf16CodeUnits, offset, length))
+          .iterator();
+
+  Utf16CodeUnitDecoder.fromListRangeIterator(
+      ListRangeIterator<int> this.utf16CodeUnitIterator,
+      int this.replacementCodepoint);
+
+  Iterator<int> iterator() => this;
+
+  bool hasNext() => utf16CodeUnitIterator.hasNext();
+
+  int next() {
+    int value = utf16CodeUnitIterator.next();
+    if (value < 0) {
+      if (replacementCodepoint != null) {
+        return replacementCodepoint;
+      } else {
+        throw new IllegalArgumentException(
+            "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
+      }
+    } else if (value < UNICODE_UTF16_RESERVED_LO ||
+        (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
+      // transfer directly
+      return value;
+    } else if (value < UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
+        utf16CodeUnitIterator.hasNext()) {
+      // merge surrogate pair
+      int nextValue = utf16CodeUnitIterator.next();
+      if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
+          nextValue <= UNICODE_UTF16_RESERVED_HI) {
+        value = (value - UNICODE_UTF16_SURROGATE_UNIT_0_BASE) << 10;
+        value += UNICODE_UTF16_OFFSET +
+            (nextValue - UNICODE_UTF16_SURROGATE_UNIT_1_BASE);
+        return value;
+      } else {
+        if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_0_BASE &&
+           nextValue < UNICODE_UTF16_SURROGATE_UNIT_1_BASE) {
+          utf16CodeUnitIterator.backup();
+        }
+        if (replacementCodepoint != null) {
+          return replacementCodepoint;
         } else {
-          codepointBuffer[i++] = replacementCodepoint;
+          throw new IllegalArgumentException(
+              "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
         }
       }
-    );
+    } else if (replacementCodepoint != null) {
+      return replacementCodepoint;
+    } else {
+      throw new IllegalArgumentException(
+          "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
+    }
   }
-  return codepointBuffer;
+}
+
+/**
+ * ListRange in an internal type used to create a lightweight Interable on a
+ * range within a source list. DO NOT MODIFY the underlying list while
+ * iterating over it. The results of doing so are undefined.
+ */
+class ListRange<T> implements Iterable<T> {
+  final List<T> _source;
+  final int _offset;
+  final int _length;
+
+  ListRange(List<T> source, [int offset = 0, int length]) :
+      this._source = source, this._offset = offset,
+      this._length = (length == null ? source.length - offset : length) {
+    if (_offset < 0 || _offset > _source.length) {
+      throw new IndexOutOfRangeException("offset out of range (< 0)");
+    }
+    if (_length != null && (_length < 0)) {
+      throw new IndexOutOfRangeException("length out of range (< 0)");
+    }
+    if (_length + _offset > _source.length) {
+      throw new IndexOutOfRangeException("offset + length > source.length");
+    }
+  }
+
+  ListRangeIterator<T> iterator() =>
+      new ListRangeIteratorImpl(_source, _offset, _offset + _length);
+
+  int get length() => _length;
+}
+
+/**
+ * The ListRangeIterator provides more capabilities than a standard iterator,
+ * including the ability to get the current position, count remaining items,
+ * and move forward/backward within the iterator.
+ */
+interface ListRangeIterator<T> extends Iterator<T> {
+  bool hasNext();
+  T next();
+  int get position();
+  void backup([int by]);
+  int get remaining();
+  void skip([int count]);
+}
+
+class ListRangeIteratorImpl<T> implements ListRangeIterator<T> {
+  final List<T> _source;
+  int _offset;
+  final int _end;
+
+  ListRangeIteratorImpl(List<T> source, int offset, int end) :
+      _source = source, _offset = offset, _end = end;
+
+  bool hasNext() => _offset < _end;
+  T next() => _source[_offset++];
+  int get position() => _offset;
+  void backup([int by = 1]) {
+    _offset -= by;
+  }
+  int get remaining() => _end - _offset;
+  void skip([int count = 1]) {
+    _offset += count;
+  }
 }

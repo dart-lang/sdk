@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -6,12 +6,19 @@
 
 #import("dart:io");
 
+class MyListOfOneElement implements List {
+  int _value;
+  MyListOfOneElement(this._value);
+  int get length() => 1;
+  operator [](int index) => _value;
+}
+
 class FileTest {
   static Directory tempDirectory;
   static int numLiveAsyncTests = 0;
 
   static void asyncTestStarted() { ++numLiveAsyncTests; }
-  static void asyncTestDone() {
+  static void asyncTestDone(String name) {
     --numLiveAsyncTests;
     if (numLiveAsyncTests == 0) {
       deleteTempDirectory();
@@ -20,12 +27,15 @@ class FileTest {
 
   static void createTempDirectory(Function doNext) {
     tempDirectory = new Directory('');
+    tempDirectory.errorHandler = (e) {
+      Expect.fail("Failed creating temporary directory");
+    };
     tempDirectory.createTempHandler = doNext;
     tempDirectory.createTemp();
   }
 
   static void deleteTempDirectory() {
-    tempDirectory.deleteSync();
+    tempDirectory.deleteSync(recursive: true);
   }
 
   // Test for file read functionality.
@@ -33,7 +43,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
-    InputStream input = file.openInputStream();
+    InputStream input = file.openInputStreamSync();
     List<int> buffer = new List<int>(42);
     int bytesRead = input.readInto(buffer, 0, 12);
     Expect.equals(12, bytesRead);
@@ -64,7 +74,7 @@ class FileTest {
 
     // Test reading all using readInto.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     List<int> buffer1 = new List<int>(42);
     bytesRead = input.readInto(buffer1, 0, 42);
     Expect.equals(42, bytesRead);
@@ -72,7 +82,7 @@ class FileTest {
 
     // Test reading all using readInto and read.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     bytesRead = input.readInto(buffer1, 0, 21);
     Expect.equals(21, bytesRead);
     buffer1 = input.read();
@@ -81,7 +91,7 @@ class FileTest {
 
     // Test reading all using read and readInto.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     buffer1 = input.read(21);
     Expect.equals(21, buffer1.length);
     bytesRead = input.readInto(buffer1, 0, 21);
@@ -90,7 +100,7 @@ class FileTest {
 
     // Test reading all using read.
     file = new File(inFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     buffer1 = input.read();
     Expect.equals(42, buffer1.length);
     Expect.isTrue(input.closed);
@@ -98,7 +108,7 @@ class FileTest {
     // Write the contents of the file just read into another file.
     String outFilename = tempDirectory.path + "/out_read_write_stream";
     file = new File(outFilename);
-    OutputStream output = file.openOutputStream();
+    OutputStream output = file.openOutputStreamSync();
     bool writeDone = output.writeFrom(buffer1, 0, 42);
     Expect.equals(true, writeDone);
     output.close();
@@ -106,7 +116,7 @@ class FileTest {
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(42);
     file = new File(outFilename);
-    input = file.openInputStream();
+    input = file.openInputStreamSync();
     bytesRead = input.readInto(buffer2, 0, 42);
     Expect.isTrue(input.closed);
     Expect.equals(42, bytesRead);
@@ -232,7 +242,7 @@ class FileTest {
                           file4.deleteHandler = () {
                             file4.existsHandler = (exists) {
                               Expect.isFalse(exists);
-                              asyncTestDone();
+                              asyncTestDone("testReadWrite");
                             };
                             file4.exists();
                           };
@@ -292,33 +302,32 @@ class FileTest {
     File file = new File(filename);
     file.createSync();
     List<int> buffer = content.charCodes();
-    OutputStream outStream = file.openOutputStream();
-    outStream.closeHandler = () {
-      File file2 = new File(filename);
-      OutputStream appendingOutput = file2.openOutputStream(FileMode.APPEND);
-      appendingOutput.write(buffer);
-      appendingOutput.closeHandler = () {
-        File file3 = new File(filename);
-        file3.openHandler = (RandomAccessFile openedFile) {
-          openedFile.lengthHandler = (int length) {
-            Expect.equals(content.length * 2, length);
-            openedFile.closeHandler = () {
-              asyncTestDone();
-            };
-            openedFile.close();
-          };
-          openedFile.length();
-        };
-        file3.open();
-      };
-      appendingOutput.close();
-    };
-    asyncTestStarted();
+    OutputStream outStream = file.openOutputStreamSync();
     outStream.write(buffer);
     outStream.close();
+    File file2 = new File(filename);
+    OutputStream appendingOutput = file2.openOutputStreamSync(FileMode.APPEND);
+    appendingOutput.write(buffer);
+    appendingOutput.close();
+    File file3 = new File(filename);
+    file3.openHandler = (RandomAccessFile openedFile) {
+      openedFile.lengthHandler = (int length) {
+        Expect.equals(content.length * 2, length);
+        openedFile.closeHandler = () {
+          file3.deleteHandler = () {
+            asyncTestDone("testOutputStreamWriteAppend");
+          };
+          file3.delete();
+        };
+        openedFile.close();
+      };
+      openedFile.length();
+    };
+    file3.open();
+    asyncTestStarted();
   }
 
-  
+
   static void testReadWriteSync() {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
@@ -382,7 +391,7 @@ class FileTest {
           Expect.isTrue(err.indexOf("failed") != -1);
           openedFile.closeHandler = () {
             file.deleteHandler = () {
-              asyncTestDone();
+              asyncTestDone("testReadEmptyFile");
             };
             file.delete();
           };
@@ -394,6 +403,125 @@ class FileTest {
     };
     asyncTestStarted();
     file.create();
+  }
+
+  // Test for file write of different types of lists.
+  static void testWriteVariousLists() {
+    asyncTestStarted();
+    final String fileName = "${tempDirectory.path}/testWriteVariousLists";
+    final File file = new File(fileName);
+    file.create();
+    file.createHandler = () {
+      file.open(FileMode.WRITE);
+      file.openHandler = (RandomAccessFile openedFile) {
+        // Write bytes from 0 to 7.
+        openedFile.writeList([0], 0, 1);
+        openedFile.writeList(const [1], 0, 1);
+        openedFile.writeList(new MyListOfOneElement(2), 0, 1);
+        var x = 12345678901234567890123456789012345678901234567890;
+        var y = 12345678901234567890123456789012345678901234567893;
+        openedFile.writeList([y - x], 0, 1);
+        openedFile.writeList([260], 0, 1);  // 260 = 256 + 4 = 0x104.
+        openedFile.writeList(const [261], 0, 1);
+        openedFile.writeList(new MyListOfOneElement(262), 0, 1);
+        x = 12345678901234567890123456789012345678901234567890;
+        y = 12345678901234567890123456789012345678901234568153;
+        openedFile.writeList([y - x], 0, 1);
+
+        openedFile.errorHandler = (s) {
+          Expect.fail("No errors expected : $s");
+        };
+        openedFile.noPendingWriteHandler = () {
+          openedFile.close();
+        };
+        openedFile.closeHandler = () {
+          // Check the written bytes.
+          final File file2 = new File(fileName);
+          var openedFile2 = file2.openSync();
+          var length = openedFile2.lengthSync();
+          Expect.equals(8, length);
+          List data = new List(length);
+          openedFile2.readListSync(data, 0, length);
+          for (var i = 0; i < data.length; i++) {
+            Expect.equals(i, data[i]);
+          }
+          openedFile2.closeSync();
+          file2.deleteSync();
+          asyncTestDone("testWriteVariousLists");
+        };
+      };
+      file.errorHandler = (s) {
+        Expect.fail("No errors expected : $s");
+      };
+    };
+  }
+
+  static void testDirectory() {
+    asyncTestStarted();
+
+    // Port to verify that the test completes.
+    var port = new ReceivePort.singleShot();
+    port.receive((message, replyTo) {
+      Expect.equals(1, message);
+      asyncTestDone("testDirectory");
+    });
+
+    var tempDir = tempDirectory.path;
+    var file = new File("${tempDir}/testDirectory");
+    var errors = 0;
+    file.directory();
+    file.directoryHandler = (d) => Expect.fail("non-existing file");
+    file.errorHandler = (s) {
+      file.errorHandler = (s) => Expect.fail("no error expected");
+      file.create();
+      file.createHandler = () {
+        file.directory();
+        file.directoryHandler = (Directory d) {
+          d.exists();
+          d.errorHandler = (s) => Expect.fail("no error expected");
+          d.existsHandler = (exists) {
+            Expect.isTrue(exists);
+            Expect.isTrue(d.path.endsWith(tempDir));
+            file.delete();
+            file.deleteHandler = () {
+              var file_dir = new File(".");
+              file_dir.directory();
+              file_dir.directoryHandler = (d) {
+                Expect.fail("non-existing file");
+              };
+              file_dir.errorHandler = (s) {
+                var file_dir = new File(tempDir);
+                file_dir.directory();
+                file_dir.directoryHandler = (d) {
+                  Expect.fail("non-existing file");
+                };
+                file_dir.errorHandler = (s) {
+                  port.toSendPort().send(1);
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  }
+
+  static void testDirectorySync() {
+    var tempDir = tempDirectory.path;
+    var file = new File("${tempDir}/testDirectorySync");
+    // Non-existing file should throw exception.
+    Expect.throws(file.directorySync, (e) { return e is FileIOException; });
+    file.createSync();
+    // Check that the path of the returned directory is the temp directory.
+    Directory d = file.directorySync();
+    Expect.isTrue(d.existsSync());
+    Expect.isTrue(d.path.endsWith(tempDir));
+    file.deleteSync();
+    // Directories should throw exception.
+    var file_dir = new File(".");
+    Expect.throws(file_dir.directorySync, (e) { return e is FileIOException; });
+    file_dir = new File(tempDir);
+    Expect.throws(file_dir.directorySync, (e) { return e is FileIOException; });
   }
 
   // Test for file length functionality.
@@ -483,7 +611,7 @@ class FileTest {
                 file.deleteHandler = () {
                   file.existsHandler = (exists) {
                     Expect.isFalse(exists);
-                    asyncTestDone();
+                    asyncTestDone("testTruncate");
                   };
                   file.exists();
                 };
@@ -612,10 +740,10 @@ class FileTest {
     List<int> buffer = new List<int>(42);
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
-    InputStream input = file.openInputStream();
+    InputStream input = file.openInputStreamSync();
     Expect.isTrue(input.closed);
     Expect.isNull(input.readInto(buffer, 0, 12));
-    OutputStream output = file.openOutputStream();
+    OutputStream output = file.openOutputStreamSync();
     output.close();
     Expect.throws(( ) => output.writeFrom(buffer, 0, 12),
                   (e) => e is FileIOException);
@@ -736,6 +864,23 @@ class FileTest {
     f.exists();
   }
 
+  static void testOpenDirectoryAsFile() {
+    var f = new File('.');
+    f.open();
+    f.openHandler = (r) => Expect.fail('Directory opened as file');
+  }
+
+  static void testOpenDirectoryAsFileSync() {
+    var f = new File('.');
+    try {
+      f.openSync();
+      Expect.fail("Expected exception opening directory as file");
+    } catch (var e) {
+      Expect.isTrue(e is FileIOException);
+    }
+  }
+
+
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
   static void testAppend() {
@@ -754,7 +899,7 @@ class FileTest {
                       file.deleteHandler = () {
                         file.existsHandler = (exists) {
                           Expect.isFalse(exists);
-                          asyncTestDone();
+                          asyncTestDone("testAppend");
                         };
                         file.exists();
                       };
@@ -810,24 +955,28 @@ class FileTest {
     testPosition();
     testPositionSync();
     testMixedSyncAndAsync();
-    asyncTestStarted();
+    testOpenDirectoryAsFile();
+    testOpenDirectoryAsFileSync();
+
     createTempDirectory(() {
-        testReadWrite();
-        testReadWriteSync();
-        testReadWriteStream();
-        testReadEmptyFileSync();
-        testReadEmptyFile();
-        testTruncate();
-        testTruncateSync();
-        testCloseException();
-        testCloseExceptionStream();
-        testBufferOutOfBoundsException();
-        testAppend();
-        testAppendSync();
-        testWriteAppend();
-        testOutputStreamWriteAppend();
-        asyncTestDone();
-      });
+      testReadWrite();
+      testReadWriteSync();
+      testReadWriteStream();
+      testReadEmptyFileSync();
+      testReadEmptyFile();
+      testTruncate();
+      testTruncateSync();
+      testCloseException();
+      testCloseExceptionStream();
+      testBufferOutOfBoundsException();
+      testAppend();
+      testAppendSync();
+      testWriteAppend();
+      testOutputStreamWriteAppend();
+      testWriteVariousLists();
+      testDirectory();
+      testDirectorySync();
+    });
   }
 }
 

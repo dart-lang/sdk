@@ -9,14 +9,10 @@ dom/WebGL1Test: Skip  # Issue 1495
 [ $component == dartium ]
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
-dom/DOMParserTest: Fail
-dom/DocumentTest: Fail
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
-dom/TypingTest: Fail
-dom/XHRTest: Fail
-dom/WebSocketTest: Fail
+dom/TypingTest: Fail    # StyleSheetList.item not implemented
 
 [ $component == dartium && $mode == debug ]
 # TODO(vsm): Triage Dartium failures.
@@ -25,24 +21,11 @@ dom/DOMIsolatesTest: Skip
 dom/NativeGCTest: Skip
 dom/TypedArrays1Test: Skip
 
-[ $component == chromium ]
-html/html_tests: Skip  # Doesn't recognize SVGElement constructors
-# TODO(vsm): Triage DOM tests.
-dom/AsyncWindowTest: Skip # This test appears to interact badly with other tests.
-dom/DOMIsolatesTest: Fail
-dom/DocumentTest: Fail
-dom/HTMLElementTest: Fail
-dom/TypingTest: Fail
-dom/XHRTest: Fail
-
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 # TODO(vsm): Triage DOM tests.
-dom/DocumentTest: Fail
 dom/DOMIsolatesTest: Fail
 dom/HTMLElementTest: Fail
-dom/TypingTest: Fail
 dom/WindowOpenTest: Fail
-dom/XHRTest: Fail
 
 [ ($component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie))) && $checked ]
 
@@ -55,17 +38,15 @@ html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
 
-[ $component == webdriver && $browser == safari ]
-samples/smoketest/dartWebBase_tests: Fail
-
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 
 [ $component == webdriver && $browser == safari && ($system == linux || $system == windows) ]
 *: Skip
 
-[ $component == chromium && $mode == release ]
-
+# dartc (used by 'chromium') no longer generates code.
+[ $component == chromium ]
+*: Skip
 
 # 'client' tests import the DOM library, so they only make sense in
 # a browser environment.

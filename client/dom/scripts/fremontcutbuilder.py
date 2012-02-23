@@ -35,6 +35,7 @@ def main():
       'inspector',
       'loader',
       'loader/appcache',
+      'mediastream',
       'notifications',
       'page',
       'plugins',
@@ -45,6 +46,7 @@ def main():
       'workers',
       'xml',
       ]
+
   # TODO(vsm): Move this to a README.
   # This is the Dart SVN revision.
   webkit_revision = '1060'
@@ -94,6 +96,7 @@ def main():
       'ENABLE_REQUEST_ANIMATION_FRAME',
       'ENABLE_RUBY',
       'ENABLE_SANDBOX',
+      'ENABLE_SHADOW_DOM',
       'ENABLE_SHARED_WORKERS',
       'ENABLE_SMOOTH_SCROLLING',
       'ENABLE_SQL_DATABASE',

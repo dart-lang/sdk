@@ -49,4 +49,9 @@ class Collections {
   static bool isEmpty(Iterable<Object> iterable) {
     return !iterable.iterator().hasNext();
   }
+
+  static String collectionToString(Collection c) => c.toString();
+
+  static void _emitObject(Object o, StringBuffer result, List visiting) {
+  }
 }

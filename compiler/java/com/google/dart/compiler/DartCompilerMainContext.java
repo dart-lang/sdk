@@ -10,7 +10,6 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.resolver.ResolverErrorCode;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -69,8 +68,6 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
     }
     // Increment counters.
     if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
-      incrementTypeErrorCount();
-    } else if (shouldWarnOnNoSuchType() && event.getErrorCode() == ResolverErrorCode.NO_SUCH_TYPE) {
       incrementTypeErrorCount();
     } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
       incrementErrorCount();
@@ -186,11 +183,6 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
 
   public boolean getFilesHaveChanged() {
     return filesHaveChanged.get();
-  }
-
-  @Override
-  public boolean shouldWarnOnNoSuchType() {
-    return compilerConfiguration.shouldWarnOnNoSuchType();
   }
 
   @Override

@@ -172,6 +172,8 @@ class ProgressIndicator {
     }
   }
 
+  int get numFailedTests() => _failedTests;
+
   int _completedTests() => _passedTests + _failedTests;
 
   int _foundTests = 0;
@@ -215,7 +217,7 @@ class CompactIndicator extends ProgressIndicator {
   }
 
   void allTestsKnown() {
-    if (!_allTestsKnown) {
+    if (!_allTestsKnown && SummaryReport.total > 0) {
       // Clear progress indicator before printing summary report.
       stdout.write(
           '\r                                               \r'.charCodes());

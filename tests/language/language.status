@@ -19,11 +19,13 @@ prefix language
 
 
 [ $component == vm || $component == dartium ]
+DynamicFieldTest: Fail # Issue 1805
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
 FieldOverrideTest/none: Fail  # Issue 742: field shadowing now allowed
 FieldOverrideTest/01: Fail    # Issue 742: field shadowing now allowed
+SuperFieldAccessTest: Fail    # Issue 742: field shadowing now allowed
 Prefix22Test: Fail            # Issue 575
 Prefix23Test: Fail            # Issue 575
 PseudoKWIllegalTest/03: Fail  # Issue 356
@@ -45,11 +47,7 @@ Constructor6Test: Fail          # (Discussion ongoing)
 
 ConstInit6NegativeTest: Fail       # Issue 811
 
-# Issue 905.
-TypeVariableBoundsTest/01: Fail
-TypeVariableBoundsTest/02: Fail
-TypeVariableBoundsTest/05: Fail
-TypeVariableBoundsTest/06: Fail
+# Issue 441.
 TypeVariableBoundsTest/09: Fail
 TypeVariableBoundsTest/10: Fail
 
@@ -62,12 +60,6 @@ CyclicTypeVariableTest/02: Fail
 CyclicTypeVariableTest/03: Fail
 CyclicTypeVariableTest/04: Fail
 CyclicTypeVariableTest/05: Fail
-
-# DartC or Frog specific tests that should not be run by the VM
-*DartcTest: Skip
-*DartcNegativeTest: Skip
-*FrogTest: Skip
-*FrogNegativeTest: Skip
 
 # Issue 1034
 ConstructorDuplicateInitializersTest/01: Fail
@@ -90,6 +82,15 @@ GetSetSyntaxTest/13: Fail # Issue 1569
 GetSetSyntaxTest/14: Fail # Issue 1569
 GetSetSyntaxTest/15: Fail # Issue 1569
 
+CompileTimeConstant3Test: Fail # Issue 1780
+CompileTimeConstant6Test: Fail # Issue 1794
+
+# DartC or Frog specific tests that should not be run by the VM
+*DartcTest: Skip
+*DartcNegativeTest: Skip
+*FrogTest: Skip
+*FrogNegativeTest: Skip
+
 [ ($component == vm || $component == dartium) && $unchecked ]
 
 Prefix16NegativeTest: Fail    # Bug 5532534
@@ -97,7 +98,6 @@ FunctionTypeAliasNegativeTest: Fail # Bug 5231617
 
 [ ($component == vm || $component == dartium) && $checked ]
 
-DefaultFactory2Test/01: Fail # Issue 943
 WrongNumberTypeArgumentsTest: Fail # This test should be negative
 
 [ ($component == vm || $component == dartium) && $mode == debug ]
@@ -110,107 +110,49 @@ AbstractSyntaxTest/01: Fail
 ConstConstructorSyntaxTest/05: Fail
 FinalSyntaxTest/none: Fail
 
+CompileTimeConstant3Test: Fail # Issue 1780
+
+CodeAfterTryIsExecutedTest/01: Fail # Issue 1799.
+
 # Marked failed after code generation removed from dartc
-ApplicationNegativeTest: Fail    # status change with --check-only
-AssertKeywordNegativeTest: Fail    # status change with --check-only
-AssignInstanceMethodNegativeTest: Fail    # status change with --check-only
-BodyLessConstructorWrongArgNegativeTest: Fail    # status change with --check-only
-CallOperatorTest: Pass    # status change with --check-only
-CallThroughNullGetterTest: Pass    # status change with --check-only
-CharEscapeTest: Pass    # status change with --check-only
-ClosureCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
-ConstCounterNegativeTest: Fail    # status change with --check-only
-ConstInit4NegativeTest: Fail    # status change with --check-only
-ConstObjectsAreImmutableTest: Pass    # status change with --check-only
-Constructor2Test: Pass    # status change with --check-only
-Constructor3NegativeTest: Fail    # status change with --check-only
-Constructor3Test: Pass    # status change with --check-only
-Constructor4Test: Pass    # status change with --check-only
-Constructor5Test: Pass    # status change with --check-only
-Constructor6Test: Pass    # status change with --check-only
-ConstructorCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
-CTConstTest: Pass    # status change with --check-only
-DivByZeroTest: Pass    # status change with --check-only
-DynamicTest: Pass    # status change with --check-only
-ExampleConstructorTest: Pass    # status change with --check-only
-ExpectTest: Pass    # status change with --check-only
-Field3aNegativeTest: Fail    # status change with --check-only
-FieldMethod4NegativeTest: Fail    # status change with --check-only
-For2Test: Pass    # status change with --check-only
-GenericTest: Pass    # status change with --check-only
-GetterClosureExecutionOrderTest: Pass    # status change with --check-only
-InstanceCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
-IsObjectTest: Pass    # status change with --check-only
-Label2NegativeTest: Fail    # status change with --check-only
-ListLiteral3Test: Pass    # status change with --check-only
-ListTest: Pass    # status change with --check-only
-LocalFunction3Test: Pass    # status change with --check-only
-LocalFunctionTest: Pass    # status change with --check-only
-ManyOverriddenNoSuchMethodTest: Pass    # status change with --check-only
-NamedParametersNegativeTest: Fail    # status change with --check-only
-NamedParametersTypeTest: Pass    # status change with --check-only
-NamingTest: Pass    # status change with --check-only
-NoSuchMethodNegativeTest: Fail    # status change with --check-only
-NoSuchMethodTest: Pass    # status change with --check-only
-NullToStringTest: Pass    # status change with --check-only
-OverriddenNoSuchMethodTest: Pass    # status change with --check-only
-Prefix6NegativeTest: Fail    # status change with --check-only
-PrivateMember3NegativeTest: Fail    # status change with --check-only
-RegExp3Test: Pass    # status change with --check-only
-StackOverflowTest: Pass    # status change with --check-only
-StackTraceTest: Pass    # status change with --check-only
-StaticCallWrongArgumentCountNegativeTest: Fail    # status change with --check-only
-StaticField1aRunNegativeTest: Fail    # status change with --check-only
-StaticField1RunNegativeTest: Fail    # status change with --check-only
-StaticField2aRunNegativeTest: Fail    # status change with --check-only
-StaticField2RunNegativeTest: Fail    # status change with --check-only
-StringConcatTest: Pass    # status change with --check-only
-Switch3NegativeTest: Fail    # status change with --check-only
-
-TypeChecksInFactoryMethodTest: Pass    # status change with --check-only
+ApplicationNegativeTest: Fail
+AssertKeywordNegativeTest: Fail
+AssignInstanceMethodNegativeTest: Fail
+BodyLessConstructorWrongArgNegativeTest: Fail
+ClosureCallWrongArgumentCountNegativeTest: Fail
+ConstCounterNegativeTest: Fail    # issue 1655
+ConstructorCallWrongArgumentCountNegativeTest: Fail
+Field3aNegativeTest: Fail
+FieldMethod4NegativeTest: Fail
+InstanceCallWrongArgumentCountNegativeTest: Fail
+Label2NegativeTest: Fail    # issue 1658
+NamedParametersNegativeTest: Fail
+NoSuchMethodNegativeTest: Fail
+Prefix6NegativeTest: Fail
+PrivateMember3NegativeTest: Fail
+StaticCallWrongArgumentCountNegativeTest: Fail
+StaticField1aRunNegativeTest: Fail # issue 1662
+StaticField1RunNegativeTest: Fail  # issue 1662
+StaticField2aRunNegativeTest: Fail # issue 1662
+StaticField2RunNegativeTest: Fail  # issue 1662
+Switch3NegativeTest: Fail # issue 1663
 
 
-# Problems traiaged before static analysis-only change
+# Problems triaged before static analysis-only change
 
 AssertTest: Fail             # Uses AssertError class. Bug 4385894.
-CTConstTest: Fail            # Bug 5202940, Issue 176
-CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
-CallOperatorTest: Fail # Issue 1355
-CharEscapeTest: Fail
-ConstInit6NegativeTest: Fail       # Issue 811
-ConstObjectsAreImmutableTest: Fail  # Bug 5202940, Issue 176
-Constructor2Test: Fail       # Issue 255
-Constructor3Test: Fail       # Issue 257
-Constructor4Test: Fail       # Issue 286
-Constructor5Test: Fail       # Issue 8440015 + 'super' initializer does not parse
-Constructor6Test: Fail       # Issue 8440015 + 'super' initializer does not parse
+CallOperatorTest: Pass # Issue 1355
+CharEscapeTest: Pass # Issue 1654
+Constructor3NegativeTest: Fail
 DefaultFactoryLibraryTest: Fail          # Issue 514
-DivByZeroTest: Fail          # Bug 5184183
 DuplicateImplementsTest: Skip # Issue 976
-DynamicTest: Fail            # Bug 5527899.
-ExampleConstructorTest: Fail # Bug 4205742.
-ExpectTest: Fail             # Missing extensions to class Expect.
-For2Test: Fail               # Bug 4995208.
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
-GenericTest: Fail            # Bug 5393302 (missing call to super constructor)
-GetterClosureExecutionOrderTest: Fail # Bug 5481595
-IsObjectTest: Fail           # Issue 1455
 Library4NegativeTest: Fail   # Bug 5406175
-ListLiteral3Test: Fail       # Bug 5202940, Issue 176
 ListLiteral4Test: Fail       # Issue 1343
-ListTest: Fail               # Bug 5146975.
 LiteralUnaryPlusTest/01: Fail # Issue 1399
-LocalFunction3Test: Fail     # Bug 4202974.
-LocalFunctionTest: Fail      # Bug in test. Bug 4202989 (shadowing).
 MapLiteral4Test: Fail        # Issue 1343
-ManyOverriddenNoSuchMethodTest: Fail  # Bug 4202974.
-NamedParametersTypeTest: Fail            # Implementation in progress.
-NamingTest: Fail             # Issue 356
-NoSuchMethodTest: Fail       # Bug 4202974.
-NullToStringTest: Fail       # Bug 5421978
 NumbersTest: Fail            # Fails because numbers are mapped to doubles.
-OverriddenNoSuchMethodTest: Fail       # Bug 4202974.
 OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod3NegativeTest: Fail # Bug 5215249
@@ -219,6 +161,7 @@ OverrideFieldMethod5NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod6NegativeTest: Fail # Bug 5215249
 OverrideFieldTest/04: Fail             # Bug 5215249
 OverrideMethodWithFieldTest/01: Fail   # Bug 5215249
+Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix11NegativeTest: Fail             # Bug 5406175
 Prefix12NegativeTest: Fail             # Bug 5406175
 Prefix16NegativeTest: Fail             # Bug 5532534
@@ -240,24 +183,14 @@ PseudoKWIllegalTest/13: Fail # Issue 356
 PseudoKWIllegalTest/14: Fail # Issue 356
 PseudoKWIllegalTest/15: Fail # Issue 356
 PseudoKWIllegalTest/16: Fail # Issue 356
-RegExp3Test: Fail            # 5299683
 ScopeNegativeTest: Fail      # Bug 4207538.
-StackOverflowTest: Fail      # Bug 4591172.
-StackTraceTest: Fail         # Bug 4971920.
-StringConcatTest: Fail       # Bug 5196164
 StringEscape1NegativeTest: Fail # Issue 1351.
 StringEscape4NegativeTest: Fail # Issue 1351.
 SuperOperatorTest: Fail      # Bug 4995463.
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
-SyntaxTest/29: Fail          # Issue 1606
-SyntaxTest/30: Fail          # Issue 1606
-SyntaxTest/31: Fail          # Issue 1108
-SyntaxTest/32: Fail          # Issue 1108
-SyntaxTest/33: Fail # Issue 1108
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
 Throw7NegativeTest: Fail     # Bug 4208459.
-TypeChecksInFactoryMethodTest: Fail # Issue 925
 
 #
 # Add new dartc annotations above in alphabetical order
@@ -275,6 +208,7 @@ TypeChecksInFactoryMethodTest: Fail # Issue 925
 RichardsTest: Fail
 TypedMessageTest: Fail # Bug 5246195
 StringEscape1NegativeTest: Skip
+GCTest: Skip # Issue 1487
 
 
 [ $component == frogsh ]
@@ -297,6 +231,7 @@ ToStringAsFixedTest: Fail # fails due to rounding in constant propagation
 # browser, you can be more specific about the failure by using $browser:
 # [ $component == webdriver && $browser == chrome ] for example.
 [ $component == frog || $component == frogsh || $component == frogium || $component == webdriver]
+ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
@@ -328,6 +263,8 @@ ThirdTest: Fail # Issue 1511
 TryCatchSyntaxTest/08: Fail
 TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
+SuperFieldAccessTest: Fail # Issue 1695
+CompileTimeConstant6Test: Fail
 
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 
@@ -360,8 +297,6 @@ ExecuteFinally6Test: Fail
 ExpectTest: Fail
 FauxverrideTest/03: Fail
 FauxverrideTest/05: Fail
-FieldOverrideTest/none: Fail  # Issue 743: field shadowing now allowed
-FieldOverrideTest/01: Fail    # Issue 743: field shadowing now allowed
 Field3NegativeTest: Fail  # Issue 729
 FinalParamNegativeTest: Fail
 For2Test: Fail
@@ -407,6 +342,7 @@ OverrideFieldTest/01: Fail
 OverrideFieldTest/04: Fail
 OverrideMethodWithFieldTest/01: Fail
 ParameterInitializer5NegativeTest: Fail  # Issue 581
+Prefix101Test: Fail # Allow multiple imports with same prefix.
 Prefix8NegativeTest: Fail
 Prefix9NegativeTest: Fail
 Prefix11NegativeTest: Fail
@@ -421,7 +357,6 @@ PrivateTest: Fail
 RegExp3Test: Fail
 ScopeNegativeTest: Fail
 ScriptNegativeTest: Fail
-StringTest: Fail
 SuperImplicitClosureTest: Fail
 SuperTest: Fail  # this is testing precise ordering of super constructor call
 SwitchLabelTest: Fail
@@ -444,6 +379,8 @@ NamedParameters4Test: Fail
 
 StringEscape4NegativeTest: Fail # Issue 1352
 
+[ $component == frogium || $component == webdriver || $component == dartium ]
+ResourceTest: Fail  # browser tests are #sourcing the test, causing an error that directives cannot be used in #sourced files, see issue 1807
 
 [ $component == webdriver && $browser == chrome ]
 StringEscape1NegativeTest: Skip
@@ -472,12 +409,9 @@ BlockScopeTest: Fail
 ClosureBreak1Test: Fail
 ClosureBreakTest: Fail
 ExecuteFinally7Test: Fail
-FunctionLiteralsTest: Fail
 ImplicitClosure1Test: Fail
-ImplicitClosureTest: Fail
 MethodBindingTest: Fail
 Prefix15Test: Fail
-GCTest: Fail
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $component == webdriver && $browser == opera ]

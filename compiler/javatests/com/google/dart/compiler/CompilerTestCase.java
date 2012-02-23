@@ -7,6 +7,7 @@ package com.google.dart.compiler;
 import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartInvocation;
@@ -28,7 +29,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +38,27 @@ import java.util.Map;
 public abstract class CompilerTestCase extends TestCase {
 
   private static final String UTF8 = "UTF-8";
+
+  /**
+   * Instance of {@link CompilerConfiguration} for incremental check-only compilation.
+   */
+  protected static final CompilerConfiguration CHECK_ONLY_CONFIGURATION =
+      new DefaultCompilerConfiguration(new CompilerOptions()) {
+        @Override
+        public boolean checkOnly() {
+          return true;
+        }
+
+        @Override
+        public boolean incremental() {
+          return true;
+        }
+
+        @Override
+        public boolean resolveDespiteParseErrors() {
+          return true;
+        }
+      };
 
   /**
    * Read a resource from the given URL.
@@ -85,19 +106,15 @@ public abstract class CompilerTestCase extends TestCase {
    * Collects the results of running analyzeLibrary.
    */
   protected static class AnalyzeLibraryResult extends DartCompilerListener.Empty {
-    private final List<DartCompilationError> compilationErrors;
-    private final List<DartCompilationError> compilationWarnings;
-    private final List<DartCompilationError> typeErrors;
+    private final List<DartCompilationError> errors = Lists.newArrayList();
+    private final List<DartCompilationError> compilationErrors = Lists.newArrayList();
+    private final List<DartCompilationError> compilationWarnings = Lists.newArrayList();
+    private final List<DartCompilationError> typeErrors = Lists.newArrayList();
     private LibraryUnit result;
-
-    public AnalyzeLibraryResult() {
-      compilationErrors = Lists.newArrayList();
-      compilationWarnings = Lists.newArrayList();
-      typeErrors = Lists.newArrayList();
-    }
 
     @Override
     public void onError(DartCompilationError event) {
+      errors.add(event);
       if (event.getErrorCode().getSubSystem() == SubSystem.STATIC_TYPE) {
         typeErrors.add(event);
       } else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.ERROR) {
@@ -105,6 +122,10 @@ public abstract class CompilerTestCase extends TestCase {
       }   else if (event.getErrorCode().getErrorSeverity() == ErrorSeverity.WARNING) {
         compilationWarnings.add(event);
       }
+    }
+
+    public List<DartCompilationError> getErrors() {
+      return errors;
     }
 
     public List<DartCompilationError> getTypeErrors() {
@@ -162,32 +183,25 @@ public abstract class CompilerTestCase extends TestCase {
    */
   protected AnalyzeLibraryResult analyzeLibrary(String name, String code)
       throws Exception {
-    MockLibrarySource lib = new MockLibrarySource();
-    DartSourceTest src = new DartSourceTest(name, code, lib);
-    lib.addSource(src);
-    final CompilerConfiguration config = new DefaultCompilerConfiguration(new CompilerOptions()) {
-      @Override
-      public boolean checkOnly() {
-        return true;
-      }
-
-      @Override
-      public boolean incremental() {
-        return true;
-      }
-
-      @Override
-      public boolean resolveDespiteParseErrors() {
-        return true;
-      }
-    };
     AnalyzeLibraryResult result = new AnalyzeLibraryResult();
-    Map<URI, DartUnit> testUnits = new HashMap<URI, DartUnit>();
-    ParserContext context = makeParserContext(src, code, result);
-    DartUnit unit = makeParser(context).parseUnit(src);
-    testUnits.put(src.getUri(), unit);
+    // Prepare library.
+    MockLibrarySource lib = new MockLibrarySource();
+    // Prepare unit.
+    Map<URI, DartUnit> testUnits =  Maps.newHashMap();
+    {
+      DartSourceTest src = new DartSourceTest(name, code, lib);
+      ParserContext context = makeParserContext(src, code, result);
+      DartUnit unit = makeParser(context).parseUnit(src);
+      // Remember unit.
+      lib.addSource(src);
+      testUnits.put(src.getUri(), unit);
+    }
     DartArtifactProvider provider = new MockArtifactProvider();
-    result.setLibraryUnitResult(DartCompiler.analyzeLibrary(lib, testUnits, config, provider,
+    result.setLibraryUnitResult(DartCompiler.analyzeLibrary(
+        lib,
+        testUnits,
+        CHECK_ONLY_CONFIGURATION,
+        provider,
         result));
     // TODO(zundel): One day, we want all AST nodes that are identifiers to point to
     // elements if they are resolved.  Uncommenting this line helps track missing elements
@@ -220,7 +234,7 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parse a single compilation unit for the given input file.
    */
-  protected final DartUnit parseUnit(final String path) {
+  protected final DartUnit parseUnit(String path) {
     // final because we delegate to the method below, and only that one should
     // be overriden to do extra checks.
     URL url = inputUrlFor(getClass(), path);
@@ -231,11 +245,10 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Parse a single compilation unit for the name and source.
    */
-  protected DartUnit parseUnit(final String srcName, final String sourceCode) {
+  protected DartUnit parseUnit(String srcName, String sourceCode) {
     // TODO(jgw): We'll need to fill in the library parameter when testing multiple units.
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
-    ParserContext context = makeParserContext(src, sourceCode,
-        new DartCompilerListenerTest(srcName));
+    ParserContext context = makeParserContext(src, sourceCode, DartCompilerListener.EMPTY);
     return makeParser(context).parseUnit(src);
   }
 

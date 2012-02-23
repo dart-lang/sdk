@@ -5,19 +5,17 @@ class _WorkerContextJs extends _DOMTypeJs implements WorkerContext native "*Work
 
   static final int TEMPORARY = 0;
 
-  _WorkerLocationJs location;
+  final _WorkerLocationJs location;
 
-  _WorkerNavigatorJs navigator;
+  final _WorkerNavigatorJs navigator;
 
   EventListener onerror;
 
-  _WorkerContextJs self;
+  final _WorkerContextJs self;
 
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
-
-  final _DOMURLJs webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 

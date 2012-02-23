@@ -129,7 +129,7 @@ class DatabaseBuilder(object):
         if argument.is_optional:
           if 'Optional' in argument.ext_attrs:
             optional_value = argument.ext_attrs['Optional']
-            if optional_value == 'CallWithDefaultValue':
+            if optional_value:
               if (interface.id, op.id, argument.id) not in optional_argument_whitelist:
                 argument.is_optional = False
                 del argument.ext_attrs['Optional']
@@ -360,6 +360,11 @@ class DatabaseBuilder(object):
     def merge_list(what):
       old_list = old_interface.__dict__[what]
       new_list = new_interface.__dict__[what]
+
+      if what != 'parents' and old_interface.id != new_interface.id:
+        for node in new_list:
+          node.ext_attrs['ImplementedBy'] = new_interface.id
+
       changed = self._merge_nodes(old_list, new_list, import_options)
 
       # Delete list items with zero remaining annotations.

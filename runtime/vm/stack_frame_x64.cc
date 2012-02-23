@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,8 +21,8 @@ static const int kSpOffsetFromPreviousFp = 2 * kWordSize;
 static bool ExitedFromStub(uword exit_marker) {
   if (exit_marker != 0) {
     uword caller_pc = *reinterpret_cast<uword*>(exit_marker + kWordSize);
-    uword call_instr_pc = caller_pc - Call::InstructionLength();
-    uword call_target = Call(call_instr_pc).TargetAddress();
+    uword call_instr_pc = caller_pc - CallPattern::InstructionLength();
+    uword call_target = CallPattern(call_instr_pc).TargetAddress();
     return StubCode::InStubCallToRuntimeStubCode(call_target);
   }
   return false;

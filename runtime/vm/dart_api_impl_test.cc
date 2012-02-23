@@ -5,6 +5,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/thread.h"
@@ -751,21 +752,46 @@ TEST_CASE(ByteArrayAccess) {
 
   result = Dart_ListSetAt(byte_array1, -1, Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
-  result = Dart_ListSetAt(byte_array1, 10, Dart_NewInteger(1));
+  result = Dart_ByteArraySetUint8At(byte_array1, -1, 1);
   EXPECT(Dart_IsError(result));
 
+  result = Dart_ListSetAt(byte_array1, 10, Dart_NewInteger(1));
+  EXPECT(Dart_IsError(result));
+  result = Dart_ByteArraySetUint8At(byte_array1, 10, 1);
+  EXPECT(Dart_IsError(result));
+
+  // Set through the List API.
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(byte_array1, i, Dart_NewInteger(i + 1));
-    EXPECT_VALID(result);
+    EXPECT_VALID(Dart_ListSetAt(byte_array1, i, Dart_NewInteger(i + 1)));
+  }
+  for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(i + 1, int64_t_value);
+    // Get through the ByteArray API.
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(i + 1, uint8_t_value);
   }
 
+  // Set through the ByteArray API.
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListGetAt(byte_array1, i);
-    EXPECT_VALID(result);
-    int64_t value = 0;
-    result = Dart_IntegerToInt64(result, &value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(i + 1, value);
+    EXPECT_VALID(Dart_ByteArraySetUint8At(byte_array1, i, i + 2));
+  }
+  for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(i + 2, int64_t_value);
+    // Get through the ByteArray API.
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(i + 2, uint8_t_value);
   }
 
   Dart_Handle byte_array2 = Dart_NewByteArray(10);
@@ -773,31 +799,67 @@ TEST_CASE(ByteArrayAccess) {
   Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
 
+  // Set through the List API.
   for (intptr_t i = 0; i < 10; ++i) {
-    result = Dart_ListSetAt(byte_array2, i, Dart_NewInteger(i + 1));
+    result = Dart_ListSetAt(byte_array2, i, Dart_NewInteger(i + 2));
     EXPECT_VALID(result);
   }
-  is_equal = false;
-  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
-  EXPECT(!is_equal);
-
   for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
     Dart_Handle e1 = Dart_ListGetAt(byte_array1, i);
     Dart_Handle e2 = Dart_ListGetAt(byte_array2, i);
     is_equal = false;
     Dart_ObjectEquals(e1, e2, &is_equal);
     EXPECT(is_equal);
+    // Get through the ByteArray API.
+    uint8_t v1 = 0xFF;
+    uint8_t v2 = 0XFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &v1));
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array2, i, &v2));
+    EXPECT_NE(v1, 0xFF);
+    EXPECT_NE(v2, 0xFF);
+    EXPECT_EQ(v1, v2);
+  }
+
+  byte_array2 = Dart_NewByteArray(10);
+  is_equal = false;
+  Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
+  EXPECT(!is_equal);
+
+  // Set through the ByteArray API.
+  for (intptr_t i = 0; i < 10; ++i) {
+    result = Dart_ByteArraySetUint8At(byte_array2, i, i + 2);
+    EXPECT_VALID(result);
+  }
+  for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
+    Dart_Handle e1 = Dart_ListGetAt(byte_array1, i);
+    Dart_Handle e2 = Dart_ListGetAt(byte_array2, i);
+    is_equal = false;
+    Dart_ObjectEquals(e1, e2, &is_equal);
+    EXPECT(is_equal);
+    // Get through the ByteArray API.
+    uint8_t v1 = 0xFF;
+    uint8_t v2 = 0XFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &v1));
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array2, i, &v2));
+    EXPECT_NE(v1, 0xFF);
+    EXPECT_NE(v2, 0xFF);
+    EXPECT_EQ(v1, v2);
   }
 
   uint8_t data[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   result = Dart_ListSetAsBytes(byte_array1, 0, data, 10);
   EXPECT_VALID(result);
   for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
-    int64_t value;
-    result = Dart_IntegerToInt64(e, &value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(i, value);
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(i, int64_t_value);
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(i, uint8_t_value);
   }
 
   for (intptr_t i = 0; i < 10; ++i) {
@@ -805,13 +867,165 @@ TEST_CASE(ByteArrayAccess) {
   }
   Dart_ListGetAsBytes(byte_array1, 0, data, 10);
   for (intptr_t i = 0; i < 10; ++i) {
-    Dart_Handle e = Dart_ListGetAt(byte_array1, i);
-    EXPECT_VALID(e);
-    int64_t value;
-    result = Dart_IntegerToInt64(e, &value);
-    EXPECT_VALID(result);
-    EXPECT_EQ(10 - i, value);
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(10 - i, int64_t_value);
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(10 - i, uint8_t_value);
   }
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    EXPECT_VALID(Dart_ByteArraySetUint8At(byte_array1, i, 10 + i));
+  }
+  Dart_ListGetAsBytes(byte_array1, 0, data, 10);
+  for (intptr_t i = 0; i < 10; ++i) {
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_array1, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(10 + i, int64_t_value);
+    uint8_t uint8_t_value = 0xFF;
+    EXPECT_VALID(Dart_ByteArrayGetUint8At(byte_array1, i, &uint8_t_value));
+    EXPECT_EQ(10 + i, uint8_t_value);
+  }
+}
+
+
+TEST_CASE(ByteArrayAlignedMultiByteAccess) {
+  intptr_t length = 16;
+  Dart_Handle byte_array = Dart_NewByteArray(length);
+  intptr_t api_length = 0;
+  EXPECT_VALID(Dart_ListLength(byte_array, &api_length));
+  EXPECT_EQ(length, api_length);
+
+  // 4-byte aligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, FLT_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 4, FLT_MAX));
+
+  float float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
+  EXPECT_EQ(FLT_MIN, float_value);
+
+  float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 4, &float_value));
+  EXPECT_EQ(FLT_MAX, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, 0.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
+  EXPECT_EQ(0.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 4, 1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 4, &float_value));
+  EXPECT_EQ(1.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 0, -1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 0, &float_value));
+  EXPECT_EQ(-1.0f, float_value);
+
+  // 8-byte aligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 0, DBL_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 8, DBL_MAX));
+
+  double double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 0, &double_value));
+  EXPECT_EQ(DBL_MIN, double_value);
+
+  double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 8, &double_value));
+  EXPECT_EQ(DBL_MAX, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 0, 0.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 0, &double_value));
+  EXPECT_EQ(0.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 8, 1.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 8, &double_value));
+  EXPECT_EQ(1.0, double_value);
+}
+
+
+TEST_CASE(ByteArrayMisalignedMultiByteAccess) {
+  intptr_t length = 17;
+  Dart_Handle byte_array = Dart_NewByteArray(length);
+  intptr_t api_length = 0;
+  EXPECT_VALID(Dart_ListLength(byte_array, &api_length));
+  EXPECT_EQ(length, api_length);
+
+  // 4-byte misaligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, FLT_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, FLT_MAX));
+
+  float float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
+  EXPECT_EQ(FLT_MIN, float_value);
+
+  float_value = 0.0f;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
+  EXPECT_EQ(FLT_MAX, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, 0.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
+  EXPECT_EQ(0.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, -0.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
+  EXPECT_EQ(-0.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 5, 1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 5, &float_value));
+  EXPECT_EQ(1.0f, float_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat32At(byte_array, 1, -1.0f));
+  float_value = FLT_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat32At(byte_array, 1, &float_value));
+  EXPECT_EQ(-1.0f, float_value);
+
+  // 8-byte misaligned sets.
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, DBL_MIN));
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, DBL_MAX));
+
+  double double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
+  EXPECT_EQ(DBL_MIN, double_value);
+
+  double_value = 0.0;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
+  EXPECT_EQ(DBL_MAX, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, 0.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
+  EXPECT_EQ(0.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, -0.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
+  EXPECT_EQ(-0.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 9, 1.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 9, &double_value));
+  EXPECT_EQ(1.0, double_value);
+
+  EXPECT_VALID(Dart_ByteArraySetFloat64At(byte_array, 1, -1.0));
+  double_value = DBL_MAX;
+  EXPECT_VALID(Dart_ByteArrayGetFloat64At(byte_array, 1, &double_value));
+  EXPECT_EQ(-1.0, double_value);
 }
 
 
@@ -1123,6 +1337,10 @@ TEST_CASE(WeakPersistentHandle) {
 
   Dart_DeletePersistentHandle(weak_new_ref);
   Dart_DeletePersistentHandle(weak_old_ref);
+
+  // garbage collect one last time to revisit deleted handles
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
 }
 
 
@@ -2329,7 +2547,8 @@ TEST_CASE(NullReceiver) {
 
 static Dart_Handle library_handler(Dart_LibraryTag tag,
                                    Dart_Handle library,
-                                   Dart_Handle url) {
+                                   Dart_Handle url,
+                                   Dart_Handle import_url_map) {
   if (tag == kCanonicalizeUrl) {
     return url;
   }
@@ -2346,38 +2565,39 @@ TEST_CASE(LoadScript) {
   Dart_Handle source = Dart_NewString(kScriptChars);
   Dart_Handle error = Dart_Error("incoming error");
   Dart_Handle result;
+  Dart_Handle import_map = Dart_NewList(0);
 
-  result = Dart_LoadScript(Dart_Null(), source, library_handler);
+  result = Dart_LoadScript(Dart_Null(), source, library_handler, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript expects argument 'url' to be non-null.",
                Dart_GetError(result));
 
-  result = Dart_LoadScript(Dart_True(), source, library_handler);
+  result = Dart_LoadScript(Dart_True(), source, library_handler, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript expects argument 'url' to be of type String.",
                Dart_GetError(result));
 
-  result = Dart_LoadScript(error, source, library_handler);
+  result = Dart_LoadScript(error, source, library_handler, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LoadScript(url, Dart_Null(), library_handler);
+  result = Dart_LoadScript(url, Dart_Null(), library_handler, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript expects argument 'source' to be non-null.",
                Dart_GetError(result));
 
-  result = Dart_LoadScript(url, Dart_True(), library_handler);
+  result = Dart_LoadScript(url, Dart_True(), library_handler, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LoadScript expects argument 'source' to be of type String.",
       Dart_GetError(result));
 
-  result = Dart_LoadScript(url, error, library_handler);
+  result = Dart_LoadScript(url, error, library_handler, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
   // Load a script successfully.
-  result = Dart_LoadScript(url, source, library_handler);
+  result = Dart_LoadScript(url, source, library_handler, import_map);
   EXPECT_VALID(result);
 
   result = Dart_InvokeStatic(result,
@@ -2392,11 +2612,121 @@ TEST_CASE(LoadScript) {
   EXPECT_EQ(12345, value);
 
   // Further calls to LoadScript are errors.
-  result = Dart_LoadScript(url, source, library_handler);
+  result = Dart_LoadScript(url, source, library_handler, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript: "
                "A script has already been loaded from 'dart:test-lib'.",
                Dart_GetError(result));
+}
+
+
+static const char* var_mapping[] = {
+  "GOOGLE3", ".",
+  "ABC", "lala",
+  "var1", "",
+  "var2", "winner",
+};
+static int index = 0;
+
+
+static Dart_Handle import_library_handler(Dart_LibraryTag tag,
+                                          Dart_Handle library,
+                                          Dart_Handle url,
+                                          Dart_Handle import_url_map) {
+  if (tag == kCanonicalizeUrl) {
+    return url;
+  }
+  EXPECT(Dart_IsString(url));
+  const char* cstr = NULL;
+  EXPECT_VALID(Dart_StringToCString(url, &cstr));
+  switch (index) {
+    case 0:
+      EXPECT_STREQ("./weird.dart", cstr);
+      break;
+    case 1:
+      EXPECT_STREQ("abclaladef", cstr);
+      break;
+    case 2:
+      EXPECT_STREQ("winner", cstr);
+      break;
+    case 3:
+      EXPECT_STREQ("abclaladef/extra_weird.dart", cstr);
+      break;
+    case 4:
+      EXPECT_STREQ("winnerwinner", cstr);
+      break;
+    default:
+      EXPECT(false);
+      return Api::NewError("invalid callback");
+  }
+  index += 1;
+  return Api::Success();
+}
+
+
+TEST_CASE(LoadImportScript) {
+  const char* kScriptChars =
+      "#import('$GOOGLE3/weird.dart');"
+      "#import('abc${ABC}def');"
+      "#import('${var1}$var2');"
+      "#import('abc${ABC}def/extra_weird.dart');"
+      "#import('$var2$var2');"
+      "main() {"
+      "  return 12345;"
+      "}";
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  intptr_t length = (sizeof(var_mapping) / sizeof(var_mapping[0]));
+  Dart_Handle import_map = Dart_NewList(length);
+  for (intptr_t i = 0; i < length; i++) {
+    Dart_ListSetAt(import_map, i, Dart_NewString(var_mapping[i]));
+  }
+  Dart_Handle result = Dart_LoadScript(url,
+                                       source,
+                                       import_library_handler,
+                                       import_map);
+  EXPECT(!Dart_IsError(result));
+}
+
+
+TEST_CASE(LoadImportScriptError1) {
+  const char* kScriptChars =
+      "#import('abc${DEF}def/extra_weird.dart');"
+      "main() {"
+      "  return 12345;"
+      "}";
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle result = Dart_LoadScript(url,
+                                       source,
+                                       import_library_handler,
+                                       import_map);
+  EXPECT(Dart_IsError(result));
+  EXPECT(strstr(Dart_GetError(result),
+                "import variable 'DEF' has not been defined"));
+}
+
+
+TEST_CASE(LoadImportScriptError2) {
+  const char* kScriptChars =
+      "#import('abc${ABC/extra_weird.dart');"
+      "main() {"
+      "  return 12345;"
+      "}";
+  Dart_Handle url = Dart_NewString(TestCase::url());
+  Dart_Handle source = Dart_NewString(kScriptChars);
+  intptr_t length = (sizeof(var_mapping) / sizeof(var_mapping[0]));
+  Dart_Handle import_map = Dart_NewList(length);
+  for (intptr_t i = 0; i < length; i++) {
+    Dart_ListSetAt(import_map, i, Dart_NewString(var_mapping[i]));
+  }
+  Dart_Handle result = Dart_LoadScript(url,
+                                       source,
+                                       import_library_handler,
+                                       import_map);
+  EXPECT(Dart_IsError(result));
+  EXPECT(strstr(Dart_GetError(result), "'}' expected"));
 }
 
 
@@ -2405,7 +2735,11 @@ TEST_CASE(LoadScript_CompileError) {
       ")";
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  Dart_Handle result = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle result = Dart_LoadScript(url,
+                                       source,
+                                       library_handler,
+                                       import_map);
   EXPECT(Dart_IsError(result));
   EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
 }
@@ -2422,12 +2756,16 @@ TEST_CASE(LookupLibrary) {
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  Dart_Handle result = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle result = Dart_LoadScript(url,
+                                       source,
+                                       library_handler,
+                                       import_map);
   EXPECT_VALID(result);
 
   url = Dart_NewString("library1.dart");
   source = Dart_NewString(kLibrary1Chars);
-  result = Dart_LoadLibrary(url, source);
+  result = Dart_LoadLibrary(url, source, import_map);
   EXPECT_VALID(result);
 
   result = Dart_LookupLibrary(url);
@@ -2461,7 +2799,8 @@ TEST_CASE(LibraryUrl) {
       "#library('library1_name');";
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
-  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle lib = Dart_LoadLibrary(url, source, import_map);
   Dart_Handle error = Dart_Error("incoming error");
   EXPECT_VALID(lib);
 
@@ -2499,12 +2838,13 @@ TEST_CASE(LibraryImportLibrary) {
 
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
-  Dart_Handle lib1 = Dart_LoadLibrary(url, source);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle lib1 = Dart_LoadLibrary(url, source, import_map);
   EXPECT_VALID(lib1);
 
   url = Dart_NewString("library2_url");
   source = Dart_NewString(kLibrary2Chars);
-  Dart_Handle lib2 = Dart_LoadLibrary(url, source);
+  Dart_Handle lib2 = Dart_LoadLibrary(url, source, import_map);
   EXPECT_VALID(lib2);
 
   result = Dart_LibraryImportLibrary(Dart_Null(), lib2);
@@ -2553,43 +2893,44 @@ TEST_CASE(LoadLibrary) {
 
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle import_map = Dart_NewList(0);
 
-  result = Dart_LoadLibrary(Dart_Null(), source);
+  result = Dart_LoadLibrary(Dart_Null(), source, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadLibrary expects argument 'url' to be non-null.",
                Dart_GetError(result));
 
-  result = Dart_LoadLibrary(Dart_True(), source);
+  result = Dart_LoadLibrary(Dart_True(), source, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadLibrary expects argument 'url' to be of type String.",
                Dart_GetError(result));
 
-  result = Dart_LoadLibrary(error, source);
+  result = Dart_LoadLibrary(error, source, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LoadLibrary(url, Dart_Null());
+  result = Dart_LoadLibrary(url, Dart_Null(), import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadLibrary expects argument 'source' to be non-null.",
                Dart_GetError(result));
 
-  result = Dart_LoadLibrary(url, Dart_True());
+  result = Dart_LoadLibrary(url, Dart_True(), import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LoadLibrary expects argument 'source' to be of type String.",
       Dart_GetError(result));
 
-  result = Dart_LoadLibrary(url, error);
+  result = Dart_LoadLibrary(url, error, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
   // Success.
-  result = Dart_LoadLibrary(url, source);
+  result = Dart_LoadLibrary(url, source, import_map);
   EXPECT_VALID(result);
   EXPECT(Dart_IsLibrary(result));
 
   // Duplicate library load fails.
-  result = Dart_LoadLibrary(url, source);
+  result = Dart_LoadLibrary(url, source, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LoadLibrary: library 'library1_url' has already been loaded.",
@@ -2603,7 +2944,8 @@ TEST_CASE(LoadLibrary_CompileError) {
       ")";
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
-  Dart_Handle result = Dart_LoadLibrary(url, source);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle result = Dart_LoadLibrary(url, source, import_map);
   EXPECT(Dart_IsError(result));
   EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
 }
@@ -2622,7 +2964,8 @@ TEST_CASE(LoadSource) {
   // Load up a library.
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
-  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle lib = Dart_LoadLibrary(url, source, import_map);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
 
@@ -2735,7 +3078,8 @@ TEST_CASE(SetNativeResolver) {
   // Load a test script.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  Dart_Handle lib = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle lib = Dart_LoadScript(url, source, library_handler, import_map);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
 
@@ -2830,15 +3174,16 @@ TEST_CASE(ImportLibrary1) {
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  result = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  result = Dart_LoadScript(url, source, library_handler, import_map);
 
   url = Dart_NewString("library1.dart");
   source = Dart_NewString(kLibrary1Chars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("library2.dart");
   source = Dart_NewString(kLibrary2Chars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   result = Dart_InvokeStatic(result,
                              Dart_NewString(""),
@@ -2869,15 +3214,16 @@ TEST_CASE(ImportLibrary2) {
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  result = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  result = Dart_LoadScript(url, source, library_handler, import_map);
 
   url = Dart_NewString("library1.dart");
   source = Dart_NewString(kLibrary1Chars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("library2.dart");
   source = Dart_NewString(kLibrary2Chars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   result = Dart_InvokeStatic(result,
                              Dart_NewString(""),
@@ -2905,15 +3251,16 @@ TEST_CASE(ImportLibrary3) {
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  result = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  result = Dart_LoadScript(url, source, library_handler, import_map);
 
   url = Dart_NewString("library2.dart");
   source = Dart_NewString(kLibrary2Chars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("library1.dart");
   source = Dart_NewString(kLibrary1Chars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   result = Dart_InvokeStatic(result,
                              Dart_NewString(""),
@@ -2963,31 +3310,32 @@ TEST_CASE(ImportLibrary4) {
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  result = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  result = Dart_LoadScript(url, source, library_handler, import_map);
 
   url = Dart_NewString("libraryA.dart");
   source = Dart_NewString(kLibraryAChars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("libraryC.dart");
   source = Dart_NewString(kLibraryCChars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("libraryB.dart");
   source = Dart_NewString(kLibraryBChars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("libraryD.dart");
   source = Dart_NewString(kLibraryDChars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("libraryF.dart");
   source = Dart_NewString(kLibraryFChars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   url = Dart_NewString("libraryE.dart");
   source = Dart_NewString(kLibraryEChars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   result = Dart_InvokeStatic(result,
                              Dart_NewString(""),
@@ -3018,11 +3366,12 @@ TEST_CASE(ImportLibrary5) {
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  result = Dart_LoadScript(url, source, library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  result = Dart_LoadScript(url, source, library_handler, import_map);
 
   url = Dart_NewString("lib.dart");
   source = Dart_NewString(kLibraryChars);
-  Dart_LoadLibrary(url, source);
+  Dart_LoadLibrary(url, source, import_map);
 
   result = Dart_InvokeStatic(result,
                              Dart_NewString(""),
@@ -3041,10 +3390,11 @@ void NewNativePort_send123(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_CObject::kNull, message->type);
 
   // Post integer value.
-  Dart_CObject response;
-  response.type = Dart_CObject::kInt32;
-  response.value.as_int32 = 123;
-  Dart_PostCObject(reply_port_id, &response);
+  Dart_CObject* response =
+      reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
+  response->type = Dart_CObject::kInt32;
+  response->value.as_int32 = 123;
+  Dart_PostCObject(reply_port_id, response);
 }
 
 
@@ -3056,10 +3406,11 @@ void NewNativePort_send321(Dart_Port dest_port_id,
   EXPECT_EQ(Dart_CObject::kNull, message->type);
 
   // Post integer value.
-  Dart_CObject response;
-  response.type = Dart_CObject::kInt32;
-  response.value.as_int32 = 321;
-  Dart_PostCObject(reply_port_id, &response);
+  Dart_CObject* response =
+      reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
+  response->type = Dart_CObject::kInt32;
+  response->value.as_int32 = 321;
+  Dart_PostCObject(reply_port_id, response);
 }
 
 
@@ -3161,7 +3512,11 @@ static bool RunLoopTestCallback(const char* name_prefix,
   Dart_EnterScope();
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  Dart_Handle lib = Dart_LoadScript(url, source, TestCase::library_handler);
+  Dart_Handle import_map = Dart_NewList(0);
+  Dart_Handle lib = Dart_LoadScript(url,
+                                    source,
+                                    TestCase::library_handler,
+                                    import_map);
   EXPECT_VALID(lib);
   Dart_ExitScope();
   return true;
@@ -3273,7 +3628,8 @@ void BusyLoop_start(uword unused) {
     Dart_EnterScope();
     Dart_Handle url = Dart_NewString(TestCase::url());
     Dart_Handle source = Dart_NewString(kScriptChars);
-    lib = Dart_LoadScript(url, source, TestCase::library_handler);
+    Dart_Handle import_map = Dart_NewList(0);
+    lib = Dart_LoadScript(url, source, TestCase::library_handler, import_map);
     EXPECT_VALID(lib);
     Dart_Handle result = Dart_SetNativeResolver(
         lib, &IsolateInterruptTestNativeLookup);

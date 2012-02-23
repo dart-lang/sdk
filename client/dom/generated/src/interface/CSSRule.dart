@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,9 +20,9 @@ interface CSSRule {
 
   static final int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 8;
+  static final int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 9;
+  static final int WEBKIT_KEYFRAME_RULE = 8;
 
   static final int WEBKIT_REGION_RULE = 10;
 

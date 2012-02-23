@@ -861,7 +861,7 @@ public class DartScanner {
     int quote = internalState.getQuote();
     boolean multiLine = internalState.isMultiLine();
     // TODO(floitsch): Do we really need a StringBuffer to accumulate the characters?
-    StringBuffer tokenValueBuffer = new StringBuffer();
+    StringBuilder tokenValueBuffer = new StringBuilder();
     while (true) {
       if (isEos()) {
         // Unterminated string (either multi-line or not).
@@ -880,6 +880,11 @@ public class DartScanner {
           advance();
           break;
         }
+      } else if (c == '\n' && !multiLine) {
+        advance();
+        internalState.popMode();
+        // unterminated (non multi-line) string
+        return Token.ILLEGAL;
       }
       tokenValueBuffer.appendCodePoint(c);
     }

@@ -119,7 +119,7 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
 static void CheckEncodeDecodeMessage(Dart_CObject* root) {
   // Encode and decode the message.
   uint8_t* buffer = NULL;
-  MessageWriter writer(&buffer, &malloc_allocator);
+  ApiMessageWriter writer(&buffer, &malloc_allocator);
   writer.WriteCMessage(root);
 
   Dart_CObject* new_root = DecodeMessage(buffer + Snapshot::kHeaderSize,
@@ -970,8 +970,10 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
 
     // Load the library.
+    Dart_Handle import_map = Dart_NewList(0);
     Dart_Handle import_lib = Dart_LoadLibrary(Dart_NewString("dart:import-lib"),
-                                              Dart_NewString(kLibScriptChars));
+                                              Dart_NewString(kLibScriptChars),
+                                              import_map);
     EXPECT_VALID(import_lib);
 
     // Create a test library and Load up a test script in it.
@@ -1029,7 +1031,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 TEST_CASE(IntArrayMessage) {
   Zone zone(Isolate::Current());
   uint8_t* buffer = NULL;
-  MessageWriter writer(&buffer, &zone_allocator);
+  ApiMessageWriter writer(&buffer, &zone_allocator);
 
   static const int kArrayLength = 2;
   intptr_t data[kArrayLength] = {1, 2};
@@ -1305,6 +1307,18 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  for (var i = 0; i < kArrayLength; i++) list[i] = s;\n"
       "  return list;\n"
       "}\n"
+      "getMintList() {\n"
+      "  var mint = 0x7FFFFFFFFFFFFFFF;\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = mint;\n"
+      "  return list;\n"
+      "}\n"
+      "getBigintList() {\n"
+      "  var bigint = 0x1234567890123456789012345678901234567890;\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = bigint;\n"
+      "  return list;\n"
+      "}\n"
       "getDoubleList() {\n"
       "  var d = 3.14;\n"
       "  var list = new List<double>(kArrayLength);\n"
@@ -1355,6 +1369,32 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject::kString, element->type);
         EXPECT_STREQ("Hello, world!", element->value.as_string);
+      }
+    }
+    {
+      // Generate a list of medium ints from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMintList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kInt64, element->type);
+      }
+    }
+    {
+      // Generate a list of bigints from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getBigintList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kBigint, element->type);
       }
     }
     {
@@ -1433,9 +1473,16 @@ UNIT_TEST_CASE(PostCObject) {
       "  var exception = '';\n"
       "  var port = new ReceivePort();\n"
       "  port.receive((message, replyTo) {\n"
-      "    exception += message.toString();\n"
+      "    if (messageCount < 7) {\n"
+      "      exception += message.toString();\n"
+      "    } else {\n"
+      "      exception += message.length;\n"
+      "      for (int i = 0; i < message.length; i++) {\n"
+      "        exception += message[i];\n"
+      "      }\n"
+      "    }\n"
       "    messageCount++;\n"
-      "    if (messageCount == 7) throw new Exception(exception);\n"
+      "    if (messageCount == 8) throw new Exception(exception);\n"
       "  });\n"
       "  return port.toSendPort();\n"
       "}\n";
@@ -1487,10 +1534,29 @@ UNIT_TEST_CASE(PostCObject) {
   object.value.as_array.length = 0;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
+  static const int kArrayLength = 10;
+  Dart_CObject* array =
+      reinterpret_cast<Dart_CObject*>(
+          Dart_ScopeAllocate(
+              sizeof(Dart_CObject) + sizeof(Dart_CObject*) * kArrayLength));  // NOLINT
+  array->type = Dart_CObject::kArray;
+  array->value.as_array.length = kArrayLength;
+  array->value.as_array.values =
+      reinterpret_cast<Dart_CObject**>(array + 1);
+  for (int i = 0; i < kArrayLength; i++) {
+    Dart_CObject* element =
+        reinterpret_cast<Dart_CObject*>(
+            Dart_ScopeAllocate(sizeof(Dart_CObject)));
+    element->type = Dart_CObject::kInt32;
+    element->value.as_int32 = i;
+    array->value.as_array.values[i] = element;
+  }
+  EXPECT(Dart_PostCObject(send_port_id, array));
+
   result = Dart_RunLoop();
   EXPECT(Dart_IsError(result));
   EXPECT(Dart_ErrorHasException(result));
-  EXPECT_SUBSTRING("Exception: nulltruefalse1234563.14[]\n",
+  EXPECT_SUBSTRING("Exception: nulltruefalse1234563.14[]100123456789\n",
                    Dart_GetError(result));
 
   Dart_ExitScope();

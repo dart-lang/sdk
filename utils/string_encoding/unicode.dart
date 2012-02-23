@@ -6,7 +6,7 @@
 #import("unicode_core.dart");
 
 /**
- * Provide Unicode codepoints for a given string.
+ * Provide a list of Unicode codepoints for a given string.
  */
 List<int> stringToCodepoints(String str) {
   List<int> codepoints;
@@ -22,7 +22,7 @@ List<int> stringToCodepoints(String str) {
 }
 
 /**
- * Generate a string for the provided Unicode codepoints.
+ * Generate a string from the provided Unicode codepoints.
  */
 String codepointsToString(List<int> codepoints) {
   // TODO is16BitCodeUnit() is used to work around a bug with frog/dartc

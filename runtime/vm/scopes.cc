@@ -91,9 +91,14 @@ void LocalScope::AllocateContextVariable(LocalVariable* variable,
     *context_owner = this;
     set_context_level(new_context_level);
   }
+  // The context level in the owner scope of a captured variable indicates at
+  // code generation time how far to walk up the context chain in order to
+  // access the variable from the current context level.
   if (!variable->owner()->HasContextLevel()) {
     ASSERT(variable->owner() != this);
     variable->owner()->set_context_level(context_level());
+  } else {
+    ASSERT(variable->owner()->context_level() == context_level());
   }
   variable->set_index(num_context_variables_++);
 }
@@ -165,7 +170,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
     // not shared between children.
     if ((child_context_owner != *context_owner) &&
         (child_context_owner->loop_level() <= loop_owner->loop_level())) {
-      *context_owner = child_context_owner;
+      *context_owner = child_context_owner;  // Share context between siblings.
     }
     child = child->sibling();
   }

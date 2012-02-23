@@ -187,7 +187,13 @@ class _AudioPannerNodeJs extends _AudioNodeJs implements AudioPannerNode native 
 
   static final int EQUALPOWER = 0;
 
+  static final int EXPONENTIAL_DISTANCE = 2;
+
   static final int HRTF = 1;
+
+  static final int INVERSE_DISTANCE = 1;
+
+  static final int LINEAR_DISTANCE = 0;
 
   static final int SOUNDFIELD = 2;
 
@@ -430,9 +436,9 @@ class _CSSRuleJs extends _DOMTypeJs implements CSSRule native "*CSSRule" {
 
   static final int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 8;
+  static final int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 9;
+  static final int WEBKIT_KEYFRAME_RULE = 8;
 
   static final int WEBKIT_REGION_RULE = 10;
 
@@ -833,7 +839,7 @@ class _ConsoleJs
 
   final List profiles;
 
-  void assertCondition(bool condition) native;
+  void assertCondition(bool condition, Object arg) native;
 
   void count() native;
 
@@ -845,9 +851,9 @@ class _ConsoleJs
 
   void error(Object arg) native;
 
-  void group() native;
+  void group(Object arg) native;
 
-  void groupCollapsed() native;
+  void groupCollapsed(Object arg) native;
 
   void groupEnd() native;
 
@@ -863,9 +869,9 @@ class _ConsoleJs
 
   void time(String title) native;
 
-  void timeEnd(String title) native;
+  void timeEnd(String title, Object arg) native;
 
-  void timeStamp() native;
+  void timeStamp(Object arg) native;
 
   void trace(Object arg) native;
 
@@ -1173,10 +1179,6 @@ class _DOMTokenListJs extends _DOMTypeJs implements DOMTokenList native "*DOMTok
 }
 
 class _DOMURLJs extends _DOMTypeJs implements DOMURL native "*DOMURL" {
-
-  String createObjectURL(_BlobJs blob) native;
-
-  void revokeObjectURL(String url) native;
 }
 
 class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWindow" {
@@ -1187,11 +1189,11 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   final _DOMApplicationCacheJs applicationCache;
 
-  _NavigatorJs clientInformation;
+  final _NavigatorJs clientInformation;
 
   final bool closed;
 
-  _ConsoleJs console;
+  final _ConsoleJs console;
 
   final _CryptoJs crypto;
 
@@ -1199,91 +1201,89 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   String defaultstatus;
 
-  num devicePixelRatio;
+  final num devicePixelRatio;
 
   final _DocumentJs document;
 
-  _EventJs event;
+  final _EventJs event;
 
   final _ElementJs frameElement;
 
-  _DOMWindowJs frames;
+  final _DOMWindowJs frames;
 
-  _HistoryJs history;
+  final _HistoryJs history;
 
-  int innerHeight;
+  final int innerHeight;
 
-  int innerWidth;
+  final int innerWidth;
 
-  int length;
+  final int length;
 
   final _StorageJs localStorage;
 
   _LocationJs location;
 
-  _BarInfoJs locationbar;
+  final _BarInfoJs locationbar;
 
-  _BarInfoJs menubar;
+  final _BarInfoJs menubar;
 
   String name;
 
-  _NavigatorJs navigator;
+  final _NavigatorJs navigator;
 
-  bool offscreenBuffering;
+  final bool offscreenBuffering;
 
-  _DOMWindowJs opener;
+  final _DOMWindowJs opener;
 
-  int outerHeight;
+  final int outerHeight;
 
-  int outerWidth;
+  final int outerWidth;
 
   final int pageXOffset;
 
   final int pageYOffset;
 
-  _DOMWindowJs parent;
+  final _DOMWindowJs parent;
 
-  _PerformanceJs performance;
+  final _PerformanceJs performance;
 
-  _BarInfoJs personalbar;
+  final _BarInfoJs personalbar;
 
-  _ScreenJs screen;
+  final _ScreenJs screen;
 
-  int screenLeft;
+  final int screenLeft;
 
-  int screenTop;
+  final int screenTop;
 
-  int screenX;
+  final int screenX;
 
-  int screenY;
+  final int screenY;
 
-  int scrollX;
+  final int scrollX;
 
-  int scrollY;
+  final int scrollY;
 
-  _BarInfoJs scrollbars;
+  final _BarInfoJs scrollbars;
 
-  _DOMWindowJs self;
+  final _DOMWindowJs self;
 
   final _StorageJs sessionStorage;
 
   String status;
 
-  _BarInfoJs statusbar;
+  final _BarInfoJs statusbar;
 
   final _StyleMediaJs styleMedia;
 
-  _BarInfoJs toolbar;
+  final _BarInfoJs toolbar;
 
-  _DOMWindowJs top;
+  final _DOMWindowJs top;
 
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
 
   final _StorageInfoJs webkitStorageInfo;
-
-  final _DOMURLJs webkitURL;
 
   final _DOMWindowJs window;
 
@@ -1744,6 +1744,8 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
   final _CSSStyleDeclarationJs style;
 
   final String tagName;
+
+  final String webkitRegionOverflow;
 
   void blur() native;
 
@@ -2616,8 +2618,6 @@ class _HTMLButtonElementJs extends _HTMLElementJs implements HTMLButtonElement n
 
   bool checkValidity() native;
 
-  void click() native;
-
   void setCustomValidity(String error) native;
 }
 
@@ -2714,6 +2714,11 @@ class _HTMLCollectionJs extends _DOMTypeJs implements HTMLCollection native "*HT
   _NodeJs namedItem(String name) native;
 }
 
+class _HTMLContentElementJs extends _HTMLElementJs implements HTMLContentElement native "*HTMLContentElement" {
+
+  String select;
+}
+
 class _HTMLDListElementJs extends _HTMLElementJs implements HTMLDListElement native "*HTMLDListElement" {
 
   bool compact;
@@ -2744,7 +2749,8 @@ class _HTMLDocumentJs extends _DocumentJs implements HTMLDocument native "*HTMLD
 
   String bgColor;
 
-  final String compatMode;
+  // Use implementation from Document.
+  // final String compatMode;
 
   String designMode;
 
@@ -2818,6 +2824,8 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
   String title;
 
   String webkitdropzone;
+
+  void click() native;
 
   _ElementJs insertAdjacentElement(String where, _ElementJs element) native;
 
@@ -3132,8 +3140,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
   bool checkValidity() native;
 
-  void click() native;
-
   void select() native;
 
   void setCustomValidity(String error) native;
@@ -3143,13 +3149,6 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
   void stepDown([int n = null]) native;
 
   void stepUp([int n = null]) native;
-}
-
-class _HTMLIsIndexElementJs extends _HTMLInputElementJs implements HTMLIsIndexElement native "*HTMLIsIndexElement" {
-
-  final _HTMLFormElementJs form;
-
-  String prompt;
 }
 
 class _HTMLKeygenElementJs extends _HTMLElementJs implements HTMLKeygenElement native "*HTMLKeygenElement" {
@@ -3365,7 +3364,7 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   final int webkitVideoDecodedByteCount;
 
-  _TextTrackJs addTrack(String kind, [String label = null, String language = null]) native;
+  _TextTrackJs addTextTrack(String kind, [String label = null, String language = null]) native;
 
   String canPlayType(String type) native;
 
@@ -3512,7 +3511,9 @@ class _HTMLOptionElementJs extends _HTMLElementJs implements HTMLOptionElement n
 
 class _HTMLOptionsCollectionJs extends _HTMLCollectionJs implements HTMLOptionsCollection native "*HTMLOptionsCollection" {
 
-  int length;
+  // Shadowing definition.
+  int get length() native "return this.length;";
+  void set length(int value) native "this.length = value;";
 
   int selectedIndex;
 
@@ -3651,6 +3652,9 @@ class _HTMLSelectElementJs extends _HTMLElementJs implements HTMLSelectElement n
   void remove(var index_OR_option) native;
 
   void setCustomValidity(String error) native;
+}
+
+class _HTMLShadowElementJs extends _HTMLElementJs implements HTMLShadowElement native "*HTMLShadowElement" {
 }
 
 class _HTMLSourceElementJs extends _HTMLElementJs implements HTMLSourceElement native "*HTMLSourceElement" {
@@ -3961,6 +3965,8 @@ class _HighPass2FilterNodeJs extends _AudioNodeJs implements HighPass2FilterNode
 class _HistoryJs extends _DOMTypeJs implements History native "*History" {
 
   final int length;
+
+  final Dynamic state;
 
   void back() native;
 
@@ -4570,6 +4576,11 @@ class _KeyboardEventJs extends _UIEventJs implements KeyboardEvent native "*Keyb
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey) native;
 }
 
+class _LocalMediaStreamJs extends _MediaStreamJs implements LocalMediaStream native "*LocalMediaStream" {
+
+  void stop() native;
+}
+
 class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
 
   String hash;
@@ -4757,6 +4768,57 @@ class _MediaQueryListJs extends _DOMTypeJs implements MediaQueryList native "*Me
 class _MediaQueryListListenerJs extends _DOMTypeJs implements MediaQueryListListener native "*MediaQueryListListener" {
 
   void queryChanged(_MediaQueryListJs list) native;
+}
+
+class _MediaStreamJs extends _DOMTypeJs implements MediaStream native "*MediaStream" {
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 1;
+
+  final _MediaStreamTrackListJs audioTracks;
+
+  final String label;
+
+  EventListener onended;
+
+  final int readyState;
+
+  final _MediaStreamTrackListJs videoTracks;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+}
+
+class _MediaStreamEventJs extends _EventJs implements MediaStreamEvent native "*MediaStreamEvent" {
+
+  final _MediaStreamJs stream;
+}
+
+class _MediaStreamListJs extends _DOMTypeJs implements MediaStreamList native "*MediaStreamList" {
+
+  final int length;
+
+  _MediaStreamJs item(int index) native;
+}
+
+class _MediaStreamTrackJs extends _DOMTypeJs implements MediaStreamTrack native "*MediaStreamTrack" {
+
+  bool enabled;
+
+  final String kind;
+
+  final String label;
+}
+
+class _MediaStreamTrackListJs extends _DOMTypeJs implements MediaStreamTrackList native "*MediaStreamTrackList" {
+
+  final int length;
+
+  _MediaStreamTrackJs item(int index) native;
 }
 
 class _MemoryInfoJs extends _DOMTypeJs implements MemoryInfo native "*MemoryInfo" {
@@ -5003,6 +5065,15 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
   bool javaEnabled() native;
 
   void registerProtocolHandler(String scheme, String url, String title) native;
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+}
+
+class _NavigatorUserMediaErrorJs extends _DOMTypeJs implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
+
+  static final int PERMISSION_DENIED = 1;
+
+  final int code;
 }
 
 class _NodeJs extends _EventTargetJs implements Node native "*Node" {
@@ -5355,6 +5426,51 @@ class _PageTransitionEventJs extends _EventJs implements PageTransitionEvent nat
   final bool persisted;
 }
 
+class _PeerConnectionJs extends _DOMTypeJs implements PeerConnection native "*PeerConnection" {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final _MediaStreamListJs localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final _MediaStreamListJs remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void addStream(_MediaStreamJs stream) native;
+
+  void close() native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void processSignalingMessage(String message) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+
+  void removeStream(_MediaStreamJs stream) native;
+
+  void send(String text) native;
+}
+
 class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performance" {
 
   final _MemoryInfoJs memory;
@@ -5695,7 +5811,8 @@ class _SVGAElementJs extends _SVGElementJs implements SVGAElement native "*SVGAE
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -5923,7 +6040,8 @@ class _SVGCircleElementJs extends _SVGElementJs implements SVGCircleElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -5974,7 +6092,8 @@ class _SVGClipPathElementJs extends _SVGElementJs implements SVGClipPathElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -6098,7 +6217,8 @@ class _SVGDefsElementJs extends _SVGElementJs implements SVGDefsElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -6133,7 +6253,8 @@ class _SVGDescElementJs extends _SVGElementJs implements SVGDescElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6222,7 +6343,8 @@ class _SVGEllipseElementJs extends _SVGElementJs implements SVGEllipseElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -6303,7 +6425,8 @@ class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6342,7 +6465,8 @@ class _SVGFEColorMatrixElementJs extends _SVGElementJs implements SVGFEColorMatr
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6367,7 +6491,8 @@ class _SVGFEComponentTransferElementJs extends _SVGElementJs implements SVGFECom
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6418,7 +6543,8 @@ class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeEl
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6473,7 +6599,8 @@ class _SVGFEConvolveMatrixElementJs extends _SVGElementJs implements SVGFEConvol
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6506,7 +6633,8 @@ class _SVGFEDiffuseLightingElementJs extends _SVGElementJs implements SVGFEDiffu
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6549,7 +6677,8 @@ class _SVGFEDisplacementMapElementJs extends _SVGElementJs implements SVGFEDispl
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6591,7 +6720,8 @@ class _SVGFEDropShadowElementJs extends _SVGElementJs implements SVGFEDropShadow
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6614,7 +6744,8 @@ class _SVGFEFloodElementJs extends _SVGElementJs implements SVGFEFloodElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6657,7 +6788,8 @@ class _SVGFEGaussianBlurElementJs extends _SVGElementJs implements SVGFEGaussian
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6696,7 +6828,8 @@ class _SVGFEImageElementJs extends _SVGElementJs implements SVGFEImageElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6719,7 +6852,8 @@ class _SVGFEMergeElementJs extends _SVGElementJs implements SVGFEMergeElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6763,7 +6897,8 @@ class _SVGFEMorphologyElementJs extends _SVGElementJs implements SVGFEMorphology
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6792,7 +6927,8 @@ class _SVGFEOffsetElementJs extends _SVGElementJs implements SVGFEOffsetElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6832,7 +6968,8 @@ class _SVGFESpecularLightingElementJs extends _SVGElementJs implements SVGFESpec
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6876,7 +7013,8 @@ class _SVGFETileElementJs extends _SVGElementJs implements SVGFETileElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6923,7 +7061,8 @@ class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulence
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -6966,7 +7105,8 @@ class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7043,7 +7183,8 @@ class _SVGForeignObjectElementJs extends _SVGElementJs implements SVGForeignObje
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7092,7 +7233,8 @@ class _SVGGElementJs extends _SVGElementJs implements SVGGElement native "*SVGGE
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7140,7 +7282,8 @@ class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7173,7 +7316,8 @@ class _SVGGradientElementJs extends _SVGElementJs implements SVGGradientElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7221,7 +7365,8 @@ class _SVGImageElementJs extends _SVGElementJs implements SVGImageElement native
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7341,7 +7486,8 @@ class _SVGLineElementJs extends _SVGElementJs implements SVGLineElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7447,7 +7593,8 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7496,7 +7643,8 @@ class _SVGMaskElementJs extends _SVGElementJs implements SVGMaskElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -7679,7 +7827,8 @@ class _SVGPathElementJs extends _SVGElementJs implements SVGPathElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -7985,7 +8134,8 @@ class _SVGPatternElementJs extends _SVGElementJs implements SVGPatternElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8054,7 +8204,8 @@ class _SVGPolygonElementJs extends _SVGElementJs implements SVGPolygonElement na
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8107,7 +8258,8 @@ class _SVGPolylineElementJs extends _SVGElementJs implements SVGPolylineElement 
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8227,7 +8379,8 @@ class _SVGRectElementJs extends _SVGElementJs implements SVGRectElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8365,7 +8518,8 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8418,7 +8572,8 @@ class _SVGStopElementJs extends _SVGElementJs implements SVGStopElement native "
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -8452,6 +8607,8 @@ class _SVGStylableJs extends _DOMTypeJs implements SVGStylable native "*SVGStyla
 }
 
 class _SVGStyleElementJs extends _SVGElementJs implements SVGStyleElement native "*SVGStyleElement" {
+
+  bool disabled;
 
   String media;
 
@@ -8492,7 +8649,8 @@ class _SVGSwitchElementJs extends _SVGElementJs implements SVGSwitchElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8531,7 +8689,8 @@ class _SVGSymbolElementJs extends _SVGElementJs implements SVGSymbolElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8617,7 +8776,8 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -8693,7 +8853,8 @@ class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }
@@ -8817,7 +8978,8 @@ class _SVGUseElementJs extends _SVGElementJs implements SVGUseElement native "*S
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 
@@ -8954,6 +9116,19 @@ class _ScriptProfileNodeJs extends _DOMTypeJs implements ScriptProfileNode nativ
   final String url;
 
   final bool visible;
+}
+
+class _ShadowRootJs extends _DocumentFragmentJs implements ShadowRoot native "*ShadowRoot" {
+
+  final _ElementJs host;
+
+  _ElementJs getElementById(String elementId) native;
+
+  _NodeListJs getElementsByClassName(String className) native;
+
+  _NodeListJs getElementsByTagName(String tagName) native;
+
+  _NodeListJs getElementsByTagNameNS(String namespaceURI, String localName) native;
 }
 
 class _SharedWorkerJs extends _AbstractWorkerJs implements SharedWorker native "*SharedWorker" {
@@ -9745,7 +9920,8 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray, L
 
   static _construct_Uint8ClampedArray(arg) native 'return new Uint8ClampedArray(arg);';
 
-  final int length;
+  // Use implementation from Uint8Array.
+  // final int length;
 
   _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
 }
@@ -9788,23 +9964,15 @@ class _WebGLActiveInfoJs extends _DOMTypeJs implements WebGLActiveInfo native "*
 class _WebGLBufferJs extends _DOMTypeJs implements WebGLBuffer native "*WebGLBuffer" {
 }
 
-class _WebGLCompressedTexturesJs extends _DOMTypeJs implements WebGLCompressedTextures native "*WebGLCompressedTextures" {
-
-  static final int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
+class _WebGLCompressedTextureS3TCJs extends _DOMTypeJs implements WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
+  static final int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
+
   static final int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
-  static final int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
-
   static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
-
-  static final int ETC1_RGB8_OES = 0x8D64;
-
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, _ArrayBufferViewJs data) native;
-
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, _ArrayBufferViewJs data) native;
 }
 
 class _WebGLContextAttributesJs extends _DOMTypeJs implements WebGLContextAttributes native "*WebGLContextAttributes" {
@@ -10154,8 +10322,6 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
   static final int NOTEQUAL = 0x0205;
 
   static final int NO_ERROR = 0;
-
-  static final int NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
 
   static final int ONE = 1;
 
@@ -11039,19 +11205,17 @@ class _WorkerContextJs extends _DOMTypeJs implements WorkerContext native "*Work
 
   static final int TEMPORARY = 0;
 
-  _WorkerLocationJs location;
+  final _WorkerLocationJs location;
 
-  _WorkerNavigatorJs navigator;
+  final _WorkerNavigatorJs navigator;
 
   EventListener onerror;
 
-  _WorkerContextJs self;
+  final _WorkerContextJs self;
 
   final _IDBFactoryJs webkitIndexedDB;
 
   final _NotificationCenterJs webkitNotifications;
-
-  final _DOMURLJs webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
 
@@ -11302,7 +11466,7 @@ class _XSLTProcessorJs extends _DOMTypeJs implements XSLTProcessor native "*XSLT
 
   _DocumentFragmentJs transformToFragment(_NodeJs source, _DocumentJs docVal) native;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11316,7 +11480,7 @@ interface AbstractWorker extends EventTarget {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11328,7 +11492,7 @@ interface ArrayBuffer {
 
   ArrayBuffer slice(int begin, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11342,7 +11506,7 @@ interface ArrayBufferView {
 
   final int byteOffset;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11360,7 +11524,7 @@ interface Attr extends Node {
 
   String value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11387,7 +11551,7 @@ interface AudioBuffer {
 // WARNING: Do not edit - generated code.
 
 typedef bool AudioBufferCallback(AudioBuffer audioBuffer);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11411,7 +11575,7 @@ interface AudioBufferSourceNode extends AudioSourceNode {
 
   void noteOn(num when);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11419,7 +11583,7 @@ interface AudioBufferSourceNode extends AudioSourceNode {
 
 interface AudioChannelMerger extends AudioNode {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11427,7 +11591,7 @@ interface AudioChannelMerger extends AudioNode {
 
 interface AudioChannelSplitter extends AudioNode {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11483,7 +11647,7 @@ interface AudioContext default _AudioContextFactoryProvider {
 
   void startRendering();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11493,7 +11657,7 @@ interface AudioDestinationNode extends AudioNode {
 
   final int numberOfChannels;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11501,7 +11665,7 @@ interface AudioDestinationNode extends AudioNode {
 
 interface AudioGain extends AudioParam {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11511,7 +11675,7 @@ interface AudioGainNode extends AudioNode {
 
   final AudioGain gain;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11529,7 +11693,7 @@ interface AudioListener {
 
   void setVelocity(num x, num y, num z);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11547,7 +11711,7 @@ interface AudioNode {
 
   void disconnect(int output);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11557,7 +11721,13 @@ interface AudioPannerNode extends AudioNode {
 
   static final int EQUALPOWER = 0;
 
+  static final int EXPONENTIAL_DISTANCE = 2;
+
   static final int HRTF = 1;
+
+  static final int INVERSE_DISTANCE = 1;
+
+  static final int LINEAR_DISTANCE = 0;
 
   static final int SOUNDFIELD = 2;
 
@@ -11587,7 +11757,7 @@ interface AudioPannerNode extends AudioNode {
 
   void setVelocity(num x, num y, num z);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11619,7 +11789,7 @@ interface AudioParam {
 
   void setValueCurveAtTime(Float32Array values, num time, num duration);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11631,7 +11801,7 @@ interface AudioProcessingEvent extends Event {
 
   final AudioBuffer outputBuffer;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11639,7 +11809,7 @@ interface AudioProcessingEvent extends Event {
 
 interface AudioSourceNode extends AudioNode {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11652,7 +11822,7 @@ interface BarProp {
 
 interface BarInfo extends BarProp {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11662,7 +11832,7 @@ interface BeforeLoadEvent extends Event {
 
   final String url;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11696,7 +11866,7 @@ interface BiquadFilterNode extends AudioNode {
 
   void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11710,7 +11880,7 @@ interface Blob {
 
   Blob webkitSlice([int start, int end, String contentType]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11718,7 +11888,7 @@ interface Blob {
 
 interface CDATASection extends Text {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11728,7 +11898,7 @@ interface CSSCharsetRule extends CSSRule {
 
   String encoding;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11738,7 +11908,7 @@ interface CSSFontFaceRule extends CSSRule {
 
   final CSSStyleDeclaration style;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11752,7 +11922,7 @@ interface CSSImportRule extends CSSRule {
 
   final CSSStyleSheet styleSheet;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11768,7 +11938,7 @@ interface CSSMediaRule extends CSSRule {
 
   int insertRule(String rule, int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11780,7 +11950,7 @@ interface CSSPageRule extends CSSRule {
 
   final CSSStyleDeclaration style;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11856,7 +12026,7 @@ interface CSSPrimitiveValue extends CSSValue {
 
   void setStringValue(int stringType, String stringValue);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11878,9 +12048,9 @@ interface CSSRule {
 
   static final int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 8;
+  static final int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 9;
+  static final int WEBKIT_KEYFRAME_RULE = 8;
 
   static final int WEBKIT_REGION_RULE = 10;
 
@@ -11892,7 +12062,7 @@ interface CSSRule {
 
   final int type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11904,7 +12074,7 @@ interface CSSRuleList {
 
   CSSRule item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11934,7 +12104,7 @@ interface CSSStyleDeclaration {
 
   void setProperty(String propertyName, String value, [String priority]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11946,7 +12116,7 @@ interface CSSStyleRule extends CSSRule {
 
   final CSSStyleDeclaration style;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11968,7 +12138,7 @@ interface CSSStyleSheet extends StyleSheet {
 
   void removeRule(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11976,7 +12146,7 @@ interface CSSStyleSheet extends StyleSheet {
 
 interface CSSUnknownRule extends CSSRule {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11996,7 +12166,7 @@ interface CSSValue {
 
   final int cssValueType;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12008,7 +12178,7 @@ interface CSSValueList extends CSSValue {
 
   CSSValue item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12018,7 +12188,7 @@ interface CanvasGradient {
 
   void addColorStop(num offset, String color);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12026,7 +12196,7 @@ interface CanvasGradient {
 
 interface CanvasPattern {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12036,7 +12206,7 @@ interface CanvasPixelArray extends List<int> {
 
   final int length;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12046,7 +12216,7 @@ interface CanvasRenderingContext {
 
   final HTMLCanvasElement canvas;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12176,7 +12346,7 @@ interface CanvasRenderingContext2D extends CanvasRenderingContext {
 
   void translate(num tx, num ty);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12198,7 +12368,7 @@ interface CharacterData extends Node {
 
   String substringData(int offset, int length);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12218,7 +12388,7 @@ interface ClientRect {
 
   final num width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12230,7 +12400,7 @@ interface ClientRectList {
 
   ClientRect item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12256,7 +12426,7 @@ interface Clipboard {
 
   void setDragImage(HTMLImageElement image, int x, int y);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12270,7 +12440,7 @@ interface CloseEvent extends Event {
 
   final bool wasClean;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12278,7 +12448,7 @@ interface CloseEvent extends Event {
 
 interface Comment extends CharacterData {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12290,7 +12460,7 @@ interface CompositionEvent extends UIEvent {
 
   void initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12302,7 +12472,7 @@ interface Console {
 
   final List profiles;
 
-  void assertCondition(bool condition);
+  void assertCondition(bool condition, Object arg);
 
   void count();
 
@@ -12314,9 +12484,9 @@ interface Console {
 
   void error(Object arg);
 
-  void group();
+  void group(Object arg);
 
-  void groupCollapsed();
+  void groupCollapsed(Object arg);
 
   void groupEnd();
 
@@ -12332,15 +12502,15 @@ interface Console {
 
   void time(String title);
 
-  void timeEnd(String title);
+  void timeEnd(String title, Object arg);
 
-  void timeStamp();
+  void timeStamp(Object arg);
 
   void trace(Object arg);
 
   void warn(Object arg);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12352,7 +12522,7 @@ interface ConvolverNode extends AudioNode {
 
   bool normalize;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12374,7 +12544,7 @@ interface Coordinates {
 
   final num speed;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12388,7 +12558,7 @@ interface Counter {
 
   final String separator;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12398,7 +12568,7 @@ interface Crypto {
 
   void getRandomValues(ArrayBufferView array);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12410,7 +12580,7 @@ interface CustomEvent extends Event {
 
   void initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12447,7 +12617,7 @@ interface DOMApplicationCache extends ApplicationCache {
 
   static final int UPDATEREADY = 4;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12513,7 +12683,7 @@ interface DOMException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12525,7 +12695,7 @@ interface DOMFileSystem {
 
   final DirectoryEntry root;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12537,7 +12707,7 @@ interface DOMFileSystemSync {
 
   final DirectoryEntrySync root;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12550,7 +12720,7 @@ interface FormData {
 
 interface DOMFormData extends FormData {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12568,7 +12738,7 @@ interface DOMImplementation {
 
   bool hasFeature(String feature, String version);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12584,7 +12754,7 @@ interface DOMMimeType {
 
   final String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12598,7 +12768,7 @@ interface DOMMimeTypeArray {
 
   DOMMimeType namedItem(String name);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12610,7 +12780,7 @@ interface DOMParser default _DOMParserFactoryProvider {
 
   Document parseFromString(String str, String contentType);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12630,7 +12800,7 @@ interface DOMPlugin {
 
   DOMMimeType namedItem(String name);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12646,7 +12816,7 @@ interface DOMPluginArray {
 
   void refresh(bool reload);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12709,7 +12879,7 @@ interface Selection {
 
 interface DOMSelection extends Selection {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12719,7 +12889,7 @@ interface DOMSettableTokenList extends DOMTokenList {
 
   String value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12741,19 +12911,15 @@ interface DOMTokenList {
 
   bool toggle(String token);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 interface DOMURL {
-
-  String createObjectURL(Blob blob);
-
-  void revokeObjectURL(String url);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12763,11 +12929,11 @@ interface Window extends EventTarget {
 
   final DOMApplicationCache applicationCache;
 
-  Navigator clientInformation;
+  final Navigator clientInformation;
 
   final bool closed;
 
-  Console console;
+  final Console console;
 
   final Crypto crypto;
 
@@ -12775,91 +12941,89 @@ interface Window extends EventTarget {
 
   String defaultstatus;
 
-  num devicePixelRatio;
+  final num devicePixelRatio;
 
   final Document document;
 
-  Event event;
+  final Event event;
 
   final Element frameElement;
 
-  DOMWindow frames;
+  final DOMWindow frames;
 
-  History history;
+  final History history;
 
-  int innerHeight;
+  final int innerHeight;
 
-  int innerWidth;
+  final int innerWidth;
 
-  int length;
+  final int length;
 
   final Storage localStorage;
 
   Location location;
 
-  BarInfo locationbar;
+  final BarInfo locationbar;
 
-  BarInfo menubar;
+  final BarInfo menubar;
 
   String name;
 
-  Navigator navigator;
+  final Navigator navigator;
 
-  bool offscreenBuffering;
+  final bool offscreenBuffering;
 
-  DOMWindow opener;
+  final DOMWindow opener;
 
-  int outerHeight;
+  final int outerHeight;
 
-  int outerWidth;
+  final int outerWidth;
 
   final int pageXOffset;
 
   final int pageYOffset;
 
-  DOMWindow parent;
+  final DOMWindow parent;
 
-  Performance performance;
+  final Performance performance;
 
-  BarInfo personalbar;
+  final BarInfo personalbar;
 
-  Screen screen;
+  final Screen screen;
 
-  int screenLeft;
+  final int screenLeft;
 
-  int screenTop;
+  final int screenTop;
 
-  int screenX;
+  final int screenX;
 
-  int screenY;
+  final int screenY;
 
-  int scrollX;
+  final int scrollX;
 
-  int scrollY;
+  final int scrollY;
 
-  BarInfo scrollbars;
+  final BarInfo scrollbars;
 
-  DOMWindow self;
+  final DOMWindow self;
 
   final Storage sessionStorage;
 
   String status;
 
-  BarInfo statusbar;
+  final BarInfo statusbar;
 
   final StyleMedia styleMedia;
 
-  BarInfo toolbar;
+  final BarInfo toolbar;
 
-  DOMWindow top;
+  final DOMWindow top;
 
   final IDBFactory webkitIndexedDB;
 
   final NotificationCenter webkitNotifications;
 
   final StorageInfo webkitStorageInfo;
-
-  final DOMURL webkitURL;
 
   final DOMWindow window;
 
@@ -12956,7 +13120,7 @@ interface DOMWindow extends Window {
 
   static final int TEMPORARY = 0;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12972,7 +13136,7 @@ interface DataTransferItem {
 
   void getAsString(StringCallback callback);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12988,7 +13152,7 @@ interface DataTransferItemList {
 
   DataTransferItem item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13028,7 +13192,7 @@ interface DataView extends ArrayBufferView {
 
   void setUint8();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13051,7 +13215,7 @@ interface Database {
 // WARNING: Do not edit - generated code.
 
 typedef bool DatabaseCallback(var database);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13069,7 +13233,7 @@ interface DatabaseSync {
 
   void transaction(SQLTransactionSyncCallback callback);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13086,7 +13250,7 @@ interface DedicatedWorkerGlobalScope extends WorkerContext {
 
 interface DedicatedWorkerContext extends DedicatedWorkerGlobalScope {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13096,7 +13260,7 @@ interface DelayNode extends AudioNode {
 
   final AudioParam delayTime;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13106,7 +13270,7 @@ interface DeviceMotionEvent extends Event {
 
   final num interval;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13124,7 +13288,7 @@ interface DeviceOrientationEvent extends Event {
 
   void initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13140,7 +13304,7 @@ interface DirectoryEntry extends Entry {
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13156,7 +13320,7 @@ interface DirectoryEntrySync extends EntrySync {
 
   void removeRecursively();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13166,7 +13330,7 @@ interface DirectoryReader {
 
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13176,7 +13340,7 @@ interface DirectoryReaderSync {
 
   EntryArraySync readEntries();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13338,7 +13502,7 @@ interface Document extends Node, NodeSelector {
 
   WebKitNamedFlow webkitGetFlowByName(String name);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13350,7 +13514,7 @@ interface DocumentFragment extends Node, NodeSelector {
 
   NodeList querySelectorAll(String selectors);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13370,7 +13534,7 @@ interface DocumentType extends Node {
 
   final String systemId;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13378,7 +13542,7 @@ interface DocumentType extends Node {
 
 interface DynamicsCompressorNode extends AudioNode {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13427,6 +13591,8 @@ interface Element extends Node, NodeSelector, ElementTraversal {
   final CSSStyleDeclaration style;
 
   final String tagName;
+
+  final String webkitRegionOverflow;
 
   void blur();
 
@@ -13484,7 +13650,7 @@ interface Element extends Node, NodeSelector, ElementTraversal {
 
   void webkitRequestFullScreen(int flags);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13500,7 +13666,7 @@ interface ElementTimeControl {
 
   void endElementAt(num offset);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13518,7 +13684,7 @@ interface ElementTraversal {
 
   final Element previousElementSibling;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13532,7 +13698,7 @@ interface Entity extends Node {
 
   final String systemId;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13547,7 +13713,7 @@ interface EntityReference extends Node {
 // WARNING: Do not edit - generated code.
 
 typedef bool EntriesCallback(EntryArray entries);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13577,7 +13743,7 @@ interface Entry {
 
   String toURL();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13589,7 +13755,7 @@ interface EntryArray {
 
   Entry item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13608,7 +13774,7 @@ interface EntryArraySync {
 // WARNING: Do not edit - generated code.
 
 typedef bool EntryCallback(Entry entry);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13645,7 +13811,7 @@ interface EntrySync {
 // WARNING: Do not edit - generated code.
 
 typedef bool ErrorCallback(FileError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13659,7 +13825,7 @@ interface ErrorEvent extends Event {
 
   final String message;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13737,7 +13903,7 @@ interface Event {
 
   void stopPropagation();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13757,7 +13923,7 @@ interface EventException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13785,7 +13951,7 @@ interface EventSource extends EventTarget {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13799,7 +13965,7 @@ interface EventTarget {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13824,7 +13990,7 @@ interface File extends Blob {
 // WARNING: Do not edit - generated code.
 
 typedef bool FileCallback(File file);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13836,7 +14002,7 @@ interface FileEntry extends Entry {
 
   void file(FileCallback successCallback, [ErrorCallback errorCallback]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13848,7 +14014,7 @@ interface FileEntrySync extends EntrySync {
 
   File file();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13882,7 +14048,7 @@ interface FileError {
 
   final int code;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13922,7 +14088,7 @@ interface FileException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13934,7 +14100,7 @@ interface FileList {
 
   File item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13984,7 +14150,7 @@ interface FileReader default _FileReaderFactoryProvider {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14007,7 +14173,7 @@ interface FileReaderSync {
 // WARNING: Do not edit - generated code.
 
 typedef bool FileSystemCallback(DOMFileSystem fileSystem);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14056,7 +14222,7 @@ interface FileWriter {
 // WARNING: Do not edit - generated code.
 
 typedef bool FileWriterCallback(FileWriter fileWriter);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14074,7 +14240,7 @@ interface FileWriterSync {
 
   void write(Blob data);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14096,7 +14262,7 @@ interface Float32Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float32Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14118,7 +14284,7 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
 
   Float64Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14132,7 +14298,7 @@ interface Geolocation {
 
   int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14144,7 +14310,7 @@ interface Geoposition {
 
   final int timestamp;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14160,7 +14326,7 @@ interface HTMLAllCollection {
 
   NodeList tags(String name);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14212,7 +14378,7 @@ interface HTMLAnchorElement extends HTMLElement {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14242,7 +14408,7 @@ interface HTMLAppletElement extends HTMLElement {
 
   String width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14278,7 +14444,7 @@ interface HTMLAreaElement extends HTMLElement {
 
   String target;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14286,7 +14452,7 @@ interface HTMLAreaElement extends HTMLElement {
 
 interface HTMLAudioElement extends HTMLMediaElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14296,7 +14462,7 @@ interface HTMLBRElement extends HTMLElement {
 
   String clear;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14308,7 +14474,7 @@ interface HTMLBaseElement extends HTMLElement {
 
   String target;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14322,7 +14488,7 @@ interface HTMLBaseFontElement extends HTMLElement {
 
   int size;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14342,7 +14508,7 @@ interface HTMLBodyElement extends HTMLElement {
 
   String vLink;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14382,11 +14548,9 @@ interface HTMLButtonElement extends HTMLElement {
 
   bool checkValidity();
 
-  void click();
-
   void setCustomValidity(String error);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14402,7 +14566,7 @@ interface HTMLCanvasElement extends HTMLElement {
 
   String toDataURL(String type);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14416,7 +14580,17 @@ interface HTMLCollection extends List<Node> {
 
   Node namedItem(String name);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface HTMLContentElement extends HTMLElement {
+
+  String select;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14426,7 +14600,7 @@ interface HTMLDListElement extends HTMLElement {
 
   bool compact;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14436,7 +14610,7 @@ interface HTMLDetailsElement extends HTMLElement {
 
   bool open;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14446,7 +14620,7 @@ interface HTMLDirectoryElement extends HTMLElement {
 
   bool compact;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14456,7 +14630,7 @@ interface HTMLDivElement extends HTMLElement {
 
   String align;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14506,7 +14680,7 @@ interface HTMLDocument extends Document {
 
   void writeln(String text);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14552,13 +14726,15 @@ interface HTMLElement extends Element {
 
   String webkitdropzone;
 
+  void click();
+
   Element insertAdjacentElement(String where, Element element);
 
   void insertAdjacentHTML(String where, String html);
 
   void insertAdjacentText(String where, String text);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14580,7 +14756,7 @@ interface HTMLEmbedElement extends HTMLElement {
 
   SVGDocument getSVGDocument();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14600,7 +14776,7 @@ interface HTMLFieldSetElement extends HTMLElement {
 
   void setCustomValidity(String error);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14614,7 +14790,7 @@ interface HTMLFontElement extends HTMLElement {
 
   String size;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14650,7 +14826,7 @@ interface HTMLFormElement extends HTMLElement {
 
   void submit();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14686,7 +14862,7 @@ interface HTMLFrameElement extends HTMLElement {
 
   SVGDocument getSVGDocument();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14698,7 +14874,7 @@ interface HTMLFrameSetElement extends HTMLElement {
 
   String rows;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14714,7 +14890,7 @@ interface HTMLHRElement extends HTMLElement {
 
   String width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14724,7 +14900,7 @@ interface HTMLHeadElement extends HTMLElement {
 
   String profile;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14734,7 +14910,7 @@ interface HTMLHeadingElement extends HTMLElement {
 
   String align;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14746,7 +14922,7 @@ interface HTMLHtmlElement extends HTMLElement {
 
   String version;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14782,7 +14958,7 @@ interface HTMLIFrameElement extends HTMLElement {
 
   SVGDocument getSVGDocument();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14828,7 +15004,7 @@ interface HTMLImageElement extends HTMLElement {
 
   final int y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14930,8 +15106,6 @@ interface HTMLInputElement extends HTMLElement {
 
   bool checkValidity();
 
-  void click();
-
   void select();
 
   void setCustomValidity(String error);
@@ -14942,19 +15116,7 @@ interface HTMLInputElement extends HTMLElement {
 
   void stepUp([int n]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface HTMLIsIndexElement extends HTMLInputElement {
-
-  final HTMLFormElement form;
-
-  String prompt;
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -14988,7 +15150,7 @@ interface HTMLKeygenElement extends HTMLElement {
 
   void setCustomValidity(String error);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15000,7 +15162,7 @@ interface HTMLLIElement extends HTMLElement {
 
   int value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15014,7 +15176,7 @@ interface HTMLLabelElement extends HTMLElement {
 
   String htmlFor;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15026,7 +15188,7 @@ interface HTMLLegendElement extends HTMLElement {
 
   final HTMLFormElement form;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15056,7 +15218,7 @@ interface HTMLLinkElement extends HTMLElement {
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15068,7 +15230,7 @@ interface HTMLMapElement extends HTMLElement {
 
   String name;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15102,7 +15264,7 @@ interface HTMLMarqueeElement extends HTMLElement {
 
   void stop();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15208,7 +15370,7 @@ interface HTMLMediaElement extends HTMLElement {
 
   final int webkitVideoDecodedByteCount;
 
-  TextTrack addTrack(String kind, [String label, String language]);
+  TextTrack addTextTrack(String kind, [String label, String language]);
 
   String canPlayType(String type);
 
@@ -15222,7 +15384,7 @@ interface HTMLMediaElement extends HTMLElement {
 
   void webkitSourceEndOfStream(int status);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15232,7 +15394,7 @@ interface HTMLMenuElement extends HTMLElement {
 
   bool compact;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15248,7 +15410,7 @@ interface HTMLMetaElement extends HTMLElement {
 
   String scheme;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15272,7 +15434,7 @@ interface HTMLMeterElement extends HTMLElement {
 
   num value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15284,7 +15446,7 @@ interface HTMLModElement extends HTMLElement {
 
   String dateTime;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15300,7 +15462,7 @@ interface HTMLOListElement extends HTMLElement {
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15356,7 +15518,7 @@ interface HTMLObjectElement extends HTMLElement {
 
   void setCustomValidity(String error);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15368,7 +15530,7 @@ interface HTMLOptGroupElement extends HTMLElement {
 
   String label;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15392,7 +15554,7 @@ interface HTMLOptionElement extends HTMLElement {
 
   String value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15406,7 +15568,7 @@ interface HTMLOptionsCollection extends HTMLCollection {
 
   void remove(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15438,7 +15600,7 @@ interface HTMLOutputElement extends HTMLElement {
 
   void setCustomValidity(String error);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15448,7 +15610,7 @@ interface HTMLParagraphElement extends HTMLElement {
 
   String align;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15464,7 +15626,7 @@ interface HTMLParamElement extends HTMLElement {
 
   String valueType;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15476,7 +15638,7 @@ interface HTMLPreElement extends HTMLElement {
 
   bool wrap;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15494,7 +15656,7 @@ interface HTMLProgressElement extends HTMLElement {
 
   num value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15504,7 +15666,7 @@ interface HTMLQuoteElement extends HTMLElement {
 
   String cite;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15528,7 +15690,7 @@ interface HTMLScriptElement extends HTMLElement {
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15580,7 +15742,15 @@ interface HTMLSelectElement extends HTMLElement {
 
   void setCustomValidity(String error);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface HTMLShadowElement extends HTMLElement {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15594,7 +15764,7 @@ interface HTMLSourceElement extends HTMLElement {
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15602,7 +15772,7 @@ interface HTMLSourceElement extends HTMLElement {
 
 interface HTMLSpanElement extends HTMLElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15618,7 +15788,7 @@ interface HTMLStyleElement extends HTMLElement {
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15628,7 +15798,7 @@ interface HTMLTableCaptionElement extends HTMLElement {
 
   String align;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15666,7 +15836,7 @@ interface HTMLTableCellElement extends HTMLElement {
 
   String width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15686,7 +15856,7 @@ interface HTMLTableColElement extends HTMLElement {
 
   String width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15738,7 +15908,7 @@ interface HTMLTableElement extends HTMLElement {
 
   HTMLElement insertRow(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15766,7 +15936,7 @@ interface HTMLTableRowElement extends HTMLElement {
 
   HTMLElement insertCell(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15788,7 +15958,7 @@ interface HTMLTableSectionElement extends HTMLElement {
 
   HTMLElement insertRow(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15850,7 +16020,7 @@ interface HTMLTextAreaElement extends HTMLElement {
 
   void setSelectionRange(int start, int end, [String direction]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15860,7 +16030,7 @@ interface HTMLTitleElement extends HTMLElement {
 
   String text;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15890,7 +16060,7 @@ interface HTMLTrackElement extends HTMLElement {
 
   final TextTrack track;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15902,7 +16072,7 @@ interface HTMLUListElement extends HTMLElement {
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15910,7 +16080,7 @@ interface HTMLUListElement extends HTMLElement {
 
 interface HTMLUnknownElement extends HTMLElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15944,7 +16114,7 @@ interface HTMLVideoElement extends HTMLMediaElement {
 
   void webkitExitFullscreen();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15958,7 +16128,7 @@ interface HashChangeEvent extends Event {
 
   void initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15970,7 +16140,7 @@ interface HighPass2FilterNode extends AudioNode {
 
   final AudioParam resonance;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15979,6 +16149,8 @@ interface HighPass2FilterNode extends AudioNode {
 interface History {
 
   final int length;
+
+  final Dynamic state;
 
   void back();
 
@@ -15990,7 +16162,7 @@ interface History {
 
   void replaceState(Object data, String title, [String url]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -15998,7 +16170,7 @@ interface History {
 
 interface IDBAny {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16028,7 +16200,7 @@ interface IDBCursor {
 
   IDBRequest update(Dynamic value);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16038,7 +16210,7 @@ interface IDBCursorWithValue extends IDBCursor {
 
   final IDBAny value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16072,7 +16244,7 @@ interface IDBDatabase {
 
   IDBTransaction transaction(String storeName, int mode);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16084,7 +16256,7 @@ interface IDBDatabaseError {
 
   String message;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16126,7 +16298,7 @@ interface IDBDatabaseException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16142,7 +16314,7 @@ interface IDBFactory {
 
   IDBRequest open(String name);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16170,7 +16342,7 @@ interface IDBIndex {
 
   IDBRequest openKeyCursor([IDBKeyRange range, int direction]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16178,7 +16350,7 @@ interface IDBIndex {
 
 interface IDBKey {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16202,7 +16374,7 @@ interface IDBKeyRange {
 
   IDBKeyRange upperBound(IDBKey bound, [bool open]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16236,7 +16408,7 @@ interface IDBObjectStore {
 
   IDBRequest put(Dynamic value, [IDBKey key]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16270,7 +16442,7 @@ interface IDBRequest {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16304,7 +16476,7 @@ interface IDBTransaction {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16314,7 +16486,7 @@ interface IDBVersionChangeEvent extends Event {
 
   final String version;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16324,7 +16496,7 @@ interface IDBVersionChangeRequest extends IDBRequest {
 
   EventListener onblocked;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16338,7 +16510,7 @@ interface ImageData {
 
   final int width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16360,7 +16532,7 @@ interface Int16Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int16Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16382,7 +16554,7 @@ interface Int32Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Int32Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16404,7 +16576,7 @@ interface Int8Array extends ArrayBufferView, List<int> default _TypedArrayFactor
 
   Int8Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16416,7 +16588,7 @@ interface JavaScriptAudioNode extends AudioNode {
 
   EventListener onaudioprocess;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16454,7 +16626,7 @@ interface JavaScriptCallFrame {
 
   int scopeType(int scopeIndex);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16478,7 +16650,17 @@ interface KeyboardEvent extends UIEvent {
 
   void initKeyboardEvent(String type, bool canBubble, bool cancelable, DOMWindow view, String keyIdentifier, int keyLocation, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, bool altGraphKey);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface LocalMediaStream extends MediaStream {
+
+  void stop();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16512,7 +16694,7 @@ interface Location {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16524,7 +16706,7 @@ interface LowPass2FilterNode extends AudioNode {
 
   final AudioParam resonance;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16562,7 +16744,7 @@ interface MediaController {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16572,7 +16754,7 @@ interface MediaElementAudioSourceNode extends AudioSourceNode {
 
   final HTMLMediaElement mediaElement;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16590,7 +16772,7 @@ interface MediaError {
 
   final int code;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16608,7 +16790,7 @@ interface MediaList extends List<String> {
 
   String item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16624,7 +16806,7 @@ interface MediaQueryList {
 
   void removeListener(MediaQueryListListener listener);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16634,7 +16816,83 @@ interface MediaQueryListListener {
 
   void queryChanged(MediaQueryList list);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStream {
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 1;
+
+  final MediaStreamTrackList audioTracks;
+
+  final String label;
+
+  EventListener onended;
+
+  final int readyState;
+
+  final MediaStreamTrackList videoTracks;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamEvent extends Event {
+
+  final MediaStream stream;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamList {
+
+  final int length;
+
+  MediaStream item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamTrack {
+
+  bool enabled;
+
+  final String kind;
+
+  final String label;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamTrackList {
+
+  final int length;
+
+  MediaStreamTrack item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16648,7 +16906,7 @@ interface MemoryInfo {
 
   final int usedJSHeapSize;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16660,7 +16918,7 @@ interface MessageChannel {
 
   final MessagePort port2;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16682,7 +16940,7 @@ interface MessageEvent extends Event {
 
   void webkitInitMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, DOMWindow sourceArg, List transferables);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16704,7 +16962,7 @@ interface MessagePort extends EventTarget {
 
   void webkitPostMessage(String message, [List transfer]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16721,7 +16979,7 @@ interface Metadata {
 // WARNING: Do not edit - generated code.
 
 typedef bool MetadataCallback(Metadata metadata);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16765,7 +17023,7 @@ interface MouseEvent extends UIEvent {
 
   void initMouseEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16791,7 +17049,7 @@ interface MutationEvent extends Event {
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16815,7 +17073,7 @@ interface NamedNodeMap extends List<Node> {
 
   Node setNamedItemNS(Node node);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16858,8 +17116,36 @@ interface Navigator {
   bool javaEnabled();
 
   void registerProtocolHandler(String scheme, String url, String title);
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface NavigatorUserMediaError {
+
+  static final int PERMISSION_DENIED = 1;
+
+  final int code;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16975,7 +17261,7 @@ interface Node extends EventTarget {
 
   Node replaceChild(Node newChild, Node oldChild);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17017,7 +17303,7 @@ interface NodeFilter {
 
   int acceptNode(Node n);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17043,7 +17329,7 @@ interface NodeIterator {
 
   Node previousNode();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17055,7 +17341,7 @@ interface NodeList extends List<Node> {
 
   Node item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17067,7 +17353,7 @@ interface NodeSelector {
 
   NodeList querySelectorAll(String selectors);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17079,7 +17365,7 @@ interface Notation extends Node {
 
   final String systemId;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17101,7 +17387,7 @@ interface Notification extends EventTarget {
 
   void show();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17117,7 +17403,7 @@ interface NotificationCenter {
 
   void requestPermission(VoidCallback callback);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17127,7 +17413,7 @@ interface OESStandardDerivatives {
 
   static final int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17135,7 +17421,7 @@ interface OESStandardDerivatives {
 
 interface OESTextureFloat {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17153,7 +17439,7 @@ interface OESVertexArrayObject {
 
   bool isVertexArrayOES(WebGLVertexArrayObjectOES arrayObject);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17163,7 +17449,7 @@ interface OfflineAudioCompletionEvent extends Event {
 
   final AudioBuffer renderedBuffer;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17181,7 +17467,7 @@ interface OperationNotAllowedException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17201,7 +17487,7 @@ interface OverflowEvent extends Event {
 
   final bool verticalOverflow;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17211,7 +17497,57 @@ interface PageTransitionEvent extends Event {
 
   final bool persisted;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface PeerConnection {
+
+  static final int ACTIVE = 2;
+
+  static final int CLOSED = 3;
+
+  static final int NEGOTIATING = 1;
+
+  static final int NEW = 0;
+
+  final MediaStreamList localStreams;
+
+  EventListener onaddstream;
+
+  EventListener onconnecting;
+
+  EventListener onmessage;
+
+  EventListener onopen;
+
+  EventListener onremovestream;
+
+  EventListener onstatechange;
+
+  final int readyState;
+
+  final MediaStreamList remoteStreams;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void addStream(MediaStream stream);
+
+  void close();
+
+  bool dispatchEvent(Event event);
+
+  void processSignalingMessage(String message);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeStream(MediaStream stream);
+
+  void send(String text);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17225,7 +17561,7 @@ interface Performance {
 
   final PerformanceTiming timing;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17245,7 +17581,7 @@ interface PerformanceNavigation {
 
   final int type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17295,7 +17631,7 @@ interface PerformanceTiming {
 
   final int unloadEventStart;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17312,7 +17648,7 @@ interface PopStateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 typedef bool PositionCallback(Geoposition position);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17337,7 +17673,7 @@ interface PositionError {
 // WARNING: Do not edit - generated code.
 
 typedef bool PositionErrorCallback(PositionError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17351,7 +17687,7 @@ interface ProcessingInstruction extends Node {
 
   final String target;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17365,7 +17701,7 @@ interface ProgressEvent extends Event {
 
   final int total;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17379,7 +17715,7 @@ interface RGBColor {
 
   final CSSPrimitiveValue red;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17465,7 +17801,7 @@ interface Range {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17485,7 +17821,7 @@ interface RangeException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17509,7 +17845,7 @@ interface RealtimeAnalyserNode extends AudioNode {
 
   void getFloatFrequencyData(Float32Array array);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17526,6 +17862,13 @@ interface Rect {
   final CSSPrimitiveValue top;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool RequestAnimationFrameCallback(int time);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17553,7 +17896,7 @@ interface SQLError {
 
   final String message;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17581,7 +17924,7 @@ interface SQLException {
 
   final String message;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17595,7 +17938,7 @@ interface SQLResultSet {
 
   final int rowsAffected;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17621,7 +17964,7 @@ typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resul
 // WARNING: Do not edit - generated code.
 
 typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17643,7 +17986,7 @@ typedef bool SQLTransactionCallback(SQLTransaction transaction);
 // WARNING: Do not edit - generated code.
 
 typedef bool SQLTransactionErrorCallback(SQLError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17658,7 +18001,7 @@ interface SQLTransactionSync {
 // WARNING: Do not edit - generated code.
 
 typedef bool SQLTransactionSyncCallback(SQLTransactionSync transaction);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17668,7 +18011,7 @@ interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpac
 
   final SVGAnimatedString target;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17676,7 +18019,7 @@ interface SVGAElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSpac
 
 interface SVGAltGlyphDefElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17688,7 +18031,7 @@ interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference 
 
   String glyphRef;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17696,7 +18039,7 @@ interface SVGAltGlyphElement extends SVGTextPositioningElement, SVGURIReference 
 
 interface SVGAltGlyphItemElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17726,7 +18069,7 @@ interface SVGAngle {
 
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17734,7 +18077,7 @@ interface SVGAngle {
 
 interface SVGAnimateColorElement extends SVGAnimationElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17742,7 +18085,7 @@ interface SVGAnimateColorElement extends SVGAnimationElement {
 
 interface SVGAnimateElement extends SVGAnimationElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17750,7 +18093,7 @@ interface SVGAnimateElement extends SVGAnimationElement {
 
 interface SVGAnimateMotionElement extends SVGAnimationElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17758,7 +18101,7 @@ interface SVGAnimateMotionElement extends SVGAnimationElement {
 
 interface SVGAnimateTransformElement extends SVGAnimationElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17770,7 +18113,7 @@ interface SVGAnimatedAngle {
 
   final SVGAngle baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17782,7 +18125,7 @@ interface SVGAnimatedBoolean {
 
   bool baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17794,7 +18137,7 @@ interface SVGAnimatedEnumeration {
 
   int baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17806,7 +18149,7 @@ interface SVGAnimatedInteger {
 
   int baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17818,7 +18161,7 @@ interface SVGAnimatedLength {
 
   final SVGLength baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17830,7 +18173,7 @@ interface SVGAnimatedLengthList {
 
   final SVGLengthList baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17842,7 +18185,7 @@ interface SVGAnimatedNumber {
 
   num baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17854,7 +18197,7 @@ interface SVGAnimatedNumberList {
 
   final SVGNumberList baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17866,7 +18209,7 @@ interface SVGAnimatedPreserveAspectRatio {
 
   final SVGPreserveAspectRatio baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17878,7 +18221,7 @@ interface SVGAnimatedRect {
 
   final SVGRect baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17890,7 +18233,7 @@ interface SVGAnimatedString {
 
   String baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17902,7 +18245,7 @@ interface SVGAnimatedTransformList {
 
   final SVGTransformList baseVal;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17918,7 +18261,7 @@ interface SVGAnimationElement extends SVGElement, SVGTests, SVGExternalResources
 
   num getStartTime();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17932,7 +18275,7 @@ interface SVGCircleElement extends SVGElement, SVGTests, SVGLangSpace, SVGExtern
 
   final SVGAnimatedLength r;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17942,7 +18285,7 @@ interface SVGClipPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExte
 
   final SVGAnimatedEnumeration clipPathUnits;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -17968,7 +18311,7 @@ interface SVGColor extends CSSValue {
 
   void setRGBColorICCColor(String rgbColor, String iccColor);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18002,7 +18345,7 @@ interface SVGComponentTransferFunctionElement extends SVGElement {
 
   final SVGAnimatedEnumeration type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18014,7 +18357,7 @@ interface SVGCursorElement extends SVGElement, SVGURIReference, SVGTests, SVGExt
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18022,7 +18365,7 @@ interface SVGCursorElement extends SVGElement, SVGURIReference, SVGTests, SVGExt
 
 interface SVGDefsElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18030,7 +18373,7 @@ interface SVGDefsElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
 interface SVGDescElement extends SVGElement, SVGLangSpace, SVGStylable {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18042,7 +18385,7 @@ interface SVGDocument extends Document {
 
   Event createEvent(String eventType);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18058,7 +18401,7 @@ interface SVGElement extends Element {
 
   String xmlbase;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18088,7 +18431,7 @@ interface SVGElementInstance extends EventTarget {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18100,7 +18443,7 @@ interface SVGElementInstanceList {
 
   SVGElementInstance item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18116,7 +18459,7 @@ interface SVGEllipseElement extends SVGElement, SVGTests, SVGLangSpace, SVGExter
 
   final SVGAnimatedLength ry;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18138,7 +18481,7 @@ interface SVGException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18148,7 +18491,7 @@ interface SVGExternalResourcesRequired {
 
   final SVGAnimatedBoolean externalResourcesRequired;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18174,7 +18517,7 @@ interface SVGFEBlendElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
   final SVGAnimatedEnumeration mode;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18198,7 +18541,7 @@ interface SVGFEColorMatrixElement extends SVGElement, SVGFilterPrimitiveStandard
 
   final SVGAnimatedNumberList values;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18208,7 +18551,7 @@ interface SVGFEComponentTransferElement extends SVGElement, SVGFilterPrimitiveSt
 
   final SVGAnimatedString in1;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18244,7 +18587,7 @@ interface SVGFECompositeElement extends SVGElement, SVGFilterPrimitiveStandardAt
 
   final SVGAnimatedEnumeration operator;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18284,7 +18627,7 @@ interface SVGFEConvolveMatrixElement extends SVGElement, SVGFilterPrimitiveStand
 
   final SVGAnimatedInteger targetY;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18302,7 +18645,7 @@ interface SVGFEDiffuseLightingElement extends SVGElement, SVGFilterPrimitiveStan
 
   final SVGAnimatedNumber surfaceScale;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18330,7 +18673,7 @@ interface SVGFEDisplacementMapElement extends SVGElement, SVGFilterPrimitiveStan
 
   final SVGAnimatedEnumeration yChannelSelector;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18342,7 +18685,7 @@ interface SVGFEDistantLightElement extends SVGElement {
 
   final SVGAnimatedNumber elevation;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18362,7 +18705,7 @@ interface SVGFEDropShadowElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18370,7 +18713,7 @@ interface SVGFEDropShadowElement extends SVGElement, SVGFilterPrimitiveStandardA
 
 interface SVGFEFloodElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18378,7 +18721,7 @@ interface SVGFEFloodElement extends SVGElement, SVGFilterPrimitiveStandardAttrib
 
 interface SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18386,7 +18729,7 @@ interface SVGFEFuncAElement extends SVGComponentTransferFunctionElement {
 
 interface SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18394,7 +18737,7 @@ interface SVGFEFuncBElement extends SVGComponentTransferFunctionElement {
 
 interface SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18402,7 +18745,7 @@ interface SVGFEFuncGElement extends SVGComponentTransferFunctionElement {
 
 interface SVGFEFuncRElement extends SVGComponentTransferFunctionElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18418,7 +18761,7 @@ interface SVGFEGaussianBlurElement extends SVGElement, SVGFilterPrimitiveStandar
 
   void setStdDeviation(num stdDeviationX, num stdDeviationY);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18428,7 +18771,7 @@ interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, S
 
   final SVGAnimatedPreserveAspectRatio preserveAspectRatio;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18436,7 +18779,7 @@ interface SVGFEImageElement extends SVGElement, SVGURIReference, SVGLangSpace, S
 
 interface SVGFEMergeElement extends SVGElement, SVGFilterPrimitiveStandardAttributes {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18446,7 +18789,7 @@ interface SVGFEMergeNodeElement extends SVGElement {
 
   final SVGAnimatedString in1;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18470,7 +18813,7 @@ interface SVGFEMorphologyElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   void setRadius(num radiusX, num radiusY);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18484,7 +18827,7 @@ interface SVGFEOffsetElement extends SVGElement, SVGFilterPrimitiveStandardAttri
 
   final SVGAnimatedString in1;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18498,7 +18841,7 @@ interface SVGFEPointLightElement extends SVGElement {
 
   final SVGAnimatedNumber z;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18514,7 +18857,7 @@ interface SVGFESpecularLightingElement extends SVGElement, SVGFilterPrimitiveSta
 
   final SVGAnimatedNumber surfaceScale;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18538,7 +18881,7 @@ interface SVGFESpotLightElement extends SVGElement {
 
   final SVGAnimatedNumber z;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18548,7 +18891,7 @@ interface SVGFETileElement extends SVGElement, SVGFilterPrimitiveStandardAttribu
 
   final SVGAnimatedString in1;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18580,7 +18923,7 @@ interface SVGFETurbulenceElement extends SVGElement, SVGFilterPrimitiveStandardA
 
   final SVGAnimatedEnumeration type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18606,7 +18949,7 @@ interface SVGFilterElement extends SVGElement, SVGURIReference, SVGLangSpace, SV
 
   void setFilterRes(int filterResX, int filterResY);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18624,7 +18967,7 @@ interface SVGFilterPrimitiveStandardAttributes extends SVGStylable {
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18636,7 +18979,7 @@ interface SVGFitToViewBox {
 
   final SVGAnimatedRect viewBox;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18644,7 +18987,7 @@ interface SVGFitToViewBox {
 
 interface SVGFontElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18652,7 +18995,7 @@ interface SVGFontElement extends SVGElement {
 
 interface SVGFontFaceElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18660,7 +19003,7 @@ interface SVGFontFaceElement extends SVGElement {
 
 interface SVGFontFaceFormatElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18668,7 +19011,7 @@ interface SVGFontFaceFormatElement extends SVGElement {
 
 interface SVGFontFaceNameElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18676,7 +19019,7 @@ interface SVGFontFaceNameElement extends SVGElement {
 
 interface SVGFontFaceSrcElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18684,7 +19027,7 @@ interface SVGFontFaceSrcElement extends SVGElement {
 
 interface SVGFontFaceUriElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18700,7 +19043,7 @@ interface SVGForeignObjectElement extends SVGElement, SVGTests, SVGLangSpace, SV
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18708,7 +19051,7 @@ interface SVGForeignObjectElement extends SVGElement, SVGTests, SVGLangSpace, SV
 
 interface SVGGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18716,7 +19059,7 @@ interface SVGGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalRes
 
 interface SVGGlyphElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18736,7 +19079,7 @@ interface SVGGlyphRefElement extends SVGElement, SVGURIReference, SVGStylable {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18758,7 +19101,7 @@ interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalRes
 
   final SVGAnimatedEnumeration spreadMethod;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18766,7 +19109,7 @@ interface SVGGradientElement extends SVGElement, SVGURIReference, SVGExternalRes
 
 interface SVGHKernElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18784,7 +19127,7 @@ interface SVGImageElement extends SVGElement, SVGURIReference, SVGTests, SVGLang
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18796,7 +19139,7 @@ interface SVGLangSpace {
 
   String xmlspace;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18838,7 +19181,7 @@ interface SVGLength {
 
   void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18862,7 +19205,7 @@ interface SVGLengthList {
 
   SVGLength replaceItem(SVGLength item, int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18878,7 +19221,7 @@ interface SVGLineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
   final SVGAnimatedLength y2;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18894,7 +19237,7 @@ interface SVGLinearGradientElement extends SVGGradientElement {
 
   final SVGAnimatedLength y2;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18914,7 +19257,7 @@ interface SVGLocatable {
 
   SVGMatrix getTransformToElement(SVGElement element);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18922,7 +19265,7 @@ interface SVGLocatable {
 
 interface SVGMPathElement extends SVGElement, SVGURIReference, SVGExternalResourcesRequired {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18960,7 +19303,7 @@ interface SVGMarkerElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
   void setOrientToAuto();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18980,7 +19323,7 @@ interface SVGMaskElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19022,7 +19365,7 @@ interface SVGMatrix {
 
   SVGMatrix translate(num x, num y);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19030,7 +19373,7 @@ interface SVGMatrix {
 
 interface SVGMetadataElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19038,7 +19381,7 @@ interface SVGMetadataElement extends SVGElement {
 
 interface SVGMissingGlyphElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19048,7 +19391,7 @@ interface SVGNumber {
 
   num value;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19072,7 +19415,7 @@ interface SVGNumberList {
 
   SVGNumber replaceItem(SVGNumber item, int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19108,7 +19451,7 @@ interface SVGPaint extends SVGColor {
 
   void setUri(String uri);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19170,7 +19513,7 @@ interface SVGPathElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
   num getTotalLength();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19222,7 +19565,7 @@ interface SVGPathSeg {
 
   final String pathSegTypeAsLetter;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19244,7 +19587,7 @@ interface SVGPathSegArcAbs extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19266,7 +19609,7 @@ interface SVGPathSegArcRel extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19274,7 +19617,7 @@ interface SVGPathSegArcRel extends SVGPathSeg {
 
 interface SVGPathSegClosePath extends SVGPathSeg {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19294,7 +19637,7 @@ interface SVGPathSegCurvetoCubicAbs extends SVGPathSeg {
 
   num y2;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19314,7 +19657,7 @@ interface SVGPathSegCurvetoCubicRel extends SVGPathSeg {
 
   num y2;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19330,7 +19673,7 @@ interface SVGPathSegCurvetoCubicSmoothAbs extends SVGPathSeg {
 
   num y2;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19346,7 +19689,7 @@ interface SVGPathSegCurvetoCubicSmoothRel extends SVGPathSeg {
 
   num y2;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19362,7 +19705,7 @@ interface SVGPathSegCurvetoQuadraticAbs extends SVGPathSeg {
 
   num y1;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19378,7 +19721,7 @@ interface SVGPathSegCurvetoQuadraticRel extends SVGPathSeg {
 
   num y1;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19390,7 +19733,7 @@ interface SVGPathSegCurvetoQuadraticSmoothAbs extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19402,7 +19745,7 @@ interface SVGPathSegCurvetoQuadraticSmoothRel extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19414,7 +19757,7 @@ interface SVGPathSegLinetoAbs extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19424,7 +19767,7 @@ interface SVGPathSegLinetoHorizontalAbs extends SVGPathSeg {
 
   num x;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19434,7 +19777,7 @@ interface SVGPathSegLinetoHorizontalRel extends SVGPathSeg {
 
   num x;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19446,7 +19789,7 @@ interface SVGPathSegLinetoRel extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19456,7 +19799,7 @@ interface SVGPathSegLinetoVerticalAbs extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19466,7 +19809,7 @@ interface SVGPathSegLinetoVerticalRel extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19490,7 +19833,7 @@ interface SVGPathSegList {
 
   SVGPathSeg replaceItem(SVGPathSeg newItem, int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19502,7 +19845,7 @@ interface SVGPathSegMovetoAbs extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19514,7 +19857,7 @@ interface SVGPathSegMovetoRel extends SVGPathSeg {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19536,7 +19879,7 @@ interface SVGPatternElement extends SVGElement, SVGURIReference, SVGTests, SVGLa
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19550,7 +19893,7 @@ interface SVGPoint {
 
   SVGPoint matrixTransform(SVGMatrix matrix);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19574,7 +19917,7 @@ interface SVGPointList {
 
   SVGPoint replaceItem(SVGPoint item, int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19586,7 +19929,7 @@ interface SVGPolygonElement extends SVGElement, SVGTests, SVGLangSpace, SVGExter
 
   final SVGPointList points;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19598,7 +19941,7 @@ interface SVGPolylineElement extends SVGElement, SVGTests, SVGLangSpace, SVGExte
 
   final SVGPointList points;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19638,7 +19981,7 @@ interface SVGPreserveAspectRatio {
 
   int meetOrSlice;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19656,7 +19999,7 @@ interface SVGRadialGradientElement extends SVGGradientElement {
 
   final SVGAnimatedLength r;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19672,7 +20015,7 @@ interface SVGRect {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19692,7 +20035,7 @@ interface SVGRectElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternal
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19712,7 +20055,7 @@ interface SVGRenderingIntent {
 
   static final int RENDERING_INTENT_UNKNOWN = 0;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19794,7 +20137,7 @@ interface SVGSVGElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalR
 
   void unsuspendRedrawAll();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19804,7 +20147,7 @@ interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResou
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19812,7 +20155,7 @@ interface SVGScriptElement extends SVGElement, SVGURIReference, SVGExternalResou
 
 interface SVGSetElement extends SVGAnimationElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19822,7 +20165,7 @@ interface SVGStopElement extends SVGElement, SVGStylable {
 
   final SVGAnimatedNumber offset;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19846,7 +20189,7 @@ interface SVGStringList {
 
   String replaceItem(String item, int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19860,7 +20203,7 @@ interface SVGStylable {
 
   CSSValue getPresentationAttribute(String name);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19868,13 +20211,15 @@ interface SVGStylable {
 
 interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
+  bool disabled;
+
   String media;
 
   String title;
 
   String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19882,7 +20227,7 @@ interface SVGStyleElement extends SVGElement, SVGLangSpace {
 
 interface SVGSwitchElement extends SVGElement, SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGTransformable {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19890,7 +20235,7 @@ interface SVGSwitchElement extends SVGElement, SVGTests, SVGLangSpace, SVGExtern
 
 interface SVGSymbolElement extends SVGElement, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable, SVGFitToViewBox {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19898,7 +20243,7 @@ interface SVGSymbolElement extends SVGElement, SVGLangSpace, SVGExternalResource
 
 interface SVGTRefElement extends SVGTextPositioningElement, SVGURIReference {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19906,7 +20251,7 @@ interface SVGTRefElement extends SVGTextPositioningElement, SVGURIReference {
 
 interface SVGTSpanElement extends SVGTextPositioningElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19922,7 +20267,7 @@ interface SVGTests {
 
   bool hasExtension(String extension);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19958,7 +20303,7 @@ interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGE
 
   void selectSubString(int offset, int length);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19966,7 +20311,7 @@ interface SVGTextContentElement extends SVGElement, SVGTests, SVGLangSpace, SVGE
 
 interface SVGTextElement extends SVGTextPositioningElement, SVGTransformable {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -19992,7 +20337,7 @@ interface SVGTextPathElement extends SVGTextContentElement, SVGURIReference {
 
   final SVGAnimatedLength startOffset;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20010,7 +20355,7 @@ interface SVGTextPositioningElement extends SVGTextContentElement {
 
   final SVGAnimatedLengthList y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20018,7 +20363,7 @@ interface SVGTextPositioningElement extends SVGTextContentElement {
 
 interface SVGTitleElement extends SVGElement, SVGLangSpace, SVGStylable {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20058,7 +20403,7 @@ interface SVGTransform {
 
   void setTranslate(num tx, num ty);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20086,7 +20431,7 @@ interface SVGTransformList {
 
   SVGTransform replaceItem(SVGTransform item, int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20096,7 +20441,7 @@ interface SVGTransformable extends SVGLocatable {
 
   final SVGAnimatedTransformList transform;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20106,7 +20451,7 @@ interface SVGURIReference {
 
   final SVGAnimatedString href;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20120,7 +20465,7 @@ interface SVGUnitTypes {
 
   static final int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20140,7 +20485,7 @@ interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSp
 
   final SVGAnimatedLength y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20148,7 +20493,7 @@ interface SVGUseElement extends SVGElement, SVGURIReference, SVGTests, SVGLangSp
 
 interface SVGVKernElement extends SVGElement {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20158,7 +20503,7 @@ interface SVGViewElement extends SVGElement, SVGExternalResourcesRequired, SVGFi
 
   final SVGStringList viewTarget;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20178,7 +20523,7 @@ interface SVGViewSpec extends SVGZoomAndPan, SVGFitToViewBox {
 
   final String viewTargetString;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20194,7 +20539,7 @@ interface SVGZoomAndPan {
 
   int zoomAndPan;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20212,7 +20557,7 @@ interface SVGZoomEvent extends UIEvent {
 
   final SVGRect zoomRectScreen;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20236,7 +20581,7 @@ interface Screen {
 
   final int width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20250,7 +20595,7 @@ interface ScriptProfile {
 
   final int uid;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20276,7 +20621,25 @@ interface ScriptProfileNode {
 
   final bool visible;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface ShadowRoot extends DocumentFragment {
+
+  final Element host;
+
+  Element getElementById(String elementId);
+
+  NodeList getElementsByClassName(String className);
+
+  NodeList getElementsByTagName(String tagName);
+
+  NodeList getElementsByTagNameNS(String namespaceURI, String localName);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20286,7 +20649,7 @@ interface SharedWorker extends AbstractWorker {
 
   final MessagePort port;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20307,11 +20670,18 @@ interface SharedWorkerContext extends SharedWorkerGlobalScope {
 
 // WARNING: Do not edit - generated code.
 
+typedef bool SignalingCallback(String message, PeerConnection source);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface SpeechInputEvent extends Event {
 
   final SpeechInputResultList results;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20323,7 +20693,7 @@ interface SpeechInputResult {
 
   final String utterance;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20335,7 +20705,7 @@ interface SpeechInputResultList {
 
   SpeechInputResult item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20355,7 +20725,7 @@ interface Storage {
 
   void setItem(String key, String data);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20375,7 +20745,7 @@ interface StorageEvent extends Event {
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20419,7 +20789,7 @@ typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaI
 // WARNING: Do not edit - generated code.
 
 typedef bool StringCallback(String data);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20431,7 +20801,7 @@ interface StyleMedia {
 
   bool matchMedium(String mediaquery);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20453,7 +20823,7 @@ interface StyleSheet {
 
   final String type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20465,7 +20835,7 @@ interface StyleSheetList extends List<StyleSheet> {
 
   StyleSheet item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20479,7 +20849,7 @@ interface Text extends CharacterData {
 
   Text splitText(int offset);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20491,7 +20861,7 @@ interface TextEvent extends UIEvent {
 
   void initTextEvent(String typeArg, bool canBubbleArg, bool cancelableArg, DOMWindow viewArg, String dataArg);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20501,7 +20871,7 @@ interface TextMetrics {
 
   final num width;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20539,7 +20909,7 @@ interface TextTrack {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20583,7 +20953,7 @@ interface TextTrackCue {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20597,7 +20967,7 @@ interface TextTrackCueList {
 
   TextTrackCue item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20617,7 +20987,7 @@ interface TextTrackList {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20631,7 +21001,7 @@ interface TimeRanges {
 
   num start(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20663,7 +21033,7 @@ interface Touch {
 
   final num webkitRotationAngle;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20687,7 +21057,7 @@ interface TouchEvent extends UIEvent {
 
   void initTouchEvent(TouchList touches, TouchList targetTouches, TouchList changedTouches, String type, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20699,7 +21069,7 @@ interface TouchList extends List<Touch> {
 
   Touch item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20709,7 +21079,7 @@ interface TrackEvent extends Event {
 
   final Object track;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20741,7 +21111,7 @@ interface TreeWalker {
 
   Node previousSibling();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20769,7 +21139,7 @@ interface UIEvent extends Event {
 
   void initUIEvent(String type, bool canBubble, bool cancelable, DOMWindow view, int detail);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20791,7 +21161,7 @@ interface Uint16Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint16Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20813,7 +21183,7 @@ interface Uint32Array extends ArrayBufferView, List<int> default _TypedArrayFact
 
   Uint32Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20835,7 +21205,7 @@ interface Uint8Array extends ArrayBufferView, List<int> default _TypedArrayFacto
 
   Uint8Array subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20853,7 +21223,7 @@ interface Uint8ClampedArray extends Uint8Array default _TypedArrayFactoryProvide
 
   Uint8ClampedArray subarray(int start, [int end]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20886,7 +21256,7 @@ interface ValidityState {
 // WARNING: Do not edit - generated code.
 
 typedef void VoidCallback();
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20896,7 +21266,7 @@ interface WaveShaperNode extends AudioNode {
 
   Float32Array curve;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20910,7 +21280,7 @@ interface WebGLActiveInfo {
 
   final int type;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20918,31 +21288,23 @@ interface WebGLActiveInfo {
 
 interface WebGLBuffer {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-interface WebGLCompressedTextures {
-
-  static final int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
+interface WebGLCompressedTextureS3TC {
 
   static final int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
+  static final int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
+
   static final int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
-  static final int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
-
   static final int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
-
-  static final int ETC1_RGB8_OES = 0x8D64;
-
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, ArrayBufferView data);
-
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, ArrayBufferView data);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20962,7 +21324,7 @@ interface WebGLContextAttributes {
 
   bool stencil;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20972,7 +21334,7 @@ interface WebGLContextEvent extends Event {
 
   final String statusMessage;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20984,7 +21346,7 @@ interface WebGLDebugRendererInfo {
 
   static final int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20994,7 +21356,7 @@ interface WebGLDebugShaders {
 
   String getTranslatedShaderSource(WebGLShader shader);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21002,7 +21364,7 @@ interface WebGLDebugShaders {
 
 interface WebGLFramebuffer {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21014,7 +21376,7 @@ interface WebGLLoseContext {
 
   void restoreContext();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21022,7 +21384,7 @@ interface WebGLLoseContext {
 
 interface WebGLProgram {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21030,7 +21392,7 @@ interface WebGLProgram {
 
 interface WebGLRenderbuffer {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21335,8 +21697,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int NOTEQUAL = 0x0205;
 
   static final int NO_ERROR = 0;
-
-  static final int NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
 
   static final int ONE = 1;
 
@@ -21906,7 +22266,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   void viewport(int x, int y, int width, int height);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21914,7 +22274,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
 interface WebGLShader {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21922,7 +22282,7 @@ interface WebGLShader {
 
 interface WebGLTexture {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21930,7 +22290,7 @@ interface WebGLTexture {
 
 interface WebGLUniformLocation {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21938,7 +22298,7 @@ interface WebGLUniformLocation {
 
 interface WebGLVertexArrayObjectOES {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21980,7 +22340,7 @@ interface WebKitAnimation {
 
   void play();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21992,7 +22352,7 @@ interface WebKitAnimationEvent extends Event {
 
   final num elapsedTime;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22004,7 +22364,7 @@ interface WebKitAnimationList {
 
   WebKitAnimation item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22016,7 +22376,7 @@ interface WebKitBlobBuilder {
 
   Blob getBlob([String contentType]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22028,7 +22388,7 @@ interface WebKitCSSKeyframeRule extends CSSRule {
 
   final CSSStyleDeclaration style;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22046,7 +22406,7 @@ interface WebKitCSSKeyframesRule extends CSSRule {
 
   void insertRule(String rule);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22120,7 +22480,7 @@ interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
   WebKitCSSMatrix translate(num x, num y, num z);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22130,7 +22490,7 @@ interface WebKitCSSRegionRule extends CSSRule {
 
   final CSSRuleList cssRules;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22182,7 +22542,7 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
   final int operationType;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22190,7 +22550,7 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
 interface WebKitNamedFlow {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22204,7 +22564,7 @@ interface WebKitPoint default _WebKitPointFactoryProvider {
 
   num y;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22216,7 +22576,7 @@ interface WebKitTransitionEvent extends Event {
 
   final String propertyName;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22258,7 +22618,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   bool send(String data);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22300,7 +22660,7 @@ interface WheelEvent extends UIEvent {
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22314,7 +22674,7 @@ interface Worker extends AbstractWorker {
 
   void webkitPostMessage(Dynamic message, [List messagePorts]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22322,19 +22682,17 @@ interface Worker extends AbstractWorker {
 
 interface WorkerGlobalScope {
 
-  WorkerLocation location;
+  final WorkerLocation location;
 
-  WorkerNavigator navigator;
+  final WorkerNavigator navigator;
 
   EventListener onerror;
 
-  WorkerContext self;
+  final WorkerContext self;
 
   final IDBFactory webkitIndexedDB;
 
   final NotificationCenter webkitNotifications;
-
-  final DOMURL webkitURL;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -22373,7 +22731,7 @@ interface WorkerContext extends WorkerGlobalScope {
 
   static final int TEMPORARY = 0;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22399,7 +22757,7 @@ interface WorkerLocation {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22417,7 +22775,7 @@ interface WorkerNavigator {
 
   final String userAgent;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22480,7 +22838,7 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   void setRequestHeader(String header, String value);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22500,7 +22858,7 @@ interface XMLHttpRequestException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22512,7 +22870,7 @@ interface XMLHttpRequestProgressEvent extends ProgressEvent {
 
   final int totalSize;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22526,7 +22884,7 @@ interface XMLHttpRequestUpload extends EventTarget {
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22536,7 +22894,7 @@ interface XMLSerializer {
 
   String serializeToString(Node node);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22550,7 +22908,7 @@ interface XPathEvaluator {
 
   XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22570,7 +22928,7 @@ interface XPathException {
 
   String toString();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22580,7 +22938,7 @@ interface XPathExpression {
 
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22590,7 +22948,7 @@ interface XPathNSResolver {
 
   String lookupNamespaceURI(String prefix);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22636,13 +22994,15 @@ interface XPathResult {
 
   Node snapshotItem(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-interface XSLTProcessor {
+interface XSLTProcessor default _XSLTProcessorFactoryProvider {
+
+  XSLTProcessor();
 
   void clearParameters();
 
@@ -23231,11 +23591,6 @@ interface ReadyState {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef bool RequestAnimationFrameCallback(int time);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 typedef void TimeoutHandler();
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23401,6 +23756,11 @@ class _WebSocketFactoryProvider {
 class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest() native '''return new XMLHttpRequest();''';
+}
+
+class _XSLTProcessorFactoryProvider {
+
+  factory XSLTProcessor() native '''return new XSLTProcessor();''';
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

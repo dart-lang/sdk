@@ -38,20 +38,20 @@ class BundleLibrarySource extends UrlSource implements LibrarySource {
   }
 
   @Override
-  public LibrarySource getImportFor(String filename) {
+  public LibrarySource getImportFor(String relPath) {
     try {
-      return new BundleLibrarySource(loader, basePath, filename);
+      return new BundleLibrarySource(loader, basePath, relPath);
     } catch (URISyntaxException e) {
-      throw new AssertionError();
+      return null;
     }
   }
 
   @Override
-  public DartSource getSourceFor(final String relPath) {
+  public DartSource getSourceFor(String relPath) {
     try {
       return new BundleDartSource(loader, basePath, relPath);
     } catch (URISyntaxException e) {
-      throw new AssertionError(e);
+      return null;
     }
   }
 

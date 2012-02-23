@@ -88,8 +88,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 
   String toString() {
-    // TODO(srdjan): Extend text representation.
-    return "ImmutableMap";
+    return Maps.mapToString(this);
   }
 }
 

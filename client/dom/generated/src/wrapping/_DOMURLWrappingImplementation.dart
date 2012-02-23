@@ -11,16 +11,5 @@ class _DOMURLWrappingImplementation extends DOMWrapperBase implements DOMURL {
     return new _DOMURLWrappingImplementation();
   }
 
-  String createObjectURL(Blob blob) {
-    return _createObjectURL(this, blob);
-  }
-  static String _createObjectURL(receiver, blob) native;
-
-  void revokeObjectURL(String url) {
-    _revokeObjectURL(this, url);
-    return;
-  }
-  static void _revokeObjectURL(receiver, url) native;
-
   String get typeName() { return "DOMURL"; }
 }

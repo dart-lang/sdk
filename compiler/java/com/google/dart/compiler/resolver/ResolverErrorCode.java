@@ -26,11 +26,10 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_INIT_FIELD_FROM_SUPERCLASS("Cannot initialize a field from a super class"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
-  CANNOT_OVERRIDE_METHOD_WRONG_NUM_PARAMS("cannot override method %s, wrong number of parameters"),
-  CANNOT_OVERRIDE_METHOD_NUM_NAMED_PARAMS(
-      "cannot override method %s, number of named parameters doesn't match"),
-  CANNOT_OVERRIDE_METHOD_ORDER_NAMED_PARAMS(
-      "cannot override method %s, order of named parameters doesn't match"),
+  CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
+      "cannot override method %s, wrong number of required parameters"),
+  CANNOT_OVERRIDE_METHOD_NAMED_PARAMS(
+      "cannot override method %s, named parameters don't match"),
   CANNOT_RESOLVE_CONSTRUCTOR("cannot resolve constructor %s"),
   CANNOT_RESOLVE_FIELD("cannot resolve field %s"),
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),
@@ -152,7 +151,8 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
       "Type parameters in default declaration must match referenced class exactly"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
-  TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER("type variables are not allowed in identifier expressions"),
+  TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
+      "type variables are not allowed in identifier expressions"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
   private final ErrorSeverity severity;
   private final String message;

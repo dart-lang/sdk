@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Tests that the VM does not crash on weird corner cases of class Math.
+// VMOptions=--optimization_invocation_threshold=100
 
 class FakeNumber {
   const FakeNumber();
@@ -33,7 +34,7 @@ class MathTest {
   }
 }
 main() {
-  for (int i = 0; i < 2000; i++) {
+  for (int i = 0; i < 200; i++) {
     MathTest.testMain();
   }
 }

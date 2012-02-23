@@ -6,7 +6,31 @@
 #define BIN_DIRECTORY_H_
 
 #include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "platform/globals.h"
+
+class DirectoryListing {
+ public:
+  enum Response {
+    kListDirectory = 0,
+    kListFile = 1,
+    kListError = 2,
+    kListDone = 3
+  };
+
+  explicit DirectoryListing(Dart_Port response_port)
+      : response_port_(response_port) {}
+  bool HandleDirectory(char* dir_name);
+  bool HandleFile(char* file_name);
+  bool HandleError(char* message);
+
+ private:
+  CObjectArray* NewResponse(Response response, char* arg);
+  Dart_Port response_port_;
+
+  DISALLOW_IMPLICIT_CONSTRUCTORS(DirectoryListing);
+};
+
 
 class Directory {
  public:
@@ -16,12 +40,17 @@ class Directory {
     DOES_NOT_EXIST
   };
 
-  static void List(const char* path,
+  enum DirectoryRequest {
+    kCreateRequest = 0,
+    kDeleteRequest = 1,
+    kExistsRequest = 2,
+    kCreateTempRequest = 3,
+    kListRequest = 4
+  };
+
+  static bool List(const char* path,
                    bool recursive,
-                   Dart_Port dir_port,
-                   Dart_Port file_port,
-                   Dart_Port done_port,
-                   Dart_Port error_port);
+                   DirectoryListing* listing);
 
   static ExistsResult Exists(const char* path);
 
@@ -37,5 +66,6 @@ class Directory {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);
 };
+
 
 #endif  // BIN_DIRECTORY_H_

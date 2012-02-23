@@ -20,4 +20,5 @@ class FactoryProviderImplementation {
   static WebKitPoint createWebKitPoint(num x, num y) native "WebKitPoint_constructor_Callback";
   static WebSocket createWebSocket(String url) native "WebSocket_constructor_Callback";
   static XMLHttpRequest createXMLHttpRequest() native "XMLHttpRequest_constructor_Callback";
+  static XSLTProcessor createXSLTProcessor() native "XSLTProcessor_constructor_Callback";
 }

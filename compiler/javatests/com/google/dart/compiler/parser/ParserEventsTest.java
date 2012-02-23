@@ -720,8 +720,10 @@ public class ParserEventsTest extends AbstractParserTest {
 
   @Override
   public void testStringsErrors() {
-    parseUnitErrors("StringsErrorsNegativeTest.dart", "Unexpected token 'ILLEGAL'", 7, 13,
-        "Unexpected token 'ILLEGAL'", 9, 9);
+    parseUnitErrors("StringsErrorsNegativeTest.dart",
+        "Unexpected token 'ILLEGAL'", 7, 13,
+        "Unexpected token 'ILLEGAL'", 9, 9,
+        "Unexpected token 'ILLEGAL'", 11, 9);
     compareMarks(NativeBody, TopLevelElement, PostfixExpression, ClassMember, CompilationUnit,
         VariableDeclaration, Identifier, BinaryExpression, ClassBody,
         ConditionalExpression, Literal, Expression, MethodName, ExpressionStatement, Block,

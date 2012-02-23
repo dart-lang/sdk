@@ -118,20 +118,22 @@ class IntegerImplementation {
   double toDouble() { return new Double.fromInteger(this); }
 
   int pow(int exponent) {
-    throw "IntegerImplementation.pow not implemented";
+    double res = this.toDouble().pow(exponent);
+    if (res.isInfinite()) {
+      // Use Bigint instead.
+      throw "IntegerImplementation.pow not implemented for large integers.";
+    }
+    return res.toInt();
   }
 
   String toStringAsFixed(int fractionDigits) {
-    // Issue 460.
-    throw "IntegerImplementation.toStringAsFixed not implemented";
+    return this.toDouble().toStringAsFixed(fractionDigits);
   }
   String toStringAsExponential(int fractionDigits) {
-    // Issue 460.
-    throw "IntegerImplementation.toStringAsExponential not implemented";
+    return this.toDouble().toStringAsExponential(fractionDigits);
   }
   String toStringAsPrecision(int precision) {
-    // Issue 460.
-    throw "IntegerImplementation.toStringAsPrecision not implemented";
+    return this.toDouble().toStringAsPrecision(precision);
   }
   String toRadixString(int radix) {
     final table = const ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -218,5 +220,9 @@ class Bigint extends IntegerImplementation implements int {
   }
   int shlFromInt(int other) {
     throw const OutOfMemoryException();
+  }
+
+  int pow(int exponent) {
+    throw "Bigint.pow not implemented";
   }
 }

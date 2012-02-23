@@ -99,6 +99,9 @@ class TestCase {
     return "$component ${mode}_$arch";
   }
 
+  List<String> get batchRunnerArguments() => ['-batch'];
+  List<String> get batchTestArguments() => arguments;
+
   void completed() { completedHandler(this); }
 }
 
@@ -118,9 +121,10 @@ class BrowserTestCase extends TestCase {
    */
   List<String> compilerArguments;
   /**
-   * Indicates if this test is a rerun, to compensate for flaky browser tests.
+   * Indicates the number of potential retries remaining, to compensate for
+   * flaky browser tests.
    */
-  bool isRerun;
+  bool numRetries;
 
   BrowserTestCase(displayName,
                     this.compilerPath,
@@ -143,8 +147,12 @@ class BrowserTestCase extends TestCase {
           '$compilerPath ${Strings.join(compilerArguments, " ")}';
       commandLine = 'compilation command: $compilationCommand\n$commandLine';
     }
-    isRerun = false;
+    numRetries = 2; // Allow two retries to compensate for flaky browser tests.
   }
+
+  List<String> get batchRunnerArguments() => [arguments[0], '--batch'];
+  List<String> get batchTestArguments() =>
+      arguments.getRange(1, arguments.length - 1);
 }
 
 
@@ -162,9 +170,9 @@ class TestOutput {
   List<String> stdout;
   List<String> stderr;
   Duration time;
-  /** 
-   * Set to true if we encounter a condition in the output that indicates we 
-   * need to rerun this test. 
+  /**
+   * Set to true if we encounter a condition in the output that indicates we
+   * need to rerun this test.
    */
   bool requestRetry;
 
@@ -199,6 +207,20 @@ class TestOutput {
     if (testCase is !BrowserTestCase) return (exitCode != 0 && !hasCrashed);
 
     // Browser case:
+    // If the browser test failed, it may have been because DumpRenderTree
+    // and the virtual framebuffer X server didn't hook up, or DRT crashed with
+    // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
+    // so we have to do this check first.
+    for (String line in stderr) {
+      if (line.contains('Gtk-WARNING **: cannot open display: :99') ||
+        line.contains('Failed to run command. return code=1')) {
+        // If we get the X server error, or DRT crashes with a core dump, retry
+        // the test.
+        requestRetry = true;
+        return true;
+      }
+    }
+
     // Browser tests fail unless stdout contains
     // 'Content-Type: text/plain\nPASS'.
     String previous_line = '';
@@ -209,16 +231,6 @@ class TestOutput {
       previous_line = line;
     }
 
-    // If the browser test failed, it may have been because DumpRenderTree
-    // and the virtual framebuffer X server didn't hook up.
-    for (String line in stderr) {
-      if (line.contains('Gtk-WARNING **: cannot open display: :99')) {
-        // If we get the X server error, return the expected value
-        // We cannot restart the test from here.  Issue dart:1135 is filed.
-        requestRetry = true;
-        return true;
-      }
-    }
     return true;
   }
 
@@ -237,6 +249,7 @@ class TestOutput {
  * be garbage collected as soon as it is done.
  */
 class RunningProcess {
+  ProcessQueue processQueue;
   Process process;
   TestCase testCase;
   bool timedOut = false;
@@ -245,8 +258,10 @@ class RunningProcess {
   List<String> stdout;
   List<String> stderr;
   List<Function> handlers;
+  bool allowRetries = false;
 
-  RunningProcess(TestCase this.testCase);
+  RunningProcess(TestCase this.testCase,
+      [this.allowRetries, this.processQueue]);
 
   void exitHandler(int exitCode) {
     new TestOutput(testCase, exitCode, timedOut, stdout,
@@ -258,15 +273,16 @@ class RunningProcess {
       for (var line in testCase.output.stderr) print(line);
       for (var line in testCase.output.stdout) print(line);
     }
-    if (testCase is BrowserTestCase && testCase.output.unexpectedOutput &&
-        !testCase.isRerun) {
+    if (allowRetries != null && allowRetries
+        && testCase.configuration['component'] == 'webdriver' &&
+        testCase.output.unexpectedOutput && testCase.numRetries > 0) {
       // Selenium tests can be flaky. Try rerunning.
       testCase.output.requestRetry = true;
     }
     if (testCase.output.requestRetry) {
       testCase.output.requestRetry = false;
       this.timedOut = false;
-      testCase.isRerun = true;
+      testCase.dynamic.numRetries--;
       print("Potential flake. Re-running " + testCase.displayName);
       this.start();
     } else {
@@ -282,7 +298,13 @@ class RunningProcess {
       process.close();
       stderr.add('test.dart: Compilation finished, starting execution\n');
       stdout.add('test.dart: Compilation finished, starting execution\n');
-      runCommand(testCase.executablePath, testCase.arguments, exitHandler);
+      if (testCase.configuration['component'] == 'webdriver') {
+        // Note: processQueue will always be non-null for component == webdriver
+        // (It is only null for component == vm)
+        processQueue._getBatchRunner(testCase).startTest(testCase);
+      } else {
+        runCommand(testCase.executablePath, testCase.arguments, exitHandler);
+      }
     }
   }
 
@@ -339,9 +361,9 @@ class RunningProcess {
   }
 }
 
-
-class DartcBatchRunnerProcess {
+class BatchRunnerProcess {
   String _executable;
+  List<String> _batchArguments;
 
   Process _process;
   StringInputStream _stdoutStream;
@@ -353,7 +375,13 @@ class DartcBatchRunnerProcess {
   Date _startTime;
   Timer _timer;
 
-  DartcBatchRunnerProcess(String this._executable);
+  bool _isWebDriver;
+
+  BatchRunnerProcess(TestCase testCase) {
+    _executable = testCase.executablePath;
+    _batchArguments = testCase.batchRunnerArguments;
+    _isWebDriver = testCase.configuration['component'] == 'webdriver';
+  }
 
   bool get active() => _currentTest != null;
 
@@ -369,6 +397,7 @@ class DartcBatchRunnerProcess {
       // Restart this runner with the right executable for this test
       // if needed.
       _executable = testCase.executablePath;
+      _batchArguments = testCase.batchRunnerArguments;
       _process.exitHandler = (exitCode) {
         _process.close();
         _startProcess(() {
@@ -383,10 +412,23 @@ class DartcBatchRunnerProcess {
 
   void terminate() {
     if (_process !== null) {
+      bool closed = false;
       _process.exitHandler = (exitCode) {
+        closed = true;
         _process.close();
       };
-      _process.kill();
+      if (_isWebDriver) {
+        // Use a graceful shutdown so our Selenium script can close
+        // the open browser processes. TODO(jmesserly): Send a signal once
+        // that's supported, see dartbug.com/1756.
+        _process.stdin.write('--terminate\n'.charCodes());
+
+        // In case the run_selenium process didn't close, kill it after 30s
+        bool shutdownMillisecs = 30000;
+        new Timer((e) { if (!closed) _process.kill(); }, shutdownMillisecs);
+      } else {
+        _process.kill();
+      }
     }
   }
 
@@ -396,8 +438,9 @@ class DartcBatchRunnerProcess {
     _testStderr = new List<String>();
     _stdoutStream.lineHandler = _readOutput(_stdoutStream, _testStdout);
     _stderrStream.lineHandler = _readOutput(_stderrStream, _testStderr);
-    _timer = new Timer(_timeoutHandler(testCase), testCase.timeout * 1000);
-    _process.stdin.write(_createArgumentsLine(testCase.arguments).charCodes());
+    _timer = new Timer(_timeoutHandler, testCase.timeout * 1000);
+    var line = _createArgumentsLine(testCase.batchTestArguments);
+    _process.stdin.write(line.charCodes());
   }
 
   String _createArgumentsLine(List<String> arguments) {
@@ -453,20 +496,18 @@ class DartcBatchRunnerProcess {
     });
   }
 
-  Function _timeoutHandler(TestCase test) {
-    return (ignore) {
-      _process.exitHandler = (exitCode) {
-        _process.close();
-        _startProcess(() {
-          _reportResult(">>> TEST TIMEOUT");
-        });
-      };
-      _process.kill();
+  void _timeoutHandler(ignore) {
+    _process.exitHandler = (exitCode) {
+      _process.close();
+      _startProcess(() {
+        _reportResult(">>> TEST TIMEOUT");
+      });
     };
+    _process.kill();
   }
 
   void _startProcess(then) {
-    _process = new Process.start(_executable, ['-batch']);
+    _process = new Process.start(_executable, _batchArguments);
     _stdoutStream = new StringInputStream(_process.stdout);
     _stderrStream = new StringInputStream(_process.stderr);
     _testStdout = new List<String>();
@@ -477,7 +518,6 @@ class DartcBatchRunnerProcess {
     _process.startHandler = then;
   }
 }
-
 
 /**
  * ProcessQueue is the master control class, responsible for running all
@@ -497,6 +537,8 @@ class ProcessQueue {
   int _numProcesses = 0;
   int _activeTestListers = 0;
   int _maxProcesses;
+  /** The number of tests we allow to actually fail before we stop retrying. */
+  int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
   bool _listTests;
   bool _keepGeneratedTests;
@@ -504,12 +546,18 @@ class ProcessQueue {
   Queue<TestCase> _tests;
   ProgressIndicator _progress;
   String _temporaryDirectory;
-  // For dartc batch processing we keep a list of batch processes.
-  List<DartcBatchRunnerProcess> _batchProcesses;
+  // For dartc/selenium batch processing we keep a list of batch processes.
+  Map<String, List<BatchRunnerProcess>> _batchProcesses;
+
   // Cache information about test cases per test suite. For multiple
   // configurations there is no need to repeatedly search the file
   // system, generate tests, and search test files for options.
   Map<String, List<TestInformation>> _testCache;
+  /**
+   * String indicating the browser used to run the tests. Empty if no browser
+   * used.
+   */
+  String browserUsed;
 
   ProcessQueue(int this._maxProcesses,
                String progress,
@@ -523,9 +571,10 @@ class ProcessQueue {
         _progress = new ProgressIndicator.fromName(progress,
                                                    startTime,
                                                    printTiming),
-        _batchProcesses = new List<DartcBatchRunnerProcess>(),
+        _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
         _testCache = new Map<String, List<TestInformation>>() {
     if (!_enqueueMoreWork(this)) _progress.allDone();
+    browserUsed = '';
   }
 
   /**
@@ -555,6 +604,56 @@ class ProcessQueue {
     return _temporaryDirectory;
   }
 
+  /**
+   * Sometimes Webdriver doesn't close every browser window when it's done
+   * with a test. At the end of all tests we clear out any neglected processes
+   * that are still running.
+   */
+  void killZombieBrowsers() {
+    String chromeName = 'chrome';
+    if (new Platform().operatingSystem() == 'macos') {
+      chromeName = 'Google\ Chrome';
+    }
+    Map<String, List<String>> processNames = {'ie': ['iexplore'],
+        'safari': ['Safari'], 'ff': ['firefox', 'firefox-bin'],
+        'chrome': ['chromedriver', chromeName]};
+    for (String name in processNames[browserUsed]) {
+      Process process = null;
+      if (new Platform().operatingSystem() == 'windows') {
+        process = new Process.start(
+            'C:\\Windows\\System32\\taskkill.exe', ['/F', '/IM', name + '.exe',
+            '/T']);
+      } else {
+        process = new Process.start('killall', ['-9', name]);
+      }
+
+      if (name == processNames[browserUsed].last()) {
+        process.exitHandler = (exitCode) {
+          process.close();
+          _progress.allDone();
+        };
+        process.errorHandler = (error) {
+          _progress.allDone();
+        };
+      } else {
+        process.exitHandler = (exitCode) {
+          process.close();
+        };
+      }
+    }
+  }
+
+  /**
+   * Perform any cleanup needed once all tests in a TestSuite have completed
+   * and notify our progress indicator that we are done.
+   */
+  void _cleanupAndMarkDone() {
+    if (browserUsed != '') {
+      killZombieBrowsers();
+    } else {
+      _progress.allDone();
+    }
+  }
 
   void _checkDone() {
     // When there are no more active test listers ask for more work
@@ -562,14 +661,14 @@ class ProcessQueue {
     if (_activeTestListers == 0 && !_enqueueMoreWork(this)) {
       _progress.allTestsKnown();
       if (_tests.isEmpty() && _numProcesses == 0) {
-        _terminateDartcBatchRunners();
+        _terminateBatchRunners();
         if (_keepGeneratedTests || _temporaryDirectory == null) {
-          _progress.allDone();
+          _cleanupAndMarkDone();
         } else if (!_temporaryDirectory.startsWith('/tmp/') ||
                    _temporaryDirectory.contains('/../')) {
           // Let's be extra careful, since rm -rf is so dangerous.
           print('Temporary directory $_temporaryDirectory unsafe to delete!');
-          _progress.allDone();
+          _cleanupAndMarkDone();
         } else {
           // TODO(dart:1211): Use delete(recursive=true) in Dart when it is
           // implemented, and add Windows support.
@@ -583,7 +682,7 @@ class ProcessQueue {
             } else {
               print('\nDeletion of temp dir $_temporaryDirectory failed.');
             }
-            _progress.allDone();
+            _cleanupAndMarkDone();
           };
         }
       }
@@ -591,26 +690,35 @@ class ProcessQueue {
   }
 
   void _runTest(TestCase test) {
+    if (test.configuration['component'] == 'webdriver') {
+      browserUsed = test.configuration['browser'];
+    }
     _progress.testAdded();
     _tests.add(test);
     _tryRunTest();
   }
 
-  void _terminateDartcBatchRunners() {
-    _batchProcesses.forEach((runner) => runner.terminate());
-  }
-
-  void _ensureDartcBatchRunnersStarted(String executable) {
-    if (_batchProcesses.length == 0) {
-      for (int i = 0; i < _maxProcesses; i++) {
-        _batchProcesses.add(new DartcBatchRunnerProcess(executable));
+  void _terminateBatchRunners() {
+    for (var runners in _batchProcesses.getValues()) {
+      for (var runner in runners) {
+        runner.terminate();
       }
     }
   }
 
-  DartcBatchRunnerProcess _getDartcBatchRunnerProcess() {
-    for (int i = 0; i < _batchProcesses.length; i++) {
-      var runner = _batchProcesses[i];
+  BatchRunnerProcess _getBatchRunner(TestCase test) {
+    // Start batch processes if needed
+    var component = test.configuration['component'];
+    var runners = _batchProcesses[component];
+    if (runners == null) {
+      runners = new List<BatchRunnerProcess>(_maxProcesses);
+      for (int i = 0; i < _maxProcesses; i++) {
+        runners[i] = new BatchRunnerProcess(test);
+      }
+      _batchProcesses[component] = runners;
+    }
+
+    for (var runner in runners) {
       if (!runner.active) return runner;
     }
     throw new Exception('Unable to find inactive batch runner.');
@@ -638,12 +746,19 @@ class ProcessQueue {
         oldCallback(test_arg);
       };
       test.completedHandler = wrapper;
-      if (test.configuration['component'] == 'dartc'  &&
+      if (test.configuration['component'] == 'dartc' &&
           test.displayName != 'dartc/junit_tests') {
-        _ensureDartcBatchRunnersStarted(test.executablePath);
-        _getDartcBatchRunnerProcess().startTest(test);
+        _getBatchRunner(test).startTest(test);
       } else {
-        new RunningProcess(test).start();
+        // Once we've actually failed a test, technically, we wouldn't need to
+        // bother retrying any subsequent tests since the bot is already red.
+        // However, we continue to retry tests until we have actually failed
+        // four tests (arbitrarily chosen) for more debugable output, so that
+        // the developer doesn't waste his or her time trying to fix a bunch of
+        // tests that appear to be broken but were actually just flakes that
+        // didn't get retried because there had already been one failure.
+        bool allowRetry = _MAX_FAILED_NO_RETRY > _progress.numFailedTests;
+        new RunningProcess(test, allowRetry, this).start();
       }
       _numProcesses++;
     }

@@ -31,8 +31,10 @@ def makeString(input_files):
   return result
 
 
-def makeFile(output_file, input_cc_file, input_files):
+def makeFile(output_file, input_cc_file, include, var_name, input_files):
   bootstrap_cc_text = open(input_cc_file).read()
+  bootstrap_cc_text = bootstrap_cc_text.replace("{{INCLUDE}}", include)
+  bootstrap_cc_text = bootstrap_cc_text.replace("{{VAR_NAME}}", var_name)
   bootstrap_cc_text = bootstrap_cc_text.replace("{{DART_SOURCE}}",
       makeString(input_files))
   open(output_file, 'w').write(bootstrap_cc_text)
@@ -49,6 +51,12 @@ def main(args):
     parser.add_option("--input_cc",
                       action="store", type="string",
                       help="input template file")
+    parser.add_option("--include",
+                      action="store", type="string",
+                      help="variable name")
+    parser.add_option("--var_name",
+                      action="store", type="string",
+                      help="variable name")
 
     (options, args) = parser.parse_args()
     if not options.output:
@@ -56,6 +64,12 @@ def main(args):
       return -1
     if not len(options.input_cc):
       sys.stderr.write('--input_cc not specified\n')
+      return -1
+    if not len(options.include):
+      sys.stderr.write('--include not specified\n')
+      return -1
+    if not len(options.var_name):
+      sys.stderr.write('--var_name not specified\n')
       return -1
     if len(args) == 0:
       sys.stderr.write('No input files specified\n')
@@ -65,7 +79,11 @@ def main(args):
     for arg in args:
       files.append(arg)
 
-    if not makeFile(options.output, options.input_cc, files):
+    if not makeFile(options.output,
+                    options.input_cc,
+                    options.include,
+                    options.var_name,
+                    files):
       return -1
 
     return 0

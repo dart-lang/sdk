@@ -159,6 +159,7 @@ class Object {
     kLanguageErrorClass,
     kUnhandledExceptionClass,
     kUnwindErrorClass,
+    kICDataClass,
     kMaxId,
     kInvalidIndex = -1,
   };
@@ -297,6 +298,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return unhandled_exception_class_;
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
+  static RawClass* icdata_class() { return icdata_class_; }
 
   static int GetSingletonClassIndex(const RawClass* raw_class);
   static RawClass* GetSingletonClass(int index);
@@ -403,6 +405,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* language_error_class_;  // Class of LanguageError.
   static RawClass* unhandled_exception_class_;  // Class of UnhandledException.
   static RawClass* unwind_error_class_;  // Class of UnwindError.
+  static RawClass* icdata_class_;  // Class of ICData.
 
   friend void RawObject::Validate() const;
   friend class SnapshotReader;
@@ -1679,6 +1682,8 @@ class Library : public Object {
 
   RawString* url() const { return raw_ptr()->url_; }
   RawString* private_key() const { return raw_ptr()->private_key_; }
+  RawArray* import_map() const { return raw_ptr()->import_map_; }
+  void set_import_map(const Array& map) const;
   bool LoadNotStarted() const {
     return raw_ptr()->load_state_ == RawLibrary::kAllocated;
   }
@@ -1706,12 +1711,14 @@ class Library : public Object {
   RawClass* LookupClass(const String& name) const;
   RawObject* LookupLocalObject(const String& name) const;
   RawClass* LookupLocalClass(const String& name) const;
+  RawLibraryPrefix* LookupLocalLibraryPrefix(const String& name) const;
   RawScript* LookupScript(const String& url) const;
   RawArray* LoadedScripts() const;
 
   void AddAnonymousClass(const Class& cls) const;
 
   // Library imports.
+  RawString* LookupImportMap(const String& name) const;
   void AddImport(const Library& library) const;
   RawLibrary* LookupImport(const String& url) const;
 
@@ -1734,6 +1741,8 @@ class Library : public Object {
 
   RawLibrary* next_registered() const { return raw_ptr()->next_registered_; }
 
+  RawString* DuplicateDefineErrorString(const String& entry_name,
+                                        const Library& conflicting_lib) const;
   static RawLibrary* LookupLibrary(const String& url);
   static RawString* CheckForDuplicateDefinition();
   static bool IsKeyUsed(intptr_t key);
@@ -1776,9 +1785,7 @@ class Library : public Object {
   RawObject* LookupObjectFiltered(const String& name,
                                   const Library& filter_lib) const;
   RawLibrary* LookupObjectInImporter(const String& name) const;
-  RawString* DuplicateDefineErrorString(const String& entry_name,
-                                        const Library& conflicting_lib) const;
-  RawString* FindDuplicateDefinition(Library* conflicting_lib) const;
+  RawString* FindDuplicateDefinition() const;
 
   HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
@@ -1791,7 +1798,13 @@ class Library : public Object {
 class LibraryPrefix : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
-  RawLibrary* library() const { return raw_ptr()->library_; }
+  RawArray* libraries() const { return raw_ptr()->libraries_; }
+  intptr_t num_libs() const { return raw_ptr()->num_libs_; }
+
+  RawLibrary* GetLibrary(int index) const;
+  void AddLibrary(const Library& library) const;
+  RawClass* LookupLocalClass(const String& class_name) const;
+  RawString* CheckForDuplicateDefinition() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibraryPrefix));
@@ -1800,8 +1813,12 @@ class LibraryPrefix : public Object {
   static RawLibraryPrefix* New(const String& name, const Library& lib);
 
  private:
+  static const int kInitialSize = 2;
+  static const int kIncrementSize = 2;
+
   void set_name(const String& value) const;
-  void set_library(const Library& value) const;
+  void set_libraries(const Array& value) const;
+  void set_num_libs(intptr_t value) const;
   static RawLibraryPrefix* New();
 
   HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
@@ -2071,10 +2088,6 @@ class Code : public Object {
     StorePointer(&raw_ptr()->var_descriptors_, value.raw());
   }
 
-  // See class ICData for interpretation of the 'ic_data_' array.
-  RawArray* ic_data() const;
-  void set_ic_data(const Array& ic_data) const;
-
   RawExceptionHandlers* exception_handlers() const {
     return raw_ptr()->exception_handlers_;
   }
@@ -2117,8 +2130,9 @@ class Code : public Object {
   bool ObjectExistInArea(intptr_t start_offest, intptr_t end_offset) const;
 
   // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
-  void ExtractIcDataArraysAtCalls(GrowableArray<intptr_t>* node_ids,
-                                  GrowableArray<const Array*>* arrays) const;
+  void ExtractIcDataArraysAtCalls(
+      GrowableArray<intptr_t>* node_ids,
+      GrowableArray<const ICData*>* ic_data_objs) const;
 
  private:
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
@@ -3594,6 +3608,74 @@ class JSRegExp : public Instance {
   }
 
   HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
+  friend class Class;
+};
+
+
+// Object holding information about an IC: test classes and their
+// corresponding classes.
+class ICData : public Instance {
+ public:
+  RawFunction* function() const {
+    return raw_ptr()->function_;
+  }
+
+  RawString* target_name() const {
+    return raw_ptr()->target_name_;
+  }
+
+  RawArray* ic_data() const {
+    return raw_ptr()->ic_data_;
+  }
+
+  intptr_t num_args_tested() const {
+    return raw_ptr()->num_args_tested_;
+  }
+
+  intptr_t id() const {
+    return raw_ptr()->id_;
+  }
+
+  intptr_t NumberOfChecks() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawICData));
+  }
+
+  static intptr_t target_name_offset() {
+    return OFFSET_OF(RawICData, target_name_);
+  }
+
+  static intptr_t num_args_tested_offset() {
+    return OFFSET_OF(RawICData, num_args_tested_);
+  }
+
+  static intptr_t ic_data_offset() {
+    return OFFSET_OF(RawICData, ic_data_);
+  }
+
+  void AddCheck(const GrowableArray<const Class*>& classes,
+                const Function& target) const;
+  void GetCheckAt(intptr_t index,
+                  GrowableArray<const Class*>* classes,
+                  Function* target) const;
+  void GetOneClassCheckAt(int index, Class* cls, Function* target) const;
+
+  static RawICData* New(const Function& caller_function,
+                        const String& target_name,
+                        intptr_t id,
+                        intptr_t num_args_tested);
+
+ private:
+  void set_function(const Function& value) const;
+  void set_target_name(const String& value) const;
+  void set_id(intptr_t value) const;
+  void set_num_args_tested(intptr_t value) const;
+  void set_ic_data(const Array& value) const;
+
+  intptr_t TestEntryLength() const;
+
+  HEAP_OBJECT_IMPLEMENTATION(ICData, Instance);
   friend class Class;
 };
 

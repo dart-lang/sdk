@@ -9,10 +9,6 @@ package com.google.dart.compiler.end2end;
  */
 public class BasicTest extends End2EndTestCase {
 
-  public void testNative() throws Exception {
-    runTest("NativeTestLib.dart");
-  }
-
   public void testRedirectedConstructors() throws Exception {
     runTest("RedirectedConstructorTest.dart");
   }

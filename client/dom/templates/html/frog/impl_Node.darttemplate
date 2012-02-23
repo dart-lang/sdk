@@ -1,0 +1,120 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// TODO(nweiz): when all implementations we target have the same name for the
+// coreimpl implementation of List<E>, extend that rather than wrapping.
+class _ListWrapper<E> implements List<E> {
+  List<E> _list;
+
+  _ListWrapper(List<E> this._list);
+
+  Iterator<E> iterator() => _list.iterator();
+
+  void forEach(void f(E element)) => _list.forEach(f);
+
+  Collection map(f(E element)) => _list.map(f);
+
+  List<E> filter(bool f(E element)) => _list.filter(f);
+
+  bool every(bool f(E element)) => _list.every(f);
+
+  bool some(bool f(E element)) => _list.some(f);
+
+  bool isEmpty() => _list.isEmpty();
+
+  int get length() => _list.length;
+
+  E operator [](int index) => _list[index];
+
+  void operator []=(int index, E value) { _list[index] = value; }
+
+  void set length(int newLength) { _list.length = newLength; }
+
+  void add(E value) => _list.add(value);
+
+  void addLast(E value) => _list.addLast(value);
+
+  void addAll(Collection<E> collection) => _list.addAll(collection);
+
+  void sort(int compare(E a, E b)) => _list.sort(compare);
+
+  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+
+  int lastIndexOf(E element, [int start = 0]) =>
+    _list.lastIndexOf(element, start);
+
+  void clear() => _list.clear();
+
+  E removeLast() => _list.removeLast();
+
+  E last() => _list.last();
+
+  List<E> getRange(int start, int length) => _list.getRange(start, length);
+
+  void setRange(int start, int length, List<E> from, [int startFrom = 0]) =>
+    _list.setRange(start, length, from, startFrom);
+
+  void removeRange(int start, int length) => _list.removeRange(start, length);
+
+  void insertRange(int start, int length, [E initialValue = null]) =>
+    _list.insertRange(start, length, initialValue);
+
+  E get first() => _list[0];
+}
+
+class _NodeList extends _ListWrapper<Node> implements NodeList {
+  _NodeList(List<Node> list) : super(list);
+
+  NodeList filter(bool f(Node element)) => new _NodeList(super.filter(f));
+
+  NodeList getRange(int start, int length) =>
+    new _NodeList(super.getRange(start, length));
+}
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  _NodeListJs get nodes() {
+    final list = _childNodes;
+    list._parent = this;
+    return list;
+  }
+
+  void set nodes(Collection<Node> value) {
+    // Copy list first since we don't want liveness during iteration.
+    // TODO(jacobr): there is a better way to do this.
+    List copy = new List.from(value);
+    nodes.clear();
+    nodes.addAll(copy);
+  }
+
+  _NodeJs get nextNode() native "return this.nextSibling;";
+
+  _NodeJs get previousNode() native "return this.previousSibling;";
+
+  _DocumentJs get document() native "return this.ownerDocument;";
+
+  _NodeJs get parent() native "return this.parentNode;";
+
+  String get text() native "return this.textContent;";
+
+  void set text(String value) native "this.textContent = value;";
+
+  // TODO(jacobr): should we throw an exception if parent is already null?
+  _NodeJs remove() {
+    if (this.parent != null) {
+      this.parent._removeChild(this);
+    }
+    return this;
+  }
+
+  _NodeJs replaceWith(Node otherNode) {
+    try {
+      this.parent._replaceChild(otherNode, this);
+    } catch(var e) {
+      
+    };
+    return this;
+  }
+
+$!MEMBERS
+}

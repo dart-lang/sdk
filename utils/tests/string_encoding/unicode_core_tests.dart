@@ -27,6 +27,7 @@ class UnicodeCoreTests extends TestClass {
 
   void testCodepointsToUtf16CodeUnits() {
     // boundary conditions
+    Expect.listEquals([], codepointsToUtf16CodeUnits([]), "no input");
     Expect.listEquals([0x0], codepointsToUtf16CodeUnits([0x0]), "0");
     Expect.listEquals([0xd800, 0xdc00],
         codepointsToUtf16CodeUnits([0x10000]), "10000");
@@ -49,6 +50,7 @@ class UnicodeCoreTests extends TestClass {
 
   void testUtf16bytesToCodepoints() {
     // boundary conditions: First possible values
+    Expect.listEquals([], utf16CodeUnitsToCodepoints([]), "no input");
     Expect.listEquals([0x0], utf16CodeUnitsToCodepoints([0x0]), "0");
     Expect.listEquals([0x10000],
         utf16CodeUnitsToCodepoints([0xd800, 0xdc00]), "10000");

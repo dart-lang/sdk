@@ -106,6 +106,7 @@ class PersistentHandle {
   }
   void SetNext(PersistentHandle* free_list) {
     raw_ = reinterpret_cast<RawObject*>(free_list);
+    ASSERT(!raw_->IsHeapObject());
   }
   void FreeHandle(PersistentHandle* free_list) {
     SetNext(free_list);
@@ -135,8 +136,8 @@ class WeakPersistentHandle {
   }
 
   static void Finalize(WeakPersistentHandle* handle) {
-    if (handle->callback() != NULL) {
-      Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+    Dart_WeakPersistentHandleFinalizer callback = handle->callback();
+    if (callback != NULL) {
       void* peer = handle->peer();
       handle->Clear();
       (*callback)(reinterpret_cast<Dart_Handle>(handle), peer);
@@ -151,16 +152,16 @@ class WeakPersistentHandle {
   WeakPersistentHandle() : raw_(NULL), peer_(NULL), callback_(NULL) { }
   ~WeakPersistentHandle() { }
 
-  // Overload the callback_ field as a next pointer when adding freed
+  // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
   WeakPersistentHandle* Next() {
-    return reinterpret_cast<WeakPersistentHandle*>(callback_);
+    return reinterpret_cast<WeakPersistentHandle*>(raw_);
   }
   void SetNext(WeakPersistentHandle* free_list) {
-    callback_ = reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(free_list);
+    raw_ = reinterpret_cast<RawObject*>(free_list);
+    ASSERT(!raw_->IsHeapObject());
   }
   void FreeHandle(WeakPersistentHandle* free_list) {
-    raw_ = NULL;
     SetNext(free_list);
   }
 
@@ -362,7 +363,7 @@ class ApiLocalScope {
   uword stack_marker() const { return stack_marker_; }
   void set_previous(ApiLocalScope* value) { previous_ = value; }
   LocalHandles* local_handles() { return &local_handles_; }
-  ApiZone& zone() { return zone_; }
+  ApiZone* zone() { return &zone_; }
 
  private:
   ApiLocalScope* previous_;
@@ -469,7 +470,7 @@ class ApiState {
     int total = 0;
     ApiLocalScope* scope = top_scope_;
     while (scope != NULL) {
-      total += scope->zone().SizeInBytes();
+      total += scope->zone()->SizeInBytes();
       scope = scope->previous();
     }
     return total;

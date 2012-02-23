@@ -3,6 +3,8 @@ class _HistoryJs extends _DOMTypeJs implements History native "*History" {
 
   final int length;
 
+  final Dynamic state;
+
   void back() native;
 
   void forward() native;

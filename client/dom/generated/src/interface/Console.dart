@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10,7 +10,7 @@ interface Console {
 
   final List profiles;
 
-  void assertCondition(bool condition);
+  void assertCondition(bool condition, Object arg);
 
   void count();
 
@@ -22,9 +22,9 @@ interface Console {
 
   void error(Object arg);
 
-  void group();
+  void group(Object arg);
 
-  void groupCollapsed();
+  void groupCollapsed(Object arg);
 
   void groupEnd();
 
@@ -40,9 +40,9 @@ interface Console {
 
   void time(String title);
 
-  void timeEnd(String title);
+  void timeEnd(String title, Object arg);
 
-  void timeStamp();
+  void timeStamp(Object arg);
 
   void trace(Object arg);
 

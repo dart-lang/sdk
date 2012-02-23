@@ -63,3 +63,7 @@ class _WebSocketFactoryProvider {
 class _XMLHttpRequestFactoryProvider {
   factory XMLHttpRequest() => FactoryProviderImplementation.createXMLHttpRequest();
 }
+
+class _XSLTProcessorFactoryProvider {
+  factory XSLTProcessor() => FactoryProviderImplementation.createXSLTProcessor();
+}

@@ -27,7 +27,8 @@ class _SVGFEDiffuseLightingElementJs extends _SVGElementJs implements SVGFEDiffu
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

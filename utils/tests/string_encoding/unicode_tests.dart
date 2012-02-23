@@ -25,6 +25,8 @@ class UnicodeTests extends TestClass {
   void registerTests(TestSuite suite) {
     register("testCodepointsToString", testCodepointsToString, suite);
     register("testStringToCodepoints", testStringToCodepoints, suite);
+    register("testEmptyCodepointsToString", testEmptyCodepointsToString, suite);
+    register("testEmptyStringToCodepoints", testEmptyStringToCodepoints, suite);
   }
 
   void testStringToCodepoints() {
@@ -33,5 +35,13 @@ class UnicodeTests extends TestClass {
 
   void testCodepointsToString() {
     Expect.stringEquals(testPhrase, codepointsToString(testCodepoints));
+  }
+
+  void testEmptyCodepointsToString() {
+    Expect.stringEquals("", codepointsToString(<int>[]));
+  }
+
+  void testEmptyStringToCodepoints() {
+    Expect.listEquals([], stringToCodepoints(""));
   }
 }

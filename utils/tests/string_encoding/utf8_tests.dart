@@ -26,7 +26,7 @@ class Utf8Tests extends TestClass {
       0x73, 0x20, 0x6f, 0x76, 0x65, 0x72, 0x20, 0x74,
       0x68, 0x65, 0x20, 0x6c, 0x61, 0x7a, 0x79, 0x20,
       0x64, 0x6f, 0x67, 0x2e];
-      
+
   static final String testDanishPhrase = "Quizdeltagerne spiste jordbær med " +
       "fløde mens cirkusklovnen Wolther spillede på xylofon.";
 
@@ -124,28 +124,30 @@ class Utf8Tests extends TestClass {
       0xbb, 0xe3, 0x82, 0xb9, 0xe3, 0x83, 0xb3];
 
   void registerTests(TestSuite suite) {
-    register("testUtf8bytesToCodepoints", testUtf8bytesToCodepoints, suite);
-    register("testUtf8BytesToString", testUtf8BytesToString, suite);
-    register("testEncodeToUtf8", testEncodeToUtf8, suite);
+    register("Utf8Tests.testUtf8bytesToCodepoints", testUtf8bytesToCodepoints,
+        suite);
+    register("Utf8Tests.testUtf8BytesToString", testUtf8BytesToString, suite);
+    register("Utf8Tests.testEncodeToUtf8", testEncodeToUtf8, suite);
+    register("Utf8Tests.testIterableMethods", testIterableMethods, suite);
   }
 
   void testEncodeToUtf8() {
-    Expect.listEquals(testEnglishUtf8, encodeAsUtf8(testEnglishPhrase),
+    Expect.listEquals(testEnglishUtf8, encodeUtf8(testEnglishPhrase),
         "english to utf8");
 
-    Expect.listEquals(testDanishUtf8, encodeAsUtf8(testDanishPhrase),
+    Expect.listEquals(testDanishUtf8, encodeUtf8(testDanishPhrase),
         "encode danish to utf8");
 
-    Expect.listEquals(testHebrewUtf8, encodeAsUtf8(testHebrewPhrase),
+    Expect.listEquals(testHebrewUtf8, encodeUtf8(testHebrewPhrase),
         "Hebrew to utf8");
 
-    Expect.listEquals(testRussianUtf8, encodeAsUtf8(testRussianPhrase),
+    Expect.listEquals(testRussianUtf8, encodeUtf8(testRussianPhrase),
         "Russian to utf8");
 
-    Expect.listEquals(testGreekUtf8, encodeAsUtf8(testGreekPhrase),
+    Expect.listEquals(testGreekUtf8, encodeUtf8(testGreekPhrase),
         "Greek to utf8");
 
-    Expect.listEquals(testKatakanaUtf8, encodeAsUtf8(testKatakanaPhrase),
+    Expect.listEquals(testKatakanaUtf8, encodeUtf8(testKatakanaPhrase),
         "Katakana to utf8");
   }
 
@@ -155,6 +157,7 @@ class Utf8Tests extends TestClass {
         0x83, 0xce, 0xbc, 0xce, 0xb5]), "κόσμε");
 
     // boundary conditions: First possible sequence of a certain length
+    Expect.listEquals([], _utf8ToCodepoints([]), "no input");
     Expect.listEquals([0x0], _utf8ToCodepoints([0x0]), "0");
     Expect.listEquals([0x80], _utf8ToCodepoints([0xc2, 0x80]), "80");
     Expect.listEquals([0x800],
@@ -437,21 +440,38 @@ class Utf8Tests extends TestClass {
 
   void testUtf8BytesToString() {
     Expect.stringEquals(testEnglishPhrase,
-        decodeFromUtf8(testEnglishUtf8), "English");
+        decodeUtf8(testEnglishUtf8), "English");
 
     Expect.stringEquals(testDanishPhrase,
-        decodeFromUtf8(testDanishUtf8), "Danish");
+        decodeUtf8(testDanishUtf8), "Danish");
 
     Expect.stringEquals(testHebrewPhrase,
-        decodeFromUtf8(testHebrewUtf8), "Hebrew");
+        decodeUtf8(testHebrewUtf8), "Hebrew");
 
     Expect.stringEquals(testRussianPhrase,
-        decodeFromUtf8(testRussianUtf8), "Russian");
+        decodeUtf8(testRussianUtf8), "Russian");
 
     Expect.stringEquals(testGreekPhrase,
-        decodeFromUtf8(testGreekUtf8), "Greek");
+        decodeUtf8(testGreekUtf8), "Greek");
 
     Expect.stringEquals(testKatakanaPhrase,
-        decodeFromUtf8(testKatakanaUtf8), "Katakana");
+        decodeUtf8(testKatakanaUtf8), "Katakana");
+  }
+
+  void testIterableMethods() {
+    IterableUtf8Decoder englishDecoder = decodeUtf8AsIterable(testEnglishUtf8);
+    // get the first character
+    Expect.equals(testEnglishUtf8[0], englishDecoder.iterator().next());
+    // get the whole translation using the Iterable interface
+    Expect.stringEquals(testEnglishPhrase,
+        new String.fromCharCodes(new List<int>.from(englishDecoder)));
+
+    IterableUtf8Decoder kataDecoder = decodeUtf8AsIterable(testKatakanaUtf8);
+    // get the first character
+    Expect.equals(testKatakanaPhrase.charCodes()[0],
+        kataDecoder.iterator().next());
+    // get the whole translation using the Iterable interface
+    Expect.stringEquals(testKatakanaPhrase,
+        new String.fromCharCodes(new List<int>.from(kataDecoder)));
   }
 }

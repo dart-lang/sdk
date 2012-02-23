@@ -8,8 +8,16 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.CompilerTestCase;
+import com.google.dart.compiler.DartArtifactProvider;
 import com.google.dart.compiler.DartCompilationError;
+import com.google.dart.compiler.DartCompiler;
+import com.google.dart.compiler.DartCompilerErrorCode;
+import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.MockArtifactProvider;
+import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
@@ -35,6 +43,9 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
+import java.io.Reader;
+import java.io.StringReader;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -761,5 +772,182 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     Symbol symbol = invocation.getTarget().getSymbol();
     assertNotNull(symbol);
     assertSame(unit, symbol.getNode().getParent());
+  }
+
+  /**
+   * If there was <code>#import</code> with invalid {@link URI}, it should be reported as error, not
+   * as an exception.
+   */
+  public void test_invalidImportUri() throws Exception {
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('test');",
+            "#import('badURI');",
+            ""));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+  }
+
+  /**
+   * If there was <code>#source</code> with invalid {@link URI}, it should be reported as error, not
+   * as an exception.
+   */
+  public void test_invalidSourceUri() throws Exception {
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('test');",
+            "#source('badURI');",
+            ""));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+  }
+
+  /**
+   * Analyzes source for given library and returns {@link DartCompilationError}s.
+   */
+  private static List<DartCompilationError> analyzeLibrarySourceErrors(final String code)
+      throws Exception {
+    MockLibrarySource lib = new MockLibrarySource() {
+      @Override
+      public Reader getSourceReader() {
+        return new StringReader(code);
+      }
+    };
+    DartArtifactProvider provider = new MockArtifactProvider();
+    final List<DartCompilationError> errors = Lists.newArrayList();
+    DartCompiler.analyzeLibrary(
+        lib,
+        Maps.<URI, DartUnit>newHashMap(),
+        CHECK_ONLY_CONFIGURATION,
+        provider,
+        new DartCompilerListener.Empty() {
+          @Override
+          public void onError(DartCompilationError event) {
+            errors.add(event);
+          }
+        });
+    return errors;
+  }
+
+  public void test_mapLiteralKeysUnique() throws Exception {
+    List<DartCompilationError> errors =
+        analyzeLibrarySourceErrors(makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var m = {'a' : 0, 'b': 1, 'a': 2};",
+            ""));
+    assertErrors(errors, errEx(TypeErrorCode.MAP_LITERAL_KEY_UNIQUE, 2, 27, 3));
+  }
+
+  /**
+   * No required parameter "x".
+   */
+  public void test_implementsAndOverrides_noRequiredParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo(x);",
+            "}",
+            "class C implements I {",
+            "  foo() {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS, 5, 3, 3));
+  }
+
+  /**
+   * It is OK to add more named parameters, if list prefix is same as in "super".
+   */
+  public void test_implementsAndOverrides_additionalNamedParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo([x]);",
+            "}",
+            "class C implements I {",
+            "  foo([x,y]) {}",
+            "}");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * We override "foo" with method that has named parameter. So, this method is not abstract and
+   * class is not abstract too, so no warning.
+   */
+  public void test_implementsAndOverrides_additionalNamedParameter_notAbstract() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "class A {",
+            "  abstract foo();",
+            "}",
+            "class B extends A {",
+            "  foo([x]) {}",
+            "}",
+            "bar() {",
+            "  new B();",
+            "}",
+            "");
+    assertErrors(result.getErrors());
+  }
+
+  /**
+   * No required parameter "x". Named parameter "x" is not enough.
+   */
+  public void test_implementsAndOverrides_extraRequiredParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo();",
+            "}",
+            "class C implements I {",
+            "  foo(x) {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS, 5, 3, 3));
+  }
+
+  /**
+   * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
+   * not declare all the named parameters declared by m2 in the same order.
+   * <p>
+   * Here: no "y" parameter.
+   */
+  public void test_implementsAndOverrides_noNamedParameter() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo([x,y]);",
+            "}",
+            "class C implements I {",
+            "  foo([x]) {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
+  }
+
+  /**
+   * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
+   * not declare all the named parameters declared by m2 in the same order.
+   * <p>
+   * Here: wrong order.
+   */
+  public void testImplementsAndOverrides5() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "interface I {",
+            "  foo([y,x]);",
+            "}",
+            "class C implements I {",
+            "  foo([x,y]) {}",
+            "}");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
+  }
+
+  private AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
+    return analyzeLibrary(getName(), makeCode(lines));
   }
 }

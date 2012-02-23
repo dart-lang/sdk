@@ -533,9 +533,10 @@ class StandardTestSuite implements TestSuite {
 
       List<String> args;
       if (component == 'webdriver') {
-        args = ['$dartDir/tools/testing/run_selenium.py', '--out=$htmlPath',
+        args = ['$dartDir/tools/testing/run_selenium.py',
+            '--browser=${configuration["browser"]}',
             '--timeout=${configuration["timeout"] - 2}',
-            '--browser=${configuration["browser"]}'];
+            '--out=$htmlPath'];
       } else {
         args = [
             '$dartDir/tools/testing/drt-trampoline.py',

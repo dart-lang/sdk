@@ -14,14 +14,8 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   WorkerLocation get location() { return _get_location(this); }
   static WorkerLocation _get_location(var _this) native;
 
-  void set location(WorkerLocation value) { _set_location(this, value); }
-  static void _set_location(var _this, WorkerLocation value) native;
-
   WorkerNavigator get navigator() { return _get_navigator(this); }
   static WorkerNavigator _get_navigator(var _this) native;
-
-  void set navigator(WorkerNavigator value) { _set_navigator(this, value); }
-  static void _set_navigator(var _this, WorkerNavigator value) native;
 
   EventListener get onerror() { return _get_onerror(this); }
   static EventListener _get_onerror(var _this) native;
@@ -32,17 +26,11 @@ class _WorkerContextWrappingImplementation extends DOMWrapperBase implements Wor
   WorkerContext get self() { return _get_self(this); }
   static WorkerContext _get_self(var _this) native;
 
-  void set self(WorkerContext value) { _set_self(this, value); }
-  static void _set_self(var _this, WorkerContext value) native;
-
   IDBFactory get webkitIndexedDB() { return _get_webkitIndexedDB(this); }
   static IDBFactory _get_webkitIndexedDB(var _this) native;
 
   NotificationCenter get webkitNotifications() { return _get_webkitNotifications(this); }
   static NotificationCenter _get_webkitNotifications(var _this) native;
-
-  DOMURL get webkitURL() { return _get_webkitURL(this); }
-  static DOMURL _get_webkitURL(var _this) native;
 
   void addEventListener(String type, EventListener listener, [bool useCapture = null]) {
     if (useCapture === null) {

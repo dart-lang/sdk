@@ -13,7 +13,6 @@
 #import("../tests/isolate/test_config.dart");
 #import("../tests/language/test_config.dart");
 #import("../tests/standalone/test_config.dart");
-#import("../tests/stub-generator/test_config.dart");
 #import("../tests/utils/test_config.dart");
 #import("../runtime/tests/vm/test_config.dart");
 #import("../samples/tests/samples/test_config.dart");
@@ -23,6 +22,7 @@
 #import("../frog/tests/frog/test_config.dart");
 #import("../frog/tests/leg/test_config.dart");
 #import("../frog/tests/leg_only/test_config.dart");
+#import("../frog/tests/native/test_config.dart");
 #import("../frog/tests/await/test_config.dart");
 #import("../utils/tests/css/test_config.dart");
 #import("../utils/tests/dartdoc/test_config.dart");
@@ -70,9 +70,6 @@ main() {
     if (selectors.containsKey('isolate')) {
       queue.addTestSuite(new IsolateTestSuite(conf));
     }
-    if (selectors.containsKey('stub-generator')) {
-      queue.addTestSuite(new StubGeneratorTestSuite(conf));
-    }
     if (selectors.containsKey('utils')) {
       queue.addTestSuite(new UtilsTestSuite(conf));
     }
@@ -87,6 +84,9 @@ main() {
     }
     if (selectors.containsKey('leg_only')) {
       queue.addTestSuite(new LegOnlyTestSuite(conf));
+    }
+    if (selectors.containsKey('frog_native')) {
+      queue.addTestSuite(new FrogNativeTestSuite(conf));
     }
     if (conf['component'] == 'dartc' && selectors.containsKey('dartc')) {
       queue.addTestSuite(new ClientDartcTestSuite(conf));

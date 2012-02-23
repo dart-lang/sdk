@@ -168,9 +168,9 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
             class_name.ToCString(),
             interface_name.ToCString(),
             function_name.ToCString());
-      } else if (class_function.IsSubtypeOf(TypeArguments::Handle(),
-                                            interface_function,
-                                            TypeArguments::Handle())) {
+      } else if (!class_function.IsSubtypeOf(TypeArguments::Handle(),
+                                             interface_function,
+                                             TypeArguments::Handle())) {
         OS::Print("The type of instance method '%s' in class '%s' is not a "
                   "subtype of the type of '%s' in interface '%s'\n",
                   function_name.ToCString(),
@@ -260,18 +260,19 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 // Resolve unresolved_class in the library of cls.
 RawClass* ClassFinalizer::ResolveClass(
     const Class& cls, const UnresolvedClass& unresolved_class) {
+  const String& class_name = String::Handle(unresolved_class.ident());
   Library& lib = Library::Handle();
+  Class& resolved_class = Class::Handle();
   if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
     lib = cls.library();
+    ASSERT(!lib.IsNull());
+    resolved_class = lib.LookupClass(class_name);
   } else {
     LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
     lib_prefix = unresolved_class.library_prefix();
     ASSERT(!lib_prefix.IsNull());
-    lib = lib_prefix.library();
+    resolved_class = lib_prefix.LookupLocalClass(class_name);
   }
-  ASSERT(!lib.IsNull());
-  const String& class_name = String::Handle(unresolved_class.ident());
-  const Class& resolved_class = Class::Handle(lib.LookupClass(class_name));
   if (resolved_class.IsNull()) {
     const Script& script = Script::Handle(cls.script());
     ReportError(script, unresolved_class.token_index(),
@@ -508,52 +509,6 @@ void ClassFinalizer::FinalizeTypeArguments(
 }
 
 
-// Verify the upper bounds of the type arguments of class cls.
-void ClassFinalizer::VerifyUpperBounds(const Class& cls,
-                                       const AbstractTypeArguments& arguments) {
-  ASSERT(FLAG_enable_type_checks);
-  ASSERT(arguments.Length() >= cls.NumTypeArguments());
-  const intptr_t num_type_params = cls.NumTypeParameters();
-  const intptr_t offset = cls.NumTypeArguments() - num_type_params;
-  AbstractType& type = AbstractType::Handle();
-  AbstractType& bound = AbstractType::Handle();
-  const TypeArguments& bounds =
-      TypeArguments::Handle(cls.type_parameter_bounds());
-  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
-         (bounds.Length() == num_type_params));
-  for (intptr_t i = 0; i < num_type_params; i++) {
-    bound = bounds.TypeAt(i);
-    if (!bound.IsDynamicType()) {
-      type = arguments.TypeAt(offset + i);
-      if (type.IsInstantiated()) {
-        if (!bound.IsInstantiated()) {
-          bound = bound.InstantiateFrom(arguments);
-        }
-        // TODO(regis): Where do we check the bound when the type is generic?
-        if (!type.IsSubtypeOf(bound)) {
-          const String& type_argument_name = String::Handle(type.Name());
-          const String& class_name = String::Handle(cls.Name());
-          const String& bound_name = String::Handle(bound.Name());
-          const Script& script = Script::Handle(cls.script());
-          ReportError(script, type.token_index(),
-                      "type argument '%s' of class '%s' "
-                      "does not extend bound '%s'\n",
-                      type_argument_name.ToCString(),
-                      class_name.ToCString(),
-                      bound_name.ToCString());
-        }
-      }
-    }
-  }
-  const Type& super_type = Type::Handle(cls.super_type());
-  if (!super_type.IsNull()) {
-    ASSERT(super_type.IsFinalized());
-    const Class& super_class = Class::Handle(super_type.type_class());
-    VerifyUpperBounds(super_class, arguments);
-  }
-}
-
-
 RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                               const AbstractType& type) {
   ASSERT(type.IsResolved());
@@ -677,9 +632,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     parameterized_type.set_is_finalized();
 
     ResolveAndFinalizeUpperBounds(type_class);
-    if (FLAG_enable_type_checks) {
-      VerifyUpperBounds(type_class, full_arguments);
-    }
+    // No need to verify the upper bounds of the finalized type arguments, since
+    // bound errors are static type errors, which are not reported by the VM.
   } else {
     parameterized_type.set_is_finalized();
   }

@@ -91,11 +91,6 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean shouldWarnOnNoSuchType() {
-    return false;
-  }
-
-  @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     URI systemUri;
     try {

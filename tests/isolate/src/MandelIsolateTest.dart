@@ -11,7 +11,7 @@ final ISOLATES = 20;
 
 void test(TestExpectation expect) {
   final state = new MandelbrotState();
-  expect.completes(state._validated).then((result) {
+  expect.completes(state._validated.future).then((result) {
     Expect.isTrue(result);
     expect.succeeded();
   });
@@ -26,7 +26,7 @@ class MandelbrotState {
     _lineProcessedBy = new List<LineProcessorClient>(N);
     _sent = 0;
     _missing = N;
-    _validated = new Promise<bool>();
+    _validated = new Completer<bool>();
   }
 
   void startClient(int id) {
@@ -75,7 +75,7 @@ class MandelbrotState {
   List<LineProcessorClient> _lineProcessedBy;
   int _sent;
   int _missing;
-  Promise<bool> _validated;
+  Completer<bool> _validated;
 }
 
 

@@ -89,11 +89,6 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   }
 
   @Override
-  public boolean shouldWarnOnNoSuchType() {
-    return delegate.shouldWarnOnNoSuchType();
-  }
-
-  @Override
   public LibrarySource getSystemLibraryFor(String importSpec) {
     return delegate.getSystemLibraryFor(importSpec);
   }

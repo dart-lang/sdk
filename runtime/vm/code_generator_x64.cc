@@ -12,7 +12,6 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
-#include "vm/ic_data.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -25,7 +24,7 @@ namespace dart {
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
-DEFINE_FLAG(int, optimization_invocation_threshold, -1,
+DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
     "number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, report_invocation_count);
@@ -284,6 +283,7 @@ void CodeGenerator::GeneratePreEntryCode() {
   // - function is marked as non-optimizable.
   // - type checks are enabled.
   const bool may_optimize =
+      false &&   // TODO(srdjan): Remove once the optimizer is enabled on x64.
       !FLAG_report_invocation_count &&
       (FLAG_optimization_invocation_threshold >= 0) &&
       !Isolate::Current()->debugger()->IsActive() &&
@@ -449,8 +449,12 @@ void CodeGenerator::GenerateInstanceCall(
   // Set up the function name and number of arguments (including the receiver)
   // to the InstanceCall stub which will resolve the correct entrypoint for
   // the operator and call it.
-  ICData ic_data(function_name, num_args_checked);
-  __ LoadObject(RBX, Array::ZoneHandle(ic_data.data()));
+  ICData& ic_data = ICData::ZoneHandle();
+  ic_data = ICData::New(parsed_function().function(),
+                        function_name,
+                        node_id,
+                        num_args_checked);
+  __ LoadObject(RBX, ic_data);
   __ LoadObject(R10, ArgumentsDescriptor(num_arguments,
                                          optional_arguments_names));
   uword label_address = 0;
@@ -689,13 +693,18 @@ void CodeGenerator::GenerateEntryCode() {
                           kClosureArgumentMismatchRuntimeEntry);
     } else {
       // Invoke noSuchMethod function.
-      ICData ic_data(String::Handle(function.name()), 1);
-      __ LoadObject(RBX, Array::ZoneHandle(ic_data.data()));
+      const int kNumArgsChecked = 1;
+      ICData& ic_data = ICData::ZoneHandle();
+      ic_data = ICData::New(parsed_function().function(),
+                            String::Handle(function.name()),
+                            AstNode::kNoId,
+                            kNumArgsChecked);
+      __ LoadObject(RBX, ic_data);
       // RBP : points to previous frame pointer.
       // RBP + 8 : points to return address.
       // RBP + 16 : address of last argument (arg n-1).
       // RSP + 16 + 8*(n-1) : address of first argument (arg 0).
-      // RBX : ic-data array.
+      // RBX : ic-data.
       // R10 : arguments descriptor array.
       __ call(&StubCode::CallNoSuchMethodFunctionLabel());
     }
@@ -984,12 +993,14 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     state()->set_root_node(child_node);
     child_node->Visit(this);
   }
-  if (node_sequence->label() != NULL) {
-    __ Bind(node_sequence->label()->break_label());
-  }
   if (num_context_variables > 0) {
     // Unchain the previously allocated context.
     __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+  }
+  // If this node sequence is labeled, a break out of the sequence will have
+  // taken care of unchaining the context.
+  if (node_sequence->label() != NULL) {
+    __ Bind(node_sequence->label()->break_label());
   }
 }
 
@@ -1219,6 +1230,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   }
   node->operand()->Visit(this);
   if (node->kind() == Token::kADD) {
+    // TODO(srdjan): Remove this as it is not part of Dart language any longer.
     // Unary operator '+' does not exist, it's a NOP, skip it.
     if (!IsResultNeeded(node)) {
       __ popq(RAX);
@@ -1989,17 +2001,28 @@ void CodeGenerator::VisitJumpNode(JumpNode* node) {
   // Unchain the context(s) up to the outer context level of the scope which
   // contains the destination label.
   ASSERT(label->owner() != NULL);
-  LocalScope* outer_context_owner = label->owner()->parent();
-  ASSERT(outer_context_owner != NULL);
   int target_context_level = 0;
-  if (outer_context_owner->HasContextLevel()) {
-    target_context_level = outer_context_owner->context_level();
-    ASSERT(target_context_level >= 0);
-    int context_level = state()->context_level();
-    ASSERT(context_level >= target_context_level);
-    while (context_level-- > target_context_level) {
-      __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
+  LocalScope* target_scope = label->owner();
+  if (target_scope->num_context_variables() > 0) {
+    // The scope of the target label allocates a context, therefore its outer
+    // scope is at a lower context level.
+    target_context_level = target_scope->context_level() - 1;
+  } else {
+    // The scope of the target label does not allocate a context, so its outer
+    // scope is at the same context level. Find it.
+    while ((target_scope != NULL) &&
+           (target_scope->num_context_variables() == 0)) {
+      target_scope = target_scope->parent();
     }
+    if (target_scope != NULL) {
+      target_context_level = target_scope->context_level();
+    }
+  }
+  ASSERT(target_context_level >= 0);
+  int context_level = state()->context_level();
+  ASSERT(context_level >= target_context_level);
+  while (context_level-- > target_context_level) {
+    __ movq(CTX, FieldAddress(CTX, Context::parent_offset()));
   }
 
   if (node->kind() == Token::kBREAK) {

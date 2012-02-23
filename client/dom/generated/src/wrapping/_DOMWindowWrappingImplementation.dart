@@ -17,17 +17,11 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   Navigator get clientInformation() { return _get_clientInformation(this); }
   static Navigator _get_clientInformation(var _this) native;
 
-  void set clientInformation(Navigator value) { _set_clientInformation(this, value); }
-  static void _set_clientInformation(var _this, Navigator value) native;
-
   bool get closed() { return _get_closed(this); }
   static bool _get_closed(var _this) native;
 
   Console get console() { return _get_console(this); }
   static Console _get_console(var _this) native;
-
-  void set console(Console value) { _set_console(this, value); }
-  static void _set_console(var _this, Console value) native;
 
   Crypto get crypto() { return _get_crypto(this); }
   static Crypto _get_crypto(var _this) native;
@@ -47,17 +41,11 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   num get devicePixelRatio() { return _get_devicePixelRatio(this); }
   static num _get_devicePixelRatio(var _this) native;
 
-  void set devicePixelRatio(num value) { _set_devicePixelRatio(this, value); }
-  static void _set_devicePixelRatio(var _this, num value) native;
-
   Document get document() { return _get_document(this); }
   static Document _get_document(var _this) native;
 
   Event get event() { return _get_event(this); }
   static Event _get_event(var _this) native;
-
-  void set event(Event value) { _set_event(this, value); }
-  static void _set_event(var _this, Event value) native;
 
   Element get frameElement() { return _get_frameElement(this); }
   static Element _get_frameElement(var _this) native;
@@ -65,32 +53,17 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   DOMWindow get frames() { return _get_frames(this); }
   static DOMWindow _get_frames(var _this) native;
 
-  void set frames(DOMWindow value) { _set_frames(this, value); }
-  static void _set_frames(var _this, DOMWindow value) native;
-
   History get history() { return _get_history(this); }
   static History _get_history(var _this) native;
-
-  void set history(History value) { _set_history(this, value); }
-  static void _set_history(var _this, History value) native;
 
   int get innerHeight() { return _get_innerHeight(this); }
   static int _get_innerHeight(var _this) native;
 
-  void set innerHeight(int value) { _set_innerHeight(this, value); }
-  static void _set_innerHeight(var _this, int value) native;
-
   int get innerWidth() { return _get_innerWidth(this); }
   static int _get_innerWidth(var _this) native;
 
-  void set innerWidth(int value) { _set_innerWidth(this, value); }
-  static void _set_innerWidth(var _this, int value) native;
-
   int get length() { return _get_length(this); }
   static int _get_length(var _this) native;
-
-  void set length(int value) { _set_length(this, value); }
-  static void _set_length(var _this, int value) native;
 
   Storage get localStorage() { return _get_localStorage(this); }
   static Storage _get_localStorage(var _this) native;
@@ -104,14 +77,8 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   BarInfo get locationbar() { return _get_locationbar(this); }
   static BarInfo _get_locationbar(var _this) native;
 
-  void set locationbar(BarInfo value) { _set_locationbar(this, value); }
-  static void _set_locationbar(var _this, BarInfo value) native;
-
   BarInfo get menubar() { return _get_menubar(this); }
   static BarInfo _get_menubar(var _this) native;
-
-  void set menubar(BarInfo value) { _set_menubar(this, value); }
-  static void _set_menubar(var _this, BarInfo value) native;
 
   String get name() { return _get_name(this); }
   static String _get_name(var _this) native;
@@ -122,32 +89,17 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   Navigator get navigator() { return _get_navigator(this); }
   static Navigator _get_navigator(var _this) native;
 
-  void set navigator(Navigator value) { _set_navigator(this, value); }
-  static void _set_navigator(var _this, Navigator value) native;
-
   bool get offscreenBuffering() { return _get_offscreenBuffering(this); }
   static bool _get_offscreenBuffering(var _this) native;
-
-  void set offscreenBuffering(bool value) { _set_offscreenBuffering(this, value); }
-  static void _set_offscreenBuffering(var _this, bool value) native;
 
   DOMWindow get opener() { return _get_opener(this); }
   static DOMWindow _get_opener(var _this) native;
 
-  void set opener(DOMWindow value) { _set_opener(this, value); }
-  static void _set_opener(var _this, DOMWindow value) native;
-
   int get outerHeight() { return _get_outerHeight(this); }
   static int _get_outerHeight(var _this) native;
 
-  void set outerHeight(int value) { _set_outerHeight(this, value); }
-  static void _set_outerHeight(var _this, int value) native;
-
   int get outerWidth() { return _get_outerWidth(this); }
   static int _get_outerWidth(var _this) native;
-
-  void set outerWidth(int value) { _set_outerWidth(this, value); }
-  static void _set_outerWidth(var _this, int value) native;
 
   int get pageXOffset() { return _get_pageXOffset(this); }
   static int _get_pageXOffset(var _this) native;
@@ -158,74 +110,38 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   DOMWindow get parent() { return _get_parent(this); }
   static DOMWindow _get_parent(var _this) native;
 
-  void set parent(DOMWindow value) { _set_parent(this, value); }
-  static void _set_parent(var _this, DOMWindow value) native;
-
   Performance get performance() { return _get_performance(this); }
   static Performance _get_performance(var _this) native;
-
-  void set performance(Performance value) { _set_performance(this, value); }
-  static void _set_performance(var _this, Performance value) native;
 
   BarInfo get personalbar() { return _get_personalbar(this); }
   static BarInfo _get_personalbar(var _this) native;
 
-  void set personalbar(BarInfo value) { _set_personalbar(this, value); }
-  static void _set_personalbar(var _this, BarInfo value) native;
-
   Screen get screen() { return _get_screen(this); }
   static Screen _get_screen(var _this) native;
-
-  void set screen(Screen value) { _set_screen(this, value); }
-  static void _set_screen(var _this, Screen value) native;
 
   int get screenLeft() { return _get_screenLeft(this); }
   static int _get_screenLeft(var _this) native;
 
-  void set screenLeft(int value) { _set_screenLeft(this, value); }
-  static void _set_screenLeft(var _this, int value) native;
-
   int get screenTop() { return _get_screenTop(this); }
   static int _get_screenTop(var _this) native;
-
-  void set screenTop(int value) { _set_screenTop(this, value); }
-  static void _set_screenTop(var _this, int value) native;
 
   int get screenX() { return _get_screenX(this); }
   static int _get_screenX(var _this) native;
 
-  void set screenX(int value) { _set_screenX(this, value); }
-  static void _set_screenX(var _this, int value) native;
-
   int get screenY() { return _get_screenY(this); }
   static int _get_screenY(var _this) native;
-
-  void set screenY(int value) { _set_screenY(this, value); }
-  static void _set_screenY(var _this, int value) native;
 
   int get scrollX() { return _get_scrollX(this); }
   static int _get_scrollX(var _this) native;
 
-  void set scrollX(int value) { _set_scrollX(this, value); }
-  static void _set_scrollX(var _this, int value) native;
-
   int get scrollY() { return _get_scrollY(this); }
   static int _get_scrollY(var _this) native;
-
-  void set scrollY(int value) { _set_scrollY(this, value); }
-  static void _set_scrollY(var _this, int value) native;
 
   BarInfo get scrollbars() { return _get_scrollbars(this); }
   static BarInfo _get_scrollbars(var _this) native;
 
-  void set scrollbars(BarInfo value) { _set_scrollbars(this, value); }
-  static void _set_scrollbars(var _this, BarInfo value) native;
-
   DOMWindow get self() { return _get_self(this); }
   static DOMWindow _get_self(var _this) native;
-
-  void set self(DOMWindow value) { _set_self(this, value); }
-  static void _set_self(var _this, DOMWindow value) native;
 
   Storage get sessionStorage() { return _get_sessionStorage(this); }
   static Storage _get_sessionStorage(var _this) native;
@@ -239,23 +155,14 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
   BarInfo get statusbar() { return _get_statusbar(this); }
   static BarInfo _get_statusbar(var _this) native;
 
-  void set statusbar(BarInfo value) { _set_statusbar(this, value); }
-  static void _set_statusbar(var _this, BarInfo value) native;
-
   StyleMedia get styleMedia() { return _get_styleMedia(this); }
   static StyleMedia _get_styleMedia(var _this) native;
 
   BarInfo get toolbar() { return _get_toolbar(this); }
   static BarInfo _get_toolbar(var _this) native;
 
-  void set toolbar(BarInfo value) { _set_toolbar(this, value); }
-  static void _set_toolbar(var _this, BarInfo value) native;
-
   DOMWindow get top() { return _get_top(this); }
   static DOMWindow _get_top(var _this) native;
-
-  void set top(DOMWindow value) { _set_top(this, value); }
-  static void _set_top(var _this, DOMWindow value) native;
 
   IDBFactory get webkitIndexedDB() { return _get_webkitIndexedDB(this); }
   static IDBFactory _get_webkitIndexedDB(var _this) native;
@@ -265,9 +172,6 @@ class _DOMWindowWrappingImplementation extends DOMWrapperBase implements DOMWind
 
   StorageInfo get webkitStorageInfo() { return _get_webkitStorageInfo(this); }
   static StorageInfo _get_webkitStorageInfo(var _this) native;
-
-  DOMURL get webkitURL() { return _get_webkitURL(this); }
-  static DOMURL _get_webkitURL(var _this) native;
 
   DOMWindow get window() { return _get_window(this); }
   static DOMWindow _get_window(var _this) native;

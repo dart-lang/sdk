@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,13 @@ interface AudioPannerNode extends AudioNode {
 
   static final int EQUALPOWER = 0;
 
+  static final int EXPONENTIAL_DISTANCE = 2;
+
   static final int HRTF = 1;
+
+  static final int INVERSE_DISTANCE = 1;
+
+  static final int LINEAR_DISTANCE = 0;
 
   static final int SOUNDFIELD = 2;
 

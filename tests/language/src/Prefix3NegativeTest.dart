@@ -4,10 +4,11 @@
 //
 
 // Using the same prefix name while importing two different libraries is
-// an error.
+// not an error but both library1.dart and library2.dart define 'foo' which
+// results in a duplicate definition error.
 #library("Prefix3NegativeTest.dart");
-#import("library1.dart", prefix: "lib2");
-#import("library2.dart", prefix: "lib2");
+#import("library1.dart", prefix: "lib2");  // defines 'foo'.
+#import("library2.dart", prefix: "lib2");  // also defines 'foo'.
 
 class Prefix3NegativeTest {
   static Main() {

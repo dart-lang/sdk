@@ -1,21 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // TODO(ngeoffray): Rename to Lists.
 class Arrays {
-
-  static String asString(List list) {
-    String result = "[";
-    int len = list.length;
-    for (int i = 0; i < len; i++) {
-      // TODO(4466785): Deal with recursion and formatting.
-      result += list[i].toString() + ", ";
-    }
-    result += "]";
-    return result;
-  }
-
   static void copy(List src, int srcStart,
                    List dst, int dstStart, int count) {
     if (srcStart === null) srcStart = 0;

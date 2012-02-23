@@ -24,6 +24,8 @@
           'WARNING_CFLAGS': [
             '<@(common_gcc_warning_flags)',
             '-Wtrigraphs', # Disable Xcode default.
+            '-Wreturn-type',
+            '-Werror=return-type',
           ],
 
           # Generate PIC code as Chrome is switching to this.

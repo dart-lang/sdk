@@ -14,6 +14,9 @@ const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
 const char* DartUtils::kIOLibURL = "dart:io";
+const char* DartUtils::kJsonLibURL = "dart:json";
+const char* DartUtils::kUriLibURL = "dart:uri";
+const char* DartUtils::kUtf8LibURL = "dart:utf8";
 
 
 const char* DartUtils::kIdFieldName = "_id";
@@ -106,6 +109,20 @@ bool DartUtils::IsDartIOLibURL(const char* url_name) {
 }
 
 
+bool DartUtils::IsDartJsonLibURL(const char* url_name) {
+  return (strcmp(url_name, kJsonLibURL) == 0);
+}
+
+
+bool DartUtils::IsDartUriLibURL(const char* url_name) {
+  return (strcmp(url_name, kUriLibURL) == 0);
+}
+
+
+bool DartUtils::IsDartUtf8LibURL(const char* url_name) {
+  return (strcmp(url_name, kUtf8LibURL) == 0);
+}
+
 
 Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
                                        Dart_Handle library,
@@ -172,7 +189,8 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
                                   Dart_Handle library,
                                   Dart_Handle url,
                                   Dart_LibraryTag tag,
-                                  const char* url_string) {
+                                  const char* url_string,
+                                  Dart_Handle import_map) {
   if (url_mapping != NULL && IsDartSchemeURL(url_string)) {
     const char* mapped_url_string = MapLibraryUrl(url_mapping, url_string);
     if (mapped_url_string == NULL) {
@@ -190,7 +208,7 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
   }
   if (tag == kImportTag) {
     // Return library object or an error string.
-    return Dart_LoadLibrary(url, source);
+    return Dart_LoadLibrary(url, source, import_map);
   } else if (tag == kSourceTag) {
     return Dart_LoadSource(library, url, source);
   }
@@ -234,9 +252,7 @@ const char* DartUtils::GetCanonicalPath(const char* reference_dir,
 
 bool DartUtils::PostNull(Dart_Port port_id) {
   // Post a message with just the null object.
-  Dart_CObject object;
-  object.type = Dart_CObject::kNull;
-  return Dart_PostCObject(port_id, &object);
+  return Dart_PostCObject(port_id, CObject::Null()->AsApiCObject());
 }
 
 
@@ -249,4 +265,90 @@ bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
   object.type = Dart_CObject::kInt32;
   object.value.as_int32 = value;
   return Dart_PostCObject(port_id, &object);
+}
+
+
+// Statically allocated Dart_CObject instances for immutable
+// objects. As these will be used by different threads the use of
+// these depends on the fact that the marking internally in the
+// Dart_CObject structure is not marking simple value objects.
+Dart_CObject CObject::api_null_ = { Dart_CObject::kNull , { 0 } };
+Dart_CObject CObject::api_true_ = { Dart_CObject::kBool , { true } };
+Dart_CObject CObject::api_false_ = { Dart_CObject::kBool, { false } };
+CObject CObject::null_ = CObject(&api_null_);
+CObject CObject::true_ = CObject(&api_true_);
+CObject CObject::false_ = CObject(&api_false_);
+
+
+CObject* CObject::Null() {
+  return &null_;
+}
+
+
+CObject* CObject::True() {
+  return &true_;
+}
+
+
+CObject* CObject::False() {
+  return &false_;
+}
+
+
+CObject* CObject::Bool(bool value) {
+  return value ? &true_ : &false_;
+}
+
+
+Dart_CObject* CObject::New(Dart_CObject::Type type, int additional_bytes) {
+  Dart_CObject* cobject = reinterpret_cast<Dart_CObject*>(
+      Dart_ScopeAllocate(sizeof(Dart_CObject) + additional_bytes));
+  cobject->type = type;
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewInt32(int32_t value) {
+  Dart_CObject* cobject = New(Dart_CObject::kInt32);
+  cobject->value.as_int32 = value;
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewInt64(int64_t value) {
+  Dart_CObject* cobject = New(Dart_CObject::kInt64);
+  cobject->value.as_int64 = value;
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewDouble(double value) {
+  Dart_CObject* cobject = New(Dart_CObject::kDouble);
+  cobject->value.as_double = value;
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewString(int length) {
+  Dart_CObject* cobject = New(Dart_CObject::kString, length + 1);
+  cobject->value.as_string = reinterpret_cast<char*>(cobject + 1);
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewString(const char* str) {
+  int length = strlen(str);
+  Dart_CObject* cobject = NewString(length);
+  memmove(cobject->value.as_string, str, length + 1);
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewArray(int length) {
+  Dart_CObject* cobject =
+      New(Dart_CObject::kArray, length * sizeof(Dart_CObject*));  // NOLINT
+  cobject->value.as_array.length = length;
+  cobject->value.as_array.values =
+      reinterpret_cast<Dart_CObject**>(cobject + 1);
+  return cobject;
 }

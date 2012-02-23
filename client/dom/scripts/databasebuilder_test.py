@@ -97,7 +97,7 @@ ACTUAL:
   def test_renames(self):
     file_name = self._create_input('input.idl', '''
       module M {
-        interface I {
+        [Constructor(in T x)] interface I {
           T op(T x);
           readonly attribute N::T attr;
         };
@@ -107,7 +107,7 @@ ACTUAL:
     self._builder.merge_imported_interfaces([])
     self._db.Save()
     self._assert_content_equals('i.idl', '''
-      interface i {
+      [Constructor(in t x)] interface i {
         /* Attributes */
         getter attribute t attr;
         /* Operations */

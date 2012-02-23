@@ -30,7 +30,9 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node_sequence) {
   // CodeGeneratorContext.
   ASSERT(node_sequence != NULL);
   for (int i = 0; i < node_sequence->length(); i++) {
-    OS::Print("id %d: ",  node_sequence->NodeAt(i)->id());
+    OS::Print("id %d, scope 0x%x: ",
+              node_sequence->NodeAt(i)->id(),
+              node_sequence->scope());
     node_sequence->NodeAt(i)->Visit(this);
     OS::Print("\n");
   }
@@ -239,7 +241,10 @@ void AstPrinter::VisitDoWhileNode(DoWhileNode* node) {
 
 
 void AstPrinter::VisitJumpNode(JumpNode* node) {
-  OS::Print("(%s %s)", node->Name(), node->label()->name().ToCString());
+  OS::Print("(%s %s in scope 0x%x)",
+            node->Name(),
+            node->label()->name().ToCString(),
+            node->label()->owner());
 }
 
 
@@ -421,7 +426,13 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
   }
   const LocalScope* child = scope->child();
   while (child != NULL) {
-    OS::Print("{scope ");
+    OS::Print("{scope 0x%x ", child);
+    if (child->HasContextLevel()) {
+      OS::Print("ctx %d numctxvar %d ",
+                child->context_level(),
+                child->num_context_variables());
+    }
+    OS::Print("llev %d ", child->loop_level());
     PrintLocalScope(child, 0);
     OS::Print("}");
     child = child->sibling();
@@ -439,7 +450,13 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
   const LocalScope* scope = node_sequence->scope();
   ASSERT(scope != NULL);
   const char* function_name = function.ToFullyQualifiedCString();
-  OS::Print("Scope for function '%s' {\n", function_name);
+  OS::Print("Scope for function '%s' {scope 0x%x ", function_name, scope);
+  if (scope->HasContextLevel()) {
+    OS::Print("ctx %d numctxvar %d ",
+              scope->context_level(),
+              scope->num_context_variables());
+  }
+  OS::Print("llev %d ", scope->loop_level());
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_opt_params = function.num_optional_parameters();
   const int num_params = num_fixed_params + num_opt_params;

@@ -45,7 +45,8 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 

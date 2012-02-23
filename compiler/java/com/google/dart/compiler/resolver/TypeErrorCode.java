@@ -13,6 +13,7 @@ import com.google.dart.compiler.SubSystem;
 public enum TypeErrorCode implements ErrorCode {
   ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER(
       "%s is an abstract class because it does not implement the inherited abstract members: %s"),
+  ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
@@ -35,6 +36,7 @@ public enum TypeErrorCode implements ErrorCode {
   INTERNAL_ERROR("internal error: %s", true),
   IS_STATIC_FIELD_IN("\"%s\" is a static field in \"%s\""),
   IS_STATIC_METHOD_IN("\"%s\" is a static method in \"%s\""),
+  MAP_LITERAL_KEY_UNIQUE("Map literal keys should be unique."),
   MEMBER_IS_A_CONSTRUCTOR("%s is a constructor in %s"),
   MISSING_ARGUMENT("missing argument of type %s"),
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),

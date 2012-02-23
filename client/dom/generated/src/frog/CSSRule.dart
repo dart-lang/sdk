@@ -15,9 +15,9 @@ class _CSSRuleJs extends _DOMTypeJs implements CSSRule native "*CSSRule" {
 
   static final int UNKNOWN_RULE = 0;
 
-  static final int WEBKIT_KEYFRAMES_RULE = 8;
+  static final int WEBKIT_KEYFRAMES_RULE = 7;
 
-  static final int WEBKIT_KEYFRAME_RULE = 9;
+  static final int WEBKIT_KEYFRAME_RULE = 8;
 
   static final int WEBKIT_REGION_RULE = 10;
 

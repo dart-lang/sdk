@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,6 @@
 #include "vm/assembler.h"
 #include "vm/code_patcher.h"
 #include "vm/cpu.h"
-#include "vm/ic_data.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -105,19 +104,19 @@ class StaticCall : public DartCallPattern {
 };
 
 
-// A Dart instance call passes the ic-data array in RBX.
+// A Dart instance call passes the ic-data in RBX.
 class InstanceCall : public DartCallPattern {
  public:
   explicit InstanceCall(uword return_address)
       : DartCallPattern(return_address) {}
 
-  RawArray* ic_data() const {
-    Array& array = Array::Handle();
-    array ^= reinterpret_cast<RawObject*>(immediate_one());
-    return array.raw();
+  RawICData* ic_data() const {
+    ICData& ic_data = ICData::Handle();
+    ic_data ^= reinterpret_cast<RawObject*>(immediate_one());
+    return ic_data.raw();
   }
 
-  void SetIcData(const Array& value) {
+  void SetIcData(const ICData& value) {
     set_immediate_one(reinterpret_cast<int64_t>(value.raw()));
   }
 
@@ -163,11 +162,11 @@ static void SwapCode(intptr_t num_bytes, char* a, char* b) {
 // The patch code buffer contains the jump code sequence which will be inserted
 // at entry point.
 void CodePatcher::PatchEntry(const Code& code) {
-  Jump jmp_entry(code.EntryPoint());
+  JumpPattern jmp_entry(code.EntryPoint());
   ASSERT(!jmp_entry.IsValid());
   const uword patch_buffer = code.GetPatchCodePc();
   ASSERT(patch_buffer != 0);
-  Jump jmp_patch(patch_buffer);
+  JumpPattern jmp_patch(patch_buffer);
   ASSERT(jmp_patch.IsValid());
   const uword jump_target = jmp_patch.TargetAddress();
   SwapCode(jmp_patch.pattern_length_in_bytes(),
@@ -180,13 +179,13 @@ void CodePatcher::PatchEntry(const Code& code) {
 // The entry point is a jump code sequence, the patch code buffer contains
 // original code, the entry point contains the jump code sequence.
 void CodePatcher::RestoreEntry(const Code& code) {
-  Jump jmp_entry(code.EntryPoint());
+  JumpPattern jmp_entry(code.EntryPoint());
   ASSERT(jmp_entry.IsValid());
   const uword jump_target = jmp_entry.TargetAddress();
   const uword patch_buffer = code.GetPatchCodePc();
   ASSERT(patch_buffer != 0);
   // 'patch_buffer' contains original entry code.
-  Jump jmp_patch(patch_buffer);
+  JumpPattern jmp_patch(patch_buffer);
   ASSERT(!jmp_patch.IsValid());
   SwapCode(jmp_patch.pattern_length_in_bytes(),
            reinterpret_cast<char*>(code.EntryPoint()),
@@ -197,7 +196,7 @@ void CodePatcher::RestoreEntry(const Code& code) {
 
 
 bool CodePatcher::CodeIsPatchable(const Code& code) {
-  Jump jmp_entry(code.EntryPoint());
+  JumpPattern jmp_entry(code.EntryPoint());
   if (code.Size() < (jmp_entry.pattern_length_in_bytes() * 2)) {
     return false;
   }
@@ -230,21 +229,14 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
   *num_arguments = call.argument_count();
   *num_named_arguments = call.named_argument_count();
   *target = call.target();
-  ICData ic_data(Array::ZoneHandle(call.ic_data()));
-  *function_name = ic_data.FunctionName();
+  const ICData& ic_data = ICData::Handle(call.ic_data());
+  *function_name = ic_data.target_name();
 }
 
 
-RawArray* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
+RawICData* CodePatcher::GetInstanceCallIcDataAt(uword return_address) {
   InstanceCall call(return_address);
   return call.ic_data();
-}
-
-
-void CodePatcher::SetInstanceCallIcDataAt(uword return_address,
-                                          const Array& ic_data) {
-  InstanceCall call(return_address);
-  call.SetIcData(ic_data);
 }
 
 

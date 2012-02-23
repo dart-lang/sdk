@@ -80,3 +80,8 @@ class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest() => _dummy();
 }
+
+class _XSLTProcessorFactoryProvider {
+
+  factory XSLTProcessor() => _dummy();
+}

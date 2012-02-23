@@ -20,6 +20,7 @@ public class ResolverTests extends TestSetup {
   public static Test suite() {
     TestSuite suite = new TestSuite("Dart Resolver test suite.");
 
+    suite.addTestSuite(ElementMapTest.class);
     suite.addTestSuite(ResolverTest.class);
     suite.addTestSuite(ResolverCompilerTest.class);
     suite.addTestSuite(NegativeResolverTest.class);

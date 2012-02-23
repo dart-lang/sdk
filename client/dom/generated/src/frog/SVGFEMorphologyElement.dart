@@ -33,7 +33,8 @@ class _SVGFEMorphologyElementJs extends _SVGElementJs implements SVGFEMorphology
 
   final _SVGAnimatedStringJs className;
 
-  final _CSSStyleDeclarationJs style;
+  // Use implementation from Element.
+  // final _CSSStyleDeclarationJs style;
 
   _CSSValueJs getPresentationAttribute(String name) native;
 }

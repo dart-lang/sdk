@@ -91,3 +91,8 @@ class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest() native '''return new XMLHttpRequest();''';
 }
+
+class _XSLTProcessorFactoryProvider {
+
+  factory XSLTProcessor() native '''return new XSLTProcessor();''';
+}

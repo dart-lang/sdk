@@ -21,7 +21,6 @@
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
-#include "vm/ic_data.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -87,6 +86,7 @@ RawClass* Object::language_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unhandled_exception_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
@@ -147,6 +147,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kUnhandledExceptionClass;
   } else if (raw_class == unwind_error_class()) {
     return kUnwindErrorClass;
+  } else if (raw_class == icdata_class()) {
+    return kICDataClass;
   }
   return kInvalidIndex;
 }
@@ -183,6 +185,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kLanguageErrorClass: return language_error_class();
     case kUnhandledExceptionClass: return unhandled_exception_class();
     case kUnwindErrorClass: return unwind_error_class();
+    case kICDataClass: return icdata_class();
     default: break;
   }
   UNREACHABLE();
@@ -374,6 +377,9 @@ void Object::InitOnce() {
 
   cls = Class::New<UnwindError>();
   unwind_error_class_ = cls.raw();
+
+  cls = Class::New<ICData>();
+  icdata_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 }
@@ -3991,6 +3997,11 @@ void ClassDictionaryIterator::MoveToNextClass() {
 }
 
 
+void Library::set_import_map(const Array& map) const {
+  StorePointer(&raw_ptr()->import_map_, map.raw());
+}
+
+
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());
@@ -4374,13 +4385,16 @@ RawString* Library::DuplicateDefineErrorString(const String& entry_name,
 }
 
 
-RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
+RawString* Library::FindDuplicateDefinition() const {
   DictionaryIterator it(*this);
   Object& obj = Object::Handle();
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
   Field& field = Field::Handle();
   String& entry_name = String::Handle();
+  String& error_message = String::Handle();
+  Library& conflicting_lib = Library::Handle();
+  LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
   while (it.HasNext()) {
     obj = it.GetNext();
     ASSERT(!obj.IsNull());
@@ -4396,15 +4410,25 @@ RawString* Library::FindDuplicateDefinition(Library* conflicting_lib) const {
     } else if (obj.IsField()) {
       field ^= obj.raw();
       entry_name = field.name();
-    } else {
-      // We don't check for library prefixes defined in this library because
-      // they are not visible in the importing scope and hence cannot
-      // cause any duplicate definitions.
+    } else if (obj.IsLibraryPrefix()) {
+      // For library prefix objects we check to make sure there are no
+      // duplicate definitions within the libraries imported using this
+      // prefix.
+      lib_prefix ^= obj.raw();
+      error_message = lib_prefix.CheckForDuplicateDefinition();
+      if (!error_message.IsNull()) {
+        return error_message.raw();
+      }
+      // We don't check library prefixes defined in this library for
+      // conflicts because they are not visible in the importing scope and
+      // hence cannot cause any duplicate definitions.
       continue;
+    } else {
+      UNREACHABLE();
     }
-    *conflicting_lib = LookupObjectInImporter(entry_name);
-    if (!conflicting_lib->IsNull()) {
-      return entry_name.raw();
+    conflicting_lib = LookupObjectInImporter(entry_name);
+    if (!conflicting_lib.IsNull()) {
+      return this->DuplicateDefineErrorString(entry_name, conflicting_lib);
     }
   }
   return String::null();
@@ -4426,6 +4450,15 @@ RawClass* Library::LookupLocalClass(const String& name) const {
     return Class::CheckedHandle(obj.raw()).raw();
   }
   return Class::null();
+}
+
+
+RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
+  Object& obj = Object::Handle(LookupLocalObject(name));
+  if (!obj.IsNull() && obj.IsLibraryPrefix()) {
+    return LibraryPrefix::CheckedHandle(obj.raw()).raw();
+  }
+  return LibraryPrefix::null();
 }
 
 
@@ -4457,6 +4490,23 @@ RawLibrary* Library::LookupImport(const String& url) const {
     }
   }
   return Library::null();
+}
+
+
+RawString* Library::LookupImportMap(const String& ident) const {
+  Array& import_map = Array::Handle(this->import_map());
+  intptr_t length = import_map.Length();
+  intptr_t index = 0;
+  String& name = String::Handle();
+  while (index < (length - 1)) {
+    name ^= import_map.At(index);
+    if (name.Equals(ident)) {
+      name ^= import_map.At(index + 1);
+      return name.raw();
+    }
+    index += 2;
+  }
+  return String::null();
 }
 
 
@@ -4535,6 +4585,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->dictionary_ = Array::Empty();
   result.raw_ptr()->anonymous_classes_ = Array::Empty();
   result.raw_ptr()->num_anonymous_ = 0;
+  result.raw_ptr()->import_map_ = Array::Empty();
   result.raw_ptr()->imports_ = Array::Empty();
   result.raw_ptr()->next_registered_ = Library::null();
   result.raw_ptr()->loaded_scripts_ = Array::null();
@@ -4625,12 +4676,11 @@ RawString* Library::CheckForDuplicateDefinition() {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
   lib ^= object_store->registered_libraries();
-  String& entry_name = String::Handle();
-  Library& conflicting_lib = Library::Handle();
+  String& error_message = String::Handle();
   while (!lib.IsNull()) {
-    entry_name = lib.FindDuplicateDefinition(&conflicting_lib);
-    if (!entry_name.IsNull()) {
-      return lib.DuplicateDefineErrorString(entry_name, conflicting_lib);
+    error_message = lib.FindDuplicateDefinition();
+    if (!error_message.IsNull()) {
+      return error_message.raw();
     }
     lib ^= lib.next_registered();
   }
@@ -4700,6 +4750,64 @@ const char* Library::ToCString() const {
 }
 
 
+RawLibrary* LibraryPrefix::GetLibrary(int index) const {
+  Library& lib = Library::Handle();
+  if ((index >= 0) || (index < num_libs())) {
+    Array& libs = Array::Handle(libraries());
+    lib ^= libs.At(index);
+  }
+  return lib.raw();
+}
+
+
+void LibraryPrefix::AddLibrary(const Library& library) const {
+  Library& lib = Library::Handle();
+  intptr_t num_current_libs = num_libs();
+
+  // First check if the library is already in the list of libraries imported.
+  if (num_current_libs > 0) {
+    const String& url = String::Handle(library.url());
+    String& lib_url = String::Handle();
+    for (intptr_t i = 0; i < num_current_libs; i++) {
+      lib = GetLibrary(i);
+      ASSERT(!lib.IsNull());
+      lib_url = lib.url();
+      if (url.Equals(lib_url)) {
+        return;  // Library already imported with same prefix.
+      }
+    }
+  }
+
+  // The library needs to be added to the list.
+  Array& libs = Array::Handle(libraries());
+  const intptr_t length = (libs.IsNull()) ? 0 : libs.Length();
+  // Grow the list if it is full.
+  if (num_current_libs >= length) {
+    const intptr_t new_length = length + kIncrementSize;
+    libs = Array::Grow(libs, new_length, Heap::kOld);
+    set_libraries(libs);
+  }
+  libs.SetAt(num_current_libs, library);
+  set_num_libs(num_current_libs + 1);
+}
+
+
+RawClass* LibraryPrefix::LookupLocalClass(const String& class_name) const {
+  Array& libs = Array::Handle(libraries());
+  Class& resolved_class = Class::Handle();
+  Library& lib = Library::Handle();
+  for (intptr_t i = 0; i < num_libs(); i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    resolved_class = lib.LookupLocalClass(class_name);
+    if (!resolved_class.IsNull()) {
+      return resolved_class.raw();
+    }
+  }
+  return Class::null();
+}
+
+
 RawLibraryPrefix* LibraryPrefix::New() {
   const Class& library_prefix_class =
       Class::Handle(Object::library_prefix_class());
@@ -4713,7 +4821,8 @@ RawLibraryPrefix* LibraryPrefix::New() {
 RawLibraryPrefix* LibraryPrefix::New(const String& name, const Library& lib) {
   const LibraryPrefix& result = LibraryPrefix::Handle(LibraryPrefix::New());
   result.set_name(name);
-  result.set_library(lib);
+  result.set_num_libs(0);
+  result.AddLibrary(lib);
   return result.raw();
 }
 
@@ -4729,14 +4838,68 @@ const char* LibraryPrefix::ToCString() const {
 }
 
 
+RawString* LibraryPrefix::CheckForDuplicateDefinition() const {
+  Library& lib = Library::Handle();
+  Library& conflicting_lib = Library::Handle();
+  Object& obj = Object::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  Field& field = Field::Handle();
+  String& entry_name = String::Handle();
+
+  for (intptr_t i = 0; i < num_libs(); i++) {
+    lib = GetLibrary(i);
+    ASSERT(!lib.IsNull());
+    DictionaryIterator it(lib);
+    while (it.HasNext()) {
+      obj = it.GetNext();
+      ASSERT(!obj.IsNull());
+      if (obj.IsClass()) {
+        cls ^= obj.raw();
+        if (cls.IsCanonicalSignatureClass()) {
+          continue;
+        }
+        entry_name = cls.Name();
+      } else if (obj.IsFunction()) {
+        func ^= obj.raw();
+        entry_name = func.name();
+      } else if (obj.IsField()) {
+        field ^= obj.raw();
+        entry_name = field.name();
+      } else {
+        // We don't check library prefixes defined in this library for
+        // conflicts because they are not visible in the importing scope and
+        // hence cannot cause any duplicate definitions.
+        continue;
+      }
+      for (intptr_t j = i + 1; j < num_libs(); j++) {
+        conflicting_lib = GetLibrary(j);
+        ASSERT(!conflicting_lib.IsNull());
+        // Check if name is found in the local scope of the library.
+        obj = conflicting_lib.LookupLocalObject(entry_name);
+        if (!obj.IsNull()) {
+          return lib.DuplicateDefineErrorString(entry_name, conflicting_lib);
+        }
+      }
+    }
+  }
+  return String::null();
+}
+
+
 void LibraryPrefix::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
 }
 
 
-void LibraryPrefix::set_library(const Library& value) const {
-  StorePointer(&raw_ptr()->library_, value.raw());
+void LibraryPrefix::set_libraries(const Array& value) const {
+  StorePointer(&raw_ptr()->libraries_, value.raw());
+}
+
+
+void LibraryPrefix::set_num_libs(intptr_t value) const {
+  raw_ptr()->num_libs_ = value;
 }
 
 
@@ -5057,7 +5220,6 @@ RawCode* Code::New(int pointer_offsets_length) {
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
   }
-  result.raw_ptr()->ic_data_ = Array::Empty();
   return result.raw();
 }
 
@@ -5129,16 +5291,6 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
 }
 
 
-RawArray* Code::ic_data() const {
-  return raw_ptr()->ic_data_;
-}
-
-
-void Code::set_ic_data(const Array& ic_data) const {
-  ASSERT(!ic_data.IsNull());
-  StorePointer(&raw_ptr()->ic_data_, ic_data.raw());
-}
-
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   intptr_t token_index = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
@@ -5198,15 +5350,15 @@ bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
 
 void Code::ExtractIcDataArraysAtCalls(
     GrowableArray<intptr_t>* node_ids,
-    GrowableArray<const Array*>* arrays) const {
+    GrowableArray<const ICData*>* ic_data_objs) const {
   ASSERT(node_ids != NULL);
-  ASSERT(arrays != NULL);
+  ASSERT(ic_data_objs != NULL);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(this->pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
       node_ids->Add(descriptors.NodeId(i));
-      arrays->Add(&Array::ZoneHandle(
+      ic_data_objs->Add(&ICData::ZoneHandle(
           CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i))));
     }
   }
@@ -8041,6 +8193,119 @@ const char* JSRegExp::ToCString() const {
       Isolate::Current()->current_zone()->Allocate(len + 1));
   OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
   return chars;
+}
+
+
+const char* ICData::ToCString() const {
+  return "ICData";
+}
+
+
+void ICData::set_function(const Function& value) const {
+  raw_ptr()->function_ = value.raw();
+}
+
+
+void ICData::set_target_name(const String& value) const {
+  raw_ptr()->target_name_ = value.raw();
+}
+
+
+void ICData::set_id(intptr_t value) const {
+  raw_ptr()->id_ = value;
+}
+
+
+void ICData::set_num_args_tested(intptr_t value) const {
+  raw_ptr()->num_args_tested_ = value;
+}
+
+
+void ICData::set_ic_data(const Array& value) const {
+  raw_ptr()->ic_data_ = value.raw();
+}
+
+
+intptr_t ICData::TestEntryLength() const {
+  return num_args_tested() + 1 /* target function*/;
+}
+
+
+intptr_t ICData::NumberOfChecks() const {
+  // Do not count the sentinel;
+  return (Array::Handle(ic_data()).Length() / TestEntryLength()) - 1;
+}
+
+
+void ICData::AddCheck(const GrowableArray<const Class*>& classes,
+                      const Function& target) const {
+  ASSERT(classes.length() == num_args_tested());
+  intptr_t old_num = NumberOfChecks();
+  Array& data = Array::Handle(ic_data());
+  intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  for (intptr_t i = 0; i < classes.length(); i++) {
+    // Null is used as terminating value, do not add it.
+    ASSERT(!classes[i]->IsNull());
+    data.SetAt(data_pos++, *(classes[i]));
+  }
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos, target);
+}
+
+
+void ICData::GetCheckAt(intptr_t index,
+                        GrowableArray<const Class*>* classes,
+                        Function* target) const {
+  ASSERT(classes != NULL);
+  ASSERT(target != NULL);
+  classes->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < num_args_tested(); i++) {
+    Class& cls = Class::ZoneHandle();
+    cls ^= data.At(data_pos++);
+    classes->Add(&cls);
+  }
+  (*target) ^= data.At(data_pos);
+}
+
+
+void ICData::GetOneClassCheckAt(
+    int index, Class* cls, Function* target) const {
+  ASSERT(num_args_tested() == 1);
+  GrowableArray<const Class*> classes;
+  GetCheckAt(index, &classes, target);
+  *cls = classes[0]->raw();
+}
+
+
+RawICData* ICData::New(const Function& function,
+                       const String& target_name,
+                       intptr_t id,
+                       intptr_t num_args_tested) {
+  const Class& cls = Class::Handle(Object::icdata_class());
+  ASSERT(!cls.IsNull());
+  ICData& result = ICData::Handle();
+  {
+    // IC data objects ar long living objects, allocate them in old generation.
+    RawObject* raw =
+        Object::Allocate(cls, ICData::InstanceSize(), Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_function(function);
+  result.set_target_name(target_name);
+  result.set_id(id);
+  result.set_num_args_tested(num_args_tested);
+  // Number of array elements in one test entry (num_args_tested + 1)
+  intptr_t len = num_args_tested + 1;
+  // IC data array must be null terminated (sentinel entry).
+  Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
+  result.set_ic_data(ic_data);
+  return result.raw();
 }
 
 }  // namespace dart

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -303,8 +303,6 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   static final int NOTEQUAL = 0x0205;
 
   static final int NO_ERROR = 0;
-
-  static final int NUM_COMPRESSED_TEXTURE_FORMATS = 0x86A2;
 
   static final int ONE = 1;
 

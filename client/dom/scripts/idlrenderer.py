@@ -105,9 +105,20 @@ def render(idl_node, indent_str='  '):
           w(k)
           v = node[k]
           if v is not None:
-            w('=%s' % v.__str__())
+            if isinstance(v, IDLExtAttrFunctionValue):
+              if v.id:
+                w('=')
+              w(v)
+            else:
+              w('=%s' % v.__str__())
           i += 1
         w('] ')
+    elif isinstance(node, IDLExtAttrFunctionValue):
+      if node.id:
+        w(node.id)
+      w('(')
+      w(node.arguments, ', ')
+      w(')')
     elif isinstance(node, IDLAttribute):
       w(node.annotations)
       w(node.ext_attrs)
@@ -118,9 +129,9 @@ def render(idl_node, indent_str='  '):
       w('attribute %s %s' % (node.type.id, node.id))
       if node.raises:
         w(' raises (%s)' % node.raises.id)
-      elif node.get_raises:
+      elif node.is_fc_getter and node.get_raises:
         w(' getraises (%s)' % node.get_raises.id)
-      elif node.set_raises:
+      elif node.is_fc_setter and node.set_raises:
         w(' setraises (%s)' % node.set_raises.id)
       wln(';')
     elif isinstance(node, IDLConstant):
@@ -143,7 +154,6 @@ def render(idl_node, indent_str='  '):
       if node.raises:
         w(' raises (%s)' % node.raises.id)
       wln(';')
-
     elif isinstance(node, IDLArgument):
       w(node.ext_attrs)
       w('in ')

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -59,7 +59,14 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   if (mode == kAppend) {
     file_mode = File::kWrite;
   }
-  File* file = File::Open(filename, file_mode);
+  // Check that the file exists before opening it only for
+  // reading. This is to prevent the opening of directories as
+  // files. Directories can be opened for reading using the posix
+  // 'open' call.
+  File* file = NULL;
+  if (((file_mode & File::kWrite) != 0) || File::Exists(filename)) {
+    file = File::Open(filename, file_mode);
+  }
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
   Dart_ExitScope();
 }
@@ -313,6 +320,21 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_Directory)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  char* str_copy = strdup(str);
+  char* path = File::GetContainingDirectory(str_copy);
+  if (path != NULL) {
+    Dart_SetReturnValue(args, Dart_NewString(path));
+  }
+  free(str_copy);
+  free(path);
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =
@@ -322,5 +344,23 @@ void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_NewString(path));
     free(path);
   }
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File* file = File::OpenStdio(fd);
+  Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
+  File::StdioHandleType type = File::GetStdioHandleType(fd);
+  Dart_SetReturnValue(args, Dart_NewInteger(type));
   Dart_ExitScope();
 }

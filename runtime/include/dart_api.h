@@ -673,6 +673,30 @@ DART_EXPORT void Dart_EnterScope();
  */
 DART_EXPORT void Dart_ExitScope();
 
+/**
+ * The Dart VM uses "zone allocation" for temporary structures. Zones
+ * support very fast allocation of small chunks of memory. The chunks
+ * cannot be deallocated individually, but instead zones support
+ * deallocating all chunks in one fast operation.
+ *
+ * This function makes it possible for the embedder to allocate
+ * temporary data in the VMs zone allocator.
+ *
+ * Zone allocation is possible:
+ *   1. when inside a scope where local handles can be allocated
+ *   2. when processing a message from a native port in a native port
+ *      handler
+ *
+ * All the memory allocated this way will be reclaimed either on the
+ * next call to Dart_ExitScope or when the native port handler exits.
+ *
+ * \param size Size of the memory to allocate.
+ *
+ * \return A pointer to the allocated memory. NULL if allocation
+ *   failed. Failure might due to is no current VM zone.
+ */
+DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size);
+
 // --- Objects ----
 
 /**
@@ -1195,6 +1219,7 @@ DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length);
  *
  * \param value An array of 8-bit bytes. This array must not move.
  * \param length The length of the array.
+ * \param peer An external pointer to associate with this byte array.
  *
  * \return The ByteArray object if no error occurs. Otherwise returns
  *   an error handle.
@@ -1209,6 +1234,306 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
  */
 DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
                                                       void** peer);
+
+/**
+ * Gets an int8_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the int8_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetInt8At(Dart_Handle array,
+                                                intptr_t offset,
+                                                int8_t* value);
+
+/**
+ * Sets an int8_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The int8_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetInt8At(Dart_Handle array,
+                                                intptr_t offset,
+                                                int8_t value);
+
+/**
+ * Gets a uint8_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the uint8_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetUint8At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 uint8_t* value);
+
+/**
+ * Sets a uint8_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The uint8_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetUint8At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 uint8_t value);
+
+/**
+ * Gets an int16_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the int16_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetInt16At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 int16_t* value);
+
+/**
+ * Sets an int16_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The int16_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetInt16At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 int16_t value);
+
+/**
+ * Gets a uint16_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the uint16_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetUint16At(Dart_Handle array,
+                                                  intptr_t offset,
+                                                  uint16_t* value);
+
+/**
+ * Sets a uint16_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The uint16_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetUint16At(Dart_Handle array,
+                                                  intptr_t offset,
+                                                  uint16_t value);
+
+/**
+ * Gets an int32_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the int32_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetInt32At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 int32_t* value);
+
+/**
+ * Sets an int32_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The int32_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetInt32At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 int32_t value);
+
+/**
+ * Gets a uint32_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the uint32_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetUint32At(Dart_Handle array,
+                                                  intptr_t offset,
+                                                  uint32_t* value);
+
+/**
+ * Sets a uint32_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The uint32_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetUint32At(Dart_Handle array,
+                                                  intptr_t offset,
+                                                  uint32_t value);
+
+/**
+ * Gets an int64_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the int64_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetInt64At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 int64_t* value);
+
+/**
+ * Sets an int64_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The int64_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetInt64At(Dart_Handle array,
+                                                 intptr_t offset,
+                                                 int64_t value);
+
+/**
+ * Gets a uint64_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the uint64_t.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetUint64At(Dart_Handle array,
+                                                  intptr_t offset,
+                                                  uint64_t* value);
+
+/**
+ * Sets a uint64_t at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The uint64_t to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetUint64At(Dart_Handle array,
+                                                  intptr_t offset,
+                                                  uint64_t value);
+
+/**
+ * Gets a float at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the float.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetFloat32At(Dart_Handle array,
+                                                   intptr_t offset,
+                                                   float* value);
+
+/**
+ * Sets a float at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The float to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetFloat32At(Dart_Handle array,
+                                                   intptr_t offset,
+                                                   float value);
+
+/**
+ * Gets a double from some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the List.
+ * \param value Returns the value of the double.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArrayGetFloat64At(Dart_Handle array,
+                                                   intptr_t offset,
+                                                   double* value);
+
+/**
+ * Sets a double at some byte offset in a ByteArray.
+ *
+ * If the byte offset is out of bounds, an error occurs.
+ *
+ * \param array A ByteArray.
+ * \param offset A valid byte offset into the ByteArray.
+ * \param value The double to put into the ByteArray.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_ByteArraySetFloat64At(Dart_Handle array,
+                                                   intptr_t offset,
+                                                   double value);
 
 // --- Closures ---
 
@@ -1427,7 +1752,8 @@ typedef enum {
 // TODO(turnidge): Document.
 typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle library,
-                                              Dart_Handle url);
+                                              Dart_Handle url,
+                                              Dart_Handle import_map);
 
 /**
  * Loads the root script for the current isolate.
@@ -1436,7 +1762,8 @@ typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
  */
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
-                                        Dart_LibraryTagHandler handler);
+                                        Dart_LibraryTagHandler handler,
+                                        Dart_Handle import_map);
 
 /**
  * Loads the root script for current isolate from a snapshot.
@@ -1474,7 +1801,8 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source);
+                                         Dart_Handle source,
+                                         Dart_Handle import_map);
 
 
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,

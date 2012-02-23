@@ -142,6 +142,7 @@
 #source('generated/src/interface/HTMLButtonElement.dart');
 #source('generated/src/interface/HTMLCanvasElement.dart');
 #source('generated/src/interface/HTMLCollection.dart');
+#source('generated/src/interface/HTMLContentElement.dart');
 #source('generated/src/interface/HTMLDListElement.dart');
 #source('generated/src/interface/HTMLDetailsElement.dart');
 #source('generated/src/interface/HTMLDirectoryElement.dart');
@@ -161,7 +162,6 @@
 #source('generated/src/interface/HTMLIFrameElement.dart');
 #source('generated/src/interface/HTMLImageElement.dart');
 #source('generated/src/interface/HTMLInputElement.dart');
-#source('generated/src/interface/HTMLIsIndexElement.dart');
 #source('generated/src/interface/HTMLKeygenElement.dart');
 #source('generated/src/interface/HTMLLIElement.dart');
 #source('generated/src/interface/HTMLLabelElement.dart');
@@ -187,6 +187,7 @@
 #source('generated/src/interface/HTMLQuoteElement.dart');
 #source('generated/src/interface/HTMLScriptElement.dart');
 #source('generated/src/interface/HTMLSelectElement.dart');
+#source('generated/src/interface/HTMLShadowElement.dart');
 #source('generated/src/interface/HTMLSourceElement.dart');
 #source('generated/src/interface/HTMLSpanElement.dart');
 #source('generated/src/interface/HTMLStyleElement.dart');
@@ -227,6 +228,7 @@
 #source('generated/src/interface/JavaScriptAudioNode.dart');
 #source('generated/src/interface/JavaScriptCallFrame.dart');
 #source('generated/src/interface/KeyboardEvent.dart');
+#source('generated/src/interface/LocalMediaStream.dart');
 #source('generated/src/interface/Location.dart');
 #source('generated/src/interface/LowPass2FilterNode.dart');
 #source('generated/src/interface/MediaController.dart');
@@ -235,6 +237,11 @@
 #source('generated/src/interface/MediaList.dart');
 #source('generated/src/interface/MediaQueryList.dart');
 #source('generated/src/interface/MediaQueryListListener.dart');
+#source('generated/src/interface/MediaStream.dart');
+#source('generated/src/interface/MediaStreamEvent.dart');
+#source('generated/src/interface/MediaStreamList.dart');
+#source('generated/src/interface/MediaStreamTrack.dart');
+#source('generated/src/interface/MediaStreamTrackList.dart');
 #source('generated/src/interface/MemoryInfo.dart');
 #source('generated/src/interface/MessageChannel.dart');
 #source('generated/src/interface/MessageEvent.dart');
@@ -245,6 +252,9 @@
 #source('generated/src/interface/MutationEvent.dart');
 #source('generated/src/interface/NamedNodeMap.dart');
 #source('generated/src/interface/Navigator.dart');
+#source('generated/src/interface/NavigatorUserMediaError.dart');
+#source('generated/src/interface/NavigatorUserMediaErrorCallback.dart');
+#source('generated/src/interface/NavigatorUserMediaSuccessCallback.dart');
 #source('generated/src/interface/Node.dart');
 #source('generated/src/interface/NodeFilter.dart');
 #source('generated/src/interface/NodeIterator.dart');
@@ -260,6 +270,7 @@
 #source('generated/src/interface/OperationNotAllowedException.dart');
 #source('generated/src/interface/OverflowEvent.dart');
 #source('generated/src/interface/PageTransitionEvent.dart');
+#source('generated/src/interface/PeerConnection.dart');
 #source('generated/src/interface/Performance.dart');
 #source('generated/src/interface/PerformanceNavigation.dart');
 #source('generated/src/interface/PerformanceTiming.dart');
@@ -274,6 +285,7 @@
 #source('generated/src/interface/RangeException.dart');
 #source('generated/src/interface/RealtimeAnalyserNode.dart');
 #source('generated/src/interface/Rect.dart');
+#source('generated/src/interface/RequestAnimationFrameCallback.dart');
 #source('generated/src/interface/SQLError.dart');
 #source('generated/src/interface/SQLException.dart');
 #source('generated/src/interface/SQLResultSet.dart');
@@ -440,8 +452,10 @@
 #source('generated/src/interface/Screen.dart');
 #source('generated/src/interface/ScriptProfile.dart');
 #source('generated/src/interface/ScriptProfileNode.dart');
+#source('generated/src/interface/ShadowRoot.dart');
 #source('generated/src/interface/SharedWorker.dart');
 #source('generated/src/interface/SharedWorkerContext.dart');
+#source('generated/src/interface/SignalingCallback.dart');
 #source('generated/src/interface/SpeechInputEvent.dart');
 #source('generated/src/interface/SpeechInputResult.dart');
 #source('generated/src/interface/SpeechInputResultList.dart');
@@ -478,7 +492,7 @@
 #source('generated/src/interface/WaveShaperNode.dart');
 #source('generated/src/interface/WebGLActiveInfo.dart');
 #source('generated/src/interface/WebGLBuffer.dart');
-#source('generated/src/interface/WebGLCompressedTextures.dart');
+#source('generated/src/interface/WebGLCompressedTextureS3TC.dart');
 #source('generated/src/interface/WebGLContextAttributes.dart');
 #source('generated/src/interface/WebGLContextEvent.dart');
 #source('generated/src/interface/WebGLDebugRendererInfo.dart');
@@ -649,6 +663,7 @@
 #source('generated/src/wrapping/_HTMLButtonElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLCanvasElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLCollectionWrappingImplementation.dart');
+#source('generated/src/wrapping/_HTMLContentElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDListElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDetailsElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLDirectoryElementWrappingImplementation.dart');
@@ -668,7 +683,6 @@
 #source('generated/src/wrapping/_HTMLIFrameElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLImageElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLInputElementWrappingImplementation.dart');
-#source('generated/src/wrapping/_HTMLIsIndexElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLKeygenElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLLIElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLLabelElementWrappingImplementation.dart');
@@ -694,6 +708,7 @@
 #source('generated/src/wrapping/_HTMLQuoteElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLScriptElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLSelectElementWrappingImplementation.dart');
+#source('generated/src/wrapping/_HTMLShadowElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLSourceElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLSpanElementWrappingImplementation.dart');
 #source('generated/src/wrapping/_HTMLStyleElementWrappingImplementation.dart');
@@ -734,6 +749,7 @@
 #source('generated/src/wrapping/_JavaScriptAudioNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_JavaScriptCallFrameWrappingImplementation.dart');
 #source('generated/src/wrapping/_KeyboardEventWrappingImplementation.dart');
+#source('generated/src/wrapping/_LocalMediaStreamWrappingImplementation.dart');
 #source('generated/src/wrapping/_LocationWrappingImplementation.dart');
 #source('generated/src/wrapping/_LowPass2FilterNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_MediaControllerWrappingImplementation.dart');
@@ -742,6 +758,11 @@
 #source('generated/src/wrapping/_MediaListWrappingImplementation.dart');
 #source('generated/src/wrapping/_MediaQueryListListenerWrappingImplementation.dart');
 #source('generated/src/wrapping/_MediaQueryListWrappingImplementation.dart');
+#source('generated/src/wrapping/_MediaStreamEventWrappingImplementation.dart');
+#source('generated/src/wrapping/_MediaStreamListWrappingImplementation.dart');
+#source('generated/src/wrapping/_MediaStreamTrackListWrappingImplementation.dart');
+#source('generated/src/wrapping/_MediaStreamTrackWrappingImplementation.dart');
+#source('generated/src/wrapping/_MediaStreamWrappingImplementation.dart');
 #source('generated/src/wrapping/_MemoryInfoWrappingImplementation.dart');
 #source('generated/src/wrapping/_MessageChannelWrappingImplementation.dart');
 #source('generated/src/wrapping/_MessageEventWrappingImplementation.dart');
@@ -750,6 +771,7 @@
 #source('generated/src/wrapping/_MouseEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_MutationEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_NamedNodeMapWrappingImplementation.dart');
+#source('generated/src/wrapping/_NavigatorUserMediaErrorWrappingImplementation.dart');
 #source('generated/src/wrapping/_NavigatorWrappingImplementation.dart');
 #source('generated/src/wrapping/_NodeFilterWrappingImplementation.dart');
 #source('generated/src/wrapping/_NodeIteratorWrappingImplementation.dart');
@@ -766,6 +788,7 @@
 #source('generated/src/wrapping/_OperationNotAllowedExceptionWrappingImplementation.dart');
 #source('generated/src/wrapping/_OverflowEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_PageTransitionEventWrappingImplementation.dart');
+#source('generated/src/wrapping/_PeerConnectionWrappingImplementation.dart');
 #source('generated/src/wrapping/_PerformanceNavigationWrappingImplementation.dart');
 #source('generated/src/wrapping/_PerformanceTimingWrappingImplementation.dart');
 #source('generated/src/wrapping/_PerformanceWrappingImplementation.dart');
@@ -939,6 +962,7 @@
 #source('generated/src/wrapping/_ScreenWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_ScriptProfileWrappingImplementation.dart');
+#source('generated/src/wrapping/_ShadowRootWrappingImplementation.dart');
 #source('generated/src/wrapping/_SharedWorkerContextWrappingImplementation.dart');
 #source('generated/src/wrapping/_SharedWorkerWrappingImplementation.dart');
 #source('generated/src/wrapping/_SpeechInputEventWrappingImplementation.dart');
@@ -972,7 +996,7 @@
 #source('generated/src/wrapping/_WaveShaperNodeWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLActiveInfoWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLBufferWrappingImplementation.dart');
-#source('generated/src/wrapping/_WebGLCompressedTexturesWrappingImplementation.dart');
+#source('generated/src/wrapping/_WebGLCompressedTextureS3TCWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLContextAttributesWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLContextEventWrappingImplementation.dart');
 #source('generated/src/wrapping/_WebGLDebugRendererInfoWrappingImplementation.dart');
@@ -1022,7 +1046,6 @@
 #source('src/KeyLocation.dart');
 #source('src/KeyName.dart');
 #source('src/ReadyState.dart');
-#source('src/RequestAnimationFrameCallback.dart');
 #source('src/TimeoutHandler.dart');
 #source('src/_Collections.dart');
 #source('src/_ListIterators.dart');

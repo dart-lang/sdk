@@ -9,7 +9,8 @@ class _HTMLDocumentJs extends _DocumentJs implements HTMLDocument native "*HTMLD
 
   String bgColor;
 
-  final String compatMode;
+  // Use implementation from Document.
+  // final String compatMode;
 
   String designMode;
 

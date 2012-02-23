@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -81,7 +81,7 @@ class PipeServerGame {
           getDataFilename("tests/standalone/src/readline_test1.dat");
 
       SocketOutputStream socketOutput = _socket.outputStream;
-      InputStream fileInput = new File(srcFileName).openInputStream();
+      InputStream fileInput = new File(srcFileName).openInputStreamSync();
 
       fileInput.closeHandler = () {
         SocketInputStream socketInput = _socket.inputStream;
@@ -90,7 +90,7 @@ class PipeServerGame {
         var dstFileName = tempDir.path + "/readline_test1.dat";
         var dstFile = new File(dstFileName);
         dstFile.createSync();
-        var fileOutput = dstFile.openOutputStream();
+        var fileOutput = dstFile.openOutputStreamSync();
 
         socketInput.closeHandler = () {
           // Check that the resulting file is equal to the initial
@@ -161,13 +161,13 @@ class PipeServer extends TestingServer {
 testFileToFilePipe1() {
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
-  var srcStream = new File(srcFileName).openInputStream();
+  var srcStream = new File(srcFileName).openInputStreamSync();
 
   var tempDir = new Directory('');
   tempDir.createTempSync();
   String dstFileName = tempDir.path + "/readline_test1.dat";
   new File(dstFileName).createSync();
-  var dstStream = new File(dstFileName).openOutputStream();
+  var dstStream = new File(dstFileName).openOutputStreamSync();
 
   srcStream.closeHandler = () {
     bool result = compareFileContent(srcFileName, dstFileName);
@@ -186,14 +186,14 @@ testFileToFilePipe2() {
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
   var srcFile = new File(srcFileName);
-  var srcStream = srcFile.openInputStream();
+  var srcStream = srcFile.openInputStreamSync();
 
   var tempDir = new Directory('');
   tempDir.createTempSync();
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
-  var dstStream = dstFile.openOutputStream();
+  var dstStream = dstFile.openOutputStreamSync();
 
   srcStream.closeHandler = () {
     dstStream.write([32]);
@@ -225,17 +225,17 @@ testFileToFilePipe3() {
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
   var srcFile = new File(srcFileName);
-  var srcStream = srcFile.openInputStream();
+  var srcStream = srcFile.openInputStreamSync();
 
   var tempDir = new Directory('');
   tempDir.createTempSync();
   var dstFileName = tempDir.path + "/readline_test1.dat";
   var dstFile = new File(dstFileName);
   dstFile.createSync();
-  var dstStream = dstFile.openOutputStream();
+  var dstStream = dstFile.openOutputStreamSync();
 
   srcStream.closeHandler = () {
-    var srcStream2 = srcFile.openInputStream();
+    var srcStream2 = srcFile.openInputStreamSync();
 
     srcStream2.closeHandler = () {
       var src = srcFile.openSync();

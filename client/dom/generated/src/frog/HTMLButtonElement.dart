@@ -33,7 +33,5 @@ class _HTMLButtonElementJs extends _HTMLElementJs implements HTMLButtonElement n
 
   bool checkValidity() native;
 
-  void click() native;
-
   void setCustomValidity(String error) native;
 }

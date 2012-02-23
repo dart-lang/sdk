@@ -140,6 +140,7 @@ class ScavengerWeakVisitor : public HandleVisitor {
     WeakPersistentHandle* handle =
         reinterpret_cast<WeakPersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
+    if (!raw_obj->IsHeapObject()) return;
     uword raw_addr = RawObject::ToAddr(raw_obj);
     if (scavenger_->from_->Contains(raw_addr)) {
       uword header = *reinterpret_cast<uword*>(raw_addr);

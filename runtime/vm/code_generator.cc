@@ -11,7 +11,6 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
-#include "vm/ic_data.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
@@ -528,9 +527,8 @@ static RawFunction* InlineCacheMissHandler(
   }
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
-  ICData ic_data(Array::Handle(
-      CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc())));
-
+  ICData& ic_data = ICData::Handle(
+      CodePatcher::GetInstanceCallIcDataAt(caller_frame->pc()));
 #if defined(DEBUG)
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     GrowableArray<const Class*> classes;
@@ -549,13 +547,11 @@ static RawFunction* InlineCacheMissHandler(
 #endif  // DEBUG
 
   GrowableArray<const Class*> classes;
-  ASSERT(ic_data.NumberOfArgumentsChecked() == args.length());
+  ASSERT(ic_data.num_args_tested() == args.length());
   for (intptr_t i = 0; i < args.length(); i++) {
     classes.Add(&Class::ZoneHandle(args[i]->clazz()));
   }
   ic_data.AddCheck(classes, target_function);
-  CodePatcher::SetInstanceCallIcDataAt(caller_frame->pc(),
-                                       Array::ZoneHandle(ic_data.data()));
   if (FLAG_trace_ic) {
     OS::Print("InlineCacheMissHandler %d call at 0x%x' adding <%s> -> <%s>\n",
         args.length(),
@@ -631,7 +627,7 @@ static RawFunction* LookupDynamicFunction(Isolate* isolate,
 // Resolve an implicit closure by checking if an instance function
 // of the same name exists and creating a closure object of the function.
 // Arg0: receiver object.
-// Arg1: ic-data array.
+// Arg1: ic-data.
 // Returns: Closure object or NULL (instance function not found).
 // This is called by the megamorphic stub when it is unable to resolve an
 // instance method. This is done just before the call to noSuchMethod.
@@ -639,9 +635,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   ASSERT(arguments.Count() ==
          kResolveImplicitClosureFunctionRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Array& ic_data_array = Array::CheckedHandle(arguments.At(1));
-  ICData ic_data(ic_data_array);
-  const String& original_function_name = String::Handle(ic_data.FunctionName());
+  const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
+  const String& original_function_name = String::Handle(ic_data.target_name());
   const String& getter_prefix = String::Handle(String::New("get:"));
   Closure& closure = Closure::Handle();
   if (!original_function_name.StartsWith(getter_prefix)) {
@@ -682,7 +677,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
 // Resolve an implicit closure by invoking getter and checking if the return
 // value from getter is a closure.
 // Arg0: receiver object.
-// Arg1: ic-data array.
+// Arg1: ic-data.
 // Returns: Closure object or NULL (closure not found).
 // This is called by the megamorphic stub when it is unable to resolve an
 // instance method. This is done just before the call to noSuchMethod.
@@ -690,9 +685,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
   ASSERT(arguments.Count() ==
          kResolveImplicitClosureThroughGetterRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Array& ic_data_array = Array::CheckedHandle(arguments.At(1));
-  ICData ic_data(ic_data_array);
-  const String& original_function_name = String::Handle(ic_data.FunctionName());
+  const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
+  const String& original_function_name = String::Handle(ic_data.target_name());
   const int kNumArguments = 1;
   const int kNumNamedArguments = 0;
   const String& getter_function_name =
@@ -813,16 +807,15 @@ DEFINE_RUNTIME_ENTRY(InvokeImplicitClosureFunction, 3) {
 
 // Invoke appropriate noSuchMethod function.
 // Arg0: receiver.
-// Arg1: ic-data array.
+// Arg1: ic-data.
 // Arg2: original arguments descriptor array.
 // Arg3: original arguments array.
 DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   ASSERT(arguments.Count() ==
          kInvokeNoSuchMethodFunctionRuntimeEntry.argument_count());
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
-  const Array& ic_data_array = Array::CheckedHandle(arguments.At(1));
-  ICData ic_data(ic_data_array);
-  const String& original_function_name = String::Handle(ic_data.FunctionName());
+  const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
+  const String& original_function_name = String::Handle(ic_data.target_name());
   ASSERT(!Array::CheckedHandle(arguments.At(2)).IsNull());
   const Array& orig_arguments = Array::CheckedHandle(arguments.At(3));
   // TODO(regis): The signature of the "noSuchMethod" method has to change from

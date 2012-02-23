@@ -65,6 +65,7 @@ namespace dart {
     V(Closure)                                                                 \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
+    V(ICData)                                                                  \
 
 #define CLASS_LIST(V)                                                          \
   V(Object)                                                                    \
@@ -590,6 +591,7 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
+  RawArray* import_map_;         // Map of import variable names to strings.
   RawArray* imports_;            // List of libraries imported without prefix.
   RawArray* imported_into_;      // List of libraries where this library
                                  // is imported into without a prefix.
@@ -605,6 +607,8 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   bool corelib_imported_;
   int8_t load_state_;            // Of type LibraryState.
+
+  friend class Isolate;
 };
 
 
@@ -613,10 +617,11 @@ class RawLibraryPrefix : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // library prefix name.
-  RawLibrary* library_;           // library imported with a prefix.
+  RawArray* libraries_;           // libraries imported with this prefix.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->library_);
+    return reinterpret_cast<RawObject**>(&ptr()->libraries_);
   }
+  intptr_t num_libs_;             // Number of library entries in libraries_.
 };
 
 
@@ -631,10 +636,8 @@ class RawCode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   RawLocalVarDescriptors* var_descriptors_;
-  // Ongoing redesign of inline caches may soon remove the need for 'ic_data_'.
-  RawArray* ic_data_;  // Used to store IC stub data (see class ICData).
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+    return reinterpret_cast<RawObject**>(&ptr()->var_descriptors_);
   }
 
   intptr_t pointer_offsets_length_;
@@ -1078,6 +1081,26 @@ class RawJSRegExp : public RawInstance {
   // Variable length data follows here.
   uint8_t data_[0];
 };
+
+
+class RawICData : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->function_);
+  }
+
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+  }
+
+  RawFunction* function_;  // Parent/calling function of this IC.
+  RawString* target_name_;  // Name of target function.
+  RawArray* ic_data_;  // Contains test classes and target function.
+  intptr_t id_;  // Parser node id corresponding to this IC.
+  intptr_t num_args_tested_;  // Number of arguments tested in IC.
+};
+
 
 }  // namespace dart
 

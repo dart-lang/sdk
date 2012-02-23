@@ -9,7 +9,8 @@ class StopwatchImplementation implements Stopwatch {
   // The _start and _stop fields capture the time when [start] and [stop]
   // are called respectively.
   // If _start is null, then the [Stopwatch] has not been started yet.
-  // If _stop is null, then the [Stopwatch] has not been stopped yet.
+  // If _stop is null, then the [Stopwatch] has not been stopped yet,
+  // or is running.
   int _start;
   int _stop;
 
@@ -29,11 +30,12 @@ class StopwatchImplementation implements Stopwatch {
       // Restarting this stopwatch. Prepend the elapsed time to the current
       // start time.
       _start = Clock.now() - (_stop - _start);
+      _stop = null;
     }
   }
 
   void stop() {
-    if (_start === null) {
+    if (_start === null || _stop !== null) {
       return;
     }
     _stop = Clock.now();

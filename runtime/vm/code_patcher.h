@@ -15,7 +15,7 @@ class Array;
 class Code;
 class ExternalLabel;
 class Function;
-class RawArray;
+class RawICData;
 class String;
 
 class CodePatcher : public AllStatic {
@@ -54,10 +54,7 @@ class CodePatcher : public AllStatic {
                                 int* num_named_arguments,
                                 uword* target);
 
-  static RawArray* GetInstanceCallIcDataAt(uword return_address);
-
-  static void SetInstanceCallIcDataAt(uword return_address,
-                                      const Array& ic_data);
+  static RawICData* GetInstanceCallIcDataAt(uword return_address);
 
   static intptr_t InstanceCallSizeInBytes();
 };

@@ -36,4 +36,6 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
   bool javaEnabled() native;
 
   void registerProtocolHandler(String scheme, String url, String title) native;
+
+  void webkitGetUserMedia(String options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
 }

@@ -344,21 +344,21 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   ASSERT(handler != NULL);
   while (1) {
     intptr_t millis = handler->GetTimeout();
+    // NULL pointer timespec for infinite timeout.
+    ASSERT(kInfinityTimeout < 0);
+    struct timespec* timeout = NULL;
     struct timespec ts;
-    int64_t secs = 0;
-    int64_t nanos = 0;
-    if (millis > 0) {
-      secs = millis / 1000;
-      nanos = (millis - (secs * 1000)) * 1000000;
+    if (millis >= 0) {
+      ts.tv_sec = millis / 1000;
+      ts.tv_nsec = (millis - (ts.tv_sec * 1000)) * 1000000;
+      timeout = &ts;
     }
-    ts.tv_sec = secs;
-    ts.tv_nsec = nanos;
     intptr_t result = TEMP_FAILURE_RETRY(kevent(handler->kqueue_fd_,
                                                 NULL,
                                                 0,
                                                 events,
                                                 kMaxEvents,
-                                                &ts));
+                                                timeout));
     if (result == -1) {
       perror("kevent failed");
       FATAL("kevent failed\n");

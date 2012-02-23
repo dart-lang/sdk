@@ -4,6 +4,7 @@
 
 {
   'sources': [
+    'collections.dart',
     'dual_pivot_quicksort.dart',
     'duration_implementation.dart',
     'exceptions.dart',
@@ -12,7 +13,6 @@
     'linked_hash_map.dart',
     'maps.dart',
     'options.dart',
-    'promise_implementation.dart',
     'queue.dart',
     'splay_tree.dart',
     'stopwatch_implementation.dart',
