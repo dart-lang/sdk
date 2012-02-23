@@ -219,6 +219,9 @@
         ['OS=="win"', {'sources/' : [
           ['exclude', 'fdutils.h'],
         ]}],
+        ['OS=="linux"',
+         {'ldflags': ['-ldl',],
+        }],
       ],
     },
     {
@@ -417,9 +420,6 @@
           ],
           'defines': [
             'DART_SHARED_LIB',
-          ],
-          'ldflags': [
-            '-ldl',
           ],
         },
       ],
