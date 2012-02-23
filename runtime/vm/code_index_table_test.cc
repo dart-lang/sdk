@@ -16,6 +16,11 @@ namespace dart {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 TEST_CASE(CodeIndexTable) {
+#if defined(TARGET_ARCH_IA32)
+  const int kLoopCount = 50000;
+#else
+  const int kLoopCount = 25000;
+#endif
   const int kScriptSize = 512 * KB;
   const int kNumFunctions = 1024;
   char scriptChars[kScriptSize];
@@ -66,14 +71,14 @@ TEST_CASE(CodeIndexTable) {
   // Now load up class B with 1024 functions.
   written = OS::SNPrint(scriptChars, kScriptSize, "class B {");
   // Create one large function.
-  OS::SNPrint(buffer, sizeof(buffer), "static moo0([int i=1]) { ");
+  OS::SNPrint(buffer, sizeof(buffer), "static moo0([var i=1]) { ");
   written += OS::SNPrint((scriptChars + written),
                          (kScriptSize - written),
                          "%s",
                          buffer);
   // Generate a large function so that the code for this function when
   // compiled will reside in a large page.
-  for (int i = 0; i < 50000; i++) {
+  for (int i = 0; i < kLoopCount; i++) {
     OS::SNPrint(buffer, sizeof(buffer), "i = i+i;");
     written += OS::SNPrint((scriptChars + written),
                            (kScriptSize - written),
