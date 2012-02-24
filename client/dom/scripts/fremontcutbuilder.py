@@ -36,6 +36,7 @@ def main():
       'loader',
       'loader/appcache',
       'mediastream',
+      'Modules/geolocation',
       'notifications',
       'page',
       'plugins',
