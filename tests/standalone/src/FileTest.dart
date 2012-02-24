@@ -880,6 +880,125 @@ class FileTest {
     }
   }
 
+  static void testReadAsBytes() {
+    var port = new ReceivePort.singleShot();
+    port.receive((result, replyTo) {
+      Expect.equals(42, result);
+    });
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var f = new File(name);
+    f.readAsBytes();
+    f.readAsBytesHandler = (bytes) {
+      Expect.isTrue(new String.fromCharCodes(bytes).endsWith("42 bytes."));
+      port.toSendPort().send(bytes.length);
+    };
+    f.errorHandler = (e) {
+      Expect.fail("No errors expected: $e");
+    };
+  }
+
+  static void testReadAsBytesSync() {
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var bytes = new File(name).readAsBytesSync();
+    Expect.isTrue(new String.fromCharCodes(bytes).endsWith("42 bytes."));
+    Expect.equals(bytes.length, 42);
+  }
+
+  static void testReadAsText() {
+    var port = new ReceivePort.singleShot();
+    port.receive((result, replyTo) {
+      Expect.equals(1, result);
+    });
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var f = new File(name);
+    f.readAsText('UTF-8');
+    f.readAsTextHandler = (text) {
+      Expect.isTrue(text.endsWith("42 bytes."));
+      Expect.equals(42, text.length);
+      var name = getFilename("tests/standalone/src/read_as_text.dat");
+      var f = new File(name);
+      f.errorHandler = (e) => Expect.fail("No errors expected");
+      f.readAsText('UTF-8');
+      f.readAsTextHandler = (text) {
+        Expect.equals(6, text.length);
+        var expected = [955, 120, 46, 32, 120, 10];
+        Expect.listEquals(expected, text.charCodes());
+        f.readAsText('ISO-8859-1');
+        f.readAsTextHandler = (text) {
+          Expect.equals(7, text.length);
+          var expected = [206, 187, 120, 46, 32, 120, 10];
+          Expect.listEquals(expected, text.charCodes());
+          f.readAsText('ASCII');
+          f.errorHandler = (e) {
+            port.toSendPort().send(1);
+          };
+          f.readAsTextHandler = (text) {
+            Expect.fail("Non-ascii char should cause error");
+          };
+        };
+      };
+    };
+    f.errorHandler = (e) {
+      Expect.fail("No errors expected: $e");
+    };
+  }
+
+  static void testReadAsTextSync() {
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var text = new File(name).readAsTextSync();
+    Expect.isTrue(text.endsWith("42 bytes."));
+    Expect.equals(42, text.length);
+    name = getFilename("tests/standalone/src/read_as_text.dat");
+    text = new File(name).readAsTextSync();
+    Expect.equals(6, text.length);
+    var expected = [955, 120, 46, 32, 120, 10];
+    Expect.listEquals(expected, text.charCodes());
+    Expect.throws(() { new File(name).readAsTextSync("ASCII"); });
+    text = new File(name).readAsTextSync("ISO-8859-1");
+    expected = [206, 187, 120, 46, 32, 120, 10];
+    Expect.equals(7, text.length);
+    Expect.listEquals(expected, text.charCodes());
+  }
+
+  static void testReadAsLines() {
+    var port = new ReceivePort.singleShot();
+    port.receive((result, replyTo) {
+      Expect.equals(42, result);
+    });
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var f = new File(name);
+    f.readAsLines('UTF-8');
+    f.readAsLinesHandler = (lines) {
+      Expect.equals(1, lines.length);
+      var line = lines[0];
+      Expect.isTrue(line.endsWith("42 bytes."));
+      port.toSendPort().send(line.length);
+    };
+    f.errorHandler = (e) {
+      Expect.fail("No errors expected: $e");
+    };
+  }
+
+  static void testReadAsLinesSync() {
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var lines = new File(name).readAsLinesSync();
+    Expect.equals(1, lines.length);
+    var line = lines[0];
+    Expect.isTrue(line.endsWith("42 bytes."));
+    Expect.equals(42, line.length);
+    name = getFilename("tests/standalone/src/readline_test1.dat");
+    lines = new File(name).readAsLinesSync();
+    Expect.equals(10, lines.length);
+  }
+
+  static void testReadAsErrors() {
+    var f = new File('.');
+    Expect.throws(f.readAsBytesSync, (e) => e is FileIOException);
+    Expect.throws(f.readAsTextSync, (e) => e is FileIOException);
+    Expect.throws(f.readAsLinesSync, (e) => e is FileIOException);
+    // TODO(ager): Add tests of errors in readAsBytes when input
+    // streams are truely async.
+  }
 
   // Test that opens the same file for writing then for appending to test
   // that the file is not truncated when opened for appending.
@@ -957,6 +1076,13 @@ class FileTest {
     testMixedSyncAndAsync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
+    testReadAsBytes();
+    testReadAsBytesSync();
+    testReadAsText();
+    testReadAsTextSync();
+    testReadAsLines();
+    testReadAsLinesSync();
+    testReadAsErrors();
 
     createTempDirectory(() {
       testReadWrite();

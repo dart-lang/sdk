@@ -176,6 +176,54 @@ interface File default _File {
   OutputStream openOutputStreamSync([FileMode mode]);
 
   /**
+   * Read the entire file contents as a list of bytes. When the
+   * operation completes the [readAsBytesHandler] is called.
+   * The [errorHandler] is called if the operation fails.
+   */
+  void readAsBytes();
+
+  /**
+   * Synchronously read the entire file contents as a list of bytes.
+   */
+  List<int> readAsBytesSync();
+
+  /**
+   * Read the entire file contents as text using the give [encoding]
+   * ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the encoding is
+   * 'UTF-8'.
+   *
+   * When the operation completes the [readAsTextHandler] is called
+   * with the resulting string.  The [errorHandler] is called if the
+   * operation fails.
+   */
+  void readAsText([String encoding]);
+
+  /**
+   * Synchronously read the entire file contents as text using the
+   * give [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
+   * encoding is 'UTF-8'.
+   */
+  String readAsTextSync([String encoding]);
+
+  /**
+   * Read the entire file contents as lines of text using the give
+   * [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
+   * encoding is 'UTF-8'.
+   *
+   * When the operation completes the [readAsLinesHandler] is called
+   * with the resulting string.  The [errorHandler] is called if the
+   * operation fails.
+   */
+  void readAsLines();
+
+  /**
+   * Synchronously read the entire file contents as lines of text
+   * using the give [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By
+   * default the encoding is 'UTF-8'.
+   */
+  List<String> readAsLinesSync([String encoding]);
+
+  /**
    * Get the name of the file.
    */
   String get name();
@@ -221,6 +269,24 @@ interface File default _File {
    * operation completes.
    */
   void set outputStreamHandler(void handler(OutputStream stream));
+
+  /**
+   * Set the handler that gets called when a [readAsBytes] operation
+   * completes.
+   */
+  void set readAsBytesHandler(void handler(List<int> bytes));
+
+  /**
+   * Set the handler that gets called when a [readAsText] operation
+   * completes.
+   */
+  void set readAsTextHandler(void handler(String text));
+
+  /**
+   * Set the handler that gets called when a [readAsLines] operation
+   * completes.
+   */
+  void set readAsLinesHandler(void handler(List<String> lines));
 
   /**
    * Sets the handler that gets called when a [fullPath] operation

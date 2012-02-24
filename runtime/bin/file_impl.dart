@@ -462,6 +462,7 @@ class _File implements File {
   }
 
   void openInputStream() {
+    _asyncUsed = true;
     // Create a new file object to handle the opening of the file for
     // creating an input stream. Currently the file input stream uses
     // synchronous calls on the opened file so we need to open it
@@ -489,6 +490,7 @@ class _File implements File {
   }
 
   void openOutputStream([FileMode mode = FileMode.WRITE]) {
+    _asyncUsed = true;
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       throw new FileIOException(
@@ -524,6 +526,130 @@ class _File implements File {
     return new _FileOutputStream(openedFile);
   }
 
+  void readAsBytes() {
+    _asyncUsed = true;
+    var chunks = new _BufferList();
+    openInputStream();
+    inputStreamHandler = (inputStream) {
+      inputStream.closeHandler = () {
+        if (_readAsBytesHandler != null) {
+          _readAsBytesHandler(chunks.readBytes(chunks.length));
+        }
+      };
+      inputStream.dataHandler = () {
+        var chunk = inputStream.read();
+        chunks.add(chunk);
+      };
+      inputStream.errorHandler = () {
+        if (_errorHandler != null) {
+          _errorHandler("Failed to read file as bytes: $_name");
+        }
+      };
+    };
+  }
+
+  List<int> readAsBytesSync() {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    var opened = openSync();
+    var length = opened.lengthSync();
+    var result = new ByteArray(length);
+    var read = opened.readListSync(result, 0, length);
+    if (read != length) {
+      throw new FileIOException("Failed reading file as bytes: $_name");
+    }
+    return result;
+  }
+
+  _StringDecoder _getDecoder(encoding) {
+    if (encoding == "UTF-8") {
+      return new _UTF8Decoder();
+    } else if (encoding == "ISO-8859-1") {
+      return new _Latin1Decoder();
+    } else if (encoding == "ASCII") {
+      return new _AsciiDecoder();
+    }
+    throw new FileIOException("Unsupported encoding $_encoding");
+  }
+
+  void readAsText([String encoding = "UTF-8"]) {
+    _asyncUsed = true;
+    var decoder = _getDecoder(encoding);
+    readAsBytes();
+    readAsBytesHandler = (bytes) {
+      if (_readAsTextHandler != null) {
+        try {
+          decoder.write(bytes);
+        } catch (var e) {
+          if (_errorHandler != null) {
+            _errorHandler(e.toString());
+            return;
+          }
+        }
+        _readAsTextHandler(decoder.decoded);
+      }
+    };
+  }
+
+  String readAsTextSync([String encoding = "UTF-8"]) {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    var decoder = _getDecoder(encoding);
+    List<int> bytes = readAsBytesSync();
+    decoder.write(bytes);
+    return decoder.decoded;
+  }
+
+  List<String> _getDecodedLines(_StringDecoder decoder) {
+    List<String> result = [];
+    var line = decoder.decodedLine;
+    while (line != null) {
+      result.add(line);
+      line = decoder.decodedLine;
+    }
+    // If there is more data with no terminating line break we treat
+    // it as the last line.
+    var data = decoder.decoded;
+    if (data != null) {
+      result.add(data);
+    }
+    return result;
+  }
+
+  void readAsLines([String encoding = "UTF-8"]) {
+    _asyncUsed = true;
+    var decoder = _getDecoder(encoding);
+    readAsBytes();
+    readAsBytesHandler = (bytes) {
+      if (_readAsLinesHandler != null) {
+        try {
+          decoder.write(bytes);
+        } catch (var e) {
+          if (_errorHandler != null) {
+            _errorHandler(e.toString());
+            return;
+          }
+        }
+        _readAsLinesHandler(_getDecodedLines(decoder));
+      }
+    };
+  }
+
+  List<String> readAsLinesSync([String encoding = "UTF-8"]) {
+    if (_asyncUsed) {
+      throw new FileIOException(
+          "Mixed use of synchronous and asynchronous API");
+    }
+    var decoder = _getDecoder(encoding);
+    List<int> bytes = readAsBytesSync();
+    decoder.write(bytes);
+    return _getDecodedLines(decoder);
+  }
+
   String get name() => _name;
 
   void set existsHandler(void handler(bool exists)) {
@@ -554,6 +680,18 @@ class _File implements File {
     _outputStreamHandler = handler;
   }
 
+  void set readAsBytesHandler(void handler(List<int> bytes)) {
+    _readAsBytesHandler = handler;
+  }
+
+  void set readAsTextHandler(void handler(String text)) {
+    _readAsTextHandler = handler;
+  }
+
+  void set readAsLinesHandler(void handler(List<String> lines)) {
+    _readAsLinesHandler = handler;
+  }
+
   void set fullPathHandler(void handler(String)) {
     _fullPathHandler = handler;
   }
@@ -580,6 +718,9 @@ class _File implements File {
   Function _openHandler;
   Function _inputStreamHandler;
   Function _outputStreamHandler;
+  Function _readAsBytesHandler;
+  Function _readAsTextHandler;
+  Function _readAsLinesHandler;
   Function _fullPathHandler;
   Function _errorHandler;
 }
