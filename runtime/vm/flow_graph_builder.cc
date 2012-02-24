@@ -293,12 +293,12 @@ void TestGraphVisitor::VisitStringConcatNode(StringConcatNode* node) {
 // <Expression> :: Comparison { kind:  Token::Kind
 //                              left:  <Expression>
 //                              right: <Expression> }
-InstanceCallComp* EffectGraphVisitor::TranslateComparison(
+Computation* EffectGraphVisitor::TranslateComparison(
     const ComparisonNode& node) {
-  if (Token::IsInstanceofOperator(node.kind()) ||
-      Token::IsEqualityOperator(node.kind())) {
-    Bailout("Some kind of comparison we don't handle yet");
-    return NULL;
+  if (Token::IsInstanceofOperator(node.kind())) {
+    Bailout("instanceof not yet implemented");
+  } else if ((node.kind() == Token::kEQ) || (node.kind() == Token::kNE)) {
+    Bailout("'==' or '!=' comparison not yet implemented");
   }
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node.left()->Visit(&for_left_value);
@@ -308,6 +308,11 @@ InstanceCallComp* EffectGraphVisitor::TranslateComparison(
   node.right()->Visit(&for_right_value);
   Append(for_right_value);
   CHECK_ALIVE(return NULL);
+  if ((node.kind() == Token::kEQ_STRICT) ||
+      (node.kind() == Token::kNE_STRICT)) {
+    return new StrictCompareComp(
+        node.kind(), for_left_value.value(), for_right_value.value());
+  }
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
@@ -315,19 +320,19 @@ InstanceCallComp* EffectGraphVisitor::TranslateComparison(
 }
 
 void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
-  InstanceCallComp* call = TranslateComparison(*node);
+  Computation* call = TranslateComparison(*node);
   CHECK_ALIVE(return);
   DoComputation(call);
 }
 
 void ValueGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
-  InstanceCallComp* call = TranslateComparison(*node);
+  Computation* call = TranslateComparison(*node);
   CHECK_ALIVE(return);
   ReturnValueOf(call);
 }
 
 void TestGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
-  InstanceCallComp* call = TranslateComparison(*node);
+  Computation* call = TranslateComparison(*node);
   CHECK_ALIVE(return);
   BranchOnValueOf(call);
 }
@@ -550,14 +555,43 @@ void TestGraphVisitor::VisitClosureNode(ClosureNode* node) {
 }
 
 
+InstanceCallComp* EffectGraphVisitor::TranslateInstanceCall(
+    const InstanceCallNode& node) {
+  ArgumentListNode* arguments = node.arguments();
+  int length = arguments->length();
+  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length + 1);
+  ValueGraphVisitor for_receiver(owner(), temp_index());
+  node.receiver()->Visit(&for_receiver);
+  Append(for_receiver);
+  CHECK_ALIVE(return NULL);
+  values->Add(for_receiver.value());
+  int index = temp_index();
+  for (intptr_t i = 0; i < length; ++i) {
+    ValueGraphVisitor for_value(owner(), index);
+    arguments->NodeAt(i)->Visit(&for_value);
+    Append(for_value);
+    CHECK_ALIVE(return NULL);
+    values->Add(for_value.value());
+    index = for_value.temp_index();
+  }
+  return new InstanceCallComp(node.function_name().ToCString(), values);
+}
+
+
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  Bailout("EffectGraphVisitor::VisitInstanceCallNode");
+  InstanceCallComp* call = TranslateInstanceCall(*node);
+  CHECK_ALIVE(return);
+  DoComputation(call);
 }
 void ValueGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  Bailout("ValueGraphVisitor::VisitInstanceCallNode");
+  InstanceCallComp* call = TranslateInstanceCall(*node);
+  CHECK_ALIVE(return);
+  ReturnValueOf(call);
 }
 void TestGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  Bailout("TestGraphVisitor::VisitInstanceCallNode");
+  InstanceCallComp* call = TranslateInstanceCall(*node);
+  CHECK_ALIVE(return);
+  BranchOnValueOf(call);
 }
 
 

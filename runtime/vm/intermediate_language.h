@@ -22,6 +22,7 @@ class LocalVariable;
 //                 | StaticCall <Function> <Value> ...
 //                 | LoadLocal <LocalVariable>
 //                 | StoreLocal <LocalVariable> <Value>
+//                 | StrictCompare <Token::kind> <Value> <Value>
 //
 // <Value> ::= Temp <int>
 //           | Constant <Instance>
@@ -74,6 +75,24 @@ class InstanceCallComp : public Computation {
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallComp);
+};
+
+
+class StrictCompareComp : public Computation {
+ public:
+  StrictCompareComp(Token::Kind kind, Value* left, Value* right)
+      : kind_(kind), left_(left), right_(right) {
+    ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
+  }
+
+  virtual void Print() const;
+
+ private:
+  const Token::Kind kind_;
+  Value* left_;
+  Value* right_;
+
+  DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
 
 
@@ -137,7 +156,9 @@ class TempValue : public Value {
 
 class ConstantValue: public Value {
  public:
-  explicit ConstantValue(const Instance& instance) : instance_(instance) { }
+  explicit ConstantValue(const Instance& instance) : instance_(instance) {
+    ASSERT(instance.IsZoneHandle());
+  }
 
   virtual void Print() const;
 

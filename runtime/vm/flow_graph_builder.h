@@ -89,9 +89,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
   AssertAssignableComp* TranslateAssignable(const AssignableNode& node);
   InstanceCallComp* TranslateBinaryOp(const BinaryOpNode& node);
   InstanceCallComp* TranslateUnaryOp(const UnaryOpNode& node);
-  InstanceCallComp* TranslateComparison(const ComparisonNode& node);
+  Computation* TranslateComparison(const ComparisonNode& node);
   StoreLocalComp* TranslateStoreLocal(const StoreLocalNode& node);
   StaticCallComp* TranslateStaticCall(const StaticCallNode& node);
+  InstanceCallComp* TranslateInstanceCall(const InstanceCallNode& node);
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }

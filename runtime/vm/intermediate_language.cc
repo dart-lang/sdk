@@ -28,6 +28,16 @@ void InstanceCallComp::Print() const {
 }
 
 
+void StrictCompareComp::Print() const {
+  OS::Print("StrictCompare(%s, ", Token::Str(kind_));
+  left_->Print();
+  OS::Print(", ");
+  right_->Print();
+  OS::Print(")");
+}
+
+
+
 void StaticCallComp::Print() const {
   OS::Print("StaticCall(%s", String::Handle(function_.name()).ToCString());
   for (intptr_t i = 0; i < arguments_->length(); ++i) {
