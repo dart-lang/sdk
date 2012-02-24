@@ -730,16 +730,20 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     (adapter_type, include_name) = type_info.parameter_adapter_info()
     if include_name:
       self._cpp_impl_includes[include_name] = 1
+    flags = ''
+    if idl_argument.ext_attrs.get('Optionial') == 'DefaultIsNullString':
+      flags = ', DartUtilities::ConvertNullToEmptyString'
     emitter.Emit(
         '\n'
-        '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX));\n'
+        '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX)$FLAGS);\n'
         '        if (!$NAME.conversionSuccessful()) {\n'
         '            exception = $NAME.exception();\n'
         '            goto fail;\n'
         '        }\n',
         ADAPTER_TYPE=adapter_type,
         NAME=idl_argument.id,
-        INDEX=index + 1)
+        INDEX=index + 1,
+        FLAGS=flags)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
