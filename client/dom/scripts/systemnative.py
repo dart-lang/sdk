@@ -255,19 +255,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._GenerateConstructors()
 
   def _GenerateConstructors(self):
-    # WebKit IDLs may define constructors with arguments.  Currently this form is not supported
-    # (see b/1721).  There is custom implementation for some of them, the rest are just ignored
-    # for now.
-    SUPPORTED_CONSTRUCTORS_WITH_ARGS = [ 'WebKitCSSMatrix' ]
-    UNSUPPORTED_CONSTRUCTORS_WITH_ARGS = [
-        'EventSource',
-        'MediaStream',
-        'PeerConnection',
-        'ShadowRoot',
-        'SharedWorker',
-        'TextTrackCue',
-        'Worker' ]
-    if not self._IsConstructable() or self._interface.id in UNSUPPORTED_CONSTRUCTORS_WITH_ARGS:
+    if not self._IsConstructable():
       return
 
     # TODO(antonm): currently we don't have information about number of arguments expected by
@@ -278,7 +266,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         INTERFACE_NAME=self._interface.id)
 
 
-    if self._interface.id in SUPPORTED_CONSTRUCTORS_WITH_ARGS or 'Constructor' not in self._interface.ext_attrs:
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info is None:
       # We have a custom implementation for it.
       self._cpp_declarations_emitter.Emit(
           '\n'
@@ -286,28 +275,33 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       return
 
     raises_dom_exceptions = 'ConstructorRaisesException' in self._interface.ext_attrs
-    raises_dart_exceptions = raises_dom_exceptions
+    raises_dart_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
     type_info = GetIDLTypeInfo(self._interface)
     arguments = []
-    parameter_definitions = ''
+    parameter_definitions_emitter = emitter.Emitter()
     if 'CallWith' in self._interface.ext_attrs:
       call_with = self._interface.ext_attrs['CallWith']
       if call_with == 'ScriptExecutionContext':
         raises_dart_exceptions = True
-        parameter_definitions = (
+        parameter_definitions_emitter.Emit(
             '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
             '        if (!context) {\n'
             '            exception = Dart_NewString("Failed to create an object");\n'
             '            goto fail;\n'
             '        }\n')
-        arguments = ['context']
+        arguments.append('context')
       else:
         raise Exception('Unsupported CallWith=%s attribute' % call_with)
+
+    # Process constructor arguments.
+    for (i, arg) in enumerate(constructor_info.idl_args):
+      self._GenerateParameterAdapter(parameter_definitions_emitter, arg, i - 1)
+      arguments.append(arg.id)
 
     self._GenerateNativeCallback(
         callback_name='constructorCallback',
         idl_node=self._interface,
-        parameter_definitions=parameter_definitions,
+        parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=False, function_name='%s::create' % type_info.native_type(),
         arguments=arguments,
         idl_return_type=self._interface,
@@ -320,6 +314,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
+    # FIXME: support NamedConstructor.
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor']) & set(self._interface.ext_attrs)
 
   def FinishInterface(self):

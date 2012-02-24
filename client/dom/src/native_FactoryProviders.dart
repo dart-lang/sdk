@@ -10,6 +10,10 @@ class _DOMParserFactoryProvider {
   factory DOMParser() => FactoryProviderImplementation.createDOMParser();
 }
 
+class _DOMURLFactoryProvider {
+  factory DOMURL() => FactoryProviderImplementation.createDOMURL();
+}
+
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) =>
       FactoryProviderImplementation.createEventSource(scriptUrl);
@@ -19,10 +23,31 @@ class _FileReaderFactoryProvider {
   factory FileReader() => FactoryProviderImplementation.createFileReader();
 }
 
+class _FileReaderSyncFactoryProvider {
+  factory FileReaderSync() => FactoryProviderImplementation.createFileReaderSync();
+}
+
+class _HTMLAudioElementFactoryProvider {
+  factory HTMLAudioElement([String src]) => FactoryProviderImplementation.createHTMLAudioElement(src);
+}
+
+class _HTMLOptionElementFactoryProvider {
+  factory HTMLOptionElement([String data, String value, bool defaultSelected, bool selected]) =>
+      FactoryProviderImplementation.createHTMLOptionElement(data, value, defaultSelected, selected);
+}
+
+class _MediaControllerFactoryProvider {
+  factory MediaController() => FactoryProviderImplementation.createMediaController();
+}
+
 class _MediaStreamFactoryProvider {
   factory MediaStream(MediaStreamTrackList audioTracks,
                       MediaStreamTrackList videoTracks) =>
       FactoryProviderImplementation.createMediaStream(audioTracks, videoTracks);
+}
+
+class _MessageChannelFactoryProvider {
+  factory MessageChannel() => FactoryProviderImplementation.createMessageChannel();
 }
 
 class _PeerConnectionFactoryProvider {
@@ -87,6 +112,10 @@ class _WebKitCSSMatrixFactoryProvider {
   factory WebKitCSSMatrix([String spec = '']) => FactoryProviderImplementation.createWebKitCSSMatrix(spec);
 }
 
+class _WebKitBlobBuilderFactoryProvider {
+  factory WebKitBlobBuilder() => FactoryProviderImplementation.createWebKitBlobBuilder();
+}
+
 class _WebKitPointFactoryProvider {
   factory WebKitPoint(num x, num y) => FactoryProviderImplementation.createWebKitPoint(x, y);
 }
@@ -103,17 +132,14 @@ class _XMLHttpRequestFactoryProvider {
   factory XMLHttpRequest() => FactoryProviderImplementation.createXMLHttpRequest();
 }
 
+class _XMLSerializerFactoryProvider {
+  factory XMLSerializer() => FactoryProviderImplementation.createXMLSerializer();
+}
+
+class _XPathEvaluatorFactoryProvider {
+  factory XPathEvaluator() => FactoryProviderImplementation.createXPathEvaluator();
+}
+
 class _XSLTProcessorFactoryProvider {
   factory XSLTProcessor() => FactoryProviderImplementation.createXSLTProcessor();
 }
-
-// TODO(sra): Fill in these:
-class _DOMURLFactoryProvider {}
-class _FileReaderSyncFactoryProvider {}
-class _HTMLAudioElementFactoryProvider {}
-class _HTMLOptionElementFactoryProvider {}
-class _MediaControllerFactoryProvider {}
-class _MessageChannelFactoryProvider {}
-class _WebKitBlobBuilderFactoryProvider {}
-class _XPathEvaluatorFactoryProvider {}
-class _XMLSerializerFactoryProvider {}

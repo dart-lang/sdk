@@ -285,18 +285,22 @@ def AnalyzeConstructor(interface):
     if func_value:
       # [Constructor(param,...)]
       args = GetArgs(func_value)
+      idl_args = func_value.arguments
     else: # [Constructor]
       args = []
+      idl_args = []
   else:
     func_value = interface.ext_attrs.get('NamedConstructor')
     if func_value:
       name = func_value.id
       args = GetArgs(func_value)
+      idl_args = func_value.arguments
     else:
       return None
 
   info = OperationInfo()
-  info.overloads = None  # [func_value]
+  info.overloads = None
+  info.idl_args = idl_args
   info.declared_name = name
   info.name = name
   info.js_name = name
