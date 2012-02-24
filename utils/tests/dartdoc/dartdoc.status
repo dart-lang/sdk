@@ -15,12 +15,3 @@ prefix dartdoc
 
 [ $component == dartium || $component == webdriver ]
 *: Skip
-
-[ $arch == x64 ]
-*: Skip
-
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == arm ]
-*: Skip
