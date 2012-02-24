@@ -225,15 +225,9 @@ def MatchSourceFilter(filter, thing):
   else:
     return any(token in thing.annotations for token in filter)
 
-def AnalyzeOperation(interface, operations):
-  """Makes operation calling convention decision for a set of overloads.
 
-  Returns: An OperationInfo object.
-  """
-
-  # Zip together arguments from each overload by position, then convert
-  # to a dart argument.
-
+# Given a list of overloaded arguments, render a dart argument.
+def _DartArg(args, interface):
   # Given a list of overloaded arguments, choose a suitable name.
   def OverloadedName(args):
     return '_OR_'.join(sorted(set(arg.id for arg in args)))
@@ -246,18 +240,25 @@ def AnalyzeOperation(interface, operations):
     else:
       return TypeName(typeIds, interface)
 
-  # Given a list of overloaded arguments, render a dart argument.
-  def DartArg(args):
-    filtered = filter(None, args)
-    optional = any(not arg or arg.is_optional for arg in args)
-    type = OverloadedType(filtered)
-    name = OverloadedName(filtered)
-    if optional:
-      return (name, type, 'null')
-    else:
-      return (name, type, None)
+  filtered = filter(None, args)
+  optional = any(not arg or arg.is_optional for arg in args)
+  type = OverloadedType(filtered)
+  name = OverloadedName(filtered)
+  if optional:
+    return (name, type, 'null')
+  else:
+    return (name, type, None)
 
-  args = map(lambda *args: DartArg(args),
+
+def AnalyzeOperation(interface, operations):
+  """Makes operation calling convention decision for a set of overloads.
+
+  Returns: An OperationInfo object.
+  """
+
+  # Zip together arguments from each overload by position, then convert
+  # to a dart argument.
+  args = map(lambda *args: _DartArg(args, interface),
              *(op.arguments for op in operations))
 
   info = OperationInfo()
@@ -268,6 +269,41 @@ def AnalyzeOperation(interface, operations):
   info.type_name = operations[0].type.id   # TODO: widen.
   info.arg_infos = args
   return info
+
+
+def AnalyzeConstructor(interface):
+  """Returns an OperationInfo object for the constructor.
+
+  Returns None if the interface has no Constructor.
+  """
+  def GetArgs(func_value):
+    return map(lambda arg: _DartArg([arg], interface), func_value.arguments)
+
+  if 'Constructor' in interface.ext_attrs:
+    name = None
+    func_value = interface.ext_attrs.get('Constructor')
+    if func_value:
+      # [Constructor(param,...)]
+      args = GetArgs(func_value)
+    else: # [Constructor]
+      args = []
+  else:
+    func_value = interface.ext_attrs.get('NamedConstructor')
+    if func_value:
+      name = func_value.id
+      args = GetArgs(func_value)
+    else:
+      return None
+
+  info = OperationInfo()
+  info.overloads = None  # [func_value]
+  info.declared_name = name
+  info.name = name
+  info.js_name = name
+  info.type_name = interface.id
+  info.arg_infos = args
+  return info
+
 
 def RecognizeCallback(interface):
   """Returns the info for the callback method if the interface smells like a
@@ -294,6 +330,7 @@ def FindMatchingAttribute(interface, attr1):
     assert len(matches) == 1
     return matches[0]
   return None
+
 
 class OperationInfo(object):
   """Holder for various derived information from a set of overloaded operations.

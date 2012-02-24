@@ -6,7 +6,7 @@
 
 interface WebKitCSSMatrix default _WebKitCSSMatrixFactoryProvider {
 
-  WebKitCSSMatrix([String spec]);
+  WebKitCSSMatrix([String cssValue]);
 
   num a;
 

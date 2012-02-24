@@ -16,11 +16,60 @@ class _DOMParserFactoryProvider {
   static DOMParser create() native;
 }
 
+class _EventSourceFactoryProvider {
+
+  factory EventSource(String scriptUrl) { return create(scriptUrl); }
+
+  static create(scriptUrl);
+}
+
 class _FileReaderFactoryProvider {
 
   factory FileReader() { return create(); }
 
   static FileReader create() native;
+}
+
+class _MediaStreamFactoryProvider {
+
+  factory MediaStream(MediaStreamTrackList audioTracks,
+                      MediaStreamTrackList videoTracks)
+      => create(audioTracks, videoTracks);
+
+  static create(audioTracks, videoTracks) native;
+}
+
+class _PeerConnectionFactoryProvider {
+
+  factory PeerConnection(String serverConfiguration,
+                  SignalingCallback signalingCallback)
+      => create(serverConfiguration, signalingCallback);
+
+  static create(serverConfiguration, signalingCallback) native;
+}
+
+class _ShadowRootFactoryProvider {
+
+  factory ShadowRoot(Element host) => create(host);
+
+  static create(host) native;
+}
+
+class _SharedWorkerFactoryProvider {
+
+  factory SharedWorker(String scriptURL, [String name])
+      => create(scriptURL, name);
+
+  static create(scriptURL, name) native;
+}
+
+class _TextTrackCueFactoryProvider {
+
+  factory TextTrackCue(String id, num startTime, num endTime, String text,
+                       [String settings, bool pauseOnExit])
+      => create(id, startTime, endTime, text, settings, pauseOnExit);
+
+  static create(id, startTime, endTime, text, settings, pauseOnExit);
 }
 
 class _TypedArrayFactoryProvider {
@@ -76,9 +125,9 @@ class _TypedArrayFactoryProvider {
 
 class _WebKitCSSMatrixFactoryProvider {
 
-  factory WebKitCSSMatrix([String spec = '']) { return create(spec); }
+  factory WebKitCSSMatrix([String cssValue = '']) { return create(cssValue); }
 
-  static WebKitCSSMatrix create(spec) native;
+  static WebKitCSSMatrix create(cssValue) native;
 }
 
 class _WebKitPointFactoryProvider {
@@ -95,6 +144,13 @@ class _WebSocketFactoryProvider {
   static WebKitPoint create(url) native;
 }
 
+class _WorkerFactoryProvider {
+
+  factory Worker(String scriptUrl) { return create(scriptUrl); }
+
+  static create(scriptUrl) native;
+}
+
 class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest() { return create(); }
@@ -108,3 +164,12 @@ class _XSLTProcessorFactoryProvider {
 
   static XSLTProcessor create() native;
 }
+
+// TODO(sra): Fill in these:
+class _DOMURLFactoryProvider {}
+class _FileReaderSyncFactoryProvider {}
+class _MediaControllerFactoryProvider {}
+class _MessageChannelFactoryProvider {}
+class _WebKitBlobBuilderFactoryProvider {}
+class _XPathEvaluatorFactoryProvider {}
+class _XMLSerializerFactoryProvider {}

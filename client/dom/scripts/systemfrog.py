@@ -15,7 +15,7 @@ class FrogSystem(System):
   def __init__(self, templates, database, emitters, output_dir):
     super(FrogSystem, self).__init__(
         templates, database, emitters, output_dir)
-    self._dart_frog_file_paths = []
+    self._impl_file_paths = []
 
   def InterfaceGenerator(self,
                          interface,
@@ -23,15 +23,12 @@ class FrogSystem(System):
                          super_interface_name,
                          source_filter):
     """."""
-    dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
-    self._dart_frog_file_paths.append(dart_frog_file_path)
-
     template_file = 'impl_%s.darttemplate' % interface.id
     template = self._templates.TryLoad(template_file)
     if not template:
       template = self._templates.Load('frog_impl.darttemplate')
 
-    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
+    dart_code = self._ImplFileEmitter(interface.id)
     return FrogInterfaceGenerator(self, interface, template,
                                   super_interface_name, dart_code)
 
@@ -41,15 +38,16 @@ class FrogSystem(System):
         os.path.join(lib_dir, 'dom_frog.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
-         self._dart_frog_file_paths))
+         self._impl_file_paths))
 
   def Finish(self):
     pass
 
-  def _FilePathForFrogImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
-    return os.path.join(self._output_dir, 'src', 'frog',
-                        '%s.dart' % interface_name)
+  def _ImplFileEmitter(self, name):
+    """Returns the file emitter of the Frog implementation file."""
+    path = os.path.join(self._output_dir, 'src', 'frog', '%s.dart' % name)
+    self._impl_file_paths.append(path)
+    return self._emitters.FileEmitter(path)
 
 # ------------------------------------------------------------------------------
 
@@ -122,6 +120,11 @@ class FrogInterfaceGenerator(object):
     if element_type:
       self.AddTypedArrayConstructors(element_type)
 
+    # Emit a factory provider class for the constructor.
+    constructor_info = AnalyzeConstructor(interface)
+    if constructor_info:
+      self._EmitFactoryProvider(interface_name, constructor_info)
+
 
   def FinishInterface(self):
     """."""
@@ -129,6 +132,22 @@ class FrogInterfaceGenerator(object):
 
   def _ImplClassName(self, type_name):
     return '_' + type_name + 'Js'
+
+  def _EmitFactoryProvider(self, interface_name, constructor_info):
+    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    template = self._system._templates.TryLoad(template_file)
+    if not template:
+      template = self._system._templates.Load('factoryprovider.darttemplate')
+
+    factory_provider = '_' + interface_name + 'FactoryProvider'
+    emitter = self._system._ImplFileEmitter(factory_provider)
+    emitter.Emit(
+        template,
+        FACTORYPROVIDER=factory_provider,
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        NAMEDCONSTRUCTOR=constructor_info.name or interface_name,
+        ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
   def _NarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.

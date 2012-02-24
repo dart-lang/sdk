@@ -629,6 +629,11 @@ class DummyImplementationSystem(System):
   def __init__(self, templates, database, emitters, output_dir):
     super(DummyImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
+    factory_providers_file = os.path.join(self._output_dir, 'src', 'dummy',
+                                          'RegularFactoryProviders.dart')
+    self._factory_providers_emitter = self._emitters.FileEmitter(
+        factory_providers_file)
+    self._impl_file_paths = [factory_providers_file]
 
   def InterfaceGenerator(self,
                          interface,
@@ -647,21 +652,33 @@ class DummyImplementationSystem(System):
         os.path.join(lib_dir, 'dom_dummy.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
-         []
-         # FIXME: Move the implementation to a separate library.
-         # self._dart_wrapping_file_paths
-         ))
+         self._impl_file_paths))
+
 
 # ------------------------------------------------------------------------------
 
 class DummyInterfaceGenerator(object):
-  """Generates nothing."""
+  """Generates dummy implementation."""
 
   def __init__(self, system, interface):
-    pass
+    self._system = system
+    self._interface = interface
 
   def StartInterface(self):
-    pass
+    # There is no implementation to match the interface, but there might be a
+    # factory constructor for the Dart interface.
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info:
+      dart_interface_name = self._interface.id
+      self._EmitFactoryProvider(dart_interface_name, constructor_info)
+
+  def _EmitFactoryProvider(self, interface_name, constructor_info):
+    factory_provider = '_' + interface_name + 'FactoryProvider'
+    self._system._factory_providers_emitter.Emit(
+        self._system._templates.Load('factoryprovider.darttemplate'),
+        FACTORYPROVIDER=factory_provider,
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration())
 
   def FinishInterface(self):
     pass

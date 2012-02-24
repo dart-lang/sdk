@@ -9,6 +9,7 @@ dom/WebGL1Test: Skip  # Issue 1495
 [ $component == dartium ]
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
+dom/HTMLAudioElementTest: Fail  # factory constructor not implemented
 dom/HTMLElementTest: Fail
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.

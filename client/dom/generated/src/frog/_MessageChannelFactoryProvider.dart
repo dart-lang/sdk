@@ -2,11 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvider {
-
-  SharedWorker(String scriptURL, [String name]);
-
-  final MessagePort port;
+class _MessageChannelFactoryProvider {
+  factory MessageChannel() native
+      '''return new MessageChannel();''';
 }

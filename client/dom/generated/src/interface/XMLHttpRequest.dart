@@ -8,7 +8,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   XMLHttpRequest();
 
-
   static final int DONE = 4;
 
   static final int HEADERS_RECEIVED = 2;

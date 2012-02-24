@@ -10,8 +10,43 @@ class _DOMParserFactoryProvider {
   factory DOMParser() => FactoryProviderImplementation.createDOMParser();
 }
 
+class _EventSourceFactoryProvider {
+  factory EventSource(String scriptUrl) =>
+      FactoryProviderImplementation.createEventSource(scriptUrl);
+}
+
 class _FileReaderFactoryProvider {
   factory FileReader() => FactoryProviderImplementation.createFileReader();
+}
+
+class _MediaStreamFactoryProvider {
+  factory MediaStream(MediaStreamTrackList audioTracks,
+                      MediaStreamTrackList videoTracks) =>
+      FactoryProviderImplementation.createMediaStream(audioTracks, videoTracks);
+}
+
+class _PeerConnectionFactoryProvider {
+  factory PeerConnection(String serverConfiguration,
+                         SignalingCallback signalingCallback) =>
+      FactoryProviderImplementation.createPeerConnection(serverConfiguration,
+                                                         signalingCallback);
+}
+
+class _ShadowRootFactoryProvider {
+  factory ShadowRoot(Element host) =>
+      FactoryProviderImplementation.createShadowRoot(host);
+}
+
+class _SharedWorkerFactoryProvider {
+  factory SharedWorker(String scriptURL, [String name]) =>
+      FactoryProviderImplementation.createSharedWorker(scriptURL, name);
+}
+
+class _TextTrackCueFactoryProvider {
+  factory TextTrackCue(String id, num startTime, num endTime, String text,
+                       [String settings, bool pauseOnExit]) =>
+      FactoryProviderImplementation.createTextTrackQue(
+          id, startTime, endTime, text, settings, pauseOnExit);
 }
 
 class _TypedArrayFactoryProvider {
@@ -60,6 +95,10 @@ class _WebSocketFactoryProvider {
   factory WebSocket(String url) => FactoryProviderImplementation.createWebSocket(url);
 }
 
+class _WorkerFactoryProvider {
+  factory Worker(String scriptUrl) =>
+      FactoryProviderImplementation.createWorker(scriptUrl);
+}
 class _XMLHttpRequestFactoryProvider {
   factory XMLHttpRequest() => FactoryProviderImplementation.createXMLHttpRequest();
 }
@@ -67,3 +106,14 @@ class _XMLHttpRequestFactoryProvider {
 class _XSLTProcessorFactoryProvider {
   factory XSLTProcessor() => FactoryProviderImplementation.createXSLTProcessor();
 }
+
+// TODO(sra): Fill in these:
+class _DOMURLFactoryProvider {}
+class _FileReaderSyncFactoryProvider {}
+class _HTMLAudioElementFactoryProvider {}
+class _HTMLOptionElementFactoryProvider {}
+class _MediaControllerFactoryProvider {}
+class _MessageChannelFactoryProvider {}
+class _WebKitBlobBuilderFactoryProvider {}
+class _XPathEvaluatorFactoryProvider {}
+class _XMLSerializerFactoryProvider {}

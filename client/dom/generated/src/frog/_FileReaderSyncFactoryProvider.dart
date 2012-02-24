@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-interface FileReader$EXTENDS default _FileReaderFactoryProvider {
-
-  FileReader();
-$!MEMBERS}
+class _FileReaderSyncFactoryProvider {
+  factory FileReaderSync() native
+      '''return new FileReaderSync();''';
+}

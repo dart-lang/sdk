@@ -115,8 +115,16 @@ class DartInterfaceGenerator(object):
     if suppressed_extends:
       extends_str += ' /*%s %s */' % (comment, ', '.join(suppressed_extends))
 
+    factory_provider = None
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info:
+      factory_provider = '_' + typename + 'FactoryProvider';
+
     if typename in interface_factories:
-      extends_str += ' default ' + interface_factories[typename]
+      factory_provider = interface_factories[typename]
+
+    if factory_provider:
+      extends_str += ' default ' + factory_provider
 
     # TODO(vsm): Add appropriate package / namespace syntax.
     (self._members_emitter,
@@ -124,6 +132,13 @@ class DartInterfaceGenerator(object):
          self._template + '$!TOP_LEVEL',
          ID=typename,
          EXTENDS=extends_str)
+
+    if constructor_info:
+      self._members_emitter.Emit(
+          '\n'
+          '  $CTOR($PARAMS);\n',
+          CTOR=typename,
+          PARAMS=constructor_info.ParametersInterfaceDeclaration());
 
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:

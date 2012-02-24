@@ -4,5 +4,7 @@
 
 // WARNING: Do not edit - generated code.
 
-interface HTMLAudioElement extends HTMLMediaElement {
+interface HTMLAudioElement extends HTMLMediaElement default _HTMLAudioElementFactoryProvider {
+
+  HTMLAudioElement([String src]);
 }
