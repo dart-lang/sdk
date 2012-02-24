@@ -9,12 +9,12 @@
 #import('../../../dartdoc/markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../../../client/testing/unittest/unittest_node.dart');
+#import('../../../../client/testing/unittest/unittest_vm.dart');
 #import('../../../../frog/lang.dart');
-#import('../../../../frog/file_system_node.dart');
+#import('../../../../frog/file_system_vm.dart');
 
 main() {
-  var files = new NodeFileSystem();
+  var files = new VMFileSystem();
   parseOptions('../../frog', [], files);
   initializeWorld(files);
 
@@ -135,7 +135,7 @@ main() {
     // test.py/test.dart runs this from one directory and frog/presubmit.py
     // runs it from another.
     // See Bug 1145.
-    var fileSystem = new NodeFileSystem();
+    var fileSystem = new VMFileSystem();
     if (!fileSystem.fileExists(dummyPath)) {
       print("Can't run dartdoc name reference tests because dummy.dart " +
           "could not be found.");
