@@ -28,6 +28,39 @@ DECLARE_FLAG(int, deoptimization_counter_threshold);
 DECLARE_FLAG(bool, trace_type_checks);
 
 
+void CodeGenerator::DescriptorList::AddDescriptor(
+    PcDescriptors::Kind kind,
+    intptr_t pc_offset,
+    intptr_t node_id,
+    intptr_t token_index,
+    intptr_t try_index) {
+  struct PcDesc data;
+  data.pc_offset = pc_offset;
+  data.kind = kind;
+  data.node_id = node_id;
+  data.token_index = token_index;
+  data.try_index = try_index;
+  list_.Add(data);
+}
+
+
+RawPcDescriptors* CodeGenerator::DescriptorList::FinalizePcDescriptors(
+    uword entry_point) {
+  intptr_t num_descriptors = Length();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(PcDescriptors::New(num_descriptors));
+  for (intptr_t i = 0; i < num_descriptors; i++) {
+    descriptors.AddDescriptor(i,
+                              (entry_point + PcOffset(i)),
+                              Kind(i),
+                              NodeId(i),
+                              TokenIndex(i),
+                              TryIndex(i));
+  }
+  return descriptors.raw();
+}
+
+
 const Array& CodeGenerator::ArgumentsDescriptor(
     int num_arguments,
     const Array& optional_arguments_names) {
