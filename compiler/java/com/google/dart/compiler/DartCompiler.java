@@ -246,6 +246,8 @@ public class DartCompiler {
           for (LibraryNode libNode : lib.getSourcePaths()) {
             String relPath = libNode.getText();
             newUnitPaths.add(relPath);
+
+            // Prepare DartSource for "#source" unit.
             final DartSource dartSrc = libSrc.getSourceFor(relPath);
             if (dartSrc == null || !dartSrc.exists()) {
               // Dart Editor needs to have all missing files reported as compilation errors.
@@ -257,6 +259,18 @@ public class DartCompiler {
                 || (libIsDartUri && !usePrecompiledDartLibs)
                 || isSourceOutOfDate(dartSrc, libSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
+
+              // If we just parsed unit of library, report problems with its "#import" declarations.
+              if (libNode == selfSourcePath) {
+                for (LibraryNode importPathNode : lib.getImportPaths()) {
+                  LibrarySource dep = getImportSource(libSrc, importPathNode);
+                  if (dep == null) {
+                    reportMissingSource(context, libSrc, importPathNode);
+                  }
+                }
+              }
+
+              // Process unit, if exists.
               if (unit != null) {
                 if (libNode == selfSourcePath) {
                   lib.setSelfDartUnit(unit);
@@ -399,24 +413,34 @@ public class DartCompiler {
 
         // Update dependencies.
         for (LibraryNode libNode : lib.getImportPaths()) {
-          String libSpec = libNode.getText();
-          LibrarySource dep;
-          if (SystemLibraryManager.isDartSpec(libSpec)) {
-            dep = context.getSystemLibraryFor(libSpec);
-          } else {
-            dep = libSrc.getImportFor(libSpec);
+          LibrarySource dep = getImportSource(libSrc, libNode);
+          if (dep != null) {
+            lib.addImport(updateLibraries(dep), libNode);
           }
-          if (dep == null || !dep.exists()) {
-            reportMissingSource(context, libSrc, libNode);
-            continue;
-          }
-
-          lib.addImport(updateLibraries(dep), libNode);
         }
         return lib;
       } finally {
         Tracer.end(updateEvent);
       }
+    }
+
+    /**
+     * @return the {@link LibrarySource} referenced in the "#import" from "libSrc". May be
+     *         <code>null</code> if invalid URI or not existing library.
+     */
+    private LibrarySource getImportSource(LibrarySource libSrc, LibraryNode libNode)
+        throws IOException {
+      String libSpec = libNode.getText();
+      LibrarySource dep;
+      if (SystemLibraryManager.isDartSpec(libSpec)) {
+        dep = context.getSystemLibraryFor(libSpec);
+      } else {
+        dep = libSrc.getImportFor(libSpec);
+      }
+      if (dep == null || !dep.exists()) {
+        return null;
+      }
+      return dep;
     }
 
     /**
@@ -858,6 +882,8 @@ public class DartCompiler {
         if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
           // Dump the compiler parse tree if dump format is set in arguments
           ASTWriterFactory.create(config).process(unit);
+          // We don't return this unit, so no more processing expected for it.
+          context.unitCompiled(unit);
           return null;
         }
         return unit;

@@ -14,11 +14,14 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
+import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -81,8 +84,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         return false;
       }
     };
-    config = new DefaultCompilerConfiguration(new JavascriptBackend(),
-                                              compilerOptions) {
+    config = new DefaultCompilerConfiguration(new JavascriptBackend(), compilerOptions) {
       @Override
       public boolean incremental() {
         return true;
@@ -341,7 +343,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * Test for "hole" feature. If we use qualified access and add/remove top-level field, this should
    * not cause compilation of invocation unit.
    */
-  public void test_gieldHole_useQualifiedAccess() {
+  public void test_fieldHole_useQualifiedAccess() {
     appSource.setContent(
         "B.dart",
         makeCode(
@@ -532,6 +534,44 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errors,
         errEx("A.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 8),
         errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 8));
+  }
+
+  /**
+   * Test that invalid "#import" is reported as any other error between "unitAboutToCompile" and
+   * "unitCompiled".
+   */
+  public void test_reportMissingImportSourcce() throws Exception {
+    appSourceContent =
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('app');",
+            "#import('dart:noSuchLib.dart');",
+            "");
+    // Remember errors only between unitAboutToCompile/unitCompiled.
+    errors.clear();
+    DartCompilerListener listener = new DartCompilerListener.Empty() {
+      boolean isCompiling = false;
+
+      @Override
+      public void unitAboutToCompile(DartSource source, boolean diet) {
+        isCompiling = true;
+      }
+
+      @Override
+      public void onError(DartCompilationError event) {
+        if (isCompiling) {
+          errors.add(event);
+        }
+      }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
+        isCompiling = false;
+      }
+    };
+    DartCompiler.compileLib(appSource, config, provider, listener);
+    // Check that errors where reported (and in correct time).
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 31));
   }
 
   private void assertAppBuilt() {
