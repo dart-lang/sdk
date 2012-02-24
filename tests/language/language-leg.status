@@ -236,7 +236,7 @@ Field6NegativeTest: Fail, OK # Negative language test.
 Field6aNegativeTest: Fail, OK # Negative language test.
 Field7NegativeTest: Fail, OK # Negative language test.
 Field7aNegativeTest: Fail, OK # Negative language test.
-FinalForInVariableTest/01: Fail, OK: # Negative language test
+FinalForInVariableTest/01: Fail, OK # Negative language test
 FinalParamNegativeTest: Fail, OK # Negative language test.
 FinalVarNegativeTest: Fail, OK # Negative language test.
 FunctionTypeAliasNegativeTest: Fail, OK # Negative language test.
