@@ -177,9 +177,11 @@ class TestInformation {
   bool isNegative;
   bool isNegativeIfChecked;
   bool hasFatalTypeErrors;
+  bool hasRuntimeErrors;
 
   TestInformation(this.filename, this.optionsFromFile, this.isNegative,
-                  this.isNegativeIfChecked, this.hasFatalTypeErrors);
+                  this.isNegativeIfChecked, this.hasFatalTypeErrors,
+                  this.hasRuntimeErrors);
 }
 
 
@@ -334,17 +336,27 @@ class StandardTestSuite implements TestSuite {
                            expectations, isNegative);
         break;
       default:
-        // Only dartc supports fatal type errors. Enable fatal type
-        // errors with a flag and treat tests that have fatal type
-        // errors as negative.
-        var enableFatalTypeErrors =
-            (info.hasFatalTypeErrors && configuration['component'] == 'dartc');
+        isNegative = isNegative ||
+            (configuration['checked'] && info.isNegativeIfChecked);
+        bool enableFatalTypeErrors = false;
+
+        if (configuration['component'] == 'dartc') {
+          // Only dartc supports fatal type errors. Enable fatal type
+          // errors with a flag and treat tests that have fatal type
+          // errors as negative.
+          // Also, tests that have runtime errors are not negative
+          // tests for dartc because dartc does not execute the test.
+          if (info.hasFatalTypeErrors) {
+            enableFatalTypeErrors = true;
+            isNegative = true;
+          } else if (info.hasRuntimeErrors) {
+            isNegative = false;
+          }
+        }
+
         var argumentLists = argumentListsFromFile(filename,
                                                   optionsFromFile,
                                                   enableFatalTypeErrors);
-        isNegative = isNegative ||
-            (configuration['checked'] && info.isNegativeIfChecked) ||
-            enableFatalTypeErrors;
 
         for (var args in argumentLists) {
           doTest(new TestCase('$suiteName/$testName',
@@ -362,13 +374,15 @@ class StandardTestSuite implements TestSuite {
     return (String filename,
             bool isNegative,
             [bool isNegativeIfChecked = false,
-             bool hasFatalTypeErrors = false]) {
+             bool hasFatalTypeErrors = false,
+             bool hasRuntimeErrors = false]) {
       // Cache the test information for each test case.
       var info = new TestInformation(filename,
                                      optionsFromFile,
                                      isNegative,
                                      isNegativeIfChecked,
-                                     hasFatalTypeErrors);
+                                     hasFatalTypeErrors,
+                                     hasRuntimeErrors);
       cachedTests.add(info);
       enqueueTestCaseFromTestInformation(info);
     };

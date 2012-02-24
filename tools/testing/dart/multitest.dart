@@ -123,7 +123,8 @@ void DoMultitest(String filename,
                  Function doTest(String filename,
                                  bool isNegative,
                                  [bool isNegativeIfChecked,
-                                  bool hasFatalTypeErrors]),
+                                  bool hasFatalTypeErrors,
+                                  bool hasRuntimeErrors]),
                  Function multitestDone) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
@@ -146,13 +147,15 @@ void DoMultitest(String filename,
     openedFile.closeSync();
     var outcome = outcomes[key];
     bool enableFatalTypeErrors = outcome.contains('static type error');
-    bool isNegative = (outcome.contains('compile-time error')
-        || (outcome.contains('runtime error') && (component != 'dartc')));
+    bool hasRuntimeErrors = outcome.contains('runtime error');
+    bool isNegative = hasRuntimeErrors
+        || outcome.contains('compile-time error');
     bool isNegativeIfChecked = outcome.contains('dynamic type error');
     doTest(filename,
            isNegative,
            isNegativeIfChecked,
-           enableFatalTypeErrors);
+           enableFatalTypeErrors,
+           hasRuntimeErrors);
   }
   multitestDone();
 }
