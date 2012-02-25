@@ -15,7 +15,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBIndexJs createIndex(String name, String keyPath) native;
 
-  _IDBRequestJs delete(_IDBKeyJs key) native;
+  _IDBRequestJs delete(var key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 

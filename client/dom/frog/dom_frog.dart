@@ -795,8 +795,6 @@ class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListJs items;
 
-  final List types;
-
   void clearData([String type = null]) native;
 
   void getData(String type) native;
@@ -2827,6 +2825,8 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
 
   String title;
 
+  bool translate;
+
   String webkitdropzone;
 
   void click() native;
@@ -4045,7 +4045,7 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(String storeName, int mode) native;
+  _IDBTransactionJs transaction(String storeName, [int mode = null]) native;
 }
 
 class _IDBDatabaseErrorJs extends _DOMTypeJs implements IDBDatabaseError native "*IDBDatabaseError" {
@@ -4164,7 +4164,7 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBIndexJs createIndex(String name, String keyPath) native;
 
-  _IDBRequestJs delete(_IDBKeyJs key) native;
+  _IDBRequestJs delete(var key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 
@@ -11121,6 +11121,8 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
 }
 
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
+
+  final bool overflow;
 }
 
 class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
@@ -12626,8 +12628,6 @@ interface Clipboard {
   final FileList files;
 
   final DataTransferItemList items;
-
-  final List types;
 
   void clearData([String type]);
 
@@ -14943,6 +14943,8 @@ interface HTMLElement extends Element {
 
   String title;
 
+  bool translate;
+
   String webkitdropzone;
 
   void click();
@@ -16463,7 +16465,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(String storeName, int mode);
+  IDBTransaction transaction(String storeName, [int mode]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16617,7 +16619,7 @@ interface IDBObjectStore {
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(IDBKey key);
+  IDBRequest delete(var key_OR_keyRange);
 
   void deleteIndex(String name);
 
@@ -22786,6 +22788,8 @@ interface WebKitCSSTransformValue extends CSSValueList {
 // WARNING: Do not edit - generated code.
 
 interface WebKitNamedFlow {
+
+  final bool overflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

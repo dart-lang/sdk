@@ -30,5 +30,5 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(String storeName, int mode);
+  IDBTransaction transaction(String storeName, [int mode]);
 }

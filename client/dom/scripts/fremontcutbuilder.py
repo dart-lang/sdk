@@ -141,6 +141,7 @@ def main():
 
   optional_argument_whitelist = [
       ('CSSStyleDeclaration', 'setProperty', 'priority'),
+      # TODO(sra): Issue 1812 ('IDBDatabase', 'transaction', 'mode'),
       ]
 
   for dir_name in webkit_dirs:
@@ -153,8 +154,7 @@ def main():
     source='WebKit',
     rename_operation_arguments_on_merge=True)
   builder.import_idl_file(
-      os.path.join(current_dir, '..', 'idl',
-                   'dart', 'webkit-supplemental.idl'),
+      os.path.join(current_dir, '..', 'idl', 'dart', 'webkit-supplemental.idl'),
       webkit_supplemental_options)
 
   # Import Dart idl:
@@ -163,8 +163,9 @@ def main():
     source='Dart',
     rename_operation_arguments_on_merge=True)
 
-  builder.import_idl_file(os.path.join(current_dir, '..', 'idl',
-                     'dart', 'dart.idl'), dart_options)
+  builder.import_idl_file(
+      os.path.join(current_dir, '..', 'idl', 'dart', 'dart.idl'),
+      dart_options)
 
   builder.set_same_signatures({
     'EventListener': 'Function',

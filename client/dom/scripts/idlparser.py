@@ -288,7 +288,7 @@ class IDLParser(object):
 
     def _NullableType():
       return [OR(_IntegerType, BooleanType, OctetType, FloatType,
-             DoubleType, SequenceType, DOMStringListType, ScopedName),
+             DoubleType, SequenceType, DOMStringArrayType, ScopedName),
           MAYBE(Nullable)]
 
     def Nullable():
@@ -350,7 +350,7 @@ class IDLParser(object):
     def ScopedName():
       return re.compile(r'[\w\_\:\.\<\>]+')
 
-    def DOMStringListType():
+    def DOMStringArrayType():
       return 'DOMString[]'
 
     # Extended Attributes:

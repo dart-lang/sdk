@@ -37,6 +37,8 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
 
   String title;
 
+  bool translate;
+
   String webkitdropzone;
 
   void click() native;

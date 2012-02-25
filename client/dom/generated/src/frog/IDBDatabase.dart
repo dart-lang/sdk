@@ -25,5 +25,5 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(String storeName, int mode) native;
+  _IDBTransactionJs transaction(String storeName, [int mode = null]) native;
 }

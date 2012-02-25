@@ -42,6 +42,8 @@ interface HTMLElement extends Element {
 
   String title;
 
+  bool translate;
+
   String webkitdropzone;
 
   void click();
