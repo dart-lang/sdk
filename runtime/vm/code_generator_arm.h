@@ -47,6 +47,9 @@ class CodeGenerator : public AstNodeVisitor {
       int num_arguments,
       const Array& optional_arguments_names);
 
+  // Return true if the VM may optimize functions.
+  static bool CanOptimize();
+
  private:
   // Forward declarations.
   class DescriptorList;

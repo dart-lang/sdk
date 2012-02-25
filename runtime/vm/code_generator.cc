@@ -24,8 +24,19 @@ DEFINE_FLAG(bool, trace_deopt, false, "Trace deoptimization");
 DEFINE_FLAG(bool, trace_ic, false, "trace IC handling");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls.");
-DECLARE_FLAG(int, deoptimization_counter_threshold);
+DEFINE_FLAG(int, optimization_counter_threshold, 2000,
+    "function's usage-counter value before it is optimized, -1 means never.");
 DECLARE_FLAG(bool, trace_type_checks);
+DECLARE_FLAG(bool, report_usage_count);
+DECLARE_FLAG(int, deoptimization_counter_threshold);
+
+
+bool CodeGenerator::CanOptimize() {
+  return
+      !FLAG_report_usage_count &&
+      (FLAG_optimization_counter_threshold >= 0) &&
+      !Isolate::Current()->debugger()->IsActive();
+}
 
 
 void CodeGenerator::DescriptorList::AddDescriptor(
@@ -952,7 +963,16 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
     // TODO(srdjan): Investigate excessive deoptimization.
-    function.set_invocation_counter(0);
+    function.set_usage_counter(0);
+    return;
+  }
+  if (Code::Handle(function.code()).is_optimized()) {
+    // The caller has been already optimized.
+    // TODO(srdjan): This is a significant slowdown, the caller is probably in
+    // a loop. Maybe test if the code has been optimized before calling.
+    // If this happens from optimized code, then it means that the optimized
+    // code needs to be reoptimized.
+    function.set_usage_counter(0);
     return;
   }
   if (function.is_optimizable()) {
@@ -969,7 +989,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     ASSERT(!unoptimized_code.IsNull());
   } else {
     // TODO(5442338): Abort as this should not happen.
-    function.set_invocation_counter(0);
+    function.set_usage_counter(0);
   }
 }
 
@@ -1061,7 +1081,7 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   caller_frame->set_pc(continue_at_pc);
   // Clear invocation counter so that the function gets optimized after
   // types/classes have been collected.
-  function.set_invocation_counter(0);
+  function.set_usage_counter(0);
   function.set_deoptimization_counter(function.deoptimization_counter() + 1);
 
   // We have to skip the following otherwise the compiler will complain

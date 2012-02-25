@@ -467,7 +467,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_end_token_index(reader->ReadIntptrValue());
   func.set_num_fixed_parameters(reader->ReadIntptrValue());
   func.set_num_optional_parameters(reader->ReadIntptrValue());
-  func.set_invocation_counter(reader->ReadIntptrValue());
+  func.set_usage_counter(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
   func.set_kind(static_cast<RawFunction::Kind >(reader->ReadIntptrValue()));
   func.set_is_static(reader->Read<bool>());
@@ -503,7 +503,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->end_token_index_);
   writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
-  writer->WriteIntptrValue(ptr()->invocation_counter_);
+  writer->WriteIntptrValue(ptr()->usage_counter_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
   writer->WriteIntptrValue(ptr()->kind_);
   writer->Write<bool>(ptr()->is_static_);

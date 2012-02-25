@@ -1336,14 +1336,14 @@ class Function : public Object {
   }
   void set_num_optional_parameters(intptr_t value) const;
 
-  static intptr_t invocation_counter_offset() {
-    return OFFSET_OF(RawFunction, invocation_counter_);
+  static intptr_t usage_counter_offset() {
+    return OFFSET_OF(RawFunction, usage_counter_);
   }
-  intptr_t invocation_counter() const {
-    return raw_ptr()->invocation_counter_;
+  intptr_t usage_counter() const {
+    return raw_ptr()->usage_counter_;
   }
-  void set_invocation_counter(intptr_t value) const {
-    raw_ptr()->invocation_counter_ = value;
+  void set_usage_counter(intptr_t value) const {
+    raw_ptr()->usage_counter_ = value;
   }
 
   intptr_t deoptimization_counter() const {
@@ -3652,6 +3652,10 @@ class ICData : public Instance {
 
   static intptr_t ic_data_offset() {
     return OFFSET_OF(RawICData, ic_data_);
+  }
+
+  static intptr_t function_offset() {
+    return OFFSET_OF(RawICData, function_);
   }
 
   void AddCheck(const GrowableArray<const Class*>& classes,

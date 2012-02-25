@@ -273,29 +273,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 }
 
 
-// Called when number of invocations exceeds
-// --optimization_invocation_threshold.
-// RAX: target function.
-// R10: arguments descriptor array (num_args is first Smi element).
-void StubCode::GenerateOptimizeInvokedFunctionStub(Assembler* assembler) {
-  __ Untested("OptimizeInvokedFunction stub");
-  __ EnterFrame(0);
-  __ pushq(R10);  // Preserve arguments descriptor array.
-  __ pushq(RAX);  // Preserve target function.
-  __ pushq(RAX);  // Target function.
-  __ CallRuntimeFromStub(kOptimizeInvokedFunctionRuntimeEntry);
-  __ popq(RAX);  // discard argument.
-  __ popq(RAX);  // Restore function.
-  __ popq(R10);  // Restore arguments descriptor array.
-  __ movq(RAX, FieldAddress(RAX, Function::code_offset()));
-  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
-  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ LeaveFrame();
-  __ jmp(RAX);
-  __ int3();
-}
-
-
 // Called from a static call only when an invalid code has been entered
 // (invalid because its function was optimized or deoptimized).
 // RBX: function object.
@@ -1547,6 +1524,7 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 // - Match not found -> jump to IC miss.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
+  // TODO(srdjan): Add usage counter increment and test (see ia32).
   ASSERT(num_args > 0);
   // Get receiver.
   __ movq(RAX, FieldAddress(R10, Array::data_offset()));

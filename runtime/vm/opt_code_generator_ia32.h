@@ -56,7 +56,6 @@ class OptimizingCodeGenerator : public CodeGenerator {
   virtual void GeneratePreEntryCode();
   virtual bool IsOptimizing() const { return true; }
 
-  virtual void CountBackwardLoop() {}
   virtual void GenerateDeferredCode();
 
  private:

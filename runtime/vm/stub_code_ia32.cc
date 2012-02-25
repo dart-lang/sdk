@@ -21,6 +21,7 @@ namespace dart {
 DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
+DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   ESP : points to return address.
@@ -265,28 +266,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
   __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(ECX);
-}
-
-
-// Called when number of invocations exceeds
-// --optimization_invocation_threshold.
-// EAX: target function.
-// EDX: arguments descriptor array (num_args is first Smi element).
-void StubCode::GenerateOptimizeInvokedFunctionStub(Assembler* assembler) {
-  __ EnterFrame(0);
-  __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(EAX);  // Preserve target function.
-  __ pushl(EAX);  // Target function.
-  __ CallRuntimeFromStub(kOptimizeInvokedFunctionRuntimeEntry);
-  __ popl(EAX);  // discard argument.
-  __ popl(EAX);  // Restore function.
-  __ popl(EDX);  // Restore arguments descriptor array.
-  __ movl(EAX, FieldAddress(EAX, Function::code_offset()));
-  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
-  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ LeaveFrame();
-  __ jmp(EAX);
-  __ int3();
 }
 
 
@@ -1546,6 +1525,25 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 // - Match not found -> jump to IC miss.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
+  __ movl(EBX, FieldAddress(ECX, ICData::function_offset()));
+  __ incl(FieldAddress(EBX, Function::usage_counter_offset()));
+  if (CodeGenerator::CanOptimize()) {
+    __ cmpl(FieldAddress(EBX, Function::usage_counter_offset()),
+        Immediate(FLAG_optimization_counter_threshold));
+    Label not_yet_hot;
+    __ j(LESS_EQUAL, &not_yet_hot);
+    __ EnterFrame(0);
+    __ pushl(ECX);  // Preserve inline cache data object.
+    __ pushl(EDX);  // Preserve arguments array.
+    __ pushl(EBX);  // Argument for runtime: function object.
+    __ CallRuntimeFromStub(kOptimizeInvokedFunctionRuntimeEntry);
+    __ popl(EBX);  // Remove argument.
+    __ popl(EDX);  // Restore arguments array.
+    __ popl(ECX);  // Restore inline cache data object.
+    __ LeaveFrame();
+    __ Bind(&not_yet_hot);
+  }
+
   ASSERT(num_args > 0);
   // Get receiver.
   __ movl(EAX, FieldAddress(EDX, Array::data_offset()));

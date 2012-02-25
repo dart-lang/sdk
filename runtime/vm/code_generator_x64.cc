@@ -24,10 +24,7 @@ namespace dart {
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
-DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
-    "number of invocations before a function is optimized, -1 means never.");
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, report_invocation_count);
 DECLARE_FLAG(bool, trace_compiler);
 
 #define __ assembler_->
@@ -199,44 +196,19 @@ void CodeGenerator::GenerateDeferredCode() {
 }
 
 
-// Pre entry code is called before the frame has been constructed:
-// - check for stack overflow.
-// - optionally count function invocations.
-// - optionally trigger optimizing compiler if invocation threshold has been
-//   reached.
+// Pre entry code is called before the frame has been constructed.
 // Note that first 13 bytes may be patched with a jump.
 // TODO(srdjan): Add check that no object is inlined in the first
 // 13 bytes (length of a jump instruction).
 void CodeGenerator::GeneratePreEntryCode() {
   // Do not optimize if:
   // - we count invocations.
-  // - optimization disabled via negative 'optimization_invocation_threshold;
+  // - optimization disabled.
   // - function is marked as non-optimizable.
   // - type checks are enabled.
-  const bool may_optimize =
-      false &&   // TODO(srdjan): Remove once the optimizer is enabled on x64.
-      !FLAG_report_invocation_count &&
-      (FLAG_optimization_invocation_threshold >= 0) &&
-      !Isolate::Current()->debugger()->IsActive() &&
-      parsed_function_.function().is_optimizable();
-  // Count invocation and check.
-  if (FLAG_report_invocation_count || may_optimize) {
-    // TODO(turnidge): It would be nice to remove this nop.  Right now
-    // we need it to make sure the function is still patchable.
-    __ nop(8);
-    __ nop(5);
-    const Function& function =
-        Function::ZoneHandle(parsed_function_.function().raw());
-    __ LoadObject(RAX, function);
-    __ movq(R8, FieldAddress(RAX, Function::invocation_counter_offset()));
-    __ incq(R8);
-    if (may_optimize) {
-      __ cmpq(R8, Immediate(FLAG_optimization_invocation_threshold));
-      __ j(GREATER, &StubCode::OptimizeInvokedFunctionLabel());
-    }
-    // R8 contains an integer value, not an object.
-    __ movq(FieldAddress(RAX, Function::invocation_counter_offset()), R8);
-  }
+  // TODO(srdjan): Nop's still needed?
+  __ nop(8);
+  __ nop(5);
 }
 
 
@@ -1843,24 +1815,6 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
 }
 
 
-void CodeGenerator::CountBackwardLoop() {
-  Label done;
-  const Function& function =
-      Function::ZoneHandle(parsed_function_.function().raw());
-  __ LoadObject(RAX, function);
-  __ movq(RBX, FieldAddress(RAX, Function::invocation_counter_offset()));
-  __ incq(RBX);
-  if (!FLAG_report_invocation_count) {
-    // Prevent overflow.
-    __ cmpq(RBX, Immediate(FLAG_optimization_invocation_threshold));
-    __ j(GREATER, &done);
-  }
-  // RBX contains an integer value, not an object.
-  __ movq(FieldAddress(RAX, Function::invocation_counter_offset()), RBX);
-  __ Bind(&done);
-}
-
-
 void CodeGenerator::VisitWhileNode(WhileNode* node) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   SourceLabel* label = node->label();
@@ -1872,7 +1826,6 @@ void CodeGenerator::VisitWhileNode(WhileNode* node) {
   __ cmpq(RAX, RDX);
   __ j(NOT_EQUAL, label->break_label());
   node->body()->Visit(this);
-  CountBackwardLoop();
   __ jmp(label->continue_label());
   __ Bind(label->break_label());
 }
@@ -1884,7 +1837,6 @@ void CodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
   Label loop;
   __ Bind(&loop);
   node->body()->Visit(this);
-  CountBackwardLoop();
   __ Bind(label->continue_label());
   node->condition()->Visit(this);
   GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
@@ -1911,7 +1863,6 @@ void CodeGenerator::VisitForNode(ForNode* node) {
     __ j(NOT_EQUAL, label->break_label());
   }
   node->body()->Visit(this);
-  CountBackwardLoop();
   __ Bind(label->continue_label());
   node->increment()->Visit(this);
   __ jmp(&loop);

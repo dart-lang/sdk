@@ -27,8 +27,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, report_invocation_count, false,
-            "Count function invocations and report.");
+DEFINE_FLAG(bool, report_usage_count, false,
+            "Track function usage and report.");
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
 DECLARE_FLAG(bool, generate_gdb_symbols);
@@ -252,11 +252,11 @@ uword Isolate::GetAndClearInterrupts() {
 }
 
 
-static int MostCalledFunctionFirst(const Function* const* a,
-                                   const Function* const* b) {
-  if ((*a)->invocation_counter() > (*b)->invocation_counter()) {
+static int MostUsedFunctionFirst(const Function* const* a,
+                                 const Function* const* b) {
+  if ((*a)->usage_counter() > (*b)->usage_counter()) {
     return -1;
-  } else if ((*a)->invocation_counter() < (*b)->invocation_counter()) {
+  } else if ((*a)->usage_counter() < (*b)->usage_counter()) {
     return 1;
   } else {
     return 0;
@@ -273,7 +273,7 @@ static void AddFunctionsFromClass(const Class& cls,
   for (int j = 0; j < func_len; j++) {
     Function& function = Function::Handle();
     function ^= class_functions.At(j);
-    if (function.invocation_counter() > 0) {
+    if (function.usage_counter() > 0) {
       functions->Add(&function);
     }
   }
@@ -301,10 +301,10 @@ void Isolate::PrintInvokedFunctions() {
     }
     library = library.next_registered();
   }
-  invoked_functions.Sort(MostCalledFunctionFirst);
+  invoked_functions.Sort(MostUsedFunctionFirst);
   for (int i = 0; i < invoked_functions.length(); i++) {
     OS::Print("%10d x %s\n",
-        invoked_functions[i]->invocation_counter(),
+        invoked_functions[i]->usage_counter(),
         invoked_functions[i]->ToFullyQualifiedCString());
   }
 }
@@ -333,7 +333,7 @@ void Isolate::Shutdown() {
 
   // Dump all accumalated timer data for the isolate.
   timer_list_.ReportTimers();
-  if (FLAG_report_invocation_count) {
+  if (FLAG_report_usage_count) {
     PrintInvokedFunctions();
   }
   CompilerStats::Print();

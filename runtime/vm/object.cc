@@ -3366,7 +3366,7 @@ RawFunction* Function::New(const String& name,
   result.set_end_token_index(token_index);
   result.set_num_fixed_parameters(0);
   result.set_num_optional_parameters(0);
-  result.set_invocation_counter(0);
+  result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
   return result.raw();
