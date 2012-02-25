@@ -2731,21 +2731,22 @@ void Parser::ParseFunctionTypeAlias(GrowableArray<const Class*>* classes) {
     signature_function = signature_class.signature_function();
   }
   ASSERT(signature_function.signature_class() == signature_class.raw());
-  // Lookup the class by its alias name and report an error if it exists.
-  Class& function_type_alias =
-      Class::ZoneHandle(library_.LookupClass(*alias_name));
-  if (function_type_alias.IsNull()) {
-    // Create the function type alias, but share the signature function of the
-    // canonical signature class.
-    function_type_alias = Class::NewSignatureClass(*alias_name,
-                                                   signature_function,
-                                                   script_);
-    library_.AddClass(function_type_alias);
-  } else {
-    const char* format = function_type_alias.is_interface() ?
-        "'%s' is already defined" : "'%s' is already defined as class";
-    ErrorMsg(alias_name_pos, format, alias_name->ToCString());
+
+  // Lookup alias name and report an error if it is already defined in
+  // the library scope.
+  const Object& obj = Object::Handle(library_.LookupObject(*alias_name));
+  if (!obj.IsNull()) {
+    ErrorMsg(alias_name_pos,
+             "'%s' is already defined", alias_name->ToCString());
   }
+
+  // Create the function type alias, but share the signature function of the
+  // canonical signature class.
+  Class& function_type_alias = Class::ZoneHandle(
+      Class::NewSignatureClass(*alias_name,
+                               signature_function,
+                               script_));
+  library_.AddClass(function_type_alias);
   ExpectSemicolon();
   classes->Add(&function_type_alias);
 }
@@ -7196,10 +7197,11 @@ AstNode* Parser::ParseNewOperator() {
   if (!IsIdentifier()) {
     ErrorMsg("type name expected");
   }
+  intptr_t type_pos = token_index_;
 
   const AbstractType& type = AbstractType::Handle(ParseType(kMustResolve));
   if (type.IsTypeParameter()) {
-    ErrorMsg(type.token_index(),
+    ErrorMsg(type_pos,
              "type parameter '%s' cannot be instantiated",
              String::Handle(type.Name()).ToCString());
   }
@@ -7228,6 +7230,7 @@ AstNode* Parser::ParseNewOperator() {
   if (CurrentToken() != Token::kLPAREN) {
     ErrorMsg("'(' expected");
   }
+  intptr_t call_pos = token_index_;
   ArgumentListNode* arguments = ParseActualParameters(NULL, is_const);
 
   // A constructor has an implicit 'this' parameter (instance to construct)
@@ -7245,20 +7248,21 @@ AstNode* Parser::ParseNewOperator() {
     Function& constructor = Function::ZoneHandle(
         type_class.LookupConstructor(constructor_name));
     if (constructor.IsNull()) {
-      ErrorMsg(type.token_index(),
+      ErrorMsg(type_pos,
                "interface '%s' has no constructor named '%s'",
                type_class_name.ToCString(),
                external_constructor_name.ToCString());
     }
     if (!constructor.AreValidArguments(arguments_length, arguments->names())) {
-      ErrorMsg(type.token_index(),
+      ErrorMsg(call_pos,
                "invalid arguments passed to constructor '%s' "
                "for interface '%s'",
                external_constructor_name.ToCString(),
                type_class_name.ToCString());
     }
     if (!type_class.HasFactoryClass()) {
-      ErrorMsg("cannot allocate interface '%s' without factory class",
+      ErrorMsg(type_pos,
+               "cannot allocate interface '%s' without factory class",
                type_class_name.ToCString());
     }
     if (!type_class.HasResolvedFactoryClass()) {
@@ -7297,7 +7301,7 @@ AstNode* Parser::ParseNewOperator() {
   if (constructor.IsNull()) {
     const String& external_constructor_name =
         (named_constructor ? constructor_name : constructor_class_name);
-    ErrorMsg(type.token_index(),
+    ErrorMsg(type_pos,
              "class '%s' has no constructor or factory named '%s'",
              String::Handle(constructor_class.Name()).ToCString(),
              external_constructor_name.ToCString());
@@ -7305,7 +7309,7 @@ AstNode* Parser::ParseNewOperator() {
   if (!constructor.AreValidArguments(arguments_length, arguments->names())) {
     const String& external_constructor_name =
         (named_constructor ? constructor_name : constructor_class_name);
-    ErrorMsg(type.token_index(),
+    ErrorMsg(call_pos,
              "invalid arguments passed to constructor '%s' for class '%s'",
              external_constructor_name.ToCString(),
              String::Handle(constructor_class.Name()).ToCString());
