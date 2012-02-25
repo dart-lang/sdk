@@ -12,6 +12,7 @@ prefix corelib
 DoubleCompareTest: Fail, OK # VM handling of double literals.
 MathTest: Fail, OK # VM handling of double literals.
 
+DateTimeTest: Crash  # Issue 1857
 
 # Compilation errors.
 CollectionFromTest: Fail # named constructors with type arguments are not implemented
