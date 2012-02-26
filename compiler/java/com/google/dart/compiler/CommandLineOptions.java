@@ -28,7 +28,7 @@ public class CommandLineOptions {
    */
   public static class CompilerOptions {
 
-    @Option(name = "--batch",
+    @Option(name = "--batch", aliases = { "-batch" },
         usage = "Batch mode (for unit testing)")
     private boolean batch = false;
 
