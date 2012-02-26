@@ -25,8 +25,6 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   final _EventJs event;
 
-  final _ElementJs frameElement;
-
   final _DOMWindowJs frames;
 
   final _HistoryJs history;

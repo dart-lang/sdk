@@ -10,6 +10,17 @@ import os
 from generator import *
 from systembase import *
 
+# Members (getters, setters, and methods) to suppress.  These are
+# either removed or custom implemented.
+_dom_frog_omitted_members = set([
+    # Replace with custom.
+    'HTMLIFrameElement.get:contentWindow',
+
+    # Remove.
+    'HTMLIFrameElement.get:contentDocument',
+    'DOMWindow.get:frameElement',
+])
+
 class FrogSystem(System):
 
   def __init__(self, templates, database, emitters, output_dir):
@@ -180,7 +191,17 @@ class FrogInterfaceGenerator(object):
 
     pass
 
+  def OverrideMember(self, member):
+    return self._interface.id + '.' + member in _dom_frog_omitted_members
+
   def AddAttribute(self, getter, setter):
+    if getter and self.OverrideMember('get:' + getter.id):
+      getter = None
+    if setter and self.OverrideMember('set:' + setter.id):
+      setter = None
+    if not getter and not setter:
+      return
+
     output_type = getter and self._NarrowOutputType(getter.type.id)
     input_type = setter and self._NarrowInputType(setter.type.id)
 

@@ -86,15 +86,10 @@ class _IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDa
   }
   static IDBVersionChangeRequest _setVersion(receiver, version) native;
 
-  IDBTransaction transaction(String storeName, [int mode = null]) {
-    if (mode === null) {
-      return _transaction(this, storeName);
-    } else {
-      return _transaction_2(this, storeName, mode);
-    }
+  IDBTransaction transaction(String storeName, int mode) {
+    return _transaction(this, storeName, mode);
   }
-  static IDBTransaction _transaction(receiver, storeName) native;
-  static IDBTransaction _transaction_2(receiver, storeName, mode) native;
+  static IDBTransaction _transaction(receiver, storeName, mode) native;
 
   String get typeName() { return "IDBDatabase"; }
 }
