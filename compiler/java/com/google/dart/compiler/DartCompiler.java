@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -72,6 +72,7 @@ public class DartCompiler {
 
   public static final String EXTENSION_DEPS = "deps";
   public static final String EXTENSION_LOG = "log";
+  public static final String EXTENSION_TIMESTAMP = "timestamp";
 
   public static final String CORELIB_URL_SPEC = "dart:core";
   public static final String MAIN_ENTRY_POINT_NAME = "main";
@@ -257,7 +258,7 @@ public class DartCompiler {
 
             if (!incremental
                 || (libIsDartUri && !usePrecompiledDartLibs)
-                || isSourceOutOfDate(dartSrc, libSrc)) {
+                || isSourceOutOfDate(dartSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
 
               // If we just parsed unit of library, report problems with its "#import" declarations.
@@ -446,10 +447,11 @@ public class DartCompiler {
     /**
      * Determines whether the given source is out-of-date with respect to its artifacts.
      */
-    private boolean isSourceOutOfDate(DartSource dartSrc, LibrarySource libSrc) {
+    private boolean isSourceOutOfDate(DartSource dartSrc) {
       TraceEvent logEvent =
           Tracer.canTrace() ? Tracer.start(DartEventType.IS_SOURCE_OUTOFDATE, "src",
               dartSrc.getName()) : null;
+
       try {
         // If incremental compilation is disabled, just return true to force all
         // units to be recompiled.
@@ -457,16 +459,30 @@ public class DartCompiler {
           return true;
         }
 
-        for (Backend backend : backends) {
+        if (checkOnly) {
           TraceEvent backendEvent =
-              Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_OUTOFDATE, "be", backend
-                  .getClass().getCanonicalName(), "src", dartSrc.getName()) : null;
+              Tracer.canTrace() ? Tracer.start(DartEventType.TIMESTAMP_OUTOFDATE,
+                                               "src", dartSrc.getName()) : null;
           try {
-            if (backend.isOutOfDate(dartSrc, context)) {
+            if (context.isOutOfDate(dartSrc, dartSrc, EXTENSION_TIMESTAMP)) {
               return true;
             }
           } finally {
             Tracer.end(backendEvent);
+          }
+        } else {
+          // TODO(zundel): remove this case when code generation goes away
+          for (Backend backend : backends) {
+            TraceEvent backendEvent =
+                Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_OUTOFDATE, "be", backend
+                                                 .getClass().getCanonicalName(), "src", dartSrc.getName()) : null;
+                try {
+                  if (backend.isOutOfDate(dartSrc, context)) {
+                    return true;
+                  }
+                } finally {
+                  Tracer.end(backendEvent);
+                }
           }
         }
         return false;
@@ -751,6 +767,8 @@ public class DartCompiler {
               continue;
             }
 
+            updateAnalysisTimestamp(unit);
+
             // Run all compiler phases including AST simplification and symbol
             // resolution. This must run in serial.
             for (DartCompilationPhase phase : phases) {
@@ -772,21 +790,20 @@ public class DartCompiler {
             // To help support the IDE, notify the listener that this unit is compiled.
             context.unitCompiled(unit);
 
-            if (checkOnly) {
-              continue;
-            }
-
-            // Run the unit through all the backends. This loop can also be
-            // parallelized.
-            for (Backend be : config.getBackends()) {
-              TraceEvent backendEvent =
-                  Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_COMPILE, "be", be
-                      .getClass().getSimpleName(), "lib", lib.getName(), "unit", unit
-                      .getSourceName()) : null;
-              try {
-                be.compileUnit(unit, unit.getSource(), context, typeProvider);
-              } finally {
-                Tracer.end(backendEvent);
+            if (!checkOnly) {
+              // Run the unit through all the backends. This loop can also be
+              // parallelized.
+              for (Backend be : config.getBackends()) {
+                TraceEvent backendEvent =
+                    Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_COMPILE,
+                                                     "be", be.getClass().getSimpleName(),
+                                                     "lib", lib.getName(),
+                                                     "unit", unit.getSourceName()) : null;
+                    try {
+                      be.compileUnit(unit, unit.getSource(), context, typeProvider);
+                    } finally {
+                      Tracer.end(backendEvent);
+                    }
               }
             }
 
@@ -800,7 +817,7 @@ public class DartCompiler {
           }
 
           // Persist the DEPS file.
-          if (persist && !checkOnly) {
+          if (persist) {
             lib.writeDeps(context);
           }
         }
@@ -808,9 +825,16 @@ public class DartCompiler {
         if (compilerMetrics != null) {
           compilerMetrics.endCompileLibrariesTime();
         }
-
         Tracer.end(logEvent);
       }
+    }
+
+    private void updateAnalysisTimestamp(DartUnit unit) throws IOException {
+      // Update timestamp.
+      Writer writer = context.getArtifactWriter(unit.getSource(), "", EXTENSION_TIMESTAMP);
+      String timestampData = String.format("%d\n", System.currentTimeMillis());
+      writer.write(timestampData);
+      writer.close();
     }
 
     private void packageApp() throws IOException {

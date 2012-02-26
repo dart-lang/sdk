@@ -4,7 +4,6 @@
 
 package com.google.dart.compiler.backend.js;
 
-import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.dart.compiler.DartCompilerContext;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * A compiler backend that produces raw Javascript.
@@ -136,16 +134,16 @@ public class JavascriptBackend extends AbstractJsBackend  {
                          DartCompilerContext context,
                          CoreTypeProvider typeProvider)
       throws IOException {
-    
+
     LibraryUnit appLibraryUnit = context.getAppLibraryUnit();
     boolean hasEntryPoint = appLibraryUnit.getElement().getEntryPoint() != null;
-    
+
     String completeArtifactName = EXTENSION_APP_JS;
     if (hasEntryPoint) {
       // Apps with entry points will be reduced so we write into a different file name
       completeArtifactName = EXTENSION_APP_JS_COMPLETE;
     }
-    
+
     Writer out = context.getArtifactWriter(app, "", completeArtifactName);
     long outputFileSize = 0;
     boolean failed = true;
@@ -157,19 +155,19 @@ public class JavascriptBackend extends AbstractJsBackend  {
     } finally {
       Closeables.close(out, failed);
     }
-    
-    
+
+
     if (hasEntryPoint) {
       Writer artifactWriter = context.getArtifactWriter(app, "", EXTENSION_APP_JS);
       try {
         failed = true;
         outputFileSize = TreeShaker.reduce(app, context, completeArtifactName, artifactWriter);
-        failed = false;  
+        failed = false;
       } finally {
         Closeables.close(artifactWriter, failed);
       }
     }
-    
+
     CompilerMetrics compilerMetrics = context.getCompilerMetrics();
     if (compilerMetrics != null) {
       compilerMetrics.packagedJsApplication(outputFileSize, -1);

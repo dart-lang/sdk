@@ -1,14 +1,12 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.end2end.inc;
 
 import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
-import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_APP_JS;
-import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_JS;
+import static com.google.dart.compiler.DartCompiler.EXTENSION_TIMESTAMP;
 
-import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompiler;
 import com.google.dart.compiler.DartCompilerListener;
@@ -65,15 +63,7 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    CompilerOptions compilerOptions = new CompilerOptions() {
-      // TODO(zundel): update this test not to rely on code generation
-      @Override
-      public boolean checkOnly() {
-        return false;
-      }
-    };
-    config = new DefaultCompilerConfiguration(new JavascriptBackend(),
-                                              compilerOptions) {
+    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
       @Override
       public boolean incremental() {
         return true;
@@ -106,10 +96,9 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
     someLibSource.remapSource("some.prefixable.lib.dart", "some.prefixable.modified.lib.dart");
     compile();
 
-    didWrite("my.unprefixed.app.dart", EXTENSION_JS);
-    didWrite("my.unprefixed.app.dart", EXTENSION_APP_JS);
+    didWrite("my.unprefixed.app.dart", EXTENSION_TIMESTAMP);
     didWrite("my.unprefixed.app.dart", EXTENSION_DEPS);
-    didWrite("some.prefixable.lib.dart", EXTENSION_JS);
+    didWrite("some.prefixable.lib.dart", EXTENSION_TIMESTAMP);
     didWrite("some.prefixable.lib.dart", EXTENSION_DEPS);
   }
 
@@ -129,10 +118,9 @@ public class IncrementalCompilationWithPrefixTest extends CompilerTestCase {
     someLibSource.remapSource("some.prefixable.lib.dart", "some.prefixable.modified.lib.dart");
     compile();
 
-    didWrite("my.prefixed.app.dart", EXTENSION_JS);
-    didWrite("my.prefixed.app.dart", EXTENSION_APP_JS);
+    didWrite("my.prefixed.app.dart", EXTENSION_TIMESTAMP);
     didWrite("my.prefixed.app.dart", EXTENSION_DEPS);
-    didWrite("some.prefixable.lib.dart", EXTENSION_JS);
+    didWrite("some.prefixable.lib.dart", EXTENSION_TIMESTAMP);
     didWrite("some.prefixable.lib.dart", EXTENSION_DEPS);
   }
 

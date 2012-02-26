@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,9 +20,6 @@ public class End2EndTests extends TestSetup {
 
   public static Test suite() {
     TestSuite suite = new TestSuite("Dart end-to-end test suite.");
-
-    suite.addTestSuite(BasicTest.class);
-    suite.addTestSuite(MainMethodTest.class);
     suite.addTestSuite(IncrementalCompilationTest.class);
     suite.addTestSuite(IncrementalCompilation2Test.class);
     suite.addTestSuite(IncrementalCompilationWithPrefixTest.class);
