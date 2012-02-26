@@ -24,6 +24,9 @@ dom/DOMIsolatesTest: Skip
 dom/NativeGCTest: Skip
 dom/TypedArrays1Test: Skip
 
+[ $component == frogium || $component == webdriver ]
+dom/WindowNSMETest: Fail # Issue 1837, frog puts top-level members in the global JS namespace.
+
 [ $component == frogium || ($component == webdriver && ($browser == chrome || $browser == ff || $browser == safari || $browser == ie)) ]
 # TODO(vsm): Triage DOM tests.
 dom/DOMIsolatesTest: Fail
