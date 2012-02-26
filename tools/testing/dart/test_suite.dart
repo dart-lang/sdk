@@ -849,7 +849,7 @@ class DartcCompilationTestSuite extends StandardTestSuite {
     Directory tempDir = createOutputDirectory(filename, 'dartc-test');
     return
         [ '--fatal-warnings', '--fatal-type-errors',
-          '-check-only', '-out', tempDir.path];
+          '--out', tempDir.path];
   }
 
   void processDirectory() {

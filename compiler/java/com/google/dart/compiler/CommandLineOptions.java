@@ -28,7 +28,7 @@ public class CommandLineOptions {
    */
   public static class CompilerOptions {
 
-    @Option(name = "--batch", aliases = { "-batch" },
+    @Option(name = "--batch",
         usage = "Batch mode (for unit testing)")
     private boolean batch = false;
 
@@ -88,9 +88,15 @@ public class CommandLineOptions {
         + "  jit:  show jit stats")
     private String jvmMetricType = "all";
 
-    @Option(name = "--noincremental", aliases = { "-noincremental" },
-        usage = "Disable incremental compilation")
-    private boolean noincremental = false;
+    // leave the command line flag for legacy purposes.
+    @SuppressWarnings("unused")
+    @Option(name = "--noincremental",
+        usage = "Disable incremental compilation (default)")
+    private boolean noincremental = true; // not used, just a placeholder for arg parsing
+
+    @Option(name = "--incremental",
+    usage = "Enable incremental compilation")
+    private boolean incremental = false;
 
     @Option(name = "--out",
         usage = "Write generated JavaScript to a file")
@@ -167,7 +173,7 @@ public class CommandLineOptions {
      * Returns whether the compiler should attempt to incrementally recompile.
      */
     public boolean buildIncrementally() {
-      return !noincremental;
+      return incremental;
     }
 
     public boolean shouldBatch() {

@@ -99,7 +99,7 @@ class TestCase {
     return "$component ${mode}_$arch";
   }
 
-  List<String> get batchRunnerArguments() => ['-batch'];
+  List<String> get batchRunnerArguments() => ['--batch'];
   List<String> get batchTestArguments() => arguments;
 
   void completed() { completedHandler(this); }
