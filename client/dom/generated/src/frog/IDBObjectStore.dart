@@ -1,6 +1,8 @@
 
 class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
 
+  final List<String> indexNames;
+
   final String keyPath;
 
   final String name;

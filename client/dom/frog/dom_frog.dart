@@ -795,6 +795,8 @@ class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListJs items;
 
+  final List<String> types;
+
   void clearData([String type = null]) native;
 
   void getData(String type) native;
@@ -4082,6 +4084,8 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   final String name;
 
+  final List<String> objectStoreNames;
+
   EventListener onabort;
 
   EventListener onerror;
@@ -4104,7 +4108,7 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(String storeName, int mode) native;
+  _IDBTransactionJs transaction(var storeName_OR_storeNames, int mode) native;
 }
 
 class _IDBDatabaseErrorJs extends _DOMTypeJs implements IDBDatabaseError native "*IDBDatabaseError" {
@@ -4208,6 +4212,8 @@ class _IDBKeyRangeJs extends _DOMTypeJs implements IDBKeyRange native "*IDBKeyRa
 }
 
 class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
+
+  final List<String> indexNames;
 
   final String keyPath;
 
@@ -12688,6 +12694,8 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
+  final List<String> types;
+
   void clearData([String type]);
 
   void getData(String type);
@@ -16502,6 +16510,8 @@ interface IDBDatabase {
 
   final String name;
 
+  final List<String> objectStoreNames;
+
   EventListener onabort;
 
   EventListener onerror;
@@ -16524,7 +16534,7 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(String storeName, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16663,6 +16673,8 @@ interface IDBKeyRange {
 // WARNING: Do not edit - generated code.
 
 interface IDBObjectStore {
+
+  final List<String> indexNames;
 
   final String keyPath;
 

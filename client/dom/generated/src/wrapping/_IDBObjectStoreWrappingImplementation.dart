@@ -11,6 +11,9 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
     return new _IDBObjectStoreWrappingImplementation();
   }
 
+  List<String> get indexNames() { return _get_indexNames(this); }
+  static List<String> _get_indexNames(var _this) native;
+
   String get keyPath() { return _get_keyPath(this); }
   static String _get_keyPath(var _this) native;
 

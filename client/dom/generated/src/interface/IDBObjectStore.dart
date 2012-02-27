@@ -6,6 +6,8 @@
 
 interface IDBObjectStore {
 
+  final List<String> indexNames;
+
   final String keyPath;
 
   final String name;

@@ -195,7 +195,6 @@ FILE CONTENT:
   def testQualifiedDartTypes(self):
     self._database.Load()
     self._generator.FilterMembersWithUnidentifiedTypes(self._database)
-    self._generator.ConvertToDartTypes(self._database)
     self._generator.Generate(self._database, self._output_dir)
     self._generator.Flush()
 

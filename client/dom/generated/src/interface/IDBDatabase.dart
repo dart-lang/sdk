@@ -8,6 +8,8 @@ interface IDBDatabase {
 
   final String name;
 
+  final List<String> objectStoreNames;
+
   EventListener onabort;
 
   EventListener onerror;
@@ -30,5 +32,5 @@ interface IDBDatabase {
 
   IDBVersionChangeRequest setVersion(String version);
 
-  IDBTransaction transaction(String storeName, int mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, int mode);
 }

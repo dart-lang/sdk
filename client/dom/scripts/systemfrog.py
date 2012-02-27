@@ -115,7 +115,7 @@ class FrogInterfaceGenerator(object):
     implements = [interface_name]
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
-      implements.append('List<' + element_type + '>')
+      implements.append('List<%s>' % DartType(element_type))
 
     self._members_emitter = self._dart_code.Emit(
         self._template,
@@ -175,10 +175,10 @@ class FrogInterfaceGenerator(object):
     return type_name
 
   def _NarrowInputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
+    return self._NarrowToImplementationType(DartType(type_name))
 
   def _NarrowOutputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
+    return self._NarrowToImplementationType(DartType(type_name))
 
   def AddConstant(self, constant):
     # Since we are currently generating native classes without interfaces,
@@ -186,7 +186,7 @@ class FrogInterfaceGenerator(object):
     # if we revert back to generating interfaces.
     self._members_emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
                                NAME=constant.id,
-                               TYPE=constant.type.id,
+                               TYPE=DartType(constant.type.id),
                                VALUE=constant.value)
 
     pass
@@ -211,7 +211,7 @@ class FrogInterfaceGenerator(object):
     (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
     if super_getter or super_setter:
       if getter and not setter and super_getter and not super_setter:
-        if getter.type.id == super_getter.type.id:
+        if DartType(getter.type.id) == DartType(super_getter.type.id):
           # Compatible getter, use the superclass property.  This works because
           # JavaScript will do its own dynamic dispatch.
           self._members_emitter.Emit(
@@ -332,7 +332,7 @@ class FrogInterfaceGenerator(object):
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
     template = self._system._templates.Load(template_file)
-    self._members_emitter.Emit(template, E=element_type)
+    self._members_emitter.Emit(template, E=DartType(element_type))
 
 
   def AddTypedArrayConstructors(self, element_type):
@@ -346,7 +346,7 @@ class FrogInterfaceGenerator(object):
         '\n'
         '  static _construct_$CTOR(arg) native \'return new $CTOR(arg);\';\n',
         CTOR=self._interface.id,
-        TYPE=element_type)
+        TYPE=DartType(element_type))
 
 
   def AddOperation(self, info):

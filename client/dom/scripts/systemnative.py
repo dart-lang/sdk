@@ -401,7 +401,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       self._AddSetter(setter)
 
   def _AddGetter(self, attr):
-    dart_declaration = '%s get %s()' % (attr.type.id, attr.id)
+    type_info = GetIDLTypeInfo(attr.type)
+    dart_declaration = '%s get %s()' % (type_info.dart_type(), attr.id)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -438,7 +439,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         raises_dom_exceptions=attr.get_raises)
 
   def _AddSetter(self, attr):
-    dart_declaration = 'void set %s(%s)' % (attr.id, attr.type.id)
+    type_info = GetIDLTypeInfo(attr.type)
+    dart_declaration = 'void set %s(%s)' % (attr.id, type_info.dart_type())
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, 'Setter', is_custom)

@@ -512,7 +512,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       # TODO(vsm): Remove source_filter.
       if MatchSourceFilter(self._source_filter, parent):
         # Parent is a DOM type.
-        extends.append(parent.type.id)
+        extends.append(DartType(parent.type.id))
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
@@ -549,7 +549,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
           '\n'
           '  $CTOR.fromBuffer(ArrayBuffer buffer);\n',
         CTOR=self._interface.id,
-        TYPE=element_type)
+        TYPE=DartType(element_type))
 
   def AddAttribute(self, getter, setter):
     if getter and not self._system._AllowInHtmlLibrary(self._interface,
@@ -560,13 +560,13 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
       setter = None
     if not getter and not setter:
       return
-    if getter and setter and getter.type.id == setter.type.id:
+    if getter and setter and DartType(getter.type.id) == DartType(setter.type.id):
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=getter.type.id);
+                                 NAME=getter.id, TYPE=DartType(getter.type.id));
       return
     if getter and not setter:
       self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=getter.type.id);
+                                 NAME=getter.id, TYPE=DartType(getter.type.id));
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))
@@ -661,7 +661,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     implements = [interface_name]
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
-      implements.append('List<' + element_type + '>')
+      implements.append('List<%s>' % DartType(element_type))
 
     self._members_emitter = self._dart_code.Emit(
         self._template,
@@ -1040,7 +1040,7 @@ class WrappingInterfaceGenerator(object):
           '  $TYPE operator[](int index) {\n'
           '    return item(index);\n'
           '  }\n',
-          TYPE=element_type)
+          TYPE=DartType(element_type))
 
     if self._HasNativeIndexSetter(self._interface):
       self._EmitNativeIndexSetter(self._interface, element_type)
