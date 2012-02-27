@@ -43,6 +43,8 @@ class Value : public Computation {
  public:
   Value() { }
 
+  virtual bool IsConstant() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
@@ -159,6 +161,8 @@ class ConstantValue: public Value {
   explicit ConstantValue(const Instance& instance) : instance_(instance) {
     ASSERT(instance.IsZoneHandle());
   }
+
+  virtual bool IsConstant() const { return true; }
 
   virtual void Print() const;
 

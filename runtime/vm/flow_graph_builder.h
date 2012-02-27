@@ -93,6 +93,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   StoreLocalComp* TranslateStoreLocal(const StoreLocalNode& node);
   StaticCallComp* TranslateStaticCall(const StaticCallNode& node);
   InstanceCallComp* TranslateInstanceCall(const InstanceCallNode& node);
+  void TranslateArgumentList(const ArgumentListNode& node,
+                             ZoneGrowableArray<Value*>* values);
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }

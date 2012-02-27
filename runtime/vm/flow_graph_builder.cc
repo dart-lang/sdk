@@ -595,22 +595,32 @@ void TestGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 }
 
 
+void EffectGraphVisitor::TranslateArgumentList(
+    const ArgumentListNode& node, ZoneGrowableArray<Value*>* values) {
+  int index = temp_index();
+  for (intptr_t i = 0; i < node.length(); ++i) {
+    ValueGraphVisitor for_value(owner(), index);
+    node.NodeAt(i)->Visit(&for_value);
+    Append(for_value);
+    CHECK_ALIVE(return);
+    Value* argument_value = for_value.value();
+    index = for_value.temp_index();
+    if (argument_value->IsConstant()) {
+      AddInstruction(new BindInstr(index, argument_value));
+      argument_value = new TempValue(index++);
+    }
+    values->Add(argument_value);
+  }
+}
+
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 StaticCallComp* EffectGraphVisitor::TranslateStaticCall(
     const StaticCallNode& node) {
-  ArgumentListNode* arguments = node.arguments();
-  int length = arguments->length();
+  int length = node.arguments()->length();
   ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length);
-  int index = temp_index();
-  for (intptr_t i = 0; i < length; ++i) {
-    ValueGraphVisitor for_value(owner(), index);
-    arguments->NodeAt(i)->Visit(&for_value);
-    Append(for_value);
-    CHECK_ALIVE(return NULL);
-    values->Add(for_value.value());
-    index = for_value.temp_index();
-  }
+  TranslateArgumentList(*node.arguments(), values);
+  CHECK_ALIVE(return NULL);
   return new StaticCallComp(node.function(), values);
 }
 
