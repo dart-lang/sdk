@@ -1748,9 +1748,7 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Find out which dispatch stub to call.
   Label ic_cache_one_arg;
   __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
-  const Immediate value =
-      Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
-  __ cmpl(EBX, value);
+  __ cmpl(EBX, Immediate(1));
   __ j(EQUAL, &ic_cache_one_arg, Assembler::kNearJump);
   __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
   __ Bind(&ic_cache_one_arg);

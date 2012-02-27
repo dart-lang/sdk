@@ -229,7 +229,9 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
   *num_named_arguments = call.named_argument_count();
   *target = call.target();
   const ICData& ic_data = ICData::Handle(call.ic_data());
-  *function_name = ic_data.target_name();
+  if (function_name != NULL) {
+    *function_name = ic_data.target_name();
+  }
 }
 
 
