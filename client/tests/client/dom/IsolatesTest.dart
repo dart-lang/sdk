@@ -2,6 +2,7 @@
 #import('../../../testing/unittest/unittest.dart');
 #import('dart:dom');
 #import('dart:json');
+#import('dart:isolate');
 
 class PingPongIsolate extends Isolate {
   PingPongIsolate() : super.heavy();

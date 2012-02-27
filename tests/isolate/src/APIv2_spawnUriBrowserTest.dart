@@ -6,6 +6,7 @@
 #library('spawn_tests');
 #import("../../../client/testing/unittest/unittest.dart");
 #import("dart:dom"); // import added so test.dart can treat this as a webtest.
+#import('dart:isolate');
 
 main() {
   asyncTest("isolate fromUri - send and reply ", 1, () {

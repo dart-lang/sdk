@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(sigmund): this file should be removed when the dart code generation
+// backend is deleted.
+
 var isolate$current = null;
 var isolate$rootIsolate = null;  // Will only be set in the main worker.
 var isolate$inits = [];

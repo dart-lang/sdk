@@ -1468,6 +1468,7 @@ UNIT_TEST_CASE(PostCObject) {
   // Create a native port for posting from C to Dart
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
+      "#import('dart:isolate');\n"
       "void main() {\n"
       "  var messageCount = 0;\n"
       "  var exception = '';\n"

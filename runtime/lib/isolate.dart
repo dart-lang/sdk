@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ReceivePortFactory {
+class _ReceivePortFactory {
   factory ReceivePort() {
-    return new ReceivePortImpl();
+    return new _ReceivePortImpl();
   }
 
   factory ReceivePort.singleShot() {
-    return new ReceivePortSingleShotImpl();
+    return new _ReceivePortSingleShotImpl();
   }
 }
 
 
-class ReceivePortImpl implements ReceivePort {
+class _ReceivePortImpl implements ReceivePort {
   /*--- public interface ---*/
-  factory ReceivePortImpl() native "ReceivePortImpl_factory";
+  factory _ReceivePortImpl() native "ReceivePortImpl_factory";
 
   receive(void onMessage(var message, SendPort replyTo)) {
     _onMessage = onMessage;
@@ -27,21 +27,21 @@ class ReceivePortImpl implements ReceivePort {
   }
 
   SendPort toSendPort() {
-    return new SendPortImpl(_id);
+    return new _SendPortImpl(_id);
   }
 
   /**** Internal implementation details ****/
   // Called from the VM to create a new ReceivePort instance.
-  static ReceivePortImpl _get_or_create(int id) {
+  static _ReceivePortImpl _get_or_create(int id) {
     if (_portMap !== null) {
-      ReceivePortImpl port = _portMap[id];
+      _ReceivePortImpl port = _portMap[id];
       if (port !== null) {
         return port;
       }
     }
-    return new ReceivePortImpl._internal(id);
+    return new _ReceivePortImpl._internal(id);
   }
-  ReceivePortImpl._internal(int id) : _id = id {
+  _ReceivePortImpl._internal(int id) : _id = id {
     if (_portMap === null) {
       _portMap = new Map();
     }
@@ -52,7 +52,7 @@ class ReceivePortImpl implements ReceivePort {
   static void _handleMessage(int id, int replyId, var message) {
     assert(_portMap !== null);
     ReceivePort port = _portMap[id];
-    SendPort replyTo = (replyId == 0) ? null : new SendPortImpl(replyId);
+    SendPort replyTo = (replyId == 0) ? null : new _SendPortImpl(replyId);
     (port._onMessage)(message, replyTo);
   }
 
@@ -67,9 +67,9 @@ class ReceivePortImpl implements ReceivePort {
 }
 
 
-class ReceivePortSingleShotImpl implements ReceivePort {
+class _ReceivePortSingleShotImpl implements ReceivePort {
 
-  ReceivePortSingleShotImpl() : _port = new ReceivePortImpl() { }
+  _ReceivePortSingleShotImpl() : _port = new _ReceivePortImpl() { }
 
   void receive(void callback(var message, SendPort replyTo)) {
     _port.receive((var message, SendPort replyTo) {
@@ -86,12 +86,12 @@ class ReceivePortSingleShotImpl implements ReceivePort {
     return _port.toSendPort();
   }
 
-  final ReceivePortImpl _port;
+  final _ReceivePortImpl _port;
 
 }
 
 
-class SendPortImpl implements SendPort {
+class _SendPortImpl implements SendPort {
   /*--- public interface ---*/
   void send(var message, [SendPort replyTo = null]) {
     this._sendNow(message, replyTo);
@@ -102,20 +102,20 @@ class SendPortImpl implements SendPort {
     _sendInternal(_id, replyId, message);
   }
 
-  ReceivePortSingleShotImpl call(var message) {
-    final result = new ReceivePortSingleShotImpl();
+  _ReceivePortSingleShotImpl call(var message) {
+    final result = new _ReceivePortSingleShotImpl();
     this.send(message, result.toSendPort());
     return result;
   }
 
-  ReceivePortSingleShotImpl _callNow(var message) {
-    final result = new ReceivePortSingleShotImpl();
+  _ReceivePortSingleShotImpl _callNow(var message) {
+    final result = new _ReceivePortSingleShotImpl();
     this._sendNow(message, result.toSendPort());
     return result;
   }
 
   bool operator==(var other) {
-    return (other is SendPortImpl) && _id == other._id;
+    return (other is _SendPortImpl) && _id == other._id;
   }
 
   int hashCode() {
@@ -123,12 +123,12 @@ class SendPortImpl implements SendPort {
   }
 
   /*--- private implementation ---*/
-  const SendPortImpl(int id) : _id = id;
+  const _SendPortImpl(int id) : _id = id;
 
-  // SendPortImpl._create is called from the VM when a new SendPort instance is
+  // _SendPortImpl._create is called from the VM when a new SendPort instance is
   // needed by the VM code.
   static SendPort _create(int id) {
-    return new SendPortImpl(id);
+    return new _SendPortImpl(id);
   }
 
   // Forward the implementation of sending messages to the VM. Only port ids
@@ -139,8 +139,7 @@ class SendPortImpl implements SendPort {
   final int _id;
 }
 
-
-class IsolateNatives {
+class _IsolateNatives {
   static Future<SendPort> spawn(Isolate isolate, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
     SendPort port = _start(isolate, isLight);
@@ -154,4 +153,15 @@ class IsolateNatives {
   // This method is being dispatched to from the public core library code.
   static SendPort _start(Isolate isolate, bool light)
       native "IsolateNatives_start";
+}
+
+class _IsolateFactory {
+
+  factory Isolate2.fromCode(Function topLevelFunction) {
+    throw new NotImplementedException();
+  }
+
+  factory Isolate2.fromUri(String uri) {
+    throw new NotImplementedException();
+  }
 }

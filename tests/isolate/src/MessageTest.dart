@@ -6,6 +6,7 @@
 // VMOptions=--enable_type_checks --enable_asserts
 
 #library('MessageTest');
+#import("dart:isolate");
 #import("TestFramework.dart");
 
 // ---------------------------------------------------------------------------

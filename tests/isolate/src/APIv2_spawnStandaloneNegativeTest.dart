@@ -4,6 +4,7 @@
 
 // Negative test to make sure that we are reaching all assertions.
 #library('spawn_tests');
+#import('dart:isolate');
 
 child(ReceivePort port) {
   port.receive((msg, reply) => reply.send("re: $msg"));

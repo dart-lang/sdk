@@ -4,6 +4,7 @@
 
 // example of spawning an isolate from a closure
 #library('spawn_tests');
+#import('dart:isolate');
 
 child(ReceivePort port) {
   port.receive((msg, reply) => reply.send("re: $msg"));

@@ -4,6 +4,7 @@
 // Testing file input stream, VM-only, standalone test.
 
 #import("dart:io");
+#import("dart:isolate");
 
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.

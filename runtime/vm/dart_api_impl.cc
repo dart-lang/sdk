@@ -759,14 +759,17 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const String& class_name = String::Handle(String::NewSymbol("SendPortImpl"));
+  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
+  const String& class_name =
+      String::Handle(isolate_lib.PrivateName("_SendPortImpl"));
   const String& function_name = String::Handle(String::NewSymbol("_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   // TODO(turnidge): Consider adding a helper function to make
   // function resolution by class name and function name more concise.
   const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+      Resolver::ResolveStatic(isolate_lib,
                               class_name,
                               function_name,
                               kNumArguments,
@@ -783,14 +786,16 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id) {
 DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
   const String& class_name =
-      String::Handle(String::NewSymbol("ReceivePortImpl"));
+      String::Handle(isolate_lib.PrivateName("_ReceivePortImpl"));
   const String& function_name =
       String::Handle(String::NewSymbol("_get_or_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+      Resolver::ResolveStatic(isolate_lib,
                               class_name,
                               function_name,
                               kNumArguments,

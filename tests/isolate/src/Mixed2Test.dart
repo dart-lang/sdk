@@ -5,6 +5,7 @@
 // Dart test program for testing that heavy and light isolates can be mixed.
 
 #library('Mixed2Test');
+#import("dart:isolate");
 #import('TestFramework.dart');
 
 // We want to send a message from the main-isolate to a chain of different

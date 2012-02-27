@@ -5,6 +5,9 @@
 prefix co19
 
 [ $component == dartc ]
+LibTest/core/Isolate/*: Skip # missing #import("dart:isolate") (co19 issue #80)
+LibTest/core/SendPort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
+LibTest/core/ReceivePort/*: Skip # missing #import("dart:isolate") (co19 issue #80)
 
 
 # Marked failed after code generation removed from dartc

@@ -9,17 +9,12 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 
-static void SetupCorelibImports(Dart_Handle builtin_lib) {
-  // Lookup the core libraries and import the builtin library into them.
-  Dart_Handle url = Dart_NewString(DartUtils::kCoreLibURL);
-  Dart_Handle core_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(core_lib);
-  DART_CHECK_VALID(Dart_LibraryImportLibrary(core_lib, builtin_lib));
-
-  url = Dart_NewString(DartUtils::kCoreImplLibURL);
-  Dart_Handle coreimpl_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(coreimpl_lib);
-  DART_CHECK_VALID(Dart_LibraryImportLibrary(coreimpl_lib, builtin_lib));
+static void ImportBuiltinLibIntoLib(
+    const char* liburl, Dart_Handle builtin_lib) {
+  Dart_Handle url = Dart_NewString(liburl);
+  Dart_Handle lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(lib);
+  DART_CHECK_VALID(Dart_LibraryImportLibrary(lib, builtin_lib));
 }
 
 
@@ -53,8 +48,10 @@ void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
     // No native resolver for these pure Dart libraries.
     return;
   } else if (id == kBuiltinLibrary) {
-    // Setup core lib, builtin import structure.
-    SetupCorelibImports(library);
+    // Import the builtin library into the core and isolate libraries.
+    ImportBuiltinLibIntoLib(DartUtils::kCoreLibURL, library);
+    ImportBuiltinLibIntoLib(DartUtils::kCoreImplLibURL, library);
+    ImportBuiltinLibIntoLib(DartUtils::kIsolateLibURL, library);
   }
   // Setup the native resolver for built in library functions.
   DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));

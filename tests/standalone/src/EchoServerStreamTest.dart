@@ -11,6 +11,7 @@
 
 #library("EchoServerStreamTest");
 #import("dart:io");
+#import("dart:isolate");
 #source("TestingServer.dart");
 
 class EchoServerGame {

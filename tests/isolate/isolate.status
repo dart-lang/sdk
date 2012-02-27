@@ -8,10 +8,11 @@ prefix isolate
 Isolate2NegativeTest: Skip  # Need to resolve correct behaviour.
 
 [ $component == dartium || $component == vm ]
-SerializationTest: Skip  # DartC test (uses coreimpl).
+SerializationTest: Skip  # tests frog-specific serialization code
 *APIv2*: Skip # new api for isolates not implemented in the VM yet.
 
 [ $component == dartc ]
+SerializationTest: Skip  # tests frog-specific serialization code
 IsolateNegativeTest: Fail    # status change with --check-only
 Isolate2NegativeTest: Fail   # status change with --check-only
 *APIv2*: Skip # new api for isolates not in corelib yet.

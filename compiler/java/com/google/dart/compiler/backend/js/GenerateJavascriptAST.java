@@ -572,9 +572,7 @@ public class GenerateJavascriptAST {
     }
 
     private boolean isIsolateClass(ClassElement classElement) {
-      InterfaceType classType = classElement.getType();
-      return TypeKind.of(classType) == TypeKind.INTERFACE
-          && typeUtils.isSubtype(classType, typeProvider.getIsolateType());
+      return false;
     }
 
     /**

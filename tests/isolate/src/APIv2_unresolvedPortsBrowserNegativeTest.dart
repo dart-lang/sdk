@@ -4,8 +4,9 @@
 
 // negative test to ensure that APIv2_unresolvedPortsBrowserTest works.
 #library('unresolved_ports');
-#import("../../../client/testing/unittest/unittest.dart");
 #import("dart:dom"); // import added so test.dart can treat this as a webtest.
+#import('dart:isolate');
+#import("../../../client/testing/unittest/unittest.dart");
 
 // This is similar as SpawnFromCodeAPIv2Test but using 'unittest.dart' so it can
 // run to completion in browsers.

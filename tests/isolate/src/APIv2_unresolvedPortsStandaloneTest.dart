@@ -4,6 +4,7 @@
 
 // spawns multiple isolates and sends unresolved ports between them.
 #library('unresolved_ports');
+#import('dart:isolate');
 
 // This test does the following:
 //  - main spawns two isolates: 'tim' and 'beth'

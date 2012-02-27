@@ -663,6 +663,15 @@ RawError* Object::Init(Isolate* isolate) {
     return error.raw();
   }
 
+  const Script& isolate_script = Script::Handle(Bootstrap::LoadIsolateScript());
+  Library::InitIsolateLibrary(isolate);
+  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
+  error = Bootstrap::Compile(isolate_lib, isolate_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+
   Bootstrap::SetupNativeResolver();
 
   // Remove the Object superclass cycle by setting the super type to null (not
@@ -4627,6 +4636,14 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 }
 
 
+void Library::InitIsolateLibrary(Isolate* isolate) {
+  const String& url = String::Handle(String::NewSymbol("dart:isolate"));
+  const Library& lib = Library::Handle(Library::New(url));
+  lib.Register();
+  isolate->object_store()->set_isolate_library(lib);
+}
+
+
 void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
@@ -4731,6 +4748,11 @@ RawLibrary* Library::CoreLibrary() {
 
 RawLibrary* Library::CoreImplLibrary() {
   return Isolate::Current()->object_store()->core_impl_library();
+}
+
+
+RawLibrary* Library::IsolateLibrary() {
+  return Isolate::Current()->object_store()->isolate_library();
 }
 
 

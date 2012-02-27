@@ -9,6 +9,7 @@
 
 #library("StreamPipeTest");
 #import("dart:io");
+#import("dart:isolate");
 #source("TestingServer.dart");
 
 // Helper method to be able to run the test from the runtime

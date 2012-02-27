@@ -188,6 +188,7 @@ class Dartdoc {
           world.getOrAddLibrary('dart:core');
           world.getOrAddLibrary('dart:coreimpl');
           world.getOrAddLibrary('dart:json');
+          world.getOrAddLibrary('dart:isolate');
           world.process();
           break;
 
@@ -196,6 +197,7 @@ class Dartdoc {
           world.getOrAddLibrary('dart:coreimpl');
           world.getOrAddLibrary('dart:json');
           world.getOrAddLibrary('dart:dom');
+          world.getOrAddLibrary('dart:isolate');
           world.process();
           break;
 
@@ -205,6 +207,7 @@ class Dartdoc {
           world.getOrAddLibrary('dart:json');
           world.getOrAddLibrary('dart:dom');
           world.getOrAddLibrary('dart:html');
+          world.getOrAddLibrary('dart:isolate');
           world.process();
           break;
 

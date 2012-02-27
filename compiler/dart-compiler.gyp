@@ -11,6 +11,7 @@
     'domlib_sources.gypi',
     'htmllib_sources.gypi',
     'jsonlib_sources.gypi',
+    'isolatelib_sources.gypi',
   ],
   'targets': [
     {
@@ -95,6 +96,9 @@
             'jsonlib_sources.gypi',
             '<@(jsonlib_sources)',
             '<@(jsonlib_resources)',
+            'isolatelib_sources.gypi',
+            '<@(isolatelib_sources)',
+            '<@(isolatelib_resources)',
           ],
           'outputs': [
             '<(INTERMEDIATE_DIR)/<(_target_name)/syslib.stamp',
@@ -102,6 +106,7 @@
             '<(INTERMEDIATE_DIR)/<(_target_name)/domlib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/htmllib.jar.stamp',
             '<(INTERMEDIATE_DIR)/<(_target_name)/jsonlib.jar.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/isolatelib.jar.stamp',
           ],
           'action': [
             '../third_party/apache_ant/v1_7_1/bin/ant',
@@ -125,6 +130,7 @@
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/dom/dom/dom.dart.deps',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/html/html/html.dart.deps',
             '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json/json/json.dart.deps',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/isolate/isolate/isolate_compiler.dart.deps',
           ],
           'action': [
             '<(PRODUCT_DIR)/dartc', 'api.dart',
@@ -191,6 +197,22 @@
           ],
           'action': [
             'jar', 'u0f', '<(PRODUCT_DIR)/compiler/lib/jsonlib.jar', '-C', '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/json', 'json',
+          ],
+        },
+        {
+          'message': 'Packaging dart:isolate artifacts',
+          'action_name': 'package_isolatelib_artifacts',
+          'inputs': [
+            '<(INTERMEDIATE_DIR)/<(_target_name)/isolatelib.jar.stamp',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/isolate/isolate/isolate_compiler.dart.deps',
+            'api.dart',
+          ],
+          'outputs': [
+            '<(PRODUCT_DIR)/compiler/lib/isolatelib.jar',
+          ],
+          'action': [
+            'jar', 'u0f', '<(PRODUCT_DIR)/compiler/lib/isolatelib.jar', '-C',
+            '<(INTERMEDIATE_DIR)/<(_target_name)/api/dart/isolate', 'isolate',
           ],
         },
       ],

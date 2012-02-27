@@ -11,6 +11,7 @@
 
 #library("EchoServerTest");
 #import("dart:io");
+#import("dart:isolate");
 #source("TestingServer.dart");
 
 class EchoServerTest {

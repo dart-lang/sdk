@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:io");
+#import("dart:isolate");
 
 void test1() {
   void testWithChunkSize(var data, int chunkSize, Function testDone) {

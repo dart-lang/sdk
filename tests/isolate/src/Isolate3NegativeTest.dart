@@ -6,7 +6,8 @@
 // processed correctly and don't result in crashes.
 
 #library('Isolate3NegativeTest');
-#import("TestFramework.dart");
+#import('dart:isolate');
+#import('TestFramework.dart');
 
 class TestClass {
   TestClass.named(num this.fld1) : fld2=fld1 {

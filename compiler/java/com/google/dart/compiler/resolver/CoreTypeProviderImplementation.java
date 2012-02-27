@@ -30,7 +30,6 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   private final InterfaceType mapLiteralType;
   private final InterfaceType objectArrayType;
   private final InterfaceType objectType;
-  private final InterfaceType isolateType;
   private final InterfaceType stringImplementation;
   private final InterfaceType iteratorType;
 
@@ -51,7 +50,6 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     this.mapLiteralType = getType("LinkedHashMapImplementation", scope, listener);
     this.objectArrayType = getType(new String[] {"ListImplementation", "GrowableObjectArray"}, scope, listener);
     this.objectType = getType("Object", scope, listener);
-    this.isolateType = getType("Isolate", scope, listener);
     this.stringImplementation = getType(new String[] {"StringImplementation", "OneByteString"}, scope, listener);
     iteratorType = getType("Iterator", scope, listener);
   }
@@ -170,11 +168,6 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
   @Override
   public InterfaceType getStringImplementationType() {
     return stringImplementation;
-  }
-
-  @Override
-  public InterfaceType getIsolateType() {
-    return isolateType;
   }
 
   @Override

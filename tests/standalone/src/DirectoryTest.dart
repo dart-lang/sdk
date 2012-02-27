@@ -5,6 +5,7 @@
 // Directory listing test.
 
 #import("dart:io");
+#import("dart:isolate");
 
 class DirectoryTest {
   static void testListing() {

@@ -202,14 +202,16 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
 RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
                                            Dart_Port reply_port_id,
                                            const Instance& message) {
+  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
   const String& class_name =
-      String::Handle(String::NewSymbol("ReceivePortImpl"));
+      String::Handle(isolate_lib.PrivateName("_ReceivePortImpl"));
   const String& function_name =
       String::Handle(String::NewSymbol("_handleMessage"));
   const int kNumArguments = 3;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+      Resolver::ResolveStatic(isolate_lib,
                               class_name,
                               function_name,
                               kNumArguments,

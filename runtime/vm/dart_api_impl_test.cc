@@ -3425,6 +3425,7 @@ UNIT_TEST_CASE(NewNativePort) {
 
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
+      "#import('dart:isolate');\n"
       "void callPort(SendPort port) {\n"
       "    port.call(null).receive((message, replyTo) {\n"
       "      throw new Exception(message);\n"
@@ -3481,6 +3482,7 @@ static bool RunLoopTestCallback(const char* name_prefix,
                                 void* data, char** error) {
   const char* kScriptChars =
       "#import('builtin');\n"
+      "#import('dart:isolate');\n"
       "class MyIsolate extends Isolate {\n"
       "  MyIsolate() : super() { }\n"
       "  void main() {\n"

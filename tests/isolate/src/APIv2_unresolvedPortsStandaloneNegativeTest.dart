@@ -5,6 +5,7 @@
 // A negative test to ensure we are covering all the assertions and running to
 // completion APIv2_unresolvedPortsStandaloneTest.
 #library('unresolved_ports');
+#import('dart:isolate');
 
 bethIsolate(ReceivePort port) {
   port.receive((msg, reply) => msg[1].send(

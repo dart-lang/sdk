@@ -6,6 +6,7 @@
 // other than the main isolate.
 
 #library('CrossIsolateMessageTest');
+#import('dart:isolate');
 #import('TestFramework.dart');
 
 class CrossIsolate1 extends Isolate {

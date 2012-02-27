@@ -7,5 +7,6 @@
 // concatenation.
 
 #library("io");
-#import("dart:nativewrappers");
 #import("dart:coreimpl");
+#import("dart:isolate");
+#import("dart:nativewrappers");

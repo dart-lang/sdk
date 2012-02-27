@@ -5,6 +5,9 @@
 // typed objects.
 // VMOptions=--enable_type_checks --enable_asserts
 
+#library("TypedMessageTest");
+#import("dart:isolate");
+
 class TypedMessageTest {
   static void testMain() {
     LogClient.test();

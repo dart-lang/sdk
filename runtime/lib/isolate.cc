@@ -83,14 +83,16 @@ static void ThrowErrorException(Exceptions::ExceptionType type,
 
 // TODO(turnidge): Move to DartLibraryCalls.
 RawObject* ReceivePortCreate(intptr_t port_id) {
+  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
   const String& class_name =
-      String::Handle(String::NewSymbol("ReceivePortImpl"));
+      String::Handle(isolate_lib.PrivateName("_ReceivePortImpl"));
   const String& function_name =
       String::Handle(String::NewSymbol("_get_or_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+      Resolver::ResolveStatic(isolate_lib,
                               class_name,
                               function_name,
                               kNumArguments,
@@ -109,12 +111,15 @@ RawObject* ReceivePortCreate(intptr_t port_id) {
 
 // TODO(turnidge): Move to DartLibraryCalls.
 static RawObject* SendPortCreate(intptr_t port_id) {
-  const String& class_name = String::Handle(String::NewSymbol("SendPortImpl"));
+  Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
+  const String& class_name =
+      String::Handle(isolate_lib.PrivateName("_SendPortImpl"));
   const String& function_name = String::Handle(String::NewSymbol("_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
-      Resolver::ResolveStatic(Library::Handle(Library::CoreLibrary()),
+      Resolver::ResolveStatic(isolate_lib,
                               class_name,
                               function_name,
                               kNumArguments,

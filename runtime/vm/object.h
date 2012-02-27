@@ -1748,8 +1748,10 @@ class Library : public Object {
   static bool IsKeyUsed(intptr_t key);
 
   static void InitCoreLibrary(Isolate* isolate);
+  static void InitIsolateLibrary(Isolate* isolate);
   static RawLibrary* CoreLibrary();
   static RawLibrary* CoreImplLibrary();
+  static RawLibrary* IsolateLibrary();
   static void InitNativeWrappersLibrary(Isolate* isolate);
   static RawLibrary* NativeWrappersLibrary();
 

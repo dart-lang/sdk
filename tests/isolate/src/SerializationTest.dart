@@ -9,21 +9,12 @@
 // Serialization test.
 // ---------------------------------------------------------------------------
 #library('SerializationTest');
-#import("dart:coreimpl");
+#import('dart:isolate');
 
 main() {
-  testAllTypes(copy);
-  testAllTypes(serialize);
-}
-
-copy(x) {
-  return new Copier().traverse(x);
-}
-
-serialize(x) {
-  Serializer serializer = new Serializer();
-  Deserializer deserializer = new Deserializer();
-  return deserializer.deserialize(serializer.traverse(x));
+  // TODO(sigmund): fix once we can disable privacy for testing (bug #1882)
+  testAllTypes(TestingOnly.copy);
+  testAllTypes(TestingOnly.serialize);
 }
 
 void testAllTypes(Function f) {

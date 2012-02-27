@@ -24,6 +24,7 @@ UNIT_TEST_CASE(IsolateCurrent) {
 // not loaded into the isolate).
 TEST_CASE(IsolateSpawn) {
   const char* kScriptChars =
+      "#import('dart:isolate');\n"
       "class SpawnNewIsolate extends Isolate {\n"
       "  SpawnNewIsolate() : super() { }\n"
       "  void main() {\n"

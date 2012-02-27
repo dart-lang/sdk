@@ -28,6 +28,9 @@
 # ......coreimpl/
 # ........coreimpl_{frog, runtime}.dart
 # ........{frog, runtime}/ 
+# ......isolate/
+# ........isolate_{frog, runtime}.dart
+# ........{frog, runtime}/ 
 # ......dom/
 # ........dom.dart
 # ......frog/
@@ -270,6 +273,10 @@ def Main(argv):
     for filename in os.listdir(src_dir):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
+  
+  # Create and populate lib/isolate
+  copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
+           ignore=ignore_patterns('.svn'))
 
   #
   # Create and populate lib/core.

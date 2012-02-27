@@ -6,6 +6,7 @@
 
 #library("SocketManyConnectionsTest");
 #import("dart:io");
+#import("dart:isolate");
 #source("TestingServer.dart");
 
 final CONNECTIONS = 200;

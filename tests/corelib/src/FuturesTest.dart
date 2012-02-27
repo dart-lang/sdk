@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library("FuturesTest");
+#import("dart:isolate");
+
 Future testWaitEmpty() {
   List<Future> futures = new List<Future>();
   return Futures.wait(futures);

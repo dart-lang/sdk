@@ -5,6 +5,7 @@
 // Dart test program for testing file I/O.
 
 #import("dart:io");
+#import("dart:isolate");
 
 class MyListOfOneElement implements List {
   int _value;

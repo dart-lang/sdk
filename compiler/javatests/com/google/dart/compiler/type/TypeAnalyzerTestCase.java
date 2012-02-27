@@ -93,11 +93,6 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
     }
 
     @Override
-    public InterfaceType getIsolateType() {
-      throw new AssertionError();
-    }
-
-    @Override
     public InterfaceType getIteratorType(Type elementType) {
       InterfaceType iteratorType = iterElement.getType();
       return iteratorType.subst(Arrays.asList(elementType), iterElement.getTypeParameters());

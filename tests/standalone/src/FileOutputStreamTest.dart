@@ -4,6 +4,7 @@
 // Testing file input stream, VM-only, standalone test.
 
 #import("dart:io");
+#import("dart:isolate");
 
 void testOpenOutputStreamSync() {
   Directory tempDirectory = new Directory('');

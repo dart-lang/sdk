@@ -13,6 +13,11 @@ LibTest/core/List/some_A03_t01: Fail, OK
 LibTest/core/Promise/*: Fail, OK
 LibTest/core/Proxy/*: Fail, OK
 
+# missing #import("dart:isolate"), co19 issue 80
+LibTest/core/Isolate/*: Fail, OK
+LibTest/core/SendPort/*: Fail, OK
+LibTest/core/ReceivePort/*: Fail, OK
+
 
 [ $component == leg && $checked ]
 # Leg does not support checked mode yet.
