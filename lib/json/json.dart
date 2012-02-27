@@ -114,7 +114,7 @@ class JsonTokenizer {
   static final int TAB = 9;  // '\t'.charCodeAt(0)
   static final int NEW_LINE = 10;  // '\n'.charCodeAt(0)
   static final int FORM_FEED = 12;  // '\f'.charCodeAt(0)
-  static final int LINE_FEED = 13;  // '\r'.charCodeAt(0)
+  static final int CARRIAGE_RETURN = 13;  // '\r'.charCodeAt(0)
   static final int SPACE = 32;  // ' '.charCodeAt(0)
   static final int QUOTE = 34;  // '"'.charCodeAt(0)
   static final int PLUS = 43;  // '+'.charCodeAt(0)
@@ -134,8 +134,11 @@ class JsonTokenizer {
   static final int A_SMALL = 97;  // 'a'.charCodeAt(0)
   static final int B_SMALL = 98;  // 'b'.charCodeAt(0)
   static final int E_SMALL = 101;  // 'e'.charCodeAt(0)
+  static final int F_SMALL = 102;  // 'f'.charCodeAt(0)
   static final int N_SMALL = 110;  // 'n'.charCodeAt(0)
   static final int R_SMALL = 114;  // 'r'.charCodeAt(0)
+  static final int T_SMALL = 116;  // 't'.charCodeAt(0)
+  static final int U_SMALL = 117;  // 'u'.charCodeAt(0)
   static final int Z_SMALL = 122;  // 'z'.charCodeAt(0)
   static final int LBRACE = 123;  // '{'.charCodeAt(0)
   static final int RBRACE = 125;  // '}'.charCodeAt(0)
@@ -186,7 +189,7 @@ class JsonTokenizer {
                 c = NEW_LINE;
                 break;
               case 'r':
-                c = LINE_FEED;
+                c = CARRIAGE_RETURN;
                 break;
               case 'f':
                 c = FORM_FEED;
@@ -335,7 +338,7 @@ class JsonTokenizer {
 
   // TODO other kind of whitespace.
   static bool isWhitespace(int c) {
-    return c == SPACE || c == TAB || c == NEW_LINE || c == LINE_FEED;
+    return c == SPACE || c == TAB || c == NEW_LINE || c == CARRIAGE_RETURN;
   }
   static bool isDigit(int c) {
     return (ZERO <= c) && (c <= NINE);
@@ -493,32 +496,50 @@ class JsonStringifier {
     }
   }
 
-  // TODO: add others.
-  static bool _needsEscape(int charCode) {
-    return JsonTokenizer.QUOTE == charCode || JsonTokenizer.BACKSLASH == charCode
-      || JsonTokenizer.NEW_LINE == charCode || JsonTokenizer.LINE_FEED == charCode;
-  }
+  // ('0' + x) or ('a' + x - 10)
+  static int _hexDigit(int x) => x < 10 ? 48 + x : 87 + x;
 
   static void _escape(StringBuffer sb, String s) {
-    // TODO: support \u code points.
-    // TODO: use writeCodePoint when implemented.
-    // TODO: use for each if implemented.
     final int length = s.length;
     bool needsEscape = false;
     final charCodes = new List<int>();
     for (int i = 0; i < length; i++) {
       int charCode = s.charCodeAt(i);
-      if (_needsEscape(charCode)) {
-        charCodes.add(JsonTokenizer.BACKSLASH);
+      if (charCode < 32) {
         needsEscape = true;
-
-        if (JsonTokenizer.NEW_LINE == charCode) {
-          charCode = JsonTokenizer.N_SMALL;
-        } else if (JsonTokenizer.LINE_FEED == charCode) {
-          charCode = JsonTokenizer.R_SMALL;
+        charCodes.add(JsonTokenizer.BACKSLASH);
+        switch (charCode) {
+        case JsonTokenizer.BACKSPACE:
+          charCodes.add(JsonTokenizer.B_SMALL);
+          break;
+        case JsonTokenizer.TAB:
+          charCodes.add(JsonTokenizer.T_SMALL);
+          break;
+        case JsonTokenizer.NEW_LINE:
+          charCodes.add(JsonTokenizer.N_SMALL);
+          break;
+        case JsonTokenizer.FORM_FEED:
+          charCodes.add(JsonTokenizer.F_SMALL);
+          break;
+        case JsonTokenizer.CARRIAGE_RETURN:
+          charCodes.add(JsonTokenizer.R_SMALL);
+          break;
+        default:
+          charCodes.add(JsonTokenizer.U_SMALL);
+          charCodes.add(_hexDigit((charCode >> 12) & 0xf));
+          charCodes.add(_hexDigit((charCode >> 8) & 0xf));
+          charCodes.add(_hexDigit((charCode >> 4) & 0xf));
+          charCodes.add(_hexDigit(charCode & 0xf));
+          break;
         }
+      } else if (charCode == JsonTokenizer.QUOTE ||
+          charCode == JsonTokenizer.BACKSLASH) {
+        needsEscape = true;
+        charCodes.add(JsonTokenizer.BACKSLASH);
+        charCodes.add(charCode);
+      } else {
+        charCodes.add(charCode);
       }
-      charCodes.add(charCode);
     }
     sb.add(needsEscape ? new String.fromCharCodes(charCodes) : s);
   }
