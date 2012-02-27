@@ -169,7 +169,6 @@ TypedMessageTest: Fail # SyntaxError: Unexpected token this
 # Mapping of JS errors to Dart exceptions.
 Factory3Test: Fail # TypeError: Cannot call method 'prepend$1' of undefined
 MethodInvocationTest: Fail # TypeError: Cannot call method 'foo$0' of undefined
-NamedParametersPassingFalsyTest: Fail # TypeError: Object Instance of 'BoundClosure' has no method '$call$13'
 NullToStringTest: Fail # TypeError: Cannot call method 'get$toString' of undefined
 StackOverflowTest: Fail # RangeError: Maximum call stack size exceeded
 StackTraceTest: Fail # ReferenceError: stacktrace is not defined
