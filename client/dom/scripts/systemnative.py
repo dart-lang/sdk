@@ -278,6 +278,18 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     raises_dart_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
     arguments = []
     parameter_definitions_emitter = emitter.Emitter()
+    create_function = 'create'
+    if 'NamedConstructor' in self._interface.ext_attrs:
+      raises_dart_exceptions = True
+      parameter_definitions_emitter.Emit(
+            '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
+            '        if (!domWindow) {\n'
+            '            exception = Dart_NewString("Failed to fetch domWindow");\n'
+            '            goto fail;\n'
+            '        }\n'
+            '        Document* document = domWindow->document();\n')
+      arguments.append('document')
+      create_function = 'createForJSConstructor'
     if 'CallWith' in self._interface.ext_attrs:
       call_with = self._interface.ext_attrs['CallWith']
       if call_with == 'ScriptExecutionContext':
@@ -297,7 +309,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       self._GenerateParameterAdapter(parameter_definitions_emitter, arg, i - 1)
       arguments.append(arg.id)
 
-    function_expression = '%s::create' % self._interface_type_info.native_type()
+    function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
         self._interface, self._interface.ext_attrs, raises_dom_exceptions)
     self._GenerateNativeCallback(callback_name='constructorCallback',
@@ -310,8 +322,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
-    # FIXME: support NamedConstructor.
-    return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor']) & set(self._interface.ext_attrs)
+    return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
   def FinishInterface(self):
     base = self._BaseClassName(self._interface)
@@ -666,7 +677,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if include_name:
       self._cpp_impl_includes[include_name] = 1
     flags = ''
-    if (idl_argument.ext_attrs.get('Optionial') == 'DefaultIsNullString' or
+    if (idl_argument.ext_attrs.get('Optional') == 'DefaultIsNullString' or
         ('Optional' in idl_argument.ext_attrs and 'Callback' in idl_argument.ext_attrs)):
       flags = ', DartUtilities::ConvertNullToDefaultValue'
     emitter.Emit(

@@ -11,11 +11,9 @@ class FactoryProviderImplementation {
 
   static EventSource createEventSource(String scriptUrl) native "EventSource_constructor_Callback";
 
-  // TODO(antonm): support named constructors generation.
-  static HTMLAudioElement createHTMLAudioElement([String src]) { throw 'Unimplemented.'; }
+  static HTMLAudioElement createHTMLAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
 
-  // TODO(antonm): support named constructors generation.
-  static HTMLOptionElement createHTMLOptionElement([String data, String value, bool defaultSelected, bool selected]) { throw 'Unimplemented.'; }
+  static HTMLOptionElement createHTMLOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 
   static  MediaController createMediaController() native "MediaController_constructor_Callback";
 
