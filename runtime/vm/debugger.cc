@@ -5,6 +5,7 @@
 #include "vm/debugger.h"
 
 #include "vm/code_index_table.h"
+#include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
@@ -28,8 +29,8 @@ Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
     : function_(func.raw()),
       pc_desc_index_(pc_desc_index),
       pc_(0),
-      saved_bytes_(0),
       line_number_(-1),
+      is_patched_(false),
       next_(NULL) {
   Code& code = Code::Handle(func.code());
   ASSERT(!code.IsNull());  // Function must be compiled.
@@ -39,6 +40,7 @@ Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
   ASSERT(this->token_index_ > 0);
   this->pc_ = desc.PC(pc_desc_index);
   ASSERT(this->pc_ != 0);
+  this->breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
 }
 
 
@@ -72,8 +74,8 @@ void Breakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-ActivationFrame::ActivationFrame(uword pc, uword fp)
-    : pc_(pc), fp_(fp),
+ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp)
+    : pc_(pc), fp_(fp), sp_(sp),
       function_(Function::ZoneHandle()),
       token_index_(-1),
       line_number_(-1),
@@ -278,11 +280,75 @@ void StackTrace::AddActivation(ActivationFrame* frame) {
 }
 
 
+void Breakpoint::PatchCode() {
+  ASSERT(!is_patched_);
+  switch (breakpoint_kind_) {
+    case PcDescriptors::kIcCall: {
+      int num_args, num_named_args;
+      CodePatcher::GetInstanceCallAt(pc_,
+          NULL, &num_args, &num_named_args,
+          &saved_bytes_.target_address_);
+      CodePatcher::PatchInstanceCallAt(
+          pc_, StubCode::BreakpointDynamicEntryPoint());
+      break;
+    }
+    case PcDescriptors::kFuncCall: {
+      Function& func = Function::Handle();
+      CodePatcher::GetStaticCallAt(pc_, &func, &saved_bytes_.target_address_);
+      CodePatcher::PatchStaticCallAt(pc_,
+          StubCode::BreakpointStaticEntryPoint());
+      break;
+    }
+    case PcDescriptors::kReturn:
+      PatchFunctionReturn();
+      break;
+    default:
+      UNREACHABLE();
+  }
+  is_patched_ = true;
+}
+
+
+void Breakpoint::RestoreCode() {
+  ASSERT(is_patched_);
+  switch (breakpoint_kind_) {
+    case PcDescriptors::kIcCall:
+      CodePatcher::PatchInstanceCallAt(pc_, saved_bytes_.target_address_);
+      break;
+    case PcDescriptors::kFuncCall:
+      CodePatcher::PatchStaticCallAt(pc_, saved_bytes_.target_address_);
+      break;
+    case PcDescriptors::kReturn:
+      RestoreFunctionReturn();
+      break;
+    default:
+      UNREACHABLE();
+  }
+  is_patched_ = false;
+}
+
+void Breakpoint::SetActive(bool value) {
+  if (value && !is_patched_) {
+    PatchCode();
+    return;
+  }
+  if (!value && is_patched_) {
+    RestoreCode();
+  }
+}
+
+
+bool Breakpoint::IsActive() {
+  return is_patched_;
+}
+
+
 Debugger::Debugger()
     : isolate_(NULL),
       initialized_(false),
       bp_handler_(NULL),
-      breakpoints_(NULL) {
+      breakpoints_(NULL),
+      resume_action_(kContinue) {
 }
 
 
@@ -345,6 +411,37 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 }
 
 
+void Debugger::InstrumentForStepping(const Function &target_function) {
+  if (!target_function.HasCode()) {
+    Compiler::CompileFunction(target_function);
+    // If there were any errors, ignore them silently and return without
+    // adding breakpoints to target.
+    if (!target_function.HasCode()) {
+      return;
+    }
+  }
+  Code& code = Code::Handle(target_function.code());
+  ASSERT(!code.IsNull());
+  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  for (int i = 0; i < desc.Length(); i++) {
+    Breakpoint* bpt = GetBreakpoint(desc.PC(i));
+    if (bpt != NULL) {
+      // There is already a breakpoint for this address. Leave it alone.
+      continue;
+    }
+    PcDescriptors::Kind kind = desc.DescriptorKind(i);
+    if ((kind == PcDescriptors::kIcCall) ||
+        (kind == PcDescriptors::kFuncCall) ||
+        (kind == PcDescriptors::kReturn)) {
+      bpt = new Breakpoint(target_function, i);
+      bpt->set_temporary(true);
+      bpt->PatchCode();
+      RegisterBreakpoint(bpt);
+    }
+  }
+}
+
+
 // TODO(hausner): Distinguish between newly created breakpoints and
 // returning a breakpoint that already exists?
 Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
@@ -368,38 +465,18 @@ Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
     if (desc.TokenIndex(i) < token_index) {
       continue;
     }
-    PcDescriptors::Kind kind = desc.DescriptorKind(i);
-    Breakpoint* bpt = NULL;
-    if (kind == PcDescriptors::kIcCall) {
-      bpt = GetBreakpoint(desc.PC(i));
-      if (bpt != NULL) {
-        // There is an existing breakpoint at this token position.
-        break;
-      }
-      bpt = new Breakpoint(target_function, i);
-      String& func_name = String::Handle();
-      int num_args, num_named_args;
-      CodePatcher::GetInstanceCallAt(desc.PC(i),
-          &func_name, &num_args, &num_named_args, &bpt->saved_bytes_);
-      CodePatcher::PatchInstanceCallAt(
-          desc.PC(i), StubCode::BreakpointDynamicEntryPoint());
-      RegisterBreakpoint(bpt);
-    } else if (kind == PcDescriptors::kOther) {
-      if ((desc.TokenIndex(i) > 0) && CodePatcher::IsDartCall(desc.PC(i))) {
-        bpt = GetBreakpoint(desc.PC(i));
-        if (bpt != NULL) {
-          // There is an existing breakpoint at this token position.
-          break;
-        }
-        bpt = new Breakpoint(target_function, i);
-        Function& func = Function::Handle();
-        CodePatcher::GetStaticCallAt(desc.PC(i), &func, &bpt->saved_bytes_);
-        CodePatcher::PatchStaticCallAt(
-          desc.PC(i), StubCode::BreakpointStaticEntryPoint());
-        RegisterBreakpoint(bpt);
-      }
-    }
+    Breakpoint* bpt = GetBreakpoint(desc.PC(i));
     if (bpt != NULL) {
+      // Found existing breakpoint.
+      return bpt;
+    }
+    PcDescriptors::Kind kind = desc.DescriptorKind(i);
+    if ((kind == PcDescriptors::kIcCall) ||
+        (kind == PcDescriptors::kFuncCall) ||
+        (kind == PcDescriptors::kReturn)) {
+      bpt = new Breakpoint(target_function, i);
+      bpt->PatchCode();
+      RegisterBreakpoint(bpt);
       if (verbose) {
         OS::Print("Setting breakpoint at '%s' line %d  (PC %p)\n",
                   String::Handle(bpt->SourceUrl()).ToCString(),
@@ -414,18 +491,7 @@ Breakpoint* Debugger::SetBreakpoint(const Function& target_function,
 
 
 void Debugger::UnsetBreakpoint(Breakpoint* bpt) {
-  const Function& func = Function::Handle(bpt->function());
-  const Code& code = Code::Handle(func.code());
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  intptr_t desc_index = bpt->pc_desc_index();
-  ASSERT(desc_index < desc.Length());
-  ASSERT(bpt->pc() == desc.PC(desc_index));
-  PcDescriptors::Kind kind = desc.DescriptorKind(desc_index);
-  if (kind == PcDescriptors::kIcCall) {
-    CodePatcher::PatchInstanceCallAt(desc.PC(desc_index), bpt->saved_bytes_);
-  } else {
-    CodePatcher::PatchStaticCallAt(desc.PC(desc_index), bpt->saved_bytes_);
-  }
+  bpt->SetActive(false);
 }
 
 
@@ -610,7 +676,8 @@ void Debugger::BreakpointCallback() {
   Breakpoint* bpt = GetBreakpoint(frame->pc());
   ASSERT(bpt != NULL);
   if (verbose) {
-    OS::Print(">>> Breakpoint at %s:%d (Address %p)\n",
+    OS::Print(">>> %s breakpoint at %s:%d (Address %p)\n",
+        bpt->is_temporary() ? "hit temp" : "hit user",
         bpt ? String::Handle(bpt->SourceUrl()).ToCString() : "?",
         bpt ? bpt->LineNumber() : 0,
         frame->pc());
@@ -620,13 +687,66 @@ void Debugger::BreakpointCallback() {
     ASSERT(frame->IsValid());
     ASSERT(frame->IsDartFrame());
     ActivationFrame* activation =
-        new ActivationFrame(frame->pc(), frame->fp());
+        new ActivationFrame(frame->pc(), frame->fp(), frame->sp());
     stack_trace->AddActivation(activation);
     frame = iterator.NextFrame();
   }
 
+  resume_action_ = kContinue;
   if (bp_handler_ != NULL) {
     (*bp_handler_)(bpt, stack_trace);
+  }
+
+  if (resume_action_ == kContinue) {
+    RemoveTemporaryBreakpoints();
+  } else if (resume_action_ == kStepOver) {
+    Function& func = Function::Handle(bpt->function());
+    if (bpt->breakpoint_kind_ == PcDescriptors::kReturn) {
+      // If we are at the function return, do a StepOut action.
+      if (stack_trace->Length() > 1) {
+        ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
+        func = caller->DartFunction().raw();
+        RemoveTemporaryBreakpoints();
+      }
+    }
+    InstrumentForStepping(func);
+  } else if (resume_action_ == kStepInto) {
+    RemoveTemporaryBreakpoints();
+    if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
+      int num_args, num_named_args;
+      uword target;
+      CodePatcher::GetInstanceCallAt(bpt->pc_, NULL,
+          &num_args, &num_named_args, &target);
+      ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
+      Instance& receiver = Instance::Handle(
+          top_frame->GetInstanceCallReceiver(num_args));
+      Code& code = Code::Handle(
+          ResolveCompileInstanceCallTarget(isolate_, receiver));
+      if (!code.IsNull()) {
+        Function& callee = Function::Handle(code.function());
+        InstrumentForStepping(callee);
+      }
+    } else if (bpt->breakpoint_kind_ == PcDescriptors::kFuncCall) {
+      Function& callee = Function::Handle();
+      uword target;
+      CodePatcher::GetStaticCallAt(bpt->pc_, &callee, &target);
+      InstrumentForStepping(callee);
+    } else {
+      ASSERT(bpt->breakpoint_kind_ == PcDescriptors::kReturn);
+      // Treat like stepping out to caller.
+      if (stack_trace->Length() > 1) {
+        ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
+        InstrumentForStepping(caller->DartFunction());
+      }
+    }
+  } else {
+    ASSERT(resume_action_ == kStepOut);
+    // Set temporary breakpoints in the caller.
+    RemoveTemporaryBreakpoints();
+    if (stack_trace->Length() > 1) {
+      ActivationFrame* caller = stack_trace->ActivationFrameAt(1);
+      InstrumentForStepping(caller->DartFunction());
+    }
   }
 }
 
@@ -672,6 +792,28 @@ void Debugger::RemoveBreakpoint(Breakpoint* bpt) {
     curr_bpt = curr_bpt->next();
   }
   // bpt is not a registered breakpoint, nothing to do.
+}
+
+
+void Debugger::RemoveTemporaryBreakpoints() {
+  Breakpoint* prev_bpt = NULL;
+  Breakpoint* curr_bpt = breakpoints_;
+  while (curr_bpt != NULL) {
+    if (curr_bpt->is_temporary()) {
+      if (prev_bpt == NULL) {
+        breakpoints_ = breakpoints_->next();
+      } else {
+        prev_bpt->set_next(curr_bpt->next());
+      }
+      Breakpoint* temp_bpt = curr_bpt;
+      curr_bpt = curr_bpt->next();
+      UnsetBreakpoint(temp_bpt);
+      delete temp_bpt;
+    } else {
+      prev_bpt = curr_bpt;
+      curr_bpt = curr_bpt->next();
+    }
+  }
 }
 
 

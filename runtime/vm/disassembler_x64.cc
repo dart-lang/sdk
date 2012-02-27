@@ -54,7 +54,7 @@ void Disassembler::Disassemble(uword start,
 #if defined(__APPLE__)
   snprintf(cmd, sizeof(cmd),
            "( cat %1$s | "
-           "  hexdump -v -e '\".byte \" 1/1 \"0x%%02x\" \"\n\"' | "
+           "  hexdump -v -e '\".byte \" 1/1 \"0x%%02x\" \"\\n\"' | "
            "  as - -arch x86_64 -o %1$s.o ; otool -tV %1$s.o"
            ") </dev/null 2>&1", tmp);
 #else

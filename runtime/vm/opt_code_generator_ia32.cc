@@ -859,7 +859,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
         Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
     const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
     __ pushl(kOperandRegister);
-    GenerateCall(node->token_index(), &label);
+    GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
     ASSERT(kResultRegister == EAX);
     __ popl(kOperandRegister);
   } else if (info.is_temp()) {
@@ -1149,7 +1149,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
       const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
       __ pushl(kLeftRegister);
       __ pushl(kRightRegister);
-      GenerateCall(node->token_index(), &label);
+      GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
       __ movl(result_register, EAX);
       __ popl(kRightRegister);
       __ popl(kLeftRegister);
@@ -2972,7 +2972,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
       const Code& stub =
           Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
       const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
-      GenerateCall(node->token_index(), &label);
+      GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
       // EAX is double object.
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, EBX, kDeoptIntegerToDouble);
@@ -3020,7 +3020,8 @@ bool OptimizingCodeGenerator::TryInlineStaticCall(StaticCallNode* node) {
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel(),
+                 PcDescriptors::kFuncCall);
     __ Bind(&done);
     return true;
   }
@@ -3036,7 +3037,8 @@ void OptimizingCodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel(),
+                 PcDescriptors::kFuncCall);
   }
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));
   // Result is in EAX.

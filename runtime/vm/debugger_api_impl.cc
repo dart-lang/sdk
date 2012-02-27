@@ -225,6 +225,30 @@ DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
 }
 
 
+DART_EXPORT Dart_Handle Dart_SetStepOver() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  isolate->debugger()->SetStepOver();
+  return Api::True();
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetStepInto() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  isolate->debugger()->SetStepInto();
+  return Api::True();
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetStepOut() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  isolate->debugger()->SetStepOut();
+  return Api::True();
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);

@@ -1716,6 +1716,23 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 }
 
 
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
+  __ EnterFrame(0);
+  __ pushl(EAX);
+  __ CallRuntimeFromStub(kBreakpointReturnHandlerRuntimeEntry);
+  __ popl(EAX);
+  __ LeaveFrame();
+
+  // Instead of returning to the patched Dart function, emulate the
+  // smashed return code pattern and return to the function's caller.
+  __ popl(ECX);  // Discard return address to patched dart code.
+  // Execute function epilog code that was smashed in the Dart code.
+  __ LeaveFrame();
+  __ ret();
+}
+
+
 //  ECX: Inline cache data array.
 //  EDX: Arguments array.
 //  TOS(0): return address (Dart code).
@@ -1727,7 +1744,16 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ popl(EDX);
   __ popl(ECX);
   __ LeaveFrame();
-  // Now call the dynamic function.
+
+  // Find out which dispatch stub to call.
+  Label ic_cache_one_arg;
+  __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+  const Immediate value =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
+  __ cmpl(EBX, value);
+  __ j(EQUAL, &ic_cache_one_arg, Assembler::kNearJump);
+  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
+  __ Bind(&ic_cache_one_arg);
   __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
 }
 

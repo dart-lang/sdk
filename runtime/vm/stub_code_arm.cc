@@ -97,6 +97,9 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   __ Unimplemented("BreakpointStatic stub");
 }
 
+void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
+  __ Unimplemented("BreakpointReturn stub");
+}
 
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ Unimplemented("BreakpointDynamic stub");

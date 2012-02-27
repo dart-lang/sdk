@@ -201,7 +201,9 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   bool IsResultNeeded(AstNode* node) const;
 
-  void GenerateCall(intptr_t token_index, const ExternalLabel* ext_label);
+  void GenerateCall(intptr_t token_index,
+                    const ExternalLabel* ext_label,
+                    PcDescriptors::Kind desc_kind);
   void GenerateCallRuntime(intptr_t node_id,
                            intptr_t token_index,
                            const RuntimeEntry& entry);

@@ -28,6 +28,7 @@ DECLARE_RUNTIME_ENTRY(AllocateImplicitStaticClosure);
 DECLARE_RUNTIME_ENTRY(AllocateContext);
 DECLARE_RUNTIME_ENTRY(AllocateObject);
 DECLARE_RUNTIME_ENTRY(BreakpointStaticHandler);
+DECLARE_RUNTIME_ENTRY(BreakpointReturnHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointDynamicHandler);
 DECLARE_RUNTIME_ENTRY(CloneContext);
 DECLARE_RUNTIME_ENTRY(ClosureArgumentMismatch);
@@ -169,6 +170,10 @@ class CodeGenerator::DescriptorList : public ZoneAllocated {
   GrowableArray<struct PcDesc> list_;
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
+
+
+RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
+                                          const Instance& receiver);
 
 }  // namespace dart
 

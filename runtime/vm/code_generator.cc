@@ -439,8 +439,8 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 // Resolves and compiles the target function of an instance call, updates
 // function cache of the receiver's class and returns the compiled code or null.
 // Only the number of named arguments is checked, but not the actual names.
-static RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
-                                                 const Instance& receiver) {
+RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
+                                          const Instance& receiver) {
   DartFrameIterator iterator;
   DartFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -535,6 +535,16 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 1) {
       Exceptions::PropagateError(error);
     }
   }
+}
+
+
+// Gets called from debug stub when code reaches a breakpoint at a return
+// in Dart code.
+DEFINE_RUNTIME_ENTRY(BreakpointReturnHandler, 0) {
+  ASSERT(arguments.Count() ==
+         kBreakpointReturnHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->BreakpointCallback();
 }
 
 

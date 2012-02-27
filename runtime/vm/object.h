@@ -1922,6 +1922,7 @@ class PcDescriptors : public Object {
     kDeopt = 0,  // Deoptimization cotinuation point.
     kPatchCode,  // Buffer for patching code entry.
     kIcCall,     // IC call.
+    kFuncCall,   // Call to known target, e.g. static call, closure call.
     kReturn,     // Return from function.
     kOther
   };

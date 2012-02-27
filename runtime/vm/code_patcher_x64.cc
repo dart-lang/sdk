@@ -221,7 +221,6 @@ void CodePatcher::GetInstanceCallAt(uword return_address,
                                     int* num_arguments,
                                     int* num_named_arguments,
                                     uword* target) {
-  ASSERT(function_name != NULL);
   ASSERT(num_arguments != NULL);
   ASSERT(num_named_arguments != NULL);
   ASSERT(target != NULL);

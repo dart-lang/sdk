@@ -5030,6 +5030,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kDeopt: return "deopt";
     case PcDescriptors::kPatchCode: return "patch";
     case PcDescriptors::kIcCall: return "ic-call";
+    case PcDescriptors::kFuncCall: return "func-call";
     case PcDescriptors::kReturn: return "return";
     case PcDescriptors::kOther: return "other";
   }

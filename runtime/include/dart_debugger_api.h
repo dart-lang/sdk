@@ -101,6 +101,33 @@ DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
 
 
 /**
+ * Can be called from the breakpoint handler. Sets the debugger to
+ * single step mode.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_SetStepOver();
+
+
+/**
+ * Can be called from the breakpoint handler. Causes the debugger to
+ * break after at the beginning of the next function call.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_SetStepInto();
+
+
+/**
+ * Can be called from the breakpoint handler. Causes the debugger to
+ * break after returning from the current Dart function.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT Dart_Handle Dart_SetStepOut();
+
+
+/**
  * Installs a handler callback function that gets called by the VM
  * when a breakpoint has been reached.
  *

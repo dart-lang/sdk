@@ -60,15 +60,15 @@ void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
 
 TEST_CASE(Debug_Breakpoint) {
   const char* kScriptChars =
-      "void moo(s) { }\n"
-      "class A {\n"
-      "  static void foo() {\n"
-      "    moo('good news');\n"
-      "  }\n"
-      "}\n"
-      "void main() {\n"
-      "  A.foo();\n"
-      "}\n";
+      "void moo(s) { }        \n"
+      "class A {              \n"
+      "  static void foo() {  \n"
+      "    moo('good news');  \n"
+      "  }                    \n"
+      "}                      \n"
+      "void main() {          \n"
+      "  A.foo();             \n"
+      "}                      \n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(!Dart_IsError(lib));
@@ -86,6 +86,230 @@ TEST_CASE(Debug_Breakpoint) {
   EXPECT(!Dart_IsError(retval));
   EXPECT(breakpoint_hit == true);
 }
+
+
+void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+  const char* expected_bpts[] = {"f1", "foo", "main"};
+  const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(breakpoint_hit_counter < expected_bpts_length);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* name_chars;
+  Dart_StringToCString(func_name, &name_chars);
+  if (breakpoint_hit_counter < expected_bpts_length) {
+    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
+  }
+  if (verbose) {
+    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+  }
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+  Dart_SetStepOut();
+}
+
+
+TEST_CASE(Debug_StepOut) {
+  const char* kScriptChars =
+      "void f1() { return 1; }  \n"
+      "void f2() { return 2; }  \n"
+      "                         \n"
+      "void foo() {             \n"
+      "  f1();                  \n"
+      "  return f2();           \n"
+      "}                        \n"
+      "                         \n"
+      "void main() {            \n"
+      "  return foo();          \n"
+      "}                        \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&TestStepOutHandler);
+
+  // Set a breakpoint in function f1, then repeatedly step out until
+  // we get to main. We should see one breakpoint each in f1,
+  // foo, main, but not in f2.
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("f1");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(Dart_IsInteger(retval));
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(2, int_value);
+  EXPECT(breakpoint_hit == true);
+}
+
+
+void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+  const char* expected_bpts[] = {
+      "main",
+        "foo",
+          "f1",
+        "foo",
+          "X.X.",
+            "Object.Object.",
+          "X.X.",
+        "foo",
+          "X.kvmk",
+            "f2",
+          "X.kvmk",
+            "IntegerImplementation.+",
+              "IntegerImplementation.addFromInteger",
+            "IntegerImplementation.+",
+          "X.kvmk",
+        "foo",
+      "main"
+  };
+  const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(breakpoint_hit_counter < expected_bpts_length);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* name_chars;
+  Dart_StringToCString(func_name, &name_chars);
+  if (breakpoint_hit_counter < expected_bpts_length) {
+    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
+  }
+  if (verbose) {
+    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+  }
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+  Dart_SetStepInto();
+}
+
+
+TEST_CASE(Debug_StepInto) {
+  const char* kScriptChars =
+      "void f1() { return 1; }  \n"
+      "void f2() { return 2; }  \n"
+      "                         \n"
+      "class X {                \n"
+      "  kvmk(a, [b, c]) {      \n"
+      "    return c + f2();     \n"
+      "  }                      \n"
+      "}                        \n"
+      "                         \n"
+      "void foo() {             \n"
+      "  f1();                  \n"
+      "  var o = new X();       \n"
+      "  return o.kvmk(3, c:5); \n"
+      "}                        \n"
+      "                         \n"
+      "void main() {            \n"
+      "  return foo();          \n"
+      "}                        \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&TestStepIntoHandler);
+
+  // Set a breakpoint in function f1, then repeatedly step out until
+  // we get to main. We should see one breakpoint each in f1,
+  // foo, main, but not in f2.
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("main");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(Dart_IsInteger(retval));
+  int64_t int_value = 0;
+  Dart_IntegerToInt64(retval, &int_value);
+  EXPECT_EQ(7, int_value);
+  EXPECT(breakpoint_hit == true);
+}
+
+
+void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
+  const char* expected_bpts[] = {
+      "moo", "foo", "moo", "foo", "moo", "foo", "main"};
+  const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
+  intptr_t trace_len;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(breakpoint_hit_counter < expected_bpts_length);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  EXPECT_NOT_ERROR(res);
+  Dart_Handle func_name;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* name_chars;
+  Dart_StringToCString(func_name, &name_chars);
+  if (breakpoint_hit_counter < expected_bpts_length) {
+    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
+  }
+  if (verbose) {
+    printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+  }
+  breakpoint_hit = true;
+  breakpoint_hit_counter++;
+  Dart_SetStepOver();
+}
+
+
+TEST_CASE(Debug_SingleStep) {
+  const char* kScriptChars =
+      "void moo(s) { return 1; } \n"
+      "                          \n"
+      "void foo() {              \n"
+      "  moo('step one');        \n"
+      "  moo('step two');        \n"
+      "  moo('step three');      \n"
+      "}                         \n"
+      "                          \n"
+      "void main() {             \n"
+      "  foo();                  \n"
+      "}                         \n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT(!Dart_IsError(lib));
+
+  Dart_SetBreakpointHandler(&TestSingleStepHandler);
+
+  Dart_Handle c_name = Dart_NewString("");
+  Dart_Handle f_name = Dart_NewString("moo");
+  Dart_Breakpoint bpt;
+  Dart_Handle res = Dart_SetBreakpointAtEntry(lib, c_name, f_name, &bpt);
+  EXPECT_NOT_ERROR(res);
+
+  breakpoint_hit = false;
+  breakpoint_hit_counter = 0;
+  Dart_Handle retval = Invoke(lib, "main");
+  EXPECT(!Dart_IsError(retval));
+  EXPECT(breakpoint_hit == true);
+}
+
 
 
 static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
@@ -121,17 +345,17 @@ static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
 
 TEST_CASE(Debug_DeleteBreakpoint) {
   const char* kScriptChars =
-      "moo(s) { }\n"
-      "\n"
-      "foo() {\n"
-      "    moo('good news');\n"
-      "}\n"
-      "\n"
-      "void main() {\n"
-      "  foo();\n"
-      "  foo();\n"
-      "  foo();\n"
-      "}\n";
+      "moo(s) { }             \n"
+      "                       \n"
+      "foo() {                \n"
+      "    moo('good news');  \n"
+      "}                      \n"
+      "                       \n"
+      "void main() {          \n"
+      "  foo();               \n"
+      "  foo();               \n"
+      "  foo();               \n"
+      "}                      \n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(!Dart_IsError(lib));
@@ -157,18 +381,18 @@ TEST_CASE(Debug_DeleteBreakpoint) {
 
 TEST_CASE(Debug_InspectObject) {
   const char* kScriptChars =
-    " class A { \n"
-    "   var a_field = 'a'; \n"
-    "   static var bla = 'yada yada yada';\n"
-    "   static var error = unresolvedName(); \n"
-    "   var d = 42.1; \n"
-    " } \n"
-    " class B extends A { \n"
+    " class A {                                 \n"
+    "   var a_field = 'a';                      \n"
+    "   static var bla = 'yada yada yada';      \n"
+    "   static var error = unresolvedName();    \n"
+    "   var d = 42.1;                           \n"
+    " }                                         \n"
+    " class B extends A {                       \n"
     "   var oneDay = const Duration(hours: 24); \n"
-    "   static var bla = 'blah blah'; \n"
-    " } \n"
-    " get_b() { return new B(); } \n"
-    " get_int() { return 666; } \n";
+    "   static var bla = 'blah blah';           \n"
+    " }                                         \n"
+    " get_b() { return new B(); }               \n"
+    " get_int() { return 666; }                 \n";
 
   // Number of instance fields in an object of class B.
   const intptr_t kNumObjectFields = 3;
@@ -281,16 +505,16 @@ TEST_CASE(Debug_InspectObject) {
 
 TEST_CASE(Debug_LookupSourceLine) {
   const char* kScriptChars =
-  /*1*/  "class A {\n"
-  /*2*/  "  static void foo() {\n"
-  /*3*/  "    moo('good news');\n"
-  /*4*/  "  }\n"
-  /*5*/  "}\n"
-  /*6*/  "\n"
-  /*7*/  "void main() {\n"
-  /*8*/  "  A.foo();\n"
-  /*9*/  "}\n"
-  /*10*/ "\n";
+  /*1*/  "class A {                 \n"
+  /*2*/  "  static void foo() {     \n"
+  /*3*/  "    moo('good news');     \n"
+  /*4*/  "  }                       \n"
+  /*5*/  "}                         \n"
+  /*6*/  "                          \n"
+  /*7*/  "void main() {             \n"
+  /*8*/  "  A.foo();                \n"
+  /*9*/  "}                         \n"
+  /*10*/ "                          \n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT(!Dart_IsError(lib));

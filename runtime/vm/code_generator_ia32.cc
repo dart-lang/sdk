@@ -725,7 +725,7 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   // in breakpoints during debugging.
   __ nop(1);
   AddCurrentDescriptor(PcDescriptors::kReturn,
-                       AstNode::kNoId,
+                       node->id(),
                        node->token_index());
 
 #ifdef DEBUG
@@ -833,7 +833,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label);
+  GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
   if (requires_type_arguments) {
     __ popl(ECX);  // Pop type arguments.
   }
@@ -874,7 +874,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     __ movl(EDX, Immediate(num_context_variables));
     const ExternalLabel label("alloc_context",
                               StubCode::AllocateContextEntryPoint());
-    GenerateCall(node_sequence->token_index(), &label);
+    GenerateCall(node_sequence->token_index(), &label, PcDescriptors::kOther);
 
     // Chain the new context in EAX to its parent in CTX.
     __ StoreIntoObject(EAX, FieldAddress(EAX, Context::parent_offset()), CTX);
@@ -953,7 +953,9 @@ void CodeGenerator::VisitArrayNode(ArrayNode* node) {
   const AbstractTypeArguments& element_type = node->type_arguments();
   ASSERT(element_type.IsNull() || element_type.IsInstantiated());
   __ LoadObject(ECX, element_type);
-  GenerateCall(node->token_index(), &StubCode::AllocateArrayLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::AllocateArrayLabel(),
+               PcDescriptors::kOther);
 
   // Pop the element values from the stack into the array.
   __ leal(ECX, FieldAddress(EAX, Array::data_offset()));
@@ -2148,7 +2150,9 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
   __ LoadObject(ECX, interpol_func);
   __ LoadObject(EDX, ArgumentsDescriptor(interpol_arg->length(),
                                          interpol_arg->names()));
-  GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(interpol_arg->length() * kWordSize));
   // Result is in EAX.
   if (IsResultNeeded(node)) {
@@ -2185,7 +2189,9 @@ void CodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
   __ LoadObject(ECX, node->function());
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                          node->arguments()->names()));
-  GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));
   // Result is in EAX.
   if (IsResultNeeded(node)) {
@@ -2210,7 +2216,9 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
   // NOTE: The stub accesses the closure before the parameter list.
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                          node->arguments()->names()));
-  GenerateCall(node->token_index(), &StubCode::CallClosureFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallClosureFunctionLabel(),
+               PcDescriptors::kOther);
   __ addl(ESP, Immediate((node->arguments()->length() + 1) * kWordSize));
   // Restore the context.
   __ popl(CTX);
@@ -2355,7 +2363,9 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
     __ LoadObject(ECX, node->constructor());
     __ LoadObject(EDX, ArgumentsDescriptor(num_args,
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+    GenerateCall(node->token_index(),
+                 &StubCode::CallStaticFunctionLabel(),
+                 PcDescriptors::kFuncCall);
     // Factory constructor returns object in EAX.
     __ addl(ESP, Immediate(num_args * kWordSize));
     if (IsResultNeeded(node)) {
@@ -2372,7 +2382,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   // type arguments are on the stack.
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label);
+  GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
   if (requires_type_arguments) {
     __ popl(ECX);  // Pop type arguments.
     __ popl(ECX);  // Pop instantiator type arguments.
@@ -2397,7 +2407,9 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   int num_args = node->arguments()->length() + 2;
   __ LoadObject(ECX, node->constructor());
   __ LoadObject(EDX, ArgumentsDescriptor(num_args, node->arguments()->names()));
-  GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   // Constructors do not return any value.
 
   // Pop out all the other arguments on the stack.
@@ -2491,7 +2503,9 @@ void CodeGenerator::GenerateStaticGetterCall(intptr_t token_index,
   const int kNumberOfArguments = 0;
   const Array& kNoArgumentNames = Array::Handle();
   __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
-  GenerateCall(token_index, &StubCode::CallStaticFunctionLabel());
+  GenerateCall(token_index,
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   // No arguments were pushed, hence nothing to pop.
 }
 
@@ -2519,7 +2533,9 @@ void CodeGenerator::GenerateStaticSetterCall(intptr_t token_index,
   const int kNumberOfArguments = 1;  // value.
   const Array& kNoArgumentNames = Array::Handle();
   __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
-  GenerateCall(token_index, &StubCode::CallStaticFunctionLabel());
+  GenerateCall(token_index,
+               &StubCode::CallStaticFunctionLabel(),
+               PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(kNumberOfArguments * kWordSize));
 }
 
@@ -2552,7 +2568,9 @@ void CodeGenerator::VisitNativeBodyNode(NativeBodyNode* node) {
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(node->native_c_function())));
   __ movl(EDX, Immediate(node->argument_count()));
-  GenerateCall(node->token_index(), &StubCode::CallNativeCFunctionLabel());
+  GenerateCall(node->token_index(),
+               &StubCode::CallNativeCFunctionLabel(),
+               PcDescriptors::kOther);
   // Result is on the stack.
   if (!IsResultNeeded(node)) {
     __ popl(EAX);
@@ -2678,9 +2696,10 @@ void CodeGenerator::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 
 
 void CodeGenerator::GenerateCall(intptr_t token_index,
-                                 const ExternalLabel* ext_label) {
+                                 const ExternalLabel* ext_label,
+                                 PcDescriptors::Kind desc_kind) {
   __ call(ext_label);
-  AddCurrentDescriptor(PcDescriptors::kOther, AstNode::kNoId, token_index);
+  AddCurrentDescriptor(desc_kind, AstNode::kNoId, token_index);
 }
 
 

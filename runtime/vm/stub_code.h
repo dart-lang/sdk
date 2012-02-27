@@ -32,6 +32,7 @@ class RawCode;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(BreakpointStatic)                                                          \
+  V(BreakpointReturn)                                                          \
 
 
 // Is it permitted for the stubs above to refer to Object::null(), which is

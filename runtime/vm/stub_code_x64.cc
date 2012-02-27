@@ -1693,11 +1693,24 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 }
 
 
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
+  __ EnterFrame(0);
+  __ pushq(RAX);
+  __ CallRuntimeFromStub(kBreakpointReturnHandlerRuntimeEntry);
+  __ popq(RAX);
+  __ LeaveFrame();
+
+  __ popq(R11);  // discard return address of call to this stub.
+  __ LeaveFrame();
+  __ ret();
+}
+
+
 //  RBX: Inline cache data array.
 //  R10: Arguments array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ Untested("BreakpointDynamic stub");
   __ EnterFrame(0);
   __ pushq(RBX);
   __ pushq(R10);
@@ -1705,7 +1718,15 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ popq(R10);
   __ popq(RBX);
   __ LeaveFrame();
-  // Now call the dynamic function.
+
+  // Find out which dispatch stub to call.
+  Label ic_cache_one_arg;
+  __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
+  const Immediate value = Immediate(reinterpret_cast<intptr_t>(Smi::New(1)));
+  __ cmpq(RCX, value);
+  __ j(EQUAL, &ic_cache_one_arg, Assembler::kNearJump);
+  __ jmp(&StubCode::TwoArgsCheckInlineCacheLabel());
+  __ Bind(&ic_cache_one_arg);
   __ jmp(&StubCode::OneArgCheckInlineCacheLabel());
 }
 
