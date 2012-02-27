@@ -52,10 +52,17 @@ RawFunction* DartFrame::LookupDartFunction() const {
 }
 
 
+RawCode* DartFrame::LookupDartCode() const {
+  // Get access to the code index table.
+  ASSERT(Isolate::Current() != NULL);
+  CodeIndexTable* code_index_table = Isolate::Current()->code_index_table();
+  ASSERT(code_index_table != NULL);
+  return code_index_table->LookupCode(pc());
+}
+
+
 bool DartFrame::FindExceptionHandler(uword* handler_pc) const {
-  const Function& function = Function::Handle(LookupDartFunction());
-  ASSERT(!function.IsNull());
-  const Code& code = Code::Handle(function.code());
+  const Code& code = Code::Handle(LookupDartCode());
   ASSERT(!code.IsNull());
 
   // First try to find pc descriptor for the current pc.

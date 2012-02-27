@@ -132,6 +132,9 @@ class DartFrame : public StackFrame {
   // Get function object corresponding to pc for the frame.
   RawFunction* LookupDartFunction() const;
 
+  // Get code object corresponding to pc for the frame.
+  RawCode* LookupDartCode() const;
+
   // Find exception handler pc in frame if one exists.
   bool FindExceptionHandler(uword* handler_pc) const;
 
