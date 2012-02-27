@@ -117,7 +117,6 @@ void ExtractTestsFromMultitest(String filename,
 
 
 void DoMultitest(String filename,
-                 String component,
                  String outputDir,
                  String testDir,
                  Function doTest(String filename,
