@@ -402,11 +402,6 @@ Switch3NegativeTest: Skip
 Switch4NegativeTest: Skip
 ExecuteFinally6Test: Skip
 
-[ $component == webdriver && $browser == safari ]
-ImplicitClosure1Test: Fail
-MethodBindingTest: Fail
-Prefix15Test: Fail
-
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $component == webdriver && $browser == opera ]
 *: Skip

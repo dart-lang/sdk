@@ -39,9 +39,6 @@ StringTest: Fail  # Needs index out of range checks.
 [ $component == webdriver && ($browser == ff || $browser == ie) ]
 UnicodeTest: Fail
 
-[ $component == webdriver && $browser == safari ]
-FuturesTest: Fail
-
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $component == webdriver && $browser == opera ]
 *: Skip
