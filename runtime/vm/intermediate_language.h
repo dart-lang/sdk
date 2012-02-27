@@ -13,6 +13,8 @@
 namespace dart {
 
 class LocalVariable;
+class ConstantValue;
+class TempValue;
 
 // Computations and values.
 //
@@ -43,7 +45,11 @@ class Value : public Computation {
  public:
   Value() { }
 
-  virtual bool IsConstant() const { return false; }
+  virtual TempValue* AsTemp() { return NULL; }
+  virtual ConstantValue* AsConstant() { return NULL; }
+
+  bool IsTemp() { return AsTemp() != NULL; }
+  bool IsConstant() { return AsConstant() != NULL; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -147,6 +153,7 @@ class TempValue : public Value {
  public:
   explicit TempValue(intptr_t index) : index_(index) { }
 
+  virtual TempValue* AsTemp() { return this; }
   virtual void Print() const;
 
  private:
@@ -162,9 +169,10 @@ class ConstantValue: public Value {
     ASSERT(instance.IsZoneHandle());
   }
 
-  virtual bool IsConstant() const { return true; }
-
+  virtual ConstantValue* AsConstant() { return this; }
   virtual void Print() const;
+
+  const Instance& instance() const { return instance_; }
 
  private:
   const Instance& instance_;
@@ -420,7 +428,7 @@ class InstructionVisitor {
 
   // Visit each block in the array list in reverse, and for each block its
   // instructions in order from the block entry to exit.
-  void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
+  virtual void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
 
 #define DECLARE_VISIT(type)                             \
   virtual void Visit##type(type##Instr* instr) { }

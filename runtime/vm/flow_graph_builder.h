@@ -24,6 +24,10 @@ class FlowGraphBuilder: public ValueObject {
 
   void BuildGraph();
 
+  const GrowableArray<BlockEntryInstr*>* blocks() const {
+    return &postorder_block_entries_;
+  }
+
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
   void Bailout(const char* reason);

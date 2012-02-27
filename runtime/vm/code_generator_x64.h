@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -83,6 +83,9 @@ class CodeGeneratorState : public StackResource {
 
 class CodeGenerator : public AstNodeVisitor {
  public:
+  // Forward declarations.
+  class DescriptorList;
+
   CodeGenerator(Assembler* assembler, const ParsedFunction& parsed_function);
   virtual ~CodeGenerator() { }
 
@@ -134,7 +137,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
   friend class OptimizingCodeGenerator;
 
   // Forward declarations.
-  class DescriptorList;
   class HandlerList;
 
   // Return true if intrinsification was completed and no other code
@@ -227,6 +229,7 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(CodeGenerator);
 };
+
 
 }  // namespace dart
 

@@ -14,6 +14,7 @@
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -123,12 +124,25 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
     Parser::ParseFunction(&parsed_function);
     if (FLAG_use_new_compiler) {
+      ASSERT(!optimized);
       LongJump* old_base = isolate->long_jump_base();
       LongJump bailout_jump;
       isolate->set_long_jump_base(&bailout_jump);
       if (setjmp(*bailout_jump.Set()) == 0) {
         FlowGraphBuilder graph_builder(parsed_function);
         graph_builder.BuildGraph();
+
+        // Try to compile on x64 (only for now).
+#ifdef TARGET_ARCH_X64
+        // TODO(kmillikin): Implement or stub out class FlowGraphCompiler
+        // for other architectures and remove the unsightly ifdef.
+        Assembler assembler;
+        FlowGraphCompiler graph_compiler(&assembler,
+                                         parsed_function,
+                                         graph_builder.blocks());
+        graph_compiler.CompileGraph();
+#endif
+
       } else {
         // We bailed out.
         Error& bailout_error = Error::Handle(
