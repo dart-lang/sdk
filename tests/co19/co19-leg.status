@@ -298,17 +298,6 @@ LibTest/core/Set/some_A01_t03: Fail # Cannot find value
 LibTest/core/int/toRadixString_A01_t01: Fail # Expect.stringEquals(expected: <6A>", <6a>) fails
 
 
-LibTest/core/List/List_A01_t02: Fail # Fixed length array.
-LibTest/core/List/addAll_A02_t01: Fail # Fixed length array.
-LibTest/core/List/add_A02_t01: Fail # Fixed length array.
-LibTest/core/List/clear_A02_t01: Fail # Fixed length array.
-LibTest/core/List/insertRange_A02_t01: Fail # Fixed length array.
-LibTest/core/List/length_A04_t01: Fail # Fixed length array.
-LibTest/core/List/removeLast_A02_t01: Fail # Fixed length array.
-LibTest/core/List/removeRange_A02_t01: Fail # Fixed length array.
-LibTest/core/List/addLast_A02_t01: Fail # Fixed length array.
-
-
 LibTest/core/Date/timeZone_A01_t01: Fail # Should throw NoSuchMethodException.
 LibTest/core/Date/value_A01_t01: Fail # Should throw NoSuchMethodException.
 LibTest/core/Math/parseDouble_A02_t01: Fail # TODO(ahe): Reject bad values.

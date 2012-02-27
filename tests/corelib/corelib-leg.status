@@ -40,13 +40,8 @@ StringPatternTest: Fail # Bad bailout code related to for-in.
 StringTest: Fail # Internal Error: Cannot find value
 
 
-# Constant lists.
-ConstListRemoveRangeTest: Fail # Expect.isTrue(false) fails.
-ConstListSetRangeTest: Fail # Expect.isTrue(false) fails.
-
-
 # Bad test, assumes RegExp.allMatches returns a Collection.
-RegExpAllMatchesTest: Fail # NoSuchMethodException : method not found: 'forEach'
+RegExpAllMatchesTest: Fail, OK # NoSuchMethodException : method not found: 'forEach'
 
 
 BigIntegerVMTest: Fail, OK # VM specific test.
