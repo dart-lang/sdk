@@ -606,6 +606,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Document":
+        return new XMLDocumentWrappingImplementation._wrap(raw, raw.documentElement);
       case "HTMLDocument":
         return new DocumentWrappingImplementation._wrap(raw, raw.documentElement);
       case "SVGDocument":
@@ -629,6 +631,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLAppletElement*/
@@ -1117,6 +1121,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       /* Skipping AbstractWorker*/
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);
@@ -1851,6 +1857,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);
       /* Skipping HTMLAppletElement*/
@@ -4136,6 +4144,8 @@ class LevelDom {
       return raw.dartObjectLocalStorage;
     }
     switch (raw.typeName) {
+      case "Element":
+        return new XMLElementWrappingImplementation._wrap(raw);
       /* Skipping AbstractWorker*/
       case "HTMLAnchorElement":
         return new AnchorElementWrappingImplementation._wrap(raw);

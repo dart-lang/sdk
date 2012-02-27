@@ -11281,6 +11281,10 @@ interface DocumentFragment extends Element default DocumentFragmentWrappingImple
 
   DocumentFragment.html(String html);
 
+  DocumentFragment.xml(String xml);
+
+  DocumentFragment.svg(String svg);
+
   DocumentFragment clone(bool deep);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -13451,6 +13455,45 @@ interface Worker extends AbstractWorker {
 
   WorkerEvents get on();
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface XMLDocument extends Document, XMLElement
+    default XMLDocumentWrappingImplementation {
+  XMLDocument.xml(String xml);
+
+  XMLElement get activeElement();
+
+  XMLDocument clone(bool deep);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+interface XMLElement extends Element default XMLElementWrappingImplementation {
+
+  XMLElement.tag(String tag);
+  XMLElement.xml(String tag);
+
+  XMLElement get firstElementChild();
+
+  XMLElement get lastElementChild();
+
+  XMLElement get nextElementSibling();
+
+  XMLElement get previousElementSibling();
+
+  XMLElement get offsetParent();
+
+  XMLElement get parent();
+
+  XMLElement insertAdjacentElement([String where, XMLElement element]);
+
+  XMLElement query(String selectors);
+
+  XMLElement clone(bool deep);
+}
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13489,7 +13532,7 @@ interface XMLHttpRequest extends EventTarget default XMLHttpRequestWrappingImple
 
   void set responseType(String value);
 
-  Document get responseXML();
+  XMLDocument get responseXML();
 
   int get status();
 

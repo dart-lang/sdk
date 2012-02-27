@@ -8,5 +8,10 @@ interface DocumentFragment extends Element default DocumentFragmentWrappingImple
 
   DocumentFragment.html(String html);
 
+  /** WARNING: Currently this doesn't work on Dartium (issue 649). */
+  DocumentFragment.xml(String xml);
+
+  DocumentFragment.svg(String svg);
+
   DocumentFragment clone(bool deep);
 }
