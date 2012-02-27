@@ -323,6 +323,7 @@ class DateTest {
     // TODO(floitsch): Clean up the Date API that deals with strings.
     var dt1 = new Date.fromString("2011-05-11 18:58:35Z");
     Expect.equals(1305140315000, dt1.value);
+    Expect.isTrue(dt1.isUtc());
     var str = dt1.toString();
     var dt2 = new Date.fromString(str);
     Expect.equals(true, dt1 == dt2);
