@@ -15,7 +15,7 @@ namespace dart {
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
 
-static const bool verbose = false;
+static const bool verbose = true;
 
 #define EXPECT_NOT_ERROR(handle)                                              \
   if (Dart_IsError(handle)) {                                                 \
@@ -266,11 +266,11 @@ void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   EXPECT(Dart_IsString(func_name));
   const char* name_chars;
   Dart_StringToCString(func_name, &name_chars);
-  if (breakpoint_hit_counter < expected_bpts_length) {
-    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
-  }
   if (verbose) {
     printf("  >> bpt nr %d: %s\n", breakpoint_hit_counter, name_chars);
+  }
+  if (breakpoint_hit_counter < expected_bpts_length) {
+    EXPECT_STREQ(expected_bpts[breakpoint_hit_counter], name_chars);
   }
   breakpoint_hit = true;
   breakpoint_hit_counter++;
@@ -375,7 +375,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke(lib, "main");
   EXPECT(!Dart_IsError(retval));
-  EXPECT(breakpoint_hit_counter == 2);
+  EXPECT_EQ(2, breakpoint_hit_counter);
 }
 
 
