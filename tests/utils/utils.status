@@ -4,7 +4,8 @@
 
 [ $component == leg ]
 UriTest: Fail
+JsonTest: Fail
+
 
 [ $arch == simarm ]
 *: Skip
-
