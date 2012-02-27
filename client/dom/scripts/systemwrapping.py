@@ -454,6 +454,25 @@ class WrappingInterfaceGenerator(object):
     # overloads and generates an overload specific check.  Revisit
     # when we move to named optional arguments.
 
+    if position == 0:
+      # Optional callback arguments are special.  C++ counterparts do not have proper optional
+      # arguments (as in some cases C++ counterparts require ec) and thus 0 ref ptrs are passed
+      # instead of missing arguments.  That means the only allowed form is a list of
+      # arguments with trailing optional callbacks and we don't need any dispatch at all.
+      def IsOptionalCallback(arg): return arg.is_optional and 'Callback' in arg.ext_attrs
+      first_optional_callback = None
+      for (i, arg) in enumerate(overloads[-1].arguments):
+        if IsOptionalCallback(arg):
+          first_optional_callback = i
+          break
+      if first_optional_callback is not None:
+        for overload in overloads:
+          for arg in overload.arguments[first_optional_callback:]:
+            if not IsOptionalCallback(arg):
+              raise Exception('Invalid overloading with optional callbacks')
+        self.GenerateSingleOperation(emitter, info, indent, overloads[-1])
+        return False
+
     # Partition the overloads to divide and conquer on the dispatch.
     positive = []
     negative = []

@@ -525,16 +525,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       operation: the IDLOperation to call.
     """
 
-    for op in self._interface.operations:
-      if op.id != operation.id or len(op.arguments) <= len(operation.arguments):
-        continue
-      next_argument = op.arguments[len(operation.arguments)]
-      if next_argument.is_optional and 'Callback' in next_argument.ext_attrs:
-        # FIXME: '[Optional, Callback]' arguments could be non-optional in
-        # webcore. We need to fix overloads handling to generate native
-        # callbacks properly.
-        return
-
     self._native_version += 1
     native_name = info.name
     if self._native_version > 1:
@@ -676,8 +666,9 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if include_name:
       self._cpp_impl_includes[include_name] = 1
     flags = ''
-    if idl_argument.ext_attrs.get('Optionial') == 'DefaultIsNullString':
-      flags = ', DartUtilities::ConvertNullToEmptyString'
+    if (idl_argument.ext_attrs.get('Optionial') == 'DefaultIsNullString' or
+        ('Optional' in idl_argument.ext_attrs and 'Callback' in idl_argument.ext_attrs)):
+      flags = ', DartUtilities::ConvertNullToDefaultValue'
     emitter.Emit(
         '\n'
         '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX)$FLAGS);\n'
