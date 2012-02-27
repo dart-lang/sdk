@@ -8,6 +8,7 @@
 
 #import("dart:coreimpl");
 #import("dart:dom");
+#import("dart:isolate");
 #import("dart:nativewrappers");
 
 #source('$AUXILIARY_DIR/native_DOMWrapperBase.dart');
