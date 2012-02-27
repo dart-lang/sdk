@@ -6,8 +6,6 @@ package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
-import com.google.dart.runner.DartRunner;
-import com.google.dart.runner.RunnerOptions;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -249,49 +247,6 @@ public class CommandLineOptions {
         return ErrorFormat.MACHINE;
       }
       return ErrorFormat.NORMAL;
-    }
-  }
-
-  /**
-   * Command line options accepted by the {@link DartRunner} entry point.
-   */
-  public static class DartRunnerOptions extends CompilerOptions implements RunnerOptions {
-
-    @Option(name = "--compile-only", usage = "Compile but do not execute")
-    private boolean compileOnly = false;
-
-    @Option(name = "--verbose", usage = "Extra diagnostic output")
-    private boolean verbose = false;
-
-    @Option(name="--prof", usage = "Enable profiling")
-    private boolean prof;
-
-    /**
-     * @return <code>true</code> if the program should compile but not execute.
-     */
-    @Override
-    public boolean shouldCompileOnly() {
-      return compileOnly;
-    }
-
-    /**
-     * Returns <code>true</code> if profiling is enabled.
-     */
-    @Override
-    public boolean shouldProfile() {
-      return prof;
-    }
-
-    /**
-     * @return <code>true</code> to enable diagnostic output
-     */
-    @Override
-    public boolean verbose() {
-      return verbose;
-    }
-
-    public void setVerbose(boolean value) {
-      this.verbose = value;
     }
   }
 

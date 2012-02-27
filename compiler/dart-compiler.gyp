@@ -1,4 +1,4 @@
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -16,15 +16,6 @@
     {
       'target_name': 'dartc',
       'type': 'none',
-      'variables': {
-        # The Dartium build has this layout:
-        # src/dart/compiler/dart.gyp (this file)
-        # src/v8/src/d8.gyp
-        'v8_location%': '../../v8',
-      },
-      'dependencies': [
-        '<(v8_location)/src/d8.gyp:d8',
-      ],
       'actions': [
         {
           'action_name': 'build_dartc',
@@ -43,9 +34,7 @@
             '<@(compiler_corelib_resources)',
             'dartc.xml',
             'scripts/dartc.sh',
-            'scripts/dartc_test.sh',
             'scripts/dartc_run.sh',
-            'scripts/dartc_size.sh',
             'scripts/dartc_metrics.sh',
             '../third_party/args4j/2.0.12/args4j-2.0.12.jar',
             '../third_party/guava/r09/guava-r09.jar',
@@ -59,7 +48,6 @@
           'outputs': [
             '<(INTERMEDIATE_DIR)/<(_target_name)/tests.jar',
             '<(PRODUCT_DIR)/compiler/bin/dartc',
-            '<(PRODUCT_DIR)/compiler/bin/dartc_test',
             '<(PRODUCT_DIR)/compiler/lib/args4j/2.0.12/args4j-2.0.12.jar',
             '<(PRODUCT_DIR)/compiler/lib/dartc.jar',
             '<(PRODUCT_DIR)/compiler/lib/guava/r09/guava-r09.jar',
@@ -76,18 +64,6 @@
             'tests.jar',
           ],
           'message': 'Building dartc.',
-        },
-        {
-          'action_name': 'strip_d8',
-          'inputs': [
-            # Add fake dependency on dartc because this action must
-            # run after ant is invoked
-            # (which will delete <(PRODUCT_DIR)/compiler).
-            '<(PRODUCT_DIR)/compiler/bin/dartc',
-            '<(PRODUCT_DIR)/d8',
-          ],
-          'outputs': [ '<(PRODUCT_DIR)/compiler/bin/d8.<(OS)', ],
-          'action': [ 'strip', '-o', '<@(_outputs)', '<(PRODUCT_DIR)/d8', ],
         },
         {
           'action_name': 'copy_tests',

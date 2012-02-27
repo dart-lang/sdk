@@ -1010,7 +1010,7 @@ class TestUtils {
       case 'vm':
         return 'dart$suffix';
       case 'dartc':
-        return 'compiler/bin/dartc_test$suffix';
+        return 'compiler/bin/dartc$suffix';
       case 'frog':
       case 'leg':
           return 'frog/bin/frog$suffix';
