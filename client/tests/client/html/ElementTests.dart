@@ -41,12 +41,12 @@ void testConstructorHelper(String tag, String htmlSnippet,
   Expect.equals(elementFromSnippet.text, expectedText);
 }
 
+Element makeElement() => new Element.tag('div');
+
+Element makeElementWithChildren() =>
+  new Element.html("<div><br/><img/><input/></div>");
+
 void testElement() { 
-  Element makeElement() => new Element.tag('div');
-
-  Element makeElementWithChildren() =>
-    new Element.html("<div><br/><img/><input/></div>");
-
   asyncTest('computedStyle', 1, () {
     final element = document.body;
     element.computedStyle.then((style) {

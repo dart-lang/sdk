@@ -36,7 +36,7 @@ interface XMLHttpRequest extends EventTarget default XMLHttpRequestWrappingImple
 
   void set responseType(String value);
 
-  XMLDocument get responseXML();
+  Document get responseXML();
 
   int get status();
 

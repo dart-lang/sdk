@@ -53,7 +53,7 @@ class XMLHttpRequestWrappingImplementation extends EventTargetWrappingImplementa
 
   void set responseType(String value) { _ptr.responseType = value; }
 
-  XMLDocument get responseXML() => LevelDom.wrapDocument(_ptr.responseXML);
+  Document get responseXML() => LevelDom.wrapDocument(_ptr.responseXML);
 
   int get status() => _ptr.status;
 
