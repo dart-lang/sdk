@@ -482,7 +482,7 @@ class _IsolateNatives {
     return runnable.constructor.name;
   """;
 
-  /** Find a constructor given it's name. */
+  /** Find a constructor given its name. */
   static var _getJSConstructorFromName(String factoryName) native """
     return \$globalThis[factoryName];
   """;
@@ -491,9 +491,36 @@ class _IsolateNatives {
     return \$globalThis[functionName];
   """;
 
-  static String _getJSFunctionName(Function f) native "return f.name || null;";
+  /**
+   * Get a string name for the function, if possible.  The result for
+   * anonymous functions is browser-dependent -- it may be "" or "anonymous"
+   * but you should probably not count on this.
+   */
+  static String _getJSFunctionName(Function f)
+    // Comments on the code, outside of the string so they won't bulk up
+    // the native output:
+    //
+    // Are we in a browser that implements the non-standard but
+    // oh-so-convenient function .name property?  If not, parse the name
+    // out of toString().
+    //
+    // When there is a match, our capture is element 1 of the results list.
+    // If there is no match, match() returns null; we || this to a list
+    // whose element 1 is null so everything lines up without error.
+    //
+    // TODO(eub): remove the toString workaround by attaching names to
+    // functions where they could be needed.  For a simple
+    // conservative approximation of "needed", see Siggi's option (c)
+    // in discussion on the CL, 9416119.
+    native @"""
+    if (typeof(f.name) === 'undefined') {
+      return (f.toString().match(/function (.+)\(/) || [, null])[1];
+    } else {
+      return f.name || null;
+    }
+  """;
 
-  /** Create a new JavasSript object instance given it's constructor. */
+  /** Create a new JavaScript object instance given its constructor. */
   static var _allocate(var ctor) native "return new ctor();";
 
   /** Starts a non-worker isolate. */
