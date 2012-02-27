@@ -102,7 +102,8 @@ def Main(argv):
     frogc_file_extension = '.bat'
   dart_src_binary = join(HOME, build_dir, 'dart' + dart_file_extension)
   dart_dest_binary = join(BIN, 'dart' + dart_file_extension)
-  frogc_src_binary = join(HOME, 'frog', 'frogc' + frogc_file_extension)
+  frogc_src_binary = join(HOME, 'frog', 'scripts', 'bootstrap', 
+      'frogc' + frogc_file_extension)
   frogc_dest_binary = join(BIN, 'frogc' + frogc_file_extension)
   copyfile(dart_src_binary, dart_dest_binary)
   copymode(dart_src_binary, dart_dest_binary)
