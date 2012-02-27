@@ -320,28 +320,29 @@ class IDLType(IDLNode):
         for childAst in ast:
           (label, childAst) = childAst
           if label.endswith('Type'):
-            self.id = self.__label_to_type(label, ast)
+            self.id = self._label_to_type(label, ast)
             break
     elif isinstance(ast, tuple):
       (label, value) = ast
       if label == 'ScopedName':
         self.id = value
       else:
-        self.id = self.__label_to_type(label, ast)
+        self.id = self._label_to_type(label, ast)
     elif isinstance(ast, str):
       self.id = ast
     if not self.id:
       raise SyntaxError('Could not parse type %s' % (ast))
 
-  def __label_to_type(self, label, ast):
-    if label.endswith('Type'):
+  def _label_to_type(self, label, ast):
+    if label == 'AnyArrayType':
+      return 'any[]'
+    if label == 'DOMStringArrayType':
+      return 'DOMString[]'
+    if label == 'LongLongType':
+      label = 'long long'
+    elif label.endswith('Type'):
       # Omit 'Type' suffix and lowercase the rest.
       label = '%s%s' % (label[0].lower(), label[1:-4])
-      if label == 'longLong':
-        # Special case for LongLongType:
-        label = 'long long'
-      if label == 'anyArray':
-        label = 'any[]'
 
     # Add unsigned qualifier.
     if self._has(ast, 'Unsigned'):

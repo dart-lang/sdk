@@ -137,6 +137,36 @@ _alternate_methods = {
     ('WheelEvent', 'initWheelEvent'): ['initWebKitWheelEvent', 'initWheelEvent']
 }
 
+#
+# Custom native bodies for frog implementations of dom operations that appear in
+# dart:dom and dart:html.  This is used to work-around the lack of a 'rename'
+# feature in the 'native' string - the correct name is available on the DartName
+# extended attribute. See Issue 1814
+#
+_dom_frog_native_typed_array_set_operation = """
+if (offset == null) return this.set(array);
+return this.set(array, offset);"""
+
+dom_frog_native_bodies = {
+    'IDBCursor.continueFunction':
+      """
+if (key == null) return this['continue']();
+return this['continue'](key);
+""",
+    'IDBIndex.getObject': """return this.get(key);""",
+    'IDBObjectStore.getObject': """return this.get(key);""",
+    'Float32Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Float64Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Int16Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Int32Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Int8Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Uint16Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Uint32Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Uint8Array.setElements': _dom_frog_native_typed_array_set_operation,
+    'Uint8ClampedArray.setElements': _dom_frog_native_typed_array_set_operation,
+}
+
+
 def ConvertPrimitiveType(type_name):
   if type_name.startswith('unsigned '):
     type_name = type_name[len('unsigned '):]
@@ -152,7 +182,7 @@ def IsPrimitiveType(type_name):
 
 def MaybeListElementTypeName(type_name):
   """Returns the List element type T from string of form "List<T>", or None."""
-  match = re.match(r'List<(\w*)>$', type_name)
+  match = re.match(r'sequence<(\w*)>$', type_name)
   if match:
     return match.group(1)
   return None
@@ -195,6 +225,36 @@ def MatchSourceFilter(filter, thing):
   else:
     return any(token in thing.annotations for token in filter)
 
+def DartType(idl_type_name):
+  match = re.match(r'sequence<(\w*)>$', idl_type_name)
+  if match:
+    return 'List<%s>' % GetIDLTypeInfoByName(match.group(1)).dart_type()
+  return GetIDLTypeInfoByName(idl_type_name).dart_type()
+
+# Given a list of overloaded arguments, render a dart argument.
+def _DartArg(args, interface):
+  # Given a list of overloaded arguments, choose a suitable name.
+  def OverloadedName(args):
+    return '_OR_'.join(sorted(set(arg.id for arg in args)))
+
+  # Given a list of overloaded arguments, choose a suitable type.
+  def OverloadedType(args):
+    typeIds = sorted(set(DartType(arg.type.id) for arg in args))
+    if len(typeIds) == 1:
+      return typeIds[0]
+    else:
+      return TypeName(typeIds, interface)
+
+  filtered = filter(None, args)
+  optional = any(not arg or arg.is_optional for arg in args)
+  type = OverloadedType(filtered)
+  name = OverloadedName(filtered)
+  if optional:
+    return (name, type, 'null')
+  else:
+    return (name, type, None)
+
+
 def AnalyzeOperation(interface, operations):
   """Makes operation calling convention decision for a set of overloads.
 
@@ -203,31 +263,7 @@ def AnalyzeOperation(interface, operations):
 
   # Zip together arguments from each overload by position, then convert
   # to a dart argument.
-
-  # Given a list of overloaded arguments, choose a suitable name.
-  def OverloadedName(args):
-    return '_OR_'.join(sorted(set(arg.id for arg in args)))
-
-  # Given a list of overloaded arguments, choose a suitable type.
-  def OverloadedType(args):
-    typeIds = sorted(set(arg.type.id for arg in args))
-    if len(typeIds) == 1:
-      return typeIds[0]
-    else:
-      return TypeName(typeIds, interface)
-
-  # Given a list of overloaded arguments, render a dart argument.
-  def DartArg(args):
-    filtered = filter(None, args)
-    optional = any(not arg or arg.is_optional for arg in args)
-    type = OverloadedType(filtered)
-    name = OverloadedName(filtered)
-    if optional:
-      return (name, type, 'null')
-    else:
-      return (name, type, None)
-
-  args = map(lambda *args: DartArg(args),
+  args = map(lambda *args: _DartArg(args, interface),
              *(op.arguments for op in operations))
 
   info = OperationInfo()
@@ -235,9 +271,48 @@ def AnalyzeOperation(interface, operations):
   info.declared_name = operations[0].id
   info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
   info.js_name = info.declared_name
-  info.type_name = operations[0].type.id   # TODO: widen.
+  info.type_name = DartType(operations[0].type.id)   # TODO: widen.
   info.arg_infos = args
   return info
+
+
+def AnalyzeConstructor(interface):
+  """Returns an OperationInfo object for the constructor.
+
+  Returns None if the interface has no Constructor.
+  """
+  def GetArgs(func_value):
+    return map(lambda arg: _DartArg([arg], interface), func_value.arguments)
+
+  if 'Constructor' in interface.ext_attrs:
+    name = None
+    func_value = interface.ext_attrs.get('Constructor')
+    if func_value:
+      # [Constructor(param,...)]
+      args = GetArgs(func_value)
+      idl_args = func_value.arguments
+    else: # [Constructor]
+      args = []
+      idl_args = []
+  else:
+    func_value = interface.ext_attrs.get('NamedConstructor')
+    if func_value:
+      name = func_value.id
+      args = GetArgs(func_value)
+      idl_args = func_value.arguments
+    else:
+      return None
+
+  info = OperationInfo()
+  info.overloads = None
+  info.idl_args = idl_args
+  info.declared_name = name
+  info.name = name
+  info.js_name = name
+  info.type_name = interface.id
+  info.arg_infos = args
+  return info
+
 
 def RecognizeCallback(interface):
   """Returns the info for the callback method if the interface smells like a
@@ -250,7 +325,7 @@ def RecognizeCallback(interface):
   return AnalyzeOperation(interface, handlers)
 
 def IsDartListType(type):
-  return type == 'List' or type.startswith('List<')
+  return type == 'List' or type.startswith('sequence<')
 
 def IsDartCollectionType(type):
   return IsDartListType(type)
@@ -264,6 +339,7 @@ def FindMatchingAttribute(interface, attr1):
     assert len(matches) == 1
     return matches[0]
   return None
+
 
 class OperationInfo(object):
   """Holder for various derived information from a set of overloaded operations.
@@ -372,10 +448,11 @@ def TypeName(typeIds, interface):
 # ------------------------------------------------------------------------------
 
 class IDLTypeInfo(object):
-  def __init__(self, idl_type, native_type=None, ref_counted=True,
+  def __init__(self, idl_type, dart_type=None, native_type=None, ref_counted=True,
                has_dart_wrapper=True, conversion_template=None,
                custom_to_dart=False):
     self._idl_type = idl_type
+    self._dart_type = dart_type
     self._native_type = native_type
     self._ref_counted = ref_counted
     self._has_dart_wrapper = has_dart_wrapper
@@ -383,6 +460,11 @@ class IDLTypeInfo(object):
     self._custom_to_dart = custom_to_dart
 
   def idl_type(self):
+    return self._idl_type
+
+  def dart_type(self):
+    if self._dart_type:
+      return self._dart_type
     return self._idl_type
 
   def native_type(self):
@@ -425,11 +507,11 @@ class IDLTypeInfo(object):
     return self._custom_to_dart
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, native_type=None, ref_counted=False,
+  def __init__(self, idl_type, dart_type, native_type=None, ref_counted=False,
                conversion_template=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute'):
-    super(PrimitiveIDLTypeInfo, self).__init__(idl_type,
+    super(PrimitiveIDLTypeInfo, self).__init__(idl_type, dart_type=dart_type,
         native_type=native_type, ref_counted=ref_counted,
         conversion_template=conversion_template)
     self._webcore_getter_name = webcore_getter_name
@@ -476,34 +558,49 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
 
 
 _idl_type_registry = {
-     # There is GC3Dboolean which is not a bool, but unsigned char for OpenGL compatibility.
-    'boolean': PrimitiveIDLTypeInfo('boolean', native_type='bool',
+    # There is GC3Dboolean which is not a bool, but unsigned char for OpenGL compatibility.
+    'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
                                     conversion_template='static_cast<bool>(%s)',
                                     webcore_getter_name='hasAttribute',
                                     webcore_setter_name='setBooleanAttribute'),
     # Some IDL's unsigned shorts/shorts are mapped to WebCore C++ enums, so we
     # use a static_cast<int> here not to provide overloads for all enums.
-    'short': PrimitiveIDLTypeInfo('short', native_type='int', conversion_template='static_cast<int>(%s)'),
-    'unsigned short': PrimitiveIDLTypeInfo('unsigned short', native_type='int', conversion_template='static_cast<int>(%s)'),
-    'int': PrimitiveIDLTypeInfo('int'),
-    'unsigned int': PrimitiveIDLTypeInfo('unsigned int', native_type='unsigned'),
-    'long': PrimitiveIDLTypeInfo('long', native_type='int',
+    'short': PrimitiveIDLTypeInfo('short', dart_type='int', native_type='int',
+        conversion_template='static_cast<int>(%s)'),
+    'unsigned short': PrimitiveIDLTypeInfo('unsigned short', dart_type='int',
+        native_type='int', conversion_template='static_cast<int>(%s)'),
+    'int': PrimitiveIDLTypeInfo('int', dart_type='int'),
+    'unsigned int': PrimitiveIDLTypeInfo('unsigned int', dart_type='int',
+        native_type='unsigned'),
+    'long': PrimitiveIDLTypeInfo('long', dart_type='int', native_type='int',
         webcore_getter_name='getIntegralAttribute',
         webcore_setter_name='setIntegralAttribute'),
-    'unsigned long': PrimitiveIDLTypeInfo('unsigned long', native_type='unsigned',
+    'unsigned long': PrimitiveIDLTypeInfo('unsigned long', dart_type='int',
+        native_type='unsigned',
         webcore_getter_name='getUnsignedIntegralAttribute',
         webcore_setter_name='setUnsignedIntegralAttribute'),
-    'long long': PrimitiveIDLTypeInfo('long long'),
-    'unsigned long long': PrimitiveIDLTypeInfo('unsigned long long'),
-    'double': PrimitiveIDLTypeInfo('double'),
+    'long long': PrimitiveIDLTypeInfo('long long', dart_type='int'),
+    'unsigned long long': PrimitiveIDLTypeInfo('unsigned long long', dart_type='int'),
+    'double': PrimitiveIDLTypeInfo('double', dart_type='num'),
+    'float': PrimitiveIDLTypeInfo('float', dart_type='num'),
 
-    'Date': PrimitiveIDLTypeInfo('Date',  native_type='double'),
-    'DOMString': PrimitiveIDLTypeInfo('DOMString',  native_type='String'),
-    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp'),
-    'object': PrimitiveIDLTypeInfo('object',  native_type='ScriptValue'),
-    'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', ref_counted=True),
+    'any': PrimitiveIDLTypeInfo('any', dart_type='Object'),
+    'any[]': PrimitiveIDLTypeInfo('any[]', dart_type='List'),
+    'Array': PrimitiveIDLTypeInfo('Array', dart_type='List'),
+    'custom': PrimitiveIDLTypeInfo('custom', dart_type='Dynamic'),
+    'Date': PrimitiveIDLTypeInfo('Date', dart_type='Date', native_type='double'),
+    'DOMObject': PrimitiveIDLTypeInfo('DOMObject', dart_type='Object'),
+    'DOMString': PrimitiveIDLTypeInfo('DOMString', dart_type='String', native_type='String'),
+    # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
+    # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
+    'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
+    'List<String>': PrimitiveIDLTypeInfo('DOMStringList', dart_type='List<String>'),
+    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int'),
+    'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
+    'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', dart_type='Dynamic', ref_counted=True),
+    'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
 
-    'DOMException': IDLTypeInfo('DOMCoreException'),
+    'DOMException': IDLTypeInfo('DOMCoreException', dart_type='DOMException'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
     'Element': IDLTypeInfo('Element', custom_to_dart=True),
     'EventListener': IDLTypeInfo('EventListener', has_dart_wrapper=False),
@@ -529,12 +626,8 @@ _idl_type_registry = {
     'SVGTransformList': SVGTearOffIDLTypeInfo('SVGTransformList', native_type='SVGTransformListPropertyTearOff', ref_counted=False)
 }
 
-original_idl_types = {
-}
-
 def GetIDLTypeInfo(idl_type):
-  idl_type_name = original_idl_types.get(idl_type, idl_type.id)
-  return GetIDLTypeInfoByName(idl_type_name)
+  return GetIDLTypeInfoByName(idl_type.id)
 
 def GetIDLTypeInfoByName(idl_type_name):
   return _idl_type_registry.get(idl_type_name, IDLTypeInfo(idl_type_name))

@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitBlobBuilder {
+interface WebKitBlobBuilder default _WebKitBlobBuilderFactoryProvider {
+
+  WebKitBlobBuilder();
 
   void append(var arrayBuffer_OR_blob_OR_value, [String endings]);
 

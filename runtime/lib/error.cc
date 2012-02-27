@@ -272,6 +272,12 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
                 dst_name.ToCString(),
                 String::Handle(dst_type.Name()).ToCString());
     }
+    DartFrameIterator iterator;
+    DartFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    const Function& function = Function::Handle(
+        caller_frame->LookupDartFunction());
+    OS::Print(" -> Function %s\n", function.ToFullyQualifiedCString());
   }
   if (!is_assignable) {
     const Type& src_type = Type::Handle(src_instance.GetType());

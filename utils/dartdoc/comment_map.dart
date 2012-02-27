@@ -102,7 +102,7 @@ class CommentMap {
   stripComment(String comment) {
     StringBuffer buf = new StringBuffer();
 
-    for (final line in comment.split('\n')) {
+    for (var line in comment.split('\n')) {
       line = line.trim();
       if (line.startsWith('/**')) line = line.substring(3);
       if (line.endsWith('*/')) line = line.substring(0, line.length - 2);

@@ -110,6 +110,12 @@ class _HTMLElementWrappingImplementation extends _ElementWrappingImplementation 
   void set title(String value) { _set_title(this, value); }
   static void _set_title(var _this, String value) native;
 
+  bool get translate() { return _get_translate(this); }
+  static bool _get_translate(var _this) native;
+
+  void set translate(bool value) { _set_translate(this, value); }
+  static void _set_translate(var _this, bool value) native;
+
   String get webkitdropzone() { return _get_webkitdropzone(this); }
   static String _get_webkitdropzone(var _this) native;
 

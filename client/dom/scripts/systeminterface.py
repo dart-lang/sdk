@@ -98,7 +98,7 @@ class DartInterfaceGenerator(object):
       # TODO(vsm): Remove source_filter.
       if MatchSourceFilter(self._source_filter, parent):
         # Parent is a DOM type.
-        extends.append(parent.type.id)
+        extends.append(DartType(parent.type.id))
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
@@ -115,8 +115,16 @@ class DartInterfaceGenerator(object):
     if suppressed_extends:
       extends_str += ' /*%s %s */' % (comment, ', '.join(suppressed_extends))
 
+    factory_provider = None
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info:
+      factory_provider = '_' + typename + 'FactoryProvider';
+
     if typename in interface_factories:
-      extends_str += ' default ' + interface_factories[typename]
+      factory_provider = interface_factories[typename]
+
+    if factory_provider:
+      extends_str += ' default ' + factory_provider
 
     # TODO(vsm): Add appropriate package / namespace syntax.
     (self._members_emitter,
@@ -124,6 +132,13 @@ class DartInterfaceGenerator(object):
          self._template + '$!TOP_LEVEL',
          ID=typename,
          EXTENDS=extends_str)
+
+    if constructor_info:
+      self._members_emitter.Emit(
+          '\n'
+          '  $CTOR($PARAMS);\n',
+          CTOR=typename,
+          PARAMS=constructor_info.ParametersInterfaceDeclaration());
 
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
@@ -134,8 +149,8 @@ class DartInterfaceGenerator(object):
           '  $CTOR.fromList(List<$TYPE> list);\n'
           '\n'
           '  $CTOR.fromBuffer(ArrayBuffer buffer);\n',
-        CTOR=self._interface.id,
-        TYPE=element_type)
+          CTOR=self._interface.id,
+          TYPE=DartType(element_type))
 
 
   def FinishInterface(self):
@@ -161,17 +176,17 @@ class DartInterfaceGenerator(object):
   def _EmitConstant(self, emitter, constant):
     emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
                  NAME=constant.id,
-                 TYPE=constant.type.id,
+                 TYPE=DartType(constant.type.id),
                  VALUE=constant.value)
 
   def AddAttribute(self, getter, setter):
     if getter and setter and getter.type.id == setter.type.id:
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=getter.type.id);
+                                 NAME=getter.id, TYPE=DartType(getter.type.id));
       return
     if getter and not setter:
       self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
-                                 NAME=getter.id, TYPE=getter.type.id);
+                                 NAME=getter.id, TYPE=DartType(getter.type.id));
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))

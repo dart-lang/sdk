@@ -29,11 +29,39 @@ class File {
     kWriteTruncate = kWrite | kTruncate
   };
 
+  // These values have to be kept in sync with the mode values of
+  // FileMode.READ, FileMode.WRITE and FileMode.APPEND in file.dart.
+  enum DartFileOpenMode {
+    kDartRead = 0,
+    kDartWrite = 1,
+    kDartAppend = 2
+  };
+
   enum StdioHandleType {
     kTerminal = 0,
     kPipe = 1,
     kFile = 2,
     kOther = 3
+  };
+
+  enum FileRequest {
+    kExistsRequest = 0,
+    kCreateRequest = 1,
+    kDeleteRequest = 2,
+    kOpenRequest = 3,
+    kFullPathRequest = 4,
+    kDirectoryRequest = 5,
+    kCloseRequest = 6,
+    kPositionRequest = 7,
+    kSetPositionRequest = 8,
+    kTruncateRequest = 9,
+    kLengthRequest = 10,
+    kFlushRequest = 11,
+    kReadByteRequest = 12,
+    kWriteByteRequest = 13,
+    kReadListRequest = 14,
+    kWriteListRequest = 15,
+    kWriteStringRequest = 16
   };
 
   ~File();
@@ -92,6 +120,8 @@ class File {
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
   static StdioHandleType GetStdioHandleType(int fd);
+
+  static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);
 
  private:
   File(const char* name, FileHandle* handle) : name_(name), handle_(handle) { }

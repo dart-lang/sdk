@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface SharedWorker extends AbstractWorker {
+interface SharedWorker extends AbstractWorker default _SharedWorkerFactoryProvider {
+
+  SharedWorker(String scriptURL, [String name]);
 
   final MessagePort port;
 }

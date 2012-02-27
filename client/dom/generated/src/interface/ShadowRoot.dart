@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface ShadowRoot extends DocumentFragment {
+interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider {
+
+  ShadowRoot(Element host);
 
   final Element host;
 

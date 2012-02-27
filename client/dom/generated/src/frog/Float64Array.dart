@@ -84,7 +84,9 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native;
+  void setElements(Object array, [int offset = null]) native '''
+if (offset == null) return this.set(array);
+return this.set(array, offset);''';
 
   _Float64ArrayJs subarray(int start, [int end = null]) native;
 }

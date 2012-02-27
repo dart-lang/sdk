@@ -501,7 +501,7 @@ class RawFunction : public RawObject {
   intptr_t end_token_index_;
   intptr_t num_fixed_parameters_;
   intptr_t num_optional_parameters_;
-  intptr_t invocation_counter_;
+  intptr_t usage_counter_;  // Incremented while function is running.
   intptr_t deoptimization_counter_;
   Kind kind_;
   bool is_static_;

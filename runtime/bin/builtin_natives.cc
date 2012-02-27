@@ -42,6 +42,7 @@
   V(File_FullPath, 1)                                                          \
   V(File_OpenStdio, 1)                                                         \
   V(File_GetStdioHandleType, 1)                                                \
+  V(File_NewServicePort, 0)                                                    \
   V(Logger_PrintString, 1)                                                     \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \

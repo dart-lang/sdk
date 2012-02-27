@@ -1,18 +1,16 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler;
 
 
-import com.google.dart.runner.DartRunner;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
  * Provides a framework to read command line options from stdin and feed them to
- * either the {@link DartCompiler} or {@link DartRunner}.
+ * the {@link DartCompiler}.
  *
  */
 public class UnitTestBatchRunner {

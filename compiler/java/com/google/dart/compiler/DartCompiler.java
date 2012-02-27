@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -72,6 +72,7 @@ public class DartCompiler {
 
   public static final String EXTENSION_DEPS = "deps";
   public static final String EXTENSION_LOG = "log";
+  public static final String EXTENSION_TIMESTAMP = "timestamp";
 
   public static final String CORELIB_URL_SPEC = "dart:core";
   public static final String MAIN_ENTRY_POINT_NAME = "main";
@@ -246,6 +247,8 @@ public class DartCompiler {
           for (LibraryNode libNode : lib.getSourcePaths()) {
             String relPath = libNode.getText();
             newUnitPaths.add(relPath);
+
+            // Prepare DartSource for "#source" unit.
             final DartSource dartSrc = libSrc.getSourceFor(relPath);
             if (dartSrc == null || !dartSrc.exists()) {
               // Dart Editor needs to have all missing files reported as compilation errors.
@@ -255,8 +258,20 @@ public class DartCompiler {
 
             if (!incremental
                 || (libIsDartUri && !usePrecompiledDartLibs)
-                || isSourceOutOfDate(dartSrc, libSrc)) {
+                || isSourceOutOfDate(dartSrc)) {
               DartUnit unit = parse(dartSrc, lib.getPrefixes(),  false);
+
+              // If we just parsed unit of library, report problems with its "#import" declarations.
+              if (libNode == selfSourcePath) {
+                for (LibraryNode importPathNode : lib.getImportPaths()) {
+                  LibrarySource dep = getImportSource(libSrc, importPathNode);
+                  if (dep == null) {
+                    reportMissingSource(context, libSrc, importPathNode);
+                  }
+                }
+              }
+
+              // Process unit, if exists.
               if (unit != null) {
                 if (libNode == selfSourcePath) {
                   lib.setSelfDartUnit(unit);
@@ -399,19 +414,10 @@ public class DartCompiler {
 
         // Update dependencies.
         for (LibraryNode libNode : lib.getImportPaths()) {
-          String libSpec = libNode.getText();
-          LibrarySource dep;
-          if (SystemLibraryManager.isDartSpec(libSpec)) {
-            dep = context.getSystemLibraryFor(libSpec);
-          } else {
-            dep = libSrc.getImportFor(libSpec);
+          LibrarySource dep = getImportSource(libSrc, libNode);
+          if (dep != null) {
+            lib.addImport(updateLibraries(dep), libNode);
           }
-          if (dep == null || !dep.exists()) {
-            reportMissingSource(context, libSrc, libNode);
-            continue;
-          }
-
-          lib.addImport(updateLibraries(dep), libNode);
         }
         return lib;
       } finally {
@@ -420,12 +426,32 @@ public class DartCompiler {
     }
 
     /**
+     * @return the {@link LibrarySource} referenced in the "#import" from "libSrc". May be
+     *         <code>null</code> if invalid URI or not existing library.
+     */
+    private LibrarySource getImportSource(LibrarySource libSrc, LibraryNode libNode)
+        throws IOException {
+      String libSpec = libNode.getText();
+      LibrarySource dep;
+      if (SystemLibraryManager.isDartSpec(libSpec)) {
+        dep = context.getSystemLibraryFor(libSpec);
+      } else {
+        dep = libSrc.getImportFor(libSpec);
+      }
+      if (dep == null || !dep.exists()) {
+        return null;
+      }
+      return dep;
+    }
+
+    /**
      * Determines whether the given source is out-of-date with respect to its artifacts.
      */
-    private boolean isSourceOutOfDate(DartSource dartSrc, LibrarySource libSrc) {
+    private boolean isSourceOutOfDate(DartSource dartSrc) {
       TraceEvent logEvent =
           Tracer.canTrace() ? Tracer.start(DartEventType.IS_SOURCE_OUTOFDATE, "src",
               dartSrc.getName()) : null;
+
       try {
         // If incremental compilation is disabled, just return true to force all
         // units to be recompiled.
@@ -433,16 +459,30 @@ public class DartCompiler {
           return true;
         }
 
-        for (Backend backend : backends) {
+        if (checkOnly) {
           TraceEvent backendEvent =
-              Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_OUTOFDATE, "be", backend
-                  .getClass().getCanonicalName(), "src", dartSrc.getName()) : null;
+              Tracer.canTrace() ? Tracer.start(DartEventType.TIMESTAMP_OUTOFDATE,
+                                               "src", dartSrc.getName()) : null;
           try {
-            if (backend.isOutOfDate(dartSrc, context)) {
+            if (context.isOutOfDate(dartSrc, dartSrc, EXTENSION_TIMESTAMP)) {
               return true;
             }
           } finally {
             Tracer.end(backendEvent);
+          }
+        } else {
+          // TODO(zundel): remove this case when code generation goes away
+          for (Backend backend : backends) {
+            TraceEvent backendEvent =
+                Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_OUTOFDATE, "be", backend
+                                                 .getClass().getCanonicalName(), "src", dartSrc.getName()) : null;
+                try {
+                  if (backend.isOutOfDate(dartSrc, context)) {
+                    return true;
+                  }
+                } finally {
+                  Tracer.end(backendEvent);
+                }
           }
         }
         return false;
@@ -727,6 +767,8 @@ public class DartCompiler {
               continue;
             }
 
+            updateAnalysisTimestamp(unit);
+
             // Run all compiler phases including AST simplification and symbol
             // resolution. This must run in serial.
             for (DartCompilationPhase phase : phases) {
@@ -748,21 +790,20 @@ public class DartCompiler {
             // To help support the IDE, notify the listener that this unit is compiled.
             context.unitCompiled(unit);
 
-            if (checkOnly) {
-              continue;
-            }
-
-            // Run the unit through all the backends. This loop can also be
-            // parallelized.
-            for (Backend be : config.getBackends()) {
-              TraceEvent backendEvent =
-                  Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_COMPILE, "be", be
-                      .getClass().getSimpleName(), "lib", lib.getName(), "unit", unit
-                      .getSourceName()) : null;
-              try {
-                be.compileUnit(unit, unit.getSource(), context, typeProvider);
-              } finally {
-                Tracer.end(backendEvent);
+            if (!checkOnly) {
+              // Run the unit through all the backends. This loop can also be
+              // parallelized.
+              for (Backend be : config.getBackends()) {
+                TraceEvent backendEvent =
+                    Tracer.canTrace() ? Tracer.start(DartEventType.BACKEND_COMPILE,
+                                                     "be", be.getClass().getSimpleName(),
+                                                     "lib", lib.getName(),
+                                                     "unit", unit.getSourceName()) : null;
+                    try {
+                      be.compileUnit(unit, unit.getSource(), context, typeProvider);
+                    } finally {
+                      Tracer.end(backendEvent);
+                    }
               }
             }
 
@@ -776,7 +817,7 @@ public class DartCompiler {
           }
 
           // Persist the DEPS file.
-          if (persist && !checkOnly) {
+          if (persist) {
             lib.writeDeps(context);
           }
         }
@@ -784,9 +825,16 @@ public class DartCompiler {
         if (compilerMetrics != null) {
           compilerMetrics.endCompileLibrariesTime();
         }
-
         Tracer.end(logEvent);
       }
+    }
+
+    private void updateAnalysisTimestamp(DartUnit unit) throws IOException {
+      // Update timestamp.
+      Writer writer = context.getArtifactWriter(unit.getSource(), "", EXTENSION_TIMESTAMP);
+      String timestampData = String.format("%d\n", System.currentTimeMillis());
+      writer.write(timestampData);
+      writer.close();
     }
 
     private void packageApp() throws IOException {
@@ -858,6 +906,8 @@ public class DartCompiler {
         if (!config.resolveDespiteParseErrors() && context.getErrorCount() > 0) {
           // Dump the compiler parse tree if dump format is set in arguments
           ASTWriterFactory.create(config).process(unit);
+          // We don't return this unit, so no more processing expected for it.
+          context.unitCompiled(unit);
           return null;
         }
         return unit;

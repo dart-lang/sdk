@@ -123,9 +123,10 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
     return false;
   }
 
-  virtual void CountBackwardLoop();
-
   void GenerateReturnEpilog(ReturnNode* node);
+
+  // Return true if the VM may optimize functions.
+  static bool CanOptimize();
 
  private:
   // TODO(srdjan): Remove the friendship once the two compilers are properly

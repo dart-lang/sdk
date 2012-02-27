@@ -15,11 +15,11 @@
  */
 #library('dartdoc');
 
+#import('dart:io');
 #import('dart:json');
 #import('../../frog/lang.dart');
 #import('../../frog/file_system.dart');
-#import('../../frog/file_system_node.dart');
-#import('../../frog/lib/node/node.dart');
+#import('../../frog/file_system_vm.dart');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
 
@@ -54,15 +54,17 @@ final MODE_LIVE_NAV = 1;
  * Run this from the `utils/dartdoc` directory.
  */
 void main() {
+  final args = new Options().arguments;
+
   // The entrypoint of the library to generate docs for.
-  final entrypoint = process.argv[process.argv.length - 1];
+  final entrypoint = args[args.length - 1];
 
   // Parse the dartdoc options.
   bool includeSource = true;
   var mode = MODE_LIVE_NAV;
 
-  for (int i = 2; i < process.argv.length - 1; i++) {
-    final arg = process.argv[i];
+  for (int i = 2; i < args.length - 1; i++) {
+    final arg = args[i];
     switch (arg) {
       case '--no-code':
         includeSource = false;
@@ -81,8 +83,8 @@ void main() {
     }
   }
 
-  final files = new NodeFileSystem();
-  parseOptions('../../frog', [] /* args */, files);
+  final files = new VMFileSystem();
+  parseOptions('../../frog', ['', '', '--libdir=../../frog/lib'], files);
   initializeWorld(files);
 
   var dartdoc;
@@ -237,8 +239,11 @@ class Dartdoc {
   }
 
   void endFile() {
-    String outPath = '$_outdir/$_filePath';
-    world.files.createDirectory(dirname(outPath), recursive: true);
+    final outPath = '$_outdir/$_filePath';
+    final dir = new Directory(dirname(outPath));
+    if (!dir.existsSync()) {
+      dir.createSync();
+    }
 
     world.files.writeString(outPath, _file.toString());
     _filePath = null;
@@ -1090,7 +1095,7 @@ class Dartdoc {
     final column = getSpanColumn(span);
     final lines = span.text.split('\n');
     // TODO(rnystrom): Dirty hack.
-    for (final i = 1; i < lines.length; i++) {
+    for (var i = 1; i < lines.length; i++) {
       lines[i] = unindent(lines[i], column);
     }
 

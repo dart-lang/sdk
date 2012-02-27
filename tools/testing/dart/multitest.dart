@@ -70,7 +70,7 @@ void ExtractTestsFromMultitest(String filename,
   Set<String> validMultitestOutcomes = new Set<String>.from(
       ['compile-time error', 'runtime error',
        'static type error', 'dynamic type error', '']);
-  
+
   List<String> testTemplate = new List<String>();
   testTemplate.add('// Test created from multitest named $filename.');
   // Create the set of multitests, which will have a new test added each
@@ -107,7 +107,7 @@ void ExtractTestsFromMultitest(String filename,
   // Add the template, with no multitest lines, as a test with key 'none'.
   testsAsLines['none'] = testTemplate;
   outcomes['none'] = '';
-  
+
   // Copy all the tests into the output map tests, as multiline strings.
   for (String key in testsAsLines.getKeys()) {
     tests[key] =
@@ -122,7 +122,8 @@ void DoMultitest(String filename,
                  Function doTest(String filename,
                                  bool isNegative,
                                  [bool isNegativeIfChecked,
-                                  bool hasFatalTypeErrors]),
+                                  bool hasFatalTypeErrors,
+                                  bool hasRuntimeErrors]),
                  Function multitestDone) {
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
@@ -145,13 +146,15 @@ void DoMultitest(String filename,
     openedFile.closeSync();
     var outcome = outcomes[key];
     bool enableFatalTypeErrors = outcome.contains('static type error');
-    bool isNegative = (outcome.contains('compile-time error') ||
-                       outcome.contains('runtime error'));
+    bool hasRuntimeErrors = outcome.contains('runtime error');
+    bool isNegative = hasRuntimeErrors
+        || outcome.contains('compile-time error');
     bool isNegativeIfChecked = outcome.contains('dynamic type error');
     doTest(filename,
            isNegative,
            isNegativeIfChecked,
-           enableFatalTypeErrors);
+           enableFatalTypeErrors,
+           hasRuntimeErrors);
   }
   multitestDone();
 }

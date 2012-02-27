@@ -1,6 +1,6 @@
 #!/bin/bash --posix
 #
-# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -16,14 +16,11 @@ DARTC_HOME=`cd $SCRIPT_DIR; pwd`
 DIST_DIR=$DARTC_HOME/compiler
 DARTC_LIBS=$DIST_DIR/lib
 
-D8_EXEC=${D8_EXEC:-$DARTC_HOME/d8}
-
-DARTC_FLAGS="--optimize"
+DARTC_FLAGS=""
 
 # Make it easy to insert 'set -x' or similar commands when debugging problems with this script.
 eval "$JAVA_STUB_DEBUG"
 
-JVM_FLAGS=${JVM_FLAGS:-"-Dcom.google.dart.runner.d8=$D8_EXEC"}
 JVM_FLAGS_CMDLINE=""
 
 while [ ! -z "$1" ]; do
@@ -55,7 +52,7 @@ exec $JAVABIN -ea -classpath @CLASSPATH@ \
               ${JVM_DEBUG_FLAGS} \
               ${JVM_FLAGS} \
               ${JVM_FLAGS_CMDLINE} \
-              com.google.dart.runner.DartRunner \
+              com.google.dart.compiler.DartCompiler \
               $DARTC_FLAGS \
               "$@"
 

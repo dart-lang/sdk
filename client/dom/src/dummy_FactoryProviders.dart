@@ -12,16 +12,6 @@ class _AudioContextFactoryProvider {
   factory AudioContext() => _dummy();
 }
 
-class _DOMParserFactoryProvider {
-
-  factory DOMParser() => _dummy();
-}
-
-class _FileReaderFactoryProvider {
-
-  factory FileReader() => _dummy();
-}
-
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _dummy();
@@ -61,11 +51,6 @@ class _TypedArrayFactoryProvider {
   factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer) => _dummy();
 }
 
-class _WebKitCSSMatrixFactoryProvider {
-
-  factory WebKitCSSMatrix([String spec = '']) => _dummy();
-}
-
 class _WebKitPointFactoryProvider {
 
   factory WebKitPoint(num x, num y) => _dummy();
@@ -74,14 +59,4 @@ class _WebKitPointFactoryProvider {
 class _WebSocketFactoryProvider {
 
   factory WebSocket(String url) => _dummy();
-}
-
-class _XMLHttpRequestFactoryProvider {
-
-  factory XMLHttpRequest() => _dummy();
-}
-
-class _XSLTProcessorFactoryProvider {
-
-  factory XSLTProcessor() => _dummy();
 }

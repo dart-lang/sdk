@@ -6,6 +6,7 @@
 // Auto-generated Dart DOM library with no implementation.
 
 #library("dom");
+#source('generated/src/dummy/RegularFactoryProviders.dart');
 #source('generated/src/interface/AbstractWorker.dart');
 #source('generated/src/interface/ArrayBuffer.dart');
 #source('generated/src/interface/ArrayBufferView.dart');

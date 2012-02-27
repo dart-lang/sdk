@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,6 @@ package com.google.dart.corelib;
 
 import com.google.common.io.CharStreams;
 import com.google.common.io.LineReader;
-import com.google.dart.runner.V8Launcher;
 
 import junit.extensions.TestSetup;
 import junit.framework.Test;
@@ -50,12 +49,6 @@ public class SharedTests extends TestSetup {
   protected static class SuiteBuilder {
     protected TestSuite buildSuite() {
       TestSuite suite = new TestSuite("Shared Dart tests");
-
-      if (!V8Launcher.isConfigured()) {
-        return configurationProblem(suite,
-                                    "Please set the system property com.google.dart.runner.d8");
-      }
-
       File file = new File(listTests[0]);
       if (!file.canExecute()) {
         return configurationProblem(suite, file.getPath() + " is not executable");

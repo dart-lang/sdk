@@ -26,9 +26,9 @@ void Scanner::InitKeywordTable() {
 
 
 void Scanner::Reset() {
-  lookahead_pos_ = 0;
+  lookahead_pos_ = -1;
   token_start_ = 0;
-  c0_ = source_length_ == 0 ? '\0' : source_.CharAt(0);
+  c0_ = '\0';
   newline_seen_ = false;
   while (saved_context_ != NULL) {
     ScanContext* ctx = saved_context_;
@@ -39,7 +39,8 @@ void Scanner::Reset() {
   string_is_multiline_ = false;
   brace_level_ = 0;
   c0_pos_.line = 1;
-  c0_pos_.column = 1;
+  c0_pos_.column = 0;
+  ReadChar();
 }
 
 

@@ -10,7 +10,7 @@
 #import('dart:json');
 #import('html_diff.dart');
 #import('../../frog/lang.dart');
-#import('../../frog/file_system_node.dart');
+#import('../../frog/file_system_vm.dart');
 #import('../../frog/file_system.dart');
 #import('../dartdoc/dartdoc.dart', prefix: 'doc');
 
@@ -19,8 +19,8 @@ HtmlDiff _diff;
 final GET_PREFIX = 'get:';
 
 void main() {
-  var files = new NodeFileSystem();
-  parseOptions('../../frog', [] /* args */, files);
+  var files = new VMFileSystem();
+  parseOptions('../../frog', ['', '', '--libdir=../../frog/lib'], files);
   initializeWorld(files);
 
   print('Parsing MDN data...');

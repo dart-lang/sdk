@@ -6,6 +6,8 @@
 
 interface IDBObjectStore {
 
+  final List<String> indexNames;
+
   final String keyPath;
 
   final String name;
@@ -20,7 +22,7 @@ interface IDBObjectStore {
 
   IDBIndex createIndex(String name, String keyPath);
 
-  IDBRequest delete(IDBKey key);
+  IDBRequest delete(var key_OR_keyRange);
 
   void deleteIndex(String name);
 

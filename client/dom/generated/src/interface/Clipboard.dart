@@ -14,7 +14,7 @@ interface Clipboard {
 
   final DataTransferItemList items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type]);
 

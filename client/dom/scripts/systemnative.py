@@ -255,19 +255,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     self._GenerateConstructors()
 
   def _GenerateConstructors(self):
-    # WebKit IDLs may define constructors with arguments.  Currently this form is not supported
-    # (see b/1721).  There is custom implementation for some of them, the rest are just ignored
-    # for now.
-    SUPPORTED_CONSTRUCTORS_WITH_ARGS = [ 'WebKitCSSMatrix' ]
-    UNSUPPORTED_CONSTRUCTORS_WITH_ARGS = [
-        'EventSource',
-        'MediaStream',
-        'PeerConnection',
-        'ShadowRoot',
-        'SharedWorker',
-        'TextTrackCue',
-        'Worker' ]
-    if not self._IsConstructable() or self._interface.id in UNSUPPORTED_CONSTRUCTORS_WITH_ARGS:
+    if not self._IsConstructable():
       return
 
     # TODO(antonm): currently we don't have information about number of arguments expected by
@@ -278,7 +266,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         INTERFACE_NAME=self._interface.id)
 
 
-    if self._interface.id in SUPPORTED_CONSTRUCTORS_WITH_ARGS or 'Constructor' not in self._interface.ext_attrs:
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info is None:
       # We have a custom implementation for it.
       self._cpp_declarations_emitter.Emit(
           '\n'
@@ -286,41 +275,54 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       return
 
     raises_dom_exceptions = 'ConstructorRaisesException' in self._interface.ext_attrs
-    raises_dart_exceptions = raises_dom_exceptions
-    type_info = GetIDLTypeInfo(self._interface)
+    raises_dart_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
     arguments = []
-    parameter_definitions = ''
+    parameter_definitions_emitter = emitter.Emitter()
+    create_function = 'create'
+    if 'NamedConstructor' in self._interface.ext_attrs:
+      raises_dart_exceptions = True
+      parameter_definitions_emitter.Emit(
+            '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
+            '        if (!domWindow) {\n'
+            '            exception = Dart_NewString("Failed to fetch domWindow");\n'
+            '            goto fail;\n'
+            '        }\n'
+            '        Document* document = domWindow->document();\n')
+      arguments.append('document')
+      create_function = 'createForJSConstructor'
     if 'CallWith' in self._interface.ext_attrs:
       call_with = self._interface.ext_attrs['CallWith']
       if call_with == 'ScriptExecutionContext':
         raises_dart_exceptions = True
-        parameter_definitions = (
+        parameter_definitions_emitter.Emit(
             '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
             '        if (!context) {\n'
             '            exception = Dart_NewString("Failed to create an object");\n'
             '            goto fail;\n'
             '        }\n')
-        arguments = ['context']
+        arguments.append('context')
       else:
         raise Exception('Unsupported CallWith=%s attribute' % call_with)
 
-    self._GenerateNativeCallback(
-        callback_name='constructorCallback',
-        idl_node=self._interface,
-        parameter_definitions=parameter_definitions,
-        needs_receiver=False, function_name='%s::create' % type_info.native_type(),
-        arguments=arguments,
-        idl_return_type=self._interface,
-        raises_dart_exceptions=raises_dart_exceptions,
-        raises_dom_exceptions=raises_dom_exceptions)
+    # Process constructor arguments.
+    for (i, arg) in enumerate(constructor_info.idl_args):
+      self._GenerateParameterAdapter(parameter_definitions_emitter, arg, i - 1)
+      arguments.append(arg.id)
 
+    function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
+    invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
+        self._interface, self._interface.ext_attrs, raises_dom_exceptions)
+    self._GenerateNativeCallback(callback_name='constructorCallback',
+        parameter_definitions=parameter_definitions_emitter.Fragments(),
+        needs_receiver=False, invocation=invocation,
+        raises_exceptions=raises_dart_exceptions)
 
   def _ImplClassName(self, interface_name):
     return interface_name + 'Implementation'
 
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
-    return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor']) & set(self._interface.ext_attrs)
+    return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
   def FinishInterface(self):
     base = self._BaseClassName(self._interface)
@@ -382,8 +384,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if (getter or setter).type.id == 'EventListener':
       return
 
-    # FIXME: support 'ImplementedBy'.
-    if 'ImplementedBy' in (getter or setter).ext_attrs:
+    if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
+      # FIXME: exclude from interface as well.
       return
 
     # FIXME: these should go away.
@@ -402,7 +404,8 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       self._AddSetter(setter)
 
   def _AddGetter(self, attr):
-    dart_declaration = '%s get %s()' % (attr.type.id, attr.id)
+    type_info = GetIDLTypeInfo(attr.type)
+    dart_declaration = '%s get %s()' % (type_info.dart_type(), attr.id)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, 'Getter', is_custom)
@@ -433,13 +436,15 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
-    self._GenerateNativeCallback(cpp_callback_name, attr, '',
-        True, webcore_function_name, arguments, idl_return_type=attr.type,
-        raises_dart_exceptions=attr.get_raises,
-        raises_dom_exceptions=attr.get_raises)
+    function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
+    invocation = self._GenerateWebCoreInvocation(function_expression,
+        arguments, attr.type, attr.ext_attrs, attr.get_raises)
+    self._GenerateNativeCallback(cpp_callback_name, '', True, invocation,
+        raises_exceptions=attr.get_raises)
 
   def _AddSetter(self, attr):
-    dart_declaration = 'void set %s(%s)' % (attr.id, attr.type.id)
+    type_info = GetIDLTypeInfo(attr.type)
+    dart_declaration = 'void set %s(%s)' % (attr.id, type_info.dart_type())
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, 'Setter', is_custom)
@@ -459,13 +464,17 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         webcore_function_name += 'Animated'
 
     arguments.append(attr.id)
+
     parameter_definitions_emitter = emitter.Emitter()
     self._GenerateParameterAdapter(parameter_definitions_emitter, attr, 0)
     parameter_definitions = parameter_definitions_emitter.Fragments()
-    self._GenerateNativeCallback(cpp_callback_name, attr, parameter_definitions,
-        True, webcore_function_name, arguments, idl_return_type=None,
-        raises_dart_exceptions=True,
-        raises_dom_exceptions=attr.set_raises)
+
+    function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
+    invocation = self._GenerateWebCoreInvocation(function_expression,
+        arguments, None, attr.ext_attrs, attr.set_raises)
+
+    self._GenerateNativeCallback(cpp_callback_name, parameter_definitions,
+        True, invocation, raises_exceptions=True)
 
   def _HasNativeIndexGetter(self, interface):
     return ('CustomIndexedGetter' in interface.ext_attrs or
@@ -486,6 +495,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     Arguments:
       info: An OperationInfo object.
     """
+
+    if 'CheckSecurityForNode' in info.overloads[0].ext_attrs:
+      # FIXME: exclude from interface as well.
+      return
 
     if 'Custom' in info.overloads[0].ext_attrs:
       parameters = info.ParametersImplementationDeclaration()
@@ -523,20 +536,6 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       operation: the IDLOperation to call.
     """
 
-    # FIXME: support ImplementedBy callbacks.
-    if 'ImplementedBy' in operation.ext_attrs:
-      return
-
-    for op in self._interface.operations:
-      if op.id != operation.id or len(op.arguments) <= len(operation.arguments):
-        continue
-      next_argument = op.arguments[len(operation.arguments)]
-      if next_argument.is_optional and 'Callback' in next_argument.ext_attrs:
-        # FIXME: '[Optional, Callback]' arguments could be non-optional in
-        # webcore. We need to fix overloads handling to generate native
-        # callbacks properly.
-        return
-
     self._native_version += 1
     native_name = info.name
     if self._native_version > 1:
@@ -567,9 +566,7 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
       return
 
     # Generate callback.
-    webcore_function_name = operation.id
-    if 'ImplementedAs' in operation.ext_attrs:
-      webcore_function_name = operation.ext_attrs['ImplementedAs']
+    webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
 
     parameter_definitions_emitter = emitter.Emitter()
     raises_dart_exceptions = len(operation.arguments) > 0 or operation.raises
@@ -625,121 +622,75 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
         arguments.append('String()')
 
     if 'NeedsUserGestureCheck' in operation.ext_attrs:
-      arguments.extend('DartUtilities::processingUserGesture')
+      arguments.append('DartUtilities::processingUserGesture')
 
-    parameter_definitions = parameter_definitions_emitter.Fragments()
-    self._GenerateNativeCallback(cpp_callback_name, operation, parameter_definitions,
-        True, webcore_function_name, arguments, idl_return_type=operation.type,
-        raises_dart_exceptions=raises_dart_exceptions,
-        raises_dom_exceptions=operation.raises)
+    function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation)
+    invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
+        operation.type, operation.ext_attrs, operation.raises)
+    self._GenerateNativeCallback(cpp_callback_name,
+        parameter_definitions=parameter_definitions_emitter.Fragments(),
+        needs_receiver=True, invocation=invocation,
+        raises_exceptions=raises_dart_exceptions)
 
-  def _GenerateNativeCallback(self, callback_name, idl_node,
-      parameter_definitions, needs_receiver, function_name, arguments, idl_return_type,
-      raises_dart_exceptions, raises_dom_exceptions):
-    if raises_dom_exceptions:
-      arguments.append('ec')
-    prefix = ''
-    if needs_receiver: prefix = self._interface_type_info.receiver()
-    callback = '%s%s(%s)' % (prefix, function_name, ', '.join(arguments))
+  def _GenerateNativeCallback(self, callback_name, parameter_definitions,
+      needs_receiver, invocation, raises_exceptions):
 
-    nested_templates = []
-    if idl_return_type and idl_return_type.id != 'void':
-      return_type_info = GetIDLTypeInfo(idl_return_type)
-      conversion_cast = return_type_info.conversion_cast('$BODY')
-      if isinstance(return_type_info, SVGTearOffIDLTypeInfo):
-        svg_primitive_types = ['SVGAngle', 'SVGLength', 'SVGMatrix',
-            'SVGNumber', 'SVGPoint', 'SVGRect', 'SVGTransform']
-        conversion_cast = '%s::create($BODY)'
-        if self._interface.id.startswith('SVGAnimated'):
-          conversion_cast = 'static_cast<%s*>($BODY)'
-        elif return_type_info.idl_type() == 'SVGStringList':
-          conversion_cast = '%s::create(receiver, $BODY)'
-        elif self._interface.id.endswith('List'):
-          conversion_cast = 'static_cast<%s*>($BODY.get())'
-        elif return_type_info.idl_type() in svg_primitive_types:
-          conversion_cast = '%s::create($BODY)'
-        else:
-          conversion_cast = 'static_cast<%s*>($BODY)'
-        conversion_cast = conversion_cast % return_type_info.native_type()
-      nested_templates.append(conversion_cast)
+    if needs_receiver:
+      parameter_definitions = emitter.Format(
+          '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n'
+          '        $PARAMETER_DEFINITIONS\n',
+          WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
+          PARAMETER_DEFINITIONS=parameter_definitions)
 
-      if return_type_info.conversion_include():
-        self._cpp_impl_includes[return_type_info.conversion_include()] = 1
-      if (return_type_info.idl_type() in ['DOMString', 'AtomicString'] and
-          'TreatReturnedNullStringAs' in idl_node.ext_attrs):
-        nested_templates.append('$BODY, ConvertDefaultToNull')
-      nested_templates.append(
-          '        Dart_Handle returnValue = toDartValue($BODY);\n'
-          '        if (returnValue)\n'
-          '            Dart_SetReturnValue(args, returnValue);\n')
-    else:
-      nested_templates.append('        $BODY;\n')
-
-    if raises_dom_exceptions:
-      nested_templates.append(
-          '        ExceptionCode ec = 0;\n'
-          '$BODY'
-          '        if (UNLIKELY(ec)) {\n'
-          '            exception = DartDOMWrapper::exceptionCodeToDartException(ec);\n'
-          '            goto fail;\n'
-          '        }\n')
-
-    nested_templates.append(
+    body = emitter.Format(
         '    {\n'
         '$PARAMETER_DEFINITIONS'
-        '$BODY'
+        '$INVOCATION'
         '        return;\n'
-        '    }\n')
+        '    }\n',
+        PARAMETER_DEFINITIONS=parameter_definitions,
+        INVOCATION=invocation)
 
-    if raises_dart_exceptions:
-      nested_templates.append(
+    if raises_exceptions:
+      body = emitter.Format(
           '    Dart_Handle exception;\n'
           '$BODY'
           '\n'
           'fail:\n'
           '    Dart_ThrowException(exception);\n'
-          '    ASSERT_NOT_REACHED();\n')
+          '    ASSERT_NOT_REACHED();\n',
+          BODY=body)
 
-    nested_templates.append(
+    self._cpp_definitions_emitter.Emit(
         '\n'
         'static void $CALLBACK_NAME(Dart_NativeArguments args)\n'
         '{\n'
         '    DartApiScope dartApiScope;\n'
         '$BODY'
-        '}\n')
-
-    template_parameters = {
-        'CALLBACK_NAME': callback_name,
-        'WEBCORE_CLASS_NAME': self._interface_type_info.native_type(),
-        'PARAMETER_DEFINITIONS': parameter_definitions,
-    }
-    if needs_receiver:
-      template_parameters['PARAMETER_DEFINITIONS'] = emitter.Format(
-          '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n'
-          '        $PARAMETER_DEFINITIONS\n',
-          **template_parameters)
-
-    for template in nested_templates:
-      template_parameters['BODY'] = callback
-      callback = emitter.Format(template, **template_parameters)
-
-    self._cpp_definitions_emitter.Emit(callback)
+        '}\n',
+        CALLBACK_NAME=callback_name,
+        BODY=body)
 
   def _GenerateParameterAdapter(self, emitter, idl_argument, index):
     type_info = GetIDLTypeInfo(idl_argument.type)
     (adapter_type, include_name) = type_info.parameter_adapter_info()
     if include_name:
       self._cpp_impl_includes[include_name] = 1
+    flags = ''
+    if (idl_argument.ext_attrs.get('Optional') == 'DefaultIsNullString' or
+        ('Optional' in idl_argument.ext_attrs and 'Callback' in idl_argument.ext_attrs)):
+      flags = ', DartUtilities::ConvertNullToDefaultValue'
     emitter.Emit(
         '\n'
-        '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX));\n'
+        '        const $ADAPTER_TYPE $NAME(Dart_GetNativeArgument(args, $INDEX)$FLAGS);\n'
         '        if (!$NAME.conversionSuccessful()) {\n'
         '            exception = $NAME.exception();\n'
         '            goto fail;\n'
         '        }\n',
         ADAPTER_TYPE=adapter_type,
         NAME=idl_argument.id,
-        INDEX=index + 1)
+        INDEX=index + 1,
+        FLAGS=flags)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
@@ -777,3 +728,65 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
 
     attribute_name = attr.ext_attrs['Reflect'] or attr.id.lower()
     return 'WebCore::%s::%sAttr' % (namespace, attribute_name)
+
+  def _GenerateWebCoreFunctionExpression(self, function_name, idl_node):
+    if 'ImplementedBy' in idl_node.ext_attrs:
+      return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
+    return '%s%s' % (self._interface_type_info.receiver(), function_name)
+
+  def _GenerateWebCoreInvocation(self, function_expression, arguments,
+      idl_return_type, attributes, raises_dom_exceptions):
+    invocation_template = '        $FUNCTION_CALL;\n'
+    if idl_return_type and idl_return_type.id != 'void':
+      return_type_info = GetIDLTypeInfo(idl_return_type)
+      if return_type_info.conversion_include():
+        self._cpp_impl_includes[return_type_info.conversion_include()] = 1
+
+      # Generate C++ cast based on idl return type.
+      conversion_cast = return_type_info.conversion_cast('$FUNCTION_CALL')
+      if isinstance(return_type_info, SVGTearOffIDLTypeInfo):
+        svg_primitive_types = ['SVGAngle', 'SVGLength', 'SVGMatrix',
+            'SVGNumber', 'SVGPoint', 'SVGRect', 'SVGTransform']
+        conversion_cast = '%s::create($FUNCTION_CALL)'
+        if self._interface.id.startswith('SVGAnimated'):
+          conversion_cast = 'static_cast<%s*>($FUNCTION_CALL)'
+        elif return_type_info.idl_type() == 'SVGStringList':
+          conversion_cast = '%s::create(receiver, $FUNCTION_CALL)'
+        elif self._interface.id.endswith('List'):
+          conversion_cast = 'static_cast<%s*>($FUNCTION_CALL.get())'
+        elif return_type_info.idl_type() in svg_primitive_types:
+          conversion_cast = '%s::create($FUNCTION_CALL)'
+        else:
+          conversion_cast = 'static_cast<%s*>($FUNCTION_CALL)'
+        conversion_cast = conversion_cast % return_type_info.native_type()
+
+      # Generate to Dart conversion of C++ value.
+      conversion_arguments = [conversion_cast]
+      if (return_type_info.idl_type() in ['DOMString', 'AtomicString'] and
+          'TreatReturnedNullStringAs' in attributes):
+        conversion_arguments.append('ConvertDefaultToNull')
+
+      invocation_template = emitter.Format(
+          '        Dart_Handle returnValue = toDartValue($ARGUMENTS);\n'
+          '        if (returnValue)\n'
+          '            Dart_SetReturnValue(args, returnValue);\n',
+          ARGUMENTS=', '.join(conversion_arguments))
+
+    if raises_dom_exceptions:
+      # Add 'ec' argument to WebCore invocation and convert DOM exception to Dart exception.
+      arguments.append('ec')
+      invocation_template = emitter.Format(
+          '        ExceptionCode ec = 0;\n'
+          '$INVOCATION'
+          '        if (UNLIKELY(ec)) {\n'
+          '            exception = DartDOMWrapper::exceptionCodeToDartException(ec);\n'
+          '            goto fail;\n'
+          '        }\n',
+          INVOCATION=invocation_template)
+
+    if 'ImplementedBy' in attributes:
+      arguments.insert(0, 'receiver')
+      self._cpp_impl_includes[attributes['ImplementedBy']] = 1
+
+    return emitter.Format(invocation_template,
+        FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))

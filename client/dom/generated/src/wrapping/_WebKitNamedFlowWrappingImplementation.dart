@@ -11,5 +11,8 @@ class _WebKitNamedFlowWrappingImplementation extends DOMWrapperBase implements W
     return new _WebKitNamedFlowWrappingImplementation();
   }
 
+  bool get overflow() { return _get_overflow(this); }
+  static bool _get_overflow(var _this) native;
+
   String get typeName() { return "WebKitNamedFlow"; }
 }

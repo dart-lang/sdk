@@ -67,7 +67,6 @@ LabelTest: Fail # switch cases are not implemented
 Library5Test: Fail # library prefixes not handled
 LibraryPrefixesTest: Fail # other is not a type
 LibrarySameNameUsedTest: Fail # lib2 is not a type
-ListLiteral2Test: Fail # CompileTimeConstantEvaluator not implemented
 ListTest: Fail # named constructors with type arguments are not implemented
 LocalFunctionTest: Fail # duplicate definition of f(var n)=> n*n-1
 ManyGenericInstanceofTest: Fail # cannot resolve type T
@@ -103,6 +102,7 @@ Prefix21Test: Fail # Internal Error: Element.computeType.
 Prefix22Test: Fail # library prefixes not handled
 PseudoKWTest: Fail # Unexpected token '('
 RegExpTest: Fail # named constructors with type arguments are not implemented
+ResourceTest: Fail # #resource tag not recognized - issue 1807
 RethrowTest: Fail # SsaBuilder: throw without expression not implemented
 SavannahTest: Fail # SsaBuilder.visitContinueStatement not implemented
 StatementTest: Fail # switch cases are not implemented
@@ -155,7 +155,6 @@ InstanceCompoundAssignmentOperatorTest: Fail # Expect.equals(expected: <4>, actu
 InstanceFieldInitializerTest: Fail # Expect.equals(expected: <1>, actual: <null>) fails.
 Instanceof2Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 IntrinsifiedMethodsTest: Fail # Expect.isTrue(false) fails.
-IsOperatorTest: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 LocalFunction3Test: Fail # Expect.equals(expected: <Closure>, actual: <Instance of 'Closure'>) fails.
 ListLiteral3Test: Fail # Expect.equals(expected: <true>, actual: <false>) fails.
 ListLiteral4Test: Fail # Expect.equals(expected: <110111>, actual: <null>) fails.
@@ -170,15 +169,10 @@ TypedMessageTest: Fail # SyntaxError: Unexpected token this
 # Mapping of JS errors to Dart exceptions.
 Factory3Test: Fail # TypeError: Cannot call method 'prepend$1' of undefined
 MethodInvocationTest: Fail # TypeError: Cannot call method 'foo$0' of undefined
-NamedParametersPassingFalsyTest: Fail # TypeError: Object Instance of 'BoundClosure' has no method '$call$13'
 NullToStringTest: Fail # TypeError: Cannot call method 'get$toString' of undefined
 StackOverflowTest: Fail # RangeError: Maximum call stack size exceeded
 StackTraceTest: Fail # ReferenceError: stacktrace is not defined
 StringTest: Fail # TypeError: Object Hello has no method 'operator$indexSet$2'
-
-
-# Bad code.
-InstanceofTest: Fail # SyntaxError: Unexpected identifier
 
 
 #
@@ -241,6 +235,7 @@ Field6NegativeTest: Fail, OK # Negative language test.
 Field6aNegativeTest: Fail, OK # Negative language test.
 Field7NegativeTest: Fail, OK # Negative language test.
 Field7aNegativeTest: Fail, OK # Negative language test.
+FinalForInVariableTest/01: Fail, OK # Negative language test
 FinalParamNegativeTest: Fail, OK # Negative language test.
 FinalVarNegativeTest: Fail, OK # Negative language test.
 FunctionTypeAliasNegativeTest: Fail, OK # Negative language test.
@@ -332,7 +327,3 @@ ExecuteFinally9Test: Fail
 
 [ $component == leg && $mode == release ]
 AssignTopMethodNegativeTest: Crash
-
-
-[ $component == leg && $mode == debug ]
-OperatorTest: Crash # VM assertion issue 1804.

@@ -142,40 +142,6 @@ class DartGenerator(object):
       interface.operations = filter(IsIdentified, interface.operations)
       interface.parents = filter(IsIdentified, interface.parents)
 
-  def ConvertToDartTypes(self, database):
-    """Converts all IDL types to Dart primitives or qualified types"""
-
-    def ConvertType(interface, type_name):
-      """Helper method for converting a type name to the proper
-      Dart name"""
-      if IsPrimitiveType(type_name):
-        return ConvertPrimitiveType(type_name)
-
-      if self._IsDartType(type_name):
-        # This is for when dart qualified names are explicitly
-        # defined in the IDLs. Just let them be.
-        return type_name
-
-      dart_template_match = self._dart_templates_re.match(type_name)
-      if dart_template_match:
-        # Dart templates
-        parent_type_name = type_name[0 : dart_template_match.start(1) - 1]
-        sub_type_name = dart_template_match.group(1)
-        return '%s<%s>' % (ConvertType(interface, parent_type_name),
-                           ConvertType(interface, sub_type_name))
-
-      return self._StripModules(type_name)
-
-    for interface in database.GetInterfaces():
-      for idl_type in interface.all(idlnode.IDLType):
-        original_type_name = idl_type.id
-        idl_type.id = ConvertType(interface, idl_type.id)
-        # FIXME: remember original idl types that are needed by native
-        # generator. We should migrate other generators to idl registry and
-        # remove this hack.
-        if original_type_name != idl_type.id:
-          original_idl_types[idl_type] = original_type_name
-
   def FilterInterfaces(self, database,
                        and_annotations=[],
                        or_annotations=[],
@@ -629,6 +595,11 @@ class DummyImplementationSystem(System):
   def __init__(self, templates, database, emitters, output_dir):
     super(DummyImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
+    factory_providers_file = os.path.join(self._output_dir, 'src', 'dummy',
+                                          'RegularFactoryProviders.dart')
+    self._factory_providers_emitter = self._emitters.FileEmitter(
+        factory_providers_file)
+    self._impl_file_paths = [factory_providers_file]
 
   def InterfaceGenerator(self,
                          interface,
@@ -647,21 +618,33 @@ class DummyImplementationSystem(System):
         os.path.join(lib_dir, 'dom_dummy.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
-         []
-         # FIXME: Move the implementation to a separate library.
-         # self._dart_wrapping_file_paths
-         ))
+         self._impl_file_paths))
+
 
 # ------------------------------------------------------------------------------
 
 class DummyInterfaceGenerator(object):
-  """Generates nothing."""
+  """Generates dummy implementation."""
 
   def __init__(self, system, interface):
-    pass
+    self._system = system
+    self._interface = interface
 
   def StartInterface(self):
-    pass
+    # There is no implementation to match the interface, but there might be a
+    # factory constructor for the Dart interface.
+    constructor_info = AnalyzeConstructor(self._interface)
+    if constructor_info:
+      dart_interface_name = self._interface.id
+      self._EmitFactoryProvider(dart_interface_name, constructor_info)
+
+  def _EmitFactoryProvider(self, interface_name, constructor_info):
+    factory_provider = '_' + interface_name + 'FactoryProvider'
+    self._system._factory_providers_emitter.Emit(
+        self._system._templates.Load('factoryprovider.darttemplate'),
+        FACTORYPROVIDER=factory_provider,
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration())
 
   def FinishInterface(self):
     pass

@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface MediaController {
+interface MediaController default _MediaControllerFactoryProvider {
+
+  MediaController();
 
   final TimeRanges buffered;
 

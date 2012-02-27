@@ -1,24 +1,25 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.end2end.inc;
 
 import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
-import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_APP_JS;
-import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_JS;
+import static com.google.dart.compiler.DartCompiler.EXTENSION_TIMESTAMP;
 import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.collect.Lists;
-import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompiler;
+import com.google.dart.compiler.DartCompilerErrorCode;
 import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.DefaultCompilerConfiguration;
 import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.backend.js.JavascriptBackend;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
@@ -74,15 +75,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    CompilerOptions compilerOptions = new CompilerOptions() {
-      // TODO(zundel): Update these tests to run without requiring code generation
-      @Override
-      public boolean checkOnly() {
-        return false;
-      }
-    };
-    config = new DefaultCompilerConfiguration(new JavascriptBackend(),
-                                              compilerOptions) {
+    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
       @Override
       public boolean incremental() {
         return true;
@@ -149,9 +142,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     //assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, -1, 7, 20));
     // B should be compiled because it now conflicts with A.
     // C should not be compiled, because it reference "not_hole" field, not top-level variable.
-    didWrite("A.dart", EXTENSION_JS);
-    didWrite("B.dart", EXTENSION_JS);
-    didNotWrite("C.dart", EXTENSION_JS);
+    didWrite("A.dart", EXTENSION_TIMESTAMP);
+    didWrite("B.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("C.dart", EXTENSION_TIMESTAMP);
     assertAppBuilt();
   }
 
@@ -181,8 +174,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     compile();
     // A and B should be compiled.
-    didWrite("A.dart", EXTENSION_JS);
-    didWrite("B.dart", EXTENSION_JS);
+    didWrite("A.dart", EXTENSION_TIMESTAMP);
+    didWrite("B.dart", EXTENSION_TIMESTAMP);
     assertAppBuilt();
     // "hole" was filled with top-level field.
     assertErrors(errors);
@@ -224,9 +217,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       compile();
       // B should be compiled because it also declares foo(), so produces "shadow" conflict.
       // C should be compiled because it has unqualified invocation which was declared in A.
-      didWrite("A.dart", EXTENSION_JS);
-      didWrite("B.dart", EXTENSION_JS);
-      didWrite("C.dart", EXTENSION_JS);
+      didWrite("A.dart", EXTENSION_TIMESTAMP);
+      didWrite("B.dart", EXTENSION_TIMESTAMP);
+      didWrite("C.dart", EXTENSION_TIMESTAMP);
       assertAppBuilt();
     }
     // Remove top-level foo(), so invocation of foo() in B should be bound to the super class.
@@ -235,9 +228,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       compile();
       // B should be compiled because it also declares foo(), so produces "shadow" conflict.
       // C should be compiled because it has unqualified invocation which was declared in A.
-      didWrite("A.dart", EXTENSION_JS);
-      didWrite("B.dart", EXTENSION_JS);
-      didWrite("C.dart", EXTENSION_JS);
+      didWrite("A.dart", EXTENSION_TIMESTAMP);
+      didWrite("B.dart", EXTENSION_TIMESTAMP);
+      didWrite("C.dart", EXTENSION_TIMESTAMP);
     }
   }
 
@@ -277,9 +270,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       compile();
       // B should be compiled because it also declares foo(), so produces "shadow" conflict.
       // C should not be compiled because.
-      didWrite("A.dart", EXTENSION_JS);
-      didWrite("B.dart", EXTENSION_JS);
-      didNotWrite("C.dart", EXTENSION_JS);
+      didWrite("A.dart", EXTENSION_TIMESTAMP);
+      didWrite("B.dart", EXTENSION_TIMESTAMP);
+      didNotWrite("C.dart", EXTENSION_TIMESTAMP);
       assertAppBuilt();
     }
   }
@@ -320,9 +313,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       compile();
       // B should be compiled because it also declares "foo", so produces "shadow" conflict.
       // C should be compiled because it has unqualified invocation which was declared in A.
-      didWrite("A.dart", EXTENSION_JS);
-      didWrite("B.dart", EXTENSION_JS);
-      didWrite("C.dart", EXTENSION_JS);
+      didWrite("A.dart", EXTENSION_TIMESTAMP);
+      didWrite("B.dart", EXTENSION_TIMESTAMP);
+      didWrite("C.dart", EXTENSION_TIMESTAMP);
       assertAppBuilt();
     }
     // Remove top-level "foo", so access to "foo" in B should be bound to the super class.
@@ -331,9 +324,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       compile();
       // B should be compiled because it also declares "foo", so produces "shadow" conflict.
       // C should be compiled because it has unqualified access which was declared in A.
-      didWrite("A.dart", EXTENSION_JS);
-      didWrite("B.dart", EXTENSION_JS);
-      didWrite("C.dart", EXTENSION_JS);
+      didWrite("A.dart", EXTENSION_TIMESTAMP);
+      didWrite("B.dart", EXTENSION_TIMESTAMP);
+      didWrite("C.dart", EXTENSION_TIMESTAMP);
     }
   }
 
@@ -341,7 +334,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
    * Test for "hole" feature. If we use qualified access and add/remove top-level field, this should
    * not cause compilation of invocation unit.
    */
-  public void test_gieldHole_useQualifiedAccess() {
+  public void test_fieldHole_useQualifiedAccess() {
     appSource.setContent(
         "B.dart",
         makeCode(
@@ -373,9 +366,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
       compile();
       // B should be compiled because it also declares "foo", so produces "shadow" conflict.
       // C should not be compiled because it has qualified access to "foo".
-      didWrite("A.dart", EXTENSION_JS);
-      didWrite("B.dart", EXTENSION_JS);
-      didNotWrite("C.dart", EXTENSION_JS);
+      didWrite("A.dart", EXTENSION_TIMESTAMP);
+      didWrite("B.dart", EXTENSION_TIMESTAMP);
+      didNotWrite("C.dart", EXTENSION_TIMESTAMP);
       assertAppBuilt();
     }
   }
@@ -399,7 +392,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     // Now there is top-level declarations conflict between A and B.
     // So, B should be compiled.
-    didWrite("B.dart", EXTENSION_JS);
+    didWrite("B.dart", EXTENSION_TIMESTAMP);
     // But application should be build.
     assertAppBuilt();
     // Because B was compiled, it has warning.
@@ -427,7 +420,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // Top-level declaration in A was removed, so no conflict.
     // So:
     // ... B should be recompiled.
-    didWrite("B.dart", EXTENSION_JS);
+    didWrite("B.dart", EXTENSION_TIMESTAMP);
     // ... but application should be rebuild.
     assertAppBuilt();
     // Because B was recompiled, it has no warning.
@@ -464,10 +457,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // Now there is top-level declarations conflict between A and B.
     // So:
     // ... B should be recompiled.
-    didWrite("B.dart", EXTENSION_JS);
+    didWrite("B.dart", EXTENSION_TIMESTAMP);
     // ... but application should be rebuild.
     didWrite(APP, EXTENSION_DEPS);
-    didWrite(APP, EXTENSION_APP_JS);
     // Because B was recompiled, it has no warning.
     assertErrors(errors);
   }
@@ -503,7 +495,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             ""));
     compile();
     // B depends on A class, so compiled.
-    didWrite("B.dart", EXTENSION_JS);
+    didWrite("B.dart", EXTENSION_TIMESTAMP);
     assertAppBuilt();
     // Because B was compiled, it has warning.
     assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 4, 9, 3));
@@ -534,9 +526,46 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         errEx("B.dart", ResolverErrorCode.DUPLICATE_TOP_LEVEL_DEFINITION, 2, 5, 8));
   }
 
+  /**
+   * Test that invalid "#import" is reported as any other error between "unitAboutToCompile" and
+   * "unitCompiled".
+   */
+  public void test_reportMissingImportSourcce() throws Exception {
+    appSourceContent =
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('app');",
+            "#import('dart:noSuchLib.dart');",
+            "");
+    // Remember errors only between unitAboutToCompile/unitCompiled.
+    errors.clear();
+    DartCompilerListener listener = new DartCompilerListener.Empty() {
+      boolean isCompiling = false;
+
+      @Override
+      public void unitAboutToCompile(DartSource source, boolean diet) {
+        isCompiling = true;
+      }
+
+      @Override
+      public void onError(DartCompilationError event) {
+        if (isCompiling) {
+          errors.add(event);
+        }
+      }
+
+      @Override
+      public void unitCompiled(DartUnit unit) {
+        isCompiling = false;
+      }
+    };
+    DartCompiler.compileLib(appSource, config, provider, listener);
+    // Check that errors where reported (and in correct time).
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 31));
+  }
+
   private void assertAppBuilt() {
     didWrite(APP, EXTENSION_DEPS);
-    didWrite(APP, EXTENSION_APP_JS);
   }
 
   private void compile() {

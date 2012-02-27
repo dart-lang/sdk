@@ -98,10 +98,6 @@ def GenerateDOM(systems, generate_html_systems, output_dir, use_database_cache):
       }, False)
   generator.FilterMembersWithUnidentifiedTypes(common_database)
   webkit_database = common_database.Clone()
-  # FIXME: get rid of _original_idl_types map in dartgenerator.py and
-  # call ConvertToDartTypes before cloning.
-  generator.ConvertToDartTypes(common_database)
-  generator.ConvertToDartTypes(webkit_database)
 
   generated_output_dir = os.path.join(output_dir,
       '../html/generated' if generate_html_systems else 'generated')

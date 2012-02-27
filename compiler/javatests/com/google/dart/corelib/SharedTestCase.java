@@ -1,9 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.corelib;
 
+import com.google.dart.compiler.AnalysisError;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.CompilerConfiguration;
 import com.google.dart.compiler.DartArtifactProvider;
@@ -18,9 +19,6 @@ import com.google.dart.compiler.LibrarySource;
 import com.google.dart.compiler.Source;
 import com.google.dart.compiler.SubSystem;
 import com.google.dart.compiler.UrlLibrarySource;
-import com.google.dart.runner.DartRunner;
-import com.google.dart.runner.RunnerError;
-import com.google.dart.runner.V8Launcher;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
@@ -133,16 +131,11 @@ public abstract class SharedTestCase extends TestCase {
 
   @Override
   public void runBare() {
-    assertTrue(V8Launcher.isConfigured());
     ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
     PrintStream outputStream = new PrintStream(byteOutput);
     try {
-      if (regularCompile) {
-        invokeCompiler();
-      } else {
-        DartRunner.throwingMain(arguments, outputStream, outputStream);
-      }
-    } catch (RunnerError e) {
+      invokeCompiler();
+    } catch (AnalysisError e) {
       outputStream.close();
       analyzeError(e, byteOutput.toString());
       return;
@@ -155,7 +148,7 @@ public abstract class SharedTestCase extends TestCase {
     analyzeNormalCompletion();
   }
 
-  private void invokeCompiler() throws CmdLineException, IOException, RunnerError {
+  private void invokeCompiler() throws CmdLineException, IOException, AnalysisError {
     CmdLineParser cmdLineParser = null;
     CompilerOptions compilerOptions = new CompilerOptions();
     cmdLineParser = new CmdLineParser(compilerOptions);
@@ -174,7 +167,7 @@ public abstract class SharedTestCase extends TestCase {
     }
     DartCompiler.compileLib(lib, config, provider, listener);
     if (compilationErrorCount.get() != 0 || typeErrorCount.get() != 0 || warningCount.get() != 0) {
-      throw new RunnerError(sourceFile.getPath());
+      throw new AnalysisError(sourceFile.getPath());
     }
   }
 
@@ -265,7 +258,7 @@ public abstract class SharedTestCase extends TestCase {
     throw error;
   }
 
-  private void analyzeError(RunnerError e, String log) {
+  private void analyzeError(AnalysisError e, String log) {
     if (isNegative) {
       if (!outcomes.contains("pass")) {
         fail("Negative test is passing, please update status file");

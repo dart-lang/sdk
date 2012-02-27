@@ -19,7 +19,6 @@ prefix language
 
 
 [ $component == vm || $component == dartium ]
-DynamicFieldTest: Fail # Issue 1805
 GCTest: Fail # Issue 1487
 ImpliedInterfaceTest: Fail # Bug 5349944
 FBoundedQuantificationTest: Skip # Issue 439
@@ -112,8 +111,6 @@ FinalSyntaxTest/none: Fail
 
 CompileTimeConstant3Test: Fail # Issue 1780
 
-CodeAfterTryIsExecutedTest/01: Fail # Issue 1799.
-
 # Marked failed after code generation removed from dartc
 ApplicationNegativeTest: Fail
 AssertKeywordNegativeTest: Fail
@@ -144,6 +141,7 @@ AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654
 Constructor3NegativeTest: Fail
+ConstructorNamedArgumentsTest/01: Fail # Issue 1872
 DefaultFactoryLibraryTest: Fail          # Issue 514
 DuplicateImplementsTest: Skip # Issue 976
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
@@ -403,15 +401,6 @@ StringEscape1NegativeTest: Skip
 Switch3NegativeTest: Skip
 Switch4NegativeTest: Skip
 ExecuteFinally6Test: Skip
-
-[ $component == webdriver && $browser == safari ]
-BlockScopeTest: Fail
-ClosureBreak1Test: Fail
-ClosureBreakTest: Fail
-ExecuteFinally7Test: Fail
-ImplicitClosure1Test: Fail
-MethodBindingTest: Fail
-Prefix15Test: Fail
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $component == webdriver && $browser == opera ]

@@ -20,26 +20,21 @@ class FlowGraphBuilder: public ValueObject {
  public:
   explicit FlowGraphBuilder(const ParsedFunction& parsed_function)
       : parsed_function_(parsed_function),
-        bailout_reason_(NULL),
-        postorder_() { }
+        postorder_block_entries_() { }
 
   void BuildGraph();
 
+  const GrowableArray<BlockEntryInstr*>* blocks() const {
+    return &postorder_block_entries_;
+  }
+
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
-  bool HasBailedOut() const { return bailout_reason_ != NULL; }
-  void Bailout(const char* reason) {
-    // Cannot give a NULL reason because we use it to detect bailout.
-    ASSERT(!HasBailedOut() && (reason != NULL));
-    bailout_reason_ = reason;
-  }
-  void TraceBailout() const;
-  void PrintGraph() const;
+  void Bailout(const char* reason);
 
  private:
   const ParsedFunction& parsed_function_;
-  const char* bailout_reason_;
-  GrowableArray<Instruction*> postorder_;
+  GrowableArray<BlockEntryInstr*> postorder_block_entries_;
 };
 
 
@@ -97,9 +92,13 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Implement the core part of the translation of expression node types.
   AssertAssignableComp* TranslateAssignable(const AssignableNode& node);
   InstanceCallComp* TranslateBinaryOp(const BinaryOpNode& node);
-  InstanceCallComp* TranslateComparison(const ComparisonNode& node);
+  InstanceCallComp* TranslateUnaryOp(const UnaryOpNode& node);
+  Computation* TranslateComparison(const ComparisonNode& node);
   StoreLocalComp* TranslateStoreLocal(const StoreLocalNode& node);
   StaticCallComp* TranslateStaticCall(const StaticCallNode& node);
+  InstanceCallComp* TranslateInstanceCall(const InstanceCallNode& node);
+  void TranslateArgumentList(const ArgumentListNode& node,
+                             ZoneGrowableArray<Value*>* values);
 
   void CloseFragment() { exit_ = NULL; }
   intptr_t AllocateTempIndex() { return temp_index_++; }

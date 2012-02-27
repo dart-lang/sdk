@@ -10,6 +10,7 @@
 #include "platform/globals.h"
 
 const char* DartUtils::kDartScheme = "dart:";
+const char* DartUtils::kDartExtensionScheme = "dart-ext:";
 const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kCoreImplLibURL = "dart:coreimpl";
@@ -101,6 +102,15 @@ bool DartUtils::IsDartSchemeURL(const char* url_name) {
   // If the URL starts with "dart:" then it is considered as a special
   // library URL which is handled differently from other URLs.
   return (strncmp(url_name, kDartScheme, kDartSchemeLen) == 0);
+}
+
+
+bool DartUtils::IsDartExtensionSchemeURL(const char* url_name) {
+  static const intptr_t kDartExtensionSchemeLen = strlen(kDartExtensionScheme);
+  // If the URL starts with "dartext:" then it is considered as a special
+  // extension library URL which is handled differently from other URLs.
+  return
+      (strncmp(url_name, kDartExtensionScheme, kDartExtensionSchemeLen) == 0);
 }
 
 
@@ -322,6 +332,14 @@ Dart_CObject* CObject::NewInt64(int64_t value) {
 }
 
 
+Dart_CObject* CObject::NewIntptr(intptr_t value) {
+  // Pointer values passed as intptr_t are always send as int64_t.
+  Dart_CObject* cobject = New(Dart_CObject::kInt64);
+  cobject->value.as_int64 = value;
+  return cobject;
+}
+
+
 Dart_CObject* CObject::NewDouble(double value) {
   Dart_CObject* cobject = New(Dart_CObject::kDouble);
   cobject->value.as_double = value;
@@ -350,5 +368,13 @@ Dart_CObject* CObject::NewArray(int length) {
   cobject->value.as_array.length = length;
   cobject->value.as_array.values =
       reinterpret_cast<Dart_CObject**>(cobject + 1);
+  return cobject;
+}
+
+
+Dart_CObject* CObject::NewByteArray(int length) {
+  Dart_CObject* cobject = New(Dart_CObject::kByteArray, length);
+  cobject->value.as_byte_array.length = length;
+  cobject->value.as_byte_array.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;
 }

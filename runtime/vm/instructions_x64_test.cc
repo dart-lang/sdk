@@ -28,7 +28,7 @@ ASSEMBLER_TEST_RUN(Call, entry) {
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
   __ jmp(&StubCode::MegamorphicLookupLabel());
-  __ jmp(&StubCode::OptimizeInvokedFunctionLabel());
+  __ jmp(&StubCode::AllocateArrayLabel());
   __ ret();
 }
 
@@ -38,13 +38,13 @@ ASSEMBLER_TEST_RUN(Jump, entry) {
   EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(),
             jump1.TargetAddress());
   JumpPattern jump2(entry + jump1.pattern_length_in_bytes());
-  EXPECT_EQ(StubCode::OptimizeInvokedFunctionLabel().address(),
+  EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump2.TargetAddress());
   uword target1 = jump1.TargetAddress();
   uword target2 = jump2.TargetAddress();
   jump1.SetTargetAddress(target2);
   jump2.SetTargetAddress(target1);
-  EXPECT_EQ(StubCode::OptimizeInvokedFunctionLabel().address(),
+  EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump1.TargetAddress());
   EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(),
             jump2.TargetAddress());

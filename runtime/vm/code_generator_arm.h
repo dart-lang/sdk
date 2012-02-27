@@ -22,7 +22,8 @@ class ParsedFunction;
 
 class CodeGenerator : public AstNodeVisitor {
  public:
-  CodeGenerator(Assembler* assembler, const ParsedFunction& parsed_function) { }
+  CodeGenerator(Assembler* assembler, const ParsedFunction& parsed_function)
+      : pc_descriptors_list_(NULL) { }
   virtual ~CodeGenerator() { }
 
   bool GenerateCode() {
@@ -46,7 +47,14 @@ class CodeGenerator : public AstNodeVisitor {
       int num_arguments,
       const Array& optional_arguments_names);
 
+  // Return true if the VM may optimize functions.
+  static bool CanOptimize();
+
  private:
+  // Forward declarations.
+  class DescriptorList;
+
+  DescriptorList* pc_descriptors_list_;
   DISALLOW_IMPLICIT_CONSTRUCTORS(CodeGenerator);
 };
 

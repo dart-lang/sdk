@@ -182,14 +182,17 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
     case Object::kTypeArgumentsClass: {
       // TODO(sjesse): Remove this when message serialization format is
       // updated (currently length is leaked).
-      AddBackwardReference(object_id, NULL);
+      Dart_CObject* value = &type_arguments_marker;
+      AddBackwardReference(object_id, value);
       Dart_CObject* length = ReadObject();
       ASSERT(length->type == Dart_CObject::kInt32);
       for (int i = 0; i < length->value.as_int32; i++) {
         Dart_CObject* type = ReadObject();
-        if (type != &dynamic_type_marker) return NULL;
+        if (type != &dynamic_type_marker) {
+          return NULL;
+        }
       }
-      return &type_arguments_marker;
+      return value;
     }
     case ObjectStore::kArrayClass: {
       intptr_t len = ReadSmiValue();
@@ -315,8 +318,12 @@ Dart_CObject* ApiMessageReader::ReadObjectImpl(intptr_t header) {
 Dart_CObject* ApiMessageReader::ReadObject() {
   int64_t value = Read<int64_t>();
   if ((value & kSmiTagMask) == 0) {
-    Dart_CObject* dart_value = AllocateDartCObjectInt32(value >> kSmiTagShift);
-    return dart_value;
+    int64_t untagged_value = value >> kSmiTagShift;
+    if (kMinInt32 <= untagged_value && untagged_value <= kMaxInt32) {
+      return AllocateDartCObjectInt32(untagged_value);
+    } else {
+      return AllocateDartCObjectInt64(untagged_value);
+    }
   }
   ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
   return ReadObjectImpl(value);

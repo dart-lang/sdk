@@ -1,12 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.end2end.inc;
 
 import static com.google.dart.compiler.DartCompiler.EXTENSION_DEPS;
-import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_APP_JS;
-import static com.google.dart.compiler.backend.js.AbstractJsBackend.EXTENSION_JS;
+import static com.google.dart.compiler.DartCompiler.EXTENSION_TIMESTAMP;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
@@ -69,15 +68,8 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
   @Override
   protected void setUp() throws Exception {
-    CompilerOptions compilerOptions = new CompilerOptions() {
-      // TODO(zundel): Update these tests to run without requiring code generation
-      @Override
-      public boolean checkOnly() {
-        return false;
-      }
-    };
-    config = new DefaultCompilerConfiguration(new JavascriptBackend(),
-                                              compilerOptions) {
+    CompilerOptions compilerOptions = new CompilerOptions();
+    config = new DefaultCompilerConfiguration(new JavascriptBackend()) {
       @Override
       public boolean incremental() {
         return true;
@@ -117,18 +109,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     compile();
 
     // Assert that all artifacts are written.
-    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.dart", EXTENSION_TIMESTAMP);
     didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother0.dart", EXTENSION_JS);
-    didWrite("myother1.dart", EXTENSION_JS);
-    didWrite("myother2.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother2.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_JS);
+    didWrite("my.app.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testNoOpRecompile() {
@@ -138,18 +130,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     compile();
 
     // Assert we didn't write anything.
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("my.dart", EXTENSION_JS);
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("my.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
     didNotWrite("my.app.dart", EXTENSION_DEPS);
-    didNotWrite("my.app.dart", EXTENSION_JS);
+    didNotWrite("my.app.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testTouchOneSource() {
@@ -161,20 +153,19 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // We just bumped the timestamp on my.dart, so only my.dart.js and my.app.js should be changed.
     // At present, the app's deps and api will be rewritten. This might be optimized later.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
 
     // Nothing else should have changed.
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testNormalizationTracking() {
@@ -193,46 +184,43 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     // We just bumped the timestamp on myother7.dart, so only myother7.dart.js and my.app.js should
     // be changed. At present, the app's deps and api will be rewritten.
 
-    didWrite("myother7.dart", EXTENSION_JS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
+    didWrite("myother7.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
 
     // Nothing else should have changed.
-    didNotWrite("my.dart", EXTENSION_JS);
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("my.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
-  public void testKnockout_jsArtifact() {
+  public void testKnockout_timestamp() {
     compile();
 
     provider.resetReadsAndWrites();
-    provider.removeArtifact("my.dart", "", EXTENSION_JS);
+    provider.removeArtifact("my.dart", "", EXTENSION_TIMESTAMP);
     compile();
 
     // At present, knocking out a js artifact will force an update of the library's api and
     // deps. This could be optimized.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
-    didWrite("my.app.dart", EXTENSION_DEPS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
 
     // Assert that everything else was left alone.
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeImplementation_methodBody() {
@@ -243,18 +231,17 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     compile();
 
     // Changed someimpl.dart, so it, its library, and the compiled app should be written.
-    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didWrite("someimpl.lib.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
     // We've switched to (unit -> unit) dependency, so should be recompiled too.
-    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.dart", EXTENSION_TIMESTAMP);
     didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("my.dart", EXTENSION_JS);
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("my.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
     didNotWrite("my.app.dart", EXTENSION_DEPS);
   }
 
@@ -267,19 +254,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Added a new static method to Other0, which should force a recompile of my.dart,
     // because the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother0.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeApi_staticFieldRef() {
@@ -291,20 +277,19 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Added a new static field to Other0, which should force a recompile of my.dart,
     // because the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother3.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother3.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeApi_viaTypeParamBound() {
@@ -316,20 +301,19 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Added a new static field to Other0, which should force a recompile of my.dart,
     // because the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother4.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother4.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeApi_returnTypeChange() {
@@ -341,19 +325,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed a return type in Other0, which should force a recompile of my.dart,
     // because the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother0.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeApi_globalVarChange() {
@@ -365,10 +348,9 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed a top-level variable type in Other0, which should force a recompile of my.dart,
     // because the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother0.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
   }
 
   public void testChangeApi_globalFunctionChange() {
@@ -380,10 +362,9 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed a return type in Other0, which should force a recompile of my.dart,
     // because the latter contains a reference to one of its static methods.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother0.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother0.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
   }
 
   public void testChangeApi_viaNew() {
@@ -395,19 +376,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed the api of Other1, which should force a recompile of my.dart,
     // because the latter instantiates one of its classes.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother1.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother1.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeApi_viaSubclassing() {
@@ -419,19 +399,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed the api of Other2, which should force a recompile of my.dart,
     // because the latter subclasses one of its classes.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother2.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother2.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeApi_inLibrary() {
@@ -444,20 +423,19 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // We changed both the interface and implementation libraries, so almost everything should have
     // been recompiled.
-    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.dart", EXTENSION_TIMESTAMP);
     didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
     // Except the "others", which have no dependency on the library.
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testChangeApi_inImplLibrary() {
@@ -468,19 +446,17 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     compile();
 
     // Assert that only the interface and implementation library were recompiled.
-    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.dart", EXTENSION_TIMESTAMP);
     didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.app.dart", EXTENSION_APP_JS);
-
     // The app should remain untouched.
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
-    didNotWrite("my.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("my.dart", EXTENSION_TIMESTAMP);
     didNotWrite("my.app.dart", EXTENSION_DEPS);
   }
 
@@ -491,21 +467,20 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     someLibSource.remapSource("some.dart", "some.intfchange.dart");
     compile();
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
 
     // Assert we recompiled both some.dart and someimpl.dart, as well as my.dart.
     // (someimpl.dart is recompiled because its interface in some.dart changed)
-    didWrite("someimpl.dart", EXTENSION_JS);
+    didWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didWrite("some.dart", EXTENSION_JS);
+    didWrite("some.dart", EXTENSION_TIMESTAMP);
     didWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didWrite("my.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
   }
 
   // TODO(jgw): Bug 5319907.
@@ -516,19 +491,18 @@ public class IncrementalCompilationTest extends CompilerTestCase {
     myAppSource.remapSource("myother0.dart", "myother0.fillthehole.dart");
     compile();
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
 
     // Both myother0.dart and my.dart should be recompiled.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother0.dart", EXTENSION_JS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother0.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
   }
 
@@ -549,20 +523,19 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed the api of Other5, which should force a recompile of my.dart,
     // because the latter includes a qualified reference to one of its instance fields.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother5.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother5.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testQualifiedMethodRef() {
@@ -574,20 +547,19 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed the api of Other6, which should force a recompile of my.dart,
     // because the latter includes a qualified reference to one of its instance methods.
-    didWrite("my.dart", EXTENSION_JS);
-    didWrite("myother6.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother6.dart", EXTENSION_TIMESTAMP);
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testRemoveDepClass() {
@@ -600,24 +572,23 @@ public class IncrementalCompilationTest extends CompilerTestCase {
 
     // Changed myother6.dart, which should force a recompile of myother5.dart,
     // because the latter had a qualified reference to one of its classes.
-    didWrite("myother5.dart", EXTENSION_JS);
-    didWrite("myother6.dart", EXTENSION_JS);
+    didWrite("myother5.dart", EXTENSION_TIMESTAMP);
+    didWrite("myother6.dart", EXTENSION_TIMESTAMP);
 
-    didWrite("my.dart", EXTENSION_JS);
+    didWrite("my.dart", EXTENSION_TIMESTAMP);
     // Because of the previous changes my.app.dart is also recompile.
     didWrite("my.app.dart", EXTENSION_DEPS);
-    didWrite("my.app.dart", EXTENSION_APP_JS);
 
     // No changes in not related units.
-    didNotWrite("someimpl.dart", EXTENSION_JS);
+    didNotWrite("someimpl.dart", EXTENSION_TIMESTAMP);
     didNotWrite("someimpl.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("some.dart", EXTENSION_JS);
+    didNotWrite("some.dart", EXTENSION_TIMESTAMP);
     didNotWrite("some.lib.dart", EXTENSION_DEPS);
 
-    didNotWrite("myother0.dart", EXTENSION_JS);
-    didNotWrite("myother1.dart", EXTENSION_JS);
-    didNotWrite("myother2.dart", EXTENSION_JS);
+    didNotWrite("myother0.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother1.dart", EXTENSION_TIMESTAMP);
+    didNotWrite("myother2.dart", EXTENSION_TIMESTAMP);
   }
 
   public void testMergeFiles() throws Exception {

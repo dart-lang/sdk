@@ -14,6 +14,9 @@ class _IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDa
   String get name() { return _get_name(this); }
   static String _get_name(var _this) native;
 
+  List<String> get objectStoreNames() { return _get_objectStoreNames(this); }
+  static List<String> _get_objectStoreNames(var _this) native;
+
   EventListener get onabort() { return _get_onabort(this); }
   static EventListener _get_onabort(var _this) native;
 
@@ -86,10 +89,18 @@ class _IDBDatabaseWrappingImplementation extends DOMWrapperBase implements IDBDa
   }
   static IDBVersionChangeRequest _setVersion(receiver, version) native;
 
-  IDBTransaction transaction(String storeName, int mode) {
-    return _transaction(this, storeName, mode);
+  IDBTransaction transaction(var storeName_OR_storeNames, int mode) {
+    if (storeName_OR_storeNames is List<String>) {
+      return _transaction(this, storeName_OR_storeNames, mode);
+    } else {
+      if (storeName_OR_storeNames is String) {
+        return _transaction_2(this, storeName_OR_storeNames, mode);
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static IDBTransaction _transaction(receiver, storeName, mode) native;
+  static IDBTransaction _transaction(receiver, storeName_OR_storeNames, mode) native;
+  static IDBTransaction _transaction_2(receiver, storeName_OR_storeNames, mode) native;
 
   String get typeName() { return "IDBDatabase"; }
 }

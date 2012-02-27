@@ -3,6 +3,8 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   final String name;
 
+  final List<String> objectStoreNames;
+
   EventListener onabort;
 
   EventListener onerror;
@@ -25,5 +27,5 @@ class _IDBDatabaseJs extends _DOMTypeJs implements IDBDatabase native "*IDBDatab
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
-  _IDBTransactionJs transaction(String storeName, int mode) native;
+  _IDBTransactionJs transaction(var storeName_OR_storeNames, int mode) native;
 }

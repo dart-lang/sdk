@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface XMLSerializer {
+interface XMLSerializer default _XMLSerializerFactoryProvider {
+
+  XMLSerializer();
 
   String serializeToString(Node node);
 }

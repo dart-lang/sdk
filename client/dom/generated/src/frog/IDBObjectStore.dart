@@ -1,6 +1,8 @@
 
 class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*IDBObjectStore" {
 
+  final List<String> indexNames;
+
   final String keyPath;
 
   final String name;
@@ -15,11 +17,11 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBIndexJs createIndex(String name, String keyPath) native;
 
-  _IDBRequestJs delete(_IDBKeyJs key) native;
+  _IDBRequestJs delete(var key_OR_keyRange) native;
 
   void deleteIndex(String name) native;
 
-  _IDBRequestJs getObject(_IDBKeyJs key) native;
+  _IDBRequestJs getObject(_IDBKeyJs key) native '''return this.get(key);''';
 
   _IDBIndexJs index(String name) native;
 

@@ -7,17 +7,11 @@ prefix dartdoc
 [ $component == leg ]
 *: Skip # Leg is not ready yet.
 
-[ $component == vm || $component == dartc || $component == chromium ]
-*: Skip # Tests use node flavor of unittest lib. :(
-
-[ $component == frogium || $component == dartium || $component == webdriver ]
-*: Skip # Tests use node flavor of unittest lib. :(
-
-[ $arch == x64 ]
+[ $component == frog || $component == frogsh || $component == frogium ]
 *: Skip
 
-[ $arch == simarm ]
+[ $component == dartc || $component == chromium ]
 *: Skip
 
-[ $arch == arm ]
+[ $component == dartium || $component == webdriver ]
 *: Skip

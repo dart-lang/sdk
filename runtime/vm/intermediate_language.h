@@ -13,6 +13,8 @@
 namespace dart {
 
 class LocalVariable;
+class ConstantValue;
+class TempValue;
 
 // Computations and values.
 //
@@ -22,6 +24,7 @@ class LocalVariable;
 //                 | StaticCall <Function> <Value> ...
 //                 | LoadLocal <LocalVariable>
 //                 | StoreLocal <LocalVariable> <Value>
+//                 | StrictCompare <Token::kind> <Value> <Value>
 //
 // <Value> ::= Temp <int>
 //           | Constant <Instance>
@@ -41,6 +44,12 @@ class Computation : public ZoneAllocated {
 class Value : public Computation {
  public:
   Value() { }
+
+  virtual TempValue* AsTemp() { return NULL; }
+  virtual ConstantValue* AsConstant() { return NULL; }
+
+  bool IsTemp() { return AsTemp() != NULL; }
+  bool IsConstant() { return AsConstant() != NULL; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -74,6 +83,24 @@ class InstanceCallComp : public Computation {
   ZoneGrowableArray<Value*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallComp);
+};
+
+
+class StrictCompareComp : public Computation {
+ public:
+  StrictCompareComp(Token::Kind kind, Value* left, Value* right)
+      : kind_(kind), left_(left), right_(right) {
+    ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
+  }
+
+  virtual void Print() const;
+
+ private:
+  const Token::Kind kind_;
+  Value* left_;
+  Value* right_;
+
+  DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
 
 
@@ -126,6 +153,7 @@ class TempValue : public Value {
  public:
   explicit TempValue(intptr_t index) : index_(index) { }
 
+  virtual TempValue* AsTemp() { return this; }
   virtual void Print() const;
 
  private:
@@ -137,9 +165,14 @@ class TempValue : public Value {
 
 class ConstantValue: public Value {
  public:
-  explicit ConstantValue(const Instance& instance) : instance_(instance) { }
+  explicit ConstantValue(const Instance& instance) : instance_(instance) {
+    ASSERT(instance.IsZoneHandle());
+  }
 
+  virtual ConstantValue* AsConstant() { return this; }
   virtual void Print() const;
+
+  const Instance& instance() const { return instance_; }
 
  private:
   const Instance& instance_;
@@ -156,22 +189,47 @@ class ConstantValue: public Value {
 //                 | Branch <Value> <Instruction> <Instruction>
 //                 | Empty <Instruction>
 
+// M is a single argument macro.  It is applied to each concrete instruction
+// type name.  The concrete instruction classes are the name with Instr
+// concatenated.
+#define FOR_EACH_INSTRUCTION(M)                                                \
+  M(JoinEntry)                                                                 \
+  M(TargetEntry)                                                               \
+  M(Do)                                                                        \
+  M(Bind)                                                                      \
+  M(Return)                                                                    \
+  M(Branch)
+
+
+// Forward declarations for Instruction classes.
+class BlockEntryInstr;
+class InstructionVisitor;
+#define FORWARD_DECLARATION(type) class type##Instr;
+FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
+#undef FORWARD_DECLARATION
+
+
+// Functions required in all concrete instruction classes.
+#define DECLARE_INSTRUCTION(type)                                              \
+  virtual Instruction* Accept(InstructionVisitor* visitor);                    \
+  virtual bool Is##type() const { return true; }                               \
+  virtual type##Instr* As##type() { return this; }                             \
+
+
 class Instruction : public ZoneAllocated {
  public:
   Instruction() : mark_(false) { }
 
-  virtual void set_successor(Instruction* instr) = 0;
+  virtual bool IsBlockEntry() const { return false; }
 
+  // Visiting support.
+  virtual Instruction* Accept(InstructionVisitor* visitor) = 0;
+
+  virtual void SetSuccessor(Instruction* instr) = 0;
   // Perform a postorder traversal of the instruction graph reachable from
-  // this instruction.  Append the result to the end of the in/out parameter
-  // visited.
-  virtual void Postorder(GrowableArray<Instruction*>* visited) = 0;
-
-  // Print an instruction without indentation, instruction number, or a
-  // trailing newline.
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const = 0;
+  // this instruction.  Accumulate basic block entries in the order visited
+  // in the in/out parameter 'block_entries'.
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries) = 0;
 
   // Mark bit to support non-reentrant recursive traversal (i.e.,
   // identification of cycles).  Before and after a traversal, all the nodes
@@ -179,16 +237,83 @@ class Instruction : public ZoneAllocated {
   bool mark() const { return mark_; }
   void flip_mark() { mark_ = !mark_; }
 
- protected:
-  // Helper for print handling of successors of nodes with a single successor.
-  // "goto %d" is printed if the successor is not the next instruction.
-  void PrintGotoSuccessor(
-      Instruction* successor,
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+#define INSTRUCTION_TYPE_CHECK(type)                                           \
+  virtual bool Is##type() const { return false; }                              \
+  virtual type##Instr* As##type() { return NULL; }
+FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
+#undef INSTRUCTION_TYPE_CHECK
 
  private:
   bool mark_;
+
+  DISALLOW_COPY_AND_ASSIGN(Instruction);
+};
+
+
+// Basic block entries are administrative nodes.  Joins are the only nodes
+// with multiple predecessors.  Targets are the other basic block entries.
+// The types enforce edge-split form---joins are forbidden as the successors
+// of branches.
+class BlockEntryInstr : public Instruction {
+ public:
+  virtual bool IsBlockEntry() const { return true; }
+
+  static BlockEntryInstr* cast(Instruction* instr) {
+    ASSERT(instr->IsBlockEntry());
+    return reinterpret_cast<BlockEntryInstr*>(instr);
+  }
+
+  intptr_t block_number() const { return block_number_; }
+  void set_block_number(intptr_t number) { block_number_ = number; }
+
+ protected:
+  BlockEntryInstr() : Instruction(), block_number_(-1) { }
+
+ private:
+  intptr_t block_number_;
+
+  DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
+};
+
+
+class JoinEntryInstr : public BlockEntryInstr {
+ public:
+  JoinEntryInstr() : BlockEntryInstr(), successor_(NULL) { }
+
+  DECLARE_INSTRUCTION(JoinEntry)
+
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL);
+    successor_ = instr;
+  }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
+};
+
+
+class TargetEntryInstr : public BlockEntryInstr {
+ public:
+  TargetEntryInstr() : BlockEntryInstr(), successor_(NULL) {
+  }
+
+  DECLARE_INSTRUCTION(TargetEntry)
+
+  virtual void SetSuccessor(Instruction* instr) {
+    ASSERT(successor_ == NULL);
+    successor_ = instr;
+  }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
+
+ private:
+  Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
 
 
@@ -197,20 +322,22 @@ class DoInstr : public Instruction {
   explicit DoInstr(Computation* comp)
       : Instruction(), computation_(comp), successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) {
+  DECLARE_INSTRUCTION(Do)
+
+  Computation* computation() const { return computation_; }
+
+  virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
-
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   Computation* computation_;
   Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoInstr);
 };
 
 
@@ -222,61 +349,24 @@ class BindInstr : public Instruction {
         computation_(computation),
         successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) {
+  DECLARE_INSTRUCTION(Bind)
+
+  intptr_t temp_index() const { return temp_index_; }
+  Computation* computation() const { return computation_; }
+
+  virtual void SetSuccessor(Instruction* instr) {
     ASSERT(successor_ == NULL);
     successor_ = instr;
   }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
-
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   const intptr_t temp_index_;
   Computation* computation_;
   Instruction* successor_;
-};
 
-
-class JoinEntryInstr : public Instruction {
- public:
-  JoinEntryInstr() : Instruction(), successor_(NULL) { }
-
-  virtual void set_successor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
-    successor_ = instr;
-  }
-
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
-
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
-
- private:
-  Instruction* successor_;
-};
-
-
-class TargetEntryInstr : public Instruction {
- public:
-  TargetEntryInstr() : Instruction(), successor_(NULL) { }
-
-  virtual void set_successor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
-    successor_ = instr;
-  }
-
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
-
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
-
- private:
-  Instruction* successor_;
+  DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
 
 
@@ -284,16 +374,18 @@ class ReturnInstr : public Instruction {
  public:
   explicit ReturnInstr(Value* value) : Instruction(), value_(value) { }
 
-  virtual void set_successor(Instruction* instr) { UNREACHABLE(); }
+  DECLARE_INSTRUCTION(Return)
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  Value* value() const { return value_; }
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
+
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
 
 
@@ -305,21 +397,46 @@ class BranchInstr : public Instruction {
         true_successor_(NULL),
         false_successor_(NULL) { }
 
-  virtual void set_successor(Instruction* instr) { UNREACHABLE(); }
+  DECLARE_INSTRUCTION(Branch)
+
+  Value* value() const { return value_; }
+  TargetEntryInstr* true_successor() const { return true_successor_; }
+  TargetEntryInstr* false_successor() const { return false_successor_; }
 
   TargetEntryInstr** true_successor_address() { return &true_successor_; }
   TargetEntryInstr** false_successor_address() { return &false_successor_; }
 
-  virtual void Postorder(GrowableArray<Instruction*>* visited);
+  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
-  virtual void Print(
-      intptr_t instruction_index,
-      const GrowableArray<Instruction*>& instruction_list) const;
+  virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(BranchInstr);
+};
+
+#undef DECLARE_INSTRUCTION
+
+
+class InstructionVisitor {
+ public:
+  InstructionVisitor() { }
+  virtual ~InstructionVisitor() { }
+
+  // Visit each block in the array list in reverse, and for each block its
+  // instructions in order from the block entry to exit.
+  virtual void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
+
+#define DECLARE_VISIT(type)                             \
+  virtual void Visit##type(type##Instr* instr) { }
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
+#undef DECLARE_VISIT
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(InstructionVisitor);
 };
 
 

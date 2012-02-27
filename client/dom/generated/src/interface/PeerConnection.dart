@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface PeerConnection {
+interface PeerConnection default _PeerConnectionFactoryProvider {
+
+  PeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
 
   static final int ACTIVE = 2;
 

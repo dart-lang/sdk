@@ -171,7 +171,7 @@ class WrappingInterfaceGenerator(object):
         '\n'
         '  $TYPE get $NAME() { return $METHOD(this); }\n'
         '  static $TYPE $METHOD(var _this) native;\n',
-        NAME=attr.id, TYPE=attr.type.id, METHOD=method_name)
+        NAME=attr.id, TYPE=DartType(attr.type.id), METHOD=method_name)
 
   def _AddSetter(self, attr):
     # FIXME: See comment on getter.
@@ -180,7 +180,7 @@ class WrappingInterfaceGenerator(object):
         '\n'
         '  void set $NAME($TYPE value) { $METHOD(this, value); }\n'
         '  static void $METHOD(var _this, $TYPE value) native;\n',
-        NAME=attr.id, TYPE=attr.type.id, METHOD=method_name)
+        NAME=attr.id, TYPE=DartType(attr.type.id), METHOD=method_name)
 
   def AddSecondaryAttribute(self, interface, getter, setter):
     self._SecondaryContext(interface)
@@ -217,25 +217,26 @@ class WrappingInterfaceGenerator(object):
     #
     #   class YImpl extends ListBase<T> { copies of transitive XImpl methods; }
     #
+    dart_element_type = DartType(element_type)
     if self._HasNativeIndexGetter(self._interface):
-      self._EmitNativeIndexGetter(self._interface, element_type)
+      self._EmitNativeIndexGetter(self._interface, dart_element_type)
     else:
       self._members_emitter.Emit(
           '\n'
           '  $TYPE operator[](int index) {\n'
           '    return item(index);\n'
           '  }\n',
-          TYPE=element_type)
+          TYPE=dart_element_type)
 
     if self._HasNativeIndexSetter(self._interface):
-      self._EmitNativeIndexSetter(self._interface, element_type)
+      self._EmitNativeIndexSetter(self._interface, dart_element_type)
     else:
       self._members_emitter.Emit(
           '\n'
           '  void operator[]=(int index, $TYPE value) {\n'
           '    throw new UnsupportedOperationException("Cannot assign element of immutable List.");\n'
           '  }\n',
-          TYPE=element_type)
+          TYPE=dart_element_type)
 
     self._members_emitter.Emit(
         '\n'
@@ -324,24 +325,24 @@ class WrappingInterfaceGenerator(object):
         '  Iterator<$TYPE> iterator() {\n'
         '    return new _FixedSizeListIterator<$TYPE>(this);\n'
         '  }\n',
-        TYPE=element_type)
+        TYPE=dart_element_type)
 
   def _HasNativeIndexGetter(self, interface):
     return ('IndexedGetter' in interface.ext_attrs or
             'NumericIndexedGetter' in interface.ext_attrs)
 
-  def _EmitNativeIndexGetter(self, interface, element_type):
+  def _EmitNativeIndexGetter(self, interface, dart_element_type):
     method_name = '_index'
     self._members_emitter.Emit(
         '\n'
         '  $TYPE operator[](int index) { return $METHOD(this, index); }\n'
         '  static $TYPE $METHOD(var _this, int index) native;\n',
-        TYPE=element_type, METHOD=method_name)
+        TYPE=dart_element_type, METHOD=method_name)
 
   def _HasNativeIndexSetter(self, interface):
     return 'CustomIndexedSetter' in interface.ext_attrs
 
-  def _EmitNativeIndexSetter(self, interface, element_type):
+  def _EmitNativeIndexSetter(self, interface, dart_element_type):
     method_name = '_set_index'
     self._members_emitter.Emit(
         '\n'
@@ -349,7 +350,7 @@ class WrappingInterfaceGenerator(object):
         '    return $METHOD(this, index, value);\n'
         '  }\n'
         '  static $METHOD(_this, index, value) native;\n',
-        TYPE=element_type, METHOD=method_name)
+        TYPE=dart_element_type, METHOD=method_name)
 
   def AddOperation(self, info):
     """
@@ -453,6 +454,25 @@ class WrappingInterfaceGenerator(object):
     # overloads and generates an overload specific check.  Revisit
     # when we move to named optional arguments.
 
+    if position == 0:
+      # Optional callback arguments are special.  C++ counterparts do not have proper optional
+      # arguments (as in some cases C++ counterparts require ec) and thus 0 ref ptrs are passed
+      # instead of missing arguments.  That means the only allowed form is a list of
+      # arguments with trailing optional callbacks and we don't need any dispatch at all.
+      def IsOptionalCallback(arg): return arg.is_optional and 'Callback' in arg.ext_attrs
+      first_optional_callback = None
+      for (i, arg) in enumerate(overloads[-1].arguments):
+        if IsOptionalCallback(arg):
+          first_optional_callback = i
+          break
+      if first_optional_callback is not None:
+        for overload in overloads:
+          for arg in overload.arguments[first_optional_callback:]:
+            if not IsOptionalCallback(arg):
+              raise Exception('Invalid overloading with optional callbacks')
+        self.GenerateSingleOperation(emitter, info, indent, overloads[-1])
+        return False
+
     # Partition the overloads to divide and conquer on the dispatch.
     positive = []
     negative = []
@@ -464,9 +484,9 @@ class WrappingInterfaceGenerator(object):
       # precise type than the first.  E.g.,
       # void foo(Node x);
       # void foo(Element x);
-      type = first_overload.arguments[position].type.id
+      type = DartType(first_overload.arguments[position].type.id)
       test = TypeCheck(param_name, type)
-      pred = lambda op: len(op.arguments) > position and op.arguments[position].type.id == type
+      pred = lambda op: len(op.arguments) > position and DartType(op.arguments[position].type.id) == type
     else:
       type = None
       test = NullCheck(param_name)

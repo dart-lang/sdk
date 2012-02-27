@@ -12,6 +12,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
+#include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/platform.h"
 #include "bin/process.h"
@@ -257,10 +258,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return Dart_Error("accessing url characters failed");
   }
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
+  bool is_dart_extension_url = DartUtils::IsDartExtensionSchemeURL(url_string);
   if (tag == kCanonicalizeUrl) {
     // If this is a Dart Scheme URL then it is not modified as it will be
     // handled by the VM internally.
-    if (is_dart_scheme_url) {
+    if (is_dart_scheme_url || is_dart_extension_url) {
       return url;
     }
     // Create a canonical path based on the including library and current url.
@@ -280,6 +282,11 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }
+  } else if (is_dart_extension_url) {
+    if (tag != kImportTag) {
+      return Dart_Error("Dart extensions must use import: '%s'", url_string);
+    }
+    return Extensions::LoadExtension(url_string, library);
   }
   result = DartUtils::LoadSource(NULL,
                                  library,

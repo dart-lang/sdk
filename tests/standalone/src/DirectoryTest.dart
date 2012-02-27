@@ -22,11 +22,13 @@ class DirectoryTest {
 
     directory.dirHandler = (dir) {
       listedDir = true;
+      Expect.isTrue(dir.contains(directory.path));
       Expect.isTrue(dir.contains('subdir'));
     };
 
     directory.fileHandler = (f) {
       listedFile = true;
+      Expect.isTrue(f.contains(directory.path));
       Expect.isTrue(f.contains('subdir'));
       Expect.isTrue(f.contains('file.txt'));
     };

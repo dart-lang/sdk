@@ -11,6 +11,9 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
     return new _IDBObjectStoreWrappingImplementation();
   }
 
+  List<String> get indexNames() { return _get_indexNames(this); }
+  static List<String> _get_indexNames(var _this) native;
+
   String get keyPath() { return _get_keyPath(this); }
   static String _get_keyPath(var _this) native;
 
@@ -50,10 +53,18 @@ class _IDBObjectStoreWrappingImplementation extends DOMWrapperBase implements ID
   }
   static IDBIndex _createIndex(receiver, name, keyPath) native;
 
-  IDBRequest delete(IDBKey key) {
-    return _delete(this, key);
+  IDBRequest delete(var key_OR_keyRange) {
+    if (key_OR_keyRange is IDBKeyRange) {
+      return _delete(this, key_OR_keyRange);
+    } else {
+      if (key_OR_keyRange is IDBKey) {
+        return _delete_2(this, key_OR_keyRange);
+      }
+    }
+    throw "Incorrect number or type of arguments";
   }
-  static IDBRequest _delete(receiver, key) native;
+  static IDBRequest _delete(receiver, key_OR_keyRange) native;
+  static IDBRequest _delete_2(receiver, key_OR_keyRange) native;
 
   void deleteIndex(String name) {
     _deleteIndex(this, name);

@@ -35,5 +35,34 @@
         ],
       },
     },
+    {
+      # The Dart API is exported from this library to dynamically loaded shared
+      # libraries.
+      'target_name': 'libdart_export',
+      'type': 'static_library',
+      'dependencies': [
+        'libdart_lib',
+        'libdart_vm',
+        'libjscre',
+        'libdouble_conversion',
+      ],
+      'include_dirs': [
+        '.',
+      ],
+      'sources': [
+        'include/dart_api.h',
+        'include/dart_debugger_api.h',
+        'vm/dart_api_impl.cc',
+        'vm/debugger_api_impl.cc',
+      ],
+      'defines': [
+        'DART_SHARED_LIB',
+      ],
+      'direct_dependent_settings': {
+        'include_dirs': [
+          'include',
+        ],
+      },
+    },
   ],
 }

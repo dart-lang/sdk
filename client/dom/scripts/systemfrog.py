@@ -10,12 +10,23 @@ import os
 from generator import *
 from systembase import *
 
+# Members (getters, setters, and methods) to suppress.  These are
+# either removed or custom implemented.
+_dom_frog_omitted_members = set([
+    # Replace with custom.
+    'HTMLIFrameElement.get:contentWindow',
+
+    # Remove.
+    'HTMLIFrameElement.get:contentDocument',
+    'DOMWindow.get:frameElement',
+])
+
 class FrogSystem(System):
 
   def __init__(self, templates, database, emitters, output_dir):
     super(FrogSystem, self).__init__(
         templates, database, emitters, output_dir)
-    self._dart_frog_file_paths = []
+    self._impl_file_paths = []
 
   def InterfaceGenerator(self,
                          interface,
@@ -23,15 +34,12 @@ class FrogSystem(System):
                          super_interface_name,
                          source_filter):
     """."""
-    dart_frog_file_path = self._FilePathForFrogImpl(interface.id)
-    self._dart_frog_file_paths.append(dart_frog_file_path)
-
     template_file = 'impl_%s.darttemplate' % interface.id
     template = self._templates.TryLoad(template_file)
     if not template:
       template = self._templates.Load('frog_impl.darttemplate')
 
-    dart_code = self._emitters.FileEmitter(dart_frog_file_path)
+    dart_code = self._ImplFileEmitter(interface.id)
     return FrogInterfaceGenerator(self, interface, template,
                                   super_interface_name, dart_code)
 
@@ -41,15 +49,16 @@ class FrogSystem(System):
         os.path.join(lib_dir, 'dom_frog.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._interface_system._dart_callback_file_paths +
-         self._dart_frog_file_paths))
+         self._impl_file_paths))
 
   def Finish(self):
     pass
 
-  def _FilePathForFrogImpl(self, interface_name):
-    """Returns the file path of the Frog implementation."""
-    return os.path.join(self._output_dir, 'src', 'frog',
-                        '%s.dart' % interface_name)
+  def _ImplFileEmitter(self, name):
+    """Returns the file emitter of the Frog implementation file."""
+    path = os.path.join(self._output_dir, 'src', 'frog', '%s.dart' % name)
+    self._impl_file_paths.append(path)
+    return self._emitters.FileEmitter(path)
 
 # ------------------------------------------------------------------------------
 
@@ -106,7 +115,7 @@ class FrogInterfaceGenerator(object):
     implements = [interface_name]
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
-      implements.append('List<' + element_type + '>')
+      implements.append('List<%s>' % DartType(element_type))
 
     self._members_emitter = self._dart_code.Emit(
         self._template,
@@ -122,6 +131,11 @@ class FrogInterfaceGenerator(object):
     if element_type:
       self.AddTypedArrayConstructors(element_type)
 
+    # Emit a factory provider class for the constructor.
+    constructor_info = AnalyzeConstructor(interface)
+    if constructor_info:
+      self._EmitFactoryProvider(interface_name, constructor_info)
+
 
   def FinishInterface(self):
     """."""
@@ -129,6 +143,22 @@ class FrogInterfaceGenerator(object):
 
   def _ImplClassName(self, type_name):
     return '_' + type_name + 'Js'
+
+  def _EmitFactoryProvider(self, interface_name, constructor_info):
+    template_file = 'factoryprovider_%s.darttemplate' % interface_name
+    template = self._system._templates.TryLoad(template_file)
+    if not template:
+      template = self._system._templates.Load('factoryprovider.darttemplate')
+
+    factory_provider = '_' + interface_name + 'FactoryProvider'
+    emitter = self._system._ImplFileEmitter(factory_provider)
+    emitter.Emit(
+        template,
+        FACTORYPROVIDER=factory_provider,
+        CONSTRUCTOR=interface_name,
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        NAMEDCONSTRUCTOR=constructor_info.name or interface_name,
+        ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
   def _NarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.
@@ -145,10 +175,10 @@ class FrogInterfaceGenerator(object):
     return type_name
 
   def _NarrowInputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
+    return self._NarrowToImplementationType(DartType(type_name))
 
   def _NarrowOutputType(self, type_name):
-    return self._NarrowToImplementationType(type_name)
+    return self._NarrowToImplementationType(DartType(type_name))
 
   def AddConstant(self, constant):
     # Since we are currently generating native classes without interfaces,
@@ -156,12 +186,22 @@ class FrogInterfaceGenerator(object):
     # if we revert back to generating interfaces.
     self._members_emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
                                NAME=constant.id,
-                               TYPE=constant.type.id,
+                               TYPE=DartType(constant.type.id),
                                VALUE=constant.value)
 
     pass
 
+  def OverrideMember(self, member):
+    return self._interface.id + '.' + member in _dom_frog_omitted_members
+
   def AddAttribute(self, getter, setter):
+    if getter and self.OverrideMember('get:' + getter.id):
+      getter = None
+    if setter and self.OverrideMember('set:' + setter.id):
+      setter = None
+    if not getter and not setter:
+      return
+
     output_type = getter and self._NarrowOutputType(getter.type.id)
     input_type = setter and self._NarrowInputType(setter.type.id)
 
@@ -171,7 +211,7 @@ class FrogInterfaceGenerator(object):
     (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
     if super_getter or super_setter:
       if getter and not setter and super_getter and not super_setter:
-        if getter.type.id == super_getter.type.id:
+        if DartType(getter.type.id) == DartType(super_getter.type.id):
           # Compatible getter, use the superclass property.  This works because
           # JavaScript will do its own dynamic dispatch.
           self._members_emitter.Emit(
@@ -292,7 +332,7 @@ class FrogInterfaceGenerator(object):
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
     template = self._system._templates.Load(template_file)
-    self._members_emitter.Emit(template, E=element_type)
+    self._members_emitter.Emit(template, E=DartType(element_type))
 
 
   def AddTypedArrayConstructors(self, element_type):
@@ -306,7 +346,7 @@ class FrogInterfaceGenerator(object):
         '\n'
         '  static _construct_$CTOR(arg) native \'return new $CTOR(arg);\';\n',
         CTOR=self._interface.id,
-        TYPE=element_type)
+        TYPE=DartType(element_type))
 
 
   def AddOperation(self, info):
@@ -315,10 +355,18 @@ class FrogInterfaceGenerator(object):
       info: An OperationInfo object.
     """
     # TODO(vsm): Handle overloads.
+    params = info.ParametersImplementationDeclaration(
+        lambda type_name: self._NarrowInputType(type_name))
+
+    native_body = dom_frog_native_bodies.get(
+        self._interface.id + '.' + info.name, '')
+    if native_body:
+      native_body = " '''" + native_body + "'''"
+
     self._members_emitter.Emit(
         '\n'
-        '  $TYPE $NAME($PARAMS) native;\n',
+        '  $TYPE $NAME($PARAMS) native$NATIVESTRING;\n',
         TYPE=self._NarrowOutputType(info.type_name),
         NAME=info.name,
-        PARAMS=info.ParametersImplementationDeclaration(
-            lambda type_name: self._NarrowInputType(type_name)))
+        PARAMS=params,
+        NATIVESTRING=native_body)

@@ -17,7 +17,10 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   final _IDBAnyJs source;
 
-  void continueFunction([_IDBKeyJs key = null]) native;
+  void continueFunction([_IDBKeyJs key = null]) native '''
+if (key == null) return this['continue']();
+return this['continue'](key);
+''';
 
   _IDBRequestJs delete() native;
 

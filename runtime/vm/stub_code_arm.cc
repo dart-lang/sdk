@@ -31,11 +31,6 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateOptimizeInvokedFunctionStub(Assembler* assembler) {
-  __ Unimplemented("OptimizeInvokedFunction stub");
-}
-
-
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ Unimplemented("FixCallersTarget stub");
 }

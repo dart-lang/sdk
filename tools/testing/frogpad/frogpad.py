@@ -6,10 +6,13 @@
 #
 
 """
-Generates an html file (frogpad.html) that can be used to execute the frog
-compiler in a web browser or DumpRenderTree,
+Frogpad is used to compile .dart files to javascript.
 
-The generated frogpad.html will contain:
+This is accomplished by first creating an html file (usually called
+<something>.frogpad.html) that can be used to execute the frog compiler in
+a web browser (or DumpRenderTree).
+
+The generated frogpad.html contains:
 
   1. all the dart files that compose a dart program
   2. all the dart files of dart:core and other standard dart libraries
@@ -17,12 +20,12 @@ The generated frogpad.html will contain:
 
 The contents of each dart file is placed in a separate <script> tag.
 
-When the html page is loaded by a browser, the frog compiler will be invoked
-and the user's dart program will be compiled to javascript.  The generated
-javascript will be placed in the <pre> element with id "output".
+When the html page is loaded by a browser, the frog compiler is invoked
+and the dart program is compiled to javascript.  The generated javascript is
+placed in a <pre> element with id "output".
 
-If using DumpRenderTree, the output javascript can be obtained by dumping
-the page as text and looking for the contents of the output textarea.
+When the html page is passed to DumpRenderTree, the dumped output will
+have the generated javascript.
 """
 
 import logging
@@ -31,6 +34,7 @@ import os.path
 import re
 import subprocess
 import sys
+
 
 class FileNotFoundException(Exception):
   def __init__(self, file_name):
@@ -91,10 +95,17 @@ HTML = """<html>
   <pre id="timing"></pre>
   <div class="label">Output:</div>
   <pre id="output"></pre>
-  <script type="text/javascript" src={{FROGPAD_JS}} ></script>
+  <script type="text/javascript">
+    {{FROGPAD_JS}}
+  </script>
 </body>
 </html>
 """
+
+# This finds everything after the word "Output:" in the html page.
+# (Note, because the javascript we're fishing out spans multiple lines
+# we need to use the DOTALL switch here.)
+OUTPUT_JAVASCRIPT_REGEX = re.compile(".*\nOutput:(.*)#EOF", re.DOTALL)
 
 # We use "application/inert" here to make the browser ignore the
 # these script tags.  (frogpad.dart will fish out the contents as needed.)
@@ -130,13 +141,25 @@ class Pad(object):
   """
 
   def __init__(self, argv):
-    parser = optparse.OptionParser()
+    parser = optparse.OptionParser(usage=
+      "%prog [options] file_to_compile.dart"
+    )
     parser.add_option("-r", "--rebuild",  action="store_true",
-        help="forces rebuild of frogpad_js")
+        help="forces rebuild of the frogpad javascript")
+    parser.add_option("-o", "--out",
+        help="name of javascript output file")
+    parser.add_option("-v", "--verbose", action="store_true",
+        help="more verbose logging")
     (options, args) = parser.parse_args(argv)
 
+    log_level = logging.INFO
+    if options.verbose:
+      log_level = logging.DEBUG
+    logging.basicConfig(level=log_level)
+
     if len(args) < 2:
-      usage()
+      parser.print_help()
+      sys.exit(1)
 
     self.main_file = os.path.abspath(args[1])
 
@@ -157,7 +180,19 @@ class Pad(object):
     # name of frogpad_js file
     self.frogpad_js = os.path.join(self.frogpad_dir, FROGPAD_JS)
 
-    html_file = self.main_file + ".frogpad.html"
+    if options.out:
+      # user has specified an output file
+      self.js_file = os.path.abspath(options.out)
+    else:
+      # user didn't specify an output file, so base the name on the
+      # input file
+      self.js_file = self.main_file + ".frogpad.js"
+
+    logging.debug("js_file: '%s" % self.js_file)
+
+    # this is the html file that we pass to DumpRenderTree
+    self.html_file = self.js_file + ".frogpad.html"
+    logging.debug("html_file: '%s'" % self.html_file)
 
     # map from file name to File object (contains entries for all corelib
     # and all other dart files needed to compile main_file)
@@ -176,11 +211,13 @@ class Pad(object):
     self.load_file(self.main_file)
 
     html = self.generate_html()
+    write_file(self.html_file, html)
 
-    with open(html_file, "w") as output:
-      output.write(html)
-    logging.info("generated '%s' (%d bytes)" % (html_file, len(html)))
+    js = self.generate_js()
+    write_file(self.js_file, js)
 
+    line_count = len(js.splitlines())
+    logging.info("generated '%s' (%d lines)", self.js_file, line_count)
 
   def build_frogpad_js(self):
     dart_vm = os.path.join(self.dart_dir, "out/Release_ia32/dart")
@@ -213,6 +250,7 @@ class Pad(object):
 
     # The dart program that we want frogc.dart to compile.
     args.append(frogpad_dart)
+    logging.info("generating '%s'" % self.frogpad_js)
 
     run_command(args)
     check_exists(self.frogpad_js)
@@ -223,13 +261,27 @@ class Pad(object):
       tags.append(self._create_tag(f.id, f.contents))
     tags.append(self._create_tag(MAIN_ID, self.main_file))
     html = HTML.replace("{{script_tags}}", "".join(tags))
-    html = html.replace("{{FROGPAD_JS}}", FROGPAD_JS)
+    html = html.replace("{{FROGPAD_JS}}", read_file(self.frogpad_js))
     return html
+
+  def generate_js(self):
+    drt = os.path.join(self.dart_dir, "client/tests/drt/DumpRenderTree")
+    check_exists(drt)
+    args = []
+    args.append(drt)
+    args.append(self.html_file)
+
+    stdout = run_command(args)
+    match = OUTPUT_JAVASCRIPT_REGEX.match(stdout)
+    if not match:
+      raise Exception("can't find regex in DumpRenderTree output")
+    return match.group(1)
 
   @staticmethod
   def _create_tag(id, contents):
     s = SCRIPT_TAG
     s = s.replace("{{id}}", id)
+    # TODO(mattsh) - need to html escape here
     s = s.replace("{{contents}}", contents)
     return s
 
@@ -244,10 +296,8 @@ class Pad(object):
       self.load_file(self.dart_library(name))
 
   def load_file(self, name):
-    logging.debug("load_file " + name)
     name = os.path.abspath(name)
     if name in self.name_to_file:
-      logging.debug("already loaded %s, skipping" % name)
       return
     f = File(self, name)
     self.name_to_file[f.name] = f
@@ -264,8 +314,6 @@ class File(object):
     check_exists(name)
     with open(self.name, "r") as f:
       self.contents = f.read()
-    logging.debug("creating File '%s' (%d lines)" %
-        (self.name, len(self.contents)))
 
   def _make_id(self):
     """
@@ -296,6 +344,20 @@ class File(object):
       path = os.path.join(os.path.dirname(self.name), url)
     self.pad.load_file(path)
 
+def read_file(file_name):
+  check_exists(file_name)
+  with open(file_name, "r") as input:
+    contents = input.read()
+  logging.debug("read_file '%s' (%d bytes)" % (file_name, len(contents)))
+  return contents
+
+def write_file(file_name, contents):
+  with open(file_name, "w") as output:
+    output.write(contents)
+
+  check_exists(file_name)
+  logging.debug("write_file '%s' (%d bytes)" % (file_name, len(contents)))
+
 
 def check_exists(file_name):
   if not os.path.exists(file_name):
@@ -310,31 +372,29 @@ def run_command(args):
   """
   Args:
     command: comamnd with arguments to exec
+  Returns:
+    all output that this command sent to stdout
   """
 
   command = format_command(args)
-  logging.info("RUNNING " + command)
-  proc = subprocess.Popen(args)
-  exit_code = proc.wait()
-
-  if exit_code:
+  logging.debug("RUNNING " + command)
+  child = subprocess.Popen(args,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+      close_fds=True)
+  (stdout, stderr) = child.communicate()
+  for line in stderr.splitlines():
+    logging.info(level, '%s: %s', args[0], line)
+  exitcode = child.wait()
+  if exitcode:
     msg = "FAILURE (exit_code=%d): '%s'" % (exit_code, command)
     logging.error(msg)
     raise CommandFailedException(msg)
-
-  logging.debug("SUCCEEDED " + command)
-
-
-def usage():
-  print("""
-    Usage:
-    frogpad.py hello.dart
-  """)
-  sys.exit(1)
+  logging.debug("SUCCEEDED (%d bytes)" % len(stdout))
+  return stdout
 
 
 def main(argv):
-  logging.basicConfig(level=logging.INFO)
   Pad(argv)
 
 if __name__ == "__main__":

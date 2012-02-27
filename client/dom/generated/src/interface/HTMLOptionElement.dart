@@ -4,7 +4,9 @@
 
 // WARNING: Do not edit - generated code.
 
-interface HTMLOptionElement extends HTMLElement {
+interface HTMLOptionElement extends HTMLElement default _HTMLOptionElementFactoryProvider {
+
+  HTMLOptionElement([String data, String value, bool defaultSelected, bool selected]);
 
   bool defaultSelected;
 

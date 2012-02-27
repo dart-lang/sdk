@@ -136,27 +136,20 @@ void Mutex::Unlock() {
 }
 
 
+ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ =
+    Thread::kUnsetThreadLocalKey;
+
+
 Monitor::Monitor() {
   InitializeCriticalSection(&data_.cs_);
-  // Create auto-reset event used to implement Notify. Auto-reset
-  // events only wake one thread waiting for them on SetEvent.
-  data_.notify_event_ = CreateEvent(NULL, FALSE, FALSE, NULL);
-  // Create manual-reset event used to implement
-  // NotifyAll. Manual-reset events wake all threads waiting for them
-  // on SetEvent.
-  data_.notify_all_event_ = CreateEvent(NULL, TRUE, FALSE, NULL);
-  if ((data_.notify_event_ == NULL) || (data_.notify_all_event_ == NULL)) {
-    FATAL("Failed allocating event object for monitor");
-  }
   InitializeCriticalSection(&data_.waiters_cs_);
-  data_.waiters_ = 0;
+  data_.waiters_head_ = NULL;
+  data_.waiters_tail_ = NULL;
 }
 
 
 Monitor::~Monitor() {
   DeleteCriticalSection(&data_.cs_);
-  CloseHandle(data_.notify_event_);
-  CloseHandle(data_.notify_all_event_);
   DeleteCriticalSection(&data_.waiters_cs_);
 }
 
@@ -171,56 +164,149 @@ void Monitor::Exit() {
 }
 
 
+void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
+  // Add the MonitorWaitData object to the list of objects waiting for
+  // this monitor.
+  EnterCriticalSection(&waiters_cs_);
+  if (waiters_tail_ == NULL) {
+    ASSERT(waiters_head_ == NULL);
+    waiters_head_ = waiters_tail_ = wait_data;
+  } else {
+    waiters_tail_->next_ = wait_data;
+    waiters_tail_ = wait_data;
+  }
+  LeaveCriticalSection(&waiters_cs_);
+}
+
+
+void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
+  // Remove the MonitorWaitData object from the list of objects
+  // waiting for this monitor.
+  EnterCriticalSection(&waiters_cs_);
+  MonitorWaitData* previous = NULL;
+  MonitorWaitData* current = waiters_head_;
+  while (current != NULL) {
+    if (current == wait_data) {
+      if (waiters_head_ == waiters_tail_) {
+        waiters_head_ = waiters_tail_ = NULL;
+      } else if (current == waiters_head_) {
+        waiters_head_ = waiters_head_->next_;
+      } else if (current == waiters_tail_) {
+        ASSERT(previous != NULL);
+        waiters_tail_ = previous;
+        previous->next_ = NULL;
+      } else {
+        ASSERT(previous != NULL);
+        previous->next_ = current->next_;
+      }
+      break;
+    }
+    previous = current;
+    current = current->next_;
+  }
+  LeaveCriticalSection(&waiters_cs_);
+}
+
+
+void MonitorData::SignalAndRemoveFirstWaiter() {
+  EnterCriticalSection(&waiters_cs_);
+  MonitorWaitData* first = waiters_head_;
+  if (first != NULL) {
+    // Remove from list.
+    if (waiters_head_ == waiters_tail_) {
+      waiters_tail_ = waiters_head_ = NULL;
+    } else {
+      waiters_head_ = waiters_head_->next_;
+    }
+    // Signal event.
+    BOOL result = SetEvent(first->event_);
+    if (result == 0) {
+      FATAL("Monitor::Notify failed to signal event");
+    }
+  }
+  LeaveCriticalSection(&waiters_cs_);
+}
+
+
+void MonitorData::SignalAndRemoveAllWaiters() {
+  EnterCriticalSection(&waiters_cs_);
+  // Extract list to signal.
+  MonitorWaitData* current = waiters_head_;
+  // Clear list.
+  waiters_head_ = waiters_tail_ = NULL;
+  // Iterate and signal all events.
+  while (current != NULL) {
+    BOOL result = SetEvent(current->event_);
+    if (result == 0) {
+      FATAL("Failed to set event for NotifyAll");
+    }
+    current = current->next_;
+  }
+  LeaveCriticalSection(&waiters_cs_);
+}
+
+
+MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
+  // Ensure that the thread local key for monitor wait data objects is
+  // initialized.
+  EnterCriticalSection(&waiters_cs_);
+  if (MonitorWaitData::monitor_wait_data_key_ == Thread::kUnsetThreadLocalKey) {
+    MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
+  }
+  LeaveCriticalSection(&waiters_cs_);
+
+  // Get the MonitorWaitData object containing the event for this
+  // thread from thread local storage. Create it if it does not exist.
+  uword raw_wait_data =
+    Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+  MonitorWaitData* wait_data = NULL;
+  if (raw_wait_data == 0) {
+    HANDLE event = CreateEvent(NULL, FALSE, FALSE, NULL);
+    wait_data = new MonitorWaitData(event);
+    Thread::SetThreadLocal(MonitorWaitData::monitor_wait_data_key_,
+                           reinterpret_cast<uword>(wait_data));
+  } else {
+    wait_data = reinterpret_cast<MonitorWaitData*>(raw_wait_data);
+    wait_data->next_ = NULL;
+  }
+  return wait_data;
+}
+
+
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
   Monitor::WaitResult retval = kNotified;
 
-  // Record the fact that we will start waiting. This is used to only
-  // reset the notify all event when all waiting threads have dealt
-  // with the event.
-  EnterCriticalSection(&data_.waiters_cs_);
-  data_.waiters_++;
-  LeaveCriticalSection(&data_.waiters_cs_);
+  // Get the wait data object containing the event to wait for.
+  MonitorWaitData* wait_data = data_.GetMonitorWaitDataForThread();
+
+  // Start waiting by adding the MonitorWaitData to the list of
+  // waiters.
+  data_.AddWaiter(wait_data);
 
   // Leave the monitor critical section while waiting.
   LeaveCriticalSection(&data_.cs_);
 
-  // Perform the actual wait using wait for multiple objects on both
-  // the notify and the notify all events.
-  static const intptr_t kNotifyEventIndex = 0;
-  static const intptr_t kNotifyAllEventIndex = 1;
-  static const intptr_t kNumberOfEvents = 2;
-  HANDLE events[kNumberOfEvents];
-  events[kNotifyEventIndex] = data_.notify_event_;
-  events[kNotifyAllEventIndex] = data_.notify_all_event_;
-
+  // Perform the actual wait on the event.
   DWORD result = WAIT_FAILED;
   if (millis == 0) {
     // Wait forever for a Notify or a NotifyAll event.
-    result = WaitForMultipleObjects(2, events, FALSE, INFINITE);
+    result = WaitForSingleObject(wait_data->event_, INFINITE);
     if (result == WAIT_FAILED) {
       FATAL("Monitor::Wait failed");
     }
   } else {
     // Wait for the given period of time for a Notify or a NotifyAll
     // event.
-    result = WaitForMultipleObjects(2, events, FALSE, millis);
+    result = WaitForSingleObject(wait_data->event_, millis);
     if (result == WAIT_FAILED) {
       FATAL("Monitor::Wait with timeout failed");
     }
     if (result == WAIT_TIMEOUT) {
+      // No longer waiting. Remove from the list of waiters.
+      data_.RemoveWaiter(wait_data);
       retval = kTimedOut;
     }
   }
-
-  // Check if we are the last waiter on a notify all. If we are, reset
-  // the notify all event.
-  EnterCriticalSection(&data_.waiters_cs_);
-  data_.waiters_--;
-  if ((data_.waiters_ == 0) &&
-      (result == (WAIT_OBJECT_0 + kNotifyAllEventIndex))) {
-    ResetEvent(data_.notify_all_event_);
-  }
-  LeaveCriticalSection(&data_.waiters_cs_);
 
   // Reacquire the monitor critical section before continuing.
   EnterCriticalSection(&data_.cs_);
@@ -230,24 +316,17 @@ Monitor::WaitResult Monitor::Wait(int64_t millis) {
 
 
 void Monitor::Notify() {
-  // Signal one waiter through the notify auto-reset event if there
-  // are any waiters.
-  EnterCriticalSection(&data_.waiters_cs_);
-  if (data_.waiters_ > 0) {
-    SetEvent(data_.notify_event_);
-  }
-  LeaveCriticalSection(&data_.waiters_cs_);
+  data_.SignalAndRemoveFirstWaiter();
 }
 
 
 void Monitor::NotifyAll() {
-  // Signal all waiters through the notify all manual-reset event if
-  // there are any waiters.
-  EnterCriticalSection(&data_.waiters_cs_);
-  if (data_.waiters_ > 0) {
-    SetEvent(data_.notify_all_event_);
-  }
-  LeaveCriticalSection(&data_.waiters_cs_);
+  // If one of the objects in the list of waiters wakes because of a
+  // timeout before we signal it, that object will get an extra
+  // signal. This will be treated as a spurious wake-up and is OK
+  // since all uses of monitors should recheck the condition after a
+  // Wait.
+  data_.SignalAndRemoveAllWaiters();
 }
 
 }  // namespace dart

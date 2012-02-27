@@ -9,7 +9,7 @@ class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   final _DataTransferItemListJs items;
 
-  final List types;
+  final List<String> types;
 
   void clearData([String type = null]) native;
 

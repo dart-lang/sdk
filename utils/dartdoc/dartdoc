@@ -50,6 +50,12 @@ cp -R static/* docs
 shift
 
 # Generate the user's docs.
-../../frog/minfrog --libdir=../../frog/lib dartdoc.dart "$entrypoint" $@
+if [ -a "../../out/Release_ia32/dart" ]; then
+  ../../out/Release_ia32/dart dartdoc.dart "$entrypoint" $@
+elif [ -a "../../xcodebuild/Release_ia32/dart" ]; then
+  ../../xcodebuild/Release_ia32/dart dartdoc.dart "$entrypoint" $@
+else
+  echo "Could not find the Dart VM. Did you run 'tools/build.py -m release'?"
+fi
 
 popd >>/dev/null

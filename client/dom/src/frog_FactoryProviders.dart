@@ -10,16 +10,6 @@ class _AudioContextFactoryProvider {
 ''';
 }
 
-class _DOMParserFactoryProvider {
-
-  factory DOMParser() native '''return new DOMParser();''';
-}
-
-class _FileReaderFactoryProvider {
-
-  factory FileReader() native '''return new FileReader();''';
-}
-
 class _TypedArrayFactoryProvider {
 
   factory Float32Array(int length) => _F32(length);
@@ -71,12 +61,6 @@ class _TypedArrayFactoryProvider {
   static ensureNative(List list) => list;  // TODO: make sure.
 }
 
-class _WebKitCSSMatrixFactoryProvider {
-
-  factory WebKitCSSMatrix([String spec = '']) native
-      '''return new WebKitCSSMatrix(spec);''';
-}
-
 class _WebKitPointFactoryProvider {
 
   factory WebKitPoint(num x, num y) native '''return new WebKitPoint(x, y);''';
@@ -85,14 +69,4 @@ class _WebKitPointFactoryProvider {
 class _WebSocketFactoryProvider {
 
   factory WebSocket(String url) native '''return new WebSocket(url);''';
-}
-
-class _XMLHttpRequestFactoryProvider {
-
-  factory XMLHttpRequest() native '''return new XMLHttpRequest();''';
-}
-
-class _XSLTProcessorFactoryProvider {
-
-  factory XSLTProcessor() native '''return new XSLTProcessor();''';
 }

@@ -26,10 +26,8 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DEFINE_FLAG(bool, print_ic_in_optimized, false,
     "Debugging helper to identify potential performance pitfalls.");
-DEFINE_FLAG(int, optimization_invocation_threshold, 1000,
-    "Number of invocations before a function is optimized, -1 means never.");
+DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, report_invocation_count);
 DECLARE_FLAG(bool, trace_compiler);
 
 #define __ assembler_->
@@ -57,75 +55,6 @@ CodeGeneratorState::CodeGeneratorState(CodeGenerator* codegen)
 CodeGeneratorState::~CodeGeneratorState() {
   codegen_->set_state(parent_);
 }
-
-
-class CodeGenerator::DescriptorList : public ZoneAllocated {
- public:
-  struct PcDesc {
-    intptr_t pc_offset;        // PC offset value of the descriptor.
-    PcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
-    intptr_t node_id;          // AST node id.
-    intptr_t token_index;      // Token position in source of PC.
-    intptr_t try_index;        // Try block index of PC.
-  };
-
-  DescriptorList() : list_() {
-  }
-  ~DescriptorList() { }
-
-  intptr_t Length() const {
-    return list_.length();
-  }
-
-  intptr_t PcOffset(int index) const {
-    return list_[index].pc_offset;
-  }
-  PcDescriptors::Kind Kind(int index) const {
-    return list_[index].kind;
-  }
-  intptr_t NodeId(int index) const {
-    return list_[index].node_id;
-  }
-  intptr_t TokenIndex(int index) const {
-    return list_[index].token_index;
-  }
-  intptr_t TryIndex(int index) const {
-    return list_[index].try_index;
-  }
-
-  void AddDescriptor(PcDescriptors::Kind kind,
-                     intptr_t pc_offset,
-                     intptr_t node_id,
-                     intptr_t token_index,
-                     intptr_t try_index) {
-    struct PcDesc data;
-    data.pc_offset = pc_offset;
-    data.kind = kind;
-    data.node_id = node_id;
-    data.token_index = token_index;
-    data.try_index = try_index;
-    list_.Add(data);
-  }
-
-  RawPcDescriptors* FinalizePcDescriptors(uword entry_point) {
-    intptr_t num_descriptors = Length();
-    const PcDescriptors& descriptors =
-        PcDescriptors::Handle(PcDescriptors::New(num_descriptors));
-    for (intptr_t i = 0; i < num_descriptors; i++) {
-      descriptors.AddDescriptor(i,
-                                (entry_point + PcOffset(i)),
-                                Kind(i),
-                                NodeId(i),
-                                TokenIndex(i),
-                                TryIndex(i));
-    }
-    return descriptors.raw();
-  }
-
- private:
-  GrowableArray<struct PcDesc> list_;
-  DISALLOW_COPY_AND_ASSIGN(DescriptorList);
-};
 
 
 class CodeGenerator::HandlerList : public ZoneAllocated {
@@ -274,33 +203,8 @@ void CodeGenerator::GenerateDeferredCode() {
 // TODO(srdjan): Add check that no object is inlined in the first
 // 5 bytes (length of a jump instruction).
 void CodeGenerator::GeneratePreEntryCode() {
-  // Do not optimize if:
-  // - we count invocations.
-  // - optimization disabled via negative 'optimization_invocation_threshold;
-  // - function is marked as non-optimizable.
-  // - type checks are enabled.
-  const bool may_optimize =
-      !FLAG_report_invocation_count &&
-      (FLAG_optimization_invocation_threshold >= 0) &&
-      !Isolate::Current()->debugger()->IsActive() &&
-      parsed_function_.function().is_optimizable();
-  // Count invocation and check.
-  if (FLAG_report_invocation_count || may_optimize) {
-    // TODO(turnidge): It would be nice to remove this nop.  Right now
-    // we need it to make sure the function is still patchable.
-    __ nop(5);
-    const Function& function =
-        Function::ZoneHandle(parsed_function_.function().raw());
-    __ LoadObject(EAX, function);
-    __ movl(EBX, FieldAddress(EAX, Function::invocation_counter_offset()));
-    __ incl(EBX);
-    if (may_optimize) {
-      __ cmpl(EBX, Immediate(FLAG_optimization_invocation_threshold));
-      __ j(GREATER, &StubCode::OptimizeInvokedFunctionLabel());
-    }
-    // EBX is an integer value (not an object).
-    __ movl(FieldAddress(EAX, Function::invocation_counter_offset()), EBX);
-  }
+  // TODO(srdjan): Still needed?
+  __ nop(5);
 }
 
 
@@ -781,11 +685,33 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   __ j(NOT_EQUAL, &wrong_stack, Assembler::kNearJump);
 #endif  // DEBUG.
 
-  if (FLAG_trace_functions) {
-    __ pushl(EAX);  // Preserve result.
+  if (!IsOptimizing()) {
+    // Count only in unoptimized code.
+    // TODO(srdjan): Replace the counting code with a type feedback
+    // collection and counting stub.
     const Function& function =
-        Function::ZoneHandle(parsed_function_.function().raw());
+          Function::ZoneHandle(parsed_function_.function().raw());
     __ LoadObject(EBX, function);
+    __ incl(FieldAddress(EBX, Function::usage_counter_offset()));
+    if (CodeGenerator::CanOptimize()) {
+      // Do not optimize if usage count must be reported.
+      __ cmpl(FieldAddress(EBX, Function::usage_counter_offset()),
+          Immediate(FLAG_optimization_counter_threshold));
+      Label not_yet_hot;
+      __ j(LESS_EQUAL, &not_yet_hot);
+      __ pushl(EAX);  // Preserve result.
+      __ pushl(EBX);  // Argument for runtime: function to optimize.
+      __ CallRuntimeFromDart(kOptimizeInvokedFunctionRuntimeEntry);
+      __ popl(EBX);  // Remove argument.
+      __ popl(EAX);  // Restore result.
+      __ Bind(&not_yet_hot);
+    }
+  }
+  if (FLAG_trace_functions) {
+    const Function& function =
+          Function::ZoneHandle(parsed_function_.function().raw());
+    __ LoadObject(EBX, function);
+    __ pushl(EAX);  // Preserve result.
     __ pushl(EBX);
     GenerateCallRuntime(AstNode::kNoId,
                         0,
@@ -922,8 +848,7 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
 
 void CodeGenerator::VisitPrimaryNode(PrimaryNode* node) {
   // PrimaryNodes are temporary during parsing.
-  ErrorMsg(node->token_index(),
-      "Unresolved identifier '%s'", node->primary().ToCString());
+  UNREACHABLE();
 }
 
 
@@ -1914,24 +1839,6 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
 }
 
 
-void CodeGenerator::CountBackwardLoop() {
-  Label done;
-  const Function& function =
-      Function::ZoneHandle(parsed_function_.function().raw());
-  __ LoadObject(EAX, function);
-  __ movl(EBX, FieldAddress(EAX, Function::invocation_counter_offset()));
-  __ incl(EBX);
-  if (!FLAG_report_invocation_count) {
-    // Prevent overflow.
-    __ cmpl(EBX, Immediate(FLAG_optimization_invocation_threshold));
-    __ j(GREATER, &done);
-  }
-  // EBX is an integer value (not an object).
-  __ movl(FieldAddress(EAX, Function::invocation_counter_offset()), EBX);
-  __ Bind(&done);
-}
-
-
 void CodeGenerator::VisitWhileNode(WhileNode* node) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   SourceLabel* label = node->label();
@@ -1943,7 +1850,6 @@ void CodeGenerator::VisitWhileNode(WhileNode* node) {
   __ cmpl(EAX, EDX);
   __ j(NOT_EQUAL, label->break_label());
   node->body()->Visit(this);
-  CountBackwardLoop();
   __ jmp(label->continue_label());
   __ Bind(label->break_label());
 }
@@ -1955,7 +1861,6 @@ void CodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
   Label loop;
   __ Bind(&loop);
   node->body()->Visit(this);
-  CountBackwardLoop();
   __ Bind(label->continue_label());
   node->condition()->Visit(this);
   GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
@@ -1982,7 +1887,6 @@ void CodeGenerator::VisitForNode(ForNode* node) {
     __ j(NOT_EQUAL, label->break_label());
   }
   node->body()->Visit(this);
-  CountBackwardLoop();
   __ Bind(label->continue_label());
   node->increment()->Visit(this);
   __ jmp(&loop);
