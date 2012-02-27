@@ -233,6 +233,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
  private:
   bool mark_;
+
+  DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
 
@@ -257,6 +259,8 @@ class BlockEntryInstr : public Instruction {
 
  private:
   intptr_t block_number_;
+
+  DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
 
 
@@ -275,12 +279,14 @@ class JoinEntryInstr : public BlockEntryInstr {
 
  private:
   Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(JoinEntryInstr);
 };
 
 
 class TargetEntryInstr : public BlockEntryInstr {
  public:
-  TargetEntryInstr() : BlockEntryInstr(), block_number_(-1), successor_(NULL) {
+  TargetEntryInstr() : BlockEntryInstr(), successor_(NULL) {
   }
 
   DECLARE_INSTRUCTION(TargetEntry)
@@ -293,8 +299,9 @@ class TargetEntryInstr : public BlockEntryInstr {
   virtual void Postorder(GrowableArray<BlockEntryInstr*>* block_entries);
 
  private:
-  intptr_t block_number_;
   Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
 };
 
 
@@ -317,6 +324,8 @@ class DoInstr : public Instruction {
  private:
   Computation* computation_;
   Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoInstr);
 };
 
 
@@ -344,6 +353,8 @@ class BindInstr : public Instruction {
   const intptr_t temp_index_;
   Computation* computation_;
   Instruction* successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
 
 
@@ -361,6 +372,8 @@ class ReturnInstr : public Instruction {
 
  private:
   Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
 
 
@@ -389,6 +402,8 @@ class BranchInstr : public Instruction {
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
+
+  DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
 
 #undef DECLARE_INSTRUCTION
