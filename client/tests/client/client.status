@@ -9,10 +9,8 @@ dom/WebGL1Test: Skip  # Issue 1495
 [ $component == dartium ]
 # TODO(vsm): Triage DOM tests.
 dom/AudioContextTest: Fail
-dom/CrossFrameTest: Fail  # Issue 1858
 dom/HTMLAudioElementTest: Fail  # factory constructor not implemented
 dom/HTMLElementTest: Fail
-dom/InnerFrameTest: Fail  # Issue 1858
 dom/IsolateLightTest: Fail
 dom/NativeGCTest: Fail  # Issue 1448.
 dom/TypingTest: Fail    # StyleSheetList.item not implemented

@@ -377,6 +377,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     if (getter or setter).type.id == 'EventListener':
       return
 
+    if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
+      # FIXME: exclude from interface as well.
+      return
+
     # FIXME: support 'ImplementedBy'.
     if 'ImplementedBy' in (getter or setter).ext_attrs:
       return
@@ -481,6 +485,10 @@ class NativeImplementationGenerator(systemwrapping.WrappingInterfaceGenerator):
     Arguments:
       info: An OperationInfo object.
     """
+
+    if 'CheckSecurityForNode' in info.overloads[0].ext_attrs:
+      # FIXME: exclude from interface as well.
+      return
 
     if 'Custom' in info.overloads[0].ext_attrs:
       parameters = info.ParametersImplementationDeclaration()
