@@ -185,12 +185,12 @@ class DartCompiler(object):
       if self.optimize:
         cmd.append('--optimize')
     else:
-      binary = abspath(join(DART_PATH, 'frog',
+      binary = abspath(join(DART_PATH,
           utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
           'frog', 'bin', 'frogsh'))
       if not exists(binary):
         raise ConverterException(FROG_NOT_FOUND_ERROR % DART_PATH)
-      cmd = [binary, '--compile-only', 
+      cmd = [binary, '--compile-only',
              '--libdir=' + join(DART_PATH, 'frog', 'lib'),
              '--out=' + self.outputFileName(inputfile, outdir)]
     if self.extra_flags != "":
