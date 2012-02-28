@@ -418,7 +418,7 @@ class _File implements File {
     });
   }
 
-  void directorySync() {
+  Directory directorySync() {
     if (_asyncUsed) {
       throw new FileIOException(
           "Mixed use of synchronous and asynchronous API");

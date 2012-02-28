@@ -132,7 +132,7 @@ interface File default _File {
    * resources.  The [inputStreamHandler] is called with the result
    * when the openInputStream operation completes.
    */
-  InputStream openInputStream();
+  void openInputStream();
 
   /**
    * Synchronously create a new independent input stream for the
@@ -148,7 +148,8 @@ interface File default _File {
   /**
    * Creates a new independent output stream for the file. The file
    * output stream must be closed when no longer used to free up
-   * system resources.
+   * system resources.  The [outputStreamHandler] is called with the result
+   * when the openOutputStream operation completes.
    *
    * An output stream can be opened in two modes:
    *
@@ -160,7 +161,7 @@ interface File default _File {
    *
    * By default the mode is FileMode.WRITE.
    */
-  OutputStream openOutputStream([FileMode mode]);
+  void openOutputStream([FileMode mode]);
 
   /**
    * Synchronously creates a new independent output stream for the
