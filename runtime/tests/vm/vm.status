@@ -4,11 +4,6 @@
 
 prefix vm
 
-# Disable breakpoint tests until I figure out why they fail on Linux
-Debug_SingleStep: Skip
-Debug_StepInto: Skip
-Debug_StepOut: Skip
-Debug_DeleteBreakpoint: Skip
 
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 RunLoop_ExceptionChild: Fail

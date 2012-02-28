@@ -30,6 +30,7 @@ Breakpoint::Breakpoint(const Function& func, intptr_t pc_desc_index)
       pc_desc_index_(pc_desc_index),
       pc_(0),
       line_number_(-1),
+      is_temporary_(false),
       is_patched_(false),
       next_(NULL) {
   ASSERT(!func.HasOptimizedCode());
