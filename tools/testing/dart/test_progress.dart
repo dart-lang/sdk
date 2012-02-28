@@ -138,14 +138,12 @@ class ProgressIndicator {
         output.add(s);
       }
     }
-    if (test is BrowserTestCase && test.dynamic.compilerPath != null) {
+    for (Command c in test.commands) {
       output.add('');
-      output.add('Compilation command: ${test.dynamic.compilerPath} ' +
-                 Strings.join(test.dynamic.compilerArguments, ' '));
+      String message = (c == test.commands.last()
+          ? "Command line" : "Compilation command");
+      output.add('$message: ${c.commandLine}');
     }
-    output.add('');
-    output.add('Command line: ${test.commandLine}');
-
     for (String line in output) {
       print(line);
     }
@@ -228,7 +226,7 @@ class CompactIndicator extends ProgressIndicator {
 
   void _printStartProgress(TestCase test) => _printProgress();
   void _printDoneProgress(TestCase test) => _printProgress();
-  
+
   abstract void _printProgress();
 }
 
