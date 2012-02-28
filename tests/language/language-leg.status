@@ -11,6 +11,7 @@ prefix language
 [ $component == leg ]
 Constructor6Test: Crash
 FunctionTest: Crash
+CompileTimeConstant8Test: Fail # We don't take the generic type into account yet.
 
 
 # Compilation errors.
