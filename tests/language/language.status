@@ -232,6 +232,8 @@ ExceptionTest: Fail # Issue 1785
 Factory3Test: Fail # Issue 417
 Factory2NegativeTest: Fail
 CallThroughNullGetterTest: Fail # Throw ObjectNotClosure instead of NullPointerException.
+DoubleToStringAsPrecisionTest: Fail # fails due to -0.0.
+DoubleToStringAsExponentialTest: Fail # fails due to -0.0.
 ExtendTypeParameterNegativeTest: Skip # Issue 886
 ExtendTypeParameter2NegativeTest: Skip # Issue 886
 FinalSyntaxTest/none: Fail
@@ -263,7 +265,6 @@ TryCatchSyntaxTest/09: Fail
 CondExprTest: Fail
 SuperFieldAccessTest: Fail # Issue 1695
 CompileTimeConstant6Test: Fail
-CompileTimeConstant8Test: Fail
 
 SavannahTest: Skip # TODO(jimhug): Seems flaky on some configs - investigate.
 
