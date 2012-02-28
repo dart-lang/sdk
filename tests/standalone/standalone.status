@@ -17,11 +17,6 @@ FailTest: Fail
 TimeoutTest: Skip  # Uses too much time to test on many platforms, for no gain.
 TestExtensionTest: Fail  # shared library in wrong place (issue 1817)
 
-# The following test is temporarily skipped because the vm was changed (it
-# requires to explicitly import dart:isolate), but the binaries in
-# tools/testing/bin/ have not been updated. Remove once we update them.
-TestRunnerTest: Skip
-
 [ $component == vm && $system == macos]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 SocketManyConnectionsTest: Skip

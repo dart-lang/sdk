@@ -15,9 +15,7 @@
 #library("test_suite");
 
 #import("dart:io");
-// TODO(sigmund): uncomment when new dart binaries are updated under
-// tools/testing/bin
-// #import("dart:isolate");
+#import("dart:isolate");
 #import("status_file_parser.dart");
 #import("test_runner.dart");
 #import("multitest.dart");
