@@ -2799,8 +2799,7 @@ TEST_CASE(LibraryUrl) {
       "#library('library1_name');";
   Dart_Handle url = Dart_NewString("library1_url");
   Dart_Handle source = Dart_NewString(kLibrary1Chars);
-  Dart_Handle import_map = Dart_NewList(0);
-  Dart_Handle lib = Dart_LoadLibrary(url, source, import_map);
+  Dart_Handle lib = Dart_LoadLibrary(url, source, Dart_Null());
   Dart_Handle error = Dart_Error("incoming error");
   EXPECT_VALID(lib);
 
@@ -3174,16 +3173,15 @@ TEST_CASE(ImportLibrary1) {
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
   Dart_Handle source = Dart_NewString(kScriptChars);
-  Dart_Handle import_map = Dart_NewList(0);
-  result = Dart_LoadScript(url, source, library_handler, import_map);
+  result = Dart_LoadScript(url, source, library_handler, Dart_Null());
 
   url = Dart_NewString("library1.dart");
   source = Dart_NewString(kLibrary1Chars);
-  Dart_LoadLibrary(url, source, import_map);
+  Dart_LoadLibrary(url, source, Dart_Null());
 
   url = Dart_NewString("library2.dart");
   source = Dart_NewString(kLibrary2Chars);
-  Dart_LoadLibrary(url, source, import_map);
+  Dart_LoadLibrary(url, source, Dart_Null());
 
   result = Dart_InvokeStatic(result,
                              Dart_NewString(""),
