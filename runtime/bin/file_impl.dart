@@ -95,7 +95,7 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 
 
 class _FileOutputStream implements OutputStream {
-  _FileOutputStream(String name, int mode) {
+  _FileOutputStream(String name, FileMode mode) {
     _pendingOperations = new List<List<int>>();
     var f = new File(name);
     f.open(mode);
