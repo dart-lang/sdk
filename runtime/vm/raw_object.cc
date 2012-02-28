@@ -84,8 +84,8 @@ intptr_t RawObject::SizeFromClass() const {
       }
       case kBigint: {
         const RawBigint* raw_bgi = reinterpret_cast<const RawBigint*>(this);
-        const BIGNUM* bn_ptr = &raw_bgi->ptr()->bn_;
-        instance_size = Bigint::InstanceSize(bn_ptr);
+        intptr_t length = raw_bgi->ptr()->allocated_length_;
+        instance_size = Bigint::InstanceSize(length);
         break;
       }
       case kOneByteString: {
@@ -490,7 +490,8 @@ intptr_t RawBigint::VisitBigintPointers(RawBigint* raw_obj,
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   RawBigint* obj = raw_obj->ptr();
-  return Bigint::InstanceSize(&obj->bn_);
+  intptr_t length = obj->allocated_length_;
+  return Bigint::InstanceSize(length);
 }
 
 

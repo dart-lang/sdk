@@ -35,17 +35,7 @@
             'libraries': [
               '-lpthread',
               '-lrt',
-              '-lcrypto',
             ],
-          },
-        }],
-        ['OS=="mac"', {
-          'link_settings': {
-            'xcode_settings': {
-              'OTHER_LDFLAGS': [
-                '-lcrypto',
-              ],
-            },
           },
         }],
         ['OS=="win"', {

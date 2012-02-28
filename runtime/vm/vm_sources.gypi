@@ -33,7 +33,6 @@
     'bigint_operations.cc',
     'bigint_operations.h',
     'bigint_operations_test.cc',
-    'bigint_store.h',
     'bitfield.h',
     'bitfield_test.cc',
     'boolfield.h',

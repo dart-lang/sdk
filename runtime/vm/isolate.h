@@ -15,7 +15,6 @@ namespace dart {
 
 // Forward declarations.
 class ApiState;
-class BigintStore;
 class CodeIndexTable;
 class Debugger;
 class HandleScope;
@@ -118,9 +117,6 @@ class Isolate {
   static intptr_t current_zone_offset() {
     return OFFSET_OF(Isolate, current_zone_);
   }
-
-  BigintStore* bigint_store() const { return bigint_store_; }
-  void set_bigint_store(BigintStore* store) { bigint_store_ = store; }
 
   int32_t no_gc_scope_depth() const {
 #if defined(DEBUG)
@@ -263,7 +259,6 @@ class Isolate {
   HandleScope* top_handle_scope_;
 #endif
   int32_t random_seed_;
-  BigintStore* bigint_store_;
   uword top_exit_frame_info_;
   void* init_callback_data_;
   Dart_LibraryTagHandler library_tag_handler_;

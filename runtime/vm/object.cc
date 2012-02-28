@@ -5952,8 +5952,8 @@ RawInteger* Integer::New(const String& str) {
   const Bigint& big = Bigint::Handle(Bigint::New(str));
   if (BigintOperations::FitsIntoSmi(big)) {
     return BigintOperations::ToSmi(big);
-  } else if (BigintOperations::FitsIntoInt64(big)) {
-    return Mint::New(BigintOperations::ToInt64(big));
+  } else if (BigintOperations::FitsIntoMint(big)) {
+    return Mint::New(BigintOperations::ToMint(big));
   } else {
     return big.raw();
   }
@@ -6170,7 +6170,7 @@ int Mint::CompareWith(const Integer& other) const {
   if (other.IsBigint()) {
     Bigint& bigi = Bigint::Handle();
     bigi ^= other.raw();
-    ASSERT(!BigintOperations::FitsIntoInt64(bigi));
+    ASSERT(!BigintOperations::FitsIntoMint(bigi));
     if (this->IsNegative() == other.IsNegative()) {
       return this->IsNegative() ? 1 : -1;
     }
@@ -6329,32 +6329,17 @@ bool Bigint::Equals(const Instance& other) const {
   Bigint& other_bgi = Bigint::Handle();
   other_bgi ^= other.raw();
 
-  return BN_cmp(BNAddr(), other_bgi.BNAddr()) == 0;
-}
-
-
-RawBigint* Bigint::New(const BIGNUM *bn, Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate->object_store()->bigint_class());
-  Bigint& result = Bigint::Handle();
-  {
-    RawObject* raw = Object::Allocate(cls,
-                                      Bigint::InstanceSize(bn),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    // Danger Will Robinson! Use of OpenSSL internals!
-    // Copy the OpenSSL BIGNUM to our own heap. Don't fix up our d
-    // pointer, that'll get done for us.
-    BIGNUM* our_bn = result.MutableBNAddr();
-    // memcpy would be sufficient.
-    memmove(our_bn, bn, sizeof *bn);
-    memmove(result.BNMemory(), bn->d, bn->top * sizeof(BN_ULONG));
-    // We only allocated/copied the active part.
-    our_bn->dmax = our_bn->top;
+  intptr_t len = this->Length();
+  if (len != other_bgi.Length()) {
+    return false;
   }
 
-  return result.raw();
+  for (intptr_t i = 0; i < len; i++) {
+    if (this->GetChunkAt(i) != other_bgi.GetChunkAt(i)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -6374,17 +6359,17 @@ double Bigint::AsDoubleValue() const {
 
 
 int64_t Bigint::AsInt64Value() const {
-  if (!BigintOperations::FitsIntoInt64(*this)) {
+  if (!BigintOperations::FitsIntoMint(*this)) {
     UNREACHABLE();
   }
-  return BigintOperations::ToInt64(*this);
+  return BigintOperations::ToMint(*this);
 }
 
 
 // For positive values: Smi < Mint < Bigint.
 int Bigint::CompareWith(const Integer& other) const {
   ASSERT(!FitsIntoSmi(*this));
-  ASSERT(!BigintOperations::FitsIntoInt64(*this));
+  ASSERT(!BigintOperations::FitsIntoMint(*this));
   if (other.IsBigint()) {
     Bigint& big = Bigint::Handle();
     big ^= other.raw();
@@ -6397,6 +6382,22 @@ int Bigint::CompareWith(const Integer& other) const {
 }
 
 
+RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
+  ASSERT(length >= 0);
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate->object_store()->bigint_class());
+  Bigint& result = Bigint::Handle();
+  {
+    RawObject* raw = Object::Allocate(cls, Bigint::InstanceSize(length), space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.raw_ptr()->allocated_length_ = length;
+    result.raw_ptr()->signed_length_ = length;
+  }
+  return result.raw();
+}
+
+
 static uword ZoneAllocator(intptr_t size) {
   Zone* zone = Isolate::Current()->current_zone();
   return zone->Allocate(size);
@@ -6404,7 +6405,9 @@ static uword ZoneAllocator(intptr_t size) {
 
 
 const char* Bigint::ToCString() const {
-  return BigintOperations::ToDecCString(*this, &ZoneAllocator);
+  // TODO(florian): Add a BigintOperations::ToDecCString method and use that
+  // here.
+  return BigintOperations::ToHexCString(*this, &ZoneAllocator);
 }
 
 

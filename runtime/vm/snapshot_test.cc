@@ -414,7 +414,7 @@ TEST_CASE(SerializeBigint) {
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
 
-  EXPECT_EQ(BigintOperations::ToInt64(bigint), BigintOperations::ToInt64(obj));
+  EXPECT_EQ(BigintOperations::ToMint(bigint), BigintOperations::ToMint(obj));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -443,9 +443,9 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
   SnapshotReader reader(snapshot, Isolate::Current());
   Bigint& serialized_bigint = Bigint::Handle();
   serialized_bigint ^= reader.ReadObject();
-  const char *str1 = BigintOperations::ToDecCString(bigint, allocator);
+  const char *str1 = BigintOperations::ToHexCString(bigint, allocator);
   const char *str2 =
-      BigintOperations::ToDecCString(serialized_bigint, allocator);
+      BigintOperations::ToHexCString(serialized_bigint, allocator);
   EXPECT_STREQ(str1, str2);
   free(const_cast<char*>(str1));
   free(const_cast<char*>(str2));

@@ -1181,8 +1181,18 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(ObjectStore::kBigintClass, ptr()->tags_);
 
   // Write out the bigint value as a HEXCstring.
-  ptr()->bn_.d = ptr()->data_;
-  const char* str = BigintOperations::ToHexCString(&ptr()->bn_, &ZoneAllocator);
+  intptr_t length = ptr()->signed_length_;
+  bool is_negative = false;
+  if (length <= 0) {
+    length = -length;
+    is_negative = true;
+  }
+  uword data_start = reinterpret_cast<uword>(ptr()) + sizeof(RawBigint);
+  const char* str = BigintOperations::ToHexCString(
+      length,
+      is_negative,
+      reinterpret_cast<void*>(data_start),
+      &ZoneAllocator);
   bool neg = false;
   if (*str == '-') {
     neg = true;

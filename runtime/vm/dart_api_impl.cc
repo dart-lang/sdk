@@ -955,7 +955,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
 #if defined(DEBUG)
     Bigint& bigint = Bigint::Handle();
     bigint ^= int_obj.raw();
-    ASSERT(!BigintOperations::FitsIntoInt64(bigint));
+    ASSERT(!BigintOperations::FitsIntoMint(bigint));
 #endif
     *fits = false;
   }
@@ -1011,8 +1011,8 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
     ASSERT(int_obj.IsBigint());
     Bigint& bigint = Bigint::Handle();
     bigint ^= int_obj.raw();
-    if (BigintOperations::FitsIntoInt64(bigint)) {
-      *value = BigintOperations::ToInt64(bigint);
+    if (BigintOperations::FitsIntoMint(bigint)) {
+      *value = BigintOperations::ToMint(bigint);
       return Api::Success();
     }
   }
@@ -1456,8 +1456,8 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   } else if (retval.IsBigint()) {
     Bigint& bigint = Bigint::Handle();
     bigint ^= retval.raw();
-    if (BigintOperations::FitsIntoInt64(bigint)) {
-      *len = BigintOperations::ToInt64(bigint);
+    if (BigintOperations::FitsIntoMint(bigint)) {
+      *len = BigintOperations::ToMint(bigint);
       return Api::Success();
     } else {
       return Api::NewError("Length of List object is greater than the "

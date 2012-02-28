@@ -1,18 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+// Copyright 2012 Google Inc. All Rights Reserved.
 
 #ifndef VM_BIGINT_OPERATIONS_H_
 #define VM_BIGINT_OPERATIONS_H_
 
-#include "vm/heap.h"
-#include "vm/object.h"
-#include "vm/token.h"
+#include "platform/utils.h"
 
-// This should be folded into OpenSSL
-#undef BN_abs_is_word
-#define BN_abs_is_word(a, w) (((a)->top == 1) \
-                               && ((a)->d[0] == static_cast<BN_ULONG>(w)))
+#include "vm/object.h"
 
 namespace dart {
 
@@ -33,29 +26,28 @@ class BigintOperations : public AllStatic {
   // only contain hex-digits. No sign or leading "0x" is allowed.
   static RawBigint* FromHexCString(const char* str,
                                    Heap::Space space = Heap::kNew);
+
   // The given string must be a nul-terminated string of decimal digits. It
   // must only contain decimal digits (0-9). No sign is allowed. Leading
   // zeroes are ignored.
   static RawBigint* FromDecimalCString(const char* str,
-                                       Heap::Space space = Heap::kNew);
-  // Converts the bigint to a string. The returned string is prepended by
+                                   Heap::Space space = Heap::kNew);
+
+  // Converts the bigint to a HEX string. The returned string is prepended by
   // a "0x" (after the optional minus-sign).
-  static const char* ToHexCString(const BIGNUM* bn,
-                                  uword (*allocator)(intptr_t size));
-  static const char* ToHexCString(const Bigint& bigint,
+  static const char* ToHexCString(intptr_t length,
+                                  bool is_negative,
+                                  void* data,
                                   uword (*allocator)(intptr_t size));
 
-  // Converts the bigint to a string.
-  static const char* ToDecCString(const BIGNUM* bn,
-                                  uword (*allocator)(intptr_t size));
-  static const char* ToDecCString(const Bigint& bigint,
+  static const char* ToHexCString(const Bigint& bigint,
                                   uword (*allocator)(intptr_t size));
 
   static bool FitsIntoSmi(const Bigint& bigint);
   static RawSmi* ToSmi(const Bigint& bigint);
 
-  static bool FitsIntoInt64(const Bigint& bigint);
-  static int64_t ToInt64(const Bigint& bigint);
+  static bool FitsIntoMint(const Bigint& bigint);
+  static int64_t ToMint(const Bigint& bigint);
 
   static bool FitsIntoUint64(const Bigint& bigint);
   static uint64_t ToUint64(const Bigint& bigint);
@@ -63,8 +55,14 @@ class BigintOperations : public AllStatic {
 
   static RawDouble* ToDouble(const Bigint& bigint);
 
-  static RawBigint* Add(const Bigint& a, const Bigint& b);
-  static RawBigint* Subtract(const Bigint& a, const Bigint& b);
+  static RawBigint* Add(const Bigint& a, const Bigint& b) {
+    bool negate_b = false;
+    return AddSubtract(a, b, negate_b);
+  }
+  static RawBigint* Subtract(const Bigint& a, const Bigint& b) {
+    bool negate_b = true;
+    return AddSubtract(a, b, negate_b);
+  }
   static RawBigint* Multiply(const Bigint& a, const Bigint& b);
   // TODO(floitsch): what to do for divisions by zero.
   static RawBigint* Divide(const Bigint& a, const Bigint& b);
@@ -77,26 +75,59 @@ class BigintOperations : public AllStatic {
   static RawBigint* BitOr(const Bigint& a, const Bigint& b);
   static RawBigint* BitXor(const Bigint& a, const Bigint& b);
   static RawBigint* BitNot(const Bigint& bigint);
-  static RawInteger* BitAndWithSmi(const Bigint& bigint, const Smi& smi);
-  static RawInteger* BitOrWithSmi(const Bigint& bigint, const Smi& smi);
-  static RawInteger* BitXorWithSmi(const Bigint& bigint, const Smi& smi);
 
   static int Compare(const Bigint& a, const Bigint& b);
 
+  static bool IsClamped(const Bigint& bigint) {
+    intptr_t length = bigint.Length();
+    return (length == 0) || (bigint.GetChunkAt(length - 1) != 0);
+  }
 
  private:
-  static BIGNUM* TmpBN();
-  static BN_CTX* TmpBNCtx();
+  typedef Bigint::Chunk Chunk;
+  typedef Bigint::DoubleChunk DoubleChunk;
 
+  static const int kDigitBitSize = 28;
+  static const Chunk kDigitMask = (static_cast<Chunk>(1) << kDigitBitSize) - 1;
+  static const Chunk kDigitMaxValue = kDigitMask;
+  static const int kChunkSize = sizeof(Chunk);
+  static const int kChunkBitSize = kChunkSize * kBitsPerByte;
+
+  static RawBigint* Zero() { return Bigint::Allocate(0); }
   static RawBigint* One() {
-    Bigint& result = Bigint::Handle(NewFromInt64(1));
+    Bigint& result = Bigint::Handle(Bigint::Allocate(1));
+    result.SetChunkAt(0, 1);
     return result.raw();
   }
-  static RawBigint* BitTT(const Bigint& a, const Bigint& b, bool tt[4]);
-  // The following function only works for bit-and and bit-or.
-  static RawSmi* BitOpWithSmi(Token::Kind kind,
-                              const Bigint& bigint,
-                              const Smi& smi);
+  static RawBigint* MinusOne() {
+    Bigint& result = Bigint::Handle(One());
+    result.ToggleSign();
+    return result.raw();
+  }
+
+  // Performs an addition or subtraction depending on the negate_b argument.
+  static RawBigint* AddSubtract(const Bigint& a,
+                                const Bigint& b,
+                                bool negate_b);
+
+  static int UnsignedCompare(const Bigint& a, const Bigint& b);
+  static int UnsignedCompareNonClamped(const Bigint& a, const Bigint& b);
+  static RawBigint* UnsignedAdd(const Bigint& a, const Bigint& b);
+  static RawBigint* UnsignedSubtract(const Bigint& a, const Bigint& b);
+
+  static RawBigint* MultiplyWithDigit(const Bigint& bigint, Chunk digit);
+  static RawBigint* DigitsShiftLeft(const Bigint& bigint, intptr_t amount) {
+    return ShiftLeft(bigint, amount * kDigitBitSize);
+  }
+  static void DivideRemainder(const Bigint& a, const Bigint& b,
+                              Bigint* quotient, Bigint* remainder);
+
+  // Removes leading zero-chunks by adjusting the bigint's length.
+  static void Clamp(const Bigint& bigint);
+
+  static RawBigint* Copy(const Bigint& bigint);
+
+  static int CountBits(Chunk digit);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BigintOperations);
 };

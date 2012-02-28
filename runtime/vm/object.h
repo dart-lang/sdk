@@ -2623,8 +2623,8 @@ class Mint : public Integer {
 
 class Bigint : public Integer {
  public:
-  virtual bool IsZero() const;
-  virtual bool IsNegative() const;
+  virtual bool IsZero() const { return raw_ptr()->signed_length_ == 0; }
+  virtual bool IsNegative() const { return raw_ptr()->signed_length_ < 0; }
 
   virtual bool Equals(const Instance& other) const;
 
@@ -2633,46 +2633,59 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  static intptr_t InstanceSize(const BIGNUM* bn) {
-    // Danger Will Robinson! Use of OpenSSL internals!
-    return RoundedAllocationSize(sizeof(RawBigint)
-                                 + sizeof(BN_ULONG) * bn->top);
+  static intptr_t InstanceSize(intptr_t length) {
+    ASSERT(length >= 0);
+    return RoundedAllocationSize(sizeof(RawBigint) + (length * sizeof(Chunk)));
   }
-  static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawBigint) == OFFSET_OF(RawBigint, data_));
-    return 0;
-  }
-
-  static RawBigint* New(const BIGNUM* bn, Heap::Space space = Heap::kNew);
+  static intptr_t InstanceSize() { return 0; }
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
   static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
 
  private:
-  void SetSign(bool is_negative) const;
+  typedef uint32_t Chunk;
+  typedef uint64_t DoubleChunk;
+  static const int kChunkSize = sizeof(Chunk);
+
+  Chunk GetChunkAt(intptr_t i) const {
+    return *ChunkAddr(i);
+  }
+
+  void SetChunkAt(intptr_t i, Chunk newValue) const {
+    *ChunkAddr(i) = newValue;
+  }
+
+  intptr_t Length() const {
+    intptr_t signed_length = raw_ptr()->signed_length_;
+    return Utils::Abs(signed_length);
+  }
+
+  // SetLength does not change the sign.
+  void SetLength(intptr_t length) const {
+    ASSERT(length >= 0);
+    bool is_negative = IsNegative();
+    raw_ptr()->signed_length_ = length;
+    if (is_negative) ToggleSign();
+  }
+
+  void SetSign(bool is_negative) const {
+    if (is_negative != IsNegative()) {
+      ToggleSign();
+    }
+  }
 
   void ToggleSign() const {
-    BIGNUM* bn = MutableBNAddr();
-    // Danger Will Robinson! Use of OpenSSL internals!
-    // FIXME(benl): can be changed to use BN_set_negative() on more
-    // recent OpenSSL releases (> 1.0.0).
-    SetSign(!bn->neg);
+    raw_ptr()->signed_length_ = -raw_ptr()->signed_length_;
   }
 
-  BIGNUM* MutableBNAddr() const {
-    // Fix up internals as we may have been moved.
-    raw_ptr()->bn_.d = BNMemory();
-
-    return &raw_ptr()->bn_;
-  }
-  const BIGNUM* BNAddr() const { return MutableBNAddr(); }
-  BN_ULONG* BNMemory() const {
-    return &raw_ptr()->data_[0];
+  Chunk* ChunkAddr(intptr_t index) const {
+    ASSERT(0 <= index);
+    ASSERT(index < Length());
+    uword digits_start = reinterpret_cast<uword>(raw_ptr()) + sizeof(RawBigint);
+    return &(reinterpret_cast<Chunk*>(digits_start)[index]);
   }
 
-  int NumberOfBits() const { return BN_num_bits(BNAddr()); }
-  bool IsBitSet(intptr_t bit) const { return Bit(bit) == 1; }
-  int Bit(intptr_t bit) const { return BN_is_bit_set(BNAddr(), bit); }
+  static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
 
   HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
   friend class Class;
