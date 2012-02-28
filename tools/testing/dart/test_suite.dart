@@ -512,30 +512,33 @@ class StandardTestSuite implements TestSuite {
 
       // Construct the command(s) that compile all the inputs needed by the
       // browser test. For dartium, this will be noop commands.
-      List<Command> commands = [_compileCommand(
-          dartWrapperFilename, compiledDartWrapperFilename,
-          component, tempDir.path, vmOptions)];
-
-      // some tests require compiling multiple input scripts.
-      List<String> otherScripts = optionsFromFile['otherScripts'];
-      for (String name in otherScripts) {
-        int end = filename.lastIndexOf('/');
-        if (end == -1) {
-          print('Warning: error processing "OtherScripts" of $filename.');
-          print('Skipping test ($testName).');
-          return;
-        }
-        String dir = filename.substring(0, end);
-        end = name.lastIndexOf('.dart');
-        if (end == -1) {
-          print('Warning: error processing "OtherScripts" in $filename.');
-          print('Skipping test ($testName).');
-          return;
-        }
-        String compiledName = '${name.substring(0, end)}.js';
+      List<Command> commands = [];
+      if (component != 'dartium') {
         commands.add(_compileCommand(
-            '$dir/$name', '${tempDir.path}/$compiledName',
+            dartWrapperFilename, compiledDartWrapperFilename,
             component, tempDir.path, vmOptions));
+
+        // some tests require compiling multiple input scripts.
+        List<String> otherScripts = optionsFromFile['otherScripts'];
+        for (String name in otherScripts) {
+          int end = filename.lastIndexOf('/');
+          if (end == -1) {
+            print('Warning: error processing "OtherScripts" of $filename.');
+            print('Skipping test ($testName).');
+            return;
+          }
+          String dir = filename.substring(0, end);
+          end = name.lastIndexOf('.dart');
+          if (end == -1) {
+            print('Warning: error processing "OtherScripts" in $filename.');
+            print('Skipping test ($testName).');
+            return;
+          }
+          String compiledName = '${name.substring(0, end)}.js';
+          commands.add(_compileCommand(
+              '$dir/$name', '${tempDir.path}/$compiledName',
+              component, tempDir.path, vmOptions));
+        }
       }
 
       // Construct the command that executes the browser test
@@ -598,10 +601,6 @@ class StandardTestSuite implements TestSuite {
                              '--out=$outputFile']);
         args.addAll(vmOptions);
         args.add(inputFile);
-        break;
-      case 'dartium':
-        // No compilation phase.
-        args = null;
         break;
       default:
         Expect.fail('unimplemented component $component');
