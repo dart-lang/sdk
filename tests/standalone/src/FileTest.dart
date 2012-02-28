@@ -771,8 +771,10 @@ class FileTest {
       OutputStream output = file.openOutputStreamSync();
       output.close();
       Expect.throws(() => output.writeFrom(buffer, 0, 12));
-      file.deleteSync();
-      asyncTestDone("testCloseExceptionStream");
+      output.closeHandler = () {
+        file.deleteSync();
+        asyncTestDone("testCloseExceptionStream");
+      };
     };
   }
 
