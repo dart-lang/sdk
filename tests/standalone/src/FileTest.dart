@@ -129,16 +129,17 @@ class FileTest {
               input = file.openInputStream();
               input.dataHandler = () {
                 bytesRead = input.readInto(buffer2, 0, 42);
-                Expect.isTrue(input.closed);
                 Expect.equals(42, bytesRead);
                 // Now compare the two buffers to check if they are identical.
                 for (int i = 0; i < buffer1.length; i++) {
                   Expect.equals(buffer1[i],  buffer2[i]);
                 }
-                // Delete the output file.
-                file.deleteSync();
-                Expect.isFalse(file.existsSync());
-                asyncTestDone("testReadWriteStream");
+                input.closeHandler = () {
+                  // Delete the output file.
+                  file.deleteSync();
+                  Expect.isFalse(file.existsSync());
+                  asyncTestDone("testReadWriteStream");
+                };
               };
             };
           };
