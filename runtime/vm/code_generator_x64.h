@@ -113,9 +113,6 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
   // Add pc descriptors to code.
   void FinalizePcDescriptors(const Code& code);
-  // Verify assumptions about pc descriptors in debug mode.
-  static void VerifyPcDescriptors(const PcDescriptors& descriptors,
-                                  bool check_ids);
 
   // Allocate and return an arguments descriptor.
   // Let 'num_names' be the length of 'optional_arguments_names'.

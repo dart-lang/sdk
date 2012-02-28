@@ -268,8 +268,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  CodeGenerator::VerifyPcDescriptors(
-      descriptors, parsed_function_.function().is_optimizable());
+  descriptors.Verify(parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
 }
 

@@ -15,6 +15,8 @@
 
 namespace dart {
 
+class Code;
+template <typename T> class GrowableArray;
 class ParsedFunction;
 
 class FlowGraphCompiler : public FlowGraphVisitor {

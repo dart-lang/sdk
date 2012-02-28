@@ -126,7 +126,6 @@ static RawError* CompileFunctionHelper(const Function& function,
 
     CodeIndexTable* code_index_table = isolate->code_index_table();
     ASSERT(code_index_table != NULL);
-    int code_size = -1;  // Assembled code size needed if --disassemble.
     bool is_compiled = false;
     if (FLAG_use_new_compiler) {
       ASSERT(!optimized);
@@ -137,10 +136,6 @@ static RawError* CompileFunctionHelper(const Function& function,
         FlowGraphBuilder graph_builder(parsed_function);
         graph_builder.BuildGraph();
 
-        // Try to compile on x64 (only for now).
-#ifdef TARGET_ARCH_X64
-        // TODO(kmillikin): Implement or stub out class FlowGraphCompiler
-        // for other architectures and remove the unsightly ifdef.
         Assembler assembler;
         FlowGraphCompiler graph_compiler(&assembler,
                                          parsed_function,
@@ -157,9 +152,6 @@ static RawError* CompileFunctionHelper(const Function& function,
         ASSERT(CodePatcher::CodeIsPatchable(code));
         code_index_table->AddCode(code);
         is_compiled = true;
-        code_size = assembler.CodeSize();
-#endif
-
       } else {
         // We bailed out.
         Error& bailout_error = Error::Handle(
@@ -236,7 +228,6 @@ static RawError* CompileFunctionHelper(const Function& function,
           }
         }
       }
-      code_size = assembler.CodeSize();
     }
     if (FLAG_trace_compiler) {
       OS::Print("--> '%s' entry: 0x%x\n",
@@ -250,7 +241,7 @@ static RawError* CompileFunctionHelper(const Function& function,
       const Instructions& instructions =
           Instructions::Handle(code.instructions());
       uword start = instructions.EntryPoint();
-      Disassembler::Disassemble(start, start + code_size);
+      Disassembler::Disassemble(start, start + instructions.size());
       OS::Print("}\n");
       OS::Print("Pointer offsets for function: {\n");
       for (intptr_t i = 0; i < code.pointer_offsets_length(); i++) {

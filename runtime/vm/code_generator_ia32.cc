@@ -208,54 +208,11 @@ void CodeGenerator::GeneratePreEntryCode() {
 }
 
 
-// Verify assumptions (in debug mode only).
-// - No two deopt descriptors have the same node id (deoptimization).
-// - No two ic-call descriptors have the same node id (type feedback).
-// - No two descriptors of same kind have the same PC.
-// A function without unique ids is marked as non-optimizable (e.g., because of
-// finally blocks).
-void CodeGenerator::VerifyPcDescriptors(const PcDescriptors& descriptors,
-                                        bool check_ids) {
-#if defined(DEBUG)
-  // TODO(srdjan): Implement a more efficient way to check, currently drop
-  // the check for too large number of descriptors.
-  if (descriptors.Length() > 3000) {
-    if (FLAG_trace_compiler) {
-      OS::Print("Not checking pc decriptors, length %d\n",
-                descriptors.Length());
-    }
-    return;
-  }
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    uword pc = descriptors.PC(i);
-    PcDescriptors::Kind kind = descriptors.DescriptorKind(i);
-    // 'node_id' is set for kDeopt and kIcCall and must be unique for one kind.
-    intptr_t node_id = AstNode::kNoId;
-    if (check_ids) {
-      if ((descriptors.DescriptorKind(i) == PcDescriptors::kDeopt) ||
-          (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall)) {
-        node_id = descriptors.NodeId(i);
-      }
-    }
-    for (intptr_t k = i + 1; k < descriptors.Length(); k++) {
-      if (kind == descriptors.DescriptorKind(k)) {
-        if (node_id != AstNode::kNoId) {
-          ASSERT(descriptors.NodeId(k) != node_id);
-        }
-        ASSERT(pc != descriptors.PC(k));
-      }
-    }
-  }
-#endif  // DEBUG
-}
-
-
 void CodeGenerator::FinalizePcDescriptors(const Code& code) {
   ASSERT(pc_descriptors_list_ != NULL);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
-  VerifyPcDescriptors(
-      descriptors, parsed_function_.function().is_optimizable());
+  descriptors.Verify(parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
 }
 

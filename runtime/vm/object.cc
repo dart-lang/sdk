@@ -33,6 +33,7 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
+DECLARE_FLAG(bool, trace_compiler);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -5088,6 +5089,46 @@ const char* PcDescriptors::ToCString() const {
         PC(i), KindAsStr(i), NodeId(i), TryIndex(i), TokenIndex(i));
   }
   return buffer;
+}
+
+
+// Verify assumptions (in debug mode only).
+// - No two deopt descriptors have the same node id (deoptimization).
+// - No two ic-call descriptors have the same node id (type feedback).
+// - No two descriptors of same kind have the same PC.
+// A function without unique ids is marked as non-optimizable (e.g., because of
+// finally blocks).
+void PcDescriptors::Verify(bool check_ids) const {
+#if defined(DEBUG)
+  // TODO(srdjan): Implement a more efficient way to check, currently drop
+  // the check for too large number of descriptors.
+  if (Length() > 3000) {
+    if (FLAG_trace_compiler) {
+      OS::Print("Not checking pc decriptors, length %d\n", Length());
+    }
+    return;
+  }
+  for (intptr_t i = 0; i < Length(); i++) {
+    uword pc = PC(i);
+    PcDescriptors::Kind kind = DescriptorKind(i);
+    // 'node_id' is set for kDeopt and kIcCall and must be unique for one kind.
+    intptr_t node_id = AstNode::kNoId;
+    if (check_ids) {
+      if ((DescriptorKind(i) == PcDescriptors::kDeopt) ||
+          (DescriptorKind(i) == PcDescriptors::kIcCall)) {
+        node_id = NodeId(i);
+      }
+    }
+    for (intptr_t k = i + 1; k < Length(); k++) {
+      if (kind == DescriptorKind(k)) {
+        if (node_id != AstNode::kNoId) {
+          ASSERT(NodeId(k) != node_id);
+        }
+        ASSERT(pc != PC(k));
+      }
+    }
+  }
+#endif  // DEBUG
 }
 
 

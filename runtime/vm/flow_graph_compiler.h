@@ -5,9 +5,13 @@
 #ifndef VM_FLOW_GRAPH_COMPILER_H_
 #define VM_FLOW_GRAPH_COMPILER_H_
 
-#if defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32)
+#include "vm/flow_graph_compiler_ia32.h"
+#elif defined(TARGET_ARCH_X64)
 #include "vm/flow_graph_compiler_x64.h"
-#elif !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM)
+#elif defined(TARGET_ARCH_ARM)
+#include "vm/flow_graph_compiler_arm.h"
+#else
 #error Unknown architecture.
 #endif
 

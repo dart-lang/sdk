@@ -1968,6 +1968,9 @@ class PcDescriptors : public Object {
 
   static RawPcDescriptors* New(intptr_t num_descriptors);
 
+  // Verify (assert) assumptions about pc descriptors in debug mode.
+  void Verify(bool check_ids) const;
+
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
 
