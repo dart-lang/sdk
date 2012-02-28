@@ -1095,11 +1095,12 @@ void FlowGraphBuilder::BuildGraph() {
 
 
 void FlowGraphBuilder::Bailout(const char* reason) {
-  const char* kFormat = "FlowGraphBuilder Bailout: %s";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, reason) + 1;
+  const char* kFormat = "FlowGraphBuilder Bailout: %s %s";
+  const char* function_name = parsed_function_.function().ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, reason);
+  OS::SNPrint(chars, len, kFormat, function_name, reason);
   const Error& error = Error::Handle(
       LanguageError::New(String::Handle(String::New(chars))));
   Isolate::Current()->long_jump_base()->Jump(1, error);

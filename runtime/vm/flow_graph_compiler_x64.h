@@ -25,19 +25,23 @@ class FlowGraphCompiler : public FlowGraphVisitor {
       : assembler_(assembler),
         parsed_function_(parsed_function),
         blocks_(blocks),
-        pc_descriptors_list_(new CodeGenerator::DescriptorList()) { }
+        pc_descriptors_list_(new CodeGenerator::DescriptorList()),
+        stack_local_count_(0) { }
 
   virtual ~FlowGraphCompiler() { }
 
   void CompileGraph();
 
  private:
+  int stack_local_count() const { return stack_local_count_; }
+  void set_stack_local_count(int count) { stack_local_count_ = count; }
+
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
 
-  // Emit code to perform a computation.
+  // Emit code to perform a computation, leaving its value in RAX.
 #define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
-  virtual void Visit##ShortName(ClassName* comp) { UNREACHABLE(); }
+  virtual void Visit##ShortName(ClassName* comp);
 
   // Each visit function compiles a type of instruction.
 #define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
@@ -65,6 +69,7 @@ class FlowGraphCompiler : public FlowGraphVisitor {
   const GrowableArray<BlockEntryInstr*>* blocks_;
 
   CodeGenerator::DescriptorList* pc_descriptors_list_;
+  int stack_local_count_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

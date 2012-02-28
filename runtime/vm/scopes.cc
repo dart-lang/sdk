@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -24,7 +24,7 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       sibling_(NULL),
       function_level_(function_level),
       loop_level_(loop_level),
-      context_level_(LocalScope::kUnitializedContextLevel_),
+      context_level_(LocalScope::kUnitializedContextLevel),
       num_context_variables_(0),
       end_token_index_(0),
       variables_(),
