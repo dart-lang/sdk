@@ -45,28 +45,32 @@ class FileTest {
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
     InputStream input = file.openInputStreamSync();
-    List<int> buffer = new List<int>(42);
-    int bytesRead = input.readInto(buffer, 0, 12);
-    Expect.equals(12, bytesRead);
-    bytesRead = input.readInto(buffer, 12, 30);
-    input.close();
-    Expect.equals(30, bytesRead);
-    Expect.equals(47, buffer[0]);  // represents '/' in the file.
-    Expect.equals(47, buffer[1]);  // represents '/' in the file.
-    Expect.equals(32, buffer[2]);  // represents ' ' in the file.
-    Expect.equals(67, buffer[3]);  // represents 'C' in the file.
-    Expect.equals(111, buffer[4]);  // represents 'o' in the file.
-    Expect.equals(112, buffer[5]);  // represents 'p' in the file.
-    Expect.equals(121, buffer[6]);  // represents 'y' in the file.
-    Expect.equals(114, buffer[7]);  // represents 'r' in the file.
-    Expect.equals(105, buffer[8]);  // represents 'i' in the file.
-    Expect.equals(103, buffer[9]);  // represents 'g' in the file.
-    Expect.equals(104, buffer[10]);  // represents 'h' in the file.
-    Expect.equals(116, buffer[11]);  // represents 't' in the file.
+    input.dataHandler = () {
+      List<int> buffer = new List<int>(42);
+      int bytesRead = input.readInto(buffer, 0, 12);
+      Expect.equals(12, bytesRead);
+      bytesRead = input.readInto(buffer, 12, 30);
+      input.close();
+      Expect.equals(30, bytesRead);
+      Expect.equals(47, buffer[0]);  // represents '/' in the file.
+      Expect.equals(47, buffer[1]);  // represents '/' in the file.
+      Expect.equals(32, buffer[2]);  // represents ' ' in the file.
+      Expect.equals(67, buffer[3]);  // represents 'C' in the file.
+      Expect.equals(111, buffer[4]);  // represents 'o' in the file.
+      Expect.equals(112, buffer[5]);  // represents 'p' in the file.
+      Expect.equals(121, buffer[6]);  // represents 'y' in the file.
+      Expect.equals(114, buffer[7]);  // represents 'r' in the file.
+      Expect.equals(105, buffer[8]);  // represents 'i' in the file.
+      Expect.equals(103, buffer[9]);  // represents 'g' in the file.
+      Expect.equals(104, buffer[10]);  // represents 'h' in the file.
+      Expect.equals(116, buffer[11]);  // represents 't' in the file.
+    };
   }
 
   // Test for file read and write functionality.
   static void testReadWriteStream() {
+    asyncTestStarted();
+
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     File file;
@@ -76,58 +80,71 @@ class FileTest {
     // Test reading all using readInto.
     file = new File(inFilename);
     input = file.openInputStreamSync();
-    List<int> buffer1 = new List<int>(42);
-    bytesRead = input.readInto(buffer1, 0, 42);
-    Expect.equals(42, bytesRead);
-    Expect.isTrue(input.closed);
+    input.dataHandler = () {
+      List<int> buffer1 = new List<int>(42);
+      bytesRead = input.readInto(buffer1, 0, 42);
+      Expect.equals(42, bytesRead);
+      Expect.isTrue(input.closed);
 
-    // Test reading all using readInto and read.
-    file = new File(inFilename);
-    input = file.openInputStreamSync();
-    bytesRead = input.readInto(buffer1, 0, 21);
-    Expect.equals(21, bytesRead);
-    buffer1 = input.read();
-    Expect.equals(21, buffer1.length);
-    Expect.isTrue(input.closed);
+      // Test reading all using readInto and read.
+      file = new File(inFilename);
+      input = file.openInputStreamSync();
+      input.dataHandler = () {
+        bytesRead = input.readInto(buffer1, 0, 21);
+        Expect.equals(21, bytesRead);
+        buffer1 = input.read();
+        Expect.equals(21, buffer1.length);
+        Expect.isTrue(input.closed);
 
-    // Test reading all using read and readInto.
-    file = new File(inFilename);
-    input = file.openInputStreamSync();
-    buffer1 = input.read(21);
-    Expect.equals(21, buffer1.length);
-    bytesRead = input.readInto(buffer1, 0, 21);
-    Expect.equals(21, bytesRead);
-    Expect.isTrue(input.closed);
+        // Test reading all using read and readInto.
+        file = new File(inFilename);
+        input = file.openInputStreamSync();
+        input.dataHandler = () {
+          buffer1 = input.read(21);
+          Expect.equals(21, buffer1.length);
+          bytesRead = input.readInto(buffer1, 0, 21);
+          Expect.equals(21, bytesRead);
+          Expect.isTrue(input.closed);
 
-    // Test reading all using read.
-    file = new File(inFilename);
-    input = file.openInputStreamSync();
-    buffer1 = input.read();
-    Expect.equals(42, buffer1.length);
-    Expect.isTrue(input.closed);
+          // Test reading all using read.
+          file = new File(inFilename);
+          input = file.openInputStreamSync();
+          input.dataHandler = () {
+            buffer1 = input.read();
+            Expect.equals(42, buffer1.length);
+            Expect.isTrue(input.closed);
 
-    // Write the contents of the file just read into another file.
-    String outFilename = tempDirectory.path + "/out_read_write_stream";
-    file = new File(outFilename);
-    OutputStream output = file.openOutputStreamSync();
-    bool writeDone = output.writeFrom(buffer1, 0, 42);
-    Expect.equals(true, writeDone);
-    output.close();
+            // Write the contents of the file just read into another file.
+            String outFilename = tempDirectory.path + "/out_read_write_stream";
+            file = new File(outFilename);
+            OutputStream output = file.openOutputStreamSync();
+            bool writeDone = output.writeFrom(buffer1, 0, 42);
+            Expect.equals(false, writeDone);
+            output.noPendingWriteHandler = () {
+              output.close();
 
-    // Now read the contents of the file just written.
-    List<int> buffer2 = new List<int>(42);
-    file = new File(outFilename);
-    input = file.openInputStreamSync();
-    bytesRead = input.readInto(buffer2, 0, 42);
-    Expect.isTrue(input.closed);
-    Expect.equals(42, bytesRead);
-    // Now compare the two buffers to check if they are identical.
-    for (int i = 0; i < buffer1.length; i++) {
-      Expect.equals(buffer1[i],  buffer2[i]);
-    }
-    // Delete the output file.
-    file.deleteSync();
-    Expect.isFalse(file.existsSync());
+              // Now read the contents of the file just written.
+              List<int> buffer2 = new List<int>(42);
+              file = new File(outFilename);
+              input = file.openInputStreamSync();
+              input.dataHandler = () {
+                bytesRead = input.readInto(buffer2, 0, 42);
+                Expect.isTrue(input.closed);
+                Expect.equals(42, bytesRead);
+                // Now compare the two buffers to check if they are identical.
+                for (int i = 0; i < buffer1.length; i++) {
+                  Expect.equals(buffer1[i],  buffer2[i]);
+                }
+                // Delete the output file.
+                file.deleteSync();
+                Expect.isFalse(file.existsSync());
+                asyncTestDone("testReadWriteStream");
+              };
+            };
+          };
+        };
+      };
+    };
   }
 
   static void testRead() {
@@ -305,26 +322,31 @@ class FileTest {
     List<int> buffer = content.charCodes();
     OutputStream outStream = file.openOutputStreamSync();
     outStream.write(buffer);
-    outStream.close();
-    File file2 = new File(filename);
-    OutputStream appendingOutput = file2.openOutputStreamSync(FileMode.APPEND);
-    appendingOutput.write(buffer);
-    appendingOutput.close();
-    File file3 = new File(filename);
-    file3.openHandler = (RandomAccessFile openedFile) {
-      openedFile.lengthHandler = (int length) {
-        Expect.equals(content.length * 2, length);
-        openedFile.closeHandler = () {
-          file3.deleteHandler = () {
-            asyncTestDone("testOutputStreamWriteAppend");
+    outStream.noPendingWriteHandler = () {
+      outStream.close();
+      File file2 = new File(filename);
+      OutputStream appendingOutput =
+          file2.openOutputStreamSync(FileMode.APPEND);
+      appendingOutput.write(buffer);
+      appendingOutput.noPendingWriteHandler = () {
+        appendingOutput.close();
+        File file3 = new File(filename);
+        file3.openHandler = (RandomAccessFile openedFile) {
+          openedFile.lengthHandler = (int length) {
+            Expect.equals(content.length * 2, length);
+            openedFile.closeHandler = () {
+              file3.deleteHandler = () {
+                asyncTestDone("testOutputStreamWriteAppend");
+              };
+              file3.delete();
+            };
+            openedFile.close();
           };
-          file3.delete();
+          openedFile.length();
         };
-        openedFile.close();
+        file3.open();
       };
-      openedFile.length();
     };
-    file3.open();
     asyncTestStarted();
   }
 
@@ -742,13 +764,14 @@ class FileTest {
     File file = new File(tempDirectory.path + "/out_close_exception_stream");
     file.createSync();
     InputStream input = file.openInputStreamSync();
-    Expect.isTrue(input.closed);
-    Expect.isNull(input.readInto(buffer, 0, 12));
-    OutputStream output = file.openOutputStreamSync();
-    output.close();
-    Expect.throws(( ) => output.writeFrom(buffer, 0, 12),
-                  (e) => e is FileIOException);
-    file.deleteSync();
+    input.closeHandler = () {
+      Expect.isTrue(input.closed);
+      Expect.isNull(input.readInto(buffer, 0, 12));
+      OutputStream output = file.openOutputStreamSync();
+      output.close();
+      Expect.throws(() => output.writeFrom(buffer, 0, 12));
+      file.deleteSync();
+    };
   }
 
   // Tests buffer out of bounds exception.
@@ -992,13 +1015,26 @@ class FileTest {
     Expect.equals(10, lines.length);
   }
 
+
   static void testReadAsErrors() {
+    var port = new ReceivePort.singleShot();
+    port.receive((message, _) {
+      Expect.equals(1, message);
+    });
     var f = new File('.');
     Expect.throws(f.readAsBytesSync, (e) => e is FileIOException);
     Expect.throws(f.readAsTextSync, (e) => e is FileIOException);
     Expect.throws(f.readAsLinesSync, (e) => e is FileIOException);
-    // TODO(ager): Add tests of errors in readAsBytes when input
-    // streams are truely async.
+    f.readAsBytes();
+    f.errorHandler = (e) {
+      f.readAsText();
+      f.errorHandler = (e) {
+        f.readAsLines();
+        f.errorHandler = (e) {
+          port.toSendPort().send(1);
+        };
+      };
+    };
   }
 
   // Test that opens the same file for writing then for appending to test

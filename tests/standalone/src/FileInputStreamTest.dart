@@ -33,7 +33,7 @@ void testInputStreamAsync() {
   InputStream x = (new File(fileName)).openInputStreamSync();
   var byteCount = 0;
   x.dataHandler = () {
-    Expect.equals(expected[byteCount],  x.read(1)[0]);
+    Expect.equals(expected[byteCount], x.read(1)[0]);
     byteCount++;
   };
   x.closeHandler = () {
@@ -64,29 +64,38 @@ void testStringInputStreamAsync(String name, int length) {
 
 
 void testChunkedInputStream() {
+  // Force the test to timeout if it does not finish.
+  ReceivePort done = new ReceivePort.singleShot();
+  done.receive((message, replyTo) {});
+
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");
   // File contains 19 bytes ("Hello Dart\nwassup!")
   File file = new File(fileName);
   ChunkedInputStream x = new ChunkedInputStream(file.openInputStreamSync());
   x.chunkSize = 9;
-  List<int> chunk = x.read();
-  Expect.equals(9, chunk.length);
-  x.chunkSize = 5;
-  chunk = x.read();
-  Expect.equals(5, chunk.length);
-  chunk = x.read();
-  Expect.equals(5, chunk.length);
-  chunk = x.read();
-  Expect.equals(null, chunk);
+  x.dataHandler = () {
+    List<int> chunk = x.read();
+    Expect.equals(9, chunk.length);
+    x.chunkSize = 5;
+    x.dataHandler = () {
+      chunk = x.read();
+      Expect.equals(5, chunk.length);
+      x.dataHandler = () {
+        chunk = x.read();
+        Expect.equals(5, chunk.length);
+        chunk = x.read();
+        Expect.equals(null, chunk);
+        done.toSendPort().send(null);
+      };
+    };
+  };
 }
 
 
 void testOpenInputStreamAsync() {
   // Create a port for waiting on the final result of this test.
-  ReceivePort done = new ReceivePort();
-  done.receive((message, replyTo) {
-    done.close();
-  });
+  ReceivePort done = new ReceivePort.singleShot();
+  done.receive((message, replyTo) {});
 
   // Test using the asynchronous way of opening an input stream.
   String fileName = getFilename("tests/standalone/src/readuntil_test.dat");

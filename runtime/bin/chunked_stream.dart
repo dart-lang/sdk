@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -110,7 +110,7 @@ class _ChunkedInputStream implements ChunkedInputStream {
     }
 
     // Schedule data callback if enough data in buffer.
-    if ((_bufferList.length >=_chunkSize ||
+    if ((_bufferList.length >= _chunkSize ||
          (_bufferList.length > 0 && _inputClosed)) &&
         _clientDataHandler !== null &&
         _scheduledDataCallback == null) {
@@ -122,6 +122,9 @@ class _ChunkedInputStream implements ChunkedInputStream {
         _inputClosed &&
         !_closed &&
         _scheduledCloseCallback == null) {
+      if (_scheduledDataCallback != null) {
+        _scheduledDataCallback.cancel();
+      }
       _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
     }
   }

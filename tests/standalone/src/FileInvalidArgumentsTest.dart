@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -104,8 +104,9 @@ class FileTest {
       errors++;
       Expect.isTrue(s.contains('Invalid argument'));
     };
-    file.noPendingWriteHandler = (bytes) {
-      Expect.fail('write list invalid argument');
+    var calls = 0;
+    file.noPendingWriteHandler = () {
+      if (++calls > 1) Expect.fail('write list invalid argument');
     };
     file.writeByte(value);
     file.closeHandler = () {
@@ -130,8 +131,9 @@ class FileTest {
       errors++;
       Expect.isTrue(s.contains('Invalid arguments'));
     };
-    file.noPendingWriteHandler = (bytes) {
-      Expect.fail('write list invalid argument');
+    var calls = 0;
+    file.noPendingWriteHandler = () {
+      if (++calls > 1) Expect.fail('write string invalid argument');
     };
     file.writeList(buffer, offset, bytes);
     file.closeHandler = () {
@@ -157,8 +159,9 @@ class FileTest {
       errors++;
       Expect.isTrue(s.contains('writeString failed'));
     };
-    file.noPendingWriteHandler = (bytes) {
-      Expect.fail('write string invalid argument');
+    var calls = 0;
+    file.noPendingWriteHandler = () {
+      if (++calls > 1) Expect.fail('write list invalid argument');
     };
     file.writeString(string);
     file.closeHandler = () {

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -360,7 +360,9 @@ class _StringInputStream implements StringInputStream {
       if (_clientDataHandler != null &&
           !_decoder.isEmpty() &&
           _scheduledDataCallback == null) {
-        if (_scheduledLineCallback != null) _scheduledLineCallback.cancel();
+        if (_scheduledLineCallback != null) {
+          _scheduledLineCallback.cancel();
+        }
         _scheduledDataCallback = new Timer(issueDataCallback, 0);
       }
 
@@ -368,7 +370,9 @@ class _StringInputStream implements StringInputStream {
       if (_clientLineHandler != null &&
           (_decoder.lineBreaks > 0 || (!_decoder.isEmpty() && _inputClosed)) &&
           _scheduledLineCallback == null) {
-        if (_scheduledDataCallback != null) _scheduledDataCallback.cancel();
+        if (_scheduledDataCallback != null) {
+          _scheduledDataCallback.cancel();
+        }
         _scheduledLineCallback = new Timer(issueLineCallback, 0);
       }
 

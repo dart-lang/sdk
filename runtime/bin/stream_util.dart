@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -36,7 +36,9 @@ class _BaseDataInputStream {
   }
 
   void close() {
-    if (_scheduledDataCallback != null) _scheduledDataCallback.cancel();
+    if (_scheduledDataCallback != null) {
+      _scheduledDataCallback.cancel();
+    }
     _close();
     _checkScheduleCallbacks();
   }
@@ -54,7 +56,7 @@ class _BaseDataInputStream {
   }
 
   void set errorHandler(void callback()) {
-    // No errors emitted by default.
+    _clientErrorHandler = callback;
   }
 
   abstract List<int> _read(int bytesToRead);
@@ -82,6 +84,9 @@ class _BaseDataInputStream {
           _scheduledDataCallback = new Timer(issueDataCallback, 0);
         }
       } else if (_streamMarkedClosed && !_closeCallbackCalled) {
+        if (_scheduledDataCallback != null) {
+          _scheduledDataCallback.cancel();
+        }
         _close();
         _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
         _closeCallbackCalled = true;
@@ -103,6 +108,7 @@ class _BaseDataInputStream {
   Timer _scheduledCloseCallback;
   Function _clientDataHandler;
   Function _clientCloseHandler;
+  Function _clientErrorHandler;
 }
 
 
@@ -126,7 +132,9 @@ void _pipe(InputStream input, OutputStream output, [bool close]) {
 
   pipeCloseHandler = () {
     if (close) output.close();
-    if (_inputCloseHandler !== null) _inputCloseHandler();
+    if (_inputCloseHandler !== null) {
+      _inputCloseHandler();
+    }
   };
 
   pipeNoPendingWriteHandler = () {

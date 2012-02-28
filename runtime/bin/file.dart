@@ -188,7 +188,7 @@ interface File default _File {
   List<int> readAsBytesSync();
 
   /**
-   * Read the entire file contents as text using the give [encoding]
+   * Read the entire file contents as text using the given [encoding]
    * ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the encoding is
    * 'UTF-8'.
    *
@@ -200,7 +200,7 @@ interface File default _File {
 
   /**
    * Synchronously read the entire file contents as text using the
-   * give [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
+   * given [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By default the
    * encoding is 'UTF-8'.
    */
   String readAsTextSync([String encoding]);
@@ -218,7 +218,7 @@ interface File default _File {
 
   /**
    * Synchronously read the entire file contents as lines of text
-   * using the give [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By
+   * using the given [encoding] ('UTF-8', 'ISO-8859-1', 'ASCII'). By
    * default the encoding is 'UTF-8'.
    */
   List<String> readAsLinesSync([String encoding]);

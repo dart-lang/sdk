@@ -160,6 +160,11 @@ class PipeServer extends TestingServer {
 // Test piping from one file to another and closing both streams
 // after wards.
 testFileToFilePipe1() {
+  // Force test to timeout if one of the handlers is
+  // not called.
+  ReceivePort donePort = new ReceivePort.singleShot();
+  donePort.receive((message, ignore) {});
+
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
   var srcStream = new File(srcFileName).openInputStreamSync();
@@ -170,11 +175,12 @@ testFileToFilePipe1() {
   new File(dstFileName).createSync();
   var dstStream = new File(dstFileName).openOutputStreamSync();
 
-  srcStream.closeHandler = () {
+  dstStream.closeHandler = () {
     bool result = compareFileContent(srcFileName, dstFileName);
     new File(dstFileName).deleteSync();
     tempDir.deleteSync();
     Expect.isTrue(result);
+    donePort.toSendPort().send(null);
   };
 
   srcStream.pipe(dstStream);
@@ -184,6 +190,11 @@ testFileToFilePipe1() {
 // Test piping from one file to another and write additional data to
 // the output stream after piping finished.
 testFileToFilePipe2() {
+  // Force test to timeout if one of the handlers is
+  // not called.
+  ReceivePort donePort = new ReceivePort.singleShot();
+  donePort.receive((message, ignore) {});
+
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
   var srcFile = new File(srcFileName);
@@ -199,22 +210,25 @@ testFileToFilePipe2() {
   srcStream.closeHandler = () {
     dstStream.write([32]);
     dstStream.close();
-    var src = srcFile.openSync();
-    var dst = dstFile.openSync();
-    var srcLength = src.lengthSync();
-    var dstLength = dst.lengthSync();
-    Expect.equals(srcLength + 1, dstLength);
-    Expect.isTrue(compareFileContent(srcFileName,
-                                     dstFileName,
-                                     count: srcLength));
-    dst.setPositionSync(srcLength);
-    var data = new List<int>(1);
-    var read2 = dst.readListSync(data, 0, 1);
-    Expect.equals(32, data[0]);
-    src.closeSync();
-    dst.closeSync();
-    dstFile.deleteSync();
-    tempDir.deleteSync();
+    dstStream.closeHandler = () {
+      var src = srcFile.openSync();
+      var dst = dstFile.openSync();
+      var srcLength = src.lengthSync();
+      var dstLength = dst.lengthSync();
+      Expect.equals(srcLength + 1, dstLength);
+      Expect.isTrue(compareFileContent(srcFileName,
+                                       dstFileName,
+                                       count: srcLength));
+      dst.setPositionSync(srcLength);
+      var data = new List<int>(1);
+      var read2 = dst.readListSync(data, 0, 1);
+      Expect.equals(32, data[0]);
+      src.closeSync();
+      dst.closeSync();
+      dstFile.deleteSync();
+      tempDir.deleteSync();
+      donePort.toSendPort().send(null);
+    };
   };
 
   srcStream.pipe(dstStream, close: false);
@@ -223,6 +237,11 @@ testFileToFilePipe2() {
 
 // Test piping two copies of one file to another.
 testFileToFilePipe3() {
+  // Force test to timeout if one of the handlers is
+  // not called.
+  ReceivePort donePort = new ReceivePort.singleShot();
+  donePort.receive((message, ignore) {});
+
   String srcFileName =
       getDataFilename("tests/standalone/src/readline_test1.dat");
   var srcFile = new File(srcFileName);
@@ -238,7 +257,7 @@ testFileToFilePipe3() {
   srcStream.closeHandler = () {
     var srcStream2 = srcFile.openInputStreamSync();
 
-    srcStream2.closeHandler = () {
+    dstStream.closeHandler = () {
       var src = srcFile.openSync();
       var dst = dstFile.openSync();
       var srcLength = src.lengthSync();
@@ -255,6 +274,7 @@ testFileToFilePipe3() {
       dst.closeSync();
       dstFile.deleteSync();
       tempDir.deleteSync();
+      donePort.toSendPort().send(null);
     };
 
     // Pipe another copy of the source file.

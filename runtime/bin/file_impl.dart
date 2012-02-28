@@ -3,21 +3,64 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _FileInputStream extends _BaseDataInputStream implements InputStream {
-  _FileInputStream(RandomAccessFile this._file, int this._length) {
-    _streamMarkedClosed = true;
-    _checkScheduleCallbacks();
+  _FileInputStream(String name) {
+    _file = new File(name);
+    _data = [];
+    _position = 0;
+    _file.errorHandler = (String s) {
+      if (_clientErrorHandler != null) {
+        _clientErrorHandler();
+      }
+    };
+    _file.open();
+    _file.openHandler = (openedFile) {
+      _readDataFromFile(openedFile);
+    };
   }
 
   _FileInputStream.fromStdio(int fd) {
     assert(fd == 0);
     _file = _File._openStdioSync(fd);
-    _length = _file.lengthSync();
-    _streamMarkedClosed = true;
-    _checkScheduleCallbacks();
+    _data = [];
+    _position = 0;
+    _readDataFromFile(_file);
+  }
+
+  void _readDataFromFile(RandomAccessFile openedFile) {
+    openedFile.errorHandler = (String s) {
+      if (_clientErrorHandler != null) {
+        _clientErrorHandler();
+      }
+    };
+    openedFile.length();
+    openedFile.lengthHandler = (length) {
+      var contents = new ByteArray(length);
+      if (length != 0) {
+        openedFile.readList(contents, 0, length);
+        openedFile.readListHandler = (read) {
+          if (read != length) {
+            if (_clientErrorHandler != null) {
+              _clientErrorHandler();
+            }
+            _streamMarkedClosed = true;
+            _checkScheduleCallbacks();
+          } else {
+            _data = contents;
+            _streamMarkedClosed = true;
+            _checkScheduleCallbacks();
+          }
+          openedFile.close();
+        };
+      } else {
+        _streamMarkedClosed = true;
+        _checkScheduleCallbacks();
+        openedFile.close();
+      }
+    };
   }
 
   int available() {
-    return _closed ? 0 : _length - _file.positionSync();
+    return _closed ? 0 : _data.length - _position;
   }
 
   void pipe(OutputStream output, [bool close = true]) {
@@ -26,117 +69,124 @@ class _FileInputStream extends _BaseDataInputStream implements InputStream {
 
   List<int> _read(int bytesToRead) {
     ByteArray result = new ByteArray(bytesToRead);
-    int bytesRead = _file.readListSync(result, 0, bytesToRead);
-    if (bytesRead < bytesToRead) {
-      ByteArray buffer = new ByteArray(bytesRead);
-      buffer.setRange(0, bytesRead, result);
-      result = buffer;
-    }
+    result.setRange(0, bytesToRead, _data, _position);
+    _position += bytesToRead;
     _checkScheduleCallbacks();
     return result;
   }
 
   int _readInto(List<int> buffer, int offset, int len) {
-    int result = _file.readListSync(buffer, offset, len);
+    buffer.setRange(offset, len, _data, _position);
+    _position += len;
     _checkScheduleCallbacks();
-    return result;
+    return len;
   }
 
   void _close() {
     if (_closed) return;
-    _file.closeSync();
     _closed = true;
   }
 
-  RandomAccessFile _file;
-  int _length;
+  File _file;
+  List<int> _data;
+  int _position;
   bool _closed = false;
 }
 
 
 class _FileOutputStream implements OutputStream {
-  _FileOutputStream(this._file);
+  _FileOutputStream(String name, int mode) {
+    _pendingOperations = new List<List<int>>();
+    var f = new File(name);
+    f.open(mode);
+    f.openHandler = (openedFile) {
+      _file = openedFile;
+      _setupFileHandlers();
+      _processPendingOperations();
+    };
+    f.errorHandler = (e) {
+      if (_errorHandler != null) _errorHandler();
+    };
+  }
 
   _FileOutputStream.fromStdio(int fd) {
     assert(1 <= fd && fd <= 2);
     _file = _File._openStdioSync(fd);
+    _setupFileHandlers();
+  }
+
+
+  void _setupFileHandlers() {
+    _file.errorHandler = (e) {
+      if (_errorHandler != null) _errorHandler();
+    };
+    _file.noPendingWriteHandler = () {
+      if (!_streamMarkedClosed && _noPendingWriteHandler != null) {
+        _noPendingWriteHandler();
+      }
+    };
+    _file.closeHandler = () {
+      if (_closeHandler != null) _closeHandler();
+    };
   }
 
   bool write(List<int> buffer, [bool copyBuffer = false]) {
-    bool result = _write(buffer, 0, buffer.length);
-    if (result) {
-      _checkScheduleCallbacks();
+    var data = buffer;
+    if (copyBuffer) {
+      var length = buffer.length;
+      data = new ByteArray(length);
+      data.setRange(0, length, buffer, 0);
     }
-    return result;
+    if (_file == null) {
+      _pendingOperations.add(data);
+    } else {
+      _write(data, 0, data.length);
+    }
+    return false;
   }
 
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
-    bool result = _write(
-        buffer, offset, (len == null) ? buffer.length - offset : len);
-    if (result) {
-      _checkScheduleCallbacks();
+    // A copy is required by the interface.
+    var length = buffer.length - offset;
+    if (len != null) {
+      if (len > length) throw new IndexOutOfRangeException(len);
+      length = len;
     }
-    return result;
+    var copy = new ByteArray(length);
+    copy.setRange(0, length, buffer, offset);
+    return write(copy);
   }
 
   void close() {
-    if (_scheduledNoPendingWriteCallback != null) {
-      _scheduledNoPendingWriteCallback.cancel();
-    }
-    if (!_streamMarkedClosed) {
-      _file.closeSync();
+    if (_file == null) {
+      _pendingOperations.add(null);
+    } else if (!_streamMarkedClosed) {
+      _file.close();
       _streamMarkedClosed = true;
-      _checkScheduleCallbacks();
     }
   }
 
   void set noPendingWriteHandler(void callback()) {
     _noPendingWriteHandler = callback;
-    _checkScheduleCallbacks();
   }
 
   void set closeHandler(void callback()) {
     _closeHandler = callback;
-    _checkScheduleCallbacks();
   }
 
   void set errorHandler(void callback()) {
-    // TODO(sgjesse): How to handle this?
+    _errorHandler = callback;
   }
 
-  bool _write(List<int> buffer, int offset, int len) {
-    int bytesWritten = _file.writeListSync(buffer, offset, len);
-    if (bytesWritten == len) {
-      return true;
-    } else {
-      throw "FileOutputStream: write error";
-    }
+  void _processPendingOperations() {
+    _pendingOperations.forEach((buffer) {
+      (buffer != null) ? write(buffer) : close();
+    });
+    _pendingOperations = null;
   }
 
-  void _checkScheduleCallbacks() {
-    void issueNoPendingWriteCallback(Timer timer) {
-      _scheduledNoPendingWriteCallback = null;
-      if (_noPendingWriteHandler !== null) {
-        _noPendingWriteHandler();
-        _checkScheduleCallbacks();
-      }
-    }
-
-    void issueCloseCallback(Timer timer) {
-      if (_closeHandler !== null) _closeHandler();
-    }
-
-    // Schedule no pending write callbacks if the stream is not yet
-    // closed and close callback if it is closing.
-    if (!_closeCallbackCalled) {
-      if (_scheduledNoPendingWriteCallback == null) {
-        _scheduledNoPendingWriteCallback =
-            new Timer(issueNoPendingWriteCallback, 0);
-      }
-      if (_streamMarkedClosed && _scheduledCloseCallback == null) {
-        _scheduledCloseCallback = new Timer(issueCloseCallback, 0);
-      }
-    }
+  void _write(List<int> buffer, int offset, int len) {
+    _file.writeList(buffer, offset, len);
   }
 
   RandomAccessFile _file;
@@ -149,10 +199,13 @@ class _FileOutputStream implements OutputStream {
   // the stream is fully closed.
   bool _closeCallbackCalled = false;
 
-  Timer _scheduledNoPendingWriteCallback;
-  Timer _scheduledCloseCallback;
+  // List of pending writes that were issued before the underlying
+  // file was successfully opened.
+  List<List<int>> _pendingOperations;
+
   Function _noPendingWriteHandler;
   Function _closeHandler;
+  Function _errorHandler;
 }
 
 
@@ -467,26 +520,15 @@ class _File implements File {
     // creating an input stream. Currently the file input stream uses
     // synchronous calls on the opened file so we need to open it
     // synchronously.
-    File file = new File(this._name);
-    file.errorHandler = (String error) {
-      if (_errorHandler != null) _errorHandler(error);
-    };
-    RandomAccessFile openedFile = file.openSync();
-    InputStream stream =
-        new _FileInputStream(openedFile, openedFile.lengthSync());
-    new Timer(
-        (Timer ignore) {
-          if (_inputStreamHandler != null) _inputStreamHandler(stream);
-        }, 0);
+    new Timer((t) {
+      if (_inputStreamHandler != null) {
+        _inputStreamHandler(new _FileInputStream(_name));
+      }
+    }, 0);
   }
 
   InputStream openInputStreamSync() {
-    if (_asyncUsed) {
-      throw new FileIOException(
-          "Mixed use of synchronous and asynchronous API");
-    }
-    RandomAccessFile openedFile = openSync();
-    return new _FileInputStream(openedFile, openedFile.lengthSync());
+    return new _FileInputStream(_name);
   }
 
   void openOutputStream([FileMode mode = FileMode.WRITE]) {
@@ -496,16 +538,7 @@ class _File implements File {
       throw new FileIOException(
           "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
     }
-    // Create a new file object to handle the opening of the file for
-    // creating an input stream. Currently the file input stream uses
-    // synchronous calls on the opened file so we need to open it
-    // synchronously.
-    File file = new File(this._name);
-    file.errorHandler = (String error) {
-      if (_errorHandler != null) _errorHandler(error);
-    };
-    RandomAccessFile openedFile = file.openSync(mode);
-    OutputStream stream = new _FileOutputStream(openedFile);
+    OutputStream stream = new _FileOutputStream(_name, mode);
     new Timer(
         (Timer ignore) {
           if (_outputStreamHandler != null) _outputStreamHandler(stream);
@@ -522,29 +555,26 @@ class _File implements File {
       throw new FileIOException(
           "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
     }
-    RandomAccessFile openedFile = openSync(mode);
-    return new _FileOutputStream(openedFile);
+    return new _FileOutputStream(_name, mode);
   }
 
   void readAsBytes() {
     _asyncUsed = true;
     var chunks = new _BufferList();
-    openInputStream();
-    inputStreamHandler = (inputStream) {
-      inputStream.closeHandler = () {
-        if (_readAsBytesHandler != null) {
-          _readAsBytesHandler(chunks.readBytes(chunks.length));
-        }
-      };
-      inputStream.dataHandler = () {
-        var chunk = inputStream.read();
-        chunks.add(chunk);
-      };
-      inputStream.errorHandler = () {
-        if (_errorHandler != null) {
-          _errorHandler("Failed to read file as bytes: $_name");
-        }
-      };
+    var stream = openInputStreamSync();
+    stream.closeHandler = () {
+      if (_readAsBytesHandler != null) {
+        _readAsBytesHandler(chunks.readBytes(chunks.length));
+      }
+    };
+    stream.dataHandler = () {
+      var chunk = stream.read();
+      chunks.add(chunk);
+    };
+    stream.errorHandler = () {
+      if (_errorHandler != null) {
+        _errorHandler("Failed to read file as bytes: $_name");
+      }
     };
   }
 
@@ -560,6 +590,7 @@ class _File implements File {
     if (read != length) {
       throw new FileIOException("Failed reading file as bytes: $_name");
     }
+    opened.close();
     return result;
   }
 
@@ -1106,6 +1137,11 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void set noPendingWriteHandler(void handler()) {
     _noPendingWriteHandler = handler;
+    if (_pendingWrites == 0) {
+      _noPendingWriteTimer = new Timer((t) {
+        if (_noPendingWriteHandler != null) _noPendingWriteHandler();
+      }, 0);
+    }
   }
 
   void set positionHandler(void handler(int pos)) {
@@ -1134,7 +1170,13 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  void _writeEnqueued() => _pendingWrites++;
+  void _writeEnqueued() {
+    _pendingWrites++;
+    if (_noPendingWriteTimer != null) {
+      _noPendingWriteTimer.cancel();
+      _noPendingWriteTimer = null;
+    }
+  }
 
   void  _writeCompleted() {
     _pendingWrites--;
@@ -1150,6 +1192,8 @@ class _RandomAccessFile implements RandomAccessFile {
   int _pendingWrites = 0;
 
   SendPort _fileService;
+
+  Timer _noPendingWriteTimer;
 
   Function _closeHandler;
   Function _readByteHandler;
