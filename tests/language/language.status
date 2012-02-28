@@ -106,49 +106,34 @@ GCTest: Skip  # Takes too long.
 
 [ $component == dartc || $component == chromium ]
 AbstractSyntaxTest/01: Fail
-ConstConstructorSyntaxTest/05: Fail
-FinalSyntaxTest/none: Fail
-
-CompileTimeConstant3Test: Fail # Issue 1780
-
-# Marked failed after code generation removed from dartc
 ApplicationNegativeTest: Fail
 AssertKeywordNegativeTest: Fail
+AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 AssignInstanceMethodNegativeTest: Fail
 BodyLessConstructorWrongArgNegativeTest: Fail
-ClosureCallWrongArgumentCountNegativeTest: Fail
-ConstCounterNegativeTest: Fail    # issue 1655
-ConstructorCallWrongArgumentCountNegativeTest: Fail
-Field3aNegativeTest: Fail
-FieldMethod4NegativeTest: Fail
-InstanceCallWrongArgumentCountNegativeTest: Fail
-Label2NegativeTest: Fail    # issue 1658
-NamedParametersNegativeTest: Fail
-NoSuchMethodNegativeTest: Fail
-Prefix6NegativeTest: Fail
-PrivateMember3NegativeTest: Fail
-StaticCallWrongArgumentCountNegativeTest: Fail
-StaticField1aRunNegativeTest: Fail # issue 1662
-StaticField1RunNegativeTest: Fail  # issue 1662
-StaticField2aRunNegativeTest: Fail # issue 1662
-StaticField2RunNegativeTest: Fail  # issue 1662
-Switch3NegativeTest: Fail # issue 1663
-
-
-# Problems triaged before static analysis-only change
-
-AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654
+ClosureCallWrongArgumentCountNegativeTest: Fail
+CompileTimeConstant3Test: Fail # Issue 1780
+ConstConstructorSyntaxTest/05: Fail
+ConstCounterNegativeTest: Fail    # issue 1655
 Constructor3NegativeTest: Fail
+ConstructorCallWrongArgumentCountNegativeTest: Fail
 DefaultFactoryLibraryTest: Fail          # Issue 514
 DuplicateImplementsTest: Skip # Issue 976
+Field3aNegativeTest: Fail
+FieldMethod4NegativeTest: Fail
+FinalSyntaxTest/none: Fail
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
 GenericParameterizedExtendsTest: Skip  # Bug 5392297
+InstanceCallWrongArgumentCountNegativeTest: Fail
+Label2NegativeTest: Fail    # issue 1658
 Library4NegativeTest: Fail   # Bug 5406175
 ListLiteral4Test: Fail       # Issue 1343
 LiteralUnaryPlusTest/01: Fail # Issue 1399
 MapLiteral4Test: Fail        # Issue 1343
+NamedParametersNegativeTest: Fail
+NoSuchMethodNegativeTest: Fail
 NumbersTest: Fail            # Fails because numbers are mapped to doubles.
 OverrideFieldMethod1NegativeTest: Fail # Bug 5215249
 OverrideFieldMethod2NegativeTest: Fail # Bug 5215249
@@ -163,7 +148,8 @@ Prefix11NegativeTest: Fail             # Bug 5406175
 Prefix12NegativeTest: Fail             # Bug 5406175
 Prefix16NegativeTest: Fail             # Bug 5532534
 Prefix3NegativeTest: Fail              # Bug 5406175
-PseudoKWTest: Fail           # Issue 356
+Prefix6NegativeTest: Fail
+PrivateMember3NegativeTest: Fail
 PseudoKWIllegalTest/01: Fail # Issue 356
 PseudoKWIllegalTest/02: Fail # Issue 356
 PseudoKWIllegalTest/03: Fail # Issue 356
@@ -180,10 +166,17 @@ PseudoKWIllegalTest/13: Fail # Issue 356
 PseudoKWIllegalTest/14: Fail # Issue 356
 PseudoKWIllegalTest/15: Fail # Issue 356
 PseudoKWIllegalTest/16: Fail # Issue 356
+PseudoKWTest: Fail           # Issue 356
 ScopeNegativeTest: Fail      # Bug 4207538.
+StaticCallWrongArgumentCountNegativeTest: Fail
+StaticField1RunNegativeTest: Fail  # issue 1662
+StaticField1aRunNegativeTest: Fail # issue 1662
+StaticField2RunNegativeTest: Fail  # issue 1662
+StaticField2aRunNegativeTest: Fail # issue 1662
 StringEscape1NegativeTest: Fail # Issue 1351.
 StringEscape4NegativeTest: Fail # Issue 1351.
 SuperOperatorTest: Fail      # Bug 4995463.
+Switch3NegativeTest: Fail # issue 1663
 Switch7NegativeTest: Fail    # Bug 4208467.
 SwitchLabelTest: Fail        # Bug 4208467.
 ThirdTest: Skip # Seems flaky in dartc after fixing test, was Bug 5339586
