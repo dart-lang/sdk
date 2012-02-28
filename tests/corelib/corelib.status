@@ -25,7 +25,6 @@ StringSplitRegExpTest: Fail    # Issue 429
 
 ConstList*: Fail # 'const' is not currently checked.
 CoreRuntimeTypesTest: Fail
-DoubleCompareTest: Fail # Issue with static finals and -Infinity, -0.
 ForInTest: Fail
 ListTest: Fail
 MapsTest: Fail
