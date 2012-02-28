@@ -96,8 +96,8 @@ class PipeServerGame {
         socketInput.closeHandler = () {
           // Check that the resulting file is equal to the initial
           // file.
-          bool result = compareFileContent(srcFileName, dstFileName);
           fileOutput.closeHandler = () {
+            bool result = compareFileContent(srcFileName, dstFileName);
             new File(dstFileName).deleteSync();
             tempDir.deleteSync();
             Expect.isTrue(result);
