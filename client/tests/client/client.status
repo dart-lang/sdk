@@ -42,6 +42,9 @@ html/html_tests: Fail
 # TODO(vsm): Triage DOM failures on other browsers.
 dom/*: Skip
 
+[ $component == webdriver && ($browser == safari || $browser == ie) ]
+html/frog_html_tests: Skip # Issue 1884
+
 [ $component == webdriver && $browser == ie && ($system == linux || $system == mac) ]
 *: Skip
 
