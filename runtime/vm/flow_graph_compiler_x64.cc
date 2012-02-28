@@ -37,7 +37,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 void FlowGraphCompiler::LoadValue(Value* value) {
   if (value->IsConstant()) {
-    ConstantValue* constant = value->AsConstant();
+    ConstantVal* constant = value->AsConstant();
     if (constant->instance().IsSmi()) {
       int64_t imm = reinterpret_cast<int64_t>(constant->instance().raw());
       __ movq(RAX, Immediate(imm));

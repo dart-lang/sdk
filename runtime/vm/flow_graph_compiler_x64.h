@@ -17,7 +17,7 @@ namespace dart {
 
 class ParsedFunction;
 
-class FlowGraphCompiler : public InstructionVisitor {
+class FlowGraphCompiler : public FlowGraphVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
@@ -35,11 +35,19 @@ class FlowGraphCompiler : public InstructionVisitor {
   // Bail out of the flow graph compiler.  Does not return to the caller.
   void Bailout(const char* reason);
 
+  // Emit code to perform a computation.
+#define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
+  virtual void Visit##ShortName(ClassName* comp) { UNREACHABLE(); }
+
   // Each visit function compiles a type of instruction.
-#define DECLARE_VISIT(type)                             \
-  virtual void Visit##type(type##Instr* instr);
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
-#undef DECLARE_VISIT
+#define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
+  virtual void Visit##ShortName(ShortName##Instr* instr);
+
+  FOR_EACH_COMPUTATION(DECLARE_VISIT_COMPUTATION)
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+
+#undef DECLARE_VISIT_COMPUTATION
+#undef DECLARE_VISIT_INSTRUCTION
 
   // Emit code to load a Value into register RAX.
   void LoadValue(Value* value);

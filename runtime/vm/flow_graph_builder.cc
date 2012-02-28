@@ -170,7 +170,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
       AssertAssignableComp* assert =
           new AssertAssignableComp(return_value, type);
       AddInstruction(new BindInstr(temp_index(), assert));
-      return_value = new TempValue(temp_index());
+      return_value = new TempVal(temp_index());
     }
   }
 
@@ -188,11 +188,11 @@ void EffectGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 }
 
 void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
-  ReturnValue(new ConstantValue(node->literal()));
+  ReturnValue(new ConstantVal(node->literal()));
 }
 
 void TestGraphVisitor::VisitLiteralNode(LiteralNode* node) {
-  BranchOnValue(new ConstantValue(node->literal()));
+  BranchOnValue(new ConstantVal(node->literal()));
 }
 
 
@@ -607,7 +607,7 @@ void EffectGraphVisitor::TranslateArgumentList(
     index = for_value.temp_index();
     if (argument_value->IsConstant()) {
       AddInstruction(new BindInstr(index, argument_value));
-      argument_value = new TempValue(index++);
+      argument_value = new TempVal(index++);
     }
     values->Add(argument_value);
   }
@@ -924,7 +924,7 @@ void TestGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 
 
 // Graph printing.
-class FlowGraphPrinter : public InstructionVisitor {
+class FlowGraphPrinter : public FlowGraphVisitor {
  public:
   explicit FlowGraphPrinter(const Function& function) : function_(function) { }
 
@@ -935,13 +935,21 @@ class FlowGraphPrinter : public InstructionVisitor {
   // another block and that block is not next in reverse postorder.
   void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
 
-  // Each visit function prints an instruction with a four space
-  // indent and no trailing newline.  Basic block entries are labeled
-  // with their block number.
-#define DECLARE_VISIT(type)                             \
-  virtual void Visit##type(type##Instr* instr);
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
-#undef DECLARE_VISIT
+  // Visiting a computation prints it with no indentation or newline.
+#define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
+  virtual void Visit##ShortName(ClassName* comp);
+
+  // Visiting an instruction prints it with a four space indent and no
+  // trailing newline.  Basic block entries are labeled with their block
+  // number.
+#define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
+  virtual void Visit##ShortName(ShortName##Instr* instr);
+
+  FOR_EACH_COMPUTATION(DECLARE_VISIT_COMPUTATION)
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+
+#undef DECLARE_VISIT_COMPUTATION
+#undef DECLARE_VISIT_INSTRUCTION
 
  private:
   const Function& function_;
@@ -970,6 +978,66 @@ void FlowGraphPrinter::VisitBlocks(
 }
 
 
+void FlowGraphPrinter::VisitTemp(TempVal* val) {
+  OS::Print("t%d", val->index());
+}
+
+
+void FlowGraphPrinter::VisitConstant(ConstantVal* val) {
+  OS::Print("#%s", val->instance().ToCString());
+}
+
+
+void FlowGraphPrinter::VisitAssertAssignable(AssertAssignableComp* comp) {
+  OS::Print("AssertAssignable(");
+  comp->value()->Accept(this);
+  OS::Print(", %s)", comp->type().ToCString());
+}
+
+
+void FlowGraphPrinter::VisitInstanceCall(InstanceCallComp* comp) {
+  OS::Print("InstanceCall(%s", comp->name());
+  for (int i = 0; i < comp->ArgumentCount(); ++i) {
+    OS::Print(", ");
+    comp->ArgumentAt(i)->Accept(this);
+  }
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitStrictCompare(StrictCompareComp* comp) {
+  OS::Print("StrictCompare(%s, ", Token::Str(comp->kind()));
+  comp->left()->Accept(this);
+  OS::Print(", ");
+  comp->right()->Accept(this);
+  OS::Print(")");
+}
+
+
+
+void FlowGraphPrinter::VisitStaticCall(StaticCallComp* comp) {
+  OS::Print("StaticCall(%s",
+            String::Handle(comp->function().name()).ToCString());
+  for (int i = 0; i < comp->ArgumentCount(); ++i) {
+    OS::Print(", ");
+    comp->ArgumentAt(i)->Accept(this);
+  }
+  OS::Print(")");
+}
+
+
+void FlowGraphPrinter::VisitLoadLocal(LoadLocalComp* comp) {
+  OS::Print("LoadLocal(%s)", comp->local().name().ToCString());
+}
+
+
+void FlowGraphPrinter::VisitStoreLocal(StoreLocalComp* comp) {
+  OS::Print("StoreLocal(%s, ", comp->local().name().ToCString());
+  comp->value()->Accept(this);
+  OS::Print(")");
+}
+
+
 void FlowGraphPrinter::VisitJoinEntry(JoinEntryInstr* instr) {
   OS::Print("%2d: [join]", instr->block_number());
 }
@@ -982,25 +1050,25 @@ void FlowGraphPrinter::VisitTargetEntry(TargetEntryInstr* instr) {
 
 void FlowGraphPrinter::VisitDo(DoInstr* instr) {
   OS::Print("    ");
-  instr->computation()->Print();
+  instr->computation()->Accept(this);
 }
 
 
 void FlowGraphPrinter::VisitBind(BindInstr* instr) {
   OS::Print("    t%d <-", instr->temp_index());
-  instr->computation()->Print();
+  instr->computation()->Accept(this);
 }
 
 
 void FlowGraphPrinter::VisitReturn(ReturnInstr* instr) {
   OS::Print("    return ");
-  instr->value()->Print();
+  instr->value()->Accept(this);
 }
 
 
 void FlowGraphPrinter::VisitBranch(BranchInstr* instr) {
   OS::Print("    if ");
-  instr->value()->Print();
+  instr->value()->Accept(this);
   OS::Print(" goto(%d, %d)", instr->true_successor()->block_number(),
             instr->false_successor()->block_number());
 }

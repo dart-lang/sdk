@@ -12,9 +12,8 @@
 
 namespace dart {
 
+class FlowGraphVisitor;
 class LocalVariable;
-class ConstantValue;
-class TempValue;
 
 // Computations and values.
 //
@@ -29,12 +28,34 @@ class TempValue;
 // <Value> ::= Temp <int>
 //           | Constant <Instance>
 
+// M is a two argument macro.  It is applied to each concrete value's
+// typename and classname.
+#define FOR_EACH_VALUE(M)                                                      \
+  M(Temp, TempVal)                                                             \
+  M(Constant, ConstantVal)
+
+// M is a two argument macro.  It is applied to each concrete instruction's
+// (including the values) typename and classname.
+#define FOR_EACH_COMPUTATION(M)                                                \
+  FOR_EACH_VALUE(M)                                                            \
+  M(AssertAssignable, AssertAssignableComp)                                    \
+  M(InstanceCall, InstanceCallComp)                                            \
+  M(StrictCompare, StrictCompareComp)                                          \
+  M(StaticCall, StaticCallComp)                                                \
+  M(LoadLocal, LoadLocalComp)                                                  \
+  M(StoreLocal, StoreLocalComp)
+
+
+#define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
+FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
+#undef FORWARD_DECLARATION
+
 class Computation : public ZoneAllocated {
  public:
   Computation() { }
 
-  // Prints a computation without indentation or trailing newlines.
-  virtual void Print() const = 0;
+  // Visiting support.
+  virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -45,15 +66,60 @@ class Value : public Computation {
  public:
   Value() { }
 
-  virtual TempValue* AsTemp() { return NULL; }
-  virtual ConstantValue* AsConstant() { return NULL; }
+#define DEFINE_TESTERS(ShortName, ClassName)                                   \
+  virtual ClassName* As##ShortName() { return NULL; }                          \
+  bool Is##ShortName() { return As##ShortName() != NULL; }
 
-  bool IsTemp() { return AsTemp() != NULL; }
-  bool IsConstant() { return AsConstant() != NULL; }
+  FOR_EACH_VALUE(DEFINE_TESTERS)
+#undef DEFINE_TESTERS
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
 };
+
+
+// Functions defined in all concrete computation classes.
+#define DECLARE_COMPUTATION(ShortName)                                         \
+  virtual void Accept(FlowGraphVisitor* visitor);
+
+// Functions defined in all concrete value classes.
+#define DECLARE_VALUE(ShortName)                                               \
+  DECLARE_COMPUTATION(ShortName)                                               \
+  virtual ShortName##Val* As##ShortName() { return this; }
+
+
+class TempVal : public Value {
+ public:
+  explicit TempVal(intptr_t index) : index_(index) { }
+
+  DECLARE_VALUE(Temp)
+
+  intptr_t index() const { return index_; }
+
+ private:
+  const intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(TempVal);
+};
+
+
+class ConstantVal: public Value {
+ public:
+  explicit ConstantVal(const Instance& instance) : instance_(instance) {
+    ASSERT(instance.IsZoneHandle());
+  }
+
+  DECLARE_VALUE(Constant)
+
+  const Instance& instance() const { return instance_; }
+
+ private:
+  const Instance& instance_;
+
+  DISALLOW_COPY_AND_ASSIGN(ConstantVal);
+};
+
+#undef DECLARE_VALUE
 
 
 class AssertAssignableComp : public Computation {
@@ -61,7 +127,10 @@ class AssertAssignableComp : public Computation {
   AssertAssignableComp(Value* value, const AbstractType& type)
       : value_(value), type_(type) { }
 
-  virtual void Print() const;
+  DECLARE_COMPUTATION(AssertAssignable)
+
+  Value* value() const { return value_; }
+  const AbstractType& type() const { return type_; }
 
  private:
   Value* value_;
@@ -74,9 +143,15 @@ class AssertAssignableComp : public Computation {
 class InstanceCallComp : public Computation {
  public:
   InstanceCallComp(const char* name, ZoneGrowableArray<Value*>* arguments)
-      : name_(name), arguments_(arguments) { }
+      : name_(name), arguments_(arguments) {
+    ASSERT(!arguments->is_empty());
+  }
 
-  virtual void Print() const;
+  DECLARE_COMPUTATION(InstanceCall)
+
+  const char* name() const { return name_; }
+  int ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
 
  private:
   const char* name_;
@@ -93,7 +168,11 @@ class StrictCompareComp : public Computation {
     ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
   }
 
-  virtual void Print() const;
+  DECLARE_COMPUTATION(StrictCompare)
+
+  Token::Kind kind() const { return kind_; }
+  Value* left() const { return left_; }
+  Value* right() const { return right_; }
 
  private:
   const Token::Kind kind_;
@@ -111,7 +190,11 @@ class StaticCallComp : public Computation {
     ASSERT(function.IsZoneHandle());
   }
 
-  virtual void Print() const;
+  DECLARE_COMPUTATION(StaticCall)
+
+  const Function& function() const { return function_; }
+  int ArgumentCount() const { return arguments_->length(); }
+  Value* ArgumentAt(int index) const { return (*arguments_)[index]; }
 
  private:
   const Function& function_;
@@ -125,7 +208,9 @@ class LoadLocalComp : public Computation {
  public:
   explicit LoadLocalComp(const LocalVariable& local) : local_(local) { }
 
-  virtual void Print() const;
+  DECLARE_COMPUTATION(LoadLocal)
+
+  const LocalVariable& local() const { return local_; }
 
  private:
   const LocalVariable& local_;
@@ -139,7 +224,10 @@ class StoreLocalComp : public Computation {
   StoreLocalComp(const LocalVariable& local, Value* value)
       : local_(local), value_(value) { }
 
-  virtual void Print() const;
+  DECLARE_COMPUTATION(StoreLocal)
+
+  const LocalVariable& local() const { return local_; }
+  Value* value() const { return value_; }
 
  private:
   const LocalVariable& local_;
@@ -148,37 +236,7 @@ class StoreLocalComp : public Computation {
   DISALLOW_COPY_AND_ASSIGN(StoreLocalComp);
 };
 
-
-class TempValue : public Value {
- public:
-  explicit TempValue(intptr_t index) : index_(index) { }
-
-  virtual TempValue* AsTemp() { return this; }
-  virtual void Print() const;
-
- private:
-  intptr_t index_;
-
-  DISALLOW_COPY_AND_ASSIGN(TempValue);
-};
-
-
-class ConstantValue: public Value {
- public:
-  explicit ConstantValue(const Instance& instance) : instance_(instance) {
-    ASSERT(instance.IsZoneHandle());
-  }
-
-  virtual ConstantValue* AsConstant() { return this; }
-  virtual void Print() const;
-
-  const Instance& instance() const { return instance_; }
-
- private:
-  const Instance& instance_;
-
-  DISALLOW_COPY_AND_ASSIGN(ConstantValue);
-};
+#undef DECLARE_COMPUTATION
 
 
 // Instructions.
@@ -203,7 +261,6 @@ class ConstantValue: public Value {
 
 // Forward declarations for Instruction classes.
 class BlockEntryInstr;
-class InstructionVisitor;
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
@@ -211,7 +268,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION(type)                                              \
-  virtual Instruction* Accept(InstructionVisitor* visitor);                    \
+  virtual Instruction* Accept(FlowGraphVisitor* visitor);                      \
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
 
@@ -223,7 +280,7 @@ class Instruction : public ZoneAllocated {
   virtual bool IsBlockEntry() const { return false; }
 
   // Visiting support.
-  virtual Instruction* Accept(InstructionVisitor* visitor) = 0;
+  virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
 
   virtual void SetSuccessor(Instruction* instr) = 0;
   // Perform a postorder traversal of the instruction graph reachable from
@@ -421,22 +478,33 @@ class BranchInstr : public Instruction {
 #undef DECLARE_INSTRUCTION
 
 
-class InstructionVisitor {
+// Visitor base class to visit each instruction and computation in a flow
+// graph as defined by a reversed list of basic blocks.
+class FlowGraphVisitor : public ValueObject {
  public:
-  InstructionVisitor() { }
-  virtual ~InstructionVisitor() { }
+  FlowGraphVisitor() { }
+  virtual ~FlowGraphVisitor() { }
 
   // Visit each block in the array list in reverse, and for each block its
   // instructions in order from the block entry to exit.
   virtual void VisitBlocks(const GrowableArray<BlockEntryInstr*>& block_order);
 
-#define DECLARE_VISIT(type)                             \
-  virtual void Visit##type(type##Instr* instr) { }
-  FOR_EACH_INSTRUCTION(DECLARE_VISIT)
-#undef DECLARE_VISIT
+  // Visit functions for instruction and computation classes, with empty
+  // default implementations.
+#define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
+  virtual void Visit##ShortName(ClassName* comp) { }
+
+#define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
+  virtual void Visit##ShortName(ShortName##Instr* instr) { }
+
+  FOR_EACH_COMPUTATION(DECLARE_VISIT_COMPUTATION)
+  FOR_EACH_INSTRUCTION(DECLARE_VISIT_INSTRUCTION)
+
+#undef DECLARE_VISIT_COMPUTATION
+#undef DECLARE_VISIT_INSTRUCTION
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(InstructionVisitor);
+  DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);
 };
 
 
