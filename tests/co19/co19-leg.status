@@ -4,6 +4,12 @@
 
 prefix co19
 
+[ $component == leg && $system == macos ]
+LibTest/core/Math/acos_A01_t01: Fail
+LibTest/core/Math/asin_A01_t01: Fail
+LibTest/core/Math/atan_A01_t01: Fail
+
+
 [ $component == leg ]
 # These classes have been removed, co19 issue 79.
 LibTest/core/Dispatcher/*: Fail, OK
@@ -81,6 +87,8 @@ LibTest/core/int/isOdd_A01_t01: Fail, OK # Not in API.
 LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_left_shift_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_truncating_division_A01_t01: Fail, OK # Requires big int.
+
+
 LibTest/core/int/remainder_A01_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/remainder_A01_t02: Fail, OK # TODO(floitsch): Review.
 LibTest/core/int/toInt_A01_t01: Fail, OK # Requires big int.
