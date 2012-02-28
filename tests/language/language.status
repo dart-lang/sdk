@@ -141,7 +141,6 @@ AssertTest: Fail             # Uses AssertError class. Bug 4385894.
 CallOperatorTest: Pass # Issue 1355
 CharEscapeTest: Pass # Issue 1654
 Constructor3NegativeTest: Fail
-ConstructorNamedArgumentsTest/01: Fail # Issue 1872
 DefaultFactoryLibraryTest: Fail          # Issue 514
 DuplicateImplementsTest: Skip # Issue 976
 FunctionTypeAliasNegativeTest: Fail  # Bug 5231617.
