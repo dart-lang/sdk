@@ -399,7 +399,7 @@ class StandardTestSuite implements TestSuite {
     if (!pattern.hasMatch(filename)) return;
     if (filename.endsWith('test_config.dart')) return;
 
-    var optionsFromFile = optionsFromFile(filename);
+    var optionsFromFile = readOptionsFromFile(filename);
     Function createTestCase = makeTestCaseCreator(optionsFromFile);
 
     if (optionsFromFile['isMultitest']) {
@@ -726,13 +726,13 @@ class StandardTestSuite implements TestSuite {
     if (dartOptions == null) {
       args.add(filename);
     } else {
-      var filename = dartOptions[0];
+      var executable_name = dartOptions[0];
       // TODO(ager): Get rid of this hack when the runtime checkout goes away.
-      var file = new File(filename);
+      var file = new File(executable_name);
       if (!file.existsSync()) {
-        filename = '../$filename';
-        Expect.isTrue(new File(filename).existsSync());
-        dartOptions[0] = filename;
+        executable_name = '../$filename';
+        Expect.isTrue(new File(executable_name).existsSync());
+        dartOptions[0] = executable_name;
       }
       args.addAll(dartOptions);
     }
@@ -748,7 +748,7 @@ class StandardTestSuite implements TestSuite {
     return result;
   }
 
-  Map optionsFromFile(String filename) {
+  Map readOptionsFromFile(String filename) {
     RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
     RegExp multiTestRegExp = const RegExp(@"/// [0-9][0-9]:(.*)");
@@ -1061,21 +1061,21 @@ class TestUtils {
   }
 
   static String outputDir(Map configuration) {
-    var outputDir = '';
+    var result = '';
     var system = configuration['system'];
     if (system == 'linux') {
-      outputDir = 'out/';
+      result = 'out/';
     } else if (system == 'macos') {
-      outputDir = 'xcodebuild/';
+      result = 'xcodebuild/';
     }
-    return outputDir;
+    return result;
   }
 
   static String buildDir(Map configuration) {
-    var buildDir = outputDir(configuration);
-    buildDir += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
-    buildDir += configuration['arch'];
-    return buildDir;
+    var result = outputDir(configuration);
+    result += (configuration['mode'] == 'debug') ? 'Debug_' : 'Release_';
+    result += configuration['arch'];
+    return result;
   }
 
   static String dartDir() {
