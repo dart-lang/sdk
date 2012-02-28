@@ -23,9 +23,6 @@ class X {
   X.bar() : this(
                      1,  /// 01: runtime error
                      a: 2);
-  X.foobar() : this(1
-                     , a: 2 /// 02: runtime error
-                    );
   X.baz() : this(a: 1, b: 2);
   X.qux() : this(1, 2);
   X.hest() : this();
