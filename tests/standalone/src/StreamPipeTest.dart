@@ -97,18 +97,20 @@ class PipeServerGame {
           // Check that the resulting file is equal to the initial
           // file.
           bool result = compareFileContent(srcFileName, dstFileName);
-          new File(dstFileName).deleteSync();
-          tempDir.deleteSync();
-          Expect.isTrue(result);
+          fileOutput.closeHandler = () {
+            new File(dstFileName).deleteSync();
+            tempDir.deleteSync();
+            Expect.isTrue(result);
 
-          _socket.close();
+            _socket.close();
 
-          // Run this twice.
-          if (count++ < 2) {
-            runTest();
-          } else {
-            shutdown();
-          }
+            // Run this twice.
+            if (count++ < 2) {
+              runTest();
+            } else {
+              shutdown();
+            }
+          };
         };
 
         socketInput.pipe(fileOutput);
